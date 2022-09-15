@@ -1,0 +1,143 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider  = "prisma-client-py"
+  interface = "asyncio"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("ACCOUNTS_DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// USER RELATED MODELS
+// -----------------------------------------------------------------------------
+
+model User {
+  // Primary key
+  id String @id @default(uuid())
+
+  // Model fields
+  username   String    @db.VarChar(140)
+  email      String    @db.VarChar(140)
+  first_name String    @db.VarChar(140)
+  last_name  String    @db.VarChar(140)
+  created    DateTime  @default(now()) @db.Timestamptz(6)
+  updated    DateTime? @updatedAt @db.Timestamptz(6)
+
+  // Backward relationship fields
+  accounts Account?
+
+  // Db compatibility and extra maps
+  @@map("user")
+}
+
+model Application {
+  // Primary key
+  id String @id @default(uuid())
+
+  // Model fields
+  name        String @db.VarChar(140)
+  description String @db.VarChar(255)
+
+  // Backward relationship fields
+  user_roles UserRole[]
+
+  // Db compatibility and extra maps
+  @@map("application")
+}
+
+model UserRole {
+  // Primary key
+  id String @id @default(uuid())
+
+  // Model fields
+  name           String      @db.VarChar(140)
+  description    String?     @db.VarChar(255)
+  application    Application @relation(fields: [application_id], references: [id])
+  application_id String
+  permissions    Int[]
+
+  // Backward relationship fields
+  guest_users GuestUser[]
+
+  // Db compatibility and extra maps
+  @@map("user_role")
+}
+
+model GuestUser {
+  // Primary key
+  id String @id @default(uuid())
+
+  // Model fields
+  email   String
+  role    UserRole  @relation(fields: [role_id], references: [id])
+  role_id String
+  created DateTime  @default(now()) @db.Timestamptz(6)
+  updated DateTime? @updatedAt @db.Timestamptz(6)
+
+  // Backward relationship fields
+  account GuestUserOnAccount?
+
+  // Db compatibility and extra maps
+  @@unique([email, role_id])
+  @@map("guest_user")
+}
+
+// -----------------------------------------------------------------------------
+// ACCOUNT RELATED MODELS
+// -----------------------------------------------------------------------------
+
+model AccountType {
+  // Primary key
+  id String @id @default(uuid())
+
+  // Model fields
+  name         String  @db.VarChar(140)
+  description  String  @db.VarChar(255)
+  is_inspector Boolean @default(false)
+  is_editor    Boolean @default(false)
+  is_manager   Boolean @default(false)
+  is_superuser Boolean @default(false)
+
+  // Backward relationship fields
+  accounts Account[]
+
+  // Db compatibility and extra maps
+  @@map("account_type")
+}
+
+model Account {
+  // Primary key
+  id String @id @default(uuid())
+
+  // Model fields
+  owner           User        @relation(fields: [owner_id], references: [id])
+  owner_id        String      @unique
+  account_type    AccountType @relation(fields: [account_type_id], references: [id])
+  account_type_id String
+  created         DateTime    @default(now()) @db.Timestamptz(6)
+  updated         DateTime?   @updatedAt @db.Timestamptz(6)
+
+  // Backward relationship fields
+  guest_users GuestUserOnAccount[]
+
+  // Db compatibility and extra maps
+  @@map("account")
+}
+
+model GuestUserOnAccount {
+  // Model fields
+  guest_user    GuestUser @relation(fields: [guest_user_id], references: [id])
+  guest_user_id String
+  account       Account   @relation(fields: [account_id], references: [id])
+  account_id    String
+  created       DateTime  @default(now()) @db.Timestamptz(6)
+
+  // Db compatibility and extra maps
+  @@id([guest_user_id, account_id])
+  @@unique([guest_user_id, account_id])
+  @@map("guest_user_on_account")
+}
