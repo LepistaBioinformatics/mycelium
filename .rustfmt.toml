@@ -1,0 +1,4 @@
+max_width = 80
+binop_separator = "back"
+max_empty_line_to_keept = 1
+separate_definition_blocks = "always"
