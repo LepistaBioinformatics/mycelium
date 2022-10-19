@@ -1,8 +1,10 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UserDTO {
-    pub id: String,
+    pub id: Uuid,
 
     pub username: String,
     pub email: String,

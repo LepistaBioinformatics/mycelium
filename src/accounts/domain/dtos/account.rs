@@ -1,10 +1,16 @@
-use serde::{Deserialize, Serialize};
+use super::{
+    enums::{ChildrenEnum, ParentEnum},
+    guest::GuestUserDTO,
+    user::UserDTO,
+};
 
-use super::{guest::GuestUserDTO, user::UserDTO};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AccountTypeDTO {
-    pub id: String,
+    pub id: Uuid,
 
     pub name: String,
     pub description: String,
@@ -32,10 +38,11 @@ pub struct AccountTypeDTO {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AccountDTO {
-    pub id: String,
+    pub id: Uuid,
 
-    pub owner: UserDTO,
-    pub account_type: AccountTypeDTO,
-    pub guest_users: Vec<GuestUserDTO>,
+    pub owner: ParentEnum<Uuid, UserDTO>,
+    pub account_type: ParentEnum<Uuid, AccountTypeDTO>,
+    pub guest_users: ChildrenEnum<Uuid, GuestUserDTO>,
 }

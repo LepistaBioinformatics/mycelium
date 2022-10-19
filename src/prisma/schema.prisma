@@ -2,8 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider  = "prisma-client-py"
-  interface = "asyncio"
+  provider = "cargo prisma"
+  output   = "../account/prisma.rs"
 }
 
 datasource db {
@@ -79,7 +79,7 @@ model GuestUser {
   updated DateTime? @updatedAt @db.Timestamptz(6)
 
   // Backward relationship fields
-  account GuestUserOnAccount?
+  accounts GuestUserOnAccount[]
 
   // Db compatibility and extra maps
   @@unique([email, role_id])

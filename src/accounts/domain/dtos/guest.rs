@@ -1,8 +1,9 @@
+use super::{application::ApplicationDTO, enums::ParentEnum};
 use serde::{Deserialize, Serialize};
-
-use super::application::ApplicationDTO;
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum PermissionsType {
     View = 0,
     Create = 1,
@@ -11,19 +12,21 @@ pub enum PermissionsType {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UserRoleDTO {
-    pub id: String,
+    pub id: Uuid,
 
     pub name: String,
-    pub application: ApplicationDTO,
     pub description: String,
+    pub application: ParentEnum<Uuid, ApplicationDTO>,
     pub permissions: Vec<PermissionsType>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct GuestUserDTO {
-    pub id: String,
+    pub id: Uuid,
 
     pub email: String,
-    pub role: UserRoleDTO,
+    pub role: ParentEnum<Uuid, UserRoleDTO>,
 }

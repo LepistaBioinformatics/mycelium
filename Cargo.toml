@@ -1,5 +1,5 @@
 [package]
-name = "gc"
+name = "bioid"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,9 +7,11 @@ edition = "2021"
 
 [dependencies]
 async-trait = "0.1"
-serde = { version = "1.0", features = ["derive"] }
 env_logger = "0.9"
 log = "0.4"
+prisma-client-rust = { git = "https://github.com/Brendonovich/prisma-client-rust", tag = "0.6.2" }
+prisma-client-rust-cli = { git = "https://github.com/Brendonovich/prisma-client-rust", tag = "0.6.2" }
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 shaku = "0.6"
 shaku_actix = "0.2"
@@ -18,5 +20,5 @@ uuid = { version = "1.1", features = ["v4", "fast-rng", "macro-diagnostics"] }
 
 
 [lib]
-name = "gc"
+name = "bioid"
 path = "src/accounts/lib.rs"
