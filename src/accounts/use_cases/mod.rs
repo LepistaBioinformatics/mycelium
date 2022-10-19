@@ -1,5 +1,3 @@
-pub mod account;
-pub mod application;
-pub mod guest;
-pub mod profile;
-pub mod role;
+pub mod default_users;
+pub mod managers;
+pub mod staff;
