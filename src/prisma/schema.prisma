@@ -95,12 +95,10 @@ model AccountType {
   id String @id @default(uuid())
 
   // Model fields
-  name         String  @db.VarChar(140)
-  description  String  @db.VarChar(255)
-  is_inspector Boolean @default(false)
-  is_editor    Boolean @default(false)
-  is_manager   Boolean @default(false)
-  is_superuser Boolean @default(false)
+  name        String  @db.VarChar(140)
+  description String  @db.VarChar(255)
+  is_manager  Boolean @default(false)
+  is_staff    Boolean @default(false)
 
   // Backward relationship fields
   accounts Account[]
