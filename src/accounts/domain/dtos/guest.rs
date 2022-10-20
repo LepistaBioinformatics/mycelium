@@ -14,7 +14,7 @@ pub enum PermissionsType {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserRoleDTO {
-    pub id: Uuid,
+    pub id: Option<Uuid>,
 
     pub name: String,
     pub description: String,
@@ -25,7 +25,7 @@ pub struct UserRoleDTO {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GuestUserDTO {
-    pub id: Uuid,
+    pub id: Option<Uuid>,
 
     pub email: String,
     pub role: ParentEnum<Uuid, UserRoleDTO>,

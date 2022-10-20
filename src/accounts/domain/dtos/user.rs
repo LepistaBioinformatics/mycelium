@@ -4,7 +4,7 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserDTO {
-    pub id: Uuid,
+    pub id: Option<Uuid>,
 
     pub username: String,
     pub email: String,

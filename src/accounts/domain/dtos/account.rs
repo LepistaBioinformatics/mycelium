@@ -10,7 +10,7 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountTypeDTO {
-    pub id: Uuid,
+    pub id: Option<Uuid>,
 
     pub name: String,
     pub description: String,
@@ -29,9 +29,59 @@ pub struct AccountTypeDTO {
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountDTO {
-    pub id: Uuid,
+    pub id: Option<Uuid>,
 
     pub owner: ParentEnum<Uuid, UserDTO>,
     pub account_type: ParentEnum<Uuid, AccountTypeDTO>,
     pub guest_users: ChildrenEnum<Uuid, GuestUserDTO>,
+}
+
+impl AccountDTO {
+    pub fn build_owner_url(&self, base_url: String) -> Result<String, ()> {
+        match self.owner.to_owned() {
+            ParentEnum::Id(id) => Ok(format!("{}/{}", base_url, id)),
+            ParentEnum::Record(record) => match record.id {
+                Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
+                None => Err(()),
+            },
+        }
+    }
+
+    pub fn build_account_type_url(
+        &self,
+        base_url: String,
+    ) -> Result<String, ()> {
+        match self.account_type.to_owned() {
+            ParentEnum::Id(id) => Ok(format!("{}/{}", base_url, id)),
+            ParentEnum::Record(record) => match record.id {
+                Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
+                None => Err(()),
+            },
+        }
+    }
+
+    pub fn build_guest_users_url(
+        &self,
+        base_url: String,
+    ) -> Result<Vec<String>, ()> {
+        match self.guest_users.to_owned() {
+            ChildrenEnum::Ids(ids) => Ok(ids
+                .iter()
+                .map(|id| format!("{}/{}", base_url, id))
+                .collect()),
+            ChildrenEnum::Records(records) => {
+                let urls = records
+                    .iter()
+                    .filter_map(|record| match record.id {
+                        None => None,
+                        Some(_) => {
+                            Some(format!("{}/{}", base_url, record.id.unwrap()))
+                        }
+                    })
+                    .collect();
+
+                Ok(urls)
+            }
+        }
+    }
 }
