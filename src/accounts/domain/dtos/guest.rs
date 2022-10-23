@@ -22,6 +22,21 @@ pub struct UserRoleDTO {
     pub permissions: Vec<PermissionsType>,
 }
 
+impl UserRoleDTO {
+    pub fn build_application_url(
+        &self,
+        base_url: String,
+    ) -> Result<String, ()> {
+        match self.application.to_owned() {
+            ParentEnum::Id(id) => Ok(format!("{}/{}", base_url, id)),
+            ParentEnum::Record(record) => match record.id {
+                Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
+                None => Err(()),
+            },
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GuestUserDTO {
@@ -29,4 +44,16 @@ pub struct GuestUserDTO {
 
     pub email: String,
     pub role: ParentEnum<Uuid, UserRoleDTO>,
+}
+
+impl GuestUserDTO {
+    pub fn build_role_url(&self, base_url: String) -> Result<String, ()> {
+        match self.role.to_owned() {
+            ParentEnum::Id(id) => Ok(format!("{}/{}", base_url, id)),
+            ParentEnum::Record(record) => match record.id {
+                Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
+                None => Err(()),
+            },
+        }
+    }
 }
