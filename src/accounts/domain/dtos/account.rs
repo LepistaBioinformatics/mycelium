@@ -33,7 +33,7 @@ pub struct AccountDTO {
 
     pub owner: ParentEnum<Uuid, UserDTO>,
     pub account_type: ParentEnum<Uuid, AccountTypeDTO>,
-    pub guest_users: ChildrenEnum<Uuid, GuestUserDTO>,
+    pub guest_users: Option<ChildrenEnum<Uuid, GuestUserDTO>>,
 }
 
 impl AccountDTO {
@@ -41,8 +41,8 @@ impl AccountDTO {
         match self.owner.to_owned() {
             ParentEnum::Id(id) => Ok(format!("{}/{}", base_url, id)),
             ParentEnum::Record(record) => match record.id {
+                None => Ok(base_url),
                 Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
-                None => Err(()),
             },
         }
     }
@@ -54,8 +54,8 @@ impl AccountDTO {
         match self.account_type.to_owned() {
             ParentEnum::Id(id) => Ok(format!("{}/{}", base_url, id)),
             ParentEnum::Record(record) => match record.id {
+                None => Ok(base_url),
                 Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
-                None => Err(()),
             },
         }
     }
@@ -65,23 +65,77 @@ impl AccountDTO {
         base_url: String,
     ) -> Result<Vec<String>, ()> {
         match self.guest_users.to_owned() {
-            ChildrenEnum::Ids(ids) => Ok(ids
-                .iter()
-                .map(|id| format!("{}/{}", base_url, id))
-                .collect()),
-            ChildrenEnum::Records(records) => {
-                let urls = records
+            None => Err(()),
+            Some(records) => match records {
+                ChildrenEnum::Ids(ids) => Ok(ids
                     .iter()
-                    .filter_map(|record| match record.id {
-                        None => None,
-                        Some(_) => {
-                            Some(format!("{}/{}", base_url, record.id.unwrap()))
-                        }
-                    })
-                    .collect();
+                    .map(|id| format!("{}/{}", base_url, id))
+                    .collect()),
+                ChildrenEnum::Records(records) => {
+                    let urls = records
+                        .iter()
+                        .filter_map(|record| match record.id {
+                            None => Some(base_url.to_owned()),
+                            Some(_) => Some(format!(
+                                "{}/{}",
+                                base_url,
+                                record.id.unwrap()
+                            )),
+                        })
+                        .collect();
 
-                Ok(urls)
-            }
+                    Ok(urls)
+                }
+            },
         }
+    }
+}
+
+// ? --------------------------------------------------------------------------
+// ? TESTS
+// ? --------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_if_account_works() {
+        let base_url = "http://local.host/accounts".to_string();
+
+        let account_type = AccountTypeDTO {
+            id: None,
+            name: "".to_string(),
+            description: "".to_string(),
+            is_manager: None,
+            is_staff: None,
+        };
+
+        let user = UserDTO {
+            id: None,
+            username: "username".to_string(),
+            email: "username@email.domain".to_string(),
+            first_name: "first_name".to_string(),
+            last_name: "last_name".to_string(),
+        };
+
+        let account = AccountDTO {
+            id: None,
+            owner: ParentEnum::Record(user),
+            account_type: ParentEnum::Record(account_type),
+            guest_users: None,
+        };
+
+        println!("{:?}", account.build_account_type_url(base_url.to_owned()));
+
+        assert_eq!(
+            account.build_account_type_url(base_url.to_owned()).is_ok(),
+            true
+        );
+
+        assert_eq!(
+            account.build_account_type_url(base_url.to_owned()).unwrap(),
+            base_url.to_owned()
+        );
     }
 }
