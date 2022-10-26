@@ -18,12 +18,12 @@ pub struct AccountTypeDTO {
     /// Manager accounts allow their guest users to walking through specific
     /// accounts aiming to verify records irregularities and perform editions
     /// and deletions if necessary.
-    pub is_manager: Option<bool>,
+    pub is_manager: bool,
 
     /// Superuser accounts allow their guest users to walking through specific
     /// accounts aiming to verify records irregularities and perform editions
     /// and deletions if necessary. Such users can perform mass deletions.
-    pub is_staff: Option<bool>,
+    pub is_staff: bool,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -101,14 +101,14 @@ mod tests {
 
     #[test]
     fn test_if_account_works() {
-        let base_url = "http://local.host/accounts".to_string();
+        let base_url = "http://local.host/api/v1/accounts".to_string();
 
         let account_type = AccountTypeDTO {
             id: None,
             name: "".to_string(),
             description: "".to_string(),
-            is_manager: None,
-            is_staff: None,
+            is_manager: false,
+            is_staff: false,
         };
 
         let user = UserDTO {
