@@ -23,30 +23,30 @@ pub enum FetchManyResponse<T, U> {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub enum CreateResponse<T, U> {
+pub enum CreateResponse<T> {
     Created(T),
-    NotCreated(U, String),
+    NotCreated(T, String),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub enum CreateManyResponse<T, U> {
+pub enum CreateManyResponse<T> {
     Created(Vec<T>),
-    NotCreated(Vec<U>, String),
+    NotCreated(Vec<T>, String),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub enum GetOrCreateResponse<T, U> {
+pub enum GetOrCreateResponse<T> {
     Created(T),
-    NotCreated(U, Option<String>),
+    NotCreated(T, Option<String>),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub enum UpdateResponse<T, U> {
+pub enum UpdateResponse<T> {
     Updated(T),
-    NotUpdated(U, Option<String>),
+    NotUpdated(T, Option<String>),
 }
 
 #[derive(Debug, Serialize, Deserialize)]

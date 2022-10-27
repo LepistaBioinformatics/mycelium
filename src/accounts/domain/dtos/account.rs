@@ -117,8 +117,8 @@ mod tests {
             username: "username".to_string(),
             email: EmailDTO::from_string("username@email.domain".to_string())
                 .unwrap(),
-            first_name: "first_name".to_string(),
-            last_name: "last_name".to_string(),
+            first_name: Some("first_name".to_string()),
+            last_name: Some("last_name".to_string()),
         };
 
         let account = AccountDTO {

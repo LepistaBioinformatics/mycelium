@@ -1,6 +1,7 @@
 use crate::domain::{
     dtos::application::ApplicationDTO,
     entities::shared::default_responses::{FetchManyResponse, FetchResponse},
+    utils::errors::MappedErrors,
 };
 
 use async_trait::async_trait;
@@ -13,5 +14,5 @@ pub trait ApplicationFetching: Interface + Send + Sync {
     async fn list(
         &self,
         search_term: String,
-    ) -> FetchManyResponse<ApplicationDTO, Uuid>;
+    ) -> Result<FetchManyResponse<ApplicationDTO, Uuid>, MappedErrors>;
 }
