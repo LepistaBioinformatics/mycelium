@@ -1,4 +1,4 @@
-pub mod app_deletion;
-pub mod app_fetching;
-pub mod app_registration;
-pub mod app_updating;
+pub mod application_deletion;
+pub mod application_fetching;
+pub mod application_registration;
+pub mod application_updating;

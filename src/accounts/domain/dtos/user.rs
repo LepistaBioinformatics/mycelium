@@ -10,6 +10,6 @@ pub struct UserDTO {
 
     pub username: String,
     pub email: EmailDTO,
-    pub first_name: String,
-    pub last_name: String,
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
 }
