@@ -1,3 +1,5 @@
+use super::email::EmailDTO;
+
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -7,7 +9,7 @@ pub struct UserDTO {
     pub id: Option<Uuid>,
 
     pub username: String,
-    pub email: String,
+    pub email: EmailDTO,
     pub first_name: String,
     pub last_name: String,
 }
