@@ -98,6 +98,7 @@ impl AccountDTO {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::domain::dtos::email::EmailDTO;
 
     #[test]
     fn test_if_account_works() {
@@ -114,7 +115,8 @@ mod tests {
         let user = UserDTO {
             id: None,
             username: "username".to_string(),
-            email: "username@email.domain".to_string(),
+            email: EmailDTO::from_str("username@email.domain".to_string())
+                .unwrap(),
             first_name: "first_name".to_string(),
             last_name: "last_name".to_string(),
         };

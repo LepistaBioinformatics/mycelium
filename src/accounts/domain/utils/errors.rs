@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug)]
 pub struct MappedErrors {
-    msg: &'static str,
+    msg: String,
 }
 
 impl Display for MappedErrors {
@@ -12,7 +12,11 @@ impl Display for MappedErrors {
 }
 
 impl MappedErrors {
-    pub fn new(msg: &'static str, exp: Option<bool>, prev: Option<MappedErrors>) -> MappedErrors {
+    pub fn new(
+        msg: String,
+        exp: Option<bool>,
+        prev: Option<MappedErrors>,
+    ) -> MappedErrors {
         if !exp.unwrap_or(true) {
             panic!("Unexpected error: {}", &msg);
         }
