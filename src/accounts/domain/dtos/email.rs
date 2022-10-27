@@ -11,7 +11,7 @@ pub struct EmailDTO {
 }
 
 impl EmailDTO {
-    pub fn from_str(email: String) -> Result<EmailDTO, MappedErrors> {
+    pub fn from_string(email: String) -> Result<EmailDTO, MappedErrors> {
         let re = Regex::new(
             r"^([a-z0-9_+]([a-z0-9_+.]*[a-z0-9_+])?)@([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6})"
         ).unwrap();
@@ -29,7 +29,7 @@ impl EmailDTO {
             Some(val) => val.as_str().to_string(),
         };
 
-        let domain = match cap.get(2) {
+        let domain = match cap.get(3) {
             None => {
                 return Err(MappedErrors::new(
                     "".to_string(),
@@ -41,5 +41,37 @@ impl EmailDTO {
         };
 
         Ok(EmailDTO { username, domain })
+    }
+
+    pub fn get_email(&self) -> String {
+        format!("{}@{}", self.username, self.domain)
+    }
+}
+
+// ? --------------------------------------------------------------------------
+// ? TESTS
+// ? --------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_email_works() {
+        let email_string = "sgelias@outlook.com".to_string();
+
+        let email = EmailDTO::from_string(email_string.to_owned()).unwrap();
+
+        assert_eq!(email.username, "sgelias".to_string());
+        assert_eq!(email.domain, "outlook.com".to_string());
+    }
+
+    #[test]
+    fn test_get_email_works() {
+        let email_string = "sgelias@outlook.com".to_string();
+
+        let email = EmailDTO::from_string(email_string.to_owned()).unwrap();
+
+        assert_eq!(email.get_email(), email_string);
     }
 }

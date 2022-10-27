@@ -115,7 +115,7 @@ mod tests {
         let user = UserDTO {
             id: None,
             username: "username".to_string(),
-            email: EmailDTO::from_str("username@email.domain".to_string())
+            email: EmailDTO::from_string("username@email.domain".to_string())
                 .unwrap(),
             first_name: "first_name".to_string(),
             last_name: "last_name".to_string(),
