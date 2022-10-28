@@ -2,6 +2,7 @@ use crate::domain::{
     dtos::{
         enums::ParentEnum,
         guest::{PermissionsType, UserRoleDTO},
+        profile::ProfileDTO,
     },
     entities::{
         manager::user_role_registration::UserRoleRegistration,
@@ -21,6 +22,7 @@ use uuid::Uuid;
 /// permission (level zero) for the `Movie` application. Thus, the role name
 /// should be: "Movie Viewers".
 pub async fn create_role(
+    profile: ProfileDTO,
     name: String,
     description: String,
     application: Uuid,
@@ -35,6 +37,20 @@ pub async fn create_role(
     // ? ----------------------------------------------------------------------
 
     let permissions = permissions.unwrap_or(vec![PermissionsType::View]);
+
+    // ? ----------------------------------------------------------------------
+    // ? Check if the current account has sufficient privileges to create role
+    // ? ----------------------------------------------------------------------
+
+    if !profile.is_manager {
+        return Err(MappedErrors::new(
+            "The current user has no sufficient privileges to register new 
+            roles."
+                .to_string(),
+            Some(true),
+            None,
+        ));
+    }
 
     // ? ----------------------------------------------------------------------
     // ? Persist UserRole
