@@ -1,4 +1,6 @@
-use super::{application::ApplicationDTO, enums::ParentEnum};
+use super::{
+    account::AccountDTO, application::ApplicationDTO, enums::ParentEnum,
+};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -20,6 +22,7 @@ pub struct UserRoleDTO {
     pub description: String,
     pub application: ParentEnum<Uuid, ApplicationDTO>,
     pub permissions: Vec<PermissionsType>,
+    pub account: ParentEnum<Uuid, AccountDTO>,
 }
 
 impl UserRoleDTO {
