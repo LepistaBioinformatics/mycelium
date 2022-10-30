@@ -6,11 +6,12 @@ use crate::domain::{
 
 use async_trait::async_trait;
 use shaku::Interface;
+use uuid::Uuid;
 
 #[async_trait]
 pub trait UserRoleDeletion: Interface + Send + Sync {
     async fn delete(
         &self,
-        user_role: UserRoleDTO,
+        user_role_id: Uuid,
     ) -> Result<DeleteResponse<UserRoleDTO>, MappedErrors>;
 }
