@@ -1,4 +1,4 @@
-use crate::domain::utils::errors::MappedErrors;
+use crate::domain::utils::errors::{invalid_arg_err, MappedErrors};
 
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -20,8 +20,8 @@ impl EmailDTO {
 
         let username = match cap.get(1) {
             None => {
-                return Err(MappedErrors::new(
-                    "".to_string(),
+                return Err(invalid_arg_err(
+                    "Invalid Email username.".to_string(),
                     Some(true),
                     None,
                 ));
@@ -31,8 +31,8 @@ impl EmailDTO {
 
         let domain = match cap.get(3) {
             None => {
-                return Err(MappedErrors::new(
-                    "".to_string(),
+                return Err(invalid_arg_err(
+                    "Invalid Email domain.".to_string(),
                     Some(true),
                     None,
                 ));
