@@ -8,7 +8,7 @@ use crate::domain::{
         manager::user_role_registration::UserRoleRegistration,
         shared::default_responses::GetOrCreateResponse,
     },
-    utils::errors::MappedErrors,
+    utils::errors::{use_case_err, MappedErrors},
 };
 
 use uuid::Uuid;
@@ -43,7 +43,7 @@ pub async fn create_role(
     // ? ----------------------------------------------------------------------
 
     if !profile.is_manager {
-        return Err(MappedErrors::new(
+        return Err(use_case_err(
             "The current user has no sufficient privileges to register new 
             roles."
                 .to_string(),

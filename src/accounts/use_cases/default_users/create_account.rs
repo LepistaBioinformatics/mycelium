@@ -12,7 +12,7 @@ use crate::{
             manager::account_type_registration::AccountTypeRegistration,
             shared::default_responses::GetOrCreateResponse,
         },
-        utils::errors::MappedErrors,
+        utils::errors::{use_case_err, MappedErrors},
     },
     use_cases::shared::get_or_create_default_account_type::get_or_create_default_account_type,
 };
@@ -81,7 +81,7 @@ pub async fn create_account(
         Err(err) => return Err(err),
         Ok(res) => match res {
             GetOrCreateResponse::NotCreated(user, msg) => {
-                return Err(MappedErrors::new(
+                return Err(use_case_err(
                     format!(
                         "Unexpected error on persist user ({}): {}",
                         user.username,

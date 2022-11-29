@@ -10,7 +10,7 @@ use crate::domain::{
         },
         shared::default_responses::{FetchResponse, UpdateResponse},
     },
-    utils::errors::MappedErrors,
+    utils::errors::{use_case_err, MappedErrors},
 };
 
 use uuid::Uuid;
@@ -37,7 +37,7 @@ pub async fn update_role_permissions(
     // ? ----------------------------------------------------------------------
 
     if !profile.is_manager {
-        return Err(MappedErrors::new(
+        return Err(use_case_err(
             "Only manager user could perform such operation.".to_string(),
             Some(true),
             None,
@@ -52,7 +52,7 @@ pub async fn update_role_permissions(
         Err(err) => return Err(err),
         Ok(res) => match res {
             FetchResponse::NotFound(id, msg) => {
-                return Err(MappedErrors::new(
+                return Err(use_case_err(
                     format!(
                         "Unable to update record ({}): {}",
                         id,

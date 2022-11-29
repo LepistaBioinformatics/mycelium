@@ -4,7 +4,7 @@ use crate::domain::{
         manager::user_role_deletion::UserRoleDeletion,
         shared::default_responses::DeleteResponse,
     },
-    utils::errors::MappedErrors,
+    utils::errors::{use_case_err, MappedErrors},
 };
 
 use uuid::Uuid;
@@ -23,7 +23,7 @@ pub async fn delete_role(
     // ? ----------------------------------------------------------------------
 
     if !profile.is_manager {
-        return Err(MappedErrors::new(
+        return Err(use_case_err(
             "Only manager user could perform such operation.".to_string(),
             Some(true),
             None,
