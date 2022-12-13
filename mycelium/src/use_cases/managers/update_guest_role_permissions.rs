@@ -1,24 +1,30 @@
 use crate::domain::{
-    dtos::{guest::GuestRoleDTO, profile::ProfileDTO},
+    dtos::{
+        guest::{GuestRoleDTO, PermissionsType},
+        profile::ProfileDTO,
+    },
     entities::{
-        manager::{
-            guest_role_fetching::GuestRoleFetching,
-            guest_role_updating::GuestRoleUpdating,
-        },
+        manager::guest_role_updating::GuestRoleUpdating,
         shared::default_responses::{FetchResponse, UpdateResponse},
+        shared::guest_role_fetching::GuestRoleFetching,
     },
     utils::errors::{use_case_err, MappedErrors},
 };
 
 use uuid::Uuid;
 
-/// This function allows only the update of name and description attributes of
-/// a single role.
-pub async fn update_guest_role_name_and_description(
+pub enum ActionType {
+    Upgrade,
+    Downgrade,
+}
+
+/// This function allow users to include or remove permission from a single
+/// role. Only manager users should perform such action.
+pub async fn update_guest_role_permissions(
     profile: ProfileDTO,
-    name: Option<String>,
-    description: Option<String>,
     role_id: Uuid,
+    permission: PermissionsType,
+    action_type: ActionType,
     role_fetching_repo: Box<&dyn GuestRoleFetching>,
     role_updating_repo: Box<&dyn GuestRoleUpdating>,
 ) -> Result<UpdateResponse<GuestRoleDTO>, MappedErrors> {
@@ -59,15 +65,21 @@ pub async fn update_guest_role_name_and_description(
     };
 
     // ? ----------------------------------------------------------------------
-    // ? Update value of fetched object
+    // ? Update permissions
     // ? ----------------------------------------------------------------------
 
-    if name.is_some() {
-        user_role.name = name.unwrap();
-    };
+    let mut updated_permissions = user_role.to_owned().permissions;
 
-    if description.is_some() {
-        user_role.description = description.unwrap();
+    user_role.permissions = match action_type {
+        ActionType::Upgrade => {
+            updated_permissions.push(permission);
+            updated_permissions.dedup();
+            updated_permissions
+        }
+        ActionType::Downgrade => {
+            updated_permissions.retain(|perm| *perm != permission);
+            updated_permissions
+        }
     };
 
     // ? ----------------------------------------------------------------------

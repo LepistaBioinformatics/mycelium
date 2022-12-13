@@ -1,2 +1,7 @@
+# Rust related
 /target
 /Cargo.lock
+
+# Environment related
+.env
+postgres/volume
