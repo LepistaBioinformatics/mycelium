@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 /// This function deletes a single role. Only manager user could execute such
 /// operation.
-pub async fn delete_role(
+pub async fn delete_guest_role(
     profile: ProfileDTO,
     role_id: Uuid,
     role_deletion_repo: Box<&dyn UserRoleDeletion>,

@@ -21,11 +21,11 @@ use uuid::Uuid;
 /// of a single application. Thus, the role should include only the `View`
 /// permission (level zero) for the `Movie` application. Thus, the role name
 /// should be: "Movie Viewers".
-pub async fn create_role(
+pub async fn create_guest_role(
     profile: ProfileDTO,
     name: String,
     description: String,
-    application: Uuid,
+    role: Uuid,
     permissions: Option<Vec<PermissionsType>>,
     role_registration_repo: Box<&dyn UserRoleRegistration>,
 ) -> Result<GetOrCreateResponse<GuestRoleDTO>, MappedErrors> {
@@ -61,7 +61,7 @@ pub async fn create_role(
             id: None,
             name,
             description,
-            role: ParentEnum::Id(application),
+            role: ParentEnum::Id(role),
             permissions,
             account: ParentEnum::Id(profile.account),
         })
