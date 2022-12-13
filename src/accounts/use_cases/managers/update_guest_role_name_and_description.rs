@@ -2,8 +2,8 @@ use crate::domain::{
     dtos::{guest::GuestRoleDTO, profile::ProfileDTO},
     entities::{
         manager::{
-            user_role_fetching::UserRoleFetching,
-            user_role_updating::UserRoleUpdating,
+            guest_role_fetching::GuestRoleFetching,
+            guest_role_updating::GuestRoleUpdating,
         },
         shared::default_responses::{FetchResponse, UpdateResponse},
     },
@@ -19,8 +19,8 @@ pub async fn update_guest_role_name_and_description(
     name: Option<String>,
     description: Option<String>,
     role_id: Uuid,
-    role_fetching_repo: Box<&dyn UserRoleFetching>,
-    role_updating_repo: Box<&dyn UserRoleUpdating>,
+    role_fetching_repo: Box<&dyn GuestRoleFetching>,
+    role_updating_repo: Box<&dyn GuestRoleUpdating>,
 ) -> Result<UpdateResponse<GuestRoleDTO>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Check the profile permissions

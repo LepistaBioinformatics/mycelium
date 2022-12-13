@@ -10,7 +10,7 @@ use async_trait::async_trait;
 use shaku::Interface;
 
 #[async_trait]
-pub trait UserRoleRegistration: Interface + Send + Sync {
+pub trait GuestRoleRegistration: Interface + Send + Sync {
     async fn get_or_create(
         &self,
         user_role: GuestRoleDTO,
