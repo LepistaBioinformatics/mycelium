@@ -24,6 +24,7 @@ pub struct AccountDTO {
     pub id: Option<Uuid>,
 
     pub name: String,
+    pub is_active: bool,
     pub owner: ParentEnum<UserDTO, Uuid>,
     pub account_type: ParentEnum<AccountTypeDTO, Uuid>,
     pub guest_users: Option<ChildrenEnum<GuestUserDTO, Uuid>>,
@@ -124,6 +125,7 @@ mod tests {
         let account = AccountDTO {
             id: None,
             name: String::from("Account Name"),
+            is_active: true,
             owner: ParentEnum::Record(user),
             account_type: ParentEnum::Record(account_type),
             guest_users: None,

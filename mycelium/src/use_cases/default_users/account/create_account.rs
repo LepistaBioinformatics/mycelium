@@ -2,11 +2,9 @@ use crate::{
     domain::{
         dtos::{account::AccountDTO, email::EmailDTO, user::UserDTO},
         entities::{
-            default_users::{
-                account_registration::AccountRegistration,
-                user_registration::UserRegistration,
-            },
+            default_users::user_registration::UserRegistration,
             manager::account_type_registration::AccountTypeRegistration,
+            shared::account::account_registration::AccountRegistration,
         },
     },
     use_cases::shared::account_type::get_or_create_default_account_type::get_or_create_default_account_type,
@@ -35,7 +33,7 @@ pub async fn create_account(
     // ? Build and validate email
     //
     // Build the EmailDTO object, case an error is returned, the email is
-    // possibly invalid. ?
+    // possibly invalid.
     // ? -----------------------------------------------------------------------
 
     let email_instance = match EmailDTO::from_string(email) {
@@ -111,6 +109,7 @@ pub async fn create_account(
         .get_or_create(AccountDTO {
             id: None,
             name: account_name,
+            is_active: true,
             owner: ParentEnum::Record(user),
             account_type: ParentEnum::Record(account_type),
             guest_users: None,

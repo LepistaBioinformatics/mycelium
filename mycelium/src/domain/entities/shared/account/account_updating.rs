@@ -8,7 +8,7 @@ use async_trait::async_trait;
 use shaku::Interface;
 
 #[async_trait]
-pub trait UserUpdating: Interface + Send + Sync {
+pub trait AccountUpdating: Interface + Send + Sync {
     async fn update(
         &self,
         account: AccountDTO,
