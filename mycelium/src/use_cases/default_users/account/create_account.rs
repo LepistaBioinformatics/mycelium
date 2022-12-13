@@ -110,6 +110,7 @@ pub async fn create_account(
             id: None,
             name: account_name,
             is_active: true,
+            is_checked: false,
             owner: ParentEnum::Record(user),
             account_type: ParentEnum::Record(account_type),
             guest_users: None,
