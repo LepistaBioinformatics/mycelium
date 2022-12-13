@@ -8,7 +8,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("ACCOUNTS_DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 // -----------------------------------------------------------------------------
@@ -46,7 +46,7 @@ model Role {
   user_roles GuestRole[]
 
   // Db compatibility and extra maps
-  @@map("application")
+  @@map("role")
 }
 
 model GuestRole {
@@ -95,10 +95,11 @@ model AccountType {
   id String @id @default(uuid())
 
   // Model fields
-  name        String  @db.VarChar(140)
-  description String  @db.VarChar(255)
-  is_manager  Boolean @default(false)
-  is_staff    Boolean @default(false)
+  name            String  @db.VarChar(128)
+  description     String  @db.VarChar(255)
+  is_subscription Boolean @default(false)
+  is_manager      Boolean @default(false)
+  is_staff        Boolean @default(false)
 
   // Backward relationship fields
   accounts Account[]
@@ -112,6 +113,7 @@ model Account {
   id String @id @default(uuid())
 
   // Model fields
+  name            String
   owner           User        @relation(fields: [owner_id], references: [id])
   owner_id        String      @unique
   account_type    AccountType @relation(fields: [account_type_id], references: [id])

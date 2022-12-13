@@ -1,0 +1,39 @@
+version: "3"
+
+# ? ----------------------------------------------------------------------------
+# ? NETWORK DEFINITION
+# ? ----------------------------------------------------------------------------
+networks:
+  bio_archive_net:
+    ipam:
+      config:
+        - subnet: ${SERVICES_SUBNET}
+
+# ? ----------------------------------------------------------------------------
+# ? SERVICES DEFINITION
+# ? ----------------------------------------------------------------------------
+services:
+
+  # ? --------------------------------------------------------------------------
+  # ? DATABASES
+  # ? --------------------------------------------------------------------------
+  bio_archive_postgres:
+    container_name: bio-archive-postgres
+    image: 'postgres:12'
+    restart: on-failure
+    environment:
+      - POSTGRES_USERNAME=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - ${POSTGRES_SERVICE_PORT}:5432/tcp
+    volumes:
+      - ./postgres/volume:/var/lib/postgresql/data
+      - ./postgres/sql/create_databases.sql:/docker-entrypoint-initdb.d/create_databases.sql:cached
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      bio_archive_net:
+        ipv4_address: ${POSTGRES_SERVICE_SUBNET}
