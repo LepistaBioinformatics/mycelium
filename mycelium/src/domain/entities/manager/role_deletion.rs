@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use shaku::Interface;
 
 #[async_trait]
-pub trait ApplicationDeletion: Interface + Send + Sync {
+pub trait RoleDeletion: Interface + Send + Sync {
     async fn delete(
         &self,
         application: RoleDTO,

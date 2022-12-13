@@ -17,6 +17,8 @@ use crate::{
     use_cases::shared::account_type::get_or_create_default_account_type::get_or_create_default_account_type,
 };
 
+use chrono::Local;
+
 /// This function are called when a new user start into the system. The
 /// account-creation method also insert a new user into the database and set
 /// the default role as `default-user`.
@@ -76,6 +78,8 @@ pub async fn create_account(
             email: email_instance,
             first_name,
             last_name,
+            created: Local::now(),
+            updated: Local::now(),
         })
         .await
     {
@@ -109,6 +113,8 @@ pub async fn create_account(
             owner: ParentEnum::Record(user),
             account_type: ParentEnum::Record(account_type),
             guest_users: None,
+            created: Local::now(),
+            updated: Local::now(),
         })
         .await
 }

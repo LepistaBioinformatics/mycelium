@@ -3,7 +3,7 @@
 
 generator client {
   provider = "cargo prisma"
-  output   = "../account/prisma.rs"
+  output   = "./prisma.rs"
 }
 
 datasource db {
@@ -54,17 +54,17 @@ model GuestRole {
   id String @id @default(uuid())
 
   // Model fields
-  name           String  @db.VarChar(140)
-  description    String? @db.VarChar(255)
-  role           Role    @relation(fields: [application_id], references: [id])
-  application_id String
-  permissions    Int[]
+  name        String  @db.VarChar(140)
+  description String? @db.VarChar(255)
+  role        Role    @relation(fields: [role_id], references: [id])
+  role_id     String
+  permissions Int[]
 
   // Backward relationship fields
   guest_users GuestUser[]
 
   // Db compatibility and extra maps
-  @@map("user_role")
+  @@map("guest_role")
 }
 
 model GuestUser {

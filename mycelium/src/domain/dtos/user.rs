@@ -1,5 +1,6 @@
 use super::email::EmailDTO;
 
+use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -12,4 +13,6 @@ pub struct UserDTO {
     pub email: EmailDTO,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
+    pub created: DateTime<Local>,
+    pub updated: DateTime<Local>,
 }
