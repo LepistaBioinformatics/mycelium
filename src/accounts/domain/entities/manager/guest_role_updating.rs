@@ -8,7 +8,7 @@ use async_trait::async_trait;
 use shaku::Interface;
 
 #[async_trait]
-pub trait UserRoleUpdating: Interface + Send + Sync {
+pub trait GuestRoleUpdating: Interface + Send + Sync {
     async fn update(
         &self,
         user_role: GuestRoleDTO,

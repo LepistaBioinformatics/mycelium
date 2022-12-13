@@ -9,7 +9,7 @@ use shaku::Interface;
 use uuid::Uuid;
 
 #[async_trait]
-pub trait UserRoleFetching: Interface + Send + Sync {
+pub trait GuestRoleFetching: Interface + Send + Sync {
     async fn get(
         &self,
         id: Uuid,

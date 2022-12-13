@@ -5,7 +5,7 @@ use crate::domain::{
         profile::ProfileDTO,
     },
     entities::{
-        manager::user_role_registration::UserRoleRegistration,
+        manager::guest_role_registration::GuestRoleRegistration,
         shared::default_responses::GetOrCreateResponse,
     },
     utils::errors::{use_case_err, MappedErrors},
@@ -27,7 +27,7 @@ pub async fn create_guest_role(
     description: String,
     role: Uuid,
     permissions: Option<Vec<PermissionsType>>,
-    role_registration_repo: Box<&dyn UserRoleRegistration>,
+    role_registration_repo: Box<&dyn GuestRoleRegistration>,
 ) -> Result<GetOrCreateResponse<GuestRoleDTO>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Collect permissions
@@ -45,7 +45,7 @@ pub async fn create_guest_role(
     if !profile.is_manager {
         return Err(use_case_err(
             "The current user has no sufficient privileges to register new 
-            roles."
+            guest-roles."
                 .to_string(),
             Some(true),
             None,

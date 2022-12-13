@@ -1,7 +1,7 @@
 use crate::domain::{
     dtos::{guest::GuestRoleDTO, profile::ProfileDTO},
     entities::{
-        manager::user_role_deletion::UserRoleDeletion,
+        manager::guest_role_deletion::GuestRoleDeletion,
         shared::default_responses::DeleteResponse,
     },
     utils::errors::{use_case_err, MappedErrors},
@@ -14,7 +14,7 @@ use uuid::Uuid;
 pub async fn delete_guest_role(
     profile: ProfileDTO,
     role_id: Uuid,
-    role_deletion_repo: Box<&dyn UserRoleDeletion>,
+    role_deletion_repo: Box<&dyn GuestRoleDeletion>,
 ) -> Result<DeleteResponse<GuestRoleDTO>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Check user permissions
@@ -24,7 +24,7 @@ pub async fn delete_guest_role(
 
     if !profile.is_manager {
         return Err(use_case_err(
-            "Only manager user could perform such operation.".to_string(),
+            "Only manager users could perform such operation.".to_string(),
             Some(true),
             None,
         ));

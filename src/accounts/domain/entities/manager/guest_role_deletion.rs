@@ -9,7 +9,7 @@ use shaku::Interface;
 use uuid::Uuid;
 
 #[async_trait]
-pub trait UserRoleDeletion: Interface + Send + Sync {
+pub trait GuestRoleDeletion: Interface + Send + Sync {
     async fn delete(
         &self,
         user_role_id: Uuid,
