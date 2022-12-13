@@ -113,13 +113,14 @@ model Account {
   id String @id @default(uuid())
 
   // Model fields
-  name            String
+  name            String      @db.VarChar(64)
   owner           User        @relation(fields: [owner_id], references: [id])
   owner_id        String      @unique
   account_type    AccountType @relation(fields: [account_type_id], references: [id])
   account_type_id String
   created         DateTime    @default(now()) @db.Timestamptz(6)
   updated         DateTime?   @updatedAt @db.Timestamptz(6)
+  is_active       Boolean     @default(false)
 
   // Backward relationship fields
   guest_users GuestUserOnAccount[]
