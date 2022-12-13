@@ -1,16 +1,16 @@
 use crate::domain::{
     dtos::{
-        enums::ParentEnum,
         guest::{GuestRoleDTO, PermissionsType},
         profile::ProfileDTO,
     },
-    entities::{
-        manager::guest_role_registration::GuestRoleRegistration,
-        shared::default_responses::GetOrCreateResponse,
-    },
-    utils::errors::{use_case_err, MappedErrors},
+    entities::manager::guest_role_registration::GuestRoleRegistration,
 };
 
+use agrobase::{
+    dtos::enums::ParentEnum,
+    entities::default_response::GetOrCreateResponseKind,
+    utils::errors::{use_case_err, MappedErrors},
+};
 use uuid::Uuid;
 
 /// This function should be called only by manager users. Roles should be
@@ -28,7 +28,7 @@ pub async fn create_guest_role(
     role: Uuid,
     permissions: Option<Vec<PermissionsType>>,
     role_registration_repo: Box<&dyn GuestRoleRegistration>,
-) -> Result<GetOrCreateResponse<GuestRoleDTO>, MappedErrors> {
+) -> Result<GetOrCreateResponseKind<GuestRoleDTO>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Collect permissions
     //

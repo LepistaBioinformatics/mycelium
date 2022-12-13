@@ -5,12 +5,14 @@ use crate::domain::{
     },
     entities::{
         manager::guest_role_updating::GuestRoleUpdating,
-        shared::default_responses::{FetchResponse, UpdateResponse},
         shared::guest_role_fetching::GuestRoleFetching,
     },
-    utils::errors::{use_case_err, MappedErrors},
 };
 
+use agrobase::{
+    entities::default_response::{FetchResponseKind, UpdatingResponseKind},
+    utils::errors::{use_case_err, MappedErrors},
+};
 use uuid::Uuid;
 
 pub enum ActionType {
@@ -27,7 +29,7 @@ pub async fn update_guest_role_permissions(
     action_type: ActionType,
     role_fetching_repo: Box<&dyn GuestRoleFetching>,
     role_updating_repo: Box<&dyn GuestRoleUpdating>,
-) -> Result<UpdateResponse<GuestRoleDTO>, MappedErrors> {
+) -> Result<UpdatingResponseKind<GuestRoleDTO>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Check the profile permissions
     //
@@ -49,18 +51,14 @@ pub async fn update_guest_role_permissions(
     let mut user_role = match role_fetching_repo.get(role_id).await {
         Err(err) => return Err(err),
         Ok(res) => match res {
-            FetchResponse::NotFound(id, msg) => {
+            FetchResponseKind::NotFound(id) => {
                 return Err(use_case_err(
-                    format!(
-                        "Unable to update record ({}): {}",
-                        id,
-                        msg.unwrap()
-                    ),
+                    format!("Unable to update record: {}", id.unwrap(),),
                     Some(true),
                     None,
                 ));
             }
-            FetchResponse::Found(role) => role,
+            FetchResponseKind::Found(role) => role,
         },
     };
 

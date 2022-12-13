@@ -1,5 +1,4 @@
-use crate::domain::utils::errors::{invalid_arg_err, MappedErrors};
-
+use agrobase::utils::errors::{invalid_arg_err, MappedErrors};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 

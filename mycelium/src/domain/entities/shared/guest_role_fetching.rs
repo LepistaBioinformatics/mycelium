@@ -1,9 +1,9 @@
-use crate::domain::{
-    dtos::guest::GuestRoleDTO,
-    entities::shared::default_responses::{FetchManyResponse, FetchResponse},
+use crate::domain::dtos::guest::GuestRoleDTO;
+
+use agrobase::{
+    entities::default_response::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::MappedErrors,
 };
-
 use async_trait::async_trait;
 use shaku::Interface;
 use uuid::Uuid;
@@ -13,9 +13,9 @@ pub trait GuestRoleFetching: Interface + Send + Sync {
     async fn get(
         &self,
         id: Uuid,
-    ) -> Result<FetchResponse<GuestRoleDTO, Uuid>, MappedErrors>;
+    ) -> Result<FetchResponseKind<GuestRoleDTO, Uuid>, MappedErrors>;
     async fn list(
         &self,
         search_term: String,
-    ) -> Result<FetchManyResponse<GuestRoleDTO, Uuid>, MappedErrors>;
+    ) -> Result<FetchManyResponseKind<GuestRoleDTO>, MappedErrors>;
 }

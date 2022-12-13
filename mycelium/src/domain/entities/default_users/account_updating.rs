@@ -1,9 +1,9 @@
-use crate::domain::{
-    dtos::account::AccountDTO,
-    entities::shared::default_responses::UpdateResponse,
+use crate::domain::dtos::account::AccountDTO;
+
+use agrobase::{
+    entities::default_response::UpdatingResponseKind,
     utils::errors::MappedErrors,
 };
-
 use async_trait::async_trait;
 use shaku::Interface;
 
@@ -12,5 +12,5 @@ pub trait UserUpdating: Interface + Send + Sync {
     async fn update(
         &self,
         account: AccountDTO,
-    ) -> Result<UpdateResponse<AccountDTO>, MappedErrors>;
+    ) -> Result<UpdatingResponseKind<AccountDTO>, MappedErrors>;
 }

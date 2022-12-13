@@ -1,11 +1,9 @@
-use crate::domain::{
-    dtos::account::AccountTypeDTO,
-    entities::shared::default_responses::{
-        CreateResponse, GetOrCreateResponse,
-    },
+use crate::domain::dtos::account::AccountTypeDTO;
+
+use agrobase::{
+    entities::default_response::{CreateResponseKind, GetOrCreateResponseKind},
     utils::errors::MappedErrors,
 };
-
 use async_trait::async_trait;
 use shaku::Interface;
 
@@ -14,10 +12,10 @@ pub trait AccountTypeRegistration: Interface + Send + Sync {
     async fn get_or_create(
         &self,
         account_type: AccountTypeDTO,
-    ) -> Result<GetOrCreateResponse<AccountTypeDTO>, MappedErrors>;
+    ) -> Result<GetOrCreateResponseKind<AccountTypeDTO>, MappedErrors>;
 
     async fn create(
         &self,
         account_type: AccountTypeDTO,
-    ) -> Result<CreateResponse<AccountTypeDTO>, MappedErrors>;
+    ) -> Result<CreateResponseKind<AccountTypeDTO>, MappedErrors>;
 }
