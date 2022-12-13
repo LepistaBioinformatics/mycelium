@@ -1,12 +1,12 @@
 use crate::domain::{
     dtos::{guest::GuestRoleDTO, profile::ProfileDTO},
-    entities::{
-        manager::guest_role_deletion::GuestRoleDeletion,
-        shared::default_responses::DeleteResponse,
-    },
-    utils::errors::{use_case_err, MappedErrors},
+    entities::manager::guest_role_deletion::GuestRoleDeletion,
 };
 
+use agrobase::{
+    entities::default_response::DeletionResponseKind,
+    utils::errors::{use_case_err, MappedErrors},
+};
 use uuid::Uuid;
 
 /// This function deletes a single role. Only manager user could execute such
@@ -15,7 +15,7 @@ pub async fn delete_guest_role(
     profile: ProfileDTO,
     role_id: Uuid,
     role_deletion_repo: Box<&dyn GuestRoleDeletion>,
-) -> Result<DeleteResponse<GuestRoleDTO>, MappedErrors> {
+) -> Result<DeletionResponseKind<GuestRoleDTO>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Check user permissions
     //

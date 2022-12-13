@@ -1,22 +1,22 @@
 use crate::{
     domain::{
-        dtos::{
-            account::AccountDTO, email::EmailDTO, enums::ParentEnum,
-            user::UserDTO,
-        },
+        dtos::{account::AccountDTO, email::EmailDTO, user::UserDTO},
         entities::{
             default_users::{
                 account_registration::AccountRegistration,
                 user_registration::UserRegistration,
             },
             manager::account_type_registration::AccountTypeRegistration,
-            shared::default_responses::GetOrCreateResponse,
         },
-        utils::errors::{use_case_err, MappedErrors},
     },
     use_cases::shared::account_type::get_or_create_default_account_type::get_or_create_default_account_type,
 };
 
+use agrobase::{
+    dtos::enums::ParentEnum,
+    entities::default_response::GetOrCreateResponseKind,
+    utils::errors::{use_case_err, MappedErrors},
+};
 use chrono::Local;
 
 /// This function are called when a new user start into the system. The
@@ -30,7 +30,7 @@ pub async fn create_account(
     user_registration_repo: Box<&dyn UserRegistration>,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
-) -> Result<GetOrCreateResponse<AccountDTO>, MappedErrors> {
+) -> Result<GetOrCreateResponseKind<AccountDTO>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Build and validate email
     //
@@ -58,8 +58,10 @@ pub async fn create_account(
     {
         Err(err) => return Err(err),
         Ok(res) => match res {
-            GetOrCreateResponse::NotCreated(account_type, _) => account_type,
-            GetOrCreateResponse::Created(account_type) => account_type,
+            GetOrCreateResponseKind::NotCreated(account_type, _) => {
+                account_type
+            }
+            GetOrCreateResponseKind::Created(account_type) => account_type,
         },
     };
 
@@ -85,18 +87,17 @@ pub async fn create_account(
     {
         Err(err) => return Err(err),
         Ok(res) => match res {
-            GetOrCreateResponse::NotCreated(user, msg) => {
+            GetOrCreateResponseKind::NotCreated(user, msg) => {
                 return Err(use_case_err(
                     format!(
                         "Unexpected error on persist user ({}): {}",
-                        user.username,
-                        msg.unwrap(),
+                        user.username, msg,
                     ),
                     Some(true),
                     None,
                 ))
             }
-            GetOrCreateResponse::Created(user) => user,
+            GetOrCreateResponseKind::Created(user) => user,
         },
     };
 

@@ -1,9 +1,9 @@
-use crate::domain::{
-    dtos::account::AccountTypeDTO,
-    entities::shared::default_responses::DeleteResponse,
+use crate::domain::dtos::account::AccountTypeDTO;
+
+use agrobase::{
+    entities::default_response::DeletionResponseKind,
     utils::errors::MappedErrors,
 };
-
 use async_trait::async_trait;
 use shaku::Interface;
 
@@ -12,5 +12,5 @@ pub trait AccountTypeDeletion: Interface + Send + Sync {
     async fn delete(
         &self,
         account_type: AccountTypeDTO,
-    ) -> Result<DeleteResponse<AccountTypeDTO>, MappedErrors>;
+    ) -> Result<DeletionResponseKind<AccountTypeDTO>, MappedErrors>;
 }

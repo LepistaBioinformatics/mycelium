@@ -1,10 +1,11 @@
+use agrobase::{
+    entities::default_response::GetOrCreateResponseKind,
+    utils::errors::MappedErrors,
+};
+
 use crate::domain::{
     dtos::account::AccountTypeDTO,
-    entities::{
-        manager::account_type_registration::AccountTypeRegistration,
-        shared::default_responses::GetOrCreateResponse,
-    },
-    utils::errors::MappedErrors,
+    entities::manager::account_type_registration::AccountTypeRegistration,
 };
 
 /// This function are called when any user (admins users only) starts a new
@@ -13,7 +14,7 @@ pub async fn get_or_create_default_account_type(
     name: Option<String>,
     description: Option<String>,
     account_type_registration: Box<&dyn AccountTypeRegistration>,
-) -> Result<GetOrCreateResponse<AccountTypeDTO>, MappedErrors> {
+) -> Result<GetOrCreateResponseKind<AccountTypeDTO>, MappedErrors> {
     account_type_registration
         .get_or_create(AccountTypeDTO {
             id: None,

@@ -3,7 +3,13 @@ name = "mycelium"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+# ? ---------------------------------------------------------------------------
+# ? DEPENDENCIES
+# ? ---------------------------------------------------------------------------
+
+[dependencies.agrobase]
+git = "ssh://git@ssh.dev.azure.com:/v3/biotrop/agroreporter/agrobase-rs"
+tag = "v1.4-beta"
 
 [dependencies]
 async-trait = "0.1"
@@ -20,7 +26,19 @@ shaku_actix = "0.2"
 tokio = { version = "1", features = ["full"] }
 uuid = { version = "1.1", features = ["v4", "fast-rng", "macro-diagnostics"] }
 
+# ? ---------------------------------------------------------------------------
+# ? LIBRARY
+# ? ---------------------------------------------------------------------------
 
 [lib]
-name = "mycelium"
+name = "myc"
 path = "src/lib.rs"
+crate-type = ["staticlib", "lib"]
+
+# ? ---------------------------------------------------------------------------
+# ? BINARIES
+# ? ---------------------------------------------------------------------------
+
+#[[bin]]
+#name = "myc-api"
+#path = "src/ports/api/main.rs"

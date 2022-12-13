@@ -1,8 +1,9 @@
-use crate::domain::{
-    dtos::role::RoleDTO, entities::shared::default_responses::UpdateResponse,
+use crate::domain::dtos::role::RoleDTO;
+
+use agrobase::{
+    entities::default_response::UpdatingResponseKind,
     utils::errors::MappedErrors,
 };
-
 use async_trait::async_trait;
 use shaku::Interface;
 
@@ -10,6 +11,6 @@ use shaku::Interface;
 pub trait RoleUpdating: Interface + Send + Sync {
     async fn update(
         &self,
-        application: RoleDTO,
-    ) -> Result<UpdateResponse<RoleDTO>, MappedErrors>;
+        role: RoleDTO,
+    ) -> Result<UpdatingResponseKind<RoleDTO>, MappedErrors>;
 }

@@ -1,11 +1,9 @@
-use crate::domain::{
-    dtos::role::RoleDTO,
-    entities::shared::default_responses::{
-        CreateResponse, GetOrCreateResponse,
-    },
+use crate::domain::dtos::role::RoleDTO;
+
+use agrobase::{
+    entities::default_response::{CreateResponseKind, GetOrCreateResponseKind},
     utils::errors::MappedErrors,
 };
-
 use async_trait::async_trait;
 use shaku::Interface;
 
@@ -13,11 +11,11 @@ use shaku::Interface;
 pub trait RoleRegistration: Interface + Send + Sync {
     async fn get_or_create(
         &self,
-        application: RoleDTO,
-    ) -> Result<GetOrCreateResponse<RoleDTO>, MappedErrors>;
+        role: RoleDTO,
+    ) -> Result<GetOrCreateResponseKind<RoleDTO>, MappedErrors>;
 
     async fn create(
         &self,
         application: RoleDTO,
-    ) -> Result<CreateResponse<RoleDTO>, MappedErrors>;
+    ) -> Result<CreateResponseKind<RoleDTO>, MappedErrors>;
 }

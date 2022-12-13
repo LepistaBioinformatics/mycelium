@@ -1,9 +1,6 @@
-use super::{
-    enums::{ChildrenEnum, ParentEnum},
-    guest::GuestUserDTO,
-    user::UserDTO,
-};
+use super::{guest::GuestUserDTO, user::UserDTO};
 
+use agrobase::dtos::enums::{ChildrenEnum, ParentEnum};
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -27,9 +24,9 @@ pub struct AccountDTO {
     pub id: Option<Uuid>,
 
     pub name: String,
-    pub owner: ParentEnum<Uuid, UserDTO>,
-    pub account_type: ParentEnum<Uuid, AccountTypeDTO>,
-    pub guest_users: Option<ChildrenEnum<Uuid, GuestUserDTO>>,
+    pub owner: ParentEnum<UserDTO, Uuid>,
+    pub account_type: ParentEnum<AccountTypeDTO, Uuid>,
+    pub guest_users: Option<ChildrenEnum<GuestUserDTO, Uuid>>,
     pub created: DateTime<Local>,
     pub updated: DateTime<Local>,
 }
@@ -37,7 +34,7 @@ pub struct AccountDTO {
 impl AccountDTO {
     pub fn build_owner_url(&self, base_url: String) -> Result<String, ()> {
         match self.owner.to_owned() {
-            ParentEnum::Id(id) => Ok(format!("{}/{}", base_url, id)),
+            ParentEnum::Id(id) => Ok(format!("{:?}/{:?}", base_url, id)),
             ParentEnum::Record(record) => match record.id {
                 None => Ok(base_url),
                 Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
@@ -50,7 +47,7 @@ impl AccountDTO {
         base_url: String,
     ) -> Result<String, ()> {
         match self.account_type.to_owned() {
-            ParentEnum::Id(id) => Ok(format!("{}/{}", base_url, id)),
+            ParentEnum::Id(id) => Ok(format!("{:?}/{:?}", base_url, id)),
             ParentEnum::Record(record) => match record.id {
                 None => Ok(base_url),
                 Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
