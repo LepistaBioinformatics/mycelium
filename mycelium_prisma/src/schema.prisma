@@ -120,7 +120,8 @@ model Account {
   account_type_id String
   created         DateTime    @default(now()) @db.Timestamptz(6)
   updated         DateTime?   @updatedAt @db.Timestamptz(6)
-  is_active       Boolean     @default(false)
+  is_active       Boolean     @default(true)
+  is_checked      Boolean     @default(false)
 
   // Backward relationship fields
   guest_users GuestUserOnAccount[]
