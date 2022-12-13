@@ -14,7 +14,7 @@ use crate::{
         },
         utils::errors::{use_case_err, MappedErrors},
     },
-    use_cases::shared::get_or_create_default_account_type::get_or_create_default_account_type,
+    use_cases::shared::account_type::get_or_create_default_account_type::get_or_create_default_account_type,
 };
 
 /// This function are called when a new user start into the system. The
