@@ -17,11 +17,11 @@ pub async fn get_or_create_default_account_type(
     account_type_registration
         .get_or_create(AccountTypeDTO {
             id: None,
-            name: name.unwrap_or("Own Account Admin".to_string()),
+            name: name.unwrap_or("Default".to_string()),
             description: description.unwrap_or(
-                "A default user of the application. Such user has full access to this own account."
-                .to_string()
+                "Such users should request delegating access.".to_string(),
             ),
+            is_subscription: false,
             is_manager: false,
             is_staff: false,
         })

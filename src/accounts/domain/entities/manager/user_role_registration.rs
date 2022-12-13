@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::guest::UserRoleDTO,
+    dtos::guest::GuestRoleDTO,
     entities::shared::default_responses::{
         CreateResponse, GetOrCreateResponse,
     },
@@ -13,11 +13,11 @@ use shaku::Interface;
 pub trait UserRoleRegistration: Interface + Send + Sync {
     async fn get_or_create(
         &self,
-        user_role: UserRoleDTO,
-    ) -> Result<GetOrCreateResponse<UserRoleDTO>, MappedErrors>;
+        user_role: GuestRoleDTO,
+    ) -> Result<GetOrCreateResponse<GuestRoleDTO>, MappedErrors>;
 
     async fn create(
         &self,
-        user_role: UserRoleDTO,
-    ) -> Result<CreateResponse<UserRoleDTO>, MappedErrors>;
+        user_role: GuestRoleDTO,
+    ) -> Result<CreateResponse<GuestRoleDTO>, MappedErrors>;
 }

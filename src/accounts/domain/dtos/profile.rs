@@ -9,7 +9,7 @@ pub struct LicensedIdentifiersDTO {
     /// This is the unique identifier of the account that is own of the
     /// resource to be managed.
     pub account_id: Uuid,
-    pub application_id: Uuid,
+    pub role_id: Uuid,
     pub permissions: Vec<PermissionsType>,
 }
 

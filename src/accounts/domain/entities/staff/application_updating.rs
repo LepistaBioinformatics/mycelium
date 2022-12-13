@@ -1,6 +1,5 @@
 use crate::domain::{
-    dtos::application::ApplicationDTO,
-    entities::shared::default_responses::UpdateResponse,
+    dtos::role::RoleDTO, entities::shared::default_responses::UpdateResponse,
     utils::errors::MappedErrors,
 };
 
@@ -11,6 +10,6 @@ use shaku::Interface;
 pub trait ApplicationUpdating: Interface + Send + Sync {
     async fn update(
         &self,
-        application: ApplicationDTO,
-    ) -> Result<UpdateResponse<ApplicationDTO>, MappedErrors>;
+        application: RoleDTO,
+    ) -> Result<UpdateResponse<RoleDTO>, MappedErrors>;
 }

@@ -1,6 +1,6 @@
 use crate::domain::{
     dtos::{
-        guest::{PermissionsType, UserRoleDTO},
+        guest::{GuestRoleDTO, PermissionsType},
         profile::ProfileDTO,
     },
     entities::{
@@ -29,7 +29,7 @@ pub async fn update_role_permissions(
     action_type: ActionType,
     role_fetching_repo: Box<&dyn UserRoleFetching>,
     role_updating_repo: Box<&dyn UserRoleUpdating>,
-) -> Result<UpdateResponse<UserRoleDTO>, MappedErrors> {
+) -> Result<UpdateResponse<GuestRoleDTO>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Check the profile permissions
     //

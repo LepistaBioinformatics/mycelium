@@ -34,7 +34,7 @@ model User {
   @@map("user")
 }
 
-model Application {
+model Role {
   // Primary key
   id String @id @default(uuid())
 
@@ -43,20 +43,20 @@ model Application {
   description String @db.VarChar(255)
 
   // Backward relationship fields
-  user_roles UserRole[]
+  user_roles GuestRole[]
 
   // Db compatibility and extra maps
   @@map("application")
 }
 
-model UserRole {
+model GuestRole {
   // Primary key
   id String @id @default(uuid())
 
   // Model fields
-  name           String      @db.VarChar(140)
-  description    String?     @db.VarChar(255)
-  application    Application @relation(fields: [application_id], references: [id])
+  name           String  @db.VarChar(140)
+  description    String? @db.VarChar(255)
+  role           Role    @relation(fields: [application_id], references: [id])
   application_id String
   permissions    Int[]
 
@@ -73,7 +73,7 @@ model GuestUser {
 
   // Model fields
   email   String
-  role    UserRole  @relation(fields: [role_id], references: [id])
+  role    GuestRole @relation(fields: [role_id], references: [id])
   role_id String
   created DateTime  @default(now()) @db.Timestamptz(6)
   updated DateTime? @updatedAt @db.Timestamptz(6)

@@ -1,7 +1,7 @@
 use crate::domain::{
     dtos::{
         enums::ParentEnum,
-        guest::{PermissionsType, UserRoleDTO},
+        guest::{GuestRoleDTO, PermissionsType},
         profile::ProfileDTO,
     },
     entities::{
@@ -28,7 +28,7 @@ pub async fn create_role(
     application: Uuid,
     permissions: Option<Vec<PermissionsType>>,
     role_registration_repo: Box<&dyn UserRoleRegistration>,
-) -> Result<GetOrCreateResponse<UserRoleDTO>, MappedErrors> {
+) -> Result<GetOrCreateResponse<GuestRoleDTO>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Collect permissions
     //
@@ -57,11 +57,11 @@ pub async fn create_role(
     // ? ----------------------------------------------------------------------
 
     return role_registration_repo
-        .get_or_create(UserRoleDTO {
+        .get_or_create(GuestRoleDTO {
             id: None,
             name,
             description,
-            application: ParentEnum::Id(application),
+            role: ParentEnum::Id(application),
             permissions,
             account: ParentEnum::Id(profile.account),
         })
