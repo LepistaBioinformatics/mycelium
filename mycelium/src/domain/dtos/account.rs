@@ -4,6 +4,7 @@ use super::{
     user::UserDTO,
 };
 
+use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -29,6 +30,8 @@ pub struct AccountDTO {
     pub owner: ParentEnum<Uuid, UserDTO>,
     pub account_type: ParentEnum<Uuid, AccountTypeDTO>,
     pub guest_users: Option<ChildrenEnum<Uuid, GuestUserDTO>>,
+    pub created: DateTime<Local>,
+    pub updated: DateTime<Local>,
 }
 
 impl AccountDTO {
@@ -92,6 +95,8 @@ impl AccountDTO {
 
 #[cfg(test)]
 mod tests {
+    use chrono::Local;
+
     use super::*;
     use crate::domain::dtos::email::EmailDTO;
 
@@ -115,6 +120,8 @@ mod tests {
                 .unwrap(),
             first_name: Some("first_name".to_string()),
             last_name: Some("last_name".to_string()),
+            created: Local::now(),
+            updated: Local::now(),
         };
 
         let account = AccountDTO {
@@ -123,6 +130,8 @@ mod tests {
             owner: ParentEnum::Record(user),
             account_type: ParentEnum::Record(account_type),
             guest_users: None,
+            created: Local::now(),
+            updated: Local::now(),
         };
 
         println!("{:?}", account.build_account_type_url(base_url.to_owned()));

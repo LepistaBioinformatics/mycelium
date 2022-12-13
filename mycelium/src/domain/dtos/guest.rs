@@ -1,4 +1,5 @@
 use super::{account::AccountDTO, enums::ParentEnum, role::RoleDTO};
+use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -42,6 +43,8 @@ pub struct GuestUserDTO {
 
     pub email: String,
     pub role: ParentEnum<Uuid, GuestRoleDTO>,
+    pub created: DateTime<Local>,
+    pub updated: DateTime<Local>,
 }
 
 impl GuestUserDTO {

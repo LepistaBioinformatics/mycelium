@@ -9,7 +9,7 @@ use shaku::Interface;
 use uuid::Uuid;
 
 #[async_trait]
-pub trait ApplicationFetching: Interface + Send + Sync {
+pub trait RoleFetching: Interface + Send + Sync {
     async fn get(&self, id: String) -> FetchResponse<RoleDTO, Uuid>;
     async fn list(
         &self,
