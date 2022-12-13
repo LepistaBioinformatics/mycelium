@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::guest::UserRoleDTO,
+    dtos::guest::GuestRoleDTO,
     entities::shared::default_responses::DeleteResponse,
     utils::errors::MappedErrors,
 };
@@ -13,5 +13,5 @@ pub trait UserRoleDeletion: Interface + Send + Sync {
     async fn delete(
         &self,
         user_role_id: Uuid,
-    ) -> Result<DeleteResponse<UserRoleDTO>, MappedErrors>;
+    ) -> Result<DeleteResponse<GuestRoleDTO>, MappedErrors>;
 }

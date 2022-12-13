@@ -15,14 +15,8 @@ pub struct AccountTypeDTO {
     pub name: String,
     pub description: String,
 
-    /// Manager accounts allow their guest users to walking through specific
-    /// accounts aiming to verify records irregularities and perform editions
-    /// and deletions if necessary.
+    pub is_subscription: bool,
     pub is_manager: bool,
-
-    /// Superuser accounts allow their guest users to walking through specific
-    /// accounts aiming to verify records irregularities and perform editions
-    /// and deletions if necessary. Such users can perform mass deletions.
     pub is_staff: bool,
 }
 
@@ -31,6 +25,7 @@ pub struct AccountTypeDTO {
 pub struct AccountDTO {
     pub id: Option<Uuid>,
 
+    pub name: String,
     pub owner: ParentEnum<Uuid, UserDTO>,
     pub account_type: ParentEnum<Uuid, AccountTypeDTO>,
     pub guest_users: Option<ChildrenEnum<Uuid, GuestUserDTO>>,
@@ -108,6 +103,7 @@ mod tests {
             id: None,
             name: "".to_string(),
             description: "".to_string(),
+            is_subscription: false,
             is_manager: false,
             is_staff: false,
         };
@@ -123,6 +119,7 @@ mod tests {
 
         let account = AccountDTO {
             id: None,
+            name: String::from("Account Name"),
             owner: ParentEnum::Record(user),
             account_type: ParentEnum::Record(account_type),
             guest_users: None,

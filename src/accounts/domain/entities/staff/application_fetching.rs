@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::application::ApplicationDTO,
+    dtos::role::RoleDTO,
     entities::shared::default_responses::{FetchManyResponse, FetchResponse},
     utils::errors::MappedErrors,
 };
@@ -10,9 +10,9 @@ use uuid::Uuid;
 
 #[async_trait]
 pub trait ApplicationFetching: Interface + Send + Sync {
-    async fn get(&self, id: String) -> FetchResponse<ApplicationDTO, Uuid>;
+    async fn get(&self, id: String) -> FetchResponse<RoleDTO, Uuid>;
     async fn list(
         &self,
         search_term: String,
-    ) -> Result<FetchManyResponse<ApplicationDTO, Uuid>, MappedErrors>;
+    ) -> Result<FetchManyResponse<RoleDTO, Uuid>, MappedErrors>;
 }

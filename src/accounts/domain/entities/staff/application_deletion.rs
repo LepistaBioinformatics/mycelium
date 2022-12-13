@@ -1,6 +1,5 @@
 use crate::domain::{
-    dtos::application::ApplicationDTO,
-    entities::shared::default_responses::DeleteResponse,
+    dtos::role::RoleDTO, entities::shared::default_responses::DeleteResponse,
     utils::errors::MappedErrors,
 };
 
@@ -11,6 +10,6 @@ use shaku::Interface;
 pub trait ApplicationDeletion: Interface + Send + Sync {
     async fn delete(
         &self,
-        application: ApplicationDTO,
-    ) -> Result<DeleteResponse<ApplicationDTO>, MappedErrors>;
+        application: RoleDTO,
+    ) -> Result<DeleteResponse<RoleDTO>, MappedErrors>;
 }

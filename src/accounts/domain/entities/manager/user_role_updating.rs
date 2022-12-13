@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::guest::UserRoleDTO,
+    dtos::guest::GuestRoleDTO,
     entities::shared::default_responses::UpdateResponse,
     utils::errors::MappedErrors,
 };
@@ -11,6 +11,6 @@ use shaku::Interface;
 pub trait UserRoleUpdating: Interface + Send + Sync {
     async fn update(
         &self,
-        user_role: UserRoleDTO,
-    ) -> Result<UpdateResponse<UserRoleDTO>, MappedErrors>;
+        user_role: GuestRoleDTO,
+    ) -> Result<UpdateResponse<GuestRoleDTO>, MappedErrors>;
 }

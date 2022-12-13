@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::guest::UserRoleDTO,
+    dtos::guest::GuestRoleDTO,
     entities::shared::default_responses::{FetchManyResponse, FetchResponse},
     utils::errors::MappedErrors,
 };
@@ -13,9 +13,9 @@ pub trait UserRoleFetching: Interface + Send + Sync {
     async fn get(
         &self,
         id: Uuid,
-    ) -> Result<FetchResponse<UserRoleDTO, Uuid>, MappedErrors>;
+    ) -> Result<FetchResponse<GuestRoleDTO, Uuid>, MappedErrors>;
     async fn list(
         &self,
         search_term: String,
-    ) -> Result<FetchManyResponse<UserRoleDTO, Uuid>, MappedErrors>;
+    ) -> Result<FetchManyResponse<GuestRoleDTO, Uuid>, MappedErrors>;
 }

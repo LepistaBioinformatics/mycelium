@@ -22,29 +22,30 @@ use crate::{
 /// the default role as `default-user`.
 pub async fn create_account(
     email: String,
+    account_name: String,
     first_name: Option<String>,
     last_name: Option<String>,
     user_registration_repo: Box<&dyn UserRegistration>,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
 ) -> Result<GetOrCreateResponse<AccountDTO>, MappedErrors> {
-    // ? ----------------------------------------------------------------------
+    // ? -----------------------------------------------------------------------
     // ? Build and validate email
     //
     // Build the EmailDTO object, case an error is returned, the email is
     // possibly invalid. ?
-    // ? ----------------------------------------------------------------------
+    // ? -----------------------------------------------------------------------
 
     let email_instance = match EmailDTO::from_string(email) {
         Err(err) => return Err(err),
         Ok(res) => res,
     };
 
-    // ? ----------------------------------------------------------------------
+    // ? -----------------------------------------------------------------------
     // ? Fetch account type
     //
     // Get or create the default account-type.
-    // ? ----------------------------------------------------------------------
+    // ? -----------------------------------------------------------------------
 
     let account_type = match get_or_create_default_account_type(
         None,
@@ -60,13 +61,13 @@ pub async fn create_account(
         },
     };
 
-    // ? ----------------------------------------------------------------------
+    // ? -----------------------------------------------------------------------
     // ? Check and register user
     //
     // Try to register user into database. Case use was previously registered,
     // return a left response. Usually this is the same response of the user
     // registration action.
-    // ? ----------------------------------------------------------------------
+    // ? -----------------------------------------------------------------------
 
     let user = match user_registration_repo
         .get_or_create(UserDTO {
@@ -95,15 +96,16 @@ pub async fn create_account(
         },
     };
 
-    // ? ----------------------------------------------------------------------
+    // ? -----------------------------------------------------------------------
     // ? Register the account
     //
     // The account are registered using the already created user.
-    // ? ----------------------------------------------------------------------
+    // ? -----------------------------------------------------------------------
 
     account_registration_repo
         .get_or_create(AccountDTO {
             id: None,
+            name: account_name,
             owner: ParentEnum::Record(user),
             account_type: ParentEnum::Record(account_type),
             guest_users: None,

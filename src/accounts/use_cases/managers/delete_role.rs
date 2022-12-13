@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::{guest::UserRoleDTO, profile::ProfileDTO},
+    dtos::{guest::GuestRoleDTO, profile::ProfileDTO},
     entities::{
         manager::user_role_deletion::UserRoleDeletion,
         shared::default_responses::DeleteResponse,
@@ -15,7 +15,7 @@ pub async fn delete_role(
     profile: ProfileDTO,
     role_id: Uuid,
     role_deletion_repo: Box<&dyn UserRoleDeletion>,
-) -> Result<DeleteResponse<UserRoleDTO>, MappedErrors> {
+) -> Result<DeleteResponse<GuestRoleDTO>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Check user permissions
     //

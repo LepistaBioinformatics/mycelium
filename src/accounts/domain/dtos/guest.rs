@@ -1,6 +1,4 @@
-use super::{
-    account::AccountDTO, application::ApplicationDTO, enums::ParentEnum,
-};
+use super::{account::AccountDTO, enums::ParentEnum, role::RoleDTO};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -15,22 +13,19 @@ pub enum PermissionsType {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct UserRoleDTO {
+pub struct GuestRoleDTO {
     pub id: Option<Uuid>,
 
     pub name: String,
     pub description: String,
-    pub application: ParentEnum<Uuid, ApplicationDTO>,
+    pub role: ParentEnum<Uuid, RoleDTO>,
     pub permissions: Vec<PermissionsType>,
     pub account: ParentEnum<Uuid, AccountDTO>,
 }
 
-impl UserRoleDTO {
-    pub fn build_application_url(
-        &self,
-        base_url: String,
-    ) -> Result<String, ()> {
-        match self.application.to_owned() {
+impl GuestRoleDTO {
+    pub fn build_role_url(&self, base_url: String) -> Result<String, ()> {
+        match self.role.to_owned() {
             ParentEnum::Id(id) => Ok(format!("{}/{}", base_url, id)),
             ParentEnum::Record(record) => match record.id {
                 Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
@@ -46,7 +41,7 @@ pub struct GuestUserDTO {
     pub id: Option<Uuid>,
 
     pub email: String,
-    pub role: ParentEnum<Uuid, UserRoleDTO>,
+    pub role: ParentEnum<Uuid, GuestRoleDTO>,
 }
 
 impl GuestUserDTO {
