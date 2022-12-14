@@ -20,8 +20,7 @@ pub async fn delete_role(
 
     if !profile.is_manager {
         return Err(use_case_err(
-            "The current user has no sufficient privileges to register new 
-            guest-roles."
+            "The current user has no sufficient privileges to delete roles."
                 .to_string(),
             Some(true),
             None,

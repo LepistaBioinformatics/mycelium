@@ -10,7 +10,10 @@ use uuid::Uuid;
 
 #[async_trait]
 pub trait RoleFetching: Interface + Send + Sync {
-    async fn get(&self, id: String) -> FetchResponseKind<RoleDTO, Uuid>;
+    async fn get(
+        &self,
+        id: Uuid,
+    ) -> Result<FetchResponseKind<RoleDTO, Uuid>, MappedErrors>;
     async fn list(
         &self,
         search_term: String,
