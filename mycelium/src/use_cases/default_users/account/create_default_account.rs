@@ -17,10 +17,15 @@ use agrobase::{
 };
 use chrono::Local;
 
+/// Create a default account.
+///
+/// Default accounts are used to mirror human users. Such accounts should not be
+/// flagged as `subscription`.
+///
 /// This function are called when a new user start into the system. The
-/// account-creation method also insert a new user into the database and set
-/// the default role as `default-user`.
-pub async fn create_account(
+/// account-creation method also insert a new user into the database and set the
+/// default role as `default-user`.
+pub async fn create_default_account(
     email: String,
     account_name: String,
     first_name: Option<String>,
