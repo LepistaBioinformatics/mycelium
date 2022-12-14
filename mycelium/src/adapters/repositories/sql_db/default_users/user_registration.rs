@@ -27,6 +27,10 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
         &self,
         user: UserDTO,
     ) -> Result<GetOrCreateResponseKind<UserDTO>, MappedErrors> {
+        // ? -------------------------------------------------------------------
+        // ? Try to build the prisma client
+        // ? -------------------------------------------------------------------
+
         let tmp_client = get_client().await;
 
         let client = match tmp_client.get(&process_id()) {
@@ -41,6 +45,10 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
             }
             Some(res) => res,
         };
+
+        // ? -------------------------------------------------------------------
+        // ? Build the initial query (get part of the get-or-create)
+        // ? -------------------------------------------------------------------
 
         let response = client
             .user()
@@ -60,6 +68,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                         email: EmailDTO::from_string(record.email).unwrap(),
                         first_name: Some(record.first_name),
                         last_name: Some(record.last_name),
+                        is_active: record.is_active,
                         created: record.created.into(),
                         updated: match record.updated {
                             None => None,
@@ -71,6 +80,10 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
             }
             None => (),
         };
+
+        // ? -------------------------------------------------------------------
+        // ? Build create part of the get-or-create
+        // ? -------------------------------------------------------------------
 
         let response = client
             .user()
@@ -95,6 +108,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                     email: EmailDTO::from_string(record.email).unwrap(),
                     first_name: Some(record.first_name),
                     last_name: Some(record.last_name),
+                    is_active: record.is_active,
                     created: record.created.into(),
                     updated: match record.updated {
                         None => None,

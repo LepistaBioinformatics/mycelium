@@ -24,6 +24,7 @@ model User {
   email      String    @db.VarChar(140)
   first_name String    @db.VarChar(140)
   last_name  String    @db.VarChar(140)
+  is_active  Boolean   @default(true)
   created    DateTime  @default(now()) @db.Timestamptz(6)
   updated    DateTime? @updatedAt @db.Timestamptz(6)
 
