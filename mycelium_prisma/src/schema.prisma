@@ -31,6 +31,7 @@ model User {
   accounts Account?
 
   // Db compatibility and extra maps
+  @@unique([email])
   @@map("user")
 }
 
@@ -127,6 +128,7 @@ model Account {
   guest_users GuestUserOnAccount[]
 
   // Db compatibility and extra maps
+  @@unique([name, owner_id])
   @@map("account")
 }
 

@@ -14,5 +14,5 @@ pub struct UserDTO {
     pub first_name: Option<String>,
     pub last_name: Option<String>,
     pub created: DateTime<Local>,
-    pub updated: DateTime<Local>,
+    pub updated: Option<DateTime<Local>>,
 }

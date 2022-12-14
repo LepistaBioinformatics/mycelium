@@ -30,7 +30,7 @@ pub struct AccountDTO {
     pub account_type: ParentEnum<AccountTypeDTO, Uuid>,
     pub guest_users: Option<ChildrenEnum<GuestUserDTO, Uuid>>,
     pub created: DateTime<Local>,
-    pub updated: DateTime<Local>,
+    pub updated: Option<DateTime<Local>>,
 }
 
 impl AccountDTO {
@@ -120,7 +120,7 @@ mod tests {
             first_name: Some("first_name".to_string()),
             last_name: Some("last_name".to_string()),
             created: Local::now(),
-            updated: Local::now(),
+            updated: Some(Local::now()),
         };
 
         let account = AccountDTO {
@@ -132,7 +132,7 @@ mod tests {
             account_type: ParentEnum::Record(account_type),
             guest_users: None,
             created: Local::now(),
-            updated: Local::now(),
+            updated: Some(Local::now()),
         };
 
         println!("{:?}", account.build_account_type_url(base_url.to_owned()));

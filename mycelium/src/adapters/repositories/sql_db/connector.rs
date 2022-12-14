@@ -1,6 +1,6 @@
-use bioarc_prisma::prisma::PrismaClient;
 use futures::lock::{Mutex, MutexGuard};
 use lazy_static::lazy_static;
+use myc_prisma::prisma::PrismaClient;
 use std::collections::HashMap;
 use std::process::id as process_id;
 
