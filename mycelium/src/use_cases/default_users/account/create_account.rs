@@ -79,7 +79,7 @@ pub async fn create_account(
             first_name,
             last_name,
             created: Local::now(),
-            updated: Local::now(),
+            updated: None,
         })
         .await
     {
@@ -115,7 +115,7 @@ pub async fn create_account(
             account_type: ParentEnum::Record(account_type),
             guest_users: None,
             created: Local::now(),
-            updated: Local::now(),
+            updated: None,
         })
         .await
 }
