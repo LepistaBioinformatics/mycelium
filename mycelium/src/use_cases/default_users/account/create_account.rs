@@ -78,6 +78,7 @@ pub async fn create_account(
             email: email_instance,
             first_name,
             last_name,
+            is_active: true,
             created: Local::now(),
             updated: None,
         })

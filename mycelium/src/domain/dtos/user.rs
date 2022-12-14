@@ -13,6 +13,7 @@ pub struct UserDTO {
     pub email: EmailDTO,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
+    pub is_active: bool,
     pub created: DateTime<Local>,
     pub updated: Option<DateTime<Local>>,
 }
