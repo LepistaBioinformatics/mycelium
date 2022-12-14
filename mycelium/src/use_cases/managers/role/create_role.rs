@@ -25,7 +25,7 @@ pub async fn create_role(
     if !profile.is_manager {
         return Err(use_case_err(
             "The current user has no sufficient privileges to register new 
-            guest-roles."
+            role."
                 .to_string(),
             Some(true),
             None,
