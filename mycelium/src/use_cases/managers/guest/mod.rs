@@ -1,2 +1,2 @@
 pub mod guest_user;
-pub mod remove_guest;
+pub mod uninvite_guest;
