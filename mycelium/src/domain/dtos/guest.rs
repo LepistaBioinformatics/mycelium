@@ -1,4 +1,4 @@
-use super::{account::AccountDTO, role::RoleDTO};
+use super::{account::AccountDTO, email::EmailDTO, role::RoleDTO};
 use agrobase::dtos::enums::ParentEnum;
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
@@ -22,7 +22,7 @@ pub struct GuestRoleDTO {
     pub description: String,
     pub role: ParentEnum<RoleDTO, Uuid>,
     pub permissions: Vec<PermissionsType>,
-    pub account: ParentEnum<AccountDTO, Uuid>,
+    pub account: Option<ParentEnum<AccountDTO, Uuid>>,
 }
 
 impl GuestRoleDTO {
@@ -42,10 +42,10 @@ impl GuestRoleDTO {
 pub struct GuestUserDTO {
     pub id: Option<Uuid>,
 
-    pub email: String,
+    pub email: EmailDTO,
     pub role: ParentEnum<GuestRoleDTO, Uuid>,
     pub created: DateTime<Local>,
-    pub updated: DateTime<Local>,
+    pub updated: Option<DateTime<Local>>,
 }
 
 impl GuestUserDTO {

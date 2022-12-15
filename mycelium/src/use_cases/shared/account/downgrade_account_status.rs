@@ -3,7 +3,7 @@ use crate::{
         dtos::{account::AccountDTO, profile::ProfileDTO},
         entities::{
             manager::account_type_registration::AccountTypeRegistration,
-            shared::account::{
+            shared::{
                 account_fetching::AccountFetching,
                 account_updating::AccountUpdating,
             },
