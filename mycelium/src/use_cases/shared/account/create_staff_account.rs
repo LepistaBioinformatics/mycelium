@@ -22,10 +22,10 @@ use agrobase::{
 };
 use chrono::Local;
 
-/// Create an account flagged as subscription.
+/// Create an account flagged as staff.
 ///
-/// Subscription accounts represents results centering accounts.
-pub async fn create_subscription_account(
+/// Staff accounts should perform management action on the system.
+pub async fn create_staff_account(
     profile: ProfileDTO,
     email: String,
     account_name: String,
@@ -35,12 +35,14 @@ pub async fn create_subscription_account(
 ) -> Result<GetOrCreateResponseKind<AccountDTO>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
+    //
+    // Only managers or staff users should perform such action.
     // ? -----------------------------------------------------------------------
 
-    if !profile.is_manager {
+    if (!profile.is_manager) || (!profile.is_staff) {
         return Err(use_case_err(
             "The current user has no sufficient privileges to register 
-            subscription accounts."
+            staff accounts."
                 .to_string(),
             Some(true),
             None,
@@ -66,7 +68,7 @@ pub async fn create_subscription_account(
     // ? -----------------------------------------------------------------------
 
     let account_type = match get_or_create_default_account_types(
-        AccountTypeEnum::Standard,
+        AccountTypeEnum::Staff,
         None,
         None,
         account_type_registration_repo,

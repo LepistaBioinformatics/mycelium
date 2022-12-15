@@ -8,7 +8,7 @@ use agrobase::{
 };
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum AccountTypeEnum {
     Standard,
     Manager,
