@@ -7,7 +7,7 @@ use crate::{
         entities::{
             default_users::user_registration::UserRegistration,
             manager::account_type_registration::AccountTypeRegistration,
-            shared::account::account_registration::AccountRegistration,
+            shared::account_registration::AccountRegistration,
         },
     },
     use_cases::shared::account_type::get_or_create_default_account_types::{
