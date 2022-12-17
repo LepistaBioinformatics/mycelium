@@ -1,7 +1,7 @@
 use super::{guest::GuestUserDTO, user::UserDTO};
 
-use agrobase::dtos::enums::{ChildrenEnum, ParentEnum};
 use chrono::{DateTime, Local};
+use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

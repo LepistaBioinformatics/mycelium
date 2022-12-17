@@ -1,6 +1,6 @@
 use super::{account::AccountDTO, email::EmailDTO, role::RoleDTO};
-use agrobase::dtos::enums::ParentEnum;
 use chrono::{DateTime, Local};
+use clean_base::dtos::enums::ParentEnum;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

@@ -1,9 +1,9 @@
 use crate::domain::dtos::message::MessageDTO;
 
-use agrobase::{
+use async_trait::async_trait;
+use clean_base::{
     entities::default_response::CreateResponseKind, utils::errors::MappedErrors,
 };
-use async_trait::async_trait;
 use shaku::Interface;
 
 #[async_trait]

@@ -2,7 +2,7 @@ use crate::domain::{
     dtos::account::AccountTypeDTO,
     entities::manager::account_type_registration::AccountTypeRegistration,
 };
-use agrobase::{
+use clean_base::{
     entities::default_response::GetOrCreateResponseKind,
     utils::errors::MappedErrors,
 };

@@ -3,7 +3,7 @@ use crate::domain::{
     entities::manager::role_registration::RoleRegistration,
 };
 
-use agrobase::{
+use clean_base::{
     entities::default_response::GetOrCreateResponseKind,
     utils::errors::{use_case_err, MappedErrors},
 };

@@ -2,7 +2,7 @@ use crate::domain::{
     dtos::profile::ProfileDTO, entities::manager::role_deletion::RoleDeletion,
 };
 
-use agrobase::{
+use clean_base::{
     entities::default_response::DeletionResponseKind,
     utils::errors::{use_case_err, MappedErrors},
 };

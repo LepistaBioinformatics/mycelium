@@ -1,10 +1,10 @@
 use crate::domain::dtos::account::AccountTypeDTO;
 
-use agrobase::{
+use async_trait::async_trait;
+use clean_base::{
     entities::default_response::{CreateResponseKind, GetOrCreateResponseKind},
     utils::errors::MappedErrors,
 };
-use async_trait::async_trait;
 use shaku::Interface;
 
 #[async_trait]

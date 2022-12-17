@@ -1,10 +1,10 @@
 use crate::domain::dtos::guest::GuestRoleDTO;
 
-use agrobase::{
+use async_trait::async_trait;
+use clean_base::{
     entities::default_response::DeletionResponseKind,
     utils::errors::MappedErrors,
 };
-use async_trait::async_trait;
 use shaku::Interface;
 use uuid::Uuid;
 
