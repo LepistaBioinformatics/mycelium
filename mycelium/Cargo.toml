@@ -7,20 +7,25 @@ edition = "2021"
 # ? DEPENDENCIES
 # ? ---------------------------------------------------------------------------
 
+[dependencies.prisma-client-rust]
+git = "https://github.com/Brendonovich/prisma-client-rust"
+tag = "0.6.3"
+
+[dependencies.prisma-client-rust-cli]
+git = "https://github.com/Brendonovich/prisma-client-rust"
+tag = "0.6.3"
+
 [dependencies]
+
+# * Required dependencies
 mycelium-prisma = { path = "../mycelium_prisma" }
-actix-cors = { version = "0.6.2" }
-actix-web-error = { version = "0.1" }
-actix-web-error-derive = { version = "0.1" }
 async-trait = "0.1"
-clean-base = "0.1.1"
+clean-base = "0.1"
 chrono = "0.4"
 env_logger = "0.10"
 futures = "0.3"
 lazy_static = "1.4"
 log = "0.4"
-prisma-client-rust = { git = "https://github.com/Brendonovich/prisma-client-rust", tag = "0.6.2" }
-prisma-client-rust-cli = { git = "https://github.com/Brendonovich/prisma-client-rust", tag = "0.6.2" }
 regex = "1.6"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -28,6 +33,12 @@ shaku = "0.6"
 shaku_actix = "0.2"
 tokio = { version = "1", features = ["full"] }
 uuid = { version = "1.1", features = ["v4", "fast-rng", "macro-diagnostics"] }
+
+# * Optional dependencies
+actix-cors = { version = "0.6.2", optional = true }
+actix-web-error = { version = "0.1", optional = true }
+actix-web-error-derive = { version = "0.1", optional = true }
+clap = { version = "4", features = ["derive"], optional = true }
 
 # ? ---------------------------------------------------------------------------
 # ? LIBRARY
@@ -42,6 +53,16 @@ crate-type = ["staticlib", "lib"]
 # ? BINARIES
 # ? ---------------------------------------------------------------------------
 
-#[[bin]]
-#name = "myc-api"
-#path = "src/ports/api/main.rs"
+[features]
+cli-deps = ["clap"]
+api-deps = ["actix-cors", "actix-web-error", "actix-web-error-derive"]
+
+[[bin]]
+name = "myc-cli"
+path = "src/ports/cli/main.rs"
+required-features = ["cli-deps"]
+
+[[bin]]
+name = "myc-api"
+path = "src/ports/api/main.rs"
+required-features = ["api-deps"]
