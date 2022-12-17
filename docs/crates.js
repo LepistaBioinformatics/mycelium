@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["myc","myc_prisma","myc_prisma_cli"];

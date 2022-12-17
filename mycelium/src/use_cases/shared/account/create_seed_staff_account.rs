@@ -19,10 +19,16 @@ use clean_base::{
     utils::errors::{use_case_err, MappedErrors},
 };
 
-/// Create a seed account flagged as staff.
+/// Create a seed staff account.
 ///
 /// Seed staff accounts should be created over the system first initialization.
 /// The seed staff will be create other users.
+///
+/// WARNING:
+/// --------
+///
+/// Given the possibility to create seed staff accounts without profile
+/// checking, this function could not be exposed through API ports.
 pub async fn create_seed_staff_account(
     email: String,
     account_name: String,

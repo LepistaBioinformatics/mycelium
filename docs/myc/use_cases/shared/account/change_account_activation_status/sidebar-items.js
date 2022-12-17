@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["change_account_activation_status","Change activation status of the target account."]]};

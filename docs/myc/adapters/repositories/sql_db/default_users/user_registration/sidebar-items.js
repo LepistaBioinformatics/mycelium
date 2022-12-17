@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["UserRegistrationSqlDbRepository",""],["UserRegistrationSqlDbRepositoryParameters","Parameters for UserRegistrationSqlDbRepository"]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Include",""],["Select",""]],"fn":[["connect",""],["disconnect",""],["every",""],["fetch",""],["none",""],["set",""],["some",""]],"struct":[["Connect",""],["Fetch",""]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["approve_account","Check the account as approved."]]};

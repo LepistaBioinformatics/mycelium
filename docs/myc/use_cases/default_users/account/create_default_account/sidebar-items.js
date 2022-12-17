@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["create_default_account","Create a default account."]]};

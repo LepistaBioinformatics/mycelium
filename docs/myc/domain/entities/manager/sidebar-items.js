@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["account_type_deletion",""],["account_type_fetching",""],["account_type_registration",""],["account_type_updating",""],["guest_role_deletion",""],["guest_role_registration",""],["guest_role_updating",""],["guest_user_registration",""],["role_deletion",""],["role_fetching",""],["role_registration",""],["role_updating",""]]};
