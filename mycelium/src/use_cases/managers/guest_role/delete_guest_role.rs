@@ -3,7 +3,7 @@ use crate::domain::{
     entities::manager::guest_role_deletion::GuestRoleDeletion,
 };
 
-use agrobase::{
+use clean_base::{
     entities::default_response::DeletionResponseKind,
     utils::errors::{use_case_err, MappedErrors},
 };

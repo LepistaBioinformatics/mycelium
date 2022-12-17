@@ -14,7 +14,7 @@ use crate::{
     },
 };
 
-use agrobase::{
+use clean_base::{
     dtos::enums::ParentEnum,
     entities::default_response::{
         FetchResponseKind, GetOrCreateResponseKind, UpdatingResponseKind,

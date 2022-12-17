@@ -6,7 +6,7 @@ use crate::domain::{
     entities::manager::guest_role_registration::GuestRoleRegistration,
 };
 
-use agrobase::{
+use clean_base::{
     dtos::enums::ParentEnum,
     entities::default_response::GetOrCreateResponseKind,
     utils::errors::{use_case_err, MappedErrors},

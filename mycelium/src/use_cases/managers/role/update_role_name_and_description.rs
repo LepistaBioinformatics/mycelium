@@ -4,7 +4,7 @@ use crate::domain::{
         role_fetching::RoleFetching, role_updating::RoleUpdating,
     },
 };
-use agrobase::{
+use clean_base::{
     entities::default_response::{FetchResponseKind, UpdatingResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };

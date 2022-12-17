@@ -1,10 +1,10 @@
 use crate::domain::dtos::role::RoleDTO;
 
-use agrobase::{
+use async_trait::async_trait;
+use clean_base::{
     entities::default_response::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::MappedErrors,
 };
-use async_trait::async_trait;
 use shaku::Interface;
 use uuid::Uuid;
 

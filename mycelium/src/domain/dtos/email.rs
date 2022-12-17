@@ -1,4 +1,4 @@
-use agrobase::utils::errors::{invalid_arg_err, MappedErrors};
+use clean_base::utils::errors::{invalid_arg_err, MappedErrors};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 

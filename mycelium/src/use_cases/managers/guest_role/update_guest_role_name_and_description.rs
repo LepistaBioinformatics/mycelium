@@ -6,7 +6,7 @@ use crate::domain::{
     },
 };
 
-use agrobase::{
+use clean_base::{
     entities::default_response::{FetchResponseKind, UpdatingResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
