@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["create_guest_role","This function should be called only by manager users. Roles should be created after the application is registered by staff users why roles links guest, permissions, and applications."]]};

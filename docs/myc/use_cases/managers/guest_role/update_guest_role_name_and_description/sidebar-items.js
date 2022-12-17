@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["update_guest_role_name_and_description","This function allows only the update of name and description attributes of a single role."]]};

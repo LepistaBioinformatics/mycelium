@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["update_own_account_name","Update the own account."]]};

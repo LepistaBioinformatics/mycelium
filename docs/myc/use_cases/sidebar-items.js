@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["default_users",""],["managers",""],["shared",""],["staff",""]]};

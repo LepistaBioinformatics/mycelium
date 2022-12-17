@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["create_subscription_account","Create an account flagged as subscription."]]};

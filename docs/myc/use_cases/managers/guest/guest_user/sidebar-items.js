@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["guest_user","Guest a user to perform actions into an account."]]};

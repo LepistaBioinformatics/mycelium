@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["contains",""],["ends_with",""],["equals",""],["gt",""],["gte",""],["in_vec",""],["lt",""],["lte",""],["mode",""],["not",""],["not_in_vec",""],["order",""],["set",""],["starts_with",""]],"struct":[["Include",""],["Select",""],["Set",""]]};
