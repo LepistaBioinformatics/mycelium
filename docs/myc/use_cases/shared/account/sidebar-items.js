@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["approve_account",""],["change_account_activation_status",""],["create_seed_staff_account",""],["downgrade_account_status",""],["upgrade_account_privileges",""]]};

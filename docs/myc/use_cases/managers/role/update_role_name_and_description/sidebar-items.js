@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["update_role_name_and_description","Update the role name and description."]]};

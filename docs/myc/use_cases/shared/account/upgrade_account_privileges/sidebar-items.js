@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["upgrade_account_privileges","Upgrade the account status."]]};

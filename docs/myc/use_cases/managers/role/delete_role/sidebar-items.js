@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["delete_role","Delete a single role."]]};

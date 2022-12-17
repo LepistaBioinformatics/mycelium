@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["create_guest_role",""],["delete_guest_role",""],["update_guest_role_name_and_description",""],["update_guest_role_permissions",""]]};

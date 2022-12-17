@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["get_or_create_default_account_types",""]]};
