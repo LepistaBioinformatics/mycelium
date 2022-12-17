@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["ActionType",""]],"fn":[["update_guest_role_permissions","This function allow users to include or remove permission from a single role. Only manager users should perform such action."]]};

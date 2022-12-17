@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["delete_guest_role","This function deletes a single role. Only manager user could execute such operation."]]};

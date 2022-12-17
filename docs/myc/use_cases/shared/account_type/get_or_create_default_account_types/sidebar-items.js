@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["AccountTypeEnum",""]],"fn":[["get_or_create_default_account_types","Get or create default accounts."]]};

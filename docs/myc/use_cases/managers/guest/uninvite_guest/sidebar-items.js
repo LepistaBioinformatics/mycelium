@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["uninvite_guest","TODO: Do implement."]]};

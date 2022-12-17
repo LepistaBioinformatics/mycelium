@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["new_client",""],["new_client_with_url",""]],"mod":[["_prisma",""],["account",""],["account_type",""],["guest_role",""],["guest_user",""],["guest_user_on_account",""],["role",""],["user",""]],"static":[["DATABASE_STR",""],["DATAMODEL_STR",""]]};

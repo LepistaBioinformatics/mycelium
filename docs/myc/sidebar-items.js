@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["adapters",""],["domain",""],["use_cases",""]]};

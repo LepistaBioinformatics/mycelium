@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["create_default_account",""],["update_own_account_name",""]]};
