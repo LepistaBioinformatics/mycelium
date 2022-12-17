@@ -1,9 +1,6 @@
 use crate::{
     domain::{
-        dtos::{
-            account::AccountDTO, email::EmailDTO, profile::ProfileDTO,
-            user::UserDTO,
-        },
+        dtos::{account::AccountDTO, email::EmailDTO, user::UserDTO},
         entities::{
             default_users::user_registration::UserRegistration,
             manager::account_type_registration::AccountTypeRegistration,
@@ -27,29 +24,12 @@ use clean_base::{
 /// Seed staff accounts should be created over the system first initialization.
 /// The seed staff will be create other users.
 pub async fn create_seed_staff_account(
-    profile: ProfileDTO,
     email: String,
     account_name: String,
     user_registration_repo: Box<&dyn UserRegistration>,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
 ) -> Result<GetOrCreateResponseKind<AccountDTO>, MappedErrors> {
-    // ? -----------------------------------------------------------------------
-    // ? Check if the current account has sufficient privileges
-    //
-    // Only managers or staff users should perform such action.
-    // ? -----------------------------------------------------------------------
-
-    if (!profile.is_manager) || (!profile.is_staff) {
-        return Err(use_case_err(
-            "The current user has no sufficient privileges to register 
-            staff accounts."
-                .to_string(),
-            Some(true),
-            None,
-        ));
-    }
-
     // ? -----------------------------------------------------------------------
     // ? Build and validate email
     //
