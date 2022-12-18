@@ -71,7 +71,7 @@ pub async fn guest_user(
                     ))
                 }
                 ParentEnum::Record(res) => {
-                    if res.is_subscription != false {
+                    if !res.is_subscription {
                         return Err(use_case_err(
                             format!(
                                 "Invalid account ({:?}). Only subscription 
