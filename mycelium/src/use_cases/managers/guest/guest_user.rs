@@ -5,14 +5,16 @@ use crate::domain::{
     },
     entities::{
         manager::guest_user_registration::GuestUserRegistration,
-        shared::send_message::MessageSending,
+        shared::{
+            account_fetching::AccountFetching, send_message::MessageSending,
+        },
     },
 };
 
 use chrono::Local;
 use clean_base::{
     dtos::enums::ParentEnum,
-    entities::default_response::GetOrCreateResponseKind,
+    entities::default_response::{FetchResponseKind, GetOrCreateResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
 use log::{info, warn};
@@ -24,6 +26,7 @@ pub async fn guest_user(
     email: EmailDTO,
     role: Uuid,
     target_account_id: Uuid,
+    account_fetching_repo: Box<&dyn AccountFetching>,
     guest_user_registration_repo: Box<&dyn GuestUserRegistration>,
     message_sending_repo: Box<&dyn MessageSending>,
 ) -> Result<GetOrCreateResponseKind<GuestUserDTO>, MappedErrors> {
@@ -39,6 +42,50 @@ pub async fn guest_user(
             None,
         ));
     };
+
+    // ? -----------------------------------------------------------------------
+    // ? Check if account has subscription type
+    //
+    // Check if the target account is a subscription account.
+    // ? -----------------------------------------------------------------------
+
+    match account_fetching_repo.get(target_account_id).await {
+        Err(err) => return Err(err),
+        Ok(res) => match res {
+            FetchResponseKind::NotFound(id) => {
+                return Err(use_case_err(
+                    format!("Target account not found: {:?}", id.unwrap()),
+                    None,
+                    None,
+                ))
+            }
+            FetchResponseKind::Found(res) => match res.account_type {
+                ParentEnum::Id(id) => {
+                    return Err(use_case_err(
+                        format!(
+                            "Could not check the account type validity: {}",
+                            id
+                        ),
+                        None,
+                        None,
+                    ))
+                }
+                ParentEnum::Record(res) => {
+                    if res.is_subscription != false {
+                        return Err(use_case_err(
+                            format!(
+                                "Invalid account ({:?}). Only subscription 
+                                accounts should receive guesting.",
+                                res.id
+                            ),
+                            None,
+                            None,
+                        ));
+                    }
+                }
+            },
+        },
+    }
 
     // ? -----------------------------------------------------------------------
     // ? Persist changes
