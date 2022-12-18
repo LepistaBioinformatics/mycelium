@@ -1,18 +1,16 @@
-use crate::domain::dtos::account::AccountTypeDTO;
+use crate::domain::dtos::{email::EmailDTO, profile::ProfileDTO};
 
 use async_trait::async_trait;
 use clean_base::{
-    entities::default_response::{FetchManyResponseKind, FetchResponseKind},
-    utils::errors::MappedErrors,
+    entities::default_response::FetchResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Interface;
 use uuid::Uuid;
 
 #[async_trait]
-pub trait AccountTypeFetching: Interface + Send + Sync {
-    async fn get(&self, id: String) -> FetchResponseKind<AccountTypeDTO, Uuid>;
-    async fn list(
+pub trait ProfileFetching: Interface + Send + Sync {
+    async fn get(
         &self,
-        search_term: String,
-    ) -> Result<FetchManyResponseKind<AccountTypeDTO>, MappedErrors>;
+        email: EmailDTO,
+    ) -> Result<FetchResponseKind<ProfileDTO, Uuid>, MappedErrors>;
 }
