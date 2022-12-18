@@ -55,7 +55,7 @@ pub async fn approve_account(
         Some(res) => res,
     };
 
-    if (!profile.is_manager) || (target_account_id != profile.account) {
+    if (!profile.is_manager) || (target_account_id != profile.account_id) {
         return Err(use_case_err(
             format!(
                 "Not enough permissions deactivate the account {:?}.",
