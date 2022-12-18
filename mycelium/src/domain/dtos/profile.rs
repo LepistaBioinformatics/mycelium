@@ -23,10 +23,8 @@ pub struct LicensedIdentifiersDTO {
 #[serde(rename_all = "camelCase")]
 pub struct ProfileDTO {
     pub email: EmailDTO,
-    pub account: Uuid,
-
-    pub name: String,
-    pub description: String,
+    pub account_id: Uuid,
+    pub is_subscription: bool,
     pub is_manager: bool,
     pub is_staff: bool,
 

@@ -24,7 +24,8 @@ pub async fn update_own_account_name(
     // ? Fetch the account
     // ? -----------------------------------------------------------------------
 
-    let mut account = match account_fetching_repo.get(profile.account).await {
+    let mut account = match account_fetching_repo.get(profile.account_id).await
+    {
         Err(err) => return Err(err),
         Ok(res) => match res {
             FetchResponseKind::NotFound(id) => {
