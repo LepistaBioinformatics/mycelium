@@ -4,7 +4,7 @@ use crate::{
         dtos::{
             email::EmailDTO,
             guest::PermissionsType,
-            profile::{LicensedIdentifiersDTO, ProfileDTO},
+            profile::{LicensedResourcesDTO, ProfileDTO},
         },
         entities::service::profile_fetching::ProfileFetching,
     },
@@ -66,16 +66,16 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                 }
                 guest_users: select {
                     guest_user: select {
-                        email
                         created
                         updated
-                        role_id
                         role: select {
                             permissions
+                            role: select {
+                                name
+                            }
                         }
                     }
                     account_id
-                    created
                 }
             }));
 
@@ -91,13 +91,12 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                 let guests = record
                     .guest_users
                     .into_iter()
-                    .map(|guest| LicensedIdentifiersDTO {
-                        account_id: Uuid::parse_str(&guest.account_id.as_str())
-                            .unwrap(),
-                        role_id: Uuid::parse_str(
-                            &guest.guest_user.role_id.as_str(),
+                    .map(|guest| LicensedResourcesDTO {
+                        guest_account_id: Uuid::parse_str(
+                            &guest.account_id.as_str(),
                         )
                         .unwrap(),
+                        role: guest.guest_user.role.role.name,
                         permissions: guest
                             .guest_user
                             .role
@@ -111,18 +110,18 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                             Some(res) => Some(DateTime::from(res)),
                         },
                     })
-                    .collect::<Vec<LicensedIdentifiersDTO>>();
+                    .collect::<Vec<LicensedResourcesDTO>>();
 
                 Ok(FetchResponseKind::Found(ProfileDTO {
                     email: match EmailDTO::from_string(record.owner.email) {
                         Err(err) => return Err(err),
-                        Ok(res) => res,
+                        Ok(res) => res.get_email(),
                     },
-                    account_id: Uuid::parse_str(&record.id).unwrap(),
+                    current_account_id: Uuid::parse_str(&record.id).unwrap(),
                     is_subscription: record.account_type.is_subscription,
                     is_manager: record.account_type.is_manager,
                     is_staff: record.account_type.is_staff,
-                    licensed_ids: match guests.len() {
+                    licensed_resources: match guests.len() {
                         0 => None,
                         _ => Some(guests),
                     },

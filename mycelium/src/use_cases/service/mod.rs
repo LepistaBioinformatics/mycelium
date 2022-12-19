@@ -1,1 +1,1 @@
-pub mod fetch_user_profile;
+pub mod fetch_profile_from_email;

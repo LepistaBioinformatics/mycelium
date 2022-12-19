@@ -24,20 +24,20 @@ pub async fn update_own_account_name(
     // ? Fetch the account
     // ? -----------------------------------------------------------------------
 
-    let mut account = match account_fetching_repo.get(profile.account_id).await
-    {
-        Err(err) => return Err(err),
-        Ok(res) => match res {
-            FetchResponseKind::NotFound(id) => {
-                return Err(use_case_err(
-                    format!("Invalid account id: {}", id.unwrap()),
-                    Some(true),
-                    None,
-                ))
-            }
-            FetchResponseKind::Found(res) => res,
-        },
-    };
+    let mut account =
+        match account_fetching_repo.get(profile.current_account_id).await {
+            Err(err) => return Err(err),
+            Ok(res) => match res {
+                FetchResponseKind::NotFound(id) => {
+                    return Err(use_case_err(
+                        format!("Invalid account id: {}", id.unwrap()),
+                        Some(true),
+                        None,
+                    ))
+                }
+                FetchResponseKind::Found(res) => res,
+            },
+        };
 
     // ? -----------------------------------------------------------------------
     // ? Update and persist account name

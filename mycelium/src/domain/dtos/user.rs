@@ -2,9 +2,10 @@ use super::email::EmailDTO;
 
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UserDTO {
     pub id: Option<Uuid>,
