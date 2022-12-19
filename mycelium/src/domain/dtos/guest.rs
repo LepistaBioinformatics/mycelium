@@ -2,9 +2,10 @@ use super::{account::AccountDTO, email::EmailDTO, role::RoleDTO};
 use chrono::{DateTime, Local};
 use clean_base::dtos::enums::ParentEnum;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum PermissionsType {
     View = 0,
@@ -25,7 +26,7 @@ impl PermissionsType {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct GuestRoleDTO {
     pub id: Option<Uuid>,
@@ -49,7 +50,7 @@ impl GuestRoleDTO {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct GuestUserDTO {
     pub id: Option<Uuid>,

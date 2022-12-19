@@ -3,9 +3,10 @@ use super::{guest::GuestUserDTO, user::UserDTO};
 use chrono::{DateTime, Local};
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountTypeDTO {
     pub id: Option<Uuid>,
@@ -18,7 +19,7 @@ pub struct AccountTypeDTO {
     pub is_staff: bool,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountDTO {
     pub id: Option<Uuid>,

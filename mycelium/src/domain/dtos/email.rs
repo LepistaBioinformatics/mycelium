@@ -1,8 +1,9 @@
 use clean_base::utils::errors::{invalid_arg_err, MappedErrors};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct EmailDTO {
     pub username: String,

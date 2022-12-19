@@ -32,12 +32,16 @@ serde_json = "1.0"
 shaku = "0.6"
 shaku_actix = "0.2"
 tokio = { version = "1", features = ["full"] }
-uuid = { version = "1.1", features = ["v4", "fast-rng", "macro-diagnostics"] }
+uuid = { version = "1.1", features = ["v4", "serde", "fast-rng"] }
 
 # * Optional dependencies
 actix-cors = { version = "0.6.2", optional = true }
+actix-web = { version = "4", optional = true }
 actix-web-error = { version = "0.1", optional = true }
 actix-web-error-derive = { version = "0.1", optional = true }
+reqwest = { version = "0.11", features = ["json"], optional = true }
+utoipa = { version = "2", features = ["actix_extras", "uuid"], optional = true }
+utoipa-swagger-ui = { version = "3", features = ["actix-web"], optional = true }
 clap = { version = "4", features = ["derive"], optional = true }
 
 # ? ---------------------------------------------------------------------------
@@ -55,7 +59,15 @@ crate-type = ["staticlib", "lib"]
 
 [features]
 cli-deps = ["clap"]
-api-deps = ["actix-cors", "actix-web-error", "actix-web-error-derive"]
+api-deps = [
+    "actix-cors", 
+    "actix-web", 
+    "actix-web-error", 
+    "actix-web-error-derive",
+    "reqwest",
+    "utoipa",
+    "utoipa-swagger-ui",
+]
 
 [[bin]]
 name = "myc-cli"
