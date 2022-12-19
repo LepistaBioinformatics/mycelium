@@ -88,49 +88,37 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
         match response {
             Some(record) => {
                 let record = record;
-                let id = Uuid::parse_str(&record.id).unwrap();
-
-                let email = match EmailDTO::from_string(record.owner.email) {
-                    Err(err) => return Err(err),
-                    Ok(res) => res,
-                };
-
                 let guests = record
                     .guest_users
                     .into_iter()
-                    .map(|guest| {
-                        let perms = guest
+                    .map(|guest| LicensedIdentifiersDTO {
+                        account_id: Uuid::parse_str(&guest.account_id.as_str())
+                            .unwrap(),
+                        role_id: Uuid::parse_str(
+                            &guest.guest_user.role_id.as_str(),
+                        )
+                        .unwrap(),
+                        permissions: guest
                             .guest_user
                             .role
                             .permissions
                             .into_iter()
                             .map(|i| PermissionsType::from_i32(i))
-                            .collect();
-
-                        let updated = match guest.guest_user.updated {
+                            .collect(),
+                        created: guest.guest_user.created.into(),
+                        updated: match guest.guest_user.updated {
                             None => None,
                             Some(res) => Some(DateTime::from(res)),
-                        };
-
-                        LicensedIdentifiersDTO {
-                            account_id: Uuid::parse_str(
-                                &guest.account_id.as_str(),
-                            )
-                            .unwrap(),
-                            role_id: Uuid::parse_str(
-                                &guest.guest_user.role_id.as_str(),
-                            )
-                            .unwrap(),
-                            permissions: perms,
-                            created: guest.guest_user.created.into(),
-                            updated,
-                        }
+                        },
                     })
                     .collect::<Vec<LicensedIdentifiersDTO>>();
 
                 Ok(FetchResponseKind::Found(ProfileDTO {
-                    email,
-                    account_id: id,
+                    email: match EmailDTO::from_string(record.owner.email) {
+                        Err(err) => return Err(err),
+                        Ok(res) => res,
+                    },
+                    account_id: Uuid::parse_str(&record.id).unwrap(),
                     is_subscription: record.account_type.is_subscription,
                     is_manager: record.account_type.is_manager,
                     is_staff: record.account_type.is_staff,
