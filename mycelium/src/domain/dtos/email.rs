@@ -16,7 +16,16 @@ impl EmailDTO {
             r"^([a-z0-9_+]([a-z0-9_+.]*[a-z0-9_+])?)@([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6})"
         ).unwrap();
 
-        let cap = re.captures(email.as_str()).unwrap();
+        let cap = match re.captures(email.as_str()) {
+            None => {
+                return Err(invalid_arg_err(
+                    format!("Invalid Email format: {:?}", email.to_owned()),
+                    Some(true),
+                    None,
+                ));
+            }
+            Some(res) => res,
+        };
 
         let username = match cap.get(1) {
             None => {
