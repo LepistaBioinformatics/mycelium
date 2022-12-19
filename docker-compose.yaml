@@ -4,7 +4,7 @@ version: "3"
 # ? NETWORK DEFINITION
 # ? ----------------------------------------------------------------------------
 networks:
-  bio_archive_net:
+  mycelium_net:
     ipam:
       config:
         - subnet: ${SERVICES_SUBNET}
@@ -17,8 +17,8 @@ services:
   # ? --------------------------------------------------------------------------
   # ? DATABASES
   # ? --------------------------------------------------------------------------
-  bio_archive_postgres:
-    container_name: bio-archive-postgres
+  mycelium_postgres:
+    container_name: mycelium-postgres
     image: 'postgres:12'
     restart: on-failure
     environment:
@@ -35,5 +35,5 @@ services:
       timeout: 5s
       retries: 20
     networks:
-      bio_archive_net:
+      mycelium_net:
         ipv4_address: ${POSTGRES_SERVICE_SUBNET}

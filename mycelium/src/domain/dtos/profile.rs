@@ -1,5 +1,6 @@
 use super::{email::EmailDTO, guest::PermissionsType};
 
+use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -11,6 +12,8 @@ pub struct LicensedIdentifiersDTO {
     pub account_id: Uuid,
     pub role_id: Uuid,
     pub permissions: Vec<PermissionsType>,
+    pub created: DateTime<Local>,
+    pub updated: Option<DateTime<Local>>,
 }
 
 /// The profile-dto is an special case of object. Different from other DTOs, it

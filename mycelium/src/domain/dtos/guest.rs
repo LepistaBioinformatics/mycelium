@@ -13,6 +13,18 @@ pub enum PermissionsType {
     Delete = 3,
 }
 
+impl PermissionsType {
+    pub fn from_i32(v: i32) -> Self {
+        match v {
+            0 => PermissionsType::View,
+            1 => PermissionsType::Create,
+            2 => PermissionsType::Update,
+            3 => PermissionsType::Delete,
+            _ => PermissionsType::View,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GuestRoleDTO {
