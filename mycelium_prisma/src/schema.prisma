@@ -29,7 +29,7 @@ model User {
   updated    DateTime? @updatedAt @db.Timestamptz(6)
 
   // Backward relationship fields
-  accounts Account?
+  accounts Account[]
 
   // Db compatibility and extra maps
   @@unique([email])
