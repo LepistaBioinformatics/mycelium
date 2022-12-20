@@ -2,7 +2,7 @@ use crate::domain::dtos::guest::GuestRoleDTO;
 
 use async_trait::async_trait;
 use clean_base::{
-    entities::default_response::{CreateResponseKind, GetOrCreateResponseKind},
+    entities::default_response::GetOrCreateResponseKind,
     utils::errors::MappedErrors,
 };
 use shaku::Interface;
@@ -11,11 +11,6 @@ use shaku::Interface;
 pub trait GuestRoleRegistration: Interface + Send + Sync {
     async fn get_or_create(
         &self,
-        user_role: GuestRoleDTO,
+        guest_role: GuestRoleDTO,
     ) -> Result<GetOrCreateResponseKind<GuestRoleDTO>, MappedErrors>;
-
-    async fn create(
-        &self,
-        user_role: GuestRoleDTO,
-    ) -> Result<CreateResponseKind<GuestRoleDTO>, MappedErrors>;
 }

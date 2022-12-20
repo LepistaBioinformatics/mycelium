@@ -66,6 +66,7 @@ model GuestRole {
   guest_users GuestUser[]
 
   // Db compatibility and extra maps
+  @@unique([name])
   @@map("guest_role")
 }
 
