@@ -96,7 +96,7 @@ pub async fn guest_user(
             GuestUserDTO {
                 id: None,
                 email: email.to_owned(),
-                role: ParentEnum::Id(role),
+                guest_role: ParentEnum::Id(role),
                 created: Local::now(),
                 updated: None,
             },

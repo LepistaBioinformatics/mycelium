@@ -60,7 +60,7 @@ pub async fn create_guest_role(
         .get_or_create(GuestRoleDTO {
             id: None,
             name,
-            description,
+            description: Some(description),
             role: ParentEnum::Id(role),
             permissions,
             account: None,

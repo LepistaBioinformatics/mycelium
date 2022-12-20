@@ -63,7 +63,7 @@ pub async fn update_guest_role_name_and_description(
     };
 
     if description.is_some() {
-        user_role.description = description.unwrap();
+        user_role.description = description;
     };
 
     // ? ----------------------------------------------------------------------
