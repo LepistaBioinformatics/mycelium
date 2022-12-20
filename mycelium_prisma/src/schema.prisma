@@ -107,6 +107,7 @@ model AccountType {
   accounts Account[]
 
   // Db compatibility and extra maps
+  @@unique([name])
   @@map("account_type")
 }
 
