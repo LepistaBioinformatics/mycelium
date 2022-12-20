@@ -12,7 +12,7 @@ use clean_base::{
     entities::default_response::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
-use myc_prisma::prisma::guest_role as guest_role_model;
+use myc_prisma::prisma::{guest_role as guest_role_model, role as role_model};
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -55,7 +55,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
             .find_first(vec![guest_role_model::name::equals(
                 guest_role.name.to_owned(),
             )])
-            .include(guest_role_model::include!({ role_id }))
+            .include(guest_role_model::include!({ role: select { id } }))
             .exec()
             .await;
 
@@ -66,8 +66,10 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                     GuestRoleDTO {
                         id: Some(Uuid::parse_str(&record.id).unwrap()),
                         name: record.name,
-                        description: record.description,
-                        role: record.role_id,
+                        description: record.description.to_owned(),
+                        role: ParentEnum::Id(
+                            Uuid::parse_str(&record.role.id).unwrap(),
+                        ),
                         permissions: record
                             .permissions
                             .into_iter()
@@ -86,28 +88,34 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
         // ? -------------------------------------------------------------------
 
         let response = client
-            .account_type()
+            .guest_role()
             .create(
                 guest_role.name.to_owned(),
-                guest_role.description.to_owned(),
+                role_model::id::equals(match guest_role.role {
+                    ParentEnum::Id(id) => id.to_string(),
+                    ParentEnum::Record(record) => match record.id {
+                        None => {
+                            return Err(creation_err(
+                                format!(
+                                    "Role ID not available: {:?}",
+                                    guest_role.id.to_owned(),
+                                ),
+                                None,
+                                None,
+                            ))
+                        }
+                        Some(id) => id.to_string(),
+                    },
+                }),
                 vec![
-                    guest_role_model::role_id::set(match guest_role.role {
-                        ParentEnum::id(id) => id.to_string(),
-                        ParentEnum::Record(record) => match record.id {
-                            None => {
-                                return Err(creation_err(
-                                    format!(
-                                        "Role ID not available: {}",
-                                        guest_role.to_owned(),
-                                    ),
-                                    None,
-                                    None,
-                                ))
-                            }
-                            Some(id) => id,
-                        },
-                    }),
-                    guest_role_model::permissions::set(guest_role.permissions),
+                    guest_role_model::description::set(guest_role.description),
+                    guest_role_model::permissions::set(
+                        guest_role
+                            .permissions
+                            .into_iter()
+                            .map(|i| i as i32)
+                            .collect::<Vec<i32>>(),
+                    ),
                 ],
             )
             .exec()
@@ -121,7 +129,9 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                     id: Some(Uuid::parse_str(&record.id).unwrap()),
                     name: record.name,
                     description: record.description,
-                    role: record.role_id,
+                    role: ParentEnum::Id(
+                        Uuid::parse_str(&record.role_id).unwrap(),
+                    ),
                     permissions: record
                         .permissions
                         .into_iter()

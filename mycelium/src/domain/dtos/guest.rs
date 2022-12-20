@@ -32,7 +32,7 @@ pub struct GuestRoleDTO {
     pub id: Option<Uuid>,
 
     pub name: String,
-    pub description: String,
+    pub description: Option<String>,
     pub role: ParentEnum<RoleDTO, Uuid>,
     pub permissions: Vec<PermissionsType>,
     pub account: Option<ParentEnum<AccountDTO, Uuid>>,
@@ -56,14 +56,14 @@ pub struct GuestUserDTO {
     pub id: Option<Uuid>,
 
     pub email: EmailDTO,
-    pub role: ParentEnum<GuestRoleDTO, Uuid>,
+    pub guest_role: ParentEnum<GuestRoleDTO, Uuid>,
     pub created: DateTime<Local>,
     pub updated: Option<DateTime<Local>>,
 }
 
 impl GuestUserDTO {
     pub fn build_role_url(&self, base_url: String) -> Result<String, ()> {
-        match self.role.to_owned() {
+        match self.guest_role.to_owned() {
             ParentEnum::Id(id) => Ok(format!("{}/{}", base_url, id)),
             ParentEnum::Record(record) => match record.id {
                 Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
