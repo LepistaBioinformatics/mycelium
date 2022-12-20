@@ -2217,8 +2217,8 @@ pub mod guest_role {
         pub fn set<T: From<Set>>(value: String) -> T {
             Set(value).into()
         }
-        pub fn equals(value: String) -> WhereParam {
-            WhereParam::NameEquals(value).into()
+        pub fn equals<T: From<UniqueWhereParam>>(value: String) -> T {
+            UniqueWhereParam::NameEquals(value).into()
         }
         pub fn order(
             direction: ::prisma_client_rust::Direction,
@@ -3087,11 +3087,13 @@ pub mod guest_role {
     }
     #[derive(Clone)]
     pub enum UniqueWhereParam {
+        NameEquals(String),
         IdEquals(String),
     }
     impl From<UniqueWhereParam> for WhereParam {
         fn from(value: UniqueWhereParam) -> Self {
             match value {
+                UniqueWhereParam::NameEquals(value) => Self::NameEquals(value),
                 UniqueWhereParam::IdEquals(value) => Self::IdEquals(value),
             }
         }
