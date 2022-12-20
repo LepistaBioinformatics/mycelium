@@ -2,7 +2,7 @@ use crate::domain::dtos::account::AccountTypeDTO;
 
 use async_trait::async_trait;
 use clean_base::{
-    entities::default_response::{CreateResponseKind, GetOrCreateResponseKind},
+    entities::default_response::GetOrCreateResponseKind,
     utils::errors::MappedErrors,
 };
 use shaku::Interface;
@@ -13,9 +13,4 @@ pub trait AccountTypeRegistration: Interface + Send + Sync {
         &self,
         account_type: AccountTypeDTO,
     ) -> Result<GetOrCreateResponseKind<AccountTypeDTO>, MappedErrors>;
-
-    async fn create(
-        &self,
-        account_type: AccountTypeDTO,
-    ) -> Result<CreateResponseKind<AccountTypeDTO>, MappedErrors>;
 }
