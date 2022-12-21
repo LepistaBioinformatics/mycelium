@@ -99,7 +99,7 @@ pub mod manager_endpoints {
     /// Guest a user to work on account.
     ///
     /// This action gives the ability of the target account (specified through
-    /// the `account` argument) to perform actions specified in the role
+    /// the `account` argument) to perform actions specified in the `role`
     /// path argument.
     #[utoipa::path(
         get,
@@ -117,7 +117,7 @@ pub mod manager_endpoints {
             ),
             (
                 status = 201,
-                description = "Guest already exists done.",
+                description = "Guest already exist.",
                 body = GuestUserDTO,
             ),
             (
