@@ -94,11 +94,13 @@ pub mod manager_endpoints {
 
     // ? -----------------------------------------------------------------------
     // ? Define API paths
-    //
-    // Profile
-    //
     // ? -----------------------------------------------------------------------
 
+    /// Guest a user to work on account.
+    ///
+    /// This action gives the ability of the target account (specified through
+    /// the `account` argument) to perform actions specified in the role
+    /// path argument.
     #[utoipa::path(
         get,
         path = "/managers/guest/account/{account}/role/{role}",
