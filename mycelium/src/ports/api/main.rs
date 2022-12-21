@@ -1,14 +1,15 @@
 extern crate myc;
-mod api_config;
+mod config;
 mod endpoints;
 mod modules;
 
 use actix_cors::Cors;
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer};
-use api_config::{InjectableModulesConfig, SvcConfig};
+use config::{InjectableModulesConfig, SvcConfig};
 use endpoints::{
     index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
+    manager::{manager_endpoints, ApiDoc as ManagerApiDoc},
     service::{service_endpoints, ApiDoc as ServiceApiDoc},
 };
 use log::info;
@@ -75,17 +76,22 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             .configure(heath_check_endpoints::configure)
             .configure(service_endpoints::configure)
+            .configure(manager_endpoints::configure)
             // ? ---------------------------------------------------------------
             // ? Configure Injection modules
             // ? ---------------------------------------------------------------
             .app_data(mods.profile_fetching_module.clone())
+            .app_data(mods.account_fetching_module.clone())
+            .app_data(mods.guest_user_registration_module.clone())
+            .app_data(mods.message_sending_module.clone())
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}")
                     .url(
                         "/doc/monitoring/openapi.json",
                         HealthCheckApiDoc::openapi(),
                     )
-                    .url("/doc/service/openapi.json", ServiceApiDoc::openapi()),
+                    .url("/doc/service/openapi.json", ServiceApiDoc::openapi())
+                    .url("/doc/manager/openapi.json", ManagerApiDoc::openapi()),
             )
     });
 

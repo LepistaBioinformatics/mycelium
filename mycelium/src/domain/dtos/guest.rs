@@ -1,6 +1,6 @@
 use super::{account::AccountDTO, email::EmailDTO, role::RoleDTO};
 use chrono::{DateTime, Local};
-use clean_base::dtos::enums::ParentEnum;
+use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -35,7 +35,6 @@ pub struct GuestRoleDTO {
     pub description: Option<String>,
     pub role: ParentEnum<RoleDTO, Uuid>,
     pub permissions: Vec<PermissionsType>,
-    pub account: Option<ParentEnum<AccountDTO, Uuid>>,
 }
 
 impl GuestRoleDTO {
@@ -59,6 +58,7 @@ pub struct GuestUserDTO {
     pub guest_role: ParentEnum<GuestRoleDTO, Uuid>,
     pub created: DateTime<Local>,
     pub updated: Option<DateTime<Local>>,
+    pub accounts: Option<ChildrenEnum<AccountDTO, Uuid>>,
 }
 
 impl GuestUserDTO {

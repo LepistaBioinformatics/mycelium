@@ -24,6 +24,7 @@ clean-base = "0.1"
 chrono = "0.4"
 env_logger = "0.10"
 futures = "0.3"
+futures-util = "0.3"
 lazy_static = "1.4"
 log = "0.4"
 regex = "1.6"
@@ -56,6 +57,8 @@ crate-type = ["staticlib", "lib"]
 # ? ---------------------------------------------------------------------------
 # ? BINARIES
 # ? ---------------------------------------------------------------------------
+
+public = "src/public"
 
 [features]
 cli-deps = ["clap"]

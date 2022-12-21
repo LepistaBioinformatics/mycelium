@@ -75,7 +75,6 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                             .into_iter()
                             .map(|i| PermissionsType::from_i32(i))
                             .collect(),
-                        account: None,
                     },
                     String::from("Account type already exists"),
                 ));
@@ -137,7 +136,6 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                         .into_iter()
                         .map(|i| PermissionsType::from_i32(i))
                         .collect(),
-                    account: None,
                 }))
             }
             Err(err) => {
