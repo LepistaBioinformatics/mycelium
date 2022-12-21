@@ -6,7 +6,7 @@ use crate::domain::{
     entities::{
         manager::guest_user_registration::GuestUserRegistration,
         shared::{
-            account_fetching::AccountFetching, send_message::MessageSending,
+            account_fetching::AccountFetching, message_sending::MessageSending,
         },
     },
 };
@@ -99,6 +99,7 @@ pub async fn guest_user(
                 guest_role: ParentEnum::Id(role),
                 created: Local::now(),
                 updated: None,
+                accounts: None,
             },
             target_account_id,
         )

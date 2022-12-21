@@ -63,7 +63,6 @@ pub async fn create_guest_role(
             description: Some(description),
             role: ParentEnum::Id(role),
             permissions,
-            account: None,
         })
         .await;
 }

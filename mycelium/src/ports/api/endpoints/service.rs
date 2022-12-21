@@ -30,8 +30,8 @@ use utoipa::OpenApi;
     ),
     tags(
         (
-            name = "results-expert",
-            description = "Results Expert management endpoints."
+            name = "service",
+            description = "Service management endpoints."
         )
     ),
 )]

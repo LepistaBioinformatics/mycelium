@@ -17,11 +17,6 @@ pub struct LicensedResourcesDTO {
     pub updated: Option<DateTime<Local>>,
 }
 
-/// The profile-dto is an special case of object. Different from other DTOs, it
-/// has not a database representation. Instead, this object is generated only
-/// during operations of licensing emails to perform operations to specific
-/// records, based on the record owner ID.
-///
 /// This object should be used over the application layer operations.
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
