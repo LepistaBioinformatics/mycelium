@@ -63,7 +63,7 @@ pub mod manager_endpoints {
                 },
             },
         },
-        public::extractor::profile_extractor,
+        public::extractor::extract_profile,
         use_cases::managers::guest::guest_user::guest_user,
     };
     use serde::Deserialize;
@@ -142,7 +142,7 @@ pub mod manager_endpoints {
         >,
         message_sending_repo: Inject<MessageSendingModule, dyn MessageSending>,
     ) -> impl Responder {
-        let profile = match profile_extractor(req).await {
+        let profile = match extract_profile(req).await {
             Err(err) => return err,
             Ok(res) => res,
         };
@@ -159,8 +159,8 @@ pub mod manager_endpoints {
         match guest_user(
             profile,
             email,
-            account_id,
             role_id,
+            account_id,
             Box::new(&*account_fetching_repo),
             Box::new(&*guest_registration_repo),
             Box::new(&*message_sending_repo),
