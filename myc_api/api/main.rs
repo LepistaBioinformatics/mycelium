@@ -1,4 +1,4 @@
-extern crate myc;
+extern crate myc_core;
 mod config;
 mod endpoints;
 mod modules;
@@ -13,7 +13,7 @@ use endpoints::{
     service::{service_endpoints, ApiDoc as ServiceApiDoc},
 };
 use log::info;
-use myc::adapters::repositories::sql_db::connector::generate_prisma_client_of_thread;
+use myc_core::adapters::repositories::sql_db::connector::generate_prisma_client_of_thread;
 use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_METHODS, ACCESS_CONTROL_ALLOW_ORIGIN,
     AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE,

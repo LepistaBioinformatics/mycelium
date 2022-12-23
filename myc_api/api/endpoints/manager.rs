@@ -1,5 +1,5 @@
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
-use myc::domain::dtos::{
+use myc_core::domain::dtos::{
     email::EmailDTO,
     guest::{GuestRoleDTO, GuestUserDTO, PermissionsType},
     profile::{LicensedResourcesDTO, ProfileDTO},
@@ -52,7 +52,8 @@ pub mod manager_endpoints {
 
     use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
     use clean_base::entities::default_response::GetOrCreateResponseKind;
-    use myc::{
+    use myc_api::extractor::extract_profile;
+    use myc_core::{
         domain::{
             dtos::email::EmailDTO,
             entities::{
@@ -65,7 +66,6 @@ pub mod manager_endpoints {
         },
         use_cases::managers::guest::guest_user::guest_user,
     };
-    use public::extractor::extract_profile;
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;

@@ -5,7 +5,7 @@ use crate::modules::{
     },
     service::ProfileFetchingModule,
 };
-use myc::adapters::{
+use myc_core::adapters::{
     repositories::sql_db::{
         manager::guest_user_registration::{
             GuestUserRegistrationSqlDbRepository,
