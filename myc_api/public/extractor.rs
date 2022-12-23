@@ -1,6 +1,8 @@
 use actix_web::{HttpRequest, HttpResponse};
 use clean_base::utils::errors::{execution_err, MappedErrors};
-use myc::{domain::dtos::profile::ProfileDTO, settings::DEFAULT_PROFILE_KEY};
+use myc_core::{
+    domain::dtos::profile::ProfileDTO, settings::DEFAULT_PROFILE_KEY,
+};
 
 pub async fn extract_profile(
     req: HttpRequest,
