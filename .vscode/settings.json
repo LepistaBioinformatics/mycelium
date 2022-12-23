@@ -3,8 +3,5 @@
         "dtos",
         "shaku",
         "structs"
-    ],
-    "rust-analyzer.cargo.features": [
-        "cli-deps"
-    ],
+    ]
 }
