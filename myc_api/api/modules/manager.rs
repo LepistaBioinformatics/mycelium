@@ -1,5 +1,3 @@
-extern crate myc;
-
 use myc::adapters::{
     repositories::sql_db::{
         manager::guest_user_registration::GuestUserRegistrationSqlDbRepository,

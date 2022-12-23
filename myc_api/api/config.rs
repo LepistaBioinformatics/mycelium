@@ -1,5 +1,10 @@
-use std::{env::var_os, sync::Arc};
-
+use crate::modules::{
+    manager::{
+        AccountFetchingModule, GuestUserRegistrationModule,
+        MessageSendingModule,
+    },
+    service::ProfileFetchingModule,
+};
 use myc::adapters::{
     repositories::sql_db::{
         manager::guest_user_registration::{
@@ -19,14 +24,7 @@ use myc::adapters::{
         MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
     },
 };
-
-use crate::modules::{
-    manager::{
-        AccountFetchingModule, GuestUserRegistrationModule,
-        MessageSendingModule,
-    },
-    service::ProfileFetchingModule,
-};
+use std::{env::var_os, sync::Arc};
 
 pub struct SvcConfig {
     pub service_ip: String,

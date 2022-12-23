@@ -1,0 +1,46 @@
+[package]
+name = "mycelium-api"
+version = "0.1.0"
+edition = "2021"
+
+# ? ---------------------------------------------------------------------------
+# ? DEPENDENCIES
+# ? ---------------------------------------------------------------------------
+
+[dependencies]
+
+mycelium-core = { path = "../myc_core" }
+
+actix-cors = { version = "0.6.2" }
+actix-web = { version = "4" }
+actix-web-error = { version = "0.1" }
+actix-web-error-derive = { version = "0.1" }
+clean-base = "0.1"
+chrono = "0.4"
+env_logger = "0.10"
+log = "0.4"
+reqwest = { version = "0.11", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+shaku = "0.6"
+shaku_actix = "0.2"
+utoipa = { version = "2", features = ["actix_extras", "uuid"] }
+utoipa-swagger-ui = { version = "3", features = ["actix-web"] }
+uuid = { version = "1.1", features = ["v4", "serde", "fast-rng"] }
+
+# ? ---------------------------------------------------------------------------
+# ? LIBRARY
+# ? ---------------------------------------------------------------------------
+
+[lib]
+name = "public"
+path = "public/lib.rs"
+crate-type = ["staticlib", "lib"]
+
+# ? ---------------------------------------------------------------------------
+# ? BINARIES
+# ? ---------------------------------------------------------------------------
+
+[[bin]]
+name = "api"
+path = "api/main.rs"
