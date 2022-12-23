@@ -81,3 +81,9 @@ required-features = ["cli-deps"]
 name = "myc-api"
 path = "src/ports/api/main.rs"
 required-features = ["api-deps"]
+
+# ? ---------------------------------------------------------------------------
+# ? PACKAGE FEATURES
+# ? ---------------------------------------------------------------------------
+
+myc-core = ["mycelium/src/public"]
