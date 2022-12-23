@@ -36,9 +36,6 @@ tokio = { version = "1", features = ["full"] }
 utoipa = { version = "2", features = ["actix_extras", "uuid"] }
 uuid = { version = "1.1", features = ["v4", "serde", "fast-rng"] }
 
-# * Optional dependencies
-clap = { version = "4", features = ["derive"], optional = true }
-
 # ? ---------------------------------------------------------------------------
 # ? LIBRARY
 # ? ---------------------------------------------------------------------------
@@ -47,29 +44,3 @@ clap = { version = "4", features = ["derive"], optional = true }
 name = "myc"
 path = "src/lib.rs"
 crate-type = ["staticlib", "lib"]
-
-# ? ---------------------------------------------------------------------------
-# ? BINARIES
-# ? ---------------------------------------------------------------------------
-
-[features]
-cli-deps = ["clap"]
-#api-deps = [
-#    "actix-cors", 
-#    "actix-web", 
-#    "actix-web-error", 
-#    "actix-web-error-derive",
-#    "reqwest",
-#    "utoipa",
-#    "utoipa-swagger-ui",
-#]
-
-[[bin]]
-name = "myc-cli"
-path = "src/ports/cli/main.rs"
-required-features = ["cli-deps"]
-
-#[[bin]]
-#name = "myc-api"
-#path = "src/ports/api/main.rs"
-#required-features = ["api-deps"]
