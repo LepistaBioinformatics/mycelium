@@ -63,9 +63,9 @@ pub mod manager_endpoints {
                 },
             },
         },
-        public::extractor::extract_profile,
         use_cases::managers::guest::guest_user::guest_user,
     };
+    use public::extractor::extract_profile;
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;

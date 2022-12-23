@@ -5,7 +5,6 @@
         "structs"
     ],
     "rust-analyzer.cargo.features": [
-        "cli-deps",
-        "api-deps"
+        "cli-deps"
     ],
 }

@@ -1,7 +1,8 @@
 [workspace]
 
 members = [
-    "myc",
+    "myc_core",
+    "myc_api",
     "myc_prisma",
 ]
 
