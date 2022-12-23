@@ -1,8 +1,8 @@
 [workspace]
 
 members = [
-    "mycelium",
-    "mycelium_prisma",
+    "myc",
+    "myc_prisma",
 ]
 
 resolver = "2"
