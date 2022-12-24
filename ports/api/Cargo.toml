@@ -9,7 +9,7 @@ edition = "2021"
 
 [dependencies]
 
-mycelium-core = { path = "../myc_core" }
+mycelium-core = { path = "../../myc_core" }
 
 actix-cors = { version = "0.6.2" }
 actix-web = { version = "4" }
@@ -34,7 +34,7 @@ uuid = { version = "1.1", features = ["v4", "serde", "fast-rng"] }
 
 [lib]
 name = "myc_api"
-path = "public/lib.rs"
+path = "src/public/lib.rs"
 crate-type = ["staticlib", "lib"]
 
 # ? ---------------------------------------------------------------------------
@@ -43,4 +43,4 @@ crate-type = ["staticlib", "lib"]
 
 [[bin]]
 name = "myc-api"
-path = "api/main.rs"
+path = "src/api/main.rs"

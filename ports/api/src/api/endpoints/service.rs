@@ -7,7 +7,7 @@ use myc_core::domain::dtos::{
 use utoipa::OpenApi;
 
 // ? ---------------------------------------------------------------------------
-// ? Configure the Customer Partner API documentation
+// ? Configure the API documentation
 // ? ---------------------------------------------------------------------------
 
 #[derive(OpenApi)]
@@ -38,7 +38,7 @@ use utoipa::OpenApi;
 pub struct ApiDoc;
 
 // ? ---------------------------------------------------------------------------
-// ? This module contained the results-expert endpoints
+// ? Create endpoints module
 // ? ---------------------------------------------------------------------------
 
 pub mod service_endpoints {
