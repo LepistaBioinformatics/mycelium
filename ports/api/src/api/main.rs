@@ -6,7 +6,7 @@ mod modules;
 use actix_cors::Cors;
 use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer};
-use config::{InjectableModulesConfig, SvcConfig};
+use config::{configure as configure_injection_modules, SvcConfig};
 use endpoints::{
     index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
     manager::{manager_endpoints, ApiDoc as ManagerApiDoc},
@@ -32,9 +32,6 @@ pub async fn main() -> std::io::Result<()> {
 
     info!("Initialize configuration.");
     let config = SvcConfig::new();
-
-    info!("Start the prisma engine connectors.");
-    let mods = InjectableModulesConfig::new().await;
 
     info!("Start the database connectors.");
     generate_prisma_client_of_thread(process_id()).await;
@@ -72,18 +69,18 @@ pub async fn main() -> std::io::Result<()> {
             .wrap(Logger::default())
             .wrap(Logger::new("%a %{User-Agent}i"))
             // ? ---------------------------------------------------------------
+            // ? Configure Injection modules
+            // ? ---------------------------------------------------------------
+            .configure(configure_injection_modules)
+            // ? ---------------------------------------------------------------
             // ? Configure OpenApi definitions
             // ? ---------------------------------------------------------------
             .configure(heath_check_endpoints::configure)
             .configure(service_endpoints::configure)
             .configure(manager_endpoints::configure)
             // ? ---------------------------------------------------------------
-            // ? Configure Injection modules
+            // ? Configure API documentation
             // ? ---------------------------------------------------------------
-            .app_data(mods.profile_fetching_module.clone())
-            .app_data(mods.account_fetching_module.clone())
-            .app_data(mods.guest_user_registration_module.clone())
-            .app_data(mods.message_sending_module.clone())
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}")
                     .url(

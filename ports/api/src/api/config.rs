@@ -5,6 +5,7 @@ use crate::modules::{
     },
     service::ProfileFetchingModule,
 };
+use actix_web::web;
 use myc_core::adapters::{
     repositories::sql_db::{
         manager::guest_user_registration::{
@@ -59,72 +60,47 @@ impl SvcConfig {
     }
 }
 
-pub struct InjectableModulesConfig {
-    pub profile_fetching_module: Arc<ProfileFetchingModule>,
-    pub account_fetching_module: Arc<AccountFetchingModule>,
-    pub guest_user_registration_module: Arc<GuestUserRegistrationModule>,
-    pub message_sending_module: Arc<MessageSendingModule>,
-}
-
-impl InjectableModulesConfig {
-    pub async fn new() -> InjectableModulesConfig {
+/// Configure injection modules.
+pub fn configure(config: &mut web::ServiceConfig) {
+    config
         // ? -------------------------------------------------------------------
-        // ? Profile fetching
+        // ? Profile fetching repo
         // ? -------------------------------------------------------------------
-
-        let profile_fetching_module = Arc::new(
+        .app_data(Arc::new(
             ProfileFetchingModule::builder()
                 .with_component_parameters::<ProfileFetchingSqlDbRepository>(
                     ProfileFetchingSqlDbRepositoryParameters {},
                 )
                 .build(),
-        );
-
+        ))
         // ? -------------------------------------------------------------------
-        // ? Account fetching
+        // ? Account fetching repo
         // ? -------------------------------------------------------------------
-
-        let account_fetching_module = Arc::new(
+        .app_data(Arc::new(
             AccountFetchingModule::builder()
                 .with_component_parameters::<AccountFetchingSqlDbRepository>(
                     AccountFetchingSqlDbRepositoryParameters {},
                 )
                 .build(),
-        );
-
+        ))
         // ? -------------------------------------------------------------------
-        // ? GuestUser registration
+        // ? Guest User registration repo
         // ? -------------------------------------------------------------------
-
-        let guest_user_registration_module = Arc::new(
+        .app_data(Arc::new(
             GuestUserRegistrationModule::builder()
                 .with_component_parameters::<GuestUserRegistrationSqlDbRepository>(
                     GuestUserRegistrationSqlDbRepositoryParameters {},
                 )
                 .build(),
-        );
-
+        ))
         // ? -------------------------------------------------------------------
-        // ? Message registration
+        // ? Message sending repo
         // ? -------------------------------------------------------------------
-
-        let message_sending_module = Arc::new(
+        .app_data(Arc::new(
             MessageSendingModule::builder()
                 .with_component_parameters::<MessageSendingSqlDbRepository>(
                     MessageSendingSqlDbRepositoryParameters {},
                 )
                 .build(),
-        );
-
-        // ? -------------------------------------------------------------------
-        // ? Return `PrismaClientConfig` type
-        // ? -------------------------------------------------------------------
-
-        InjectableModulesConfig {
-            profile_fetching_module,
-            account_fetching_module,
-            guest_user_registration_module,
-            message_sending_module,
-        }
-    }
+        ));
 }

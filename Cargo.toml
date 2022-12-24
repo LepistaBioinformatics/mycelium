@@ -2,8 +2,8 @@
 
 members = [
     "myc_core",
-    "myc_cli",
-    "myc_api",
+    "ports/cli",
+    "ports/api",
     "myc_prisma",
 ]
 
