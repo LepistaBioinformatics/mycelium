@@ -7,9 +7,6 @@ use crate::modules::{
 };
 
 use actix_web::web;
-use myc_core::adapters::smtp::message_sending::{
-    MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
-};
 use myc_prisma::repositories::{
     manager::guest_user_registration::{
         GuestUserRegistrationSqlDbRepository,
@@ -23,6 +20,9 @@ use myc_prisma::repositories::{
         AccountFetchingSqlDbRepository,
         AccountFetchingSqlDbRepositoryParameters,
     },
+};
+use myc_smtp::repositories::message_sending::{
+    MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
 };
 use std::{env::var_os, sync::Arc};
 

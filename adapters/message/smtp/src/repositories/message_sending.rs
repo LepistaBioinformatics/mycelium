@@ -1,4 +1,4 @@
-use crate::domain::{
+use myc_core::domain::{
     dtos::message::MessageDTO,
     entities::shared::message_sending::MessageSending,
 };
