@@ -16,7 +16,6 @@ git = "https://github.com/Brendonovich/prisma-client-rust"
 tag = "0.6.3"
 
 [dependencies]
-mycelium-prisma = { path = "../myc_prisma" }
 async-trait = "0.1"
 clean-base = "0.1"
 chrono = "0.4"

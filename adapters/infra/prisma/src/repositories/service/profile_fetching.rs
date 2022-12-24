@@ -1,13 +1,6 @@
 use crate::{
-    adapters::repositories::sql_db::connector::get_client,
-    domain::{
-        dtos::{
-            email::EmailDTO,
-            guest::PermissionsType,
-            profile::{LicensedResourcesDTO, ProfileDTO},
-        },
-        entities::service::profile_fetching::ProfileFetching,
-    },
+    prisma::{account as account_model, user as user_model},
+    repositories::connector::get_client,
 };
 
 use async_trait::async_trait;
@@ -16,7 +9,14 @@ use clean_base::{
     entities::default_response::FetchResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
-use myc_prisma::prisma::{account as account_model, user as user_model};
+use myc_core::domain::{
+    dtos::{
+        email::EmailDTO,
+        guest::PermissionsType,
+        profile::{LicensedResourcesDTO, ProfileDTO},
+    },
+    entities::service::profile_fetching::ProfileFetching,
+};
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;

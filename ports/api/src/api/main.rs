@@ -13,7 +13,7 @@ use endpoints::{
     service::{service_endpoints, ApiDoc as ServiceApiDoc},
 };
 use log::info;
-use myc_core::adapters::repositories::sql_db::connector::generate_prisma_client_of_thread;
+use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
 use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_METHODS, ACCESS_CONTROL_ALLOW_ORIGIN,
     AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE,

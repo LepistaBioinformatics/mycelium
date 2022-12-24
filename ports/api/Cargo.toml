@@ -9,7 +9,8 @@ edition = "2021"
 
 [dependencies]
 
-mycelium-core = { path = "../../myc_core" }
+mycelium-core = { path = "../../core" }
+mycelium-prisma = { path = "../../adapters/infra/prisma" }
 
 actix-cors = { version = "0.6.2" }
 actix-web = { version = "4" }
@@ -44,3 +45,4 @@ crate-type = ["staticlib", "lib"]
 [[bin]]
 name = "myc-api"
 path = "src/api/main.rs"
+    

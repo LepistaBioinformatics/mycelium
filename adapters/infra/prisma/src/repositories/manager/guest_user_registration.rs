@@ -1,9 +1,9 @@
 use crate::{
-    adapters::repositories::sql_db::connector::get_client,
-    domain::{
-        dtos::{email::EmailDTO, guest::GuestUserDTO},
-        entities::manager::guest_user_registration::GuestUserRegistration,
+    prisma::{
+        account as account_model, guest_role as guest_role_model,
+        guest_user as guest_user_model,
     },
+    repositories::connector::get_client,
 };
 
 use async_trait::async_trait;
@@ -13,9 +13,9 @@ use clean_base::{
     entities::default_response::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
-use myc_prisma::prisma::{
-    account as account_model, guest_role as guest_role_model,
-    guest_user as guest_user_model,
+use myc_core::domain::{
+    dtos::{email::EmailDTO, guest::GuestUserDTO},
+    entities::manager::guest_user_registration::GuestUserRegistration,
 };
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};

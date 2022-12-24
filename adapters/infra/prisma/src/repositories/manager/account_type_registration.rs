@@ -1,9 +1,6 @@
 use crate::{
-    adapters::repositories::sql_db::connector::get_client,
-    domain::{
-        dtos::account::AccountTypeDTO,
-        entities::manager::account_type_registration::AccountTypeRegistration,
-    },
+    prisma::account_type as account_type_model,
+    repositories::connector::get_client,
 };
 
 use async_trait::async_trait;
@@ -11,7 +8,10 @@ use clean_base::{
     entities::default_response::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
-use myc_prisma::prisma::account_type as account_type_model;
+use myc_core::domain::{
+    dtos::account::AccountTypeDTO,
+    entities::manager::account_type_registration::AccountTypeRegistration,
+};
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;

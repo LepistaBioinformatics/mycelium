@@ -5,24 +5,23 @@ use crate::modules::{
     },
     service::ProfileFetchingModule,
 };
+
 use actix_web::web;
-use myc_core::adapters::{
-    repositories::sql_db::{
-        manager::guest_user_registration::{
-            GuestUserRegistrationSqlDbRepository,
-            GuestUserRegistrationSqlDbRepositoryParameters,
-        },
-        service::profile_fetching::{
-            ProfileFetchingSqlDbRepository,
-            ProfileFetchingSqlDbRepositoryParameters,
-        },
-        shared::account_fetching::{
-            AccountFetchingSqlDbRepository,
-            AccountFetchingSqlDbRepositoryParameters,
-        },
+use myc_core::adapters::smtp::message_sending::{
+    MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
+};
+use myc_prisma::repositories::{
+    manager::guest_user_registration::{
+        GuestUserRegistrationSqlDbRepository,
+        GuestUserRegistrationSqlDbRepositoryParameters,
     },
-    smtp::message_sending::{
-        MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
+    service::profile_fetching::{
+        ProfileFetchingSqlDbRepository,
+        ProfileFetchingSqlDbRepositoryParameters,
+    },
+    shared::account_fetching::{
+        AccountFetchingSqlDbRepository,
+        AccountFetchingSqlDbRepositoryParameters,
     },
 };
 use std::{env::var_os, sync::Arc};
