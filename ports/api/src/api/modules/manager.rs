@@ -1,9 +1,7 @@
-use myc_core::adapters::{
-    repositories::sql_db::{
-        manager::guest_user_registration::GuestUserRegistrationSqlDbRepository,
-        shared::account_fetching::AccountFetchingSqlDbRepository,
-    },
-    smtp::message_sending::MessageSendingSqlDbRepository,
+use myc_core::adapters::smtp::message_sending::MessageSendingSqlDbRepository;
+use myc_prisma::repositories::{
+    manager::guest_user_registration::GuestUserRegistrationSqlDbRepository,
+    shared::account_fetching::AccountFetchingSqlDbRepository,
 };
 use shaku::module;
 

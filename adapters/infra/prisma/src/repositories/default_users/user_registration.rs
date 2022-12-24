@@ -1,10 +1,4 @@
-use crate::{
-    adapters::repositories::sql_db::connector::get_client,
-    domain::{
-        dtos::{email::EmailDTO, user::UserDTO},
-        entities::default_users::user_registration::UserRegistration,
-    },
-};
+use crate::{prisma::user as user_model, repositories::connector::get_client};
 
 use async_trait::async_trait;
 use chrono::Local;
@@ -12,7 +6,10 @@ use clean_base::{
     entities::default_response::{CreateResponseKind, GetOrCreateResponseKind},
     utils::errors::{creation_err, MappedErrors},
 };
-use myc_prisma::prisma::user as user_model;
+use myc_core::domain::{
+    dtos::{email::EmailDTO, user::UserDTO},
+    entities::default_users::user_registration::UserRegistration,
+};
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;

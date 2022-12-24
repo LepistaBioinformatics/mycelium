@@ -9,7 +9,7 @@ edition = "2021"
 
 [dependencies]
 
-mycelium-core = { path = "../../myc_core" }
+mycelium-core = { path = "../../core" }
 
 clap = { version = "4", features = ["derive"] }
 env_logger = "0.10"

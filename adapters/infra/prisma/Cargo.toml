@@ -7,8 +7,22 @@ edition = "2021"
 # https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+mycelium-core = { path = "../../../core" }
+
+async-trait = "0.1"
+chrono = "0.4"
+clean-base = "0.1"
+env_logger = "0.10"
+futures = "0.3"
+lazy_static = "1.4"
+log = "0.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+shaku = "0.6"
+shaku_actix = "0.2"
+tokio = { version = "1", features = ["full"] }
+uuid = { version = "1.1", features = ["v4", "serde", "fast-rng"] }
 
 [dependencies.prisma-client-rust]
 git = "https://github.com/Brendonovich/prisma-client-rust"
@@ -18,11 +32,11 @@ tag = "0.6.3"
 git = "https://github.com/Brendonovich/prisma-client-rust"
 tag = "0.6.3"
 
-[[bin]]
-name = "myc-prisma-cli"
-path = "src/main.rs"
-
 [lib]
 name = "myc_prisma"
 path = "src/lib.rs"
 crate-type = ["staticlib", "lib"]
+
+[[bin]]
+name = "myc-prisma-cli"
+path = "src/main.rs"

@@ -1,4 +1,4 @@
-use myc_core::adapters::repositories::sql_db::service::profile_fetching::ProfileFetchingSqlDbRepository;
+use myc_prisma::repositories::service::profile_fetching::ProfileFetchingSqlDbRepository;
 use shaku::module;
 
 module! {

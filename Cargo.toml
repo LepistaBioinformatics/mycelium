@@ -1,10 +1,11 @@
 [workspace]
 
 members = [
-    "myc_core",
+    "core",
     "ports/cli",
     "ports/api",
-    "myc_prisma",
+    "adapters/infra/prisma",
+    "adapters/message/smtp",
 ]
 
 resolver = "2"
