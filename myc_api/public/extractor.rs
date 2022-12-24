@@ -4,6 +4,14 @@ use myc_core::{
     domain::dtos::profile::ProfileDTO, settings::DEFAULT_PROFILE_KEY,
 };
 
+/// Extract the `ProfileDTO` from HTTP request.
+///
+///
+/// Try to extract the profile data transfer object (`ProfileDTO`) JSON
+/// representation from the Actix Web based HTTP request. The JSON extraction is
+/// trying to be done from the request header and cookie. If the JSON string
+/// containing the profile is not extracted from almost one of this, returns a
+/// `HttpResponse` with 403 status code.
 pub async fn extract_profile(
     req: HttpRequest,
 ) -> Result<ProfileDTO, HttpResponse> {

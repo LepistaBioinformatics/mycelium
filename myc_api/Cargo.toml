@@ -42,5 +42,5 @@ crate-type = ["staticlib", "lib"]
 # ? ---------------------------------------------------------------------------
 
 [[bin]]
-name = "api"
+name = "myc-api"
 path = "api/main.rs"
