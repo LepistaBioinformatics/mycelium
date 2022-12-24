@@ -11,6 +11,7 @@ edition = "2021"
 
 mycelium-core = { path = "../../core" }
 mycelium-prisma = { path = "../../adapters/infra/prisma" }
+mycelium-smtp = { path = "../../adapters/message/smtp" }
 
 actix-cors = { version = "0.6.2" }
 actix-web = { version = "4" }
