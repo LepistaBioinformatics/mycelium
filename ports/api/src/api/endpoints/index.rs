@@ -42,6 +42,10 @@ pub mod heath_check_endpoints {
     // ? Define API paths
     // ? -----------------------------------------------------------------------
 
+    /// Provide a health check endpoint.
+    ///
+    /// If the server is running it returns a 200 response with a JSON body
+    /// containing the success message.
     #[utoipa::path(
         get,
         path = "/health/",
@@ -58,6 +62,9 @@ pub mod heath_check_endpoints {
         HttpResponse::Ok().body("success".to_string())
     }
 
+    /// Provide a datetime with the server's timezone.
+    ///
+    /// This is usual during system checks.
     #[utoipa::path(
         get,
         path = "/health/now",

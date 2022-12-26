@@ -1,4 +1,5 @@
 use crate::modules::{
+    default_users::{AccountRegistrationModule, UserRegistrationModule},
     manager::{
         AccountFetchingModule, GuestUserRegistrationModule,
         MessageSendingModule,
@@ -8,6 +9,10 @@ use crate::modules::{
 
 use actix_web::web;
 use myc_prisma::repositories::{
+    default_users::user_registration::{
+        UserRegistrationSqlDbRepository,
+        UserRegistrationSqlDbRepositoryParameters,
+    },
     manager::guest_user_registration::{
         GuestUserRegistrationSqlDbRepository,
         GuestUserRegistrationSqlDbRepositoryParameters,
@@ -16,9 +21,15 @@ use myc_prisma::repositories::{
         ProfileFetchingSqlDbRepository,
         ProfileFetchingSqlDbRepositoryParameters,
     },
-    shared::account_fetching::{
-        AccountFetchingSqlDbRepository,
-        AccountFetchingSqlDbRepositoryParameters,
+    shared::{
+        account_fetching::{
+            AccountFetchingSqlDbRepository,
+            AccountFetchingSqlDbRepositoryParameters,
+        },
+        account_registration::{
+            AccountRegistrationSqlDbRepository,
+            AccountRegistrationSqlDbRepositoryParameters,
+        },
     },
 };
 use myc_smtp::repositories::message_sending::{
@@ -81,6 +92,24 @@ pub fn configure(config: &mut web::ServiceConfig) {
                     AccountFetchingSqlDbRepositoryParameters {},
                 )
                 .build(),
+        ))
+        // ? -------------------------------------------------------------------
+        // ? Account registration repo
+        // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            AccountRegistrationModule::builder()
+                .with_component_parameters::<AccountRegistrationSqlDbRepository>(
+                    AccountRegistrationSqlDbRepositoryParameters {}
+                ).build()
+        ))
+        // ? -------------------------------------------------------------------
+        // ? User registration repo
+        // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            UserRegistrationModule::builder()
+                .with_component_parameters::<UserRegistrationSqlDbRepository>(
+                    UserRegistrationSqlDbRepositoryParameters {}
+                ).build()
         ))
         // ? -------------------------------------------------------------------
         // ? Guest User registration repo
