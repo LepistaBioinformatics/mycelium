@@ -31,3 +31,56 @@ pub struct ProfileDTO {
     /// inside their own account.
     pub licensed_resources: Option<Vec<LicensedResourcesDTO>>,
 }
+
+impl ProfileDTO {
+    /// Filter IDs with view permissions.
+    pub fn get_view_ids(&self, role: String) -> Vec<Uuid> {
+        self.get_licensed_ids(PermissionsType::View, role)
+    }
+
+    /// Filter IDs with create permissions.
+    pub fn get_create_ids(&self, role: String) -> Vec<Uuid> {
+        self.get_licensed_ids(PermissionsType::Create, role)
+    }
+
+    /// Filter IDs with update permissions.
+    pub fn get_update_ids(&self, role: String) -> Vec<Uuid> {
+        self.get_licensed_ids(PermissionsType::Update, role)
+    }
+
+    /// Filter IDs with delete permissions.
+    pub fn get_delete_ids(&self, role: String) -> Vec<Uuid> {
+        self.get_licensed_ids(PermissionsType::Delete, role)
+    }
+
+    /// Create a list of licensed ids.
+    ///
+    /// Licensed ids are Uuids of accounts which the current profile has access
+    /// to do based on the specified `PermissionsType`.
+    fn get_licensed_ids(
+        &self,
+        permission: PermissionsType,
+        role: String,
+    ) -> Vec<Uuid> {
+        match &self.licensed_resources {
+            None => vec![self.current_account_id],
+            Some(res) => {
+                let mut ids = res
+                    .into_iter()
+                    .filter_map(|i| {
+                        match i.permissions.contains(&permission) &&
+                            i.role == role
+                        {
+                            false => None,
+                            true => Some(i.guest_account_id),
+                        }
+                    })
+                    .collect::<Vec<Uuid>>();
+
+                ids.append(&mut vec![self.current_account_id]);
+
+                ids
+            }
+        }
+    }
+}
