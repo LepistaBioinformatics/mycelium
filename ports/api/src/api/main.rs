@@ -8,6 +8,7 @@ use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer};
 use config::{configure as configure_injection_modules, SvcConfig};
 use endpoints::{
+    default_users::{default_user_endpoints, ApiDoc as DefaultUsersApiDoc},
     index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
     manager::{manager_endpoints, ApiDoc as ManagerApiDoc},
     service::{service_endpoints, ApiDoc as ServiceApiDoc},
@@ -78,6 +79,7 @@ pub async fn main() -> std::io::Result<()> {
             .configure(heath_check_endpoints::configure)
             .configure(service_endpoints::configure)
             .configure(manager_endpoints::configure)
+            .configure(default_user_endpoints::configure)
             // ? ---------------------------------------------------------------
             // ? Configure API documentation
             // ? ---------------------------------------------------------------
@@ -88,7 +90,11 @@ pub async fn main() -> std::io::Result<()> {
                         HealthCheckApiDoc::openapi(),
                     )
                     .url("/doc/service/openapi.json", ServiceApiDoc::openapi())
-                    .url("/doc/manager/openapi.json", ManagerApiDoc::openapi()),
+                    .url("/doc/manager/openapi.json", ManagerApiDoc::openapi())
+                    .url(
+                        "/doc/default-users/openapi.json",
+                        DefaultUsersApiDoc::openapi(),
+                    ),
             )
     });
 
