@@ -8,7 +8,7 @@ description = "Provide prisma adapters to the mycelium project."
 repository = "https://github.com/sgelias/mycelium"
 readme = "./README.md"
 keywords = ["authorization", "identity", "permission", "keeper"]
-categories = ["HTTP client", "Distributed systems"]
+categories = ["http-client", "microservices"]
 
 # See more keys and their definitions at 
 # https://doc.rust-lang.org/cargo/reference/manifest.html

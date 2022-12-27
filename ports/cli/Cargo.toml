@@ -8,7 +8,7 @@ description = "Provide CLI ports to the mycelium project."
 repository = "https://github.com/sgelias/mycelium"
 readme = "./README.md"
 keywords = ["authorization", "identity", "permission", "keeper"]
-categories = ["HTTP client", "Distributed systems"]
+categories = ["http-client", "microservices"]
 
 # ? ---------------------------------------------------------------------------
 # ? DEPENDENCIES
