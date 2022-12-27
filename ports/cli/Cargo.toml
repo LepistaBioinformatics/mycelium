@@ -2,6 +2,13 @@
 name = "mycelium-cli"
 version = "0.1.0"
 edition = "2021"
+authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
+license = "Apache-2.0"
+description = "Provide CLI ports to the mycelium project."
+repository = "https://github.com/sgelias/mycelium"
+readme = "./README.md"
+keywords = ["authorization", "identity", "permission", "keeper"]
+categories = ["HTTP client", "Distributed systems"]
 
 # ? ---------------------------------------------------------------------------
 # ? DEPENDENCIES

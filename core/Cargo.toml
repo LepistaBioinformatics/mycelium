@@ -2,18 +2,17 @@
 name = "mycelium-core"
 version = "0.1.0"
 edition = "2021"
+authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
+license = "Apache-2.0"
+description = "Provide base features of the Mycelium project as DTOs and Use-cases."
+repository = "https://github.com/sgelias/mycelium"
+readme = "./README.md"
+keywords = ["authorization", "identity", "permission", "keeper"]
+categories = ["HTTP client", "Distributed systems"]
 
 # ? ---------------------------------------------------------------------------
 # ? DEPENDENCIES
 # ? ---------------------------------------------------------------------------
-
-[dependencies.prisma-client-rust]
-git = "https://github.com/Brendonovich/prisma-client-rust"
-tag = "0.6.3"
-
-[dependencies.prisma-client-rust-cli]
-git = "https://github.com/Brendonovich/prisma-client-rust"
-tag = "0.6.3"
 
 [dependencies]
 async-trait = "0.1"
