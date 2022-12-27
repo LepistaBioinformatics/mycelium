@@ -6,7 +6,7 @@ authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
 license = "Apache-2.0"
 description = "Provide base features of the Mycelium project as DTOs and Use-cases."
 repository = "https://github.com/sgelias/mycelium"
-readme = "./README.md"
+readme = "../README.md"
 keywords = ["authorization", "identity", "permission", "keeper"]
 categories = ["HTTP client", "Distributed systems"]
 
