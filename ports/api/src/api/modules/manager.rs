@@ -1,6 +1,6 @@
 use myc_prisma::repositories::{
-    manager::guest_user_registration::GuestUserRegistrationSqlDbRepository,
-    shared::account_fetching::AccountFetchingSqlDbRepository,
+    account_fetching::AccountFetchingSqlDbRepository,
+    guest_user_registration::GuestUserRegistrationSqlDbRepository,
 };
 use myc_smtp::repositories::message_sending::MessageSendingSqlDbRepository;
 use shaku::module;

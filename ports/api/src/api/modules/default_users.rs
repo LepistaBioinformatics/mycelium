@@ -1,7 +1,7 @@
 use myc_prisma::repositories::{
-    default_users::user_registration::UserRegistrationSqlDbRepository,
-    manager::account_type_registration::AccountTypeRegistrationSqlDbRepository,
-    shared::account_registration::AccountRegistrationSqlDbRepository,
+    account_registration::AccountRegistrationSqlDbRepository,
+    account_type_registration::AccountTypeRegistrationSqlDbRepository,
+    user_registration::UserRegistrationSqlDbRepository,
 };
 use shaku::module;
 

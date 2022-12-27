@@ -48,8 +48,7 @@ pub mod service_endpoints {
     use clean_base::entities::default_response::FetchResponseKind;
     use myc_core::{
         domain::{
-            dtos::email::EmailDTO,
-            entities::service::profile_fetching::ProfileFetching,
+            dtos::email::EmailDTO, entities::profile_fetching::ProfileFetching,
         },
         use_cases::service::fetch_profile_from_email::fetch_profile_from_email,
     };

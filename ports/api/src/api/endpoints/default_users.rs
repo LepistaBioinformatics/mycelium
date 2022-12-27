@@ -40,12 +40,11 @@ pub mod default_user_endpoints {
     use actix_web::{post, web, HttpResponse, Responder};
     use clean_base::entities::default_response::GetOrCreateResponseKind;
     use myc_core::{
-        domain::{
-            entities::{
-            default_users::user_registration::UserRegistration,
-            manager::account_type_registration::AccountTypeRegistration,
-            shared::account_registration::AccountRegistration,
-        }},
+        domain::entities::{
+            user_registration::UserRegistration,
+            account_type_registration::AccountTypeRegistration,
+            account_registration::AccountRegistration,
+        },
         use_cases::default_users::account::create_default_account::create_default_account,
     };
     use serde::Deserialize;
