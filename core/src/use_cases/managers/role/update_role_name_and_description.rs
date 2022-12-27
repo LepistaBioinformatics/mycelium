@@ -1,6 +1,6 @@
 use crate::domain::{
     dtos::{profile::ProfileDTO, role::RoleDTO},
-    entities::{role_fetching::RoleFetching, role_updating::RoleUpdating},
+    entities::{RoleFetching, RoleUpdating},
 };
 use clean_base::{
     entities::default_response::{FetchResponseKind, UpdatingResponseKind},

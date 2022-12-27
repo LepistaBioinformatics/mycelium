@@ -3,7 +3,7 @@ use crate::domain::{
         guest::{GuestRoleDTO, PermissionsType},
         profile::ProfileDTO,
     },
-    entities::guest_role_registration::GuestRoleRegistration,
+    entities::GuestRoleRegistration,
 };
 
 use clean_base::{

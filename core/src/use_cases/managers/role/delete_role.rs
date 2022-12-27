@@ -1,6 +1,4 @@
-use crate::domain::{
-    dtos::profile::ProfileDTO, entities::role_deletion::RoleDeletion,
-};
+use crate::domain::{dtos::profile::ProfileDTO, entities::RoleDeletion};
 
 use clean_base::{
     entities::default_response::DeletionResponseKind,
