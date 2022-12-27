@@ -4,10 +4,9 @@ use crate::domain::{
         profile::ProfileDTO,
     },
     entities::{
-        manager::guest_user_registration::GuestUserRegistration,
-        shared::{
-            account_fetching::AccountFetching, message_sending::MessageSending,
-        },
+        account_fetching::AccountFetching,
+        guest_user_registration::GuestUserRegistration,
+        message_sending::MessageSending,
     },
 };
 

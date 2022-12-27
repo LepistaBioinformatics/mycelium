@@ -14,105 +14,32 @@ are mirrored here.
 
 ___
 
-## Domain - DTOs
-- [ ] Create profile DTO.
 
-## Domain - Entities
+## default_users
+[ x ] default_users/account/create_default_account.rs
+[   ] default_users/account/update_own_account_name.rs
 
-### Staff
-- [ ] Create entities for applications registration.
-- [ ] Create entities for applications deletion.
-- [ ] Create entities for applications updating.
-- [ ] Create entities for applications fetching.
+## managers
+[   ] managers/account/create_subscription_account.rs
+[   ] managers/guest/guest_user.rs
+[   ] managers/guest_role/create_guest_role.rs
+[   ] managers/guest_role/delete_guest_role.rs
+[   ] managers/guest_role/update_guest_role_name_and_description.rs
+[   ] managers/guest_role/update_guest_role_permissions.rs
+[   ] managers/guest/uninvite_guest.rs
+[   ] managers/role/create_role.rs
+[   ] managers/role/delete_role.rs
+[   ] managers/role/update_role_name_and_description.rs
 
-### Managers
-- [ ] Create entities for role registration.
-- [ ] Create entities for role deletion.
-- [ ] Create entities for role updating.
-- [ ] Create entities for role fetching.
-- [ ] Create entities for account-type registration.
-- [ ] Create entities for account-type deletion.
-- [ ] Create entities for account-type updating.
-- [ ] Create entities for account-type fetching.
-- [ ] Create entity to deny account.
-- [ ] Create entity to admit account.
+## service
+[   ] service/fetch_profile_from_email.rs
 
-### DefaultUsers
-- [ ] Create entities for account registration.
-- [ ] Create entities for account deactivate.
-- [ ] Create entities for account updating.
-- [ ] Create entities for account fetching.
+## shared
+[   ] shared/account/approve_account.rs
+[   ] shared/account/change_account_activation_status.rs
+[   ] shared/account/downgrade_account_status.rs
+[   ] shared/account_type/get_or_create_default_account_types.rs
+[   ] shared/account/upgrade_account_privileges.rs
 
-### Applications
-- [ ] Create entities for profile fetching.
-
-___
-
-## UseCases
-
-### Staff
-- [ ] Create use-case register an application.
-- [ ] Create use-case delete an application.
-- [ ] Create use-case update an application name and description.
-
-### Managers
-- [ ] Create use-case create an role.
-- [ ] Create use-case delete an role.
-- [ ] Create use-case update a role name and description.
-- [ ] Create use-case update a role permission (upgrade or downgrade).
-
-### DefaultUsers
-- [ ] Create use-case to register an account.
-- [ ] Create use-case to delete an account.
-- [ ] Create use-case to update an account.
-- [ ] Create use-case to guest a user by email.
-- [ ] Create use-case to remove a guest.
-
-### Applications
-- [ ] Create use-case to fetch profile from e-mail.
-
-___
-
-## Adapters - SQL
-
-### Applications
-- [ ] Create prisma adapter for applications registration.
-- [ ] Create prisma adapter for applications deletion.
-- [ ] Create prisma adapter for applications updating.
-- [ ] Create prisma adapter for applications fetching.
-
-### Users
-- [ ] Create prisma adapter for users registration.
-- [ ] Create prisma adapter for users deletion.
-- [ ] Create prisma adapter for users updating.
-- [ ] Create prisma adapter for users fetching.
-
-### Roles
-- [ ] Create prisma adapter for roles registration.
-- [ ] Create prisma adapter for roles deletion.
-- [ ] Create prisma adapter for roles updating.
-- [ ] Create prisma adapter for roles fetching.
-
-### Guests
-- [ ] Create prisma adapter for guests registration.
-- [ ] Create prisma adapter for guests deletion.
-- [ ] Create prisma adapter for guests updating.
-- [ ] Create prisma adapter for guests fetching.
-
-### AccountTypes
-- [ ] Create prisma adapter for account-types registration.
-- [ ] Create prisma adapter for account-types deletion.
-- [ ] Create prisma adapter for account-types updating.
-- [ ] Create prisma adapter for account-types fetching.
-
-### Accounts
-- [ ] Create prisma adapter for accounts registration.
-- [ ] Create prisma adapter for accounts deletion.
-- [ ] Create prisma adapter for accounts updating.
-- [ ] Create prisma adapter for accounts fetching.
-
-___
-
-## Ports - API
-
-Not already defined.
+## staff
+[   ] staff/create_seed_staff_account.rs

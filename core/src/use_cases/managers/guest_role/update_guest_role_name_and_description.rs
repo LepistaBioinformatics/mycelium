@@ -1,8 +1,8 @@
 use crate::domain::{
     dtos::{guest::GuestRoleDTO, profile::ProfileDTO},
     entities::{
-        manager::guest_role_updating::GuestRoleUpdating,
-        shared::guest_role_fetching::GuestRoleFetching,
+        guest_role_fetching::GuestRoleFetching,
+        guest_role_updating::GuestRoleUpdating,
     },
 };
 

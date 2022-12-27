@@ -1,6 +1,6 @@
 use crate::domain::{
     dtos::{email::EmailDTO, profile::ProfileDTO},
-    entities::service::profile_fetching::ProfileFetching,
+    entities::profile_fetching::ProfileFetching,
 };
 
 use clean_base::{
