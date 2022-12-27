@@ -1,6 +1,6 @@
 [package]
 name = "myc-core"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
 license = "Apache-2.0"
