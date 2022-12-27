@@ -1,6 +1,6 @@
 use crate::domain::{
     dtos::{account::AccountDTO, profile::ProfileDTO},
-    entities::shared::{
+    entities::{
         account_fetching::AccountFetching, account_updating::AccountUpdating,
     },
 };

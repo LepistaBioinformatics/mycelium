@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::profile::ProfileDTO, entities::manager::role_deletion::RoleDeletion,
+    dtos::profile::ProfileDTO, entities::role_deletion::RoleDeletion,
 };
 
 use clean_base::{

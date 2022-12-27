@@ -5,9 +5,9 @@ use crate::{
             user::UserDTO,
         },
         entities::{
-            default_users::user_registration::UserRegistration,
-            manager::account_type_registration::AccountTypeRegistration,
-            shared::account_registration::AccountRegistration,
+            account_registration::AccountRegistration,
+            account_type_registration::AccountTypeRegistration,
+            user_registration::UserRegistration,
         },
     },
     use_cases::shared::account_type::get_or_create_default_account_types::{

@@ -2,11 +2,9 @@ use crate::{
     domain::{
         dtos::{account::AccountDTO, profile::ProfileDTO},
         entities::{
-            manager::account_type_registration::AccountTypeRegistration,
-            shared::{
-                account_fetching::AccountFetching,
-                account_updating::AccountUpdating,
-            },
+            account_fetching::AccountFetching,
+            account_type_registration::AccountTypeRegistration,
+            account_updating::AccountUpdating,
         },
     },
     use_cases::shared::account_type::get_or_create_default_account_types::{

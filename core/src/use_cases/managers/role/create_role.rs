@@ -1,6 +1,6 @@
 use crate::domain::{
     dtos::{profile::ProfileDTO, role::RoleDTO},
-    entities::manager::role_registration::RoleRegistration,
+    entities::role_registration::RoleRegistration,
 };
 
 use clean_base::{

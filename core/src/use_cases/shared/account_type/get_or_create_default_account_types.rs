@@ -1,6 +1,6 @@
 use crate::domain::{
     dtos::account::AccountTypeDTO,
-    entities::manager::account_type_registration::AccountTypeRegistration,
+    entities::account_type_registration::AccountTypeRegistration,
 };
 use clean_base::{
     entities::default_response::GetOrCreateResponseKind,
