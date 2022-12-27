@@ -15,7 +15,7 @@ categories = ["HTTP client", "Distributed systems"]
 
 [dependencies]
 
-mycelium-core = { path = "../../../core" }
+myc-core = { path = "../../../core" }
 
 async-trait = "0.1"
 clean-base = "0.1"
