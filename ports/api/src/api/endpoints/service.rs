@@ -47,9 +47,7 @@ pub mod service_endpoints {
     use actix_web::{get, web, HttpResponse, Responder};
     use clean_base::entities::default_response::FetchResponseKind;
     use myc_core::{
-        domain::{
-            dtos::email::EmailDTO, entities::profile_fetching::ProfileFetching,
-        },
+        domain::{dtos::email::EmailDTO, entities::ProfileFetching},
         use_cases::service::fetch_profile_from_email::fetch_profile_from_email,
     };
     use serde::Deserialize;

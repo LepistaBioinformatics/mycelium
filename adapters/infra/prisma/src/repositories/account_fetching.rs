@@ -9,9 +9,7 @@ use clean_base::{
     entities::default_response::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{creation_err, MappedErrors},
 };
-use myc_core::domain::{
-    dtos::account::AccountDTO, entities::account_fetching::AccountFetching,
-};
+use myc_core::domain::{dtos::account::AccountDTO, entities::AccountFetching};
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
 use uuid::Uuid;

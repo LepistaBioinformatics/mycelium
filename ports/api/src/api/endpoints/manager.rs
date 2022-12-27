@@ -57,9 +57,7 @@ pub mod manager_endpoints {
         domain::{
             dtos::email::EmailDTO,
             entities::{
-                account_fetching::AccountFetching,
-                guest_user_registration::GuestUserRegistration,
-                message_sending::MessageSending,
+                AccountFetching, GuestUserRegistration, MessageSending,
             },
         },
         use_cases::managers::guest::guest_user::guest_user,
