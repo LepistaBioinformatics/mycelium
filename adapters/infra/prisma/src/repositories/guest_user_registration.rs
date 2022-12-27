@@ -15,7 +15,7 @@ use clean_base::{
 };
 use myc_core::domain::{
     dtos::{email::EmailDTO, guest::GuestUserDTO},
-    entities::manager::guest_user_registration::GuestUserRegistration,
+    entities::guest_user_registration::GuestUserRegistration,
 };
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};

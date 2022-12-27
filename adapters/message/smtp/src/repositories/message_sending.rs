@@ -1,6 +1,5 @@
 use myc_core::domain::{
-    dtos::message::MessageDTO,
-    entities::shared::message_sending::MessageSending,
+    dtos::message::MessageDTO, entities::message_sending::MessageSending,
 };
 
 use async_trait::async_trait;

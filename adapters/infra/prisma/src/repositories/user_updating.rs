@@ -8,7 +8,7 @@ use clean_base::{
 };
 use myc_core::domain::{
     dtos::{email::EmailDTO, user::UserDTO},
-    entities::default_users::user_updating::UserUpdating,
+    entities::user_updating::UserUpdating,
 };
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
 use shaku::Component;

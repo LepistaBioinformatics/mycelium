@@ -1,5 +1,9 @@
+pub mod account_fetching;
+pub mod account_registration;
+pub mod account_type_registration;
 pub mod connector;
-pub mod default_users;
-pub mod manager;
-pub mod service;
-pub mod shared;
+pub mod guest_role_registration;
+pub mod guest_user_registration;
+pub mod profile_fetching;
+pub mod user_registration;
+pub mod user_updating;
