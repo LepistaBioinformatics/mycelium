@@ -1,6 +1,6 @@
 [package]
 name = "myc-core"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
 license = "Apache-2.0"
@@ -8,7 +8,7 @@ description = "Provide base features of the Mycelium project as DTOs and Use-cas
 repository = "https://github.com/sgelias/mycelium"
 readme = "../README.md"
 keywords = ["authorization", "identity", "permission", "keeper"]
-categories = ["HTTP client", "Distributed systems"]
+categories = ["http-client", "microservices"]
 
 # ? ---------------------------------------------------------------------------
 # ? DEPENDENCIES
