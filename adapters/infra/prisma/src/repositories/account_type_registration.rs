@@ -1,32 +1,31 @@
 use crate::{
-    prisma::{guest_role as guest_role_model, role as role_model},
+    prisma::account_type as account_type_model,
     repositories::connector::get_client,
 };
 
 use async_trait::async_trait;
 use clean_base::{
-    dtos::enums::ParentEnum,
     entities::default_response::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::guest::{GuestRoleDTO, PermissionsType},
-    entities::manager::guest_role_registration::GuestRoleRegistration,
+    dtos::account::AccountTypeDTO,
+    entities::account_type_registration::AccountTypeRegistration,
 };
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
 
 #[derive(Component)]
-#[shaku(interface = GuestRoleRegistration)]
-pub struct GuestRoleRegistrationSqlDbRepository {}
+#[shaku(interface = AccountTypeRegistration)]
+pub struct AccountTypeRegistrationSqlDbRepository {}
 
 #[async_trait]
-impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
+impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
     async fn get_or_create(
         &self,
-        guest_role: GuestRoleDTO,
-    ) -> Result<GetOrCreateResponseKind<GuestRoleDTO>, MappedErrors> {
+        account_type: AccountTypeDTO,
+    ) -> Result<GetOrCreateResponseKind<AccountTypeDTO>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -51,11 +50,10 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
         // ? -------------------------------------------------------------------
 
         let response = client
-            .guest_role()
-            .find_first(vec![guest_role_model::name::equals(
-                guest_role.name.to_owned(),
+            .account_type()
+            .find_first(vec![account_type_model::name::equals(
+                account_type.name.to_owned(),
             )])
-            .include(guest_role_model::include!({ role: select { id } }))
             .exec()
             .await;
 
@@ -63,18 +61,13 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
             Some(record) => {
                 let record = record;
                 return Ok(GetOrCreateResponseKind::NotCreated(
-                    GuestRoleDTO {
+                    AccountTypeDTO {
                         id: Some(Uuid::parse_str(&record.id).unwrap()),
                         name: record.name,
-                        description: record.description.to_owned(),
-                        role: ParentEnum::Id(
-                            Uuid::parse_str(&record.role.id).unwrap(),
-                        ),
-                        permissions: record
-                            .permissions
-                            .into_iter()
-                            .map(|i| PermissionsType::from_i32(i))
-                            .collect(),
+                        description: record.description,
+                        is_subscription: record.is_subscription,
+                        is_manager: record.is_manager,
+                        is_staff: record.is_staff,
                     },
                     String::from("Account type already exists"),
                 ));
@@ -87,34 +80,18 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
         // ? -------------------------------------------------------------------
 
         let response = client
-            .guest_role()
+            .account_type()
             .create(
-                guest_role.name.to_owned(),
-                role_model::id::equals(match guest_role.role {
-                    ParentEnum::Id(id) => id.to_string(),
-                    ParentEnum::Record(record) => match record.id {
-                        None => {
-                            return Err(creation_err(
-                                format!(
-                                    "Role ID not available: {:?}",
-                                    guest_role.id.to_owned(),
-                                ),
-                                None,
-                                None,
-                            ))
-                        }
-                        Some(id) => id.to_string(),
-                    },
-                }),
+                account_type.name.to_owned(),
+                account_type.description.to_owned(),
                 vec![
-                    guest_role_model::description::set(guest_role.description),
-                    guest_role_model::permissions::set(
-                        guest_role
-                            .permissions
-                            .into_iter()
-                            .map(|i| i as i32)
-                            .collect::<Vec<i32>>(),
+                    account_type_model::is_subscription::set(
+                        account_type.is_subscription,
                     ),
+                    account_type_model::is_manager::set(
+                        account_type.is_manager,
+                    ),
+                    account_type_model::is_staff::set(account_type.is_staff),
                 ],
             )
             .exec()
@@ -124,18 +101,13 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
             Ok(record) => {
                 let record = record;
 
-                Ok(GetOrCreateResponseKind::Created(GuestRoleDTO {
+                Ok(GetOrCreateResponseKind::Created(AccountTypeDTO {
                     id: Some(Uuid::parse_str(&record.id).unwrap()),
                     name: record.name,
                     description: record.description,
-                    role: ParentEnum::Id(
-                        Uuid::parse_str(&record.role_id).unwrap(),
-                    ),
-                    permissions: record
-                        .permissions
-                        .into_iter()
-                        .map(|i| PermissionsType::from_i32(i))
-                        .collect(),
+                    is_subscription: record.is_subscription,
+                    is_manager: record.is_manager,
+                    is_staff: record.is_staff,
                 }))
             }
             Err(err) => {

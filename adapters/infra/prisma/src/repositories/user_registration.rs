@@ -8,7 +8,7 @@ use clean_base::{
 };
 use myc_core::domain::{
     dtos::{email::EmailDTO, user::UserDTO},
-    entities::default_users::user_registration::UserRegistration,
+    entities::user_registration::UserRegistration,
 };
 use shaku::Component;
 use std::process::id as process_id;

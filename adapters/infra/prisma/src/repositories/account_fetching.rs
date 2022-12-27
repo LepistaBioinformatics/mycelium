@@ -10,8 +10,7 @@ use clean_base::{
     utils::errors::{creation_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::account::AccountDTO,
-    entities::shared::account_fetching::AccountFetching,
+    dtos::account::AccountDTO, entities::account_fetching::AccountFetching,
 };
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};

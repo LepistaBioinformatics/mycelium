@@ -1,31 +1,32 @@
 use crate::{
-    prisma::account_type as account_type_model,
+    prisma::{guest_role as guest_role_model, role as role_model},
     repositories::connector::get_client,
 };
 
 use async_trait::async_trait;
 use clean_base::{
+    dtos::enums::ParentEnum,
     entities::default_response::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::account::AccountTypeDTO,
-    entities::manager::account_type_registration::AccountTypeRegistration,
+    dtos::guest::{GuestRoleDTO, PermissionsType},
+    entities::guest_role_registration::GuestRoleRegistration,
 };
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
 
 #[derive(Component)]
-#[shaku(interface = AccountTypeRegistration)]
-pub struct AccountTypeRegistrationSqlDbRepository {}
+#[shaku(interface = GuestRoleRegistration)]
+pub struct GuestRoleRegistrationSqlDbRepository {}
 
 #[async_trait]
-impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
+impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
     async fn get_or_create(
         &self,
-        account_type: AccountTypeDTO,
-    ) -> Result<GetOrCreateResponseKind<AccountTypeDTO>, MappedErrors> {
+        guest_role: GuestRoleDTO,
+    ) -> Result<GetOrCreateResponseKind<GuestRoleDTO>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -50,10 +51,11 @@ impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
         // ? -------------------------------------------------------------------
 
         let response = client
-            .account_type()
-            .find_first(vec![account_type_model::name::equals(
-                account_type.name.to_owned(),
+            .guest_role()
+            .find_first(vec![guest_role_model::name::equals(
+                guest_role.name.to_owned(),
             )])
+            .include(guest_role_model::include!({ role: select { id } }))
             .exec()
             .await;
 
@@ -61,13 +63,18 @@ impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
             Some(record) => {
                 let record = record;
                 return Ok(GetOrCreateResponseKind::NotCreated(
-                    AccountTypeDTO {
+                    GuestRoleDTO {
                         id: Some(Uuid::parse_str(&record.id).unwrap()),
                         name: record.name,
-                        description: record.description,
-                        is_subscription: record.is_subscription,
-                        is_manager: record.is_manager,
-                        is_staff: record.is_staff,
+                        description: record.description.to_owned(),
+                        role: ParentEnum::Id(
+                            Uuid::parse_str(&record.role.id).unwrap(),
+                        ),
+                        permissions: record
+                            .permissions
+                            .into_iter()
+                            .map(|i| PermissionsType::from_i32(i))
+                            .collect(),
                     },
                     String::from("Account type already exists"),
                 ));
@@ -80,18 +87,34 @@ impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
         // ? -------------------------------------------------------------------
 
         let response = client
-            .account_type()
+            .guest_role()
             .create(
-                account_type.name.to_owned(),
-                account_type.description.to_owned(),
+                guest_role.name.to_owned(),
+                role_model::id::equals(match guest_role.role {
+                    ParentEnum::Id(id) => id.to_string(),
+                    ParentEnum::Record(record) => match record.id {
+                        None => {
+                            return Err(creation_err(
+                                format!(
+                                    "Role ID not available: {:?}",
+                                    guest_role.id.to_owned(),
+                                ),
+                                None,
+                                None,
+                            ))
+                        }
+                        Some(id) => id.to_string(),
+                    },
+                }),
                 vec![
-                    account_type_model::is_subscription::set(
-                        account_type.is_subscription,
+                    guest_role_model::description::set(guest_role.description),
+                    guest_role_model::permissions::set(
+                        guest_role
+                            .permissions
+                            .into_iter()
+                            .map(|i| i as i32)
+                            .collect::<Vec<i32>>(),
                     ),
-                    account_type_model::is_manager::set(
-                        account_type.is_manager,
-                    ),
-                    account_type_model::is_staff::set(account_type.is_staff),
                 ],
             )
             .exec()
@@ -101,13 +124,18 @@ impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
             Ok(record) => {
                 let record = record;
 
-                Ok(GetOrCreateResponseKind::Created(AccountTypeDTO {
+                Ok(GetOrCreateResponseKind::Created(GuestRoleDTO {
                     id: Some(Uuid::parse_str(&record.id).unwrap()),
                     name: record.name,
                     description: record.description,
-                    is_subscription: record.is_subscription,
-                    is_manager: record.is_manager,
-                    is_staff: record.is_staff,
+                    role: ParentEnum::Id(
+                        Uuid::parse_str(&record.role_id).unwrap(),
+                    ),
+                    permissions: record
+                        .permissions
+                        .into_iter()
+                        .map(|i| PermissionsType::from_i32(i))
+                        .collect(),
                 }))
             }
             Err(err) => {
