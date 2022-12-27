@@ -8,7 +8,7 @@ description = "Provide base features of the Mycelium project as DTOs and Use-cas
 repository = "https://github.com/sgelias/mycelium"
 readme = "./README.md"
 keywords = ["authorization", "identity", "permission", "keeper"]
-categories = ["http-client", "microservices"]
+categories = ["authentication", "network-programming"]
 
 # ? ---------------------------------------------------------------------------
 # ? DEPENDENCIES
