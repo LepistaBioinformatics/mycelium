@@ -1,6 +1,4 @@
-use myc_core::domain::{
-    dtos::message::MessageDTO, entities::message_sending::MessageSending,
-};
+use myc_core::domain::{dtos::message::MessageDTO, entities::MessageSending};
 
 use async_trait::async_trait;
 use clean_base::{

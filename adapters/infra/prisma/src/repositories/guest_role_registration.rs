@@ -11,7 +11,7 @@ use clean_base::{
 };
 use myc_core::domain::{
     dtos::guest::{GuestRoleDTO, PermissionsType},
-    entities::guest_role_registration::GuestRoleRegistration,
+    entities::GuestRoleRegistration,
 };
 use shaku::Component;
 use std::process::id as process_id;

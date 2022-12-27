@@ -19,7 +19,7 @@ use myc_core::domain::{
         email::EmailDTO,
         user::UserDTO,
     },
-    entities::account_registration::AccountRegistration,
+    entities::AccountRegistration,
 };
 use shaku::Component;
 use std::process::id as process_id;

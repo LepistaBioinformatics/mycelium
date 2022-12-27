@@ -15,7 +15,7 @@ use myc_core::domain::{
         guest::PermissionsType,
         profile::{LicensedResourcesDTO, ProfileDTO},
     },
-    entities::profile_fetching::ProfileFetching,
+    entities::ProfileFetching,
 };
 use shaku::Component;
 use std::process::id as process_id;
