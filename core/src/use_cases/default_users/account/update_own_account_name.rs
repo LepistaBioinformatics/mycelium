@@ -1,8 +1,6 @@
 use crate::domain::{
     dtos::{account::AccountDTO, profile::ProfileDTO},
-    entities::{
-        account_fetching::AccountFetching, account_updating::AccountUpdating,
-    },
+    entities::{AccountFetching, AccountUpdating},
 };
 
 use clean_base::{

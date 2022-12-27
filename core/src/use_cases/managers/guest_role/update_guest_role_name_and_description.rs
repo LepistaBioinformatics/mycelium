@@ -1,9 +1,6 @@
 use crate::domain::{
     dtos::{guest::GuestRoleDTO, profile::ProfileDTO},
-    entities::{
-        guest_role_fetching::GuestRoleFetching,
-        guest_role_updating::GuestRoleUpdating,
-    },
+    entities::{GuestRoleFetching, GuestRoleUpdating},
 };
 
 use clean_base::{

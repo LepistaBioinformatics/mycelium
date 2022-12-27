@@ -2,9 +2,7 @@ use crate::{
     domain::{
         dtos::{account::AccountDTO, email::EmailDTO, user::UserDTO},
         entities::{
-            account_registration::AccountRegistration,
-            account_type_registration::AccountTypeRegistration,
-            user_registration::UserRegistration,
+            AccountRegistration, AccountTypeRegistration, UserRegistration,
         },
     },
     use_cases::shared::account_type::get_or_create_default_account_types::{

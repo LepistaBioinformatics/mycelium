@@ -1,6 +1,6 @@
 use crate::domain::{
     dtos::{guest::GuestRoleDTO, profile::ProfileDTO},
-    entities::guest_role_deletion::GuestRoleDeletion,
+    entities::GuestRoleDeletion,
 };
 
 use clean_base::{

@@ -3,11 +3,7 @@ use crate::domain::{
         email::EmailDTO, guest::GuestUserDTO, message::MessageDTO,
         profile::ProfileDTO,
     },
-    entities::{
-        account_fetching::AccountFetching,
-        guest_user_registration::GuestUserRegistration,
-        message_sending::MessageSending,
-    },
+    entities::{AccountFetching, GuestUserRegistration, MessageSending},
 };
 
 use chrono::Local;
