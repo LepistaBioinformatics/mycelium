@@ -16,7 +16,7 @@ categories = ["HTTP client", "Distributed systems"]
 
 [dependencies]
 
-mycelium-core = { path = "../../core" }
+myc-core = { path = "../../core" }
 mycelium-prisma = { path = "../../adapters/infra/prisma" }
 mycelium-smtp = { path = "../../adapters/message/smtp" }
 
