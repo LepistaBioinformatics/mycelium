@@ -16,7 +16,6 @@ categories = ["http-client", "microservices"]
 
 [dependencies]
 
-myc-core = { path = "../../core" }
 mycelium-prisma = { path = "../../adapters/infra/prisma" }
 mycelium-smtp = { path = "../../adapters/message/smtp" }
 
@@ -29,6 +28,7 @@ chrono = "0.4"
 env_logger = "0.10"
 log = "0.4"
 reqwest = { version = "0.11", features = ["json"] }
+myc-core = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 shaku = "0.6"
