@@ -9,27 +9,25 @@ use crate::modules::{
 
 use actix_web::web;
 use myc_prisma::repositories::{
-    default_users::user_registration::{
-        UserRegistrationSqlDbRepository,
-        UserRegistrationSqlDbRepositoryParameters,
+    account_fetching::{
+        AccountFetchingSqlDbRepository,
+        AccountFetchingSqlDbRepositoryParameters,
     },
-    manager::guest_user_registration::{
+    account_registration::{
+        AccountRegistrationSqlDbRepository,
+        AccountRegistrationSqlDbRepositoryParameters,
+    },
+    guest_user_registration::{
         GuestUserRegistrationSqlDbRepository,
         GuestUserRegistrationSqlDbRepositoryParameters,
     },
-    service::profile_fetching::{
+    profile_fetching::{
         ProfileFetchingSqlDbRepository,
         ProfileFetchingSqlDbRepositoryParameters,
     },
-    shared::{
-        account_fetching::{
-            AccountFetchingSqlDbRepository,
-            AccountFetchingSqlDbRepositoryParameters,
-        },
-        account_registration::{
-            AccountRegistrationSqlDbRepository,
-            AccountRegistrationSqlDbRepositoryParameters,
-        },
+    user_registration::{
+        UserRegistrationSqlDbRepository,
+        UserRegistrationSqlDbRepositoryParameters,
     },
 };
 use myc_smtp::repositories::message_sending::{
