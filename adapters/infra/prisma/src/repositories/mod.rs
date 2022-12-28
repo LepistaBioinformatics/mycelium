@@ -2,6 +2,7 @@ mod account_fetching;
 mod account_registration;
 mod account_type_deletion;
 mod account_type_registration;
+mod account_updating;
 pub mod connector;
 mod guest_role_registration;
 mod guest_user_registration;
@@ -23,6 +24,9 @@ pub use account_type_deletion::{
 pub use account_type_registration::{
     AccountTypeRegistrationSqlDbRepository,
     AccountTypeRegistrationSqlDbRepositoryParameters,
+};
+pub use account_updating::{
+    AccountUpdatingSqlDbRepository, AccountUpdatingSqlDbRepositoryParameters,
 };
 pub use guest_role_registration::{
     GuestRoleRegistrationSqlDbRepository,
