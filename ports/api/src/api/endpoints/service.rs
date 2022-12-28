@@ -42,7 +42,7 @@ pub struct ApiDoc;
 // ? ---------------------------------------------------------------------------
 
 pub mod service_endpoints {
-    use crate::modules::service::ProfileFetchingModule;
+    use crate::modules::ProfileFetchingModule;
 
     use actix_web::{get, web, HttpResponse, Responder};
     use clean_base::entities::default_response::FetchResponseKind;

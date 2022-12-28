@@ -1,5 +1,6 @@
 pub mod account_fetching;
 pub mod account_registration;
+pub mod account_type_deletion;
 pub mod account_type_registration;
 pub mod connector;
 pub mod guest_role_registration;

@@ -5,27 +5,25 @@ use crate::{
 
 use async_trait::async_trait;
 use clean_base::{
-    entities::default_response::GetOrCreateResponseKind,
-    utils::errors::{creation_err, MappedErrors},
+    entities::default_response::DeletionResponseKind,
+    utils::errors::{deletion_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::account::AccountTypeDTO,
-    entities::account_type_registration::AccountTypeRegistration,
+    dtos::account::AccountTypeDTO, entities::AccountTypeDeletion,
 };
 use shaku::Component;
 use std::process::id as process_id;
-use uuid::Uuid;
 
 #[derive(Component)]
-#[shaku(interface = AccountTypeRegistration)]
-pub struct AccountTypeRegistrationSqlDbRepository {}
+#[shaku(interface = AccountTypeDeletion)]
+pub struct AccountTypeDeletionSqlDbRepository {}
 
 #[async_trait]
-impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
-    async fn get_or_create(
+impl AccountTypeDeletion for AccountTypeDeletionSqlDbRepository {
+    async fn delete(
         &self,
         account_type: AccountTypeDTO,
-    ) -> Result<GetOrCreateResponseKind<AccountTypeDTO>, MappedErrors> {
+    ) -> Result<DeletionResponseKind<AccountTypeDTO>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -34,7 +32,7 @@ impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(creation_err(
+                return Err(deletion_err(
                     String::from(
                         "Prisma Client error. Could not fetch client.",
                     ),
@@ -49,77 +47,28 @@ impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
         // ? Build the initial query (get part of the get-or-create)
         // ? -------------------------------------------------------------------
 
-        let response = client
+        match client
             .account_type()
-            .find_first(vec![account_type_model::name::equals(
-                account_type.name.to_owned(),
-            )])
+            .delete(account_type_model::id::equals(match account_type.id {
+                None => {
+                    return Err(deletion_err(
+                        String::from(
+                            "Could not delete account type without ID.",
+                        ),
+                        Some(true),
+                        None,
+                    ))
+                }
+                Some(id) => id.to_string(),
+            }))
             .exec()
-            .await;
-
-        match response.unwrap() {
-            Some(record) => {
-                let record = record;
-                return Ok(GetOrCreateResponseKind::NotCreated(
-                    AccountTypeDTO {
-                        id: Some(Uuid::parse_str(&record.id).unwrap()),
-                        name: record.name,
-                        description: record.description,
-                        is_subscription: record.is_subscription,
-                        is_manager: record.is_manager,
-                        is_staff: record.is_staff,
-                    },
-                    String::from("Account type already exists"),
-                ));
-            }
-            None => (),
-        };
-
-        // ? -------------------------------------------------------------------
-        // ? Build create part of the get-or-create
-        // ? -------------------------------------------------------------------
-
-        let response = client
-            .account_type()
-            .create(
-                account_type.name.to_owned(),
-                account_type.description.to_owned(),
-                vec![
-                    account_type_model::is_subscription::set(
-                        account_type.is_subscription,
-                    ),
-                    account_type_model::is_manager::set(
-                        account_type.is_manager,
-                    ),
-                    account_type_model::is_staff::set(account_type.is_staff),
-                ],
-            )
-            .exec()
-            .await;
-
-        match response {
-            Ok(record) => {
-                let record = record;
-
-                Ok(GetOrCreateResponseKind::Created(AccountTypeDTO {
-                    id: Some(Uuid::parse_str(&record.id).unwrap()),
-                    name: record.name,
-                    description: record.description,
-                    is_subscription: record.is_subscription,
-                    is_manager: record.is_manager,
-                    is_staff: record.is_staff,
-                }))
-            }
-            Err(err) => {
-                return Err(creation_err(
-                    format!(
-                        "Unexpected error detected on create record: {}",
-                        err
-                    ),
-                    None,
-                    None,
-                ));
-            }
+            .await
+        {
+            Err(err) => Ok(DeletionResponseKind::NotDeleted(
+                account_type,
+                err.to_string(),
+            )),
+            Ok(_) => Ok(DeletionResponseKind::Deleted),
         }
     }
 }
