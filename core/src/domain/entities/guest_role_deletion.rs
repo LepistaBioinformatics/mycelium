@@ -1,5 +1,3 @@
-use crate::domain::dtos::guest::GuestRoleDTO;
-
 use async_trait::async_trait;
 use clean_base::{
     entities::default_response::DeletionResponseKind,
@@ -13,5 +11,5 @@ pub trait GuestRoleDeletion: Interface + Send + Sync {
     async fn delete(
         &self,
         user_role_id: Uuid,
-    ) -> Result<DeletionResponseKind<GuestRoleDTO>, MappedErrors>;
+    ) -> Result<DeletionResponseKind<Uuid>, MappedErrors>;
 }
