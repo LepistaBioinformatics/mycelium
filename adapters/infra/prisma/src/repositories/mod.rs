@@ -14,6 +14,7 @@ mod profile_fetching;
 mod role_deletion;
 mod role_fetching;
 mod role_registration;
+mod role_updating;
 mod user_registration;
 mod user_updating;
 
@@ -66,6 +67,9 @@ pub use role_fetching::{
 };
 pub use role_registration::{
     RoleRegistrationSqlDbRepository, RoleRegistrationSqlDbRepositoryParameters,
+};
+pub use role_updating::{
+    RoleUpdatingSqlDbRepository, RoleUpdatingSqlDbRepositoryParameters,
 };
 pub use user_registration::{
     UserRegistrationSqlDbRepository, UserRegistrationSqlDbRepositoryParameters,
