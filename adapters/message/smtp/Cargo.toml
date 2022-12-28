@@ -18,7 +18,7 @@ async-trait = "0.1"
 clean-base = "0.1"
 env_logger = "0.10"
 log = "0.4"
-myc-core = "0.4"
+myc-core = "0.4.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 shaku = "0.6"
