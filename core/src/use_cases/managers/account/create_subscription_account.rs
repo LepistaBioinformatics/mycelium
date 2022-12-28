@@ -8,7 +8,7 @@ use crate::{
             AccountRegistration, AccountTypeRegistration, UserRegistration,
         },
     },
-    use_cases::shared::account_type::get_or_create_default_account_types::{
+    use_cases::shared::account_type::{
         get_or_create_default_account_types, AccountTypeEnum,
     },
 };
