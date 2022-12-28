@@ -3,7 +3,7 @@ use crate::{
         dtos::{account::AccountDTO, profile::ProfileDTO},
         entities::{AccountFetching, AccountTypeRegistration, AccountUpdating},
     },
-    use_cases::shared::account_type::get_or_create_default_account_types::{
+    use_cases::shared::account_type::{
         get_or_create_default_account_types, AccountTypeEnum,
     },
 };
