@@ -1,7 +1,4 @@
-use crate::domain::{
-    dtos::{guest::GuestRoleDTO, profile::ProfileDTO},
-    entities::GuestRoleDeletion,
-};
+use crate::domain::{dtos::profile::ProfileDTO, entities::GuestRoleDeletion};
 
 use clean_base::{
     entities::default_response::DeletionResponseKind,
@@ -15,7 +12,7 @@ pub async fn delete_guest_role(
     profile: ProfileDTO,
     role_id: Uuid,
     role_deletion_repo: Box<&dyn GuestRoleDeletion>,
-) -> Result<DeletionResponseKind<GuestRoleDTO>, MappedErrors> {
+) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Check user permissions
     //
