@@ -51,7 +51,7 @@ pub mod default_user_endpoints {
     use shaku_actix::Inject;
     use utoipa::IntoParams;
 
-    use crate::modules::default_users::{
+    use crate::modules::{
         AccountRegistrationModule, AccountTypeRegistrationModule,
         UserRegistrationModule,
     };

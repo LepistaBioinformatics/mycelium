@@ -45,7 +45,7 @@ pub struct ApiDoc;
 
 pub mod manager_endpoints {
 
-    use crate::modules::manager::{
+    use crate::modules::{
         AccountFetchingModule, GuestUserRegistrationModule,
         MessageSendingModule,
     };

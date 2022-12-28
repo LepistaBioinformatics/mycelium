@@ -1,10 +1,7 @@
 use crate::modules::{
-    default_users::{AccountRegistrationModule, UserRegistrationModule},
-    manager::{
-        AccountFetchingModule, GuestUserRegistrationModule,
-        MessageSendingModule,
-    },
-    service::ProfileFetchingModule,
+    AccountFetchingModule, AccountRegistrationModule,
+    GuestUserRegistrationModule, MessageSendingModule, ProfileFetchingModule,
+    UserRegistrationModule,
 };
 
 use actix_web::web;
