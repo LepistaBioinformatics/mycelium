@@ -4,7 +4,7 @@ use myc_prisma::repositories::{
     AccountUpdatingSqlDbRepository, GuestRoleDeletionSqlDbRepository,
     GuestRoleFetchingSqlDbRepository, GuestRoleUpdatingSqlDbRepository,
     GuestUserRegistrationSqlDbRepository, ProfileFetchingSqlDbRepository,
-    UserRegistrationSqlDbRepository,
+    RoleDeletionSqlDbRepository, UserRegistrationSqlDbRepository,
 };
 use myc_smtp::repositories::MessageSendingSqlDbRepository;
 use shaku::module;
@@ -48,17 +48,6 @@ module! {
 module! {
     pub AccountTypeDeletionModule {
         components = [AccountTypeDeletionSqlDbRepository],
-        providers = []
-    }
-}
-
-// ? ---------------------------------------------------------------------------
-// ? User
-// ? ---------------------------------------------------------------------------
-
-module! {
-    pub UserRegistrationModule {
-        components = [UserRegistrationSqlDbRepository],
         providers = []
     }
 }
@@ -117,6 +106,28 @@ module! {
 module! {
     pub ProfileFetchingModule {
         components = [ProfileFetchingSqlDbRepository],
+        providers = []
+    }
+}
+
+// ? ---------------------------------------------------------------------------
+// ? Profile
+// ? ---------------------------------------------------------------------------
+
+module! {
+    pub RoleDeletionModule {
+        components = [RoleDeletionSqlDbRepository],
+        providers = []
+    }
+}
+
+// ? ---------------------------------------------------------------------------
+// ? User
+// ? ---------------------------------------------------------------------------
+
+module! {
+    pub UserRegistrationModule {
+        components = [UserRegistrationSqlDbRepository],
         providers = []
     }
 }
