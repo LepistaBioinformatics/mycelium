@@ -60,7 +60,7 @@ pub mod manager_endpoints {
                 AccountFetching, GuestUserRegistration, MessageSending,
             },
         },
-        use_cases::managers::guest::guest_user::guest_user,
+        use_cases::managers::guest::guest_user,
     };
     use serde::Deserialize;
     use shaku_actix::Inject;
