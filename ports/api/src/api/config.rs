@@ -1,7 +1,11 @@
 use crate::modules::{
     AccountFetchingModule, AccountRegistrationModule,
+    AccountTypeDeletionModule, AccountTypeRegistrationModule,
+    AccountUpdatingModule, GuestRoleDeletionModule, GuestRoleFetchingModule,
+    GuestRoleRegistrationModule, GuestRoleUpdatingModule,
     GuestUserRegistrationModule, MessageSendingModule, ProfileFetchingModule,
-    UserRegistrationModule,
+    RoleDeletionModule, RoleFetchingModule, RoleRegistrationModule,
+    RoleUpdatingModule, UserRegistrationModule, UserUpdatingModule,
 };
 
 use actix_web::web;
@@ -9,10 +13,28 @@ use myc_prisma::repositories::{
     AccountFetchingSqlDbRepository, AccountFetchingSqlDbRepositoryParameters,
     AccountRegistrationSqlDbRepository,
     AccountRegistrationSqlDbRepositoryParameters,
+    AccountTypeDeletionSqlDbRepository,
+    AccountTypeDeletionSqlDbRepositoryParameters,
+    AccountTypeRegistrationSqlDbRepository,
+    AccountTypeRegistrationSqlDbRepositoryParameters,
+    AccountUpdatingSqlDbRepository, AccountUpdatingSqlDbRepositoryParameters,
+    GuestRoleDeletionSqlDbRepository,
+    GuestRoleDeletionSqlDbRepositoryParameters,
+    GuestRoleFetchingSqlDbRepository,
+    GuestRoleFetchingSqlDbRepositoryParameters,
+    GuestRoleRegistrationSqlDbRepository,
+    GuestRoleRegistrationSqlDbRepositoryParameters,
+    GuestRoleUpdatingSqlDbRepository,
+    GuestRoleUpdatingSqlDbRepositoryParameters,
     GuestUserRegistrationSqlDbRepository,
     GuestUserRegistrationSqlDbRepositoryParameters,
     ProfileFetchingSqlDbRepository, ProfileFetchingSqlDbRepositoryParameters,
+    RoleDeletionSqlDbRepository, RoleDeletionSqlDbRepositoryParameters,
+    RoleFetchingSqlDbRepository, RoleFetchingSqlDbRepositoryParameters,
+    RoleRegistrationSqlDbRepository, RoleRegistrationSqlDbRepositoryParameters,
+    RoleUpdatingSqlDbRepository, RoleUpdatingSqlDbRepositoryParameters,
     UserRegistrationSqlDbRepository, UserRegistrationSqlDbRepositoryParameters,
+    UserUpdatingSqlDbRepository, UserUpdatingSqlDbRepositoryParameters,
 };
 use myc_smtp::repositories::{
     MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
@@ -56,17 +78,7 @@ impl SvcConfig {
 pub fn configure(config: &mut web::ServiceConfig) {
     config
         // ? -------------------------------------------------------------------
-        // ? Profile fetching repo
-        // ? -------------------------------------------------------------------
-        .app_data(Arc::new(
-            ProfileFetchingModule::builder()
-                .with_component_parameters::<ProfileFetchingSqlDbRepository>(
-                    ProfileFetchingSqlDbRepositoryParameters {},
-                )
-                .build(),
-        ))
-        // ? -------------------------------------------------------------------
-        // ? Account fetching repo
+        // ? Account
         // ? -------------------------------------------------------------------
         .app_data(Arc::new(
             AccountFetchingModule::builder()
@@ -75,26 +87,37 @@ pub fn configure(config: &mut web::ServiceConfig) {
                 )
                 .build(),
         ))
-        // ? -------------------------------------------------------------------
-        // ? Account registration repo
-        // ? -------------------------------------------------------------------
         .app_data(Arc::new(
             AccountRegistrationModule::builder()
                 .with_component_parameters::<AccountRegistrationSqlDbRepository>(
                     AccountRegistrationSqlDbRepositoryParameters {}
                 ).build()
         ))
-        // ? -------------------------------------------------------------------
-        // ? User registration repo
-        // ? -------------------------------------------------------------------
         .app_data(Arc::new(
-            UserRegistrationModule::builder()
-                .with_component_parameters::<UserRegistrationSqlDbRepository>(
-                    UserRegistrationSqlDbRepositoryParameters {}
+            AccountUpdatingModule::builder()
+                .with_component_parameters::<AccountUpdatingSqlDbRepository>(
+                    AccountUpdatingSqlDbRepositoryParameters {}
                 ).build()
         ))
         // ? -------------------------------------------------------------------
-        // ? Guest User registration repo
+        // ? Account Type
+        // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            AccountTypeRegistrationModule::builder()
+                .with_component_parameters::<AccountTypeRegistrationSqlDbRepository>(
+                    AccountTypeRegistrationSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            AccountTypeDeletionModule::builder()
+                .with_component_parameters::<AccountTypeDeletionSqlDbRepository>(
+                    AccountTypeDeletionSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        // ? -------------------------------------------------------------------
+        // ? Guest User
         // ? -------------------------------------------------------------------
         .app_data(Arc::new(
             GuestUserRegistrationModule::builder()
@@ -104,7 +127,38 @@ pub fn configure(config: &mut web::ServiceConfig) {
                 .build(),
         ))
         // ? -------------------------------------------------------------------
-        // ? Message sending repo
+        // ? Guest Role
+        // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            GuestRoleFetchingModule::builder()
+                .with_component_parameters::<GuestRoleFetchingSqlDbRepository>(
+                    GuestRoleFetchingSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            GuestRoleRegistrationModule::builder()
+                .with_component_parameters::<GuestRoleRegistrationSqlDbRepository>(
+                    GuestRoleRegistrationSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            GuestRoleDeletionModule::builder()
+                .with_component_parameters::<GuestRoleDeletionSqlDbRepository>(
+                    GuestRoleDeletionSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            GuestRoleUpdatingModule::builder()
+                .with_component_parameters::<GuestRoleUpdatingSqlDbRepository>(
+                    GuestRoleUpdatingSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        // ? -------------------------------------------------------------------
+        // ? Message sending
         // ? -------------------------------------------------------------------
         .app_data(Arc::new(
             MessageSendingModule::builder()
@@ -112,5 +166,58 @@ pub fn configure(config: &mut web::ServiceConfig) {
                     MessageSendingSqlDbRepositoryParameters {},
                 )
                 .build(),
+        ))
+        // ? -------------------------------------------------------------------
+        // ? Profile
+        // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            ProfileFetchingModule::builder()
+                .with_component_parameters::<ProfileFetchingSqlDbRepository>(
+                    ProfileFetchingSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        // ! -------------------------------------------------------------------
+        // ? -------------------------------------------------------------------
+        // ? Role
+        // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            RoleRegistrationModule::builder()
+                .with_component_parameters::<RoleRegistrationSqlDbRepository>(
+                    RoleRegistrationSqlDbRepositoryParameters {}
+                ).build()
+        ))
+        .app_data(Arc::new(
+            RoleFetchingModule::builder()
+                .with_component_parameters::<RoleFetchingSqlDbRepository>(
+                    RoleFetchingSqlDbRepositoryParameters {}
+                ).build()
+        ))
+        .app_data(Arc::new(
+            RoleUpdatingModule::builder()
+                .with_component_parameters::<RoleUpdatingSqlDbRepository>(
+                    RoleUpdatingSqlDbRepositoryParameters {}
+                ).build()
+        ))
+        .app_data(Arc::new(
+            RoleDeletionModule::builder()
+                .with_component_parameters::<RoleDeletionSqlDbRepository>(
+                    RoleDeletionSqlDbRepositoryParameters {}
+                ).build()
+        ))
+        // ? -------------------------------------------------------------------
+        // ? User
+        // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            UserRegistrationModule::builder()
+                .with_component_parameters::<UserRegistrationSqlDbRepository>(
+                    UserRegistrationSqlDbRepositoryParameters {}
+                ).build()
+        ))
+        .app_data(Arc::new(
+            UserUpdatingModule::builder()
+                .with_component_parameters::<UserUpdatingSqlDbRepository>(
+                    UserUpdatingSqlDbRepositoryParameters {}
+                ).build()
         ));
 }

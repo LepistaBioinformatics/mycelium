@@ -2,11 +2,12 @@ use myc_prisma::repositories::{
     AccountFetchingSqlDbRepository, AccountRegistrationSqlDbRepository,
     AccountTypeDeletionSqlDbRepository, AccountTypeRegistrationSqlDbRepository,
     AccountUpdatingSqlDbRepository, GuestRoleDeletionSqlDbRepository,
-    GuestRoleFetchingSqlDbRepository, GuestRoleUpdatingSqlDbRepository,
-    GuestUserRegistrationSqlDbRepository, ProfileFetchingSqlDbRepository,
-    RoleDeletionSqlDbRepository, RoleFetchingSqlDbRepository,
-    RoleRegistrationSqlDbRepository, RoleUpdatingSqlDbRepository,
-    UserRegistrationSqlDbRepository,
+    GuestRoleFetchingSqlDbRepository, GuestRoleRegistrationSqlDbRepository,
+    GuestRoleUpdatingSqlDbRepository, GuestUserRegistrationSqlDbRepository,
+    ProfileFetchingSqlDbRepository, RoleDeletionSqlDbRepository,
+    RoleFetchingSqlDbRepository, RoleRegistrationSqlDbRepository,
+    RoleUpdatingSqlDbRepository, UserRegistrationSqlDbRepository,
+    UserUpdatingSqlDbRepository,
 };
 use myc_smtp::repositories::MessageSendingSqlDbRepository;
 use shaku::module;
@@ -72,6 +73,13 @@ module! {
 module! {
     pub GuestRoleFetchingModule {
         components = [GuestRoleFetchingSqlDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub GuestRoleRegistrationModule {
+        components = [GuestRoleRegistrationSqlDbRepository],
         providers = []
     }
 }
@@ -151,6 +159,13 @@ module! {
 module! {
     pub UserRegistrationModule {
         components = [UserRegistrationSqlDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub UserUpdatingModule {
+        components = [UserUpdatingSqlDbRepository],
         providers = []
     }
 }
