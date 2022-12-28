@@ -1,1 +1,5 @@
-pub mod message_sending;
+mod message_sending;
+
+pub use message_sending::{
+    MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
+};

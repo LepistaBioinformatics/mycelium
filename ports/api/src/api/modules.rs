@@ -1,12 +1,10 @@
 use myc_prisma::repositories::{
-    account_fetching::AccountFetchingSqlDbRepository,
-    account_registration::AccountRegistrationSqlDbRepository,
-    account_type_registration::AccountTypeRegistrationSqlDbRepository,
-    guest_user_registration::GuestUserRegistrationSqlDbRepository,
-    profile_fetching::ProfileFetchingSqlDbRepository,
-    user_registration::UserRegistrationSqlDbRepository,
+    AccountFetchingSqlDbRepository, AccountRegistrationSqlDbRepository,
+    AccountTypeRegistrationSqlDbRepository,
+    GuestUserRegistrationSqlDbRepository, ProfileFetchingSqlDbRepository,
+    UserRegistrationSqlDbRepository,
 };
-use myc_smtp::repositories::message_sending::MessageSendingSqlDbRepository;
+use myc_smtp::repositories::MessageSendingSqlDbRepository;
 use shaku::module;
 
 // ? ---------------------------------------------------------------------------

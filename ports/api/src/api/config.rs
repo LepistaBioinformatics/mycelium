@@ -6,28 +6,15 @@ use crate::modules::{
 
 use actix_web::web;
 use myc_prisma::repositories::{
-    account_fetching::{
-        AccountFetchingSqlDbRepository,
-        AccountFetchingSqlDbRepositoryParameters,
-    },
-    account_registration::{
-        AccountRegistrationSqlDbRepository,
-        AccountRegistrationSqlDbRepositoryParameters,
-    },
-    guest_user_registration::{
-        GuestUserRegistrationSqlDbRepository,
-        GuestUserRegistrationSqlDbRepositoryParameters,
-    },
-    profile_fetching::{
-        ProfileFetchingSqlDbRepository,
-        ProfileFetchingSqlDbRepositoryParameters,
-    },
-    user_registration::{
-        UserRegistrationSqlDbRepository,
-        UserRegistrationSqlDbRepositoryParameters,
-    },
+    AccountFetchingSqlDbRepository, AccountFetchingSqlDbRepositoryParameters,
+    AccountRegistrationSqlDbRepository,
+    AccountRegistrationSqlDbRepositoryParameters,
+    GuestUserRegistrationSqlDbRepository,
+    GuestUserRegistrationSqlDbRepositoryParameters,
+    ProfileFetchingSqlDbRepository, ProfileFetchingSqlDbRepositoryParameters,
+    UserRegistrationSqlDbRepository, UserRegistrationSqlDbRepositoryParameters,
 };
-use myc_smtp::repositories::message_sending::{
+use myc_smtp::repositories::{
     MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
 };
 use std::{env::var_os, sync::Arc};
