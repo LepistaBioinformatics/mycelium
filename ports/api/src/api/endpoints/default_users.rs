@@ -45,7 +45,7 @@ pub mod default_user_endpoints {
             AccountTypeRegistration,
             AccountRegistration,
         },
-        use_cases::default_users::account::create_default_account::create_default_account,
+        use_cases::default_users::account::create_default_account,
     };
     use serde::Deserialize;
     use shaku_actix::Inject;
