@@ -12,7 +12,7 @@ use uuid::Uuid;
 pub trait AccountTypeFetching: Interface + Send + Sync {
     async fn get(
         &self,
-        id: String,
+        id: Uuid,
     ) -> Result<FetchResponseKind<AccountTypeDTO, Uuid>, MappedErrors>;
     async fn list(
         &self,
