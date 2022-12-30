@@ -16,6 +16,8 @@ mod role_deletion;
 mod role_fetching;
 mod role_registration;
 mod role_updating;
+mod token_deregistration;
+mod token_registration;
 mod user_registration;
 mod user_updating;
 
@@ -37,5 +39,7 @@ pub use role_deletion::RoleDeletion;
 pub use role_fetching::RoleFetching;
 pub use role_registration::RoleRegistration;
 pub use role_updating::RoleUpdating;
+pub use token_deregistration::TokenDeregistration;
+pub use token_registration::TokenRegistration;
 pub use user_registration::UserRegistration;
 pub use user_updating::UserUpdating;
