@@ -4,4 +4,5 @@ pub mod guest;
 pub mod message;
 pub mod profile;
 pub mod role;
+pub mod token;
 pub mod user;
