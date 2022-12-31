@@ -1,11 +1,11 @@
-use crate::domain::dtos::{role::RoleDTO, token::TokenDTO};
+use crate::domain::dtos::token::TokenDTO;
 
 use async_trait::async_trait;
 use clean_base::{
-    entities::default_response::DeletionResponseKind,
-    utils::errors::MappedErrors,
+    entities::default_response::FetchResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Interface;
+use uuid::Uuid;
 
 #[async_trait]
 pub trait TokenDeregistration: Interface + Send + Sync {
@@ -15,6 +15,5 @@ pub trait TokenDeregistration: Interface + Send + Sync {
     async fn get_then_delete(
         &self,
         token: TokenDTO,
-        requesting_service: String,
-    ) -> Result<DeletionResponseKind<RoleDTO>, MappedErrors>;
+    ) -> Result<FetchResponseKind<TokenDTO, Uuid>, MappedErrors>;
 }
