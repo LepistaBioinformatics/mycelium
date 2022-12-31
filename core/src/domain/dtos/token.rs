@@ -11,24 +11,27 @@ use uuid::Uuid;
 #[serde(rename_all = "camelCase")]
 pub struct TokenDTO {
     /// This token should be used as the request identifier.
-    token: Uuid,
+    pub token: Uuid,
 
     /// Expiration time is used to check if the request is already valid. This
     /// time is calculated from the date the profile request was requested from
     /// mycelium.
-    expires: Option<DateTime<Local>>,
+    pub expires: Option<DateTime<Local>>,
 
     /// This field should contains the name of the requester service. Such name
     /// should be used to check if the token was consumed by the downstream
     /// route, enabled by the service router.
-    own_service: String,
+    pub own_service: String,
 }
 
 impl TokenDTO {
-    pub async fn new_undated_token(own_service: String) -> Self {
+    pub async fn new_undated_token(
+        own_service: String,
+        expires: Option<DateTime<Local>>,
+    ) -> Self {
         Self {
             token: Uuid::new_v4(),
-            expires: None,
+            expires,
             own_service,
         }
     }

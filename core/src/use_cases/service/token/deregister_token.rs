@@ -1,12 +1,9 @@
-use crate::domain::{
-    dtos::{role::RoleDTO, token::TokenDTO},
-    entities::TokenDeregistration,
-};
+use crate::domain::{dtos::token::TokenDTO, entities::TokenDeregistration};
 
 use clean_base::{
-    entities::default_response::DeletionResponseKind,
-    utils::errors::MappedErrors,
+    entities::default_response::FetchResponseKind, utils::errors::MappedErrors,
 };
+use uuid::Uuid;
 
 /// De-register token.
 ///
@@ -14,11 +11,15 @@ use clean_base::{
 /// to check if the requesting service that are trying to deregister the token
 /// was the same which registered such token.
 pub async fn deregister_token(
-    token: TokenDTO,
+    token: Uuid,
     requesting_service: String,
     token_deregistration_repo: Box<&dyn TokenDeregistration>,
-) -> Result<DeletionResponseKind<RoleDTO>, MappedErrors> {
+) -> Result<FetchResponseKind<TokenDTO, Uuid>, MappedErrors> {
     token_deregistration_repo
-        .get_then_delete(token, requesting_service)
+        .get_then_delete(TokenDTO {
+            token,
+            expires: None,
+            own_service: requesting_service,
+        })
         .await
 }
