@@ -15,10 +15,10 @@ use uuid::Uuid;
 
 #[derive(Component)]
 #[shaku(interface = TokenDeregistration)]
-pub struct TokenDeregistrationSqlDbRepository {}
+pub struct TokenDeregistrationMemDbRepository {}
 
 #[async_trait]
-impl TokenDeregistration for TokenDeregistrationSqlDbRepository {
+impl TokenDeregistration for TokenDeregistrationMemDbRepository {
     async fn get_then_delete(
         &self,
         token: TokenDTO,
@@ -147,7 +147,7 @@ mod test {
 
     #[test(tokio::test)]
     async fn test_token_deregistration_works() {
-        let repo = TokenDeregistrationSqlDbRepository {};
+        let repo = TokenDeregistrationMemDbRepository {};
 
         match repo
             .get_then_delete(TokenDTO {

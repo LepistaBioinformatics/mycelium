@@ -14,10 +14,10 @@ use shaku::Component;
 
 #[derive(Component)]
 #[shaku(interface = TokenRegistration)]
-pub struct TokenRegistrationSqlDbRepository {}
+pub struct TokenRegistrationMemDbRepository {}
 
 #[async_trait]
-impl TokenRegistration for TokenRegistrationSqlDbRepository {
+impl TokenRegistration for TokenRegistrationMemDbRepository {
     async fn create(
         &self,
         token: TokenDTO,
@@ -67,7 +67,7 @@ mod test {
 
     #[test(tokio::test)]
     async fn test_token_registration_works() {
-        let repo = TokenRegistrationSqlDbRepository {};
+        let repo = TokenRegistrationMemDbRepository {};
 
         match repo
             .create(

@@ -5,8 +5,8 @@ use crate::modules::{
     GuestRoleRegistrationModule, GuestRoleUpdatingModule,
     GuestUserRegistrationModule, MessageSendingModule, ProfileFetchingModule,
     RoleDeletionModule, RoleFetchingModule, RoleRegistrationModule,
-    RoleUpdatingModule, TokenDeregistrationModule, TokenRegistrationModule,
-    UserRegistrationModule, UserUpdatingModule,
+    RoleUpdatingModule, TokenCleanupModule, TokenDeregistrationModule,
+    TokenRegistrationModule, UserRegistrationModule, UserUpdatingModule,
 };
 
 use actix_web::web;
@@ -38,10 +38,11 @@ use myc_prisma::repositories::{
     UserUpdatingSqlDbRepository, UserUpdatingSqlDbRepositoryParameters,
 };
 use myc_redis::repositories::{
-    TokenDeregistrationSqlDbRepository,
-    TokenDeregistrationSqlDbRepositoryParameters,
-    TokenRegistrationSqlDbRepository,
-    TokenRegistrationSqlDbRepositoryParameters,
+    TokenCleanupMemDbRepository, TokenCleanupMemDbRepositoryParameters,
+    TokenDeregistrationMemDbRepository,
+    TokenDeregistrationMemDbRepositoryParameters,
+    TokenRegistrationMemDbRepository,
+    TokenRegistrationMemDbRepositoryParameters,
 };
 use myc_smtp::repositories::{
     MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
@@ -231,14 +232,20 @@ pub fn configure(config: &mut web::ServiceConfig) {
         // ? -------------------------------------------------------------------
         .app_data(Arc::new(
             TokenRegistrationModule::builder()
-                .with_component_parameters::<TokenRegistrationSqlDbRepository>(
-                    TokenRegistrationSqlDbRepositoryParameters {}
+                .with_component_parameters::<TokenRegistrationMemDbRepository>(
+                    TokenRegistrationMemDbRepositoryParameters {}
                 ).build()
         ))
         .app_data(Arc::new(
             TokenDeregistrationModule::builder()
-                .with_component_parameters::<TokenDeregistrationSqlDbRepository>(
-                    TokenDeregistrationSqlDbRepositoryParameters {}
+                .with_component_parameters::<TokenDeregistrationMemDbRepository>(
+                    TokenDeregistrationMemDbRepositoryParameters {}
+                ).build()
+        ))
+        .app_data(Arc::new(
+            TokenCleanupModule::builder()
+                .with_component_parameters::<TokenCleanupMemDbRepository>(
+                    TokenCleanupMemDbRepositoryParameters {}
                 ).build()
         ));
 }

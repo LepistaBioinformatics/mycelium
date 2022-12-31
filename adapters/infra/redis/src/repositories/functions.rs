@@ -77,5 +77,5 @@ pub(super) fn from_redis_key(
 /// Such key are used to segment keys by day. This segmentation strategy allows
 /// the system to remove old keys not consumed by the system.
 pub(super) fn get_today_key() -> String {
-    Local::now().date_naive().to_string()
+    format!("tokens-{}", Local::now().date_naive().to_string())
 }
