@@ -18,7 +18,6 @@ pub async fn deregister_token(
     token_deregistration_repo
         .get_then_delete(TokenDTO {
             token,
-            expires: None,
             own_service: requesting_service,
         })
         .await
