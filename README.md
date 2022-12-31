@@ -11,7 +11,7 @@
 ---
 ## Description
 
-NOTE: This is a development package. Thus d'ont use in production.
+NOTE: This is a development package. Thus don't use in production!
 
 `Mycelium` features allow users to build and check permissions into distributed
 systems.
