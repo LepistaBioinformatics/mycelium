@@ -9,6 +9,9 @@ use myc_prisma::repositories::{
     RoleUpdatingSqlDbRepository, UserRegistrationSqlDbRepository,
     UserUpdatingSqlDbRepository,
 };
+use myc_redis::repositories::{
+    TokenDeregistrationSqlDbRepository, TokenRegistrationSqlDbRepository,
+};
 use myc_smtp::repositories::MessageSendingSqlDbRepository;
 use shaku::module;
 
@@ -121,7 +124,7 @@ module! {
 }
 
 // ? ---------------------------------------------------------------------------
-// ? Profile
+// ? Role
 // ? ---------------------------------------------------------------------------
 
 module! {
@@ -166,6 +169,24 @@ module! {
 module! {
     pub UserUpdatingModule {
         components = [UserUpdatingSqlDbRepository],
+        providers = []
+    }
+}
+
+// ? ---------------------------------------------------------------------------
+// ? Token
+// ? ---------------------------------------------------------------------------
+
+module! {
+    pub TokenRegistrationModule {
+        components = [TokenRegistrationSqlDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub TokenDeregistrationModule {
+        components = [TokenDeregistrationSqlDbRepository],
         providers = []
     }
 }
