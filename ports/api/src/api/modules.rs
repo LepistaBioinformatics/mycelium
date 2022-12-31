@@ -10,7 +10,8 @@ use myc_prisma::repositories::{
     UserUpdatingSqlDbRepository,
 };
 use myc_redis::repositories::{
-    TokenDeregistrationSqlDbRepository, TokenRegistrationSqlDbRepository,
+    TokenCleanupMemDbRepository, TokenDeregistrationMemDbRepository,
+    TokenRegistrationMemDbRepository,
 };
 use myc_smtp::repositories::MessageSendingSqlDbRepository;
 use shaku::module;
@@ -179,14 +180,21 @@ module! {
 
 module! {
     pub TokenRegistrationModule {
-        components = [TokenRegistrationSqlDbRepository],
+        components = [TokenRegistrationMemDbRepository],
         providers = []
     }
 }
 
 module! {
     pub TokenDeregistrationModule {
-        components = [TokenDeregistrationSqlDbRepository],
+        components = [TokenDeregistrationMemDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub TokenCleanupModule {
+        components = [TokenCleanupMemDbRepository],
         providers = []
     }
 }
