@@ -5,7 +5,8 @@ use crate::modules::{
     GuestRoleRegistrationModule, GuestRoleUpdatingModule,
     GuestUserRegistrationModule, MessageSendingModule, ProfileFetchingModule,
     RoleDeletionModule, RoleFetchingModule, RoleRegistrationModule,
-    RoleUpdatingModule, UserRegistrationModule, UserUpdatingModule,
+    RoleUpdatingModule, TokenDeregistrationModule, TokenRegistrationModule,
+    UserRegistrationModule, UserUpdatingModule,
 };
 
 use actix_web::web;
@@ -35,6 +36,12 @@ use myc_prisma::repositories::{
     RoleUpdatingSqlDbRepository, RoleUpdatingSqlDbRepositoryParameters,
     UserRegistrationSqlDbRepository, UserRegistrationSqlDbRepositoryParameters,
     UserUpdatingSqlDbRepository, UserUpdatingSqlDbRepositoryParameters,
+};
+use myc_redis::repositories::{
+    TokenDeregistrationSqlDbRepository,
+    TokenDeregistrationSqlDbRepositoryParameters,
+    TokenRegistrationSqlDbRepository,
+    TokenRegistrationSqlDbRepositoryParameters,
 };
 use myc_smtp::repositories::{
     MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
@@ -217,6 +224,21 @@ pub fn configure(config: &mut web::ServiceConfig) {
             UserUpdatingModule::builder()
                 .with_component_parameters::<UserUpdatingSqlDbRepository>(
                     UserUpdatingSqlDbRepositoryParameters {}
+                ).build()
+        ))
+        // ? -------------------------------------------------------------------
+        // ? Token
+        // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            TokenRegistrationModule::builder()
+                .with_component_parameters::<TokenRegistrationSqlDbRepository>(
+                    TokenRegistrationSqlDbRepositoryParameters {}
+                ).build()
+        ))
+        .app_data(Arc::new(
+            TokenDeregistrationModule::builder()
+                .with_component_parameters::<TokenDeregistrationSqlDbRepository>(
+                    TokenDeregistrationSqlDbRepositoryParameters {}
                 ).build()
         ));
 }
