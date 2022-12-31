@@ -1,7 +1,10 @@
 {
     "cSpell.words": [
+        "datetime",
         "dtos",
         "shaku",
-        "structs"
+        "structs",
+        "withscores",
+        "ZRANGE"
     ]
 }

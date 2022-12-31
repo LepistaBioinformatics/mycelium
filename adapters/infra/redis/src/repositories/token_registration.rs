@@ -1,15 +1,16 @@
-use super::functions::to_redis_key;
-use crate::repositories::connector::get_connection;
+use super::{
+    connector::get_connection,
+    functions::{get_today_key, to_redis_key},
+};
 
 use async_trait::async_trait;
-use chrono::{Duration, Local};
+use chrono::{DateTime, Local};
 use clean_base::{
     entities::default_response::CreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
 use myc_core::domain::{dtos::token::TokenDTO, entities::TokenRegistration};
 use shaku::Component;
-use std::collections::HashMap;
 
 #[derive(Component)]
 #[shaku(interface = TokenRegistration)]
@@ -20,6 +21,7 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
     async fn create(
         &self,
         token: TokenDTO,
+        expires: DateTime<Local>,
     ) -> Result<CreateResponseKind<TokenDTO>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build connection
@@ -28,28 +30,13 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
         let mut conn = get_connection().await;
 
         // ? -------------------------------------------------------------------
-        // ? Try to build insert data
-        // ? -------------------------------------------------------------------
-
-        let mut data = HashMap::new();
-
-        data.insert(
-            "expires",
-            match token.to_owned().expires {
-                None => (Local::now() + Duration::seconds(5)).to_string(),
-                Some(res) => res.to_string(),
-            },
-        );
-
-        data.insert("own_service", token.to_owned().own_service);
-
-        // ? -------------------------------------------------------------------
         // ? Try to persist data
         // ? -------------------------------------------------------------------
 
-        match redis::cmd("SET")
+        match redis::cmd("ZADD")
+            .arg(get_today_key())
+            .arg(expires.timestamp())
             .arg(to_redis_key(token.to_owned()))
-            .arg(serde_json::to_string(&data).unwrap())
             .query::<()>(&mut conn)
         {
             Err(err) => {
@@ -74,6 +61,7 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
 mod test {
     use super::*;
     use log::{error, info};
+    use myc_core::use_cases::service::token::generate_token_expiration_time;
     use test_log::test;
     use uuid::Uuid;
 
@@ -82,11 +70,13 @@ mod test {
         let repo = TokenRegistrationSqlDbRepository {};
 
         match repo
-            .create(TokenDTO {
-                token: Uuid::new_v4(),
-                expires: None,
-                own_service: String::from("some service"),
-            })
+            .create(
+                TokenDTO {
+                    token: Uuid::new_v4(),
+                    own_service: String::from("some service"),
+                },
+                generate_token_expiration_time().await,
+            )
             .await
         {
             Err(err) => error!("test err: {err}"),
