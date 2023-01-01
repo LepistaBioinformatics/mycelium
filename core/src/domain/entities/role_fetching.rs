@@ -1,4 +1,4 @@
-use crate::domain::dtos::role::RoleDTO;
+use crate::domain::dtos::role::Role;
 
 use async_trait::async_trait;
 use clean_base::{
@@ -13,9 +13,9 @@ pub trait RoleFetching: Interface + Send + Sync {
     async fn get(
         &self,
         id: Uuid,
-    ) -> Result<FetchResponseKind<RoleDTO, Uuid>, MappedErrors>;
+    ) -> Result<FetchResponseKind<Role, Uuid>, MappedErrors>;
     async fn list(
         &self,
         search_term: String,
-    ) -> Result<FetchManyResponseKind<RoleDTO>, MappedErrors>;
+    ) -> Result<FetchManyResponseKind<Role>, MappedErrors>;
 }

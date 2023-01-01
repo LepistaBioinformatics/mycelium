@@ -1,4 +1,4 @@
-use super::{account::AccountDTO, email::EmailDTO, role::RoleDTO};
+use super::{account::Account, email::Email, role::Role};
 use chrono::{DateTime, Local};
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use serde::{Deserialize, Serialize};
@@ -28,16 +28,16 @@ impl PermissionsType {
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct GuestRoleDTO {
+pub struct GuestRole {
     pub id: Option<Uuid>,
 
     pub name: String,
     pub description: Option<String>,
-    pub role: ParentEnum<RoleDTO, Uuid>,
+    pub role: ParentEnum<Role, Uuid>,
     pub permissions: Vec<PermissionsType>,
 }
 
-impl GuestRoleDTO {
+impl GuestRole {
     pub fn build_role_url(&self, base_url: String) -> Result<String, ()> {
         match self.role.to_owned() {
             ParentEnum::Id(id) => Ok(format!("{}/{}", base_url, id)),
@@ -51,17 +51,17 @@ impl GuestRoleDTO {
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct GuestUserDTO {
+pub struct GuestUser {
     pub id: Option<Uuid>,
 
-    pub email: EmailDTO,
-    pub guest_role: ParentEnum<GuestRoleDTO, Uuid>,
+    pub email: Email,
+    pub guest_role: ParentEnum<GuestRole, Uuid>,
     pub created: DateTime<Local>,
     pub updated: Option<DateTime<Local>>,
-    pub accounts: Option<ChildrenEnum<AccountDTO, Uuid>>,
+    pub accounts: Option<ChildrenEnum<Account, Uuid>>,
 }
 
-impl GuestUserDTO {
+impl GuestUser {
     pub fn build_role_url(&self, base_url: String) -> Result<String, ()> {
         match self.guest_role.to_owned() {
             ParentEnum::Id(id) => Ok(format!("{}/{}", base_url, id)),

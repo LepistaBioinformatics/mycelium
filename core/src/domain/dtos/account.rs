@@ -1,4 +1,4 @@
-use super::{guest::GuestUserDTO, user::UserDTO};
+use super::{guest::GuestUser, user::User};
 
 use chrono::{DateTime, Local};
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AccountTypeDTO {
+pub struct AccountType {
     pub id: Option<Uuid>,
 
     pub name: String,
@@ -21,20 +21,20 @@ pub struct AccountTypeDTO {
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct AccountDTO {
+pub struct Account {
     pub id: Option<Uuid>,
 
     pub name: String,
     pub is_active: bool,
     pub is_checked: bool,
-    pub owner: ParentEnum<UserDTO, Uuid>,
-    pub account_type: ParentEnum<AccountTypeDTO, Uuid>,
-    pub guest_users: Option<ChildrenEnum<GuestUserDTO, Uuid>>,
+    pub owner: ParentEnum<User, Uuid>,
+    pub account_type: ParentEnum<AccountType, Uuid>,
+    pub guest_users: Option<ChildrenEnum<GuestUser, Uuid>>,
     pub created: DateTime<Local>,
     pub updated: Option<DateTime<Local>>,
 }
 
-impl AccountDTO {
+impl Account {
     pub fn build_owner_url(&self, base_url: String) -> Result<String, ()> {
         match self.owner.to_owned() {
             ParentEnum::Id(id) => Ok(format!("{:?}/{:?}", base_url, id)),
@@ -98,13 +98,13 @@ mod tests {
     use chrono::Local;
 
     use super::*;
-    use crate::domain::dtos::email::EmailDTO;
+    use crate::domain::dtos::email::Email;
 
     #[test]
     fn test_if_account_works() {
         let base_url = "http://local.host/api/v1/accounts".to_string();
 
-        let account_type = AccountTypeDTO {
+        let account_type = AccountType {
             id: None,
             name: "".to_string(),
             description: "".to_string(),
@@ -113,10 +113,10 @@ mod tests {
             is_staff: false,
         };
 
-        let user = UserDTO {
+        let user = User {
             id: None,
             username: "username".to_string(),
-            email: EmailDTO::from_string("username@email.domain".to_string())
+            email: Email::from_string("username@email.domain".to_string())
                 .unwrap(),
             first_name: Some("first_name".to_string()),
             last_name: Some("last_name".to_string()),
@@ -125,7 +125,7 @@ mod tests {
             updated: Some(Local::now()),
         };
 
-        let account = AccountDTO {
+        let account = Account {
             id: None,
             name: String::from("Account Name"),
             is_active: true,

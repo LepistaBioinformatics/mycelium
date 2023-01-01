@@ -1,4 +1,4 @@
-use crate::domain::dtos::user::UserDTO;
+use crate::domain::dtos::user::User;
 
 use async_trait::async_trait;
 use clean_base::{
@@ -11,6 +11,6 @@ use shaku::Interface;
 pub trait UserUpdating: Interface + Send + Sync {
     async fn update(
         &self,
-        user: UserDTO,
-    ) -> Result<UpdatingResponseKind<UserDTO>, MappedErrors>;
+        user: User,
+    ) -> Result<UpdatingResponseKind<User>, MappedErrors>;
 }

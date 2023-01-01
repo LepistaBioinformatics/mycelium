@@ -1,4 +1,4 @@
-use crate::domain::dtos::guest::GuestUserDTO;
+use crate::domain::dtos::guest::GuestUser;
 
 use async_trait::async_trait;
 use clean_base::{
@@ -12,7 +12,7 @@ use uuid::Uuid;
 pub trait GuestUserRegistration: Interface + Send + Sync {
     async fn get_or_create(
         &self,
-        guest_user: GuestUserDTO,
+        guest_user: GuestUser,
         account_id: Uuid,
-    ) -> Result<GetOrCreateResponseKind<GuestUserDTO>, MappedErrors>;
+    ) -> Result<GetOrCreateResponseKind<GuestUser>, MappedErrors>;
 }

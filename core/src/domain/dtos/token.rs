@@ -8,7 +8,7 @@ use uuid::Uuid;
 /// the every request submitted to the cluster.
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
-pub struct TokenDTO {
+pub struct Token {
     /// This token should be used as the request identifier.
     pub token: Uuid,
 
@@ -18,7 +18,7 @@ pub struct TokenDTO {
     pub own_service: String,
 }
 
-impl TokenDTO {
+impl Token {
     pub async fn new_undated_token(own_service: String) -> Self {
         Self {
             token: Uuid::new_v4(),

@@ -1,6 +1,6 @@
 use crate::{
     domain::{
-        dtos::{account::AccountDTO, email::EmailDTO, user::UserDTO},
+        dtos::{account::Account, email::Email, user::User},
         entities::{
             AccountRegistration, AccountTypeRegistration, UserRegistration,
         },
@@ -33,7 +33,7 @@ pub async fn create_default_account(
     user_registration_repo: Box<&dyn UserRegistration>,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
-) -> Result<GetOrCreateResponseKind<AccountDTO>, MappedErrors> {
+) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Build and validate email
     //
@@ -41,7 +41,7 @@ pub async fn create_default_account(
     // possibly invalid.
     // ? -----------------------------------------------------------------------
 
-    let email_instance = match EmailDTO::from_string(email) {
+    let email_instance = match Email::from_string(email) {
         Err(err) => return Err(err),
         Ok(res) => res,
     };
@@ -78,7 +78,7 @@ pub async fn create_default_account(
     // ? -----------------------------------------------------------------------
 
     let user = match user_registration_repo
-        .get_or_create(UserDTO {
+        .get_or_create(User {
             id: None,
             username: email_instance.to_owned().username,
             email: email_instance,
@@ -113,7 +113,7 @@ pub async fn create_default_account(
     // ? -----------------------------------------------------------------------
 
     account_registration_repo
-        .get_or_create(AccountDTO {
+        .get_or_create(Account {
             id: None,
             name: account_name,
             is_active: true,

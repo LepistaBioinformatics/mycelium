@@ -1,4 +1,4 @@
-use crate::domain::dtos::guest::GuestRoleDTO;
+use crate::domain::dtos::guest::GuestRole;
 
 use async_trait::async_trait;
 use clean_base::{
@@ -13,9 +13,9 @@ pub trait GuestRoleFetching: Interface + Send + Sync {
     async fn get(
         &self,
         id: Uuid,
-    ) -> Result<FetchResponseKind<GuestRoleDTO, Uuid>, MappedErrors>;
+    ) -> Result<FetchResponseKind<GuestRole, Uuid>, MappedErrors>;
     async fn list(
         &self,
         search_term: String,
-    ) -> Result<FetchManyResponseKind<GuestRoleDTO>, MappedErrors>;
+    ) -> Result<FetchManyResponseKind<GuestRole>, MappedErrors>;
 }

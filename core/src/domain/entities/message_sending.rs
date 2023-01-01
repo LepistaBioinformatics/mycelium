@@ -1,4 +1,4 @@
-use crate::domain::dtos::message::MessageDTO;
+use crate::domain::dtos::message::Message;
 
 use async_trait::async_trait;
 use clean_base::{
@@ -10,6 +10,6 @@ use shaku::Interface;
 pub trait MessageSending: Interface + Send + Sync {
     async fn send(
         &self,
-        message: MessageDTO,
-    ) -> Result<CreateResponseKind<MessageDTO>, MappedErrors>;
+        message: Message,
+    ) -> Result<CreateResponseKind<Message>, MappedErrors>;
 }

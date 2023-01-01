@@ -1,4 +1,4 @@
-use crate::domain::{dtos::token::TokenDTO, entities::TokenRegistration};
+use crate::domain::{dtos::token::Token, entities::TokenRegistration};
 
 use clean_base::{
     entities::default_response::CreateResponseKind, utils::errors::MappedErrors,
@@ -12,10 +12,10 @@ use super::generate_token_expiration_time;
 pub async fn register_token(
     own_service: String,
     token_registration_repo: Box<&dyn TokenRegistration>,
-) -> Result<CreateResponseKind<TokenDTO>, MappedErrors> {
+) -> Result<CreateResponseKind<Token>, MappedErrors> {
     token_registration_repo
         .create(
-            TokenDTO::new_undated_token(own_service).await,
+            Token::new_undated_token(own_service).await,
             generate_token_expiration_time().await,
         )
         .await

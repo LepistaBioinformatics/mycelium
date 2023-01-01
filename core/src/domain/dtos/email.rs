@@ -5,13 +5,13 @@ use utoipa::ToSchema;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct EmailDTO {
+pub struct Email {
     pub username: String,
     pub domain: String,
 }
 
-impl EmailDTO {
-    pub fn from_string(email: String) -> Result<EmailDTO, MappedErrors> {
+impl Email {
+    pub fn from_string(email: String) -> Result<Email, MappedErrors> {
         let re = Regex::new(
             r"^([a-z0-9_+]([a-z0-9_+.]*[a-z0-9_+])?)@([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6})"
         ).unwrap();
@@ -49,7 +49,7 @@ impl EmailDTO {
             Some(val) => val.as_str().to_string(),
         };
 
-        Ok(EmailDTO { username, domain })
+        Ok(Email { username, domain })
     }
 
     pub fn get_email(&self) -> String {
@@ -69,7 +69,7 @@ mod tests {
     fn test_parse_email_works() {
         let email_string = "sgelias@outlook.com".to_string();
 
-        let email = EmailDTO::from_string(email_string.to_owned()).unwrap();
+        let email = Email::from_string(email_string.to_owned()).unwrap();
 
         assert_eq!(email.username, "sgelias".to_string());
         assert_eq!(email.domain, "outlook.com".to_string());
@@ -79,7 +79,7 @@ mod tests {
     fn test_get_email_works() {
         let email_string = "sgelias@outlook.com".to_string();
 
-        let email = EmailDTO::from_string(email_string.to_owned()).unwrap();
+        let email = Email::from_string(email_string.to_owned()).unwrap();
 
         assert_eq!(email.get_email(), email_string);
     }
