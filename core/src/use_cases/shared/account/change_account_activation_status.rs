@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::{account::AccountDTO, profile::ProfileDTO},
+    dtos::{account::Account, profile::Profile},
     entities::{AccountFetching, AccountUpdating},
 };
 
@@ -11,11 +11,11 @@ use uuid::Uuid;
 
 /// Change activation status of the target account.
 pub async fn change_account_activation_status(
-    profile: ProfileDTO,
+    profile: Profile,
     account_id: Uuid,
     account_fetching_repo: Box<&dyn AccountFetching>,
     account_updating_repo: Box<&dyn AccountUpdating>,
-) -> Result<UpdatingResponseKind<AccountDTO>, MappedErrors> {
+) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch target account
     // ? -----------------------------------------------------------------------

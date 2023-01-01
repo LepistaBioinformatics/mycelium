@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::{guest::GuestRoleDTO, profile::ProfileDTO},
+    dtos::{guest::GuestRole, profile::Profile},
     entities::{GuestRoleFetching, GuestRoleUpdating},
 };
 
@@ -12,13 +12,13 @@ use uuid::Uuid;
 /// This function allows only the update of name and description attributes of
 /// a single role.
 pub async fn update_guest_role_name_and_description(
-    profile: ProfileDTO,
+    profile: Profile,
     name: Option<String>,
     description: Option<String>,
     role_id: Uuid,
     role_fetching_repo: Box<&dyn GuestRoleFetching>,
     role_updating_repo: Box<&dyn GuestRoleUpdating>,
-) -> Result<UpdatingResponseKind<GuestRoleDTO>, MappedErrors> {
+) -> Result<UpdatingResponseKind<GuestRole>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Check the profile permissions
     //

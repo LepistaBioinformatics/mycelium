@@ -1,4 +1,4 @@
-use crate::domain::dtos::account::AccountDTO;
+use crate::domain::dtos::account::Account;
 
 use async_trait::async_trait;
 use clean_base::{
@@ -11,11 +11,11 @@ use shaku::Interface;
 pub trait AccountRegistration: Interface + Send + Sync {
     async fn get_or_create(
         &self,
-        account: AccountDTO,
-    ) -> Result<GetOrCreateResponseKind<AccountDTO>, MappedErrors>;
+        account: Account,
+    ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors>;
 
     async fn create(
         &self,
-        user: AccountDTO,
-    ) -> Result<CreateResponseKind<AccountDTO>, MappedErrors>;
+        user: Account,
+    ) -> Result<CreateResponseKind<Account>, MappedErrors>;
 }

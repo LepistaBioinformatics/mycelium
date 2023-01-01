@@ -1,4 +1,4 @@
-use crate::domain::dtos::{email::EmailDTO, profile::ProfileDTO};
+use crate::domain::dtos::{email::Email, profile::Profile};
 
 use async_trait::async_trait;
 use clean_base::{
@@ -10,6 +10,6 @@ use shaku::Interface;
 pub trait ProfileFetching: Interface + Send + Sync {
     async fn get(
         &self,
-        email: EmailDTO,
-    ) -> Result<FetchResponseKind<ProfileDTO, EmailDTO>, MappedErrors>;
+        email: Email,
+    ) -> Result<FetchResponseKind<Profile, Email>, MappedErrors>;
 }

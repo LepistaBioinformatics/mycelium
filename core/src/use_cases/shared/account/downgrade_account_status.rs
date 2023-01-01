@@ -1,6 +1,6 @@
 use crate::{
     domain::{
-        dtos::{account::AccountDTO, profile::ProfileDTO},
+        dtos::{account::Account, profile::Profile},
         entities::{AccountFetching, AccountTypeRegistration, AccountUpdating},
     },
     use_cases::shared::account_type::{
@@ -22,13 +22,13 @@ use uuid::Uuid;
 /// This action should be used to downgrade Standard and Manager accounts.
 /// Subscription and Staff accounts should not be downgraded.
 pub async fn downgrade_account_status(
-    profile: ProfileDTO,
+    profile: Profile,
     account_id: Uuid,
     target_account_type: AccountTypeEnum,
     account_fetching_repo: Box<&dyn AccountFetching>,
     account_updating_repo: Box<&dyn AccountUpdating>,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
-) -> Result<UpdatingResponseKind<AccountDTO>, MappedErrors> {
+) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     //

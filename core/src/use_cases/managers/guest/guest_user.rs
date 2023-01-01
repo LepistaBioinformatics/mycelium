@@ -1,7 +1,6 @@
 use crate::domain::{
     dtos::{
-        email::EmailDTO, guest::GuestUserDTO, message::MessageDTO,
-        profile::ProfileDTO,
+        email::Email, guest::GuestUser, message::Message, profile::Profile,
     },
     entities::{AccountFetching, GuestUserRegistration, MessageSending},
 };
@@ -17,14 +16,14 @@ use uuid::Uuid;
 
 /// Guest a user to perform actions into an account.
 pub async fn guest_user(
-    profile: ProfileDTO,
-    email: EmailDTO,
+    profile: Profile,
+    email: Email,
     role: Uuid,
     target_account_id: Uuid,
     account_fetching_repo: Box<&dyn AccountFetching>,
     guest_user_registration_repo: Box<&dyn GuestUserRegistration>,
     message_sending_repo: Box<&dyn MessageSending>,
-) -> Result<GetOrCreateResponseKind<GuestUserDTO>, MappedErrors> {
+) -> Result<GetOrCreateResponseKind<GuestUser>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
@@ -88,7 +87,7 @@ pub async fn guest_user(
 
     let guest_user = guest_user_registration_repo
         .get_or_create(
-            GuestUserDTO {
+            GuestUser {
                 id: None,
                 email: email.to_owned(),
                 guest_role: ParentEnum::Id(role),
@@ -106,7 +105,7 @@ pub async fn guest_user(
 
     if guest_user.is_ok() {
         match message_sending_repo
-            .send(MessageDTO {
+            .send(Message {
                 from: email.to_owned(),
                 to: email,
                 cc: None,

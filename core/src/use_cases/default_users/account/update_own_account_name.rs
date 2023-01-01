@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::{account::AccountDTO, profile::ProfileDTO},
+    dtos::{account::Account, profile::Profile},
     entities::{AccountFetching, AccountUpdating},
 };
 
@@ -13,11 +13,11 @@ use clean_base::{
 /// This function uses the id of the Profile to fetch and update the account
 /// name, allowing only the account owner to update the account name.
 pub async fn update_own_account_name(
-    profile: ProfileDTO,
+    profile: Profile,
     name: String,
     account_fetching_repo: Box<&dyn AccountFetching>,
     account_updating_repo: Box<&dyn AccountUpdating>,
-) -> Result<UpdatingResponseKind<AccountDTO>, MappedErrors> {
+) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch the account
     // ? -----------------------------------------------------------------------

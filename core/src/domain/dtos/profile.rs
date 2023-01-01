@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct LicensedResourcesDTO {
+pub struct LicensedResources {
     /// This is the unique identifier of the account that is own of the
     /// resource to be managed.
     pub guest_account_id: Uuid,
@@ -20,7 +20,7 @@ pub struct LicensedResourcesDTO {
 /// This object should be used over the application layer operations.
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct ProfileDTO {
+pub struct Profile {
     pub email: String,
     pub current_account_id: Uuid,
     pub is_subscription: bool,
@@ -29,10 +29,10 @@ pub struct ProfileDTO {
 
     /// If the licensed IDs are `None`, the user has only permissions to act
     /// inside their own account.
-    pub licensed_resources: Option<Vec<LicensedResourcesDTO>>,
+    pub licensed_resources: Option<Vec<LicensedResources>>,
 }
 
-impl ProfileDTO {
+impl Profile {
     /// Filter IDs with view permissions.
     pub fn get_view_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
         self.get_licensed_ids(PermissionsType::View, roles)

@@ -1,4 +1,4 @@
-use crate::domain::dtos::account::AccountTypeDTO;
+use crate::domain::dtos::account::AccountType;
 
 use async_trait::async_trait;
 use clean_base::{
@@ -11,6 +11,6 @@ use shaku::Interface;
 pub trait AccountTypeDeletion: Interface + Send + Sync {
     async fn delete(
         &self,
-        account_type: AccountTypeDTO,
-    ) -> Result<DeletionResponseKind<AccountTypeDTO>, MappedErrors>;
+        account_type: AccountType,
+    ) -> Result<DeletionResponseKind<AccountType>, MappedErrors>;
 }

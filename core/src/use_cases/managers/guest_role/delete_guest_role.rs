@@ -1,4 +1,4 @@
-use crate::domain::{dtos::profile::ProfileDTO, entities::GuestRoleDeletion};
+use crate::domain::{dtos::profile::Profile, entities::GuestRoleDeletion};
 
 use clean_base::{
     entities::default_response::DeletionResponseKind,
@@ -9,7 +9,7 @@ use uuid::Uuid;
 /// This function deletes a single role. Only manager user could execute such
 /// operation.
 pub async fn delete_guest_role(
-    profile: ProfileDTO,
+    profile: Profile,
     role_id: Uuid,
     role_deletion_repo: Box<&dyn GuestRoleDeletion>,
 ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {

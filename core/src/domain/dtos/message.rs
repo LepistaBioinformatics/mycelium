@@ -1,15 +1,15 @@
-use super::email::EmailDTO;
+use super::email::Email;
 
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct MessageDTO {
+pub struct Message {
     // Addresses
-    pub from: EmailDTO,
-    pub to: EmailDTO,
-    pub cc: Option<EmailDTO>,
+    pub from: Email,
+    pub to: Email,
+    pub cc: Option<Email>,
 
     // Message
     pub subject: String,

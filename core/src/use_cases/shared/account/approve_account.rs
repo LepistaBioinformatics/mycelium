@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::{account::AccountDTO, profile::ProfileDTO},
+    dtos::{account::Account, profile::Profile},
     entities::{AccountFetching, AccountUpdating},
 };
 
@@ -15,11 +15,11 @@ use uuid::Uuid;
 /// system administrator. Only checked accounts could perform actions over the
 /// system.
 pub async fn approve_account(
-    profile: ProfileDTO,
+    profile: Profile,
     account_id: Uuid,
     account_fetching_repo: Box<&dyn AccountFetching>,
     account_updating_repo: Box<&dyn AccountUpdating>,
-) -> Result<UpdatingResponseKind<AccountDTO>, MappedErrors> {
+) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch target account
     // ? -----------------------------------------------------------------------

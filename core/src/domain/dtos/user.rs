@@ -1,4 +1,4 @@
-use super::email::EmailDTO;
+use super::email::Email;
 
 use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
@@ -7,11 +7,11 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct UserDTO {
+pub struct User {
     pub id: Option<Uuid>,
 
     pub username: String,
-    pub email: EmailDTO,
+    pub email: Email,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
     pub is_active: bool,

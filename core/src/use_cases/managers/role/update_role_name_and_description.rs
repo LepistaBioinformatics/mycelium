@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::{profile::ProfileDTO, role::RoleDTO},
+    dtos::{profile::Profile, role::Role},
     entities::{RoleFetching, RoleUpdating},
 };
 use clean_base::{
@@ -12,13 +12,13 @@ use uuid::Uuid;
 ///
 /// This function would be allowed only by manager users.
 pub async fn update_role_name_and_description(
-    profile: ProfileDTO,
+    profile: Profile,
     role_id: Uuid,
     name: String,
     description: String,
     role_fetching_repo: Box<&dyn RoleFetching>,
     role_updating_repo: Box<&dyn RoleUpdating>,
-) -> Result<UpdatingResponseKind<RoleDTO>, MappedErrors> {
+) -> Result<UpdatingResponseKind<Role>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges to create role
     // ? ----------------------------------------------------------------------

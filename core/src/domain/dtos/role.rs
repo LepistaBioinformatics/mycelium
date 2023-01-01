@@ -4,7 +4,7 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct RoleDTO {
+pub struct Role {
     pub id: Option<Uuid>,
 
     pub name: String,

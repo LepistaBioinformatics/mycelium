@@ -1,7 +1,7 @@
 use crate::domain::{
     dtos::{
-        guest::{GuestRoleDTO, PermissionsType},
-        profile::ProfileDTO,
+        guest::{GuestRole, PermissionsType},
+        profile::Profile,
     },
     entities::{GuestRoleFetching, GuestRoleUpdating},
 };
@@ -20,13 +20,13 @@ pub enum ActionType {
 /// This function allow users to include or remove permission from a single
 /// role. Only manager users should perform such action.
 pub async fn update_guest_role_permissions(
-    profile: ProfileDTO,
+    profile: Profile,
     role_id: Uuid,
     permission: PermissionsType,
     action_type: ActionType,
     role_fetching_repo: Box<&dyn GuestRoleFetching>,
     role_updating_repo: Box<&dyn GuestRoleUpdating>,
-) -> Result<UpdatingResponseKind<GuestRoleDTO>, MappedErrors> {
+) -> Result<UpdatingResponseKind<GuestRole>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Check the profile permissions
     //

@@ -1,4 +1,4 @@
-use crate::domain::dtos::role::RoleDTO;
+use crate::domain::dtos::role::Role;
 
 use async_trait::async_trait;
 use clean_base::{
@@ -11,11 +11,11 @@ use shaku::Interface;
 pub trait RoleRegistration: Interface + Send + Sync {
     async fn get_or_create(
         &self,
-        role: RoleDTO,
-    ) -> Result<GetOrCreateResponseKind<RoleDTO>, MappedErrors>;
+        role: Role,
+    ) -> Result<GetOrCreateResponseKind<Role>, MappedErrors>;
 
     async fn create(
         &self,
-        application: RoleDTO,
-    ) -> Result<CreateResponseKind<RoleDTO>, MappedErrors>;
+        application: Role,
+    ) -> Result<CreateResponseKind<Role>, MappedErrors>;
 }

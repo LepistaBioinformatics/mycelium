@@ -1,4 +1,4 @@
-use crate::domain::dtos::account::AccountTypeDTO;
+use crate::domain::dtos::account::AccountType;
 
 use async_trait::async_trait;
 use clean_base::{
@@ -11,6 +11,6 @@ use shaku::Interface;
 pub trait AccountTypeUpdating: Interface + Send + Sync {
     async fn update(
         &self,
-        application: AccountTypeDTO,
-    ) -> Result<UpdatingResponseKind<AccountTypeDTO>, MappedErrors>;
+        application: AccountType,
+    ) -> Result<UpdatingResponseKind<AccountType>, MappedErrors>;
 }

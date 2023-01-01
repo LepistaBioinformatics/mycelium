@@ -1,4 +1,4 @@
-use crate::domain::dtos::token::TokenDTO;
+use crate::domain::dtos::token::Token;
 
 use async_trait::async_trait;
 use chrono::{DateTime, Local};
@@ -11,7 +11,7 @@ use shaku::Interface;
 pub trait TokenRegistration: Interface + Send + Sync {
     async fn create(
         &self,
-        token: TokenDTO,
+        token: Token,
         expires: DateTime<Local>,
-    ) -> Result<CreateResponseKind<TokenDTO>, MappedErrors>;
+    ) -> Result<CreateResponseKind<Token>, MappedErrors>;
 }

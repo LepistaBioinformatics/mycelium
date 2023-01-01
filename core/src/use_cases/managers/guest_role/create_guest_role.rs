@@ -1,7 +1,7 @@
 use crate::domain::{
     dtos::{
-        guest::{GuestRoleDTO, PermissionsType},
-        profile::ProfileDTO,
+        guest::{GuestRole, PermissionsType},
+        profile::Profile,
     },
     entities::GuestRoleRegistration,
 };
@@ -22,13 +22,13 @@ use uuid::Uuid;
 /// permission (level zero) for the `Movie` application. Thus, the role name
 /// should be: "Movie Viewers".
 pub async fn create_guest_role(
-    profile: ProfileDTO,
+    profile: Profile,
     name: String,
     description: String,
     role: Uuid,
     permissions: Option<Vec<PermissionsType>>,
     role_registration_repo: Box<&dyn GuestRoleRegistration>,
-) -> Result<GetOrCreateResponseKind<GuestRoleDTO>, MappedErrors> {
+) -> Result<GetOrCreateResponseKind<GuestRole>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Collect permissions
     //
@@ -57,7 +57,7 @@ pub async fn create_guest_role(
     // ? ----------------------------------------------------------------------
 
     return role_registration_repo
-        .get_or_create(GuestRoleDTO {
+        .get_or_create(GuestRole {
             id: None,
             name,
             description: Some(description),

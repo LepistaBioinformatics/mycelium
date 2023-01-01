@@ -1,4 +1,4 @@
-use crate::domain::dtos::token::TokenDTO;
+use crate::domain::dtos::token::Token;
 
 use async_trait::async_trait;
 use clean_base::{
@@ -14,6 +14,6 @@ pub trait TokenDeregistration: Interface + Send + Sync {
     /// Get the record form the data-source and if exists, remove it.
     async fn get_then_delete(
         &self,
-        token: TokenDTO,
-    ) -> Result<FetchResponseKind<TokenDTO, Uuid>, MappedErrors>;
+        token: Token,
+    ) -> Result<FetchResponseKind<Token, Uuid>, MappedErrors>;
 }

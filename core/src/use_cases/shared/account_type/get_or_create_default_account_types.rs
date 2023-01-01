@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::account::AccountTypeDTO, entities::AccountTypeRegistration,
+    dtos::account::AccountType, entities::AccountTypeRegistration,
 };
 use clean_base::{
     entities::default_response::GetOrCreateResponseKind,
@@ -32,11 +32,11 @@ pub async fn get_or_create_default_account_types(
     name: Option<String>,
     description: Option<String>,
     account_type_registration: Box<&dyn AccountTypeRegistration>,
-) -> Result<GetOrCreateResponseKind<AccountTypeDTO>, MappedErrors> {
+) -> Result<GetOrCreateResponseKind<AccountType>, MappedErrors> {
     match account_type {
         AccountTypeEnum::Standard => {
             account_type_registration
-                .get_or_create(AccountTypeDTO {
+                .get_or_create(AccountType {
                     id: None,
                     name: name.unwrap_or(AccountTypeEnum::Standard.to_string()),
                     description: description.unwrap_or(
@@ -51,7 +51,7 @@ pub async fn get_or_create_default_account_types(
         }
         AccountTypeEnum::Manager => {
             account_type_registration
-                .get_or_create(AccountTypeDTO {
+                .get_or_create(AccountType {
                     id: None,
                     name: name.unwrap_or(AccountTypeEnum::Manager.to_string()),
                     description: description.unwrap_or(
@@ -66,7 +66,7 @@ pub async fn get_or_create_default_account_types(
         }
         AccountTypeEnum::Staff => {
             account_type_registration
-                .get_or_create(AccountTypeDTO {
+                .get_or_create(AccountType {
                     id: None,
                     name: name.unwrap_or(AccountTypeEnum::Staff.to_string()),
                     description: description.unwrap_or(
@@ -81,7 +81,7 @@ pub async fn get_or_create_default_account_types(
         }
         AccountTypeEnum::Subscription => {
             account_type_registration
-                .get_or_create(AccountTypeDTO {
+                .get_or_create(AccountType {
                     id: None,
                     name: name
                         .unwrap_or(AccountTypeEnum::Subscription.to_string()),

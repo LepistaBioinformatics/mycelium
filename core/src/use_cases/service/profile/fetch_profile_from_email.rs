@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::{email::EmailDTO, profile::ProfileDTO},
+    dtos::{email::Email, profile::Profile},
     entities::ProfileFetching,
 };
 
@@ -9,8 +9,8 @@ use clean_base::{
 
 /// Fetch the user profile from email address.
 pub async fn fetch_profile_from_email(
-    email: EmailDTO,
+    email: Email,
     profile_fetching_repo: Box<&dyn ProfileFetching>,
-) -> Result<FetchResponseKind<ProfileDTO, EmailDTO>, MappedErrors> {
+) -> Result<FetchResponseKind<Profile, Email>, MappedErrors> {
     profile_fetching_repo.get(email).await
 }

@@ -1,4 +1,4 @@
-use crate::domain::dtos::guest::GuestRoleDTO;
+use crate::domain::dtos::guest::GuestRole;
 
 use async_trait::async_trait;
 use clean_base::{
@@ -11,6 +11,6 @@ use shaku::Interface;
 pub trait GuestRoleUpdating: Interface + Send + Sync {
     async fn update(
         &self,
-        user_role: GuestRoleDTO,
-    ) -> Result<UpdatingResponseKind<GuestRoleDTO>, MappedErrors>;
+        user_role: GuestRole,
+    ) -> Result<UpdatingResponseKind<GuestRole>, MappedErrors>;
 }

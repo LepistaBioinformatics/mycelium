@@ -1,4 +1,4 @@
-use crate::domain::dtos::account::AccountTypeDTO;
+use crate::domain::dtos::account::AccountType;
 
 use async_trait::async_trait;
 use clean_base::{
@@ -13,9 +13,9 @@ pub trait AccountTypeFetching: Interface + Send + Sync {
     async fn get(
         &self,
         id: Uuid,
-    ) -> Result<FetchResponseKind<AccountTypeDTO, Uuid>, MappedErrors>;
+    ) -> Result<FetchResponseKind<AccountType, Uuid>, MappedErrors>;
     async fn list(
         &self,
         search_term: String,
-    ) -> Result<FetchManyResponseKind<AccountTypeDTO>, MappedErrors>;
+    ) -> Result<FetchManyResponseKind<AccountType>, MappedErrors>;
 }

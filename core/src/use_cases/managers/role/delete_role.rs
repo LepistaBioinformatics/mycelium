@@ -1,4 +1,4 @@
-use crate::domain::{dtos::profile::ProfileDTO, entities::RoleDeletion};
+use crate::domain::{dtos::profile::Profile, entities::RoleDeletion};
 
 use clean_base::{
     entities::default_response::DeletionResponseKind,
@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 /// Delete a single role.
 pub async fn delete_role(
-    profile: ProfileDTO,
+    profile: Profile,
     role_id: Uuid,
     role_deletion_repo: Box<&dyn RoleDeletion>,
 ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
