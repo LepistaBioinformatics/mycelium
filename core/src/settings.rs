@@ -1,8 +1,9 @@
 use lazy_static::lazy_static;
 use std::env::var_os;
 
-/// This key is used to set and get the user profile to and from requests.
+// Keys used over the profile fetch and validation pipeline.
 pub const DEFAULT_PROFILE_KEY: &str = "x-mycelium-profile";
+pub const DEFAULT_TOKEN_KEY: &str = "x-mycelium-token";
 
 lazy_static! {
 
