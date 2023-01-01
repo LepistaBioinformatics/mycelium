@@ -45,7 +45,7 @@ pub async fn create_subscription_account(
     // ? -----------------------------------------------------------------------
     // ? Build and validate email
     //
-    // Build the EmailDTO object, case an error is returned, the email is
+    // Build the Email object, case an error is returned, the email is
     // possibly invalid.
     // ? -----------------------------------------------------------------------
 

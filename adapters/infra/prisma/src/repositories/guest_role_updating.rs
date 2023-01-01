@@ -9,7 +9,7 @@ use clean_base::{
     utils::errors::{updating_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::guest::{GuestRoleDTO, PermissionsType},
+    dtos::guest::{GuestRole, PermissionsType},
     entities::GuestRoleUpdating,
 };
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
@@ -25,8 +25,8 @@ pub struct GuestRoleUpdatingSqlDbRepository {}
 impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
     async fn update(
         &self,
-        user_role: GuestRoleDTO,
-    ) -> Result<UpdatingResponseKind<GuestRoleDTO>, MappedErrors> {
+        user_role: GuestRole,
+    ) -> Result<UpdatingResponseKind<GuestRole>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -81,7 +81,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
             .await;
 
         match response {
-            Ok(record) => Ok(UpdatingResponseKind::Updated(GuestRoleDTO {
+            Ok(record) => Ok(UpdatingResponseKind::Updated(GuestRole {
                 id: Some(Uuid::from_str(&record.id).unwrap()),
                 name: record.name,
                 description: record.description,

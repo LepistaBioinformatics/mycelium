@@ -5,7 +5,7 @@ use clean_base::{
     entities::default_response::UpdatingResponseKind,
     utils::errors::{updating_err, MappedErrors},
 };
-use myc_core::domain::{dtos::role::RoleDTO, entities::RoleUpdating};
+use myc_core::domain::{dtos::role::Role, entities::RoleUpdating};
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
 use shaku::Component;
 use std::process::id as process_id;
@@ -19,8 +19,8 @@ pub struct RoleUpdatingSqlDbRepository {}
 impl RoleUpdating for RoleUpdatingSqlDbRepository {
     async fn update(
         &self,
-        role: RoleDTO,
-    ) -> Result<UpdatingResponseKind<RoleDTO>, MappedErrors> {
+        role: Role,
+    ) -> Result<UpdatingResponseKind<Role>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -68,7 +68,7 @@ impl RoleUpdating for RoleUpdatingSqlDbRepository {
             .await;
 
         match response {
-            Ok(record) => Ok(UpdatingResponseKind::Updated(RoleDTO {
+            Ok(record) => Ok(UpdatingResponseKind::Updated(Role {
                 id: Some(Uuid::parse_str(&record.id).unwrap()),
                 name: record.name,
                 description: record.description.to_owned(),

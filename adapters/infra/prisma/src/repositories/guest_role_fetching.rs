@@ -9,7 +9,7 @@ use clean_base::{
     utils::errors::{fetching_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::guest::{GuestRoleDTO, PermissionsType},
+    dtos::guest::{GuestRole, PermissionsType},
     entities::GuestRoleFetching,
 };
 use shaku::Component;
@@ -25,7 +25,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
     async fn get(
         &self,
         id: Uuid,
-    ) -> Result<FetchResponseKind<GuestRoleDTO, Uuid>, MappedErrors> {
+    ) -> Result<FetchResponseKind<GuestRole, Uuid>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Build and execute the database query
         // ? -------------------------------------------------------------------
@@ -59,7 +59,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
         // ? -------------------------------------------------------------------
 
         match response {
-            Some(record) => Ok(FetchResponseKind::Found(GuestRoleDTO {
+            Some(record) => Ok(FetchResponseKind::Found(GuestRole {
                 id: Some(Uuid::parse_str(&record.id).unwrap()),
                 name: record.name,
                 description: record.description,
@@ -81,7 +81,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
     async fn list(
         &self,
         _: String,
-    ) -> Result<FetchManyResponseKind<GuestRoleDTO>, MappedErrors> {
+    ) -> Result<FetchManyResponseKind<GuestRole>, MappedErrors> {
         panic!(
             "Not implemented list method of GuestRoleFetchingSqlDbRepository."
         )

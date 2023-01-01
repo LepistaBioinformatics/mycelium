@@ -9,7 +9,7 @@ use clean_base::{
     utils::errors::{creation_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::account::AccountTypeDTO, entities::AccountTypeRegistration,
+    dtos::account::AccountType, entities::AccountTypeRegistration,
 };
 use shaku::Component;
 use std::process::id as process_id;
@@ -23,8 +23,8 @@ pub struct AccountTypeRegistrationSqlDbRepository {}
 impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
     async fn get_or_create(
         &self,
-        account_type: AccountTypeDTO,
-    ) -> Result<GetOrCreateResponseKind<AccountTypeDTO>, MappedErrors> {
+        account_type: AccountType,
+    ) -> Result<GetOrCreateResponseKind<AccountType>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -60,7 +60,7 @@ impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
             Some(record) => {
                 let record = record;
                 return Ok(GetOrCreateResponseKind::NotCreated(
-                    AccountTypeDTO {
+                    AccountType {
                         id: Some(Uuid::parse_str(&record.id).unwrap()),
                         name: record.name,
                         description: record.description,
@@ -100,7 +100,7 @@ impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
             Ok(record) => {
                 let record = record;
 
-                Ok(GetOrCreateResponseKind::Created(AccountTypeDTO {
+                Ok(GetOrCreateResponseKind::Created(AccountType {
                     id: Some(Uuid::parse_str(&record.id).unwrap()),
                     name: record.name,
                     description: record.description,

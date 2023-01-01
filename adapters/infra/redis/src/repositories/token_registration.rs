@@ -9,7 +9,7 @@ use clean_base::{
     entities::default_response::CreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
-use myc_core::domain::{dtos::token::TokenDTO, entities::TokenRegistration};
+use myc_core::domain::{dtos::token::Token, entities::TokenRegistration};
 use shaku::Component;
 
 #[derive(Component)]
@@ -20,9 +20,9 @@ pub struct TokenRegistrationMemDbRepository {}
 impl TokenRegistration for TokenRegistrationMemDbRepository {
     async fn create(
         &self,
-        token: TokenDTO,
+        token: Token,
         expires: DateTime<Local>,
-    ) -> Result<CreateResponseKind<TokenDTO>, MappedErrors> {
+    ) -> Result<CreateResponseKind<Token>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build connection
         // ? -------------------------------------------------------------------
@@ -71,7 +71,7 @@ mod test {
 
         match repo
             .create(
-                TokenDTO {
+                Token {
                     token: Uuid::new_v4(),
                     own_service: String::from("some service"),
                 },

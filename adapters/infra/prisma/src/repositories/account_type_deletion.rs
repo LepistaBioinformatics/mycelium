@@ -9,7 +9,7 @@ use clean_base::{
     utils::errors::{deletion_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::account::AccountTypeDTO, entities::AccountTypeDeletion,
+    dtos::account::AccountType, entities::AccountTypeDeletion,
 };
 use shaku::Component;
 use std::process::id as process_id;
@@ -22,8 +22,8 @@ pub struct AccountTypeDeletionSqlDbRepository {}
 impl AccountTypeDeletion for AccountTypeDeletionSqlDbRepository {
     async fn delete(
         &self,
-        account_type: AccountTypeDTO,
-    ) -> Result<DeletionResponseKind<AccountTypeDTO>, MappedErrors> {
+        account_type: AccountType,
+    ) -> Result<DeletionResponseKind<AccountType>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------

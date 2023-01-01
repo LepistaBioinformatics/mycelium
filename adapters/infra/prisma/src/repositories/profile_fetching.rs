@@ -11,9 +11,9 @@ use clean_base::{
 };
 use myc_core::domain::{
     dtos::{
-        email::EmailDTO,
+        email::Email,
         guest::PermissionsType,
-        profile::{LicensedResourcesDTO, ProfileDTO},
+        profile::{LicensedResources, Profile},
     },
     entities::ProfileFetching,
 };
@@ -29,8 +29,8 @@ pub struct ProfileFetchingSqlDbRepository {}
 impl ProfileFetching for ProfileFetchingSqlDbRepository {
     async fn get(
         &self,
-        email: EmailDTO,
-    ) -> Result<FetchResponseKind<ProfileDTO, EmailDTO>, MappedErrors> {
+        email: Email,
+    ) -> Result<FetchResponseKind<Profile, Email>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Build and execute the database query
         // ? -------------------------------------------------------------------
@@ -91,7 +91,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                 let guests = record
                     .guest_users
                     .into_iter()
-                    .map(|guest| LicensedResourcesDTO {
+                    .map(|guest| LicensedResources {
                         guest_account_id: Uuid::parse_str(
                             &guest.account_id.as_str(),
                         )
@@ -110,10 +110,10 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                             Some(res) => Some(DateTime::from(res)),
                         },
                     })
-                    .collect::<Vec<LicensedResourcesDTO>>();
+                    .collect::<Vec<LicensedResources>>();
 
-                Ok(FetchResponseKind::Found(ProfileDTO {
-                    email: match EmailDTO::from_string(record.owner.email) {
+                Ok(FetchResponseKind::Found(Profile {
+                    email: match Email::from_string(record.owner.email) {
                         Err(err) => return Err(err),
                         Ok(res) => res.get_email(),
                     },
@@ -149,10 +149,7 @@ mod tests {
         warn!("repo: {:?}", repo);
 
         match repo
-            .get(
-                EmailDTO::from_string("username@domain.com".to_string())
-                    .unwrap(),
-            )
+            .get(Email::from_string("username@domain.com".to_string()).unwrap())
             .await
         {
             Err(err) => error!("err: {:?}", err),

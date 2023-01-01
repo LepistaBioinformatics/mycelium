@@ -7,7 +7,7 @@ use clean_base::{
     utils::errors::{updating_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::{email::EmailDTO, user::UserDTO},
+    dtos::{email::Email, user::User},
     entities::UserUpdating,
 };
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
@@ -23,8 +23,8 @@ pub struct UserUpdatingSqlDbRepository {}
 impl UserUpdating for UserUpdatingSqlDbRepository {
     async fn update(
         &self,
-        user: UserDTO,
-    ) -> Result<UpdatingResponseKind<UserDTO>, MappedErrors> {
+        user: User,
+    ) -> Result<UpdatingResponseKind<User>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -78,10 +78,10 @@ impl UserUpdating for UserUpdatingSqlDbRepository {
                 let record = record;
                 let id = Uuid::parse_str(&record.id);
 
-                Ok(UpdatingResponseKind::Updated(UserDTO {
+                Ok(UpdatingResponseKind::Updated(User {
                     id: Some(id.unwrap()),
                     username: record.username,
-                    email: EmailDTO::from_string(record.email).unwrap(),
+                    email: Email::from_string(record.email).unwrap(),
                     first_name: Some(record.first_name),
                     last_name: Some(record.last_name),
                     is_active: record.is_active,

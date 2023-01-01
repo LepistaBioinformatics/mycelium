@@ -1,8 +1,8 @@
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use myc_core::domain::dtos::{
-    email::EmailDTO,
-    guest::{GuestRoleDTO, GuestUserDTO, PermissionsType},
-    profile::{LicensedResourcesDTO, ProfileDTO},
+    email::Email,
+    guest::{GuestRole, GuestUser, PermissionsType},
+    profile::{LicensedResources, Profile},
 };
 use utoipa::OpenApi;
 
@@ -22,12 +22,12 @@ use utoipa::OpenApi;
             ParentEnum<String, String>,
 
             // Schema models.
-            EmailDTO,
-            GuestUserDTO,
-            GuestRoleDTO,
-            LicensedResourcesDTO,
+            Email,
+            GuestUser,
+            GuestRole,
+            LicensedResources,
             PermissionsType,
-            ProfileDTO,
+            Profile,
         ),
     ),
     tags(
@@ -55,7 +55,7 @@ pub mod manager_endpoints {
     use myc_api::extractor::extract_profile;
     use myc_core::{
         domain::{
-            dtos::email::EmailDTO,
+            dtos::email::Email,
             entities::{
                 AccountFetching, GuestUserRegistration, MessageSending,
             },
@@ -114,12 +114,12 @@ pub mod manager_endpoints {
             (
                 status = 201,
                 description = "Guest already exist.",
-                body = GuestUserDTO,
+                body = GuestUser,
             ),
             (
                 status = 200,
                 description = "Guesting done.",
-                body = GuestUserDTO,
+                body = GuestUser,
             ),
         ),
     )]
@@ -145,7 +145,7 @@ pub mod manager_endpoints {
 
         let (account_id, role_id) = path.to_owned();
 
-        let email = match EmailDTO::from_string(info.email.to_owned()) {
+        let email = match Email::from_string(info.email.to_owned()) {
             Err(err) => {
                 return HttpResponse::BadRequest().body(err.to_string())
             }

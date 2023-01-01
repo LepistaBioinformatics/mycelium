@@ -3,7 +3,7 @@ use std::str::FromStr;
 use chrono::Local;
 use clean_base::utils::errors::{execution_err, MappedErrors};
 use log::warn;
-use myc_core::domain::dtos::token::TokenDTO;
+use myc_core::domain::dtos::token::Token;
 use regex::Regex;
 use uuid::Uuid;
 
@@ -11,14 +11,14 @@ use uuid::Uuid;
 ///
 /// Default keys concatenates the token UUID and the requesting service name.
 /// The result string should be used as the Redis storing key.
-pub(super) fn to_redis_key(token: TokenDTO) -> String {
+pub(super) fn to_redis_key(token: Token) -> String {
     format!("{}-{}", token.token.to_string(), token.own_service)
 }
 
 /// Extract elements from the redis key.
 ///
 /// The refereed elements contains the token uuid and the own_service that
-/// composes the TokenDTO.
+/// composes the Token.
 pub(super) fn from_redis_key(
     key: String,
 ) -> Result<(Uuid, String), MappedErrors> {

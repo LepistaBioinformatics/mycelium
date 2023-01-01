@@ -9,7 +9,7 @@ use clean_base::{
     entities::default_response::UpdatingResponseKind,
     utils::errors::{updating_err, MappedErrors},
 };
-use myc_core::domain::{dtos::account::AccountDTO, entities::AccountUpdating};
+use myc_core::domain::{dtos::account::Account, entities::AccountUpdating};
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
@@ -23,8 +23,8 @@ pub struct AccountUpdatingSqlDbRepository {}
 impl AccountUpdating for AccountUpdatingSqlDbRepository {
     async fn update(
         &self,
-        account: AccountDTO,
-    ) -> Result<UpdatingResponseKind<AccountDTO>, MappedErrors> {
+        account: Account,
+    ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -86,7 +86,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
             .await;
 
         match response {
-            Ok(record) => Ok(UpdatingResponseKind::Updated(AccountDTO {
+            Ok(record) => Ok(UpdatingResponseKind::Updated(Account {
                 id: Some(Uuid::parse_str(&record.id).unwrap()),
                 name: record.name,
                 is_active: record.is_active,

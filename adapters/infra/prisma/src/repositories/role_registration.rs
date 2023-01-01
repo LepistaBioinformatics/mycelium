@@ -5,7 +5,7 @@ use clean_base::{
     entities::default_response::{CreateResponseKind, GetOrCreateResponseKind},
     utils::errors::{creation_err, MappedErrors},
 };
-use myc_core::domain::{dtos::role::RoleDTO, entities::RoleRegistration};
+use myc_core::domain::{dtos::role::Role, entities::RoleRegistration};
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -18,8 +18,8 @@ pub struct RoleRegistrationSqlDbRepository {}
 impl RoleRegistration for RoleRegistrationSqlDbRepository {
     async fn get_or_create(
         &self,
-        role: RoleDTO,
-    ) -> Result<GetOrCreateResponseKind<RoleDTO>, MappedErrors> {
+        role: Role,
+    ) -> Result<GetOrCreateResponseKind<Role>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -53,7 +53,7 @@ impl RoleRegistration for RoleRegistrationSqlDbRepository {
             Some(record) => {
                 let record = record;
                 return Ok(GetOrCreateResponseKind::NotCreated(
-                    RoleDTO {
+                    Role {
                         id: Some(Uuid::parse_str(&record.id).unwrap()),
                         name: record.name,
                         description: record.description.to_owned(),
@@ -78,7 +78,7 @@ impl RoleRegistration for RoleRegistrationSqlDbRepository {
             Ok(record) => {
                 let record = record;
 
-                Ok(GetOrCreateResponseKind::Created(RoleDTO {
+                Ok(GetOrCreateResponseKind::Created(Role {
                     id: Some(Uuid::parse_str(&record.id).unwrap()),
                     name: record.name,
                     description: record.description.to_owned(),
@@ -103,8 +103,8 @@ impl RoleRegistration for RoleRegistrationSqlDbRepository {
 
     async fn create(
         &self,
-        _: RoleDTO,
-    ) -> Result<CreateResponseKind<RoleDTO>, MappedErrors> {
+        _: Role,
+    ) -> Result<CreateResponseKind<Role>, MappedErrors> {
         panic!(
             "Not implemented method create of RoleRegistrationSqlDbRepository."
         )

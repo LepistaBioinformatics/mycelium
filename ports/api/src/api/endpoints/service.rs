@@ -1,8 +1,8 @@
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use myc_core::domain::dtos::{
-    email::EmailDTO,
+    email::Email,
     guest::PermissionsType,
-    profile::{LicensedResourcesDTO, ProfileDTO},
+    profile::{LicensedResources, Profile},
 };
 use utoipa::OpenApi;
 
@@ -22,10 +22,10 @@ use utoipa::OpenApi;
             ParentEnum<String, String>,
 
             // Schema models.
-            EmailDTO,
-            LicensedResourcesDTO,
+            Email,
+            LicensedResources,
             PermissionsType,
-            ProfileDTO,
+            Profile,
         ),
     ),
     tags(
@@ -42,13 +42,17 @@ pub struct ApiDoc;
 // ? ---------------------------------------------------------------------------
 
 pub mod service_endpoints {
-    use crate::modules::ProfileFetchingModule;
+    use crate::modules::{ProfileFetchingModule, TokenRegistrationModule};
 
     use actix_web::{get, web, HttpResponse, Responder};
-    use clean_base::entities::default_response::FetchResponseKind;
     use myc_core::{
-        domain::{dtos::email::EmailDTO, entities::ProfileFetching},
-        use_cases::service::profile::fetch_profile_from_email,
+        domain::{
+            dtos::email::Email,
+            entities::{ProfileFetching, TokenRegistration},
+        },
+        use_cases::service::profile::{
+            fetch_profile_from_email, ProfileResponse,
+        },
     };
     use serde::Deserialize;
     use shaku_actix::Inject;
@@ -72,6 +76,7 @@ pub mod service_endpoints {
     #[serde(rename_all = "camelCase")]
     pub struct GetProfileParams {
         pub email: String,
+        pub service: String,
     }
 
     // ? -----------------------------------------------------------------------
@@ -106,32 +111,46 @@ pub mod service_endpoints {
             (
                 status = 200,
                 description = "Profile fetching done.",
-                body = ProfileDTO,
+                body = Profile,
             ),
         ),
     )]
     #[get("/")]
     pub async fn fetch_profile_from_email_url(
         info: web::Query<GetProfileParams>,
-        repo: Inject<ProfileFetchingModule, dyn ProfileFetching>,
+        profile_fetching_repo: Inject<
+            ProfileFetchingModule,
+            dyn ProfileFetching,
+        >,
+        token_registration_repo: Inject<
+            TokenRegistrationModule,
+            dyn TokenRegistration,
+        >,
     ) -> impl Responder {
-        let email = match EmailDTO::from_string(info.email.to_owned()) {
+        let email = match Email::from_string(info.email.to_owned()) {
             Err(err) => {
                 return HttpResponse::BadRequest().body(err.to_string())
             }
             Ok(res) => res,
         };
 
-        match fetch_profile_from_email(email, Box::new(&*repo)).await {
+        match fetch_profile_from_email(
+            email,
+            info.service.to_owned(),
+            Box::new(&*profile_fetching_repo),
+            Box::new(&*token_registration_repo),
+        )
+        .await
+        {
             Err(err) => {
                 HttpResponse::InternalServerError().body(err.to_string())
             }
             Ok(res) => match res {
-                FetchResponseKind::NotFound(email) => {
-                    HttpResponse::NotFound().body(email.unwrap().get_email())
+                ProfileResponse::UnregisteredUser(email) => {
+                    HttpResponse::NotFound().body(email.get_email())
                 }
-                FetchResponseKind::Found(records) => {
-                    HttpResponse::Ok().json(records)
+                ProfileResponse::RegisteredUser(profile) => {
+                    HttpResponse::Ok().json(profile)
                 }
             },
         }

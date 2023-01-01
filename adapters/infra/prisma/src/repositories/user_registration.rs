@@ -7,7 +7,7 @@ use clean_base::{
     utils::errors::{creation_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::{email::EmailDTO, user::UserDTO},
+    dtos::{email::Email, user::User},
     entities::UserRegistration,
 };
 use shaku::Component;
@@ -22,8 +22,8 @@ pub struct UserRegistrationSqlDbRepository {}
 impl UserRegistration for UserRegistrationSqlDbRepository {
     async fn get_or_create(
         &self,
-        user: UserDTO,
-    ) -> Result<GetOrCreateResponseKind<UserDTO>, MappedErrors> {
+        user: User,
+    ) -> Result<GetOrCreateResponseKind<User>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -59,10 +59,10 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                 let id = Uuid::parse_str(&record.id);
 
                 return Ok(GetOrCreateResponseKind::NotCreated(
-                    UserDTO {
+                    User {
                         id: Some(id.unwrap()),
                         username: record.username,
-                        email: EmailDTO::from_string(record.email).unwrap(),
+                        email: Email::from_string(record.email).unwrap(),
                         first_name: Some(record.first_name),
                         last_name: Some(record.last_name),
                         is_active: record.is_active,
@@ -99,10 +99,10 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                 let record = record;
                 let id = Uuid::parse_str(&record.id);
 
-                Ok(GetOrCreateResponseKind::Created(UserDTO {
+                Ok(GetOrCreateResponseKind::Created(User {
                     id: Some(id.unwrap()),
                     username: record.username,
-                    email: EmailDTO::from_string(record.email).unwrap(),
+                    email: Email::from_string(record.email).unwrap(),
                     first_name: Some(record.first_name),
                     last_name: Some(record.last_name),
                     is_active: record.is_active,
@@ -132,8 +132,8 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
 
     async fn create(
         &self,
-        user: UserDTO,
-    ) -> Result<CreateResponseKind<UserDTO>, MappedErrors> {
+        user: User,
+    ) -> Result<CreateResponseKind<User>, MappedErrors> {
         self.create(user).await
     }
 }

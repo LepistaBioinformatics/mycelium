@@ -6,7 +6,7 @@ use clean_base::{
     utils::errors::{creation_err, MappedErrors},
 };
 use core::panic;
-use myc_core::domain::{dtos::role::RoleDTO, entities::RoleFetching};
+use myc_core::domain::{dtos::role::Role, entities::RoleFetching};
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -20,7 +20,7 @@ impl RoleFetching for RoleFetchingSqlDbRepository {
     async fn get(
         &self,
         id: Uuid,
-    ) -> Result<FetchResponseKind<RoleDTO, Uuid>, MappedErrors> {
+    ) -> Result<FetchResponseKind<Role, Uuid>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -59,7 +59,7 @@ impl RoleFetching for RoleFetchingSqlDbRepository {
             }
             Ok(res) => match res {
                 None => Ok(FetchResponseKind::NotFound(Some(id))),
-                Some(record) => Ok(FetchResponseKind::Found(RoleDTO {
+                Some(record) => Ok(FetchResponseKind::Found(Role {
                     id: Some(Uuid::parse_str(&record.id).unwrap()),
                     name: record.name,
                     description: record.description.to_owned(),
@@ -75,7 +75,7 @@ impl RoleFetching for RoleFetchingSqlDbRepository {
     async fn list(
         &self,
         _: String,
-    ) -> Result<FetchManyResponseKind<RoleDTO>, MappedErrors> {
+    ) -> Result<FetchManyResponseKind<Role>, MappedErrors> {
         panic!("Not implemented list method of RoleFetchingSqlDbRepository.")
     }
 }

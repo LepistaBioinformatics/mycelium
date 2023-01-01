@@ -9,7 +9,7 @@ use clean_base::{
     entities::default_response::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{creation_err, MappedErrors},
 };
-use myc_core::domain::{dtos::account::AccountDTO, entities::AccountFetching};
+use myc_core::domain::{dtos::account::Account, entities::AccountFetching};
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
 use uuid::Uuid;
@@ -23,7 +23,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
     async fn get(
         &self,
         id: Uuid,
-    ) -> Result<FetchResponseKind<AccountDTO, Uuid>, MappedErrors> {
+    ) -> Result<FetchResponseKind<Account, Uuid>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -62,7 +62,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             }
             Ok(res) => match res {
                 None => Ok(FetchResponseKind::NotFound(Some(id))),
-                Some(record) => Ok(FetchResponseKind::Found(AccountDTO {
+                Some(record) => Ok(FetchResponseKind::Found(Account {
                     id: Some(Uuid::from_str(&record.id).unwrap()),
                     name: record.name,
                     is_active: record.is_active,
@@ -91,7 +91,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
     async fn list(
         &self,
         search_term: String,
-    ) -> Result<FetchManyResponseKind<AccountDTO>, MappedErrors> {
+    ) -> Result<FetchManyResponseKind<Account>, MappedErrors> {
         self.list(search_term).await
     }
 }

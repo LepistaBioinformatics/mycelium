@@ -10,7 +10,7 @@ use clean_base::{
     utils::errors::{creation_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::guest::{GuestRoleDTO, PermissionsType},
+    dtos::guest::{GuestRole, PermissionsType},
     entities::GuestRoleRegistration,
 };
 use shaku::Component;
@@ -25,8 +25,8 @@ pub struct GuestRoleRegistrationSqlDbRepository {}
 impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
     async fn get_or_create(
         &self,
-        guest_role: GuestRoleDTO,
-    ) -> Result<GetOrCreateResponseKind<GuestRoleDTO>, MappedErrors> {
+        guest_role: GuestRole,
+    ) -> Result<GetOrCreateResponseKind<GuestRole>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -63,7 +63,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
             Some(record) => {
                 let record = record;
                 return Ok(GetOrCreateResponseKind::NotCreated(
-                    GuestRoleDTO {
+                    GuestRole {
                         id: Some(Uuid::parse_str(&record.id).unwrap()),
                         name: record.name,
                         description: record.description.to_owned(),
@@ -124,7 +124,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
             Ok(record) => {
                 let record = record;
 
-                Ok(GetOrCreateResponseKind::Created(GuestRoleDTO {
+                Ok(GetOrCreateResponseKind::Created(GuestRole {
                     id: Some(Uuid::parse_str(&record.id).unwrap()),
                     name: record.name,
                     description: record.description,

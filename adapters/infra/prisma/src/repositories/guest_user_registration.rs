@@ -14,7 +14,7 @@ use clean_base::{
     utils::errors::{creation_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::{email::EmailDTO, guest::GuestUserDTO},
+    dtos::{email::Email, guest::GuestUser},
     entities::GuestUserRegistration,
 };
 use shaku::Component;
@@ -29,9 +29,9 @@ pub struct GuestUserRegistrationSqlDbRepository {}
 impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
     async fn get_or_create(
         &self,
-        guest_user: GuestUserDTO,
+        guest_user: GuestUser,
         account_id: Uuid,
-    ) -> Result<GetOrCreateResponseKind<GuestUserDTO>, MappedErrors> {
+    ) -> Result<GetOrCreateResponseKind<GuestUser>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -101,11 +101,11 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
             Ok(res) => match res {
                 //
                 // If the fetching operation find a object, try to parse the
-                // response as a GuestUserDTO.
+                // response as a GuestUser.
                 //
-                Some(record) => GuestUserDTO {
+                Some(record) => GuestUser {
                     id: Some(Uuid::from_str(&record.id).unwrap()),
-                    email: match EmailDTO::from_string(record.email) {
+                    email: match Email::from_string(record.email) {
                         // !
                         // ! Error case return
                         // !
@@ -177,11 +177,10 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
                             None,
                         ));
                     }
-                    Ok(record) => GuestUserDTO {
+                    Ok(record) => GuestUser {
                         id: Some(Uuid::from_str(&record.id).unwrap()),
-                        email: match EmailDTO::from_string(
-                            record.email.to_owned(),
-                        ) {
+                        email: match Email::from_string(record.email.to_owned())
+                        {
                             // !
                             // ! Error case return
                             // !
