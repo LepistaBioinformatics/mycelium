@@ -24,8 +24,8 @@ shaku = "0.6"
 shaku_actix = "0.2"
 
 [dependencies.myc-core]
-version = "0.7.0"
-#path = "../../../core"
+#version = "0.7.0"
+path = "../../../core"
 
 [lib]
 name = "myc_smtp"

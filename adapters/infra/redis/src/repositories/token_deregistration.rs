@@ -8,7 +8,7 @@ use clean_base::{
     utils::errors::{creation_err, MappedErrors},
 };
 use log::warn;
-use myc_core::domain::{dtos::token::TokenDTO, entities::TokenDeregistration};
+use myc_core::domain::{dtos::token::Token, entities::TokenDeregistration};
 use redis::ErrorKind;
 use shaku::Component;
 use uuid::Uuid;
@@ -21,8 +21,8 @@ pub struct TokenDeregistrationMemDbRepository {}
 impl TokenDeregistration for TokenDeregistrationMemDbRepository {
     async fn get_then_delete(
         &self,
-        token: TokenDTO,
-    ) -> Result<FetchResponseKind<TokenDTO, Uuid>, MappedErrors> {
+        token: Token,
+    ) -> Result<FetchResponseKind<Token, Uuid>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build connection
         // ? -------------------------------------------------------------------
@@ -59,7 +59,7 @@ impl TokenDeregistration for TokenDeregistrationMemDbRepository {
             }
         };
 
-        let target_key: Vec<TokenDTO> = response
+        let target_key: Vec<Token> = response
             .chunks(2)
             .into_iter()
             .filter_map(|val| {
@@ -102,13 +102,13 @@ impl TokenDeregistration for TokenDeregistrationMemDbRepository {
                 //
                 // Check if all collected information are compatible with
                 // desired token and it was not expired. Case true, return the
-                // Some response containing the TokenDTO.
+                // Some response containing the Token.
                 //
                 if (id == token.token) &&
                     (svc == token.own_service) &&
                     (ts >= Local::now())
                 {
-                    return Some(TokenDTO {
+                    return Some(Token {
                         token: id,
                         own_service: svc,
                     });
@@ -150,7 +150,7 @@ mod test {
         let repo = TokenDeregistrationMemDbRepository {};
 
         match repo
-            .get_then_delete(TokenDTO {
+            .get_then_delete(Token {
                 token: Uuid::from_str("a809906e-2f6c-47f4-88d0-b51722a57a5e")
                     .unwrap(),
                 own_service: String::from("some service"),

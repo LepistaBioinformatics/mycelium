@@ -1,6 +1,6 @@
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use utoipa::OpenApi;
-use myc_core::domain::dtos::account::{AccountDTO, AccountTypeDTO};
+use myc_core::domain::dtos::account::{Account, AccountType};
 
 // ? ---------------------------------------------------------------------------
 // ? Configure the API documentation
@@ -18,8 +18,8 @@ use myc_core::domain::dtos::account::{AccountDTO, AccountTypeDTO};
             ParentEnum<String, String>,
 
             // Schema models.
-            AccountDTO, 
-            AccountTypeDTO,
+            Account, 
+            AccountType,
         ),
     ),
     tags(
@@ -103,12 +103,12 @@ pub mod default_user_endpoints {
             (
                 status = 201,
                 description = "Account successfully created.",
-                body = AccountDTO,
+                body = Account,
             ),
             (
                 status = 200,
                 description = "Account already exists.",
-                body = AccountDTO,
+                body = Account,
             ),
         ),
     )]

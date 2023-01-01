@@ -1,4 +1,4 @@
-use myc_core::domain::{dtos::message::MessageDTO, entities::MessageSending};
+use myc_core::domain::{dtos::message::Message, entities::MessageSending};
 
 use async_trait::async_trait;
 use clean_base::{
@@ -15,8 +15,8 @@ pub struct MessageSendingSqlDbRepository {}
 impl MessageSending for MessageSendingSqlDbRepository {
     async fn send(
         &self,
-        message: MessageDTO,
-    ) -> Result<CreateResponseKind<MessageDTO>, MappedErrors> {
+        message: Message,
+    ) -> Result<CreateResponseKind<Message>, MappedErrors> {
         // TODO: to implements.
         error!("User message not send. Method already not implemented.");
         Ok(CreateResponseKind::Created(message))

@@ -4,8 +4,8 @@ pub mod extractor;
 /// from myc-api instead of the myc-core.
 pub use myc_core::{
     domain::dtos::{
-        email::EmailDTO,
-        profile::{LicensedResourcesDTO, ProfileDTO},
+        email::Email,
+        profile::{LicensedResources, Profile},
     },
     settings::DEFAULT_PROFILE_KEY,
 };

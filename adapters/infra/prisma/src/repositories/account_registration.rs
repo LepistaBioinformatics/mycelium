@@ -15,9 +15,9 @@ use clean_base::{
 };
 use myc_core::domain::{
     dtos::{
-        account::{AccountDTO, AccountTypeDTO},
-        email::EmailDTO,
-        user::UserDTO,
+        account::{Account, AccountType},
+        email::Email,
+        user::User,
     },
     entities::AccountRegistration,
 };
@@ -33,8 +33,8 @@ pub struct AccountRegistrationSqlDbRepository {}
 impl AccountRegistration for AccountRegistrationSqlDbRepository {
     async fn get_or_create(
         &self,
-        account: AccountDTO,
-    ) -> Result<GetOrCreateResponseKind<AccountDTO>, MappedErrors> {
+        account: Account,
+    ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -84,17 +84,17 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         match response.unwrap() {
             Some(record) => {
                 return Ok(GetOrCreateResponseKind::NotCreated(
-                    AccountDTO {
+                    Account {
                         id: Some(Uuid::parse_str(&record.id).unwrap()),
                         name: record.name,
                         is_active: record.is_active,
                         is_checked: record.is_checked,
-                        owner: ParentEnum::Record(UserDTO {
+                        owner: ParentEnum::Record(User {
                             id: Some(
                                 Uuid::parse_str(&record.owner.id).unwrap(),
                             ),
                             username: record.owner.username,
-                            email: match EmailDTO::from_string(
+                            email: match Email::from_string(
                                 record.owner.email,
                             ) {
                                 Err(err) => return Err(err),
@@ -109,7 +109,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 Some(date) => Some(date.with_timezone(&Local)),
                             },
                         }),
-                        account_type: ParentEnum::Record(AccountTypeDTO {
+                        account_type: ParentEnum::Record(AccountType {
                             id: Some(
                                 Uuid::parse_str(&record.account_type.id)
                                     .unwrap(),
@@ -188,15 +188,15 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
             .await;
 
         match response {
-            Ok(record) => Ok(GetOrCreateResponseKind::Created(AccountDTO {
+            Ok(record) => Ok(GetOrCreateResponseKind::Created(Account {
                 id: Some(Uuid::parse_str(&record.id).unwrap()),
                 name: record.name,
                 is_active: record.is_active,
                 is_checked: record.is_checked,
-                owner: ParentEnum::Record(UserDTO {
+                owner: ParentEnum::Record(User {
                     id: Some(Uuid::parse_str(&record.owner.id).unwrap()),
                     username: record.owner.username,
-                    email: match EmailDTO::from_string(record.owner.email) {
+                    email: match Email::from_string(record.owner.email) {
                         Err(err) => return Err(err),
                         Ok(res) => res,
                     },
@@ -209,7 +209,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         Some(date) => Some(date.with_timezone(&Local)),
                     },
                 }),
-                account_type: ParentEnum::Record(AccountTypeDTO {
+                account_type: ParentEnum::Record(AccountType {
                     id: Some(Uuid::parse_str(&record.account_type.id).unwrap()),
                     name: record.account_type.name,
                     description: record.account_type.description,
@@ -243,8 +243,8 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
 
     async fn create(
         &self,
-        _: AccountDTO,
-    ) -> Result<CreateResponseKind<AccountDTO>, MappedErrors> {
+        _: Account,
+    ) -> Result<CreateResponseKind<Account>, MappedErrors> {
         panic!("Not implemented method `create`.")
     }
 }

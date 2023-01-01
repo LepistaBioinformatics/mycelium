@@ -26,8 +26,8 @@ tokio = { version = "1", features = ["full"] }
 uuid = { version = "1.1", features = ["v4", "serde", "fast-rng"] }
 
 [dependencies.myc-core]
-version = "0.7.0"
-#path = "../../../core"
+#version = "0.7.0"
+path = "../../../core"
 
 [dependencies.prisma-client-rust]
 git = "https://github.com/Brendonovich/prisma-client-rust"
