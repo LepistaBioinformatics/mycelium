@@ -21,7 +21,7 @@ pub struct ProfilePack {
     token: Uuid,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum ProfileResponse {
     RegisteredUser(ProfilePack),
