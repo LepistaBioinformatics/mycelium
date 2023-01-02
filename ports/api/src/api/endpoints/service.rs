@@ -1,8 +1,11 @@
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
-use myc_core::domain::dtos::{
-    email::Email,
-    guest::PermissionsType,
-    profile::{LicensedResources, Profile},
+use myc_core::{
+    domain::dtos::{
+        email::Email,
+        guest::PermissionsType,
+        profile::{LicensedResources, Profile},
+    },
+    use_cases::service::profile::{ProfilePack, ProfileResponse},
 };
 use utoipa::OpenApi;
 
@@ -26,6 +29,8 @@ use utoipa::OpenApi;
             LicensedResources,
             PermissionsType,
             Profile,
+            ProfilePack, 
+            ProfileResponse,
         ),
     ),
     tags(
@@ -111,7 +116,7 @@ pub mod service_endpoints {
             (
                 status = 200,
                 description = "Profile fetching done.",
-                body = Profile,
+                body = ProfileResponse,
             ),
         ),
     )]
