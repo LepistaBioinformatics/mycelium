@@ -52,7 +52,6 @@ pub mod manager_endpoints {
 
     use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
     use clean_base::entities::default_response::GetOrCreateResponseKind;
-    use myc_api::extractor::extract_profile;
     use myc_core::{
         domain::{
             dtos::email::Email,
@@ -62,6 +61,7 @@ pub mod manager_endpoints {
         },
         use_cases::managers::guest::guest_user,
     };
+    use myc_http_tools::extractor::extract_profile;
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
