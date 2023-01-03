@@ -1,13 +1,13 @@
 [package]
 name = "myc-core"
-version = "0.7.1"
+version = "0.7.2"
 edition = "2021"
 authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
 license = "Apache-2.0"
 description = "Provide base features of the Mycelium project as s and Use-cases."
 repository = "https://github.com/sgelias/mycelium"
 readme = "./README.md"
-keywords = ["authorization", "identity", "permission", "keeper"]
+keywords = ["authorization", "identity", "permission", "keeper", "api-gateway", "mycelium"]
 categories = ["authentication", "network-programming"]
 
 # ? ---------------------------------------------------------------------------
