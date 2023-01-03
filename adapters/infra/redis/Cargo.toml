@@ -1,6 +1,6 @@
 [package]
 name = "mycelium-redis"
-version = "0.1.0"
+version = "0.7.0"
 edition = "2021"
 authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
 license = "Apache-2.0"
@@ -28,7 +28,6 @@ tokio = { version = "1", features = ["full"] }
 uuid = { version = "1.1", features = ["v4", "serde", "fast-rng"] }
 
 [dependencies.myc-core]
-#version = "0.7.0"
 path = "../../../core"
 
 [dev-dependencies]

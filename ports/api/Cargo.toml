@@ -1,6 +1,6 @@
 [package]
 name = "mycelium-api"
-version = "0.1.0"
+version = "0.7.0"
 edition = "2021"
 authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
 license = "Apache-2.0"
@@ -38,7 +38,6 @@ utoipa-swagger-ui = { version = "3", features = ["actix-web"] }
 uuid = { version = "1.1", features = ["v4", "serde", "fast-rng"] }
 
 [dependencies.myc-core]
-#version = "0.7.0"
 path = "../../core"
 
 # ? ---------------------------------------------------------------------------
@@ -46,7 +45,7 @@ path = "../../core"
 # ? ---------------------------------------------------------------------------
 
 [lib]
-name = "myc_api"
+name = "myc_http_tools"
 path = "src/public/lib.rs"
 crate-type = ["staticlib", "lib"]
 
