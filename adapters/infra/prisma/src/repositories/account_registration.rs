@@ -94,9 +94,8 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 Uuid::parse_str(&record.owner.id).unwrap(),
                             ),
                             username: record.owner.username,
-                            email: match Email::from_string(
-                                record.owner.email,
-                            ) {
+                            email: match Email::from_string(record.owner.email)
+                            {
                                 Err(err) => return Err(err),
                                 Ok(res) => res,
                             },
@@ -129,7 +128,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             Some(date) => Some(date.with_timezone(&Local)),
                         },
                     },
-                    "Customer already exists".to_string(),
+                    "Account already exists".to_string(),
                 ));
             }
             None => (),

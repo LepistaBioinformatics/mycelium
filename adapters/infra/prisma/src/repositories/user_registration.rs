@@ -72,7 +72,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                             Some(date) => Some(date.with_timezone(&Local)),
                         },
                     },
-                    "Customer already exists".to_string(),
+                    "User already exists".to_string(),
                 ));
             }
             None => (),
