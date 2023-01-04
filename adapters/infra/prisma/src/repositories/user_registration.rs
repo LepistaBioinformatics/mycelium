@@ -87,8 +87,8 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
             .create(
                 user.username,
                 user.email.get_email(),
-                user.first_name.unwrap(),
-                user.last_name.unwrap(),
+                user.first_name.unwrap_or(String::from("")),
+                user.last_name.unwrap_or(String::from("")),
                 vec![],
             )
             .exec()
