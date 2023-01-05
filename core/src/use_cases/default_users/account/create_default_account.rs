@@ -1,13 +1,15 @@
 use crate::{
     domain::{
-        dtos::{account::Account, email::Email, user::User},
+        dtos::{
+            account::{Account, AccountTypeEnum},
+            email::Email,
+            user::User,
+        },
         entities::{
             AccountRegistration, AccountTypeRegistration, UserRegistration,
         },
     },
-    use_cases::shared::account_type::{
-        get_or_create_default_account_types, AccountTypeEnum,
-    },
+    use_cases::shared::account_type::get_or_create_default_account_types,
 };
 
 use chrono::Local;

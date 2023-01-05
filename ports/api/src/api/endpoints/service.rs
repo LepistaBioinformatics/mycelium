@@ -72,7 +72,7 @@ pub mod profile_endpoints {
 
     pub fn configure(config: &mut web::ServiceConfig) {
         config.service(web::scope("/service").service(
-            web::scope("/profile").service(fetch_profile_from_email_url),
+            web::scope("/profiles").service(fetch_profile_from_email_url),
         ));
     }
 

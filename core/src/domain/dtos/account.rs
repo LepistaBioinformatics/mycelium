@@ -3,6 +3,7 @@ use super::{guest::GuestUser, user::User};
 use chrono::{DateTime, Local};
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -17,6 +18,25 @@ pub struct AccountType {
     pub is_subscription: bool,
     pub is_manager: bool,
     pub is_staff: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize, ToSchema)]
+pub enum AccountTypeEnum {
+    Standard,
+    Manager,
+    Staff,
+    Subscription,
+}
+
+impl Display for AccountTypeEnum {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        match self {
+            AccountTypeEnum::Standard => write!(f, "Standard"),
+            AccountTypeEnum::Manager => write!(f, "Manager"),
+            AccountTypeEnum::Staff => write!(f, "Staff"),
+            AccountTypeEnum::Subscription => write!(f, "Subscription"),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
