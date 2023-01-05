@@ -13,6 +13,7 @@ use uuid::Uuid;
 pub async fn change_account_activation_status(
     profile: Profile,
     account_id: Uuid,
+    is_active: bool,
     account_fetching_repo: Box<&dyn AccountFetching>,
     account_updating_repo: Box<&dyn AccountUpdating>,
 ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
@@ -66,7 +67,7 @@ pub async fn change_account_activation_status(
     // ? Update account status
     // ? -----------------------------------------------------------------------
 
-    account.is_active = !account.is_active;
+    account.is_active = is_active;
 
     account_updating_repo.update(account).await
 }

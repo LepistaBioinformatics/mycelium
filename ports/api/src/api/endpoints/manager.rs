@@ -63,22 +63,32 @@ pub struct ApiDoc;
 pub mod account_endpoints {
 
     use crate::modules::{
-        AccountRegistrationModule, AccountTypeRegistrationModule,
+        AccountFetchingModule, AccountRegistrationModule,
+        AccountTypeRegistrationModule, AccountUpdatingModule,
         UserRegistrationModule,
     };
 
-    use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
-    use clean_base::entities::default_response::GetOrCreateResponseKind;
+    use actix_web::{patch, post, web, HttpRequest, HttpResponse, Responder};
+    use clean_base::entities::default_response::{
+        GetOrCreateResponseKind, UpdatingResponseKind,
+    };
     use myc_core::{
         domain::entities::{
-            AccountRegistration, AccountTypeRegistration, UserRegistration,
+            AccountFetching, AccountRegistration, AccountTypeRegistration,
+            AccountUpdating, UserRegistration,
         },
-        use_cases::managers::account::create_subscription_account,
+        use_cases::{
+            managers::account::create_subscription_account,
+            shared::account::{
+                approve_account, change_account_activation_status,
+            },
+        },
     };
     use myc_http_tools::extractor::extract_profile;
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
+    use uuid::Uuid;
 
     // ? -----------------------------------------------------------------------
     // ? Configure application
@@ -177,6 +187,212 @@ pub mod account_endpoints {
                 }
                 GetOrCreateResponseKind::Created(guest) => {
                     HttpResponse::Created().json(guest)
+                }
+            },
+        }
+    }
+
+    /// Approve account after creation
+    ///
+    /// New accounts should be approved after has permissions to perform
+    /// operation on the system. These endpoint should approve such account.
+    #[utoipa::path(
+        patch,
+        path = "/managers/account/{account}/approve",
+        params(
+            ("account" = Uuid, Path, description = "The account primary key."),
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = String,
+            ),
+            (
+                status = 400,
+                description = "Account not approved.",
+                body = String,
+            ),
+            (
+                status = 202,
+                description = "Account approved.",
+                body = Account,
+            ),
+        ),
+    )]
+    #[patch("/{account}/approve")]
+    pub async fn approve_account_url(
+        path: web::Path<Uuid>,
+        req: HttpRequest,
+        account_fetching_repo: Inject<
+            AccountFetchingModule,
+            dyn AccountFetching,
+        >,
+        account_updating_repo: Inject<
+            AccountUpdatingModule,
+            dyn AccountUpdating,
+        >,
+    ) -> impl Responder {
+        let profile = match extract_profile(req).await {
+            Err(err) => return err,
+            Ok(res) => res,
+        };
+
+        match approve_account(
+            profile,
+            path.to_owned(),
+            Box::new(&*account_fetching_repo),
+            Box::new(&*account_updating_repo),
+        )
+        .await
+        {
+            Err(err) => {
+                HttpResponse::InternalServerError().body(err.to_string())
+            }
+            Ok(res) => match res {
+                UpdatingResponseKind::NotUpdated(_, msg) => {
+                    HttpResponse::BadRequest().body(msg)
+                }
+                UpdatingResponseKind::Updated(record) => {
+                    HttpResponse::Accepted().json(record)
+                }
+            },
+        }
+    }
+
+    /// Activate account
+    ///
+    /// Any account could be activated and deactivated. This action turn an
+    /// account active.
+    #[utoipa::path(
+        patch,
+        path = "/managers/account/{account}/activate",
+        params(
+            ("account" = Uuid, Path, description = "The account primary key."),
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = String,
+            ),
+            (
+                status = 400,
+                description = "Account not activated.",
+                body = String,
+            ),
+            (
+                status = 202,
+                description = "Account activated.",
+                body = Account,
+            ),
+        ),
+    )]
+    #[patch("/{account}/activate")]
+    pub async fn activate_account_url(
+        path: web::Path<Uuid>,
+        req: HttpRequest,
+        account_fetching_repo: Inject<
+            AccountFetchingModule,
+            dyn AccountFetching,
+        >,
+        account_updating_repo: Inject<
+            AccountUpdatingModule,
+            dyn AccountUpdating,
+        >,
+    ) -> impl Responder {
+        let profile = match extract_profile(req).await {
+            Err(err) => return err,
+            Ok(res) => res,
+        };
+
+        match change_account_activation_status(
+            profile,
+            path.to_owned(),
+            true,
+            Box::new(&*account_fetching_repo),
+            Box::new(&*account_updating_repo),
+        )
+        .await
+        {
+            Err(err) => {
+                HttpResponse::InternalServerError().body(err.to_string())
+            }
+            Ok(res) => match res {
+                UpdatingResponseKind::NotUpdated(_, msg) => {
+                    HttpResponse::BadRequest().body(msg)
+                }
+                UpdatingResponseKind::Updated(record) => {
+                    HttpResponse::Accepted().json(record)
+                }
+            },
+        }
+    }
+
+    /// Deactivate account
+    ///
+    /// Any account could be activated and deactivated. This action turn an
+    /// account deactivated.
+    #[utoipa::path(
+        patch,
+        path = "/managers/account/{account}/deactivate",
+        params(
+            ("account" = Uuid, Path, description = "The account primary key."),
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = String,
+            ),
+            (
+                status = 400,
+                description = "Account not activated.",
+                body = String,
+            ),
+            (
+                status = 202,
+                description = "Account activated.",
+                body = Account,
+            ),
+        ),
+    )]
+    #[patch("/{account}/deactivate")]
+    pub async fn deactivate_account_url(
+        path: web::Path<Uuid>,
+        req: HttpRequest,
+        account_fetching_repo: Inject<
+            AccountFetchingModule,
+            dyn AccountFetching,
+        >,
+        account_updating_repo: Inject<
+            AccountUpdatingModule,
+            dyn AccountUpdating,
+        >,
+    ) -> impl Responder {
+        let profile = match extract_profile(req).await {
+            Err(err) => return err,
+            Ok(res) => res,
+        };
+
+        match change_account_activation_status(
+            profile,
+            path.to_owned(),
+            false,
+            Box::new(&*account_fetching_repo),
+            Box::new(&*account_updating_repo),
+        )
+        .await
+        {
+            Err(err) => {
+                HttpResponse::InternalServerError().body(err.to_string())
+            }
+            Ok(res) => match res {
+                UpdatingResponseKind::NotUpdated(_, msg) => {
+                    HttpResponse::BadRequest().body(msg)
+                }
+                UpdatingResponseKind::Updated(record) => {
+                    HttpResponse::Accepted().json(record)
                 }
             },
         }
