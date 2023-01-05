@@ -11,7 +11,12 @@ use config::{configure as configure_injection_modules, SvcConfig};
 use endpoints::{
     default_users::{default_user_endpoints, ApiDoc as DefaultUsersApiDoc},
     index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
-    manager::{manager_endpoints, ApiDoc as ManagerApiDoc},
+    manager::{
+        account_endpoints as manager_account_endpoints,
+        guest_endpoints as manager_guest_endpoints,
+        guest_role_endpoints as manager_guest_role_endpoints,
+        ApiDoc as ManagerApiDoc,
+    },
     service::{service_endpoints, ApiDoc as ServiceApiDoc},
 };
 use log::info;
@@ -79,7 +84,9 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             .configure(heath_check_endpoints::configure)
             .configure(service_endpoints::configure)
-            .configure(manager_endpoints::configure)
+            .configure(manager_account_endpoints::configure)
+            .configure(manager_guest_endpoints::configure)
+            .configure(manager_guest_role_endpoints::configure)
             .configure(default_user_endpoints::configure)
             // ? ---------------------------------------------------------------
             // ? Configure API documentation
