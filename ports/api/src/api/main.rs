@@ -15,7 +15,7 @@ use endpoints::{
         account_endpoints as manager_account_endpoints,
         guest_endpoints as manager_guest_endpoints,
         guest_role_endpoints as manager_guest_role_endpoints,
-        ApiDoc as ManagerApiDoc,
+        role_endpoints as manager_role_endpoints, ApiDoc as ManagerApiDoc,
     },
     service::{service_endpoints, ApiDoc as ServiceApiDoc},
 };
@@ -87,6 +87,7 @@ pub async fn main() -> std::io::Result<()> {
             .configure(manager_account_endpoints::configure)
             .configure(manager_guest_endpoints::configure)
             .configure(manager_guest_role_endpoints::configure)
+            .configure(manager_role_endpoints::configure)
             .configure(default_user_endpoints::configure)
             // ? ---------------------------------------------------------------
             // ? Configure API documentation

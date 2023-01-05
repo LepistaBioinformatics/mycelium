@@ -5,6 +5,7 @@ use myc_core::{
         email::Email,
         guest::{GuestRole, GuestUser, PermissionsType},
         profile::{LicensedResources, Profile},
+        role::Role,
     },
     use_cases::managers::guest_role::ActionType,
 };
@@ -23,6 +24,9 @@ use utoipa::OpenApi;
         guest_role_endpoints::delete_guest_role_url,
         guest_role_endpoints::update_guest_role_name_and_description_url,
         guest_role_endpoints::update_guest_role_permissions_url,
+        role_endpoints::crate_role_url,
+        role_endpoints::delete_role_url,
+        role_endpoints::update_role_name_and_description_url,
     ),
     components(
         schemas(
@@ -40,12 +44,13 @@ use utoipa::OpenApi;
             LicensedResources,
             PermissionsType,
             Profile,
+            Role,
         ),
     ),
     tags(
         (
             name = "manager",
-            description = "Manager management endpoints."
+            description = "Manager Users management endpoints."
         )
     ),
 )]
@@ -661,4 +666,240 @@ pub mod guest_role_endpoints {
     // Role
     //
     // ? -----------------------------------------------------------------------
+}
+
+pub mod role_endpoints {
+
+    use crate::modules::{
+        RoleDeletionModule, RoleFetchingModule, RoleRegistrationModule,
+        RoleUpdatingModule,
+    };
+
+    use actix_web::{
+        delete, patch, post, web, HttpRequest, HttpResponse, Responder,
+    };
+    use clean_base::entities::default_response::{
+        DeletionResponseKind, GetOrCreateResponseKind, UpdatingResponseKind,
+    };
+    use myc_core::{
+        domain::entities::{
+            RoleDeletion, RoleFetching, RoleRegistration, RoleUpdating,
+        },
+        use_cases::managers::role::{
+            create_role, delete_role, update_role_name_and_description,
+        },
+    };
+    use myc_http_tools::extractor::extract_profile;
+    use serde::Deserialize;
+    use shaku_actix::Inject;
+    use utoipa::IntoParams;
+    use uuid::Uuid;
+
+    // ? -----------------------------------------------------------------------
+    // ? Configure application
+    // ? -----------------------------------------------------------------------
+
+    pub fn configure(config: &mut web::ServiceConfig) {
+        config.service(
+            web::scope("/managers").service(
+                web::scope("/role")
+                    .service(crate_role_url)
+                    .service(delete_role_url)
+                    .service(update_role_name_and_description_url),
+            ),
+        );
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? Define API structs
+    // ? -----------------------------------------------------------------------
+
+    #[derive(Deserialize, IntoParams)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CreateRoleParams {
+        pub name: String,
+        pub description: String,
+    }
+
+    /// Create Role
+    ///
+    /// Roles are used to build Guest Role elements.
+    #[utoipa::path(
+        post,
+        path = "/managers/role/",
+        params(
+            CreateRoleParams,
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = String,
+            ),
+            (
+                status = 201,
+                description = "Role created.",
+                body = Role,
+            ),
+            (
+                status = 200,
+                description = "Role already exists.",
+                body = Role,
+            ),
+        ),
+    )]
+    #[post("/")]
+    pub async fn crate_role_url(
+        info: web::Query<CreateRoleParams>,
+        req: HttpRequest,
+        role_registration_repo: Inject<
+            RoleRegistrationModule,
+            dyn RoleRegistration,
+        >,
+    ) -> impl Responder {
+        let profile = match extract_profile(req).await {
+            Err(err) => return err,
+            Ok(res) => res,
+        };
+
+        match create_role(
+            profile,
+            info.name.to_owned(),
+            info.description.to_owned(),
+            Box::new(&*role_registration_repo),
+        )
+        .await
+        {
+            Err(err) => {
+                HttpResponse::InternalServerError().body(err.to_string())
+            }
+            Ok(res) => match res {
+                GetOrCreateResponseKind::NotCreated(guest, _) => {
+                    HttpResponse::Ok().json(guest)
+                }
+                GetOrCreateResponseKind::Created(guest) => {
+                    HttpResponse::Created().json(guest)
+                }
+            },
+        }
+    }
+
+    /// Delete Role
+    ///
+    /// Delete a single role.
+    #[utoipa::path(
+        delete,
+        path = "/managers/role/{role}/delete",
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = String,
+            ),
+            (
+                status = 400,
+                description = "Role not deleted.",
+                body = String,
+            ),
+            (
+                status = 204,
+                description = "Role deleted.",
+            ),
+        ),
+    )]
+    #[delete("/{role}/delete")]
+    pub async fn delete_role_url(
+        path: web::Path<Uuid>,
+        req: HttpRequest,
+        role_deletion_repo: Inject<RoleDeletionModule, dyn RoleDeletion>,
+    ) -> impl Responder {
+        let profile = match extract_profile(req).await {
+            Err(err) => return err,
+            Ok(res) => res,
+        };
+
+        match delete_role(
+            profile,
+            path.to_owned(),
+            Box::new(&*role_deletion_repo),
+        )
+        .await
+        {
+            Err(err) => {
+                HttpResponse::InternalServerError().body(err.to_string())
+            }
+            Ok(res) => match res {
+                DeletionResponseKind::NotDeleted(_, msg) => {
+                    HttpResponse::BadRequest().body(msg)
+                }
+                DeletionResponseKind::Deleted => {
+                    HttpResponse::NoContent().finish()
+                }
+            },
+        }
+    }
+
+    /// Partial Update Role
+    ///
+    /// Update name and description of a single Role.
+    #[utoipa::path(
+        patch,
+        path = "/managers/role/{role}/update-name-and-description",
+        params(
+            CreateRoleParams,
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = String,
+            ),
+            (
+                status = 400,
+                description = "Guest Role not deleted.",
+                body = String,
+            ),
+            (
+                status = 202,
+                description = "Guest Role updated.",
+                body = Role,
+            ),
+        ),
+    )]
+    #[patch("/{role}/update-name-and-description")]
+    pub async fn update_role_name_and_description_url(
+        path: web::Path<Uuid>,
+        info: web::Query<CreateRoleParams>,
+        req: HttpRequest,
+        role_fetching_repo: Inject<RoleFetchingModule, dyn RoleFetching>,
+        role_updating_repo: Inject<RoleUpdatingModule, dyn RoleUpdating>,
+    ) -> impl Responder {
+        let profile = match extract_profile(req).await {
+            Err(err) => return err,
+            Ok(res) => res,
+        };
+
+        match update_role_name_and_description(
+            profile,
+            path.to_owned(),
+            info.name.to_owned(),
+            info.description.to_owned(),
+            Box::new(&*role_fetching_repo),
+            Box::new(&*role_updating_repo),
+        )
+        .await
+        {
+            Err(err) => {
+                HttpResponse::InternalServerError().body(err.to_string())
+            }
+            Ok(res) => match res {
+                UpdatingResponseKind::NotUpdated(_, msg) => {
+                    HttpResponse::BadRequest().body(msg)
+                }
+                UpdatingResponseKind::Updated(record) => {
+                    HttpResponse::Accepted().json(record)
+                }
+            },
+        }
+    }
 }
