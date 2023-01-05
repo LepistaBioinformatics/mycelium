@@ -275,6 +275,7 @@ pub mod token_endpoints {
         get,
         path = "/service/token/{token}",
         params(
+            ("token" = Uuid, Path, description = "The token itself."),
             ValidateTokenParams,
         ),
         responses(

@@ -172,6 +172,7 @@ pub mod default_user_endpoints {
         patch,
         path = "/default-users/accounts/{id}/update-account-name",
         params(
+            ("id" = Uuid, Path, description = "The account primary key."),
             UpdateOwnAccountNameAccountParams,
         ),
         responses(

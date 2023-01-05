@@ -403,6 +403,7 @@ pub mod guest_role_endpoints {
         post,
         path = "/managers/guest-role/{role}/",
         params(
+            ("role" = Uuid, Path, description = "The guest-role primary key."),
             CreateGuestRoleParams,
         ),
         responses(
@@ -468,6 +469,9 @@ pub mod guest_role_endpoints {
     #[utoipa::path(
         delete,
         path = "/managers/guest-role/{role}/delete",
+        params(
+            ("role" = Uuid, Path, description = "The guest-role primary key."),
+        ),
         responses(
             (
                 status = 500,
@@ -527,6 +531,7 @@ pub mod guest_role_endpoints {
         patch,
         path = "/managers/guest-role/{role}/update-name-and-description",
         params(
+            ("role" = Uuid, Path, description = "The guest-role primary key."),
             UpdateGuestRoleNameAndDescriptionParams,
         ),
         responses(
@@ -597,6 +602,7 @@ pub mod guest_role_endpoints {
         patch,
         path = "/managers/guest-role/{role}/update-permissions",
         params(
+            ("role" = Uuid, Path, description = "The guest-role primary key."),
             UpdateGuestRolePermissionsParams,
         ),
         responses(
@@ -790,6 +796,9 @@ pub mod role_endpoints {
     #[utoipa::path(
         delete,
         path = "/managers/role/{role}/delete",
+        params(
+            ("role" = Uuid, Path, description = "The role primary key."),
+        ),
         responses(
             (
                 status = 500,
@@ -846,6 +855,7 @@ pub mod role_endpoints {
         patch,
         path = "/managers/role/{role}/update-name-and-description",
         params(
+            ("role" = Uuid, Path, description = "The role primary key."),
             CreateRoleParams,
         ),
         responses(
