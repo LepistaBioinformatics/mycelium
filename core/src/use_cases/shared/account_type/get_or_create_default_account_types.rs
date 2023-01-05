@@ -27,6 +27,9 @@ impl Display for AccountTypeEnum {
 }
 
 /// Get or create default accounts.
+///
+/// This use-case should only be executed by another use-cases, thus, could not
+/// be exposed through system ports.
 pub(crate) async fn get_or_create_default_account_types(
     account_type: AccountTypeEnum,
     name: Option<String>,
