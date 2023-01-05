@@ -5,12 +5,10 @@ use clean_base::{
 };
 use uuid::Uuid;
 
-/// De-register token.
+/// Validate token.
 ///
-/// Remove a token from database. The requesting service argument should be used
-/// to check if the requesting service that are trying to deregister the token
-/// was the same which registered such token.
-pub async fn deregister_token(
+/// Check if the token exists into database.
+pub async fn validate_token(
     token: Uuid,
     requesting_service: String,
     token_deregistration_repo: Box<&dyn TokenDeregistration>,

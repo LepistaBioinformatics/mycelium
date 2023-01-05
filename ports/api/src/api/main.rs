@@ -17,7 +17,10 @@ use endpoints::{
         guest_role_endpoints as manager_guest_role_endpoints,
         role_endpoints as manager_role_endpoints, ApiDoc as ManagerApiDoc,
     },
-    service::{service_endpoints, ApiDoc as ServiceApiDoc},
+    service::{
+        profile_endpoints as service_profile_endpoints,
+        token_endpoints as service_token_endpoints, ApiDoc as ServiceApiDoc,
+    },
 };
 use log::info;
 use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
@@ -82,13 +85,26 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             // ? Configure OpenApi definitions
             // ? ---------------------------------------------------------------
+            //
+            // Index
+            //
             .configure(heath_check_endpoints::configure)
-            .configure(service_endpoints::configure)
+            //
+            // Default Users
+            //
+            .configure(default_user_endpoints::configure)
+            //
+            // Service
+            //
+            .configure(service_profile_endpoints::configure)
+            .configure(service_token_endpoints::configure)
+            //
+            // Manager
+            //
             .configure(manager_account_endpoints::configure)
             .configure(manager_guest_endpoints::configure)
             .configure(manager_guest_role_endpoints::configure)
             .configure(manager_role_endpoints::configure)
-            .configure(default_user_endpoints::configure)
             // ? ---------------------------------------------------------------
             // ? Configure API documentation
             // ? ---------------------------------------------------------------
