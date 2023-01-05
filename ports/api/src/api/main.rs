@@ -1,4 +1,5 @@
 extern crate myc_core;
+
 mod config;
 mod endpoints;
 mod modules;
@@ -86,13 +87,13 @@ pub async fn main() -> std::io::Result<()> {
             .service(
                 SwaggerUi::new("/swagger-ui/{_:.*}")
                     .url(
-                        "/doc/monitoring/openapi.json",
+                        "/doc/monitoring-openapi.json",
                         HealthCheckApiDoc::openapi(),
                     )
-                    .url("/doc/service/openapi.json", ServiceApiDoc::openapi())
-                    .url("/doc/manager/openapi.json", ManagerApiDoc::openapi())
+                    .url("/doc/service-openapi.json", ServiceApiDoc::openapi())
+                    .url("/doc/manager-openapi.json", ManagerApiDoc::openapi())
                     .url(
-                        "/doc/default-users/openapi.json",
+                        "/doc/default-users-openapi.json",
                         DefaultUsersApiDoc::openapi(),
                     ),
             )
