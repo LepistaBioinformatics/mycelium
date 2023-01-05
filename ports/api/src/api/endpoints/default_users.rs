@@ -44,7 +44,9 @@ pub mod default_user_endpoints {
     };
 
     use actix_web::{patch, post, web, HttpResponse, Responder, HttpRequest};
-    use clean_base::entities::default_response::{GetOrCreateResponseKind, UpdatingResponseKind};
+    use clean_base::entities::default_response::{
+        GetOrCreateResponseKind, UpdatingResponseKind
+    };
     use log::warn;
     use myc_core::{
         domain::entities::{
@@ -52,7 +54,9 @@ pub mod default_user_endpoints {
             AccountTypeRegistration,
             AccountRegistration, AccountFetching, AccountUpdating,
         },
-        use_cases::default_users::account::{create_default_account, update_own_account_name},
+        use_cases::default_users::account::{
+            create_default_account, update_own_account_name
+        },
     };
     use myc_http_tools::extractor::extract_profile;
     use serde::Deserialize;
