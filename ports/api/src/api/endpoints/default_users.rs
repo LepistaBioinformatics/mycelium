@@ -10,6 +10,7 @@ use myc_core::domain::dtos::account::{Account, AccountType};
 #[openapi(
     paths(
         default_user_endpoints::create_default_account_url,
+        default_user_endpoints::update_own_account_name_url,
     ),
     components(
         schemas(
@@ -37,24 +38,27 @@ pub struct ApiDoc;
 
 pub mod default_user_endpoints {
 
-    use actix_web::{post, web, HttpResponse, Responder};
-    use clean_base::entities::default_response::GetOrCreateResponseKind;
+    use crate::modules::{
+        AccountRegistrationModule, AccountTypeRegistrationModule,
+        UserRegistrationModule, AccountFetchingModule, AccountUpdatingModule,
+    };
+
+    use actix_web::{patch, post, web, HttpResponse, Responder, HttpRequest};
+    use clean_base::entities::default_response::{GetOrCreateResponseKind, UpdatingResponseKind};
+    use log::warn;
     use myc_core::{
         domain::entities::{
             UserRegistration,
             AccountTypeRegistration,
-            AccountRegistration,
+            AccountRegistration, AccountFetching, AccountUpdating,
         },
-        use_cases::default_users::account::create_default_account,
+        use_cases::default_users::account::{create_default_account, update_own_account_name},
     };
+    use myc_http_tools::extractor::extract_profile;
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
-
-    use crate::modules::{
-        AccountRegistrationModule, AccountTypeRegistrationModule,
-        UserRegistrationModule,
-    };
+    use uuid::Uuid;
 
     // ? -----------------------------------------------------------------------
     // ? Configure application
@@ -64,7 +68,8 @@ pub mod default_user_endpoints {
         config.service(
             web::scope("/default-users")
                 .service(web::scope("/accounts")
-                    .service(create_default_account_url)),
+                    .service(create_default_account_url))
+                    .service(update_own_account_name_url),
         );
     }
 
@@ -79,6 +84,12 @@ pub mod default_user_endpoints {
         pub account_name: String,
         pub first_name: Option<String>,
         pub last_name: Option<String>,
+    }
+
+    #[derive(Deserialize, IntoParams)]
+    #[serde(rename_all = "camelCase")]
+    pub struct UpdateOwnAccountNameAccountParams {
+        pub name: String,
     }
 
     // ? -----------------------------------------------------------------------
@@ -148,6 +159,85 @@ pub mod default_user_endpoints {
                 }
                 GetOrCreateResponseKind::NotCreated(record, _) => {
                     HttpResponse::Ok().json(record)
+                }
+            },
+        }
+    }
+
+    #[utoipa::path(
+        patch,
+        path = "/default-users/accounts/{id}/update-account-name",
+        params(
+            UpdateOwnAccountNameAccountParams,
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = String,
+            ),
+            (
+                status = 400,
+                description = "Account name not updated.",
+                body = String,
+            ),
+            (
+                status = 202,
+                description = "Account name successfully updated.",
+                body = Account,
+            ),
+        ),
+    )]
+    #[patch("/{id}/update-account-name")]
+    pub async fn update_own_account_name_url(
+        path: web::Path<Uuid>,
+        info: web::Query<UpdateOwnAccountNameAccountParams>,
+        req: HttpRequest,
+        account_fetching_repo: Inject<
+            AccountFetchingModule,
+            dyn AccountFetching,
+        >,
+        account_updating_repo: Inject<
+            AccountUpdatingModule,
+            dyn AccountUpdating,
+        >,
+    ) -> impl Responder {
+        let profile = match extract_profile(req).await {
+            Err(err) => return err,
+            Ok(res) => res,
+        };
+
+        if path.to_owned() != profile.current_account_id {
+            warn!("No account owner trying to perform account updating.");
+            warn!(
+                "Account {} trying to update {}", 
+                profile.current_account_id, 
+                path.to_owned()
+            );
+
+            return HttpResponse::Forbidden()
+                .body(String::from(
+                    "Invalid operation. Operation restricted to account owners."
+                ));
+        }
+
+        match update_own_account_name(
+            profile,
+            info.name.to_owned(),
+            Box::new(&*account_fetching_repo),
+            Box::new(&*account_updating_repo),
+        )
+        .await
+        {
+            Err(err) => {
+                HttpResponse::InternalServerError().body(err.to_string())
+            }
+            Ok(res) => match res {
+                UpdatingResponseKind::NotUpdated(_, msg) => {
+                    HttpResponse::BadRequest().body(msg)
+                }
+                UpdatingResponseKind::Updated(record) => {
+                    HttpResponse::Accepted().json(record)
                 }
             },
         }
