@@ -226,19 +226,14 @@ pub mod token_endpoints {
                 body = String,
             ),
             (
-                status = 404,
-                description = "Not found.",
-                body = String,
-            ),
-            (
                 status = 400,
                 description = "Bad request.",
                 body = String,
             ),
             (
                 status = 200,
-                description = "Profile fetching done.",
-                body = ProfileResponse,
+                description = "Cleanup done.",
+                body = i64,
             ),
         ),
     )]
@@ -260,9 +255,7 @@ pub mod token_endpoints {
                     HttpResponse::BadRequest().body(msg)
                 }
                 DeletionManyResponseKind::Deleted(records) => {
-                    HttpResponse::Ok().json(Info {
-                        msg: format!("Records deleted: {records}"),
-                    })
+                    HttpResponse::Ok().body(records.to_string())
                 }
             },
         }
