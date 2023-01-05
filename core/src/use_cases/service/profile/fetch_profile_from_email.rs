@@ -17,8 +17,8 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfilePack {
-    profile: Profile,
-    token: Uuid,
+    pub profile: Profile,
+    pub token: Uuid,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]

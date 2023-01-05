@@ -18,6 +18,7 @@ categories = ["http-client", "microservices"]
 
 mycelium-prisma = { path = "../../adapters/infra/prisma" }
 mycelium-redis = { path = "../../adapters/infra/redis" }
+mycelium-service = { path = "../../adapters/infra/service" }
 mycelium-smtp = { path = "../../adapters/message/smtp" }
 
 actix-cors = { version = "0.6.2" }

@@ -3,7 +3,6 @@ use std::env::var_os;
 
 // Keys used over the profile fetch and validation pipeline.
 pub const DEFAULT_PROFILE_KEY: &str = "x-mycelium-profile";
-pub const DEFAULT_TOKEN_KEY: &str = "x-mycelium-token";
 
 lazy_static! {
 
