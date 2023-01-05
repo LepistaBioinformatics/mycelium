@@ -1,6 +1,6 @@
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
-use utoipa::OpenApi;
 use myc_core::domain::dtos::account::{Account, AccountType};
+use utoipa::OpenApi;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure the API documentation
@@ -39,23 +39,23 @@ pub struct ApiDoc;
 pub mod account_endpoints {
 
     use crate::modules::{
-        AccountRegistrationModule, AccountTypeRegistrationModule,
-        UserRegistrationModule, AccountFetchingModule, AccountUpdatingModule,
+        AccountFetchingModule, AccountRegistrationModule,
+        AccountTypeRegistrationModule, AccountUpdatingModule,
+        UserRegistrationModule,
     };
 
-    use actix_web::{patch, post, web, HttpResponse, Responder, HttpRequest};
+    use actix_web::{patch, post, web, HttpRequest, HttpResponse, Responder};
     use clean_base::entities::default_response::{
-        GetOrCreateResponseKind, UpdatingResponseKind
+        GetOrCreateResponseKind, UpdatingResponseKind,
     };
     use log::warn;
     use myc_core::{
         domain::entities::{
-            UserRegistration,
-            AccountTypeRegistration,
-            AccountRegistration, AccountFetching, AccountUpdating,
+            AccountFetching, AccountRegistration, AccountTypeRegistration,
+            AccountUpdating, UserRegistration,
         },
         use_cases::default_users::account::{
-            create_default_account, update_own_account_name
+            create_default_account, update_own_account_name,
         },
     };
     use myc_http_tools::extractor::extract_profile;
@@ -71,9 +71,10 @@ pub mod account_endpoints {
     pub fn configure(config: &mut web::ServiceConfig) {
         config.service(
             web::scope("/default-users")
-                .service(web::scope("/accounts")
-                    .service(create_default_account_url))
-                    .service(update_own_account_name_url),
+                .service(
+                    web::scope("/accounts").service(create_default_account_url),
+                )
+                .service(update_own_account_name_url),
         );
     }
 
@@ -215,15 +216,14 @@ pub mod account_endpoints {
         if path.to_owned() != profile.current_account_id {
             warn!("No account owner trying to perform account updating.");
             warn!(
-                "Account {} trying to update {}", 
-                profile.current_account_id, 
+                "Account {} trying to update {}",
+                profile.current_account_id,
                 path.to_owned()
             );
 
-            return HttpResponse::Forbidden()
-                .body(String::from(
-                    "Invalid operation. Operation restricted to account owners."
-                ));
+            return HttpResponse::Forbidden().body(String::from(
+                "Invalid operation. Operation restricted to account owners.",
+            ));
         }
 
         match update_own_account_name(

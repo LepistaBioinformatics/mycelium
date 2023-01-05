@@ -1,13 +1,5 @@
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
-use myc_core::{
-    domain::dtos::{
-        email::Email,
-        guest::PermissionsType,
-        profile::{LicensedResources, Profile},
-        token::Token,
-    },
-    use_cases::service::profile::ProfilePack,
-};
+use myc_core::domain::dtos::account::{Account, AccountType, AccountTypeEnum};
 use utoipa::OpenApi;
 
 // ? ---------------------------------------------------------------------------
@@ -27,12 +19,9 @@ use utoipa::OpenApi;
             ParentEnum<String, String>,
 
             // Schema models.
-            Email,
-            LicensedResources,
-            PermissionsType,
-            Profile,
-            ProfilePack,
-            Token,
+            Account,
+            AccountType,
+            AccountTypeEnum,
         ),
     ),
     tags(
