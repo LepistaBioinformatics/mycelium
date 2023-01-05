@@ -1,11 +1,12 @@
 use crate::{
     domain::{
-        dtos::{account::Account, profile::Profile},
+        dtos::{
+            account::{Account, AccountTypeEnum},
+            profile::Profile,
+        },
         entities::{AccountFetching, AccountTypeRegistration, AccountUpdating},
     },
-    use_cases::shared::account_type::{
-        get_or_create_default_account_types, AccountTypeEnum,
-    },
+    use_cases::shared::account_type::get_or_create_default_account_types,
 };
 
 use clean_base::{

@@ -1,11 +1,12 @@
 use crate::{
     domain::{
-        dtos::{account::Account, profile::Profile},
+        dtos::{
+            account::{Account, AccountTypeEnum},
+            profile::Profile,
+        },
         entities::{AccountFetching, AccountTypeRegistration, AccountUpdating},
     },
-    use_cases::shared::account_type::{
-        get_or_create_default_account_types, AccountTypeEnum,
-    },
+    use_cases::shared::account_type::get_or_create_default_account_types,
 };
 
 use clean_base::{
@@ -21,7 +22,7 @@ use uuid::Uuid;
 ///
 /// This action should be used to downgrade Standard and Manager accounts.
 /// Subscription and Staff accounts should not be downgraded.
-pub async fn downgrade_account_status(
+pub async fn downgrade_account_privileges(
     profile: Profile,
     account_id: Uuid,
     target_account_type: AccountTypeEnum,

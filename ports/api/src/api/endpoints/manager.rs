@@ -19,6 +19,9 @@ use utoipa::OpenApi;
 #[openapi(
     paths(
         account_endpoints::create_subscription_account_url,
+        account_endpoints::approve_account_url,
+        account_endpoints::activate_account_url,
+        account_endpoints::deactivate_account_url,
         guest_endpoints::guest_user_url,
         guest_role_endpoints::crate_guest_role_url,
         guest_role_endpoints::delete_guest_role_url,
@@ -95,9 +98,15 @@ pub mod account_endpoints {
     // ? -----------------------------------------------------------------------
 
     pub fn configure(config: &mut web::ServiceConfig) {
-        config.service(web::scope("/managers").service(
-            web::scope("/account").service(create_subscription_account_url),
-        ));
+        config.service(
+            web::scope("/managers").service(
+                web::scope("/accounts")
+                    .service(create_subscription_account_url)
+                    .service(approve_account_url)
+                    .service(activate_account_url)
+                    .service(deactivate_account_url),
+            ),
+        );
     }
 
     // ? -----------------------------------------------------------------------

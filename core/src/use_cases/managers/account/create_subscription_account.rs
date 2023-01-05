@@ -1,13 +1,16 @@
 use crate::{
     domain::{
-        dtos::{account::Account, email::Email, profile::Profile, user::User},
+        dtos::{
+            account::{Account, AccountTypeEnum},
+            email::Email,
+            profile::Profile,
+            user::User,
+        },
         entities::{
             AccountRegistration, AccountTypeRegistration, UserRegistration,
         },
     },
-    use_cases::shared::account_type::{
-        get_or_create_default_account_types, AccountTypeEnum,
-    },
+    use_cases::shared::account_type::get_or_create_default_account_types,
 };
 
 use chrono::Local;
@@ -61,7 +64,7 @@ pub async fn create_subscription_account(
     // ? -----------------------------------------------------------------------
 
     let account_type = match get_or_create_default_account_types(
-        AccountTypeEnum::Standard,
+        AccountTypeEnum::Subscription,
         None,
         None,
         account_type_registration_repo,

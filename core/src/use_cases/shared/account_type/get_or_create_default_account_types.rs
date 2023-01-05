@@ -1,30 +1,11 @@
 use crate::domain::{
-    dtos::account::AccountType, entities::AccountTypeRegistration,
+    dtos::account::{AccountType, AccountTypeEnum},
+    entities::AccountTypeRegistration,
 };
 use clean_base::{
     entities::default_response::GetOrCreateResponseKind,
     utils::errors::MappedErrors,
 };
-use std::fmt::{Display, Formatter, Result as FmtResult};
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum AccountTypeEnum {
-    Standard,
-    Manager,
-    Staff,
-    Subscription,
-}
-
-impl Display for AccountTypeEnum {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        match self {
-            AccountTypeEnum::Standard => write!(f, "Standard"),
-            AccountTypeEnum::Manager => write!(f, "Manager"),
-            AccountTypeEnum::Staff => write!(f, "Staff"),
-            AccountTypeEnum::Subscription => write!(f, "Subscription"),
-        }
-    }
-}
 
 /// Get or create default accounts.
 ///

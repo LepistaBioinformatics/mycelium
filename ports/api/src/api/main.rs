@@ -9,7 +9,10 @@ use actix_web::middleware::Logger;
 use actix_web::{App, HttpServer};
 use config::{configure as configure_injection_modules, SvcConfig};
 use endpoints::{
-    default_users::{default_user_endpoints, ApiDoc as DefaultUsersApiDoc},
+    default_users::{
+        account_endpoints as default_users_account_endpoints,
+        ApiDoc as DefaultUsersApiDoc,
+    },
     index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
     manager::{
         account_endpoints as manager_account_endpoints,
@@ -20,6 +23,9 @@ use endpoints::{
     service::{
         profile_endpoints as service_profile_endpoints,
         token_endpoints as service_token_endpoints, ApiDoc as ServiceApiDoc,
+    },
+    staff::{
+        account_endpoints as staff_account_endpoints, ApiDoc as StaffApiDoc,
     },
 };
 use log::info;
@@ -92,12 +98,7 @@ pub async fn main() -> std::io::Result<()> {
             //
             // Default Users
             //
-            .configure(default_user_endpoints::configure)
-            //
-            // Service
-            //
-            .configure(service_profile_endpoints::configure)
-            .configure(service_token_endpoints::configure)
+            .configure(default_users_account_endpoints::configure)
             //
             // Manager
             //
@@ -105,6 +106,15 @@ pub async fn main() -> std::io::Result<()> {
             .configure(manager_guest_endpoints::configure)
             .configure(manager_guest_role_endpoints::configure)
             .configure(manager_role_endpoints::configure)
+            //
+            // Service
+            //
+            .configure(service_profile_endpoints::configure)
+            .configure(service_token_endpoints::configure)
+            //
+            // Staff
+            //
+            .configure(staff_account_endpoints::configure)
             // ? ---------------------------------------------------------------
             // ? Configure API documentation
             // ? ---------------------------------------------------------------
@@ -114,12 +124,13 @@ pub async fn main() -> std::io::Result<()> {
                         "/doc/monitoring-openapi.json",
                         HealthCheckApiDoc::openapi(),
                     )
-                    .url("/doc/service-openapi.json", ServiceApiDoc::openapi())
-                    .url("/doc/manager-openapi.json", ManagerApiDoc::openapi())
                     .url(
                         "/doc/default-users-openapi.json",
                         DefaultUsersApiDoc::openapi(),
-                    ),
+                    )
+                    .url("/doc/manager-openapi.json", ManagerApiDoc::openapi())
+                    .url("/doc/staff-openapi.json", StaffApiDoc::openapi())
+                    .url("/doc/service-openapi.json", ServiceApiDoc::openapi()),
             )
     });
 
