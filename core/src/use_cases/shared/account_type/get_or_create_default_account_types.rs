@@ -74,7 +74,7 @@ pub async fn get_or_create_default_account_types(
                             .to_string(),
                     ),
                     is_subscription: false,
-                    is_manager: false,
+                    is_manager: true,
                     is_staff: true,
                 })
                 .await
