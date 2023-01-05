@@ -133,7 +133,7 @@ pub mod account_endpoints {
     /// groups, but not real persons.
     #[utoipa::path(
         post,
-        path = "/managers/account/",
+        path = "/managers/accounts/",
         params(
             CreateSubscriptionAccountParams,
         ),
@@ -207,7 +207,7 @@ pub mod account_endpoints {
     /// operation on the system. These endpoint should approve such account.
     #[utoipa::path(
         patch,
-        path = "/managers/account/{account}/approve",
+        path = "/managers/accounts/{account}/approve",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
         ),
@@ -275,7 +275,7 @@ pub mod account_endpoints {
     /// account active.
     #[utoipa::path(
         patch,
-        path = "/managers/account/{account}/activate",
+        path = "/managers/accounts/{account}/activate",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
         ),
@@ -344,7 +344,7 @@ pub mod account_endpoints {
     /// account deactivated.
     #[utoipa::path(
         patch,
-        path = "/managers/account/{account}/deactivate",
+        path = "/managers/accounts/{account}/deactivate",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
         ),

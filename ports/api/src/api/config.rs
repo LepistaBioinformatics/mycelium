@@ -76,7 +76,7 @@ impl SvcConfig {
                     .into_iter()
                     .map(|i| i.to_string())
                     .collect(),
-                None => vec!["http://localhost:3000".to_string()],
+                None => vec!["http://localhost:8081".to_string()],
             },
         }
     }
