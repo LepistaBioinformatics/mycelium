@@ -1,3 +1,7 @@
 mod create_seed_staff_account;
+mod downgrade_account_status;
+mod upgrade_account_privileges;
 
 pub use create_seed_staff_account::create_seed_staff_account;
+pub use downgrade_account_status::downgrade_account_status;
+pub use upgrade_account_privileges::upgrade_account_privileges;
