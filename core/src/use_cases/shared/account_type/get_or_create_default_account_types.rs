@@ -27,7 +27,7 @@ impl Display for AccountTypeEnum {
 }
 
 /// Get or create default accounts.
-pub async fn get_or_create_default_account_types(
+pub(crate) async fn get_or_create_default_account_types(
     account_type: AccountTypeEnum,
     name: Option<String>,
     description: Option<String>,
