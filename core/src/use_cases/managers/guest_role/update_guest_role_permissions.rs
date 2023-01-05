@@ -10,8 +10,12 @@ use clean_base::{
     entities::default_response::{FetchResponseKind, UpdatingResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
+use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub enum ActionType {
     Upgrade,
     Downgrade,
