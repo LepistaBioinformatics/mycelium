@@ -59,6 +59,8 @@ impl TokenDeregistration for TokenDeregistrationMemDbRepository {
             }
         };
 
+        warn!("response: {:?}", response);
+
         let target_key: Vec<Token> = response
             .chunks(2)
             .into_iter()

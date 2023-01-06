@@ -1,5 +1,6 @@
 use futures::lock::{Mutex, MutexGuard};
 use lazy_static::lazy_static;
+use log::warn;
 use redis::{Client, Connection};
 
 lazy_static! {
@@ -8,7 +9,10 @@ lazy_static! {
         Err(err) => panic!("Unable to connect to redis client: {err}"),
         Ok(res) => match res.get_connection() {
             Err(err) => panic!("Could not connect to redis client: {err}"),
-            Ok(res) => res,
+            Ok(res) => {
+                warn!("Redis connection successful established.");
+                res
+            },
         },
     });
 }

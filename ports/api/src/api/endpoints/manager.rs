@@ -99,13 +99,11 @@ pub mod account_endpoints {
 
     pub fn configure(config: &mut web::ServiceConfig) {
         config.service(
-            web::scope("/managers").service(
-                web::scope("/accounts")
-                    .service(create_subscription_account_url)
-                    .service(approve_account_url)
-                    .service(activate_account_url)
-                    .service(deactivate_account_url),
-            ),
+            web::scope("/accounts")
+                .service(create_subscription_account_url)
+                .service(approve_account_url)
+                .service(activate_account_url)
+                .service(deactivate_account_url),
         );
     }
 
@@ -437,10 +435,7 @@ pub mod guest_endpoints {
     // ? -----------------------------------------------------------------------
 
     pub fn configure(config: &mut web::ServiceConfig) {
-        config.service(
-            web::scope("/managers")
-                .service(web::scope("/guest").service(guest_user_url)),
-        );
+        config.service(web::scope("/guests").service(guest_user_url));
     }
 
     // ? -----------------------------------------------------------------------
@@ -467,7 +462,7 @@ pub mod guest_endpoints {
     /// path argument.
     #[utoipa::path(
         post,
-        path = "/managers/guest/account/{account}/role/{role}",
+        path = "/managers/guests/account/{account}/role/{role}",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
             ("role" = Uuid, Path, description = "The guest-role unique token."),
@@ -585,13 +580,11 @@ pub mod guest_role_endpoints {
 
     pub fn configure(config: &mut web::ServiceConfig) {
         config.service(
-            web::scope("/managers").service(
-                web::scope("/guest-role")
-                    .service(crate_guest_role_url)
-                    .service(delete_guest_role_url)
-                    .service(update_guest_role_name_and_description_url)
-                    .service(update_guest_role_permissions_url),
-            ),
+            web::scope("/guest-roles")
+                .service(crate_guest_role_url)
+                .service(delete_guest_role_url)
+                .service(update_guest_role_name_and_description_url)
+                .service(update_guest_role_permissions_url),
         );
     }
 
@@ -626,7 +619,7 @@ pub mod guest_role_endpoints {
     /// Guest Roles provide permissions to simple Roles.
     #[utoipa::path(
         post,
-        path = "/managers/guest-role/{role}/",
+        path = "/managers/guest-roles/{role}/",
         params(
             ("role" = Uuid, Path, description = "The guest-role primary key."),
             CreateGuestRoleParams,
@@ -693,7 +686,7 @@ pub mod guest_role_endpoints {
     /// Delete a single guest role.
     #[utoipa::path(
         delete,
-        path = "/managers/guest-role/{role}/delete",
+        path = "/managers/guest-roles/{role}/delete",
         params(
             ("role" = Uuid, Path, description = "The guest-role primary key."),
         ),
@@ -754,7 +747,7 @@ pub mod guest_role_endpoints {
     /// Update name and description of a single Guest Role.
     #[utoipa::path(
         patch,
-        path = "/managers/guest-role/{role}/update-name-and-description",
+        path = "/managers/guest-roles/{role}/update-name-and-description",
         params(
             ("role" = Uuid, Path, description = "The guest-role primary key."),
             UpdateGuestRoleNameAndDescriptionParams,
@@ -825,7 +818,7 @@ pub mod guest_role_endpoints {
     /// Upgrade or Downgrade permissions of Guest Role.
     #[utoipa::path(
         patch,
-        path = "/managers/guest-role/{role}/update-permissions",
+        path = "/managers/guest-roles/{role}/update-permissions",
         params(
             ("role" = Uuid, Path, description = "The guest-role primary key."),
             UpdateGuestRolePermissionsParams,
@@ -932,12 +925,10 @@ pub mod role_endpoints {
 
     pub fn configure(config: &mut web::ServiceConfig) {
         config.service(
-            web::scope("/managers").service(
-                web::scope("/role")
-                    .service(crate_role_url)
-                    .service(delete_role_url)
-                    .service(update_role_name_and_description_url),
-            ),
+            web::scope("/roles")
+                .service(crate_role_url)
+                .service(delete_role_url)
+                .service(update_role_name_and_description_url),
         );
     }
 
@@ -957,7 +948,7 @@ pub mod role_endpoints {
     /// Roles are used to build Guest Role elements.
     #[utoipa::path(
         post,
-        path = "/managers/role/",
+        path = "/managers/roles/",
         params(
             CreateRoleParams,
         ),
@@ -1020,7 +1011,7 @@ pub mod role_endpoints {
     /// Delete a single role.
     #[utoipa::path(
         delete,
-        path = "/managers/role/{role}/delete",
+        path = "/managers/roles/{role}/delete",
         params(
             ("role" = Uuid, Path, description = "The role primary key."),
         ),
@@ -1078,7 +1069,7 @@ pub mod role_endpoints {
     /// Update name and description of a single Role.
     #[utoipa::path(
         patch,
-        path = "/managers/role/{role}/update-name-and-description",
+        path = "/managers/roles/{role}/update-name-and-description",
         params(
             ("role" = Uuid, Path, description = "The role primary key."),
             CreateRoleParams,

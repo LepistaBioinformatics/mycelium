@@ -6,7 +6,7 @@ mod modules;
 
 use actix_cors::Cors;
 use actix_web::middleware::Logger;
-use actix_web::{App, HttpServer};
+use actix_web::{web, App, HttpServer};
 use config::{configure as configure_injection_modules, SvcConfig};
 use endpoints::{
     default_users::{
@@ -94,27 +94,42 @@ pub async fn main() -> std::io::Result<()> {
             //
             // Index
             //
-            .configure(heath_check_endpoints::configure)
+            .service(
+                web::scope("/health")
+                    .configure(heath_check_endpoints::configure),
+            )
             //
             // Default Users
             //
-            .configure(default_users_account_endpoints::configure)
+            .service(
+                web::scope("/default-users")
+                    .configure(default_users_account_endpoints::configure),
+            )
             //
             // Manager
             //
-            .configure(manager_account_endpoints::configure)
-            .configure(manager_guest_endpoints::configure)
-            .configure(manager_guest_role_endpoints::configure)
-            .configure(manager_role_endpoints::configure)
+            .service(
+                web::scope("/managers")
+                    .configure(manager_account_endpoints::configure)
+                    .configure(manager_guest_endpoints::configure)
+                    .configure(manager_guest_role_endpoints::configure)
+                    .configure(manager_role_endpoints::configure),
+            )
             //
             // Service
             //
-            .configure(service_profile_endpoints::configure)
-            .configure(service_token_endpoints::configure)
+            .service(
+                web::scope("/services")
+                    .configure(service_profile_endpoints::configure)
+                    .configure(service_token_endpoints::configure),
+            )
             //
             // Staff
             //
-            .configure(staff_account_endpoints::configure)
+            .service(
+                web::scope("/staffs")
+                    .configure(staff_account_endpoints::configure),
+            )
             // ? ---------------------------------------------------------------
             // ? Configure API documentation
             // ? ---------------------------------------------------------------

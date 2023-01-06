@@ -33,7 +33,7 @@ impl TokenDeregistration for TokenDeregistrationSvcRepository {
         // ? -------------------------------------------------------------------
 
         let response = match client
-            .get(format!("{}/{}", self.url.to_owned(), token.token))
+            .get(format!("{}{}", self.url.to_owned(), token.token))
             .query(&[("service", token.own_service.to_owned())])
             .send()
             .await
