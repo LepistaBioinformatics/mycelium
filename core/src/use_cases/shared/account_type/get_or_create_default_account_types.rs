@@ -24,7 +24,7 @@ pub(crate) async fn get_or_create_default_account_types(
                     id: None,
                     name: name.unwrap_or(AccountTypeEnum::Standard.to_string()),
                     description: description.unwrap_or(
-                        "Such users should request delegating access."
+                        "These accounts should request delegating access"
                             .to_string(),
                     ),
                     is_subscription: false,
@@ -33,36 +33,32 @@ pub(crate) async fn get_or_create_default_account_types(
                 })
                 .await
         }
-        AccountTypeEnum::Manager => {
-            account_type_registration
-                .get_or_create(AccountType {
-                    id: None,
-                    name: name.unwrap_or(AccountTypeEnum::Manager.to_string()),
-                    description: description.unwrap_or(
-                        "Such accounts should perform management action on the system."
-                            .to_string(),
-                    ),
-                    is_subscription: false,
-                    is_manager: true,
-                    is_staff: false,
-                })
-                .await
-        }
-        AccountTypeEnum::Staff => {
-            account_type_registration
-                .get_or_create(AccountType {
-                    id: None,
-                    name: name.unwrap_or(AccountTypeEnum::Staff.to_string()),
-                    description: description.unwrap_or(
-                            "Such accounts should perform maintenance action on the system."
-                            .to_string(),
-                    ),
-                    is_subscription: false,
-                    is_manager: true,
-                    is_staff: true,
-                })
-                .await
-        }
+        AccountTypeEnum::Manager => account_type_registration
+            .get_or_create(AccountType {
+                id: None,
+                name: name.unwrap_or(AccountTypeEnum::Manager.to_string()),
+                description: description.unwrap_or(
+                    "These accounts should perform system management action"
+                        .to_string(),
+                ),
+                is_subscription: false,
+                is_manager: true,
+                is_staff: false,
+            })
+            .await,
+        AccountTypeEnum::Staff => account_type_registration
+            .get_or_create(AccountType {
+                id: None,
+                name: name.unwrap_or(AccountTypeEnum::Staff.to_string()),
+                description: description.unwrap_or(
+                    "These accounts should perform system maintenance action"
+                        .to_string(),
+                ),
+                is_subscription: false,
+                is_manager: true,
+                is_staff: true,
+            })
+            .await,
         AccountTypeEnum::Subscription => {
             account_type_registration
                 .get_or_create(AccountType {
@@ -70,8 +66,7 @@ pub(crate) async fn get_or_create_default_account_types(
                     name: name
                         .unwrap_or(AccountTypeEnum::Subscription.to_string()),
                     description: description.unwrap_or(
-                        "Such accounts are created to represents Customer results centering accounts."
-                            .to_string(),
+                        "These accounts represent legal entities.".to_string(),
                     ),
                     is_subscription: true,
                     is_manager: false,
