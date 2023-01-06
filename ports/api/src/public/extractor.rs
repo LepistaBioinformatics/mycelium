@@ -14,7 +14,7 @@ use myc_core::{
 };
 use myc_svc::repositories::TokenDeregistrationSvcRepository;
 
-use crate::settings::TOKENS_VALIDATION_PATH;
+use crate::settings::{STANDARD_SERVICE_NAME, TOKENS_VALIDATION_PATH};
 
 /// Extract the `Profile` from HTTP request.
 ///
@@ -49,7 +49,7 @@ async fn check_token(pack: ProfilePack) -> bool {
     match repo
         .get_then_delete(Token {
             token: pack.token,
-            own_service: String::from("mycelium"),
+            own_service: STANDARD_SERVICE_NAME.to_string(),
         })
         .await
     {
