@@ -1,3 +1,5 @@
+use crate::settings::{STANDARD_SERVICE_NAME, TOKENS_VALIDATION_PATH};
+
 use actix_web::{HttpRequest, HttpResponse};
 use clean_base::{
     entities::default_response::FetchResponseKind,
@@ -13,8 +15,6 @@ use myc_core::{
     use_cases::service::profile::ProfilePack,
 };
 use myc_svc::repositories::TokenDeregistrationSvcRepository;
-
-use crate::settings::{STANDARD_SERVICE_NAME, TOKENS_VALIDATION_PATH};
 
 /// Extract the `Profile` from HTTP request.
 ///
