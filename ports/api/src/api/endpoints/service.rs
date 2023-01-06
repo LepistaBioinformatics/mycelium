@@ -177,7 +177,6 @@ pub mod token_endpoints {
     use clean_base::entities::default_response::{
         DeletionManyResponseKind, FetchResponseKind,
     };
-    use log::warn;
     use myc_core::{
         domain::entities::{TokenCleanup, TokenDeregistration},
         use_cases::service::token::{clean_tokens_range, validate_token},
@@ -302,7 +301,6 @@ pub mod token_endpoints {
             dyn TokenDeregistration,
         >,
     ) -> impl Responder {
-        warn!("ENTROU");
         match validate_token(
             path.to_owned(),
             info.service.to_owned(),
@@ -315,7 +313,6 @@ pub mod token_endpoints {
             }
             Ok(res) => match res {
                 FetchResponseKind::NotFound(token) => {
-                    warn!("MEU 404");
                     HttpResponse::NotFound().body(token.unwrap().to_string())
                 }
                 FetchResponseKind::Found(token) => {
