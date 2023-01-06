@@ -53,6 +53,7 @@ pub mod profile_endpoints {
     use crate::modules::{ProfileFetchingModule, TokenRegistrationModule};
 
     use actix_web::{get, web, HttpResponse, Responder};
+    use log::warn;
     use myc_core::{
         domain::{
             dtos::email::Email,
@@ -71,9 +72,9 @@ pub mod profile_endpoints {
     // ? -----------------------------------------------------------------------
 
     pub fn configure(config: &mut web::ServiceConfig) {
-        config.service(web::scope("/service").service(
+        config.service(
             web::scope("/profiles").service(fetch_profile_from_email_url),
-        ));
+        );
     }
 
     // ? -----------------------------------------------------------------------
@@ -96,7 +97,7 @@ pub mod profile_endpoints {
 
     #[utoipa::path(
         get,
-        path = "/service/profile/",
+        path = "/services/profiles/",
         params(
             GetProfileParams,
         ),
@@ -153,14 +154,18 @@ pub mod profile_endpoints {
             Err(err) => {
                 HttpResponse::InternalServerError().body(err.to_string())
             }
-            Ok(res) => match res {
-                ProfileResponse::UnregisteredUser(email) => {
-                    HttpResponse::NotFound().body(email.get_email())
+            Ok(res) => {
+                warn!("res myc profile: {:?}", res);
+
+                match res {
+                    ProfileResponse::UnregisteredUser(email) => {
+                        HttpResponse::NotFound().body(email.get_email())
+                    }
+                    ProfileResponse::RegisteredUser(profile) => {
+                        HttpResponse::Ok().json(profile)
+                    }
                 }
-                ProfileResponse::RegisteredUser(profile) => {
-                    HttpResponse::Ok().json(profile)
-                }
-            },
+            }
         }
     }
 }
@@ -172,6 +177,7 @@ pub mod token_endpoints {
     use clean_base::entities::default_response::{
         DeletionManyResponseKind, FetchResponseKind,
     };
+    use log::warn;
     use myc_core::{
         domain::entities::{TokenCleanup, TokenDeregistration},
         use_cases::service::token::{clean_tokens_range, validate_token},
@@ -187,11 +193,9 @@ pub mod token_endpoints {
 
     pub fn configure(config: &mut web::ServiceConfig) {
         config.service(
-            web::scope("/service").service(
-                web::scope("/token")
-                    .service(clean_tokens_range_url)
-                    .service(validate_token_url),
-            ),
+            web::scope("/tokens")
+                .service(clean_tokens_range_url)
+                .service(validate_token_url),
         );
     }
 
@@ -218,7 +222,7 @@ pub mod token_endpoints {
     /// the system only.
     #[utoipa::path(
         post,
-        path = "/service/token/cleanup-tokens/",
+        path = "/services/tokens/cleanup-tokens/",
         responses(
             (
                 status = 500,
@@ -266,7 +270,7 @@ pub mod token_endpoints {
     /// Try to fetch a token. If exists return a token object.
     #[utoipa::path(
         get,
-        path = "/service/token/{token}",
+        path = "/services/tokens/{token}",
         params(
             ("token" = Uuid, Path, description = "The token itself."),
             ValidateTokenParams,
@@ -298,6 +302,7 @@ pub mod token_endpoints {
             dyn TokenDeregistration,
         >,
     ) -> impl Responder {
+        warn!("ENTROU");
         match validate_token(
             path.to_owned(),
             info.service.to_owned(),
@@ -310,6 +315,7 @@ pub mod token_endpoints {
             }
             Ok(res) => match res {
                 FetchResponseKind::NotFound(token) => {
+                    warn!("MEU 404");
                     HttpResponse::NotFound().body(token.unwrap().to_string())
                 }
                 FetchResponseKind::Found(token) => {

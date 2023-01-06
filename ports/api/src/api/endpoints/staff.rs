@@ -69,11 +69,9 @@ pub mod account_endpoints {
 
     pub fn configure(config: &mut web::ServiceConfig) {
         config.service(
-            web::scope("/staff").service(
-                web::scope("/accounts")
-                    .service(upgrade_account_privileges_url)
-                    .service(downgrade_account_privileges_url),
-            ),
+            web::scope("/accounts")
+                .service(upgrade_account_privileges_url)
+                .service(downgrade_account_privileges_url),
         );
     }
 
@@ -99,7 +97,7 @@ pub mod account_endpoints {
     /// Increase permissions of the refereed account.
     #[utoipa::path(
         patch,
-        path = "/staff/account/{account}/upgrade",
+        path = "/staffs/accounts/{account}/upgrade",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
             UpgradeAccountPrivilegesParams,
@@ -174,7 +172,7 @@ pub mod account_endpoints {
     /// Decrease permissions of the refereed account.
     #[utoipa::path(
         patch,
-        path = "/staff/account/{account}/downgrade",
+        path = "/staffs/accounts/{account}/downgrade",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
             UpgradeAccountPrivilegesParams,

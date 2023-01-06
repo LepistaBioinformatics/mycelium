@@ -33,9 +33,7 @@ pub mod heath_check_endpoints {
     // ? -----------------------------------------------------------------------
 
     pub fn configure(config: &mut web::ServiceConfig) {
-        config.service(
-            web::scope("/health").service(health_url).service(now_url),
-        );
+        config.service(health_url).service(now_url);
     }
 
     // ? -----------------------------------------------------------------------

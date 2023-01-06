@@ -14,6 +14,8 @@ use myc_core::{
 };
 use myc_svc::repositories::TokenDeregistrationSvcRepository;
 
+use crate::settings::TOKENS_VALIDATION_PATH;
+
 /// Extract the `Profile` from HTTP request.
 ///
 ///
@@ -41,7 +43,7 @@ pub async fn extract_profile(
 
 async fn check_token(pack: ProfilePack) -> bool {
     let repo = TokenDeregistrationSvcRepository {
-        url: String::from("/service/token"),
+        url: TOKENS_VALIDATION_PATH.to_string(),
     };
 
     match repo

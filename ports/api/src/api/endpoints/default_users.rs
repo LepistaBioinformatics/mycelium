@@ -70,11 +70,9 @@ pub mod account_endpoints {
 
     pub fn configure(config: &mut web::ServiceConfig) {
         config.service(
-            web::scope("/default-users")
-                .service(
-                    web::scope("/accounts").service(create_default_account_url),
-                )
-                .service(update_own_account_name_url),
+            web::scope("/accounts")
+                .service(create_default_account_url)
+                .service(update_own_account_name_url)
         );
     }
 
