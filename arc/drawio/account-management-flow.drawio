@@ -1,0 +1,228 @@
+<mxfile host="65bd71144e">
+    <diagram id="8NLJCzfdn6UhDkPKjgQs" name="Page-1">
+        <mxGraphModel dx="3548" dy="2920" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" background="#ffffff" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="31" value="Accounts Initialization Summary" style="swimlane;fontSize=16;startSize=39;sketch=1;" parent="1" vertex="1">
+                    <mxGeometry x="-463" y="-850" width="2023" height="2250" as="geometry"/>
+                </mxCell>
+                <mxCell id="59" value="" style="group;sketch=1;" parent="1" vertex="1" connectable="0">
+                    <mxGeometry x="-380" y="-730" width="250" height="460" as="geometry"/>
+                </mxCell>
+                <mxCell id="58" value="" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;arcSize=5;sketch=1;" parent="59" vertex="1">
+                    <mxGeometry width="250" height="460" as="geometry"/>
+                </mxCell>
+                <mxCell id="48" value="Staff" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;sketch=1;" parent="59" vertex="1">
+                    <mxGeometry x="37.5" y="88" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="49" value="Account Type Hierarchies" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;sketch=1;" parent="59" vertex="1">
+                    <mxGeometry x="33" y="28" width="129" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="50" value="Manager" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;sketch=1;" parent="59" vertex="1">
+                    <mxGeometry x="37.5" y="228" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="53" style="edgeStyle=none;html=1;fontSize=16;sketch=1;" parent="59" source="48" target="50" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="51" value="Standard" style="rounded=1;whiteSpace=wrap;html=1;fontSize=16;sketch=1;" parent="59" vertex="1">
+                    <mxGeometry x="37.5" y="373" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="55" style="edgeStyle=none;html=1;fontSize=16;sketch=1;" parent="59" source="50" target="51" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="56" value="Has more privileges than managers" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;sketch=1;" parent="59" vertex="1">
+                    <mxGeometry x="114" y="173" width="129" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="57" value="Has more privileges than standards" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;sketch=1;" parent="59" vertex="1">
+                    <mxGeometry x="114" y="316" width="129" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="70" style="edgeStyle=none;html=1;sketch=1;" edge="1" parent="1" source="71" target="75">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="71" value="Real World&lt;br&gt;Staff" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="405" y="-640" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="72" style="edgeStyle=none;html=1;fontSize=12;sketch=1;" edge="1" parent="1" source="75" target="74">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="73" value="&lt;h1&gt;Initialization: Staff&lt;/h1&gt;&lt;p&gt;A real world staff user performs the self registration using the Mycelium CLI. Through these interface the user is automatically registered as Staff account.&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="660" y="-560" width="245" height="117" as="geometry"/>
+                </mxCell>
+                <mxCell id="74" value="System&lt;br&gt;Staff Account" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="1075" y="-640" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="75" value="&lt;span&gt;Self Registering by Mycelium CLI&lt;/span&gt;" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="695" y="-650" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="76" value="" style="endArrow=none;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="80" y="-390" as="sourcePoint"/>
+                        <mxPoint x="1480" y="-390" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="79" value="&lt;span&gt;Seed staff account creation workflow&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="-670" width="280" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="80" value="&lt;span&gt;Default account creation workflow&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="-360" width="280" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="81" style="edgeStyle=none;html=1;fontSize=12;sketch=1;" edge="1" parent="1" source="86" target="85">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="82" style="edgeStyle=none;html=1;fontSize=12;sketch=1;" edge="1" parent="1" source="83" target="86">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="83" value="Real World&lt;br&gt;Standard User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="405" y="-320" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="84" value="&lt;h1&gt;Initialization: Standard&lt;/h1&gt;&lt;p&gt;A standard user perform the self registration using the Mycelium API. These user is automatically registered with Standard account.&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="645" y="-240" width="275" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="85" value="System&lt;br&gt;Standard &lt;br&gt;Account" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="1075" y="-320" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="86" value="Self Registration on Mycelium API" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="695" y="-330" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="87" value="" style="endArrow=none;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="80" y="-90" as="sourcePoint"/>
+                        <mxPoint x="1480" y="-90" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="88" value="&lt;span&gt;Manager account creation workflow&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="-60" width="280" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="89" style="edgeStyle=none;html=1;fontSize=12;sketch=1;" edge="1" source="94" target="93" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="90" style="edgeStyle=none;html=1;fontSize=12;sketch=1;" edge="1" source="91" target="94" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="91" value="Real World&lt;br&gt;Manager" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="239" y="300" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="92" value="&lt;h1&gt;Initialization: Manager&lt;/h1&gt;&lt;p&gt;A real world manager user perform the self registration using the Mycelium API. These user is automatically registered as Standard user.&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="479" y="380" width="275" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="93" value="System&lt;br&gt;Standard &lt;br&gt;Account" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="909" y="300" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="94" value="Self Registration on Mycelium API" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="529" y="290" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="95" value="&lt;h1&gt;Upgrade: Manager&lt;/h1&gt;&lt;p&gt;A real world manager user request to the System Staff the account upgrade from Standard User to the Manager User type.&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="790" y="130" width="254" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="96" value="Account Type Upgrade&amp;nbsp;" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="1089" y="90" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="97" style="edgeStyle=none;html=1;fontSize=12;sketch=1;" edge="1" source="101" target="96" parent="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="1197.6842105263158" y="80" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="98" value="&lt;h1&gt;Upgrade: Staff&lt;/h1&gt;&lt;p&gt;A System Staff account accepts the Standard User upgrade request.&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="1044" y="-36" width="241" height="86" as="geometry"/>
+                </mxCell>
+                <mxCell id="99" value="System&lt;br&gt;Manager &lt;br&gt;Account" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="1342" y="100" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="100" style="edgeStyle=none;html=1;fontSize=12;sketch=1;" edge="1" source="96" target="99" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="101" value="System&lt;br&gt;Staff Account" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="909" y="-20" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="102" style="edgeStyle=none;html=1;fontSize=12;sketch=1;" edge="1" source="93" target="96" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="103" value="" style="endArrow=none;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="80" y="530" as="sourcePoint"/>
+                        <mxPoint x="1480" y="530" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="104" value="&lt;span&gt;Subscription account creation workflow&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="560" width="280" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="109" style="edgeStyle=none;html=1;fontSize=12;sketch=1;" edge="1" source="110" target="113" parent="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="110" value="System&lt;br&gt;Manager" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="529" y="600" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="113" value="Self Registration on Mycelium API" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="819" y="590" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="114" value="&lt;h1&gt;Initialization: Subscription&lt;/h1&gt;&lt;p&gt;A system manager register a subscription account at the system using the Mycelim API. These account should be used for administrative purposes.&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="741" y="690" width="331" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="115" value="&lt;span&gt;Guest Standard User for Subscription Account&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="870" width="280" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="116" value="" style="endArrow=none;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="80" y="840" as="sourcePoint"/>
+                        <mxPoint x="1480" y="840" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="133" style="edgeStyle=none;html=1;" edge="1" parent="1" source="117" target="131">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="117" value="System&lt;br&gt;Manager&lt;br&gt;Account" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="230" y="1070" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="128" style="edgeStyle=none;html=1;" edge="1" parent="1" source="118" target="124">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="130" style="edgeStyle=none;html=1;" edge="1" parent="1" source="118" target="120">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="118" value="Guest Standard Accounts to act in Subs. Account" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="1109" y="1060" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="120" value="System&lt;br&gt;Standard&lt;br&gt;Account" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="1367" y="950" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="123" value="&lt;h1&gt;Guesting&lt;/h1&gt;&lt;p&gt;A system manager account guest a system standard account to work into a subscription account. These guest should connect the subscription account ID and the Guest Role ID.&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="939" y="930" width="331" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="124" value="System&lt;br&gt;Subscription&lt;br&gt;Account" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="1371" y="1170" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="131" value="Manager Account User create a Role" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="370" y="1060" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="132" value="Manager Account User create a Guest Role" style="ellipse;whiteSpace=wrap;html=1;fontSize=12;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="730" y="1060" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="136" style="edgeStyle=none;html=1;" edge="1" parent="1" source="134" target="131">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="137" style="edgeStyle=none;html=1;" edge="1" parent="1" source="134" target="132">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="134" value="System&lt;br&gt;Manager&lt;br&gt;Account" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="597" y="1070" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="139" style="edgeStyle=none;html=1;" edge="1" parent="1" source="138" target="132">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="140" style="edgeStyle=none;html=1;" edge="1" parent="1" source="138" target="118">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="138" value="System&lt;br&gt;Manager&lt;br&gt;Account" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="959" y="1070" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="141" value="&lt;h1&gt;Role Creation&lt;/h1&gt;&lt;p&gt;A system manager account create a role based on the system rules. As an example, if a system provides for the existence of an accountant, that would be the name of the role.&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="314" y="1200" width="283" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="142" value="&lt;h1&gt;Guest Role Creation&lt;/h1&gt;&lt;p&gt;A system manager account register permissiont to the role. As an example, if the accountant role should only view records of some resource, a guest role would be named AccountantViewer and this role would has only View privilegies.&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;sketch=1;" vertex="1" parent="1">
+                    <mxGeometry x="687" y="1200" width="283" height="130" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
