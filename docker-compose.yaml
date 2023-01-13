@@ -37,3 +37,13 @@ services:
     networks:
       mycelium_net:
         ipv4_address: ${POSTGRES_SERVICE_SUBNET}
+
+  mycelium_redis:
+    container_name: mycelium-redis
+    image: redis:latest
+    restart: on-failure
+    ports:
+      - ${REDIS_SERVICE_PORT}:6379
+    networks:
+      mycelium_net:
+        ipv4_address: ${REDIS_SERVICE_SUBNET}

@@ -57,7 +57,7 @@ pub mod account_endpoints {
             downgrade_account_privileges, upgrade_account_privileges,
         },
     };
-    use myc_http_tools::extractor::extract_profile;
+    use myc_http_tools::{extractor::extract_profile, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -153,12 +153,11 @@ pub mod account_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().body(msg)
+                    HttpResponse::BadRequest().json(JsonError(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
@@ -228,12 +227,11 @@ pub mod account_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().body(msg)
+                    HttpResponse::BadRequest().json(JsonError(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)

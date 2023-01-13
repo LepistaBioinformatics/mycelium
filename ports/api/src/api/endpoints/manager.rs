@@ -19,6 +19,8 @@ use utoipa::OpenApi;
 #[openapi(
     paths(
         account_endpoints::create_subscription_account_url,
+        account_endpoints::list_subscription_accounts_url,
+        account_endpoints::get_subscription_account_details_url,
         account_endpoints::approve_account_url,
         account_endpoints::activate_account_url,
         account_endpoints::deactivate_account_url,
@@ -71,9 +73,12 @@ pub mod account_endpoints {
         UserRegistrationModule,
     };
 
-    use actix_web::{patch, post, web, HttpRequest, HttpResponse, Responder};
+    use actix_web::{
+        get, patch, post, web, HttpRequest, HttpResponse, Responder,
+    };
     use clean_base::entities::default_response::{
-        GetOrCreateResponseKind, UpdatingResponseKind,
+        FetchManyResponseKind, FetchResponseKind, GetOrCreateResponseKind,
+        UpdatingResponseKind,
     };
     use myc_core::{
         domain::entities::{
@@ -81,13 +86,16 @@ pub mod account_endpoints {
             AccountUpdating, UserRegistration,
         },
         use_cases::{
-            managers::account::create_subscription_account,
+            managers::account::{
+                create_subscription_account, get_subscription_account_details,
+                list_subscription_accounts,
+            },
             shared::account::{
                 approve_account, change_account_activation_status,
             },
         },
     };
-    use myc_http_tools::extractor::extract_profile;
+    use myc_http_tools::{extractor::extract_profile, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -101,6 +109,8 @@ pub mod account_endpoints {
         config.service(
             web::scope("/accounts")
                 .service(create_subscription_account_url)
+                .service(list_subscription_accounts_url)
+                .service(get_subscription_account_details_url)
                 .service(approve_account_url)
                 .service(activate_account_url)
                 .service(deactivate_account_url),
@@ -116,6 +126,14 @@ pub mod account_endpoints {
     pub struct CreateSubscriptionAccountParams {
         pub email: String,
         pub account_name: String,
+    }
+
+    #[derive(Deserialize, IntoParams)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ListSubscriptionAccountParams {
+        pub name: Option<String>,
+        pub is_active: Option<bool>,
+        pub is_checked: Option<bool>,
     }
 
     // ? -----------------------------------------------------------------------
@@ -185,15 +203,141 @@ pub mod account_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
                 GetOrCreateResponseKind::NotCreated(guest, _) => {
                     HttpResponse::Ok().json(guest)
                 }
                 GetOrCreateResponseKind::Created(guest) => {
                     HttpResponse::Created().json(guest)
+                }
+            },
+        }
+    }
+
+    /// List Subscription Accounts
+    ///
+    /// Get a filtered (or not) list of accounts.
+    #[utoipa::path(
+        get,
+        path = "/managers/accounts/",
+        params(
+            ListSubscriptionAccountParams,
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = String,
+            ),
+            (
+                status = 404,
+                description = "Not found.",
+            ),
+            (
+                status = 200,
+                description = "Fetching success.",
+                body = [Account],
+            ),
+        ),
+    )]
+    #[get("/")]
+    pub async fn list_subscription_accounts_url(
+        info: web::Query<ListSubscriptionAccountParams>,
+        req: HttpRequest,
+        account_fetching_repo: Inject<
+            AccountFetchingModule,
+            dyn AccountFetching,
+        >,
+        account_type_registration_repo: Inject<
+            AccountTypeRegistrationModule,
+            dyn AccountTypeRegistration,
+        >,
+    ) -> impl Responder {
+        let profile = match extract_profile(req).await {
+            Err(err) => return err,
+            Ok(res) => res,
+        };
+
+        match list_subscription_accounts(
+            profile,
+            info.name.to_owned(),
+            info.is_active.to_owned(),
+            info.is_checked.to_owned(),
+            Box::new(&*account_fetching_repo),
+            Box::new(&*account_type_registration_repo),
+        )
+        .await
+        {
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
+            Ok(res) => match res {
+                FetchManyResponseKind::NotFound => {
+                    HttpResponse::NotFound().finish()
+                }
+                FetchManyResponseKind::Found(accounts) => {
+                    HttpResponse::Created().json(accounts)
+                }
+            },
+        }
+    }
+
+    /// Get Subscription Account
+    ///
+    /// Get a single subscription account.
+    #[utoipa::path(
+        get,
+        path = "/managers/accounts/{account}",
+        params(
+            ("account" = Uuid, Path, description = "The account primary key."),
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = String,
+            ),
+            (
+                status = 404,
+                description = "Not found.",
+                body = Uuid,
+            ),
+            (
+                status = 200,
+                description = "Fetching success.",
+                body = Account,
+            ),
+        ),
+    )]
+    #[get("/{account}")]
+    pub async fn get_subscription_account_details_url(
+        path: web::Path<Uuid>,
+        req: HttpRequest,
+        account_fetching_repo: Inject<
+            AccountFetchingModule,
+            dyn AccountFetching,
+        >,
+    ) -> impl Responder {
+        let profile = match extract_profile(req).await {
+            Err(err) => return err,
+            Ok(res) => res,
+        };
+
+        match get_subscription_account_details(
+            profile,
+            *path,
+            Box::new(&*account_fetching_repo),
+        )
+        .await
+        {
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
+            Ok(res) => match res {
+                FetchResponseKind::NotFound(id) => HttpResponse::NotFound()
+                    .json(JsonError(id.unwrap().to_string())),
+                FetchResponseKind::Found(accounts) => {
+                    HttpResponse::Created().json(accounts)
                 }
             },
         }
@@ -253,12 +397,11 @@ pub mod account_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().body(msg)
+                    HttpResponse::BadRequest().json(JsonError(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
@@ -322,12 +465,11 @@ pub mod account_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().body(msg)
+                    HttpResponse::BadRequest().json(JsonError(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
@@ -391,12 +533,11 @@ pub mod account_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().body(msg)
+                    HttpResponse::BadRequest().json(JsonError(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
@@ -424,7 +565,7 @@ pub mod guest_endpoints {
         },
         use_cases::managers::guest::guest_user,
     };
-    use myc_http_tools::extractor::extract_profile;
+    use myc_http_tools::{extractor::extract_profile, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -510,7 +651,8 @@ pub mod guest_endpoints {
 
         let email = match Email::from_string(info.email.to_owned()) {
             Err(err) => {
-                return HttpResponse::BadRequest().body(err.to_string())
+                return HttpResponse::BadRequest()
+                    .json(JsonError(err.to_string()))
             }
             Ok(res) => res,
         };
@@ -526,9 +668,8 @@ pub mod guest_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
                 GetOrCreateResponseKind::NotCreated(guest, _) => {
                     HttpResponse::Ok().json(guest)
@@ -568,7 +709,7 @@ pub mod guest_role_endpoints {
             update_guest_role_permissions, ActionType,
         },
     };
-    use myc_http_tools::extractor::extract_profile;
+    use myc_http_tools::{extractor::extract_profile, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -667,9 +808,8 @@ pub mod guest_role_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
                 GetOrCreateResponseKind::NotCreated(guest, _) => {
                     HttpResponse::Ok().json(guest)
@@ -728,12 +868,11 @@ pub mod guest_role_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
                 DeletionResponseKind::NotDeleted(_, msg) => {
-                    HttpResponse::BadRequest().body(msg)
+                    HttpResponse::BadRequest().json(JsonError(msg))
                 }
                 DeletionResponseKind::Deleted => {
                     HttpResponse::NoContent().finish()
@@ -799,12 +938,11 @@ pub mod guest_role_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().body(msg)
+                    HttpResponse::BadRequest().json(JsonError(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
@@ -870,12 +1008,11 @@ pub mod guest_role_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().body(msg)
+                    HttpResponse::BadRequest().json(JsonError(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
@@ -913,7 +1050,7 @@ pub mod role_endpoints {
             create_role, delete_role, update_role_name_and_description,
         },
     };
-    use myc_http_tools::extractor::extract_profile;
+    use myc_http_tools::{extractor::extract_profile, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -992,9 +1129,8 @@ pub mod role_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
                 GetOrCreateResponseKind::NotCreated(guest, _) => {
                     HttpResponse::Ok().json(guest)
@@ -1050,12 +1186,11 @@ pub mod role_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
                 DeletionResponseKind::NotDeleted(_, msg) => {
-                    HttpResponse::BadRequest().body(msg)
+                    HttpResponse::BadRequest().json(JsonError(msg))
                 }
                 DeletionResponseKind::Deleted => {
                     HttpResponse::NoContent().finish()
@@ -1115,12 +1250,11 @@ pub mod role_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().body(msg)
+                    HttpResponse::BadRequest().json(JsonError(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
