@@ -9,6 +9,7 @@ use myc_core::{
     },
     use_cases::managers::guest_role::ActionType,
 };
+use myc_http_tools::utils::JsonError;
 use utoipa::OpenApi;
 
 // ? ---------------------------------------------------------------------------
@@ -25,6 +26,7 @@ use utoipa::OpenApi;
         account_endpoints::activate_account_url,
         account_endpoints::deactivate_account_url,
         guest_endpoints::guest_user_url,
+        guest_endpoints::list_guest_on_subscription_account_url,
         guest_role_endpoints::crate_guest_role_url,
         guest_role_endpoints::delete_guest_role_url,
         guest_role_endpoints::update_guest_role_name_and_description_url,
@@ -46,6 +48,7 @@ use utoipa::OpenApi;
             Email,
             GuestUser,
             GuestRole,
+            JsonError,
             LicensedResources,
             PermissionsType,
             Profile,
@@ -157,7 +160,7 @@ pub mod account_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 201,
@@ -229,7 +232,7 @@ pub mod account_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 404,
@@ -296,12 +299,12 @@ pub mod account_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 404,
                 description = "Not found.",
-                body = Uuid,
+                body = JsonError,
             ),
             (
                 status = 200,
@@ -357,12 +360,12 @@ pub mod account_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 400,
                 description = "Account not approved.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 202,
@@ -424,12 +427,12 @@ pub mod account_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 400,
                 description = "Account not activated.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 202,
@@ -492,12 +495,12 @@ pub mod account_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 400,
                 description = "Account not activated.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 202,
@@ -550,20 +553,25 @@ pub mod account_endpoints {
 pub mod guest_endpoints {
 
     use crate::modules::{
-        AccountFetchingModule, GuestUserRegistrationModule,
-        MessageSendingModule,
+        AccountFetchingModule, GuestUserFetchingModule,
+        GuestUserRegistrationModule, MessageSendingModule,
     };
 
-    use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
-    use clean_base::entities::default_response::GetOrCreateResponseKind;
+    use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
+    use clean_base::entities::default_response::{
+        FetchManyResponseKind, GetOrCreateResponseKind,
+    };
     use myc_core::{
         domain::{
             dtos::email::Email,
             entities::{
-                AccountFetching, GuestUserRegistration, MessageSending,
+                AccountFetching, GuestUserFetching, GuestUserRegistration,
+                MessageSending,
             },
         },
-        use_cases::managers::guest::guest_user,
+        use_cases::managers::guest::{
+            guest_user, list_guest_on_subscription_account,
+        },
     };
     use myc_http_tools::{extractor::extract_profile, utils::JsonError};
     use serde::Deserialize;
@@ -576,7 +584,11 @@ pub mod guest_endpoints {
     // ? -----------------------------------------------------------------------
 
     pub fn configure(config: &mut web::ServiceConfig) {
-        config.service(web::scope("/guests").service(guest_user_url));
+        config.service(
+            web::scope("/guests")
+                .service(guest_user_url)
+                .service(list_guest_on_subscription_account_url),
+        );
     }
 
     // ? -----------------------------------------------------------------------
@@ -613,7 +625,12 @@ pub mod guest_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
+            ),
+            (
+                status = 400,
+                description = "Bad request.",
+                body = JsonError,
             ),
             (
                 status = 201,
@@ -676,6 +693,77 @@ pub mod guest_endpoints {
                 }
                 GetOrCreateResponseKind::Created(guest) => {
                     HttpResponse::Created().json(guest)
+                }
+            },
+        }
+    }
+
+    /// List guest accounts related to a subscription account
+    ///
+    /// This action fetches all non-subscription accounts related to the
+    /// informed subscription account.
+    #[utoipa::path(
+        get,
+        path = "/managers/guests/account/{account}",
+        params(
+            ("account" = Uuid, Path, description = "The account primary key."),
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 404,
+                description = "Not found.",
+                body = JsonError,
+            ),
+            (
+                status = 200,
+                description = "Fetching success.",
+                body = GuestUser,
+            ),
+        ),
+    )]
+    #[get("/account/{account}/")]
+    pub async fn list_guest_on_subscription_account_url(
+        path: web::Path<Uuid>,
+        req: HttpRequest,
+        account_fetching_repo: Inject<
+            AccountFetchingModule,
+            dyn AccountFetching,
+        >,
+        guest_user_fetching_repo: Inject<
+            GuestUserFetchingModule,
+            dyn GuestUserFetching,
+        >,
+    ) -> impl Responder {
+        let profile = match extract_profile(req).await {
+            Err(err) => return err,
+            Ok(res) => res,
+        };
+
+        let account_id = path.to_owned();
+
+        match list_guest_on_subscription_account(
+            profile,
+            account_id.to_owned(),
+            Box::new(&*account_fetching_repo),
+            Box::new(&*guest_user_fetching_repo),
+        )
+        .await
+        {
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string())),
+            Ok(res) => match res {
+                FetchManyResponseKind::NotFound => HttpResponse::NotFound()
+                    .json(JsonError::new(format!(
+                        "Account ({}) has no associated guests",
+                        account_id
+                    ))),
+                FetchManyResponseKind::Found(guest) => {
+                    HttpResponse::Ok().json(guest)
                 }
             },
         }
@@ -769,7 +857,7 @@ pub mod guest_role_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 201,
@@ -834,12 +922,12 @@ pub mod guest_role_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 400,
                 description = "Guest Role not deleted.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 204,
@@ -895,12 +983,12 @@ pub mod guest_role_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 400,
                 description = "Guest Role not deleted.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 202,
@@ -965,12 +1053,12 @@ pub mod guest_role_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 400,
                 description = "Guest Role not deleted.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 202,
@@ -1093,7 +1181,7 @@ pub mod role_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 201,
@@ -1155,12 +1243,12 @@ pub mod role_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 400,
                 description = "Role not deleted.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 204,
@@ -1213,12 +1301,12 @@ pub mod role_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 400,
                 description = "Guest Role not deleted.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 202,

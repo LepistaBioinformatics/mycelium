@@ -3,10 +3,11 @@ use crate::modules::{
     AccountTypeDeletionModule, AccountTypeRegistrationModule,
     AccountUpdatingModule, GuestRoleDeletionModule, GuestRoleFetchingModule,
     GuestRoleRegistrationModule, GuestRoleUpdatingModule,
-    GuestUserRegistrationModule, MessageSendingModule, ProfileFetchingModule,
-    RoleDeletionModule, RoleFetchingModule, RoleRegistrationModule,
-    RoleUpdatingModule, TokenCleanupModule, TokenDeregistrationModule,
-    TokenRegistrationModule, UserRegistrationModule, UserUpdatingModule,
+    GuestUserFetchingModule, GuestUserRegistrationModule, MessageSendingModule,
+    ProfileFetchingModule, RoleDeletionModule, RoleFetchingModule,
+    RoleRegistrationModule, RoleUpdatingModule, TokenCleanupModule,
+    TokenDeregistrationModule, TokenRegistrationModule, UserRegistrationModule,
+    UserUpdatingModule,
 };
 
 use actix_web::web;
@@ -27,6 +28,8 @@ use myc_prisma::repositories::{
     GuestRoleRegistrationSqlDbRepositoryParameters,
     GuestRoleUpdatingSqlDbRepository,
     GuestRoleUpdatingSqlDbRepositoryParameters,
+    GuestUserFetchingSqlDbRepository,
+    GuestUserFetchingSqlDbRepositoryParameters,
     GuestUserRegistrationSqlDbRepository,
     GuestUserRegistrationSqlDbRepositoryParameters,
     ProfileFetchingSqlDbRepository, ProfileFetchingSqlDbRepositoryParameters,
@@ -127,6 +130,13 @@ pub fn configure(config: &mut web::ServiceConfig) {
         // ? -------------------------------------------------------------------
         // ? Guest User
         // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            GuestUserFetchingModule::builder()
+                .with_component_parameters::<GuestUserFetchingSqlDbRepository>(
+                    GuestUserFetchingSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
         .app_data(Arc::new(
             GuestUserRegistrationModule::builder()
                 .with_component_parameters::<GuestUserRegistrationSqlDbRepository>(

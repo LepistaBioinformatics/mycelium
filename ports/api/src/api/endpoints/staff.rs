@@ -1,5 +1,6 @@
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use myc_core::domain::dtos::account::{Account, AccountType, AccountTypeEnum};
+use myc_http_tools::utils::JsonError;
 use utoipa::OpenApi;
 
 // ? ---------------------------------------------------------------------------
@@ -22,6 +23,7 @@ use utoipa::OpenApi;
             Account,
             AccountType,
             AccountTypeEnum,
+            JsonError,
         ),
     ),
     tags(
@@ -106,12 +108,12 @@ pub mod account_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 400,
                 description = "Account not upgraded.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 202,
@@ -180,12 +182,12 @@ pub mod account_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 400,
                 description = "Account not downgraded.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 202,

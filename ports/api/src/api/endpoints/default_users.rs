@@ -1,5 +1,6 @@
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use myc_core::domain::dtos::account::{Account, AccountType};
+use myc_http_tools::utils::JsonError;
 use utoipa::OpenApi;
 
 // ? ---------------------------------------------------------------------------
@@ -19,8 +20,9 @@ use utoipa::OpenApi;
             ParentEnum<String, String>,
 
             // Schema models.
-            Account, 
+            Account,
             AccountType,
+            JsonError,
         ),
     ),
     tags(
@@ -72,7 +74,7 @@ pub mod account_endpoints {
         config.service(
             web::scope("/accounts")
                 .service(create_default_account_url)
-                .service(update_own_account_name_url)
+                .service(update_own_account_name_url),
         );
     }
 
@@ -112,7 +114,7 @@ pub mod account_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 201,
@@ -153,9 +155,8 @@ pub mod account_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().json(JsonError::new(err.to_string()))
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 GetOrCreateResponseKind::Created(record) => {
                     HttpResponse::Created().json(record)
@@ -178,12 +179,17 @@ pub mod account_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
             ),
             (
                 status = 400,
                 description = "Account name not updated.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 202,
@@ -219,7 +225,8 @@ pub mod account_endpoints {
                 path.to_owned()
             );
 
-            return HttpResponse::Forbidden().json(JsonError::new(String::from(
+            return HttpResponse::Forbidden()
+                .json(JsonError::new(String::from(
                 "Invalid operation. Operation restricted to account owners.",
             )));
         }
@@ -232,9 +239,8 @@ pub mod account_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().json(JsonError::new(err.to_string()))
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
                     HttpResponse::BadRequest().json(JsonError::new(msg))
