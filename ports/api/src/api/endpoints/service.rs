@@ -53,7 +53,6 @@ pub mod profile_endpoints {
     use crate::modules::{ProfileFetchingModule, TokenRegistrationModule};
 
     use actix_web::{get, web, HttpResponse, Responder};
-    use log::warn;
     use myc_core::{
         domain::{
             dtos::email::Email,
@@ -63,6 +62,7 @@ pub mod profile_endpoints {
             fetch_profile_from_email, ProfileResponse,
         },
     };
+    use myc_http_tools::utils::JsonError;
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -138,7 +138,8 @@ pub mod profile_endpoints {
     ) -> impl Responder {
         let email = match Email::from_string(info.email.to_owned()) {
             Err(err) => {
-                return HttpResponse::BadRequest().body(err.to_string())
+                return HttpResponse::BadRequest()
+                    .json(JsonError(err.to_string()))
             }
             Ok(res) => res,
         };
@@ -151,21 +152,16 @@ pub mod profile_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
-            Ok(res) => {
-                warn!("res myc profile: {:?}", res);
-
-                match res {
-                    ProfileResponse::UnregisteredUser(email) => {
-                        HttpResponse::NotFound().body(email.get_email())
-                    }
-                    ProfileResponse::RegisteredUser(profile) => {
-                        HttpResponse::Ok().json(profile)
-                    }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
+            Ok(res) => match res {
+                ProfileResponse::UnregisteredUser(email) => {
+                    HttpResponse::NotFound().json(JsonError(email.get_email()))
                 }
-            }
+                ProfileResponse::RegisteredUser(profile) => {
+                    HttpResponse::Ok().json(profile)
+                }
+            },
         }
     }
 }
@@ -181,6 +177,7 @@ pub mod token_endpoints {
         domain::entities::{TokenCleanup, TokenDeregistration},
         use_cases::service::token::{clean_tokens_range, validate_token},
     };
+    use myc_http_tools::utils::JsonError;
     use serde::{Deserialize, Serialize};
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -250,12 +247,11 @@ pub mod token_endpoints {
         }
 
         match clean_tokens_range(Box::new(&*token_cleanup_repo)).await {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
                 DeletionManyResponseKind::NotDeleted(_, msg) => {
-                    HttpResponse::BadRequest().body(msg)
+                    HttpResponse::BadRequest().json(JsonError(msg))
                 }
                 DeletionManyResponseKind::Deleted(records) => {
                     HttpResponse::Ok().body(records.to_string())
@@ -308,13 +304,11 @@ pub mod token_endpoints {
         )
         .await
         {
-            Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
-            }
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError(err.to_string())),
             Ok(res) => match res {
-                FetchResponseKind::NotFound(token) => {
-                    HttpResponse::NotFound().body(token.unwrap().to_string())
-                }
+                FetchResponseKind::NotFound(token) => HttpResponse::NotFound()
+                    .json(JsonError(token.unwrap().to_string())),
                 FetchResponseKind::Found(token) => {
                     HttpResponse::Ok().json(token)
                 }

@@ -1,4 +1,7 @@
-use crate::settings::{STANDARD_SERVICE_NAME, TOKENS_VALIDATION_PATH};
+use crate::{
+    settings::{STANDARD_SERVICE_NAME, TOKENS_VALIDATION_PATH},
+    utils::JsonError,
+};
 
 use actix_web::{HttpRequest, HttpResponse};
 use clean_base::{
@@ -29,7 +32,8 @@ pub async fn extract_profile(
     let pack = match try_extract_from_headers(req.to_owned()).await {
         Err(err) => {
             warn!("Unexpected error on check profile: {err}");
-            return Err(HttpResponse::Forbidden().body("Unidentified user."));
+            return Err(HttpResponse::Forbidden()
+                .json(JsonError("Unidentified user.".to_string())));
         }
         Ok(res) => res,
     };
@@ -38,7 +42,8 @@ pub async fn extract_profile(
         return Ok(pack.profile);
     }
 
-    Err(HttpResponse::Forbidden().body("Unidentified user."))
+    Err(HttpResponse::Forbidden()
+        .json(JsonError("Unidentified user.".to_string())))
 }
 
 async fn check_token(pack: ProfilePack) -> bool {
@@ -79,18 +84,14 @@ async fn try_extract_from_headers(
                 None,
                 None,
             )),
-            Ok(res) => {
-                println!("res: {:?}", res);
-
-                match serde_json::from_str::<ProfilePack>(&res) {
-                    Err(err) => Err(execution_err(
-                        format!("Unable to fetch profile from header: {err}"),
-                        None,
-                        None,
-                    )),
-                    Ok(res) => Ok(res),
-                }
-            }
+            Ok(res) => match serde_json::from_str::<ProfilePack>(&res) {
+                Err(err) => Err(execution_err(
+                    format!("Unable to fetch profile from header: {err}"),
+                    None,
+                    None,
+                )),
+                Ok(res) => Ok(res),
+            },
         },
     }
 }

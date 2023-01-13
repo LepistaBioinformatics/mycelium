@@ -58,7 +58,7 @@ pub mod account_endpoints {
             create_default_account, update_own_account_name,
         },
     };
-    use myc_http_tools::extractor::extract_profile;
+    use myc_http_tools::{extractor::extract_profile, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -154,7 +154,7 @@ pub mod account_endpoints {
         .await
         {
             Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
+                HttpResponse::InternalServerError().json(JsonError(err.to_string()))
             }
             Ok(res) => match res {
                 GetOrCreateResponseKind::Created(record) => {
@@ -219,9 +219,9 @@ pub mod account_endpoints {
                 path.to_owned()
             );
 
-            return HttpResponse::Forbidden().body(String::from(
+            return HttpResponse::Forbidden().json(JsonError(String::from(
                 "Invalid operation. Operation restricted to account owners.",
-            ));
+            )));
         }
 
         match update_own_account_name(
@@ -233,11 +233,11 @@ pub mod account_endpoints {
         .await
         {
             Err(err) => {
-                HttpResponse::InternalServerError().body(err.to_string())
+                HttpResponse::InternalServerError().json(JsonError(err.to_string()))
             }
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().body(msg)
+                    HttpResponse::BadRequest().json(JsonError(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
