@@ -8,6 +8,7 @@ use myc_core::{
     },
     use_cases::service::profile::ProfilePack,
 };
+use myc_http_tools::utils::JsonError;
 use utoipa::OpenApi;
 
 // ? ---------------------------------------------------------------------------
@@ -29,6 +30,7 @@ use utoipa::OpenApi;
 
             // Schema models.
             Email,
+            JsonError,
             LicensedResources,
             PermissionsType,
             Profile,
@@ -105,17 +107,17 @@ pub mod profile_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 404,
                 description = "Not found.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 400,
                 description = "Bad request.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 200,
@@ -179,7 +181,7 @@ pub mod token_endpoints {
         use_cases::service::token::{clean_tokens_range, validate_token},
     };
     use myc_http_tools::utils::JsonError;
-    use serde::{Deserialize, Serialize};
+    use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
     use uuid::Uuid;
@@ -224,12 +226,12 @@ pub mod token_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 400,
                 description = "Bad request.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 200,
@@ -242,11 +244,6 @@ pub mod token_endpoints {
     pub async fn clean_tokens_range_url(
         token_cleanup_repo: Inject<TokenCleanupModule, dyn TokenCleanup>,
     ) -> impl Responder {
-        #[derive(Serialize)]
-        struct Info {
-            msg: String,
-        }
-
         match clean_tokens_range(Box::new(&*token_cleanup_repo)).await {
             Err(err) => HttpResponse::InternalServerError()
                 .json(JsonError::new(err.to_string())),
@@ -275,12 +272,12 @@ pub mod token_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 404,
                 description = "Not found.",
-                body = String,
+                body = JsonError,
             ),
             (
                 status = 200,

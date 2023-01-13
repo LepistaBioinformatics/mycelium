@@ -3,11 +3,11 @@ use myc_prisma::repositories::{
     AccountTypeDeletionSqlDbRepository, AccountTypeRegistrationSqlDbRepository,
     AccountUpdatingSqlDbRepository, GuestRoleDeletionSqlDbRepository,
     GuestRoleFetchingSqlDbRepository, GuestRoleRegistrationSqlDbRepository,
-    GuestRoleUpdatingSqlDbRepository, GuestUserRegistrationSqlDbRepository,
-    ProfileFetchingSqlDbRepository, RoleDeletionSqlDbRepository,
-    RoleFetchingSqlDbRepository, RoleRegistrationSqlDbRepository,
-    RoleUpdatingSqlDbRepository, UserRegistrationSqlDbRepository,
-    UserUpdatingSqlDbRepository,
+    GuestRoleUpdatingSqlDbRepository, GuestUserFetchingSqlDbRepository,
+    GuestUserRegistrationSqlDbRepository, ProfileFetchingSqlDbRepository,
+    RoleDeletionSqlDbRepository, RoleFetchingSqlDbRepository,
+    RoleRegistrationSqlDbRepository, RoleUpdatingSqlDbRepository,
+    UserRegistrationSqlDbRepository, UserUpdatingSqlDbRepository,
 };
 use myc_redis::repositories::{
     TokenCleanupMemDbRepository, TokenDeregistrationMemDbRepository,
@@ -62,6 +62,13 @@ module! {
 // ? ---------------------------------------------------------------------------
 // ? Guest User
 // ? ---------------------------------------------------------------------------
+
+module! {
+    pub GuestUserFetchingModule {
+        components = [GuestUserFetchingSqlDbRepository],
+        providers = []
+    }
+}
 
 module! {
     pub GuestUserRegistrationModule {
