@@ -79,7 +79,7 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
                     name: record.role.name.to_owned(),
                     description: record.role.description.to_owned(),
                     role: ParentEnum::Id(
-                        Uuid::parse_str(&record.role.id).unwrap(),
+                        Uuid::parse_str(&record.role.role_id).unwrap(),
                     ),
                     permissions: record
                         .role
