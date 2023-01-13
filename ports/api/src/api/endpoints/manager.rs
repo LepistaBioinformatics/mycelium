@@ -204,7 +204,7 @@ pub mod account_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 GetOrCreateResponseKind::NotCreated(guest, _) => {
                     HttpResponse::Ok().json(guest)
@@ -271,7 +271,7 @@ pub mod account_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 FetchManyResponseKind::NotFound => {
                     HttpResponse::NotFound().finish()
@@ -332,10 +332,10 @@ pub mod account_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 FetchResponseKind::NotFound(id) => HttpResponse::NotFound()
-                    .json(JsonError(id.unwrap().to_string())),
+                    .json(JsonError::new(id.unwrap().to_string())),
                 FetchResponseKind::Found(accounts) => {
                     HttpResponse::Ok().json(accounts)
                 }
@@ -398,10 +398,10 @@ pub mod account_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().json(JsonError(msg))
+                    HttpResponse::BadRequest().json(JsonError::new(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
@@ -466,10 +466,10 @@ pub mod account_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().json(JsonError(msg))
+                    HttpResponse::BadRequest().json(JsonError::new(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
@@ -534,10 +534,10 @@ pub mod account_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().json(JsonError(msg))
+                    HttpResponse::BadRequest().json(JsonError::new(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
@@ -652,7 +652,7 @@ pub mod guest_endpoints {
         let email = match Email::from_string(info.email.to_owned()) {
             Err(err) => {
                 return HttpResponse::BadRequest()
-                    .json(JsonError(err.to_string()))
+                    .json(JsonError::new(err.to_string()))
             }
             Ok(res) => res,
         };
@@ -669,7 +669,7 @@ pub mod guest_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 GetOrCreateResponseKind::NotCreated(guest, _) => {
                     HttpResponse::Ok().json(guest)
@@ -809,7 +809,7 @@ pub mod guest_role_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 GetOrCreateResponseKind::NotCreated(guest, _) => {
                     HttpResponse::Ok().json(guest)
@@ -869,10 +869,10 @@ pub mod guest_role_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 DeletionResponseKind::NotDeleted(_, msg) => {
-                    HttpResponse::BadRequest().json(JsonError(msg))
+                    HttpResponse::BadRequest().json(JsonError::new(msg))
                 }
                 DeletionResponseKind::Deleted => {
                     HttpResponse::NoContent().finish()
@@ -939,10 +939,10 @@ pub mod guest_role_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().json(JsonError(msg))
+                    HttpResponse::BadRequest().json(JsonError::new(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
@@ -1009,10 +1009,10 @@ pub mod guest_role_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().json(JsonError(msg))
+                    HttpResponse::BadRequest().json(JsonError::new(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
@@ -1130,7 +1130,7 @@ pub mod role_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 GetOrCreateResponseKind::NotCreated(guest, _) => {
                     HttpResponse::Ok().json(guest)
@@ -1187,10 +1187,10 @@ pub mod role_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 DeletionResponseKind::NotDeleted(_, msg) => {
-                    HttpResponse::BadRequest().json(JsonError(msg))
+                    HttpResponse::BadRequest().json(JsonError::new(msg))
                 }
                 DeletionResponseKind::Deleted => {
                     HttpResponse::NoContent().finish()
@@ -1251,10 +1251,10 @@ pub mod role_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().json(JsonError(msg))
+                    HttpResponse::BadRequest().json(JsonError::new(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)

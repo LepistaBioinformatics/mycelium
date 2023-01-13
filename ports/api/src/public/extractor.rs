@@ -33,7 +33,7 @@ pub async fn extract_profile(
         Err(err) => {
             warn!("Unexpected error on check profile: {err}");
             return Err(HttpResponse::Forbidden()
-                .json(JsonError("Unidentified user.".to_string())));
+                .json(JsonError::new("Unidentified user.".to_string())));
         }
         Ok(res) => res,
     };
@@ -43,7 +43,7 @@ pub async fn extract_profile(
     }
 
     Err(HttpResponse::Forbidden()
-        .json(JsonError("Unidentified user.".to_string())))
+        .json(JsonError::new("Unidentified user.".to_string())))
 }
 
 async fn check_token(pack: ProfilePack) -> bool {
