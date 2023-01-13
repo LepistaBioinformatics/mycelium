@@ -726,7 +726,7 @@ pub mod guest_endpoints {
             ),
         ),
     )]
-    #[get("/account/{account}/")]
+    #[get("/account/{account}")]
     pub async fn list_guest_on_subscription_account_url(
         path: web::Path<Uuid>,
         req: HttpRequest,
