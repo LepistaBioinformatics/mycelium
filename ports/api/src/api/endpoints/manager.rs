@@ -277,7 +277,7 @@ pub mod account_endpoints {
                     HttpResponse::NotFound().finish()
                 }
                 FetchManyResponseKind::Found(accounts) => {
-                    HttpResponse::Created().json(accounts)
+                    HttpResponse::Ok().json(accounts)
                 }
             },
         }
@@ -337,7 +337,7 @@ pub mod account_endpoints {
                 FetchResponseKind::NotFound(id) => HttpResponse::NotFound()
                     .json(JsonError(id.unwrap().to_string())),
                 FetchResponseKind::Found(accounts) => {
-                    HttpResponse::Created().json(accounts)
+                    HttpResponse::Ok().json(accounts)
                 }
             },
         }
