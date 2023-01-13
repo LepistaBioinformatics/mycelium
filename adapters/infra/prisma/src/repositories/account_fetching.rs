@@ -9,7 +9,10 @@ use clean_base::{
     entities::default_response::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{creation_err, MappedErrors},
 };
-use myc_core::domain::{dtos::account::Account, entities::AccountFetching};
+use myc_core::domain::{
+    dtos::{account::Account, email::Email, user::User},
+    entities::AccountFetching,
+};
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
 use uuid::Uuid;
@@ -50,6 +53,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         match client
             .account()
             .find_unique(account_model::id::equals(id.to_owned().to_string()))
+            .include(account_model::include!({ account_type owner }))
             .exec()
             .await
         {
@@ -67,9 +71,19 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                     name: record.name,
                     is_active: record.is_active,
                     is_checked: record.is_checked,
-                    owner: ParentEnum::Id(
-                        Uuid::from_str(&record.owner_id).unwrap(),
-                    ),
+                    owner: ParentEnum::Record(User {
+                        id: Some(Uuid::from_str(&record.owner.id).unwrap()),
+                        username: record.owner.username,
+                        email: Email::from_string(record.owner.email).unwrap(),
+                        first_name: Some(record.owner.first_name),
+                        last_name: Some(record.owner.last_name),
+                        is_active: record.owner.is_active,
+                        created: record.owner.created.into(),
+                        updated: match record.owner.updated {
+                            None => None,
+                            Some(res) => Some(DateTime::from(res)),
+                        },
+                    }),
                     account_type: ParentEnum::Id(
                         Uuid::from_str(&record.account_type_id).unwrap(),
                     ),
