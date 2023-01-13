@@ -154,10 +154,10 @@ pub mod account_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().json(JsonError(msg))
+                    HttpResponse::BadRequest().json(JsonError::new(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
@@ -228,10 +228,10 @@ pub mod account_endpoints {
         .await
         {
             Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError(err.to_string())),
+                .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().json(JsonError(msg))
+                    HttpResponse::BadRequest().json(JsonError::new(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)

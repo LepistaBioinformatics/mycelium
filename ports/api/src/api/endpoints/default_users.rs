@@ -154,7 +154,7 @@ pub mod account_endpoints {
         .await
         {
             Err(err) => {
-                HttpResponse::InternalServerError().json(JsonError(err.to_string()))
+                HttpResponse::InternalServerError().json(JsonError::new(err.to_string()))
             }
             Ok(res) => match res {
                 GetOrCreateResponseKind::Created(record) => {
@@ -219,7 +219,7 @@ pub mod account_endpoints {
                 path.to_owned()
             );
 
-            return HttpResponse::Forbidden().json(JsonError(String::from(
+            return HttpResponse::Forbidden().json(JsonError::new(String::from(
                 "Invalid operation. Operation restricted to account owners.",
             )));
         }
@@ -233,11 +233,11 @@ pub mod account_endpoints {
         .await
         {
             Err(err) => {
-                HttpResponse::InternalServerError().json(JsonError(err.to_string()))
+                HttpResponse::InternalServerError().json(JsonError::new(err.to_string()))
             }
             Ok(res) => match res {
                 UpdatingResponseKind::NotUpdated(_, msg) => {
-                    HttpResponse::BadRequest().json(JsonError(msg))
+                    HttpResponse::BadRequest().json(JsonError::new(msg))
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
