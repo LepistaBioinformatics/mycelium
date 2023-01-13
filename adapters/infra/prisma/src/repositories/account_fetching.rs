@@ -10,7 +10,11 @@ use clean_base::{
     utils::errors::{creation_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::{account::Account, email::Email, user::User},
+    dtos::{
+        account::{Account, AccountType},
+        email::Email,
+        user::User,
+    },
     entities::AccountFetching,
 };
 use shaku::Component;
@@ -84,9 +88,16 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                             Some(res) => Some(DateTime::from(res)),
                         },
                     }),
-                    account_type: ParentEnum::Id(
-                        Uuid::from_str(&record.account_type_id).unwrap(),
-                    ),
+                    account_type: ParentEnum::Record(AccountType {
+                        id: Some(
+                            Uuid::from_str(&record.account_type.id).unwrap(),
+                        ),
+                        name: record.account_type.name,
+                        description: record.account_type.description,
+                        is_subscription: record.account_type.is_subscription,
+                        is_manager: record.account_type.is_manager,
+                        is_staff: record.account_type.is_staff,
+                    }),
                     guest_users: None,
                     created: record.created.into(),
                     updated: match record.updated {
