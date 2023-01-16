@@ -77,6 +77,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
     async fn list(
         &self,
         name: Option<String>,
+        role_id: Option<Uuid>,
     ) -> Result<FetchManyResponseKind<GuestRole>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
@@ -105,6 +106,12 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
 
         if name.is_some() {
             query_stmt.push(guest_role_model::name::contains(name.unwrap()))
+        }
+
+        if role_id.is_some() {
+            query_stmt.push(guest_role_model::role_id::equals(
+                role_id.unwrap().to_string(),
+            ))
         }
 
         // ? -------------------------------------------------------------------
