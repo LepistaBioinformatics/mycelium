@@ -16,6 +16,6 @@ pub trait RoleFetching: Interface + Send + Sync {
     ) -> Result<FetchResponseKind<Role, Uuid>, MappedErrors>;
     async fn list(
         &self,
-        search_term: String,
+        name: Option<String>,
     ) -> Result<FetchManyResponseKind<Role>, MappedErrors>;
 }

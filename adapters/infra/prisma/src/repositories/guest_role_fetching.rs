@@ -74,16 +74,75 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
         }
     }
 
-    // ? -----------------------------------------------------------------------
-    // ! NOT IMPLEMENTED METHOD
-    // ? -----------------------------------------------------------------------
-
     async fn list(
         &self,
-        _: String,
+        name: Option<String>,
     ) -> Result<FetchManyResponseKind<GuestRole>, MappedErrors> {
-        panic!(
-            "Not implemented list method of GuestRoleFetchingSqlDbRepository."
-        )
+        // ? -------------------------------------------------------------------
+        // ? Try to build the prisma client
+        // ? -------------------------------------------------------------------
+
+        let tmp_client = get_client().await;
+
+        let client = match tmp_client.get(&process_id()) {
+            None => {
+                return Err(fetching_err(
+                    String::from(
+                        "Prisma Client error. Could not fetch client.",
+                    ),
+                    Some(false),
+                    None,
+                ))
+            }
+            Some(res) => res,
+        };
+
+        // ? -------------------------------------------------------------------
+        // ? Build list query statement
+        // ? -------------------------------------------------------------------
+
+        let mut query_stmt = vec![];
+
+        if name.is_some() {
+            query_stmt.push(guest_role_model::name::contains(name.unwrap()))
+        }
+
+        // ? -------------------------------------------------------------------
+        // ? Get the user
+        // ? -------------------------------------------------------------------
+
+        match client.guest_role().find_many(query_stmt).exec().await {
+            Err(err) => {
+                return Err(fetching_err(
+                    format!("Unexpected error on parse user email: {:?}", err,),
+                    None,
+                    None,
+                ))
+            }
+            Ok(res) => {
+                let response = res
+                    .into_iter()
+                    .map(|record| GuestRole {
+                        id: Some(Uuid::parse_str(&record.id).unwrap()),
+                        name: record.name,
+                        description: record.description,
+                        role: ParentEnum::Id(
+                            Uuid::parse_str(&record.role_id).unwrap(),
+                        ),
+                        permissions: record
+                            .permissions
+                            .into_iter()
+                            .map(|i| PermissionsType::from_i32(i))
+                            .collect(),
+                    })
+                    .collect::<Vec<GuestRole>>();
+
+                if response.len() == 0 {
+                    return Ok(FetchManyResponseKind::NotFound);
+                }
+
+                Ok(FetchManyResponseKind::Found(response))
+            }
+        }
     }
 }
