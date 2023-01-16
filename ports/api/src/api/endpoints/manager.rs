@@ -835,6 +835,7 @@ pub mod guest_role_endpoints {
     #[serde(rename_all = "camelCase")]
     pub struct ListGuestRolesParams {
         pub name: Option<String>,
+        pub role_id: Option<Uuid>,
     }
 
     #[derive(Deserialize, IntoParams)]
@@ -920,7 +921,7 @@ pub mod guest_role_endpoints {
     /// List Roles
     #[utoipa::path(
         get,
-        path = "/managers/guest-roles/{role}/",
+        path = "/managers/guest-roles/",
         params(
             ListGuestRolesParams,
         ),
@@ -933,7 +934,6 @@ pub mod guest_role_endpoints {
             (
                 status = 404,
                 description = "Not found.",
-                body = JsonError,
             ),
             (
                 status = 200,
@@ -942,7 +942,7 @@ pub mod guest_role_endpoints {
             ),
         ),
     )]
-    #[get("/{role}/")]
+    #[get("/")]
     pub async fn list_guest_roles_url(
         info: web::Query<ListGuestRolesParams>,
         req: HttpRequest,
@@ -956,11 +956,10 @@ pub mod guest_role_endpoints {
             Ok(res) => res,
         };
 
-        let name = info.name.to_owned();
-
         match list_guest_roles(
             profile,
-            name.to_owned(),
+            info.name.to_owned(),
+            info.role_id.to_owned(),
             Box::new(&*guest_role_fetching_repo),
         )
         .await
@@ -968,8 +967,9 @@ pub mod guest_role_endpoints {
             Err(err) => HttpResponse::InternalServerError()
                 .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
-                FetchManyResponseKind::NotFound => HttpResponse::NoContent()
-                    .json(JsonError::new(name.unwrap_or("".to_string()))),
+                FetchManyResponseKind::NotFound => {
+                    HttpResponse::NotFound().finish()
+                }
                 FetchManyResponseKind::Found(roles) => {
                     HttpResponse::Ok().json(roles)
                 }
