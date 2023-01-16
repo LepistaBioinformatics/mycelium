@@ -778,10 +778,11 @@ pub mod guest_role_endpoints {
     };
 
     use actix_web::{
-        delete, patch, post, web, HttpRequest, HttpResponse, Responder,
+        delete, get, patch, post, web, HttpRequest, HttpResponse, Responder,
     };
     use clean_base::entities::default_response::{
-        DeletionResponseKind, GetOrCreateResponseKind, UpdatingResponseKind,
+        DeletionResponseKind, FetchManyResponseKind, GetOrCreateResponseKind,
+        UpdatingResponseKind,
     };
     use myc_core::{
         domain::{
@@ -792,7 +793,7 @@ pub mod guest_role_endpoints {
             },
         },
         use_cases::managers::guest_role::{
-            create_guest_role, delete_guest_role,
+            create_guest_role, delete_guest_role, list_guest_roles,
             update_guest_role_name_and_description,
             update_guest_role_permissions, ActionType,
         },
@@ -811,6 +812,7 @@ pub mod guest_role_endpoints {
         config.service(
             web::scope("/guest-roles")
                 .service(crate_guest_role_url)
+                .service(list_guest_roles_url)
                 .service(delete_guest_role_url)
                 .service(update_guest_role_name_and_description_url)
                 .service(update_guest_role_permissions_url),
@@ -827,6 +829,12 @@ pub mod guest_role_endpoints {
         pub name: String,
         pub description: String,
         pub permissions: Option<Vec<PermissionsType>>,
+    }
+
+    #[derive(Deserialize, IntoParams)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ListGuestRolesParams {
+        pub name: Option<String>,
     }
 
     #[derive(Deserialize, IntoParams)]
@@ -904,6 +912,66 @@ pub mod guest_role_endpoints {
                 }
                 GetOrCreateResponseKind::Created(guest) => {
                     HttpResponse::Created().json(guest)
+                }
+            },
+        }
+    }
+
+    /// List Roles
+    #[utoipa::path(
+        get,
+        path = "/managers/guest-roles/{role}/",
+        params(
+            ListGuestRolesParams,
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 404,
+                description = "Not found.",
+                body = JsonError,
+            ),
+            (
+                status = 200,
+                description = "Success.",
+                body = [Role],
+            ),
+        ),
+    )]
+    #[get("/{role}/")]
+    pub async fn list_guest_roles_url(
+        info: web::Query<ListGuestRolesParams>,
+        req: HttpRequest,
+        guest_role_fetching_repo: Inject<
+            GuestRoleFetchingModule,
+            dyn GuestRoleFetching,
+        >,
+    ) -> impl Responder {
+        let profile = match extract_profile(req).await {
+            Err(err) => return err,
+            Ok(res) => res,
+        };
+
+        let name = info.name.to_owned();
+
+        match list_guest_roles(
+            profile,
+            name.to_owned(),
+            Box::new(&*guest_role_fetching_repo),
+        )
+        .await
+        {
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string())),
+            Ok(res) => match res {
+                FetchManyResponseKind::NotFound => HttpResponse::NoContent()
+                    .json(JsonError::new(name.unwrap_or("".to_string()))),
+                FetchManyResponseKind::Found(roles) => {
+                    HttpResponse::Ok().json(roles)
                 }
             },
         }
@@ -1125,17 +1193,19 @@ pub mod role_endpoints {
     };
 
     use actix_web::{
-        delete, patch, post, web, HttpRequest, HttpResponse, Responder,
+        delete, get, patch, post, web, HttpRequest, HttpResponse, Responder,
     };
     use clean_base::entities::default_response::{
-        DeletionResponseKind, GetOrCreateResponseKind, UpdatingResponseKind,
+        DeletionResponseKind, FetchManyResponseKind, GetOrCreateResponseKind,
+        UpdatingResponseKind,
     };
     use myc_core::{
         domain::entities::{
             RoleDeletion, RoleFetching, RoleRegistration, RoleUpdating,
         },
         use_cases::managers::role::{
-            create_role, delete_role, update_role_name_and_description,
+            create_role, delete_role, list_roles,
+            update_role_name_and_description,
         },
     };
     use myc_http_tools::{extractor::extract_profile, utils::JsonError};
@@ -1152,6 +1222,7 @@ pub mod role_endpoints {
         config.service(
             web::scope("/roles")
                 .service(crate_role_url)
+                .service(list_roles_url)
                 .service(delete_role_url)
                 .service(update_role_name_and_description_url),
         );
@@ -1166,6 +1237,12 @@ pub mod role_endpoints {
     pub struct CreateRoleParams {
         pub name: String,
         pub description: String,
+    }
+
+    #[derive(Deserialize, IntoParams)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ListRolesParams {
+        pub name: Option<String>,
     }
 
     /// Create Role
@@ -1225,6 +1302,63 @@ pub mod role_endpoints {
                 }
                 GetOrCreateResponseKind::Created(guest) => {
                     HttpResponse::Created().json(guest)
+                }
+            },
+        }
+    }
+
+    /// List Roles
+    #[utoipa::path(
+        get,
+        path = "/managers/roles/",
+        params(
+            ListRolesParams,
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 404,
+                description = "Not found.",
+                body = JsonError,
+            ),
+            (
+                status = 200,
+                description = "Success.",
+                body = [Role],
+            ),
+        ),
+    )]
+    #[get("/")]
+    pub async fn list_roles_url(
+        info: web::Query<ListRolesParams>,
+        req: HttpRequest,
+        roles_fetching_repo: Inject<RoleFetchingModule, dyn RoleFetching>,
+    ) -> impl Responder {
+        let profile = match extract_profile(req).await {
+            Err(err) => return err,
+            Ok(res) => res,
+        };
+
+        let name = info.name.to_owned();
+
+        match list_roles(
+            profile,
+            name.to_owned(),
+            Box::new(&*roles_fetching_repo),
+        )
+        .await
+        {
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string())),
+            Ok(res) => match res {
+                FetchManyResponseKind::NotFound => HttpResponse::NoContent()
+                    .json(JsonError::new(name.unwrap_or("".to_string()))),
+                FetchManyResponseKind::Found(roles) => {
+                    HttpResponse::Ok().json(roles)
                 }
             },
         }
