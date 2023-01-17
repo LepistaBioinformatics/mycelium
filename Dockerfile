@@ -23,10 +23,7 @@ FROM rust:latest
 
 COPY --from=builder /rust/target/release/myc-api /usr/local/bin/myc-api
 
-ARG ALLOWED_ORIGINS
 ARG SERVICE_PORT=8080
-
-ENV ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
 ENV SERVICE_PORT=${SERVICE_PORT}
 
 EXPOSE ${SERVICE_PORT}
