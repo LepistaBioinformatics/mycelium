@@ -13,7 +13,7 @@ pub struct Email {
 impl Email {
     pub fn from_string(email: String) -> Result<Email, MappedErrors> {
         let re = Regex::new(
-            r"^([a-z0-9_+]([a-z0-9_+.]*[a-z0-9_+])?)@([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6})"
+            r"^([a-zA-Z0-9_\-+]([a-zA-Z0-9_\-+.]*[a-zA-Z0-9_+])?)@([a-zA-Z0-9.-]+\.[a-zA-Z]{1,})"
         ).unwrap();
 
         let cap = match re.captures(email.as_str()) {
@@ -77,10 +77,21 @@ mod tests {
 
     #[test]
     fn test_get_email_works() {
-        let email_string = "sgelias@outlook.com".to_string();
+        for (is_valid, email_string) in vec![
+            (true, "mycelium-default-users@biotrop.com.br".to_string()),
+            (true, "myceliumDefaultUsers@biotrop.com.br".to_string()),
+            (true, "mycelium-default-users@biotrop.com".to_string()),
+            (true, "myceliumDefaultUsers@biotrop.com".to_string()),
+            (false, "mycelium-default-users@biotrop".to_string()),
+            (false, "myceliumDefaultUsers@biotrop".to_string()),
+        ] {
+            let email = Email::from_string(email_string.to_owned());
 
-        let email = Email::from_string(email_string.to_owned()).unwrap();
-
-        assert_eq!(email.get_email(), email_string);
+            if is_valid {
+                assert_eq!(email.unwrap().get_email(), email_string);
+            } else {
+                assert!(email.is_err());
+            }
+        }
     }
 }
