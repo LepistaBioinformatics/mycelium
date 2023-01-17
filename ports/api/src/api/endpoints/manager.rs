@@ -828,7 +828,6 @@ pub mod guest_role_endpoints {
     pub struct CreateGuestRoleParams {
         pub name: String,
         pub description: String,
-        pub permissions: Option<Vec<PermissionsType>>,
     }
 
     #[derive(Deserialize, IntoParams)]
@@ -900,7 +899,7 @@ pub mod guest_role_endpoints {
             info.name.to_owned(),
             info.description.to_owned(),
             path.to_owned(),
-            info.permissions.to_owned(),
+            None,
             Box::new(&*role_registration_repo),
         )
         .await
