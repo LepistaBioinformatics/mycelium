@@ -1,7 +1,9 @@
 use super::{account::Account, email::Email, role::Role};
+
 use chrono::{DateTime, Local};
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use serde::{Deserialize, Serialize};
+use std::str::FromStr;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -22,6 +24,20 @@ impl PermissionsType {
             2 => PermissionsType::Update,
             3 => PermissionsType::Delete,
             _ => PermissionsType::View,
+        }
+    }
+}
+
+impl FromStr for PermissionsType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<PermissionsType, ()> {
+        match s {
+            "view" => Ok(PermissionsType::View),
+            "create" => Ok(PermissionsType::Create),
+            "update" => Ok(PermissionsType::Update),
+            "delete" => Ok(PermissionsType::Delete),
+            _ => Err(()),
         }
     }
 }
