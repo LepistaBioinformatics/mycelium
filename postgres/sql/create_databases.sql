@@ -11,7 +11,7 @@ CREATE ROLE "myc-service-role";
 
 GRANT CONNECT ON DATABASE mycelium TO "myc-service-role";
 GRANT USAGE ON SCHEMA public TO "myc-service-role";
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO "myc-service-role";
+GRANT ALL ON ALL TABLES IN SCHEMA public TO "myc-service-role";
 
 -- Create user
 
