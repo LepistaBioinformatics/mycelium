@@ -32,8 +32,9 @@ pub async fn extract_profile(
     let pack = match try_extract_from_headers(req.to_owned()).await {
         Err(err) => {
             warn!("Unexpected error on check profile: {err}");
-            return Err(HttpResponse::Forbidden()
-                .json(JsonError::new("Unidentified user.".to_string())));
+            return Err(HttpResponse::Forbidden().json(JsonError::new(
+                "Could not check user identity.".to_string(),
+            )));
         }
         Ok(res) => res,
     };
