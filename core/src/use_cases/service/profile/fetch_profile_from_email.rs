@@ -18,7 +18,7 @@ use clean_base::{
     utils::errors::{use_case_err, MappedErrors},
 };
 use futures::future;
-use log::error;
+use log::{debug, error};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -150,6 +150,8 @@ pub async fn fetch_profile_from_email(
     // ? -----------------------------------------------------------------------
 
     profile.licensed_resources = guests;
+
+    debug!("Build profile: {:?}", profile);
 
     // ? -----------------------------------------------------------------------
     // ? Register a new token
