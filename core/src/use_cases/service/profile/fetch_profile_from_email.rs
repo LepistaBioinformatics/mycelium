@@ -1,15 +1,24 @@
 use crate::{
     domain::{
-        dtos::{email::Email, profile::Profile},
-        entities::{ProfileFetching, TokenRegistration},
+        dtos::{
+            email::Email,
+            profile::{LicensedResources, Profile},
+        },
+        entities::{GuestUserFetching, ProfileFetching, TokenRegistration},
     },
     use_cases::service::token::register_token,
 };
 
+use chrono::DateTime;
 use clean_base::{
-    entities::default_response::{CreateResponseKind, FetchResponseKind},
+    dtos::enums::{ChildrenEnum, ParentEnum},
+    entities::default_response::{
+        CreateResponseKind, FetchManyResponseKind, FetchResponseKind,
+    },
     utils::errors::{use_case_err, MappedErrors},
 };
+use futures::future;
+use log::error;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -36,13 +45,24 @@ pub async fn fetch_profile_from_email(
     email: Email,
     requesting_service: String,
     profile_fetching_repo: Box<&dyn ProfileFetching>,
+    guest_user_fetching_repo: Box<&dyn GuestUserFetching>,
     token_registration_repo: Box<&dyn TokenRegistration>,
 ) -> Result<ProfileResponse, MappedErrors> {
     // ? -----------------------------------------------------------------------
-    // ? Fetch the profile from database
+    // ? Fetch the profile and guest from database
     // ? -----------------------------------------------------------------------
 
-    let profile = match profile_fetching_repo.get(email.to_owned()).await {
+    let (profile, guests) = future::join(
+        profile_fetching_repo.get(email.to_owned()),
+        guest_user_fetching_repo.list(None, Some(email.to_owned())),
+    )
+    .await;
+
+    // ? -----------------------------------------------------------------------
+    // ? Validate profile response
+    // ? -----------------------------------------------------------------------
+
+    let mut profile = match profile {
         Err(err) => return Err(err),
         Ok(res) => match res {
             FetchResponseKind::NotFound(_) => {
@@ -51,6 +71,85 @@ pub async fn fetch_profile_from_email(
             FetchResponseKind::Found(profile) => profile,
         },
     };
+
+    // ? -----------------------------------------------------------------------
+    // ? Validate guests response
+    // ? -----------------------------------------------------------------------
+
+    let guests = match guests {
+        Err(err) => return Err(err),
+        Ok(res) => match res {
+            FetchManyResponseKind::NotFound => None,
+            FetchManyResponseKind::Found(records) => {
+                for record in records.to_owned() {
+                    match record.guest_role {
+                        ParentEnum::Id(_) => {
+                            error!(
+                                "Unexpected error on extract profile information
+                                from guest {:?} associated to email {:?}",
+                                record,
+                                email.get_email().to_owned(),
+                            );
+
+                            return Err(use_case_err(
+                                String::from(
+                                    "Unexpected error on fetch profile from email.",
+                                ),
+                                None,
+                                None,
+                            ));
+                        }
+                        _ => (),
+                    }
+                }
+
+                let guests = records
+                    .to_owned()
+                    .into_iter()
+                    .map(|guest| {
+                        let accounts = match guest.accounts {
+                            None => vec![],
+                            Some(res) => match res {
+                                ChildrenEnum::Ids(ids) => ids,
+                                ChildrenEnum::Records(records) => records
+                                    .into_iter()
+                                    .map(|record| record.id.unwrap())
+                                    .collect::<Vec<Uuid>>(),
+                            },
+                        };
+
+                        let guest_role = match guest.guest_role {
+                            ParentEnum::Id(_) => panic!("expr"),
+                            ParentEnum::Record(record) => record,
+                        };
+
+                        accounts
+                            .into_iter()
+                            .map(|account_id| LicensedResources {
+                                guest_account_id: account_id,
+                                role: guest_role.to_owned().name,
+                                permissions: guest_role.to_owned().permissions,
+                                created: guest.created.into(),
+                                updated: match guest.updated {
+                                    None => None,
+                                    Some(res) => Some(DateTime::from(res)),
+                                },
+                            })
+                            .collect::<Vec<LicensedResources>>()
+                    })
+                    .flatten()
+                    .collect::<Vec<LicensedResources>>();
+
+                Some(guests)
+            }
+        },
+    };
+
+    // ? -----------------------------------------------------------------------
+    // ? Update profile response to include guests
+    // ? -----------------------------------------------------------------------
+
+    profile.licensed_resources = guests;
 
     // ? -----------------------------------------------------------------------
     // ? Register a new token

@@ -4,17 +4,13 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use chrono::DateTime;
 use clean_base::{
     entities::default_response::FetchResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
+use log::debug;
 use myc_core::domain::{
-    dtos::{
-        email::Email,
-        guest::PermissionsType,
-        profile::{LicensedResources, Profile},
-    },
+    dtos::{email::Email, profile::Profile},
     entities::ProfileFetching,
 };
 use shaku::Component;
@@ -64,19 +60,6 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                     is_manager
                     is_staff
                 }
-                guest_users: select {
-                    guest_user: select {
-                        created
-                        updated
-                        role: select {
-                            permissions
-                            role: select {
-                                name
-                            }
-                        }
-                    }
-                    account_id
-                }
             }));
 
         let response = query.exec().await.unwrap();
@@ -87,30 +70,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
 
         match response {
             Some(record) => {
-                let record = record;
-                let guests = record
-                    .guest_users
-                    .into_iter()
-                    .map(|guest| LicensedResources {
-                        guest_account_id: Uuid::parse_str(
-                            &guest.account_id.as_str(),
-                        )
-                        .unwrap(),
-                        role: guest.guest_user.role.role.name,
-                        permissions: guest
-                            .guest_user
-                            .role
-                            .permissions
-                            .into_iter()
-                            .map(|i| PermissionsType::from_i32(i))
-                            .collect(),
-                        created: guest.guest_user.created.into(),
-                        updated: match guest.guest_user.updated {
-                            None => None,
-                            Some(res) => Some(DateTime::from(res)),
-                        },
-                    })
-                    .collect::<Vec<LicensedResources>>();
+                debug!("Profile record: {:?}", record);
 
                 Ok(FetchResponseKind::Found(Profile {
                     email: match Email::from_string(record.owner.email) {
@@ -121,10 +81,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                     is_subscription: record.account_type.is_subscription,
                     is_manager: record.account_type.is_manager,
                     is_staff: record.account_type.is_staff,
-                    licensed_resources: match guests.len() {
-                        0 => None,
-                        _ => Some(guests),
-                    },
+                    licensed_resources: None,
                 }))
             }
             None => Ok(FetchResponseKind::NotFound(Some(email))),

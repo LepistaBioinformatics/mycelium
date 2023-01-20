@@ -1,4 +1,4 @@
-use crate::domain::dtos::guest::GuestUser;
+use crate::domain::dtos::{email::Email, guest::GuestUser};
 
 use async_trait::async_trait;
 use clean_base::{
@@ -12,6 +12,7 @@ use uuid::Uuid;
 pub trait GuestUserFetching: Interface + Send + Sync {
     async fn list(
         &self,
-        account_id: Uuid,
+        account_id: Option<Uuid>,
+        email: Option<Email>,
     ) -> Result<FetchManyResponseKind<GuestUser>, MappedErrors>;
 }
