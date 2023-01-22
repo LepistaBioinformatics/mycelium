@@ -1,6 +1,5 @@
 use super::guest::PermissionsType;
 
-use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -13,8 +12,6 @@ pub struct LicensedResources {
     pub guest_account_id: Uuid,
     pub role: String,
     pub permissions: Vec<PermissionsType>,
-    pub created: DateTime<Local>,
-    pub updated: Option<DateTime<Local>>,
 }
 
 /// This object should be used over the application layer operations.

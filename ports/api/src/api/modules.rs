@@ -4,7 +4,8 @@ use myc_prisma::repositories::{
     AccountUpdatingSqlDbRepository, GuestRoleDeletionSqlDbRepository,
     GuestRoleFetchingSqlDbRepository, GuestRoleRegistrationSqlDbRepository,
     GuestRoleUpdatingSqlDbRepository, GuestUserFetchingSqlDbRepository,
-    GuestUserRegistrationSqlDbRepository, ProfileFetchingSqlDbRepository,
+    GuestUserRegistrationSqlDbRepository,
+    LicensedResourcesFetchingSqlDbRepository, ProfileFetchingSqlDbRepository,
     RoleDeletionSqlDbRepository, RoleFetchingSqlDbRepository,
     RoleRegistrationSqlDbRepository, RoleUpdatingSqlDbRepository,
     UserRegistrationSqlDbRepository, UserUpdatingSqlDbRepository,
@@ -203,5 +204,16 @@ module! {
     pub TokenCleanupModule {
         components = [TokenCleanupMemDbRepository],
         providers = []
+    }
+}
+
+// ? ---------------------------------------------------------------------------
+// ? LicensedResources
+// ? ---------------------------------------------------------------------------
+
+module! {
+    pub LicensedResourcesFetchingModule {
+        components = [LicensedResourcesFetchingSqlDbRepository],
+        providers = [],
     }
 }

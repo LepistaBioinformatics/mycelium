@@ -11,6 +11,7 @@ mod guest_role_registration;
 mod guest_role_updating;
 mod guest_user_fetching;
 mod guest_user_registration;
+mod licensed_resources_fetching;
 mod profile_fetching;
 mod role_deletion;
 mod role_fetching;
@@ -60,6 +61,10 @@ pub use guest_user_fetching::{
 pub use guest_user_registration::{
     GuestUserRegistrationSqlDbRepository,
     GuestUserRegistrationSqlDbRepositoryParameters,
+};
+pub use licensed_resources_fetching::{
+    LicensedResourcesFetchingSqlDbRepository,
+    LicensedResourcesFetchingSqlDbRepositoryParameters,
 };
 pub use profile_fetching::{
     ProfileFetchingSqlDbRepository, ProfileFetchingSqlDbRepositoryParameters,

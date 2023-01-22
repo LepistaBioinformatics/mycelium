@@ -3,7 +3,8 @@ use crate::modules::{
     AccountTypeDeletionModule, AccountTypeRegistrationModule,
     AccountUpdatingModule, GuestRoleDeletionModule, GuestRoleFetchingModule,
     GuestRoleRegistrationModule, GuestRoleUpdatingModule,
-    GuestUserFetchingModule, GuestUserRegistrationModule, MessageSendingModule,
+    GuestUserFetchingModule, GuestUserRegistrationModule,
+    LicensedResourcesFetchingModule, MessageSendingModule,
     ProfileFetchingModule, RoleDeletionModule, RoleFetchingModule,
     RoleRegistrationModule, RoleUpdatingModule, TokenCleanupModule,
     TokenDeregistrationModule, TokenRegistrationModule, UserRegistrationModule,
@@ -32,6 +33,8 @@ use myc_prisma::repositories::{
     GuestUserFetchingSqlDbRepositoryParameters,
     GuestUserRegistrationSqlDbRepository,
     GuestUserRegistrationSqlDbRepositoryParameters,
+    LicensedResourcesFetchingSqlDbRepository,
+    LicensedResourcesFetchingSqlDbRepositoryParameters,
     ProfileFetchingSqlDbRepository, ProfileFetchingSqlDbRepositoryParameters,
     RoleDeletionSqlDbRepository, RoleDeletionSqlDbRepositoryParameters,
     RoleFetchingSqlDbRepository, RoleFetchingSqlDbRepositoryParameters,
@@ -256,6 +259,15 @@ pub fn configure(config: &mut web::ServiceConfig) {
             TokenCleanupModule::builder()
                 .with_component_parameters::<TokenCleanupMemDbRepository>(
                     TokenCleanupMemDbRepositoryParameters {}
+                ).build()
+        ))
+        // ? -------------------------------------------------------------------
+        // ? LicensedResources
+        // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            LicensedResourcesFetchingModule::builder()
+                .with_component_parameters::<LicensedResourcesFetchingSqlDbRepository>(
+                    LicensedResourcesFetchingSqlDbRepositoryParameters {}
                 ).build()
         ));
 }

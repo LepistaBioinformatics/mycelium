@@ -86,7 +86,7 @@ Please specify just one.",
                         account_id.unwrap().to_string(),
                     ),
                 ])])
-                .include(guest_user_model::include!({ role }))
+                .include(guest_user_model::include!({ guest_role }))
                 .exec()
                 .await
                 .unwrap();
@@ -101,14 +101,20 @@ Please specify just one.",
                         email: Email::from_string(record.email.to_owned())
                             .unwrap(),
                         guest_role: ParentEnum::Record(GuestRole {
-                            id: Some(Uuid::parse_str(&record.role.id).unwrap()),
-                            name: record.role.name.to_owned(),
-                            description: record.role.description.to_owned(),
+                            id: Some(
+                                Uuid::parse_str(&record.guest_role.id).unwrap(),
+                            ),
+                            name: record.guest_role.name.to_owned(),
+                            description: record
+                                .guest_role
+                                .description
+                                .to_owned(),
                             role: ParentEnum::Id(
-                                Uuid::parse_str(&record.role.role_id).unwrap(),
+                                Uuid::parse_str(&record.guest_role.role_id)
+                                    .unwrap(),
                             ),
                             permissions: record
-                                .role
+                                .guest_role
                                 .permissions
                                 .to_owned()
                                 .into_iter()
@@ -132,14 +138,22 @@ Please specify just one.",
                 .find_many(vec![guest_user_model::email::equals(
                     email.unwrap().get_email(),
                 )])
-                .include(guest_user_model::include!({ role }))
+                .with(guest_user_model::guest_role::fetch())
+                .include(guest_user_model::include!({
+                    guest_role: select {
+                        role
+                    }
+                    accounts: select {
+                        account_id
+                    }
+                }))
                 .exec()
                 .await
                 .unwrap();
 
             debug!("Guest Record from Email: {:?}", response);
 
-            records.append(
+            /* records.append(
                 &mut response
                     .iter()
                     .map(|record| GuestUser {
@@ -147,14 +161,19 @@ Please specify just one.",
                         email: Email::from_string(record.email.to_owned())
                             .unwrap(),
                         guest_role: ParentEnum::Record(GuestRole {
-                            id: Some(Uuid::parse_str(&record.role.id).unwrap()),
-                            name: record.role.name.to_owned(),
-                            description: record.role.description.to_owned(),
+                            id: Some(
+                                Uuid::parse_str(&record.guest_role_id).unwrap(),
+                            ),
+                            name: record.guest_role.name.to_owned(),
+                            description: Some(
+                                record.guest_role.description.to_owned(),
+                            ),
                             role: ParentEnum::Id(
-                                Uuid::parse_str(&record.role.role_id).unwrap(),
+                                Uuid::parse_str(&record.guest_role.role.id)
+                                    .unwrap(),
                             ),
                             permissions: record
-                                .role
+                                .guest_role
                                 .permissions
                                 .to_owned()
                                 .into_iter()
@@ -166,10 +185,23 @@ Please specify just one.",
                             None => None,
                             Some(res) => Some(DateTime::from(res)),
                         },
-                        accounts: None,
+                        accounts: match record.accounts.len() {
+                            0 => None,
+                            _ => Some(ChildrenEnum::Ids(
+                                record
+                                    .accounts
+                                    .to_owned()
+                                    .into_iter()
+                                    .map(|account| {
+                                        Uuid::parse_str(&account.account_id)
+                                            .unwrap()
+                                    })
+                                    .collect::<Vec<Uuid>>(),
+                            )),
+                        },
                     })
                     .collect::<Vec<GuestUser>>(),
-            );
+            ); */
         }
 
         // ? -------------------------------------------------------------------
