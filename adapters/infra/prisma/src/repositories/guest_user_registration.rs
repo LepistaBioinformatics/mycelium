@@ -61,7 +61,7 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
                 guest_user_model::email::equals(
                     guest_user.email.to_owned().get_email(),
                 ),
-                guest_user_model::role_id::equals(
+                guest_user_model::guest_role_id::equals(
                     match guest_user.guest_role.to_owned() {
                         ParentEnum::Id(id) => id.to_string(),
                         ParentEnum::Record(record) => match record.id {
@@ -83,7 +83,7 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
                 ),
             ])
             .include(guest_user_model::include!({
-                role: select { id }
+                guest_role: select { id }
             }))
             .exec()
             .await
@@ -122,7 +122,7 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
                         Ok(res) => res,
                     },
                     guest_role: ParentEnum::Id(
-                        Uuid::parse_str(&record.role.id).unwrap(),
+                        Uuid::parse_str(&record.guest_role.id).unwrap(),
                     ),
                     created: record.created.into(),
                     updated: match record.updated {
@@ -159,7 +159,7 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
                         vec![],
                     )
                     .include(guest_user_model::include!({
-                        role: select { id }
+                        guest_role: select { id }
                     }))
                     .exec()
                     .await
@@ -197,7 +197,7 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
                             Ok(res) => res,
                         },
                         guest_role: ParentEnum::Id(
-                            Uuid::parse_str(&record.role.id).unwrap(),
+                            Uuid::parse_str(&record.guest_role.id).unwrap(),
                         ),
                         created: record.created.into(),
                         updated: match record.updated {

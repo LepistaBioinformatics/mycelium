@@ -75,17 +75,17 @@ model GuestUser {
   id String @id @default(uuid())
 
   // Model fields
-  email   String
-  role    GuestRole @relation(fields: [role_id], references: [id])
-  role_id String
-  created DateTime  @default(now()) @db.Timestamptz(6)
-  updated DateTime? @updatedAt @db.Timestamptz(6)
+  email         String
+  guest_role    GuestRole @relation(fields: [guest_role_id], references: [id])
+  guest_role_id String
+  created       DateTime  @default(now()) @db.Timestamptz(6)
+  updated       DateTime? @updatedAt @db.Timestamptz(6)
 
   // Backward relationship fields
   accounts GuestUserOnAccount[]
 
   // Db compatibility and extra maps
-  @@unique([email, role_id])
+  @@unique([email, guest_role_id])
   @@map("guest_user")
 }
 

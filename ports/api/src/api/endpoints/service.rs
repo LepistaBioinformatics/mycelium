@@ -53,14 +53,17 @@ pub struct ApiDoc;
 
 pub mod profile_endpoints {
     use crate::modules::{
-        GuestUserFetchingModule, ProfileFetchingModule, TokenRegistrationModule,
+        LicensedResourcesFetchingModule, ProfileFetchingModule,
+        TokenRegistrationModule,
     };
 
     use actix_web::{get, web, HttpResponse, Responder};
     use myc_core::{
         domain::{
             dtos::email::Email,
-            entities::{GuestUserFetching, ProfileFetching, TokenRegistration},
+            entities::{
+                LicensedResourcesFetching, ProfileFetching, TokenRegistration,
+            },
         },
         use_cases::service::profile::{
             fetch_profile_from_email, ProfileResponse,
@@ -135,9 +138,9 @@ pub mod profile_endpoints {
             ProfileFetchingModule,
             dyn ProfileFetching,
         >,
-        guest_user_fetching_repo: Inject<
-            GuestUserFetchingModule,
-            dyn GuestUserFetching,
+        licensed_resources_fetching_repo: Inject<
+            LicensedResourcesFetchingModule,
+            dyn LicensedResourcesFetching,
         >,
         token_registration_repo: Inject<
             TokenRegistrationModule,
@@ -156,7 +159,7 @@ pub mod profile_endpoints {
             email,
             info.service.to_owned(),
             Box::new(&*profile_fetching_repo),
-            Box::new(&*guest_user_fetching_repo),
+            Box::new(&*licensed_resources_fetching_repo),
             Box::new(&*token_registration_repo),
         )
         .await
