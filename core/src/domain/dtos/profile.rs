@@ -31,23 +31,39 @@ pub struct Profile {
 
 impl Profile {
     /// Filter IDs with view permissions.
-    pub fn get_view_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
-        self.get_licensed_ids(PermissionsType::View, roles)
+    pub fn get_view_ids(
+        &self,
+        roles: Vec<String>,
+        include_itself: Option<bool>,
+    ) -> Vec<Uuid> {
+        self.get_licensed_ids(PermissionsType::View, roles, include_itself)
     }
 
     /// Filter IDs with create permissions.
-    pub fn get_create_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
-        self.get_licensed_ids(PermissionsType::Create, roles)
+    pub fn get_create_ids(
+        &self,
+        roles: Vec<String>,
+        include_itself: Option<bool>,
+    ) -> Vec<Uuid> {
+        self.get_licensed_ids(PermissionsType::Create, roles, include_itself)
     }
 
     /// Filter IDs with update permissions.
-    pub fn get_update_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
-        self.get_licensed_ids(PermissionsType::Update, roles)
+    pub fn get_update_ids(
+        &self,
+        roles: Vec<String>,
+        include_itself: Option<bool>,
+    ) -> Vec<Uuid> {
+        self.get_licensed_ids(PermissionsType::Update, roles, include_itself)
     }
 
     /// Filter IDs with delete permissions.
-    pub fn get_delete_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
-        self.get_licensed_ids(PermissionsType::Delete, roles)
+    pub fn get_delete_ids(
+        &self,
+        roles: Vec<String>,
+        include_itself: Option<bool>,
+    ) -> Vec<Uuid> {
+        self.get_licensed_ids(PermissionsType::Delete, roles, include_itself)
     }
 
     /// Create a list of licensed ids.
@@ -58,6 +74,7 @@ impl Profile {
         &self,
         permission: PermissionsType,
         roles: Vec<String>,
+        include_itself: Option<bool>,
     ) -> Vec<Uuid> {
         match &self.licensed_resources {
             None => vec![self.current_account_id],
@@ -74,7 +91,9 @@ impl Profile {
                     })
                     .collect::<Vec<Uuid>>();
 
-                ids.append(&mut vec![self.current_account_id]);
+                if include_itself.unwrap_or(false) {
+                    ids.append(&mut vec![self.current_account_id]);
+                }
 
                 ids
             }
