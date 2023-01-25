@@ -7,7 +7,7 @@ use clean_base::{
     entities::default_response::FetchResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
-use log::warn;
+use log::{debug, warn};
 use myc_core::domain::{dtos::token::Token, entities::TokenDeregistration};
 use redis::ErrorKind;
 use shaku::Component;
@@ -59,7 +59,7 @@ impl TokenDeregistration for TokenDeregistrationMemDbRepository {
             }
         };
 
-        warn!("response: {:?}", response);
+        debug!("response: {:?}", response);
 
         let target_key: Vec<Token> = response
             .chunks(2)
