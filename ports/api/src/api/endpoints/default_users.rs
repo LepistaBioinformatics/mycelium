@@ -1,5 +1,8 @@
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
-use myc_core::domain::dtos::account::{Account, AccountType};
+use myc_core::domain::dtos::{
+    account::{Account, AccountType},
+    profile::{LicensedResources, Profile},
+};
 use myc_http_tools::utils::JsonError;
 use utoipa::OpenApi;
 
@@ -12,6 +15,7 @@ use utoipa::OpenApi;
     paths(
         account_endpoints::create_default_account_url,
         account_endpoints::update_own_account_name_url,
+        profile_endpoints::fetch_profile_from_email_url,
     ),
     components(
         schemas(
@@ -23,6 +27,8 @@ use utoipa::OpenApi;
             Account,
             AccountType,
             JsonError,
+            LicensedResources,
+            Profile,
         ),
     ),
     tags(
@@ -247,6 +253,122 @@ pub mod account_endpoints {
                 }
                 UpdatingResponseKind::Updated(record) => {
                     HttpResponse::Accepted().json(record)
+                }
+            },
+        }
+    }
+}
+
+pub mod profile_endpoints {
+
+    use crate::modules::{
+        LicensedResourcesFetchingModule, ProfileFetchingModule,
+    };
+
+    use actix_web::{get, web, HttpResponse, Responder};
+    use myc_core::{
+        domain::entities::{LicensedResourcesFetching, ProfileFetching},
+        use_cases::service::profile::{
+            fetch_profile_from_email, ProfileResponse,
+        },
+    };
+    use myc_http_tools::{utils::JsonError, Email};
+    use serde::Deserialize;
+    use shaku_actix::Inject;
+    use utoipa::IntoParams;
+
+    // ? -----------------------------------------------------------------------
+    // ? Configure application
+    // ? -----------------------------------------------------------------------
+
+    pub fn configure(config: &mut web::ServiceConfig) {
+        config.service(
+            web::scope("/profiles").service(fetch_profile_from_email_url),
+        );
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? Define API structs
+    // ? -----------------------------------------------------------------------
+
+    #[derive(Deserialize, IntoParams)]
+    #[serde(rename_all = "camelCase")]
+    pub struct GetProfileParams {
+        pub email: String,
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? Define API paths
+    //
+    // Account
+    //
+    // ? -----------------------------------------------------------------------
+
+    #[utoipa::path(
+        get,
+        path = "/default-users/profiles/",
+        params(
+            GetProfileParams,
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 404,
+                description = "Not found.",
+                body = JsonError,
+            ),
+            (
+                status = 400,
+                description = "Bad request.",
+                body = JsonError,
+            ),
+            (
+                status = 200,
+                description = "Profile fetching done.",
+                body = Profile,
+            ),
+        ),
+    )]
+    #[get("/")]
+    pub async fn fetch_profile_from_email_url(
+        info: web::Query<GetProfileParams>,
+        profile_fetching_repo: Inject<
+            ProfileFetchingModule,
+            dyn ProfileFetching,
+        >,
+        licensed_resources_fetching_repo: Inject<
+            LicensedResourcesFetchingModule,
+            dyn LicensedResourcesFetching,
+        >,
+    ) -> impl Responder {
+        let email = match Email::from_string(info.email.to_owned()) {
+            Err(err) => {
+                return HttpResponse::BadRequest()
+                    .json(JsonError::new(err.to_string()))
+            }
+            Ok(res) => res,
+        };
+
+        match fetch_profile_from_email(
+            email,
+            Box::new(&*profile_fetching_repo),
+            Box::new(&*licensed_resources_fetching_repo),
+        )
+        .await
+        {
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string())),
+            Ok(res) => match res {
+                ProfileResponse::UnregisteredUser(email) => {
+                    HttpResponse::NotFound()
+                        .json(JsonError::new(email.get_email()))
+                }
+                ProfileResponse::RegisteredUser(profile) => {
+                    HttpResponse::Ok().json(profile)
                 }
             },
         }
