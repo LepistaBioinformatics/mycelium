@@ -12,7 +12,7 @@ categories = ["http-client", "microservices"]
 
 [dependencies]
 async-trait = "0.1"
-clean-base = "0.2.1"
+clean-base = "0.3"
 lazy_static = "1.4"
 log = "0.4"
 reqwest = "0.11"
