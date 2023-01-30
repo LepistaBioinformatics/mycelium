@@ -11,6 +11,7 @@ use config::{configure as configure_injection_modules, SvcConfig};
 use endpoints::{
     default_users::{
         account_endpoints as default_users_account_endpoints,
+        profile_endpoints as default_users_profile_endpoints,
         ApiDoc as DefaultUsersApiDoc,
     },
     index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
@@ -103,7 +104,8 @@ pub async fn main() -> std::io::Result<()> {
             //
             .service(
                 web::scope("/default-users")
-                    .configure(default_users_account_endpoints::configure),
+                    .configure(default_users_account_endpoints::configure)
+                    .configure(default_users_profile_endpoints::configure),
             )
             //
             // Manager

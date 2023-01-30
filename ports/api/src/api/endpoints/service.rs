@@ -18,7 +18,7 @@ use utoipa::OpenApi;
 #[derive(OpenApi)]
 #[openapi(
     paths(
-        profile_endpoints::fetch_profile_from_email_url,
+        profile_endpoints::fetch_profile_pack_from_email_url,
         token_endpoints::clean_tokens_range_url,
         token_endpoints::validate_token_url,
     ),
@@ -66,7 +66,7 @@ pub mod profile_endpoints {
             },
         },
         use_cases::service::profile::{
-            fetch_profile_from_email, ProfileResponse,
+            fetch_profile_pack_from_email, ProfilePackResponse,
         },
     };
     use myc_http_tools::utils::JsonError;
@@ -80,7 +80,7 @@ pub mod profile_endpoints {
 
     pub fn configure(config: &mut web::ServiceConfig) {
         config.service(
-            web::scope("/profiles").service(fetch_profile_from_email_url),
+            web::scope("/profiles").service(fetch_profile_pack_from_email_url),
         );
     }
 
@@ -132,7 +132,7 @@ pub mod profile_endpoints {
         ),
     )]
     #[get("/")]
-    pub async fn fetch_profile_from_email_url(
+    pub async fn fetch_profile_pack_from_email_url(
         info: web::Query<GetProfileParams>,
         profile_fetching_repo: Inject<
             ProfileFetchingModule,
@@ -155,7 +155,7 @@ pub mod profile_endpoints {
             Ok(res) => res,
         };
 
-        match fetch_profile_from_email(
+        match fetch_profile_pack_from_email(
             email,
             info.service.to_owned(),
             Box::new(&*profile_fetching_repo),
@@ -167,11 +167,11 @@ pub mod profile_endpoints {
             Err(err) => HttpResponse::InternalServerError()
                 .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
-                ProfileResponse::UnregisteredUser(email) => {
+                ProfilePackResponse::UnregisteredUser(email) => {
                     HttpResponse::NotFound()
                         .json(JsonError::new(email.get_email()))
                 }
-                ProfileResponse::RegisteredUser(profile) => {
+                ProfilePackResponse::RegisteredUser(profile) => {
                     HttpResponse::Ok().json(profile)
                 }
             },
