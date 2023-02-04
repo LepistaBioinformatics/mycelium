@@ -22,6 +22,10 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+/// DEPRECATED
+///
+/// The profile pack contains a token validation used during the client check of
+/// the request profile. Such struct should be deprecated.
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ProfilePack {
