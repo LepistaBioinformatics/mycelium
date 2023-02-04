@@ -1,23 +1,9 @@
-use crate::{
-    settings::{STANDARD_SERVICE_NAME, TOKENS_VALIDATION_PATH},
-    utils::JsonError,
-};
+use crate::utils::JsonError;
 
 use actix_web::{HttpRequest, HttpResponse};
-use clean_base::{
-    entities::default_response::FetchResponseKind,
-    utils::errors::{execution_err, MappedErrors},
-};
+use clean_base::utils::errors::{execution_err, MappedErrors};
 use log::warn;
-use myc_core::{
-    domain::{
-        dtos::{profile::Profile, token::Token},
-        entities::TokenDeregistration,
-    },
-    settings::DEFAULT_PROFILE_KEY,
-    use_cases::roles::service::profile::ProfilePack,
-};
-use myc_svc::repositories::TokenDeregistrationSvcRepository;
+use myc_core::{domain::dtos::profile::Profile, settings::DEFAULT_PROFILE_KEY};
 
 /// Extract the `Profile` from HTTP request.
 ///
@@ -29,50 +15,21 @@ use myc_svc::repositories::TokenDeregistrationSvcRepository;
 pub async fn extract_profile(
     req: HttpRequest,
 ) -> Result<Profile, HttpResponse> {
-    let pack = match try_extract_from_headers(req.to_owned()).await {
+    match try_extract_from_headers(req.to_owned()).await {
         Err(err) => {
             warn!("Unexpected error on check profile: {err}");
             return Err(HttpResponse::Forbidden().json(JsonError::new(
                 "Could not check user identity.".to_string(),
             )));
         }
-        Ok(res) => res,
+        Ok(res) => return Ok(res),
     };
-
-    if check_token(pack.to_owned()).await {
-        return Ok(pack.profile);
-    }
-
-    Err(HttpResponse::Forbidden()
-        .json(JsonError::new("Unidentified user.".to_string())))
 }
 
-async fn check_token(pack: ProfilePack) -> bool {
-    let repo = TokenDeregistrationSvcRepository {
-        url: TOKENS_VALIDATION_PATH.to_string(),
-    };
-
-    match repo
-        .get_then_delete(Token {
-            token: pack.token,
-            own_service: STANDARD_SERVICE_NAME.to_string(),
-        })
-        .await
-    {
-        Err(err) => {
-            warn!("Unexpected error on validate token: {err}");
-            false
-        }
-        Ok(res) => match res {
-            FetchResponseKind::NotFound(_) => false,
-            FetchResponseKind::Found(_) => true,
-        },
-    }
-}
-
+/// Try to extract profile from request header
 async fn try_extract_from_headers(
     req: HttpRequest,
-) -> Result<ProfilePack, MappedErrors> {
+) -> Result<Profile, MappedErrors> {
     match req.headers().get(DEFAULT_PROFILE_KEY) {
         None => Err(execution_err(
             String::from("Unable to fetch profile from header."),
@@ -85,7 +42,7 @@ async fn try_extract_from_headers(
                 None,
                 None,
             )),
-            Ok(res) => match serde_json::from_str::<ProfilePack>(&res) {
+            Ok(res) => match serde_json::from_str::<Profile>(&res) {
                 Err(err) => Err(execution_err(
                     format!("Unable to fetch profile from header: {err}"),
                     None,

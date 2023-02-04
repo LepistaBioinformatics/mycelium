@@ -25,6 +25,15 @@ pub async fn check_credentials(
         Ok(res) => res,
     };
 
+    decode_bearer_token_wrapper(auth).await
+}
+
+/// Try to decode bearer token locally
+///
+/// Decoding is performed using local keys.
+async fn decode_bearer_token_wrapper(
+    auth: Authorization<Bearer>,
+) -> Result<Email, MappedErrors> {
     match decode_bearer_token(auth.as_ref().token().to_string()).await {
         Err(err) => return Err(err),
         Ok(res) => match Email::from_string(res.email) {

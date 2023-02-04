@@ -1,38 +1,42 @@
-# This service should be used over the profile fetching process
-profileSvc:
-  host: localhost:8081
-  profileValidationPath: /services/profiles/
-  tokenValidationPath: /services/tokens/
-  attempts: 5
-  protocol: http
-  healthCheck:
-    path: /health/
-    healthResponseCodes:
-      - 200
-
 # Here the downstream (client) services should be configured
 services:
-  - name: bio-archival
-    host: localhost:8080
+  - name: test-service-01
+    host: test-service-01:8081
     healthCheck:
       path: /health/
       healthResponseCodes:
         - 200
+
     routes:
+      - group: public
+        methods:
+          - GET
+        downstreamUrl: /public/*
+        protocol: http
+
       - group: protected
         methods:
           - GET
-        downstreamUrl: /doc/*
+        downstreamUrl: /protected/*
         protocol: http
 
-  - name: mycelium
-    host: localhost:8081
+  - name: test-service-02
+    host: test-service-02:8082
     healthCheck:
       path: /health/
       healthResponseCodes:
         - 200
+
     routes:
-      - group: protected
-        methods: []
-        downstreamUrl: /managers/accounts/*
+      - group: public
+        methods:
+          - GET
+        downstreamUrl: /public/*
         protocol: http
+
+      - group: protected
+        methods:
+          - GET
+        downstreamUrl: /protected/*
+        protocol: http
+
