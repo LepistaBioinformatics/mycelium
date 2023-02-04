@@ -59,14 +59,3 @@ pub async fn match_forward_address(
 
     Ok(RoutesMatchResponseEnum::Found(routes[0].to_owned()))
 }
-
-// * ---------------------------------------------------------------------------
-// * TESTS
-// * ---------------------------------------------------------------------------
-
-#[cfg(test)]
-mod test {
-
-    #[tokio::test]
-    async fn test_use_case_works() {}
-}

@@ -2,24 +2,19 @@ use crate::domain::dtos::{
     health_check::HealthCheckConfig,
     http::{HttpMethod, Protocol, RouteType},
     route::Route,
-    service::{ClientService, ProfileService},
+    service::ClientService,
 };
 
 use clean_base::utils::errors::{use_case_err, MappedErrors};
 use log::{error, info};
 use serde::{Deserialize, Serialize};
-use std::{
-    env::{set_var, var},
-    mem::size_of_val,
-    str::from_utf8,
-};
+use std::{mem::size_of_val, str::from_utf8};
 use tokio::fs::read as t_read;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct TempMainConfigDTO {
-    profile_svc: ProfileService,
     services: Vec<TempServiceDTO>,
 }
 
@@ -49,7 +44,7 @@ struct TempRouteDTO {
 /// This function load the in-memory database from JSON file.
 pub async fn load_config_from_json(
     source_file_path: String,
-) -> Result<(ProfileService, Vec<Route>), MappedErrors> {
+) -> Result<Vec<Route>, MappedErrors> {
     let temp_services = t_read(source_file_path)
         .await
         .map(|data| {
@@ -79,14 +74,9 @@ pub async fn load_config_from_json(
         })
         .unwrap();
 
-    let mut tem_service_vec = match temp_services {
+    let tem_service_vec = match temp_services {
         Err(err) => return Err(err),
         Ok(res) => res,
-    };
-
-    tem_service_vec.profile_svc.id = match tem_service_vec.profile_svc.id {
-        None => Some(Uuid::new_v4()),
-        Some(id) => Some(id),
     };
 
     let db = tem_service_vec.services.into_iter().fold(
@@ -127,16 +117,6 @@ pub async fn load_config_from_json(
         },
     );
 
-    set_var(
-        "TOKENS_VALIDATION_PATH",
-        tem_service_vec.profile_svc.build_tokens_url(),
-    );
-
-    info!(
-        "TOKENS_VALIDATION_PATH: {:?}",
-        var("TOKENS_VALIDATION_PATH").unwrap()
-    );
-
     info!(
         "Database successfully loaded:\n
     Number of routes: {}
@@ -145,5 +125,5 @@ pub async fn load_config_from_json(
         ((size_of_val(&*db) as f64 * 0.000001) as f64),
     );
 
-    Ok((tem_service_vec.profile_svc, db))
+    Ok(db)
 }

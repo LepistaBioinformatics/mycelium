@@ -1,5 +1,5 @@
 use crate::{
-    domain::dtos::{route::Route, service::ProfileService},
+    domain::dtos::route::Route,
     use_cases::gateway::routes::load_config_from_json,
 };
 
@@ -60,11 +60,6 @@ lazy_static! {
     pub static ref ROUTES: Mutex<Vec<Route>> = Mutex::new(vec![]);
 }
 
-lazy_static! {
-    pub static ref PROFILE_SERVICE: Mutex<Option<ProfileService>> =
-        Mutex::new(None);
-}
-
 pub async fn init_in_memory_routes() {
     let source_file_path = match var_os("SOURCE_FILE_PATH") {
         Some(path) => Some(path.into_string().unwrap()),
@@ -73,28 +68,22 @@ pub async fn init_in_memory_routes() {
         }
     };
 
-    let (profile_svc, db) =
-        match load_config_from_json(match source_file_path.to_owned() {
-            None => panic!(
+    let db = match load_config_from_json(match source_file_path.to_owned() {
+        None => panic!(
             "Source path not already loaded. Please run the init method before 
                 load database."
         ),
-            Some(path) => path,
-        })
-        .await
-        {
-            Err(err) => {
-                panic!("Unexpected error on load in memory database: {err}")
-            }
-            Ok(res) => res,
-        };
+        Some(path) => path,
+    })
+    .await
+    {
+        Err(err) => {
+            panic!("Unexpected error on load in memory database: {err}")
+        }
+        Ok(res) => res,
+    };
 
     ROUTES.lock().await.extend(db);
-
-    #[allow(unused_must_use)]
-    {
-        PROFILE_SERVICE.lock().await.insert(profile_svc);
-    }
 }
 
 // ? ---------------------------------------------------------------------------
