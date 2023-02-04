@@ -7,7 +7,7 @@ use myc_core::{
         profile::{LicensedResources, Profile},
         role::Role,
     },
-    use_cases::managers::guest_role::ActionType,
+    use_cases::roles::managers::guest_role::ActionType,
 };
 use myc_http_tools::utils::JsonError;
 use utoipa::OpenApi;
@@ -88,7 +88,7 @@ pub mod account_endpoints {
             AccountFetching, AccountRegistration, AccountTypeRegistration,
             AccountUpdating, UserRegistration,
         },
-        use_cases::{
+        use_cases::roles::{
             managers::account::{
                 create_subscription_account, get_subscription_account_details,
                 list_subscription_accounts,
@@ -152,7 +152,7 @@ pub mod account_endpoints {
     /// groups, but not real persons.
     #[utoipa::path(
         post,
-        path = "/managers/accounts/",
+        path = "/myc/managers/accounts/",
         params(
             CreateSubscriptionAccountParams,
         ),
@@ -224,7 +224,7 @@ pub mod account_endpoints {
     /// Get a filtered (or not) list of accounts.
     #[utoipa::path(
         get,
-        path = "/managers/accounts/",
+        path = "/myc/managers/accounts/",
         params(
             ListSubscriptionAccountParams,
         ),
@@ -291,7 +291,7 @@ pub mod account_endpoints {
     /// Get a single subscription account.
     #[utoipa::path(
         get,
-        path = "/managers/accounts/{account}",
+        path = "/myc/managers/accounts/{account}",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
         ),
@@ -352,7 +352,7 @@ pub mod account_endpoints {
     /// operation on the system. These endpoint should approve such account.
     #[utoipa::path(
         patch,
-        path = "/managers/accounts/{account}/approve",
+        path = "/myc/managers/accounts/{account}/approve",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
         ),
@@ -419,7 +419,7 @@ pub mod account_endpoints {
     /// account active.
     #[utoipa::path(
         patch,
-        path = "/managers/accounts/{account}/activate",
+        path = "/myc/managers/accounts/{account}/activate",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
         ),
@@ -487,7 +487,7 @@ pub mod account_endpoints {
     /// account deactivated.
     #[utoipa::path(
         patch,
-        path = "/managers/accounts/{account}/deactivate",
+        path = "/myc/managers/accounts/{account}/deactivate",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
         ),
@@ -569,7 +569,7 @@ pub mod guest_endpoints {
                 MessageSending,
             },
         },
-        use_cases::managers::guest::{
+        use_cases::roles::managers::guest::{
             guest_user, list_guest_on_subscription_account,
         },
     };
@@ -615,7 +615,7 @@ pub mod guest_endpoints {
     /// path argument.
     #[utoipa::path(
         post,
-        path = "/managers/guests/account/{account}/role/{role}",
+        path = "/myc/managers/guests/account/{account}/role/{role}",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
             ("role" = Uuid, Path, description = "The guest-role unique token."),
@@ -704,7 +704,7 @@ pub mod guest_endpoints {
     /// informed subscription account.
     #[utoipa::path(
         get,
-        path = "/managers/guests/account/{account}",
+        path = "/myc/managers/guests/account/{account}",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
         ),
@@ -792,7 +792,7 @@ pub mod guest_role_endpoints {
                 GuestRoleUpdating,
             },
         },
-        use_cases::managers::guest_role::{
+        use_cases::roles::managers::guest_role::{
             create_guest_role, delete_guest_role, list_guest_roles,
             update_guest_role_name_and_description,
             update_guest_role_permissions, ActionType,
@@ -856,7 +856,7 @@ pub mod guest_role_endpoints {
     /// Guest Roles provide permissions to simple Roles.
     #[utoipa::path(
         post,
-        path = "/managers/guest-roles/{role}/",
+        path = "/myc/managers/guest-roles/{role}/",
         params(
             ("role" = Uuid, Path, description = "The guest-role primary key."),
             CreateGuestRoleParams,
@@ -920,7 +920,7 @@ pub mod guest_role_endpoints {
     /// List Roles
     #[utoipa::path(
         get,
-        path = "/managers/guest-roles/",
+        path = "/myc/managers/guest-roles/",
         params(
             ListGuestRolesParams,
         ),
@@ -981,7 +981,7 @@ pub mod guest_role_endpoints {
     /// Delete a single guest role.
     #[utoipa::path(
         delete,
-        path = "/managers/guest-roles/{role}/delete",
+        path = "/myc/managers/guest-roles/{role}/delete",
         params(
             ("role" = Uuid, Path, description = "The guest-role primary key."),
         ),
@@ -1041,7 +1041,7 @@ pub mod guest_role_endpoints {
     /// Update name and description of a single Guest Role.
     #[utoipa::path(
         patch,
-        path = "/managers/guest-roles/{role}/update-name-and-description",
+        path = "/myc/managers/guest-roles/{role}/update-name-and-description",
         params(
             ("role" = Uuid, Path, description = "The guest-role primary key."),
             UpdateGuestRoleNameAndDescriptionParams,
@@ -1111,7 +1111,7 @@ pub mod guest_role_endpoints {
     /// Upgrade or Downgrade permissions of Guest Role.
     #[utoipa::path(
         patch,
-        path = "/managers/guest-roles/{role}/update-permissions",
+        path = "/myc/managers/guest-roles/{role}/update-permissions",
         params(
             ("role" = Uuid, Path, description = "The guest-role primary key."),
             UpdateGuestRolePermissionsParams,
@@ -1202,7 +1202,7 @@ pub mod role_endpoints {
         domain::entities::{
             RoleDeletion, RoleFetching, RoleRegistration, RoleUpdating,
         },
-        use_cases::managers::role::{
+        use_cases::roles::managers::role::{
             create_role, delete_role, list_roles,
             update_role_name_and_description,
         },
@@ -1309,7 +1309,7 @@ pub mod role_endpoints {
     /// List Roles
     #[utoipa::path(
         get,
-        path = "/managers/roles/",
+        path = "/myc/managers/roles/",
         params(
             ListRolesParams,
         ),
@@ -1368,7 +1368,7 @@ pub mod role_endpoints {
     /// Delete a single role.
     #[utoipa::path(
         delete,
-        path = "/managers/roles/{role}/delete",
+        path = "/myc/managers/roles/{role}/delete",
         params(
             ("role" = Uuid, Path, description = "The role primary key."),
         ),
@@ -1425,7 +1425,7 @@ pub mod role_endpoints {
     /// Update name and description of a single Role.
     #[utoipa::path(
         patch,
-        path = "/managers/roles/{role}/update-name-and-description",
+        path = "/myc/managers/roles/{role}/update-name-and-description",
         params(
             ("role" = Uuid, Path, description = "The role primary key."),
             CreateRoleParams,

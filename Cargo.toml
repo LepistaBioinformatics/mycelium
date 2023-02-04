@@ -4,10 +4,11 @@ members = [
     "core",
     "ports/cli",
     "ports/api",
-    "adapters/infra/prisma",
-    "adapters/infra/redis",
-    "adapters/infra/service",
-    "adapters/message/smtp",
+    "adapters/mem_db",
+    "adapters/prisma",
+    "adapters/redis",
+    "adapters/service",
+    "adapters/smtp",
 ]
 
 resolver = "2"

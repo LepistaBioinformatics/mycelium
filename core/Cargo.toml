@@ -15,17 +15,21 @@ categories = ["authentication", "network-programming"]
 # ? ---------------------------------------------------------------------------
 
 [dependencies]
+actix-web = { version = "4", features = ["openssl"] }
+actix-web-httpauth = "0.8.0"
 async-trait = "0.1"
 clean-base = "0.3"
 chrono = { version = "0.4", features = ["serde"] }
 env_logger = "0.10"
 futures = "0.3"
 futures-util = "0.3"
+jsonwebtoken = "8.2"
 lazy_static = "1.4"
 log = "0.4"
 regex = "1.6"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+serde_yaml = "0.9"
 shaku = "0.6"
 shaku_actix = "0.2"
 tokio = { version = "1", features = ["full"] }

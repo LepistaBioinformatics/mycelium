@@ -16,17 +16,20 @@ categories = ["http-client", "microservices"]
 
 [dependencies]
 
-mycelium-prisma = { path = "../../adapters/infra/prisma" }
-mycelium-redis = { path = "../../adapters/infra/redis" }
-mycelium-service = { path = "../../adapters/infra/service" }
-mycelium-smtp = { path = "../../adapters/message/smtp" }
+mycelium-memory-db = { path = "../../adapters/mem_db" }
+mycelium-prisma = { path = "../../adapters/prisma" }
+mycelium-redis = { path = "../../adapters/redis" }
+mycelium-service = { path = "../../adapters/service" }
+mycelium-smtp = { path = "../../adapters/smtp" }
 
 actix-cors = { version = "0.6.2" }
 actix-web = { version = "4" }
 actix-web-error = { version = "0.1" }
 actix-web-error-derive = { version = "0.1" }
+awc = { version = "3", features = ["openssl"] }
 clean-base = "0.3"
 chrono = "0.4"
+derive_more = "0.99"
 env_logger = "0.10"
 lazy_static = "1.4"
 log = "0.4"
@@ -35,6 +38,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 shaku = "0.6"
 shaku_actix = "0.2"
+url = "2.2"
 utoipa = { version = "3", features = ["actix_extras", "uuid", "chrono", "openapi_extensions"] }
 utoipa-swagger-ui = { version = "3", features = ["actix-web"] }
 uuid = { version = "1.1", features = ["v4", "serde", "fast-rng"] }

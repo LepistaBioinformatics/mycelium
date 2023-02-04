@@ -11,5 +11,5 @@ pub use myc_core::{
         profile::{LicensedResources, Profile},
     },
     settings::DEFAULT_PROFILE_KEY,
-    use_cases::service::profile::{ProfilePack, ProfilePackResponse},
+    use_cases::roles::service::profile::{ProfilePack, ProfilePackResponse},
 };

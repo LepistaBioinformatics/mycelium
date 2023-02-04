@@ -1,3 +1,4 @@
+use myc_mem_db::repositories::RoutesFetchingMemDbRepo;
 use myc_prisma::repositories::{
     AccountFetchingSqlDbRepository, AccountRegistrationSqlDbRepository,
     AccountTypeDeletionSqlDbRepository, AccountTypeRegistrationSqlDbRepository,
@@ -215,5 +216,16 @@ module! {
     pub LicensedResourcesFetchingModule {
         components = [LicensedResourcesFetchingSqlDbRepository],
         providers = [],
+    }
+}
+
+// ? ---------------------------------------------------------------------------
+// ? Routes
+// ? ---------------------------------------------------------------------------
+
+module! {
+    pub RoutesFetchingModule {
+        components = [RoutesFetchingMemDbRepo],
+        providers = []
     }
 }
