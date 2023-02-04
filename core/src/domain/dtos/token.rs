@@ -26,3 +26,9 @@ impl Token {
         }
     }
 }
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Claims {
+    pub email: String,
+    pub exp: usize,
+}

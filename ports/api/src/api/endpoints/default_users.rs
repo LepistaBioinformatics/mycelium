@@ -62,7 +62,7 @@ pub mod account_endpoints {
             AccountFetching, AccountRegistration, AccountTypeRegistration,
             AccountUpdating, UserRegistration,
         },
-        use_cases::default_users::account::{
+        use_cases::roles::default_users::account::{
             create_default_account, update_own_account_name,
         },
     };
@@ -112,7 +112,7 @@ pub mod account_endpoints {
 
     #[utoipa::path(
         post,
-        path = "/default-users/accounts/",
+        path = "/myc/default-users/accounts/",
         params(
             CreateDefaultAccountParams,
         ),
@@ -176,7 +176,7 @@ pub mod account_endpoints {
 
     #[utoipa::path(
         patch,
-        path = "/default-users/accounts/{id}/update-account-name",
+        path = "/myc/default-users/accounts/{id}/update-account-name",
         params(
             ("id" = Uuid, Path, description = "The account primary key."),
             UpdateOwnAccountNameAccountParams,
@@ -268,7 +268,7 @@ pub mod profile_endpoints {
     use actix_web::{get, web, HttpResponse, Responder};
     use myc_core::{
         domain::entities::{LicensedResourcesFetching, ProfileFetching},
-        use_cases::service::profile::{
+        use_cases::roles::service::profile::{
             fetch_profile_from_email, ProfileResponse,
         },
     };
@@ -306,7 +306,7 @@ pub mod profile_endpoints {
 
     #[utoipa::path(
         get,
-        path = "/default-users/profiles/",
+        path = "/myc/default-users/profiles/",
         params(
             GetProfileParams,
         ),

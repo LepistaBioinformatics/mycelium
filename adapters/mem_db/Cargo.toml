@@ -1,0 +1,27 @@
+[package]
+name = "mycelium-memory-db"
+version = "0.10.4"
+edition = "2021"
+authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
+license = "Apache-2.0"
+description = "Provide redis adapters to the mycelium project."
+repository = "https://github.com/sgelias/mycelium"
+readme = "./README.md"
+keywords = ["authorization", "identity", "permission", "keeper"]
+categories = ["http-client", "microservices"]
+
+[dependencies]
+actix-web = { version = "4", features = ["openssl"] }
+async-trait = "0.1"
+clean-base = "0.3"
+shaku = "0.6"
+shaku_actix = "0.2"
+wildmatch = "2.1"
+
+[dependencies.myc-core]
+path = "../../core"
+
+[lib]
+name = "myc_mem_db"
+path = "src/lib.rs"
+crate-type = ["staticlib", "lib"]

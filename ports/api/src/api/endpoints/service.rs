@@ -6,7 +6,7 @@ use myc_core::{
         profile::{LicensedResources, Profile},
         token::Token,
     },
-    use_cases::service::profile::ProfilePack,
+    use_cases::roles::service::profile::ProfilePack,
 };
 use myc_http_tools::utils::JsonError;
 use utoipa::OpenApi;
@@ -65,7 +65,7 @@ pub mod profile_endpoints {
                 LicensedResourcesFetching, ProfileFetching, TokenRegistration,
             },
         },
-        use_cases::service::profile::{
+        use_cases::roles::service::profile::{
             fetch_profile_pack_from_email, ProfilePackResponse,
         },
     };
@@ -104,7 +104,7 @@ pub mod profile_endpoints {
 
     #[utoipa::path(
         get,
-        path = "/services/profiles/",
+        path = "/myc/services/profiles/",
         params(
             GetProfileParams,
         ),
@@ -188,7 +188,9 @@ pub mod token_endpoints {
     };
     use myc_core::{
         domain::entities::{TokenCleanup, TokenDeregistration},
-        use_cases::service::token::{clean_tokens_range, validate_token},
+        use_cases::roles::service::token::{
+            clean_tokens_range, validate_token,
+        },
     };
     use myc_http_tools::utils::JsonError;
     use serde::Deserialize;
@@ -231,7 +233,7 @@ pub mod token_endpoints {
     /// the system only.
     #[utoipa::path(
         post,
-        path = "/services/tokens/cleanup-tokens/",
+        path = "/myc/services/tokens/cleanup-tokens/",
         responses(
             (
                 status = 500,
@@ -273,7 +275,7 @@ pub mod token_endpoints {
     /// Try to fetch a token. If exists return a token object.
     #[utoipa::path(
         get,
-        path = "/services/tokens/{token}",
+        path = "/myc/services/tokens/{token}",
         params(
             ("token" = Uuid, Path, description = "The token itself."),
             ValidateTokenParams,

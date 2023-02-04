@@ -59,6 +59,8 @@ pub struct SvcConfig {
     pub service_ip: String,
     pub service_port: u16,
     pub allowed_origins: Vec<String>,
+    pub service_workers: i32,
+    pub gateway_timeout: u64,
 }
 
 impl SvcConfig {
@@ -83,6 +85,18 @@ impl SvcConfig {
                     .map(|i| i.to_string())
                     .collect(),
                 None => vec!["http://localhost:8081".to_string()],
+            },
+            service_workers: match var_os("SERVICE_WORKERS") {
+                Some(path) => {
+                    path.into_string().unwrap().parse::<i32>().unwrap()
+                }
+                None => 10,
+            },
+            gateway_timeout: match var_os("GATEWAY_TIMEOUT") {
+                Some(path) => {
+                    path.into_string().unwrap().parse::<u64>().unwrap()
+                }
+                None => 5 as u64,
             },
         }
     }

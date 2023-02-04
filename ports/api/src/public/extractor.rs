@@ -15,7 +15,7 @@ use myc_core::{
         entities::TokenDeregistration,
     },
     settings::DEFAULT_PROFILE_KEY,
-    use_cases::service::profile::ProfilePack,
+    use_cases::roles::service::profile::ProfilePack,
 };
 use myc_svc::repositories::TokenDeregistrationSvcRepository;
 

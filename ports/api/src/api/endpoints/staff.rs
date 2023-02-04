@@ -55,7 +55,7 @@ pub mod account_endpoints {
                 AccountFetching, AccountTypeRegistration, AccountUpdating,
             },
         },
-        use_cases::staff::account::{
+        use_cases::roles::staff::account::{
             downgrade_account_privileges, upgrade_account_privileges,
         },
     };
@@ -99,7 +99,7 @@ pub mod account_endpoints {
     /// Increase permissions of the refereed account.
     #[utoipa::path(
         patch,
-        path = "/staffs/accounts/{account}/upgrade",
+        path = "/myc/staffs/accounts/{account}/upgrade",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
             UpgradeAccountPrivilegesParams,
@@ -173,7 +173,7 @@ pub mod account_endpoints {
     /// Decrease permissions of the refereed account.
     #[utoipa::path(
         patch,
-        path = "/staffs/accounts/{account}/downgrade",
+        path = "/myc/staffs/accounts/{account}/downgrade",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
             UpgradeAccountPrivilegesParams,
