@@ -90,48 +90,59 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             .configure(configure_injection_modules)
             // ? ---------------------------------------------------------------
-            // ? Configure OpenApi definitions
+            // ? Configure mycelium routes
             // ? ---------------------------------------------------------------
-            //
-            // Index
-            //
             .service(
-                web::scope("/health")
-                    .configure(heath_check_endpoints::configure),
+                web::scope("/myc")
+                    //
+                    // Index
+                    //
+                    .service(
+                        web::scope("/health")
+                            .configure(heath_check_endpoints::configure),
+                    )
+                    //
+                    // Default Users
+                    //
+                    .service(
+                        web::scope("/default-users")
+                            .configure(
+                                default_users_account_endpoints::configure,
+                            )
+                            .configure(
+                                default_users_profile_endpoints::configure,
+                            ),
+                    )
+                    //
+                    // Manager
+                    //
+                    .service(
+                        web::scope("/managers")
+                            .configure(manager_account_endpoints::configure)
+                            .configure(manager_guest_endpoints::configure)
+                            .configure(manager_guest_role_endpoints::configure)
+                            .configure(manager_role_endpoints::configure),
+                    )
+                    //
+                    // Service
+                    //
+                    .service(
+                        web::scope("/services")
+                            .configure(service_profile_endpoints::configure)
+                            .configure(service_token_endpoints::configure),
+                    )
+                    //
+                    // Staff
+                    //
+                    .service(
+                        web::scope("/staffs")
+                            .configure(staff_account_endpoints::configure),
+                    ),
             )
-            //
-            // Default Users
-            //
-            .service(
-                web::scope("/default-users")
-                    .configure(default_users_account_endpoints::configure)
-                    .configure(default_users_profile_endpoints::configure),
-            )
-            //
-            // Manager
-            //
-            .service(
-                web::scope("/managers")
-                    .configure(manager_account_endpoints::configure)
-                    .configure(manager_guest_endpoints::configure)
-                    .configure(manager_guest_role_endpoints::configure)
-                    .configure(manager_role_endpoints::configure),
-            )
-            //
-            // Service
-            //
-            .service(
-                web::scope("/services")
-                    .configure(service_profile_endpoints::configure)
-                    .configure(service_token_endpoints::configure),
-            )
-            //
-            // Staff
-            //
-            .service(
-                web::scope("/staffs")
-                    .configure(staff_account_endpoints::configure),
-            )
+            // ? ---------------------------------------------------------------
+            // ? Configure gateway routes
+            // ? ---------------------------------------------------------------
+            .service(web::scope("/gw"))
             // ? ---------------------------------------------------------------
             // ? Configure API documentation
             // ? ---------------------------------------------------------------

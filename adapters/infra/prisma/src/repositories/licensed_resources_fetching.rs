@@ -31,6 +31,8 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         // ? Build and execute the database query
         // ? -------------------------------------------------------------------
 
+        debug!("Target email: {:?}", email);
+
         let tmp_client = get_client().await;
 
         let client = match tmp_client.get(&process_id()) {

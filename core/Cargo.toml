@@ -32,6 +32,9 @@ tokio = { version = "1", features = ["full"] }
 utoipa = { version = "3", features = ["actix_extras", "uuid"] }
 uuid = { version = "1.1", features = ["v4", "serde", "fast-rng"] }
 
+[dev-dependencies]
+test-log = "0.2.8"
+
 # ? ---------------------------------------------------------------------------
 # ? LIBRARY
 # ? ---------------------------------------------------------------------------
