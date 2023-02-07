@@ -3,12 +3,11 @@ extern crate myc_core;
 mod cmds;
 
 use clap::Parser;
-use cmds::{accounts, check, dev};
+use cmds::{accounts, check};
 use std::env::set_var;
 
 #[derive(Parser, Debug)]
 enum Cli {
-    Dev(dev::Arguments),
     Check(check::Arguments),
     Accounts(accounts::Arguments),
 }
@@ -28,13 +27,6 @@ pub async fn main() {
         },
         Cli::Check(sub_args) => {
             check::check_config_from_json_cmd(sub_args).await
-        }
-        Cli::Dev(sub_args) => {
-            match sub_args.generate_token {
-                dev::Commands::GenerateToken(args) => {
-                    dev::generate_bearer_token_from_email_cmd(args).await;
-                }
-            };
         }
     }
 }

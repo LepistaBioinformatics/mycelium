@@ -14,6 +14,8 @@ categories = ["http-client", "microservices"]
 actix-web = { version = "4", features = ["openssl"] }
 async-trait = "0.1"
 clean-base = "0.3"
+env_logger = "0.10"
+log = "0.4"
 shaku = "0.6"
 shaku_actix = "0.2"
 wildmatch = "2.1"

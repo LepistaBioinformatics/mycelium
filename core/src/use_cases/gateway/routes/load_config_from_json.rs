@@ -6,7 +6,7 @@ use crate::domain::dtos::{
 };
 
 use clean_base::utils::errors::{use_case_err, MappedErrors};
-use log::{error, info};
+use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use std::{mem::size_of_val, str::from_utf8};
 use tokio::fs::read as t_read;
@@ -74,10 +74,14 @@ pub async fn load_config_from_json(
         })
         .unwrap();
 
+    debug!("temp_services: {:?}", temp_services);
+
     let tem_service_vec = match temp_services {
         Err(err) => return Err(err),
         Ok(res) => res,
     };
+
+    debug!("tem_service_vec: {:?}", tem_service_vec);
 
     let db = tem_service_vec.services.into_iter().fold(
         Vec::<Route>::new(),

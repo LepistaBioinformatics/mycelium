@@ -1,0 +1,26 @@
+[package]
+name = "mycelium-api-test-svc"
+version = "0.10.4"
+edition = "2021"
+authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
+license = "Apache-2.0"
+description = "Provide API ports to the mycelium project."
+repository = "https://github.com/sgelias/mycelium"
+readme = "./README.md"
+keywords = ["authorization", "identity", "permission", "keeper"]
+categories = ["http-client", "microservices"]
+
+# ? ---------------------------------------------------------------------------
+# ? DEPENDENCIES
+# ? ---------------------------------------------------------------------------
+
+[dependencies]
+actix-web = { version = "4" }
+
+# ? ---------------------------------------------------------------------------
+# ? BINARIES
+# ? ---------------------------------------------------------------------------
+
+[[bin]]
+name = "myc-api-test-svc"
+path = "src/main.rs"

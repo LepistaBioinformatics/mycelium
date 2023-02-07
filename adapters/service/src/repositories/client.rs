@@ -6,6 +6,6 @@ lazy_static! {
     pub(super) static ref REQWEST_CLIENT: Client = Client::new();
 }
 
-pub(super) async fn get_client() -> Client {
+pub async fn get_client() -> Client {
     REQWEST_CLIENT.to_owned()
 }

@@ -9,6 +9,7 @@ members = [
     "adapters/redis",
     "adapters/service",
     "adapters/smtp",
+    "test/bin"
 ]
 
 resolver = "2"
