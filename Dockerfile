@@ -11,6 +11,7 @@ WORKDIR /rust
 COPY core /rust/core
 COPY adapters /rust/adapters
 COPY ports /rust/ports
+COPY test /rust/test
 COPY Cargo.toml /rust/Cargo.toml
 
 RUN cargo build --bin myc-api --release
