@@ -5,6 +5,7 @@ use clean_base::{
     entities::default_response::FetchManyResponseKind,
     utils::errors::MappedErrors,
 };
+use log::debug;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -31,25 +32,24 @@ pub async fn match_forward_address(
         Ok(res) => match res {
             FetchManyResponseKind::NotFound => {
                 return Ok(RoutesMatchResponseEnum::PathNotFound(format!(
-                    "There is no registered paths for: {}",
-                    path
+                    "There is no registered paths for: {path}",
                 )))
             }
             FetchManyResponseKind::Found(res) => res,
         },
     };
 
+    debug!("routes: {:?}", routes);
+
     if routes.len() == 0 {
         return Ok(RoutesMatchResponseEnum::PathNotFound(format!(
-            "There is no registered paths for: {}",
-            path
+            "There is no registered paths for: {path}"
         )));
     }
 
     if routes.len() > 1 {
         return Ok(RoutesMatchResponseEnum::MultipleAssociatedPaths(format!(
-            "Multiple paths registered for the specified path: {}",
-            path
+            "Multiple paths registered for the specified path: {path}",
         )));
     }
 

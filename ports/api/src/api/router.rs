@@ -1,4 +1,5 @@
-use crate::modules::RoutesFetchingModule;
+use super::providers::check_credentials;
+use crate::{modules::RoutesFetchingModule, settings::GATEWAY_API_SCOPE};
 
 use actix_web::{
     error,
@@ -16,10 +17,7 @@ use myc_core::{
     domain::{dtos::http::RouteType, entities::RoutesFetching},
     settings::{FORWARDING_KEYS, FORWARD_FOR_KEY},
     use_cases::{
-        gateway::{
-            profile::check_credentials,
-            routes::{match_forward_address, RoutesMatchResponseEnum},
-        },
+        gateway::routes::{match_forward_address, RoutesMatchResponseEnum},
         roles::service::profile::{fetch_profile_from_email, ProfileResponse},
     },
 };
@@ -103,6 +101,8 @@ pub async fn route_request(
     timeout: web::Data<u64>,
     routing_fetching_repo: Inject<RoutesFetchingModule, dyn RoutesFetching>,
 ) -> Result<HttpResponse, ForwardingError> {
+    let replace_path = &format!("/{}", GATEWAY_API_SCOPE);
+
     // ? -----------------------------------------------------------------------
     // ? Try to match the forward address
     //
@@ -111,16 +111,21 @@ pub async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    let request_path =
-        match PathAndQuery::from_str(req.uri().path().to_string().as_str()) {
-            Err(err) => {
-                warn!("{:?}", err);
-                return Err(ForwardingError::BadRequest(String::from(
-                    "Invalid request path",
-                )));
-            }
-            Ok(res) => res,
-        };
+    let request_path = match PathAndQuery::from_str(
+        &req.uri()
+            .path()
+            .to_string()
+            .as_str()
+            .replace(replace_path, ""),
+    ) {
+        Err(err) => {
+            warn!("{:?}", err);
+            return Err(ForwardingError::BadRequest(String::from(
+                "Invalid request path",
+            )));
+        }
+        Ok(res) => res,
+    };
 
     debug!("Request Path: {:?}", request_path);
 
@@ -136,14 +141,18 @@ pub async fn route_request(
                 "Invalid client service",
             )));
         }
-        Ok(res) => match res {
-            RoutesMatchResponseEnum::Found(route) => route,
-            _ => {
-                return Err(ForwardingError::BadRequest(String::from(
-                    "Invalid request path",
-                )))
+        Ok(res) => {
+            debug!("match routes res: {:?}", res);
+
+            match res {
+                RoutesMatchResponseEnum::Found(route) => route,
+                _ => {
+                    return Err(ForwardingError::BadRequest(String::from(
+                        "Request path does not match any service",
+                    )))
+                }
             }
-        },
+        }
     };
 
     debug!("Match Route: {:?}", route);
@@ -173,6 +182,7 @@ pub async fn route_request(
                 url.set_path(
                     req.uri()
                         .path()
+                        .replace(replace_path, "")
                         .replace(format!("/{name}").as_str(), "")
                         .as_str(),
                 );

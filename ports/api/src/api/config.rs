@@ -6,12 +6,15 @@ use crate::modules::{
     GuestUserFetchingModule, GuestUserRegistrationModule,
     LicensedResourcesFetchingModule, MessageSendingModule,
     ProfileFetchingModule, RoleDeletionModule, RoleFetchingModule,
-    RoleRegistrationModule, RoleUpdatingModule, TokenCleanupModule,
-    TokenDeregistrationModule, TokenRegistrationModule, UserRegistrationModule,
-    UserUpdatingModule,
+    RoleRegistrationModule, RoleUpdatingModule, RoutesFetchingModule,
+    TokenCleanupModule, TokenDeregistrationModule, TokenRegistrationModule,
+    UserRegistrationModule, UserUpdatingModule,
 };
 
 use actix_web::web;
+use myc_mem_db::repositories::{
+    RoutesFetchingMemDbRepo, RoutesFetchingMemDbRepoParameters,
+};
 use myc_prisma::repositories::{
     AccountFetchingSqlDbRepository, AccountFetchingSqlDbRepositoryParameters,
     AccountRegistrationSqlDbRepository,
@@ -283,5 +286,15 @@ pub fn configure(config: &mut web::ServiceConfig) {
                 .with_component_parameters::<LicensedResourcesFetchingSqlDbRepository>(
                     LicensedResourcesFetchingSqlDbRepositoryParameters {}
                 ).build()
+        ))
+        // ? -------------------------------------------------------------------
+        // ? Routes
+        // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            RoutesFetchingModule::builder()
+                .with_component_parameters::<RoutesFetchingMemDbRepo>(
+                    RoutesFetchingMemDbRepoParameters {},
+                )
+                .build(),
         ));
 }

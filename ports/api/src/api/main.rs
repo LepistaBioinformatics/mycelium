@@ -3,7 +3,9 @@ extern crate myc_core;
 mod config;
 mod endpoints;
 mod modules;
+mod providers;
 mod router;
+mod settings;
 
 use actix_cors::Cors;
 use actix_web::middleware::Logger;
@@ -39,6 +41,7 @@ use reqwest::header::{
     AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use router::route_request;
+use settings::{GATEWAY_API_SCOPE, MYCELIUM_API_SCOPE};
 use std::process::id as process_id;
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
@@ -104,7 +107,7 @@ pub async fn main() -> std::io::Result<()> {
             // ? Configure mycelium routes
             // ? ---------------------------------------------------------------
             .service(
-                web::scope("/myc")
+                web::scope(&format!("/{}", MYCELIUM_API_SCOPE))
                     //
                     // Index
                     //
@@ -172,7 +175,10 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             .app_data(web::Data::new(Client::default()))
             .app_data(web::Data::new(config.gateway_timeout))
-            .service(web::scope("/gw").default_service(web::to(route_request)))
+            .service(
+                web::scope(&format!("/{}", GATEWAY_API_SCOPE))
+                    .default_service(web::to(route_request)),
+            )
     });
 
     info!("Fire the server.");
