@@ -2,9 +2,10 @@ use actix_web::{http::header::Header, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use clean_base::utils::errors::{execution_err, MappedErrors};
 use myc_core::domain::dtos::email::Email;
-use myc_svc::repositories::get_client;
 use reqwest::StatusCode;
 use serde::Deserialize;
+
+use crate::settings::get_client;
 
 #[derive(Deserialize, Debug)]
 pub struct MsGraphDecode {

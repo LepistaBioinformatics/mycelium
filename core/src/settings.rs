@@ -85,31 +85,3 @@ pub async fn init_in_memory_routes() {
 
     ROUTES.lock().await.extend(db);
 }
-
-// ? ---------------------------------------------------------------------------
-// ? Configure Bearer secret
-//
-// Bearer secret should be used to decode self generated token.
-// ? ---------------------------------------------------------------------------
-
-lazy_static! {
-    pub static ref BEARER_TOKEN_SECRET: Mutex<Option<String>> =
-        Mutex::new(None);
-}
-
-/// Collect Bearer Secret from environment
-///
-/// Try to collect Bearer Secret from environment. Panic if not exists.
-pub async fn init_bearer_secret() {
-    let secret = match var_os("BEARER_TOKEN_SECRET") {
-        Some(path) => path.into_string().unwrap(),
-        None => {
-            panic!("Required environment variable BEARER_TOKEN_SECRET not set.")
-        }
-    };
-
-    #[allow(unused_must_use)]
-    {
-        BEARER_TOKEN_SECRET.lock().await.insert(secret);
-    }
-}

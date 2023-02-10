@@ -46,7 +46,7 @@ pub mod account_endpoints {
         AccountUpdatingModule,
     };
 
-    use actix_web::{patch, web, HttpRequest, HttpResponse, Responder};
+    use actix_web::{patch, web, HttpResponse, Responder};
     use clean_base::entities::default_response::UpdatingResponseKind;
     use myc_core::{
         domain::{
@@ -59,7 +59,7 @@ pub mod account_endpoints {
             downgrade_account_privileges, upgrade_account_privileges,
         },
     };
-    use myc_http_tools::{extractor::extract_profile, utils::JsonError};
+    use myc_http_tools::{middleware::ProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -126,7 +126,7 @@ pub mod account_endpoints {
     pub async fn upgrade_account_privileges_url(
         path: web::Path<Uuid>,
         info: web::Query<UpgradeAccountPrivilegesParams>,
-        req: HttpRequest,
+        profile: ProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -140,13 +140,8 @@ pub mod account_endpoints {
             dyn AccountTypeRegistration,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match upgrade_account_privileges(
-            profile,
+            profile.to_profile(),
             path.to_owned(),
             info.target_account_type.to_owned(),
             Box::new(&*account_fetching_repo),
@@ -200,7 +195,7 @@ pub mod account_endpoints {
     pub async fn downgrade_account_privileges_url(
         path: web::Path<Uuid>,
         info: web::Query<UpgradeAccountPrivilegesParams>,
-        req: HttpRequest,
+        profile: ProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -214,13 +209,8 @@ pub mod account_endpoints {
             dyn AccountTypeRegistration,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match downgrade_account_privileges(
-            profile,
+            profile.to_profile(),
             path.to_owned(),
             info.target_account_type.to_owned(),
             Box::new(&*account_fetching_repo),

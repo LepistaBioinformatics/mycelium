@@ -76,9 +76,8 @@ pub mod account_endpoints {
         UserRegistrationModule,
     };
 
-    use actix_web::{
-        get, patch, post, web, HttpRequest, HttpResponse, Responder,
-    };
+    use actix_web::{get, patch, post, web, HttpResponse, Responder};
+    use actix_web_httpauth::extractors::bearer::Config;
     use clean_base::entities::default_response::{
         FetchManyResponseKind, FetchResponseKind, GetOrCreateResponseKind,
         UpdatingResponseKind,
@@ -98,7 +97,7 @@ pub mod account_endpoints {
             },
         },
     };
-    use myc_http_tools::{extractor::extract_profile, utils::JsonError};
+    use myc_http_tools::{middleware::ProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -111,6 +110,7 @@ pub mod account_endpoints {
     pub fn configure(config: &mut web::ServiceConfig) {
         config.service(
             web::scope("/accounts")
+                .app_data(Config::default())
                 .service(create_subscription_account_url)
                 .service(list_subscription_accounts_url)
                 .service(get_subscription_account_details_url)
@@ -177,7 +177,7 @@ pub mod account_endpoints {
     #[post("/")]
     pub async fn create_subscription_account_url(
         info: web::Query<CreateSubscriptionAccountParams>,
-        req: HttpRequest,
+        profile: ProfileData,
         user_registration_repo: Inject<
             UserRegistrationModule,
             dyn UserRegistration,
@@ -191,13 +191,8 @@ pub mod account_endpoints {
             dyn AccountRegistration,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match create_subscription_account(
-            profile,
+            profile.to_profile(),
             info.email.to_owned(),
             info.account_name.to_owned(),
             Box::new(&*user_registration_repo),
@@ -248,7 +243,7 @@ pub mod account_endpoints {
     #[get("/")]
     pub async fn list_subscription_accounts_url(
         info: web::Query<ListSubscriptionAccountParams>,
-        req: HttpRequest,
+        profile: ProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -258,13 +253,8 @@ pub mod account_endpoints {
             dyn AccountTypeRegistration,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match list_subscription_accounts(
-            profile,
+            profile.to_profile(),
             info.name.to_owned(),
             info.is_active.to_owned(),
             info.is_checked.to_owned(),
@@ -316,19 +306,14 @@ pub mod account_endpoints {
     #[get("/{account}")]
     pub async fn get_subscription_account_details_url(
         path: web::Path<Uuid>,
-        req: HttpRequest,
+        profile: ProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match get_subscription_account_details(
-            profile,
+            profile.to_profile(),
             *path,
             Box::new(&*account_fetching_repo),
         )
@@ -377,7 +362,7 @@ pub mod account_endpoints {
     #[patch("/{account}/approve")]
     pub async fn approve_account_url(
         path: web::Path<Uuid>,
-        req: HttpRequest,
+        profile: ProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -387,13 +372,8 @@ pub mod account_endpoints {
             dyn AccountUpdating,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match approve_account(
-            profile,
+            profile.to_profile(),
             path.to_owned(),
             Box::new(&*account_fetching_repo),
             Box::new(&*account_updating_repo),
@@ -444,7 +424,7 @@ pub mod account_endpoints {
     #[patch("/{account}/activate")]
     pub async fn activate_account_url(
         path: web::Path<Uuid>,
-        req: HttpRequest,
+        profile: ProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -454,13 +434,8 @@ pub mod account_endpoints {
             dyn AccountUpdating,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match change_account_activation_status(
-            profile,
+            profile.to_profile(),
             path.to_owned(),
             true,
             Box::new(&*account_fetching_repo),
@@ -512,7 +487,7 @@ pub mod account_endpoints {
     #[patch("/{account}/deactivate")]
     pub async fn deactivate_account_url(
         path: web::Path<Uuid>,
-        req: HttpRequest,
+        profile: ProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -522,13 +497,8 @@ pub mod account_endpoints {
             dyn AccountUpdating,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match change_account_activation_status(
-            profile,
+            profile.to_profile(),
             path.to_owned(),
             false,
             Box::new(&*account_fetching_repo),
@@ -557,7 +527,7 @@ pub mod guest_endpoints {
         GuestUserRegistrationModule, MessageSendingModule,
     };
 
-    use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
+    use actix_web::{get, post, web, HttpResponse, Responder};
     use clean_base::entities::default_response::{
         FetchManyResponseKind, GetOrCreateResponseKind,
     };
@@ -573,7 +543,7 @@ pub mod guest_endpoints {
             guest_user, list_guest_on_subscription_account,
         },
     };
-    use myc_http_tools::{extractor::extract_profile, utils::JsonError};
+    use myc_http_tools::{middleware::ProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -618,7 +588,7 @@ pub mod guest_endpoints {
         path = "/myc/managers/guests/account/{account}/role/{role}",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
-            ("role" = Uuid, Path, description = "The guest-role unique token."),
+            ("role" = Uuid, Path, description = "The guest-role unique id."),
             GuestUserParams,
         ),
         responses(
@@ -648,7 +618,7 @@ pub mod guest_endpoints {
     pub async fn guest_user_url(
         path: web::Path<(Uuid, Uuid)>,
         info: web::Query<GuestUserParams>,
-        req: HttpRequest,
+        profile: ProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -659,11 +629,6 @@ pub mod guest_endpoints {
         >,
         message_sending_repo: Inject<MessageSendingModule, dyn MessageSending>,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         let (account_id, role_id) = path.to_owned();
 
         let email = match Email::from_string(info.email.to_owned()) {
@@ -675,7 +640,7 @@ pub mod guest_endpoints {
         };
 
         match guest_user(
-            profile,
+            profile.to_profile(),
             email,
             role_id,
             account_id,
@@ -729,7 +694,7 @@ pub mod guest_endpoints {
     #[get("/account/{account}")]
     pub async fn list_guest_on_subscription_account_url(
         path: web::Path<Uuid>,
-        req: HttpRequest,
+        profile: ProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -739,15 +704,10 @@ pub mod guest_endpoints {
             dyn GuestUserFetching,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         let account_id = path.to_owned();
 
         match list_guest_on_subscription_account(
-            profile,
+            profile.to_profile(),
             account_id.to_owned(),
             Box::new(&*account_fetching_repo),
             Box::new(&*guest_user_fetching_repo),
@@ -777,9 +737,7 @@ pub mod guest_role_endpoints {
         GuestRoleRegistrationModule, GuestRoleUpdatingModule,
     };
 
-    use actix_web::{
-        delete, get, patch, post, web, HttpRequest, HttpResponse, Responder,
-    };
+    use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
     use clean_base::entities::default_response::{
         DeletionResponseKind, FetchManyResponseKind, GetOrCreateResponseKind,
         UpdatingResponseKind,
@@ -798,7 +756,7 @@ pub mod guest_role_endpoints {
             update_guest_role_permissions, ActionType,
         },
     };
-    use myc_http_tools::{extractor::extract_profile, utils::JsonError};
+    use myc_http_tools::{middleware::ProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -883,19 +841,14 @@ pub mod guest_role_endpoints {
     pub async fn crate_guest_role_url(
         path: web::Path<Uuid>,
         info: web::Query<CreateGuestRoleParams>,
-        req: HttpRequest,
+        profile: ProfileData,
         role_registration_repo: Inject<
             GuestRoleRegistrationModule,
             dyn GuestRoleRegistration,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match create_guest_role(
-            profile,
+            profile.to_profile(),
             info.name.to_owned(),
             info.description.to_owned(),
             path.to_owned(),
@@ -944,19 +897,14 @@ pub mod guest_role_endpoints {
     #[get("/")]
     pub async fn list_guest_roles_url(
         info: web::Query<ListGuestRolesParams>,
-        req: HttpRequest,
+        profile: ProfileData,
         guest_role_fetching_repo: Inject<
             GuestRoleFetchingModule,
             dyn GuestRoleFetching,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match list_guest_roles(
-            profile,
+            profile.to_profile(),
             info.name.to_owned(),
             info.role_id.to_owned(),
             Box::new(&*guest_role_fetching_repo),
@@ -1005,19 +953,14 @@ pub mod guest_role_endpoints {
     #[delete("/{role}/delete")]
     pub async fn delete_guest_role_url(
         path: web::Path<Uuid>,
-        req: HttpRequest,
+        profile: ProfileData,
         role_deletion_repo: Inject<
             GuestRoleDeletionModule,
             dyn GuestRoleDeletion,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match delete_guest_role(
-            profile,
+            profile.to_profile(),
             path.to_owned(),
             Box::new(&*role_deletion_repo),
         )
@@ -1068,7 +1011,7 @@ pub mod guest_role_endpoints {
     pub async fn update_guest_role_name_and_description_url(
         path: web::Path<Uuid>,
         info: web::Query<UpdateGuestRoleNameAndDescriptionParams>,
-        req: HttpRequest,
+        profile: ProfileData,
         role_fetching_repo: Inject<
             GuestRoleFetchingModule,
             dyn GuestRoleFetching,
@@ -1078,13 +1021,8 @@ pub mod guest_role_endpoints {
             dyn GuestRoleUpdating,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match update_guest_role_name_and_description(
-            profile,
+            profile.to_profile(),
             info.name.to_owned(),
             info.description.to_owned(),
             path.to_owned(),
@@ -1138,7 +1076,7 @@ pub mod guest_role_endpoints {
     pub async fn update_guest_role_permissions_url(
         path: web::Path<Uuid>,
         info: web::Query<UpdateGuestRolePermissionsParams>,
-        req: HttpRequest,
+        profile: ProfileData,
         role_fetching_repo: Inject<
             GuestRoleFetchingModule,
             dyn GuestRoleFetching,
@@ -1148,13 +1086,8 @@ pub mod guest_role_endpoints {
             dyn GuestRoleUpdating,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match update_guest_role_permissions(
-            profile,
+            profile.to_profile(),
             path.to_owned(),
             info.permission.to_owned(),
             info.action_type.to_owned(),
@@ -1191,9 +1124,7 @@ pub mod role_endpoints {
         RoleUpdatingModule,
     };
 
-    use actix_web::{
-        delete, get, patch, post, web, HttpRequest, HttpResponse, Responder,
-    };
+    use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
     use clean_base::entities::default_response::{
         DeletionResponseKind, FetchManyResponseKind, GetOrCreateResponseKind,
         UpdatingResponseKind,
@@ -1207,7 +1138,7 @@ pub mod role_endpoints {
             update_role_name_and_description,
         },
     };
-    use myc_http_tools::{extractor::extract_profile, utils::JsonError};
+    use myc_http_tools::{middleware::ProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -1274,19 +1205,14 @@ pub mod role_endpoints {
     #[post("/")]
     pub async fn crate_role_url(
         info: web::Query<CreateRoleParams>,
-        req: HttpRequest,
+        profile: ProfileData,
         role_registration_repo: Inject<
             RoleRegistrationModule,
             dyn RoleRegistration,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match create_role(
-            profile,
+            profile.to_profile(),
             info.name.to_owned(),
             info.description.to_owned(),
             Box::new(&*role_registration_repo),
@@ -1334,18 +1260,13 @@ pub mod role_endpoints {
     #[get("/")]
     pub async fn list_roles_url(
         info: web::Query<ListRolesParams>,
-        req: HttpRequest,
+        profile: ProfileData,
         roles_fetching_repo: Inject<RoleFetchingModule, dyn RoleFetching>,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         let name = info.name.to_owned();
 
         match list_roles(
-            profile,
+            profile.to_profile(),
             name.to_owned(),
             Box::new(&*roles_fetching_repo),
         )
@@ -1392,16 +1313,11 @@ pub mod role_endpoints {
     #[delete("/{role}/delete")]
     pub async fn delete_role_url(
         path: web::Path<Uuid>,
-        req: HttpRequest,
+        profile: ProfileData,
         role_deletion_repo: Inject<RoleDeletionModule, dyn RoleDeletion>,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match delete_role(
-            profile,
+            profile.to_profile(),
             path.to_owned(),
             Box::new(&*role_deletion_repo),
         )
@@ -1452,17 +1368,12 @@ pub mod role_endpoints {
     pub async fn update_role_name_and_description_url(
         path: web::Path<Uuid>,
         info: web::Query<CreateRoleParams>,
-        req: HttpRequest,
+        profile: ProfileData,
         role_fetching_repo: Inject<RoleFetchingModule, dyn RoleFetching>,
         role_updating_repo: Inject<RoleUpdatingModule, dyn RoleUpdating>,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
-
         match update_role_name_and_description(
-            profile,
+            profile.to_profile(),
             path.to_owned(),
             info.name.to_owned(),
             info.description.to_owned(),

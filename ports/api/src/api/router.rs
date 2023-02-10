@@ -1,88 +1,24 @@
-use super::providers::check_credentials;
 use crate::{modules::RoutesFetchingModule, settings::GATEWAY_API_SCOPE};
 
 use actix_web::{
-    error,
-    http::{
-        header::{ContentType, HeaderName},
-        uri::PathAndQuery,
-        StatusCode,
-    },
-    web, HttpRequest, HttpResponse,
+    error, http::uri::PathAndQuery, web, HttpRequest, HttpResponse,
 };
-use awc::{error::HeaderValue, Client};
-use derive_more::Display;
+use awc::Client;
 use log::{debug, warn};
 use myc_core::{
     domain::{dtos::http::RouteType, entities::RoutesFetching},
     settings::{FORWARDING_KEYS, FORWARD_FOR_KEY},
-    use_cases::{
-        gateway::routes::{match_forward_address, RoutesMatchResponseEnum},
-        roles::service::profile::{fetch_profile_from_email, ProfileResponse},
+    use_cases::gateway::routes::{
+        match_forward_address, RoutesMatchResponseEnum,
     },
 };
-use myc_http_tools::DEFAULT_PROFILE_KEY;
-use myc_prisma::repositories::{
-    LicensedResourcesFetchingSqlDbRepository, ProfileFetchingSqlDbRepository,
+use myc_http_tools::{
+    middleware::fetch_and_inject_profile_to_forward,
+    responses::ForwardingError, DEFAULT_PROFILE_KEY,
 };
-use serde::Serialize;
 use shaku_actix::Inject;
-use std::{fmt::Debug, str::FromStr, time::Duration};
+use std::{str::FromStr, time::Duration};
 use url::Url;
-
-#[derive(Debug, Serialize)]
-struct JsonError {
-    msg: String,
-    status: u16,
-    message: String,
-}
-
-/// Internal errors as HTTP responses
-///
-/// Forwarding errors are fired only by Stomata errors.
-#[derive(Debug, Display)]
-pub enum ForwardingError {
-    // ? -----------------------------------------------------------------------
-    // ? Client errors (4xx)
-    // ? -----------------------------------------------------------------------
-    #[display(fmt = "BadRequest")]
-    BadRequest(String),
-
-    #[display(fmt = "Forbidden")]
-    Forbidden(String),
-
-    // ? -----------------------------------------------------------------------
-    // ? Server errors (5xx)
-    // ? -----------------------------------------------------------------------
-    #[display(fmt = "InternalServerError")]
-    InternalServerError(String),
-}
-
-impl error::ResponseError for ForwardingError {
-    fn error_response(&self) -> HttpResponse {
-        HttpResponse::build(self.status_code())
-            .insert_header(ContentType::json())
-            .json(JsonError {
-                msg: self.to_string(),
-                status: self.status_code().as_u16(),
-                message: match self {
-                    ForwardingError::BadRequest(msg) => msg.to_owned(),
-                    ForwardingError::Forbidden(msg) => msg.to_owned(),
-                    ForwardingError::InternalServerError(msg) => msg.to_owned(),
-                },
-            })
-    }
-
-    fn status_code(&self) -> StatusCode {
-        match *self {
-            ForwardingError::BadRequest { .. } => StatusCode::BAD_REQUEST,
-            ForwardingError::Forbidden { .. } => StatusCode::FORBIDDEN,
-            ForwardingError::InternalServerError { .. } => {
-                StatusCode::INTERNAL_SERVER_ERROR
-            }
-        }
-    }
-}
 
 /// Forward request to the client service.
 ///
@@ -94,7 +30,7 @@ impl error::ResponseError for ForwardingError {
 /// TODO: unofficial X-Forwarded-For header but not the official Forwarded
 /// TODO: one.
 ///
-pub async fn route_request(
+pub(crate) async fn route_request(
     req: HttpRequest,
     payload: web::Payload,
     client: web::Data<Client>,
@@ -224,68 +160,14 @@ pub async fn route_request(
 
     if let RouteType::Protected = route.group.to_owned() {
         //
-        // Get email from response
+        // Try to populate profile from the request
         //
-        let email = match check_credentials(req.to_owned()).await {
-            Err(err) => {
-                warn!("{:?}", err);
-                return Err(ForwardingError::Forbidden(format!("{err}")));
-            }
-            Ok(res) => {
-                debug!("Requesting Email: {:?}", res);
-
-                Some(res)
-            }
-        };
-        //
-        // Get the profile response
-        //
-        let profile = match fetch_profile_from_email(
-            email.to_owned().unwrap(),
-            Box::new(&ProfileFetchingSqlDbRepository {}),
-            Box::new(&LicensedResourcesFetchingSqlDbRepository {}),
-        )
-        .await
-        {
-            Err(err) => {
-                warn!("{:?}", err);
-                return Err(ForwardingError::InternalServerError(format!(
-                    "{err}"
-                )));
-            }
-            Ok(res) => {
-                debug!("Requesting Profile: {:?}", res);
-
-                match res {
-                    ProfileResponse::UnregisteredUser(email) => {
-                        return Err(ForwardingError::Forbidden(format!(
-                            "Unauthorized access: {:?}",
-                            email,
-                        )))
-                    }
-                    ProfileResponse::RegisteredUser(res) => res,
-                }
-            }
-        };
-        //
-        // Insert profile in header
-        //
-        debug!("Inserting Profile in Requesting Header");
-
-        forwarded_req.headers_mut().insert(
-            HeaderName::from_str(DEFAULT_PROFILE_KEY).unwrap(),
-            match HeaderValue::from_str(
-                &serde_json::to_string(&profile).unwrap(),
-            ) {
-                Err(err) => {
-                    warn!("err: {:?}", err.to_string());
-                    return Err(ForwardingError::InternalServerError(format!(
-                        "{err}"
-                    )));
-                }
+        forwarded_req =
+            match fetch_and_inject_profile_to_forward(req, forwarded_req).await
+            {
+                Err(err) => return Err(err),
                 Ok(res) => res,
-            },
-        );
+            };
     }
 
     debug!("Forward Request (3): {:?}", forwarded_req);

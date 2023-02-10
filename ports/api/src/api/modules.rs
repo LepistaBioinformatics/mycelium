@@ -11,10 +11,6 @@ use myc_prisma::repositories::{
     RoleRegistrationSqlDbRepository, RoleUpdatingSqlDbRepository,
     UserRegistrationSqlDbRepository, UserUpdatingSqlDbRepository,
 };
-use myc_redis::repositories::{
-    TokenCleanupMemDbRepository, TokenDeregistrationMemDbRepository,
-    TokenRegistrationMemDbRepository,
-};
 use myc_smtp::repositories::MessageSendingSqlDbRepository;
 use shaku::module;
 
@@ -179,31 +175,6 @@ module! {
 module! {
     pub UserUpdatingModule {
         components = [UserUpdatingSqlDbRepository],
-        providers = []
-    }
-}
-
-// ? ---------------------------------------------------------------------------
-// ? Token
-// ? ---------------------------------------------------------------------------
-
-module! {
-    pub TokenRegistrationModule {
-        components = [TokenRegistrationMemDbRepository],
-        providers = []
-    }
-}
-
-module! {
-    pub TokenDeregistrationModule {
-        components = [TokenDeregistrationMemDbRepository],
-        providers = []
-    }
-}
-
-module! {
-    pub TokenCleanupModule {
-        components = [TokenCleanupMemDbRepository],
         providers = []
     }
 }

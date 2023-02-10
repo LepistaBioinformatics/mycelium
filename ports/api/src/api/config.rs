@@ -7,7 +7,6 @@ use crate::modules::{
     LicensedResourcesFetchingModule, MessageSendingModule,
     ProfileFetchingModule, RoleDeletionModule, RoleFetchingModule,
     RoleRegistrationModule, RoleUpdatingModule, RoutesFetchingModule,
-    TokenCleanupModule, TokenDeregistrationModule, TokenRegistrationModule,
     UserRegistrationModule, UserUpdatingModule,
 };
 
@@ -45,13 +44,6 @@ use myc_prisma::repositories::{
     RoleUpdatingSqlDbRepository, RoleUpdatingSqlDbRepositoryParameters,
     UserRegistrationSqlDbRepository, UserRegistrationSqlDbRepositoryParameters,
     UserUpdatingSqlDbRepository, UserUpdatingSqlDbRepositoryParameters,
-};
-use myc_redis::repositories::{
-    TokenCleanupMemDbRepository, TokenCleanupMemDbRepositoryParameters,
-    TokenDeregistrationMemDbRepository,
-    TokenDeregistrationMemDbRepositoryParameters,
-    TokenRegistrationMemDbRepository,
-    TokenRegistrationMemDbRepositoryParameters,
 };
 use myc_smtp::repositories::{
     MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
@@ -255,27 +247,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
             UserUpdatingModule::builder()
                 .with_component_parameters::<UserUpdatingSqlDbRepository>(
                     UserUpdatingSqlDbRepositoryParameters {}
-                ).build()
-        ))
-        // ? -------------------------------------------------------------------
-        // ? Token
-        // ? -------------------------------------------------------------------
-        .app_data(Arc::new(
-            TokenRegistrationModule::builder()
-                .with_component_parameters::<TokenRegistrationMemDbRepository>(
-                    TokenRegistrationMemDbRepositoryParameters {}
-                ).build()
-        ))
-        .app_data(Arc::new(
-            TokenDeregistrationModule::builder()
-                .with_component_parameters::<TokenDeregistrationMemDbRepository>(
-                    TokenDeregistrationMemDbRepositoryParameters {}
-                ).build()
-        ))
-        .app_data(Arc::new(
-            TokenCleanupModule::builder()
-                .with_component_parameters::<TokenCleanupMemDbRepository>(
-                    TokenCleanupMemDbRepositoryParameters {}
                 ).build()
         ))
         // ? -------------------------------------------------------------------

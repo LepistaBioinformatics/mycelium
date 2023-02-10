@@ -8,5 +8,4 @@ pub mod profile;
 pub mod role;
 pub mod route;
 pub mod service;
-pub mod token;
 pub mod user;
