@@ -13,6 +13,7 @@ use clean_base::{
     entities::default_response::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
+use log::debug;
 use myc_core::domain::{
     dtos::{email::Email, guest::GuestUser},
     entities::GuestUserRegistration,
@@ -52,7 +53,11 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
         };
 
         // ? -------------------------------------------------------------------
-        // ? Get or create the guest user
+        // ? Try to get the guest user
+        //
+        // The guest user include the combination of the user email with the
+        // guest-role id.
+        //
         // ? -------------------------------------------------------------------
 
         let _guest_user = match client
@@ -98,14 +103,101 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
                     None,
                 ))
             }
-            Ok(res) => match res {
-                //
-                // If the fetching operation find a object, try to parse the
-                // response as a GuestUser.
-                //
-                Some(record) => GuestUser {
+            Ok(res) => res,
+        };
+
+        debug!("_guest_user (1): {:?}", _guest_user);
+
+        // ? -------------------------------------------------------------------
+        // ? Check if the guest user already exists
+        //
+        // Extract the request result case the previous step not returns an
+        // error.
+        //
+        // ? -------------------------------------------------------------------
+
+        let _guest_user = match _guest_user {
+            //
+            // If the fetching operation find a object, try to parse the
+            // response as a GuestUser.
+            //
+            Some(record) => GuestUser {
+                id: Some(Uuid::from_str(&record.id).unwrap()),
+                email: match Email::from_string(record.email) {
+                    // !
+                    // ! Error case return
+                    // !
+                    Err(err) => {
+                        return Err(creation_err(
+                            format!(
+                                "Unexpected error on parse user email: {:?}",
+                                err,
+                            ),
+                            None,
+                            None,
+                        ))
+                    }
+                    Ok(res) => res,
+                },
+                guest_role: ParentEnum::Id(
+                    Uuid::parse_str(&record.guest_role.id).unwrap(),
+                ),
+                created: record.created.into(),
+                updated: match record.updated {
+                    None => None,
+                    Some(res) => Some(DateTime::from(res)),
+                },
+                accounts: None,
+            },
+            //
+            // If not response were find, try to create a new record.
+            //
+            None => match client
+                .guest_user()
+                .create(
+                    guest_user.email.get_email(),
+                    guest_role_model::id::equals(
+                        match guest_user.guest_role.to_owned() {
+                            ParentEnum::Id(id) => id.to_string(),
+                            ParentEnum::Record(record) => match record.id {
+                                None => {
+                                    return Err(creation_err(
+                                        format!(
+                                            "Role ID not available: {:?}",
+                                            guest_user.id.to_owned(),
+                                        ),
+                                        None,
+                                        None,
+                                    ))
+                                }
+                                Some(id) => id.to_string(),
+                            },
+                        },
+                    ),
+                    vec![],
+                )
+                .include(guest_user_model::include!({
+                    guest_role: select { id }
+                }))
+                .exec()
+                .await
+            {
+                // !
+                // ! Error case return
+                // !
+                Err(err) => {
+                    return Err(creation_err(
+                        format!(
+                            "Unexpected error detected on create record: {}",
+                            err
+                        ),
+                        None,
+                        None,
+                    ));
+                }
+                Ok(record) => GuestUser {
                     id: Some(Uuid::from_str(&record.id).unwrap()),
-                    email: match Email::from_string(record.email) {
+                    email: match Email::from_string(record.email.to_owned()) {
                         // !
                         // ! Error case return
                         // !
@@ -131,86 +223,18 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
                     },
                     accounts: None,
                 },
-                //
-                // If not response were find, try to create a new record.
-                //
-                None => match client
-                    .guest_user()
-                    .create(
-                        guest_user.email.get_email(),
-                        guest_role_model::id::equals(
-                            match guest_user.guest_role.to_owned() {
-                                ParentEnum::Id(id) => id.to_string(),
-                                ParentEnum::Record(record) => match record.id {
-                                    None => {
-                                        return Err(creation_err(
-                                            format!(
-                                                "Role ID not available: {:?}",
-                                                guest_user.id.to_owned(),
-                                            ),
-                                            None,
-                                            None,
-                                        ))
-                                    }
-                                    Some(id) => id.to_string(),
-                                },
-                            },
-                        ),
-                        vec![],
-                    )
-                    .include(guest_user_model::include!({
-                        guest_role: select { id }
-                    }))
-                    .exec()
-                    .await
-                {
-                    // !
-                    // ! Error case return
-                    // !
-                    Err(err) => {
-                        return Err(creation_err(
-                            format!(
-                                "Unexpected error detected on create record: {}",
-                                err
-                            ),
-                            None,
-                            None,
-                        ));
-                    }
-                    Ok(record) => GuestUser {
-                        id: Some(Uuid::from_str(&record.id).unwrap()),
-                        email: match Email::from_string(record.email.to_owned())
-                        {
-                            // !
-                            // ! Error case return
-                            // !
-                            Err(err) => {
-                                return Err(creation_err(
-                                    format!(
-                                "Unexpected error on parse user email: {:?}",
-                                err,
-                            ),
-                                    None,
-                                    None,
-                                ))
-                            }
-                            Ok(res) => res,
-                        },
-                        guest_role: ParentEnum::Id(
-                            Uuid::parse_str(&record.guest_role.id).unwrap(),
-                        ),
-                        created: record.created.into(),
-                        updated: match record.updated {
-                            None => None,
-                            Some(res) => Some(DateTime::from(res)),
-                        },
-                        accounts: None,
-                    },
-                },
             },
         };
 
-        println!("_guest_user: {:?}", _guest_user);
+        debug!("_guest_user (2): {:?}", _guest_user);
+
+        // ? -------------------------------------------------------------------
+        // ? Create guest_user case not exists
+        //
+        // If the previous step returned a None response, try to create these
+        // guest-user combination.
+        //
+        // ? -------------------------------------------------------------------
 
         match client
             .guest_user_on_account()
@@ -244,6 +268,6 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
             Ok(res) => res,
         };
 
-        self.get_or_create(guest_user, account_id).await
+        Ok(GetOrCreateResponseKind::Created(_guest_user))
     }
 }

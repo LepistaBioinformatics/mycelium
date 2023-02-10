@@ -11,7 +11,7 @@ use clean_base::{
     entities::default_response::{FetchResponseKind, GetOrCreateResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
-use log::{info, warn};
+use log::{debug, info, warn};
 use uuid::Uuid;
 
 /// Guest a user to perform actions into an account.
@@ -27,6 +27,8 @@ pub async fn guest_user(
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
+
+    debug!("Requesting Profile: {:?}", profile);
 
     if !profile.is_manager {
         return Err(use_case_err(
@@ -53,7 +55,7 @@ pub async fn guest_user(
                     None,
                 ))
             }
-            FetchResponseKind::Found(res) => match res.account_type {
+            FetchResponseKind::Found(account) => match account.account_type {
                 ParentEnum::Id(id) => {
                     return Err(use_case_err(
                         format!(
@@ -64,13 +66,13 @@ pub async fn guest_user(
                         None,
                     ))
                 }
-                ParentEnum::Record(res) => {
-                    if !res.is_subscription {
+                ParentEnum::Record(account_type) => {
+                    if !account_type.is_subscription {
                         return Err(use_case_err(
                             format!(
                                 "Invalid account ({:?}). Only subscription 
                                 accounts should receive guesting.",
-                                res.id
+                                account_type.id
                             ),
                             None,
                             None,
@@ -80,6 +82,8 @@ pub async fn guest_user(
             },
         },
     }
+
+    debug!("Requesting Profile: {:?}", profile);
 
     // ? -----------------------------------------------------------------------
     // ? Persist changes
