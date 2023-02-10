@@ -39,7 +39,7 @@ use router::route_request;
 use settings::{GATEWAY_API_SCOPE, MYCELIUM_API_SCOPE};
 use std::process::id as process_id;
 use utoipa::OpenApi;
-use utoipa_swagger_ui::SwaggerUi;
+use utoipa_swagger_ui::{SwaggerUi, Url};
 
 // ? ---------------------------------------------------------------------------
 // ? API fire elements
@@ -143,19 +143,37 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             // ? Configure API documentation
             // ? ---------------------------------------------------------------
-            .service(
-                SwaggerUi::new("/swagger-ui/{_:.*}")
-                    .url(
+            .service(SwaggerUi::new("/swagger-ui/{_:.*}").urls(vec![
+                (
+                    Url::with_primary(
+                        "System monitoring",
                         "/doc/monitoring-openapi.json",
-                        HealthCheckApiDoc::openapi(),
-                    )
-                    .url(
+                        true,
+                    ),
+                    HealthCheckApiDoc::openapi(),
+                ),
+                (
+                    Url::new(
+                        "Default Users Endpoints",
                         "/doc/default-users-openapi.json",
-                        DefaultUsersApiDoc::openapi(),
-                    )
-                    .url("/doc/manager-openapi.json", ManagerApiDoc::openapi())
-                    .url("/doc/staff-openapi.json", StaffApiDoc::openapi()),
-            )
+                    ),
+                    DefaultUsersApiDoc::openapi(),
+                ),
+                (
+                    Url::new(
+                        "Manager Users Endpoints",
+                        "/doc/manager-openapi.json",
+                    ),
+                    ManagerApiDoc::openapi(),
+                ),
+                (
+                    Url::new(
+                        "Staff Users Endpoints",
+                        "/doc/staff-openapi.json",
+                    ),
+                    StaffApiDoc::openapi(),
+                ),
+            ]))
             // ? ---------------------------------------------------------------
             // ? Configure gateway routes
             // ? ---------------------------------------------------------------

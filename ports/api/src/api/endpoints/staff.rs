@@ -99,7 +99,7 @@ pub mod account_endpoints {
     /// Increase permissions of the refereed account.
     #[utoipa::path(
         patch,
-        path = "/myc/staffs/accounts/{account}/upgrade",
+        context_path = "/myc/staffs/accounts",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
             UpgradeAccountPrivilegesParams,
@@ -168,7 +168,7 @@ pub mod account_endpoints {
     /// Decrease permissions of the refereed account.
     #[utoipa::path(
         patch,
-        path = "/myc/staffs/accounts/{account}/downgrade",
+        context_path = "/myc/staffs/accounts",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
             UpgradeAccountPrivilegesParams,
