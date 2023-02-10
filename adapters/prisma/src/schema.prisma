@@ -145,6 +145,5 @@ model GuestUserOnAccount {
 
   // Db compatibility and extra maps
   @@id([guest_user_id, account_id])
-  @@unique([guest_user_id, account_id])
   @@map("guest_user_on_account")
 }
