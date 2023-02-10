@@ -19,9 +19,6 @@ mod role_fetching;
 mod role_registration;
 mod role_updating;
 mod routes_fetching;
-mod token_cleanup;
-mod token_deregistration;
-mod token_registration;
 mod user_registration;
 mod user_updating;
 
@@ -46,8 +43,5 @@ pub use role_fetching::RoleFetching;
 pub use role_registration::RoleRegistration;
 pub use role_updating::RoleUpdating;
 pub use routes_fetching::RoutesFetching;
-pub use token_cleanup::TokenCleanup;
-pub use token_deregistration::TokenDeregistration;
-pub use token_registration::TokenRegistration;
 pub use user_registration::UserRegistration;
 pub use user_updating::UserUpdating;

@@ -3,7 +3,6 @@ extern crate myc_core;
 mod config;
 mod endpoints;
 mod modules;
-mod providers;
 mod router;
 mod settings;
 
@@ -24,10 +23,6 @@ use endpoints::{
         guest_endpoints as manager_guest_endpoints,
         guest_role_endpoints as manager_guest_role_endpoints,
         role_endpoints as manager_role_endpoints, ApiDoc as ManagerApiDoc,
-    },
-    service::{
-        profile_endpoints as service_profile_endpoints,
-        token_endpoints as service_token_endpoints, ApiDoc as ServiceApiDoc,
     },
     staff::{
         account_endpoints as staff_account_endpoints, ApiDoc as StaffApiDoc,
@@ -138,14 +133,6 @@ pub async fn main() -> std::io::Result<()> {
                             .configure(manager_role_endpoints::configure),
                     )
                     //
-                    // Service
-                    //
-                    .service(
-                        web::scope("/services")
-                            .configure(service_profile_endpoints::configure)
-                            .configure(service_token_endpoints::configure),
-                    )
-                    //
                     // Staff
                     //
                     .service(
@@ -167,8 +154,7 @@ pub async fn main() -> std::io::Result<()> {
                         DefaultUsersApiDoc::openapi(),
                     )
                     .url("/doc/manager-openapi.json", ManagerApiDoc::openapi())
-                    .url("/doc/staff-openapi.json", StaffApiDoc::openapi())
-                    .url("/doc/service-openapi.json", ServiceApiDoc::openapi()),
+                    .url("/doc/staff-openapi.json", StaffApiDoc::openapi()),
             )
             // ? ---------------------------------------------------------------
             // ? Configure gateway routes
@@ -184,6 +170,7 @@ pub async fn main() -> std::io::Result<()> {
     info!("Fire the server.");
     server
         .bind((config.service_ip, config.service_port))?
+        .workers(config.service_workers as usize)
         .run()
         .await
 }

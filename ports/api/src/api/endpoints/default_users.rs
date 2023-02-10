@@ -15,7 +15,7 @@ use utoipa::OpenApi;
     paths(
         account_endpoints::create_default_account_url,
         account_endpoints::update_own_account_name_url,
-        profile_endpoints::fetch_profile_from_email_url,
+        profile_endpoints::fetch_profile,
     ),
     components(
         schemas(
@@ -52,7 +52,7 @@ pub mod account_endpoints {
         UserRegistrationModule,
     };
 
-    use actix_web::{patch, post, web, HttpRequest, HttpResponse, Responder};
+    use actix_web::{patch, post, web, HttpResponse, Responder};
     use clean_base::entities::default_response::{
         GetOrCreateResponseKind, UpdatingResponseKind,
     };
@@ -66,7 +66,7 @@ pub mod account_endpoints {
             create_default_account, update_own_account_name,
         },
     };
-    use myc_http_tools::{extractor::extract_profile, utils::JsonError};
+    use myc_http_tools::{middleware::ProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -208,7 +208,7 @@ pub mod account_endpoints {
     pub async fn update_own_account_name_url(
         path: web::Path<Uuid>,
         info: web::Query<UpdateOwnAccountNameAccountParams>,
-        req: HttpRequest,
+        profile: ProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -218,10 +218,7 @@ pub mod account_endpoints {
             dyn AccountUpdating,
         >,
     ) -> impl Responder {
-        let profile = match extract_profile(req).await {
-            Err(err) => return err,
-            Ok(res) => res,
-        };
+        let profile = profile.to_profile();
 
         if path.to_owned() != profile.current_account_id {
             warn!("No account owner trying to perform account updating.");
@@ -261,40 +258,15 @@ pub mod account_endpoints {
 
 pub mod profile_endpoints {
 
-    use crate::modules::{
-        LicensedResourcesFetchingModule, ProfileFetchingModule,
-    };
-
     use actix_web::{get, web, HttpResponse, Responder};
-    use myc_core::{
-        domain::entities::{LicensedResourcesFetching, ProfileFetching},
-        use_cases::roles::service::profile::{
-            fetch_profile_from_email, ProfileResponse,
-        },
-    };
-    use myc_http_tools::{utils::JsonError, Email};
-    use serde::Deserialize;
-    use shaku_actix::Inject;
-    use utoipa::IntoParams;
+    use myc_http_tools::middleware::ProfileData;
 
     // ? -----------------------------------------------------------------------
     // ? Configure application
     // ? -----------------------------------------------------------------------
 
     pub fn configure(config: &mut web::ServiceConfig) {
-        config.service(
-            web::scope("/profiles").service(fetch_profile_from_email_url),
-        );
-    }
-
-    // ? -----------------------------------------------------------------------
-    // ? Define API structs
-    // ? -----------------------------------------------------------------------
-
-    #[derive(Deserialize, IntoParams)]
-    #[serde(rename_all = "camelCase")]
-    pub struct GetProfileParams {
-        pub email: String,
+        config.service(web::scope("/profiles").service(fetch_profile));
     }
 
     // ? -----------------------------------------------------------------------
@@ -307,9 +279,6 @@ pub mod profile_endpoints {
     #[utoipa::path(
         get,
         path = "/myc/default-users/profiles/",
-        params(
-            GetProfileParams,
-        ),
         responses(
             (
                 status = 500,
@@ -334,43 +303,7 @@ pub mod profile_endpoints {
         ),
     )]
     #[get("/")]
-    pub async fn fetch_profile_from_email_url(
-        info: web::Query<GetProfileParams>,
-        profile_fetching_repo: Inject<
-            ProfileFetchingModule,
-            dyn ProfileFetching,
-        >,
-        licensed_resources_fetching_repo: Inject<
-            LicensedResourcesFetchingModule,
-            dyn LicensedResourcesFetching,
-        >,
-    ) -> impl Responder {
-        let email = match Email::from_string(info.email.to_owned()) {
-            Err(err) => {
-                return HttpResponse::BadRequest()
-                    .json(JsonError::new(err.to_string()))
-            }
-            Ok(res) => res,
-        };
-
-        match fetch_profile_from_email(
-            email,
-            Box::new(&*profile_fetching_repo),
-            Box::new(&*licensed_resources_fetching_repo),
-        )
-        .await
-        {
-            Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError::new(err.to_string())),
-            Ok(res) => match res {
-                ProfileResponse::UnregisteredUser(email) => {
-                    HttpResponse::NotFound()
-                        .json(JsonError::new(email.get_email()))
-                }
-                ProfileResponse::RegisteredUser(profile) => {
-                    HttpResponse::Ok().json(profile)
-                }
-            },
-        }
+    pub async fn fetch_profile(profile: ProfileData) -> impl Responder {
+        HttpResponse::Ok().json(profile.to_profile())
     }
 }

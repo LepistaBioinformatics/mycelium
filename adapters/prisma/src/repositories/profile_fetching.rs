@@ -54,6 +54,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
             .include(account_model::include!({
                 owner: select {
                     email
+                    is_active
                 }
                 account_type: select {
                     is_subscription
@@ -81,6 +82,9 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                     is_subscription: record.account_type.is_subscription,
                     is_manager: record.account_type.is_manager,
                     is_staff: record.account_type.is_staff,
+                    owner_is_active: record.owner.is_active,
+                    account_is_active: record.is_active,
+                    account_was_approved: record.is_checked,
                     licensed_resources: None,
                 }))
             }

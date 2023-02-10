@@ -18,14 +18,67 @@ pub struct LicensedResources {
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Profile {
+    /// The owner email
+    ///
+    /// The email of the user that administrate the profile. Email denotes the
+    /// central part of the profile management. Email should be used to collect
+    /// licensed IDs and perform guest operations. Thus, it should be unique in
+    /// the Mycelium platform.
     pub email: String,
+
+    /// The account unique id
+    ///
+    /// Such ID is related to the account primary-key instead of the owner
+    /// primary key. In the case of the subscription accounts (accounts flagged
+    /// with `is_subscription`) such ID should be propagated along the
+    /// application flow.
     pub current_account_id: Uuid,
+
+    /// If profile belongs to a `subscription` account
+    ///
+    /// Subscription accounts should be used to manage legal entities. Only
+    /// subscription accounts should receive guest accounts.
     pub is_subscription: bool,
+
+    /// If profile belongs to a `manager` account
+    ///
+    /// Manager accounts should be used by users with elevated privileges inside
+    /// the Mycelium platform. Such user should perform actions like create
+    /// roles, guest-roles, guest default-user accounts to work into
+    /// subscription accounts.
     pub is_manager: bool,
+
+    /// If profile belongs to a `staff` account
+    ///
+    /// Staff user has elevated roles into the application. Like managers, staff
+    /// users has elevated privileges. Only staff user has permission to
+    /// delegate other staffs.
     pub is_staff: bool,
 
-    /// If the licensed IDs are `None`, the user has only permissions to act
-    /// inside their own account.
+    /// If the account owner is active
+    ///
+    /// Profiles exists to abstract account privileges. If the profile is
+    /// related to an inactive owner the profile could not perform any action.
+    /// Only staff or manager user should perform the activation of such users.
+    pub owner_is_active: bool,
+
+    /// If the account itself is inactive
+    ///
+    /// When inactive accounts should not perform internal operations.
+    pub account_is_active: bool,
+
+    /// If the account was approved after registration
+    ///
+    /// New accounts should be approved by manager or staff users after their
+    /// registration into the Mycelium platform. Case the approval was
+    /// performed, this flag should be true.
+    pub account_was_approved: bool,
+
+    /// Accounts guested to the current profile
+    ///
+    /// Guest accounts delivers information about the guest account role and
+    /// their respective permissions inside the host account. A single account
+    /// should be several licenses into the same account.
     pub licensed_resources: Option<Vec<LicensedResources>>,
 }
 
@@ -134,6 +187,9 @@ mod tests {
             is_subscription: false,
             is_manager: false,
             is_staff: false,
+            owner_is_active: true,
+            account_is_active: true,
+            account_was_approved: true,
             licensed_resources: Some(
                 [LicensedResources {
                     guest_account_id: Uuid::from_str(

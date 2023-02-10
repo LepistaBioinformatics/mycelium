@@ -1,4 +1,7 @@
-pub mod extractor;
+pub mod middleware;
+pub mod providers;
+pub mod responses;
+
 pub mod settings;
 pub mod utils;
 
@@ -11,5 +14,4 @@ pub use myc_core::{
         profile::{LicensedResources, Profile},
     },
     settings::DEFAULT_PROFILE_KEY,
-    use_cases::roles::service::profile::{ProfilePack, ProfilePackResponse},
 };
