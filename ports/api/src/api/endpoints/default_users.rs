@@ -112,7 +112,7 @@ pub mod account_endpoints {
 
     #[utoipa::path(
         post,
-        path = "/myc/default-users/accounts/",
+        context_path = "/myc/default-users/accounts",
         params(
             CreateDefaultAccountParams,
         ),
@@ -176,7 +176,7 @@ pub mod account_endpoints {
 
     #[utoipa::path(
         patch,
-        path = "/myc/default-users/accounts/{id}/update-account-name",
+        context_path = "/myc/default-users/accounts",
         params(
             ("id" = Uuid, Path, description = "The account primary key."),
             UpdateOwnAccountNameAccountParams,
@@ -278,7 +278,7 @@ pub mod profile_endpoints {
 
     #[utoipa::path(
         get,
-        path = "/myc/default-users/profiles/",
+        context_path = "/myc/default-users/profiles",
         responses(
             (
                 status = 500,

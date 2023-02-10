@@ -152,7 +152,7 @@ pub mod account_endpoints {
     /// groups, but not real persons.
     #[utoipa::path(
         post,
-        path = "/myc/managers/accounts/",
+        context_path = "/myc/managers/accounts",
         params(
             CreateSubscriptionAccountParams,
         ),
@@ -219,7 +219,7 @@ pub mod account_endpoints {
     /// Get a filtered (or not) list of accounts.
     #[utoipa::path(
         get,
-        path = "/myc/managers/accounts/",
+        context_path = "/myc/managers/accounts",
         params(
             ListSubscriptionAccountParams,
         ),
@@ -281,7 +281,7 @@ pub mod account_endpoints {
     /// Get a single subscription account.
     #[utoipa::path(
         get,
-        path = "/myc/managers/accounts/{account}",
+        context_path = "/myc/managers/accounts",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
         ),
@@ -337,7 +337,7 @@ pub mod account_endpoints {
     /// operation on the system. These endpoint should approve such account.
     #[utoipa::path(
         patch,
-        path = "/myc/managers/accounts/{account}/approve",
+        context_path = "/myc/managers/accounts",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
         ),
@@ -399,7 +399,7 @@ pub mod account_endpoints {
     /// account active.
     #[utoipa::path(
         patch,
-        path = "/myc/managers/accounts/{account}/activate",
+        context_path = "/myc/managers/accounts",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
         ),
@@ -462,7 +462,7 @@ pub mod account_endpoints {
     /// account deactivated.
     #[utoipa::path(
         patch,
-        path = "/myc/managers/accounts/{account}/deactivate",
+        context_path = "/myc/managers/accounts",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
         ),
@@ -585,7 +585,7 @@ pub mod guest_endpoints {
     /// path argument.
     #[utoipa::path(
         post,
-        path = "/myc/managers/guests/account/{account}/role/{role}",
+        context_path = "/myc/managers/guests",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
             ("role" = Uuid, Path, description = "The guest-role unique id."),
@@ -669,7 +669,7 @@ pub mod guest_endpoints {
     /// informed subscription account.
     #[utoipa::path(
         get,
-        path = "/myc/managers/guests/account/{account}",
+        context_path = "/myc/managers/guests",
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
         ),
@@ -814,7 +814,7 @@ pub mod guest_role_endpoints {
     /// Guest Roles provide permissions to simple Roles.
     #[utoipa::path(
         post,
-        path = "/myc/managers/guest-roles/{role}/",
+        context_path = "/myc/managers/guest-roles",
         params(
             ("role" = Uuid, Path, description = "The guest-role primary key."),
             CreateGuestRoleParams,
@@ -873,7 +873,7 @@ pub mod guest_role_endpoints {
     /// List Roles
     #[utoipa::path(
         get,
-        path = "/myc/managers/guest-roles/",
+        context_path = "/myc/managers/guest-roles",
         params(
             ListGuestRolesParams,
         ),
@@ -929,7 +929,7 @@ pub mod guest_role_endpoints {
     /// Delete a single guest role.
     #[utoipa::path(
         delete,
-        path = "/myc/managers/guest-roles/{role}/delete",
+        context_path = "/myc/managers/guest-roles",
         params(
             ("role" = Uuid, Path, description = "The guest-role primary key."),
         ),
@@ -984,7 +984,7 @@ pub mod guest_role_endpoints {
     /// Update name and description of a single Guest Role.
     #[utoipa::path(
         patch,
-        path = "/myc/managers/guest-roles/{role}/update-name-and-description",
+        context_path = "/myc/managers/guest-roles",
         params(
             ("role" = Uuid, Path, description = "The guest-role primary key."),
             UpdateGuestRoleNameAndDescriptionParams,
@@ -1049,7 +1049,7 @@ pub mod guest_role_endpoints {
     /// Upgrade or Downgrade permissions of Guest Role.
     #[utoipa::path(
         patch,
-        path = "/myc/managers/guest-roles/{role}/update-permissions",
+        context_path = "/myc/managers/guest-roles",
         params(
             ("role" = Uuid, Path, description = "The guest-role primary key."),
             UpdateGuestRolePermissionsParams,
@@ -1180,7 +1180,7 @@ pub mod role_endpoints {
     /// Roles are used to build Guest Role elements.
     #[utoipa::path(
         post,
-        path = "/managers/roles/",
+        context_path = "/myc/managers/roles",
         params(
             CreateRoleParams,
         ),
@@ -1235,7 +1235,7 @@ pub mod role_endpoints {
     /// List Roles
     #[utoipa::path(
         get,
-        path = "/myc/managers/roles/",
+        context_path = "/myc/managers/roles",
         params(
             ListRolesParams,
         ),
@@ -1289,7 +1289,7 @@ pub mod role_endpoints {
     /// Delete a single role.
     #[utoipa::path(
         delete,
-        path = "/myc/managers/roles/{role}/delete",
+        context_path = "/myc/managers/roles",
         params(
             ("role" = Uuid, Path, description = "The role primary key."),
         ),
@@ -1341,7 +1341,7 @@ pub mod role_endpoints {
     /// Update name and description of a single Role.
     #[utoipa::path(
         patch,
-        path = "/myc/managers/roles/{role}/update-name-and-description",
+        context_path = "/myc/managers/roles",
         params(
             ("role" = Uuid, Path, description = "The role primary key."),
             CreateRoleParams,

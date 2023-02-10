@@ -46,7 +46,7 @@ pub mod heath_check_endpoints {
     /// containing the success message.
     #[utoipa::path(
         get,
-        path = "/health/",
+        context_path = "/health",
         responses(
             (
                 status = 200,
@@ -65,7 +65,7 @@ pub mod heath_check_endpoints {
     /// This is usual during system checks.
     #[utoipa::path(
         get,
-        path = "/health/now",
+        context_path = "/health",
         responses(
             (
                 status = 200,
