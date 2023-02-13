@@ -97,7 +97,7 @@ pub mod account_endpoints {
             },
         },
     };
-    use myc_http_tools::{middleware::ProfileData, utils::JsonError};
+    use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -177,7 +177,7 @@ pub mod account_endpoints {
     #[post("/")]
     pub async fn create_subscription_account_url(
         info: web::Query<CreateSubscriptionAccountParams>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         user_registration_repo: Inject<
             UserRegistrationModule,
             dyn UserRegistration,
@@ -243,7 +243,7 @@ pub mod account_endpoints {
     #[get("/")]
     pub async fn list_subscription_accounts_url(
         info: web::Query<ListSubscriptionAccountParams>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -306,7 +306,7 @@ pub mod account_endpoints {
     #[get("/{account}")]
     pub async fn get_subscription_account_details_url(
         path: web::Path<Uuid>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -362,7 +362,7 @@ pub mod account_endpoints {
     #[patch("/{account}/approve")]
     pub async fn approve_account_url(
         path: web::Path<Uuid>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -424,7 +424,7 @@ pub mod account_endpoints {
     #[patch("/{account}/activate")]
     pub async fn activate_account_url(
         path: web::Path<Uuid>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -487,7 +487,7 @@ pub mod account_endpoints {
     #[patch("/{account}/deactivate")]
     pub async fn deactivate_account_url(
         path: web::Path<Uuid>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -543,7 +543,7 @@ pub mod guest_endpoints {
             guest_user, list_guest_on_subscription_account,
         },
     };
-    use myc_http_tools::{middleware::ProfileData, utils::JsonError};
+    use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -618,7 +618,7 @@ pub mod guest_endpoints {
     pub async fn guest_user_url(
         path: web::Path<(Uuid, Uuid)>,
         info: web::Query<GuestUserParams>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -694,7 +694,7 @@ pub mod guest_endpoints {
     #[get("/account/{account}")]
     pub async fn list_guest_on_subscription_account_url(
         path: web::Path<Uuid>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -756,7 +756,7 @@ pub mod guest_role_endpoints {
             update_guest_role_permissions, ActionType,
         },
     };
-    use myc_http_tools::{middleware::ProfileData, utils::JsonError};
+    use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -841,7 +841,7 @@ pub mod guest_role_endpoints {
     pub async fn crate_guest_role_url(
         path: web::Path<Uuid>,
         info: web::Query<CreateGuestRoleParams>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         role_registration_repo: Inject<
             GuestRoleRegistrationModule,
             dyn GuestRoleRegistration,
@@ -897,7 +897,7 @@ pub mod guest_role_endpoints {
     #[get("/")]
     pub async fn list_guest_roles_url(
         info: web::Query<ListGuestRolesParams>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         guest_role_fetching_repo: Inject<
             GuestRoleFetchingModule,
             dyn GuestRoleFetching,
@@ -953,7 +953,7 @@ pub mod guest_role_endpoints {
     #[delete("/{role}/delete")]
     pub async fn delete_guest_role_url(
         path: web::Path<Uuid>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         role_deletion_repo: Inject<
             GuestRoleDeletionModule,
             dyn GuestRoleDeletion,
@@ -1011,7 +1011,7 @@ pub mod guest_role_endpoints {
     pub async fn update_guest_role_name_and_description_url(
         path: web::Path<Uuid>,
         info: web::Query<UpdateGuestRoleNameAndDescriptionParams>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         role_fetching_repo: Inject<
             GuestRoleFetchingModule,
             dyn GuestRoleFetching,
@@ -1076,7 +1076,7 @@ pub mod guest_role_endpoints {
     pub async fn update_guest_role_permissions_url(
         path: web::Path<Uuid>,
         info: web::Query<UpdateGuestRolePermissionsParams>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         role_fetching_repo: Inject<
             GuestRoleFetchingModule,
             dyn GuestRoleFetching,
@@ -1138,7 +1138,7 @@ pub mod role_endpoints {
             update_role_name_and_description,
         },
     };
-    use myc_http_tools::{middleware::ProfileData, utils::JsonError};
+    use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -1205,7 +1205,7 @@ pub mod role_endpoints {
     #[post("/")]
     pub async fn crate_role_url(
         info: web::Query<CreateRoleParams>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         role_registration_repo: Inject<
             RoleRegistrationModule,
             dyn RoleRegistration,
@@ -1260,7 +1260,7 @@ pub mod role_endpoints {
     #[get("/")]
     pub async fn list_roles_url(
         info: web::Query<ListRolesParams>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         roles_fetching_repo: Inject<RoleFetchingModule, dyn RoleFetching>,
     ) -> impl Responder {
         let name = info.name.to_owned();
@@ -1313,7 +1313,7 @@ pub mod role_endpoints {
     #[delete("/{role}/delete")]
     pub async fn delete_role_url(
         path: web::Path<Uuid>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         role_deletion_repo: Inject<RoleDeletionModule, dyn RoleDeletion>,
     ) -> impl Responder {
         match delete_role(
@@ -1368,7 +1368,7 @@ pub mod role_endpoints {
     pub async fn update_role_name_and_description_url(
         path: web::Path<Uuid>,
         info: web::Query<CreateRoleParams>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         role_fetching_repo: Inject<RoleFetchingModule, dyn RoleFetching>,
         role_updating_repo: Inject<RoleUpdatingModule, dyn RoleUpdating>,
     ) -> impl Responder {

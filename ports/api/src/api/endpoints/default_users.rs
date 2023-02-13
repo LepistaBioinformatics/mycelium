@@ -66,7 +66,7 @@ pub mod account_endpoints {
             create_default_account, update_own_account_name,
         },
     };
-    use myc_http_tools::{middleware::ProfileData, utils::JsonError};
+    use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -208,7 +208,7 @@ pub mod account_endpoints {
     pub async fn update_own_account_name_url(
         path: web::Path<Uuid>,
         info: web::Query<UpdateOwnAccountNameAccountParams>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -259,7 +259,7 @@ pub mod account_endpoints {
 pub mod profile_endpoints {
 
     use actix_web::{get, web, HttpResponse, Responder};
-    use myc_http_tools::middleware::ProfileData;
+    use myc_http_tools::middleware::MyceliumProfileData;
 
     // ? -----------------------------------------------------------------------
     // ? Configure application
@@ -303,7 +303,7 @@ pub mod profile_endpoints {
         ),
     )]
     #[get("/")]
-    pub async fn fetch_profile(profile: ProfileData) -> impl Responder {
+    pub async fn fetch_profile(profile: MyceliumProfileData) -> impl Responder {
         HttpResponse::Ok().json(profile.to_profile())
     }
 }

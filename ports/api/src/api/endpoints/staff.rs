@@ -59,7 +59,7 @@ pub mod account_endpoints {
             downgrade_account_privileges, upgrade_account_privileges,
         },
     };
-    use myc_http_tools::{middleware::ProfileData, utils::JsonError};
+    use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
     use utoipa::IntoParams;
@@ -126,7 +126,7 @@ pub mod account_endpoints {
     pub async fn upgrade_account_privileges_url(
         path: web::Path<Uuid>,
         info: web::Query<UpgradeAccountPrivilegesParams>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
@@ -195,7 +195,7 @@ pub mod account_endpoints {
     pub async fn downgrade_account_privileges_url(
         path: web::Path<Uuid>,
         info: web::Query<UpgradeAccountPrivilegesParams>,
-        profile: ProfileData,
+        profile: MyceliumProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
             dyn AccountFetching,
