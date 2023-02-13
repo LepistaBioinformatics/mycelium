@@ -18,7 +18,7 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ProfileData {
+pub struct MyceliumProfileData {
     pub email: String,
     pub current_account_id: Uuid,
     pub is_subscription: bool,
@@ -30,7 +30,7 @@ pub struct ProfileData {
     pub licensed_resources: Option<Vec<LicensedResources>>,
 }
 
-impl ProfileData {
+impl MyceliumProfileData {
     pub fn from_profile(profile: Profile) -> Self {
         Self {
             email: profile.email,
@@ -60,23 +60,21 @@ impl ProfileData {
     }
 }
 
-impl FromRequest for ProfileData {
+impl FromRequest for MyceliumProfileData {
     type Error = ForwardingError;
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
         let req_clone = req.clone();
 
-        Box::pin(
-            async move { fetch_profile_from_request_source(req_clone).await },
-        )
+        Box::pin(async move { fetch_profile_from_request(req_clone).await })
     }
 }
 
 /// Try to populate profile to request header
-pub(super) async fn fetch_profile_from_request_source(
+pub(super) async fn fetch_profile_from_request(
     req: HttpRequest,
-) -> Result<ProfileData, ForwardingError> {
+) -> Result<MyceliumProfileData, ForwardingError> {
     let email = match check_credentials(req.to_owned()).await {
         Err(err) => {
             warn!("{:?}", err);
@@ -121,5 +119,5 @@ pub(super) async fn fetch_profile_from_request_source(
         }
     };
 
-    Ok(ProfileData::from_profile(profile))
+    Ok(MyceliumProfileData::from_profile(profile))
 }

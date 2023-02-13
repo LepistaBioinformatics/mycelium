@@ -6,7 +6,7 @@ use log::warn;
 use reqwest::header::HeaderName;
 use std::str::FromStr;
 
-use super::fetch_profile_from_request_source;
+use super::fetch_profile_from_request;
 
 /// Fetch profile from email and inject on client request
 ///
@@ -19,7 +19,7 @@ pub async fn fetch_and_inject_profile_to_forward(
     req: HttpRequest,
     mut forwarded_req: ClientRequest,
 ) -> Result<ClientRequest, ForwardingError> {
-    let profile = match fetch_profile_from_request_source(req).await {
+    let profile = match fetch_profile_from_request(req).await {
         Err(err) => return Err(err),
         Ok(res) => res,
     };
