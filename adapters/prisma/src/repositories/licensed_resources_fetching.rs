@@ -59,7 +59,9 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             .include(guest_user_on_account_model::include!({
                 guest_user: select {
                     guest_role: select {
-                        name
+                        role: select {
+                            name
+                        }
                         permissions
                     }
                 }
@@ -84,7 +86,13 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                     &record.account_id.to_owned(),
                 )
                 .unwrap(),
-                role: record.to_owned().guest_user.guest_role.name.to_owned(),
+                role: record
+                    .to_owned()
+                    .guest_user
+                    .guest_role
+                    .role
+                    .name
+                    .to_owned(),
                 permissions: record
                     .to_owned()
                     .guest_user
