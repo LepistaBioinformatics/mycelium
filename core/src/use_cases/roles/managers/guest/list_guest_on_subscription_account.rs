@@ -78,5 +78,5 @@ pub async fn list_guest_on_subscription_account(
     // ? Fetch guest users
     // ? -----------------------------------------------------------------------
 
-    guest_user_fetching_repo.list(Some(account_id), None).await
+    guest_user_fetching_repo.list(account_id).await
 }

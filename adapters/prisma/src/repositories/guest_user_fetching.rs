@@ -33,24 +33,8 @@ pub struct GuestUserFetchingSqlDbRepository {}
 impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
     async fn list(
         &self,
-        account_id: Option<Uuid>,
-        email: Option<Email>,
+        account_id: Uuid,
     ) -> Result<FetchManyResponseKind<GuestUser>, MappedErrors> {
-        // ? -------------------------------------------------------------------
-        // ? Validate arguments
-        // ? -------------------------------------------------------------------
-
-        if account_id.is_some() && email.is_some() {
-            return Err(fetching_err(
-                String::from(
-                    "Account ID and Email are concurrent arguments.
-Please specify just one.",
-                ),
-                Some(false),
-                None,
-            ));
-        }
-
         // ? -------------------------------------------------------------------
         // ? Build client
         // ? -------------------------------------------------------------------
@@ -74,135 +58,49 @@ Please specify just one.",
         // ? Build and execute the database query
         // ? -------------------------------------------------------------------
 
-        let mut records = Vec::<GuestUser>::new();
+        let response = client
+            .guest_user()
+            .to_owned()
+            .find_many(vec![guest_user_model::accounts::some(vec![
+                guest_user_on_account_model::account_id::equals(
+                    account_id.to_string(),
+                ),
+            ])])
+            .include(guest_user_model::include!({ guest_role }))
+            .exec()
+            .await
+            .unwrap();
 
-        let query = client.guest_user();
+        debug!("Guest Record from Account ID: {:?}", response);
 
-        if account_id.is_some() {
-            let response = query
-                .to_owned()
-                .find_many(vec![guest_user_model::accounts::every(vec![
-                    guest_user_on_account_model::account_id::equals(
-                        account_id.unwrap().to_string(),
+        let records: Vec<GuestUser> = response
+            .iter()
+            .map(|record| GuestUser {
+                id: Some(Uuid::parse_str(&record.id).unwrap()),
+                email: Email::from_string(record.email.to_owned()).unwrap(),
+                guest_role: ParentEnum::Record(GuestRole {
+                    id: Some(Uuid::parse_str(&record.guest_role.id).unwrap()),
+                    name: record.guest_role.name.to_owned(),
+                    description: record.guest_role.description.to_owned(),
+                    role: ParentEnum::Id(
+                        Uuid::parse_str(&record.guest_role.role_id).unwrap(),
                     ),
-                ])])
-                .include(guest_user_model::include!({ guest_role }))
-                .exec()
-                .await
-                .unwrap();
-
-            debug!("Guest Record from Account ID: {:?}", response);
-
-            records.append(
-                &mut response
-                    .iter()
-                    .map(|record| GuestUser {
-                        id: Some(Uuid::parse_str(&record.id).unwrap()),
-                        email: Email::from_string(record.email.to_owned())
-                            .unwrap(),
-                        guest_role: ParentEnum::Record(GuestRole {
-                            id: Some(
-                                Uuid::parse_str(&record.guest_role.id).unwrap(),
-                            ),
-                            name: record.guest_role.name.to_owned(),
-                            description: record
-                                .guest_role
-                                .description
-                                .to_owned(),
-                            role: ParentEnum::Id(
-                                Uuid::parse_str(&record.guest_role.role_id)
-                                    .unwrap(),
-                            ),
-                            permissions: record
-                                .guest_role
-                                .permissions
-                                .to_owned()
-                                .into_iter()
-                                .map(|i| PermissionsType::from_i32(i))
-                                .collect(),
-                        }),
-                        created: record.created.into(),
-                        updated: match record.updated {
-                            None => None,
-                            Some(res) => Some(DateTime::from(res)),
-                        },
-                        accounts: None,
-                    })
-                    .collect::<Vec<GuestUser>>(),
-            );
-        }
-
-        if email.is_some() {
-            let response = query
-                .to_owned()
-                .find_many(vec![guest_user_model::email::equals(
-                    email.unwrap().get_email(),
-                )])
-                .with(guest_user_model::guest_role::fetch())
-                .include(guest_user_model::include!({
-                    guest_role: select {
-                        role
-                    }
-                    accounts: select {
-                        account_id
-                    }
-                }))
-                .exec()
-                .await
-                .unwrap();
-
-            debug!("Guest Record from Email: {:?}", response);
-
-            /* records.append(
-                &mut response
-                    .iter()
-                    .map(|record| GuestUser {
-                        id: Some(Uuid::parse_str(&record.id).unwrap()),
-                        email: Email::from_string(record.email.to_owned())
-                            .unwrap(),
-                        guest_role: ParentEnum::Record(GuestRole {
-                            id: Some(
-                                Uuid::parse_str(&record.guest_role_id).unwrap(),
-                            ),
-                            name: record.guest_role.name.to_owned(),
-                            description: Some(
-                                record.guest_role.description.to_owned(),
-                            ),
-                            role: ParentEnum::Id(
-                                Uuid::parse_str(&record.guest_role.role.id)
-                                    .unwrap(),
-                            ),
-                            permissions: record
-                                .guest_role
-                                .permissions
-                                .to_owned()
-                                .into_iter()
-                                .map(|i| PermissionsType::from_i32(i))
-                                .collect(),
-                        }),
-                        created: record.created.into(),
-                        updated: match record.updated {
-                            None => None,
-                            Some(res) => Some(DateTime::from(res)),
-                        },
-                        accounts: match record.accounts.len() {
-                            0 => None,
-                            _ => Some(ChildrenEnum::Ids(
-                                record
-                                    .accounts
-                                    .to_owned()
-                                    .into_iter()
-                                    .map(|account| {
-                                        Uuid::parse_str(&account.account_id)
-                                            .unwrap()
-                                    })
-                                    .collect::<Vec<Uuid>>(),
-                            )),
-                        },
-                    })
-                    .collect::<Vec<GuestUser>>(),
-            ); */
-        }
+                    permissions: record
+                        .guest_role
+                        .permissions
+                        .to_owned()
+                        .into_iter()
+                        .map(|i| PermissionsType::from_i32(i))
+                        .collect(),
+                }),
+                created: record.created.into(),
+                updated: match record.updated {
+                    None => None,
+                    Some(res) => Some(DateTime::from(res)),
+                },
+                accounts: None,
+            })
+            .collect::<Vec<GuestUser>>();
 
         // ? -------------------------------------------------------------------
         // ? Evaluate and parse the database response
