@@ -1,5 +1,8 @@
 use crate::{
-    prisma::{guest_role as guest_role_model, guest_user as guest_user_model},
+    prisma::{
+        guest_user as guest_user_model,
+        guest_user_on_account as guest_user_on_account_model,
+    },
     repositories::connector::get_client,
 };
 
@@ -49,16 +52,19 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         };
 
         let response = client
-            .guest_role()
-            .find_many(vec![guest_role_model::guest_users::every(vec![
+            .guest_user_on_account()
+            .find_many(vec![guest_user_on_account_model::guest_user::is(vec![
                 guest_user_model::email::equals(email.get_email()),
             ])])
-            .include(guest_role_model::include!({
-                role
-                guest_users: select {
-                    accounts: select {
-                        account_id
+            .include(guest_user_on_account_model::include!({
+                guest_user: select {
+                    guest_role: select {
+                        name
+                        permissions
                     }
+                }
+                account: select {
+                    account_type
                 }
             }))
             .exec()
@@ -73,32 +79,22 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
 
         let licenses = response
             .into_iter()
-            .map(|record| {
-                record
-                    .guest_users
+            .map(|record| LicensedResources {
+                guest_account_id: Uuid::parse_str(
+                    &record.account_id.to_owned(),
+                )
+                .unwrap(),
+                role: record.to_owned().guest_user.guest_role.name.to_owned(),
+                permissions: record
+                    .to_owned()
+                    .guest_user
+                    .guest_role
+                    .permissions
+                    .to_owned()
                     .into_iter()
-                    .map(move |guest_user| {
-                        guest_user
-                            .accounts
-                            .into_iter()
-                            .map(|account| LicensedResources {
-                                guest_account_id: Uuid::parse_str(
-                                    &account.account_id,
-                                )
-                                .unwrap(),
-                                role: record.role.name.to_owned(),
-                                permissions: record
-                                    .permissions
-                                    .to_owned()
-                                    .into_iter()
-                                    .map(|i| PermissionsType::from_i32(i))
-                                    .collect(),
-                            })
-                            .collect::<Vec<LicensedResources>>()
-                    })
-                    .flatten()
+                    .map(|i| PermissionsType::from_i32(i))
+                    .collect(),
             })
-            .flatten()
             .collect::<Vec<LicensedResources>>();
 
         debug!("Parsed Licensed Resources: {:?}", licenses);
