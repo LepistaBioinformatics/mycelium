@@ -6,6 +6,7 @@ members = [
     "ports/api",
     "adapters/mem_db",
     "adapters/prisma",
+    "adapters/service",
     "adapters/smtp",
     "test/bin"
 ]

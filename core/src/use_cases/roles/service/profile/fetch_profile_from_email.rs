@@ -30,7 +30,7 @@ pub async fn fetch_profile_from_email(
     // ? -----------------------------------------------------------------------
 
     let (profile, licenses) = future::join(
-        profile_fetching_repo.get(email.to_owned()),
+        profile_fetching_repo.get(Some(email.to_owned()), None),
         licensed_resources_fetching_repo.list(email.to_owned()),
     )
     .await;

@@ -1,0 +1,34 @@
+[package]
+name = "mycelium-service"
+version = "0.10.4"
+edition = "2021"
+authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
+license = "Apache-2.0"
+description = "Provide smtp adapters to the mycelium project."
+repository = "https://github.com/sgelias/mycelium"
+readme = "./README.md"
+keywords = ["authorization", "identity", "permission", "keeper"]
+categories = ["http-client", "microservices"]
+
+# See more keys and their definitions at 
+# https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-trait = "0.1"
+clean-base = "0.3"
+env_logger = "0.10"
+lazy_static = "1.4"
+log = "0.4"
+reqwest = "0.11"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+shaku = "0.6"
+shaku_actix = "0.2"
+
+[dependencies.myc-core]
+path = "../../core"
+
+[lib]
+name = "myc_svc"
+path = "src/lib.rs"
+crate-type = ["staticlib", "lib"]

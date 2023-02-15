@@ -18,6 +18,7 @@ categories = ["http-client", "microservices"]
 
 mycelium-memory-db = { path = "../../adapters/mem_db" }
 mycelium-prisma = { path = "../../adapters/prisma" }
+mycelium-service = { path = "../../adapters/service" }
 mycelium-smtp = { path = "../../adapters/smtp" }
 
 actix = "0.13"
