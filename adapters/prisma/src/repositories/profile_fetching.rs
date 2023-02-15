@@ -25,8 +25,21 @@ pub struct ProfileFetchingSqlDbRepository {}
 impl ProfileFetching for ProfileFetchingSqlDbRepository {
     async fn get(
         &self,
-        email: Email,
-    ) -> Result<FetchResponseKind<Profile, Email>, MappedErrors> {
+        email: Option<Email>,
+        _: Option<String>,
+    ) -> Result<FetchResponseKind<Profile, String>, MappedErrors> {
+        let email = if let None = email {
+            return Err(fetching_err(
+                String::from(
+                    "Email could not be empty during profile checking.",
+                ),
+                Some(false),
+                None,
+            ));
+        } else {
+            email.unwrap()
+        };
+
         // ? -------------------------------------------------------------------
         // ? Build and execute the database query
         // ? -------------------------------------------------------------------
@@ -88,7 +101,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                     licensed_resources: None,
                 }))
             }
-            None => Ok(FetchResponseKind::NotFound(Some(email))),
+            None => Ok(FetchResponseKind::NotFound(Some(email.get_email()))),
         }
     }
 }
@@ -110,7 +123,13 @@ mod tests {
         warn!("repo: {:?}", repo);
 
         match repo
-            .get(Email::from_string("username@domain.com".to_string()).unwrap())
+            .get(
+                Some(
+                    Email::from_string("username@domain.com".to_string())
+                        .unwrap(),
+                ),
+                None,
+            )
             .await
         {
             Err(err) => error!("err: {:?}", err),

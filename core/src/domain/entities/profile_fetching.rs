@@ -10,6 +10,7 @@ use shaku::Interface;
 pub trait ProfileFetching: Interface + Send + Sync {
     async fn get(
         &self,
-        email: Email,
-    ) -> Result<FetchResponseKind<Profile, Email>, MappedErrors>;
+        email: Option<Email>,
+        token: Option<String>,
+    ) -> Result<FetchResponseKind<Profile, String>, MappedErrors>;
 }
