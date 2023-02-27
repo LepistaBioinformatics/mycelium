@@ -74,6 +74,12 @@ pub struct Profile {
     /// performed, this flag should be true.
     pub account_was_approved: bool,
 
+    /// If the account was archived after registration
+    ///
+    /// New accounts should be archived. After archived accounts should not be
+    /// included at default filtering actions.
+    pub account_was_archived: bool,
+
     /// Accounts guested to the current profile
     ///
     /// Guest accounts delivers information about the guest account role and
@@ -135,10 +141,6 @@ impl Profile {
                 let mut ids = res
                     .into_iter()
                     .filter_map(|i| {
-                        println!("i: {:?}", i);
-                        println!("permission: {:?}", permission);
-                        println!("roles: {:?}", roles);
-
                         match i.permissions.contains(&permission) &&
                             roles.contains(&i.role)
                         {
@@ -148,14 +150,10 @@ impl Profile {
                     })
                     .collect::<Vec<Uuid>>();
 
-                println!("ids 1: {:?}", ids);
-
                 if include_itself.unwrap_or(false) {
                     println!("ids 2: {:?}", ids);
                     ids.append(&mut vec![self.current_account_id]);
                 }
-
-                println!("ids 3: {:?}", ids);
 
                 ids
             }
@@ -190,6 +188,7 @@ mod tests {
             owner_is_active: true,
             account_is_active: true,
             account_was_approved: true,
+            account_was_archived: false,
             licensed_resources: Some(
                 [LicensedResources {
                     guest_account_id: Uuid::from_str(
@@ -207,11 +206,9 @@ mod tests {
             ),
         };
 
-        println!("profile: {:?}", profile);
-
         let ids =
             profile.get_create_ids(["service".to_string()].to_vec(), None);
 
-        println!("ids: {:?}", ids);
+        assert!(ids.len() == 1);
     }
 }

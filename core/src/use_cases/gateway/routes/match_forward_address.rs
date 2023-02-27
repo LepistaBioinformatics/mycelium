@@ -36,6 +36,10 @@ pub async fn match_forward_address(
                 )))
             }
             FetchManyResponseKind::Found(res) => res,
+            _ => panic!(
+                "Paginated routes parsing not implemented in 
+                `match_forward_address` use-case."
+            ),
         },
     };
 

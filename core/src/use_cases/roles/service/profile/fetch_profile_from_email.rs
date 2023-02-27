@@ -63,6 +63,10 @@ pub async fn fetch_profile_from_email(
         Ok(res) => match res {
             FetchManyResponseKind::NotFound => None,
             FetchManyResponseKind::Found(records) => Some(records),
+            _ => panic!(
+                "Paginated results parsing not implemented in 
+                `fetch_profile_from_email` use-case."
+            ),
         },
     };
 

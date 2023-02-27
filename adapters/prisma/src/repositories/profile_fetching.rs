@@ -98,6 +98,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                     owner_is_active: record.owner.is_active,
                     account_is_active: record.is_active,
                     account_was_approved: record.is_checked,
+                    account_was_archived: record.is_archived,
                     licensed_resources: None,
                 }))
             }

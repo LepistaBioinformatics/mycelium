@@ -16,9 +16,13 @@ pub trait AccountFetching: Interface + Send + Sync {
     ) -> Result<FetchResponseKind<Account, Uuid>, MappedErrors>;
     async fn list(
         &self,
-        name: Option<String>,
-        is_active: Option<bool>,
-        is_checked: Option<bool>,
+        term: Option<String>,
+        is_owner_active: Option<bool>,
+        is_account_active: Option<bool>,
+        is_account_checked: Option<bool>,
+        is_account_archived: Option<bool>,
         account_type_id: Option<Uuid>,
+        page_size: Option<i32>,
+        skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Account>, MappedErrors>;
 }

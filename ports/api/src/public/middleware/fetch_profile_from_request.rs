@@ -27,6 +27,7 @@ pub struct MyceliumProfileData {
     pub owner_is_active: bool,
     pub account_is_active: bool,
     pub account_was_approved: bool,
+    pub account_was_archived: bool,
     pub licensed_resources: Option<Vec<LicensedResources>>,
 }
 
@@ -41,6 +42,7 @@ impl MyceliumProfileData {
             owner_is_active: profile.owner_is_active,
             account_is_active: profile.account_is_active,
             account_was_approved: profile.account_was_approved,
+            account_was_archived: profile.account_was_archived,
             licensed_resources: profile.licensed_resources,
         }
     }
@@ -55,6 +57,7 @@ impl MyceliumProfileData {
             owner_is_active: self.owner_is_active,
             account_is_active: self.account_is_active,
             account_was_approved: self.account_was_approved,
+            account_was_archived: self.account_was_archived,
             licensed_resources: self.licensed_resources.to_owned(),
         }
     }
