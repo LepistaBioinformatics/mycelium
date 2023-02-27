@@ -13,7 +13,7 @@ categories = ["http-client", "microservices"]
 [dependencies]
 actix-web = { version = "4", features = ["openssl"] }
 async-trait = "0.1"
-clean-base = "0.3"
+clean-base = "0.4"
 env_logger = "0.10"
 log = "0.4"
 shaku = "0.6"

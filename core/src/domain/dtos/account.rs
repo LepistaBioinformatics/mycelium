@@ -21,6 +21,7 @@ pub struct AccountType {
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub enum AccountTypeEnum {
     Standard,
     Manager,
@@ -47,6 +48,7 @@ pub struct Account {
     pub name: String,
     pub is_active: bool,
     pub is_checked: bool,
+    pub is_archived: bool,
     pub owner: ParentEnum<User, Uuid>,
     pub account_type: ParentEnum<AccountType, Uuid>,
     pub guest_users: Option<ChildrenEnum<GuestUser, Uuid>>,
@@ -150,6 +152,7 @@ mod tests {
             name: String::from("Account Name"),
             is_active: true,
             is_checked: false,
+            is_archived: false,
             owner: ParentEnum::Record(user),
             account_type: ParentEnum::Record(account_type),
             guest_users: None,

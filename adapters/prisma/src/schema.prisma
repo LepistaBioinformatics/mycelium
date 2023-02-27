@@ -126,6 +126,7 @@ model Account {
   updated         DateTime?   @updatedAt @db.Timestamptz(6)
   is_active       Boolean     @default(true)
   is_checked      Boolean     @default(false)
+  is_archived     Boolean     @default(false)
 
   // Backward relationship fields
   guest_users GuestUserOnAccount[]

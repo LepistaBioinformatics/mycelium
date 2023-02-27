@@ -89,6 +89,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         name: record.name,
                         is_active: record.is_active,
                         is_checked: record.is_checked,
+                        is_archived: record.is_archived,
                         owner: ParentEnum::Record(User {
                             id: Some(
                                 Uuid::parse_str(&record.owner.id).unwrap(),
@@ -192,6 +193,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 name: record.name,
                 is_active: record.is_active,
                 is_checked: record.is_checked,
+                is_archived: record.is_archived,
                 owner: ParentEnum::Record(User {
                     id: Some(Uuid::parse_str(&record.owner.id).unwrap()),
                     username: record.owner.username,

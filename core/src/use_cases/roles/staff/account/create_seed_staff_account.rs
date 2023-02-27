@@ -122,6 +122,7 @@ pub async fn create_seed_staff_account(
             name: account_name,
             is_active: true,
             is_checked: false,
+            is_archived: false,
             owner: ParentEnum::Record(user),
             account_type: ParentEnum::Record(account_type),
             guest_users: None,

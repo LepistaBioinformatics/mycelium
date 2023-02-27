@@ -20,7 +20,7 @@ use utoipa::OpenApi;
 #[openapi(
     paths(
         account_endpoints::create_subscription_account_url,
-        account_endpoints::list_subscription_accounts_url,
+        account_endpoints::list_accounts_by_type_url,
         account_endpoints::get_subscription_account_details_url,
         account_endpoints::approve_account_url,
         account_endpoints::activate_account_url,
@@ -70,10 +70,13 @@ pub struct ApiDoc;
 
 pub mod account_endpoints {
 
-    use crate::modules::{
-        AccountFetchingModule, AccountRegistrationModule,
-        AccountTypeRegistrationModule, AccountUpdatingModule,
-        UserRegistrationModule,
+    use crate::{
+        endpoints::shared_params::PaginationParams,
+        modules::{
+            AccountFetchingModule, AccountRegistrationModule,
+            AccountTypeRegistrationModule, AccountUpdatingModule,
+            UserRegistrationModule,
+        },
     };
 
     use actix_web::{get, patch, post, web, HttpResponse, Responder};
@@ -83,14 +86,17 @@ pub mod account_endpoints {
         UpdatingResponseKind,
     };
     use myc_core::{
-        domain::entities::{
-            AccountFetching, AccountRegistration, AccountTypeRegistration,
-            AccountUpdating, UserRegistration,
+        domain::{
+            dtos::account::AccountTypeEnum,
+            entities::{
+                AccountFetching, AccountRegistration, AccountTypeRegistration,
+                AccountUpdating, UserRegistration,
+            },
         },
         use_cases::roles::{
             managers::account::{
                 create_subscription_account, get_subscription_account_details,
-                list_subscription_accounts,
+                list_accounts_by_type,
             },
             shared::account::{
                 approve_account, change_account_activation_status,
@@ -112,7 +118,7 @@ pub mod account_endpoints {
             web::scope("/accounts")
                 .app_data(Config::default())
                 .service(create_subscription_account_url)
-                .service(list_subscription_accounts_url)
+                .service(list_accounts_by_type_url)
                 .service(get_subscription_account_details_url)
                 .service(approve_account_url)
                 .service(activate_account_url)
@@ -134,9 +140,12 @@ pub mod account_endpoints {
     #[derive(Deserialize, IntoParams)]
     #[serde(rename_all = "camelCase")]
     pub struct ListSubscriptionAccountParams {
-        pub name: Option<String>,
-        pub is_active: Option<bool>,
-        pub is_checked: Option<bool>,
+        account_type: AccountTypeEnum,
+        name: Option<String>,
+        is_owner_active: Option<bool>,
+        is_account_active: Option<bool>,
+        is_account_checked: Option<bool>,
+        is_account_archived: Option<bool>,
     }
 
     // ? -----------------------------------------------------------------------
@@ -214,7 +223,7 @@ pub mod account_endpoints {
         }
     }
 
-    /// List Subscription Accounts
+    /// List account given an account-type
     ///
     /// Get a filtered (or not) list of accounts.
     #[utoipa::path(
@@ -222,6 +231,7 @@ pub mod account_endpoints {
         context_path = "/myc/managers/accounts",
         params(
             ListSubscriptionAccountParams,
+            PaginationParams,
         ),
         responses(
             (
@@ -241,8 +251,9 @@ pub mod account_endpoints {
         ),
     )]
     #[get("/")]
-    pub async fn list_subscription_accounts_url(
+    pub async fn list_accounts_by_type_url(
         info: web::Query<ListSubscriptionAccountParams>,
+        page: web::Query<PaginationParams>,
         profile: MyceliumProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
@@ -253,11 +264,16 @@ pub mod account_endpoints {
             dyn AccountTypeRegistration,
         >,
     ) -> impl Responder {
-        match list_subscription_accounts(
+        match list_accounts_by_type(
             profile.to_profile(),
+            info.account_type.to_owned(),
             info.name.to_owned(),
-            info.is_active.to_owned(),
-            info.is_checked.to_owned(),
+            info.is_owner_active.to_owned(),
+            info.is_account_active.to_owned(),
+            info.is_account_checked.to_owned(),
+            info.is_account_archived.to_owned(),
+            page.page_size.to_owned(),
+            page.skip.to_owned(),
             Box::new(&*account_fetching_repo),
             Box::new(&*account_type_registration_repo),
         )
@@ -270,6 +286,9 @@ pub mod account_endpoints {
                     HttpResponse::NotFound().finish()
                 }
                 FetchManyResponseKind::Found(accounts) => {
+                    HttpResponse::Ok().json(accounts)
+                }
+                FetchManyResponseKind::FoundPaginated(accounts) => {
                     HttpResponse::Ok().json(accounts)
                 }
             },
@@ -722,8 +741,11 @@ pub mod guest_endpoints {
                         "Account ({}) has no associated guests",
                         account_id
                     ))),
-                FetchManyResponseKind::Found(guest) => {
-                    HttpResponse::Ok().json(guest)
+                FetchManyResponseKind::Found(guests) => {
+                    HttpResponse::Ok().json(guests)
+                }
+                FetchManyResponseKind::FoundPaginated(guests) => {
+                    HttpResponse::Ok().json(guests)
                 }
             },
         }
@@ -918,6 +940,9 @@ pub mod guest_role_endpoints {
                     HttpResponse::NotFound().finish()
                 }
                 FetchManyResponseKind::Found(roles) => {
+                    HttpResponse::Ok().json(roles)
+                }
+                FetchManyResponseKind::FoundPaginated(roles) => {
                     HttpResponse::Ok().json(roles)
                 }
             },
@@ -1278,6 +1303,9 @@ pub mod role_endpoints {
                 FetchManyResponseKind::NotFound => HttpResponse::NoContent()
                     .json(JsonError::new(name.unwrap_or("".to_string()))),
                 FetchManyResponseKind::Found(roles) => {
+                    HttpResponse::Ok().json(roles)
+                }
+                FetchManyResponseKind::FoundPaginated(roles) => {
                     HttpResponse::Ok().json(roles)
                 }
             },

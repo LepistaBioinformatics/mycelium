@@ -1,7 +1,7 @@
 mod create_subscription_account;
 mod get_subscription_account_details;
-mod list_subscription_accounts;
+mod list_accounts_by_type;
 
 pub use create_subscription_account::create_subscription_account;
 pub use get_subscription_account_details::get_subscription_account_details;
-pub use list_subscription_accounts::list_subscription_accounts;
+pub use list_accounts_by_type::list_accounts_by_type;

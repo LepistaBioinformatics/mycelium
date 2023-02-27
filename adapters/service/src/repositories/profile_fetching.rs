@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use super::client::get_client;
 
 use async_trait::async_trait;
@@ -16,6 +14,7 @@ use reqwest::{
     StatusCode,
 };
 use shaku::Component;
+use std::str::FromStr;
 
 #[derive(Component)]
 #[shaku(interface = ProfileFetching)]

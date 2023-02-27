@@ -91,6 +91,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                 name: record.name,
                 is_active: record.is_active,
                 is_checked: record.is_checked,
+                is_archived: record.is_archived,
                 owner: ParentEnum::Id(
                     Uuid::from_str(&record.owner_id).unwrap(),
                 ),

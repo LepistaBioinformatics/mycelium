@@ -16,14 +16,19 @@ use clean_base::{
     utils::errors::{use_case_err, MappedErrors},
 };
 
-/// List subscription accounts
+/// List account given an account-type
 ///
-/// Get a list of available subscription accounts.
-pub async fn list_subscription_accounts(
+/// Get a list of available accounts given the AccountTypeEnum.
+pub async fn list_accounts_by_type(
     profile: Profile,
+    account_type: AccountTypeEnum,
     name: Option<String>,
-    is_active: Option<bool>,
-    is_checked: Option<bool>,
+    is_owner_active: Option<bool>,
+    is_account_active: Option<bool>,
+    is_account_checked: Option<bool>,
+    is_account_archived: Option<bool>,
+    page_size: Option<i32>,
+    skip: Option<i32>,
     account_fetching_repo: Box<&dyn AccountFetching>,
     account_type_registration: Box<&dyn AccountTypeRegistration>,
 ) -> Result<FetchManyResponseKind<Account>, MappedErrors> {
@@ -33,7 +38,7 @@ pub async fn list_subscription_accounts(
 
     if !profile.is_manager {
         return Err(use_case_err(
-            "The current user has no sufficient privileges to register 
+            "The current user has no sufficient privileges to list 
             subscription accounts."
                 .to_string(),
             Some(true),
@@ -46,7 +51,7 @@ pub async fn list_subscription_accounts(
     // ? -----------------------------------------------------------------------
 
     let account_type_id = match get_or_create_default_account_types(
-        AccountTypeEnum::Subscription,
+        account_type,
         None,
         None,
         account_type_registration,
@@ -65,6 +70,15 @@ pub async fn list_subscription_accounts(
     // ? -----------------------------------------------------------------------
 
     account_fetching_repo
-        .list(name, is_active, is_checked, account_type_id)
+        .list(
+            name,
+            is_owner_active,
+            is_account_active,
+            is_account_checked,
+            is_account_archived,
+            account_type_id,
+            page_size,
+            skip,
+        )
         .await
 }
