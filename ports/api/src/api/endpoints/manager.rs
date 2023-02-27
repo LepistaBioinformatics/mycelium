@@ -25,6 +25,7 @@ use utoipa::OpenApi;
         account_endpoints::approve_account_url,
         account_endpoints::activate_account_url,
         account_endpoints::deactivate_account_url,
+        guest_endpoints::list_licensed_accounts_of_email_url,
         guest_endpoints::guest_user_url,
         guest_endpoints::list_guest_on_subscription_account_url,
         guest_role_endpoints::crate_guest_role_url,
@@ -543,7 +544,8 @@ pub mod guest_endpoints {
 
     use crate::modules::{
         AccountFetchingModule, GuestUserFetchingModule,
-        GuestUserRegistrationModule, MessageSendingModule,
+        GuestUserRegistrationModule, LicensedResourcesFetchingModule,
+        MessageSendingModule,
     };
 
     use actix_web::{get, post, web, HttpResponse, Responder};
@@ -555,11 +557,12 @@ pub mod guest_endpoints {
             dtos::email::Email,
             entities::{
                 AccountFetching, GuestUserFetching, GuestUserRegistration,
-                MessageSending,
+                LicensedResourcesFetching, MessageSending,
             },
         },
         use_cases::roles::managers::guest::{
             guest_user, list_guest_on_subscription_account,
+            list_licensed_accounts_of_email,
         },
     };
     use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
@@ -575,6 +578,7 @@ pub mod guest_endpoints {
     pub fn configure(config: &mut web::ServiceConfig) {
         config.service(
             web::scope("/guests")
+                .service(list_licensed_accounts_of_email_url)
                 .service(guest_user_url)
                 .service(list_guest_on_subscription_account_url),
         );
@@ -596,6 +600,73 @@ pub mod guest_endpoints {
     // Guest
     //
     // ? -----------------------------------------------------------------------
+
+    /// List subscription accounts which email was guest
+    #[utoipa::path(
+        get,
+        context_path = "/myc/managers/guests",
+        params(
+            GuestUserParams,
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 404,
+                description = "Not found.",
+                body = JsonError,
+            ),
+            (
+                status = 200,
+                description = "Fetching success.",
+                body = GuestUser,
+            ),
+        ),
+    )]
+    #[get("/")]
+    pub async fn list_licensed_accounts_of_email_url(
+        info: web::Query<GuestUserParams>,
+        profile: MyceliumProfileData,
+        licensed_resources_fetching_repo: Inject<
+            LicensedResourcesFetchingModule,
+            dyn LicensedResourcesFetching,
+        >,
+    ) -> impl Responder {
+        let email = match Email::from_string(info.email.to_owned()) {
+            Err(err) => {
+                return HttpResponse::BadRequest()
+                    .json(JsonError::new(format!("Invalid email: {err}")))
+            }
+            Ok(res) => res,
+        };
+
+        match list_licensed_accounts_of_email(
+            profile.to_profile(),
+            email.to_owned(),
+            Box::new(&*licensed_resources_fetching_repo),
+        )
+        .await
+        {
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string())),
+            Ok(res) => match res {
+                FetchManyResponseKind::NotFound => HttpResponse::NotFound()
+                    .json(JsonError::new(format!(
+                        "Account ({}) was not guest to any subscription account.",
+                        email.get_email()
+                    ))),
+                FetchManyResponseKind::Found(guests) => {
+                    HttpResponse::Ok().json(guests)
+                }
+                FetchManyResponseKind::FoundPaginated(guests) => {
+                    HttpResponse::Ok().json(guests)
+                }
+            },
+        }
+    }
 
     /// Guest a user to work on account.
     ///
