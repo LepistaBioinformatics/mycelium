@@ -13,8 +13,8 @@ use myc_core::{
     },
 };
 use myc_http_tools::{
-    middleware::fetch_and_inject_profile_to_forward,
-    responses::ForwardingError, DEFAULT_PROFILE_KEY,
+    middleware::fetch_and_inject_profile_to_forward, responses::GatewayError,
+    DEFAULT_PROFILE_KEY,
 };
 use shaku_actix::Inject;
 use std::{str::FromStr, time::Duration};
@@ -36,7 +36,7 @@ pub(crate) async fn route_request(
     client: web::Data<Client>,
     timeout: web::Data<u64>,
     routing_fetching_repo: Inject<RoutesFetchingModule, dyn RoutesFetching>,
-) -> Result<HttpResponse, ForwardingError> {
+) -> Result<HttpResponse, GatewayError> {
     let replace_path = &format!("/{}", GATEWAY_API_SCOPE);
 
     // ? -----------------------------------------------------------------------
@@ -56,7 +56,7 @@ pub(crate) async fn route_request(
     ) {
         Err(err) => {
             warn!("{:?}", err);
-            return Err(ForwardingError::BadRequest(String::from(
+            return Err(GatewayError::BadRequest(String::from(
                 "Invalid request path",
             )));
         }
@@ -73,7 +73,7 @@ pub(crate) async fn route_request(
     {
         Err(err) => {
             warn!("{:?}", err);
-            return Err(ForwardingError::InternalServerError(String::from(
+            return Err(GatewayError::InternalServerError(String::from(
                 "Invalid client service",
             )));
         }
@@ -83,7 +83,7 @@ pub(crate) async fn route_request(
             match res {
                 RoutesMatchResponseEnum::Found(route) => route,
                 _ => {
-                    return Err(ForwardingError::BadRequest(String::from(
+                    return Err(GatewayError::BadRequest(String::from(
                         "Request path does not match any service",
                     )))
                 }
@@ -103,12 +103,12 @@ pub(crate) async fn route_request(
     let registered_uri = match route.build_uri().await {
         Err(err) => {
             warn!("{:?}", err);
-            return Err(ForwardingError::InternalServerError(format!("{err}")));
+            return Err(GatewayError::InternalServerError(format!("{err}")));
         }
         Ok(res) => match Url::parse(res.to_string().as_str()) {
             Err(err) => {
                 warn!("{:?}", err);
-                return Err(ForwardingError::InternalServerError(format!(
+                return Err(GatewayError::InternalServerError(format!(
                     "{err}"
                 )));
             }
@@ -185,7 +185,7 @@ pub(crate) async fn route_request(
     {
         Err(err) => {
             warn!("{:?}", err);
-            return Err(ForwardingError::InternalServerError(String::from(
+            return Err(GatewayError::InternalServerError(String::from(
                 format!("{err}"),
             )));
         }

@@ -1,6 +1,6 @@
 use crate::{
-    providers::check_credentials, responses::ForwardingError,
-    LicensedResources, Profile,
+    providers::check_credentials, responses::GatewayError, LicensedResources,
+    Profile,
 };
 
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
@@ -64,7 +64,7 @@ impl MyceliumProfileData {
 }
 
 impl FromRequest for MyceliumProfileData {
-    type Error = ForwardingError;
+    type Error = GatewayError;
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
@@ -77,11 +77,11 @@ impl FromRequest for MyceliumProfileData {
 /// Try to populate profile to request header
 pub(super) async fn fetch_profile_from_request(
     req: HttpRequest,
-) -> Result<MyceliumProfileData, ForwardingError> {
+) -> Result<MyceliumProfileData, GatewayError> {
     let email = match check_credentials(req.to_owned()).await {
         Err(err) => {
             warn!("{:?}", err);
-            return Err(ForwardingError::Forbidden(format!("{err}")));
+            return Err(GatewayError::Forbidden(format!("{err}")));
         }
         Ok(res) => {
             debug!("Requesting Email: {:?}", res);
@@ -91,7 +91,7 @@ pub(super) async fn fetch_profile_from_request(
     };
 
     if email.is_none() {
-        return Err(ForwardingError::Forbidden(format!(
+        return Err(GatewayError::Forbidden(format!(
             "Unable o extract user identity from request."
         )));
     }
@@ -105,14 +105,14 @@ pub(super) async fn fetch_profile_from_request(
     {
         Err(err) => {
             warn!("{:?}", err);
-            return Err(ForwardingError::InternalServerError(format!("{err}")));
+            return Err(GatewayError::InternalServerError(format!("{err}")));
         }
         Ok(res) => {
             debug!("Requesting Profile: {:?}", res);
 
             match res {
                 ProfileResponse::UnregisteredUser(email) => {
-                    return Err(ForwardingError::Forbidden(format!(
+                    return Err(GatewayError::Forbidden(format!(
                         "Unauthorized access: {:?}",
                         email,
                     )))

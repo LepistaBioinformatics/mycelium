@@ -1,4 +1,4 @@
-use crate::{responses::ForwardingError, DEFAULT_PROFILE_KEY};
+use crate::{responses::GatewayError, DEFAULT_PROFILE_KEY};
 
 use actix_web::HttpRequest;
 use awc::{error::HeaderValue, ClientRequest};
@@ -18,7 +18,7 @@ use super::fetch_profile_from_request;
 pub async fn fetch_and_inject_profile_to_forward(
     req: HttpRequest,
     mut forwarded_req: ClientRequest,
-) -> Result<ClientRequest, ForwardingError> {
+) -> Result<ClientRequest, GatewayError> {
     let profile = match fetch_profile_from_request(req).await {
         Err(err) => return Err(err),
         Ok(res) => res,
@@ -31,7 +31,7 @@ pub async fn fetch_and_inject_profile_to_forward(
         ) {
             Err(err) => {
                 warn!("err: {:?}", err.to_string());
-                return Err(ForwardingError::InternalServerError(format!(
+                return Err(GatewayError::InternalServerError(format!(
                     "{err}"
                 )));
             }

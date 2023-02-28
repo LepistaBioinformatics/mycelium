@@ -1,7 +1,7 @@
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use myc_core::{
     domain::dtos::{
-        account::{Account, AccountType},
+        account::{Account, AccountType, AccountTypeEnum},
         email::Email,
         guest::{GuestRole, GuestUser, PermissionsType},
         profile::{LicensedResources, Profile},
@@ -31,10 +31,12 @@ use utoipa::OpenApi;
         guest_endpoints::guest_user_url,
         guest_endpoints::list_guest_on_subscription_account_url,
         guest_role_endpoints::crate_guest_role_url,
+        guest_role_endpoints::list_guest_roles_url,
         guest_role_endpoints::delete_guest_role_url,
         guest_role_endpoints::update_guest_role_name_and_description_url,
         guest_role_endpoints::update_guest_role_permissions_url,
         role_endpoints::crate_role_url,
+        role_endpoints::list_roles_url,
         role_endpoints::delete_role_url,
         role_endpoints::update_role_name_and_description_url,
     ),
@@ -47,6 +49,7 @@ use utoipa::OpenApi;
             // Schema models.
             Account,
             AccountType,
+            AccountTypeEnum,
             ActionType,
             Email,
             GuestUser,
