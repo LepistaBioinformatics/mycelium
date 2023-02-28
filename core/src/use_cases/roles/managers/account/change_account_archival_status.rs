@@ -10,14 +10,14 @@ use clean_base::{
 };
 use uuid::Uuid;
 
-/// Approve new created accounts.
+/// Change archival status of and account.
 ///
-/// This action is needed when a new account is created but not approved by a
-/// system administrator. Only checked accounts could perform actions over the
-/// system.
-pub async fn approve_account(
+/// After created new accounts could be approved or archived. Case archived
+/// these use-case should be used.
+pub async fn change_account_archival_status(
     profile: Profile,
     account_id: Uuid,
+    is_archived: bool,
     account_fetching_repo: Box<&dyn AccountFetching>,
     account_updating_repo: Box<&dyn AccountUpdating>,
 ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
@@ -104,7 +104,7 @@ pub async fn approve_account(
     // ? Update account status
     // ? -----------------------------------------------------------------------
 
-    account.is_checked = true;
+    account.is_archived = is_archived;
 
     account_updating_repo.update(account).await
 }
