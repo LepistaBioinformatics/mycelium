@@ -96,8 +96,8 @@ pub mod account_endpoints {
         },
         use_cases::roles::managers::account::{
             approve_account, change_account_activation_status,
-            create_subscription_account, get_subscription_account_details,
-            list_accounts_by_type,
+            change_account_archival_status, create_subscription_account,
+            get_subscription_account_details, list_accounts_by_type,
         },
     };
     use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
@@ -514,6 +514,130 @@ pub mod account_endpoints {
         >,
     ) -> impl Responder {
         match change_account_activation_status(
+            profile.to_profile(),
+            path.to_owned(),
+            false,
+            Box::new(&*account_fetching_repo),
+            Box::new(&*account_updating_repo),
+        )
+        .await
+        {
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string())),
+            Ok(res) => match res {
+                UpdatingResponseKind::NotUpdated(_, msg) => {
+                    HttpResponse::BadRequest().json(JsonError::new(msg))
+                }
+                UpdatingResponseKind::Updated(record) => {
+                    HttpResponse::Accepted().json(record)
+                }
+            },
+        }
+    }
+
+    /// Archive account
+    ///
+    /// Set target account as archived.
+    #[utoipa::path(
+        patch,
+        context_path = "/myc/managers/accounts",
+        params(
+            ("account" = Uuid, Path, description = "The account primary key."),
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 400,
+                description = "Account not activated.",
+                body = JsonError,
+            ),
+            (
+                status = 202,
+                description = "Account activated.",
+                body = Account,
+            ),
+        ),
+    )]
+    #[patch("/{account}/archive")]
+    pub async fn archive_account_url(
+        path: web::Path<Uuid>,
+        profile: MyceliumProfileData,
+        account_fetching_repo: Inject<
+            AccountFetchingModule,
+            dyn AccountFetching,
+        >,
+        account_updating_repo: Inject<
+            AccountUpdatingModule,
+            dyn AccountUpdating,
+        >,
+    ) -> impl Responder {
+        match change_account_archival_status(
+            profile.to_profile(),
+            path.to_owned(),
+            true,
+            Box::new(&*account_fetching_repo),
+            Box::new(&*account_updating_repo),
+        )
+        .await
+        {
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string())),
+            Ok(res) => match res {
+                UpdatingResponseKind::NotUpdated(_, msg) => {
+                    HttpResponse::BadRequest().json(JsonError::new(msg))
+                }
+                UpdatingResponseKind::Updated(record) => {
+                    HttpResponse::Accepted().json(record)
+                }
+            },
+        }
+    }
+
+    /// Unarchive account
+    ///
+    /// Set target account as un-archived.
+    #[utoipa::path(
+        patch,
+        context_path = "/myc/managers/accounts",
+        params(
+            ("account" = Uuid, Path, description = "The account primary key."),
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 400,
+                description = "Account not activated.",
+                body = JsonError,
+            ),
+            (
+                status = 202,
+                description = "Account activated.",
+                body = Account,
+            ),
+        ),
+    )]
+    #[patch("/{account}/unarchive")]
+    pub async fn unarchive_account_url(
+        path: web::Path<Uuid>,
+        profile: MyceliumProfileData,
+        account_fetching_repo: Inject<
+            AccountFetchingModule,
+            dyn AccountFetching,
+        >,
+        account_updating_repo: Inject<
+            AccountUpdatingModule,
+            dyn AccountUpdating,
+        >,
+    ) -> impl Responder {
+        match change_account_archival_status(
             profile.to_profile(),
             path.to_owned(),
             false,
