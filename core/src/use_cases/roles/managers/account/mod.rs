@@ -1,7 +1,11 @@
+mod approve_account;
+mod change_account_activation_status;
 mod create_subscription_account;
 mod get_subscription_account_details;
 mod list_accounts_by_type;
 
+pub use approve_account::approve_account;
+pub use change_account_activation_status::change_account_activation_status;
 pub use create_subscription_account::create_subscription_account;
 pub use get_subscription_account_details::get_subscription_account_details;
 pub use list_accounts_by_type::list_accounts_by_type;
