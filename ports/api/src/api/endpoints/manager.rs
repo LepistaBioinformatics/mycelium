@@ -25,6 +25,8 @@ use utoipa::OpenApi;
         account_endpoints::approve_account_url,
         account_endpoints::activate_account_url,
         account_endpoints::deactivate_account_url,
+        account_endpoints::archive_account_url,
+        account_endpoints::unarchive_account_url,
         guest_endpoints::list_licensed_accounts_of_email_url,
         guest_endpoints::guest_user_url,
         guest_endpoints::list_guest_on_subscription_account_url,
@@ -119,7 +121,9 @@ pub mod account_endpoints {
                 .service(get_subscription_account_details_url)
                 .service(approve_account_url)
                 .service(activate_account_url)
-                .service(deactivate_account_url),
+                .service(deactivate_account_url)
+                .service(archive_account_url)
+                .service(unarchive_account_url),
         );
     }
 
