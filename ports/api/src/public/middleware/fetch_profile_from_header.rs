@@ -1,6 +1,6 @@
 use crate::{
-    responses::ForwardingError, settings::PROFILE_FETCHING_URL,
-    LicensedResources, Profile,
+    responses::GatewayError, settings::PROFILE_FETCHING_URL, LicensedResources,
+    Profile,
 };
 
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
@@ -62,7 +62,7 @@ impl GatewayProfileData {
 }
 
 impl FromRequest for GatewayProfileData {
-    type Error = ForwardingError;
+    type Error = GatewayError;
     //type Future = Ready<Result<Self, Self::Error>>;
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
@@ -75,7 +75,7 @@ impl FromRequest for GatewayProfileData {
                 match serde_json::from_str::<Self>(res.to_str().unwrap()) {
                     Err(error) => {
                         return Box::pin(async move {
-                            Err(ForwardingError::Forbidden(format!(
+                            Err(GatewayError::Forbidden(format!(
                                 "Unable to check user identity due: {error}",
                             )))
                         })
@@ -103,22 +103,22 @@ impl FromRequest for GatewayProfileData {
         // Return a default forbidden response if the user identity could not be
         // checked.
         //
-        Box::pin(async move { Err(ForwardingError::Forbidden("".to_string())) })
+        Box::pin(async move { Err(GatewayError::Forbidden("".to_string())) })
     }
 }
 
 async fn fetch_profile_from_token(
     token: String,
-) -> Result<GatewayProfileData, ForwardingError> {
+) -> Result<GatewayProfileData, GatewayError> {
     let repo = ProfileFetchingSvcRepo {
         url: PROFILE_FETCHING_URL.to_string(),
     };
 
     match repo.get(None, Some(token.to_string())).await {
-        Err(err) => Err(ForwardingError::Forbidden(err.to_string())),
+        Err(err) => Err(GatewayError::Forbidden(err.to_string())),
         Ok(res) => match res {
             FetchResponseKind::NotFound(email) => {
-                Err(ForwardingError::Forbidden(email.unwrap_or("".to_string())))
+                Err(GatewayError::Forbidden(email.unwrap_or("".to_string())))
             }
             FetchResponseKind::Found(profile) => {
                 Ok(GatewayProfileData::from_profile(profile))

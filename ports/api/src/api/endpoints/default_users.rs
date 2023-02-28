@@ -1,6 +1,6 @@
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use myc_core::domain::dtos::{
-    account::{Account, AccountType},
+    account::{Account, AccountType, AccountTypeEnum},
     guest::PermissionsType,
     profile::{LicensedResources, Profile},
 };
@@ -27,6 +27,7 @@ use utoipa::OpenApi;
             // Schema models.
             Account,
             AccountType,
+            AccountTypeEnum,
             JsonError,
             LicensedResources,
             Profile,

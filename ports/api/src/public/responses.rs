@@ -21,7 +21,7 @@ pub(crate) struct JsonError {
 ///
 /// Forwarding errors are fired only by Stomata errors.
 #[derive(Debug, Display)]
-pub enum ForwardingError {
+pub enum GatewayError {
     // ? -----------------------------------------------------------------------
     // ? Client errors (4xx)
     // ? -----------------------------------------------------------------------
@@ -38,7 +38,7 @@ pub enum ForwardingError {
     InternalServerError(String),
 }
 
-impl error::ResponseError for ForwardingError {
+impl error::ResponseError for GatewayError {
     fn error_response(&self) -> HttpResponse {
         HttpResponse::build(self.status_code())
             .insert_header(ContentType::json())
@@ -46,18 +46,18 @@ impl error::ResponseError for ForwardingError {
                 msg: self.to_string(),
                 status: self.status_code().as_u16(),
                 message: match self {
-                    ForwardingError::BadRequest(msg) => msg.to_owned(),
-                    ForwardingError::Forbidden(msg) => msg.to_owned(),
-                    ForwardingError::InternalServerError(msg) => msg.to_owned(),
+                    GatewayError::BadRequest(msg) => msg.to_owned(),
+                    GatewayError::Forbidden(msg) => msg.to_owned(),
+                    GatewayError::InternalServerError(msg) => msg.to_owned(),
                 },
             })
     }
 
     fn status_code(&self) -> StatusCode {
         match *self {
-            ForwardingError::BadRequest { .. } => StatusCode::BAD_REQUEST,
-            ForwardingError::Forbidden { .. } => StatusCode::FORBIDDEN,
-            ForwardingError::InternalServerError { .. } => {
+            GatewayError::BadRequest { .. } => StatusCode::BAD_REQUEST,
+            GatewayError::Forbidden { .. } => StatusCode::FORBIDDEN,
+            GatewayError::InternalServerError { .. } => {
                 StatusCode::INTERNAL_SERVER_ERROR
             }
         }
