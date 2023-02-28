@@ -94,14 +94,10 @@ pub mod account_endpoints {
                 AccountUpdating, UserRegistration,
             },
         },
-        use_cases::roles::{
-            managers::account::{
-                create_subscription_account, get_subscription_account_details,
-                list_accounts_by_type,
-            },
-            shared::account::{
-                approve_account, change_account_activation_status,
-            },
+        use_cases::roles::managers::account::{
+            approve_account, change_account_activation_status,
+            create_subscription_account, get_subscription_account_details,
+            list_accounts_by_type,
         },
     };
     use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
