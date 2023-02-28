@@ -1,6 +1,7 @@
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use myc_core::domain::dtos::{
     account::{Account, AccountType},
+    guest::PermissionsType,
     profile::{LicensedResources, Profile},
 };
 use myc_http_tools::utils::JsonError;
@@ -29,6 +30,7 @@ use utoipa::OpenApi;
             JsonError,
             LicensedResources,
             Profile,
+            PermissionsType,
         ),
     ),
     tags(
