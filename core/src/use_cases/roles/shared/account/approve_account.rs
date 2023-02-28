@@ -4,6 +4,7 @@ use crate::domain::{
 };
 
 use clean_base::{
+    dtos::enums::ParentEnum::*,
     entities::default_response::{FetchResponseKind, UpdatingResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
@@ -42,10 +43,14 @@ pub async fn approve_account(
     // ? Check permissions
     // ? -----------------------------------------------------------------------
 
+    // Check if the account id os Some. Case false the operation is prohibited.
     let target_account_id = match account.id {
         None => {
             return Err(use_case_err(
-                format!("Prohibited operation."),
+                format!(
+                    "Prohibited operation. Target account ({account_id}) could 
+                    not be checked."
+                ),
                 Some(true),
                 None,
             ))
@@ -53,16 +58,47 @@ pub async fn approve_account(
         Some(res) => res,
     };
 
-    if (!profile.is_manager) || (!profile.is_staff) {
+    // Check if the account that will perform approve action has enough
+    // privileges.
+    if ![profile.is_manager, profile.is_staff]
+        .into_iter()
+        .any(|i| i == true)
+    {
         return Err(use_case_err(
             format!(
-                "Not enough permissions deactivate the account {:?}.",
-                target_account_id
+                "Not enough permissions approve the account 
+                {target_account_id}."
             ),
             Some(true),
             None,
         ));
     }
+
+    // Check if the target account to be changed is a Standard account.
+    match account.to_owned().account_type {
+        Id(_) => {
+            return Err(use_case_err(
+                format!(
+                    "Prohibited operation. Account type of the target account 
+                    ({account_id}) could not be checked."
+                ),
+                Some(true),
+                None,
+            ))
+        }
+        Record(res) => {
+            if profile.is_manager && res.is_staff {
+                return Err(use_case_err(
+                    String::from(
+                        "Prohibited operation. Managers could not perform 
+                        editions on accounts with more privileges than himself.",
+                    ),
+                    Some(true),
+                    None,
+                ));
+            }
+        }
+    };
 
     // ? -----------------------------------------------------------------------
     // ? Update account status
