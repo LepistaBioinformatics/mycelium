@@ -7,11 +7,11 @@ mod router;
 mod settings;
 
 use actix_cors::Cors;
-use actix_web::middleware::Logger;
-use actix_web::{web, App, HttpServer};
+use actix_web::{middleware::Logger, web, App, HttpServer};
 use awc::Client;
 use config::{configure as configure_injection_modules, SvcConfig};
 use endpoints::{
+    auth::{auth_url, AppState},
     default_users::{
         account_endpoints as default_users_account_endpoints,
         profile_endpoints as default_users_profile_endpoints,
@@ -31,6 +31,7 @@ use endpoints::{
 use log::{debug, info};
 use myc_core::settings::init_in_memory_routes;
 use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
+use oauth2::{basic::BasicClient, AuthUrl, ClientId, ClientSecret, TokenUrl};
 use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_METHODS, ACCESS_CONTROL_ALLOW_ORIGIN,
     AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE,
@@ -39,7 +40,7 @@ use router::route_request;
 use settings::{GATEWAY_API_SCOPE, MYCELIUM_API_SCOPE};
 use std::process::id as process_id;
 use utoipa::OpenApi;
-use utoipa_swagger_ui::{SwaggerUi, Url};
+use utoipa_swagger_ui::{Config, SwaggerUi, Url};
 
 // ? ---------------------------------------------------------------------------
 // ? API fire elements
@@ -61,8 +62,8 @@ pub async fn main() -> std::io::Result<()> {
 
     info!("Set the server configuration.");
     let server = HttpServer::new(move || {
-        let origins = SvcConfig::new().allowed_origins;
-        debug!("Configured Origins: {:?}", origins);
+        let config = SvcConfig::new();
+        debug!("Configured Origins: {:?}", config.allowed_origins);
 
         let cors = Cors::default()
             //.allowed_origin_fn(move |origin, _| {
@@ -83,6 +84,24 @@ pub async fn main() -> std::io::Result<()> {
             .max_age(3600);
 
         debug!("Configured Cors: {:?}", cors);
+
+        let azure_client_id = ClientId::new(config.azure_client_id);
+        let azure_client_secret =
+            ClientSecret::new(config.azure_client_secret).to_owned();
+
+        let authorization_url = AuthUrl::new(config.azure_client_auth_url)
+            .expect("Invalid authorization endpoint URL");
+        let token_url = TokenUrl::new(config.azure_client_token_url)
+            .expect("Invalid token endpoint URL");
+
+        let client = BasicClient::new(
+            azure_client_id,
+            Some(azure_client_secret),
+            authorization_url,
+            Some(token_url),
+        );
+
+        debug!("Oauth2 Configured");
 
         App::new()
             // ? ---------------------------------------------------------------
@@ -109,6 +128,16 @@ pub async fn main() -> std::io::Result<()> {
                     .service(
                         web::scope("/health")
                             .configure(heath_check_endpoints::configure),
+                    )
+                    //
+                    // Auth
+                    //
+                    .service(
+                        web::scope("/auth")
+                            .app_data(web::Data::new(AppState {
+                                oauth: client,
+                            }))
+                            .service(auth_url),
                     )
                     //
                     // Default Users
@@ -143,37 +172,49 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             // ? Configure API documentation
             // ? ---------------------------------------------------------------
-            .service(SwaggerUi::new("/swagger-ui/{_:.*}").urls(vec![
-                (
-                    Url::with_primary(
-                        "System monitoring",
-                        "/doc/monitoring-openapi.json",
-                        true,
-                    ),
-                    HealthCheckApiDoc::openapi(),
-                ),
-                (
-                    Url::new(
-                        "Default Users Endpoints",
-                        "/doc/default-users-openapi.json",
-                    ),
-                    DefaultUsersApiDoc::openapi(),
-                ),
-                (
-                    Url::new(
-                        "Manager Users Endpoints",
-                        "/doc/manager-openapi.json",
-                    ),
-                    ManagerApiDoc::openapi(),
-                ),
-                (
-                    Url::new(
-                        "Staff Users Endpoints",
-                        "/doc/staff-openapi.json",
-                    ),
-                    StaffApiDoc::openapi(),
-                ),
-            ]))
+            .service(
+                SwaggerUi::new("/swagger-ui/{_:.*}")
+                    .config(
+                        Config::default()
+                            .filter(true)
+                            .show_extensions(true)
+                            .show_common_extensions(true)
+                            .with_credentials(true)
+                            .request_snippets_enabled(true)
+                            .oauth2_redirect_url(config.oauth2_redirect_url),
+                    )
+                    .urls(vec![
+                        (
+                            Url::with_primary(
+                                "System monitoring",
+                                "/doc/monitoring-openapi.json",
+                                true,
+                            ),
+                            HealthCheckApiDoc::openapi(),
+                        ),
+                        (
+                            Url::new(
+                                "Default Users Endpoints",
+                                "/doc/default-users-openapi.json",
+                            ),
+                            DefaultUsersApiDoc::openapi(),
+                        ),
+                        (
+                            Url::new(
+                                "Manager Users Endpoints",
+                                "/doc/manager-openapi.json",
+                            ),
+                            ManagerApiDoc::openapi(),
+                        ),
+                        (
+                            Url::new(
+                                "Staff Users Endpoints",
+                                "/doc/staff-openapi.json",
+                            ),
+                            StaffApiDoc::openapi(),
+                        ),
+                    ]),
+            )
             // ? ---------------------------------------------------------------
             // ? Configure gateway routes
             // ? ---------------------------------------------------------------

@@ -103,7 +103,11 @@ impl FromRequest for GatewayProfileData {
         // Return a default forbidden response if the user identity could not be
         // checked.
         //
-        Box::pin(async move { Err(GatewayError::Forbidden("".to_string())) })
+        Box::pin(async move {
+            Err(GatewayError::Forbidden(
+                "Unable to check user identity".to_string(),
+            ))
+        })
     }
 }
 

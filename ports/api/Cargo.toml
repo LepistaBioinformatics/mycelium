@@ -23,7 +23,7 @@ mycelium-smtp = { path = "../../adapters/smtp" }
 
 actix = "0.13"
 actix-cors = { version = "0.6.2" }
-actix-rt = "2.8"
+actix-session = "0.7.2"
 actix-web = { version = "4" }
 actix-web-error = { version = "0.1" }
 actix-web-error-derive = { version = "0.1" }
@@ -36,15 +36,19 @@ derive_more = "0.99"
 env_logger = "0.10"
 futures-util = "0.3"
 futures = "0.3"
+hmac = "0.12.1"
 jsonwebtoken = "8.2"
+jwt = "0.16.0"
 lazy_static = "1.4"
 log = "0.4"
 oauth2 = "4.3"
 reqwest = { version = "0.11", features = ["json"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+serde_qs = "0.11"
 shaku = "0.6"
 shaku_actix = "0.2"
+sha2 = "0.10.6"
 tokio = { version = "1", features = ["full"] }
 url = "2.2"
 utoipa = { version = "3", features = ["actix_extras", "uuid", "chrono", "openapi_extensions"] }

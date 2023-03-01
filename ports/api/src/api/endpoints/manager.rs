@@ -77,7 +77,7 @@ pub struct ApiDoc;
 pub mod account_endpoints {
 
     use crate::{
-        endpoints::shared_params::PaginationParams,
+        endpoints::shared::PaginationParams,
         modules::{
             AccountFetchingModule, AccountRegistrationModule,
             AccountTypeRegistrationModule, AccountUpdatingModule,
