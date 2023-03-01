@@ -1,3 +1,5 @@
+use super::shared::SecurityAddon;
+
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use myc_core::domain::dtos::{
     account::{Account, AccountType, AccountTypeEnum},
@@ -13,11 +15,15 @@ use utoipa::OpenApi;
 
 #[derive(OpenApi)]
 #[openapi(
+    security(
+        ("oauth2" = []),
+    ),
     paths(
         account_endpoints::create_default_account_url,
         account_endpoints::update_own_account_name_url,
         profile_endpoints::fetch_profile,
     ),
+    modifiers(&SecurityAddon),
     components(
         schemas(
             // Default relationship enumerators.
