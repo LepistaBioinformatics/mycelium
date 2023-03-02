@@ -11,7 +11,6 @@ use actix_web::{middleware::Logger, web, App, HttpServer};
 use awc::Client;
 use config::{configure as configure_injection_modules, SvcConfig};
 use endpoints::{
-    auth::{auth_url, AppState},
     default_users::{
         account_endpoints as default_users_account_endpoints,
         profile_endpoints as default_users_profile_endpoints,
@@ -31,7 +30,6 @@ use endpoints::{
 use log::{debug, info};
 use myc_core::settings::init_in_memory_routes;
 use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
-use oauth2::{basic::BasicClient, AuthUrl, ClientId, ClientSecret, TokenUrl};
 use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_METHODS, ACCESS_CONTROL_ALLOW_ORIGIN,
     AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE,
@@ -85,24 +83,6 @@ pub async fn main() -> std::io::Result<()> {
 
         debug!("Configured Cors: {:?}", cors);
 
-        let azure_client_id = ClientId::new(config.azure_client_id);
-        let azure_client_secret =
-            ClientSecret::new(config.azure_client_secret).to_owned();
-
-        let authorization_url = AuthUrl::new(config.azure_client_auth_url)
-            .expect("Invalid authorization endpoint URL");
-        let token_url = TokenUrl::new(config.azure_client_token_url)
-            .expect("Invalid token endpoint URL");
-
-        let client = BasicClient::new(
-            azure_client_id,
-            Some(azure_client_secret),
-            authorization_url,
-            Some(token_url),
-        );
-
-        debug!("Oauth2 Configured");
-
         App::new()
             // ? ---------------------------------------------------------------
             // ? Configure CORS policies
@@ -128,16 +108,6 @@ pub async fn main() -> std::io::Result<()> {
                     .service(
                         web::scope("/health")
                             .configure(heath_check_endpoints::configure),
-                    )
-                    //
-                    // Auth
-                    //
-                    .service(
-                        web::scope("/auth")
-                            .app_data(web::Data::new(AppState {
-                                oauth: client,
-                            }))
-                            .service(auth_url),
                     )
                     //
                     // Default Users
