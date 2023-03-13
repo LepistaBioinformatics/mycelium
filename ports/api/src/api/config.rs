@@ -56,10 +56,6 @@ pub struct SvcConfig {
     pub allowed_origins: Vec<String>,
     pub service_workers: i32,
     pub gateway_timeout: u64,
-    pub azure_client_id: String,
-    pub azure_client_secret: String,
-    pub azure_client_auth_url: String,
-    pub azure_client_token_url: String,
     pub oauth2_redirect_url: String,
 }
 
@@ -97,30 +93,6 @@ impl SvcConfig {
                     path.into_string().unwrap().parse::<u64>().unwrap()
                 }
                 None => 5 as u64,
-            },
-            azure_client_id: match var_os("AZURE_CLIENT_ID") {
-                Some(path) => path.into_string().unwrap(),
-                None => panic!(
-                    "`AZURE_CLIENT_ID` environment variable not configured."
-                ),
-            },
-            azure_client_secret: match var_os("AZURE_CLIENT_SECRET") {
-                Some(path) => path.into_string().unwrap(),
-                None => panic!(
-                    "`AZURE_CLIENT_SECRET` environment variable not configured."
-                ),
-            },
-            azure_client_auth_url: match var_os("AZURE_CLIENT_AUTH_URL") {
-                Some(path) => path.into_string().unwrap(),
-                None => panic!(
-                    "`AZURE_CLIENT_AUTH_URL` environment variable not configured."
-                ),
-            },
-            azure_client_token_url: match var_os("AZURE_CLIENT_TOKE_URL") {
-                Some(path) => path.into_string().unwrap(),
-                None => panic!(
-                    "`AZURE_CLIENT_TOKE_URL` environment variable not configured."
-                ),
             },
             oauth2_redirect_url: match var_os("OAUTH2_REDIRECT_URL") {
                 Some(path) => path.into_string().unwrap(),
