@@ -120,6 +120,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         is_account_checked: Option<bool>,
         is_account_archived: Option<bool>,
         account_type_id: Option<Uuid>,
+        show_subscription: Option<bool>,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Account>, MappedErrors> {
@@ -185,9 +186,16 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         }
 
         if account_type_id.is_some() {
-            query_stmt.push(account_model::account_type_id::equals(
-                account_type_id.unwrap().to_string(),
-            ));
+            match show_subscription.unwrap_or(false) {
+                true => {
+                    query_stmt.push(account_model::account_type_id::equals(
+                        account_type_id.unwrap().to_string(),
+                    ))
+                }
+                false => query_stmt.push(account_model::account_type_id::not(
+                    account_type_id.unwrap().to_string(),
+                )),
+            };
         }
 
         // ? -------------------------------------------------------------------

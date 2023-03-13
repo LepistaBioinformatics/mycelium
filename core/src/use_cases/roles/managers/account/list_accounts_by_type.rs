@@ -21,12 +21,12 @@ use clean_base::{
 /// Get a list of available accounts given the AccountTypeEnum.
 pub async fn list_accounts_by_type(
     profile: Profile,
-    account_type: AccountTypeEnum,
-    name: Option<String>,
+    term: Option<String>,
     is_owner_active: Option<bool>,
     is_account_active: Option<bool>,
     is_account_checked: Option<bool>,
     is_account_archived: Option<bool>,
+    is_subscription: Option<bool>,
     page_size: Option<i32>,
     skip: Option<i32>,
     account_fetching_repo: Box<&dyn AccountFetching>,
@@ -51,7 +51,7 @@ pub async fn list_accounts_by_type(
     // ? -----------------------------------------------------------------------
 
     let account_type_id = match get_or_create_default_account_types(
-        account_type,
+        AccountTypeEnum::Subscription,
         None,
         None,
         account_type_registration,
@@ -71,12 +71,13 @@ pub async fn list_accounts_by_type(
 
     account_fetching_repo
         .list(
-            name,
+            term,
             is_owner_active,
             is_account_active,
             is_account_checked,
             is_account_archived,
             account_type_id,
+            Some(is_subscription.unwrap_or(false)),
             page_size,
             skip,
         )

@@ -92,12 +92,9 @@ pub mod account_endpoints {
         UpdatingResponseKind,
     };
     use myc_core::{
-        domain::{
-            dtos::account::AccountTypeEnum,
-            entities::{
-                AccountFetching, AccountRegistration, AccountTypeRegistration,
-                AccountUpdating, UserRegistration,
-            },
+        domain::entities::{
+            AccountFetching, AccountRegistration, AccountTypeRegistration,
+            AccountUpdating, UserRegistration,
         },
         use_cases::roles::managers::account::{
             approve_account, change_account_activation_status,
@@ -144,8 +141,8 @@ pub mod account_endpoints {
     #[derive(Deserialize, IntoParams)]
     #[serde(rename_all = "camelCase")]
     pub struct ListSubscriptionAccountParams {
-        account_type: AccountTypeEnum,
-        name: Option<String>,
+        term: Option<String>,
+        is_subscription: Option<bool>,
         is_owner_active: Option<bool>,
         is_account_active: Option<bool>,
         is_account_checked: Option<bool>,
@@ -270,12 +267,12 @@ pub mod account_endpoints {
     ) -> impl Responder {
         match list_accounts_by_type(
             profile.to_profile(),
-            info.account_type.to_owned(),
-            info.name.to_owned(),
+            info.term.to_owned(),
             info.is_owner_active.to_owned(),
             info.is_account_active.to_owned(),
             info.is_account_checked.to_owned(),
             info.is_account_archived.to_owned(),
+            info.is_subscription.to_owned(),
             page.page_size.to_owned(),
             page.skip.to_owned(),
             Box::new(&*account_fetching_repo),
