@@ -1,6 +1,7 @@
 use actix_web::{http::header::Header, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use clean_base::utils::errors::{execution_err, MappedErrors};
+use log::warn;
 use myc_core::domain::dtos::email::Email;
 use reqwest::StatusCode;
 use serde::Deserialize;
@@ -87,11 +88,17 @@ async fn decode_bearer_token_on_ms_graph(
             return Ok(res);
         }
         _ => {
+            warn!(
+                "Unexpected error on fetch user from MS Graph. (status {:?}) {:?}",
+                response.status(),
+                response.text().await
+            );
+
             return Err(execution_err(
                 "Unexpected error on fetch user from MS Graph.".to_string(),
                 Some(true),
                 None,
-            ))
+            ));
         }
     }
 }
