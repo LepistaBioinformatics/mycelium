@@ -6,8 +6,11 @@ use crate::{
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
 use log::{debug, warn};
-use myc_core::use_cases::roles::service::profile::{
-    fetch_profile_from_email, ProfileResponse,
+use myc_core::{
+    domain::dtos::account::VerboseProfileStatus,
+    use_cases::roles::service::profile::{
+        fetch_profile_from_email, ProfileResponse,
+    },
 };
 use myc_prisma::repositories::{
     LicensedResourcesFetchingSqlDbRepository, ProfileFetchingSqlDbRepository,
@@ -28,6 +31,7 @@ pub struct MyceliumProfileData {
     pub account_is_active: bool,
     pub account_was_approved: bool,
     pub account_was_archived: bool,
+    pub verbose_status: Option<VerboseProfileStatus>,
     pub licensed_resources: Option<Vec<LicensedResources>>,
 }
 
@@ -43,6 +47,7 @@ impl MyceliumProfileData {
             account_is_active: profile.account_is_active,
             account_was_approved: profile.account_was_approved,
             account_was_archived: profile.account_was_archived,
+            verbose_status: profile.verbose_status,
             licensed_resources: profile.licensed_resources,
         }
     }
@@ -58,6 +63,7 @@ impl MyceliumProfileData {
             account_is_active: self.account_is_active,
             account_was_approved: self.account_was_approved,
             account_was_archived: self.account_was_archived,
+            verbose_status: self.verbose_status.to_owned(),
             licensed_resources: self.licensed_resources.to_owned(),
         }
     }
@@ -69,8 +75,6 @@ impl FromRequest for MyceliumProfileData {
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
         let req_clone = req.clone();
-
-        println!("req_clone: {:?}", req_clone);
 
         Box::pin(async move { fetch_profile_from_request(req_clone).await })
     }

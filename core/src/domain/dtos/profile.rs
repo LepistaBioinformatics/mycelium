@@ -1,4 +1,4 @@
-use super::guest::PermissionsType;
+use super::{account::VerboseProfileStatus, guest::PermissionsType};
 
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -79,6 +79,14 @@ pub struct Profile {
     /// New accounts should be archived. After archived accounts should not be
     /// included at default filtering actions.
     pub account_was_archived: bool,
+
+    /// Indicate the profile status for humans
+    ///
+    /// The profile status is composed of all account flags statuses
+    /// composition. But it is not readable for humans. These struct attribute
+    /// allows human users to understand the account status without read the
+    /// flags, avoiding misinterpretation of this.
+    pub verbose_status: Option<VerboseProfileStatus>,
 
     /// Accounts guested to the current profile
     ///
@@ -189,6 +197,7 @@ mod tests {
             account_is_active: true,
             account_was_approved: true,
             account_was_archived: false,
+            verbose_status: None,
             licensed_resources: Some(
                 [LicensedResources {
                     guest_account_id: Uuid::from_str(

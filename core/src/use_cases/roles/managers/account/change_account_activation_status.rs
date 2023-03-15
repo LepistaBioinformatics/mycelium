@@ -87,7 +87,7 @@ pub async fn change_account_activation_status(
             ))
         }
         Record(res) => {
-            if profile.is_manager && res.is_staff {
+            if profile.is_manager && !profile.is_staff && res.is_staff {
                 return Err(use_case_err(
                     String::from(
                         "Prohibited operation. Managers could not perform 
