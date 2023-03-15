@@ -3,7 +3,10 @@ use super::{guest::GuestUser, user::User};
 use chrono::{DateTime, Local};
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use serde::{Deserialize, Serialize};
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::{
+    fmt::{Display, Formatter, Result as FmtResult},
+    str::FromStr,
+};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -42,6 +45,67 @@ impl Display for AccountTypeEnum {
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
+pub enum VerboseProfileStatus {
+    Pending,
+    Active,
+    Inactive,
+    Archived,
+    Unknown,
+}
+
+impl FromStr for VerboseProfileStatus {
+    type Err = VerboseProfileStatus;
+
+    fn from_str(s: &str) -> Result<VerboseProfileStatus, VerboseProfileStatus> {
+        match s {
+            "pending" => Ok(VerboseProfileStatus::Pending),
+            "active" => Ok(VerboseProfileStatus::Active),
+            "inactive" => Ok(VerboseProfileStatus::Inactive),
+            "archived" => Ok(VerboseProfileStatus::Archived),
+            _ => Err(VerboseProfileStatus::Unknown),
+        }
+    }
+}
+
+impl Display for VerboseProfileStatus {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        match self {
+            VerboseProfileStatus::Pending => write!(f, "pending"),
+            VerboseProfileStatus::Active => write!(f, "active"),
+            VerboseProfileStatus::Inactive => write!(f, "inactive"),
+            VerboseProfileStatus::Archived => write!(f, "archived"),
+            VerboseProfileStatus::Unknown => write!(f, "unknown"),
+        }
+    }
+}
+
+impl VerboseProfileStatus {
+    pub fn from_profile(
+        is_active: bool,
+        is_checked: bool,
+        is_archived: bool,
+    ) -> Self {
+        if is_active == false {
+            return VerboseProfileStatus::Inactive;
+        }
+
+        if is_checked == false {
+            return VerboseProfileStatus::Pending;
+        }
+
+        if is_archived == true {
+            return VerboseProfileStatus::Archived;
+        }
+
+        if is_archived == false {
+            return VerboseProfileStatus::Active;
+        }
+
+        VerboseProfileStatus::Unknown
+    }
+}
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct Account {
     pub id: Option<Uuid>,
 
@@ -49,6 +113,7 @@ pub struct Account {
     pub is_active: bool,
     pub is_checked: bool,
     pub is_archived: bool,
+    pub verbose_status: Option<VerboseProfileStatus>,
     pub owner: ParentEnum<User, Uuid>,
     pub account_type: ParentEnum<AccountType, Uuid>,
     pub guest_users: Option<ChildrenEnum<GuestUser, Uuid>>,
@@ -153,6 +218,7 @@ mod tests {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            verbose_status: None,
             owner: ParentEnum::Record(user),
             account_type: ParentEnum::Record(account_type),
             guest_users: None,

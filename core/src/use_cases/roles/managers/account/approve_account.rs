@@ -66,8 +66,7 @@ pub async fn approve_account(
     {
         return Err(use_case_err(
             format!(
-                "Not enough permissions approve the account 
-                {target_account_id}."
+                "Not enough permissions approve account `{target_account_id}`."
             ),
             Some(true),
             None,
@@ -80,18 +79,18 @@ pub async fn approve_account(
             return Err(use_case_err(
                 format!(
                     "Prohibited operation. Account type of the target account 
-                    ({account_id}) could not be checked."
+({account_id}) could not be checked."
                 ),
                 Some(true),
                 None,
             ))
         }
         Record(res) => {
-            if profile.is_manager && res.is_staff {
+            if profile.is_manager && !profile.is_staff && res.is_staff {
                 return Err(use_case_err(
                     String::from(
                         "Prohibited operation. Managers could not perform 
-                        editions on accounts with more privileges than himself.",
+editions on accounts with more privileges than himself.",
                     ),
                     Some(true),
                     None,

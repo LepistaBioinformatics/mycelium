@@ -7,7 +7,8 @@ use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use clean_base::entities::default_response::FetchResponseKind;
 use futures::Future;
 use myc_core::{
-    domain::entities::ProfileFetching, settings::DEFAULT_PROFILE_KEY,
+    domain::{dtos::account::VerboseProfileStatus, entities::ProfileFetching},
+    settings::DEFAULT_PROFILE_KEY,
 };
 use myc_svc::repositories::ProfileFetchingSvcRepo;
 use serde::Deserialize;
@@ -26,6 +27,7 @@ pub struct GatewayProfileData {
     pub account_is_active: bool,
     pub account_was_approved: bool,
     pub account_was_archived: bool,
+    pub verbose_status: Option<VerboseProfileStatus>,
     pub licensed_resources: Option<Vec<LicensedResources>>,
 }
 
@@ -41,6 +43,7 @@ impl GatewayProfileData {
             account_is_active: profile.account_is_active,
             account_was_approved: profile.account_was_approved,
             account_was_archived: profile.account_was_archived,
+            verbose_status: profile.verbose_status,
             licensed_resources: profile.licensed_resources,
         }
     }
@@ -56,6 +59,7 @@ impl GatewayProfileData {
             account_is_active: self.account_is_active,
             account_was_approved: self.account_was_approved,
             account_was_archived: self.account_was_archived,
+            verbose_status: self.verbose_status.to_owned(),
             licensed_resources: self.licensed_resources.to_owned(),
         }
     }

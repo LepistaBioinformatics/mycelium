@@ -9,7 +9,10 @@ use clean_base::{
     entities::default_response::UpdatingResponseKind,
     utils::errors::{updating_err, MappedErrors},
 };
-use myc_core::domain::{dtos::account::Account, entities::AccountUpdating};
+use myc_core::domain::{
+    dtos::account::{Account, VerboseProfileStatus},
+    entities::AccountUpdating,
+};
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
@@ -67,6 +70,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                     account_model::name::set(account.name),
                     account_model::is_active::set(account.is_active),
                     account_model::is_checked::set(account.is_checked),
+                    account_model::is_archived::set(account.is_archived),
                     account_model::account_type_id::set(match account.account_type {
                         ParentEnum::Id(id) => id.to_string(),
                         ParentEnum::Record(record) => match record.id {
@@ -92,6 +96,11 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                 is_active: record.is_active,
                 is_checked: record.is_checked,
                 is_archived: record.is_archived,
+                verbose_status: Some(VerboseProfileStatus::from_profile(
+                    record.is_active,
+                    record.is_checked,
+                    record.is_archived,
+                )),
                 owner: ParentEnum::Id(
                     Uuid::from_str(&record.owner_id).unwrap(),
                 ),

@@ -12,7 +12,7 @@ use clean_base::{
 };
 use myc_core::domain::{
     dtos::{
-        account::{Account, AccountType},
+        account::{Account, AccountType, VerboseProfileStatus},
         email::Email,
         user::User,
     },
@@ -78,6 +78,11 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                     is_active: record.is_active,
                     is_checked: record.is_checked,
                     is_archived: record.is_archived,
+                    verbose_status: Some(VerboseProfileStatus::from_profile(
+                        record.is_active,
+                        record.is_checked,
+                        record.is_archived,
+                    )),
                     owner: ParentEnum::Record(User {
                         id: Some(Uuid::from_str(&record.owner.id).unwrap()),
                         username: record.owner.username,
@@ -237,6 +242,11 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                 is_active: record.is_active,
                 is_checked: record.is_checked,
                 is_archived: record.is_archived,
+                verbose_status: Some(VerboseProfileStatus::from_profile(
+                    record.is_active,
+                    record.is_checked,
+                    record.is_archived,
+                )),
                 owner: ParentEnum::Record(User {
                     id: Some(Uuid::from_str(&record.owner_id).unwrap()),
                     username: record.owner.username,

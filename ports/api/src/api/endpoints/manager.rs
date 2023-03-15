@@ -1,7 +1,9 @@
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use myc_core::{
     domain::dtos::{
-        account::{Account, AccountType, AccountTypeEnum},
+        account::{
+            Account, AccountType, AccountTypeEnum, VerboseProfileStatus,
+        },
         email::Email,
         guest::{GuestRole, GuestUser, PermissionsType},
         profile::{LicensedResources, Profile},
@@ -59,6 +61,7 @@ use utoipa::OpenApi;
             PermissionsType,
             Profile,
             Role,
+            VerboseProfileStatus,
         ),
     ),
     tags(

@@ -8,9 +8,8 @@ use clean_base::{
     entities::default_response::FetchResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
-use log::debug;
 use myc_core::domain::{
-    dtos::{email::Email, profile::Profile},
+    dtos::{account::VerboseProfileStatus, email::Email, profile::Profile},
     entities::ProfileFetching,
 };
 use shaku::Component;
@@ -83,25 +82,26 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
         // ? -------------------------------------------------------------------
 
         match response {
-            Some(record) => {
-                debug!("Profile record: {:?}", record);
-
-                Ok(FetchResponseKind::Found(Profile {
-                    email: match Email::from_string(record.owner.email) {
-                        Err(err) => return Err(err),
-                        Ok(res) => res.get_email(),
-                    },
-                    current_account_id: Uuid::parse_str(&record.id).unwrap(),
-                    is_subscription: record.account_type.is_subscription,
-                    is_manager: record.account_type.is_manager,
-                    is_staff: record.account_type.is_staff,
-                    owner_is_active: record.owner.is_active,
-                    account_is_active: record.is_active,
-                    account_was_approved: record.is_checked,
-                    account_was_archived: record.is_archived,
-                    licensed_resources: None,
-                }))
-            }
+            Some(record) => Ok(FetchResponseKind::Found(Profile {
+                email: match Email::from_string(record.owner.email) {
+                    Err(err) => return Err(err),
+                    Ok(res) => res.get_email(),
+                },
+                current_account_id: Uuid::parse_str(&record.id).unwrap(),
+                is_subscription: record.account_type.is_subscription,
+                is_manager: record.account_type.is_manager,
+                is_staff: record.account_type.is_staff,
+                owner_is_active: record.owner.is_active,
+                account_is_active: record.is_active,
+                account_was_approved: record.is_checked,
+                account_was_archived: record.is_archived,
+                verbose_status: Some(VerboseProfileStatus::from_profile(
+                    record.is_active,
+                    record.is_checked,
+                    record.is_archived,
+                )),
+                licensed_resources: None,
+            })),
             None => Ok(FetchResponseKind::NotFound(Some(email.get_email()))),
         }
     }

@@ -15,7 +15,7 @@ use clean_base::{
 };
 use myc_core::domain::{
     dtos::{
-        account::{Account, AccountType},
+        account::{Account, AccountType, VerboseProfileStatus},
         email::Email,
         user::User,
     },
@@ -90,6 +90,13 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         is_active: record.is_active,
                         is_checked: record.is_checked,
                         is_archived: record.is_archived,
+                        verbose_status: Some(
+                            VerboseProfileStatus::from_profile(
+                                record.is_active,
+                                record.is_checked,
+                                record.is_archived,
+                            ),
+                        ),
                         owner: ParentEnum::Record(User {
                             id: Some(
                                 Uuid::parse_str(&record.owner.id).unwrap(),
@@ -194,6 +201,11 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 is_active: record.is_active,
                 is_checked: record.is_checked,
                 is_archived: record.is_archived,
+                verbose_status: Some(VerboseProfileStatus::from_profile(
+                    record.is_active,
+                    record.is_checked,
+                    record.is_archived,
+                )),
                 owner: ParentEnum::Record(User {
                     id: Some(Uuid::parse_str(&record.owner.id).unwrap()),
                     username: record.owner.username,

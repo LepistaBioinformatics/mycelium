@@ -2,7 +2,7 @@ use super::shared::SecurityAddon;
 
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use myc_core::domain::dtos::{
-    account::{Account, AccountType, AccountTypeEnum},
+    account::{Account, AccountType, AccountTypeEnum, VerboseProfileStatus},
     guest::PermissionsType,
     profile::{LicensedResources, Profile},
 };
@@ -38,6 +38,7 @@ use utoipa::OpenApi;
             LicensedResources,
             Profile,
             PermissionsType,
+            VerboseProfileStatus,
         ),
     ),
     tags(
