@@ -1,9 +1,7 @@
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use myc_core::{
     domain::dtos::{
-        account::{
-            Account, AccountType, AccountTypeEnum, VerboseProfileStatus,
-        },
+        account::{Account, AccountType, AccountTypeEnum, VerboseStatus},
         email::Email,
         guest::{GuestRole, GuestUser, PermissionsType},
         profile::{LicensedResources, Profile},
@@ -61,7 +59,7 @@ use utoipa::OpenApi;
             PermissionsType,
             Profile,
             Role,
-            VerboseProfileStatus,
+            VerboseStatus,
         ),
     ),
     tags(
@@ -95,9 +93,12 @@ pub mod account_endpoints {
         UpdatingResponseKind,
     };
     use myc_core::{
-        domain::entities::{
-            AccountFetching, AccountRegistration, AccountTypeRegistration,
-            AccountUpdating, UserRegistration,
+        domain::{
+            dtos::account::VerboseStatus,
+            entities::{
+                AccountFetching, AccountRegistration, AccountTypeRegistration,
+                AccountUpdating, UserRegistration,
+            },
         },
         use_cases::roles::managers::account::{
             approve_account, change_account_activation_status,
@@ -147,9 +148,7 @@ pub mod account_endpoints {
         term: Option<String>,
         is_subscription: Option<bool>,
         is_owner_active: Option<bool>,
-        is_account_active: Option<bool>,
-        is_account_checked: Option<bool>,
-        is_account_archived: Option<bool>,
+        status: Option<VerboseStatus>,
     }
 
     // ? -----------------------------------------------------------------------
@@ -268,13 +267,34 @@ pub mod account_endpoints {
             dyn AccountTypeRegistration,
         >,
     ) -> impl Responder {
+        let mut is_account_active: Option<bool> = None;
+        let mut is_account_checked: Option<bool> = None;
+        let mut is_account_archived: Option<bool> = None;
+
+        match info.status.to_owned() {
+            Some(res) => {
+                let flags = match res.to_flags() {
+                    Err(err) => {
+                        return HttpResponse::NotFound()
+                            .json(JsonError::new(err.to_string()))
+                    }
+                    Ok(res) => res,
+                };
+
+                is_account_active = flags.is_active;
+                is_account_checked = flags.is_checked;
+                is_account_archived = flags.is_archived;
+            }
+            _ => (),
+        }
+
         match list_accounts_by_type(
             profile.to_profile(),
             info.term.to_owned(),
             info.is_owner_active.to_owned(),
-            info.is_account_active.to_owned(),
-            info.is_account_checked.to_owned(),
-            info.is_account_archived.to_owned(),
+            is_account_active,
+            is_account_checked,
+            is_account_archived,
             info.is_subscription.to_owned(),
             page.page_size.to_owned(),
             page.skip.to_owned(),
