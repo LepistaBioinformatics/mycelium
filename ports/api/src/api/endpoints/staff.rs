@@ -111,6 +111,11 @@ pub mod account_endpoints {
                 body = JsonError,
             ),
             (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
                 status = 400,
                 description = "Account not upgraded.",
                 body = JsonError,
@@ -177,6 +182,11 @@ pub mod account_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
                 body = JsonError,
             ),
             (

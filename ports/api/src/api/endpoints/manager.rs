@@ -29,6 +29,7 @@ use utoipa::OpenApi;
         account_endpoints::unarchive_account_url,
         guest_endpoints::list_licensed_accounts_of_email_url,
         guest_endpoints::guest_user_url,
+        guest_endpoints::uninvite_guest_url,
         guest_endpoints::list_guest_on_subscription_account_url,
         guest_role_endpoints::crate_guest_role_url,
         guest_role_endpoints::list_guest_roles_url,
@@ -175,6 +176,11 @@ pub mod account_endpoints {
                 body = JsonError,
             ),
             (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
                 status = 201,
                 description = "Account created.",
                 body = Account,
@@ -245,6 +251,11 @@ pub mod account_endpoints {
             (
                 status = 404,
                 description = "Not found.",
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
             ),
             (
                 status = 200,
@@ -340,6 +351,11 @@ pub mod account_endpoints {
                 body = JsonError,
             ),
             (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
                 status = 200,
                 description = "Fetching success.",
                 body = Account,
@@ -388,6 +404,11 @@ pub mod account_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
                 body = JsonError,
             ),
             (
@@ -450,6 +471,11 @@ pub mod account_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
                 body = JsonError,
             ),
             (
@@ -516,6 +542,11 @@ pub mod account_endpoints {
                 body = JsonError,
             ),
             (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
                 status = 400,
                 description = "Account not activated.",
                 body = JsonError,
@@ -575,6 +606,11 @@ pub mod account_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
                 body = JsonError,
             ),
             (
@@ -640,6 +676,11 @@ pub mod account_endpoints {
                 body = JsonError,
             ),
             (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
                 status = 400,
                 description = "Account not activated.",
                 body = JsonError,
@@ -690,26 +731,27 @@ pub mod account_endpoints {
 pub mod guest_endpoints {
 
     use crate::modules::{
-        AccountFetchingModule, GuestUserFetchingModule,
-        GuestUserRegistrationModule, LicensedResourcesFetchingModule,
-        MessageSendingModule,
+        AccountFetchingModule, GuestUserDeletionModule,
+        GuestUserFetchingModule, GuestUserRegistrationModule,
+        LicensedResourcesFetchingModule, MessageSendingModule,
     };
 
-    use actix_web::{get, post, web, HttpResponse, Responder};
+    use actix_web::{delete, get, post, web, HttpResponse, Responder};
     use clean_base::entities::default_response::{
-        FetchManyResponseKind, GetOrCreateResponseKind,
+        DeletionResponseKind, FetchManyResponseKind, GetOrCreateResponseKind,
     };
     use myc_core::{
         domain::{
             dtos::email::Email,
             entities::{
-                AccountFetching, GuestUserFetching, GuestUserRegistration,
-                LicensedResourcesFetching, MessageSending,
+                AccountFetching, GuestUserDeletion, GuestUserFetching,
+                GuestUserRegistration, LicensedResourcesFetching,
+                MessageSending,
             },
         },
         use_cases::roles::managers::guest::{
             guest_user, list_guest_on_subscription_account,
-            list_licensed_accounts_of_email,
+            list_licensed_accounts_of_email, uninvite_guest,
         },
     };
     use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
@@ -727,6 +769,7 @@ pub mod guest_endpoints {
             web::scope("/guests")
                 .service(list_licensed_accounts_of_email_url)
                 .service(guest_user_url)
+                .service(uninvite_guest_url)
                 .service(list_guest_on_subscription_account_url),
         );
     }
@@ -767,9 +810,14 @@ pub mod guest_endpoints {
                 body = JsonError,
             ),
             (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
                 status = 200,
                 description = "Fetching success.",
-                body = GuestUser,
+                body = [LicensedResources],
             ),
         ),
     )]
@@ -832,6 +880,11 @@ pub mod guest_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
                 body = JsonError,
             ),
             (
@@ -900,6 +953,68 @@ pub mod guest_endpoints {
         }
     }
 
+    /// Uninvite user to perform a role to account
+    #[utoipa::path(
+        delete,
+        context_path = "/myc/managers/guests",
+        params(
+            ("account" = Uuid, Path, description = "The account primary key."),
+            ("role" = Uuid, Path, description = "The guest-role unique id."),
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 400,
+                description = "Guest User not uninvited.",
+                body = JsonError,
+            ),
+            (
+                status = 204,
+                description = "Guest User uninvited.",
+            ),
+        ),
+    )]
+    #[delete("/account/{account}/role/{role}")]
+    pub async fn uninvite_guest_url(
+        path: web::Path<(Uuid, Uuid)>,
+        profile: MyceliumProfileData,
+        guest_user_deletion_repo: Inject<
+            GuestUserDeletionModule,
+            dyn GuestUserDeletion,
+        >,
+    ) -> impl Responder {
+        let (account_id, role_id) = path.to_owned();
+
+        match uninvite_guest(
+            profile.to_profile(),
+            role_id,
+            account_id,
+            Box::new(&*guest_user_deletion_repo),
+        )
+        .await
+        {
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string())),
+            Ok(res) => match res {
+                DeletionResponseKind::NotDeleted(guest, _) => {
+                    HttpResponse::Ok().json(guest)
+                }
+                DeletionResponseKind::Deleted => {
+                    HttpResponse::Created().finish()
+                }
+            },
+        }
+    }
+
     /// List guest accounts related to a subscription account
     ///
     /// This action fetches all non-subscription accounts related to the
@@ -919,6 +1034,11 @@ pub mod guest_endpoints {
             (
                 status = 404,
                 description = "Not found.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
                 body = JsonError,
             ),
             (
@@ -1066,6 +1186,11 @@ pub mod guest_role_endpoints {
                 body = JsonError,
             ),
             (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
                 status = 201,
                 description = "Guest Role created.",
                 body = GuestRole,
@@ -1128,6 +1253,11 @@ pub mod guest_role_endpoints {
                 description = "Not found.",
             ),
             (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
                 status = 200,
                 description = "Success.",
                 body = [Role],
@@ -1180,6 +1310,11 @@ pub mod guest_role_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
                 body = JsonError,
             ),
             (
@@ -1236,6 +1371,11 @@ pub mod guest_role_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
                 body = JsonError,
             ),
             (
@@ -1301,6 +1441,11 @@ pub mod guest_role_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
                 body = JsonError,
             ),
             (
@@ -1434,6 +1579,11 @@ pub mod role_endpoints {
                 body = JsonError,
             ),
             (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
                 status = 201,
                 description = "Role created.",
                 body = Role,
@@ -1494,6 +1644,11 @@ pub mod role_endpoints {
                 body = JsonError,
             ),
             (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
                 status = 200,
                 description = "Success.",
                 body = [Role],
@@ -1551,6 +1706,11 @@ pub mod role_endpoints {
                 body = JsonError,
             ),
             (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
                 status = 204,
                 description = "Role deleted.",
             ),
@@ -1596,6 +1756,11 @@ pub mod role_endpoints {
             (
                 status = 500,
                 description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
                 body = JsonError,
             ),
             (

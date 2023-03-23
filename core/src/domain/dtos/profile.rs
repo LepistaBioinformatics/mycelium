@@ -10,6 +10,7 @@ pub struct LicensedResources {
     /// This is the unique identifier of the account that is own of the
     /// resource to be managed.
     pub guest_account_id: Uuid,
+    pub guest_role_id: Uuid,
     pub role: String,
     pub permissions: Vec<PermissionsType>,
 }
@@ -202,6 +203,10 @@ mod tests {
                 [LicensedResources {
                     guest_account_id: Uuid::from_str(
                         "e497848f-a0d4-49f4-8288-c3df11416ff1",
+                    )
+                    .unwrap(),
+                    guest_role_id: Uuid::from_str(
+                        "e497848f-a0d4-49f4-8288-c3df11416ff2",
                     )
                     .unwrap(),
                     role: "service".to_string(),

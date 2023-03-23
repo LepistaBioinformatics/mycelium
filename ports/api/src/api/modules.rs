@@ -4,8 +4,8 @@ use myc_prisma::repositories::{
     AccountTypeDeletionSqlDbRepository, AccountTypeRegistrationSqlDbRepository,
     AccountUpdatingSqlDbRepository, GuestRoleDeletionSqlDbRepository,
     GuestRoleFetchingSqlDbRepository, GuestRoleRegistrationSqlDbRepository,
-    GuestRoleUpdatingSqlDbRepository, GuestUserFetchingSqlDbRepository,
-    GuestUserRegistrationSqlDbRepository,
+    GuestRoleUpdatingSqlDbRepository, GuestUserDeletionSqlDbRepository,
+    GuestUserFetchingSqlDbRepository, GuestUserRegistrationSqlDbRepository,
     LicensedResourcesFetchingSqlDbRepository, ProfileFetchingSqlDbRepository,
     RoleDeletionSqlDbRepository, RoleFetchingSqlDbRepository,
     RoleRegistrationSqlDbRepository, RoleUpdatingSqlDbRepository,
@@ -71,6 +71,13 @@ module! {
 module! {
     pub GuestUserRegistrationModule {
         components = [GuestUserRegistrationSqlDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub GuestUserDeletionModule {
+        components = [GuestUserDeletionSqlDbRepository],
         providers = []
     }
 }
