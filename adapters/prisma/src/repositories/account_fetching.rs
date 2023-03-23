@@ -18,7 +18,7 @@ use myc_core::domain::{
     },
     entities::AccountFetching,
 };
-use prisma_client_rust::{or, Direction};
+use prisma_client_rust::{operator::and, or, Direction};
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
 use uuid::Uuid;
@@ -155,6 +155,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         let page_size = page_size.unwrap_or(10);
         let skip = skip.unwrap_or(0);
         let mut query_stmt = vec![];
+        let mut and_query_stmt = vec![];
 
         if term.is_some() {
             let term = term.unwrap();
@@ -167,25 +168,25 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         }
 
         if is_owner_active.is_some() {
-            query_stmt.push(account_model::owner::is(vec![
+            and_query_stmt.push(account_model::owner::is(vec![
                 user_model::is_active::equals(is_owner_active.unwrap()),
             ]));
         }
 
         if is_account_active.is_some() {
-            query_stmt.push(account_model::is_active::equals(
+            and_query_stmt.push(account_model::is_active::equals(
                 is_account_active.unwrap(),
             ));
         }
 
         if is_account_checked.is_some() {
-            query_stmt.push(account_model::is_checked::equals(
+            and_query_stmt.push(account_model::is_checked::equals(
                 is_account_checked.unwrap(),
             ));
         }
 
         if is_account_archived.is_some() {
-            query_stmt.push(account_model::is_checked::equals(
+            and_query_stmt.push(account_model::is_archived::equals(
                 is_account_archived.unwrap(),
             ));
         }
@@ -201,6 +202,10 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                     account_type_id.unwrap().to_string(),
                 )),
             };
+        }
+
+        if and_query_stmt.len() > 0 {
+            query_stmt.push(and(and_query_stmt));
         }
 
         // ? -------------------------------------------------------------------
