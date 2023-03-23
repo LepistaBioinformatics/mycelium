@@ -7,7 +7,7 @@ use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use clean_base::entities::default_response::FetchResponseKind;
 use futures::Future;
 use myc_core::{
-    domain::{dtos::account::VerboseProfileStatus, entities::ProfileFetching},
+    domain::{dtos::account::VerboseStatus, entities::ProfileFetching},
     settings::DEFAULT_PROFILE_KEY,
 };
 use myc_svc::repositories::ProfileFetchingSvcRepo;
@@ -27,7 +27,7 @@ pub struct GatewayProfileData {
     pub account_is_active: bool,
     pub account_was_approved: bool,
     pub account_was_archived: bool,
-    pub verbose_status: Option<VerboseProfileStatus>,
+    pub verbose_status: Option<VerboseStatus>,
     pub licensed_resources: Option<Vec<LicensedResources>>,
 }
 

@@ -7,7 +7,7 @@ use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
 use log::{debug, warn};
 use myc_core::{
-    domain::dtos::account::VerboseProfileStatus,
+    domain::dtos::account::VerboseStatus,
     use_cases::roles::service::profile::{
         fetch_profile_from_email, ProfileResponse,
     },
@@ -31,7 +31,7 @@ pub struct MyceliumProfileData {
     pub account_is_active: bool,
     pub account_was_approved: bool,
     pub account_was_archived: bool,
-    pub verbose_status: Option<VerboseProfileStatus>,
+    pub verbose_status: Option<VerboseStatus>,
     pub licensed_resources: Option<Vec<LicensedResources>>,
 }
 

@@ -10,7 +10,7 @@ use clean_base::{
     utils::errors::{updating_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::account::{Account, VerboseProfileStatus},
+    dtos::account::{Account, VerboseStatus},
     entities::AccountUpdating,
 };
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
@@ -96,7 +96,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                 is_active: record.is_active,
                 is_checked: record.is_checked,
                 is_archived: record.is_archived,
-                verbose_status: Some(VerboseProfileStatus::from_profile(
+                verbose_status: Some(VerboseStatus::from_flags(
                     record.is_active,
                     record.is_checked,
                     record.is_archived,

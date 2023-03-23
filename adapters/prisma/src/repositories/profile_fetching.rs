@@ -9,7 +9,7 @@ use clean_base::{
     utils::errors::{fetching_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::{account::VerboseProfileStatus, email::Email, profile::Profile},
+    dtos::{account::VerboseStatus, email::Email, profile::Profile},
     entities::ProfileFetching,
 };
 use shaku::Component;
@@ -95,7 +95,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                 account_is_active: record.is_active,
                 account_was_approved: record.is_checked,
                 account_was_archived: record.is_archived,
-                verbose_status: Some(VerboseProfileStatus::from_profile(
+                verbose_status: Some(VerboseStatus::from_flags(
                     record.is_active,
                     record.is_checked,
                     record.is_archived,

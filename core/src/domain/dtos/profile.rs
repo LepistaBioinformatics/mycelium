@@ -1,4 +1,4 @@
-use super::{account::VerboseProfileStatus, guest::PermissionsType};
+use super::{account::VerboseStatus, guest::PermissionsType};
 
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -86,7 +86,7 @@ pub struct Profile {
     /// composition. But it is not readable for humans. These struct attribute
     /// allows human users to understand the account status without read the
     /// flags, avoiding misinterpretation of this.
-    pub verbose_status: Option<VerboseProfileStatus>,
+    pub verbose_status: Option<VerboseStatus>,
 
     /// Accounts guested to the current profile
     ///

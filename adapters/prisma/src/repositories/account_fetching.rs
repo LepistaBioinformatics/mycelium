@@ -12,7 +12,7 @@ use clean_base::{
 };
 use myc_core::domain::{
     dtos::{
-        account::{Account, AccountType, VerboseProfileStatus},
+        account::{Account, AccountType, VerboseStatus},
         email::Email,
         user::User,
     },
@@ -78,7 +78,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                     is_active: record.is_active,
                     is_checked: record.is_checked,
                     is_archived: record.is_archived,
-                    verbose_status: Some(VerboseProfileStatus::from_profile(
+                    verbose_status: Some(VerboseStatus::from_flags(
                         record.is_active,
                         record.is_checked,
                         record.is_archived,
@@ -166,7 +166,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             ]);
         }
 
-        if is_account_active.is_some() {
+        if is_owner_active.is_some() {
             query_stmt.push(account_model::owner::is(vec![
                 user_model::is_active::equals(is_owner_active.unwrap()),
             ]));
@@ -242,7 +242,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                 is_active: record.is_active,
                 is_checked: record.is_checked,
                 is_archived: record.is_archived,
-                verbose_status: Some(VerboseProfileStatus::from_profile(
+                verbose_status: Some(VerboseStatus::from_flags(
                     record.is_active,
                     record.is_checked,
                     record.is_archived,

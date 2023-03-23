@@ -1,7 +1,10 @@
 use super::{guest::GuestUser, user::User};
 
 use chrono::{DateTime, Local};
-use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
+use clean_base::{
+    dtos::enums::{ChildrenEnum, ParentEnum},
+    utils::errors::{invalid_arg_err, MappedErrors},
+};
 use serde::{Deserialize, Serialize};
 use std::{
     fmt::{Display, Formatter, Result as FmtResult},
@@ -43,9 +46,9 @@ impl Display for AccountTypeEnum {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
-pub enum VerboseProfileStatus {
+pub enum VerboseStatus {
     Pending,
     Active,
     Inactive,
@@ -53,55 +56,92 @@ pub enum VerboseProfileStatus {
     Unknown,
 }
 
-impl FromStr for VerboseProfileStatus {
-    type Err = VerboseProfileStatus;
+impl FromStr for VerboseStatus {
+    type Err = VerboseStatus;
 
-    fn from_str(s: &str) -> Result<VerboseProfileStatus, VerboseProfileStatus> {
+    fn from_str(s: &str) -> Result<VerboseStatus, VerboseStatus> {
         match s {
-            "pending" => Ok(VerboseProfileStatus::Pending),
-            "active" => Ok(VerboseProfileStatus::Active),
-            "inactive" => Ok(VerboseProfileStatus::Inactive),
-            "archived" => Ok(VerboseProfileStatus::Archived),
-            _ => Err(VerboseProfileStatus::Unknown),
+            "pending" => Ok(VerboseStatus::Pending),
+            "active" => Ok(VerboseStatus::Active),
+            "inactive" => Ok(VerboseStatus::Inactive),
+            "archived" => Ok(VerboseStatus::Archived),
+            _ => Err(VerboseStatus::Unknown),
         }
     }
 }
 
-impl Display for VerboseProfileStatus {
+impl Display for VerboseStatus {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
-            VerboseProfileStatus::Pending => write!(f, "pending"),
-            VerboseProfileStatus::Active => write!(f, "active"),
-            VerboseProfileStatus::Inactive => write!(f, "inactive"),
-            VerboseProfileStatus::Archived => write!(f, "archived"),
-            VerboseProfileStatus::Unknown => write!(f, "unknown"),
+            VerboseStatus::Pending => write!(f, "pending"),
+            VerboseStatus::Active => write!(f, "active"),
+            VerboseStatus::Inactive => write!(f, "inactive"),
+            VerboseStatus::Archived => write!(f, "archived"),
+            VerboseStatus::Unknown => write!(f, "unknown"),
         }
     }
 }
 
-impl VerboseProfileStatus {
-    pub fn from_profile(
+#[derive(Debug, PartialEq)]
+pub struct FlagResponse {
+    pub is_active: Option<bool>,
+    pub is_checked: Option<bool>,
+    pub is_archived: Option<bool>,
+}
+
+impl VerboseStatus {
+    pub fn from_flags(
         is_active: bool,
         is_checked: bool,
         is_archived: bool,
     ) -> Self {
         if is_active == false {
-            return VerboseProfileStatus::Inactive;
+            return VerboseStatus::Inactive;
         }
 
         if is_checked == false {
-            return VerboseProfileStatus::Pending;
+            return VerboseStatus::Pending;
         }
 
         if is_archived == true {
-            return VerboseProfileStatus::Archived;
+            return VerboseStatus::Archived;
         }
 
         if is_archived == false {
-            return VerboseProfileStatus::Active;
+            return VerboseStatus::Active;
         }
 
-        VerboseProfileStatus::Unknown
+        VerboseStatus::Unknown
+    }
+
+    pub fn to_flags(&self) -> Result<FlagResponse, MappedErrors> {
+        match self {
+            VerboseStatus::Inactive => Ok(FlagResponse {
+                is_active: Some(false),
+                is_checked: None,
+                is_archived: None,
+            }),
+            VerboseStatus::Pending => Ok(FlagResponse {
+                is_active: Some(true),
+                is_checked: Some(false),
+                is_archived: None,
+            }),
+            VerboseStatus::Archived => Ok(FlagResponse {
+                is_active: Some(true),
+                is_checked: Some(true),
+                is_archived: Some(true),
+            }),
+            VerboseStatus::Active => Ok(FlagResponse {
+                is_active: Some(true),
+                is_checked: Some(true),
+                is_archived: Some(false),
+            }),
+            VerboseStatus::Unknown => Err(invalid_arg_err(
+                "Account status could not be `Unknown`".to_string(),
+                Some(true),
+                None,
+            )),
+        }
     }
 }
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
@@ -113,7 +153,7 @@ pub struct Account {
     pub is_active: bool,
     pub is_checked: bool,
     pub is_archived: bool,
-    pub verbose_status: Option<VerboseProfileStatus>,
+    pub verbose_status: Option<VerboseStatus>,
     pub owner: ParentEnum<User, Uuid>,
     pub account_type: ParentEnum<AccountType, Uuid>,
     pub guest_users: Option<ChildrenEnum<GuestUser, Uuid>>,
@@ -176,9 +216,9 @@ impl Account {
     }
 }
 
-// ? --------------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 // ? TESTS
-// ? --------------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
@@ -226,8 +266,6 @@ mod tests {
             updated: Some(Local::now()),
         };
 
-        println!("{:?}", account.build_account_type_url(base_url.to_owned()));
-
         assert_eq!(
             account.build_account_type_url(base_url.to_owned()).is_ok(),
             true
@@ -237,5 +275,89 @@ mod tests {
             account.build_account_type_url(base_url.to_owned()).unwrap(),
             base_url.to_owned()
         );
+    }
+
+    #[test]
+    fn test_if_verbose_status_works() {
+        [
+            ((false, true, true), VerboseStatus::Inactive),
+            ((false, false, true), VerboseStatus::Inactive),
+            ((false, true, false), VerboseStatus::Inactive),
+            ((false, false, false), VerboseStatus::Inactive),
+            ((true, false, false), VerboseStatus::Pending),
+            ((true, false, true), VerboseStatus::Pending),
+            ((true, true, true), VerboseStatus::Archived),
+            ((true, true, false), VerboseStatus::Active),
+            // Unknown responses should not be returned over all above
+            // combinations. Them, all will be tested.
+            ((false, true, true), VerboseStatus::Unknown),
+            ((false, false, true), VerboseStatus::Unknown),
+            ((false, true, false), VerboseStatus::Unknown),
+            ((false, false, false), VerboseStatus::Unknown),
+            ((true, false, false), VerboseStatus::Unknown),
+            ((true, false, true), VerboseStatus::Unknown),
+            ((true, true, true), VerboseStatus::Unknown),
+            ((true, true, false), VerboseStatus::Unknown),
+        ]
+        .into_iter()
+        .for_each(|(flags, expected_value)| {
+            let (is_active, is_checked, is_archived) = flags;
+
+            let status =
+                VerboseStatus::from_flags(is_active, is_checked, is_archived);
+
+            // Unknown could not be returned from `from_flags` method
+            if let VerboseStatus::Unknown = expected_value {
+                assert_ne!(status, expected_value);
+            } else {
+                assert_eq!(status, expected_value);
+            }
+
+            let flags_response = status.to_flags().unwrap();
+
+            match expected_value {
+                VerboseStatus::Inactive => {
+                    assert_eq!(
+                        VerboseStatus::from_flags(
+                            flags_response.is_active.unwrap(),
+                            flags_response.is_checked.unwrap_or(is_checked),
+                            flags_response.is_archived.unwrap_or(is_archived)
+                        ),
+                        expected_value
+                    );
+                }
+                VerboseStatus::Pending => {
+                    assert_eq!(
+                        VerboseStatus::from_flags(
+                            flags_response.is_active.unwrap(),
+                            flags_response.is_checked.unwrap(),
+                            flags_response.is_archived.unwrap_or(is_archived)
+                        ),
+                        expected_value
+                    );
+                }
+                VerboseStatus::Archived => {
+                    assert_eq!(
+                        VerboseStatus::from_flags(
+                            flags_response.is_active.unwrap(),
+                            flags_response.is_checked.unwrap(),
+                            flags_response.is_archived.unwrap()
+                        ),
+                        expected_value
+                    );
+                }
+                VerboseStatus::Active => {
+                    assert_eq!(
+                        VerboseStatus::from_flags(
+                            flags_response.is_active.unwrap(),
+                            flags_response.is_checked.unwrap(),
+                            flags_response.is_archived.unwrap()
+                        ),
+                        expected_value
+                    );
+                }
+                VerboseStatus::Unknown => (),
+            };
+        });
     }
 }
