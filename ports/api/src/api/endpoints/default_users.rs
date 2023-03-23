@@ -133,6 +133,11 @@ pub mod account_endpoints {
                 body = JsonError,
             ),
             (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
                 status = 201,
                 description = "Account successfully created.",
                 body = Account,
@@ -298,6 +303,11 @@ pub mod profile_endpoints {
             (
                 status = 404,
                 description = "Not found.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
                 body = JsonError,
             ),
             (

@@ -9,6 +9,7 @@ mod guest_role_deletion;
 mod guest_role_fetching;
 mod guest_role_registration;
 mod guest_role_updating;
+mod guest_user_deletion;
 mod guest_user_fetching;
 mod guest_user_registration;
 mod licensed_resources_fetching;
@@ -53,6 +54,10 @@ pub use guest_role_registration::{
 pub use guest_role_updating::{
     GuestRoleUpdatingSqlDbRepository,
     GuestRoleUpdatingSqlDbRepositoryParameters,
+};
+pub use guest_user_deletion::{
+    GuestUserDeletionSqlDbRepository,
+    GuestUserDeletionSqlDbRepositoryParameters,
 };
 pub use guest_user_fetching::{
     GuestUserFetchingSqlDbRepository,

@@ -59,6 +59,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             .include(guest_user_on_account_model::include!({
                 guest_user: select {
                     guest_role: select {
+                        id
                         role: select {
                             name
                         }
@@ -84,6 +85,10 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             .map(|record| LicensedResources {
                 guest_account_id: Uuid::parse_str(
                     &record.account_id.to_owned(),
+                )
+                .unwrap(),
+                guest_role_id: Uuid::parse_str(
+                    &record.guest_user.guest_role.id,
                 )
                 .unwrap(),
                 role: record
