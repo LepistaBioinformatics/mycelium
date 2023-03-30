@@ -60,11 +60,11 @@ pub(super) async fn try_to_reach_desired_status(
 ///
 /// Allowed transition states seems:
 ///
-///                                            ---- Inactive ---- Active
-///                                          /
-///                           --- Active ---
-///                         /                \
-///                        /                   ---- Inactive ---- Archived
+///                                                         ---- Active
+///                                                       /
+///                           --- Active --- Inactive ---
+///                         /                             \
+///                        /                                ---- Archived
 /// Status --- Pending ---
 ///                        \
 ///                          --- Archived  --- Pending
