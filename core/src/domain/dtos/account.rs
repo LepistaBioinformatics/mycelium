@@ -144,6 +144,7 @@ impl VerboseStatus {
         }
     }
 }
+
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Account {
@@ -222,10 +223,10 @@ impl Account {
 
 #[cfg(test)]
 mod tests {
-    use chrono::Local;
-
     use super::*;
     use crate::domain::dtos::email::Email;
+
+    use chrono::Local;
 
     #[test]
     fn test_if_account_works() {

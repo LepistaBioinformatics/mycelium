@@ -23,6 +23,7 @@ use utoipa::OpenApi;
         account_endpoints::list_accounts_by_type_url,
         account_endpoints::get_subscription_account_details_url,
         account_endpoints::approve_account_url,
+        account_endpoints::disapprove_account_url,
         account_endpoints::activate_account_url,
         account_endpoints::deactivate_account_url,
         account_endpoints::archive_account_url,
@@ -102,7 +103,7 @@ pub mod account_endpoints {
             },
         },
         use_cases::roles::managers::account::{
-            approve_account, change_account_activation_status,
+            change_account_activation_status, change_account_approval_status,
             change_account_archival_status, create_subscription_account,
             get_subscription_account_details, list_accounts_by_type,
         },
@@ -125,6 +126,7 @@ pub mod account_endpoints {
                 .service(list_accounts_by_type_url)
                 .service(get_subscription_account_details_url)
                 .service(approve_account_url)
+                .service(disapprove_account_url)
                 .service(activate_account_url)
                 .service(deactivate_account_url)
                 .service(archive_account_url)
@@ -436,9 +438,78 @@ pub mod account_endpoints {
             dyn AccountUpdating,
         >,
     ) -> impl Responder {
-        match approve_account(
+        match change_account_approval_status(
             profile.to_profile(),
             path.to_owned(),
+            true,
+            Box::new(&*account_fetching_repo),
+            Box::new(&*account_updating_repo),
+        )
+        .await
+        {
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string())),
+            Ok(res) => match res {
+                UpdatingResponseKind::NotUpdated(_, msg) => {
+                    HttpResponse::BadRequest().json(JsonError::new(msg))
+                }
+                UpdatingResponseKind::Updated(record) => {
+                    HttpResponse::Accepted().json(record)
+                }
+            },
+        }
+    }
+
+    /// Disapprove account after creation
+    ///
+    /// Also approved account should be disapproved at any time. These endpoint
+    /// work for this.
+    #[utoipa::path(
+        patch,
+        context_path = "/myc/managers/accounts",
+        params(
+            ("account" = Uuid, Path, description = "The account primary key."),
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 400,
+                description = "Account not disapproved.",
+                body = JsonError,
+            ),
+            (
+                status = 202,
+                description = "Account disapproved.",
+                body = Account,
+            ),
+        ),
+    )]
+    #[patch("/{account}/disapprove")]
+    pub async fn disapprove_account_url(
+        path: web::Path<Uuid>,
+        profile: MyceliumProfileData,
+        account_fetching_repo: Inject<
+            AccountFetchingModule,
+            dyn AccountFetching,
+        >,
+        account_updating_repo: Inject<
+            AccountUpdatingModule,
+            dyn AccountUpdating,
+        >,
+    ) -> impl Responder {
+        match change_account_approval_status(
+            profile.to_profile(),
+            path.to_owned(),
+            false,
             Box::new(&*account_fetching_repo),
             Box::new(&*account_updating_repo),
         )
