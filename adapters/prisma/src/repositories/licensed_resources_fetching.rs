@@ -60,6 +60,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 guest_user: select {
                     guest_role: select {
                         id
+                        name
                         role: select {
                             name
                         }
@@ -67,6 +68,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                     }
                 }
                 account: select {
+                    name
                     account_type
                 }
             }))
@@ -87,10 +89,12 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                     &record.account_id.to_owned(),
                 )
                 .unwrap(),
+                guest_account_name: record.account.name.to_owned(),
                 guest_role_id: Uuid::parse_str(
                     &record.guest_user.guest_role.id,
                 )
                 .unwrap(),
+                guest_role_name: record.guest_user.guest_role.to_owned().name,
                 role: record
                     .to_owned()
                     .guest_user
