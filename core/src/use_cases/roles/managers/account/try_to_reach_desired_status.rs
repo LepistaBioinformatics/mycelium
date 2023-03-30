@@ -16,8 +16,9 @@ pub(super) async fn try_to_reach_desired_status(
     ) {
         return Err(use_case_err(
             format!(
-                "Could not transit from {:?} to {:?}",
-                account.verbose_status, desired_status,
+                "Could not transit from `{:?}` to `{:?}`",
+                account.verbose_status.unwrap(),
+                desired_status,
             ),
             Some(true),
             None,
@@ -59,11 +60,14 @@ pub(super) async fn try_to_reach_desired_status(
 ///
 /// Allowed transition states seems:
 ///
-///                        ------ Active ------ Inactive ------ Active
-///                      /
-/// Status ------ Pending
-///                      \
-///                        ------ Archived  --- Pending
+///                                            ---- Inactive ---- Active
+///                                          /
+///                           --- Active ---
+///                         /                \
+///                        /                   ---- Inactive ---- Archived
+/// Status --- Pending ---
+///                        \
+///                          --- Archived  --- Pending
 ///
 /// Operations not predicted on the above diagram are not permitted.
 ///
@@ -87,9 +91,10 @@ fn should_perform_state_transition(
             allowed_statuses.extend(vec![Some(VerboseStatus::Active)])
         }
 
-        VerboseStatus::Archived => {
-            allowed_statuses.extend(vec![Some(VerboseStatus::Pending)])
-        }
+        VerboseStatus::Archived => allowed_statuses.extend(vec![
+            Some(VerboseStatus::Pending),
+            Some(VerboseStatus::Inactive),
+        ]),
 
         VerboseStatus::Unknown => return false,
     };
@@ -198,6 +203,7 @@ mod tests {
             (true, VerboseStatus::Active, Some(VerboseStatus::Pending)),
             (true, VerboseStatus::Active, Some(VerboseStatus::Inactive)),
             (true, VerboseStatus::Archived, Some(VerboseStatus::Pending)),
+            (true, VerboseStatus::Archived, Some(VerboseStatus::Inactive)),
             (true, VerboseStatus::Pending, Some(VerboseStatus::Archived)),
             (true, VerboseStatus::Inactive, Some(VerboseStatus::Active)),
             // Disallowed operations
