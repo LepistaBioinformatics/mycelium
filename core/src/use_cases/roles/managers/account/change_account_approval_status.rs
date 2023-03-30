@@ -1,5 +1,9 @@
+use super::try_to_reach_desired_status::try_to_reach_desired_status;
 use crate::domain::{
-    dtos::{account::Account, profile::Profile},
+    dtos::{
+        account::{Account, VerboseStatus},
+        profile::Profile,
+    },
     entities::{AccountFetching, AccountUpdating},
 };
 
@@ -15,9 +19,10 @@ use uuid::Uuid;
 /// This action is needed when a new account is created but not approved by a
 /// system administrator. Only checked accounts could perform actions over the
 /// system.
-pub async fn approve_account(
+pub async fn change_account_approval_status(
     profile: Profile,
     account_id: Uuid,
+    is_approved: bool,
     account_fetching_repo: Box<&dyn AccountFetching>,
     account_updating_repo: Box<&dyn AccountUpdating>,
 ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
@@ -25,7 +30,7 @@ pub async fn approve_account(
     // ? Fetch target account
     // ? -----------------------------------------------------------------------
 
-    let mut account = match account_fetching_repo.get(account_id).await {
+    let account = match account_fetching_repo.get(account_id).await {
         Err(err) => return Err(err),
         Ok(res) => match res {
             FetchResponseKind::NotFound(id) => {
@@ -49,7 +54,7 @@ pub async fn approve_account(
             return Err(use_case_err(
                 format!(
                     "Prohibited operation. Target account ({account_id}) could 
-                    not be checked."
+not be checked."
                 ),
                 Some(true),
                 None,
@@ -103,7 +108,18 @@ editions on accounts with more privileges than himself.",
     // ? Update account status
     // ? -----------------------------------------------------------------------
 
-    account.is_checked = true;
+    let updated_account = match try_to_reach_desired_status(
+        account.to_owned(),
+        match is_approved {
+            true => VerboseStatus::Active,
+            false => VerboseStatus::Archived,
+        },
+    )
+    .await
+    {
+        Err(err) => return Err(err),
+        Ok(res) => res,
+    };
 
-    account_updating_repo.update(account).await
+    account_updating_repo.update(updated_account).await
 }

@@ -1,5 +1,9 @@
+use super::try_to_reach_desired_status::try_to_reach_desired_status;
 use crate::domain::{
-    dtos::{account::Account, profile::Profile},
+    dtos::{
+        account::{Account, VerboseStatus},
+        profile::Profile,
+    },
     entities::{AccountFetching, AccountUpdating},
 };
 
@@ -22,7 +26,7 @@ pub async fn change_account_activation_status(
     // ? Fetch target account
     // ? -----------------------------------------------------------------------
 
-    let mut account = match account_fetching_repo.get(account_id).await {
+    let account = match account_fetching_repo.get(account_id).await {
         Err(err) => return Err(err),
         Ok(res) => match res {
             FetchResponseKind::NotFound(id) => {
@@ -46,7 +50,7 @@ pub async fn change_account_activation_status(
             return Err(use_case_err(
                 format!(
                     "Prohibited operation. Target account ({account_id}) could 
-                    not be checked."
+not be checked."
                 ),
                 Some(true),
                 None,
@@ -67,7 +71,7 @@ pub async fn change_account_activation_status(
         return Err(use_case_err(
             format!(
                 "Not enough permissions to change activation status of account 
-                {target_account_id}."
+{target_account_id}."
             ),
             Some(true),
             None,
@@ -80,7 +84,7 @@ pub async fn change_account_activation_status(
             return Err(use_case_err(
                 format!(
                     "Prohibited operation. Account type of the target account 
-                    ({account_id}) could not be checked."
+({account_id}) could not be checked."
                 ),
                 Some(true),
                 None,
@@ -91,7 +95,7 @@ pub async fn change_account_activation_status(
                 return Err(use_case_err(
                     String::from(
                         "Prohibited operation. Managers could not perform 
-                        editions on accounts with more privileges than himself.",
+editions on accounts with more privileges than himself.",
                     ),
                     Some(true),
                     None,
@@ -104,7 +108,18 @@ pub async fn change_account_activation_status(
     // ? Update account status
     // ? -----------------------------------------------------------------------
 
-    account.is_active = is_active;
+    let updated_account = match try_to_reach_desired_status(
+        account.to_owned(),
+        match is_active {
+            true => VerboseStatus::Active,
+            false => VerboseStatus::Inactive,
+        },
+    )
+    .await
+    {
+        Err(err) => return Err(err),
+        Ok(res) => res,
+    };
 
-    account_updating_repo.update(account).await
+    account_updating_repo.update(updated_account).await
 }
