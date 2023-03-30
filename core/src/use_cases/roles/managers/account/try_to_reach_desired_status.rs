@@ -60,14 +60,16 @@ pub(super) async fn try_to_reach_desired_status(
 ///
 /// Allowed transition states seems:
 ///
-///                                                         ---- Active
-///                                                       /
-///                           --- Active --- Inactive ---
-///                         /                             \
-///                        /                                ---- Archived
+///                                                          ---- Active
+///                                                        /
+///                                            --- Inactive
+///                                          /             \
+///                           --- Active ---                 ---- Archived
+///                         /                \
+///                        /                   --- Archived
 /// Status --- Pending ---
 ///                        \
-///                          --- Archived  --- Pending
+///                          ---- Archived  ------ Pending
 ///
 /// Operations not predicted on the above diagram are not permitted.
 ///
@@ -93,6 +95,7 @@ fn should_perform_state_transition(
 
         VerboseStatus::Archived => allowed_statuses.extend(vec![
             Some(VerboseStatus::Pending),
+            Some(VerboseStatus::Active),
             Some(VerboseStatus::Inactive),
         ]),
 
