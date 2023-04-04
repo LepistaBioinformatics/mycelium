@@ -4,10 +4,11 @@ use crate::modules::{
     AccountUpdatingModule, GuestRoleDeletionModule, GuestRoleFetchingModule,
     GuestRoleRegistrationModule, GuestRoleUpdatingModule,
     GuestUserDeletionModule, GuestUserFetchingModule,
-    GuestUserRegistrationModule, LicensedResourcesFetchingModule,
-    MessageSendingModule, ProfileFetchingModule, RoleDeletionModule,
-    RoleFetchingModule, RoleRegistrationModule, RoleUpdatingModule,
-    RoutesFetchingModule, UserRegistrationModule, UserUpdatingModule,
+    GuestUserOnAccountUpdatingModule, GuestUserRegistrationModule,
+    LicensedResourcesFetchingModule, MessageSendingModule,
+    ProfileFetchingModule, RoleDeletionModule, RoleFetchingModule,
+    RoleRegistrationModule, RoleUpdatingModule, RoutesFetchingModule,
+    UserRegistrationModule, UserUpdatingModule,
 };
 
 use actix_web::web;
@@ -35,6 +36,8 @@ use myc_prisma::repositories::{
     GuestUserDeletionSqlDbRepositoryParameters,
     GuestUserFetchingSqlDbRepository,
     GuestUserFetchingSqlDbRepositoryParameters,
+    GuestUserOnAccountUpdatingSqlDbRepository,
+    GuestUserOnAccountUpdatingSqlDbRepositoryParameters,
     GuestUserRegistrationSqlDbRepository,
     GuestUserRegistrationSqlDbRepositoryParameters,
     LicensedResourcesFetchingSqlDbRepository,
@@ -162,6 +165,13 @@ pub fn configure(config: &mut web::ServiceConfig) {
             GuestUserRegistrationModule::builder()
                 .with_component_parameters::<GuestUserRegistrationSqlDbRepository>(
                     GuestUserRegistrationSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            GuestUserOnAccountUpdatingModule::builder()
+                .with_component_parameters::<GuestUserOnAccountUpdatingSqlDbRepository>(
+                    GuestUserOnAccountUpdatingSqlDbRepositoryParameters {},
                 )
                 .build(),
         ))

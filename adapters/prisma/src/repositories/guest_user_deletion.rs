@@ -44,7 +44,7 @@ impl GuestUserDeletion for GuestUserDeletionSqlDbRepository {
         };
 
         // ? -------------------------------------------------------------------
-        // ? Build the initial query (get part of the get-or-create)
+        // ? Build the deletion query
         // ? -------------------------------------------------------------------
 
         match client

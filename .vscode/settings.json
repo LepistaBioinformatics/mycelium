@@ -1,11 +1,12 @@
 {
-    "cSpell.words": [
-        "datetime",
-        "dtos",
-        "Hmac",
-        "shaku",
-        "structs",
-        "withscores",
-        "ZRANGE"
-    ]
+  "cSpell.words": [
+    "datetime",
+    "dtos",
+    "Hmac",
+    "shaku",
+    "structs",
+    "thiserror",
+    "withscores",
+    "ZRANGE"
+  ]
 }
