@@ -1,3 +1,5 @@
+use crate::settings::get_client;
+
 use actix_web::{http::header::Header, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use clean_base::utils::errors::{execution_err, MappedErrors};
@@ -5,8 +7,6 @@ use log::warn;
 use myc_core::domain::dtos::email::Email;
 use reqwest::StatusCode;
 use serde::Deserialize;
-
-use crate::settings::get_client;
 
 #[derive(Deserialize, Debug)]
 pub struct MsGraphDecode {
@@ -34,6 +34,12 @@ pub async fn check_credentials(
     decode_bearer_token_on_ms_graph(auth.to_owned()).await
 }
 
+/// Decode the bearer token on MS Graph.
+///
+/// This function is used to decode the bearer token on MS Graph.
+/// The real implementation should try to collect the user credentials from the
+/// request and return the user email as response.
+///
 async fn decode_bearer_token_on_ms_graph(
     auth: Authorization<Bearer>,
 ) -> Result<Email, MappedErrors> {
@@ -89,7 +95,7 @@ async fn decode_bearer_token_on_ms_graph(
         }
         _ => {
             warn!(
-                "Unexpected error on fetch user from MS Graph. (status {:?}) {:?}",
+                "Unexpected error on fetch user from MS Graph (status {:?}) {:?}",
                 response.status(),
                 response.text().await
             );
