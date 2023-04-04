@@ -31,6 +31,7 @@ use utoipa::OpenApi;
         guest_endpoints::list_licensed_accounts_of_email_url,
         guest_endpoints::guest_user_url,
         guest_endpoints::uninvite_guest_url,
+        guest_endpoints::update_user_guest_role_url,
         guest_endpoints::list_guest_on_subscription_account_url,
         guest_role_endpoints::crate_guest_role_url,
         guest_role_endpoints::list_guest_roles_url,
@@ -803,26 +804,29 @@ pub mod guest_endpoints {
 
     use crate::modules::{
         AccountFetchingModule, GuestUserDeletionModule,
-        GuestUserFetchingModule, GuestUserRegistrationModule,
-        LicensedResourcesFetchingModule, MessageSendingModule,
+        GuestUserFetchingModule, GuestUserOnAccountUpdatingModule,
+        GuestUserRegistrationModule, LicensedResourcesFetchingModule,
+        MessageSendingModule,
     };
 
-    use actix_web::{delete, get, post, web, HttpResponse, Responder};
+    use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
     use clean_base::entities::default_response::{
         DeletionResponseKind, FetchManyResponseKind, GetOrCreateResponseKind,
+        UpdatingResponseKind,
     };
     use myc_core::{
         domain::{
             dtos::email::Email,
             entities::{
                 AccountFetching, GuestUserDeletion, GuestUserFetching,
-                GuestUserRegistration, LicensedResourcesFetching,
-                MessageSending,
+                GuestUserOnAccountUpdating, GuestUserRegistration,
+                LicensedResourcesFetching, MessageSending,
             },
         },
         use_cases::roles::managers::guest::{
             guest_user, list_guest_on_subscription_account,
             list_licensed_accounts_of_email, uninvite_guest,
+            update_user_guest_role,
         },
     };
     use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
@@ -841,6 +845,7 @@ pub mod guest_endpoints {
                 .service(list_licensed_accounts_of_email_url)
                 .service(guest_user_url)
                 .service(uninvite_guest_url)
+                .service(update_user_guest_role_url)
                 .service(list_guest_on_subscription_account_url),
         );
     }
@@ -853,6 +858,12 @@ pub mod guest_endpoints {
     #[serde(rename_all = "camelCase")]
     pub struct GuestUserParams {
         pub email: String,
+    }
+
+    #[derive(Deserialize, IntoParams)]
+    #[serde(rename_all = "camelCase")]
+    pub struct UpdateUserGuestRoleParams {
+        pub new_guest_role_id: Uuid,
     }
 
     // ? -----------------------------------------------------------------------
@@ -1018,6 +1029,76 @@ pub mod guest_endpoints {
                     HttpResponse::Ok().json(guest)
                 }
                 GetOrCreateResponseKind::Created(guest) => {
+                    HttpResponse::Created().json(guest)
+                }
+            },
+        }
+    }
+
+    /// Update guest-role of a single user.
+    ///
+    /// This action gives the ability of the target account (specified through
+    /// the `account` argument) to replace the current specified `role` by the
+    /// new role.
+    #[utoipa::path(
+        patch,
+        context_path = "/myc/managers/guests",
+        params(
+            ("account" = Uuid, Path, description = "The account primary key."),
+            ("role" = Uuid, Path, description = "The guest-role unique id."),
+            UpdateUserGuestRoleParams,
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 400,
+                description = "Bad request.",
+                body = JsonError,
+            ),
+            (
+                status = 201,
+                description = "Guesting done.",
+                body = GuestUser,
+            ),
+        ),
+    )]
+    #[patch("/account/{account}/role/{role}")]
+    pub async fn update_user_guest_role_url(
+        path: web::Path<(Uuid, Uuid)>,
+        info: web::Query<UpdateUserGuestRoleParams>,
+        profile: MyceliumProfileData,
+        guest_user_on_account_updating_repo: Inject<
+            GuestUserOnAccountUpdatingModule,
+            dyn GuestUserOnAccountUpdating,
+        >,
+    ) -> impl Responder {
+        let (account_id, role_id) = path.to_owned();
+
+        match update_user_guest_role(
+            profile.to_profile(),
+            role_id,
+            account_id,
+            info.new_guest_role_id.to_owned(),
+            Box::new(&*guest_user_on_account_updating_repo),
+        )
+        .await
+        {
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string())),
+            Ok(res) => match res {
+                UpdatingResponseKind::NotUpdated(_, msg) => {
+                    HttpResponse::Ok().json(JsonError::new(msg))
+                }
+                UpdatingResponseKind::Updated(guest) => {
                     HttpResponse::Created().json(guest)
                 }
             },
