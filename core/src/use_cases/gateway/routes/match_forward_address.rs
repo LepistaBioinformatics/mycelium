@@ -15,9 +15,10 @@ pub enum RoutesMatchResponseEnum {
     Found(Route),
 }
 
-/// This function matches the address to route.
+/// Matches the address to route
 ///
-/// This function should be called by the main middleware router function.
+/// This function should be called by the main middleware router function. It
+/// will try to match the address to a route and return the route if found.
 pub async fn match_forward_address(
     path: PathAndQuery,
     routes_fetching_repo: Box<&dyn RoutesFetching>,
@@ -26,20 +27,17 @@ pub async fn match_forward_address(
     // ? Try to fetch routes from database
     // ? -----------------------------------------------------------------------
 
-    let routes = match routes_fetching_repo.list(path.to_owned()).await {
-        Err(err) => return Err(err),
-        Ok(res) => match res {
-            FetchManyResponseKind::NotFound => {
-                return Ok(RoutesMatchResponseEnum::PathNotFound(format!(
-                    "There is no registered paths for: {path}",
-                )))
-            }
-            FetchManyResponseKind::Found(res) => res,
-            _ => panic!(
-                "Paginated routes parsing not implemented in 
-                `match_forward_address` use-case."
-            ),
-        },
+    let routes = match routes_fetching_repo.list(path.to_owned()).await? {
+        FetchManyResponseKind::NotFound => {
+            return Ok(RoutesMatchResponseEnum::PathNotFound(format!(
+                "There is no registered paths for: {path}",
+            )))
+        }
+        FetchManyResponseKind::Found(res) => res,
+        _ => panic!(
+            "Paginated routes parsing not implemented in 
+            `match_forward_address` use-case."
+        ),
     };
 
     debug!("routes: {:?}", routes);

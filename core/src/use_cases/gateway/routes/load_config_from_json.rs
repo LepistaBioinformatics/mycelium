@@ -6,7 +6,7 @@ use crate::domain::dtos::{
 };
 
 use clean_base::utils::errors::{factories::use_case_err, MappedErrors};
-use log::{debug, error, info};
+use log::{error, info};
 use serde::{Deserialize, Serialize};
 use std::{mem::size_of_val, str::from_utf8};
 use tokio::fs::read as t_read;
@@ -41,7 +41,17 @@ struct TempRouteDTO {
     pub allowed_sources: Option<Vec<String>>,
 }
 
-/// This function load the in-memory database from JSON file.
+/// Load configuration from JSON file
+///
+/// This function will load the configuration from a JSON file and return a
+/// vector of routes.
+///
+/// # Arguments
+///     * `source_file_path` - The path to the JSON file
+///
+/// # Returns
+///     * `Result<Vec<Route>, MappedErrors>` - A vector of routes or an error
+///
 pub async fn load_config_from_json(
     source_file_path: String,
 ) -> Result<Vec<Route>, MappedErrors> {
@@ -52,38 +62,29 @@ pub async fn load_config_from_json(
                 match from_utf8(&data) {
                     Err(err) => {
                         error!("Invalid UTF-8 sequence: {err}");
-                        return Err(use_case_err(
+                        return use_case_err(
                             format!("Invalid UTF-8 sequence: {err}"),
                             None,
                             None,
-                        ));
+                        );
                     }
                     Ok(res) => res,
                 },
             ) {
                 Err(err) => {
                     error!("Invalid UTF-8 sequence: {err}");
-                    return Err(use_case_err(
+                    return use_case_err(
                         format!("Invalid UTF-8 sequence: {err}"),
                         None,
                         None,
-                    ));
+                    );
                 }
                 Ok(res) => Ok(res),
             }
         })
         .unwrap();
 
-    debug!("temp_services: {:?}", temp_services);
-
-    let tem_service_vec = match temp_services {
-        Err(err) => return err,
-        Ok(res) => res,
-    };
-
-    debug!("tem_service_vec: {:?}", tem_service_vec);
-
-    let db = tem_service_vec.services.into_iter().fold(
+    let db = temp_services?.services.into_iter().fold(
         Vec::<Route>::new(),
         |mut init, tmp_service| {
             let service = ClientService {
