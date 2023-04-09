@@ -36,18 +36,15 @@ pub async fn update_role_name_and_description(
     // ? Fetch desired role
     // ? ----------------------------------------------------------------------
 
-    let mut role = match role_fetching_repo.get(role_id).await {
-        Err(err) => return Err(err),
-        Ok(res) => match res {
-            FetchResponseKind::NotFound(id) => {
-                return use_case_err(
-                    format!("Invalid account id: {}", id.unwrap()),
-                    Some(true),
-                    None,
-                )
-            }
-            FetchResponseKind::Found(res) => res,
-        },
+    let mut role = match role_fetching_repo.get(role_id).await? {
+        FetchResponseKind::NotFound(id) => {
+            return use_case_err(
+                format!("Invalid account id: {}", id.unwrap()),
+                Some(true),
+                None,
+            )
+        }
+        FetchResponseKind::Found(res) => res,
     };
 
     // ? ----------------------------------------------------------------------

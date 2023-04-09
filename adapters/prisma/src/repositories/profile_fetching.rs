@@ -83,10 +83,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
 
         match response {
             Some(record) => Ok(FetchResponseKind::Found(Profile {
-                email: match Email::from_string(record.owner.email) {
-                    Err(err) => return Err(err),
-                    Ok(res) => res.get_email(),
-                },
+                email: Email::from_string(record.owner.email)?.get_email(),
                 current_account_id: Uuid::parse_str(&record.id).unwrap(),
                 is_subscription: record.account_type.is_subscription,
                 is_manager: record.account_type.is_manager,

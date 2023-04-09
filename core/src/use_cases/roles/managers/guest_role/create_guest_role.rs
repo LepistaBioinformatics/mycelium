@@ -56,7 +56,7 @@ pub async fn create_guest_role(
     // ? Persist UserRole
     // ? ----------------------------------------------------------------------
 
-    return role_registration_repo
+    role_registration_repo
         .get_or_create(GuestRole {
             id: None,
             name,
@@ -64,5 +64,5 @@ pub async fn create_guest_role(
             role: ParentEnum::Id(role),
             permissions,
         })
-        .await;
+        .await
 }

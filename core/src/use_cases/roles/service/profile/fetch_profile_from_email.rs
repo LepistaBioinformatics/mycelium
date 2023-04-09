@@ -42,14 +42,11 @@ pub async fn fetch_profile_from_email(
     // ? Validate profile response
     // ? -----------------------------------------------------------------------
 
-    let mut profile = match profile {
-        Err(err) => return Err(err),
-        Ok(res) => match res {
-            FetchResponseKind::NotFound(_) => {
-                return Ok(ProfileResponse::UnregisteredUser(email))
-            }
-            FetchResponseKind::Found(profile) => profile,
-        },
+    let mut profile = match profile? {
+        FetchResponseKind::NotFound(_) => {
+            return Ok(ProfileResponse::UnregisteredUser(email))
+        }
+        FetchResponseKind::Found(profile) => profile,
     };
 
     debug!("Parsed Profile from Email: {:?}", profile);
@@ -58,16 +55,13 @@ pub async fn fetch_profile_from_email(
     // ? Validate guests response
     // ? -----------------------------------------------------------------------
 
-    let licenses = match licenses {
-        Err(err) => return Err(err),
-        Ok(res) => match res {
-            FetchManyResponseKind::NotFound => None,
-            FetchManyResponseKind::Found(records) => Some(records),
-            _ => panic!(
-                "Paginated results parsing not implemented in 
-                `fetch_profile_from_email` use-case."
-            ),
-        },
+    let licenses = match licenses? {
+        FetchManyResponseKind::NotFound => None,
+        FetchManyResponseKind::Found(records) => Some(records),
+        _ => panic!(
+            "Paginated results parsing not implemented in 
+`fetch_profile_from_email` use-case."
+        ),
     };
 
     debug!("Parsed Licenses Record from Email: {:?}", licenses);

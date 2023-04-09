@@ -45,10 +45,7 @@ pub async fn create_seed_staff_account(
     // possibly invalid.
     // ? -----------------------------------------------------------------------
 
-    let email_instance = match Email::from_string(email) {
-        Err(err) => return Err(err),
-        Ok(res) => res,
-    };
+    let email_instance = Email::from_string(email)?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch account type
@@ -62,15 +59,10 @@ pub async fn create_seed_staff_account(
         None,
         account_type_registration_repo,
     )
-    .await
+    .await?
     {
-        Err(err) => return Err(err),
-        Ok(res) => match res {
-            GetOrCreateResponseKind::NotCreated(account_type, _) => {
-                account_type
-            }
-            GetOrCreateResponseKind::Created(account_type) => account_type,
-        },
+        GetOrCreateResponseKind::NotCreated(account_type, _) => account_type,
+        GetOrCreateResponseKind::Created(account_type) => account_type,
     };
 
     // ? -----------------------------------------------------------------------
@@ -92,22 +84,19 @@ pub async fn create_seed_staff_account(
             created: Local::now(),
             updated: None,
         })
-        .await
+        .await?
     {
-        Err(err) => return Err(err),
-        Ok(res) => match res {
-            GetOrCreateResponseKind::NotCreated(user, msg) => {
-                return use_case_err(
-                    format!(
-                        "Unexpected error on persist user ({}): {}",
-                        user.username, msg,
-                    ),
-                    Some(true),
-                    None,
-                )
-            }
-            GetOrCreateResponseKind::Created(user) => user,
-        },
+        GetOrCreateResponseKind::NotCreated(user, msg) => {
+            return use_case_err(
+                format!(
+                    "Unexpected error on persist user ({}): {}",
+                    user.username, msg,
+                ),
+                Some(true),
+                None,
+            )
+        }
+        GetOrCreateResponseKind::Created(user) => user,
     };
 
     // ? -----------------------------------------------------------------------

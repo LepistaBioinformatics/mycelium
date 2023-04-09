@@ -88,7 +88,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                     owner: ParentEnum::Record(User {
                         id: Some(Uuid::from_str(&record.owner.id).unwrap()),
                         username: record.owner.username,
-                        email: Email::from_string(record.owner.email).unwrap(),
+                        email: Email::from_string(record.owner.email)?,
                         first_name: Some(record.owner.first_name),
                         last_name: Some(record.owner.last_name),
                         is_active: record.owner.is_active,

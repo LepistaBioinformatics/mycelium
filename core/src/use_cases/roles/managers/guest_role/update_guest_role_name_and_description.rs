@@ -37,18 +37,15 @@ pub async fn update_guest_role_name_and_description(
     // ? Fetch role from data persistence layer
     // ? ----------------------------------------------------------------------
 
-    let mut user_role = match role_fetching_repo.get(role_id).await {
-        Err(err) => return Err(err),
-        Ok(res) => match res {
-            FetchResponseKind::NotFound(id) => {
-                return use_case_err(
-                    format!("Unable to update record: {}", id.unwrap()),
-                    Some(true),
-                    None,
-                );
-            }
-            FetchResponseKind::Found(role) => role,
-        },
+    let mut user_role = match role_fetching_repo.get(role_id).await? {
+        FetchResponseKind::NotFound(id) => {
+            return use_case_err(
+                format!("Unable to update record: {}", id.unwrap()),
+                Some(true),
+                None,
+            );
+        }
+        FetchResponseKind::Found(role) => role,
     };
 
     // ? ----------------------------------------------------------------------

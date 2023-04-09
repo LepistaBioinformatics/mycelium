@@ -83,7 +83,7 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
                 }
                 Some(record) => GuestUser {
                     id: Some(Uuid::parse_str(&record.id).unwrap()),
-                    email: Email::from_string(record.email.to_owned()).unwrap(),
+                    email: Email::from_string(record.email.to_owned())?,
                     guest_role: ParentEnum::Id(
                         Uuid::parse_str(&record.guest_role_id).unwrap(),
                     ),

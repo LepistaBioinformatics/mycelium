@@ -45,41 +45,38 @@ pub async fn guest_user(
     // Check if the target account is a subscription account.
     // ? -----------------------------------------------------------------------
 
-    match account_fetching_repo.get(target_account_id).await {
-        Err(err) => return Err(err),
-        Ok(res) => match res {
-            FetchResponseKind::NotFound(id) => {
+    match account_fetching_repo.get(target_account_id).await? {
+        FetchResponseKind::NotFound(id) => {
+            return use_case_err(
+                format!("Target account not found: {:?}", id.unwrap()),
+                None,
+                None,
+            )
+        }
+        FetchResponseKind::Found(account) => match account.account_type {
+            ParentEnum::Id(id) => {
                 return use_case_err(
-                    format!("Target account not found: {:?}", id.unwrap()),
+                    format!(
+                        "Could not check the account type validity: {}",
+                        id
+                    ),
                     None,
                     None,
                 )
             }
-            FetchResponseKind::Found(account) => match account.account_type {
-                ParentEnum::Id(id) => {
+            ParentEnum::Record(account_type) => {
+                if !account_type.is_subscription {
                     return use_case_err(
                         format!(
-                            "Could not check the account type validity: {}",
-                            id
+                            "Invalid account ({:?}). Only subscription 
+                            accounts should receive guesting.",
+                            account_type.id
                         ),
                         None,
                         None,
-                    )
+                    );
                 }
-                ParentEnum::Record(account_type) => {
-                    if !account_type.is_subscription {
-                        return use_case_err(
-                            format!(
-                                "Invalid account ({:?}). Only subscription 
-                                accounts should receive guesting.",
-                                account_type.id
-                            ),
-                            None,
-                            None,
-                        );
-                    }
-                }
-            },
+            }
         },
     }
 
