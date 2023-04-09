@@ -30,18 +30,15 @@ pub async fn change_account_approval_status(
     // ? Fetch target account
     // ? -----------------------------------------------------------------------
 
-    let account = match account_fetching_repo.get(account_id).await {
-        Err(err) => return Err(err),
-        Ok(res) => match res {
-            FetchResponseKind::NotFound(id) => {
-                return use_case_err(
-                    format!("Invalid account ID: {:?}", id),
-                    Some(true),
-                    None,
-                )
-            }
-            FetchResponseKind::Found(res) => res,
-        },
+    let account = match account_fetching_repo.get(account_id).await? {
+        FetchResponseKind::NotFound(id) => {
+            return use_case_err(
+                format!("Invalid account ID: {:?}", id),
+                Some(true),
+                None,
+            )
+        }
+        FetchResponseKind::Found(res) => res,
     };
 
     // ? -----------------------------------------------------------------------
@@ -108,18 +105,14 @@ editions on accounts with more privileges than himself.",
     // ? Update account status
     // ? -----------------------------------------------------------------------
 
-    let updated_account = match try_to_reach_desired_status(
+    let updated_account = try_to_reach_desired_status(
         account.to_owned(),
         match is_approved {
             true => VerboseStatus::Active,
             false => VerboseStatus::Archived,
         },
     )
-    .await
-    {
-        Err(err) => return Err(err),
-        Ok(res) => res,
-    };
+    .await?;
 
     account_updating_repo.update(updated_account).await
 }

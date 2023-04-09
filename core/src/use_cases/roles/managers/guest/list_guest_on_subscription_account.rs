@@ -37,18 +37,15 @@ pub async fn list_guest_on_subscription_account(
     // ? Fetch the target subscription account
     // ? -----------------------------------------------------------------------
 
-    let account = match account_fetching_repo.get(account_id).await {
-        Err(err) => return Err(err),
-        Ok(res) => match res {
-            FetchResponseKind::NotFound(id) => {
-                return use_case_err(
-                    format!("Invalid account ID: {}", id.unwrap()),
-                    Some(true),
-                    None,
-                )
-            }
-            FetchResponseKind::Found(res) => res,
-        },
+    let account = match account_fetching_repo.get(account_id).await? {
+        FetchResponseKind::NotFound(id) => {
+            return use_case_err(
+                format!("Invalid account ID: {}", id.unwrap()),
+                Some(true),
+                None,
+            )
+        }
+        FetchResponseKind::Found(res) => res,
     };
 
     // ? -----------------------------------------------------------------------

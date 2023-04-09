@@ -64,18 +64,15 @@ pub async fn upgrade_account_privileges(
     // ? Fetch the account
     // ? -----------------------------------------------------------------------
 
-    let mut account = match account_fetching_repo.get(account_id).await {
-        Err(err) => return Err(err),
-        Ok(res) => match res {
-            FetchResponseKind::NotFound(id) => {
-                return use_case_err(
-                    format!("Invalid account id: {}", id.unwrap()),
-                    Some(true),
-                    None,
-                )
-            }
-            FetchResponseKind::Found(res) => res,
-        },
+    let mut account = match account_fetching_repo.get(account_id).await? {
+        FetchResponseKind::NotFound(id) => {
+            return use_case_err(
+                format!("Invalid account id: {}", id.unwrap()),
+                Some(true),
+                None,
+            )
+        }
+        FetchResponseKind::Found(res) => res,
     };
 
     // ? -----------------------------------------------------------------------
@@ -90,15 +87,10 @@ pub async fn upgrade_account_privileges(
         None,
         account_type_registration_repo,
     )
-    .await
+    .await?
     {
-        Err(err) => return Err(err),
-        Ok(res) => match res {
-            GetOrCreateResponseKind::NotCreated(account_type, _) => {
-                account_type
-            }
-            GetOrCreateResponseKind::Created(account_type) => account_type,
-        },
+        GetOrCreateResponseKind::NotCreated(account_type, _) => account_type,
+        GetOrCreateResponseKind::Created(account_type) => account_type,
     };
 
     // ? -----------------------------------------------------------------------

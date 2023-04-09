@@ -134,22 +134,7 @@ pub(super) async fn register_guest_user(
         //
         Some(record) => GuestUser {
             id: Some(Uuid::from_str(&record.id).unwrap()),
-            email: match Email::from_string(record.email) {
-                // !
-                // ! Error case return
-                // !
-                Err(err) => {
-                    return Err(creation_err(
-                        format!(
-                            "Unexpected error on parse user email: {:?}",
-                            err,
-                        ),
-                        None,
-                        None,
-                    ))
-                }
-                Ok(res) => res,
-            },
+            email: Email::from_string(record.email)?,
             guest_role: ParentEnum::Id(
                 Uuid::parse_str(&record.guest_role.id).unwrap(),
             ),
@@ -208,22 +193,7 @@ pub(super) async fn register_guest_user(
             }
             Ok(record) => GuestUser {
                 id: Some(Uuid::from_str(&record.id).unwrap()),
-                email: match Email::from_string(record.email.to_owned()) {
-                    // !
-                    // ! Error case return
-                    // !
-                    Err(err) => {
-                        return Err(creation_err(
-                            format!(
-                                "Unexpected error on parse user email: {:?}",
-                                err,
-                            ),
-                            None,
-                            None,
-                        ))
-                    }
-                    Ok(res) => res,
-                },
+                email: Email::from_string(record.email.to_owned())?,
                 guest_role: ParentEnum::Id(
                     Uuid::parse_str(&record.guest_role.id).unwrap(),
                 ),

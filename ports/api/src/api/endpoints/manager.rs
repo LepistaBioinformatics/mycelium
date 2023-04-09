@@ -21,7 +21,7 @@ use utoipa::OpenApi;
     paths(
         account_endpoints::create_subscription_account_url,
         account_endpoints::list_accounts_by_type_url,
-        account_endpoints::get_subscription_account_details_url,
+        account_endpoints::get_account_details_url,
         account_endpoints::approve_account_url,
         account_endpoints::disapprove_account_url,
         account_endpoints::activate_account_url,
@@ -106,7 +106,7 @@ pub mod account_endpoints {
         use_cases::roles::managers::account::{
             change_account_activation_status, change_account_approval_status,
             change_account_archival_status, create_subscription_account,
-            get_subscription_account_details, list_accounts_by_type,
+            get_account_details, list_accounts_by_type,
         },
     };
     use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
@@ -125,7 +125,7 @@ pub mod account_endpoints {
                 .app_data(Config::default())
                 .service(create_subscription_account_url)
                 .service(list_accounts_by_type_url)
-                .service(get_subscription_account_details_url)
+                .service(get_account_details_url)
                 .service(approve_account_url)
                 .service(disapprove_account_url)
                 .service(activate_account_url)
@@ -366,7 +366,7 @@ pub mod account_endpoints {
         ),
     )]
     #[get("/{account}")]
-    pub async fn get_subscription_account_details_url(
+    pub async fn get_account_details_url(
         path: web::Path<Uuid>,
         profile: MyceliumProfileData,
         account_fetching_repo: Inject<
@@ -374,7 +374,7 @@ pub mod account_endpoints {
             dyn AccountFetching,
         >,
     ) -> impl Responder {
-        match get_subscription_account_details(
+        match get_account_details(
             profile.to_profile(),
             *path,
             Box::new(&*account_fetching_repo),

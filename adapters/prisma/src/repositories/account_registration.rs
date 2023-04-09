@@ -100,11 +100,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 Uuid::parse_str(&record.owner.id).unwrap(),
                             ),
                             username: record.owner.username,
-                            email: match Email::from_string(record.owner.email)
-                            {
-                                Err(err) => return Err(err),
-                                Ok(res) => res,
-                            },
+                            email: Email::from_string(record.owner.email)?,
                             first_name: Some(record.owner.first_name),
                             last_name: Some(record.owner.last_name),
                             is_active: record.owner.is_active,
@@ -207,10 +203,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 owner: ParentEnum::Record(User {
                     id: Some(Uuid::parse_str(&record.owner.id).unwrap()),
                     username: record.owner.username,
-                    email: match Email::from_string(record.owner.email) {
-                        Err(err) => return Err(err),
-                        Ok(res) => res,
-                    },
+                    email: Email::from_string(record.owner.email)?,
                     first_name: Some(record.owner.first_name),
                     last_name: Some(record.owner.last_name),
                     is_active: record.owner.is_active,

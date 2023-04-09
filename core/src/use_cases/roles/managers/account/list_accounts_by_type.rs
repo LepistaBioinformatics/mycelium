@@ -54,13 +54,10 @@ pub async fn list_accounts_by_type(
         None,
         account_type_registration,
     )
-    .await
+    .await?
     {
-        Err(err) => return Err(err),
-        Ok(res) => match res {
-            GetOrCreateResponseKind::NotCreated(res, _) => res.id,
-            GetOrCreateResponseKind::Created(res) => res.id,
-        },
+        GetOrCreateResponseKind::NotCreated(res, _) => res.id,
+        GetOrCreateResponseKind::Created(res) => res.id,
     };
 
     // ? -----------------------------------------------------------------------

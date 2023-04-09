@@ -43,10 +43,7 @@ pub async fn create_default_account(
     // possibly invalid.
     // ? -----------------------------------------------------------------------
 
-    let email_instance = match Email::from_string(email) {
-        Err(err) => return Err(err),
-        Ok(res) => res,
-    };
+    let email_instance = Email::from_string(email)?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch account type
