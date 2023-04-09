@@ -1,8 +1,8 @@
 use crate::domain::{dtos::profile::Profile, entities::RoleDeletion};
 
 use clean_base::{
-    entities::default_response::DeletionResponseKind,
-    utils::errors::{use_case_err, MappedErrors},
+    entities::DeletionResponseKind,
+    utils::errors::{factories::use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
@@ -17,12 +17,12 @@ pub async fn delete_role(
     // ? ----------------------------------------------------------------------
 
     if !profile.is_manager {
-        return Err(use_case_err(
+        return use_case_err(
             "The current user has no sufficient privileges to delete roles."
                 .to_string(),
             Some(true),
             None,
-        ));
+        );
     }
 
     // ? ----------------------------------------------------------------------

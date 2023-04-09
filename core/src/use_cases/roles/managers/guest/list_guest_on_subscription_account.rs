@@ -1,7 +1,7 @@
 use clean_base::{
     dtos::enums::ParentEnum,
-    entities::default_response::{FetchManyResponseKind, FetchResponseKind},
-    utils::errors::{use_case_err, MappedErrors},
+    entities::{FetchManyResponseKind, FetchResponseKind},
+    utils::errors::{factories::use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
@@ -25,12 +25,12 @@ pub async fn list_guest_on_subscription_account(
     // ? -----------------------------------------------------------------------
 
     if !profile.is_manager {
-        return Err(use_case_err(
+        return use_case_err(
             "The current user has no sufficient privileges to guest accounts."
                 .to_string(),
             Some(true),
             None,
-        ));
+        );
     };
 
     // ? -----------------------------------------------------------------------
@@ -41,11 +41,11 @@ pub async fn list_guest_on_subscription_account(
         Err(err) => return Err(err),
         Ok(res) => match res {
             FetchResponseKind::NotFound(id) => {
-                return Err(use_case_err(
+                return use_case_err(
                     format!("Invalid account ID: {}", id.unwrap()),
                     Some(true),
                     None,
-                ))
+                )
             }
             FetchResponseKind::Found(res) => res,
         },
@@ -57,19 +57,19 @@ pub async fn list_guest_on_subscription_account(
 
     match account.account_type {
         ParentEnum::Id(id) => {
-            return Err(use_case_err(
+            return use_case_err(
                 format!("Invalid account ID: {}", id),
                 Some(true),
                 None,
-            ))
+            )
         }
         ParentEnum::Record(account_type) => {
             if !account_type.is_subscription {
-                return Err(use_case_err(
+                return use_case_err(
                     format!("Account is not subscription."),
                     Some(true),
                     None,
-                ));
+                );
             }
         }
     }

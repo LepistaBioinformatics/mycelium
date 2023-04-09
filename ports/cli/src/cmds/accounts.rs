@@ -1,8 +1,5 @@
 use clap::Parser;
-use clean_base::{
-    dtos::enums::ParentEnum,
-    entities::default_response::GetOrCreateResponseKind,
-};
+use clean_base::{dtos::enums::ParentEnum, entities::GetOrCreateResponseKind};
 use log::{debug, error, info};
 use myc_core::use_cases::roles::staff::account::create_seed_staff_account;
 use myc_prisma::repositories::{

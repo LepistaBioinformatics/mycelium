@@ -1,8 +1,8 @@
 use actix_web::http::uri::PathAndQuery;
 use async_trait::async_trait;
 use clean_base::{
-    entities::default_response::FetchManyResponseKind,
-    utils::errors::{fetching_err, MappedErrors},
+    entities::FetchManyResponseKind,
+    utils::errors::{factories::fetching_err, MappedErrors},
 };
 use myc_core::{
     domain::{dtos::route::Route, entities::RoutesFetching},
@@ -24,11 +24,11 @@ impl RoutesFetching for RoutesFetchingMemDbRepo {
         let db = ROUTES.lock().await.clone();
 
         if db.len() == 0 {
-            return Err(fetching_err(
+            return fetching_err(
                 "Routes already not initialized.".to_string(),
                 Some(true),
                 None,
-            ));
+            );
         }
 
         let path_string = path.to_string();

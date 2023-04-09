@@ -4,7 +4,7 @@ use crate::{
 };
 
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
-use clean_base::entities::default_response::FetchResponseKind;
+use clean_base::entities::FetchResponseKind;
 use futures::Future;
 use myc_core::{
     domain::{dtos::account::VerboseStatus, entities::ProfileFetching},

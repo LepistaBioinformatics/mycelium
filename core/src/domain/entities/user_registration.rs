@@ -2,7 +2,7 @@ use crate::domain::dtos::user::User;
 
 use async_trait::async_trait;
 use clean_base::{
-    entities::default_response::{CreateResponseKind, GetOrCreateResponseKind},
+    entities::{CreateResponseKind, GetOrCreateResponseKind},
     utils::errors::MappedErrors,
 };
 use shaku::Interface;

@@ -1,6 +1,6 @@
 use crate::domain::dtos::account::{Account, VerboseStatus};
 
-use clean_base::utils::errors::{use_case_err, MappedErrors};
+use clean_base::utils::errors::{factories::use_case_err, MappedErrors};
 
 /// Try to reach a desired account state
 ///
@@ -14,7 +14,7 @@ pub(super) async fn try_to_reach_desired_status(
         desired_status.to_owned(),
         account.to_owned().verbose_status,
     ) {
-        return Err(use_case_err(
+        return use_case_err(
             format!(
                 "Could not transit from `{:?}` to `{:?}`",
                 account.verbose_status.unwrap(),
@@ -22,18 +22,18 @@ pub(super) async fn try_to_reach_desired_status(
             ),
             Some(true),
             None,
-        ));
+        );
     }
 
     let flags = match desired_status.to_flags() {
         Err(err) => {
-            return Err(use_case_err(
+            return use_case_err(
                 format!(
                     "Unexpected error on chance approval account status: {err}",
                 ),
                 Some(true),
                 None,
-            ))
+            )
         }
         Ok(res) => res,
     };

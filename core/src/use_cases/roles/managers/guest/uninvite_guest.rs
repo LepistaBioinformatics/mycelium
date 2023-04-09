@@ -1,8 +1,8 @@
 use crate::domain::{dtos::profile::Profile, entities::GuestUserDeletion};
 
 use clean_base::{
-    entities::default_response::DeletionResponseKind,
-    utils::errors::{use_case_err, MappedErrors},
+    entities::DeletionResponseKind,
+    utils::errors::{factories::use_case_err, MappedErrors},
 };
 use log::debug;
 use uuid::Uuid;
@@ -22,12 +22,12 @@ pub async fn uninvite_guest(
     debug!("Requesting Profile: {:?}", profile);
 
     if !profile.is_manager {
-        return Err(use_case_err(
+        return use_case_err(
             "The current user has no sufficient privileges to uninvite accounts."
                 .to_string(),
             Some(true),
             None,
-        ));
+        );
     };
 
     // ? -----------------------------------------------------------------------

@@ -4,8 +4,8 @@ use crate::{
 
 use async_trait::async_trait;
 use clean_base::{
-    entities::default_response::DeletionResponseKind,
-    utils::errors::{deletion_err, MappedErrors},
+    entities::DeletionResponseKind,
+    utils::errors::{factories::deletion_err, MappedErrors},
 };
 use myc_core::domain::entities::GuestRoleDeletion;
 use shaku::Component;
@@ -30,13 +30,13 @@ impl GuestRoleDeletion for GuestRoleDeletionSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(deletion_err(
+                return deletion_err(
                     String::from(
                         "Prisma Client error. Could not fetch client.",
                     ),
                     Some(false),
                     None,
-                ))
+                )
             }
             Some(res) => res,
         };

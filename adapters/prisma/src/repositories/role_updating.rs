@@ -2,7 +2,7 @@ use crate::{prisma::role as role_model, repositories::connector::get_client};
 
 use async_trait::async_trait;
 use clean_base::{
-    entities::default_response::UpdatingResponseKind,
+    entities::UpdatingResponseKind,
     utils::errors::{updating_err, MappedErrors},
 };
 use myc_core::domain::{dtos::role::Role, entities::RoleUpdating};

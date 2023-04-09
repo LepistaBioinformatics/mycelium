@@ -5,7 +5,7 @@ use crate::{
 
 use async_trait::async_trait;
 use clean_base::{
-    entities::default_response::FetchResponseKind,
+    entities::FetchResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
 use myc_core::domain::{

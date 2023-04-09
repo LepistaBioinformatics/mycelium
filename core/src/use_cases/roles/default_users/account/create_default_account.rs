@@ -15,8 +15,8 @@ use crate::{
 use chrono::Local;
 use clean_base::{
     dtos::enums::ParentEnum,
-    entities::default_response::GetOrCreateResponseKind,
-    utils::errors::{use_case_err, MappedErrors},
+    entities::GetOrCreateResponseKind,
+    utils::errors::{factories::use_case_err, MappedErrors},
 };
 
 /// Create a default account.
@@ -95,14 +95,14 @@ pub async fn create_default_account(
         Err(err) => return Err(err),
         Ok(res) => match res {
             GetOrCreateResponseKind::NotCreated(user, msg) => {
-                return Err(use_case_err(
+                return use_case_err(
                     format!(
                         "Unexpected error on persist user ({}): {}",
                         user.username, msg,
                     ),
                     Some(true),
                     None,
-                ))
+                )
             }
             GetOrCreateResponseKind::Created(user) => user,
         },

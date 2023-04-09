@@ -63,9 +63,7 @@ pub mod account_endpoints {
     };
 
     use actix_web::{patch, post, web, HttpResponse, Responder};
-    use clean_base::entities::default_response::{
-        GetOrCreateResponseKind, UpdatingResponseKind,
-    };
+    use clean_base::entities::{GetOrCreateResponseKind, UpdatingResponseKind};
     use log::warn;
     use myc_core::{
         domain::entities::{

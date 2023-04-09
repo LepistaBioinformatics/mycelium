@@ -2,7 +2,7 @@ use crate::domain::dtos::account::Account;
 
 use async_trait::async_trait;
 use clean_base::{
-    entities::default_response::{FetchManyResponseKind, FetchResponseKind},
+    entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::MappedErrors,
 };
 use shaku::Interface;

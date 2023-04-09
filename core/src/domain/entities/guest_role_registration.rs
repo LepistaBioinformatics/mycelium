@@ -2,8 +2,7 @@ use crate::domain::dtos::guest::GuestRole;
 
 use async_trait::async_trait;
 use clean_base::{
-    entities::default_response::GetOrCreateResponseKind,
-    utils::errors::MappedErrors,
+    entities::GetOrCreateResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Interface;
 

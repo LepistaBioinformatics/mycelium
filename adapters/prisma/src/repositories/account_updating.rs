@@ -6,8 +6,8 @@ use async_trait::async_trait;
 use chrono::DateTime;
 use clean_base::{
     dtos::enums::ParentEnum,
-    entities::default_response::UpdatingResponseKind,
-    utils::errors::{updating_err, MappedErrors},
+    entities::UpdatingResponseKind,
+    utils::errors::{factories::updating_err, MappedErrors},
 };
 use myc_core::domain::{
     dtos::account::{Account, VerboseStatus},
@@ -36,13 +36,13 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(updating_err(
+                return updating_err(
                     String::from(
                         "Prisma Client error. Could not fetch client.",
                     ),
                     Some(false),
                     None,
-                ))
+                )
             }
             Some(res) => res,
         };
@@ -53,11 +53,11 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
 
         let account_id = match account.id {
             None => {
-                return Err(updating_err(
+                return updating_err(
                     String::from("Unable to update account. Invalid record ID"),
                     None,
                     None,
-                ))
+                )
             }
             Some(res) => res,
         };
@@ -75,11 +75,11 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                         ParentEnum::Id(id) => id.to_string(),
                         ParentEnum::Record(record) => match record.id {
                             None => {
-                                return Err(updating_err(
+                                return updating_err(
                                     String::from("Unable to update account. Invalid account type ID"),
                                     None,
                                     None,
-                                ))
+                                )
                             }
                             Some(id) => id.to_string(),
                         }
@@ -116,21 +116,21 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
             })),
             Err(err) => {
                 if err.is_prisma_error::<RecordNotFound>() {
-                    return Err(updating_err(
+                    return updating_err(
                         format!("Invalid primary key: {:?}", account_id),
                         None,
                         None,
-                    ));
+                    );
                 };
 
-                return Err(updating_err(
+                return updating_err(
                     format!(
                         "Unexpected error detected on update record: {}",
                         err
                     ),
                     Some(false),
                     None,
-                ));
+                );
             }
         }
     }

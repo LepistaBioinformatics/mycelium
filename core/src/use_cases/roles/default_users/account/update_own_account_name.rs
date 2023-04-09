@@ -4,8 +4,8 @@ use crate::domain::{
 };
 
 use clean_base::{
-    entities::default_response::{FetchResponseKind, UpdatingResponseKind},
-    utils::errors::{use_case_err, MappedErrors},
+    entities::{FetchResponseKind, UpdatingResponseKind},
+    utils::errors::{factories::use_case_err, MappedErrors},
 };
 
 /// Update the own account.
@@ -27,11 +27,11 @@ pub async fn update_own_account_name(
             Err(err) => return Err(err),
             Ok(res) => match res {
                 FetchResponseKind::NotFound(id) => {
-                    return Err(use_case_err(
+                    return use_case_err(
                         format!("Invalid account id: {}", id.unwrap()),
                         Some(true),
                         None,
-                    ))
+                    )
                 }
                 FetchResponseKind::Found(res) => res,
             },

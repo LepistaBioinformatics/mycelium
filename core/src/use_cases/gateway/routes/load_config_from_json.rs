@@ -5,7 +5,7 @@ use crate::domain::dtos::{
     service::ClientService,
 };
 
-use clean_base::utils::errors::{use_case_err, MappedErrors};
+use clean_base::utils::errors::{factories::use_case_err, MappedErrors};
 use log::{debug, error, info};
 use serde::{Deserialize, Serialize};
 use std::{mem::size_of_val, str::from_utf8};
@@ -77,7 +77,7 @@ pub async fn load_config_from_json(
     debug!("temp_services: {:?}", temp_services);
 
     let tem_service_vec = match temp_services {
-        Err(err) => return Err(err),
+        Err(err) => return err,
         Ok(res) => res,
     };
 

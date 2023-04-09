@@ -1,10 +1,7 @@
 use crate::domain::dtos::role::Role;
 
 use async_trait::async_trait;
-use clean_base::{
-    entities::default_response::UpdatingResponseKind,
-    utils::errors::MappedErrors,
-};
+use clean_base::{entities::UpdatingResponseKind, utils::errors::MappedErrors};
 use shaku::Interface;
 
 #[async_trait]

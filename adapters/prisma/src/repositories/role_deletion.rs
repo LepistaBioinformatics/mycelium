@@ -2,8 +2,8 @@ use crate::{prisma::role as role_model, repositories::connector::get_client};
 
 use async_trait::async_trait;
 use clean_base::{
-    entities::default_response::DeletionResponseKind,
-    utils::errors::{deletion_err, MappedErrors},
+    entities::DeletionResponseKind,
+    utils::errors::{factories::deletion_err, MappedErrors},
 };
 use myc_core::domain::entities::RoleDeletion;
 use shaku::Component;
@@ -28,13 +28,13 @@ impl RoleDeletion for RoleDeletionSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(deletion_err(
+                return deletion_err(
                     String::from(
                         "Prisma Client error. Could not fetch client.",
                     ),
                     Some(false),
                     None,
-                ))
+                )
             }
             Some(res) => res,
         };

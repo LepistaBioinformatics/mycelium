@@ -1,8 +1,8 @@
 use crate::domain::{dtos::profile::Profile, entities::GuestRoleDeletion};
 
 use clean_base::{
-    entities::default_response::DeletionResponseKind,
-    utils::errors::{use_case_err, MappedErrors},
+    entities::DeletionResponseKind,
+    utils::errors::{factories::use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
@@ -20,11 +20,11 @@ pub async fn delete_guest_role(
     // ? ----------------------------------------------------------------------
 
     if !profile.is_manager {
-        return Err(use_case_err(
+        return use_case_err(
             "Only manager users could perform such operation.".to_string(),
             Some(true),
             None,
-        ));
+        );
     };
 
     // ? ----------------------------------------------------------------------

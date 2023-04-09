@@ -7,8 +7,8 @@ use crate::domain::{
 };
 
 use clean_base::{
-    entities::default_response::FetchManyResponseKind,
-    utils::errors::{use_case_err, MappedErrors},
+    entities::FetchManyResponseKind,
+    utils::errors::{factories::use_case_err, MappedErrors},
 };
 
 /// Get all licenses related to email
@@ -24,12 +24,12 @@ pub async fn list_licensed_accounts_of_email(
     // ? -----------------------------------------------------------------------
 
     if !profile.is_manager {
-        return Err(use_case_err(
+        return use_case_err(
             "The current user has no sufficient privileges to guest accounts."
                 .to_string(),
             Some(true),
             None,
-        ));
+        );
     };
 
     // ? -----------------------------------------------------------------------
