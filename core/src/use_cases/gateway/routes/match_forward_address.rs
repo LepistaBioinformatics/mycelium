@@ -2,8 +2,7 @@ use crate::domain::{dtos::route::Route, entities::RoutesFetching};
 
 use actix_web::http::uri::PathAndQuery;
 use clean_base::{
-    entities::default_response::FetchManyResponseKind,
-    utils::errors::MappedErrors,
+    entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 use log::debug;
 use serde::{Deserialize, Serialize};

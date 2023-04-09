@@ -10,7 +10,7 @@ use async_trait::async_trait;
 use chrono::DateTime;
 use clean_base::{
     dtos::enums::ParentEnum,
-    entities::default_response::FetchManyResponseKind,
+    entities::FetchManyResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
 use log::debug;

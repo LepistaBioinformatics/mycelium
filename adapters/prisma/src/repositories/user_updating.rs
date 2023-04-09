@@ -3,7 +3,7 @@ use crate::{prisma::user as user_model, repositories::connector::get_client};
 use async_trait::async_trait;
 use chrono::Local;
 use clean_base::{
-    entities::default_response::UpdatingResponseKind,
+    entities::UpdatingResponseKind,
     utils::errors::{updating_err, MappedErrors},
 };
 use myc_core::domain::{

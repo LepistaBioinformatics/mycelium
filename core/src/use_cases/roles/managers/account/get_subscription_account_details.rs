@@ -5,8 +5,8 @@ use crate::domain::{
 
 use clean_base::{
     dtos::enums::ParentEnum,
-    entities::default_response::FetchResponseKind,
-    utils::errors::{use_case_err, MappedErrors},
+    entities::FetchResponseKind,
+    utils::errors::{factories::use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
@@ -24,13 +24,13 @@ pub async fn get_subscription_account_details(
     // ? -----------------------------------------------------------------------
 
     if !profile.is_manager {
-        return Err(use_case_err(
+        return use_case_err(
             "The current user has no sufficient privileges to register 
             subscription accounts."
                 .to_string(),
             Some(true),
             None,
-        ));
+        );
     };
 
     // ? -----------------------------------------------------------------------
@@ -42,20 +42,20 @@ pub async fn get_subscription_account_details(
         Ok(res) => match res {
             FetchResponseKind::NotFound(id) => return Ok(FetchResponseKind::NotFound(id)),
             FetchResponseKind::Found(account) => match account.to_owned().account_type {
-                ParentEnum::Id(_) => return Err(use_case_err(
+                ParentEnum::Id(_) => return use_case_err(
                     "Could not check account type validity. Please contact administrators."
                         .to_string(),
                     Some(true),
                     None,
-                )),
+                ),
                 ParentEnum::Record(account_type) => {
                     if !account_type.is_subscription {
-                        return Err(use_case_err(
+                        return use_case_err(
                             "Provided account ID is not from a subscription."
                                 .to_string(),
                             Some(true),
                             None,
-                        ))
+                        )
                     }
 
                     Ok(FetchResponseKind::Found(account))

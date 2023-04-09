@@ -4,8 +4,8 @@ use crate::domain::{
 };
 
 use clean_base::{
-    entities::default_response::UpdatingResponseKind,
-    utils::errors::{use_case_err, MappedErrors},
+    entities::UpdatingResponseKind,
+    utils::errors::{factories::use_case_err, MappedErrors},
 };
 use log::debug;
 use uuid::Uuid;
@@ -29,13 +29,13 @@ pub async fn update_user_guest_role(
     debug!("Requesting Profile: {:?}", profile);
 
     if !profile.is_manager {
-        return Err(use_case_err(
+        return use_case_err(
             "The current user has no sufficient privileges to update 
 account guests."
                 .to_string(),
             Some(true),
             None,
-        ));
+        );
     };
 
     guest_user_on_account_updating_repo

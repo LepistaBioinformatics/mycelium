@@ -5,8 +5,8 @@ use crate::{
 use async_trait::async_trait;
 use clean_base::{
     dtos::enums::ParentEnum,
-    entities::default_response::{FetchManyResponseKind, FetchResponseKind},
-    utils::errors::{fetching_err, MappedErrors},
+    entities::{FetchManyResponseKind, FetchResponseKind},
+    utils::errors::{factories::fetching_err, MappedErrors},
 };
 use myc_core::domain::{
     dtos::guest::{GuestRole, PermissionsType},
@@ -34,13 +34,13 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(fetching_err(
+                return fetching_err(
                     String::from(
                         "Prisma Client error. Could not fetch client.",
                     ),
                     Some(false),
                     None,
-                ))
+                )
             }
             Some(res) => res,
         };
@@ -87,13 +87,13 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(fetching_err(
+                return fetching_err(
                     String::from(
                         "Prisma Client error. Could not fetch client.",
                     ),
                     Some(false),
                     None,
-                ))
+                )
             }
             Some(res) => res,
         };
@@ -120,11 +120,11 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
 
         match client.guest_role().find_many(query_stmt).exec().await {
             Err(err) => {
-                return Err(fetching_err(
+                return fetching_err(
                     format!("Unexpected error on parse user email: {:?}", err,),
                     None,
                     None,
-                ))
+                )
             }
             Ok(res) => {
                 let response = res

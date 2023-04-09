@@ -11,8 +11,8 @@ use async_trait::async_trait;
 use chrono::DateTime;
 use clean_base::{
     dtos::enums::ParentEnum,
-    entities::default_response::UpdatingResponseKind,
-    utils::errors::{deletion_err, updating_err, MappedErrors},
+    entities::UpdatingResponseKind,
+    utils::errors::{factories::deletion_err, updating_err, MappedErrors},
 };
 use myc_core::domain::{
     dtos::{email::Email, guest::GuestUser},
@@ -43,13 +43,13 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(deletion_err(
+                return deletion_err(
                     String::from(
                         "Prisma Client error. Could not fetch client.",
                     ),
                     Some(false),
                     None,
-                ))
+                )
             }
             Some(res) => res,
         };

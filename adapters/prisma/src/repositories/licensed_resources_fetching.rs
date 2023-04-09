@@ -8,7 +8,7 @@ use crate::{
 
 use async_trait::async_trait;
 use clean_base::{
-    entities::default_response::FetchManyResponseKind,
+    entities::FetchManyResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
 use log::debug;

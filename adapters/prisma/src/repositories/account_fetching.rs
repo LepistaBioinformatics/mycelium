@@ -7,8 +7,10 @@ use async_trait::async_trait;
 use chrono::DateTime;
 use clean_base::{
     dtos::enums::{PaginatedRecord, ParentEnum},
-    entities::default_response::{FetchManyResponseKind, FetchResponseKind},
-    utils::errors::{creation_err, fetching_err, MappedErrors},
+    entities::{FetchManyResponseKind, FetchResponseKind},
+    utils::errors::{
+        factories::creation_err, factories::fetching_err, MappedErrors,
+    },
 };
 use myc_core::domain::{
     dtos::{
@@ -41,13 +43,13 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(creation_err(
+                return creation_err(
                     String::from(
                         "Prisma Client error. Could not fetch client.",
                     ),
                     Some(false),
                     None,
-                ))
+                )
             }
             Some(res) => res,
         };
@@ -64,11 +66,11 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             .await
         {
             Err(err) => {
-                return Err(creation_err(
+                return creation_err(
                     format!("Unexpected error on parse user email: {:?}", err,),
                     None,
                     None,
-                ))
+                )
             }
             Ok(res) => match res {
                 None => Ok(FetchResponseKind::NotFound(Some(id))),
@@ -137,13 +139,13 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(creation_err(
+                return creation_err(
                     String::from(
                         "Prisma Client error. Could not fetch client.",
                     ),
                     Some(false),
                     None,
-                ))
+                )
             }
             Some(res) => res,
         };
@@ -226,11 +228,11 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             .await
         {
             Err(err) => {
-                return Err(fetching_err(
+                return fetching_err(
                     format!("Unexpected error on parse user email: {:?}", err,),
                     None,
                     None,
-                ))
+                )
             }
             Ok(res) => res,
         };

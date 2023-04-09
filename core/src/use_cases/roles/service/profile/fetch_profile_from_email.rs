@@ -4,7 +4,7 @@ use crate::domain::{
 };
 
 use clean_base::{
-    entities::default_response::{FetchManyResponseKind, FetchResponseKind},
+    entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::MappedErrors,
 };
 use futures::future;

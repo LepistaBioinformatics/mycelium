@@ -3,8 +3,7 @@ use crate::domain::{
     entities::AccountTypeRegistration,
 };
 use clean_base::{
-    entities::default_response::GetOrCreateResponseKind,
-    utils::errors::MappedErrors,
+    entities::GetOrCreateResponseKind, utils::errors::MappedErrors,
 };
 
 /// Get or create default accounts.

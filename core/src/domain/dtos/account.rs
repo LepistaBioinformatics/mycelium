@@ -3,7 +3,7 @@ use super::{guest::GuestUser, user::User};
 use chrono::{DateTime, Local};
 use clean_base::{
     dtos::enums::{ChildrenEnum, ParentEnum},
-    utils::errors::{invalid_arg_err, MappedErrors},
+    utils::errors::{factories::invalid_arg_err, MappedErrors},
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -136,11 +136,11 @@ impl VerboseStatus {
                 is_checked: Some(true),
                 is_archived: Some(false),
             }),
-            VerboseStatus::Unknown => Err(invalid_arg_err(
+            VerboseStatus::Unknown => invalid_arg_err(
                 "Account status could not be `Unknown`".to_string(),
                 Some(true),
                 None,
-            )),
+            ),
         }
     }
 }

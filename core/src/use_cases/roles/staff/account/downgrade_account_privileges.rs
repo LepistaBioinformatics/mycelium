@@ -11,10 +11,10 @@ use crate::{
 
 use clean_base::{
     dtos::enums::ParentEnum,
-    entities::default_response::{
+    entities::{
         FetchResponseKind, GetOrCreateResponseKind, UpdatingResponseKind,
     },
-    utils::errors::{use_case_err, MappedErrors},
+    utils::errors::{factories::use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
@@ -37,13 +37,13 @@ pub async fn downgrade_account_privileges(
     // ? -----------------------------------------------------------------------
 
     if !profile.is_staff {
-        return Err(use_case_err(
+        return use_case_err(
             "The current user has no sufficient privileges to downgrade 
             accounts."
                 .to_string(),
             Some(true),
             None,
-        ));
+        );
     }
 
     // ? -----------------------------------------------------------------------
@@ -53,11 +53,11 @@ pub async fn downgrade_account_privileges(
     if !vec![AccountTypeEnum::Standard, AccountTypeEnum::Manager]
         .contains(&target_account_type)
     {
-        return Err(use_case_err(
+        return use_case_err(
             String::from("Invalid upgrade target."),
             Some(true),
             None,
-        ));
+        );
     }
 
     // ? -----------------------------------------------------------------------
@@ -68,11 +68,11 @@ pub async fn downgrade_account_privileges(
         Err(err) => return Err(err),
         Ok(res) => match res {
             FetchResponseKind::NotFound(id) => {
-                return Err(use_case_err(
+                return use_case_err(
                     format!("Invalid account id: {}", id.unwrap()),
                     Some(true),
                     None,
-                ))
+                )
             }
             FetchResponseKind::Found(res) => res,
         },

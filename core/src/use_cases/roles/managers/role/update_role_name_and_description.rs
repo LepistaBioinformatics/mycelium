@@ -3,8 +3,8 @@ use crate::domain::{
     entities::{RoleFetching, RoleUpdating},
 };
 use clean_base::{
-    entities::default_response::{FetchResponseKind, UpdatingResponseKind},
-    utils::errors::{use_case_err, MappedErrors},
+    entities::{FetchResponseKind, UpdatingResponseKind},
+    utils::errors::{factories::use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
@@ -24,12 +24,12 @@ pub async fn update_role_name_and_description(
     // ? ----------------------------------------------------------------------
 
     if !profile.is_manager {
-        return Err(use_case_err(
+        return use_case_err(
             "The current user has no sufficient privileges to update roles."
                 .to_string(),
             Some(true),
             None,
-        ));
+        );
     }
 
     // ? ----------------------------------------------------------------------
@@ -40,11 +40,11 @@ pub async fn update_role_name_and_description(
         Err(err) => return Err(err),
         Ok(res) => match res {
             FetchResponseKind::NotFound(id) => {
-                return Err(use_case_err(
+                return use_case_err(
                     format!("Invalid account id: {}", id.unwrap()),
                     Some(true),
                     None,
-                ))
+                )
             }
             FetchResponseKind::Found(res) => res,
         },

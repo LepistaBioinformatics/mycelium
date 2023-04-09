@@ -5,8 +5,8 @@ use crate::{
 
 use async_trait::async_trait;
 use clean_base::{
-    entities::default_response::GetOrCreateResponseKind,
-    utils::errors::{creation_err, MappedErrors},
+    entities::GetOrCreateResponseKind,
+    utils::errors::{factories::creation_err, MappedErrors},
 };
 use myc_core::domain::{
     dtos::account::AccountType, entities::AccountTypeRegistration,
@@ -33,13 +33,13 @@ impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(creation_err(
+                return creation_err(
                     String::from(
                         "Prisma Client error. Could not fetch client.",
                     ),
                     Some(false),
                     None,
-                ))
+                )
             }
             Some(res) => res,
         };
@@ -110,14 +110,14 @@ impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
                 }))
             }
             Err(err) => {
-                return Err(creation_err(
+                return creation_err(
                     format!(
                         "Unexpected error detected on create record: {}",
                         err
                     ),
                     None,
                     None,
-                ));
+                );
             }
         }
     }

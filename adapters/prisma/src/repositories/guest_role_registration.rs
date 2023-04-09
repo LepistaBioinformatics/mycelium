@@ -6,8 +6,8 @@ use crate::{
 use async_trait::async_trait;
 use clean_base::{
     dtos::enums::ParentEnum,
-    entities::default_response::GetOrCreateResponseKind,
-    utils::errors::{creation_err, MappedErrors},
+    entities::GetOrCreateResponseKind,
+    utils::errors::{factories::creation_err, MappedErrors},
 };
 use myc_core::domain::{
     dtos::guest::{GuestRole, PermissionsType},
@@ -35,13 +35,13 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(creation_err(
+                return creation_err(
                     String::from(
                         "Prisma Client error. Could not fetch client.",
                     ),
                     Some(false),
                     None,
-                ))
+                )
             }
             Some(res) => res,
         };
@@ -94,14 +94,14 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                     ParentEnum::Id(id) => id.to_string(),
                     ParentEnum::Record(record) => match record.id {
                         None => {
-                            return Err(creation_err(
+                            return creation_err(
                                 format!(
                                     "Role ID not available: {:?}",
                                     guest_role.id.to_owned(),
                                 ),
                                 None,
                                 None,
-                            ))
+                            )
                         }
                         Some(id) => id.to_string(),
                     },
@@ -139,14 +139,14 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                 }))
             }
             Err(err) => {
-                return Err(creation_err(
+                return creation_err(
                     format!(
                         "Unexpected error detected on create record: {}",
                         err
                     ),
                     None,
                     None,
-                ));
+                );
             }
         }
     }

@@ -4,8 +4,8 @@ use crate::domain::{
 };
 
 use clean_base::{
-    entities::default_response::FetchManyResponseKind,
-    utils::errors::{use_case_err, MappedErrors},
+    entities::FetchManyResponseKind,
+    utils::errors::{factories::use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
@@ -21,13 +21,13 @@ pub async fn list_guest_roles(
     // ? -----------------------------------------------------------------------
 
     if !profile.is_manager {
-        return Err(use_case_err(
+        return use_case_err(
             "The current user has no sufficient privileges to register new 
             role."
                 .to_string(),
             Some(true),
             None,
-        ));
+        );
     }
 
     // ? -----------------------------------------------------------------------

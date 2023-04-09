@@ -8,8 +8,8 @@ use crate::domain::{
 
 use clean_base::{
     dtos::enums::ParentEnum,
-    entities::default_response::GetOrCreateResponseKind,
-    utils::errors::{use_case_err, MappedErrors},
+    entities::GetOrCreateResponseKind,
+    utils::errors::{factories::use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
@@ -43,13 +43,13 @@ pub async fn create_guest_role(
     // ? ----------------------------------------------------------------------
 
     if !profile.is_manager {
-        return Err(use_case_err(
+        return use_case_err(
             "The current user has no sufficient privileges to register new 
             guest-roles."
                 .to_string(),
             Some(true),
             None,
-        ));
+        );
     }
 
     // ? ----------------------------------------------------------------------

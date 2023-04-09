@@ -91,7 +91,7 @@ pub mod account_endpoints {
 
     use actix_web::{get, patch, post, web, HttpResponse, Responder};
     use actix_web_httpauth::extractors::bearer::Config;
-    use clean_base::entities::default_response::{
+    use clean_base::entities::{
         FetchManyResponseKind, FetchResponseKind, GetOrCreateResponseKind,
         UpdatingResponseKind,
     };
@@ -810,7 +810,7 @@ pub mod guest_endpoints {
     };
 
     use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
-    use clean_base::entities::default_response::{
+    use clean_base::entities::{
         DeletionResponseKind, FetchManyResponseKind, GetOrCreateResponseKind,
         UpdatingResponseKind,
     };
@@ -1250,7 +1250,7 @@ pub mod guest_role_endpoints {
     };
 
     use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
-    use clean_base::entities::default_response::{
+    use clean_base::entities::{
         DeletionResponseKind, FetchManyResponseKind, GetOrCreateResponseKind,
         UpdatingResponseKind,
     };
@@ -1665,7 +1665,7 @@ pub mod role_endpoints {
     };
 
     use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
-    use clean_base::entities::default_response::{
+    use clean_base::entities::{
         DeletionResponseKind, FetchManyResponseKind, GetOrCreateResponseKind,
         UpdatingResponseKind,
     };

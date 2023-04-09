@@ -10,8 +10,8 @@ use async_trait::async_trait;
 use chrono::Local;
 use clean_base::{
     dtos::enums::ParentEnum,
-    entities::default_response::{CreateResponseKind, GetOrCreateResponseKind},
-    utils::errors::{creation_err, MappedErrors},
+    entities::{CreateResponseKind, GetOrCreateResponseKind},
+    utils::errors::{factories::creation_err, MappedErrors},
 };
 use myc_core::domain::{
     dtos::{
@@ -43,13 +43,13 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(creation_err(
+                return creation_err(
                     String::from(
                         "Prisma Client error. Could not fetch client.",
                     ),
                     Some(false),
                     None,
-                ))
+                )
             }
             Some(res) => res,
         };
@@ -65,11 +65,11 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 account_model::owner::is(vec![user_model::email::equals(
                     match account.owner.to_owned() {
                         ParentEnum::Id(_) => {
-                            return Err(creation_err(
+                            return creation_err(
                                 String::from("Could not create account. User e-mail invalid."),
                                 Some(true),
                                 None,
-                            ))
+                            )
                         }
                         ParentEnum::Record(record) => {
                             record.email.get_email().to_owned()
@@ -149,40 +149,40 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
             .create(
                 account.name,
                 user_model::id::equals(match account.owner {
-                    ParentEnum::Id(_) => return Err(creation_err(
+                    ParentEnum::Id(_) => return creation_err(
                         String::from(
                             "Could not create account. Invalid owner.",
                         ),
                         Some(true),
                         None,
-                    )),
+                    ),
                     ParentEnum::Record(record) => match record.id {
-                        None => return Err(creation_err(
+                        None => return creation_err(
                             String::from(
                                 "Could not create account. User e-mail invalid.",
                             ),
                             Some(true),
                             None,
-                        )),
+                        ),
                         Some(res) => res.to_string(),
                     }
                 }),
                 account_type_model::id::equals(match account.account_type {
-                    ParentEnum::Id(_) => return Err(creation_err(
+                    ParentEnum::Id(_) => return creation_err(
                         String::from(
                             "Could not create account. Invalid account type.",
                         ),
                         Some(true),
                         None,
-                    )),
+                    ),
                     ParentEnum::Record(record) => match record.id {
-                        None => return Err(creation_err(
+                        None => return creation_err(
                             String::from(
                                 "Could not create account. Invalid account type.",
                             ),
                             Some(true),
                             None,
-                        )),
+                        ),
                         Some(res) => res.to_string(),
                     }
                 }),
@@ -236,14 +236,14 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 },
             })),
             Err(err) => {
-                return Err(creation_err(
+                return creation_err(
                     format!(
                         "Unexpected error detected on update record: {}",
                         err
                     ),
                     Some(false),
                     None,
-                ));
+                );
             }
         }
     }

@@ -47,7 +47,7 @@ pub mod account_endpoints {
     };
 
     use actix_web::{patch, web, HttpResponse, Responder};
-    use clean_base::entities::default_response::UpdatingResponseKind;
+    use clean_base::entities::UpdatingResponseKind;
     use myc_core::{
         domain::{
             dtos::account::AccountTypeEnum,
