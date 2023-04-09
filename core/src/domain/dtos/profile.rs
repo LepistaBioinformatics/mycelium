@@ -7,13 +7,42 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct LicensedResources {
+    /// The guest account unique id
+    ///
     /// This is the unique identifier of the account that is own of the
     /// resource to be managed.
     pub guest_account_id: Uuid,
+
+    /// The guest account name
+    ///
+    /// This is the name of the account that is own of the resource to be
+    /// managed.
     pub guest_account_name: String,
+
+    /// The guest account role unique id
+    ///
+    /// This is the unique identifier of the role that is own of the resource
+    /// to be managed.
     pub guest_role_id: Uuid,
+
+    /// The guest account role name
+    ///
+    /// This is the name of the role that is own of the resource to be
+    /// managed.
     pub guest_role_name: String,
+
+    /// The guest account role verbose name
+    ///
+    /// This is the verbose name of the role that is own of the resource to be
+    /// managed.
     pub role: String,
+
+    /// The guest role permissions
+    ///
+    /// This is the list of permissions that the guest role has.
+    ///
+    /// # Example
+    ///     * `["view", "create", "update"]`
     pub permissions: Vec<PermissionsType>,
 }
 
