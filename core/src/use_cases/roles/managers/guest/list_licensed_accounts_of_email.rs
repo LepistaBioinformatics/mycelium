@@ -27,9 +27,8 @@ pub async fn list_licensed_accounts_of_email(
         return use_case_err(
             "The current user has no sufficient privileges to guest accounts."
                 .to_string(),
-            Some(true),
-            None,
-        );
+        )
+        .as_error();
     };
 
     // ? -----------------------------------------------------------------------

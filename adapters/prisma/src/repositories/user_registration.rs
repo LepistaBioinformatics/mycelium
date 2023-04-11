@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use chrono::Local;
 use clean_base::{
     entities::{CreateResponseKind, GetOrCreateResponseKind},
-    utils::errors::{creation_err, MappedErrors},
+    utils::errors::{factories::creation_err, MappedErrors},
 };
 use myc_core::domain::{
     dtos::{email::Email, user::User},
@@ -32,13 +32,10 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(creation_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
+                return creation_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
                 ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -114,14 +111,11 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                 }))
             }
             Err(err) => {
-                return Err(creation_err(
-                    format!(
-                        "Unexpected error detected on update record: {}",
-                        err
-                    ),
-                    Some(false),
-                    None,
-                ));
+                return creation_err(format!(
+                    "Unexpected error detected on update record: {}",
+                    err
+                ))
+                .as_error();
             }
         }
     }

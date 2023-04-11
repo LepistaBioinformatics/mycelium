@@ -33,9 +33,8 @@ pub async fn update_user_guest_role(
             "The current user has no sufficient privileges to update 
 account guests."
                 .to_string(),
-            Some(true),
-            None,
-        );
+        )
+        .as_error();
     };
 
     guest_user_on_account_updating_repo

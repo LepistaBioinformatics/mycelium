@@ -27,9 +27,8 @@ pub async fn get_account_details(
             "The current user has no sufficient privileges to register 
             subscription accounts."
                 .to_string(),
-            Some(true),
-            None,
-        );
+        )
+        .as_error();
     };
 
     // ? -----------------------------------------------------------------------

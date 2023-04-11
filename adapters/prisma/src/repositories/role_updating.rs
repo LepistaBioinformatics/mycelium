@@ -3,7 +3,7 @@ use crate::{prisma::role as role_model, repositories::connector::get_client};
 use async_trait::async_trait;
 use clean_base::{
     entities::UpdatingResponseKind,
-    utils::errors::{updating_err, MappedErrors},
+    utils::errors::{factories::updating_err, MappedErrors},
 };
 use myc_core::domain::{dtos::role::Role, entities::RoleUpdating};
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
@@ -29,13 +29,10 @@ impl RoleUpdating for RoleUpdatingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(updating_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
+                return updating_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
                 ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -46,11 +43,10 @@ impl RoleUpdating for RoleUpdatingSqlDbRepository {
 
         let role_id = match role.id {
             None => {
-                return Err(updating_err(
-                    String::from("Unable to update user. Invalid record ID"),
-                    None,
-                    None,
+                return updating_err(String::from(
+                    "Unable to update user. Invalid record ID",
                 ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -75,21 +71,18 @@ impl RoleUpdating for RoleUpdatingSqlDbRepository {
             })),
             Err(err) => {
                 if err.is_prisma_error::<RecordNotFound>() {
-                    return Err(updating_err(
-                        format!("Invalid primary key: {:?}", role_id),
-                        None,
-                        None,
-                    ));
+                    return updating_err(format!(
+                        "Invalid primary key: {:?}",
+                        role_id
+                    ))
+                    .as_error();
                 };
 
-                return Err(updating_err(
-                    format!(
-                        "Unexpected error detected on update record: {}",
-                        err
-                    ),
-                    Some(false),
-                    None,
-                ));
+                return updating_err(format!(
+                    "Unexpected error detected on update record: {}",
+                    err
+                ))
+                .as_error();
             }
         }
     }

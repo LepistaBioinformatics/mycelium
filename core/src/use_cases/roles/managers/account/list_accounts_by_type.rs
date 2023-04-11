@@ -39,9 +39,8 @@ pub async fn list_accounts_by_type(
             "The current user has no sufficient privileges to list 
             subscription accounts."
                 .to_string(),
-            Some(true),
-            None,
-        );
+        )
+        .as_error();
     };
 
     // ? -----------------------------------------------------------------------

@@ -43,13 +43,10 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return creation_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
-                )
+                return creation_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -67,9 +64,8 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         ParentEnum::Id(_) => {
                             return creation_err(
                                 String::from("Could not create account. User e-mail invalid."),
-                                Some(true),
-                                None,
-                            )
+                                
+                            ).as_error()
                         }
                         ParentEnum::Record(record) => {
                             record.email.get_email().to_owned()
@@ -149,17 +145,13 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         String::from(
                             "Could not create account. Invalid owner.",
                         ),
-                        Some(true),
-                        None,
-                    ),
+                    ).as_error(),
                     ParentEnum::Record(record) => match record.id {
                         None => return creation_err(
                             String::from(
                                 "Could not create account. User e-mail invalid.",
                             ),
-                            Some(true),
-                            None,
-                        ),
+                        ).as_error(),
                         Some(res) => res.to_string(),
                     }
                 }),
@@ -168,17 +160,13 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         String::from(
                             "Could not create account. Invalid account type.",
                         ),
-                        Some(true),
-                        None,
-                    ),
+                    ).as_error(),
                     ParentEnum::Record(record) => match record.id {
                         None => return creation_err(
                             String::from(
                                 "Could not create account. Invalid account type.",
-                            ),
-                            Some(true),
-                            None,
-                        ),
+                            )
+                        ).as_error(),
                         Some(res) => res.to_string(),
                     }
                 }),
@@ -234,9 +222,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         "Unexpected error detected on update record: {}",
                         err
                     ),
-                    Some(false),
-                    None,
-                );
+                ).as_error();
             }
         }
     }

@@ -3,7 +3,7 @@ use crate::{prisma::role as role_model, repositories::connector::get_client};
 use async_trait::async_trait;
 use clean_base::{
     entities::{CreateResponseKind, GetOrCreateResponseKind},
-    utils::errors::{creation_err, MappedErrors},
+    utils::errors::{factories::creation_err, MappedErrors},
 };
 use myc_core::domain::{dtos::role::Role, entities::RoleRegistration};
 use shaku::Component;
@@ -28,13 +28,10 @@ impl RoleRegistration for RoleRegistrationSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(creation_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
+                return creation_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
                 ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -85,14 +82,11 @@ impl RoleRegistration for RoleRegistrationSqlDbRepository {
                 }))
             }
             Err(err) => {
-                return Err(creation_err(
-                    format!(
-                        "Unexpected error detected on create record: {}",
-                        err
-                    ),
-                    None,
-                    None,
-                ));
+                return creation_err(format!(
+                    "Unexpected error detected on create record: {}",
+                    err
+                ))
+                .as_error();
             }
         }
     }

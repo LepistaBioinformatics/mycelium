@@ -34,13 +34,10 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return fetching_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
-                )
+                return fetching_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -87,13 +84,10 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return fetching_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
-                )
+                return fetching_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -120,11 +114,12 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
 
         match client.guest_role().find_many(query_stmt).exec().await {
             Err(err) => {
-                return fetching_err(
-                    format!("Unexpected error on parse user email: {:?}", err,),
-                    None,
-                    None,
-                )
+                return fetching_err(format!(
+                    "Unexpected error on parse user email: {:?}",
+                    err,
+                ))
+                .with_exp_false()
+                .as_error()
             }
             Ok(res) => {
                 let response = res

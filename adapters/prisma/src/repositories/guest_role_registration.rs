@@ -35,13 +35,10 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return creation_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
-                )
+                return creation_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -94,14 +91,12 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                     ParentEnum::Id(id) => id.to_string(),
                     ParentEnum::Record(record) => match record.id {
                         None => {
-                            return creation_err(
-                                format!(
-                                    "Role ID not available: {:?}",
-                                    guest_role.id.to_owned(),
-                                ),
-                                None,
-                                None,
-                            )
+                            return creation_err(format!(
+                                "Role ID not available: {:?}",
+                                guest_role.id.to_owned(),
+                            ))
+                            .with_exp_false()
+                            .as_error()
                         }
                         Some(id) => id.to_string(),
                     },
@@ -139,14 +134,12 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                 }))
             }
             Err(err) => {
-                return creation_err(
-                    format!(
-                        "Unexpected error detected on create record: {}",
-                        err
-                    ),
-                    None,
-                    None,
-                );
+                return creation_err(format!(
+                    "Unexpected error detected on create record: {}",
+                    err
+                ))
+                .with_exp_false()
+                .as_error();
             }
         }
     }

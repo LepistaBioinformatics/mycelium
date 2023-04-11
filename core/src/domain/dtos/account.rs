@@ -138,9 +138,8 @@ impl VerboseStatus {
             }),
             VerboseStatus::Unknown => invalid_arg_err(
                 "Account status could not be `Unknown`".to_string(),
-                Some(true),
-                None,
-            ),
+            )
+            .as_error(),
         }
     }
 }

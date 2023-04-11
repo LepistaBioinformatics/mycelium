@@ -27,11 +27,8 @@ pub async fn update_own_account_name(
         .await?
     {
         FetchResponseKind::NotFound(id) => {
-            return use_case_err(
-                format!("Invalid account id: {}", id.unwrap()),
-                Some(true),
-                None,
-            )
+            return use_case_err(format!("Invalid account id: {}", id.unwrap()))
+                .as_error()
         }
         FetchResponseKind::Found(res) => res,
     };

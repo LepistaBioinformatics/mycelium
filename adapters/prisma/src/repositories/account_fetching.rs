@@ -43,13 +43,10 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return creation_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
-                )
+                return creation_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -66,11 +63,11 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             .await
         {
             Err(err) => {
-                return creation_err(
-                    format!("Unexpected error on parse user email: {:?}", err,),
-                    None,
-                    None,
-                )
+                return creation_err(format!(
+                    "Unexpected error on parse user email: {:?}",
+                    err,
+                ))
+                .as_error()
             }
             Ok(res) => match res {
                 None => Ok(FetchResponseKind::NotFound(Some(id))),
@@ -139,13 +136,10 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return creation_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
-                )
+                return creation_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -228,11 +222,11 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             .await
         {
             Err(err) => {
-                return fetching_err(
-                    format!("Unexpected error on parse user email: {:?}", err,),
-                    None,
-                    None,
-                )
+                return fetching_err(format!(
+                    "Unexpected error on parse user email: {:?}",
+                    err
+                ))
+                .as_error()
             }
             Ok(res) => res,
         };

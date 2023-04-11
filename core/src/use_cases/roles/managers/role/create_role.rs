@@ -27,9 +27,8 @@ pub async fn create_role(
             "The current user has no sufficient privileges to register new 
             role."
                 .to_string(),
-            Some(true),
-            None,
-        );
+        )
+        .as_error();
     }
 
     // ? ----------------------------------------------------------------------

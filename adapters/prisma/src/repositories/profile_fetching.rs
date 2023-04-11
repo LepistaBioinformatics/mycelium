@@ -6,7 +6,7 @@ use crate::{
 use async_trait::async_trait;
 use clean_base::{
     entities::FetchResponseKind,
-    utils::errors::{fetching_err, MappedErrors},
+    utils::errors::{factories::fetching_err, MappedErrors},
 };
 use myc_core::domain::{
     dtos::{account::VerboseStatus, email::Email, profile::Profile},
@@ -28,13 +28,10 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
         _: Option<String>,
     ) -> Result<FetchResponseKind<Profile, String>, MappedErrors> {
         let email = if let None = email {
-            return Err(fetching_err(
-                String::from(
-                    "Email could not be empty during profile checking.",
-                ),
-                Some(false),
-                None,
-            ));
+            return fetching_err(String::from(
+                "Email could not be empty during profile checking.",
+            ))
+            .as_error();
         } else {
             email.unwrap()
         };
@@ -47,13 +44,10 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(fetching_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
+                return fetching_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
                 ))
+                .as_error()
             }
             Some(res) => res,
         };

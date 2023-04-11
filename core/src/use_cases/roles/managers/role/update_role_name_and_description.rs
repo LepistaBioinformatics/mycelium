@@ -27,9 +27,8 @@ pub async fn update_role_name_and_description(
         return use_case_err(
             "The current user has no sufficient privileges to update roles."
                 .to_string(),
-            Some(true),
-            None,
-        );
+        )
+        .as_error();
     }
 
     // ? ----------------------------------------------------------------------
@@ -38,11 +37,8 @@ pub async fn update_role_name_and_description(
 
     let mut role = match role_fetching_repo.get(role_id).await? {
         FetchResponseKind::NotFound(id) => {
-            return use_case_err(
-                format!("Invalid account id: {}", id.unwrap()),
-                Some(true),
-                None,
-            )
+            return use_case_err(format!("Invalid account id: {}", id.unwrap()))
+                .as_error()
         }
         FetchResponseKind::Found(res) => res,
     };

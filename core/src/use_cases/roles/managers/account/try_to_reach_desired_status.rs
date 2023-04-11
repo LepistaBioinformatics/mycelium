@@ -14,29 +14,15 @@ pub(super) async fn try_to_reach_desired_status(
         desired_status.to_owned(),
         account.to_owned().verbose_status,
     ) {
-        return use_case_err(
-            format!(
-                "Could not transit from `{:?}` to `{:?}`",
-                account.verbose_status.unwrap(),
-                desired_status,
-            ),
-            Some(true),
-            None,
-        );
+        return use_case_err(format!(
+            "Could not transit from `{:?}` to `{:?}`",
+            account.verbose_status.unwrap(),
+            desired_status,
+        ))
+        .as_error();
     }
 
-    let flags = match desired_status.to_flags() {
-        Err(err) => {
-            return use_case_err(
-                format!(
-                    "Unexpected error on chance approval account status: {err}",
-                ),
-                Some(true),
-                None,
-            )
-        }
-        Ok(res) => res,
-    };
+    let flags = desired_status.to_flags()?;
 
     if flags.is_active.is_some() {
         account.is_active = flags.is_active.unwrap();

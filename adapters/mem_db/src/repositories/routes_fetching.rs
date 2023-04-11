@@ -24,11 +24,8 @@ impl RoutesFetching for RoutesFetchingMemDbRepo {
         let db = ROUTES.lock().await.clone();
 
         if db.len() == 0 {
-            return fetching_err(
-                "Routes already not initialized.".to_string(),
-                Some(true),
-                None,
-            );
+            return fetching_err("Routes already not initialized.".to_string())
+                .as_error();
         }
 
         let path_string = path.to_string();

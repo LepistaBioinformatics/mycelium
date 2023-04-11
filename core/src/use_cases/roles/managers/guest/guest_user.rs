@@ -34,9 +34,8 @@ pub async fn guest_user(
         return use_case_err(
             "The current user has no sufficient privileges to guest accounts."
                 .to_string(),
-            Some(true),
-            None,
-        );
+        )
+        .as_error();
     };
 
     // ? -----------------------------------------------------------------------
@@ -47,34 +46,28 @@ pub async fn guest_user(
 
     match account_fetching_repo.get(target_account_id).await? {
         FetchResponseKind::NotFound(id) => {
-            return use_case_err(
-                format!("Target account not found: {:?}", id.unwrap()),
-                None,
-                None,
-            )
+            return use_case_err(format!(
+                "Target account not found: {:?}",
+                id.unwrap()
+            ))
+            .as_error()
         }
         FetchResponseKind::Found(account) => match account.account_type {
             ParentEnum::Id(id) => {
-                return use_case_err(
-                    format!(
-                        "Could not check the account type validity: {}",
-                        id
-                    ),
-                    None,
-                    None,
-                )
+                return use_case_err(format!(
+                    "Could not check the account type validity: {}",
+                    id
+                ))
+                .as_error()
             }
             ParentEnum::Record(account_type) => {
                 if !account_type.is_subscription {
-                    return use_case_err(
-                        format!(
-                            "Invalid account ({:?}). Only subscription 
+                    return use_case_err(format!(
+                        "Invalid account ({:?}). Only subscription 
                             accounts should receive guesting.",
-                            account_type.id
-                        ),
-                        None,
-                        None,
-                    );
+                        account_type.id
+                    ))
+                    .as_error();
                 }
             }
         },

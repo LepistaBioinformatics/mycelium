@@ -12,7 +12,10 @@ use chrono::DateTime;
 use clean_base::{
     dtos::enums::ParentEnum,
     entities::UpdatingResponseKind,
-    utils::errors::{factories::deletion_err, updating_err, MappedErrors},
+    utils::errors::{
+        factories::{deletion_err, updating_err},
+        MappedErrors,
+    },
 };
 use myc_core::domain::{
     dtos::{email::Email, guest::GuestUser},
@@ -43,13 +46,10 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return deletion_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
-                )
+                return deletion_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -67,19 +67,19 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
             .await
         {
             Err(err) => {
-                return Err(updating_err(
-                    format!("Unable to fetch guest-user object: {err}"),
-                    None,
-                    None,
+                return updating_err(format!(
+                    "Unable to fetch guest-user object: {err}"
                 ))
+                .with_exp_false()
+                .as_error()
             }
             Ok(res) => match res {
                 None => {
-                    return Err(updating_err(
-                        String::from("Unable to fetch guest-user object"),
-                        None,
-                        None,
+                    return updating_err(String::from(
+                        "Unable to fetch guest-user object",
                     ))
+                    .with_exp_false()
+                    .as_error()
                 }
                 Some(record) => GuestUser {
                     id: Some(Uuid::parse_str(&record.id).unwrap()),
@@ -135,11 +135,11 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
             .await
         {
             Err(err) => {
-                return Err(updating_err(
-                    format!("Unable to update guest-user object: {err}"),
-                    None,
-                    None,
+                return updating_err(format!(
+                    "Unable to update guest-user object: {err}"
                 ))
+                .with_exp_false()
+                .as_error()
             }
             Ok(res) => Ok(UpdatingResponseKind::Updated(res)),
         }

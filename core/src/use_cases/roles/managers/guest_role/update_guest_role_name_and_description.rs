@@ -28,9 +28,8 @@ pub async fn update_guest_role_name_and_description(
     if !profile.is_manager {
         return use_case_err(
             "Only manager user could perform such operation.".to_string(),
-            Some(true),
-            None,
-        );
+        )
+        .as_error();
     };
 
     // ? ----------------------------------------------------------------------
@@ -39,11 +38,11 @@ pub async fn update_guest_role_name_and_description(
 
     let mut user_role = match role_fetching_repo.get(role_id).await? {
         FetchResponseKind::NotFound(id) => {
-            return use_case_err(
-                format!("Unable to update record: {}", id.unwrap()),
-                Some(true),
-                None,
-            );
+            return use_case_err(format!(
+                "Unable to update record: {}",
+                id.unwrap()
+            ))
+            .as_error();
         }
         FetchResponseKind::Found(role) => role,
     };

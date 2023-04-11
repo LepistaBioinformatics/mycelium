@@ -35,13 +35,10 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return updating_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
-                )
+                return updating_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -52,11 +49,11 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
 
         let user_role_id = match user_role.id {
             None => {
-                return updating_err(
-                    String::from("Unable to update account. Invalid record ID"),
-                    None,
-                    None,
-                )
+                return updating_err(String::from(
+                    "Unable to update account. Invalid record ID",
+                ))
+                .with_exp_false()
+                .as_error()
             }
             Some(res) => res,
         };
@@ -94,21 +91,19 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
             })),
             Err(err) => {
                 if err.is_prisma_error::<RecordNotFound>() {
-                    return updating_err(
-                        format!("Invalid primary key: {:?}", user_role_id),
-                        None,
-                        None,
-                    );
+                    return updating_err(format!(
+                        "Invalid primary key: {:?}",
+                        user_role_id
+                    ))
+                    .with_exp_false()
+                    .as_error();
                 };
 
-                return updating_err(
-                    format!(
-                        "Unexpected error detected on update record: {}",
-                        err
-                    ),
-                    Some(false),
-                    None,
-                );
+                return updating_err(format!(
+                    "Unexpected error detected on update record: {}",
+                    err
+                ))
+                .as_error();
             }
         }
     }
