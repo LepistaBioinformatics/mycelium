@@ -1,13 +1,16 @@
 use crate::{
-    providers::check_credentials, responses::GatewayError, LicensedResources,
-    Profile,
+    providers::{az_check_credentials, gc_check_credentials},
+    responses::GatewayError,
+    LicensedResources, Profile,
 };
 
-use actix_web::{dev::Payload, FromRequest, HttpRequest};
+use actix_web::{dev::Payload, http::header::Header, FromRequest, HttpRequest};
+use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use futures::Future;
+use jwt::{Header as JwtHeader, RegisteredClaims, Token};
 use log::{debug, warn};
 use myc_core::{
-    domain::dtos::account::VerboseStatus,
+    domain::dtos::{account::VerboseStatus, email::Email},
     use_cases::roles::service::profile::{
         fetch_profile_from_email, ProfileResponse,
     },
@@ -84,17 +87,7 @@ impl FromRequest for MyceliumProfileData {
 pub(super) async fn fetch_profile_from_request(
     req: HttpRequest,
 ) -> Result<MyceliumProfileData, GatewayError> {
-    let email = match check_credentials(req.to_owned()).await {
-        Err(err) => {
-            warn!("{:?}", err);
-            return Err(GatewayError::Forbidden(format!("{err}")));
-        }
-        Ok(res) => {
-            debug!("Requesting Email: {:?}", res);
-
-            Some(res)
-        }
-    };
+    let email = check_credentials_with_multi_identity_provider(req).await?;
 
     if email.is_none() {
         return Err(GatewayError::Forbidden(format!(
@@ -129,4 +122,42 @@ pub(super) async fn fetch_profile_from_request(
     };
 
     Ok(MyceliumProfileData::from_profile(profile))
+}
+
+/// Try to populate profile to request header
+///
+/// This function is used to check credentials from multiple identity providers.
+async fn check_credentials_with_multi_identity_provider(
+    req: HttpRequest,
+) -> Result<Option<Email>, GatewayError> {
+    let auth = match Authorization::<Bearer>::parse(&req) {
+        Err(err) => {
+            return Err(GatewayError::Forbidden(format!("{err}")));
+        }
+        Ok(res) => res,
+    }
+    .to_string();
+
+    let unverified: Token<JwtHeader, RegisteredClaims, _> =
+        match Token::parse_unverified(&auth) {
+            Err(err) => {
+                warn!("{:?}", err);
+                return Err(GatewayError::Forbidden(format!("{err}")));
+            }
+            Ok(res) => res,
+        };
+
+    println!("{:?}", unverified.claims());
+
+    match gc_check_credentials(req.to_owned()).await {
+        Err(err) => {
+            warn!("{:?}", err);
+            Err(GatewayError::Forbidden(format!("{err}")))
+        }
+        Ok(res) => {
+            debug!("Requesting Email: {:?}", res);
+
+            Ok(Some(res))
+        }
+    }
 }

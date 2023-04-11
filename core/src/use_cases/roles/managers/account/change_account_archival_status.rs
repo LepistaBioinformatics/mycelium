@@ -31,11 +31,8 @@ pub async fn change_account_archival_status(
 
     let account = match account_fetching_repo.get(account_id).await? {
         FetchResponseKind::NotFound(id) => {
-            return use_case_err(
-                format!("Invalid account ID: {:?}", id),
-                Some(true),
-                None,
-            )
+            return use_case_err(format!("Invalid account ID: {:?}", id))
+                .as_error()
         }
         FetchResponseKind::Found(res) => res,
     };
@@ -47,14 +44,11 @@ pub async fn change_account_archival_status(
     // Check if the account id os Some. Case false the operation is prohibited.
     let target_account_id = match account.id {
         None => {
-            return use_case_err(
-                format!(
-                    "Prohibited operation. Target account ({account_id}) could 
+            return use_case_err(format!(
+                "Prohibited operation. Target account ({account_id}) could 
 not be checked."
-                ),
-                Some(true),
-                None,
-            )
+            ))
+            .as_error()
         }
         Some(res) => res,
     };
@@ -65,37 +59,28 @@ not be checked."
         .into_iter()
         .any(|i| i == true)
     {
-        return use_case_err(
-            format!(
-                "Not enough permissions approve the account {target_account_id}."
-            ),
-            Some(true),
-            None,
-        );
+        return use_case_err(format!(
+            "Not enough permissions approve the account {target_account_id}."
+        ))
+        .as_error();
     }
 
     // Check if the target account to be changed is a Standard account.
     match account.to_owned().account_type {
         Id(_) => {
-            return use_case_err(
-                format!(
-                    "Prohibited operation. Account type of the target account 
+            return use_case_err(format!(
+                "Prohibited operation. Account type of the target account 
 ({account_id}) could not be checked."
-                ),
-                Some(true),
-                None,
-            )
+            ))
+            .as_error()
         }
         Record(res) => {
             if profile.is_manager && !profile.is_staff && res.is_staff {
-                return use_case_err(
-                    String::from(
-                        "Prohibited operation. Managers could not perform 
+                return use_case_err(String::from(
+                    "Prohibited operation. Managers could not perform 
 editions on accounts with more privileges than himself.",
-                    ),
-                    Some(true),
-                    None,
-                );
+                ))
+                .as_error();
             }
         }
     };

@@ -87,14 +87,11 @@ pub async fn create_seed_staff_account(
         .await?
     {
         GetOrCreateResponseKind::NotCreated(user, msg) => {
-            return use_case_err(
-                format!(
-                    "Unexpected error on persist user ({}): {}",
-                    user.username, msg,
-                ),
-                Some(true),
-                None,
-            )
+            return use_case_err(format!(
+                "Unexpected error on persist user ({}): {}",
+                user.username, msg,
+            ))
+            .as_error()
         }
         GetOrCreateResponseKind::Created(user) => user,
     };

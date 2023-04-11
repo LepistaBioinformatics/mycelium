@@ -32,13 +32,10 @@ impl GuestUserDeletion for GuestUserDeletionSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return deletion_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
-                )
+                return deletion_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .as_error()
             }
             Some(res) => res,
         };

@@ -36,13 +36,10 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return updating_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
-                )
+                return updating_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -53,11 +50,11 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
 
         let account_id = match account.id {
             None => {
-                return updating_err(
-                    String::from("Unable to update account. Invalid record ID"),
-                    None,
-                    None,
-                )
+                return updating_err(String::from(
+                    "Unable to update account. Invalid record ID",
+                ))
+                .with_exp_false()
+                .as_error()
             }
             Some(res) => res,
         };
@@ -77,9 +74,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                             None => {
                                 return updating_err(
                                     String::from("Unable to update account. Invalid account type ID"),
-                                    None,
-                                    None,
-                                )
+                                ).with_exp_false().as_error()
                             }
                             Some(id) => id.to_string(),
                         }
@@ -116,21 +111,19 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
             })),
             Err(err) => {
                 if err.is_prisma_error::<RecordNotFound>() {
-                    return updating_err(
-                        format!("Invalid primary key: {:?}", account_id),
-                        None,
-                        None,
-                    );
+                    return updating_err(format!(
+                        "Invalid primary key: {:?}",
+                        account_id
+                    ))
+                    .with_exp_false()
+                    .as_error();
                 };
 
-                return updating_err(
-                    format!(
-                        "Unexpected error detected on update record: {}",
-                        err
-                    ),
-                    Some(false),
-                    None,
-                );
+                return updating_err(format!(
+                    "Unexpected error detected on update record: {}",
+                    err
+                ))
+                .as_error();
             }
         }
     }

@@ -28,9 +28,8 @@ pub async fn list_guest_on_subscription_account(
         return use_case_err(
             "The current user has no sufficient privileges to guest accounts."
                 .to_string(),
-            Some(true),
-            None,
-        );
+        )
+        .as_error();
     };
 
     // ? -----------------------------------------------------------------------
@@ -39,11 +38,8 @@ pub async fn list_guest_on_subscription_account(
 
     let account = match account_fetching_repo.get(account_id).await? {
         FetchResponseKind::NotFound(id) => {
-            return use_case_err(
-                format!("Invalid account ID: {}", id.unwrap()),
-                Some(true),
-                None,
-            )
+            return use_case_err(format!("Invalid account ID: {}", id.unwrap()))
+                .as_error()
         }
         FetchResponseKind::Found(res) => res,
     };
@@ -54,19 +50,13 @@ pub async fn list_guest_on_subscription_account(
 
     match account.account_type {
         ParentEnum::Id(id) => {
-            return use_case_err(
-                format!("Invalid account ID: {}", id),
-                Some(true),
-                None,
-            )
+            return use_case_err(format!("Invalid account ID: {}", id))
+                .as_error()
         }
         ParentEnum::Record(account_type) => {
             if !account_type.is_subscription {
-                return use_case_err(
-                    format!("Account is not subscription."),
-                    Some(true),
-                    None,
-                );
+                return use_case_err(format!("Account is not subscription."))
+                    .as_error();
             }
         }
     }

@@ -47,9 +47,8 @@ pub async fn create_guest_role(
             "The current user has no sufficient privileges to register new 
             guest-roles."
                 .to_string(),
-            Some(true),
-            None,
-        );
+        )
+        .as_error();
     }
 
     // ? ----------------------------------------------------------------------

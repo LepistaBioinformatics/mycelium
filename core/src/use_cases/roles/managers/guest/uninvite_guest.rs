@@ -25,9 +25,7 @@ pub async fn uninvite_guest(
         return use_case_err(
             "The current user has no sufficient privileges to uninvite accounts."
                 .to_string(),
-            Some(true),
-            None,
-        );
+        ).as_error();
     };
 
     // ? -----------------------------------------------------------------------

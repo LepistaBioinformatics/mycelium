@@ -33,13 +33,10 @@ impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return creation_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
-                )
+                return creation_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -110,14 +107,12 @@ impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
                 }))
             }
             Err(err) => {
-                return creation_err(
-                    format!(
-                        "Unexpected error detected on create record: {}",
-                        err
-                    ),
-                    None,
-                    None,
-                );
+                return creation_err(format!(
+                    "Unexpected error detected on create record: {}",
+                    err
+                ))
+                .with_exp_false()
+                .as_error();
             }
         }
     }

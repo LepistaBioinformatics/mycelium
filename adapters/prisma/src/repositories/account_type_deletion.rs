@@ -32,13 +32,10 @@ impl AccountTypeDeletion for AccountTypeDeletionSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return deletion_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
-                )
+                return deletion_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -51,13 +48,10 @@ impl AccountTypeDeletion for AccountTypeDeletionSqlDbRepository {
             .account_type()
             .delete(account_type_model::id::equals(match account_type.id {
                 None => {
-                    return deletion_err(
-                        String::from(
-                            "Could not delete account type without ID.",
-                        ),
-                        Some(true),
-                        None,
-                    )
+                    return deletion_err(String::from(
+                        "Could not delete account type without ID.",
+                    ))
+                    .as_error()
                 }
                 Some(id) => id.to_string(),
             }))

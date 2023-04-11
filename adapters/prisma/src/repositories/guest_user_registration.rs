@@ -11,7 +11,7 @@ use chrono::DateTime;
 use clean_base::{
     dtos::enums::ParentEnum,
     entities::GetOrCreateResponseKind,
-    utils::errors::{creation_err, MappedErrors},
+    utils::errors::{factories::creation_err, MappedErrors},
 };
 use log::debug;
 use myc_core::domain::{
@@ -41,13 +41,10 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return Err(creation_err(
-                    String::from(
-                        "Prisma Client error. Could not fetch client.",
-                    ),
-                    Some(false),
-                    None,
+                return creation_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
                 ))
+                .as_error()
             }
             Some(res) => res,
         };
@@ -86,13 +83,10 @@ pub(super) async fn register_guest_user(
                             // !
                             // ! Error case return
                             // !
-                            return Err(creation_err(
-                                String::from(
-                                    "Unable to get the guest role ID.",
-                                ),
-                                Some(false),
-                                None,
-                            ));
+                            return creation_err(String::from(
+                                "Unable to get the guest role ID.",
+                            ))
+                            .as_error();
                         }
                         Some(id) => id.to_string(),
                     },
@@ -109,11 +103,11 @@ pub(super) async fn register_guest_user(
         // ! Error case return
         // !
         Err(err) => {
-            return Err(creation_err(
-                format!("Unexpected error on check guest user: {:?}", err),
-                None,
-                None,
+            return creation_err(format!(
+                "Unexpected error on check guest user: {:?}",
+                err
             ))
+            .as_error()
         }
         Ok(res) => res,
     };
@@ -157,14 +151,11 @@ pub(super) async fn register_guest_user(
                         ParentEnum::Id(id) => id.to_string(),
                         ParentEnum::Record(record) => match record.id {
                             None => {
-                                return Err(creation_err(
-                                    format!(
-                                        "Role ID not available: {:?}",
-                                        guest_user.id.to_owned(),
-                                    ),
-                                    None,
-                                    None,
+                                return creation_err(format!(
+                                    "Role ID not available: {:?}",
+                                    guest_user.id.to_owned(),
                                 ))
+                                .as_error()
                             }
                             Some(id) => id.to_string(),
                         },
@@ -182,14 +173,11 @@ pub(super) async fn register_guest_user(
             // ! Error case return
             // !
             Err(err) => {
-                return Err(creation_err(
-                    format!(
-                        "Unexpected error detected on create record: {}",
-                        err
-                    ),
-                    None,
-                    None,
-                ));
+                return creation_err(format!(
+                    "Unexpected error detected on create record: {}",
+                    err
+                ))
+                .as_error();
             }
             Ok(record) => GuestUser {
                 id: Some(Uuid::from_str(&record.id).unwrap()),
@@ -222,14 +210,11 @@ pub(super) async fn register_guest_user(
         .create(
             guest_user_model::id::equals(match _guest_user.id {
                 None => {
-                    return Err(creation_err(
-                        format!(
-                            "Unexpected error on try to guest user: {:?}",
-                            guest_user.id.to_owned(),
-                        ),
-                        None,
-                        None,
+                    return creation_err(format!(
+                        "Unexpected error on try to guest user: {:?}",
+                        guest_user.id.to_owned(),
                     ))
+                    .as_error()
                 }
                 Some(id) => id.to_string(),
             }),
@@ -240,11 +225,11 @@ pub(super) async fn register_guest_user(
         .await
     {
         Err(err) => {
-            return Err(creation_err(
-                format!("Unexpected error on create guest: {:?}", err,),
-                None,
-                None,
+            return creation_err(format!(
+                "Unexpected error on create guest: {:?}",
+                err
             ))
+            .as_error()
         }
         Ok(res) => res,
     };

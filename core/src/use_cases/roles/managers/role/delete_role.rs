@@ -20,9 +20,8 @@ pub async fn delete_role(
         return use_case_err(
             "The current user has no sufficient privileges to delete roles."
                 .to_string(),
-            Some(true),
-            None,
-        );
+        )
+        .as_error();
     }
 
     // ? ----------------------------------------------------------------------

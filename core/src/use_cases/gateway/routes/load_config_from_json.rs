@@ -62,22 +62,20 @@ pub async fn load_config_from_json(
                 match from_utf8(&data) {
                     Err(err) => {
                         error!("Invalid UTF-8 sequence: {err}");
-                        return use_case_err(
-                            format!("Invalid UTF-8 sequence: {err}"),
-                            None,
-                            None,
-                        );
+                        return use_case_err(format!(
+                            "Invalid UTF-8 sequence: {err}"
+                        ))
+                        .as_error();
                     }
                     Ok(res) => res,
                 },
             ) {
                 Err(err) => {
                     error!("Invalid UTF-8 sequence: {err}");
-                    return use_case_err(
-                        format!("Invalid UTF-8 sequence: {err}"),
-                        None,
-                        None,
-                    );
+                    return use_case_err(format!(
+                        "Invalid UTF-8 sequence: {err}"
+                    ))
+                    .as_error();
                 }
                 Ok(res) => Ok(res),
             }

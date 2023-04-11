@@ -41,9 +41,8 @@ pub async fn downgrade_account_privileges(
             "The current user has no sufficient privileges to downgrade 
             accounts."
                 .to_string(),
-            Some(true),
-            None,
-        );
+        )
+        .as_error();
     }
 
     // ? -----------------------------------------------------------------------
@@ -53,11 +52,8 @@ pub async fn downgrade_account_privileges(
     if !vec![AccountTypeEnum::Standard, AccountTypeEnum::Manager]
         .contains(&target_account_type)
     {
-        return use_case_err(
-            String::from("Invalid upgrade target."),
-            Some(true),
-            None,
-        );
+        return use_case_err(String::from("Invalid upgrade target."))
+            .as_error();
     }
 
     // ? -----------------------------------------------------------------------
@@ -66,11 +62,8 @@ pub async fn downgrade_account_privileges(
 
     let mut account = match account_fetching_repo.get(account_id).await? {
         FetchResponseKind::NotFound(id) => {
-            return use_case_err(
-                format!("Invalid account id: {}", id.unwrap()),
-                Some(true),
-                None,
-            )
+            return use_case_err(format!("Invalid account id: {}", id.unwrap()))
+                .as_error()
         }
         FetchResponseKind::Found(res) => res,
     };

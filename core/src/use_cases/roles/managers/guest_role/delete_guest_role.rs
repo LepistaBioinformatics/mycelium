@@ -22,9 +22,8 @@ pub async fn delete_guest_role(
     if !profile.is_manager {
         return use_case_err(
             "Only manager users could perform such operation.".to_string(),
-            Some(true),
-            None,
-        );
+        )
+        .as_error();
     };
 
     // ? ----------------------------------------------------------------------

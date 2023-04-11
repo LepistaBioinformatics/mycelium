@@ -1,5 +1,6 @@
 pub mod account;
 pub mod email;
+pub mod error_code;
 pub mod guest;
 pub mod health_check;
 pub mod http;
