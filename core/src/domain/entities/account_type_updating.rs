@@ -8,6 +8,6 @@ use shaku::Interface;
 pub trait AccountTypeUpdating: Interface + Send + Sync {
     async fn update(
         &self,
-        application: AccountType,
+        account_type: AccountType,
     ) -> Result<UpdatingResponseKind<AccountType>, MappedErrors>;
 }
