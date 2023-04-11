@@ -1,5 +1,5 @@
 use crate::{
-    prisma::guest_role as guest_role_model, repositories::connector::get_client,
+    prisma::error_code as error_code_model, repositories::connector::get_client,
 };
 
 use async_trait::async_trait;
@@ -7,21 +7,22 @@ use clean_base::{
     entities::DeletionResponseKind,
     utils::errors::{factories::deletion_err, MappedErrors},
 };
-use myc_core::domain::entities::GuestRoleDeletion;
+use myc_core::domain::{
+    dtos::error_code::ErrorCode, entities::ErrorCodeDeletion,
+};
 use shaku::Component;
 use std::process::id as process_id;
-use uuid::Uuid;
 
 #[derive(Component)]
-#[shaku(interface = GuestRoleDeletion)]
-pub struct GuestRoleDeletionSqlDbRepository {}
+#[shaku(interface = ErrorCodeDeletion)]
+pub struct ErrorCodeDeletionDeletionSqlDbRepository {}
 
 #[async_trait]
-impl GuestRoleDeletion for GuestRoleDeletionSqlDbRepository {
+impl ErrorCodeDeletion for ErrorCodeDeletionDeletionSqlDbRepository {
     async fn delete(
         &self,
-        user_role_id: Uuid,
-    ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
+        error_code: ErrorCode,
+    ) -> Result<DeletionResponseKind<ErrorCode>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -44,13 +45,16 @@ impl GuestRoleDeletion for GuestRoleDeletionSqlDbRepository {
         // ? -------------------------------------------------------------------
 
         match client
-            .guest_role()
-            .delete(guest_role_model::id::equals(user_role_id.to_string()))
+            .error_code()
+            .delete(error_code_model::prefix_code(
+                error_code.prefix.to_owned(),
+                error_code.code.to_owned(),
+            ))
             .exec()
             .await
         {
             Err(err) => Ok(DeletionResponseKind::NotDeleted(
-                user_role_id,
+                error_code,
                 err.to_string(),
             )),
             Ok(_) => Ok(DeletionResponseKind::Deleted),

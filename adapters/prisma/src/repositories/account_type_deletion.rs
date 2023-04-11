@@ -35,6 +35,7 @@ impl AccountTypeDeletion for AccountTypeDeletionSqlDbRepository {
                 return deletion_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
+                .with_code("MYC00001".to_string())
                 .as_error()
             }
             Some(res) => res,

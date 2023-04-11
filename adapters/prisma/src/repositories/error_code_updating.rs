@@ -1,26 +1,29 @@
-use crate::{prisma::role as role_model, repositories::connector::get_client};
+use crate::{
+    prisma::error_code as error_code_model, repositories::connector::get_client,
+};
 
 use async_trait::async_trait;
 use clean_base::{
     entities::UpdatingResponseKind,
     utils::errors::{factories::updating_err, MappedErrors},
 };
-use myc_core::domain::{dtos::role::Role, entities::RoleUpdating};
+use myc_core::domain::{
+    dtos::error_code::ErrorCode, entities::ErrorCodeUpdating,
+};
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
 use shaku::Component;
 use std::process::id as process_id;
-use uuid::Uuid;
 
 #[derive(Component)]
-#[shaku(interface = RoleUpdating)]
-pub struct RoleUpdatingSqlDbRepository {}
+#[shaku(interface = ErrorCodeUpdating)]
+pub struct ErrorCodeUpdatingSqlDbRepository {}
 
 #[async_trait]
-impl RoleUpdating for RoleUpdatingSqlDbRepository {
+impl ErrorCodeUpdating for ErrorCodeUpdatingSqlDbRepository {
     async fn update(
         &self,
-        role: Role,
-    ) -> Result<UpdatingResponseKind<Role>, MappedErrors> {
+        error_code: ErrorCode,
+    ) -> Result<UpdatingResponseKind<ErrorCode>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -42,46 +45,45 @@ impl RoleUpdating for RoleUpdatingSqlDbRepository {
         // ? Try to update record
         // ? -------------------------------------------------------------------
 
-        let role_id = match role.id {
-            None => {
-                return updating_err(String::from(
-                    "Unable to update user. Invalid record ID",
-                ))
-                .as_error()
-            }
-            Some(res) => res,
-        };
-
-        let response = client
-            .role()
+        match client
+            .error_code()
             .update(
-                role_model::id::equals(role_id.to_string()),
+                error_code_model::prefix_code(
+                    error_code.prefix.to_owned(),
+                    error_code.code.to_owned(),
+                ),
                 vec![
-                    role_model::name::set(role.name),
-                    role_model::description::set(role.description),
+                    error_code_model::message::set(
+                        error_code.message.to_owned(),
+                    ),
+                    error_code_model::details::set(
+                        error_code.details.to_owned(),
+                    ),
+                    error_code_model::is_internal::set(error_code.is_internal),
                 ],
             )
             .exec()
-            .await;
-
-        match response {
-            Ok(record) => Ok(UpdatingResponseKind::Updated(Role {
-                id: Some(Uuid::parse_str(&record.id).unwrap()),
-                name: record.name,
-                description: record.description.to_owned(),
+            .await
+        {
+            Ok(record) => Ok(UpdatingResponseKind::Updated(ErrorCode {
+                prefix: record.prefix,
+                code: record.code,
+                message: record.message,
+                details: record.details,
+                is_internal: record.is_internal,
             })),
             Err(err) => {
                 if err.is_prisma_error::<RecordNotFound>() {
                     return updating_err(format!(
-                        "Invalid primary key: {:?}",
-                        role_id
+                        "Invalid primary keys combination: {}, {}",
+                        error_code.prefix, error_code.code,
                     ))
+                    .with_exp_false()
                     .as_error();
                 };
 
                 return updating_err(format!(
-                    "Unexpected error detected on update record: {}",
-                    err
+                    "Unexpected error detected on update record: {err}",
                 ))
                 .as_error();
             }
