@@ -46,6 +46,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                 return creation_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
+                .with_code("MYC00001".to_string())
                 .as_error()
             }
             Some(res) => res,
@@ -139,6 +140,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                 return creation_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
+                .with_code("MYC00001".to_string())
                 .as_error()
             }
             Some(res) => res,
@@ -223,8 +225,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         {
             Err(err) => {
                 return fetching_err(format!(
-                    "Unexpected error on parse user email: {:?}",
-                    err
+                    "Unexpected error on fetch accounts: {err}",
                 ))
                 .as_error()
             }

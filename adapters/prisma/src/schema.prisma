@@ -148,3 +148,22 @@ model GuestUserOnAccount {
   @@id([guest_user_id, account_id])
   @@map("guest_user_on_account")
 }
+
+// -----------------------------------------------------------------------------
+// ERROR C0DE RELATED MODELS
+// -----------------------------------------------------------------------------
+
+model ErrorCode {
+  // Primary keys
+  code   Int    @default(autoincrement())
+  prefix String
+
+  // Model fields
+  message     String  @db.VarChar(255)
+  details     String? @db.VarChar(255)
+  is_internal Boolean @default(false)
+
+  // Db compatibility and extra maps
+  @@id([prefix, code])
+  @@map("error_code")
+}

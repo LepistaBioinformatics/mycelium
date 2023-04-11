@@ -11,19 +11,19 @@ use utoipa::ToSchema;
 #[serde(rename_all = "camelCase")]
 pub struct ErrorCode {
     /// The prefix of the error.
-    prefix: String,
+    pub prefix: String,
 
     /// The code of the error.
-    code: i32,
+    pub code: i32,
 
     /// The message of the error.
-    message: String,
+    pub message: String,
 
     /// The details of the error.
-    details: Option<String>,
+    pub details: Option<String>,
 
     /// Whether the error is internal or external.
-    is_internal: bool,
+    pub is_internal: bool,
 }
 
 impl ErrorCode {
