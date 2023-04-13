@@ -3,6 +3,10 @@ use std::env::var_os;
 use lazy_static::lazy_static;
 use reqwest::Client;
 
+// ? ---------------------------------------------------------------------------
+// ? Authentication and authorization
+// ? ---------------------------------------------------------------------------
+
 lazy_static! {
     #[derive(Debug)]
     pub(super) static ref REQWEST_CLIENT: Client = Client::new();

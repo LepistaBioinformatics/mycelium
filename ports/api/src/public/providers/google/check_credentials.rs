@@ -9,7 +9,7 @@ use reqwest::StatusCode;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
-pub struct MsGraphDecode {
+pub struct GcGraphDecode {
     pub mail: String,
 }
 
@@ -69,7 +69,7 @@ async fn decode_bearer_token_on_google(
             ))
         }
         StatusCode::OK => {
-            let res = match response.json::<MsGraphDecode>().await {
+            let res = match response.json::<GcGraphDecode>().await {
                 Err(err) => {
                     return Err(execution_err(
                         format!(

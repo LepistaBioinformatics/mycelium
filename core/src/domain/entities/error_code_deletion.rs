@@ -1,5 +1,3 @@
-use crate::domain::dtos::error_code::ErrorCode;
-
 use async_trait::async_trait;
 use clean_base::{entities::DeletionResponseKind, utils::errors::MappedErrors};
 use shaku::Interface;
@@ -8,6 +6,7 @@ use shaku::Interface;
 pub trait ErrorCodeDeletion: Interface + Send + Sync {
     async fn delete(
         &self,
-        error_code: ErrorCode,
-    ) -> Result<DeletionResponseKind<ErrorCode>, MappedErrors>;
+        prefix: String,
+        code: i32,
+    ) -> Result<DeletionResponseKind<(String, i32)>, MappedErrors>;
 }

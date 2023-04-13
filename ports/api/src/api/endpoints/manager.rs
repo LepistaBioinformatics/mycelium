@@ -91,9 +91,11 @@ pub mod account_endpoints {
 
     use actix_web::{get, patch, post, web, HttpResponse, Responder};
     use actix_web_httpauth::extractors::bearer::Config;
-    use clean_base::entities::{
-        FetchManyResponseKind, FetchResponseKind, GetOrCreateResponseKind,
-        UpdatingResponseKind,
+    use clean_base::{
+        entities::{
+            FetchManyResponseKind, FetchResponseKind, UpdatingResponseKind,
+        },
+        utils::errors::ErrorCode,
     };
     use myc_core::{
         domain::{
@@ -184,13 +186,18 @@ pub mod account_endpoints {
                 body = JsonError,
             ),
             (
-                status = 201,
-                description = "Account created.",
-                body = Account,
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
             ),
             (
-                status = 200,
+                status = 400,
                 description = "Account already exists.",
+                body = JsonError,
+            ),
+            (
+                status = 201,
+                description = "Account created.",
                 body = Account,
             ),
         ),
@@ -222,16 +229,23 @@ pub mod account_endpoints {
         )
         .await
         {
-            Err(err) => HttpResponse::InternalServerError()
-                .json(JsonError::new(err.to_string())),
-            Ok(res) => match res {
-                GetOrCreateResponseKind::NotCreated(guest, _) => {
-                    HttpResponse::Ok().json(guest)
+            Err(err) => {
+                if let ErrorCode::Code(code) = err.code() {
+                    if vec!["MYC00002".to_string(), "MYC00003".to_string()]
+                        .contains(&code)
+                    {
+                        return HttpResponse::BadRequest().json(
+                            JsonError::new(err.to_string()).with_code(code),
+                        );
+                    }
                 }
-                GetOrCreateResponseKind::Created(guest) => {
-                    HttpResponse::Created().json(guest)
-                }
-            },
+
+                HttpResponse::InternalServerError().json(
+                    JsonError::new(err.to_string())
+                        .with_code(err.code().to_string()),
+                )
+            }
+            Ok(account) => HttpResponse::Created().json(account),
         }
     }
 
@@ -258,6 +272,11 @@ pub mod account_endpoints {
             (
                 status = 403,
                 description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
                 body = JsonError,
             ),
             (
@@ -359,6 +378,11 @@ pub mod account_endpoints {
                 body = JsonError,
             ),
             (
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
+            ),
+            (
                 status = 200,
                 description = "Fetching success.",
                 body = Account,
@@ -412,6 +436,11 @@ pub mod account_endpoints {
             (
                 status = 403,
                 description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
                 body = JsonError,
             ),
             (
@@ -483,6 +512,11 @@ pub mod account_endpoints {
                 body = JsonError,
             ),
             (
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
+            ),
+            (
                 status = 400,
                 description = "Account not disapproved.",
                 body = JsonError,
@@ -548,6 +582,11 @@ pub mod account_endpoints {
             (
                 status = 403,
                 description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
                 body = JsonError,
             ),
             (
@@ -619,6 +658,11 @@ pub mod account_endpoints {
                 body = JsonError,
             ),
             (
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
+            ),
+            (
                 status = 400,
                 description = "Account not activated.",
                 body = JsonError,
@@ -686,6 +730,11 @@ pub mod account_endpoints {
                 body = JsonError,
             ),
             (
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
+            ),
+            (
                 status = 400,
                 description = "Account not activated.",
                 body = JsonError,
@@ -750,6 +799,11 @@ pub mod account_endpoints {
             (
                 status = 403,
                 description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
                 body = JsonError,
             ),
             (
@@ -897,6 +951,11 @@ pub mod guest_endpoints {
                 body = JsonError,
             ),
             (
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
+            ),
+            (
                 status = 200,
                 description = "Fetching success.",
                 body = [LicensedResources],
@@ -967,6 +1026,11 @@ pub mod guest_endpoints {
             (
                 status = 403,
                 description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
                 body = JsonError,
             ),
             (
@@ -1060,6 +1124,11 @@ pub mod guest_endpoints {
                 body = JsonError,
             ),
             (
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
+            ),
+            (
                 status = 400,
                 description = "Bad request.",
                 body = JsonError,
@@ -1122,6 +1191,11 @@ pub mod guest_endpoints {
             (
                 status = 403,
                 description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
                 body = JsonError,
             ),
             (
@@ -1191,6 +1265,11 @@ pub mod guest_endpoints {
             (
                 status = 403,
                 description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
                 body = JsonError,
             ),
             (
@@ -1343,6 +1422,11 @@ pub mod guest_role_endpoints {
                 body = JsonError,
             ),
             (
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
+            ),
+            (
                 status = 201,
                 description = "Guest Role created.",
                 body = GuestRole,
@@ -1410,6 +1494,11 @@ pub mod guest_role_endpoints {
                 body = JsonError,
             ),
             (
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
+            ),
+            (
                 status = 200,
                 description = "Success.",
                 body = [Role],
@@ -1467,6 +1556,11 @@ pub mod guest_role_endpoints {
             (
                 status = 403,
                 description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
                 body = JsonError,
             ),
             (
@@ -1528,6 +1622,11 @@ pub mod guest_role_endpoints {
             (
                 status = 403,
                 description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
                 body = JsonError,
             ),
             (
@@ -1598,6 +1697,11 @@ pub mod guest_role_endpoints {
             (
                 status = 403,
                 description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
                 body = JsonError,
             ),
             (
@@ -1736,6 +1840,11 @@ pub mod role_endpoints {
                 body = JsonError,
             ),
             (
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
+            ),
+            (
                 status = 201,
                 description = "Role created.",
                 body = Role,
@@ -1793,6 +1902,11 @@ pub mod role_endpoints {
             (
                 status = 404,
                 description = "Not found.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
                 body = JsonError,
             ),
             (
@@ -1858,6 +1972,11 @@ pub mod role_endpoints {
                 body = JsonError,
             ),
             (
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
+            ),
+            (
                 status = 403,
                 description = "Forbidden.",
                 body = JsonError,
@@ -1913,6 +2032,11 @@ pub mod role_endpoints {
             (
                 status = 403,
                 description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
                 body = JsonError,
             ),
             (

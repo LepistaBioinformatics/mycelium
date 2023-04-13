@@ -5,6 +5,7 @@ pub mod guest;
 pub mod health_check;
 pub mod http;
 pub mod message;
+pub mod native_error_codes;
 pub mod profile;
 pub mod role;
 pub mod route;

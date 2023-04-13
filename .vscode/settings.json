@@ -3,6 +3,7 @@
     "datetime",
     "dtos",
     "Hmac",
+    "repr",
     "shaku",
     "structs",
     "thiserror",
