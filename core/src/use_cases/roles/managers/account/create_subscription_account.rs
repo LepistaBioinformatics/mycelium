@@ -3,6 +3,7 @@ use crate::{
         dtos::{
             account::{Account, AccountTypeEnum},
             email::Email,
+            native_error_codes::NativeErrorCodes,
             profile::Profile,
             user::User,
         },
@@ -30,7 +31,7 @@ pub async fn create_subscription_account(
     user_registration_repo: Box<&dyn UserRegistration>,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
-) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
+) -> Result<Account, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
@@ -93,11 +94,9 @@ pub async fn create_subscription_account(
         .await?
     {
         GetOrCreateResponseKind::NotCreated(user, msg) => {
-            return use_case_err(format!(
-                "Unexpected error on persist user ({}): {}",
-                user.username, msg,
-            ))
-            .as_error()
+            return use_case_err(format!("({}): {}", user.username, msg))
+                .with_code("MYC00002".to_string())
+                .as_error()
         }
         GetOrCreateResponseKind::Created(user) => user,
     };
@@ -108,7 +107,7 @@ pub async fn create_subscription_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
-    account_registration_repo
+    match account_registration_repo
         .get_or_create(Account {
             id: None,
             name: account_name,
@@ -122,5 +121,13 @@ pub async fn create_subscription_account(
             created: Local::now(),
             updated: None,
         })
-        .await
+        .await?
+    {
+        GetOrCreateResponseKind::NotCreated(account, msg) => {
+            return use_case_err(format!("({}): {}", account.name, msg))
+                .with_code(NativeErrorCodes::MYC00003.to_string())
+                .as_error()
+        }
+        GetOrCreateResponseKind::Created(account) => Ok(account),
+    }
 }

@@ -65,7 +65,6 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         ParentEnum::Id(_) => {
                             return creation_err(
                                 String::from("Could not create account. User e-mail invalid."),
-                                
                             ).as_error()
                         }
                         ParentEnum::Record(record) => {
@@ -142,34 +141,34 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
             .create(
                 account.name,
                 user_model::id::equals(match account.owner {
-                    ParentEnum::Id(_) => return creation_err(
-                        String::from(
+                    ParentEnum::Id(_) => {
+                        return creation_err(String::from(
                             "Could not create account. Invalid owner.",
-                        ),
-                    ).as_error(),
-                    ParentEnum::Record(record) => match record.id {
-                        None => return creation_err(
-                            String::from(
-                                "Could not create account. User e-mail invalid.",
-                            ),
-                        ).as_error(),
-                        Some(res) => res.to_string(),
+                        ))
+                        .as_error()
                     }
+                    ParentEnum::Record(record) => match record.id {
+                        None => return creation_err(String::from(
+                            "Could not create account. User e-mail invalid.",
+                        ))
+                        .as_error(),
+                        Some(res) => res.to_string(),
+                    },
                 }),
                 account_type_model::id::equals(match account.account_type {
-                    ParentEnum::Id(_) => return creation_err(
-                        String::from(
+                    ParentEnum::Id(_) => {
+                        return creation_err(String::from(
                             "Could not create account. Invalid account type.",
-                        ),
-                    ).as_error(),
-                    ParentEnum::Record(record) => match record.id {
-                        None => return creation_err(
-                            String::from(
-                                "Could not create account. Invalid account type.",
-                            )
-                        ).as_error(),
-                        Some(res) => res.to_string(),
+                        ))
+                        .as_error()
                     }
+                    ParentEnum::Record(record) => match record.id {
+                        None => return creation_err(String::from(
+                            "Could not create account. Invalid account type.",
+                        ))
+                        .as_error(),
+                        Some(res) => res.to_string(),
+                    },
                 }),
                 vec![],
             )
@@ -218,12 +217,11 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 },
             })),
             Err(err) => {
-                return creation_err(
-                    format!(
-                        "Unexpected error detected on update record: {}",
-                        err
-                    ),
-                ).as_error();
+                return creation_err(format!(
+                    "Unexpected error detected on update record: {}",
+                    err
+                ))
+                .as_error();
             }
         }
     }

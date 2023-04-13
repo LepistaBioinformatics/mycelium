@@ -30,7 +30,7 @@ actix-web-error-derive = { version = "0.1" }
 actix-web-httpauth = "0.8.0"
 async-trait = "0.1"
 awc = { version = "3", features = ["openssl"] }
-clean-base = "0.6.3"
+clean-base = "0.6.4"
 chrono = "0.4"
 derive_more = "0.99"
 env_logger = "0.10"

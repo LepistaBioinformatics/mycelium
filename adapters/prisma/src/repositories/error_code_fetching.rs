@@ -64,6 +64,7 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
                 message: record.message,
                 details: record.details,
                 is_internal: record.is_internal,
+                is_native: false,
             })),
             None => Ok(FetchResponseKind::NotFound(Some((prefix, code)))),
         }
@@ -153,6 +154,7 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
                 message: record.message,
                 details: record.details,
                 is_internal: record.is_internal,
+                is_native: false,
             })
             .collect::<Vec<ErrorCode>>();
 

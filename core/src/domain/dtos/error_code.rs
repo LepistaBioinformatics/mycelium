@@ -1,3 +1,4 @@
+use clean_base::utils::errors::{factories::execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
@@ -24,6 +25,9 @@ pub struct ErrorCode {
 
     /// Whether the error is internal or external.
     pub is_internal: bool,
+
+    /// Whether the error is native or not.
+    pub is_native: bool,
 }
 
 impl ErrorCode {
@@ -31,12 +35,33 @@ impl ErrorCode {
     // ? PUBLIC STRUCTURAL METHODS (CONSTRUCTORS)
     // ? -----------------------------------------------------------------------
 
+    /// Creates a new ErrorCode with the given code and message.
+    pub fn new(
+        prefix: String,
+        code: i32,
+        message: String,
+        is_internal: bool,
+        is_native: bool,
+    ) -> Result<Self, MappedErrors> {
+        ErrorCode::validate_prefix(&prefix)?;
+
+        Ok(Self {
+            prefix,
+            code,
+            message,
+            details: None,
+            is_internal,
+            is_native,
+        })
+    }
+
     /// Creates a new internal ErrorCode with the given code and message.
     pub fn new_internal_error(
         prefix: String,
         code: i32,
         message: String,
-    ) -> Result<Self, String> {
+        is_native: bool,
+    ) -> Result<Self, MappedErrors> {
         ErrorCode::validate_prefix(&prefix)?;
 
         Ok(Self {
@@ -45,6 +70,7 @@ impl ErrorCode {
             message,
             details: None,
             is_internal: true,
+            is_native,
         })
     }
 
@@ -53,7 +79,8 @@ impl ErrorCode {
         prefix: String,
         code: i32,
         message: String,
-    ) -> Result<Self, String> {
+        is_native: bool,
+    ) -> Result<Self, MappedErrors> {
         ErrorCode::validate_prefix(&prefix)?;
 
         Ok(Self {
@@ -62,6 +89,7 @@ impl ErrorCode {
             message,
             details: None,
             is_internal: false,
+            is_native,
         })
     }
 
@@ -80,30 +108,38 @@ impl ErrorCode {
     // ? -----------------------------------------------------------------------
 
     /// Validates the given prefix.
-    fn validate_prefix(prefix: &str) -> Result<(), String> {
-        let max_prefix_size = 5;
-        let min_prefix_size = 1;
+    fn validate_prefix(prefix: &str) -> Result<(), MappedErrors> {
+        let (min_prefix_size, max_prefix_size) =
+            Self::get_min_and_max_prefix_sizes();
 
-        if prefix.len() <= min_prefix_size {
-            return Err(format!(
+        if prefix.len() < min_prefix_size {
+            return execution_err(format!(
                 "Prefix must be longest than {min_prefix_size}."
-            ));
+            ))
+            .as_error();
         }
 
-        if prefix.len() >= max_prefix_size {
-            return Err(format!(
+        if prefix.len() > max_prefix_size {
+            return execution_err(format!(
                 "Prefix must be shortest than {max_prefix_size}."
-            ));
+            ))
+            .as_error();
         }
 
         if !prefix
             .chars()
             .all(|c| c.is_ascii_alphabetic() && c.is_uppercase())
         {
-            return Err("Prefix must be all alphabetic.".to_string());
+            return execution_err("Prefix must be all alphabetic.".to_string())
+                .as_error();
         }
 
         Ok(())
+    }
+
+    /// Gets the minimum and maximum prefix sizes.
+    pub(self) fn get_min_and_max_prefix_sizes() -> (usize, usize) {
+        (2, 4)
     }
 }
 
@@ -121,6 +157,7 @@ mod tests {
             "TEST".to_string(),
             1,
             "Test error.".to_string(),
+            true,
         )
         .unwrap();
 
@@ -137,6 +174,7 @@ mod tests {
             "TEST".to_string(),
             1,
             "Test error.".to_string(),
+            true,
         )
         .unwrap();
 
@@ -153,6 +191,7 @@ mod tests {
             "TEST".to_string(),
             1,
             "Test error.".to_string(),
+            true,
         )
         .unwrap()
         .with_details("Test details.".to_string());

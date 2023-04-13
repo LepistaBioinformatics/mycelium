@@ -138,8 +138,10 @@ async fn check_credentials_with_multi_identity_provider(
     }
     .to_string();
 
+    let token = auth.replace("Bearer ", "");
+
     let unverified: Token<JwtHeader, RegisteredClaims, _> =
-        match Token::parse_unverified(&auth) {
+        match Token::parse_unverified(&token) {
             Err(err) => {
                 warn!("{:?}", err);
                 return Err(GatewayError::Forbidden(format!("{err}")));
@@ -147,16 +149,43 @@ async fn check_credentials_with_multi_identity_provider(
             Ok(res) => res,
         };
 
-    println!("{:?}", unverified.claims());
+    let issuer =
+        unverified
+            .claims()
+            .issuer
+            .as_ref()
+            .ok_or(GatewayError::Forbidden(
+                "Could not check issuer.".to_string(),
+            ))?;
 
-    match gc_check_credentials(req.to_owned()).await {
+    discover_provider(issuer.to_owned(), req).await
+}
+
+/// Discover identity provider
+///
+/// This function is used to discover identity provider and check credentials.
+async fn discover_provider(
+    auth_provider: String,
+    req: HttpRequest,
+) -> Result<Option<Email>, GatewayError> {
+    let provider = if auth_provider.contains("sts.windows.net") {
+        az_check_credentials(req).await
+    } else if auth_provider.contains("google") {
+        gc_check_credentials(req).await
+    } else {
+        return Err(GatewayError::Forbidden(format!(
+            "Unknown identity provider: {:?}",
+            auth_provider
+        )));
+    };
+
+    match provider {
         Err(err) => {
             warn!("{:?}", err);
             Err(GatewayError::Forbidden(format!("{err}")))
         }
         Ok(res) => {
             debug!("Requesting Email: {:?}", res);
-
             Ok(Some(res))
         }
     }

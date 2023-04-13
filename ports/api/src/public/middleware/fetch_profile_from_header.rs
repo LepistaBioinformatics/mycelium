@@ -79,7 +79,7 @@ impl FromRequest for GatewayProfileData {
                 match serde_json::from_str::<Self>(res.to_str().unwrap()) {
                     Err(error) => {
                         return Box::pin(async move {
-                            Err(GatewayError::Forbidden(format!(
+                            Err(GatewayError::Unauthorized(format!(
                                 "Unable to check user identity due: {error}",
                             )))
                         })
@@ -108,8 +108,9 @@ impl FromRequest for GatewayProfileData {
         // checked.
         //
         Box::pin(async move {
-            Err(GatewayError::Forbidden(
-                "Unable to check user identity".to_string(),
+            Err(GatewayError::Unauthorized(
+                "Unable to check user identity. Please contact administrators"
+                    .to_string(),
             ))
         })
     }
@@ -123,7 +124,7 @@ async fn fetch_profile_from_token(
     };
 
     match repo.get(None, Some(token.to_string())).await {
-        Err(err) => Err(GatewayError::Forbidden(err.to_string())),
+        Err(err) => Err(GatewayError::InternalServerError(err.to_string())),
         Ok(res) => match res {
             FetchResponseKind::NotFound(email) => {
                 Err(GatewayError::Forbidden(email.unwrap_or("".to_string())))
