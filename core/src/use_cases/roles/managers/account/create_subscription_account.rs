@@ -112,7 +112,7 @@ pub async fn create_subscription_account(
             id: None,
             name: account_name,
             is_active: true,
-            is_checked: false,
+            is_checked: true,
             is_archived: false,
             verbose_status: None,
             owner: ParentEnum::Record(user),
