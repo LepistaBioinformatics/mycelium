@@ -52,11 +52,15 @@ impl ErrorCodeRegistration for ErrorCodeRegistrationSqlDbRepository {
                 error_code.prefix.to_owned(),
                 error_code.message.to_owned(),
                 vec![
+                    error_code_model::code::set(error_code.code.to_owned()),
                     error_code_model::details::set(
                         error_code.details.to_owned(),
                     ),
                     error_code_model::is_internal::set(
                         error_code.is_internal.to_owned(),
+                    ),
+                    error_code_model::is_native::set(
+                        error_code.is_native.to_owned(),
                     ),
                 ],
             )
@@ -84,6 +88,7 @@ impl ErrorCodeRegistration for ErrorCodeRegistrationSqlDbRepository {
                 message: res.message,
                 details: res.details,
                 is_internal: res.is_internal,
+                is_native: res.is_native,
             })),
         }
     }

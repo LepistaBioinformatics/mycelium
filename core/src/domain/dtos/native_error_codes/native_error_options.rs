@@ -16,6 +16,7 @@ pub(super) struct TempNativeErrorCodesOptions {
     pub message: String,
     pub details: Option<String>,
     pub is_internal: bool,
+    pub is_native: bool,
 }
 
 /// Here error codes sources resides
@@ -26,43 +27,50 @@ const MESSAGES_SOURCE: &'static str = r#"[
         "code": "MYC00001",
         "message": "Prisma Client Unavailable error",
         "details": "Prisma Client error. Could not fetch client.",
-        "is_internal": true
+        "is_internal": true,
+        "is_native": true
     },
     {
         "code": "MYC00002",
         "message": "User already registered in Mycelium",
         "details": "When a manager account try to register a new account and the account owner already exists this error should be returned.",
-        "is_internal": false
+        "is_internal": false,
+        "is_native": true
     },
     {
         "code": "MYC00003",
         "message": "Account already registered in Mycelium",
         "details": "When a manager account try to register a new account and the account already exists this error should be returned.",
-        "is_internal": false
+        "is_internal": false,
+        "is_native": true
     },
     {
         "code": "MYC00004",
         "message": "Could not check profile verbose status",
         "details": "This error should be dispatched when use-cases could not access the account verbose-status during validations.",
-        "is_internal": false
+        "is_internal": false,
+        "is_native": true
     },
     {
         "code": "MYC00005",
         "message": "Action restricted to active users",
         "details": "Indicates that the desired action should only be performed by active users.",
-        "is_internal": true
+        "is_internal": true,
+        "is_native": true
     },
     {
         "code": "MYC00006",
         "message": "Action restricted to manager users",
         "details": "Indicates that the action requires manager privileges.",
-        "is_internal": true
+        "is_internal": true,
+        "is_native": true
     },
     {
         "code": "MYC00007",
         "message": "Updating action failed",
         "details": "Action dispatched when an update action was preceded by unknown error.",
-        "is_internal": true
+        "is_internal": true,
+        "is_native": true
     }
 ]"#;
 

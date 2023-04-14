@@ -90,15 +90,16 @@ impl NativeErrorCodes {
         for source in get_error_code_maps(Some(expected_length)).iter() {
             let (prefix, code) = source.code.parts();
 
-            let error_code = ErrorCode::new(
+            let mut error_code = ErrorCode::new(
                 prefix,
                 code,
                 source.message.to_string(),
                 source.is_internal,
+                source.is_native,
             )?;
 
             if let Some(details) = source.details.to_owned() {
-                error_code.to_owned().with_details(details.to_string());
+                error_code = error_code.with_details(details.to_string());
             }
 
             error_code_sources
