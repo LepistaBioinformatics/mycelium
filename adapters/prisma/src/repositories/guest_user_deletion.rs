@@ -8,7 +8,9 @@ use clean_base::{
     entities::DeletionResponseKind,
     utils::errors::{factories::deletion_err, MappedErrors},
 };
-use myc_core::domain::entities::GuestUserDeletion;
+use myc_core::domain::{
+    dtos::native_error_codes::NativeErrorCodes, entities::GuestUserDeletion,
+};
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -35,7 +37,7 @@ impl GuestUserDeletion for GuestUserDeletionSqlDbRepository {
                 return deletion_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,

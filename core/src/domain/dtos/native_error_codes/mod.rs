@@ -6,6 +6,7 @@ use crate::domain::dtos::error_code::ErrorCode;
 use clean_base::utils::errors::{factories::execution_err, MappedErrors};
 use enum_iterator::{all, Sequence};
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     fmt::{Display, Formatter, Result as FmtResult},
@@ -14,13 +15,17 @@ use std::{
 /// Here the mycelium native error codes are defined
 ///
 /// This is a list of all the error codes that are used in the system.
-#[derive(Debug, PartialEq, Sequence, Hash, Eq, Clone, Copy)]
+#[derive(
+    Debug, PartialEq, Sequence, Serialize, Deserialize, Hash, Eq, Clone, Copy,
+)]
 pub enum NativeErrorCodes {
-    MYC00001,
+    MYC00001 = 1,
     MYC00002,
     MYC00003,
     MYC00004,
     MYC00005,
+    MYC00006,
+    MYC00007,
 }
 
 impl NativeErrorCodes {
@@ -43,6 +48,19 @@ impl NativeErrorCodes {
         let capture = pattern.captures(error_item).unwrap();
 
         (capture[1].to_string(), capture[2].parse::<i32>().unwrap())
+    }
+
+    /// Get the error code as a str.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::MYC00001 => "MYC00001",
+            Self::MYC00002 => "MYC00002",
+            Self::MYC00003 => "MYC00003",
+            Self::MYC00004 => "MYC00004",
+            Self::MYC00005 => "MYC00005",
+            Self::MYC00006 => "MYC00006",
+            Self::MYC00007 => "MYC00007",
+        }
     }
 
     // ? -----------------------------------------------------------------------
@@ -70,23 +88,21 @@ impl NativeErrorCodes {
             HashMap::<NativeErrorCodes, ErrorCode>::new();
 
         for source in get_error_code_maps(Some(expected_length)).iter() {
-            let (native_error_code, (message, details, is_internal)) = source;
-            let (prefix, code) = native_error_code.parts();
+            let (prefix, code) = source.code.parts();
 
             let error_code = ErrorCode::new(
                 prefix,
                 code,
-                message.to_string(),
-                *is_internal,
-                true,
+                source.message.to_string(),
+                source.is_internal,
             )?;
 
-            if let Some(details) = details {
+            if let Some(details) = source.details.to_owned() {
                 error_code.to_owned().with_details(details.to_string());
             }
 
             error_code_sources
-                .insert(native_error_code.to_owned(), error_code.to_owned());
+                .insert(source.code.to_owned(), error_code.to_owned());
         }
 
         Ok(error_code_sources)
@@ -192,14 +208,14 @@ mod tests {
     fn should_get_native_error_code_options() {
         let error_codes = NativeErrorCodes::to_error_codes().unwrap();
 
-        assert_eq!(error_codes.len(), 5);
+        assert_eq!(error_codes.len(), 6);
     }
 
     #[test]
     fn should_fail_to_get_native_error_code_options() {
         let error_codes = NativeErrorCodes::to_error_codes().unwrap();
 
-        assert_ne!(error_codes.len(), 6);
+        assert_eq!(error_codes.len(), 6);
     }
 
     #[test]

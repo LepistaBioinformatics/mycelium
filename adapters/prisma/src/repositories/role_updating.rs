@@ -5,7 +5,10 @@ use clean_base::{
     entities::UpdatingResponseKind,
     utils::errors::{factories::updating_err, MappedErrors},
 };
-use myc_core::domain::{dtos::role::Role, entities::RoleUpdating};
+use myc_core::domain::{
+    dtos::{native_error_codes::NativeErrorCodes, role::Role},
+    entities::RoleUpdating,
+};
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
 use shaku::Component;
 use std::process::id as process_id;
@@ -32,7 +35,7 @@ impl RoleUpdating for RoleUpdatingSqlDbRepository {
                 return updating_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,

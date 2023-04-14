@@ -20,6 +20,13 @@ impl JsonError {
             code: Some(code),
         }
     }
+
+    pub fn with_code_str(&self, code: &'static str) -> Self {
+        Self {
+            msg: self.msg.to_owned(),
+            code: Some(code.to_string()),
+        }
+    }
 }
 
 impl Display for JsonError {
@@ -51,7 +58,7 @@ mod tests {
     #[test]
     fn test_json_error_code() {
         let json_error =
-            JsonError::new("test".to_string()).with_code("code".to_string());
+            JsonError::new("test".to_string()).with_code_str("code");
         assert_eq!(json_error.msg, "test");
         assert_eq!(json_error.code, Some("code".to_string()));
     }
@@ -62,7 +69,7 @@ mod tests {
         assert_eq!(format!("{}", json_error), "test");
 
         let json_error =
-            JsonError::new("test".to_string()).with_code("code".to_string());
+            JsonError::new("test".to_string()).with_code_str("code");
         assert_eq!(format!("{}", json_error), "code: test");
     }
 }

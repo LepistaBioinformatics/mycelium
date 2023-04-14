@@ -3,6 +3,7 @@ use myc_core::{
     domain::dtos::{
         account::{Account, AccountType, AccountTypeEnum, VerboseStatus},
         email::Email,
+        error_code::ErrorCode,
         guest::{GuestRole, GuestUser, PermissionsType},
         profile::{LicensedResources, Profile},
         role::Role,
@@ -28,6 +29,11 @@ use utoipa::OpenApi;
         account_endpoints::deactivate_account_url,
         account_endpoints::archive_account_url,
         account_endpoints::unarchive_account_url,
+        error_code_endpoints::register_error_code_url,
+        error_code_endpoints::list_error_codes_url,
+        error_code_endpoints::get_error_code_url,
+        error_code_endpoints::update_error_code_message_and_details_url,
+        error_code_endpoints::delete_error_code_url,
         guest_endpoints::list_licensed_accounts_of_email_url,
         guest_endpoints::guest_user_url,
         guest_endpoints::uninvite_guest_url,
@@ -55,6 +61,7 @@ use utoipa::OpenApi;
             AccountTypeEnum,
             ActionType,
             Email,
+            ErrorCode,
             GuestUser,
             GuestRole,
             JsonError,
@@ -78,6 +85,437 @@ pub struct ApiDoc;
 // ? This module contained the results-expert endpoints
 // ? ---------------------------------------------------------------------------
 
+pub mod error_code_endpoints {
+
+    use crate::{
+        endpoints::shared::PaginationParams,
+        modules::{
+            ErrorCodeDeletionModule, ErrorCodeFetchingModule,
+            ErrorCodeRegistrationModule, ErrorCodeUpdatingModule,
+        },
+    };
+
+    use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
+    use actix_web_httpauth::extractors::bearer::Config;
+    use clean_base::entities::{FetchManyResponseKind, FetchResponseKind};
+    use myc_core::{
+        domain::{
+            dtos::native_error_codes::NativeErrorCodes,
+            entities::{
+                ErrorCodeDeletion, ErrorCodeFetching, ErrorCodeRegistration,
+                ErrorCodeUpdating,
+            },
+        },
+        use_cases::gateway::error_codes::{
+            delete_error_code, get_error_code, list_error_codes,
+            register_error_code, update_error_code_message_and_details,
+        },
+    };
+    use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
+    use serde::Deserialize;
+    use shaku_actix::Inject;
+    use utoipa::{IntoParams, ToSchema};
+
+    // ? -----------------------------------------------------------------------
+    // ? Configure application
+    // ? -----------------------------------------------------------------------
+
+    pub fn configure(config: &mut web::ServiceConfig) {
+        config.service(
+            web::scope("/error-codes")
+                .app_data(Config::default())
+                .service(register_error_code_url)
+                .service(list_error_codes_url)
+                .service(get_error_code_url)
+                .service(update_error_code_message_and_details_url)
+                .service(delete_error_code_url),
+        );
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? Define API structs
+    // ? -----------------------------------------------------------------------
+
+    #[derive(Deserialize, ToSchema)]
+    #[serde(rename_all = "camelCase")]
+    pub struct CreateErrorCodeBody {
+        prefix: String,
+        message: String,
+        details: Option<String>,
+        is_internal: bool,
+    }
+
+    #[derive(Deserialize, IntoParams)]
+    #[serde(rename_all = "camelCase")]
+    pub struct ListErrorCodesParams {
+        prefix: Option<String>,
+        code: Option<i32>,
+        is_internal: Option<bool>,
+    }
+
+    #[derive(Deserialize, ToSchema)]
+    #[serde(rename_all = "camelCase")]
+    pub struct UpdateErrorCodeMessageAndDetailsBody {
+        message: String,
+        details: Option<String>,
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? Define API paths
+    // ? -----------------------------------------------------------------------
+
+    /// Register a new error code.
+    ///
+    /// This action is restricted to manager users.
+    #[utoipa::path(
+        post,
+        context_path = "/myc/managers/error-codes",
+        request_body = CreateErrorCodeBody,
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
+            ),
+            (
+                status = 400,
+                description = "Error code already exists.",
+                body = JsonError,
+            ),
+            (
+                status = 201,
+                description = "Error code created.",
+                body = ErrorCode,
+            ),
+        ),
+    )]
+    #[post("/")]
+    pub async fn register_error_code_url(
+        body: web::Json<CreateErrorCodeBody>,
+        profile: MyceliumProfileData,
+        error_code_registration_repo: Inject<
+            ErrorCodeRegistrationModule,
+            dyn ErrorCodeRegistration,
+        >,
+    ) -> impl Responder {
+        match register_error_code(
+            profile.to_profile(),
+            body.prefix.to_owned(),
+            body.message.to_owned(),
+            body.details.to_owned(),
+            body.is_internal.to_owned(),
+            Box::new(&*error_code_registration_repo),
+        )
+        .await
+        {
+            Err(err) => HttpResponse::InternalServerError().json(
+                JsonError::new(err.to_string())
+                    .with_code(err.code().to_string()),
+            ),
+            Ok(account) => HttpResponse::Created().json(account),
+        }
+    }
+
+    /// List available error codes.
+    #[utoipa::path(
+        get,
+        context_path = "/myc/managers/error-codes",
+        params(
+            ListErrorCodesParams,
+            PaginationParams,
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 404,
+                description = "Not found.",
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
+            ),
+            (
+                status = 200,
+                description = "Fetching success.",
+                body = [ErrorCode],
+            ),
+        ),
+    )]
+    #[get("/")]
+    pub async fn list_error_codes_url(
+        info: web::Query<ListErrorCodesParams>,
+        page: web::Query<PaginationParams>,
+        profile: MyceliumProfileData,
+        error_code_fetching_repo: Inject<
+            ErrorCodeFetchingModule,
+            dyn ErrorCodeFetching,
+        >,
+    ) -> impl Responder {
+        match list_error_codes(
+            profile.to_profile(),
+            info.prefix.to_owned(),
+            info.code.to_owned(),
+            info.is_internal.to_owned(),
+            page.page_size.to_owned(),
+            page.skip.to_owned(),
+            Box::new(&*error_code_fetching_repo),
+        )
+        .await
+        {
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string())),
+            Ok(res) => match res {
+                FetchManyResponseKind::NotFound => {
+                    HttpResponse::NotFound().finish()
+                }
+                FetchManyResponseKind::Found(accounts) => {
+                    HttpResponse::Ok().json(accounts)
+                }
+                FetchManyResponseKind::FoundPaginated(accounts) => {
+                    HttpResponse::Ok().json(accounts)
+                }
+            },
+        }
+    }
+
+    #[utoipa::path(
+        get,
+        context_path = "/myc/managers/error-codes",
+        params(
+            ("prefix" = String, Path, description = "The error prefix."),
+            ("code" = i32, Path, description = "The error code."),
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 404,
+                description = "Not found.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
+            ),
+            (
+                status = 200,
+                description = "Fetching success.",
+                body = Account,
+            ),
+        ),
+    )]
+    #[get("/prefix/{account}/code/{code}")]
+    pub async fn get_error_code_url(
+        path: web::Path<(String, i32)>,
+        profile: MyceliumProfileData,
+        error_code_fetching_repo: Inject<
+            ErrorCodeFetchingModule,
+            dyn ErrorCodeFetching,
+        >,
+    ) -> impl Responder {
+        let (prefix, code) = path.into_inner();
+
+        match get_error_code(
+            profile.to_profile(),
+            prefix.to_owned(),
+            code.to_owned(),
+            Box::new(&*error_code_fetching_repo),
+        )
+        .await
+        {
+            Err(err) => HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string())),
+            Ok(res) => match res {
+                FetchResponseKind::NotFound(_) => HttpResponse::NotFound()
+                    .json(JsonError::new(format!(
+                        "Error code not found: {prefix}-{code}"
+                    ))),
+                FetchResponseKind::Found(accounts) => {
+                    HttpResponse::Ok().json(accounts)
+                }
+            },
+        }
+    }
+
+    #[utoipa::path(
+        patch,
+        context_path = "/myc/managers/error-codes",
+        params(
+            ("prefix" = String, Path, description = "The error prefix."),
+            ("code" = i32, Path, description = "The error code."),
+        ),
+        request_body = UpdateErrorCodeMessageAndDetailsBody,
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
+            ),
+            (
+                status = 400,
+                description = "Error code not updated.",
+                body = JsonError,
+            ),
+            (
+                status = 202,
+                description = "Error code updated.",
+                body = Account,
+            ),
+        ),
+    )]
+    #[patch("/prefix/{account}/code/{code}")]
+    pub async fn update_error_code_message_and_details_url(
+        path: web::Path<(String, i32)>,
+        body: web::Json<UpdateErrorCodeMessageAndDetailsBody>,
+        profile: MyceliumProfileData,
+        error_code_fetching_repo: Inject<
+            ErrorCodeFetchingModule,
+            dyn ErrorCodeFetching,
+        >,
+        error_code_updating_repo: Inject<
+            ErrorCodeUpdatingModule,
+            dyn ErrorCodeUpdating,
+        >,
+    ) -> impl Responder {
+        let (prefix, code) = path.into_inner();
+
+        match update_error_code_message_and_details(
+            profile.to_profile(),
+            prefix,
+            code,
+            body.message.to_owned(),
+            body.details.to_owned(),
+            Box::new(&*error_code_fetching_repo),
+            Box::new(&*error_code_updating_repo),
+        )
+        .await
+        {
+            Err(err) => {
+                let target_msg = NativeErrorCodes::MYC00005.as_str();
+                if err.is_in(vec![target_msg]) {
+                    return HttpResponse::BadRequest().json(
+                        JsonError::new(err.to_string())
+                            .with_code_str(target_msg),
+                    );
+                }
+
+                HttpResponse::InternalServerError()
+                    .json(JsonError::new(err.to_string()))
+            }
+            Ok(res) => HttpResponse::Accepted().json(res),
+        }
+    }
+
+    #[utoipa::path(
+        delete,
+        context_path = "/myc/managers/error-codes",
+        params(
+            ("prefix" = String, Path, description = "The error prefix."),
+            ("code" = i32, Path, description = "The error code."),
+        ),
+        responses(
+            (
+                status = 500,
+                description = "Unknown internal server error.",
+                body = JsonError,
+            ),
+            (
+                status = 403,
+                description = "Forbidden.",
+                body = JsonError,
+            ),
+            (
+                status = 401,
+                description = "Unauthorized.",
+                body = JsonError,
+            ),
+            (
+                status = 400,
+                description = "Error code not deleted.",
+                body = JsonError,
+            ),
+            (
+                status = 204,
+                description = "Error code deleted.",
+            ),
+        ),
+    )]
+    #[delete("/account/{account}/role/{role}")]
+    pub async fn delete_error_code_url(
+        path: web::Path<(String, i32)>,
+        profile: MyceliumProfileData,
+        error_code_deletion_repo: Inject<
+            ErrorCodeDeletionModule,
+            dyn ErrorCodeDeletion,
+        >,
+    ) -> impl Responder {
+        let (prefix, code) = path.into_inner();
+
+        match delete_error_code(
+            profile.to_profile(),
+            prefix,
+            code,
+            Box::new(&*error_code_deletion_repo),
+        )
+        .await
+        {
+            Err(err) => {
+                let target_msg = NativeErrorCodes::MYC00007.as_str();
+
+                if err.is_in(vec![target_msg]) {
+                    return HttpResponse::Forbidden().json(
+                        JsonError::new(err.to_string())
+                            .with_code_str(target_msg),
+                    );
+                }
+
+                HttpResponse::InternalServerError()
+                    .json(JsonError::new(err.to_string()))
+            }
+            Ok(_) => HttpResponse::NoContent().finish(),
+        }
+    }
+}
+
 pub mod account_endpoints {
 
     use crate::{
@@ -91,15 +529,14 @@ pub mod account_endpoints {
 
     use actix_web::{get, patch, post, web, HttpResponse, Responder};
     use actix_web_httpauth::extractors::bearer::Config;
-    use clean_base::{
-        entities::{
-            FetchManyResponseKind, FetchResponseKind, UpdatingResponseKind,
-        },
-        utils::errors::ErrorCode,
+    use clean_base::entities::{
+        FetchManyResponseKind, FetchResponseKind, UpdatingResponseKind,
     };
     use myc_core::{
         domain::{
-            dtos::account::VerboseStatus,
+            dtos::{
+                account::VerboseStatus, native_error_codes::NativeErrorCodes,
+            },
             entities::{
                 AccountFetching, AccountRegistration, AccountTypeRegistration,
                 AccountUpdating, UserRegistration,
@@ -114,7 +551,7 @@ pub mod account_endpoints {
     use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
-    use utoipa::IntoParams;
+    use utoipa::{IntoParams, ToSchema};
     use uuid::Uuid;
 
     // ? -----------------------------------------------------------------------
@@ -141,9 +578,9 @@ pub mod account_endpoints {
     // ? Define API structs
     // ? -----------------------------------------------------------------------
 
-    #[derive(Deserialize, IntoParams)]
+    #[derive(Deserialize, ToSchema)]
     #[serde(rename_all = "camelCase")]
-    pub struct CreateSubscriptionAccountParams {
+    pub struct CreateSubscriptionAccountBody {
         pub email: String,
         pub account_name: String,
     }
@@ -171,9 +608,7 @@ pub mod account_endpoints {
     #[utoipa::path(
         post,
         context_path = "/myc/managers/accounts",
-        params(
-            CreateSubscriptionAccountParams,
-        ),
+        request_body = CreateSubscriptionAccountBody,
         responses(
             (
                 status = 500,
@@ -204,7 +639,7 @@ pub mod account_endpoints {
     )]
     #[post("/")]
     pub async fn create_subscription_account_url(
-        info: web::Query<CreateSubscriptionAccountParams>,
+        body: web::Json<CreateSubscriptionAccountBody>,
         profile: MyceliumProfileData,
         user_registration_repo: Inject<
             UserRegistrationModule,
@@ -221,8 +656,8 @@ pub mod account_endpoints {
     ) -> impl Responder {
         match create_subscription_account(
             profile.to_profile(),
-            info.email.to_owned(),
-            info.account_name.to_owned(),
+            body.email.to_owned(),
+            body.account_name.to_owned(),
             Box::new(&*user_registration_repo),
             Box::new(&*account_type_registration_repo),
             Box::new(&*account_registration_repo),
@@ -230,19 +665,19 @@ pub mod account_endpoints {
         .await
         {
             Err(err) => {
-                if let ErrorCode::Code(code) = err.code() {
-                    if vec!["MYC00002".to_string(), "MYC00003".to_string()]
-                        .contains(&code)
-                    {
-                        return HttpResponse::BadRequest().json(
-                            JsonError::new(err.to_string()).with_code(code),
-                        );
-                    }
+                let code_string = err.code().to_string();
+
+                if err.is_in(vec![
+                    NativeErrorCodes::MYC00002.as_str(),
+                    NativeErrorCodes::MYC00003.as_str(),
+                ]) {
+                    return HttpResponse::BadRequest().json(
+                        JsonError::new(err.to_string()).with_code(code_string),
+                    );
                 }
 
                 HttpResponse::InternalServerError().json(
-                    JsonError::new(err.to_string())
-                        .with_code(err.code().to_string()),
+                    JsonError::new(err.to_string()).with_code(code_string),
                 )
             }
             Ok(account) => HttpResponse::Created().json(account),
@@ -886,7 +1321,7 @@ pub mod guest_endpoints {
     use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
-    use utoipa::IntoParams;
+    use utoipa::{IntoParams, ToSchema};
     use uuid::Uuid;
 
     // ? -----------------------------------------------------------------------
@@ -908,9 +1343,9 @@ pub mod guest_endpoints {
     // ? Define API structs
     // ? -----------------------------------------------------------------------
 
-    #[derive(Deserialize, IntoParams)]
+    #[derive(Deserialize, ToSchema)]
     #[serde(rename_all = "camelCase")]
-    pub struct GuestUserParams {
+    pub struct GuestUserBody {
         pub email: String,
     }
 
@@ -931,9 +1366,7 @@ pub mod guest_endpoints {
     #[utoipa::path(
         get,
         context_path = "/myc/managers/guests",
-        params(
-            GuestUserParams,
-        ),
+        request_body = GuestUserBody,
         responses(
             (
                 status = 500,
@@ -964,14 +1397,14 @@ pub mod guest_endpoints {
     )]
     #[get("/")]
     pub async fn list_licensed_accounts_of_email_url(
-        info: web::Query<GuestUserParams>,
+        body: web::Json<GuestUserBody>,
         profile: MyceliumProfileData,
         licensed_resources_fetching_repo: Inject<
             LicensedResourcesFetchingModule,
             dyn LicensedResourcesFetching,
         >,
     ) -> impl Responder {
-        let email = match Email::from_string(info.email.to_owned()) {
+        let email = match Email::from_string(body.email.to_owned()) {
             Err(err) => {
                 return HttpResponse::BadRequest()
                     .json(JsonError::new(format!("Invalid email: {err}")))
@@ -1015,8 +1448,8 @@ pub mod guest_endpoints {
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
             ("role" = Uuid, Path, description = "The guest-role unique id."),
-            GuestUserParams,
         ),
+        request_body = GuestUserBody,
         responses(
             (
                 status = 500,
@@ -1053,7 +1486,7 @@ pub mod guest_endpoints {
     #[post("/account/{account}/role/{role}")]
     pub async fn guest_user_url(
         path: web::Path<(Uuid, Uuid)>,
-        info: web::Query<GuestUserParams>,
+        body: web::Json<GuestUserBody>,
         profile: MyceliumProfileData,
         account_fetching_repo: Inject<
             AccountFetchingModule,
@@ -1067,7 +1500,7 @@ pub mod guest_endpoints {
     ) -> impl Responder {
         let (account_id, role_id) = path.to_owned();
 
-        let email = match Email::from_string(info.email.to_owned()) {
+        let email = match Email::from_string(body.email.to_owned()) {
             Err(err) => {
                 return HttpResponse::BadRequest()
                     .json(JsonError::new(err.to_string()))
@@ -1350,7 +1783,7 @@ pub mod guest_role_endpoints {
     use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
-    use utoipa::IntoParams;
+    use utoipa::{IntoParams, ToSchema};
     use uuid::Uuid;
 
     // ? -----------------------------------------------------------------------
@@ -1372,9 +1805,9 @@ pub mod guest_role_endpoints {
     // ? Define API structs
     // ? -----------------------------------------------------------------------
 
-    #[derive(Deserialize, IntoParams)]
+    #[derive(Deserialize, ToSchema)]
     #[serde(rename_all = "camelCase")]
-    pub struct CreateGuestRoleParams {
+    pub struct CreateGuestRoleBody {
         pub name: String,
         pub description: String,
     }
@@ -1408,8 +1841,8 @@ pub mod guest_role_endpoints {
         context_path = "/myc/managers/guest-roles",
         params(
             ("role" = Uuid, Path, description = "The guest-role primary key."),
-            CreateGuestRoleParams,
         ),
+        request_body = CreateGuestRoleBody,
         responses(
             (
                 status = 500,
@@ -1441,7 +1874,7 @@ pub mod guest_role_endpoints {
     #[post("/{role}/")]
     pub async fn crate_guest_role_url(
         path: web::Path<Uuid>,
-        info: web::Query<CreateGuestRoleParams>,
+        json: web::Json<CreateGuestRoleBody>,
         profile: MyceliumProfileData,
         role_registration_repo: Inject<
             GuestRoleRegistrationModule,
@@ -1450,8 +1883,8 @@ pub mod guest_role_endpoints {
     ) -> impl Responder {
         match create_guest_role(
             profile.to_profile(),
-            info.name.to_owned(),
-            info.description.to_owned(),
+            json.name.to_owned(),
+            json.description.to_owned(),
             path.to_owned(),
             None,
             Box::new(&*role_registration_repo),
@@ -1785,7 +2218,7 @@ pub mod role_endpoints {
     use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
     use serde::Deserialize;
     use shaku_actix::Inject;
-    use utoipa::IntoParams;
+    use utoipa::{IntoParams, ToSchema};
     use uuid::Uuid;
 
     // ? -----------------------------------------------------------------------
@@ -1806,9 +2239,9 @@ pub mod role_endpoints {
     // ? Define API structs
     // ? -----------------------------------------------------------------------
 
-    #[derive(Deserialize, IntoParams)]
+    #[derive(Deserialize, ToSchema)]
     #[serde(rename_all = "camelCase")]
-    pub struct CreateRoleParams {
+    pub struct CreateRoleBody {
         pub name: String,
         pub description: String,
     }
@@ -1825,9 +2258,7 @@ pub mod role_endpoints {
     #[utoipa::path(
         post,
         context_path = "/myc/managers/roles",
-        params(
-            CreateRoleParams,
-        ),
+        request_body = CreateRoleBody,
         responses(
             (
                 status = 500,
@@ -1858,7 +2289,7 @@ pub mod role_endpoints {
     )]
     #[post("/")]
     pub async fn crate_role_url(
-        info: web::Query<CreateRoleParams>,
+        body: web::Json<CreateRoleBody>,
         profile: MyceliumProfileData,
         role_registration_repo: Inject<
             RoleRegistrationModule,
@@ -1867,8 +2298,8 @@ pub mod role_endpoints {
     ) -> impl Responder {
         match create_role(
             profile.to_profile(),
-            info.name.to_owned(),
-            info.description.to_owned(),
+            body.name.to_owned(),
+            body.description.to_owned(),
             Box::new(&*role_registration_repo),
         )
         .await
@@ -2021,8 +2452,8 @@ pub mod role_endpoints {
         context_path = "/myc/managers/roles",
         params(
             ("role" = Uuid, Path, description = "The role primary key."),
-            CreateRoleParams,
         ),
+        request_body = CreateRoleBody,
         responses(
             (
                 status = 500,
@@ -2054,7 +2485,7 @@ pub mod role_endpoints {
     #[patch("/{role}/update-name-and-description")]
     pub async fn update_role_name_and_description_url(
         path: web::Path<Uuid>,
-        info: web::Query<CreateRoleParams>,
+        body: web::Json<CreateRoleBody>,
         profile: MyceliumProfileData,
         role_fetching_repo: Inject<RoleFetchingModule, dyn RoleFetching>,
         role_updating_repo: Inject<RoleUpdatingModule, dyn RoleUpdating>,
@@ -2062,8 +2493,8 @@ pub mod role_endpoints {
         match update_role_name_and_description(
             profile.to_profile(),
             path.to_owned(),
-            info.name.to_owned(),
-            info.description.to_owned(),
+            body.name.to_owned(),
+            body.description.to_owned(),
             Box::new(&*role_fetching_repo),
             Box::new(&*role_updating_repo),
         )

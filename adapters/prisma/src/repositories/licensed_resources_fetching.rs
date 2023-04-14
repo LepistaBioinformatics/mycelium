@@ -13,7 +13,10 @@ use clean_base::{
 };
 use log::debug;
 use myc_core::domain::{
-    dtos::{email::Email, guest::PermissionsType, profile::LicensedResources},
+    dtos::{
+        email::Email, guest::PermissionsType,
+        native_error_codes::NativeErrorCodes, profile::LicensedResources,
+    },
     entities::LicensedResourcesFetching,
 };
 use shaku::Component;
@@ -43,7 +46,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 return fetching_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,

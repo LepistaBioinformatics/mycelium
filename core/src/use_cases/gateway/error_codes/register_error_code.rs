@@ -36,8 +36,8 @@ pub async fn register_error_code(
     // ? -----------------------------------------------------------------------
 
     let mut error_code = match is_internal {
-        true => ErrorCode::new_internal_error(prefix, 0, message, false)?,
-        false => ErrorCode::new_external_error(prefix, 0, message, false)?,
+        true => ErrorCode::new_internal_error(prefix, 0, message)?,
+        false => ErrorCode::new_external_error(prefix, 0, message)?,
     };
 
     if let Some(msg) = details {

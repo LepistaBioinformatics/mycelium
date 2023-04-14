@@ -29,7 +29,7 @@ pub async fn get_error_code(
             return use_case_err(
                 "Unexpected error on check user status".to_string(),
             )
-            .with_code(NativeErrorCodes::MYC00004.to_string())
+            .with_code(NativeErrorCodes::MYC00004.as_str())
             .as_error()
         }
         Some(status) => {
@@ -37,7 +37,7 @@ pub async fn get_error_code(
                 return use_case_err(
                     "Only active users should perform this action".to_string(),
                 )
-                .with_code(NativeErrorCodes::MYC00005.to_string())
+                .with_code(NativeErrorCodes::MYC00005.as_str())
                 .as_error();
             }
         }
