@@ -61,6 +61,7 @@ impl ErrorCodeUpdating for ErrorCodeUpdatingSqlDbRepository {
                         error_code.details.to_owned(),
                     ),
                     error_code_model::is_internal::set(error_code.is_internal),
+                    error_code_model::is_native::set(error_code.is_native),
                 ],
             )
             .exec()
@@ -72,6 +73,7 @@ impl ErrorCodeUpdating for ErrorCodeUpdatingSqlDbRepository {
                 message: record.message,
                 details: record.details,
                 is_internal: record.is_internal,
+                is_native: record.is_native,
             })),
             Err(err) => {
                 if err.is_prisma_error::<RecordNotFound>() {

@@ -162,6 +162,7 @@ model ErrorCode {
   message     String  @db.VarChar(255)
   details     String? @db.VarChar(255)
   is_internal Boolean @default(false)
+  is_native   Boolean @default(false)
 
   // Db compatibility and extra maps
   @@id([prefix, code])

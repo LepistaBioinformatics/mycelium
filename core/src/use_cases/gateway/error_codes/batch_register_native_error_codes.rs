@@ -1,15 +1,9 @@
 use crate::domain::{
-    dtos::{
-        error_code::ErrorCode, native_error_codes::NativeErrorCodes,
-        profile::Profile,
-    },
+    dtos::{error_code::ErrorCode, native_error_codes::NativeErrorCodes},
     entities::ErrorCodeRegistration,
 };
 
-use clean_base::{
-    entities::CreateResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
-};
+use clean_base::{entities::CreateResponseKind, utils::errors::MappedErrors};
 use futures::future::join_all;
 use log::error;
 
@@ -24,21 +18,8 @@ pub struct ErrorPersistenceStatistics {
 
 /// Persist all native error codes in the data repository
 pub async fn batch_register_native_error_codes(
-    profile: Profile,
     error_code_registration_repo: Box<&dyn ErrorCodeRegistration>,
 ) -> Result<ErrorPersistenceStatistics, MappedErrors> {
-    // ? -----------------------------------------------------------------------
-    // ? Check if the current account has sufficient privileges
-    // ? -----------------------------------------------------------------------
-
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to register error"
-                .to_string(),
-        )
-        .as_error();
-    }
-
     // ? -----------------------------------------------------------------------
     // ? Try to register errors
     // ? -----------------------------------------------------------------------
