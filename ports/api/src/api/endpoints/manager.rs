@@ -1359,7 +1359,7 @@ pub mod guest_endpoints {
     // ? Define API structs
     // ? -----------------------------------------------------------------------
 
-    #[derive(Deserialize, ToSchema)]
+    #[derive(Deserialize, ToSchema, IntoParams)]
     #[serde(rename_all = "camelCase")]
     pub struct GuestUserBody {
         pub email: String,
@@ -1413,14 +1413,14 @@ pub mod guest_endpoints {
     )]
     #[get("/")]
     pub async fn list_licensed_accounts_of_email_url(
-        body: web::Json<GuestUserBody>,
+        info: web::Query<GuestUserBody>,
         profile: MyceliumProfileData,
         licensed_resources_fetching_repo: Inject<
             LicensedResourcesFetchingModule,
             dyn LicensedResourcesFetching,
         >,
     ) -> impl Responder {
-        let email = match Email::from_string(body.email.to_owned()) {
+        let email = match Email::from_string(info.email.to_owned()) {
             Err(err) => {
                 return HttpResponse::BadRequest()
                     .json(JsonError::new(format!("Invalid email: {err}")))
