@@ -1,4 +1,4 @@
-use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
+use clean_base::dtos::{Children, PaginatedRecord, Parent};
 use myc_core::{
     domain::dtos::{
         account::{Account, AccountType, AccountTypeEnum, VerboseStatus},
@@ -52,8 +52,8 @@ use utoipa::OpenApi;
     components(
         schemas(
             // Default relationship enumerators.
-            ChildrenEnum<String, String>,
-            ParentEnum<String, String>,
+            Children<String, String>,
+            Parent<String, String>,
 
             // Schema models.
             Account,
@@ -66,10 +66,18 @@ use utoipa::OpenApi;
             GuestRole,
             JsonError,
             LicensedResources,
+            PaginatedRecord<Account>,
+            PaginatedRecord<ErrorCode>,
             PermissionsType,
             Profile,
             Role,
             VerboseStatus,
+            account_endpoints::CreateSubscriptionAccountBody,
+            error_code_endpoints::CreateErrorCodeBody,
+            error_code_endpoints::UpdateErrorCodeMessageAndDetailsBody,
+            guest_endpoints::GuestUserBody,
+            guest_role_endpoints::CreateGuestRoleBody,
+            role_endpoints::CreateRoleBody,
         ),
     ),
     tags(
@@ -227,6 +235,10 @@ pub mod error_code_endpoints {
     }
 
     /// List available error codes.
+    ///
+    /// List accounts with pagination. The `records` field contains a vector of
+    /// [`ErrorCode`] model.
+    ///
     #[utoipa::path(
         get,
         context_path = "/myc/managers/error-codes",
@@ -479,7 +491,7 @@ pub mod error_code_endpoints {
             ),
         ),
     )]
-    #[delete("/account/{account}/role/{role}")]
+    #[delete("/prefix/{account}/code/{code}")]
     pub async fn delete_error_code_url(
         path: web::Path<(String, i32)>,
         profile: MyceliumProfileData,
@@ -687,6 +699,10 @@ pub mod account_endpoints {
     /// List account given an account-type
     ///
     /// Get a filtered (or not) list of accounts.
+    ///
+    /// List accounts with pagination. The `records` field contains a vector of
+    /// [`Account`] model.
+    ///
     #[utoipa::path(
         get,
         context_path = "/myc/managers/accounts",
