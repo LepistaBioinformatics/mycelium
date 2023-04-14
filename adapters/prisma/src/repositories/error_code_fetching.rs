@@ -9,7 +9,8 @@ use clean_base::{
     utils::errors::{factories::fetching_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::error_code::ErrorCode, entities::ErrorCodeFetching,
+    dtos::{error_code::ErrorCode, native_error_codes::NativeErrorCodes},
+    entities::ErrorCodeFetching,
 };
 use prisma_client_rust::Direction;
 use shaku::Component;
@@ -37,7 +38,7 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
                 return fetching_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,
@@ -64,7 +65,6 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
                 message: record.message,
                 details: record.details,
                 is_internal: record.is_internal,
-                is_native: false,
             })),
             None => Ok(FetchResponseKind::NotFound(Some((prefix, code)))),
         }
@@ -89,7 +89,7 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
                 return fetching_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,
@@ -154,7 +154,6 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
                 message: record.message,
                 details: record.details,
                 is_internal: record.is_internal,
-                is_native: false,
             })
             .collect::<Vec<ErrorCode>>();
 

@@ -10,7 +10,10 @@ use clean_base::{
     utils::errors::{factories::updating_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::account::{Account, VerboseStatus},
+    dtos::{
+        account::{Account, VerboseStatus},
+        native_error_codes::NativeErrorCodes,
+    },
     entities::AccountUpdating,
 };
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
@@ -39,7 +42,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                 return updating_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,

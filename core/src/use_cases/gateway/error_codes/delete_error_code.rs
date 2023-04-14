@@ -1,4 +1,7 @@
-use crate::domain::{dtos::profile::Profile, entities::ErrorCodeDeletion};
+use crate::domain::{
+    dtos::{native_error_codes::NativeErrorCodes, profile::Profile},
+    entities::ErrorCodeDeletion,
+};
 
 use clean_base::{
     entities::DeletionResponseKind,
@@ -23,6 +26,7 @@ pub async fn delete_error_code(
             "The current user has no sufficient privileges to delete error"
                 .to_string(),
         )
+        .with_code(NativeErrorCodes::MYC00007.as_str())
         .as_error();
     }
 

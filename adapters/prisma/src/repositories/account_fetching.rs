@@ -16,6 +16,7 @@ use myc_core::domain::{
     dtos::{
         account::{Account, AccountType, VerboseStatus},
         email::Email,
+        native_error_codes::NativeErrorCodes,
         user::User,
     },
     entities::AccountFetching,
@@ -46,7 +47,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                 return creation_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,
@@ -140,7 +141,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                 return creation_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,

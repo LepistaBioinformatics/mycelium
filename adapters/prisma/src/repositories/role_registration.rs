@@ -5,7 +5,10 @@ use clean_base::{
     entities::{CreateResponseKind, GetOrCreateResponseKind},
     utils::errors::{factories::creation_err, MappedErrors},
 };
-use myc_core::domain::{dtos::role::Role, entities::RoleRegistration};
+use myc_core::domain::{
+    dtos::{native_error_codes::NativeErrorCodes, role::Role},
+    entities::RoleRegistration,
+};
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -31,7 +34,7 @@ impl RoleRegistration for RoleRegistrationSqlDbRepository {
                 return creation_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,

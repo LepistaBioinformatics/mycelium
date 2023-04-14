@@ -33,7 +33,7 @@ pub async fn list_error_codes(
             return use_case_err(
                 "Unexpected error on check user status".to_string(),
             )
-            .with_code(MYC00004.to_string())
+            .with_code(MYC00004.as_str())
             .as_error()
         }
         Some(status) => {
@@ -41,7 +41,7 @@ pub async fn list_error_codes(
                 return use_case_err(
                     "Only active users should perform this action".to_string(),
                 )
-                .with_code(MYC00005.to_string())
+                .with_code(MYC00005.as_str())
                 .as_error();
             }
         }

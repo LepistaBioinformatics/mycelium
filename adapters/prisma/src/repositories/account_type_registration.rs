@@ -9,7 +9,8 @@ use clean_base::{
     utils::errors::{factories::creation_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::account::AccountType, entities::AccountTypeRegistration,
+    dtos::{account::AccountType, native_error_codes::NativeErrorCodes},
+    entities::AccountTypeRegistration,
 };
 use shaku::Component;
 use std::process::id as process_id;
@@ -36,7 +37,7 @@ impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
                 return creation_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,

@@ -18,7 +18,9 @@ use clean_base::{
     },
 };
 use myc_core::domain::{
-    dtos::{email::Email, guest::GuestUser},
+    dtos::{
+        email::Email, guest::GuestUser, native_error_codes::NativeErrorCodes,
+    },
     entities::GuestUserOnAccountUpdating,
 };
 use prisma_client_rust::{prisma_errors::UnknownError, QueryError};
@@ -49,7 +51,7 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
                 return deletion_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,

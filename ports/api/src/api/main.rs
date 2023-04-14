@@ -19,6 +19,7 @@ use endpoints::{
     index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
     manager::{
         account_endpoints as manager_account_endpoints,
+        error_code_endpoints as manager_error_code_endpoints,
         guest_endpoints as manager_guest_endpoints,
         guest_role_endpoints as manager_guest_role_endpoints,
         role_endpoints as manager_role_endpoints, ApiDoc as ManagerApiDoc,
@@ -127,6 +128,7 @@ pub async fn main() -> std::io::Result<()> {
                     .service(
                         web::scope("/managers")
                             .configure(manager_account_endpoints::configure)
+                            .configure(manager_error_code_endpoints::configure)
                             .configure(manager_guest_endpoints::configure)
                             .configure(manager_guest_role_endpoints::configure)
                             .configure(manager_role_endpoints::configure),

@@ -44,6 +44,22 @@ pub use account_type_registration::{
 pub use account_updating::{
     AccountUpdatingSqlDbRepository, AccountUpdatingSqlDbRepositoryParameters,
 };
+pub use error_code_deletion::{
+    ErrorCodeDeletionDeletionSqlDbRepository,
+    ErrorCodeDeletionDeletionSqlDbRepositoryParameters,
+};
+pub use error_code_fetching::{
+    ErrorCodeFetchingSqlDbRepository,
+    ErrorCodeFetchingSqlDbRepositoryParameters,
+};
+pub use error_code_registration::{
+    ErrorCodeRegistrationSqlDbRepository,
+    ErrorCodeRegistrationSqlDbRepositoryParameters,
+};
+pub use error_code_updating::{
+    ErrorCodeUpdatingSqlDbRepository,
+    ErrorCodeUpdatingSqlDbRepositoryParameters,
+};
 pub use guest_role_deletion::{
     GuestRoleDeletionSqlDbRepository,
     GuestRoleDeletionSqlDbRepositoryParameters,

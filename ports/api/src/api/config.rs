@@ -1,7 +1,9 @@
 use crate::modules::{
     AccountFetchingModule, AccountRegistrationModule,
     AccountTypeDeletionModule, AccountTypeRegistrationModule,
-    AccountUpdatingModule, GuestRoleDeletionModule, GuestRoleFetchingModule,
+    AccountUpdatingModule, ErrorCodeDeletionModule, ErrorCodeFetchingModule,
+    ErrorCodeRegistrationModule, ErrorCodeUpdatingModule,
+    GuestRoleDeletionModule, GuestRoleFetchingModule,
     GuestRoleRegistrationModule, GuestRoleUpdatingModule,
     GuestUserDeletionModule, GuestUserFetchingModule,
     GuestUserOnAccountUpdatingModule, GuestUserRegistrationModule,
@@ -24,6 +26,14 @@ use myc_prisma::repositories::{
     AccountTypeRegistrationSqlDbRepository,
     AccountTypeRegistrationSqlDbRepositoryParameters,
     AccountUpdatingSqlDbRepository, AccountUpdatingSqlDbRepositoryParameters,
+    ErrorCodeDeletionDeletionSqlDbRepository,
+    ErrorCodeDeletionDeletionSqlDbRepositoryParameters,
+    ErrorCodeFetchingSqlDbRepository,
+    ErrorCodeFetchingSqlDbRepositoryParameters,
+    ErrorCodeRegistrationSqlDbRepository,
+    ErrorCodeRegistrationSqlDbRepositoryParameters,
+    ErrorCodeUpdatingSqlDbRepository,
+    ErrorCodeUpdatingSqlDbRepositoryParameters,
     GuestRoleDeletionSqlDbRepository,
     GuestRoleDeletionSqlDbRepositoryParameters,
     GuestRoleFetchingSqlDbRepository,
@@ -291,6 +301,37 @@ pub fn configure(config: &mut web::ServiceConfig) {
             RoutesFetchingModule::builder()
                 .with_component_parameters::<RoutesFetchingMemDbRepo>(
                     RoutesFetchingMemDbRepoParameters {},
+                )
+                .build(),
+        ))
+        // ? -------------------------------------------------------------------
+        // ? ErrorCodes
+        // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            ErrorCodeDeletionModule::builder()
+                .with_component_parameters::<ErrorCodeDeletionDeletionSqlDbRepository>(
+                    ErrorCodeDeletionDeletionSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            ErrorCodeFetchingModule::builder()
+                .with_component_parameters::<ErrorCodeFetchingSqlDbRepository>(
+                    ErrorCodeFetchingSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            ErrorCodeRegistrationModule::builder()
+                .with_component_parameters::<ErrorCodeRegistrationSqlDbRepository>(
+                    ErrorCodeRegistrationSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            ErrorCodeUpdatingModule::builder()
+                .with_component_parameters::<ErrorCodeUpdatingSqlDbRepository>(
+                    ErrorCodeUpdatingSqlDbRepositoryParameters {},
                 )
                 .build(),
         ));

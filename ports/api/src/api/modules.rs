@@ -2,7 +2,9 @@ use myc_mem_db::repositories::RoutesFetchingMemDbRepo;
 use myc_prisma::repositories::{
     AccountFetchingSqlDbRepository, AccountRegistrationSqlDbRepository,
     AccountTypeDeletionSqlDbRepository, AccountTypeRegistrationSqlDbRepository,
-    AccountUpdatingSqlDbRepository, GuestRoleDeletionSqlDbRepository,
+    AccountUpdatingSqlDbRepository, ErrorCodeDeletionDeletionSqlDbRepository,
+    ErrorCodeFetchingSqlDbRepository, ErrorCodeRegistrationSqlDbRepository,
+    ErrorCodeUpdatingSqlDbRepository, GuestRoleDeletionSqlDbRepository,
     GuestRoleFetchingSqlDbRepository, GuestRoleRegistrationSqlDbRepository,
     GuestRoleUpdatingSqlDbRepository, GuestUserDeletionSqlDbRepository,
     GuestUserFetchingSqlDbRepository,
@@ -213,6 +215,38 @@ module! {
 module! {
     pub RoutesFetchingModule {
         components = [RoutesFetchingMemDbRepo],
+        providers = []
+    }
+}
+
+// ? ---------------------------------------------------------------------------
+// ? Error Codes
+// ? ---------------------------------------------------------------------------
+
+module! {
+    pub ErrorCodeDeletionModule {
+        components = [ErrorCodeDeletionDeletionSqlDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub ErrorCodeFetchingModule {
+        components = [ErrorCodeFetchingSqlDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub ErrorCodeRegistrationModule {
+        components = [ErrorCodeRegistrationSqlDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub ErrorCodeUpdatingModule {
+        components = [ErrorCodeUpdatingSqlDbRepository],
         providers = []
     }
 }

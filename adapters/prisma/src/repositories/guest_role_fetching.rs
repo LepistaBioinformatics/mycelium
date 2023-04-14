@@ -9,7 +9,10 @@ use clean_base::{
     utils::errors::{factories::fetching_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::guest::{GuestRole, PermissionsType},
+    dtos::{
+        guest::{GuestRole, PermissionsType},
+        native_error_codes::NativeErrorCodes,
+    },
     entities::GuestRoleFetching,
 };
 use shaku::Component;
@@ -37,7 +40,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                 return fetching_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,
@@ -88,7 +91,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                 return fetching_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,

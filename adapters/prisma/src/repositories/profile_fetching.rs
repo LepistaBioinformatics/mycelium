@@ -9,7 +9,10 @@ use clean_base::{
     utils::errors::{factories::fetching_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::{account::VerboseStatus, email::Email, profile::Profile},
+    dtos::{
+        account::VerboseStatus, email::Email,
+        native_error_codes::NativeErrorCodes, profile::Profile,
+    },
     entities::ProfileFetching,
 };
 use shaku::Component;
@@ -47,7 +50,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                 return fetching_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,

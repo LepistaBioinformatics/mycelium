@@ -8,7 +8,8 @@ use clean_base::{
     utils::errors::{factories::updating_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::error_code::ErrorCode, entities::ErrorCodeUpdating,
+    dtos::{error_code::ErrorCode, native_error_codes::NativeErrorCodes},
+    entities::ErrorCodeUpdating,
 };
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
 use shaku::Component;
@@ -35,7 +36,7 @@ impl ErrorCodeUpdating for ErrorCodeUpdatingSqlDbRepository {
                 return updating_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,

@@ -25,9 +25,6 @@ pub struct ErrorCode {
 
     /// Whether the error is internal or external.
     pub is_internal: bool,
-
-    /// Whether the error is native or not.
-    pub is_native: bool,
 }
 
 impl ErrorCode {
@@ -41,7 +38,6 @@ impl ErrorCode {
         code: i32,
         message: String,
         is_internal: bool,
-        is_native: bool,
     ) -> Result<Self, MappedErrors> {
         ErrorCode::validate_prefix(&prefix)?;
 
@@ -51,7 +47,6 @@ impl ErrorCode {
             message,
             details: None,
             is_internal,
-            is_native,
         })
     }
 
@@ -60,7 +55,6 @@ impl ErrorCode {
         prefix: String,
         code: i32,
         message: String,
-        is_native: bool,
     ) -> Result<Self, MappedErrors> {
         ErrorCode::validate_prefix(&prefix)?;
 
@@ -70,7 +64,6 @@ impl ErrorCode {
             message,
             details: None,
             is_internal: true,
-            is_native,
         })
     }
 
@@ -79,7 +72,6 @@ impl ErrorCode {
         prefix: String,
         code: i32,
         message: String,
-        is_native: bool,
     ) -> Result<Self, MappedErrors> {
         ErrorCode::validate_prefix(&prefix)?;
 
@@ -89,7 +81,6 @@ impl ErrorCode {
             message,
             details: None,
             is_internal: false,
-            is_native,
         })
     }
 
@@ -157,7 +148,6 @@ mod tests {
             "TEST".to_string(),
             1,
             "Test error.".to_string(),
-            true,
         )
         .unwrap();
 
@@ -174,7 +164,6 @@ mod tests {
             "TEST".to_string(),
             1,
             "Test error.".to_string(),
-            true,
         )
         .unwrap();
 
@@ -191,7 +180,6 @@ mod tests {
             "TEST".to_string(),
             1,
             "Test error.".to_string(),
-            true,
         )
         .unwrap()
         .with_details("Test details.".to_string());

@@ -7,7 +7,7 @@ use clean_base::{
     utils::errors::{factories::creation_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::{email::Email, user::User},
+    dtos::{email::Email, native_error_codes::NativeErrorCodes, user::User},
     entities::UserRegistration,
 };
 use shaku::Component;
@@ -35,7 +35,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                 return creation_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code("MYC00001".to_string())
+                .with_code(NativeErrorCodes::MYC00001.as_str())
                 .as_error()
             }
             Some(res) => res,
