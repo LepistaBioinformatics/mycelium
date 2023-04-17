@@ -1382,7 +1382,9 @@ pub mod guest_endpoints {
     #[utoipa::path(
         get,
         context_path = "/myc/managers/guests",
-        request_body = GuestUserBody,
+        params(
+            GuestUserBody
+        ),
         responses(
             (
                 status = 500,
