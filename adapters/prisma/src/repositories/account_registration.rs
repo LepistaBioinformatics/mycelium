@@ -171,7 +171,11 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         Some(res) => res.to_string(),
                     },
                 }),
-                vec![],
+                vec![
+                    account_model::is_active::set(account.is_active),
+                    account_model::is_checked::set(account.is_checked),
+                    account_model::is_archived::set(account.is_archived),
+                ],
             )
             .include(account_model::include!({ owner account_type }))
             .exec()
