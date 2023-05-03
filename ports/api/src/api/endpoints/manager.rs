@@ -1682,11 +1682,11 @@ pub mod guest_endpoints {
             Err(err) => HttpResponse::InternalServerError()
                 .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
-                DeletionResponseKind::NotDeleted(guest, _) => {
-                    HttpResponse::Ok().json(guest)
+                DeletionResponseKind::NotDeleted(_, msg) => {
+                    HttpResponse::Conflict().json(JsonError::new(msg))
                 }
                 DeletionResponseKind::Deleted => {
-                    HttpResponse::Created().finish()
+                    HttpResponse::NoContent().finish()
                 }
             },
         }

@@ -138,7 +138,7 @@ model Account {
 
 model GuestUserOnAccount {
   // Model fields
-  guest_user    GuestUser @relation(fields: [guest_user_id], references: [id])
+  guest_user    GuestUser @relation(fields: [guest_user_id], references: [id], onDelete: Cascade)
   guest_user_id String
   account       Account   @relation(fields: [account_id], references: [id])
   account_id    String
