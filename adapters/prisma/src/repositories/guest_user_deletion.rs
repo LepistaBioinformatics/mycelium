@@ -1,5 +1,8 @@
 use crate::{
-    prisma::guest_user_on_account as guest_user_on_account_model,
+    prisma::{
+        guest_user as guest_user_model,
+        guest_user_on_account as guest_user_on_account_model,
+    },
     repositories::connector::get_client,
 };
 
@@ -48,19 +51,67 @@ impl GuestUserDeletion for GuestUserDeletionSqlDbRepository {
         // ? -------------------------------------------------------------------
 
         match client
-            .guest_user_on_account()
-            .delete(guest_user_on_account_model::guest_user_id_account_id(
-                guest_user_id.to_string(),
-                account_id.to_string(),
-            ))
-            .exec()
+            ._transaction()
+            .run(|client| async move {
+                let guest = match client
+                    .guest_user_on_account()
+                    .find_first(vec![
+                        guest_user_on_account_model::account_id::equals(
+                            account_id.to_string(),
+                        ),
+                        guest_user_on_account_model::guest_user::is(vec![
+                            guest_user_model::guest_role_id::equals(
+                                guest_user_id.to_string(),
+                            ),
+                        ]),
+                    ])
+                    .include(guest_user_on_account_model::include!({
+                        guest_user
+                    }))
+                    .exec()
+                    .await
+                {
+                    Err(err) => {
+                        return Err(err);
+                    }
+                    Ok(guest) => guest,
+                };
+
+                let guest = match guest {
+                    None => {
+                        return Ok(DeletionResponseKind::NotDeleted(
+                            (guest_user_id, account_id),
+                            "Guest user not found".to_string(),
+                        ))
+                    }
+                    Some(guest) => guest,
+                };
+
+                match client
+                    .guest_user_on_account()
+                    .delete(
+                        guest_user_on_account_model::guest_user_id_account_id(
+                            guest.guest_user_id.to_string(),
+                            guest.account_id.to_string(),
+                        ),
+                    )
+                    .exec()
+                    .await
+                {
+                    Err(err) => Ok(DeletionResponseKind::NotDeleted(
+                        (guest_user_id, account_id),
+                        err.to_string(),
+                    )),
+                    Ok(_) => Ok(DeletionResponseKind::Deleted),
+                }
+            })
             .await
         {
             Err(err) => Ok(DeletionResponseKind::NotDeleted(
                 (guest_user_id, account_id),
                 err.to_string(),
             )),
-            Ok(_) => Ok(DeletionResponseKind::Deleted),
+            Ok(res) => Ok(res),
         }
     }
 }
