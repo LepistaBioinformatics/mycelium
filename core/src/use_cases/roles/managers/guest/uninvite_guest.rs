@@ -12,7 +12,8 @@ use uuid::Uuid;
 pub async fn uninvite_guest(
     profile: Profile,
     account_id: Uuid,
-    guest_user_id: Uuid,
+    guest_role_id: Uuid,
+    email: String,
     guest_user_deletion_repo: Box<&dyn GuestUserDeletion>,
 ) -> Result<DeletionResponseKind<(Uuid, Uuid)>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -33,6 +34,6 @@ pub async fn uninvite_guest(
     // ? -----------------------------------------------------------------------
 
     guest_user_deletion_repo
-        .delete(guest_user_id, account_id)
+        .delete(guest_role_id, account_id, email)
         .await
 }

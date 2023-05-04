@@ -1663,6 +1663,7 @@ pub mod guest_endpoints {
     #[delete("/account/{account}/role/{role}")]
     pub async fn uninvite_guest_url(
         path: web::Path<(Uuid, Uuid)>,
+        info: web::Query<GuestUserBody>,
         profile: MyceliumProfileData,
         guest_user_deletion_repo: Inject<
             GuestUserDeletionModule,
@@ -1673,8 +1674,9 @@ pub mod guest_endpoints {
 
         match uninvite_guest(
             profile.to_profile(),
-            role_id,
             account_id,
+            role_id,
+            info.email.to_owned(),
             Box::new(&*guest_user_deletion_repo),
         )
         .await

@@ -7,7 +7,8 @@ use uuid::Uuid;
 pub trait GuestUserDeletion: Interface + Send + Sync {
     async fn delete(
         &self,
-        guest_user_id: Uuid,
+        guest_role_id: Uuid,
         account_id: Uuid,
+        email: String,
     ) -> Result<DeletionResponseKind<(Uuid, Uuid)>, MappedErrors>;
 }
