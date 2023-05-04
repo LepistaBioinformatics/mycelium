@@ -14,6 +14,7 @@ use clean_base::{
 use myc_core::domain::{
     dtos::native_error_codes::NativeErrorCodes, entities::GuestUserDeletion,
 };
+use prisma_client_rust::and;
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -26,8 +27,9 @@ pub struct GuestUserDeletionSqlDbRepository {}
 impl GuestUserDeletion for GuestUserDeletionSqlDbRepository {
     async fn delete(
         &self,
-        guest_user_id: Uuid,
+        guest_role_id: Uuid,
         account_id: Uuid,
+        email: String,
     ) -> Result<DeletionResponseKind<(Uuid, Uuid)>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
@@ -55,19 +57,19 @@ impl GuestUserDeletion for GuestUserDeletionSqlDbRepository {
             .run(|client| async move {
                 let guest = match client
                     .guest_user_on_account()
-                    .find_first(vec![
+                    .find_first(vec![and![
                         guest_user_on_account_model::account_id::equals(
                             account_id.to_string(),
                         ),
                         guest_user_on_account_model::guest_user::is(vec![
-                            guest_user_model::guest_role_id::equals(
-                                guest_user_id.to_string(),
-                            ),
+                            and![
+                                guest_user_model::email::equals(email),
+                                guest_user_model::guest_role_id::equals(
+                                    guest_role_id.to_string(),
+                                ),
+                            ]
                         ]),
-                    ])
-                    .include(guest_user_on_account_model::include!({
-                        guest_user
-                    }))
+                    ]])
                     .exec()
                     .await
                 {
@@ -77,10 +79,12 @@ impl GuestUserDeletion for GuestUserDeletionSqlDbRepository {
                     Ok(guest) => guest,
                 };
 
+                println!("Guest: {:?}", guest);
+
                 let guest = match guest {
                     None => {
                         return Ok(DeletionResponseKind::NotDeleted(
-                            (guest_user_id, account_id),
+                            (guest_role_id, account_id),
                             "Guest user not found".to_string(),
                         ))
                     }
@@ -99,7 +103,7 @@ impl GuestUserDeletion for GuestUserDeletionSqlDbRepository {
                     .await
                 {
                     Err(err) => Ok(DeletionResponseKind::NotDeleted(
-                        (guest_user_id, account_id),
+                        (guest_role_id, account_id),
                         err.to_string(),
                     )),
                     Ok(_) => Ok(DeletionResponseKind::Deleted),
@@ -108,7 +112,7 @@ impl GuestUserDeletion for GuestUserDeletionSqlDbRepository {
             .await
         {
             Err(err) => Ok(DeletionResponseKind::NotDeleted(
-                (guest_user_id, account_id),
+                (guest_role_id, account_id),
                 err.to_string(),
             )),
             Ok(res) => Ok(res),
