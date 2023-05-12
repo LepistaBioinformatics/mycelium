@@ -1632,6 +1632,7 @@ pub mod guest_endpoints {
         params(
             ("account" = Uuid, Path, description = "The account primary key."),
             ("role" = Uuid, Path, description = "The guest-role unique id."),
+            GuestUserBody,
         ),
         responses(
             (

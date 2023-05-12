@@ -59,14 +59,21 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
         // ? -------------------------------------------------------------------
 
         match response {
-            Some(record) => Ok(FetchResponseKind::Found(ErrorCode {
-                prefix: record.prefix,
-                code: record.code,
-                message: record.message,
-                details: record.details,
-                is_internal: record.is_internal,
-                is_native: record.is_native,
-            })),
+            Some(record) => {
+                let mut error_code = ErrorCode {
+                    prefix: record.prefix,
+                    error_number: record.code,
+                    code: None,
+                    message: record.message,
+                    details: record.details,
+                    is_internal: record.is_internal,
+                    is_native: record.is_native,
+                };
+
+                error_code = error_code.with_code();
+
+                Ok(FetchResponseKind::Found(error_code))
+            }
             None => Ok(FetchResponseKind::NotFound(Some((prefix, code)))),
         }
     }
@@ -149,13 +156,18 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
 
         let records: Vec<ErrorCode> = response
             .into_iter()
-            .map(|record| ErrorCode {
-                prefix: record.prefix,
-                code: record.code,
-                message: record.message,
-                details: record.details,
-                is_internal: record.is_internal,
-                is_native: record.is_native,
+            .map(|record| {
+                let error_code = ErrorCode {
+                    prefix: record.prefix,
+                    error_number: record.code,
+                    code: None,
+                    message: record.message,
+                    details: record.details,
+                    is_internal: record.is_internal,
+                    is_native: record.is_native,
+                };
+
+                error_code.with_code()
             })
             .collect::<Vec<ErrorCode>>();
 

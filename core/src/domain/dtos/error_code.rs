@@ -15,7 +15,10 @@ pub struct ErrorCode {
     pub prefix: String,
 
     /// The code of the error.
-    pub code: i32,
+    pub error_number: i32,
+
+    /// A compiled string of the prefix and code.
+    pub code: Option<String>,
 
     /// The message of the error.
     pub message: String,
@@ -38,7 +41,7 @@ impl ErrorCode {
     /// Creates a new ErrorCode with the given code and message.
     pub fn new(
         prefix: String,
-        code: i32,
+        error_number: i32,
         message: String,
         is_internal: bool,
         is_native: bool,
@@ -47,7 +50,8 @@ impl ErrorCode {
 
         Ok(Self {
             prefix,
-            code,
+            error_number,
+            code: None,
             message,
             details: None,
             is_internal,
@@ -58,7 +62,7 @@ impl ErrorCode {
     /// Creates a new internal ErrorCode with the given code and message.
     pub fn new_internal_error(
         prefix: String,
-        code: i32,
+        error_number: i32,
         message: String,
         is_native: bool,
     ) -> Result<Self, MappedErrors> {
@@ -66,7 +70,8 @@ impl ErrorCode {
 
         Ok(Self {
             prefix,
-            code,
+            error_number,
+            code: None,
             message,
             details: None,
             is_internal: true,
@@ -85,7 +90,8 @@ impl ErrorCode {
 
         Ok(Self {
             prefix,
-            code,
+            error_number: code,
+            code: None,
             message,
             details: None,
             is_internal: false,
@@ -100,6 +106,11 @@ impl ErrorCode {
     /// Creates a new ErrorCode with the given code, message, and details.
     pub fn with_details(mut self, details: String) -> Self {
         self.details = Some(details);
+        self
+    }
+
+    pub fn with_code(mut self) -> Self {
+        self.code = Some(format!("{}{:05}", self.prefix, self.error_number));
         self
     }
 
@@ -162,7 +173,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(error_code.prefix, "TEST");
-        assert_eq!(error_code.code, 1);
+        assert_eq!(error_code.error_number, 1);
         assert_eq!(error_code.message, "Test error.");
         assert_eq!(error_code.details, None);
         assert_eq!(error_code.is_internal, true);
@@ -179,7 +190,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(error_code.prefix, "TEST");
-        assert_eq!(error_code.code, 1);
+        assert_eq!(error_code.error_number, 1);
         assert_eq!(error_code.message, "Test error.");
         assert_eq!(error_code.details, None);
         assert_eq!(error_code.is_internal, false);
@@ -197,7 +208,7 @@ mod tests {
         .with_details("Test details.".to_string());
 
         assert_eq!(error_code.prefix, "TEST");
-        assert_eq!(error_code.code, 1);
+        assert_eq!(error_code.error_number, 1);
         assert_eq!(error_code.message, "Test error.");
         assert_eq!(error_code.details, Some("Test details.".to_string()));
         assert_eq!(error_code.is_internal, true);
@@ -210,5 +221,21 @@ mod tests {
         assert!(ErrorCode::validate_prefix("TE").is_ok());
         assert!(ErrorCode::validate_prefix("T").is_err());
         assert!(ErrorCode::validate_prefix("TEST1").is_err());
+    }
+
+    #[test]
+    fn test_with_full_code_works() {
+        for i in 0..31 {
+            let error_code = ErrorCode::new_internal_error(
+                "TEST".to_string(),
+                i,
+                "Test error.".to_string(),
+                false,
+            )
+            .unwrap()
+            .with_code();
+
+            assert_eq!(error_code.code, Some(format!("TEST{:05}", i)));
+        }
     }
 }

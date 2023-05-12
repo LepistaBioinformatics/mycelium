@@ -51,7 +51,7 @@ impl ErrorCodeUpdating for ErrorCodeUpdatingSqlDbRepository {
             .update(
                 error_code_model::prefix_code(
                     error_code.prefix.to_owned(),
-                    error_code.code.to_owned(),
+                    error_code.error_number.to_owned(),
                 ),
                 vec![
                     error_code_model::message::set(
@@ -67,19 +67,26 @@ impl ErrorCodeUpdating for ErrorCodeUpdatingSqlDbRepository {
             .exec()
             .await
         {
-            Ok(record) => Ok(UpdatingResponseKind::Updated(ErrorCode {
-                prefix: record.prefix,
-                code: record.code,
-                message: record.message,
-                details: record.details,
-                is_internal: record.is_internal,
-                is_native: record.is_native,
-            })),
+            Ok(record) => {
+                let mut error_code = ErrorCode {
+                    prefix: record.prefix,
+                    error_number: record.code,
+                    code: None,
+                    message: record.message,
+                    details: record.details,
+                    is_internal: record.is_internal,
+                    is_native: record.is_native,
+                };
+
+                error_code = error_code.with_code();
+
+                Ok(UpdatingResponseKind::Updated(error_code))
+            }
             Err(err) => {
                 if err.is_prisma_error::<RecordNotFound>() {
                     return updating_err(format!(
                         "Invalid primary keys combination: {}, {}",
-                        error_code.prefix, error_code.code,
+                        error_code.prefix, error_code.error_number,
                     ))
                     .with_exp_false()
                     .as_error();
