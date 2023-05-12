@@ -54,7 +54,7 @@ impl ErrorCodeRegistration for ErrorCodeRegistrationSqlDbRepository {
             error_code_model::is_native::set(error_code.is_native.to_owned()),
         ];
 
-        if error_code.is_internal {
+        if error_code.is_native {
             extra_values.push(error_code_model::code::set(
                 error_code.error_number.to_owned(),
             ));
