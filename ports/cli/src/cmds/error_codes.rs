@@ -26,7 +26,10 @@ pub(crate) async fn batch_register_native_error_codes_cmd() {
                 info!("Native error codes not registered:");
 
                 for error_code in res.unpersisted_errors {
-                    info!("{:?}: {:?}", error_code.code, error_code.message);
+                    info!(
+                        "{:?}: {:?}",
+                        error_code.error_number, error_code.message
+                    );
                 }
             }
 

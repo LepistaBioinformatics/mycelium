@@ -144,7 +144,7 @@ mod tests {
         .unwrap();
 
         assert_eq!(error_code.prefix, "TEST");
-        assert_eq!(error_code.code, 0);
+        assert_eq!(error_code.error_number, 0);
         assert_eq!(error_code.message, "Test error.");
         assert_eq!(error_code.details, details);
         assert_eq!(error_code.is_internal, true);

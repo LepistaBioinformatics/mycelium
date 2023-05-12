@@ -46,23 +46,26 @@ impl ErrorCodeRegistration for ErrorCodeRegistrationSqlDbRepository {
         // ? Build the initial query (get part of the get-or-create)
         // ? -------------------------------------------------------------------
 
+        let mut extra_values = vec![
+            error_code_model::details::set(error_code.details.to_owned()),
+            error_code_model::is_internal::set(
+                error_code.is_internal.to_owned(),
+            ),
+            error_code_model::is_native::set(error_code.is_native.to_owned()),
+        ];
+
+        if error_code.is_internal {
+            extra_values.push(error_code_model::code::set(
+                error_code.error_number.to_owned(),
+            ));
+        }
+
         match client
             .error_code()
             .create(
                 error_code.prefix.to_owned(),
                 error_code.message.to_owned(),
-                vec![
-                    error_code_model::code::set(error_code.code.to_owned()),
-                    error_code_model::details::set(
-                        error_code.details.to_owned(),
-                    ),
-                    error_code_model::is_internal::set(
-                        error_code.is_internal.to_owned(),
-                    ),
-                    error_code_model::is_native::set(
-                        error_code.is_native.to_owned(),
-                    ),
-                ],
+                extra_values,
             )
             .exec()
             .await
@@ -82,14 +85,21 @@ impl ErrorCodeRegistration for ErrorCodeRegistrationSqlDbRepository {
                 .as_error()
             }
 
-            Ok(res) => Ok(CreateResponseKind::Created(ErrorCode {
-                prefix: res.prefix,
-                code: res.code,
-                message: res.message,
-                details: res.details,
-                is_internal: res.is_internal,
-                is_native: res.is_native,
-            })),
+            Ok(res) => {
+                let mut error_code = ErrorCode {
+                    prefix: res.prefix,
+                    error_number: res.code,
+                    code: None,
+                    message: res.message,
+                    details: res.details,
+                    is_internal: res.is_internal,
+                    is_native: res.is_native,
+                };
+
+                error_code = error_code.with_code();
+
+                Ok(CreateResponseKind::Created(error_code))
+            }
         }
     }
 }
