@@ -309,11 +309,6 @@ pub mod profile_endpoints {
                 body = JsonError,
             ),
             (
-                status = 404,
-                description = "Not found.",
-                body = JsonError,
-            ),
-            (
                 status = 403,
                 description = "Forbidden.",
                 body = JsonError,
@@ -327,6 +322,10 @@ pub mod profile_endpoints {
                 status = 400,
                 description = "Bad request.",
                 body = JsonError,
+            ),
+            (
+                status = 204,
+                description = "Not found.",
             ),
             (
                 status = 200,

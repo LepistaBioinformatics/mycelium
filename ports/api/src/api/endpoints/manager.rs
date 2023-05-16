@@ -253,10 +253,6 @@ pub mod error_code_endpoints {
                 body = JsonError,
             ),
             (
-                status = 404,
-                description = "Not found.",
-            ),
-            (
                 status = 403,
                 description = "Forbidden.",
                 body = JsonError,
@@ -265,6 +261,10 @@ pub mod error_code_endpoints {
                 status = 401,
                 description = "Unauthorized.",
                 body = JsonError,
+            ),
+            (
+                status = 204,
+                description = "Not found.",
             ),
             (
                 status = 200,
@@ -298,7 +298,7 @@ pub mod error_code_endpoints {
                 .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 FetchManyResponseKind::NotFound => {
-                    HttpResponse::NotFound().finish()
+                    HttpResponse::NoContent().finish()
                 }
                 FetchManyResponseKind::Found(accounts) => {
                     HttpResponse::Ok().json(accounts)
@@ -324,9 +324,8 @@ pub mod error_code_endpoints {
                 body = JsonError,
             ),
             (
-                status = 404,
+                status = 204,
                 description = "Not found.",
-                body = JsonError,
             ),
             (
                 status = 403,
@@ -367,10 +366,9 @@ pub mod error_code_endpoints {
             Err(err) => HttpResponse::InternalServerError()
                 .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
-                FetchResponseKind::NotFound(_) => HttpResponse::NotFound()
-                    .json(JsonError::new(format!(
-                        "Error code not found: {prefix}-{code}"
-                    ))),
+                FetchResponseKind::NotFound(_) => {
+                    HttpResponse::NoContent().finish()
+                }
                 FetchResponseKind::Found(accounts) => {
                     HttpResponse::Ok().json(accounts)
                 }
@@ -717,7 +715,7 @@ pub mod account_endpoints {
                 body = JsonError,
             ),
             (
-                status = 404,
+                status = 204,
                 description = "Not found.",
             ),
             (
@@ -759,7 +757,7 @@ pub mod account_endpoints {
             Some(res) => {
                 let flags = match res.to_flags() {
                     Err(err) => {
-                        return HttpResponse::NotFound()
+                        return HttpResponse::InternalServerError()
                             .json(JsonError::new(err.to_string()))
                     }
                     Ok(res) => res,
@@ -791,7 +789,7 @@ pub mod account_endpoints {
                 .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 FetchManyResponseKind::NotFound => {
-                    HttpResponse::NotFound().finish()
+                    HttpResponse::NoContent().finish()
                 }
                 FetchManyResponseKind::Found(accounts) => {
                     HttpResponse::Ok().json(accounts)
@@ -819,9 +817,8 @@ pub mod account_endpoints {
                 body = JsonError,
             ),
             (
-                status = 404,
+                status = 204,
                 description = "Not found.",
-                body = JsonError,
             ),
             (
                 status = 403,
@@ -859,8 +856,9 @@ pub mod account_endpoints {
             Err(err) => HttpResponse::InternalServerError()
                 .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
-                FetchResponseKind::NotFound(id) => HttpResponse::NotFound()
-                    .json(JsonError::new(id.unwrap().to_string())),
+                FetchResponseKind::NotFound(_) => {
+                    HttpResponse::NoContent().finish()
+                }
                 FetchResponseKind::Found(accounts) => {
                     HttpResponse::Ok().json(accounts)
                 }
@@ -1392,9 +1390,8 @@ pub mod guest_endpoints {
                 body = JsonError,
             ),
             (
-                status = 404,
+                status = 204,
                 description = "Not found.",
-                body = JsonError,
             ),
             (
                 status = 403,
@@ -1440,11 +1437,9 @@ pub mod guest_endpoints {
             Err(err) => HttpResponse::InternalServerError()
                 .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
-                FetchManyResponseKind::NotFound => HttpResponse::NotFound()
-                    .json(JsonError::new(format!(
-                        "Account ({}) was not guest to any subscription account.",
-                        email.get_email()
-                    ))),
+                FetchManyResponseKind::NotFound => {
+                    HttpResponse::NoContent().finish()
+                }
                 FetchManyResponseKind::Found(guests) => {
                     HttpResponse::Ok().json(guests)
                 }
@@ -1712,9 +1707,8 @@ pub mod guest_endpoints {
                 body = JsonError,
             ),
             (
-                status = 404,
+                status = 204,
                 description = "Not found.",
-                body = JsonError,
             ),
             (
                 status = 403,
@@ -1759,11 +1753,9 @@ pub mod guest_endpoints {
             Err(err) => HttpResponse::InternalServerError()
                 .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
-                FetchManyResponseKind::NotFound => HttpResponse::NotFound()
-                    .json(JsonError::new(format!(
-                        "Account ({}) has no associated guests",
-                        account_id
-                    ))),
+                FetchManyResponseKind::NotFound => {
+                    HttpResponse::NoContent().finish()
+                }
                 FetchManyResponseKind::Found(guests) => {
                     HttpResponse::Ok().json(guests)
                 }
@@ -1939,7 +1931,7 @@ pub mod guest_role_endpoints {
                 body = JsonError,
             ),
             (
-                status = 404,
+                status = 204,
                 description = "Not found.",
             ),
             (
@@ -1980,7 +1972,7 @@ pub mod guest_role_endpoints {
                 .json(JsonError::new(err.to_string())),
             Ok(res) => match res {
                 FetchManyResponseKind::NotFound => {
-                    HttpResponse::NotFound().finish()
+                    HttpResponse::NoContent().finish()
                 }
                 FetchManyResponseKind::Found(roles) => {
                     HttpResponse::Ok().json(roles)
@@ -2352,9 +2344,8 @@ pub mod role_endpoints {
                 body = JsonError,
             ),
             (
-                status = 404,
+                status = 204,
                 description = "Not found.",
-                body = JsonError,
             ),
             (
                 status = 401,
