@@ -1,5 +1,6 @@
 use super::{account::VerboseStatus, guest::PermissionsType};
 
+use clean_base::utils::errors::{factories::execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -138,6 +139,19 @@ impl Profile {
         self.get_licensed_ids(PermissionsType::View, roles, include_itself)
     }
 
+    /// Filter IDs with view permissions with error if empty.
+    pub fn get_view_ids_or_error(
+        &self,
+        roles: Vec<String>,
+        include_itself: Option<bool>,
+    ) -> Result<Vec<Uuid>, MappedErrors> {
+        self.get_licensed_ids_or_error(
+            PermissionsType::View,
+            roles,
+            include_itself,
+        )
+    }
+
     /// Filter IDs with create permissions.
     pub fn get_create_ids(
         &self,
@@ -145,6 +159,19 @@ impl Profile {
         include_itself: Option<bool>,
     ) -> Vec<Uuid> {
         self.get_licensed_ids(PermissionsType::Create, roles, include_itself)
+    }
+
+    /// Filter IDs with create permissions with error if empty.
+    pub fn get_create_ids_or_error(
+        &self,
+        roles: Vec<String>,
+        include_itself: Option<bool>,
+    ) -> Result<Vec<Uuid>, MappedErrors> {
+        self.get_licensed_ids_or_error(
+            PermissionsType::Create,
+            roles,
+            include_itself,
+        )
     }
 
     /// Filter IDs with update permissions.
@@ -156,6 +183,19 @@ impl Profile {
         self.get_licensed_ids(PermissionsType::Update, roles, include_itself)
     }
 
+    /// Filter IDs with update permissions with error if empty.
+    pub fn get_update_ids_or_error(
+        &self,
+        roles: Vec<String>,
+        include_itself: Option<bool>,
+    ) -> Result<Vec<Uuid>, MappedErrors> {
+        self.get_licensed_ids_or_error(
+            PermissionsType::Update,
+            roles,
+            include_itself,
+        )
+    }
+
     /// Filter IDs with delete permissions.
     pub fn get_delete_ids(
         &self,
@@ -163,6 +203,19 @@ impl Profile {
         include_itself: Option<bool>,
     ) -> Vec<Uuid> {
         self.get_licensed_ids(PermissionsType::Delete, roles, include_itself)
+    }
+
+    /// Filter IDs with delete permissions with error if empty.
+    pub fn get_delete_ids_or_error(
+        &self,
+        roles: Vec<String>,
+        include_itself: Option<bool>,
+    ) -> Result<Vec<Uuid>, MappedErrors> {
+        self.get_licensed_ids_or_error(
+            PermissionsType::Delete,
+            roles,
+            include_itself,
+        )
     }
 
     /// Create a list of licensed ids.
@@ -198,6 +251,24 @@ impl Profile {
                 ids
             }
         }
+    }
+
+    fn get_licensed_ids_or_error(
+        &self,
+        permission: PermissionsType,
+        roles: Vec<String>,
+        include_itself: Option<bool>,
+    ) -> Result<Vec<Uuid>, MappedErrors> {
+        let ids = self.get_licensed_ids(permission, roles, include_itself);
+
+        if ids.is_empty() {
+            return execution_err(
+                "Insufficient privileges to perform these action".to_string(),
+            )
+            .as_error();
+        }
+
+        Ok(ids)
     }
 }
 
