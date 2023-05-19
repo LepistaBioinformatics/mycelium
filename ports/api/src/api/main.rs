@@ -92,8 +92,12 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             // ? Configure Log elements
             // ? ---------------------------------------------------------------
-            .wrap(Logger::default())
-            .wrap(Logger::new("%a %{User-Agent}i"))
+            // These wrap create the basic log elements and exclude the health
+            // check route.
+            .wrap(Logger::default().exclude_regex("/health/*"))
+            // These wrap create the agent that performed the request and
+            // exclude the health check route.
+            .wrap(Logger::new("%a %{User-Agent}i").exclude_regex("/health/*"))
             // ? ---------------------------------------------------------------
             // ? Configure Injection modules
             // ? ---------------------------------------------------------------
