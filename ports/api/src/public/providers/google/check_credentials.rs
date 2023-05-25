@@ -1,17 +1,11 @@
-use crate::settings::get_client;
+use super::{auth::GoogleUserResult, config::Config};
 
 use actix_web::{http::header::Header, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
-use clean_base::utils::errors::{execution_err, MappedErrors};
+use clean_base::utils::errors::{factories::execution_err, MappedErrors};
+use jsonwebtoken::{decode, DecodingKey, Validation};
 use log::warn;
 use myc_core::domain::dtos::email::Email;
-use reqwest::StatusCode;
-use serde::Deserialize;
-
-#[derive(Deserialize, Debug)]
-pub struct GcGraphDecode {
-    pub mail: String,
-}
 
 /// Try to collect the user email.
 ///
@@ -22,11 +16,8 @@ pub async fn check_credentials(
 ) -> Result<Email, MappedErrors> {
     let auth = match Authorization::<Bearer>::parse(&req) {
         Err(err) => {
-            return Err(execution_err(
-                format!("Invalid client request: {err}"),
-                Some(true),
-                None,
-            ));
+            return execution_err(format!("Invalid client request: {err}"))
+                .as_error();
         }
         Ok(res) => res,
     };
@@ -43,68 +34,22 @@ pub async fn check_credentials(
 async fn decode_bearer_token_on_google(
     auth: Authorization<Bearer>,
 ) -> Result<Email, MappedErrors> {
-    let response = match get_client()
-        .await
-        .get("https://people.googleapis.com/v1/people/me")
-        .header("Authorization", auth.to_string())
-        .send()
-        .await
-    {
+    let config = Config::init();
+    match decode::<GoogleUserResult>(
+        &auth
+            .to_string()
+            .replace("Bearer ", "")
+            .replace("bearer ", ""),
+        &DecodingKey::from_secret(config.jwt_secret.as_ref()),
+        &Validation::default(),
+    ) {
+        Ok(token) => Email::from_string(token.claims.email),
         Err(err) => {
-            return Err(execution_err(
-                format!("Invalid client request: {err}"),
-                Some(true),
-                None,
-            ))
-        }
-        Ok(res) => res,
-    };
-
-    match response.status() {
-        StatusCode::NOT_FOUND => {
-            return Err(execution_err(
-                format!("Invalid user."),
-                Some(true),
-                None,
-            ))
-        }
-        StatusCode::OK => {
-            let res = match response.json::<GcGraphDecode>().await {
-                Err(err) => {
-                    return Err(execution_err(
-                        format!(
-                            "Unexpected error on fetch user from MS Graph: {err}"
-                        ),
-                        Some(true),
-                        None,
-                    ))
-                }
-                Ok(res) => match Email::from_string(res.mail) {
-                    Err(err) => {
-                        return Err(execution_err(
-                            format!("Unexpected error on parse user from MS Graph: {err}"),
-                            Some(true),
-                            None,
-                        ))
-                    }
-                    Ok(res) => res,
-                },
-            };
-
-            return Ok(res);
-        }
-        _ => {
-            warn!(
-                "Unexpected error on fetch user from MS Graph (status {:?}) {:?}",
-                response.status(),
-                response.text().await
-            );
-
-            return Err(execution_err(
-                "Unexpected error on fetch user from MS Graph.".to_string(),
-                Some(true),
-                None,
-            ));
+            warn!("Error decoding token: {:?}", err);
+            return execution_err(
+                "Error decoding Google Oauth2 token".to_string(),
+            )
+            .as_error();
         }
     }
 }

@@ -158,7 +158,7 @@ async fn check_credentials_with_multi_identity_provider(
                 "Could not check issuer.".to_string(),
             ))?;
 
-    discover_provider(issuer.to_owned(), req).await
+    discover_provider(issuer.to_owned().to_lowercase(), req).await
 }
 
 /// Discover identity provider
@@ -174,15 +174,17 @@ async fn discover_provider(
         gc_check_credentials(req).await
     } else {
         return Err(GatewayError::Forbidden(format!(
-            "Unknown identity provider: {:?}",
-            auth_provider
+            "Unknown identity provider: {auth_provider}",
         )));
     };
 
     match provider {
         Err(err) => {
-            warn!("{:?}", err);
-            Err(GatewayError::Forbidden(format!("{err}")))
+            let msg =
+                format!("Unexpected error on match Oauth2 provider: {err}");
+
+            warn!("{msg}");
+            Err(GatewayError::Forbidden(msg))
         }
         Ok(res) => {
             debug!("Requesting Email: {:?}", res);

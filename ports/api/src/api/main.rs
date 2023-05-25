@@ -30,10 +30,11 @@ use endpoints::{
 };
 use log::{debug, info};
 use myc_core::settings::init_in_memory_routes;
+use myc_http_tools::providers::{google_handlers, google_models::AppState};
 use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
 use reqwest::header::{
-    ACCEPT, ACCESS_CONTROL_ALLOW_METHODS, ACCESS_CONTROL_ALLOW_ORIGIN,
-    AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE,
+    ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
+    ACCESS_CONTROL_ALLOW_ORIGIN, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use router::route_request;
 use settings::{GATEWAY_API_SCOPE, MYCELIUM_API_SCOPE};
@@ -65,13 +66,16 @@ pub async fn main() -> std::io::Result<()> {
         debug!("Configured Origins: {:?}", config.allowed_origins);
 
         let cors = Cors::default()
-            //.allowed_origin_fn(move |origin, _| {
-            //    origins.contains(&origin.to_str().unwrap_or("").to_string())
-            //})
-            .allow_any_origin()
-            .send_wildcard()
-            .disable_vary_header()
+            .allowed_origin_fn(move |origin, _| {
+                config
+                    .allowed_origins
+                    .contains(&origin.to_str().unwrap_or("").to_string())
+            })
+            //.allow_any_origin()
+            //.send_wildcard()
+            //.disable_vary_header()
             .allowed_headers(vec![
+                ACCESS_CONTROL_ALLOW_CREDENTIALS,
                 ACCESS_CONTROL_ALLOW_METHODS,
                 ACCESS_CONTROL_ALLOW_ORIGIN,
                 CONTENT_LENGTH,
@@ -84,7 +88,12 @@ pub async fn main() -> std::io::Result<()> {
 
         debug!("Configured Cors: {:?}", cors);
 
+        let db = AppState::init();
+
+        debug!("Configured DB: {:?}", db);
+
         App::new()
+            .app_data(web::Data::new(db).clone())
             // ? ---------------------------------------------------------------
             // ? Configure CORS policies
             // ? ---------------------------------------------------------------
@@ -107,6 +116,13 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             .service(
                 web::scope(&format!("/{}", MYCELIUM_API_SCOPE))
+                    //
+                    // Auth
+                    //
+                    .service(
+                        web::scope("/auth/google")
+                            .configure(google_handlers::configure),
+                    )
                     //
                     // Index
                     //
@@ -156,8 +172,7 @@ pub async fn main() -> std::io::Result<()> {
                             .show_extensions(true)
                             .show_common_extensions(true)
                             .with_credentials(true)
-                            .request_snippets_enabled(true)
-                            .oauth2_redirect_url(config.oauth2_redirect_url),
+                            .request_snippets_enabled(true),
                     )
                     .urls(vec![
                         (

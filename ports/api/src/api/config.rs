@@ -71,7 +71,6 @@ pub struct SvcConfig {
     pub allowed_origins: Vec<String>,
     pub service_workers: i32,
     pub gateway_timeout: u64,
-    pub oauth2_redirect_url: String,
 }
 
 impl SvcConfig {
@@ -108,12 +107,6 @@ impl SvcConfig {
                     path.into_string().unwrap().parse::<u64>().unwrap()
                 }
                 None => 5 as u64,
-            },
-            oauth2_redirect_url: match var_os("OAUTH2_REDIRECT_URL") {
-                Some(path) => path.into_string().unwrap(),
-                None => panic!(
-                    "`OAUTH2_REDIRECT_URL` environment variable not configured."
-                ),
             },
         }
     }
