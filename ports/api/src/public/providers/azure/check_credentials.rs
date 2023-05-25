@@ -2,7 +2,7 @@ use crate::settings::get_client;
 
 use actix_web::{http::header::Header, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
-use clean_base::utils::errors::{execution_err, MappedErrors};
+use clean_base::utils::errors::{factories::execution_err, MappedErrors};
 use log::warn;
 use myc_core::domain::dtos::email::Email;
 use reqwest::StatusCode;
@@ -22,11 +22,8 @@ pub async fn check_credentials(
 ) -> Result<Email, MappedErrors> {
     let auth = match Authorization::<Bearer>::parse(&req) {
         Err(err) => {
-            return Err(execution_err(
-                format!("Invalid client request: {err}"),
-                Some(true),
-                None,
-            ));
+            return execution_err(format!("Invalid client request: {err}"))
+                .as_error();
         }
         Ok(res) => res,
     };
@@ -51,41 +48,30 @@ async fn decode_bearer_token_on_ms_graph(
         .await
     {
         Err(err) => {
-            return Err(execution_err(
-                format!("Invalid client request: {err}"),
-                Some(true),
-                None,
-            ))
+            return execution_err(format!("Invalid client request: {err}"))
+                .as_error()
         }
         Ok(res) => res,
     };
 
     match response.status() {
         StatusCode::NOT_FOUND => {
-            return Err(execution_err(
-                format!("Invalid user."),
-                Some(true),
-                None,
-            ))
+            return execution_err(format!("Invalid user.")).as_error()
         }
         StatusCode::OK => {
             let res = match response.json::<MsGraphDecode>().await {
                 Err(err) => {
-                    return Err(execution_err(
-                        format!(
-                            "Unexpected error on fetch user from MS Graph: {err}"
-                        ),
-                        Some(true),
-                        None,
+                    return execution_err(format!(
+                        "Unexpected error on fetch user from MS Graph: {err}"
                     ))
+                    .as_error()
                 }
                 Ok(res) => match Email::from_string(res.mail) {
                     Err(err) => {
-                        return Err(execution_err(
-                            format!("Unexpected error on parse user from MS Graph: {err}"),
-                            Some(true),
-                            None,
-                        ))
+                        return execution_err(format!(
+                        "Unexpected error on parse user from MS Graph: {err}"
+                    ))
+                        .as_error()
                     }
                     Ok(res) => res,
                 },
@@ -100,11 +86,10 @@ async fn decode_bearer_token_on_ms_graph(
                 response.text().await
             );
 
-            return Err(execution_err(
+            return execution_err(
                 "Unexpected error on fetch user from MS Graph.".to_string(),
-                Some(true),
-                None,
-            ));
+            )
+            .as_error();
         }
     }
 }

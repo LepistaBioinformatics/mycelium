@@ -19,10 +19,7 @@ pub async fn fetch_and_inject_profile_to_forward(
     req: HttpRequest,
     mut forwarded_req: ClientRequest,
 ) -> Result<ClientRequest, GatewayError> {
-    let profile = match fetch_profile_from_request(req).await {
-        Err(err) => return Err(err),
-        Ok(res) => res,
-    };
+    let profile = fetch_profile_from_request(req).await?;
 
     forwarded_req.headers_mut().insert(
         HeaderName::from_str(DEFAULT_PROFILE_KEY).unwrap(),
