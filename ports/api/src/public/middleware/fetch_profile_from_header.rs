@@ -13,7 +13,7 @@ use myc_core::{
 };
 use myc_svc::repositories::ProfileFetchingSvcRepo;
 use serde::Deserialize;
-use std::pin::Pin;
+use std::{pin::Pin, str};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -85,7 +85,7 @@ impl FromRequest for GatewayProfileData {
         //
         match req.headers().get(DEFAULT_PROFILE_KEY) {
             Some(res) => {
-                let unwrapped_response = match res.to_str() {
+                let unwrapped_response = match str::from_utf8(res.as_bytes()) {
                     Ok(res) => res,
                     Err(err) => {
                         warn!("Unable to check user identity due: {}", err);

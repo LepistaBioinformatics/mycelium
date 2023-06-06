@@ -138,4 +138,9 @@ mod tests {
             Ok(res) => warn!("res: {:?}", res),
         };
     }
+
+    #[test]
+    fn decode() {
+        //"Galv\xc3\xa3o".to_string();
+    }
 }
