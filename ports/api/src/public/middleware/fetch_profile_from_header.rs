@@ -6,6 +6,7 @@ use crate::{
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use clean_base::entities::FetchResponseKind;
 use futures::Future;
+use log::warn;
 use myc_core::{
     domain::{dtos::account::VerboseStatus, entities::ProfileFetching},
     settings::DEFAULT_PROFILE_KEY,
@@ -84,7 +85,20 @@ impl FromRequest for GatewayProfileData {
         //
         match req.headers().get(DEFAULT_PROFILE_KEY) {
             Some(res) => {
-                match serde_json::from_str::<Self>(res.to_str().unwrap()) {
+                let unwrapped_response = match res.to_str() {
+                    Ok(res) => res,
+                    Err(err) => {
+                        warn!("Unable to check user identity due: {}", err);
+
+                        return Box::pin(async move {
+                            Err(GatewayError::Unauthorized(
+                                "Unable to check user identity. Please contact administrators".to_string(),
+                            ))
+                        });
+                    }
+                };
+
+                match serde_json::from_str::<Self>(unwrapped_response) {
                     Err(error) => {
                         return Box::pin(async move {
                             Err(GatewayError::Unauthorized(format!(
