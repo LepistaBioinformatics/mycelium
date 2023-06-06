@@ -59,6 +59,15 @@ pub struct Profile {
     /// the Mycelium platform.
     pub email: String,
 
+    /// The owner first name
+    pub first_name: Option<String>,
+
+    /// The owner last name
+    pub last_name: Option<String>,
+
+    /// The owner username
+    pub username: Option<String>,
+
     /// The account unique id
     ///
     /// Such ID is related to the account primary-key instead of the owner
@@ -289,6 +298,9 @@ mod tests {
         let profile = Profile {
             email: "agrobiota-results-expert-creator@biotrop.com.br"
                 .to_string(),
+            first_name: Some("first_name".to_string()),
+            last_name: Some("last_name".to_string()),
+            username: Some("username".to_string()),
             current_account_id: Uuid::from_str(
                 "d776e96f-9417-4520-b2a9-9298136031b0",
             )

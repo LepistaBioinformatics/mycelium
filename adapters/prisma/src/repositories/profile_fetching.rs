@@ -64,6 +64,9 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
             .include(account_model::include!({
                 owner: select {
                     email
+                    first_name
+                    last_name
+                    username
                     is_active
                 }
                 account_type: select {
@@ -82,6 +85,9 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
         match response {
             Some(record) => Ok(FetchResponseKind::Found(Profile {
                 email: Email::from_string(record.owner.email)?.get_email(),
+                first_name: Some(record.owner.first_name),
+                last_name: Some(record.owner.last_name),
+                username: Some(record.owner.username),
                 current_account_id: Uuid::parse_str(&record.id).unwrap(),
                 is_subscription: record.account_type.is_subscription,
                 is_manager: record.account_type.is_manager,

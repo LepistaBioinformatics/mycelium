@@ -113,6 +113,9 @@ mod tests {
     async fn test_register_error_code() {
         let profile = Profile {
             email: "user@domain.com".to_string(),
+            first_name: Some("first_name".to_string()),
+            last_name: Some("last_name".to_string()),
+            username: Some("username".to_string()),
             current_account_id: Uuid::from_str(
                 "d776e96f-9417-4520-b2a9-9298136031b0",
             )
@@ -154,6 +157,9 @@ mod tests {
     async fn test_register_error_code_with_invalid_prefix() {
         let profile = Profile {
             email: "".to_string(),
+            first_name: Some("first_name".to_string()),
+            last_name: Some("last_name".to_string()),
+            username: Some("username".to_string()),
             current_account_id: Uuid::from_str(
                 "d776e96f-9417-4520-b2a9-9298136031b0",
             )
