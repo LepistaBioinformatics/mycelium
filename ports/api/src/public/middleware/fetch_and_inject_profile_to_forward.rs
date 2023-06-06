@@ -1,9 +1,9 @@
 use crate::{responses::GatewayError, DEFAULT_PROFILE_KEY};
 
 use actix_web::HttpRequest;
-use awc::{error::HeaderValue, ClientRequest};
+use awc::ClientRequest;
 use log::warn;
-use reqwest::header::HeaderName;
+use reqwest::header::{HeaderName, HeaderValue};
 use std::str::FromStr;
 
 use super::fetch_profile_from_request;
