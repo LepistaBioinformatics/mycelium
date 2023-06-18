@@ -1,6 +1,6 @@
 [package]
 name = "mycelium-api"
-version = "0.10.4"
+version = "1.0.0"
 edition = "2021"
 authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
 license = "Apache-2.0"
