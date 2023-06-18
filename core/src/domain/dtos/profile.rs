@@ -1,4 +1,4 @@
-use super::{account::VerboseStatus, guest::PermissionsType};
+use super::{account::VerboseStatus, guest::Permissions};
 
 use clean_base::utils::errors::{factories::execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
@@ -44,7 +44,7 @@ pub struct LicensedResources {
     ///
     /// # Example
     ///     * `["view", "create", "update"]`
-    pub permissions: Vec<PermissionsType>,
+    pub permissions: Vec<Permissions>,
 }
 
 /// This object should be used over the application layer operations.
@@ -149,7 +149,7 @@ impl Profile {
         roles: Vec<String>,
         include_itself: Option<bool>,
     ) -> Vec<Uuid> {
-        self.get_licensed_ids(PermissionsType::View, roles, include_itself)
+        self.get_licensed_ids(Permissions::View, roles, include_itself)
     }
 
     /// Filter IDs with view permissions with error if empty.
@@ -158,11 +158,7 @@ impl Profile {
         roles: Vec<String>,
         include_itself: Option<bool>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(
-            PermissionsType::View,
-            roles,
-            include_itself,
-        )
+        self.get_licensed_ids_or_error(Permissions::View, roles, include_itself)
     }
 
     /// Filter IDs with create permissions.
@@ -171,7 +167,7 @@ impl Profile {
         roles: Vec<String>,
         include_itself: Option<bool>,
     ) -> Vec<Uuid> {
-        self.get_licensed_ids(PermissionsType::Create, roles, include_itself)
+        self.get_licensed_ids(Permissions::Create, roles, include_itself)
     }
 
     /// Filter IDs with create permissions with error if empty.
@@ -181,7 +177,7 @@ impl Profile {
         include_itself: Option<bool>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
         self.get_licensed_ids_or_error(
-            PermissionsType::Create,
+            Permissions::Create,
             roles,
             include_itself,
         )
@@ -193,7 +189,7 @@ impl Profile {
         roles: Vec<String>,
         include_itself: Option<bool>,
     ) -> Vec<Uuid> {
-        self.get_licensed_ids(PermissionsType::Update, roles, include_itself)
+        self.get_licensed_ids(Permissions::Update, roles, include_itself)
     }
 
     /// Filter IDs with update permissions with error if empty.
@@ -203,7 +199,7 @@ impl Profile {
         include_itself: Option<bool>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
         self.get_licensed_ids_or_error(
-            PermissionsType::Update,
+            Permissions::Update,
             roles,
             include_itself,
         )
@@ -215,7 +211,7 @@ impl Profile {
         roles: Vec<String>,
         include_itself: Option<bool>,
     ) -> Vec<Uuid> {
-        self.get_licensed_ids(PermissionsType::Delete, roles, include_itself)
+        self.get_licensed_ids(Permissions::Delete, roles, include_itself)
     }
 
     /// Filter IDs with delete permissions with error if empty.
@@ -225,7 +221,7 @@ impl Profile {
         include_itself: Option<bool>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
         self.get_licensed_ids_or_error(
-            PermissionsType::Delete,
+            Permissions::Delete,
             roles,
             include_itself,
         )
@@ -237,7 +233,7 @@ impl Profile {
     /// to do based on the specified `PermissionsType`.
     fn get_licensed_ids(
         &self,
-        permission: PermissionsType,
+        permission: Permissions,
         roles: Vec<String>,
         include_itself: Option<bool>,
     ) -> Vec<Uuid> {
@@ -267,7 +263,7 @@ impl Profile {
 
     fn get_licensed_ids_or_error(
         &self,
-        permission: PermissionsType,
+        permission: Permissions,
         roles: Vec<String>,
         include_itself: Option<bool>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
@@ -280,6 +276,7 @@ impl Profile {
             return execution_err(
                 "Insufficient privileges to perform these action".to_string(),
             )
+            .with_exp_true()
             .as_error();
         }
 
@@ -294,7 +291,7 @@ impl Profile {
 #[cfg(test)]
 mod tests {
     use super::{LicensedResources, Profile};
-    use crate::domain::dtos::guest::PermissionsType;
+    use crate::domain::dtos::guest::Permissions;
     use std::str::FromStr;
     use test_log::test;
     use uuid::Uuid;
@@ -332,11 +329,8 @@ mod tests {
                     .unwrap(),
                     guest_role_name: "guest_role_name".to_string(),
                     role: "service".to_string(),
-                    permissions: [
-                        PermissionsType::View,
-                        PermissionsType::Create,
-                    ]
-                    .to_vec(),
+                    permissions: [Permissions::View, Permissions::Create]
+                        .to_vec(),
                 }]
                 .to_vec(),
             ),
@@ -346,5 +340,102 @@ mod tests {
             profile.get_create_ids(["service".to_string()].to_vec(), None);
 
         assert!(ids.len() == 1);
+    }
+
+    #[test]
+    fn get_licensed_ids_or_error_works() {
+        let desired_role = "service".to_string();
+
+        let mut profile = Profile {
+            email: "agrobiota-results-expert-creator@biotrop.com.br"
+                .to_string(),
+            first_name: Some("first_name".to_string()),
+            last_name: Some("last_name".to_string()),
+            username: Some("username".to_string()),
+            current_account_id: Uuid::from_str(
+                "d776e96f-9417-4520-b2a9-9298136031b0",
+            )
+            .unwrap(),
+            is_subscription: false,
+            is_manager: false,
+            is_staff: false,
+            owner_is_active: true,
+            account_is_active: true,
+            account_was_approved: true,
+            account_was_archived: false,
+            verbose_status: None,
+            licensed_resources: Some(
+                [LicensedResources {
+                    guest_account_id: Uuid::from_str(
+                        "e497848f-a0d4-49f4-8288-c3df11416ff1",
+                    )
+                    .unwrap(),
+                    guest_account_name: "guest_account_name".to_string(),
+                    guest_role_id: Uuid::from_str(
+                        "e497848f-a0d4-49f4-8288-c3df11416ff2",
+                    )
+                    .unwrap(),
+                    guest_role_name: "guest_role_name".to_string(),
+                    role: desired_role.to_owned(),
+                    permissions: [Permissions::View, Permissions::Create]
+                        .to_vec(),
+                }]
+                .to_vec(),
+            ),
+        };
+
+        assert_eq!(
+            false,
+            profile
+                .get_update_ids_or_error(
+                    [desired_role.to_owned()].to_vec(),
+                    None
+                )
+                .is_ok(),
+        );
+
+        assert_eq!(
+            false,
+            profile
+                .get_update_ids_or_error(
+                    [desired_role.to_owned()].to_vec(),
+                    None
+                )
+                .is_ok(),
+        );
+
+        profile.is_manager = true;
+
+        assert_eq!(
+            true,
+            profile
+                .get_update_ids_or_error(
+                    [desired_role.to_owned()].to_vec(),
+                    None
+                )
+                .is_ok(),
+        );
+
+        profile.is_manager = false;
+        profile.is_staff = true;
+
+        assert_eq!(
+            true,
+            profile
+                .get_update_ids_or_error(
+                    [desired_role.to_owned()].to_vec(),
+                    None
+                )
+                .is_ok(),
+        );
+
+        profile.is_staff = false;
+
+        assert_eq!(
+            false,
+            profile
+                .get_update_ids_or_error([desired_role].to_vec(), None)
+                .is_ok(),
+        );
     }
 }

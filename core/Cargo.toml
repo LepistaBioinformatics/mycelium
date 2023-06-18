@@ -18,7 +18,7 @@ categories = ["authentication", "network-programming"]
 actix-web = { version = "4", features = ["openssl"] }
 actix-web-httpauth = "0.8.0"
 async-trait = "0.1"
-clean-base = "0.6.9"
+clean-base = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 enum-iterator = "1.4.0"
 env_logger = "0.10"

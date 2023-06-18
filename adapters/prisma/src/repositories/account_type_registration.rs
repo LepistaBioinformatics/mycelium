@@ -113,7 +113,7 @@ impl AccountTypeRegistration for AccountTypeRegistrationSqlDbRepository {
                     "Unexpected error detected on create record: {}",
                     err
                 ))
-                .with_exp_false()
+                .with_exp_true()
                 .as_error();
             }
         }

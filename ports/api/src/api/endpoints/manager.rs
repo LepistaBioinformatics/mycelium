@@ -4,7 +4,7 @@ use myc_core::{
         account::{Account, AccountType, AccountTypeEnum, VerboseStatus},
         email::Email,
         error_code::ErrorCode,
-        guest::{GuestRole, GuestUser, PermissionsType},
+        guest::{GuestRole, GuestUser, Permissions},
         profile::{LicensedResources, Profile},
         role::Role,
     },
@@ -68,7 +68,7 @@ use utoipa::OpenApi;
             LicensedResources,
             PaginatedRecord<Account>,
             PaginatedRecord<ErrorCode>,
-            PermissionsType,
+            Permissions,
             Profile,
             Role,
             VerboseStatus,
@@ -1781,7 +1781,7 @@ pub mod guest_role_endpoints {
     };
     use myc_core::{
         domain::{
-            dtos::guest::PermissionsType,
+            dtos::guest::Permissions,
             entities::{
                 GuestRoleDeletion, GuestRoleFetching, GuestRoleRegistration,
                 GuestRoleUpdating,
@@ -1842,7 +1842,7 @@ pub mod guest_role_endpoints {
     #[derive(Deserialize, IntoParams)]
     #[serde(rename_all = "camelCase")]
     pub struct UpdateGuestRolePermissionsParams {
-        pub permission: PermissionsType,
+        pub permission: Permissions,
         pub action_type: ActionType,
     }
 

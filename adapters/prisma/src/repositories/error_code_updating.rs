@@ -88,7 +88,7 @@ impl ErrorCodeUpdating for ErrorCodeUpdatingSqlDbRepository {
                         "Invalid primary keys combination: {}, {}",
                         error_code.prefix, error_code.error_number,
                     ))
-                    .with_exp_false()
+                    .with_exp_true()
                     .as_error();
                 };
 

@@ -1,6 +1,6 @@
 use crate::domain::{
     dtos::{
-        guest::{GuestRole, PermissionsType},
+        guest::{GuestRole, Permissions},
         profile::Profile,
     },
     entities::GuestRoleRegistration,
@@ -26,7 +26,7 @@ pub async fn create_guest_role(
     name: String,
     description: String,
     role: Uuid,
-    permissions: Option<Vec<PermissionsType>>,
+    permissions: Option<Vec<Permissions>>,
     role_registration_repo: Box<&dyn GuestRoleRegistration>,
 ) -> Result<GetOrCreateResponseKind<GuestRole>, MappedErrors> {
     // ? ----------------------------------------------------------------------
@@ -36,7 +36,7 @@ pub async fn create_guest_role(
     // permission.
     // ? ----------------------------------------------------------------------
 
-    let permissions = permissions.unwrap_or(vec![PermissionsType::View]);
+    let permissions = permissions.unwrap_or(vec![Permissions::View]);
 
     // ? ----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges to create role

@@ -73,7 +73,7 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
                 return updating_err(format!(
                     "Unable to fetch guest-user object: {err}"
                 ))
-                .with_exp_false()
+                .with_exp_true()
                 .as_error()
             }
             Ok(res) => match res {
@@ -81,7 +81,7 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
                     return updating_err(String::from(
                         "Unable to fetch guest-user object",
                     ))
-                    .with_exp_false()
+                    .with_exp_true()
                     .as_error()
                 }
                 Some(record) => GuestUser {
@@ -141,7 +141,7 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
                 return updating_err(format!(
                     "Unable to update guest-user object: {err}"
                 ))
-                .with_exp_false()
+                .with_exp_true()
                 .as_error()
             }
             Ok(res) => Ok(UpdatingResponseKind::Updated(res)),

@@ -10,7 +10,7 @@ use clean_base::{
 };
 use myc_core::domain::{
     dtos::{
-        guest::{GuestRole, PermissionsType},
+        guest::{GuestRole, Permissions},
         native_error_codes::NativeErrorCodes,
     },
     entities::GuestRoleFetching,
@@ -68,7 +68,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                 permissions: record
                     .permissions
                     .into_iter()
-                    .map(|i| PermissionsType::from_i32(i))
+                    .map(|i| Permissions::from_i32(i))
                     .collect(),
             })),
             None => Ok(FetchResponseKind::NotFound(Some(id))),
@@ -123,7 +123,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                     "Unexpected error on parse user email: {:?}",
                     err,
                 ))
-                .with_exp_false()
+                .with_exp_true()
                 .as_error()
             }
             Ok(res) => {
@@ -139,7 +139,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                         permissions: record
                             .permissions
                             .into_iter()
-                            .map(|i| PermissionsType::from_i32(i))
+                            .map(|i| Permissions::from_i32(i))
                             .collect(),
                     })
                     .collect::<Vec<GuestRole>>();

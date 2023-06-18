@@ -10,7 +10,7 @@ pub mod utils;
 pub use myc_core::{
     domain::dtos::{
         email::Email,
-        guest::PermissionsType,
+        guest::Permissions,
         profile::{LicensedResources, Profile},
     },
     settings::DEFAULT_PROFILE_KEY,
