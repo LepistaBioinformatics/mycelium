@@ -144,87 +144,55 @@ impl Profile {
     }
 
     /// Filter IDs with view permissions.
-    pub fn get_view_ids(
-        &self,
-        roles: Vec<String>,
-        include_itself: Option<bool>,
-    ) -> Vec<Uuid> {
-        self.get_licensed_ids(Permissions::View, roles, include_itself)
+    pub fn get_view_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
+        self.get_licensed_ids(Permissions::View, roles)
     }
 
     /// Filter IDs with view permissions with error if empty.
     pub fn get_view_ids_or_error(
         &self,
         roles: Vec<String>,
-        include_itself: Option<bool>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permissions::View, roles, include_itself)
+        self.get_licensed_ids_or_error(Permissions::View, roles)
     }
 
     /// Filter IDs with create permissions.
-    pub fn get_create_ids(
-        &self,
-        roles: Vec<String>,
-        include_itself: Option<bool>,
-    ) -> Vec<Uuid> {
-        self.get_licensed_ids(Permissions::Create, roles, include_itself)
+    pub fn get_create_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
+        self.get_licensed_ids(Permissions::Create, roles)
     }
 
     /// Filter IDs with create permissions with error if empty.
     pub fn get_create_ids_or_error(
         &self,
         roles: Vec<String>,
-        include_itself: Option<bool>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(
-            Permissions::Create,
-            roles,
-            include_itself,
-        )
+        self.get_licensed_ids_or_error(Permissions::Create, roles)
     }
 
     /// Filter IDs with update permissions.
-    pub fn get_update_ids(
-        &self,
-        roles: Vec<String>,
-        include_itself: Option<bool>,
-    ) -> Vec<Uuid> {
-        self.get_licensed_ids(Permissions::Update, roles, include_itself)
+    pub fn get_update_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
+        self.get_licensed_ids(Permissions::Update, roles)
     }
 
     /// Filter IDs with update permissions with error if empty.
     pub fn get_update_ids_or_error(
         &self,
         roles: Vec<String>,
-        include_itself: Option<bool>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(
-            Permissions::Update,
-            roles,
-            include_itself,
-        )
+        self.get_licensed_ids_or_error(Permissions::Update, roles)
     }
 
     /// Filter IDs with delete permissions.
-    pub fn get_delete_ids(
-        &self,
-        roles: Vec<String>,
-        include_itself: Option<bool>,
-    ) -> Vec<Uuid> {
-        self.get_licensed_ids(Permissions::Delete, roles, include_itself)
+    pub fn get_delete_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
+        self.get_licensed_ids(Permissions::Delete, roles)
     }
 
     /// Filter IDs with delete permissions with error if empty.
     pub fn get_delete_ids_or_error(
         &self,
         roles: Vec<String>,
-        include_itself: Option<bool>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(
-            Permissions::Delete,
-            roles,
-            include_itself,
-        )
+        self.get_licensed_ids_or_error(Permissions::Delete, roles)
     }
 
     /// Create a list of licensed ids.
@@ -235,29 +203,20 @@ impl Profile {
         &self,
         permission: Permissions,
         roles: Vec<String>,
-        include_itself: Option<bool>,
     ) -> Vec<Uuid> {
         match &self.licensed_resources {
             None => vec![self.current_account_id],
-            Some(res) => {
-                let mut ids = res
-                    .into_iter()
-                    .filter_map(|i| {
-                        match i.permissions.contains(&permission) &&
-                            roles.contains(&i.role)
-                        {
-                            false => None,
-                            true => Some(i.guest_account_id),
-                        }
-                    })
-                    .collect::<Vec<Uuid>>();
-
-                if include_itself.unwrap_or(false) {
-                    ids.append(&mut vec![self.current_account_id]);
-                }
-
-                ids
-            }
+            Some(res) => res
+                .into_iter()
+                .filter_map(|i| {
+                    match i.permissions.contains(&permission) &&
+                        roles.contains(&i.role)
+                    {
+                        false => None,
+                        true => Some(i.guest_account_id),
+                    }
+                })
+                .collect::<Vec<Uuid>>(),
         }
     }
 
@@ -265,9 +224,8 @@ impl Profile {
         &self,
         permission: Permissions,
         roles: Vec<String>,
-        include_itself: Option<bool>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        let ids = self.get_licensed_ids(permission, roles, include_itself);
+        let ids = self.get_licensed_ids(permission, roles);
 
         if !vec![!ids.is_empty(), self.is_staff, self.is_manager]
             .into_iter()
@@ -336,8 +294,7 @@ mod tests {
             ),
         };
 
-        let ids =
-            profile.get_create_ids(["service".to_string()].to_vec(), None);
+        let ids = profile.get_create_ids(["service".to_string()].to_vec());
 
         assert!(ids.len() == 1);
     }
@@ -387,20 +344,14 @@ mod tests {
         assert_eq!(
             false,
             profile
-                .get_update_ids_or_error(
-                    [desired_role.to_owned()].to_vec(),
-                    None
-                )
+                .get_update_ids_or_error([desired_role.to_owned()].to_vec(),)
                 .is_ok(),
         );
 
         assert_eq!(
             false,
             profile
-                .get_update_ids_or_error(
-                    [desired_role.to_owned()].to_vec(),
-                    None
-                )
+                .get_update_ids_or_error([desired_role.to_owned()].to_vec(),)
                 .is_ok(),
         );
 
@@ -409,10 +360,7 @@ mod tests {
         assert_eq!(
             true,
             profile
-                .get_update_ids_or_error(
-                    [desired_role.to_owned()].to_vec(),
-                    None
-                )
+                .get_update_ids_or_error([desired_role.to_owned()].to_vec(),)
                 .is_ok(),
         );
 
@@ -422,10 +370,7 @@ mod tests {
         assert_eq!(
             true,
             profile
-                .get_update_ids_or_error(
-                    [desired_role.to_owned()].to_vec(),
-                    None
-                )
+                .get_update_ids_or_error([desired_role.to_owned()].to_vec(),)
                 .is_ok(),
         );
 
@@ -434,7 +379,7 @@ mod tests {
         assert_eq!(
             false,
             profile
-                .get_update_ids_or_error([desired_role].to_vec(), None)
+                .get_update_ids_or_error([desired_role].to_vec())
                 .is_ok(),
         );
     }
