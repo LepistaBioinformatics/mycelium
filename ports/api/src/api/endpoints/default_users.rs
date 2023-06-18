@@ -3,7 +3,7 @@ use super::shared::SecurityAddon;
 use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use myc_core::domain::dtos::{
     account::{Account, AccountType, AccountTypeEnum, VerboseStatus},
-    guest::PermissionsType,
+    guest::Permissions,
     profile::{LicensedResources, Profile},
 };
 use myc_http_tools::utils::JsonError;
@@ -37,7 +37,7 @@ use utoipa::OpenApi;
             JsonError,
             LicensedResources,
             Profile,
-            PermissionsType,
+            Permissions,
             VerboseStatus,
         ),
     ),

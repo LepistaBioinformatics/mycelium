@@ -11,7 +11,7 @@ use clean_base::{
 };
 use myc_core::domain::{
     dtos::{
-        guest::{GuestRole, PermissionsType},
+        guest::{GuestRole, Permissions},
         native_error_codes::NativeErrorCodes,
     },
     entities::GuestRoleRegistration,
@@ -74,7 +74,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                         permissions: record
                             .permissions
                             .into_iter()
-                            .map(|i| PermissionsType::from_i32(i))
+                            .map(|i| Permissions::from_i32(i))
                             .collect(),
                     },
                     String::from("Account type already exists"),
@@ -99,7 +99,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                                 "Role ID not available: {:?}",
                                 guest_role.id.to_owned(),
                             ))
-                            .with_exp_false()
+                            .with_exp_true()
                             .as_error()
                         }
                         Some(id) => id.to_string(),
@@ -133,7 +133,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                     permissions: record
                         .permissions
                         .into_iter()
-                        .map(|i| PermissionsType::from_i32(i))
+                        .map(|i| Permissions::from_i32(i))
                         .collect(),
                 }))
             }
@@ -142,7 +142,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                     "Unexpected error detected on create record: {}",
                     err
                 ))
-                .with_exp_false()
+                .with_exp_true()
                 .as_error();
             }
         }

@@ -14,8 +14,8 @@ use clean_base::{
 use log::debug;
 use myc_core::domain::{
     dtos::{
-        email::Email, guest::PermissionsType,
-        native_error_codes::NativeErrorCodes, profile::LicensedResources,
+        email::Email, guest::Permissions, native_error_codes::NativeErrorCodes,
+        profile::LicensedResources,
     },
     entities::LicensedResourcesFetching,
 };
@@ -110,7 +110,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                     .permissions
                     .to_owned()
                     .into_iter()
-                    .map(|i| PermissionsType::from_i32(i))
+                    .map(|i| Permissions::from_i32(i))
                     .collect(),
             })
             .collect::<Vec<LicensedResources>>();

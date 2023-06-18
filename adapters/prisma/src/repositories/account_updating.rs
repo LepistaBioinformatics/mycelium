@@ -57,7 +57,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                 return updating_err(String::from(
                     "Unable to update account. Invalid record ID",
                 ))
-                .with_exp_false()
+                .with_exp_true()
                 .as_error()
             }
             Some(res) => res,
@@ -78,7 +78,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                             None => {
                                 return updating_err(
                                     String::from("Unable to update account. Invalid account type ID"),
-                                ).with_exp_false().as_error()
+                                ).with_exp_true().as_error()
                             }
                             Some(id) => id.to_string(),
                         }
@@ -119,7 +119,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                         "Invalid primary key: {:?}",
                         account_id
                     ))
-                    .with_exp_false()
+                    .with_exp_true()
                     .as_error();
                 };
 

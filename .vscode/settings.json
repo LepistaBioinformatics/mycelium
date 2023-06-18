@@ -4,6 +4,7 @@
     "dtos",
     "Hmac",
     "repr",
+    "Routable",
     "shaku",
     "structs",
     "thiserror",

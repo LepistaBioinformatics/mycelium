@@ -17,7 +17,7 @@ use log::debug;
 use myc_core::domain::{
     dtos::{
         email::Email,
-        guest::{GuestRole, GuestUser, PermissionsType},
+        guest::{GuestRole, GuestUser, Permissions},
         native_error_codes::NativeErrorCodes,
     },
     entities::GuestUserFetching,
@@ -89,7 +89,7 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
                         .permissions
                         .to_owned()
                         .into_iter()
-                        .map(|i| PermissionsType::from_i32(i))
+                        .map(|i| Permissions::from_i32(i))
                         .collect(),
                 }),
                 created: record.created.into(),

@@ -10,7 +10,7 @@ use clean_base::{
 };
 use myc_core::domain::{
     dtos::{
-        guest::{GuestRole, PermissionsType},
+        guest::{GuestRole, Permissions},
         native_error_codes::NativeErrorCodes,
     },
     entities::GuestRoleUpdating,
@@ -56,7 +56,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                 return updating_err(String::from(
                     "Unable to update account. Invalid record ID",
                 ))
-                .with_exp_false()
+                .with_exp_true()
                 .as_error()
             }
             Some(res) => res,
@@ -90,7 +90,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                 permissions: record
                     .permissions
                     .into_iter()
-                    .map(|i| PermissionsType::from_i32(i))
+                    .map(|i| Permissions::from_i32(i))
                     .collect(),
             })),
             Err(err) => {
@@ -99,7 +99,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                         "Invalid primary key: {:?}",
                         user_role_id
                     ))
-                    .with_exp_false()
+                    .with_exp_true()
                     .as_error();
                 };
 

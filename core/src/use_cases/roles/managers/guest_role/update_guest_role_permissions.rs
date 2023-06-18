@@ -1,6 +1,6 @@
 use crate::domain::{
     dtos::{
-        guest::{GuestRole, PermissionsType},
+        guest::{GuestRole, Permissions},
         profile::Profile,
     },
     entities::{GuestRoleFetching, GuestRoleUpdating},
@@ -26,7 +26,7 @@ pub enum ActionType {
 pub async fn update_guest_role_permissions(
     profile: Profile,
     role_id: Uuid,
-    permission: PermissionsType,
+    permission: Permissions,
     action_type: ActionType,
     role_fetching_repo: Box<&dyn GuestRoleFetching>,
     role_updating_repo: Box<&dyn GuestRoleUpdating>,

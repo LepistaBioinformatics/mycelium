@@ -9,34 +9,34 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub enum PermissionsType {
+pub enum Permissions {
     View = 0,
     Create = 1,
     Update = 2,
     Delete = 3,
 }
 
-impl PermissionsType {
+impl Permissions {
     pub fn from_i32(v: i32) -> Self {
         match v {
-            0 => PermissionsType::View,
-            1 => PermissionsType::Create,
-            2 => PermissionsType::Update,
-            3 => PermissionsType::Delete,
-            _ => PermissionsType::View,
+            0 => Permissions::View,
+            1 => Permissions::Create,
+            2 => Permissions::Update,
+            3 => Permissions::Delete,
+            _ => Permissions::View,
         }
     }
 }
 
-impl FromStr for PermissionsType {
+impl FromStr for Permissions {
     type Err = ();
 
-    fn from_str(s: &str) -> Result<PermissionsType, ()> {
+    fn from_str(s: &str) -> Result<Permissions, ()> {
         match s {
-            "view" => Ok(PermissionsType::View),
-            "create" => Ok(PermissionsType::Create),
-            "update" => Ok(PermissionsType::Update),
-            "delete" => Ok(PermissionsType::Delete),
+            "view" => Ok(Permissions::View),
+            "create" => Ok(Permissions::Create),
+            "update" => Ok(Permissions::Update),
+            "delete" => Ok(Permissions::Delete),
             _ => Err(()),
         }
     }
@@ -50,7 +50,7 @@ pub struct GuestRole {
     pub name: String,
     pub description: Option<String>,
     pub role: ParentEnum<Role, Uuid>,
-    pub permissions: Vec<PermissionsType>,
+    pub permissions: Vec<Permissions>,
 }
 
 impl GuestRole {

@@ -1,7 +1,8 @@
 # Rust related
-/target
-/Cargo.lock
-/docs
+target
+Cargo.lock
+docs
+dist
 
 # Environment related
 .env
