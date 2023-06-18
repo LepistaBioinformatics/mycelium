@@ -1,3 +1,15 @@
+## v3.0.0 (2023-06-18)
+
+### BREAKING CHANGE
+
+- main
+
+### Feat
+
+- remove the include-itself parameter of the profile functions that check privilegees
+
+## v2.0.0 (2023-06-18)
+
 ## v1.0.0 (2023-06-18)
 
 ### BREAKING CHANGE
