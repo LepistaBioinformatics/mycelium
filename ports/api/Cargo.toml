@@ -25,8 +25,8 @@ actix = "0.13"
 actix-cors = { version = "0.6.2" }
 actix-session = "0.7.2"
 actix-web = { version = "4" }
-actix-web-error = { version = "0.1" }
-actix-web-error-derive = { version = "0.1" }
+actix-web-error = { version = "0.2" }
+actix-web-error-derive = { version = "0.2" }
 actix-web-httpauth = "0.8.0"
 async-trait = "0.1"
 awc = { version = "3", features = ["openssl"] }
