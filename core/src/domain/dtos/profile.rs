@@ -252,7 +252,7 @@ impl Profile {
                     })
                     .collect::<Vec<Uuid>>();
 
-                if include_itself.unwrap_or(false) {
+                if include_itself.unwrap_or(true) {
                     println!("ids 2: {:?}", ids);
                     ids.append(&mut vec![self.current_account_id]);
                 }
@@ -270,7 +270,10 @@ impl Profile {
     ) -> Result<Vec<Uuid>, MappedErrors> {
         let ids = self.get_licensed_ids(permission, roles, include_itself);
 
-        if ids.is_empty() {
+        if !vec![!ids.is_empty(), self.is_staff, self.is_manager]
+            .into_iter()
+            .any(|i| i == true)
+        {
             return execution_err(
                 "Insufficient privileges to perform these action".to_string(),
             )
