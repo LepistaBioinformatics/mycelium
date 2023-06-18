@@ -139,6 +139,10 @@ pub struct Profile {
 }
 
 impl Profile {
+    pub fn has_admin_privileges(&self) -> bool {
+        self.is_staff || self.is_manager
+    }
+
     /// Filter IDs with view permissions.
     pub fn get_view_ids(
         &self,
@@ -252,8 +256,7 @@ impl Profile {
                     })
                     .collect::<Vec<Uuid>>();
 
-                if include_itself.unwrap_or(true) {
-                    println!("ids 2: {:?}", ids);
+                if include_itself.unwrap_or(false) {
                     ids.append(&mut vec![self.current_account_id]);
                 }
 
