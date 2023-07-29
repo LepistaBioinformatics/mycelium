@@ -1,11 +1,7 @@
 mod app;
-mod components;
-mod pages;
-mod router;
-mod store;
-mod svc;
-mod utils;
+
+use app::App;
 
 fn main() {
-    yew::Renderer::<app::App>::new().render();
+    yew::Renderer::<App>::new().render();
 }
