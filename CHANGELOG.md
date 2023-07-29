@@ -1,3 +1,9 @@
+## v3.0.2 (2023-07-29)
+
+### Fix
+
+- remove app from the main package
+
 ## v3.0.1 (2023-07-29)
 
 ### Perf
