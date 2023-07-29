@@ -533,7 +533,6 @@ pub mod account_endpoints {
         modules::{
             AccountFetchingModule, AccountRegistrationModule,
             AccountTypeRegistrationModule, AccountUpdatingModule,
-            UserRegistrationModule,
         },
     };
 
@@ -549,7 +548,7 @@ pub mod account_endpoints {
             },
             entities::{
                 AccountFetching, AccountRegistration, AccountTypeRegistration,
-                AccountUpdating, UserRegistration,
+                AccountUpdating,
             },
         },
         use_cases::roles::managers::account::{
@@ -651,10 +650,6 @@ pub mod account_endpoints {
     pub async fn create_subscription_account_url(
         body: web::Json<CreateSubscriptionAccountBody>,
         profile: MyceliumProfileData,
-        user_registration_repo: Inject<
-            UserRegistrationModule,
-            dyn UserRegistration,
-        >,
         account_type_registration_repo: Inject<
             AccountTypeRegistrationModule,
             dyn AccountTypeRegistration,
@@ -668,7 +663,6 @@ pub mod account_endpoints {
             profile.to_profile(),
             body.email.to_owned(),
             body.account_name.to_owned(),
-            Box::new(&*user_registration_repo),
             Box::new(&*account_type_registration_repo),
             Box::new(&*account_registration_repo),
         )

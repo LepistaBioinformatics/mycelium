@@ -59,7 +59,6 @@ pub mod account_endpoints {
     use crate::modules::{
         AccountFetchingModule, AccountRegistrationModule,
         AccountTypeRegistrationModule, AccountUpdatingModule,
-        UserRegistrationModule,
     };
 
     use actix_web::{patch, post, web, HttpResponse, Responder};
@@ -68,7 +67,7 @@ pub mod account_endpoints {
     use myc_core::{
         domain::entities::{
             AccountFetching, AccountRegistration, AccountTypeRegistration,
-            AccountUpdating, UserRegistration,
+            AccountUpdating,
         },
         use_cases::roles::default_users::account::{
             create_default_account, update_own_account_name,
@@ -155,10 +154,6 @@ pub mod account_endpoints {
     #[post("/")]
     pub async fn create_default_account_url(
         info: web::Query<CreateDefaultAccountParams>,
-        user_registration_repo: Inject<
-            UserRegistrationModule,
-            dyn UserRegistration,
-        >,
         account_type_registration_repo: Inject<
             AccountTypeRegistrationModule,
             dyn AccountTypeRegistration,
@@ -173,7 +168,6 @@ pub mod account_endpoints {
             info.account_name.to_owned(),
             info.first_name.to_owned(),
             info.last_name.to_owned(),
-            Box::new(&*user_registration_repo),
             Box::new(&*account_type_registration_repo),
             Box::new(&*account_registration_repo),
         )
