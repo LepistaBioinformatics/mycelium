@@ -1,3 +1,9 @@
+## v3.0.1 (2023-07-29)
+
+### Perf
+
+- move user creation of the account creation process to a transaction into the account creation
+
 ## v3.0.0 (2023-06-18)
 
 ### BREAKING CHANGE
