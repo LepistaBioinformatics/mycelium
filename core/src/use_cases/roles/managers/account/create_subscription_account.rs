@@ -7,9 +7,7 @@ use crate::{
             profile::Profile,
             user::User,
         },
-        entities::{
-            AccountRegistration, AccountTypeRegistration, UserRegistration,
-        },
+        entities::{AccountRegistration, AccountTypeRegistration},
     },
     use_cases::roles::shared::account_type::get_or_create_default_account_types,
 };
@@ -28,7 +26,6 @@ pub async fn create_subscription_account(
     profile: Profile,
     email: String,
     account_name: String,
-    user_registration_repo: Box<&dyn UserRegistration>,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
 ) -> Result<Account, MappedErrors> {
@@ -73,35 +70,6 @@ pub async fn create_subscription_account(
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Check and register user
-    //
-    // Try to register user into database. Case use was previously registered,
-    // return a left response. Usually this is the same response of the user
-    // registration action.
-    // ? -----------------------------------------------------------------------
-
-    let user = match user_registration_repo
-        .get_or_create(User {
-            id: None,
-            username: email_instance.to_owned().username,
-            email: email_instance,
-            first_name: Some(String::from("")),
-            last_name: Some(String::from("")),
-            is_active: true,
-            created: Local::now(),
-            updated: None,
-        })
-        .await?
-    {
-        GetOrCreateResponseKind::NotCreated(user, msg) => {
-            return use_case_err(format!("({}): {}", user.username, msg))
-                .with_code(NativeErrorCodes::MYC00001.as_str())
-                .as_error()
-        }
-        GetOrCreateResponseKind::Created(user) => user,
-    };
-
-    // ? -----------------------------------------------------------------------
     // ? Register the account
     //
     // The account are registered using the already created user.
@@ -115,7 +83,16 @@ pub async fn create_subscription_account(
             is_checked: true,
             is_archived: false,
             verbose_status: None,
-            owner: ParentEnum::Record(user),
+            owner: ParentEnum::Record(User {
+                id: None,
+                username: email_instance.to_owned().username,
+                email: email_instance,
+                first_name: Some(String::from("")),
+                last_name: Some(String::from("")),
+                is_active: true,
+                created: Local::now(),
+                updated: None,
+            }),
             account_type: ParentEnum::Record(account_type),
             guest_users: None,
             created: Local::now(),

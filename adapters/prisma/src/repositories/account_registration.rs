@@ -57,21 +57,35 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         // ? Build the initial query (get part of the get-or-create)
         // ? -------------------------------------------------------------------
 
+        let owner = match account.owner.to_owned() {
+            ParentEnum::Id(_) => {
+                return creation_err(String::from(
+                    "Could not create account. User e-mail invalid.",
+                ))
+                .as_error()
+            }
+            ParentEnum::Record(res) => res,
+        };
+
+        let account_type_id = match account.account_type {
+            ParentEnum::Id(id) => id.to_string(),
+            ParentEnum::Record(record) => match record.id {
+                Some(res) => res.to_string(),
+                None => {
+                    return creation_err(String::from(
+                        "Could not create account. Invalid account type.",
+                    ))
+                    .as_error()
+                }
+            },
+        };
+
         let response = client
             .account()
             .find_first(vec![
                 account_model::name::equals(account.name.to_owned()),
                 account_model::owner::is(vec![user_model::email::equals(
-                    match account.owner.to_owned() {
-                        ParentEnum::Id(_) => {
-                            return creation_err(
-                                String::from("Could not create account. User e-mail invalid."),
-                            ).as_error()
-                        }
-                        ParentEnum::Record(record) => {
-                            record.email.get_email().to_owned()
-                        }
-                    },
+                    owner.email.get_email(),
                 )]),
             ])
             .include(account_model::include!({ owner account_type }))
@@ -137,51 +151,49 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         // ? Build create part of the get-or-create
         // ? -------------------------------------------------------------------
 
-        let response = client
-            .account()
-            .create(
-                account.name,
-                user_model::id::equals(match account.owner {
-                    ParentEnum::Id(_) => {
-                        return creation_err(String::from(
-                            "Could not create account. Invalid owner.",
-                        ))
-                        .as_error()
-                    }
-                    ParentEnum::Record(record) => match record.id {
-                        None => return creation_err(String::from(
-                            "Could not create account. User e-mail invalid.",
-                        ))
-                        .as_error(),
-                        Some(res) => res.to_string(),
-                    },
-                }),
-                account_type_model::id::equals(match account.account_type {
-                    ParentEnum::Id(_) => {
-                        return creation_err(String::from(
-                            "Could not create account. Invalid account type.",
-                        ))
-                        .as_error()
-                    }
-                    ParentEnum::Record(record) => match record.id {
-                        None => return creation_err(String::from(
-                            "Could not create account. Invalid account type.",
-                        ))
-                        .as_error(),
-                        Some(res) => res.to_string(),
-                    },
-                }),
-                vec![
-                    account_model::is_active::set(account.is_active),
-                    account_model::is_checked::set(account.is_checked),
-                    account_model::is_archived::set(account.is_archived),
-                ],
-            )
-            .include(account_model::include!({ owner account_type }))
-            .exec()
-            .await;
+        match client
+            ._transaction()
+            .run(|client| async move {
+                let user = client
+                    .user()
+                    .create(
+                        owner.username,
+                        owner.email.get_email(),
+                        owner.first_name.unwrap_or(String::from("")),
+                        owner.last_name.unwrap_or(String::from("")),
+                        vec![],
+                    )
+                    .exec()
+                    .await?;
 
-        match response {
+                client
+                    .account()
+                    .create(
+                        account.name,
+                        user_model::id::equals(user.id),
+                        account_type_model::id::equals(account_type_id),
+                        vec![
+                            account_model::is_active::set(account.is_active),
+                            account_model::is_checked::set(account.is_checked),
+                            account_model::is_archived::set(
+                                account.is_archived,
+                            ),
+                        ],
+                    )
+                    .include(account_model::include!({ owner account_type }))
+                    .exec()
+                    .await
+            })
+            .await
+        {
+            Err(err) => {
+                return creation_err(format!(
+                    "Unexpected error detected on update record: {}",
+                    err
+                ))
+                .with_code(NativeErrorCodes::MYC00002.as_str())
+                .as_error();
+            }
             Ok(record) => Ok(GetOrCreateResponseKind::Created(Account {
                 id: Some(Uuid::parse_str(&record.id).unwrap()),
                 name: record.name,
@@ -221,13 +233,6 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                     Some(date) => Some(date.with_timezone(&Local)),
                 },
             })),
-            Err(err) => {
-                return creation_err(format!(
-                    "Unexpected error detected on update record: {}",
-                    err
-                ))
-                .as_error();
-            }
         }
     }
 
