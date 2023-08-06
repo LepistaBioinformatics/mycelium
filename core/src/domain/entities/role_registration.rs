@@ -16,6 +16,6 @@ pub trait RoleRegistration: Interface + Send + Sync {
 
     async fn create(
         &self,
-        application: Role,
+        role: Role,
     ) -> Result<CreateResponseKind<Role>, MappedErrors>;
 }

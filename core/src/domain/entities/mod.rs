@@ -27,6 +27,10 @@ mod role_updating;
 mod routes_fetching;
 mod user_registration;
 mod user_updating;
+mod webhook_deletion;
+mod webhook_fetching;
+mod webhook_registration;
+mod webhook_updating;
 
 pub use account_fetching::AccountFetching;
 pub use account_registration::AccountRegistration;
@@ -57,3 +61,7 @@ pub use role_updating::RoleUpdating;
 pub use routes_fetching::RoutesFetching;
 pub use user_registration::UserRegistration;
 pub use user_updating::UserUpdating;
+pub use webhook_deletion::WebHookDeletion;
+pub use webhook_fetching::WebHookFetching;
+pub use webhook_registration::WebHookRegistration;
+pub use webhook_updating::WebHookUpdating;
