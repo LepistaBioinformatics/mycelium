@@ -203,7 +203,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             };
         }
 
-        if and_query_stmt.len() > 0 {
+        if !and_query_stmt.is_empty() {
             query_stmt.push(and(and_query_stmt));
         }
 
