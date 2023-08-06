@@ -25,6 +25,10 @@ mod role_registration;
 mod role_updating;
 mod user_registration;
 mod user_updating;
+mod webhook_deletion;
+mod webhook_fetching;
+mod webhook_registration;
+mod webhook_updating;
 
 pub use account_fetching::{
     AccountFetchingSqlDbRepository, AccountFetchingSqlDbRepositoryParameters,
@@ -116,4 +120,17 @@ pub use user_registration::{
 };
 pub use user_updating::{
     UserUpdatingSqlDbRepository, UserUpdatingSqlDbRepositoryParameters,
+};
+pub use webhook_deletion::{
+    WebHookDeletionSqlDbRepository, WebHookDeletionSqlDbRepositoryParameters,
+};
+pub use webhook_fetching::{
+    WebHookFetchingSqlDbRepository, WebHookFetchingSqlDbRepositoryParameters,
+};
+pub use webhook_registration::{
+    WebHookRegistrationSqlDbRepository,
+    WebHookRegistrationSqlDbRepositoryParameters,
+};
+pub use webhook_updating::{
+    WebHookUpdatingSqlDbRepository, WebHookUpdatingSqlDbRepositoryParameters,
 };

@@ -168,3 +168,25 @@ model ErrorCode {
   @@id([prefix, code])
   @@map("error_code")
 }
+
+// -----------------------------------------------------------------------------
+// WEBHOOK MODELS
+// -----------------------------------------------------------------------------
+
+model Webhook {
+  // Primary key
+  id String @id @default(uuid())
+
+  // Model fields
+  name        String    @db.VarChar(140)
+  description String    @db.VarChar(255)
+  target      String    @db.VarChar(15)
+  url         String    @db.VarChar(255)
+  is_active   Boolean   @default(true)
+  created     DateTime  @default(now()) @db.Timestamptz(6)
+  updated     DateTime? @updatedAt @db.Timestamptz(6)
+
+  // Db compatibility and extra maps
+  @@unique([url, target])
+  @@map("webhook")
+}

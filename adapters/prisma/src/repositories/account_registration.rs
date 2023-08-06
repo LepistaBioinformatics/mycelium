@@ -22,6 +22,7 @@ use myc_core::domain::{
     },
     entities::AccountRegistration,
 };
+use prisma_client_rust::or;
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -82,12 +83,12 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
 
         let response = client
             .account()
-            .find_first(vec![
+            .find_first(vec![or![
                 account_model::name::equals(account.name.to_owned()),
                 account_model::owner::is(vec![user_model::email::equals(
                     owner.email.get_email(),
                 )]),
-            ])
+            ]])
             .include(account_model::include!({ owner account_type }))
             .exec()
             .await;
