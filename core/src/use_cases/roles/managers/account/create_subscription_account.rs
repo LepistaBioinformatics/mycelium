@@ -1,3 +1,6 @@
+use super::propagate_subscription_account::{
+    propagate_subscription_account, PropagationResponseResponse,
+};
 use crate::{
     domain::{
         dtos::{
@@ -6,10 +9,16 @@ use crate::{
             native_error_codes::NativeErrorCodes,
             profile::Profile,
             user::User,
+            webhook::HookTarget,
         },
-        entities::{AccountRegistration, AccountTypeRegistration},
+        entities::{
+            AccountRegistration, AccountTypeRegistration, WebHookFetching,
+        },
     },
-    use_cases::roles::shared::account_type::get_or_create_default_account_types,
+    use_cases::roles::{
+        managers::webhook::WebHookDefaultAction,
+        shared::account_type::get_or_create_default_account_types,
+    },
 };
 
 use chrono::Local;
@@ -28,7 +37,8 @@ pub async fn create_subscription_account(
     account_name: String,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
-) -> Result<Account, MappedErrors> {
+    webhook_fetching_repo: Box<&dyn WebHookFetching>,
+) -> Result<PropagationResponseResponse, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
@@ -75,7 +85,7 @@ pub async fn create_subscription_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
-    match account_registration_repo
+    let account = match account_registration_repo
         .get_or_create(Account {
             id: None,
             name: account_name,
@@ -105,6 +115,19 @@ pub async fn create_subscription_account(
                 .with_code(NativeErrorCodes::MYC00003.as_str())
                 .as_error()
         }
-        GetOrCreateResponseKind::Created(account) => Ok(account),
-    }
+        GetOrCreateResponseKind::Created(account) => account,
+    };
+
+    // ? -----------------------------------------------------------------------
+    // ? Propagate account
+    // ? -----------------------------------------------------------------------
+
+    propagate_subscription_account(
+        profile,
+        account,
+        WebHookDefaultAction::CreateSubscriptionAccount,
+        HookTarget::Account,
+        webhook_fetching_repo,
+    )
+    .await
 }

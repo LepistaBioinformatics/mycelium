@@ -8,7 +8,6 @@ use clean_base::{
     utils::errors::MappedErrors,
 };
 use futures::future;
-use log::debug;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
@@ -35,9 +34,6 @@ pub async fn fetch_profile_from_email(
     )
     .await;
 
-    debug!("Pre-Profile: {:?}", profile);
-    debug!("Pre-Licenses: {:?}", licenses);
-
     // ? -----------------------------------------------------------------------
     // ? Validate profile response
     // ? -----------------------------------------------------------------------
@@ -49,8 +45,6 @@ pub async fn fetch_profile_from_email(
         FetchResponseKind::Found(profile) => profile,
     };
 
-    debug!("Parsed Profile from Email: {:?}", profile);
-
     // ? -----------------------------------------------------------------------
     // ? Validate guests response
     // ? -----------------------------------------------------------------------
@@ -59,20 +53,15 @@ pub async fn fetch_profile_from_email(
         FetchManyResponseKind::NotFound => None,
         FetchManyResponseKind::Found(records) => Some(records),
         _ => panic!(
-            "Paginated results parsing not implemented in 
-`fetch_profile_from_email` use-case."
+            "Paginated results parsing not implemented in `fetch_profile_from_email` use-case."
         ),
     };
-
-    debug!("Parsed Licenses Record from Email: {:?}", licenses);
 
     // ? -----------------------------------------------------------------------
     // ? Update profile response to include guests
     // ? -----------------------------------------------------------------------
 
     profile.licensed_resources = licenses;
-
-    debug!("Build profile: {:?}", profile);
 
     // ? -----------------------------------------------------------------------
     // ? Return a positive response
