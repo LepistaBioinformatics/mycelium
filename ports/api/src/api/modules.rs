@@ -14,6 +14,8 @@ use myc_prisma::repositories::{
     RoleDeletionSqlDbRepository, RoleFetchingSqlDbRepository,
     RoleRegistrationSqlDbRepository, RoleUpdatingSqlDbRepository,
     UserRegistrationSqlDbRepository, UserUpdatingSqlDbRepository,
+    WebHookDeletionSqlDbRepository, WebHookFetchingSqlDbRepository,
+    WebHookRegistrationSqlDbRepository, WebHookUpdatingSqlDbRepository,
 };
 use myc_smtp::repositories::MessageSendingSqlDbRepository;
 use shaku::module;
@@ -247,6 +249,38 @@ module! {
 module! {
     pub ErrorCodeUpdatingModule {
         components = [ErrorCodeUpdatingSqlDbRepository],
+        providers = []
+    }
+}
+
+// ? ---------------------------------------------------------------------------
+// ? WebHooks
+// ? ---------------------------------------------------------------------------
+
+module! {
+    pub WebHookRegistrationModule {
+        components = [WebHookRegistrationSqlDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub WebHookFetchingModule {
+        components = [WebHookFetchingSqlDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub WebHookUpdatingModule {
+        components = [WebHookUpdatingSqlDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub WebHookDeletionModule {
+        components = [WebHookDeletionSqlDbRepository],
         providers = []
     }
 }

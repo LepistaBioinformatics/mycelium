@@ -7,3 +7,6 @@ dist
 # Environment related
 .env
 postgres/volume
+
+# Prisma related
+adapters/prisma/src/migrations

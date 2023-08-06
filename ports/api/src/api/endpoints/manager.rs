@@ -533,6 +533,7 @@ pub mod account_endpoints {
         modules::{
             AccountFetchingModule, AccountRegistrationModule,
             AccountTypeRegistrationModule, AccountUpdatingModule,
+            WebHookFetchingModule,
         },
     };
 
@@ -548,7 +549,7 @@ pub mod account_endpoints {
             },
             entities::{
                 AccountFetching, AccountRegistration, AccountTypeRegistration,
-                AccountUpdating,
+                AccountUpdating, WebHookFetching,
             },
         },
         use_cases::roles::managers::account::{
@@ -642,7 +643,7 @@ pub mod account_endpoints {
             (
                 status = 201,
                 description = "Account created.",
-                body = Account,
+                body = CreateSubscriptionResponse,
             ),
         ),
     )]
@@ -658,6 +659,10 @@ pub mod account_endpoints {
             AccountRegistrationModule,
             dyn AccountRegistration,
         >,
+        webhook_fetching_repo: Inject<
+            WebHookFetchingModule,
+            dyn WebHookFetching,
+        >,
     ) -> impl Responder {
         match create_subscription_account(
             profile.to_profile(),
@@ -665,6 +670,7 @@ pub mod account_endpoints {
             body.account_name.to_owned(),
             Box::new(&*account_type_registration_repo),
             Box::new(&*account_registration_repo),
+            Box::new(&*webhook_fetching_repo),
         )
         .await
         {
