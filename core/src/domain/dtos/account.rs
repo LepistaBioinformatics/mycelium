@@ -2,7 +2,7 @@ use super::{guest::GuestUser, user::User};
 
 use chrono::{DateTime, Local};
 use clean_base::{
-    dtos::enums::{ChildrenEnum, ParentEnum},
+    dtos::{Children, Parent},
     utils::errors::{factories::invalid_arg_err, MappedErrors},
 };
 use serde::{Deserialize, Serialize};
@@ -154,9 +154,9 @@ pub struct Account {
     pub is_checked: bool,
     pub is_archived: bool,
     pub verbose_status: Option<VerboseStatus>,
-    pub owner: ParentEnum<User, Uuid>,
-    pub account_type: ParentEnum<AccountType, Uuid>,
-    pub guest_users: Option<ChildrenEnum<GuestUser, Uuid>>,
+    pub owner: Parent<User, Uuid>,
+    pub account_type: Parent<AccountType, Uuid>,
+    pub guest_users: Option<Children<GuestUser, Uuid>>,
     pub created: DateTime<Local>,
     pub updated: Option<DateTime<Local>>,
 }
@@ -164,8 +164,8 @@ pub struct Account {
 impl Account {
     pub fn build_owner_url(&self, base_url: String) -> Result<String, ()> {
         match self.owner.to_owned() {
-            ParentEnum::Id(id) => Ok(format!("{:?}/{:?}", base_url, id)),
-            ParentEnum::Record(record) => match record.id {
+            Parent::Id(id) => Ok(format!("{:?}/{:?}", base_url, id)),
+            Parent::Record(record) => match record.id {
                 None => Ok(base_url),
                 Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
             },
@@ -177,8 +177,8 @@ impl Account {
         base_url: String,
     ) -> Result<String, ()> {
         match self.account_type.to_owned() {
-            ParentEnum::Id(id) => Ok(format!("{:?}/{:?}", base_url, id)),
-            ParentEnum::Record(record) => match record.id {
+            Parent::Id(id) => Ok(format!("{:?}/{:?}", base_url, id)),
+            Parent::Record(record) => match record.id {
                 None => Ok(base_url),
                 Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
             },
@@ -192,11 +192,11 @@ impl Account {
         match self.guest_users.to_owned() {
             None => Err(()),
             Some(records) => match records {
-                ChildrenEnum::Ids(ids) => Ok(ids
+                Children::Ids(ids) => Ok(ids
                     .iter()
                     .map(|id| format!("{}/{}", base_url, id))
                     .collect()),
-                ChildrenEnum::Records(records) => {
+                Children::Records(records) => {
                     let urls = records
                         .iter()
                         .filter_map(|record| match record.id {
@@ -259,8 +259,8 @@ mod tests {
             is_checked: false,
             is_archived: false,
             verbose_status: None,
-            owner: ParentEnum::Record(user),
-            account_type: ParentEnum::Record(account_type),
+            owner: Parent::Record(user),
+            account_type: Parent::Record(account_type),
             guest_users: None,
             created: Local::now(),
             updated: Some(Local::now()),

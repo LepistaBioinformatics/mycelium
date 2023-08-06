@@ -10,7 +10,8 @@ use crate::modules::{
     LicensedResourcesFetchingModule, MessageSendingModule,
     ProfileFetchingModule, RoleDeletionModule, RoleFetchingModule,
     RoleRegistrationModule, RoleUpdatingModule, RoutesFetchingModule,
-    UserRegistrationModule, UserUpdatingModule,
+    UserRegistrationModule, UserUpdatingModule, WebHookDeletionModule,
+    WebHookFetchingModule, WebHookRegistrationModule, WebHookUpdatingModule,
 };
 
 use actix_web::web;
@@ -59,6 +60,11 @@ use myc_prisma::repositories::{
     RoleUpdatingSqlDbRepository, RoleUpdatingSqlDbRepositoryParameters,
     UserRegistrationSqlDbRepository, UserRegistrationSqlDbRepositoryParameters,
     UserUpdatingSqlDbRepository, UserUpdatingSqlDbRepositoryParameters,
+    WebHookDeletionSqlDbRepository, WebHookDeletionSqlDbRepositoryParameters,
+    WebHookFetchingSqlDbRepository, WebHookFetchingSqlDbRepositoryParameters,
+    WebHookRegistrationSqlDbRepository,
+    WebHookRegistrationSqlDbRepositoryParameters,
+    WebHookUpdatingSqlDbRepository, WebHookUpdatingSqlDbRepositoryParameters,
 };
 use myc_smtp::repositories::{
     MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
@@ -325,6 +331,37 @@ pub fn configure(config: &mut web::ServiceConfig) {
             ErrorCodeUpdatingModule::builder()
                 .with_component_parameters::<ErrorCodeUpdatingSqlDbRepository>(
                     ErrorCodeUpdatingSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        // ? -------------------------------------------------------------------
+        // ? ErrorCodes
+        // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            WebHookRegistrationModule::builder()
+                .with_component_parameters::<WebHookRegistrationSqlDbRepository>(
+                    WebHookRegistrationSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            WebHookDeletionModule::builder()
+                .with_component_parameters::<WebHookDeletionSqlDbRepository>(
+                    WebHookDeletionSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            WebHookFetchingModule::builder()
+                .with_component_parameters::<WebHookFetchingSqlDbRepository>(
+                    WebHookFetchingSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            WebHookUpdatingModule::builder()
+                .with_component_parameters::<WebHookUpdatingSqlDbRepository>(
+                    WebHookUpdatingSqlDbRepositoryParameters {},
                 )
                 .build(),
         ));
