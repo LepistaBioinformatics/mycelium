@@ -7,7 +7,7 @@ use std::{
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum HookTarget {
     Account,
@@ -41,7 +41,7 @@ pub struct WebHook {
     pub id: Option<Uuid>,
 
     pub name: String,
-    pub description: String,
+    pub description: Option<String>,
     pub url: String,
     pub target: HookTarget,
     pub is_active: bool,
@@ -52,7 +52,7 @@ pub struct WebHook {
 impl WebHook {
     pub fn new(
         name: String,
-        description: String,
+        description: Option<String>,
         url: String,
         target: HookTarget,
     ) -> Self {

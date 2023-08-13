@@ -10,5 +10,6 @@
     "thiserror",
     "withscores",
     "ZRANGE"
-  ]
+  ],
+  "rust-analyzer.linkedProjects": ["./ports/api/Cargo.toml"]
 }

@@ -1,4 +1,6 @@
-use crate::repositories::connector::get_client;
+use crate::{
+    prisma::webhook as webhook_model, repositories::connector::get_client,
+};
 
 use async_trait::async_trait;
 use chrono::Local;
@@ -49,10 +51,11 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
             .webhook()
             .create(
                 webhook.name.to_owned(),
-                webhook.description.to_owned(),
                 webhook.target.to_owned().to_string(),
                 webhook.url.to_owned(),
-                vec![],
+                vec![webhook_model::description::set(
+                    webhook.description.to_owned(),
+                )],
             )
             .exec()
             .await

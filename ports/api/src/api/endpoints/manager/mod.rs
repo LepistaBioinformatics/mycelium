@@ -3,6 +3,7 @@ pub mod error_code_endpoints;
 pub mod guest_endpoints;
 pub mod guest_role_endpoints;
 pub mod role_endpoints;
+pub mod webhook_endpoints;
 
 use clean_base::dtos::{Children, PaginatedRecord, Parent};
 use myc_core::{
@@ -54,6 +55,8 @@ use utoipa::OpenApi;
         role_endpoints::list_roles_url,
         role_endpoints::delete_role_url,
         role_endpoints::update_role_name_and_description_url,
+        webhook_endpoints::crate_webhook_url,
+        webhook_endpoints::delete_webhook_url,
     ),
     components(
         schemas(
@@ -84,6 +87,7 @@ use utoipa::OpenApi;
             guest_endpoints::GuestUserBody,
             guest_role_endpoints::CreateGuestRoleBody,
             role_endpoints::CreateRoleBody,
+            webhook_endpoints::CreateWebHookBody,
         ),
     ),
     tags(

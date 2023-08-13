@@ -69,7 +69,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                 Some(record) => Ok(FetchResponseKind::Found(WebHook {
                     id: Some(Uuid::from_str(&record.id).unwrap()),
                     name: record.name,
-                    description: record.description,
+                    description: record.description.into(),
                     target: record.target.parse().unwrap(),
                     url: record.url,
                     is_active: record.is_active,
