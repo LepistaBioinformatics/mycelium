@@ -63,8 +63,6 @@ pub(crate) async fn route_request(
         Ok(res) => res,
     };
 
-    debug!("Request Path: {:?}", request_path);
-
     let route = match match_forward_address(
         request_path,
         Box::new(&*routing_fetching_repo),
@@ -73,6 +71,7 @@ pub(crate) async fn route_request(
     {
         Err(err) => {
             warn!("{:?}", err);
+
             return Err(GatewayError::InternalServerError(String::from(
                 "Invalid client service",
             )));
@@ -90,8 +89,6 @@ pub(crate) async fn route_request(
             }
         }
     };
-
-    debug!("Match Route: {:?}", route);
 
     // ? -----------------------------------------------------------------------
     // ? Build the downstream URL address
@@ -129,22 +126,16 @@ pub(crate) async fn route_request(
         },
     };
 
-    debug!("Client URI: {:?}", registered_uri);
-
     let forwarded_req = client
         .request_from(registered_uri.as_str(), req.head())
         .no_decompress()
         .timeout(Duration::from_secs(*timeout.into_inner()));
-
-    debug!("Forward Request (1): {:?}", forwarded_req);
 
     let mut forwarded_req = match req.head().peer_addr {
         Some(addr) => forwarded_req
             .insert_header((FORWARD_FOR_KEY, format!("{}", addr.ip()))),
         None => forwarded_req,
     };
-
-    debug!("Forward Request (2): {:?}", forwarded_req);
 
     // ? -----------------------------------------------------------------------
     // ? Check authentication and get permissions
@@ -170,8 +161,6 @@ pub(crate) async fn route_request(
             };
     }
 
-    debug!("Forward Request (3): {:?}", forwarded_req);
-
     // ? -----------------------------------------------------------------------
     // ? Build the downstream url if the address has match.
     //
@@ -191,8 +180,6 @@ pub(crate) async fn route_request(
         }
         Ok(res) => res,
     };
-
-    debug!("Binding Response (1): {:?}", binding_response);
 
     let mut client_response = HttpResponse::build(binding_response.status());
 
@@ -217,8 +204,6 @@ pub(crate) async fn route_request(
         client_response
             .insert_header((header_name.clone(), header_value.clone()));
     }
-
-    debug!("Binding Response (2): {:?}", binding_response);
 
     Ok(client_response.streaming(binding_response))
 }
