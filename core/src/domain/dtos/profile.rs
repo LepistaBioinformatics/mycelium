@@ -143,6 +143,17 @@ impl Profile {
         self.is_staff || self.is_manager
     }
 
+    pub fn has_admin_privileges_or_error(&self) -> Result<(), MappedErrors> {
+        match self.is_staff || self.is_manager {
+            false => execution_err(
+                "Current account has no administration privileges".to_string(),
+            )
+            .with_exp_true()
+            .as_error(),
+            true => Ok(()),
+        }
+    }
+
     /// Filter IDs with view permissions.
     pub fn get_view_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
         self.get_licensed_ids(Permissions::View, roles)

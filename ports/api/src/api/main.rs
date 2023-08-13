@@ -22,7 +22,9 @@ use endpoints::{
         error_code_endpoints as manager_error_code_endpoints,
         guest_endpoints as manager_guest_endpoints,
         guest_role_endpoints as manager_guest_role_endpoints,
-        role_endpoints as manager_role_endpoints, ApiDoc as ManagerApiDoc,
+        role_endpoints as manager_role_endpoints,
+        webhook_endpoints as manager_webhook_endpoints,
+        ApiDoc as ManagerApiDoc,
     },
     staff::{
         account_endpoints as staff_account_endpoints, ApiDoc as StaffApiDoc,
@@ -151,7 +153,8 @@ pub async fn main() -> std::io::Result<()> {
                             .configure(manager_error_code_endpoints::configure)
                             .configure(manager_guest_endpoints::configure)
                             .configure(manager_guest_role_endpoints::configure)
-                            .configure(manager_role_endpoints::configure),
+                            .configure(manager_role_endpoints::configure)
+                            .configure(manager_webhook_endpoints::configure),
                     )
                     //
                     // Staff
