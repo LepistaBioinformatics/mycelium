@@ -154,11 +154,7 @@ pub(crate) async fn route_request(
         // Try to populate profile from the request
         //
         forwarded_req =
-            match fetch_and_inject_profile_to_forward(req, forwarded_req).await
-            {
-                Err(err) => return Err(err),
-                Ok(res) => res,
-            };
+            fetch_and_inject_profile_to_forward(req, forwarded_req).await?;
     }
 
     // ? -----------------------------------------------------------------------
@@ -173,7 +169,8 @@ pub(crate) async fn route_request(
         .map_err(error::ErrorInternalServerError)
     {
         Err(err) => {
-            warn!("{:?}", err);
+            warn!("{err}");
+
             return Err(GatewayError::InternalServerError(String::from(
                 format!("{err}"),
             )));
