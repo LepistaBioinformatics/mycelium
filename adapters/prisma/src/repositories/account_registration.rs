@@ -9,7 +9,7 @@ use crate::{
 use async_trait::async_trait;
 use chrono::Local;
 use clean_base::{
-    dtos::enums::ParentEnum,
+    dtos::{enums::ParentEnum, Children},
     entities::{CreateResponseKind, GetOrCreateResponseKind},
     utils::errors::{factories::creation_err, MappedErrors},
 };
@@ -58,14 +58,14 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         // ? Build the initial query (get part of the get-or-create)
         // ? -------------------------------------------------------------------
 
-        let owner = match account.owner.to_owned() {
-            ParentEnum::Id(_) => {
+        let owner = match account.owners.to_owned() {
+            Children::Ids(_) => {
                 return creation_err(String::from(
                     "Could not create account. User e-mail invalid.",
                 ))
                 .as_error()
             }
-            ParentEnum::Record(res) => res,
+            Children::Records(res) => res.first().unwrap().to_owned(),
         };
 
         let account_type_id = match account.account_type {
@@ -85,19 +85,21 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
             .account()
             .find_first(vec![or![
                 account_model::name::equals(account.name.to_owned()),
-                account_model::owner::is(vec![user_model::email::equals(
+                account_model::owners::some(vec![user_model::email::equals(
                     owner.email.get_email(),
                 )]),
             ]])
-            .include(account_model::include!({ owner account_type }))
+            .include(account_model::include!({ owners account_type }))
             .exec()
             .await;
 
         match response.unwrap() {
             Some(record) => {
+                let id = Uuid::parse_str(&record.id).unwrap();
+
                 return Ok(GetOrCreateResponseKind::NotCreated(
                     Account {
-                        id: Some(Uuid::parse_str(&record.id).unwrap()),
+                        id: Some(id),
                         name: record.name,
                         is_active: record.is_active,
                         is_checked: record.is_checked,
@@ -107,21 +109,31 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             record.is_checked,
                             record.is_archived,
                         )),
-                        owner: ParentEnum::Record(User {
-                            id: Some(
-                                Uuid::parse_str(&record.owner.id).unwrap(),
-                            ),
-                            username: record.owner.username,
-                            email: Email::from_string(record.owner.email)?,
-                            first_name: Some(record.owner.first_name),
-                            last_name: Some(record.owner.last_name),
-                            is_active: record.owner.is_active,
-                            created: record.owner.created.into(),
-                            updated: match record.owner.updated {
-                                None => None,
-                                Some(date) => Some(date.with_timezone(&Local)),
-                            },
-                        }),
+                        owners: Children::Records(
+                            record
+                                .owners
+                                .into_iter()
+                                .map(|owner| User {
+                                    id: Some(
+                                        Uuid::parse_str(&owner.id).unwrap(),
+                                    ),
+                                    username: owner.username,
+                                    email: Email::from_string(owner.email)
+                                        .unwrap(),
+                                    first_name: Some(owner.first_name),
+                                    last_name: Some(owner.last_name),
+                                    is_active: owner.is_active,
+                                    created: owner.created.into(),
+                                    updated: match owner.updated {
+                                        None => None,
+                                        Some(date) => {
+                                            Some(date.with_timezone(&Local))
+                                        }
+                                    },
+                                    account: Some(ParentEnum::Id(id)),
+                                })
+                                .collect::<Vec<User>>(),
+                        ),
                         account_type: ParentEnum::Record(AccountType {
                             id: Some(
                                 Uuid::parse_str(&record.account_type.id)
@@ -155,23 +167,10 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         match client
             ._transaction()
             .run(|client| async move {
-                let user = client
-                    .user()
-                    .create(
-                        owner.username,
-                        owner.email.get_email(),
-                        owner.first_name.unwrap_or(String::from("")),
-                        owner.last_name.unwrap_or(String::from("")),
-                        vec![],
-                    )
-                    .exec()
-                    .await?;
-
-                client
+                let account = client
                     .account()
                     .create(
                         account.name,
-                        user_model::id::equals(user.id),
                         account_type_model::id::equals(account_type_id),
                         vec![
                             account_model::is_active::set(account.is_active),
@@ -181,9 +180,23 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             ),
                         ],
                     )
-                    .include(account_model::include!({ owner account_type }))
+                    .include(account_model::include!({ owners account_type }))
+                    .exec()
+                    .await?;
+
+                client
+                    .user()
+                    .create(
+                        owner.username,
+                        owner.email.get_email(),
+                        owner.first_name.unwrap_or(String::from("")),
+                        owner.last_name.unwrap_or(String::from("")),
+                        account_model::id::equals(account.to_owned().id),
+                        vec![],
+                    )
                     .exec()
                     .await
+                    .map(|owner| (account, owner))
             })
             .await
         {
@@ -195,45 +208,60 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00002.as_str())
                 .as_error();
             }
-            Ok(record) => Ok(GetOrCreateResponseKind::Created(Account {
-                id: Some(Uuid::parse_str(&record.id).unwrap()),
-                name: record.name,
-                is_active: record.is_active,
-                is_checked: record.is_checked,
-                is_archived: record.is_archived,
-                verbose_status: Some(VerboseStatus::from_flags(
-                    record.is_active,
-                    record.is_checked,
-                    record.is_archived,
-                )),
-                owner: ParentEnum::Record(User {
-                    id: Some(Uuid::parse_str(&record.owner.id).unwrap()),
-                    username: record.owner.username,
-                    email: Email::from_string(record.owner.email)?,
-                    first_name: Some(record.owner.first_name),
-                    last_name: Some(record.owner.last_name),
-                    is_active: record.owner.is_active,
-                    created: record.owner.created.into(),
-                    updated: match record.owner.updated {
+            Ok((account, _)) => {
+                let id = Uuid::parse_str(&account.id).unwrap();
+
+                Ok(GetOrCreateResponseKind::Created(Account {
+                    id: Some(id),
+                    name: account.name,
+                    is_active: account.is_active,
+                    is_checked: account.is_checked,
+                    is_archived: account.is_archived,
+                    verbose_status: Some(VerboseStatus::from_flags(
+                        account.is_active,
+                        account.is_checked,
+                        account.is_archived,
+                    )),
+                    owners: Children::Records(
+                        account
+                            .owners
+                            .into_iter()
+                            .map(|owner| User {
+                                id: Some(Uuid::parse_str(&owner.id).unwrap()),
+                                username: owner.username,
+                                email: Email::from_string(owner.email).unwrap(),
+                                first_name: Some(owner.first_name),
+                                last_name: Some(owner.last_name),
+                                is_active: owner.is_active,
+                                created: owner.created.into(),
+                                updated: match owner.updated {
+                                    None => None,
+                                    Some(date) => {
+                                        Some(date.with_timezone(&Local))
+                                    }
+                                },
+                                account: Some(ParentEnum::Id(id)),
+                            })
+                            .collect::<Vec<User>>(),
+                    ),
+                    account_type: ParentEnum::Record(AccountType {
+                        id: Some(
+                            Uuid::parse_str(&account.account_type.id).unwrap(),
+                        ),
+                        name: account.account_type.name,
+                        description: account.account_type.description,
+                        is_subscription: account.account_type.is_subscription,
+                        is_manager: account.account_type.is_manager,
+                        is_staff: account.account_type.is_staff,
+                    }),
+                    guest_users: None,
+                    created: account.created.into(),
+                    updated: match account.updated {
                         None => None,
                         Some(date) => Some(date.with_timezone(&Local)),
                     },
-                }),
-                account_type: ParentEnum::Record(AccountType {
-                    id: Some(Uuid::parse_str(&record.account_type.id).unwrap()),
-                    name: record.account_type.name,
-                    description: record.account_type.description,
-                    is_subscription: record.account_type.is_subscription,
-                    is_manager: record.account_type.is_manager,
-                    is_staff: record.account_type.is_staff,
-                }),
-                guest_users: None,
-                created: record.created.into(),
-                updated: match record.updated {
-                    None => None,
-                    Some(date) => Some(date.with_timezone(&Local)),
-                },
-            })),
+                }))
+            }
         }
     }
 

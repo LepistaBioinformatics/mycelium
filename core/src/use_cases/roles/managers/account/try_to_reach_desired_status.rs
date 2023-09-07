@@ -105,7 +105,7 @@ mod tests {
     };
 
     use chrono::Local;
-    use clean_base::dtos::enums::ParentEnum;
+    use clean_base::dtos::{enums::ParentEnum, Children};
 
     #[tokio::test]
     async fn test_if_try_to_reach_desired_status_works() {
@@ -128,6 +128,7 @@ mod tests {
             is_active: true,
             created: Local::now(),
             updated: Some(Local::now()),
+            account: None,
         };
 
         let mut account = Account {
@@ -137,7 +138,8 @@ mod tests {
             is_checked: false,
             is_archived: false,
             verbose_status: None,
-            owner: ParentEnum::Record(user),
+            //owner: ParentEnum::Record(user),
+            owners: Children::Records([user].to_vec()),
             account_type: ParentEnum::Record(account_type),
             guest_users: None,
             created: Local::now(),

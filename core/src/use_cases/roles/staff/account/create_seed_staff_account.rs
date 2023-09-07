@@ -5,18 +5,16 @@ use crate::{
             email::Email,
             user::User,
         },
-        entities::{
-            AccountRegistration, AccountTypeRegistration, UserRegistration,
-        },
+        entities::{AccountRegistration, AccountTypeRegistration},
     },
     use_cases::roles::shared::account_type::get_or_create_default_account_types,
 };
 
 use chrono::Local;
 use clean_base::{
-    dtos::enums::ParentEnum,
+    dtos::{enums::ParentEnum, Children},
     entities::GetOrCreateResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::MappedErrors,
 };
 
 /// Create a seed staff account.
@@ -34,7 +32,7 @@ pub async fn create_seed_staff_account(
     account_name: String,
     first_name: String,
     last_name: String,
-    user_registration_repo: Box<&dyn UserRegistration>,
+    //user_registration_repo: Box<&dyn UserRegistration>,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
 ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
@@ -66,37 +64,6 @@ pub async fn create_seed_staff_account(
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Check and register user
-    //
-    // Try to register user into database. Case use was previously registered,
-    // return a left response. Usually this is the same response of the user
-    // registration action.
-    // ? -----------------------------------------------------------------------
-
-    let user = match user_registration_repo
-        .get_or_create(User {
-            id: None,
-            username: email_instance.to_owned().username,
-            email: email_instance,
-            first_name: Some(first_name),
-            last_name: Some(last_name),
-            is_active: true,
-            created: Local::now(),
-            updated: None,
-        })
-        .await?
-    {
-        GetOrCreateResponseKind::NotCreated(user, msg) => {
-            return use_case_err(format!(
-                "Unexpected error on persist user ({}): {}",
-                user.username, msg,
-            ))
-            .as_error()
-        }
-        GetOrCreateResponseKind::Created(user) => user,
-    };
-
-    // ? -----------------------------------------------------------------------
     // ? Register the account
     //
     // The account are registered using the already created user.
@@ -110,7 +77,20 @@ pub async fn create_seed_staff_account(
             is_checked: false,
             is_archived: false,
             verbose_status: None,
-            owner: ParentEnum::Record(user),
+            owners: Children::Records(
+                [User {
+                    id: None,
+                    username: email_instance.to_owned().username,
+                    email: email_instance,
+                    first_name: Some(first_name),
+                    last_name: Some(last_name),
+                    is_active: true,
+                    created: Local::now(),
+                    updated: None,
+                    account: None,
+                }]
+                .to_vec(),
+            ),
             account_type: ParentEnum::Record(account_type),
             guest_users: None,
             created: Local::now(),

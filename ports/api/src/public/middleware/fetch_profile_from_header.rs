@@ -8,7 +8,10 @@ use clean_base::entities::FetchResponseKind;
 use futures::Future;
 use log::warn;
 use myc_core::{
-    domain::{dtos::account::VerboseStatus, entities::ProfileFetching},
+    domain::{
+        dtos::{account::VerboseStatus, profile::Owner},
+        entities::ProfileFetching,
+    },
     settings::DEFAULT_PROFILE_KEY,
 };
 use myc_svc::repositories::ProfileFetchingSvcRepo;
@@ -19,10 +22,7 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GatewayProfileData {
-    pub email: String,
-    pub first_name: Option<String>,
-    pub last_name: Option<String>,
-    pub username: Option<String>,
+    pub owner_credentials: Vec<Owner>,
     pub current_account_id: Uuid,
     pub is_subscription: bool,
     pub is_manager: bool,
@@ -38,10 +38,7 @@ pub struct GatewayProfileData {
 impl GatewayProfileData {
     pub fn from_profile(profile: Profile) -> Self {
         Self {
-            email: profile.email,
-            first_name: profile.first_name,
-            last_name: profile.last_name,
-            username: profile.username,
+            owner_credentials: profile.owner_credentials,
             current_account_id: profile.current_account_id,
             is_subscription: profile.is_subscription,
             is_manager: profile.is_manager,
@@ -57,10 +54,7 @@ impl GatewayProfileData {
 
     pub fn to_profile(&self) -> Profile {
         Profile {
-            email: self.email.to_owned(),
-            first_name: self.first_name.to_owned(),
-            last_name: self.last_name.to_owned(),
-            username: self.username.to_owned(),
+            owner_credentials: self.owner_credentials.to_owned(),
             current_account_id: self.current_account_id,
             is_subscription: self.is_subscription,
             is_manager: self.is_manager,

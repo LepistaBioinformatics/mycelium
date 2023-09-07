@@ -3,16 +3,18 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use chrono::DateTime;
+use chrono::{DateTime, Local};
 use clean_base::{
-    dtos::enums::ParentEnum,
+    dtos::{enums::ParentEnum, Children},
     entities::UpdatingResponseKind,
     utils::errors::{factories::updating_err, MappedErrors},
 };
 use myc_core::domain::{
     dtos::{
         account::{Account, VerboseStatus},
+        email::Email,
         native_error_codes::NativeErrorCodes,
+        user::User,
     },
     entities::AccountUpdating,
 };
@@ -85,34 +87,58 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                     })
                 ],
             )
+            .include(account_model::include!({ owners }))
             .exec()
             .await;
 
         match response {
-            Ok(record) => Ok(UpdatingResponseKind::Updated(Account {
-                id: Some(Uuid::parse_str(&record.id).unwrap()),
-                name: record.name,
-                is_active: record.is_active,
-                is_checked: record.is_checked,
-                is_archived: record.is_archived,
-                verbose_status: Some(VerboseStatus::from_flags(
-                    record.is_active,
-                    record.is_checked,
-                    record.is_archived,
-                )),
-                owner: ParentEnum::Id(
-                    Uuid::from_str(&record.owner_id).unwrap(),
-                ),
-                account_type: ParentEnum::Id(
-                    Uuid::from_str(&record.account_type_id).unwrap(),
-                ),
-                guest_users: None,
-                created: record.created.into(),
-                updated: match record.updated {
-                    None => None,
-                    Some(res) => Some(DateTime::from(res)),
-                },
-            })),
+            Ok(record) => {
+                let id = Uuid::parse_str(&record.id).unwrap();
+
+                Ok(UpdatingResponseKind::Updated(Account {
+                    id: Some(id.to_owned()),
+                    name: record.name,
+                    is_active: record.is_active,
+                    is_checked: record.is_checked,
+                    is_archived: record.is_archived,
+                    verbose_status: Some(VerboseStatus::from_flags(
+                        record.is_active,
+                        record.is_checked,
+                        record.is_archived,
+                    )),
+                    owners: Children::Records(
+                        record
+                            .owners
+                            .into_iter()
+                            .map(|owner| User {
+                                id: Some(Uuid::parse_str(&owner.id).unwrap()),
+                                username: owner.username,
+                                email: Email::from_string(owner.email).unwrap(),
+                                first_name: Some(owner.first_name),
+                                last_name: Some(owner.last_name),
+                                is_active: owner.is_active,
+                                created: owner.created.into(),
+                                updated: match owner.updated {
+                                    None => None,
+                                    Some(date) => {
+                                        Some(date.with_timezone(&Local))
+                                    }
+                                },
+                                account: Some(ParentEnum::Id(id)),
+                            })
+                            .collect::<Vec<User>>(),
+                    ),
+                    account_type: ParentEnum::Id(
+                        Uuid::from_str(&record.account_type_id).unwrap(),
+                    ),
+                    guest_users: None,
+                    created: record.created.into(),
+                    updated: match record.updated {
+                        None => None,
+                        Some(res) => Some(DateTime::from(res)),
+                    },
+                }))
+            }
             Err(err) => {
                 if err.is_prisma_error::<RecordNotFound>() {
                     return updating_err(format!(

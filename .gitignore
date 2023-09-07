@@ -9,4 +9,4 @@ dist
 postgres/volume
 
 # Prisma related
-adapters/prisma/src/migrations
+#adapters/prisma/src/migrations

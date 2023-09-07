@@ -10,8 +10,10 @@ use clean_base::{
 };
 use myc_core::domain::{
     dtos::{
-        account::VerboseStatus, email::Email,
-        native_error_codes::NativeErrorCodes, profile::Profile,
+        account::VerboseStatus,
+        email::Email,
+        native_error_codes::NativeErrorCodes,
+        profile::{Owner, Profile},
     },
     entities::ProfileFetching,
 };
@@ -58,11 +60,11 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
 
         let query = client
             .account()
-            .find_first(vec![account_model::owner::is(vec![
+            .find_first(vec![account_model::owners::some(vec![
                 user_model::email::equals(email.get_email()),
             ])])
             .include(account_model::include!({
-                owner: select {
+                owners: select {
                     email
                     first_name
                     last_name
@@ -84,15 +86,26 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
 
         match response {
             Some(record) => Ok(FetchResponseKind::Found(Profile {
-                email: Email::from_string(record.owner.email)?.get_email(),
-                first_name: Some(record.owner.first_name),
-                last_name: Some(record.owner.last_name),
-                username: Some(record.owner.username),
+                owner_credentials: record
+                    .owners
+                    .iter()
+                    .map(|owner| Owner {
+                        email: Email::from_string(owner.email.to_owned())
+                            .unwrap()
+                            .get_email(),
+                        first_name: Some(owner.first_name.to_owned()),
+                        last_name: Some(owner.last_name.to_owned()),
+                        username: Some(owner.username.to_owned()),
+                    })
+                    .collect::<Vec<Owner>>(),
                 current_account_id: Uuid::parse_str(&record.id).unwrap(),
                 is_subscription: record.account_type.is_subscription,
                 is_manager: record.account_type.is_manager,
                 is_staff: record.account_type.is_staff,
-                owner_is_active: record.owner.is_active,
+                owner_is_active: record
+                    .owners
+                    .iter()
+                    .any(|i| i.is_active == true),
                 account_is_active: record.is_active,
                 account_was_approved: record.is_checked,
                 account_was_archived: record.is_archived,
