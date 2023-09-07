@@ -1,5 +1,5 @@
 use super::propagate_subscription_account::{
-    propagate_subscription_account, PropagationResponseResponse,
+    propagate_subscription_account, PropagationResponse,
 };
 use crate::{
     domain::{
@@ -25,7 +25,7 @@ pub async fn propagate_existing_subscription_account(
     account_id: Uuid,
     account_fetching_repo: Box<&dyn AccountFetching>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
-) -> Result<PropagationResponseResponse, MappedErrors> {
+) -> Result<PropagationResponse, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
