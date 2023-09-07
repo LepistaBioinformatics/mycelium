@@ -1,5 +1,5 @@
 use super::propagate_subscription_account::{
-    propagate_subscription_account, PropagationResponseResponse,
+    propagate_subscription_account, PropagationResponse,
 };
 use crate::{
     domain::{
@@ -38,7 +38,7 @@ pub async fn create_subscription_account(
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
-) -> Result<PropagationResponseResponse, MappedErrors> {
+) -> Result<PropagationResponse, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
@@ -93,16 +93,6 @@ pub async fn create_subscription_account(
             is_checked: true,
             is_archived: false,
             verbose_status: None,
-            //owner: ParentEnum::Record(User {
-            //    id: None,
-            //    username: email_instance.to_owned().username,
-            //    email: email_instance,
-            //    first_name: Some(String::from("")),
-            //    last_name: Some(String::from("")),
-            //    is_active: true,
-            //    created: Local::now(),
-            //    updated: None,
-            //}),
             owners: Children::Records(
                 [User {
                     id: None,

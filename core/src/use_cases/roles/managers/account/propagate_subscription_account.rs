@@ -26,7 +26,7 @@ pub struct HookResponse {
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct PropagationResponseResponse {
+pub struct PropagationResponse {
     pub account: Account,
     pub propagation_responses: Option<Vec<HookResponse>>,
 }
@@ -42,7 +42,7 @@ pub(super) async fn propagate_subscription_account(
     webhook_default_action: WebHookDefaultAction,
     hook_target: HookTarget,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
-) -> Result<PropagationResponseResponse, MappedErrors> {
+) -> Result<PropagationResponse, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
@@ -112,7 +112,7 @@ pub(super) async fn propagate_subscription_account(
     // ? Return created account
     // ? -----------------------------------------------------------------------
 
-    Ok(PropagationResponseResponse {
+    Ok(PropagationResponse {
         account,
         propagation_responses,
     })
