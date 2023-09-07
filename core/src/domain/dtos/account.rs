@@ -13,7 +13,7 @@ use std::{
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountType {
     pub id: Option<Uuid>,
@@ -144,7 +144,7 @@ impl VerboseStatus {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Account {
     pub id: Option<Uuid>,
@@ -154,66 +154,11 @@ pub struct Account {
     pub is_checked: bool,
     pub is_archived: bool,
     pub verbose_status: Option<VerboseStatus>,
-    pub owner: Parent<User, Uuid>,
+    pub owners: Children<User, Uuid>,
     pub account_type: Parent<AccountType, Uuid>,
     pub guest_users: Option<Children<GuestUser, Uuid>>,
     pub created: DateTime<Local>,
     pub updated: Option<DateTime<Local>>,
-}
-
-impl Account {
-    pub fn build_owner_url(&self, base_url: String) -> Result<String, ()> {
-        match self.owner.to_owned() {
-            Parent::Id(id) => Ok(format!("{:?}/{:?}", base_url, id)),
-            Parent::Record(record) => match record.id {
-                None => Ok(base_url),
-                Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
-            },
-        }
-    }
-
-    pub fn build_account_type_url(
-        &self,
-        base_url: String,
-    ) -> Result<String, ()> {
-        match self.account_type.to_owned() {
-            Parent::Id(id) => Ok(format!("{:?}/{:?}", base_url, id)),
-            Parent::Record(record) => match record.id {
-                None => Ok(base_url),
-                Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
-            },
-        }
-    }
-
-    pub fn build_guest_users_url(
-        &self,
-        base_url: String,
-    ) -> Result<Vec<String>, ()> {
-        match self.guest_users.to_owned() {
-            None => Err(()),
-            Some(records) => match records {
-                Children::Ids(ids) => Ok(ids
-                    .iter()
-                    .map(|id| format!("{}/{}", base_url, id))
-                    .collect()),
-                Children::Records(records) => {
-                    let urls = records
-                        .iter()
-                        .filter_map(|record| match record.id {
-                            None => Some(base_url.to_owned()),
-                            Some(_) => Some(format!(
-                                "{}/{}",
-                                base_url,
-                                record.id.unwrap()
-                            )),
-                        })
-                        .collect();
-
-                    Ok(urls)
-                }
-            },
-        }
-    }
 }
 
 // ? ---------------------------------------------------------------------------
@@ -229,8 +174,6 @@ mod tests {
 
     #[test]
     fn test_if_account_works() {
-        let base_url = "http://local.host/api/v1/accounts".to_string();
-
         let account_type = AccountType {
             id: None,
             name: "".to_string(),
@@ -240,7 +183,21 @@ mod tests {
             is_staff: false,
         };
 
-        let user = User {
+        let account = Account {
+            id: None,
+            name: String::from("Account Name"),
+            is_active: true,
+            is_checked: false,
+            is_archived: false,
+            verbose_status: None,
+            owners: Children::Records([].to_vec()),
+            account_type: Parent::Record(account_type),
+            guest_users: None,
+            created: Local::now(),
+            updated: Some(Local::now()),
+        };
+
+        User {
             id: None,
             username: "username".to_string(),
             email: Email::from_string("username@email.domain".to_string())
@@ -250,31 +207,8 @@ mod tests {
             is_active: true,
             created: Local::now(),
             updated: Some(Local::now()),
+            account: Some(Parent::Record(account)),
         };
-
-        let account = Account {
-            id: None,
-            name: String::from("Account Name"),
-            is_active: true,
-            is_checked: false,
-            is_archived: false,
-            verbose_status: None,
-            owner: Parent::Record(user),
-            account_type: Parent::Record(account_type),
-            guest_users: None,
-            created: Local::now(),
-            updated: Some(Local::now()),
-        };
-
-        assert_eq!(
-            account.build_account_type_url(base_url.to_owned()).is_ok(),
-            true
-        );
-
-        assert_eq!(
-            account.build_account_type_url(base_url.to_owned()).unwrap(),
-            base_url.to_owned()
-        );
     }
 
     #[test]

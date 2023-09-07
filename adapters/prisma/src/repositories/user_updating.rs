@@ -46,6 +46,17 @@ impl UserUpdating for UserUpdatingSqlDbRepository {
         // ? Try to update record
         // ? -------------------------------------------------------------------
 
+        let account = match user.account {
+            None => {
+                return updating_err(String::from(
+                    "Account ID is required to create a user",
+                ))
+                .with_code(NativeErrorCodes::MYC00002.as_str())
+                .as_error()
+            }
+            Some(record) => record,
+        };
+
         let user_id = match user.id {
             None => {
                 return updating_err(String::from(
@@ -87,6 +98,7 @@ impl UserUpdating for UserUpdatingSqlDbRepository {
                         None => None,
                         Some(date) => Some(date.with_timezone(&Local)),
                     },
+                    account: Some(account),
                 }))
             }
             Err(err) => {

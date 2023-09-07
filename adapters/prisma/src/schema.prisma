@@ -29,10 +29,11 @@ model User {
   updated    DateTime? @updatedAt @db.Timestamptz(6)
 
   // Backward relationship fields
-  accounts Account[]
+  account    Account @relation(fields: [account_id], references: [id])
+  account_id String
 
   // Db compatibility and extra maps
-  @@unique([email])
+  @@unique([email, account_id])
   @@map("user")
 }
 
@@ -118,8 +119,8 @@ model Account {
 
   // Model fields
   name            String      @db.VarChar(64)
-  owner           User        @relation(fields: [owner_id], references: [id])
-  owner_id        String      @unique
+  //owner           User        @relation(fields: [owner_id], references: [id])
+  //owner_id        String      @unique
   account_type    AccountType @relation(fields: [account_type_id], references: [id])
   account_type_id String
   created         DateTime    @default(now()) @db.Timestamptz(6)
@@ -129,10 +130,11 @@ model Account {
   is_archived     Boolean     @default(false)
 
   // Backward relationship fields
+  owners      User[]
   guest_users GuestUserOnAccount[]
 
   // Db compatibility and extra maps
-  @@unique([name, owner_id])
+  @@unique([name])
   @@map("account")
 }
 

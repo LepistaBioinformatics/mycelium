@@ -1,6 +1,7 @@
-use super::email::Email;
+use super::{account::Account, email::Email};
 
 use chrono::{DateTime, Local};
+use clean_base::dtos::Parent;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -17,4 +18,5 @@ pub struct User {
     pub is_active: bool,
     pub created: DateTime<Local>,
     pub updated: Option<DateTime<Local>>,
+    pub account: Option<Parent<Account, Uuid>>,
 }

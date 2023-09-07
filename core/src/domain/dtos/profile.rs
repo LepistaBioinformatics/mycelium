@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct LicensedResources {
     /// The guest account unique id
@@ -47,10 +47,9 @@ pub struct LicensedResources {
     pub permissions: Vec<Permissions>,
 }
 
-/// This object should be used over the application layer operations.
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
-pub struct Profile {
+pub struct Owner {
     /// The owner email
     ///
     /// The email of the user that administrate the profile. Email denotes the
@@ -67,6 +66,13 @@ pub struct Profile {
 
     /// The owner username
     pub username: Option<String>,
+}
+
+/// This object should be used over the application layer operations.
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct Profile {
+    pub owner_credentials: Vec<Owner>,
 
     /// The account unique id
     ///
@@ -259,7 +265,7 @@ impl Profile {
 
 #[cfg(test)]
 mod tests {
-    use super::{LicensedResources, Profile};
+    use super::{LicensedResources, Owner, Profile};
     use crate::domain::dtos::guest::Permissions;
     use std::str::FromStr;
     use test_log::test;
@@ -268,11 +274,13 @@ mod tests {
     #[test]
     fn profile_get_ids_works() {
         let profile = Profile {
-            email: "agrobiota-results-expert-creator@biotrop.com.br"
-                .to_string(),
-            first_name: Some("first_name".to_string()),
-            last_name: Some("last_name".to_string()),
-            username: Some("username".to_string()),
+            owner_credentials: vec![Owner {
+                email: "agrobiota-results-expert-creator@biotrop.com.br"
+                    .to_string(),
+                first_name: Some("first_name".to_string()),
+                last_name: Some("last_name".to_string()),
+                username: Some("username".to_string()),
+            }],
             current_account_id: Uuid::from_str(
                 "d776e96f-9417-4520-b2a9-9298136031b0",
             )
@@ -315,11 +323,13 @@ mod tests {
         let desired_role = "service".to_string();
 
         let mut profile = Profile {
-            email: "agrobiota-results-expert-creator@biotrop.com.br"
-                .to_string(),
-            first_name: Some("first_name".to_string()),
-            last_name: Some("last_name".to_string()),
-            username: Some("username".to_string()),
+            owner_credentials: vec![Owner {
+                email: "agrobiota-results-expert-creator@biotrop.com.br"
+                    .to_string(),
+                first_name: Some("first_name".to_string()),
+                last_name: Some("last_name".to_string()),
+                username: Some("username".to_string()),
+            }],
             current_account_id: Uuid::from_str(
                 "d776e96f-9417-4520-b2a9-9298136031b0",
             )

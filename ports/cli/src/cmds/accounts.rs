@@ -1,11 +1,10 @@
 use clap::Parser;
-use clean_base::{dtos::enums::ParentEnum, entities::GetOrCreateResponseKind};
+use clean_base::entities::GetOrCreateResponseKind;
 use log::{debug, error, info};
 use myc_core::use_cases::roles::staff::account::create_seed_staff_account;
 use myc_prisma::repositories::{
     connector::generate_prisma_client_of_thread,
     AccountRegistrationSqlDbRepository, AccountTypeRegistrationSqlDbRepository,
-    UserRegistrationSqlDbRepository,
 };
 use std::process::id as process_id;
 
@@ -35,11 +34,10 @@ pub(crate) async fn create_seed_staff_account_cmd(
     generate_prisma_client_of_thread(process_id()).await;
 
     match create_seed_staff_account(
-        args.email,
-        args.account_name,
-        args.first_name,
-        args.last_name,
-        Box::new(&UserRegistrationSqlDbRepository {}),
+        args.email.to_owned(),
+        args.account_name.to_owned(),
+        args.first_name.to_owned(),
+        args.last_name.to_owned(),
         Box::new(&AccountTypeRegistrationSqlDbRepository {}),
         Box::new(&AccountRegistrationSqlDbRepository {}),
     )
@@ -51,27 +49,16 @@ pub(crate) async fn create_seed_staff_account_cmd(
                 info!("Seed staff account already exists created: {:?}", msg)
             }
             GetOrCreateResponseKind::Created(account) => {
-                match account.owner {
-                    ParentEnum::Id(id) => info!(
-                        "Seed staff account successfully created: {:?}",
-                        id
-                    ),
-                    ParentEnum::Record(record) => {
-                        info!(
-                            "\n
+                info!(
+                    "\n
 Seed staff account successfully created:
-  - Email: {}
-  - First Name: {}
-  - Last Name: {}
-  - Account Name: {}
-            ",
-                            record.email.get_email(),
-                            record.first_name.unwrap(),
-                            record.last_name.unwrap(),
-                            account.name,
-                        )
-                    }
-                };
+- Email: {}
+- First Name: {}
+- Last Name: {}
+- Account Name: {}
+    ",
+                    args.email, args.first_name, args.last_name, account.name,
+                );
             }
         },
     };

@@ -42,7 +42,7 @@ impl FromStr for Permissions {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct GuestRole {
     pub id: Option<Uuid>,
@@ -65,7 +65,7 @@ impl GuestRole {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct GuestUser {
     pub id: Option<Uuid>,

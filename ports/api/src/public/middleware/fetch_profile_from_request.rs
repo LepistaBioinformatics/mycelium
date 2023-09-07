@@ -10,7 +10,7 @@ use futures::Future;
 use jwt::{Header as JwtHeader, RegisteredClaims, Token};
 use log::{debug, warn};
 use myc_core::{
-    domain::dtos::{account::VerboseStatus, email::Email},
+    domain::dtos::{account::VerboseStatus, email::Email, profile::Owner},
     use_cases::roles::service::profile::{
         fetch_profile_from_email, ProfileResponse,
     },
@@ -25,10 +25,7 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MyceliumProfileData {
-    pub email: String,
-    pub first_name: Option<String>,
-    pub last_name: Option<String>,
-    pub username: Option<String>,
+    pub owner_credentials: Vec<Owner>,
     pub current_account_id: Uuid,
     pub is_subscription: bool,
     pub is_manager: bool,
@@ -44,10 +41,7 @@ pub struct MyceliumProfileData {
 impl MyceliumProfileData {
     pub fn from_profile(profile: Profile) -> Self {
         Self {
-            email: profile.email,
-            first_name: profile.first_name,
-            last_name: profile.last_name,
-            username: profile.username,
+            owner_credentials: profile.owner_credentials,
             current_account_id: profile.current_account_id,
             is_subscription: profile.is_subscription,
             is_manager: profile.is_manager,
@@ -63,10 +57,7 @@ impl MyceliumProfileData {
 
     pub fn to_profile(&self) -> Profile {
         Profile {
-            email: self.email.to_owned(),
-            first_name: self.first_name.to_owned(),
-            last_name: self.last_name.to_owned(),
-            username: self.username.to_owned(),
+            owner_credentials: self.owner_credentials.to_owned(),
             current_account_id: self.current_account_id,
             is_subscription: self.is_subscription,
             is_manager: self.is_manager,

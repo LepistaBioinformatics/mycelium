@@ -12,7 +12,8 @@ use crate::{
 
 use chrono::Local;
 use clean_base::{
-    dtos::enums::ParentEnum, entities::GetOrCreateResponseKind,
+    dtos::{enums::ParentEnum, Children},
+    entities::GetOrCreateResponseKind,
     utils::errors::MappedErrors,
 };
 
@@ -73,16 +74,30 @@ pub async fn create_default_account(
             is_checked: false,
             is_archived: false,
             verbose_status: None,
-            owner: ParentEnum::Record(User {
-                id: None,
-                username: email_instance.to_owned().username,
-                email: email_instance,
-                first_name,
-                last_name,
-                is_active: true,
-                created: Local::now(),
-                updated: None,
-            }),
+            //owner: ParentEnum::Record(User {
+            //    id: None,
+            //    username: email_instance.to_owned().username,
+            //    email: email_instance,
+            //    first_name,
+            //    last_name,
+            //    is_active: true,
+            //    created: Local::now(),
+            //    updated: None,
+            //}),
+            owners: Children::Records(
+                [User {
+                    id: None,
+                    username: email_instance.to_owned().username,
+                    email: email_instance,
+                    first_name,
+                    last_name,
+                    is_active: true,
+                    created: Local::now(),
+                    updated: None,
+                    account: None,
+                }]
+                .to_vec(),
+            ),
             account_type: ParentEnum::Record(account_type),
             guest_users: None,
             created: Local::now(),

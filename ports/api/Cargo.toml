@@ -47,7 +47,12 @@ shaku = "0.6"
 shaku_actix = "0.2"
 tokio = { version = "1", features = ["full"] }
 url = "2.2"
-utoipa = { version = "3", features = ["actix_extras", "uuid", "chrono", "openapi_extensions"] }
+utoipa = { version = "3", features = [
+    "actix_extras",
+    "uuid",
+    "chrono",
+    "openapi_extensions",
+] }
 utoipa-swagger-ui = { version = "3", features = ["actix-web"] }
 uuid = { version = "1.1", features = ["v4", "serde", "fast-rng"] }
 

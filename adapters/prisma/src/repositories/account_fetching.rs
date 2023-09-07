@@ -4,9 +4,12 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use chrono::DateTime;
+use chrono::{DateTime, Local};
 use clean_base::{
-    dtos::enums::{PaginatedRecord, ParentEnum},
+    dtos::{
+        enums::{PaginatedRecord, ParentEnum},
+        Children,
+    },
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{
         factories::creation_err, factories::fetching_err, MappedErrors,
@@ -60,7 +63,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         match client
             .account()
             .find_unique(account_model::id::equals(id.to_owned().to_string()))
-            .include(account_model::include!({ account_type owner }))
+            .include(account_model::include!({ account_type owners }))
             .exec()
             .await
         {
@@ -73,47 +76,66 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             }
             Ok(res) => match res {
                 None => Ok(FetchResponseKind::NotFound(Some(id))),
-                Some(record) => Ok(FetchResponseKind::Found(Account {
-                    id: Some(Uuid::from_str(&record.id).unwrap()),
-                    name: record.name,
-                    is_active: record.is_active,
-                    is_checked: record.is_checked,
-                    is_archived: record.is_archived,
-                    verbose_status: Some(VerboseStatus::from_flags(
-                        record.is_active,
-                        record.is_checked,
-                        record.is_archived,
-                    )),
-                    owner: ParentEnum::Record(User {
-                        id: Some(Uuid::from_str(&record.owner.id).unwrap()),
-                        username: record.owner.username,
-                        email: Email::from_string(record.owner.email)?,
-                        first_name: Some(record.owner.first_name),
-                        last_name: Some(record.owner.last_name),
-                        is_active: record.owner.is_active,
-                        created: record.owner.created.into(),
-                        updated: match record.owner.updated {
+                Some(record) => {
+                    let id = Uuid::from_str(&record.id).unwrap();
+
+                    Ok(FetchResponseKind::Found(Account {
+                        id: Some(id),
+                        name: record.name,
+                        is_active: record.is_active,
+                        is_checked: record.is_checked,
+                        is_archived: record.is_archived,
+                        verbose_status: Some(VerboseStatus::from_flags(
+                            record.is_active,
+                            record.is_checked,
+                            record.is_archived,
+                        )),
+                        owners: Children::Records(
+                            record
+                                .owners
+                                .into_iter()
+                                .map(|owner| User {
+                                    id: Some(
+                                        Uuid::parse_str(&owner.id).unwrap(),
+                                    ),
+                                    username: owner.username,
+                                    email: Email::from_string(owner.email)
+                                        .unwrap(),
+                                    first_name: Some(owner.first_name),
+                                    last_name: Some(owner.last_name),
+                                    is_active: owner.is_active,
+                                    created: owner.created.into(),
+                                    updated: match owner.updated {
+                                        None => None,
+                                        Some(date) => {
+                                            Some(date.with_timezone(&Local))
+                                        }
+                                    },
+                                    account: Some(ParentEnum::Id(id)),
+                                })
+                                .collect::<Vec<User>>(),
+                        ),
+                        account_type: ParentEnum::Record(AccountType {
+                            id: Some(
+                                Uuid::from_str(&record.account_type.id)
+                                    .unwrap(),
+                            ),
+                            name: record.account_type.name,
+                            description: record.account_type.description,
+                            is_subscription: record
+                                .account_type
+                                .is_subscription,
+                            is_manager: record.account_type.is_manager,
+                            is_staff: record.account_type.is_staff,
+                        }),
+                        guest_users: None,
+                        created: record.created.into(),
+                        updated: match record.updated {
                             None => None,
                             Some(res) => Some(DateTime::from(res)),
                         },
-                    }),
-                    account_type: ParentEnum::Record(AccountType {
-                        id: Some(
-                            Uuid::from_str(&record.account_type.id).unwrap(),
-                        ),
-                        name: record.account_type.name,
-                        description: record.account_type.description,
-                        is_subscription: record.account_type.is_subscription,
-                        is_manager: record.account_type.is_manager,
-                        is_staff: record.account_type.is_staff,
-                    }),
-                    guest_users: None,
-                    created: record.created.into(),
-                    updated: match record.updated {
-                        None => None,
-                        Some(res) => Some(DateTime::from(res)),
-                    },
-                })),
+                    }))
+                }
             },
         }
     }
@@ -160,14 +182,14 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             let term = term.unwrap();
             query_stmt.push(or![
                 account_model::name::contains(term.to_owned()),
-                account_model::owner::is(vec![user_model::email::contains(
+                account_model::owners::some(vec![user_model::email::contains(
                     term
                 )])
             ]);
         }
 
         if is_owner_active.is_some() {
-            and_query_stmt.push(account_model::owner::is(vec![
+            and_query_stmt.push(account_model::owners::some(vec![
                 user_model::is_active::equals(is_owner_active.unwrap()),
             ]));
         }
@@ -220,7 +242,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                     .skip(skip.into())
                     .take(page_size.into())
                     .order_by(account_model::updated::order(Direction::Desc))
-                    .include(account_model::include!({ owner })),
+                    .include(account_model::include!({ owners })),
             ))
             .await
         {
@@ -239,39 +261,52 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
 
         let records: Vec<Account> = response
             .into_iter()
-            .map(|record| Account {
-                id: Some(Uuid::from_str(&record.id).unwrap()),
-                name: record.name,
-                is_active: record.is_active,
-                is_checked: record.is_checked,
-                is_archived: record.is_archived,
-                verbose_status: Some(VerboseStatus::from_flags(
-                    record.is_active,
-                    record.is_checked,
-                    record.is_archived,
-                )),
-                owner: ParentEnum::Record(User {
-                    id: Some(Uuid::from_str(&record.owner_id).unwrap()),
-                    username: record.owner.username,
-                    email: Email::from_string(record.owner.email).unwrap(),
-                    first_name: record.owner.first_name.into(),
-                    last_name: record.owner.last_name.into(),
-                    is_active: record.owner.is_active,
-                    created: record.owner.created.into(),
-                    updated: match record.owner.updated {
+            .map(|record| {
+                let id = Uuid::from_str(&record.id).unwrap();
+
+                Account {
+                    id: Some(id),
+                    name: record.name,
+                    is_active: record.is_active,
+                    is_checked: record.is_checked,
+                    is_archived: record.is_archived,
+                    verbose_status: Some(VerboseStatus::from_flags(
+                        record.is_active,
+                        record.is_checked,
+                        record.is_archived,
+                    )),
+                    owners: Children::Records(
+                        record
+                            .owners
+                            .into_iter()
+                            .map(|owner| User {
+                                id: Some(Uuid::parse_str(&owner.id).unwrap()),
+                                username: owner.username,
+                                email: Email::from_string(owner.email).unwrap(),
+                                first_name: Some(owner.first_name),
+                                last_name: Some(owner.last_name),
+                                is_active: owner.is_active,
+                                created: owner.created.into(),
+                                updated: match owner.updated {
+                                    None => None,
+                                    Some(date) => {
+                                        Some(date.with_timezone(&Local))
+                                    }
+                                },
+                                account: Some(ParentEnum::Id(id)),
+                            })
+                            .collect::<Vec<User>>(),
+                    ),
+                    account_type: ParentEnum::Id(
+                        Uuid::from_str(&record.account_type_id).unwrap(),
+                    ),
+                    guest_users: None,
+                    created: record.created.into(),
+                    updated: match record.updated {
                         None => None,
                         Some(res) => Some(DateTime::from(res)),
                     },
-                }),
-                account_type: ParentEnum::Id(
-                    Uuid::from_str(&record.account_type_id).unwrap(),
-                ),
-                guest_users: None,
-                created: record.created.into(),
-                updated: match record.updated {
-                    None => None,
-                    Some(res) => Some(DateTime::from(res)),
-                },
+                }
             })
             .collect::<Vec<Account>>();
 

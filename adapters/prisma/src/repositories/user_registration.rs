@@ -1,8 +1,12 @@
-use crate::{prisma::user as user_model, repositories::connector::get_client};
+use crate::{
+    prisma::{account as account_model, user as user_model},
+    repositories::connector::get_client,
+};
 
 use async_trait::async_trait;
 use chrono::Local;
 use clean_base::{
+    dtos::Parent,
     entities::{CreateResponseKind, GetOrCreateResponseKind},
     utils::errors::{factories::creation_err, MappedErrors},
 };
@@ -69,6 +73,9 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                             None => None,
                             Some(date) => Some(date.with_timezone(&Local)),
                         },
+                        account: Some(Parent::Id(
+                            Uuid::parse_str(&record.account_id).unwrap(),
+                        )),
                     },
                     "User already exists".to_string(),
                 ));
@@ -80,6 +87,29 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
         // ? Build create part of the get-or-create
         // ? -------------------------------------------------------------------
 
+        let account_id = match user.account {
+            None => {
+                return creation_err(String::from(
+                    "Account ID is required to create a user",
+                ))
+                .with_code(NativeErrorCodes::MYC00002.as_str())
+                .as_error()
+            }
+            Some(record) => match record {
+                Parent::Id(id) => id,
+                Parent::Record(record) => match record.id {
+                    None => {
+                        return creation_err(String::from(
+                            "Unable to create user. Invalid account ID",
+                        ))
+                        .with_exp_true()
+                        .as_error()
+                    }
+                    Some(id) => id,
+                },
+            },
+        };
+
         let response = client
             .user()
             .create(
@@ -87,6 +117,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                 user.email.get_email(),
                 user.first_name.unwrap_or(String::from("")),
                 user.last_name.unwrap_or(String::from("")),
+                account_model::id::equals(account_id.to_string()),
                 vec![],
             )
             .exec()
@@ -109,6 +140,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                         None => None,
                         Some(date) => Some(date.with_timezone(&Local)),
                     },
+                    account: Some(Parent::Id(account_id)),
                 }))
             }
             Err(err) => {
