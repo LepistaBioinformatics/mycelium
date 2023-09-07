@@ -41,7 +41,7 @@ struct TempRouteDTO {
     pub allowed_sources: Option<Vec<String>>,
 }
 
-/// Load configuration from JSON file
+/// Load configuration from YAML file
 ///
 /// This function will load the configuration from a JSON file and return a
 /// vector of routes.
@@ -52,7 +52,7 @@ struct TempRouteDTO {
 /// # Returns
 ///     * `Result<Vec<Route>, MappedErrors>` - A vector of routes or an error
 ///
-pub async fn load_config_from_json(
+pub async fn load_config_from_yaml(
     source_file_path: String,
 ) -> Result<Vec<Route>, MappedErrors> {
     let temp_services = t_read(source_file_path)
