@@ -6,7 +6,10 @@ use actix_web::{
 use awc::Client;
 use log::{debug, warn};
 use myc_core::{
-    domain::{dtos::http::RouteType, entities::RoutesFetching},
+    domain::{
+        dtos::http::{HttpMethod, RouteType},
+        entities::RoutesFetching,
+    },
     settings::{FORWARDING_KEYS, FORWARD_FOR_KEY},
     use_cases::gateway::routes::{
         match_forward_address, RoutesMatchResponseEnum,
@@ -90,6 +93,31 @@ pub(crate) async fn route_request(
         }
     };
 
+    debug!("route: {:?}", route);
+
+    // ? -----------------------------------------------------------------------
+    // ? Check if the method is allowed
+    // ? -----------------------------------------------------------------------
+
+    match route
+        .allow_method(HttpMethod::from_reqwest_method(req.method().to_owned()))
+        .await
+    {
+        None => {
+            return Err(GatewayError::MethodNotAllowed(String::from(
+                "Invalid HTTP method or not allowed for this route",
+            )))
+        }
+        Some(method) => match method {
+            HttpMethod::None => {
+                return Err(GatewayError::MethodNotAllowed(String::from(
+                    "HTTP method not allowed for this route",
+                )))
+            }
+            _ => (),
+        },
+    }
+
     // ? -----------------------------------------------------------------------
     // ? Build the downstream URL address
     //
@@ -137,6 +165,8 @@ pub(crate) async fn route_request(
         None => forwarded_req,
     };
 
+    debug!("forwarded_req: {:?}", forwarded_req);
+
     // ? -----------------------------------------------------------------------
     // ? Check authentication and get permissions
     //
@@ -169,7 +199,7 @@ pub(crate) async fn route_request(
         .map_err(error::ErrorInternalServerError)
     {
         Err(err) => {
-            warn!("{err}");
+            warn!("Error on route/stream to service: {err}");
 
             return Err(GatewayError::InternalServerError(String::from(
                 format!("{err}"),
