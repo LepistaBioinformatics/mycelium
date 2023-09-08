@@ -21,6 +21,14 @@ pub struct Route {
 }
 
 impl Route {
+    /// Check if a method is allowed.
+    pub async fn allow_method(&self, method: HttpMethod) -> Option<HttpMethod> {
+        match self.methods.contains(&method) {
+            true => Some(method),
+            false => None,
+        }
+    }
+
     /// Build a actix_web::http::Uri from itself.
     pub async fn build_uri(&self) -> Result<Uri, MappedErrors> {
         let host = self.service.to_owned().host;

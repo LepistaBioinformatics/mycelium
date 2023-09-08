@@ -150,10 +150,23 @@ pub struct Account {
     pub id: Option<Uuid>,
 
     pub name: String,
+
+    // Account statuses and verbose status
+    //
+    // Account statuses are used to determine the real (verbose) state of the
+    // account.
     pub is_active: bool,
     pub is_checked: bool,
     pub is_archived: bool,
     pub verbose_status: Option<VerboseStatus>,
+
+    // If current account is the default one
+    //
+    // Default account is the one that is created when the system is
+    // initialized. Every user further created will be associated with this
+    // account.
+    pub is_default: bool,
+
     pub owners: Children<User, Uuid>,
     pub account_type: Parent<AccountType, Uuid>,
     pub guest_users: Option<Children<GuestUser, Uuid>>,
@@ -190,6 +203,7 @@ mod tests {
             is_checked: false,
             is_archived: false,
             verbose_status: None,
+            is_default: false,
             owners: Children::Records([].to_vec()),
             account_type: Parent::Record(account_type),
             guest_users: None,

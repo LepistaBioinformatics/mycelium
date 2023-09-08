@@ -93,6 +93,7 @@ pub async fn create_subscription_account(
             is_checked: true,
             is_archived: false,
             verbose_status: None,
+            is_default: false,
             owners: Children::Records(
                 [User {
                     id: None,
