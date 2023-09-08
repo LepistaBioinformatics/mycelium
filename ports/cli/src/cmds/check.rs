@@ -1,6 +1,6 @@
 use clap::Parser;
 use log::{info, warn};
-use myc_core::use_cases::gateway::routes::load_config_from_json;
+use myc_core::use_cases::gateway::routes::load_config_from_yaml;
 
 #[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
@@ -14,7 +14,7 @@ pub(crate) struct Arguments {
 }
 
 pub(crate) async fn check_config_from_json_cmd(args: Arguments) {
-    match load_config_from_json(args.path).await {
+    match load_config_from_yaml(args.path).await {
         Err(err) => warn!("Invalid database: {}", err),
         Ok(res) => {
             info!("Database is valid.");

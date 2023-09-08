@@ -1,6 +1,6 @@
 use crate::{
     domain::dtos::route::Route,
-    use_cases::gateway::routes::load_config_from_json,
+    use_cases::gateway::routes::load_config_from_yaml,
 };
 
 use futures::lock::Mutex;
@@ -68,7 +68,7 @@ pub async fn init_in_memory_routes() {
         }
     };
 
-    let db = match load_config_from_json(match source_file_path.to_owned() {
+    let db = match load_config_from_yaml(match source_file_path.to_owned() {
         None => panic!(
             "Source path not already loaded. Please run the init method before 
                 load database."

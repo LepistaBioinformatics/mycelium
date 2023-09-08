@@ -77,6 +77,8 @@ pub struct SvcConfig {
     pub allowed_origins: Vec<String>,
     pub service_workers: i32,
     pub gateway_timeout: u64,
+    pub tls_cert_path: Option<String>,
+    pub tls_key_path: Option<String>,
 }
 
 impl SvcConfig {
@@ -113,6 +115,14 @@ impl SvcConfig {
                     path.into_string().unwrap().parse::<u64>().unwrap()
                 }
                 None => 5 as u64,
+            },
+            tls_cert_path: match var_os("TLS_CERT_PATH") {
+                Some(path) => Some(path.into_string().unwrap()),
+                None => None,
+            },
+            tls_key_path: match var_os("TLS_KEY_PATH") {
+                Some(path) => Some(path.into_string().unwrap()),
+                None => None,
             },
         }
     }

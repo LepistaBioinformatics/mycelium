@@ -34,6 +34,9 @@ pub enum GatewayError {
     #[display(fmt = "Unauthorized")]
     Unauthorized(String),
 
+    #[display(fmt = "MethodNotAllowed")]
+    MethodNotAllowed(String),
+
     // ? -----------------------------------------------------------------------
     // ? Server errors (5xx)
     // ? -----------------------------------------------------------------------
@@ -52,6 +55,7 @@ impl error::ResponseError for GatewayError {
                     GatewayError::BadRequest(msg) => msg.to_owned(),
                     GatewayError::Forbidden(msg) => msg.to_owned(),
                     GatewayError::Unauthorized(msg) => msg.to_owned(),
+                    GatewayError::MethodNotAllowed(msg) => msg.to_owned(),
                     GatewayError::InternalServerError(msg) => msg.to_owned(),
                 },
             })
@@ -62,6 +66,9 @@ impl error::ResponseError for GatewayError {
             GatewayError::BadRequest { .. } => StatusCode::BAD_REQUEST,
             GatewayError::Forbidden { .. } => StatusCode::FORBIDDEN,
             GatewayError::Unauthorized { .. } => StatusCode::UNAUTHORIZED,
+            GatewayError::MethodNotAllowed { .. } => {
+                StatusCode::METHOD_NOT_ALLOWED
+            }
             GatewayError::InternalServerError { .. } => {
                 StatusCode::INTERNAL_SERVER_ERROR
             }

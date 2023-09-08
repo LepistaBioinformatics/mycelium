@@ -34,6 +34,7 @@ use log::{debug, info};
 use myc_core::settings::init_in_memory_routes;
 use myc_http_tools::providers::{google_handlers, google_models::AppState};
 use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
+use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
     ACCESS_CONTROL_ALLOW_ORIGIN, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE,
@@ -73,9 +74,6 @@ pub async fn main() -> std::io::Result<()> {
                     .allowed_origins
                     .contains(&origin.to_str().unwrap_or("").to_string())
             })
-            //.allow_any_origin()
-            //.send_wildcard()
-            //.disable_vary_header()
             .allowed_headers(vec![
                 ACCESS_CONTROL_ALLOW_CREDENTIALS,
                 ACCESS_CONTROL_ALLOW_METHODS,
@@ -220,7 +218,46 @@ pub async fn main() -> std::io::Result<()> {
             )
     });
 
-    info!("Fire the server.");
+    if config.tls_cert_path.is_some() && config.tls_key_path.is_some() {
+        info!("Load TLS cert and key.");
+
+        // To create a self-signed temporary cert for testing:
+        //
+        // openssl req
+        //     -x509 \
+        //     -newkey rsa:4096 \
+        //     -nodes \
+        //     -keyout key.pem \
+        //     -out cert.pem \
+        //     -days 365 \
+        //     -subj '/CN=localhost'
+        //
+        let mut builder =
+            SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
+
+        builder
+            .set_private_key_file(
+                config.tls_key_path.unwrap(),
+                SslFiletype::PEM,
+            )
+            .unwrap();
+
+        builder
+            .set_certificate_chain_file(config.tls_cert_path.unwrap())
+            .unwrap();
+
+        info!("Fire the server with TLS.");
+        return server
+            .bind_openssl(
+                format!("{}:{}", config.service_ip, config.service_port),
+                builder,
+            )?
+            .workers(config.service_workers as usize)
+            .run()
+            .await;
+    }
+
+    info!("Fire the server without TLS.");
     server
         .bind((config.service_ip, config.service_port))?
         .workers(config.service_workers as usize)

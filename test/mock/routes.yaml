@@ -1,5 +1,19 @@
 # Here the downstream (client) services should be configured
 services:
+  - name: cat
+    host: catfact.ninja
+    healthCheck:
+      path: /health/
+      healthResponseCodes:
+        - 200
+
+    routes:
+      - group: public
+        methods:
+          - GET
+        downstreamUrl: /fact
+        protocol: https
+
   - name: test-service-01
     host: localhost:8081
     healthCheck:
