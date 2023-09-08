@@ -106,6 +106,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                         record.is_checked,
                         record.is_archived,
                     )),
+                    is_default: false,
                     owners: Children::Records(
                         record
                             .owners

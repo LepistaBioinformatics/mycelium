@@ -77,6 +77,7 @@ pub async fn create_seed_staff_account(
             is_checked: false,
             is_archived: false,
             verbose_status: None,
+            is_default: false,
             owners: Children::Records(
                 [User {
                     id: None,

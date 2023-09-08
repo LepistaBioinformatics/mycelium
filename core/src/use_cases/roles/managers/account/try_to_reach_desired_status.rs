@@ -138,7 +138,7 @@ mod tests {
             is_checked: false,
             is_archived: false,
             verbose_status: None,
-            //owner: ParentEnum::Record(user),
+            is_default: false,
             owners: Children::Records([user].to_vec()),
             account_type: ParentEnum::Record(account_type),
             guest_users: None,

@@ -74,16 +74,7 @@ pub async fn create_default_account(
             is_checked: false,
             is_archived: false,
             verbose_status: None,
-            //owner: ParentEnum::Record(User {
-            //    id: None,
-            //    username: email_instance.to_owned().username,
-            //    email: email_instance,
-            //    first_name,
-            //    last_name,
-            //    is_active: true,
-            //    created: Local::now(),
-            //    updated: None,
-            //}),
+            is_default: false,
             owners: Children::Records(
                 [User {
                     id: None,
