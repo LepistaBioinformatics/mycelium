@@ -93,8 +93,6 @@ pub(crate) async fn route_request(
         }
     };
 
-    debug!("route: {:?}", route);
-
     // ? -----------------------------------------------------------------------
     // ? Check if the method is allowed
     // ? -----------------------------------------------------------------------
@@ -164,8 +162,6 @@ pub(crate) async fn route_request(
             .insert_header((FORWARD_FOR_KEY, format!("{}", addr.ip()))),
         None => forwarded_req,
     };
-
-    debug!("forwarded_req: {:?}", forwarded_req);
 
     // ? -----------------------------------------------------------------------
     // ? Check authentication and get permissions
