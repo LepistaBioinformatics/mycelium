@@ -1,0 +1,25 @@
+[package]
+name = "mycelium-redis"
+version = "3.0.1"
+edition = "2021"
+authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
+license = "Apache-2.0"
+description = "Provide redis adapters to the mycelium project."
+repository = "https://github.com/sgelias/mycelium"
+readme = "./README.md"
+keywords = ["authorization", "identity", "permission", "keeper"]
+categories = ["http-client", "microservices"]
+
+
+[dependencies]
+deadpool-redis = "0.12"
+
+
+[dependencies.myc-core]
+path = "../../core"
+
+
+[lib]
+name = "myc_redis"
+path = "src/lib.rs"
+crate-type = ["staticlib", "lib"]

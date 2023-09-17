@@ -1,0 +1,3 @@
+pub async fn issue_confirmation_token_pasetor() {
+    // ...
+}

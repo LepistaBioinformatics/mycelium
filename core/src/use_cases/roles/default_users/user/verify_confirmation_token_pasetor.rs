@@ -1,0 +1,3 @@
+pub async fn verify_confirmation_token_pasetor() {
+    // ...
+}
