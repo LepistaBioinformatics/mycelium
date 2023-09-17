@@ -23,6 +23,7 @@ categories = ["authentication", "network-programming"]
 [dependencies]
 actix-web = { version = "4", features = ["openssl"] }
 actix-web-httpauth = "0.8.0"
+argon2 = "0.5.2"
 async-trait = "0.1"
 clean-base = "1.1"
 chrono = { version = "0.4", features = ["serde"] }
@@ -33,6 +34,7 @@ futures-util = "0.3"
 jsonwebtoken = "8.2"
 lazy_static = "1.4"
 log = "0.4"
+pasetors = "0.6"
 regex = "1.6"
 reqwest = { version = "0.11", features = ["json"] }
 serde = { version = "1.0", features = ["derive"] }
