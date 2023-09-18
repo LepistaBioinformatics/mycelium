@@ -3,6 +3,8 @@
     "datetime",
     "dtos",
     "Hmac",
+    "pasetor",
+    "pasetors",
     "repr",
     "Routable",
     "shaku",

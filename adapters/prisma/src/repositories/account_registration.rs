@@ -123,6 +123,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                         .unwrap(),
                                     first_name: Some(owner.first_name),
                                     last_name: Some(owner.last_name),
+                                    provider: None,
                                     is_active: owner.is_active,
                                     created: owner.created.into(),
                                     updated: match owner.updated {
@@ -234,6 +235,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 email: Email::from_string(owner.email).unwrap(),
                                 first_name: Some(owner.first_name),
                                 last_name: Some(owner.last_name),
+                                provider: None,
                                 is_active: owner.is_active,
                                 created: owner.created.into(),
                                 updated: match owner.updated {
