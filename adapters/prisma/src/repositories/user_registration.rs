@@ -67,6 +67,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                         email: Email::from_string(record.email)?,
                         first_name: Some(record.first_name),
                         last_name: Some(record.last_name),
+                        provider: None,
                         is_active: record.is_active,
                         created: record.created.into(),
                         updated: match record.updated {
@@ -134,6 +135,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                     email: Email::from_string(record.email)?,
                     first_name: Some(record.first_name),
                     last_name: Some(record.last_name),
+                    provider: None,
                     is_active: record.is_active,
                     created: record.created.into(),
                     updated: match record.updated {
