@@ -101,6 +101,7 @@ pub async fn create_subscription_account(
                     email: email_instance,
                     first_name: Some(String::from("")),
                     last_name: Some(String::from("")),
+                    provider: None,
                     is_active: true,
                     created: Local::now(),
                     updated: None,

@@ -85,6 +85,7 @@ pub async fn create_seed_staff_account(
                     email: email_instance,
                     first_name: Some(first_name),
                     last_name: Some(last_name),
+                    provider: None,
                     is_active: true,
                     created: Local::now(),
                     updated: None,

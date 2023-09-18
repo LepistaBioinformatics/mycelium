@@ -218,6 +218,7 @@ mod tests {
                 .unwrap(),
             first_name: Some("first_name".to_string()),
             last_name: Some("last_name".to_string()),
+            provider: None,
             is_active: true,
             created: Local::now(),
             updated: Some(Local::now()),
