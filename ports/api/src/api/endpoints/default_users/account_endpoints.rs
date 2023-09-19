@@ -40,17 +40,18 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateDefaultAccountBody {
-    pub email: String,
-    pub account_name: String,
-    pub first_name: Option<String>,
-    pub last_name: Option<String>,
-    pub password: Option<String>,
+    email: String,
+    account_name: String,
+    first_name: Option<String>,
+    last_name: Option<String>,
+    password: Option<String>,
+    provider_name: Option<String>,
 }
 
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateOwnAccountNameAccountBody {
-    pub name: String,
+    name: String,
 }
 
 // ? -----------------------------------------------------------------------
@@ -110,6 +111,7 @@ pub async fn create_default_account_url(
         body.first_name.to_owned(),
         body.last_name.to_owned(),
         body.password.to_owned(),
+        body.provider_name.to_owned(),
         Box::new(&*account_type_registration_repo),
         Box::new(&*account_registration_repo),
     )
