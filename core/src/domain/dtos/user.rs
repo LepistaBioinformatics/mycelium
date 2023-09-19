@@ -146,6 +146,31 @@ impl User {
         })
     }
 
+    pub fn new(
+        id: Option<Uuid>,
+        username: String,
+        email: Email,
+        first_name: Option<String>,
+        last_name: Option<String>,
+        is_active: bool,
+        created: DateTime<Local>,
+        updated: Option<DateTime<Local>>,
+        account: Option<Parent<Account, Uuid>>,
+    ) -> Self {
+        Self {
+            id,
+            username,
+            email,
+            first_name,
+            last_name,
+            is_active,
+            created,
+            updated,
+            account,
+            provider: None,
+        }
+    }
+
     pub fn get_provider(&self) -> Option<&Provider> {
         self.provider.as_ref()
     }

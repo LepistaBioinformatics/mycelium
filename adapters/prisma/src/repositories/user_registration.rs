@@ -61,23 +61,22 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                 let id = Uuid::parse_str(&record.id);
 
                 return Ok(GetOrCreateResponseKind::NotCreated(
-                    User {
-                        id: Some(id.unwrap()),
-                        username: record.username,
-                        email: Email::from_string(record.email)?,
-                        first_name: Some(record.first_name),
-                        last_name: Some(record.last_name),
-                        provider: None,
-                        is_active: record.is_active,
-                        created: record.created.into(),
-                        updated: match record.updated {
+                    User::new(
+                        Some(id.unwrap()),
+                        record.username,
+                        Email::from_string(record.email)?,
+                        Some(record.first_name),
+                        Some(record.last_name),
+                        record.is_active,
+                        record.created.into(),
+                        match record.updated {
                             None => None,
                             Some(date) => Some(date.with_timezone(&Local)),
                         },
-                        account: Some(Parent::Id(
+                        Some(Parent::Id(
                             Uuid::parse_str(&record.account_id).unwrap(),
                         )),
-                    },
+                    ),
                     "User already exists".to_string(),
                 ));
             }
@@ -129,21 +128,20 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                 let record = record;
                 let id = Uuid::parse_str(&record.id);
 
-                Ok(GetOrCreateResponseKind::Created(User {
-                    id: Some(id.unwrap()),
-                    username: record.username,
-                    email: Email::from_string(record.email)?,
-                    first_name: Some(record.first_name),
-                    last_name: Some(record.last_name),
-                    provider: None,
-                    is_active: record.is_active,
-                    created: record.created.into(),
-                    updated: match record.updated {
+                Ok(GetOrCreateResponseKind::Created(User::new(
+                    Some(id.unwrap()),
+                    record.username,
+                    Email::from_string(record.email)?,
+                    Some(record.first_name),
+                    Some(record.last_name),
+                    record.is_active,
+                    record.created.into(),
+                    match record.updated {
                         None => None,
                         Some(date) => Some(date.with_timezone(&Local)),
                     },
-                    account: Some(Parent::Id(account_id)),
-                }))
+                    Some(Parent::Id(account_id)),
+                )))
             }
             Err(err) => {
                 return creation_err(format!(
