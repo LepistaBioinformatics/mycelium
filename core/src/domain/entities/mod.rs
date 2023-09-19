@@ -8,7 +8,7 @@ mod message;
 mod profile;
 mod role;
 mod route;
-mod token;
+mod session_token;
 mod user;
 mod webhook;
 
@@ -22,6 +22,6 @@ pub use message::*;
 pub use profile::*;
 pub use role::*;
 pub use route::*;
-pub use token::*;
+pub use session_token::*;
 pub use user::*;
 pub use webhook::*;

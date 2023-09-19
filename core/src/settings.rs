@@ -85,3 +85,9 @@ pub async fn init_in_memory_routes() {
 
     ROUTES.lock().await.extend(db);
 }
+
+// ? ---------------------------------------------------------------------------
+// ? Configure session parameters
+// ? ---------------------------------------------------------------------------
+
+pub(crate) const SESSION_KEY_PREFIX: &str = "mycelium_session_key_for_{}";

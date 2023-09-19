@@ -1,19 +1,21 @@
-use crate::domain::entities::{
-    ConfirmationTokenRegistration, ConfirmationTokenUpdating,
+use crate::domain::{
+    dtos::session_token::{SessionToken, TokenSecret},
+    entities::{SessionTokenRegistration, SessionTokenUpdating},
 };
 
 use argon2::password_hash::rand_core::{OsRng, RngCore};
+use clean_base::utils::errors::MappedErrors;
 use hex;
-use pasetors::claims::{Claims, ClaimsValidationRules};
-
+use pasetors::{claims::Claims, keys::SymmetricKey, local, version4::V4};
 use uuid::Uuid;
 
 pub async fn issue_confirmation_token_pasetor(
     user_id: Uuid,
+    token_secret: TokenSecret,
     is_for_password_change: Option<bool>,
-    token_registration_repo: Box<&dyn ConfirmationTokenRegistration>,
-    token_updating_repo: Box<&dyn ConfirmationTokenUpdating>,
-) {
+    token_registration_repo: Box<&dyn SessionTokenRegistration>,
+    token_updating_repo: Box<&dyn SessionTokenUpdating>,
+) -> Result<String, MappedErrors> {
     // I just generate 128 bytes of random data for the session key
     // from something that is cryptographically secure (rand::CryptoRng)
     //
@@ -26,4 +28,77 @@ pub async fn issue_confirmation_token_pasetor(
         OsRng.fill_bytes(&mut buff);
         hex::encode(buff)
     };
+
+    let data_storage_key = SessionToken::build_prefixed_session_token(
+        session_key.to_owned(),
+        is_for_password_change,
+    );
+
+    // ? -----------------------------------------------------------------------
+    // ? Register session key on data storage
+    // ? -----------------------------------------------------------------------
+
+    token_registration_repo
+        .create(data_storage_key, String::new())
+        .await?;
+
+    // ? -----------------------------------------------------------------------
+    // ? Configure time to token expiration
+    // ? -----------------------------------------------------------------------
+
+    let current_date_time = chrono::Local::now();
+
+    let time_to_live = {
+        if is_for_password_change.is_some() {
+            chrono::Duration::hours(1)
+        } else {
+            chrono::Duration::minutes(token_secret.token_expiration)
+        }
+    };
+
+    token_updating_repo
+        .update(session_key.to_owned(), time_to_live)
+        .await?;
+
+    // ? -----------------------------------------------------------------------
+    // ? Build session Claims
+    // ? -----------------------------------------------------------------------
+
+    let mut claims = Claims::new().unwrap();
+
+    // Set custom expiration, default is 1 hour
+    claims
+        .expiration(
+            &{
+                if is_for_password_change.is_some() {
+                    current_date_time + chrono::Duration::hours(1)
+                } else {
+                    current_date_time +
+                        chrono::Duration::minutes(
+                            token_secret.token_expiration,
+                        )
+                }
+            }
+            .to_rfc3339(),
+        )
+        .unwrap();
+
+    claims
+        .add_additional("user_id", serde_json::json!(user_id))
+        .unwrap();
+
+    claims
+        .add_additional("session_key", serde_json::json!(session_key))
+        .unwrap();
+
+    let symmetric_key =
+        SymmetricKey::<V4>::from(token_secret.secret_key.as_bytes()).unwrap();
+
+    Ok(local::encrypt(
+        &symmetric_key,
+        &claims,
+        None,
+        Some(token_secret.hmac_secret.as_bytes()),
+    )
+    .unwrap())
 }
