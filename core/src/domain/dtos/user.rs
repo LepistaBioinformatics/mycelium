@@ -1,11 +1,16 @@
 use super::{account::Account, email::Email};
 
 use argon2::{
-    password_hash::{rand_core::OsRng, SaltString},
-    Argon2, PasswordHasher,
+    password_hash::{
+        rand_core::OsRng, PasswordHash as Argon2PasswordHash, SaltString,
+    },
+    Argon2, PasswordHasher, PasswordVerifier,
 };
 use chrono::{DateTime, Local};
-use clean_base::{dtos::Parent, utils::errors::MappedErrors};
+use clean_base::{
+    dtos::Parent,
+    utils::errors::{factories::use_case_err, MappedErrors},
+};
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -13,8 +18,8 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PasswordHash {
-    pub hash: String,
-    pub salt: String,
+    hash: String,
+    salt: String,
 }
 
 impl PasswordHash {
@@ -31,6 +36,26 @@ impl PasswordHash {
                 .hash_password(password, &salt)
                 .expect("Unable to hash password.")
                 .to_string(),
+        }
+    }
+
+    pub fn check_password(&self, password: &[u8]) -> Result<(), MappedErrors> {
+        let parsed_hash = match Argon2PasswordHash::new(&self.hash) {
+            Ok(hash) => hash,
+            Err(err) => {
+                return use_case_err(format!(
+                    "Unable to parse password hash: {err}",
+                ))
+                .as_error()
+            }
+        };
+
+        match Argon2::default().verify_password(password, &parsed_hash) {
+            Ok(_) => Ok(()),
+            Err(err) => {
+                use_case_err(format!("Unable to verify password: {err}"))
+                    .as_error()
+            }
         }
     }
 }
@@ -65,7 +90,7 @@ pub struct User {
     ///
     /// ! Thus, be careful on change this field.
     ///
-    pub provider: Option<Provider>,
+    pub(crate) provider: Option<Provider>,
 }
 
 impl Serialize for User {
