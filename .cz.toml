@@ -4,7 +4,6 @@ version_files = [
     "core/Cargo.toml",
     "ports/cli/Cargo.toml",
     "ports/api/Cargo.toml",
-    "ports/app/Cargo.toml",
     "adapters/mem_db/Cargo.toml",
     "adapters/prisma/Cargo.toml",
     "adapters/redis/Cargo.toml",
