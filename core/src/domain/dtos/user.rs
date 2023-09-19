@@ -97,8 +97,6 @@ impl Serialize for User {
     /// This method is required to avoid that the password hash and salt are
     /// exposed to the outside.
     ///
-    /// These implementation force users which desires to recovery such data to
-    /// actively use the `get_provider` method.
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: ::serde::ser::Serializer,
@@ -171,7 +169,16 @@ impl User {
         }
     }
 
-    pub fn get_provider(&self) -> Option<&Provider> {
-        self.provider.as_ref()
+    pub fn is_internal(&self) -> Result<bool, MappedErrors> {
+        match self.provider {
+            Some(Provider::Internal(_)) => Ok(true),
+            Some(Provider::External(_)) => Ok(false),
+            None => use_case_err(
+                "User is probably registered but mycelium is unable to 
+check if user is internal or not. The user provider is None."
+                    .to_string(),
+            )
+            .as_error(),
+        }
     }
 }
