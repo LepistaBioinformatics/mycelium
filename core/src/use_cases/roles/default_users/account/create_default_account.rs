@@ -3,7 +3,7 @@ use crate::{
         dtos::{
             account::{Account, AccountTypeEnum},
             email::Email,
-            user::User,
+            user::{PasswordHash, Provider, User},
         },
         entities::{AccountRegistration, AccountTypeRegistration},
     },
@@ -30,6 +30,7 @@ pub async fn create_default_account(
     account_name: String,
     first_name: Option<String>,
     last_name: Option<String>,
+    password: Option<String>,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
 ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
@@ -82,7 +83,14 @@ pub async fn create_default_account(
                     email: email_instance,
                     first_name,
                     last_name,
-                    provider: None,
+                    provider: match password {
+                        Some(password) => Some(Provider::Internal(
+                            PasswordHash::hash_user_password(
+                                password.as_bytes(),
+                            ),
+                        )),
+                        None => None,
+                    },
                     is_active: true,
                     created: Local::now(),
                     updated: None,

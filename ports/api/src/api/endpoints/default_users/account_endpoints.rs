@@ -18,7 +18,7 @@ use myc_core::{
 use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
 use serde::Deserialize;
 use shaku_actix::Inject;
-use utoipa::IntoParams;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 // ? -----------------------------------------------------------------------
@@ -37,18 +37,19 @@ pub fn configure(config: &mut web::ServiceConfig) {
 // ? Define API structs
 // ? -----------------------------------------------------------------------
 
-#[derive(Deserialize, IntoParams)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateDefaultAccountParams {
+pub struct CreateDefaultAccountBody {
     pub email: String,
     pub account_name: String,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
+    pub password: Option<String>,
 }
 
-#[derive(Deserialize, IntoParams)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateOwnAccountNameAccountParams {
+pub struct UpdateOwnAccountNameAccountBody {
     pub name: String,
 }
 
@@ -62,9 +63,7 @@ pub struct UpdateOwnAccountNameAccountParams {
 #[utoipa::path(
     post,
     context_path = "/myc/default-users/accounts",
-    params(
-        CreateDefaultAccountParams,
-    ),
+    request_body = CreateDefaultAccountBody,
     responses(
         (
             status = 500,
@@ -95,7 +94,7 @@ pub struct UpdateOwnAccountNameAccountParams {
 )]
 #[post("/")]
 pub async fn create_default_account_url(
-    info: web::Query<CreateDefaultAccountParams>,
+    body: web::Json<CreateDefaultAccountBody>,
     account_type_registration_repo: Inject<
         AccountTypeRegistrationModule,
         dyn AccountTypeRegistration,
@@ -106,10 +105,11 @@ pub async fn create_default_account_url(
     >,
 ) -> impl Responder {
     match create_default_account(
-        info.email.to_owned(),
-        info.account_name.to_owned(),
-        info.first_name.to_owned(),
-        info.last_name.to_owned(),
+        body.email.to_owned(),
+        body.account_name.to_owned(),
+        body.first_name.to_owned(),
+        body.last_name.to_owned(),
+        body.password.to_owned(),
         Box::new(&*account_type_registration_repo),
         Box::new(&*account_registration_repo),
     )
@@ -131,9 +131,9 @@ pub async fn create_default_account_url(
 #[utoipa::path(
     patch,
     context_path = "/myc/default-users/accounts",
+    request_body = UpdateOwnAccountNameAccountBody,
     params(
         ("id" = Uuid, Path, description = "The account primary key."),
-        UpdateOwnAccountNameAccountParams,
     ),
     responses(
         (
@@ -166,7 +166,7 @@ pub async fn create_default_account_url(
 #[patch("/{id}/update-account-name")]
 pub async fn update_own_account_name_url(
     path: web::Path<Uuid>,
-    info: web::Query<UpdateOwnAccountNameAccountParams>,
+    body: web::Json<UpdateOwnAccountNameAccountBody>,
     profile: MyceliumProfileData,
     account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
     account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
@@ -188,7 +188,7 @@ pub async fn update_own_account_name_url(
 
     match update_own_account_name(
         profile,
-        info.name.to_owned(),
+        body.name.to_owned(),
         Box::new(&*account_fetching_repo),
         Box::new(&*account_updating_repo),
     )

@@ -3,7 +3,7 @@ use crate::{
         dtos::{
             account::{Account, AccountTypeEnum},
             email::Email,
-            user::User,
+            user::{PasswordHash, Provider, User},
         },
         entities::{AccountRegistration, AccountTypeRegistration},
     },
@@ -32,7 +32,7 @@ pub async fn create_seed_staff_account(
     account_name: String,
     first_name: String,
     last_name: String,
-    //user_registration_repo: Box<&dyn UserRegistration>,
+    password: String,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
 ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
@@ -85,7 +85,9 @@ pub async fn create_seed_staff_account(
                     email: email_instance,
                     first_name: Some(first_name),
                     last_name: Some(last_name),
-                    provider: None,
+                    provider: Some(Provider::Internal(
+                        PasswordHash::hash_user_password(password.as_bytes()),
+                    )),
                     is_active: true,
                     created: Local::now(),
                     updated: None,

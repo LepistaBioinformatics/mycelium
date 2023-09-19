@@ -22,7 +22,7 @@ impl PasswordHash {
         Self { hash, salt }
     }
 
-    pub async fn hash_user_password(password: &[u8]) -> Self {
+    pub fn hash_user_password(password: &[u8]) -> Self {
         let salt = SaltString::generate(&mut OsRng);
 
         Self {
