@@ -25,31 +25,15 @@ impl SessionToken {
     }
 }
 
-#[derive(Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct TokenSettings {
-    pub secret: TokenSecret,
-
-    //
-    // ! This is not a domain logic. Don't forget to move it to the smtp
-    // adapter.
-    //
-    pub email: NotificationSettings,
-    pub frontend_url: String,
-}
-
+/// This struct is used to manage the token secret and the token expiration
+/// times.
+///
+/// This is not the final position of this struct, it will be moved to a
+/// dedicated module in the future.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TokenSecret {
     pub secret_key: String,
     pub token_expiration: i64,
     pub hmac_secret: String,
-}
-
-#[derive(Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct NotificationSettings {
-    pub host: String,
-    pub host_user: String,
-    pub host_user_password: String,
 }
