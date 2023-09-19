@@ -30,14 +30,7 @@ pub async fn propagate_existing_subscription_account(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to register 
-            subscription accounts."
-                .to_string(),
-        )
-        .as_error();
-    }
+    profile.has_admin_privileges_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch subscription account

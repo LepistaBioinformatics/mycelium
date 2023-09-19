@@ -174,6 +174,29 @@ pub struct Account {
     pub updated: Option<DateTime<Local>>,
 }
 
+impl Account {
+    pub fn new(
+        account_name: String,
+        principal_owner: User,
+        account_type: AccountType,
+    ) -> Self {
+        Self {
+            id: None,
+            name: account_name,
+            is_active: true,
+            is_checked: false,
+            is_archived: false,
+            verbose_status: None,
+            is_default: false,
+            owners: Children::Records([principal_owner].to_vec()),
+            account_type: Parent::Record(account_type),
+            guest_users: None,
+            created: Local::now(),
+            updated: None,
+        }
+    }
+}
+
 // ? ---------------------------------------------------------------------------
 // ? TESTS
 // ? ---------------------------------------------------------------------------

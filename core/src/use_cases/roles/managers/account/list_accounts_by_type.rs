@@ -11,7 +11,7 @@ use crate::{
 
 use clean_base::{
     entities::{FetchManyResponseKind, GetOrCreateResponseKind},
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::MappedErrors,
 };
 
 /// List account given an account-type
@@ -34,14 +34,7 @@ pub async fn list_accounts_by_type(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to list 
-            subscription accounts."
-                .to_string(),
-        )
-        .as_error();
-    };
+    profile.has_admin_privileges_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch account-type id
