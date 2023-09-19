@@ -9,4 +9,4 @@ use crate::domain::dtos::account::AccountType;
 /// Default accounts given specific accesses to the user. For example, a default
 /// user should be able to view example data. Staff user should be able to
 /// create new users and so on.
-pub async fn get_or_create_default_account(account_type: AccountType) {}
+pub async fn get_or_create_default_account(_: AccountType) {}

@@ -11,7 +11,8 @@ use crate::{
 };
 
 use clean_base::{
-    entities::GetOrCreateResponseKind, utils::errors::MappedErrors,
+    entities::GetOrCreateResponseKind,
+    utils::errors::{factories::use_case_err, MappedErrors},
 };
 
 /// Create a default account.
@@ -28,6 +29,7 @@ pub async fn create_default_account(
     first_name: Option<String>,
     last_name: Option<String>,
     password: Option<String>,
+    provider_name: Option<String>,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
 ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
@@ -64,6 +66,14 @@ pub async fn create_default_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
+    if password.is_none() && provider_name.is_none() {
+        return use_case_err(
+            "At last one `password` or `provider-name` must contains a value"
+                .to_string(),
+        )
+        .as_error();
+    }
+
     account_registration_repo
         .get_or_create(Account::new(
             account_name,
@@ -74,7 +84,7 @@ pub async fn create_default_account(
                     Some(password) => Provider::Internal(
                         PasswordHash::hash_user_password(password.as_bytes()),
                     ),
-                    None => Provider::External,
+                    None => Provider::External(provider_name.unwrap()),
                 },
                 first_name,
                 last_name,

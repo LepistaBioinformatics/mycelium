@@ -303,13 +303,13 @@ dependencies = [
 
 [[package]]
 name = "actix_derive"
-version = "0.6.0"
+version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d44b8fee1ced9671ba043476deddef739dd0959bf77030b26b738cc591737a7"
+checksum = "7c7db3d5a9718568e4cf4a537cfd7070e6e6ff7481510d0237fb529ac850f6d3"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 1.0.109",
+ "syn 2.0.18",
 ]
 
 [[package]]
@@ -440,9 +440,9 @@ dependencies = [
 
 [[package]]
 name = "anstyle"
-version = "1.0.2"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15c4c2c83f81532e5845a733998b6971faca23490340a418e9b72a3ec9de12ea"
+checksum = "b84bf0a05bbb2a83e5eb6fa36bb6e87baa08193c35ff52bbf6b38d8af2890e46"
 
 [[package]]
 name = "anstyle-parse"
@@ -816,9 +816,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.4.2"
+version = "4.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a13b88d2c62ff462f88e4a121f17a82c1af05693a2f192b5c38d14de73c19f6"
+checksum = "b1d7b8d5ec32af0fadc644bf1fd509a688c2103b185644bb1e29d164e0703136"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -826,9 +826,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.4.2"
+version = "4.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2bb9faaa7c2ef94b2743a21f5a29e6f0010dff4caa69ac8e9d6cf8b6fa74da08"
+checksum = "5179bb514e4d7c2051749d8fcefa2ed6d06a9f4e6d69faf3805f5d80b8cf8d56"
 dependencies = [
  "anstream",
  "anstyle",
@@ -2447,7 +2447,7 @@ dependencies = [
 
 [[package]]
 name = "myc-core"
-version = "4.1.0"
+version = "4.1.1"
 dependencies = [
  "actix-web",
  "actix-web-httpauth",
@@ -2480,7 +2480,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-api"
-version = "4.1.0"
+version = "4.1.1"
 dependencies = [
  "actix",
  "actix-cors",
@@ -2528,7 +2528,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-cli"
-version = "4.1.0"
+version = "4.1.1"
 dependencies = [
  "clap",
  "clean-base",
@@ -2543,7 +2543,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-memory-db"
-version = "4.1.0"
+version = "4.1.1"
 dependencies = [
  "actix-web",
  "async-trait",
@@ -2558,7 +2558,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-prisma"
-version = "4.1.0"
+version = "4.1.1"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2580,7 +2580,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-redis"
-version = "4.1.0"
+version = "4.1.1"
 dependencies = [
  "deadpool-redis",
  "myc-core",
@@ -2588,7 +2588,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-service"
-version = "4.1.0"
+version = "4.1.1"
 dependencies = [
  "async-trait",
  "clean-base",
@@ -2605,7 +2605,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-smtp"
-version = "4.1.0"
+version = "4.1.1"
 dependencies = [
  "async-trait",
  "clean-base",

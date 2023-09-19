@@ -63,7 +63,7 @@ impl PasswordHash {
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum Provider {
-    External,
+    External(String),
     Internal(PasswordHash),
 }
 
