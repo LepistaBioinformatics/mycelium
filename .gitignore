@@ -1,6 +1,5 @@
 # Rust related
 target
-Cargo.lock
 docs
 dist
 
