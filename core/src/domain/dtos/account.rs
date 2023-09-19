@@ -234,19 +234,17 @@ mod tests {
             updated: Some(Local::now()),
         };
 
-        User {
-            id: None,
-            username: "username".to_string(),
-            email: Email::from_string("username@email.domain".to_string())
-                .unwrap(),
-            first_name: Some("first_name".to_string()),
-            last_name: Some("last_name".to_string()),
-            provider: None,
-            is_active: true,
-            created: Local::now(),
-            updated: Some(Local::now()),
-            account: Some(Parent::Record(account)),
-        };
+        User::new(
+            None,
+            "username".to_string(),
+            Email::from_string("username@email.domain".to_string()).unwrap(),
+            Some("first_name".to_string()),
+            Some("last_name".to_string()),
+            true,
+            Local::now(),
+            Some(Local::now()),
+            Some(Parent::Record(account)),
+        );
     }
 
     #[test]

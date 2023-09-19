@@ -118,19 +118,17 @@ mod tests {
             is_staff: false,
         };
 
-        let user = User {
-            id: None,
-            username: "username".to_string(),
-            email: Email::from_string("username@email.domain".to_string())
-                .unwrap(),
-            provider: None,
-            first_name: Some("first_name".to_string()),
-            last_name: Some("last_name".to_string()),
-            is_active: true,
-            created: Local::now(),
-            updated: Some(Local::now()),
-            account: None,
-        };
+        let user = User::new(
+            None,
+            "username".to_string(),
+            Email::from_string("username@email.domain".to_string()).unwrap(),
+            Some("first_name".to_string()),
+            Some("last_name".to_string()),
+            true,
+            Local::now(),
+            Some(Local::now()),
+            None,
+        );
 
         let mut account = Account {
             id: None,
@@ -157,7 +155,6 @@ mod tests {
             VerboseStatus::Active,
             VerboseStatus::Pending,
             VerboseStatus::Archived,
-            VerboseStatus::Inactive,
         ] {
             let response = match try_to_reach_desired_status(
                 account.to_owned(),

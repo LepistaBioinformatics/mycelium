@@ -90,7 +90,7 @@ pub struct User {
     ///
     /// ! Thus, be careful on change this field.
     ///
-    pub(crate) provider: Option<Provider>,
+    provider: Option<Provider>,
 }
 
 impl Serialize for User {
