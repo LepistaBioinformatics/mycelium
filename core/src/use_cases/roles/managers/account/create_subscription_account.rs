@@ -8,7 +8,7 @@ use crate::{
             email::Email,
             native_error_codes::NativeErrorCodes,
             profile::Profile,
-            user::User,
+            user::{PasswordHash, Provider, User},
             webhook::HookTarget,
         },
         entities::{
@@ -21,12 +21,11 @@ use crate::{
     },
 };
 
-use chrono::Local;
 use clean_base::{
-    dtos::{enums::ParentEnum, Children},
     entities::GetOrCreateResponseKind,
     utils::errors::{factories::use_case_err, MappedErrors},
 };
+use uuid::Uuid;
 
 /// Create an account flagged as subscription.
 ///
@@ -43,14 +42,7 @@ pub async fn create_subscription_account(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to register 
-            subscription accounts."
-                .to_string(),
-        )
-        .as_error();
-    }
+    profile.has_admin_privileges_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Build and validate email
@@ -85,35 +77,24 @@ pub async fn create_subscription_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
+    let mut unchecked_account = Account::new(
+        account_name,
+        User::new_with_provider(
+            None,
+            email_instance,
+            Provider::Internal(PasswordHash::hash_user_password(
+                Uuid::new_v4().as_bytes(),
+            )),
+            Some(String::from("")),
+            Some(String::from("")),
+        )?,
+        account_type,
+    );
+
+    unchecked_account.is_checked = true;
+
     let account = match account_registration_repo
-        .get_or_create(Account {
-            id: None,
-            name: account_name,
-            is_active: true,
-            is_checked: true,
-            is_archived: false,
-            verbose_status: None,
-            is_default: false,
-            owners: Children::Records(
-                [User {
-                    id: None,
-                    username: email_instance.to_owned().username,
-                    email: email_instance,
-                    first_name: Some(String::from("")),
-                    last_name: Some(String::from("")),
-                    provider: None,
-                    is_active: true,
-                    created: Local::now(),
-                    updated: None,
-                    account: None,
-                }]
-                .to_vec(),
-            ),
-            account_type: ParentEnum::Record(account_type),
-            guest_users: None,
-            created: Local::now(),
-            updated: None,
-        })
+        .get_or_create(unchecked_account)
         .await?
     {
         GetOrCreateResponseKind::NotCreated(account, msg) => {

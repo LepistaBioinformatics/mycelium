@@ -3,10 +3,7 @@ use crate::domain::{
     entities::AccountFetching,
 };
 
-use clean_base::{
-    entities::FetchResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
-};
+use clean_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
 use uuid::Uuid;
 
 /// Get details of a single account
@@ -22,14 +19,7 @@ pub async fn get_account_details(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to register 
-            subscription accounts."
-                .to_string(),
-        )
-        .as_error();
-    };
+    profile.has_admin_privileges_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch account

@@ -7,8 +7,7 @@ use crate::{
 };
 
 use clean_base::{
-    entities::FetchManyResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+    entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 use futures_util::future::join_all;
 use reqwest::Client;
@@ -47,14 +46,7 @@ pub(super) async fn propagate_subscription_account(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to register 
-            subscription accounts."
-                .to_string(),
-        )
-        .as_error();
-    }
+    profile.has_admin_privileges_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Propagate new account

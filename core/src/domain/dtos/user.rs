@@ -5,7 +5,7 @@ use argon2::{
     Argon2, PasswordHasher,
 };
 use chrono::{DateTime, Local};
-use clean_base::dtos::Parent;
+use clean_base::{dtos::Parent, utils::errors::MappedErrors};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -56,4 +56,30 @@ pub struct User {
     pub created: DateTime<Local>,
     pub updated: Option<DateTime<Local>>,
     pub account: Option<Parent<Account, Uuid>>,
+}
+
+impl User {
+    pub fn new_with_provider(
+        username: Option<String>,
+        email: Email,
+        provider: Provider,
+        first_name: Option<String>,
+        last_name: Option<String>,
+    ) -> Result<Self, MappedErrors> {
+        Ok(Self {
+            id: None,
+            username: match username {
+                Some(username) => username,
+                None => email.to_owned().username,
+            },
+            email,
+            first_name,
+            last_name,
+            provider: Some(provider),
+            is_active: true,
+            created: Local::now(),
+            updated: None,
+            account: None,
+        })
+    }
 }

@@ -10,11 +10,8 @@ use crate::{
     use_cases::roles::shared::account_type::get_or_create_default_account_types,
 };
 
-use chrono::Local;
 use clean_base::{
-    dtos::{enums::ParentEnum, Children},
-    entities::GetOrCreateResponseKind,
-    utils::errors::MappedErrors,
+    entities::GetOrCreateResponseKind, utils::errors::MappedErrors,
 };
 
 /// Create a default account.
@@ -68,40 +65,21 @@ pub async fn create_default_account(
     // ? -----------------------------------------------------------------------
 
     account_registration_repo
-        .get_or_create(Account {
-            id: None,
-            name: account_name,
-            is_active: true,
-            is_checked: false,
-            is_archived: false,
-            verbose_status: None,
-            is_default: false,
-            owners: Children::Records(
-                [User {
-                    id: None,
-                    username: email_instance.to_owned().username,
-                    email: email_instance,
-                    first_name,
-                    last_name,
-                    provider: match password {
-                        Some(password) => Some(Provider::Internal(
-                            PasswordHash::hash_user_password(
-                                password.as_bytes(),
-                            ),
-                        )),
-                        None => None,
-                    },
-                    is_active: true,
-                    created: Local::now(),
-                    updated: None,
-                    account: None,
-                }]
-                .to_vec(),
-            ),
-            account_type: ParentEnum::Record(account_type),
-            guest_users: None,
-            created: Local::now(),
-            updated: None,
-        })
+        .get_or_create(Account::new(
+            account_name,
+            User::new_with_provider(
+                None,
+                email_instance,
+                match password {
+                    Some(password) => Provider::Internal(
+                        PasswordHash::hash_user_password(password.as_bytes()),
+                    ),
+                    None => Provider::External,
+                },
+                first_name,
+                last_name,
+            )?,
+            account_type,
+        ))
         .await
 }
