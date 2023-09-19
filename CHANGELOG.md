@@ -1,3 +1,28 @@
+## v4.1.0 (2023-09-19)
+
+### Feat
+
+- move new method of user new_with_provider method allow the provider field to be required during default object creation
+- create base attributes to implement password checks to users
+- wip - start creation of the token management elements
+- wip - start creation of the default account management
+- upgrade router to allow http2 service as downstream url for apis management
+
+### Fix
+
+- upgrade user model to remove password hash and salt information before serialize user object
+- upgrade account creation use-cases to include or not profile information during accounts initializations
+- remove non domain logic from the session token domain dto
+- finish use-cases related to session token registration and expiration
+- fix account and user prisma adapters to deals with user provider models
+
+### Refactor
+
+- move all entities to dedicated folders mirriring their role in the application
+- remove unused loggings from router
+- rename config loading use-case to indicate that config is loaded from yaml file not json
+- rename account propagation response during webhook actions
+
 ## v4.0.0 (2023-07-29)
 
 ## v3.0.2 (2023-07-29)
