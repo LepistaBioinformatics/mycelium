@@ -95,25 +95,26 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                             record
                                 .owners
                                 .into_iter()
-                                .map(|owner| User {
-                                    id: Some(
-                                        Uuid::parse_str(&owner.id).unwrap(),
-                                    ),
-                                    username: owner.username,
-                                    email: Email::from_string(owner.email)
-                                        .unwrap(),
-                                    first_name: Some(owner.first_name),
-                                    last_name: Some(owner.last_name),
-                                    provider: None,
-                                    is_active: owner.is_active,
-                                    created: owner.created.into(),
-                                    updated: match owner.updated {
-                                        None => None,
-                                        Some(date) => {
-                                            Some(date.with_timezone(&Local))
-                                        }
-                                    },
-                                    account: Some(ParentEnum::Id(id)),
+                                .map(|owner| {
+                                    User::new(
+                                        Some(
+                                            Uuid::parse_str(&owner.id).unwrap(),
+                                        ),
+                                        owner.username,
+                                        Email::from_string(owner.email)
+                                            .unwrap(),
+                                        Some(owner.first_name),
+                                        Some(owner.last_name),
+                                        owner.is_active,
+                                        owner.created.into(),
+                                        match owner.updated {
+                                            None => None,
+                                            Some(date) => {
+                                                Some(date.with_timezone(&Local))
+                                            }
+                                        },
+                                        Some(ParentEnum::Id(id)),
+                                    )
                                 })
                                 .collect::<Vec<User>>(),
                         ),
@@ -282,22 +283,23 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                         record
                             .owners
                             .into_iter()
-                            .map(|owner| User {
-                                id: Some(Uuid::parse_str(&owner.id).unwrap()),
-                                username: owner.username,
-                                email: Email::from_string(owner.email).unwrap(),
-                                first_name: Some(owner.first_name),
-                                last_name: Some(owner.last_name),
-                                provider: None,
-                                is_active: owner.is_active,
-                                created: owner.created.into(),
-                                updated: match owner.updated {
-                                    None => None,
-                                    Some(date) => {
-                                        Some(date.with_timezone(&Local))
-                                    }
-                                },
-                                account: Some(ParentEnum::Id(id)),
+                            .map(|owner| {
+                                User::new(
+                                    Some(Uuid::parse_str(&owner.id).unwrap()),
+                                    owner.username,
+                                    Email::from_string(owner.email).unwrap(),
+                                    Some(owner.first_name),
+                                    Some(owner.last_name),
+                                    owner.is_active,
+                                    owner.created.into(),
+                                    match owner.updated {
+                                        None => None,
+                                        Some(date) => {
+                                            Some(date.with_timezone(&Local))
+                                        }
+                                    },
+                                    Some(ParentEnum::Id(id)),
+                                )
                             })
                             .collect::<Vec<User>>(),
                     ),
