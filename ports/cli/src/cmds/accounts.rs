@@ -25,6 +25,7 @@ pub(crate) struct CreateSeedAccountArguments {
     account_name: String,
     first_name: String,
     last_name: String,
+    password: String,
 }
 
 pub(crate) async fn create_seed_staff_account_cmd(
@@ -38,6 +39,7 @@ pub(crate) async fn create_seed_staff_account_cmd(
         args.account_name.to_owned(),
         args.first_name.to_owned(),
         args.last_name.to_owned(),
+        args.password.to_owned(),
         Box::new(&AccountTypeRegistrationSqlDbRepository {}),
         Box::new(&AccountRegistrationSqlDbRepository {}),
     )
