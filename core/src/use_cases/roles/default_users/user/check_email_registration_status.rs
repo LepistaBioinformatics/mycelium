@@ -13,8 +13,16 @@ pub enum EmailRegistrationStatus {
 /// Check if the user was already registered in Mycelium or not.
 ///
 /// Case 1: The user was registered in Mycelium with an external provider.
+///
 /// Case 2: The user was registered in Mycelium with an internal provider.
+///
 /// Case 3: The user was not registered in Mycelium.
+///
+/// ----------------------------------------------------------------------------
+///
+/// This function should be used during the double step of the user
+/// authentication. The first step is to check if the user is registered in
+/// Mycelium.
 ///
 pub async fn check_email_registration_status(
     email: Email,
