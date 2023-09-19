@@ -1,3 +1,10 @@
+## v4.1.1 (2023-09-19)
+
+### Fix
+
+- fix prisma adapter to deals with the profile field as private
+- turn provider and their password hash and salt as private fields
+
 ## v4.1.0 (2023-09-19)
 
 ### Feat
