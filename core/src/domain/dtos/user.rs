@@ -6,7 +6,7 @@ use argon2::{
 };
 use chrono::{DateTime, Local};
 use clean_base::{dtos::Parent, utils::errors::MappedErrors};
-use serde::{Deserialize, Serialize};
+use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -42,20 +42,58 @@ pub enum Provider {
     Internal(PasswordHash),
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
+#[derive(Clone, Debug, Deserialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
     pub id: Option<Uuid>,
 
     pub username: String,
     pub email: Email,
-    pub provider: Option<Provider>,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
     pub is_active: bool,
     pub created: DateTime<Local>,
     pub updated: Option<DateTime<Local>>,
     pub account: Option<Parent<Account, Uuid>>,
+
+    /// The user provider.
+    ///
+    /// Provider is a optional field but it should be None only during the
+    /// collection of the user data from database. Such None initialization
+    /// prevents that password hashes and salts should be exposed to the
+    /// outside.
+    ///
+    /// ! Thus, be careful on change this field.
+    ///
+    pub provider: Option<Provider>,
+}
+
+impl Serialize for User {
+    /// This method is required to avoid that the password hash and salt are
+    /// exposed to the outside.
+    ///
+    /// These implementation force users which desires to recovery such data to
+    /// actively use the `get_provider` method.
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::ser::Serializer,
+    {
+        let mut user = self.clone();
+        user.provider = None;
+
+        let mut state = serializer.serialize_struct("User", 10)?;
+        state.serialize_field("id", &user.id)?;
+        state.serialize_field("username", &user.username)?;
+        state.serialize_field("email", &user.email)?;
+        state.serialize_field("firstName", &user.first_name)?;
+        state.serialize_field("lastName", &user.last_name)?;
+        state.serialize_field("isActive", &user.is_active)?;
+        state.serialize_field("created", &user.created)?;
+        state.serialize_field("updated", &user.updated)?;
+        state.serialize_field("account", &user.account)?;
+        state.serialize_field("provider", &user.provider)?;
+        state.end()
+    }
 }
 
 impl User {
@@ -81,5 +119,9 @@ impl User {
             updated: None,
             account: None,
         })
+    }
+
+    pub fn get_provider(&self) -> Option<&Provider> {
+        self.provider.as_ref()
     }
 }
