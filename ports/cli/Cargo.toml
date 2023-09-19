@@ -1,6 +1,6 @@
 [package]
 name = "mycelium-cli"
-version = "3.0.2"
+version = "3.0.1"
 edition = "2021"
 authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
 license = "Apache-2.0"
