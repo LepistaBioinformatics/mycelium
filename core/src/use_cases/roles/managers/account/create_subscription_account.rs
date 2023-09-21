@@ -79,7 +79,7 @@ pub async fn create_subscription_account(
 
     let mut unchecked_account = Account::new(
         account_name,
-        User::new_with_provider(
+        User::new_principal_with_provider(
             None,
             email_instance,
             Provider::Internal(PasswordHash::hash_user_password(

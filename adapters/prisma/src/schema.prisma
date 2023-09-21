@@ -20,17 +20,18 @@ model User {
   id String @id @default(uuid())
 
   // Model fields
-  username   String    @db.VarChar(140)
-  email      String    @db.VarChar(140)
-  first_name String    @db.VarChar(140)
-  last_name  String    @db.VarChar(140)
-  is_active  Boolean   @default(true)
-  created    DateTime  @default(now()) @db.Timestamptz(6)
-  updated    DateTime? @updatedAt @db.Timestamptz(6)
+  username     String    @db.VarChar(140)
+  email        String    @db.VarChar(140)
+  first_name   String    @db.VarChar(140)
+  last_name    String    @db.VarChar(140)
+  is_active    Boolean   @default(true)
+  is_principal Boolean   @default(false)
+  created      DateTime  @default(now()) @db.Timestamptz(6)
+  updated      DateTime? @updatedAt @db.Timestamptz(6)
 
   // Backward relationship fields
-  account           Account           @relation(fields: [account_id], references: [id])
-  account_id        String
+  account           Account?          @relation(fields: [account_id], references: [id])
+  account_id        String?
   internal_provider InternalProvider?
   external_provider ExternalProvider?
 

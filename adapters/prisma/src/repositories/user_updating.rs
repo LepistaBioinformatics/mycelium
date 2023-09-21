@@ -86,20 +86,23 @@ impl UserUpdating for UserUpdatingSqlDbRepository {
                 let record = record;
                 let id = Uuid::parse_str(&record.id);
 
-                Ok(UpdatingResponseKind::Updated(User::new(
-                    Some(id.unwrap()),
-                    record.username,
-                    Email::from_string(record.email)?,
-                    Some(record.first_name),
-                    Some(record.last_name),
-                    record.is_active,
-                    record.created.into(),
-                    match record.updated {
-                        None => None,
-                        Some(date) => Some(date.with_timezone(&Local)),
-                    },
-                    Some(account),
-                )))
+                Ok(UpdatingResponseKind::Updated(
+                    User::new(
+                        Some(id.unwrap()),
+                        record.username,
+                        Email::from_string(record.email)?,
+                        Some(record.first_name),
+                        Some(record.last_name),
+                        record.is_active,
+                        record.created.into(),
+                        match record.updated {
+                            None => None,
+                            Some(date) => Some(date.with_timezone(&Local)),
+                        },
+                        Some(account),
+                    )
+                    .with_principal(record.is_principal),
+                ))
             }
             Err(err) => {
                 if err.is_prisma_error::<RecordNotFound>() {

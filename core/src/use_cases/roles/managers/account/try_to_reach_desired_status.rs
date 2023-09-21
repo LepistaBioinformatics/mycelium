@@ -128,7 +128,8 @@ mod tests {
             Local::now(),
             Some(Local::now()),
             None,
-        );
+        )
+        .with_principal(false);
 
         let mut account = Account {
             id: None,

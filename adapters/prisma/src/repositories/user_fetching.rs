@@ -87,22 +87,28 @@ impl UserFetching for UserFetchingSqlDbRepository {
             }
             Ok(res) => match res {
                 None => Ok(FetchResponseKind::NotFound(None)),
-                Some(record) => Ok(FetchResponseKind::Found(User::new(
-                    Some(Uuid::parse_str(&record.id).unwrap()),
-                    record.username,
-                    Email::from_string(record.email).unwrap(),
-                    Some(record.first_name),
-                    Some(record.last_name),
-                    record.is_active,
-                    record.created.into(),
-                    match record.updated {
-                        None => None,
-                        Some(date) => Some(date.with_timezone(&Local)),
-                    },
-                    Some(Parent::Id(
-                        Uuid::parse_str(&record.account_id).unwrap(),
-                    )),
-                ))),
+                Some(record) => Ok(FetchResponseKind::Found(
+                    User::new(
+                        Some(Uuid::parse_str(&record.id).unwrap()),
+                        record.username,
+                        Email::from_string(record.email).unwrap(),
+                        Some(record.first_name),
+                        Some(record.last_name),
+                        record.is_active,
+                        record.created.into(),
+                        match record.updated {
+                            None => None,
+                            Some(date) => Some(date.with_timezone(&Local)),
+                        },
+                        match &record.account_id {
+                            Some(id) => {
+                                Some(Parent::Id(Uuid::parse_str(id).unwrap()))
+                            }
+                            None => None,
+                        },
+                    )
+                    .with_principal(record.is_principal),
+                )),
             },
         }
     }
