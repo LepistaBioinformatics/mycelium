@@ -81,6 +81,17 @@ pub struct User {
     pub updated: Option<DateTime<Local>>,
     pub account: Option<Parent<Account, Uuid>>,
 
+    /// If the user is the principal user of the account.
+    ///
+    /// The principal user contains information of the first email that created
+    /// the account. This information is used to send emails to the principal
+    /// user.
+    ///
+    /// Principal users should not be deleted or deactivated if the account has
+    /// other users connected.
+    ///
+    is_principal: bool,
+
     /// The user provider.
     ///
     /// Provider is a optional field but it should be None only during the
@@ -111,6 +122,7 @@ impl Serialize for User {
         state.serialize_field("firstName", &user.first_name)?;
         state.serialize_field("lastName", &user.last_name)?;
         state.serialize_field("isActive", &user.is_active)?;
+        state.serialize_field("isPrincipal", &user.is_principal)?;
         state.serialize_field("created", &user.created)?;
         state.serialize_field("updated", &user.updated)?;
         state.serialize_field("account", &user.account)?;
@@ -120,12 +132,17 @@ impl Serialize for User {
 }
 
 impl User {
-    pub fn new_with_provider(
+    // ? -----------------------------------------------------------------------
+    // ? Constructors
+    // ? -----------------------------------------------------------------------
+
+    fn new_with_provider(
         username: Option<String>,
         email: Email,
         provider: Provider,
         first_name: Option<String>,
         last_name: Option<String>,
+        is_principal: bool,
     ) -> Result<Self, MappedErrors> {
         Ok(Self {
             id: None,
@@ -138,10 +155,35 @@ impl User {
             last_name,
             provider: Some(provider),
             is_active: true,
+            is_principal: is_principal,
             created: Local::now(),
             updated: None,
             account: None,
         })
+    }
+
+    pub fn new_principal_with_provider(
+        username: Option<String>,
+        email: Email,
+        provider: Provider,
+        first_name: Option<String>,
+        last_name: Option<String>,
+    ) -> Result<Self, MappedErrors> {
+        Self::new_with_provider(
+            username, email, provider, first_name, last_name, true,
+        )
+    }
+
+    pub fn new_secondary_with_provider(
+        username: Option<String>,
+        email: Email,
+        provider: Provider,
+        first_name: Option<String>,
+        last_name: Option<String>,
+    ) -> Result<Self, MappedErrors> {
+        Self::new_with_provider(
+            username, email, provider, first_name, last_name, false,
+        )
     }
 
     pub fn new(
@@ -166,10 +208,24 @@ impl User {
             updated,
             account,
             provider: None,
+            is_principal: false,
         }
     }
 
-    pub fn is_internal(&self) -> Result<bool, MappedErrors> {
+    // ? -----------------------------------------------------------------------
+    // ? Instance methods
+    // ? -----------------------------------------------------------------------
+
+    pub fn with_principal(&mut self, is_principal: bool) -> Self {
+        self.is_principal = is_principal.to_owned();
+        self.to_owned()
+    }
+
+    pub fn is_principal(&self) -> bool {
+        self.is_principal
+    }
+
+    pub fn is_internal_or_error(&self) -> Result<bool, MappedErrors> {
         match self.provider {
             Some(Provider::Internal(_)) => Ok(true),
             Some(Provider::External(_)) => Ok(false),

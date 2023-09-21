@@ -46,7 +46,7 @@ pub async fn check_email_registration_status(
     // ? Check if user is internal
     // ? -----------------------------------------------------------------------
 
-    match user.is_internal() {
+    match user.is_internal_or_error() {
         Err(err) => return Err(err),
         Ok(res) => match res {
             true => Ok(EmailRegistrationStatus::RegisteredAndInternal(email)),

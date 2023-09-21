@@ -70,7 +70,7 @@ pub async fn create_seed_staff_account(
         .get_or_create(
             Account::new(
                 account_name,
-                User::new_with_provider(
+                User::new_principal_with_provider(
                     None,
                     email_instance,
                     Provider::Internal(PasswordHash::hash_user_password(

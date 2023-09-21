@@ -244,7 +244,8 @@ mod tests {
             Local::now(),
             Some(Local::now()),
             Some(Parent::Record(account)),
-        );
+        )
+        .with_principal(false);
     }
 
     #[test]

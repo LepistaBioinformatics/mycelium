@@ -131,6 +131,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                         },
                                         Some(ParentEnum::Id(id)),
                                     )
+                                    .with_principal(owner.is_principal)
                                 })
                                 .collect::<Vec<User>>(),
                         ),
@@ -192,9 +193,9 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 owner.id.unwrap().to_string(),
                             ),
                             vec![
-                                user_model::account_id::set(
+                                user_model::account_id::set(Some(
                                     account.to_owned().id.to_string(),
-                                ),
+                                )),
                                 user_model::is_active::set(owner.is_active),
                             ],
                         )
@@ -209,8 +210,10 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             owner.email.get_email(),
                             owner.first_name.unwrap_or(String::from("")),
                             owner.last_name.unwrap_or(String::from("")),
-                            account_model::id::equals(account.to_owned().id),
-                            vec![],
+                            //account_model::id::equals(account.to_owned().id),
+                            vec![user_model::account_id::set(Some(
+                                account.to_owned().id.to_string(),
+                            ))],
                         )
                         .exec()
                         .await
@@ -263,6 +266,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                     },
                                     Some(ParentEnum::Id(id)),
                                 )
+                                .with_principal(owner.is_principal)
                             })
                             .collect::<Vec<User>>(),
                     ),

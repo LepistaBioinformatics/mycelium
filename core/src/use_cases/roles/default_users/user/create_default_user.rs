@@ -52,7 +52,7 @@ pub async fn create_default_user(
         .as_error();
     }
 
-    let mut user = User::new_with_provider(
+    let mut user = User::new_secondary_with_provider(
         None,
         email_instance,
         match password {

@@ -115,6 +115,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                                         },
                                         Some(ParentEnum::Id(id)),
                                     )
+                                    .with_principal(owner.is_principal)
                                 })
                                 .collect::<Vec<User>>(),
                         ),
@@ -300,6 +301,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                                     },
                                     Some(ParentEnum::Id(id)),
                                 )
+                                .with_principal(owner.is_principal)
                             })
                             .collect::<Vec<User>>(),
                     ),

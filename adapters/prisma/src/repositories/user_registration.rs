@@ -1,7 +1,4 @@
-use crate::{
-    prisma::{account as account_model, user as user_model},
-    repositories::connector::get_client,
-};
+use crate::{prisma::user as user_model, repositories::connector::get_client};
 
 use async_trait::async_trait;
 use chrono::Local;
@@ -73,10 +70,14 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                             None => None,
                             Some(date) => Some(date.with_timezone(&Local)),
                         },
-                        Some(Parent::Id(
-                            Uuid::parse_str(&record.account_id).unwrap(),
-                        )),
-                    ),
+                        match &record.account_id {
+                            Some(id) => {
+                                Some(Parent::Id(Uuid::parse_str(id).unwrap()))
+                            }
+                            None => None,
+                        },
+                    )
+                    .with_principal(record.is_principal),
                     "User already exists".to_string(),
                 ));
             }
@@ -87,7 +88,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
         // ? Build create part of the get-or-create
         // ? -------------------------------------------------------------------
 
-        let account_id = match user.account {
+        let account_id = match user.to_owned().account {
             None => {
                 return creation_err(String::from(
                     "Account ID is required to create a user",
@@ -113,12 +114,14 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
         let response = client
             .user()
             .create(
-                user.username,
-                user.email.get_email(),
-                user.first_name.unwrap_or(String::from("")),
-                user.last_name.unwrap_or(String::from("")),
-                account_model::id::equals(account_id.to_string()),
-                vec![user_model::is_active::set(user.is_active)],
+                user.to_owned().username,
+                user.to_owned().email.get_email(),
+                user.to_owned().first_name.unwrap_or(String::from("")),
+                user.to_owned().last_name.unwrap_or(String::from("")),
+                vec![
+                    user_model::is_active::set(user.is_active),
+                    user_model::is_principal::set(user.is_principal()),
+                ],
             )
             .exec()
             .await;
@@ -128,20 +131,23 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                 let record = record;
                 let id = Uuid::parse_str(&record.id);
 
-                Ok(GetOrCreateResponseKind::Created(User::new(
-                    Some(id.unwrap()),
-                    record.username,
-                    Email::from_string(record.email)?,
-                    Some(record.first_name),
-                    Some(record.last_name),
-                    record.is_active,
-                    record.created.into(),
-                    match record.updated {
-                        None => None,
-                        Some(date) => Some(date.with_timezone(&Local)),
-                    },
-                    Some(Parent::Id(account_id)),
-                )))
+                Ok(GetOrCreateResponseKind::Created(
+                    User::new(
+                        Some(id.unwrap()),
+                        record.username,
+                        Email::from_string(record.email)?,
+                        Some(record.first_name),
+                        Some(record.last_name),
+                        record.is_active,
+                        record.created.into(),
+                        match record.updated {
+                            None => None,
+                            Some(date) => Some(date.with_timezone(&Local)),
+                        },
+                        Some(Parent::Id(account_id)),
+                    )
+                    .with_principal(record.is_principal),
+                ))
             }
             Err(err) => {
                 return creation_err(format!(
