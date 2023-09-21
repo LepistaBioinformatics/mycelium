@@ -210,7 +210,6 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             owner.email.get_email(),
                             owner.first_name.unwrap_or(String::from("")),
                             owner.last_name.unwrap_or(String::from("")),
-                            //account_model::id::equals(account.to_owned().id),
                             vec![user_model::account_id::set(Some(
                                 account.to_owned().id.to_string(),
                             ))],
