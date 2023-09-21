@@ -13,9 +13,10 @@ use crate::domain::{
 };
 
 use clean_base::{
-    entities::GetOrCreateResponseKind,
+    entities::{DeletionResponseKind, GetOrCreateResponseKind},
     utils::errors::{factories::use_case_err, MappedErrors},
 };
+use log::error;
 use uuid::Uuid;
 
 pub async fn create_default_user(
@@ -54,7 +55,7 @@ pub async fn create_default_user(
 
     let mut user = User::new_secondary_with_provider(
         None,
-        email_instance,
+        email_instance.to_owned(),
         match password {
             Some(password) => Provider::Internal(
                 PasswordHash::hash_user_password(password.as_bytes()),
@@ -111,7 +112,7 @@ pub async fn create_default_user(
     )
     .await
     {
-        Ok(_) => {}
+        Ok(_) => (),
         Err(err) => {
             // ? ---------------------------------------------------------------
             // ? Delete the user
@@ -121,7 +122,22 @@ pub async fn create_default_user(
             //
             // ? ---------------------------------------------------------------
 
-            user_deletion_repo.delete(new_user_id).await?;
+            if let DeletionResponseKind::NotDeleted(id, msg) =
+                user_deletion_repo.delete(new_user_id).await?
+            {
+                error!(
+                    "Unable to delete user: {}. Error: {}. Generated after: {}",
+                    id.to_string(),
+                    msg,
+                    err
+                );
+
+                return use_case_err(format!(
+                    "Unexpected error on create user: {}",
+                    email_instance.to_owned().get_email()
+                ))
+                .as_error();
+            };
 
             return Err(err);
         }
