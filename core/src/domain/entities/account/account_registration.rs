@@ -12,6 +12,7 @@ pub trait AccountRegistration: Interface + Send + Sync {
     async fn get_or_create(
         &self,
         account: Account,
+        user_exists: bool,
     ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors>;
 
     async fn create(

@@ -4,12 +4,12 @@ use crate::domain::{
 };
 
 use argon2::password_hash::rand_core::{OsRng, RngCore};
-use clean_base::utils::errors::MappedErrors;
+use clean_base::utils::errors::{factories::use_case_err, MappedErrors};
 use hex;
 use pasetors::{claims::Claims, keys::SymmetricKey, local, version4::V4};
 use uuid::Uuid;
 
-pub async fn issue_confirmation_token_pasetor(
+pub(super) async fn issue_confirmation_token_pasetor(
     user_id: Uuid,
     token_secret: TokenSecret,
     is_for_password_change: Option<bool>,
@@ -39,30 +39,28 @@ pub async fn issue_confirmation_token_pasetor(
     // ? -----------------------------------------------------------------------
 
     token_registration_repo
-        .create(data_storage_key, String::new())
+        .create(data_storage_key.to_owned(), String::new())
         .await?;
 
     // ? -----------------------------------------------------------------------
     // ? Configure time to token expiration
     // ? -----------------------------------------------------------------------
 
-    let current_date_time = chrono::Local::now();
-
-    let time_to_live = {
-        if is_for_password_change.is_some() {
-            chrono::Duration::hours(1)
-        } else {
-            chrono::Duration::minutes(token_secret.token_expiration)
-        }
-    };
-
     token_updating_repo
-        .update(session_key.to_owned(), time_to_live)
+        .update(data_storage_key, {
+            if is_for_password_change.is_some() {
+                chrono::Duration::hours(1)
+            } else {
+                chrono::Duration::minutes(token_secret.token_expiration)
+            }
+        })
         .await?;
 
     // ? -----------------------------------------------------------------------
     // ? Build session Claims
     // ? -----------------------------------------------------------------------
+
+    let current_date_time = chrono::Local::now();
 
     let mut claims = Claims::new().unwrap();
 
@@ -94,11 +92,18 @@ pub async fn issue_confirmation_token_pasetor(
     let symmetric_key =
         SymmetricKey::<V4>::from(token_secret.secret_key.as_bytes()).unwrap();
 
-    Ok(local::encrypt(
+    match local::encrypt(
         &symmetric_key,
         &claims,
         None,
         Some(token_secret.hmac_secret.as_bytes()),
-    )
-    .unwrap())
+    ) {
+        Ok(token) => Ok(token),
+        Err(_) => {
+            return use_case_err(
+                "Unable to generate confirmation token".to_string(),
+            )
+            .as_error()
+        }
+    }
 }

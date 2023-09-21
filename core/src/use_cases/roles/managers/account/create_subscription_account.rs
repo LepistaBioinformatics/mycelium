@@ -94,7 +94,7 @@ pub async fn create_subscription_account(
     unchecked_account.is_checked = true;
 
     let account = match account_registration_repo
-        .get_or_create(unchecked_account)
+        .get_or_create(unchecked_account, false)
         .await?
     {
         GetOrCreateResponseKind::NotCreated(account, msg) => {

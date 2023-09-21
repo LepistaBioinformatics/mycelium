@@ -1,5 +1,6 @@
 {
   "cSpell.words": [
+    "chrono",
     "datetime",
     "dtos",
     "Hmac",
@@ -13,5 +14,4 @@
     "withscores",
     "ZRANGE"
   ],
-  "rust-analyzer.linkedProjects": ["./ports/api/Cargo.toml"]
 }
