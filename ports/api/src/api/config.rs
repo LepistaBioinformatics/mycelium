@@ -10,8 +10,9 @@ use crate::modules::{
     LicensedResourcesFetchingModule, MessageSendingModule,
     ProfileFetchingModule, RoleDeletionModule, RoleFetchingModule,
     RoleRegistrationModule, RoleUpdatingModule, RoutesFetchingModule,
-    UserRegistrationModule, UserUpdatingModule, WebHookDeletionModule,
-    WebHookFetchingModule, WebHookRegistrationModule, WebHookUpdatingModule,
+    UserDeletionModule, UserFetchingModule, UserRegistrationModule,
+    UserUpdatingModule, WebHookDeletionModule, WebHookFetchingModule,
+    WebHookRegistrationModule, WebHookUpdatingModule,
 };
 
 use actix_web::web;
@@ -58,6 +59,8 @@ use myc_prisma::repositories::{
     RoleFetchingSqlDbRepository, RoleFetchingSqlDbRepositoryParameters,
     RoleRegistrationSqlDbRepository, RoleRegistrationSqlDbRepositoryParameters,
     RoleUpdatingSqlDbRepository, RoleUpdatingSqlDbRepositoryParameters,
+    UserDeletionSqlDbRepository, UserDeletionSqlDbRepositoryParameters,
+    UserFetchingSqlDbRepository, UserFetchingSqlDbRepositoryParameters,
     UserRegistrationSqlDbRepository, UserRegistrationSqlDbRepositoryParameters,
     UserUpdatingSqlDbRepository, UserUpdatingSqlDbRepositoryParameters,
     WebHookDeletionSqlDbRepository, WebHookDeletionSqlDbRepositoryParameters,
@@ -292,6 +295,18 @@ pub fn configure(config: &mut web::ServiceConfig) {
             UserUpdatingModule::builder()
                 .with_component_parameters::<UserUpdatingSqlDbRepository>(
                     UserUpdatingSqlDbRepositoryParameters {}
+                ).build()
+        ))
+        .app_data(Arc::new(
+            UserFetchingModule::builder()
+                .with_component_parameters::<UserFetchingSqlDbRepository>(
+                    UserFetchingSqlDbRepositoryParameters {}
+                ).build()
+        ))
+        .app_data(Arc::new(
+            UserDeletionModule::builder()
+                .with_component_parameters::<UserDeletionSqlDbRepository>(
+                    UserDeletionSqlDbRepositoryParameters {}
                 ).build()
         ))
         // ? -------------------------------------------------------------------

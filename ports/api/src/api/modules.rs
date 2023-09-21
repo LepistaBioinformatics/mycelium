@@ -13,6 +13,7 @@ use myc_prisma::repositories::{
     LicensedResourcesFetchingSqlDbRepository, ProfileFetchingSqlDbRepository,
     RoleDeletionSqlDbRepository, RoleFetchingSqlDbRepository,
     RoleRegistrationSqlDbRepository, RoleUpdatingSqlDbRepository,
+    UserDeletionSqlDbRepository, UserFetchingSqlDbRepository,
     UserRegistrationSqlDbRepository, UserUpdatingSqlDbRepository,
     WebHookDeletionSqlDbRepository, WebHookFetchingSqlDbRepository,
     WebHookRegistrationSqlDbRepository, WebHookUpdatingSqlDbRepository,
@@ -195,6 +196,20 @@ module! {
 module! {
     pub UserUpdatingModule {
         components = [UserUpdatingSqlDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub UserDeletionModule {
+        components = [UserDeletionSqlDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub UserFetchingModule {
+        components = [UserFetchingSqlDbRepository],
         providers = []
     }
 }

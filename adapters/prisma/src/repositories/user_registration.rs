@@ -118,7 +118,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                 user.first_name.unwrap_or(String::from("")),
                 user.last_name.unwrap_or(String::from("")),
                 account_model::id::equals(account_id.to_string()),
-                vec![],
+                vec![user_model::is_active::set(user.is_active)],
             )
             .exec()
             .await;

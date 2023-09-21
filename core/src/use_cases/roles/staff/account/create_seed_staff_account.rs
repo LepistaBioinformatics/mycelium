@@ -67,18 +67,21 @@ pub async fn create_seed_staff_account(
     // ? -----------------------------------------------------------------------
 
     account_registration_repo
-        .get_or_create(Account::new(
-            account_name,
-            User::new_with_provider(
-                None,
-                email_instance,
-                Provider::Internal(PasswordHash::hash_user_password(
-                    password.as_bytes(),
-                )),
-                Some(first_name),
-                Some(last_name),
-            )?,
-            account_type,
-        ))
+        .get_or_create(
+            Account::new(
+                account_name,
+                User::new_with_provider(
+                    None,
+                    email_instance,
+                    Provider::Internal(PasswordHash::hash_user_password(
+                        password.as_bytes(),
+                    )),
+                    Some(first_name),
+                    Some(last_name),
+                )?,
+                account_type,
+            ),
+            false,
+        )
         .await
 }

@@ -22,7 +22,6 @@ use myc_core::domain::{
     },
     entities::AccountRegistration,
 };
-use prisma_client_rust::or;
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -36,6 +35,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
     async fn get_or_create(
         &self,
         account: Account,
+        user_exists: bool,
     ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
@@ -83,12 +83,9 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
 
         let response = client
             .account()
-            .find_first(vec![or![
-                account_model::name::equals(account.name.to_owned()),
-                account_model::owners::some(vec![user_model::email::equals(
-                    owner.email.get_email(),
-                )]),
-            ]])
+            .find_first(vec![account_model::owners::some(vec![
+                user_model::email::equals(owner.email.get_email()),
+            ])])
             .include(account_model::include!({ owners account_type }))
             .exec()
             .await;
@@ -187,19 +184,38 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                     .exec()
                     .await?;
 
-                client
-                    .user()
-                    .create(
-                        owner.username,
-                        owner.email.get_email(),
-                        owner.first_name.unwrap_or(String::from("")),
-                        owner.last_name.unwrap_or(String::from("")),
-                        account_model::id::equals(account.to_owned().id),
-                        vec![],
-                    )
-                    .exec()
-                    .await
-                    .map(|owner| (account, owner))
+                if user_exists && owner.id.is_some() {
+                    client
+                        .user()
+                        .update(
+                            user_model::id::equals(
+                                owner.id.unwrap().to_string(),
+                            ),
+                            vec![
+                                user_model::account_id::set(
+                                    account.to_owned().id.to_string(),
+                                ),
+                                user_model::is_active::set(owner.is_active),
+                            ],
+                        )
+                        .exec()
+                        .await
+                        .map(|owner| (account, owner))
+                } else {
+                    client
+                        .user()
+                        .create(
+                            owner.username,
+                            owner.email.get_email(),
+                            owner.first_name.unwrap_or(String::from("")),
+                            owner.last_name.unwrap_or(String::from("")),
+                            account_model::id::equals(account.to_owned().id),
+                            vec![],
+                        )
+                        .exec()
+                        .await
+                        .map(|owner| (account, owner))
+                }
             })
             .await
         {

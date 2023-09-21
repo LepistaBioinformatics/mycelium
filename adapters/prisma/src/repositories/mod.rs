@@ -23,6 +23,8 @@ mod role_deletion;
 mod role_fetching;
 mod role_registration;
 mod role_updating;
+mod user_deletion;
+mod user_fetching;
 mod user_registration;
 mod user_updating;
 mod webhook_deletion;
@@ -114,6 +116,12 @@ pub use role_registration::{
 };
 pub use role_updating::{
     RoleUpdatingSqlDbRepository, RoleUpdatingSqlDbRepositoryParameters,
+};
+pub use user_deletion::{
+    UserDeletionSqlDbRepository, UserDeletionSqlDbRepositoryParameters,
+};
+pub use user_fetching::{
+    UserFetchingSqlDbRepository, UserFetchingSqlDbRepositoryParameters,
 };
 pub use user_registration::{
     UserRegistrationSqlDbRepository, UserRegistrationSqlDbRepositoryParameters,

@@ -1,15 +1,15 @@
 use crate::modules::{
     AccountFetchingModule, AccountRegistrationModule,
-    AccountTypeRegistrationModule, AccountUpdatingModule,
+    AccountTypeRegistrationModule, AccountUpdatingModule, UserFetchingModule,
 };
 
 use actix_web::{patch, post, web, HttpResponse, Responder};
-use clean_base::entities::{GetOrCreateResponseKind, UpdatingResponseKind};
+use clean_base::entities::UpdatingResponseKind;
 use log::warn;
 use myc_core::{
     domain::entities::{
         AccountFetching, AccountRegistration, AccountTypeRegistration,
-        AccountUpdating,
+        AccountUpdating, UserFetching,
     },
     use_cases::roles::default_users::account::{
         create_default_account, update_own_account_name,
@@ -40,12 +40,8 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateDefaultAccountBody {
-    email: String,
+    user_id: Uuid,
     account_name: String,
-    first_name: Option<String>,
-    last_name: Option<String>,
-    password: Option<String>,
-    provider_name: Option<String>,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -96,37 +92,28 @@ pub struct UpdateOwnAccountNameAccountBody {
 #[post("/")]
 pub async fn create_default_account_url(
     body: web::Json<CreateDefaultAccountBody>,
-    account_type_registration_repo: Inject<
-        AccountTypeRegistrationModule,
-        dyn AccountTypeRegistration,
-    >,
+    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
     account_registration_repo: Inject<
         AccountRegistrationModule,
         dyn AccountRegistration,
     >,
+    account_type_registration_repo: Inject<
+        AccountTypeRegistrationModule,
+        dyn AccountTypeRegistration,
+    >,
 ) -> impl Responder {
     match create_default_account(
-        body.email.to_owned(),
+        body.user_id.to_owned(),
         body.account_name.to_owned(),
-        body.first_name.to_owned(),
-        body.last_name.to_owned(),
-        body.password.to_owned(),
-        body.provider_name.to_owned(),
-        Box::new(&*account_type_registration_repo),
+        Box::new(&*user_fetching_repo),
         Box::new(&*account_registration_repo),
+        Box::new(&*account_type_registration_repo),
     )
     .await
     {
         Err(err) => HttpResponse::InternalServerError()
             .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            GetOrCreateResponseKind::Created(record) => {
-                HttpResponse::Created().json(record)
-            }
-            GetOrCreateResponseKind::NotCreated(record, _) => {
-                HttpResponse::Ok().json(record)
-            }
-        },
+        Ok(res) => HttpResponse::Created().json(res),
     }
 }
 

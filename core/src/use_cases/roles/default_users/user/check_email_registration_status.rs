@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 pub enum EmailRegistrationStatus {
     RegisteredAndInternal(Email),
     RegisteredButExternal(Email),
-    NotRegistered(Option<Email>),
+    NotRegistered(Option<String>),
 }
 
 /// Check if the user was already registered in Mycelium or not.
@@ -32,7 +32,10 @@ pub async fn check_email_registration_status(
     // ? Fetch user from data storage
     // ? -----------------------------------------------------------------------
 
-    let user = match user_fetching_repo.get(email.to_owned(), None).await? {
+    let user = match user_fetching_repo
+        .get(None, Some(email.to_owned()), None)
+        .await?
+    {
         FetchResponseKind::Found(user) => user,
         FetchResponseKind::NotFound(email) => {
             return Ok(EmailRegistrationStatus::NotRegistered(email))

@@ -1,19 +1,18 @@
 use crate::{
     domain::{
-        dtos::{
-            account::{Account, AccountTypeEnum},
-            email::Email,
-            user::{PasswordHash, Provider, User},
+        dtos::account::{Account, AccountTypeEnum},
+        entities::{
+            AccountRegistration, AccountTypeRegistration, UserFetching,
         },
-        entities::{AccountRegistration, AccountTypeRegistration},
     },
     use_cases::roles::shared::account_type::get_or_create_default_account_types,
 };
 
 use clean_base::{
-    entities::GetOrCreateResponseKind,
+    entities::{FetchResponseKind, GetOrCreateResponseKind},
     utils::errors::{factories::use_case_err, MappedErrors},
 };
+use uuid::Uuid;
 
 /// Create a default account.
 ///
@@ -24,23 +23,23 @@ use clean_base::{
 /// account-creation method also insert a new user into the database and set the
 /// default role as `default-user`.
 pub async fn create_default_account(
-    email: String,
+    user_id: Uuid,
     account_name: String,
-    first_name: Option<String>,
-    last_name: Option<String>,
-    password: Option<String>,
-    provider_name: Option<String>,
-    account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
+    user_fetching_repo: Box<&dyn UserFetching>,
     account_registration_repo: Box<&dyn AccountRegistration>,
-) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
+    account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
+) -> Result<Account, MappedErrors> {
     // ? -----------------------------------------------------------------------
-    // ? Build and validate email
-    //
-    // Build the Email object, case an error is returned, the email is
-    // possibly invalid.
+    // ? Try to fetch user from database
     // ? -----------------------------------------------------------------------
 
-    let email_instance = Email::from_string(email)?;
+    let mut user =
+        match user_fetching_repo.get(Some(user_id), None, None).await? {
+            FetchResponseKind::NotFound(_) => {
+                return use_case_err("User not found".to_string()).as_error();
+            }
+            FetchResponseKind::Found(user) => user,
+        };
 
     // ? -----------------------------------------------------------------------
     // ? Fetch account type
@@ -66,30 +65,15 @@ pub async fn create_default_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
-    if password.is_none() && provider_name.is_none() {
-        return use_case_err(
-            "At last one `password` or `provider-name` must contains a value"
-                .to_string(),
-        )
-        .as_error();
-    }
+    user.is_active = true;
 
-    account_registration_repo
-        .get_or_create(Account::new(
-            account_name,
-            User::new_with_provider(
-                None,
-                email_instance,
-                match password {
-                    Some(password) => Provider::Internal(
-                        PasswordHash::hash_user_password(password.as_bytes()),
-                    ),
-                    None => Provider::External(provider_name.unwrap()),
-                },
-                first_name,
-                last_name,
-            )?,
-            account_type,
-        ))
-        .await
+    match account_registration_repo
+        .get_or_create(Account::new(account_name, user, account_type), true)
+        .await?
+    {
+        GetOrCreateResponseKind::Created(account) => Ok(account),
+        GetOrCreateResponseKind::NotCreated(_, _) => {
+            use_case_err("Account not created".to_string()).as_error()
+        }
+    }
 }
