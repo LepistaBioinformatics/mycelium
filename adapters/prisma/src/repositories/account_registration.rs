@@ -36,6 +36,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         &self,
         account: Account,
         user_exists: bool,
+        omit_user_creation: bool,
     ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
@@ -165,127 +166,243 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         // ? Build create part of the get-or-create
         // ? -------------------------------------------------------------------
 
-        match client
-            ._transaction()
-            .run(|client| async move {
-                let account = client
-                    .account()
-                    .create(
-                        account.name,
-                        account_type_model::id::equals(account_type_id),
-                        vec![
-                            account_model::is_active::set(account.is_active),
-                            account_model::is_checked::set(account.is_checked),
-                            account_model::is_archived::set(
-                                account.is_archived,
-                            ),
-                        ],
-                    )
-                    .include(account_model::include!({ owners account_type }))
-                    .exec()
-                    .await?;
-
-                if user_exists && owner.id.is_some() {
+        if omit_user_creation {
+            match client
+                ._transaction()
+                .run(|client| async move {
                     client
-                        .user()
-                        .update(
-                            user_model::id::equals(
-                                owner.id.unwrap().to_string(),
-                            ),
+                        .account()
+                        .create(
+                            account.name,
+                            account_type_model::id::equals(account_type_id),
                             vec![
-                                user_model::account_id::set(Some(
-                                    account.to_owned().id.to_string(),
-                                )),
-                                user_model::is_active::set(owner.is_active),
+                                account_model::is_active::set(
+                                    account.is_active,
+                                ),
+                                account_model::is_checked::set(
+                                    account.is_checked,
+                                ),
+                                account_model::is_archived::set(
+                                    account.is_archived,
+                                ),
                             ],
                         )
-                        .exec()
-                        .await
-                        .map(|owner| (account, owner))
-                } else {
-                    client
-                        .user()
-                        .create(
-                            owner.username,
-                            owner.email.get_email(),
-                            owner.first_name.unwrap_or(String::from("")),
-                            owner.last_name.unwrap_or(String::from("")),
-                            vec![user_model::account_id::set(Some(
-                                account.to_owned().id.to_string(),
-                            ))],
+                        .include(
+                            account_model::include!({ owners account_type }),
                         )
                         .exec()
                         .await
-                        .map(|owner| (account, owner))
+                })
+                .await
+            {
+                Err(err) => {
+                    return creation_err(format!(
+                        "Unexpected error detected on update record: {}",
+                        err
+                    ))
+                    .with_code(NativeErrorCodes::MYC00002.as_str())
+                    .as_error();
                 }
-            })
-            .await
-        {
-            Err(err) => {
-                return creation_err(format!(
-                    "Unexpected error detected on update record: {}",
-                    err
-                ))
-                .with_code(NativeErrorCodes::MYC00002.as_str())
-                .as_error();
-            }
-            Ok((account, _)) => {
-                let id = Uuid::parse_str(&account.id).unwrap();
+                Ok(account) => {
+                    let id = Uuid::parse_str(&account.id).unwrap();
 
-                Ok(GetOrCreateResponseKind::Created(Account {
-                    id: Some(id),
-                    name: account.name,
-                    is_active: account.is_active,
-                    is_checked: account.is_checked,
-                    is_archived: account.is_archived,
-                    verbose_status: Some(VerboseStatus::from_flags(
-                        account.is_active,
-                        account.is_checked,
-                        account.is_archived,
-                    )),
-                    is_default: false,
-                    owners: Children::Records(
-                        account
-                            .owners
-                            .into_iter()
-                            .map(|owner| {
-                                User::new(
-                                    Some(Uuid::parse_str(&owner.id).unwrap()),
-                                    owner.username,
-                                    Email::from_string(owner.email).unwrap(),
-                                    Some(owner.first_name),
-                                    Some(owner.last_name),
-                                    owner.is_active,
-                                    owner.created.into(),
-                                    match owner.updated {
-                                        None => None,
-                                        Some(date) => {
-                                            Some(date.with_timezone(&Local))
-                                        }
-                                    },
-                                    Some(ParentEnum::Id(id)),
-                                )
-                                .with_principal(owner.is_principal)
-                            })
-                            .collect::<Vec<User>>(),
-                    ),
-                    account_type: ParentEnum::Record(AccountType {
-                        id: Some(
-                            Uuid::parse_str(&account.account_type.id).unwrap(),
+                    return Ok(GetOrCreateResponseKind::Created(Account {
+                        id: Some(id),
+                        name: account.name,
+                        is_active: account.is_active,
+                        is_checked: account.is_checked,
+                        is_archived: account.is_archived,
+                        verbose_status: Some(VerboseStatus::from_flags(
+                            account.is_active,
+                            account.is_checked,
+                            account.is_archived,
+                        )),
+                        is_default: false,
+                        owners: Children::Records(
+                            account
+                                .owners
+                                .into_iter()
+                                .map(|owner| {
+                                    User::new(
+                                        Some(
+                                            Uuid::parse_str(&owner.id).unwrap(),
+                                        ),
+                                        owner.username,
+                                        Email::from_string(owner.email)
+                                            .unwrap(),
+                                        Some(owner.first_name),
+                                        Some(owner.last_name),
+                                        owner.is_active,
+                                        owner.created.into(),
+                                        match owner.updated {
+                                            None => None,
+                                            Some(date) => {
+                                                Some(date.with_timezone(&Local))
+                                            }
+                                        },
+                                        Some(ParentEnum::Id(id)),
+                                    )
+                                    .with_principal(owner.is_principal)
+                                })
+                                .collect::<Vec<User>>(),
                         ),
-                        name: account.account_type.name,
-                        description: account.account_type.description,
-                        is_subscription: account.account_type.is_subscription,
-                        is_manager: account.account_type.is_manager,
-                        is_staff: account.account_type.is_staff,
-                    }),
-                    guest_users: None,
-                    created: account.created.into(),
-                    updated: match account.updated {
-                        None => None,
-                        Some(date) => Some(date.with_timezone(&Local)),
-                    },
-                }))
+                        account_type: ParentEnum::Record(AccountType {
+                            id: Some(
+                                Uuid::parse_str(&account.account_type.id)
+                                    .unwrap(),
+                            ),
+                            name: account.account_type.name,
+                            description: account.account_type.description,
+                            is_subscription: account
+                                .account_type
+                                .is_subscription,
+                            is_manager: account.account_type.is_manager,
+                            is_staff: account.account_type.is_staff,
+                        }),
+                        guest_users: None,
+                        created: account.created.into(),
+                        updated: match account.updated {
+                            None => None,
+                            Some(date) => Some(date.with_timezone(&Local)),
+                        },
+                    }));
+                }
+            }
+        } else {
+            match client
+                ._transaction()
+                .run(|client| async move {
+                    let account = client
+                        .account()
+                        .create(
+                            account.name,
+                            account_type_model::id::equals(account_type_id),
+                            vec![
+                                account_model::is_active::set(
+                                    account.is_active,
+                                ),
+                                account_model::is_checked::set(
+                                    account.is_checked,
+                                ),
+                                account_model::is_archived::set(
+                                    account.is_archived,
+                                ),
+                            ],
+                        )
+                        .include(
+                            account_model::include!({ owners account_type }),
+                        )
+                        .exec()
+                        .await?;
+
+                    if user_exists && owner.id.is_some() {
+                        client
+                            .user()
+                            .update(
+                                user_model::id::equals(
+                                    owner.id.unwrap().to_string(),
+                                ),
+                                vec![
+                                    user_model::account_id::set(Some(
+                                        account.to_owned().id.to_string(),
+                                    )),
+                                    user_model::is_active::set(owner.is_active),
+                                ],
+                            )
+                            .exec()
+                            .await
+                            .map(|_| account)
+                    } else {
+                        client
+                            .user()
+                            .create(
+                                owner.username,
+                                owner.email.get_email(),
+                                owner.first_name.unwrap_or(String::from("")),
+                                owner.last_name.unwrap_or(String::from("")),
+                                vec![user_model::account_id::set(Some(
+                                    account.to_owned().id.to_string(),
+                                ))],
+                            )
+                            .exec()
+                            .await
+                            .map(|_| account)
+                    }
+                })
+                .await
+            {
+                Err(err) => {
+                    return creation_err(format!(
+                        "Unexpected error detected on update record: {}",
+                        err
+                    ))
+                    .with_code(NativeErrorCodes::MYC00002.as_str())
+                    .as_error();
+                }
+                Ok(account) => {
+                    let id = Uuid::parse_str(&account.id).unwrap();
+
+                    Ok(GetOrCreateResponseKind::Created(Account {
+                        id: Some(id),
+                        name: account.name,
+                        is_active: account.is_active,
+                        is_checked: account.is_checked,
+                        is_archived: account.is_archived,
+                        verbose_status: Some(VerboseStatus::from_flags(
+                            account.is_active,
+                            account.is_checked,
+                            account.is_archived,
+                        )),
+                        is_default: false,
+                        owners: Children::Records(
+                            account
+                                .owners
+                                .into_iter()
+                                .map(|owner| {
+                                    User::new(
+                                        Some(
+                                            Uuid::parse_str(&owner.id).unwrap(),
+                                        ),
+                                        owner.username,
+                                        Email::from_string(owner.email)
+                                            .unwrap(),
+                                        Some(owner.first_name),
+                                        Some(owner.last_name),
+                                        owner.is_active,
+                                        owner.created.into(),
+                                        match owner.updated {
+                                            None => None,
+                                            Some(date) => {
+                                                Some(date.with_timezone(&Local))
+                                            }
+                                        },
+                                        Some(ParentEnum::Id(id)),
+                                    )
+                                    .with_principal(owner.is_principal)
+                                })
+                                .collect::<Vec<User>>(),
+                        ),
+                        account_type: ParentEnum::Record(AccountType {
+                            id: Some(
+                                Uuid::parse_str(&account.account_type.id)
+                                    .unwrap(),
+                            ),
+                            name: account.account_type.name,
+                            description: account.account_type.description,
+                            is_subscription: account
+                                .account_type
+                                .is_subscription,
+                            is_manager: account.account_type.is_manager,
+                            is_staff: account.account_type.is_staff,
+                        }),
+                        guest_users: None,
+                        created: account.created.into(),
+                        updated: match account.updated {
+                            None => None,
+                            Some(date) => Some(date.with_timezone(&Local)),
+                        },
+                    }))
+                }
             }
         }
     }

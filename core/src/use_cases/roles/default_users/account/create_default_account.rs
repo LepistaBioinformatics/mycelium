@@ -41,6 +41,8 @@ pub async fn create_default_account(
             FetchResponseKind::Found(user) => user,
         };
 
+    user.is_active = true;
+
     // ? -----------------------------------------------------------------------
     // ? Fetch account type
     //
@@ -65,10 +67,12 @@ pub async fn create_default_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
-    user.is_active = true;
-
     match account_registration_repo
-        .get_or_create(Account::new(account_name, user, account_type), true)
+        .get_or_create(
+            Account::new(account_name, user, account_type),
+            true,
+            false,
+        )
         .await?
     {
         GetOrCreateResponseKind::Created(account) => Ok(account),

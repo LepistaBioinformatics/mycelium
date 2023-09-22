@@ -13,6 +13,7 @@ pub trait AccountRegistration: Interface + Send + Sync {
         &self,
         account: Account,
         user_exists: bool,
+        omit_user_creation: bool,
     ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors>;
 
     async fn create(
