@@ -82,6 +82,7 @@ pub async fn create_seed_staff_account(
                 account_type,
             ),
             false,
+            false,
         )
         .await
 }

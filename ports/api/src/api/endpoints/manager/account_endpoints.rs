@@ -59,7 +59,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateSubscriptionAccountBody {
-    pub email: String,
     pub account_name: String,
 }
 
@@ -131,7 +130,6 @@ pub async fn create_subscription_account_url(
 ) -> impl Responder {
     match create_subscription_account(
         profile.to_profile(),
-        body.email.to_owned(),
         body.account_name.to_owned(),
         Box::new(&*account_type_registration_repo),
         Box::new(&*account_registration_repo),

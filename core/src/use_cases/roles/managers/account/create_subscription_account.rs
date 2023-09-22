@@ -5,10 +5,8 @@ use crate::{
     domain::{
         dtos::{
             account::{Account, AccountTypeEnum},
-            email::Email,
             native_error_codes::NativeErrorCodes,
             profile::Profile,
-            user::{PasswordHash, Provider, User},
             webhook::HookTarget,
         },
         entities::{
@@ -25,14 +23,12 @@ use clean_base::{
     entities::GetOrCreateResponseKind,
     utils::errors::{factories::use_case_err, MappedErrors},
 };
-use uuid::Uuid;
 
 /// Create an account flagged as subscription.
 ///
 /// Subscription accounts represents results centering accounts.
 pub async fn create_subscription_account(
     profile: Profile,
-    email: String,
     account_name: String,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
@@ -43,15 +39,6 @@ pub async fn create_subscription_account(
     // ? -----------------------------------------------------------------------
 
     profile.has_admin_privileges_or_error()?;
-
-    // ? -----------------------------------------------------------------------
-    // ? Build and validate email
-    //
-    // Build the Email object, case an error is returned, the email is
-    // possibly invalid.
-    // ? -----------------------------------------------------------------------
-
-    let email_instance = Email::from_string(email)?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch account type
@@ -77,24 +64,13 @@ pub async fn create_subscription_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
-    let mut unchecked_account = Account::new(
-        account_name,
-        User::new_principal_with_provider(
-            None,
-            email_instance,
-            Provider::Internal(PasswordHash::hash_user_password(
-                Uuid::new_v4().as_bytes(),
-            )),
-            Some(String::from("")),
-            Some(String::from("")),
-        )?,
-        account_type,
-    );
+    let mut unchecked_account =
+        Account::new_subscription_account(account_name, account_type);
 
     unchecked_account.is_checked = true;
 
     let account = match account_registration_repo
-        .get_or_create(unchecked_account, false)
+        .get_or_create(unchecked_account, false, true)
         .await?
     {
         GetOrCreateResponseKind::NotCreated(account, msg) => {
