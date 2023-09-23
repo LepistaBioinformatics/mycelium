@@ -1,6 +1,7 @@
 use crate::{
     prisma::{
-        identity_provider as identity_provider_model, user as user_model,
+        identity_provider::{self as identity_provider_model},
+        user as user_model,
     },
     repositories::connector::get_client,
 };
@@ -13,7 +14,11 @@ use clean_base::{
     utils::errors::{factories::fetching_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::{email::Email, native_error_codes::NativeErrorCodes, user::User},
+    dtos::{
+        email::Email,
+        native_error_codes::NativeErrorCodes,
+        user::{PasswordHash, Provider, User},
+    },
     entities::UserFetching,
 };
 use shaku::Component;
@@ -77,7 +82,13 @@ impl UserFetching for UserFetchingSqlDbRepository {
         // ? Get the user
         // ? -------------------------------------------------------------------
 
-        match client.user().find_first(query_stmt).exec().await {
+        match client
+            .user()
+            .find_first(query_stmt)
+            .include(user_model::include!({ provider }))
+            .exec()
+            .await
+        {
             Err(err) => {
                 return fetching_err(format!(
                     "Unexpected error on parse user email: {:?}",
@@ -87,28 +98,63 @@ impl UserFetching for UserFetchingSqlDbRepository {
             }
             Ok(res) => match res {
                 None => Ok(FetchResponseKind::NotFound(None)),
-                Some(record) => Ok(FetchResponseKind::Found(
-                    User::new(
-                        Some(Uuid::parse_str(&record.id).unwrap()),
-                        record.username,
-                        Email::from_string(record.email).unwrap(),
-                        Some(record.first_name),
-                        Some(record.last_name),
-                        record.is_active,
-                        record.created.into(),
-                        match record.updated {
-                            None => None,
-                            Some(date) => Some(date.with_timezone(&Local)),
-                        },
-                        match &record.account_id {
-                            Some(id) => {
-                                Some(Parent::Id(Uuid::parse_str(id).unwrap()))
-                            }
-                            None => None,
-                        },
-                    )
-                    .with_principal(record.is_principal),
-                )),
+                Some(record) => {
+                    if record.provider.is_none() {
+                        return fetching_err(String::from(
+                            "Unexpected error on parse user: {:?}",
+                        ))
+                        .as_error();
+                    }
+
+                    let record_provider = &record.provider.unwrap();
+                    let record_password_hash = &record_provider.password_hash;
+                    let record_password_salt = &record_provider.password_salt;
+                    let record_provider_name = &record_provider.name;
+
+                    let provider = {
+                        if record_password_hash.is_some() &&
+                            record_password_salt.is_some()
+                        {
+                            Provider::Internal(PasswordHash {
+                                hash: record_password_hash.clone().unwrap(),
+                                salt: record_password_salt.clone().unwrap(),
+                            })
+                        } else if record_provider_name.is_some() {
+                            Provider::External(
+                                record_provider_name.clone().unwrap(),
+                            )
+                        } else {
+                            return fetching_err(String::from(
+                                "Unexpected error on parse user email: {:?}",
+                            ))
+                            .as_error();
+                        }
+                    };
+
+                    Ok(FetchResponseKind::Found(
+                        User::new(
+                            Some(Uuid::parse_str(&record.id).unwrap()),
+                            record.username,
+                            Email::from_string(record.email).unwrap(),
+                            Some(record.first_name),
+                            Some(record.last_name),
+                            record.is_active,
+                            record.created.into(),
+                            match record.updated {
+                                None => None,
+                                Some(date) => Some(date.with_timezone(&Local)),
+                            },
+                            match &record.account_id {
+                                Some(id) => Some(Parent::Id(
+                                    Uuid::parse_str(id).unwrap(),
+                                )),
+                                None => None,
+                            },
+                            Some(provider),
+                        )
+                        .with_principal(record.is_principal),
+                    ))
+                }
             },
         }
     }

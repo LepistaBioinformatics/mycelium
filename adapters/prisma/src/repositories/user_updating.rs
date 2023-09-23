@@ -100,6 +100,7 @@ impl UserUpdating for UserUpdatingSqlDbRepository {
                             Some(date) => Some(date.with_timezone(&Local)),
                         },
                         Some(account),
+                        None,
                     )
                     .with_principal(record.is_principal),
                 ))

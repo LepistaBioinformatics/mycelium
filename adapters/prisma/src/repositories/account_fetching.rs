@@ -114,6 +114,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                                             }
                                         },
                                         Some(ParentEnum::Id(id)),
+                                        None,
                                     )
                                     .with_principal(owner.is_principal)
                                 })
@@ -300,6 +301,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                                         }
                                     },
                                     Some(ParentEnum::Id(id)),
+                                    None,
                                 )
                                 .with_principal(owner.is_principal)
                             })

@@ -127,6 +127,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                                         }
                                     },
                                     Some(ParentEnum::Id(id)),
+                                    None,
                                 )
                                 .with_principal(owner.is_principal)
                             })

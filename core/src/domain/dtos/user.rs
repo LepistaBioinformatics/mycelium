@@ -196,6 +196,7 @@ impl User {
         created: DateTime<Local>,
         updated: Option<DateTime<Local>>,
         account: Option<Parent<Account, Uuid>>,
+        provider: Option<Provider>,
     ) -> Self {
         Self {
             id,
@@ -207,7 +208,7 @@ impl User {
             created,
             updated,
             account,
-            provider: None,
+            provider,
             is_principal: false,
         }
     }

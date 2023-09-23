@@ -1,8 +1,9 @@
 use crate::domain::{dtos::email::Email, entities::UserFetching};
 use clean_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum EmailRegistrationStatus {
     RegisteredAndInternal(Email),
@@ -37,8 +38,10 @@ pub async fn check_email_registration_status(
         .await?
     {
         FetchResponseKind::Found(user) => user,
-        FetchResponseKind::NotFound(email) => {
-            return Ok(EmailRegistrationStatus::NotRegistered(email))
+        FetchResponseKind::NotFound(_) => {
+            return Ok(EmailRegistrationStatus::NotRegistered(Some(
+                email.get_email(),
+            )))
         }
     };
 

@@ -128,6 +128,7 @@ mod tests {
             Local::now(),
             Some(Local::now()),
             None,
+            None,
         )
         .with_principal(false);
 

@@ -78,12 +78,9 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
 
         match response.unwrap() {
             Some(record) => {
-                let record = record;
-                let id = Uuid::parse_str(&record.id);
-
                 return Ok(GetOrCreateResponseKind::NotCreated(
                     User::new(
-                        Some(id.unwrap()),
+                        Some(Uuid::parse_str(&record.id).unwrap()),
                         record.username,
                         Email::from_string(record.email)?,
                         Some(record.first_name),
@@ -100,6 +97,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                             }
                             None => None,
                         },
+                        None,
                     )
                     .with_principal(record.is_principal),
                     "User already exists".to_string(),
@@ -162,33 +160,29 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
             .await;
 
         match response {
-            Ok(record) => {
-                let record = record;
-                let id = Uuid::parse_str(&record.id);
-
-                Ok(GetOrCreateResponseKind::Created(
-                    User::new(
-                        Some(id.unwrap()),
-                        record.username,
-                        Email::from_string(record.email)?,
-                        Some(record.first_name),
-                        Some(record.last_name),
-                        record.is_active,
-                        record.created.into(),
-                        match record.updated {
-                            None => None,
-                            Some(date) => Some(date.with_timezone(&Local)),
-                        },
-                        match record.account_id {
-                            None => None,
-                            Some(id) => {
-                                Some(Parent::Id(Uuid::parse_str(&id).unwrap()))
-                            }
-                        },
-                    )
-                    .with_principal(record.is_principal),
-                ))
-            }
+            Ok(record) => Ok(GetOrCreateResponseKind::Created(
+                User::new(
+                    Some(Uuid::parse_str(&record.id).unwrap()),
+                    record.username,
+                    Email::from_string(record.email)?,
+                    Some(record.first_name),
+                    Some(record.last_name),
+                    record.is_active,
+                    record.created.into(),
+                    match record.updated {
+                        None => None,
+                        Some(date) => Some(date.with_timezone(&Local)),
+                    },
+                    match record.account_id {
+                        None => None,
+                        Some(id) => {
+                            Some(Parent::Id(Uuid::parse_str(&id).unwrap()))
+                        }
+                    },
+                    None,
+                )
+                .with_principal(record.is_principal),
+            )),
             Err(err) => {
                 return creation_err(format!(
                     "Unexpected error detected on update record: {}",
