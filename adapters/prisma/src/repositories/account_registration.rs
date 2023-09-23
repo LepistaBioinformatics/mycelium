@@ -131,6 +131,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                             }
                                         },
                                         Some(ParentEnum::Id(id)),
+                                        None,
                                     )
                                     .with_principal(owner.is_principal)
                                 })
@@ -244,6 +245,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                             }
                                         },
                                         Some(ParentEnum::Id(id)),
+                                        None,
                                     )
                                     .with_principal(owner.is_principal)
                                 })
@@ -395,6 +397,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                             }
                                         },
                                         Some(ParentEnum::Id(id)),
+                                        None,
                                     )
                                     .with_principal(owner.is_principal)
                                 })
