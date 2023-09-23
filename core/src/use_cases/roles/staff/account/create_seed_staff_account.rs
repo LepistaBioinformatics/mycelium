@@ -3,15 +3,19 @@ use crate::{
         dtos::{
             account::{Account, AccountTypeEnum},
             email::Email,
+            native_error_codes::NativeErrorCodes,
             user::{PasswordHash, Provider, User},
         },
-        entities::{AccountRegistration, AccountTypeRegistration},
+        entities::{
+            AccountRegistration, AccountTypeRegistration, UserRegistration,
+        },
     },
     use_cases::roles::shared::account_type::get_or_create_default_account_types,
 };
 
 use clean_base::{
-    entities::GetOrCreateResponseKind, utils::errors::MappedErrors,
+    entities::GetOrCreateResponseKind,
+    utils::errors::{factories::use_case_err, MappedErrors},
 };
 
 /// Create a seed staff account.
@@ -30,6 +34,7 @@ pub async fn create_seed_staff_account(
     first_name: String,
     last_name: String,
     password: String,
+    user_registration_repo: Box<&dyn UserRegistration>,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
 ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
@@ -41,6 +46,39 @@ pub async fn create_seed_staff_account(
     // ? -----------------------------------------------------------------------
 
     let email_instance = Email::from_string(email)?;
+
+    // ? -----------------------------------------------------------------------
+    // ? Build local user object
+    // ? -----------------------------------------------------------------------
+
+    let user = User::new_principal_with_provider(
+        None,
+        email_instance,
+        Provider::Internal(PasswordHash::hash_user_password(
+            password.as_bytes(),
+        )),
+        Some(first_name),
+        Some(last_name),
+    )?;
+
+    // ? -----------------------------------------------------------------------
+    // ? Register the user
+    // ? -----------------------------------------------------------------------
+
+    let new_user = match user_registration_repo
+        .get_or_create(user.to_owned())
+        .await?
+    {
+        GetOrCreateResponseKind::NotCreated(user, _) => {
+            return use_case_err(format!(
+                "User already registered: {}",
+                user.email.get_email()
+            ))
+            .with_code(NativeErrorCodes::MYC00002.as_str())
+            .as_error()
+        }
+        GetOrCreateResponseKind::Created(user) => user,
+    };
 
     // ? -----------------------------------------------------------------------
     // ? Fetch account type
@@ -68,20 +106,8 @@ pub async fn create_seed_staff_account(
 
     account_registration_repo
         .get_or_create(
-            Account::new(
-                account_name,
-                User::new_principal_with_provider(
-                    None,
-                    email_instance,
-                    Provider::Internal(PasswordHash::hash_user_password(
-                        password.as_bytes(),
-                    )),
-                    Some(first_name),
-                    Some(last_name),
-                )?,
-                account_type,
-            ),
-            false,
+            Account::new(account_name, new_user, account_type),
+            true,
             false,
         )
         .await

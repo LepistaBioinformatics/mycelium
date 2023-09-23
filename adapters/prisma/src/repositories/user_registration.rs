@@ -1,4 +1,9 @@
-use crate::{prisma::user as user_model, repositories::connector::get_client};
+use crate::{
+    prisma::{
+        identity_provider as identity_provider_model, user as user_model,
+    },
+    repositories::connector::get_client,
+};
 
 use async_trait::async_trait;
 use chrono::Local;
@@ -8,7 +13,11 @@ use clean_base::{
     utils::errors::{factories::creation_err, MappedErrors},
 };
 use myc_core::domain::{
-    dtos::{email::Email, native_error_codes::NativeErrorCodes, user::User},
+    dtos::{
+        email::Email,
+        native_error_codes::NativeErrorCodes,
+        user::{Provider, User},
+    },
     entities::UserRegistration,
 };
 use shaku::Component;
@@ -25,6 +34,21 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
         &self,
         user: User,
     ) -> Result<GetOrCreateResponseKind<User>, MappedErrors> {
+        // ? -------------------------------------------------------------------
+        // ? Perform basic validations
+        // ? -------------------------------------------------------------------
+
+        let provider = match user.to_owned().provider() {
+            None => {
+                return creation_err(String::from(
+                    "Provider is required to create a user",
+                ))
+                .with_code(NativeErrorCodes::MYC00002.as_str())
+                .as_error()
+            }
+            Some(provider) => provider,
+        };
+
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -88,42 +112,53 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
         // ? Build create part of the get-or-create
         // ? -------------------------------------------------------------------
 
-        let account_id = match user.to_owned().account {
-            None => {
-                return creation_err(String::from(
-                    "Account ID is required to create a user",
-                ))
-                .with_code(NativeErrorCodes::MYC00002.as_str())
-                .as_error()
-            }
-            Some(record) => match record {
-                Parent::Id(id) => id,
-                Parent::Record(record) => match record.id {
-                    None => {
-                        return creation_err(String::from(
-                            "Unable to create user. Invalid account ID",
-                        ))
-                        .with_exp_true()
-                        .as_error()
-                    }
-                    Some(id) => id,
-                },
-            },
-        };
-
         let response = client
-            .user()
-            .create(
-                user.to_owned().username,
-                user.to_owned().email.get_email(),
-                user.to_owned().first_name.unwrap_or(String::from("")),
-                user.to_owned().last_name.unwrap_or(String::from("")),
-                vec![
-                    user_model::is_active::set(user.is_active),
-                    user_model::is_principal::set(user.is_principal()),
-                ],
-            )
-            .exec()
+            ._transaction()
+            .run(|client| async move {
+                let user_instance = client
+                    .user()
+                    .create(
+                        user.to_owned().username,
+                        user.to_owned().email.get_email(),
+                        user.to_owned().first_name.unwrap_or(String::from("")),
+                        user.to_owned().last_name.unwrap_or(String::from("")),
+                        vec![
+                            user_model::is_active::set(user.is_active),
+                            user_model::is_principal::set(user.is_principal()),
+                        ],
+                    )
+                    //.include(user_model::include!({ account }))
+                    .exec()
+                    .await?;
+
+                let mut provider_params = vec![];
+
+                if let Provider::External(name) = provider {
+                    provider_params
+                        .push(identity_provider_model::name::set(Some(name)));
+                } else if let Provider::Internal(pass) = provider {
+                    provider_params.push(
+                        identity_provider_model::password_hash::set(Some(
+                            pass.to_owned().hash,
+                        )),
+                    );
+                    provider_params.push(
+                        identity_provider_model::password_salt::set(Some(
+                            pass.to_owned().salt,
+                        )),
+                    );
+                };
+
+                client
+                    .identity_provider()
+                    .create(
+                        user_model::id::equals(user_instance.id.to_string()),
+                        provider_params,
+                    )
+                    .exec()
+                    .await
+                    .map(|_| user_instance)
+            })
             .await;
 
         match response {
@@ -144,7 +179,12 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                             None => None,
                             Some(date) => Some(date.with_timezone(&Local)),
                         },
-                        Some(Parent::Id(account_id)),
+                        match record.account_id {
+                            None => None,
+                            Some(id) => {
+                                Some(Parent::Id(Uuid::parse_str(&id).unwrap()))
+                            }
+                        },
                     )
                     .with_principal(record.is_principal),
                 ))

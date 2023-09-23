@@ -167,6 +167,9 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         // ? -------------------------------------------------------------------
 
         if omit_user_creation {
+            //
+            // User creation is omitted, so we just create the account
+            //
             match client
                 ._transaction()
                 .run(|client| async move {
@@ -269,6 +272,10 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 }
             }
         } else {
+            //
+            // User creation is not omitted, so we create the account and the
+            // user.
+            //
             match client
                 ._transaction()
                 .run(|client| async move {
@@ -316,13 +323,24 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         client
                             .user()
                             .create(
-                                owner.username,
-                                owner.email.get_email(),
-                                owner.first_name.unwrap_or(String::from("")),
-                                owner.last_name.unwrap_or(String::from("")),
-                                vec![user_model::account_id::set(Some(
-                                    account.to_owned().id.to_string(),
-                                ))],
+                                owner.to_owned().username,
+                                owner.to_owned().email.get_email(),
+                                owner
+                                    .to_owned()
+                                    .first_name
+                                    .unwrap_or(String::from("")),
+                                owner
+                                    .to_owned()
+                                    .last_name
+                                    .unwrap_or(String::from("")),
+                                vec![
+                                    user_model::account_id::set(Some(
+                                        account.to_owned().id.to_string(),
+                                    )),
+                                    user_model::is_principal::set(
+                                        owner.is_principal(),
+                                    ),
+                                ],
                             )
                             .exec()
                             .await

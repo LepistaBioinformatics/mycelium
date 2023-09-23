@@ -30,20 +30,20 @@ model User {
   updated      DateTime? @updatedAt @db.Timestamptz(6)
 
   // Backward relationship fields
-  account           Account?          @relation(fields: [account_id], references: [id])
-  account_id        String?
-  internal_provider InternalProvider?
-  external_provider ExternalProvider?
+  account    Account?          @relation(fields: [account_id], references: [id])
+  account_id String?
+  provider   IdentityProvider?
 
   // Db compatibility and extra maps
   @@unique([email, account_id])
   @@map("user")
 }
 
-model InternalProvider {
+model IdentityProvider {
   // Model fields
-  password_hash String @db.VarChar(255)
-  password_salt String @db.VarChar(255)
+  name          String? @db.VarChar(255)
+  password_hash String? @db.VarChar(255)
+  password_salt String? @db.VarChar(255)
 
   // Backward relationship fields
   user    User   @relation(fields: [user_id], references: [id])
@@ -52,21 +52,8 @@ model InternalProvider {
   // Db compatibility and extra maps
   @@id([user_id])
   @@unique([user_id, password_hash, password_salt])
-  @@map("internal_provider")
-}
-
-model ExternalProvider {
-  // Model fields
-  name String @db.VarChar(255)
-
-  // Backward relationship fields
-  user    User   @relation(fields: [user_id], references: [id])
-  user_id String
-
-  // Db compatibility and extra maps
-  @@id([user_id])
   @@unique([user_id, name])
-  @@map("external_provider")
+  @@map("identity_provider")
 }
 
 model Role {
