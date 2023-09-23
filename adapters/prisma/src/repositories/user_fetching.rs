@@ -1,6 +1,6 @@
 use crate::{
     prisma::{
-        internal_provider as internal_provider_model, user as user_model,
+        identity_provider as identity_provider_model, user as user_model,
     },
     repositories::connector::get_client,
 };
@@ -66,10 +66,10 @@ impl UserFetching for UserFetchingSqlDbRepository {
         }
 
         if password_hash.is_some() {
-            query_stmt.push(user_model::internal_provider::is(vec![
-                internal_provider_model::password_hash::equals(
+            query_stmt.push(user_model::provider::is(vec![
+                identity_provider_model::password_hash::equals(Some(
                     password_hash.unwrap().to_owned(),
-                ),
+                )),
             ]))
         }
 

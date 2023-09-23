@@ -18,8 +18,8 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PasswordHash {
-    hash: String,
-    salt: String,
+    pub hash: String,
+    pub salt: String,
 }
 
 impl PasswordHash {
@@ -155,7 +155,7 @@ impl User {
             last_name,
             provider: Some(provider),
             is_active: true,
-            is_principal: is_principal,
+            is_principal,
             created: Local::now(),
             updated: None,
             account: None,
@@ -223,6 +223,10 @@ impl User {
 
     pub fn is_principal(&self) -> bool {
         self.is_principal
+    }
+
+    pub fn provider(&self) -> Option<Provider> {
+        self.provider.to_owned()
     }
 
     pub fn is_internal_or_error(&self) -> Result<bool, MappedErrors> {

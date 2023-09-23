@@ -5,6 +5,7 @@ use myc_core::use_cases::roles::staff::account::create_seed_staff_account;
 use myc_prisma::repositories::{
     connector::generate_prisma_client_of_thread,
     AccountRegistrationSqlDbRepository, AccountTypeRegistrationSqlDbRepository,
+    UserRegistrationSqlDbRepository,
 };
 use std::process::id as process_id;
 
@@ -25,7 +26,6 @@ pub(crate) struct CreateSeedAccountArguments {
     account_name: String,
     first_name: String,
     last_name: String,
-    password: String,
 }
 
 pub(crate) async fn create_seed_staff_account_cmd(
@@ -34,12 +34,16 @@ pub(crate) async fn create_seed_staff_account_cmd(
     debug!("Start the database connectors");
     generate_prisma_client_of_thread(process_id()).await;
 
+    let password =
+        rpassword::prompt_password("Your password: ".to_string()).unwrap();
+
     match create_seed_staff_account(
         args.email.to_owned(),
         args.account_name.to_owned(),
         args.first_name.to_owned(),
         args.last_name.to_owned(),
-        args.password.to_owned(),
+        password,
+        Box::new(&UserRegistrationSqlDbRepository {}),
         Box::new(&AccountTypeRegistrationSqlDbRepository {}),
         Box::new(&AccountRegistrationSqlDbRepository {}),
     )
@@ -53,12 +57,12 @@ pub(crate) async fn create_seed_staff_account_cmd(
             GetOrCreateResponseKind::Created(account) => {
                 info!(
                     "\n
-Seed staff account successfully created:
-- Email: {}
-- First Name: {}
-- Last Name: {}
-- Account Name: {}
-    ",
+    Seed staff account successfully created:
+    - Email: {}
+    - First Name: {}
+    - Last Name: {}
+    - Account Name: {}
+        ",
                     args.email, args.first_name, args.last_name, account.name,
                 );
             }
