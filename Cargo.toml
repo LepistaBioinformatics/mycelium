@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+    "config",
     "core",
     "ports/cli",
     "ports/api",
