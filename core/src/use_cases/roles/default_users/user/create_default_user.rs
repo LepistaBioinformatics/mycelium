@@ -2,13 +2,14 @@ use super::issue_confirmation_token_pasetor::issue_confirmation_token_pasetor;
 use crate::domain::{
     dtos::{
         email::Email,
+        message::Message,
         native_error_codes::NativeErrorCodes,
         session_token::TokenSecret,
         user::{PasswordHash, Provider, User},
     },
     entities::{
-        SessionTokenRegistration, SessionTokenUpdating, UserDeletion,
-        UserRegistration,
+        MessageSending, SessionTokenRegistration, SessionTokenUpdating,
+        UserDeletion, UserRegistration,
     },
 };
 
@@ -30,6 +31,7 @@ pub async fn create_default_user(
     user_deletion_repo: Box<&dyn UserDeletion>,
     token_registration_repo: Box<&dyn SessionTokenRegistration>,
     token_updating_repo: Box<&dyn SessionTokenUpdating>,
+    message_sending_repo: Box<&dyn MessageSending>,
 ) -> Result<Uuid, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Build and validate email
@@ -103,16 +105,16 @@ pub async fn create_default_user(
     // ? Issue a verification token
     // ? -----------------------------------------------------------------------
 
-    match issue_confirmation_token_pasetor(
+    let pasetor_token = match issue_confirmation_token_pasetor(
         new_user_id.to_owned(),
-        token_secret,
+        token_secret.to_owned(),
         None,
         token_registration_repo,
         token_updating_repo,
     )
     .await
     {
-        Ok(_) => (),
+        Ok(res) => res,
         Err(err) => {
             // ? ---------------------------------------------------------------
             // ? Delete the user
@@ -141,6 +143,31 @@ pub async fn create_default_user(
 
             return Err(err);
         }
+    };
+
+    // ? -----------------------------------------------------------------------
+    // ? Notify guest user
+    // ? -----------------------------------------------------------------------
+
+    if let Err(err) = message_sending_repo
+        .send(Message {
+            from: token_secret.token_email_notifier,
+            to: email_instance,
+            cc: None,
+            subject: String::from("Action required: Confirm your email address"),
+            message_head: Some(
+                "You must confirm your email address to complete your registration process"
+                .to_string()
+            ),
+            message_body: format!(
+                "Use the follow activation token to validate your identity:\n{}",
+                pasetor_token,
+            ),
+            message_footer: None,
+        })
+        .await
+    {
+        return use_case_err(format!("Unable to send email: {err}")).as_error();
     };
 
     // ? -----------------------------------------------------------------------

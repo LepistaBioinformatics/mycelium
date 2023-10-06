@@ -32,7 +32,9 @@ use endpoints::{
     },
 };
 use log::{debug, info};
-use myc_core::settings::init_in_memory_routes;
+use myc_core::{
+    domain::dtos::session_token::TokenSecret, settings::init_in_memory_routes,
+};
 use myc_http_tools::providers::{google_handlers, google_models::AppState};
 use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
@@ -94,6 +96,15 @@ pub async fn main() -> std::io::Result<()> {
         debug!("Configured DB: {:?}", db);
 
         App::new()
+            .app_data(
+                web::Data::new(TokenSecret {
+                    token_secret_key: config.token_secret_key,
+                    token_expiration: config.token_expiration,
+                    token_hmac_secret: config.token_hmac_secret,
+                    token_email_notifier: config.token_email_notifier,
+                })
+                .clone(),
+            )
             .app_data(web::Data::new(db).clone())
             // ? ---------------------------------------------------------------
             // ? Configure CORS policies

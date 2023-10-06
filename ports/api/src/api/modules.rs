@@ -18,6 +18,12 @@ use myc_prisma::repositories::{
     WebHookDeletionSqlDbRepository, WebHookFetchingSqlDbRepository,
     WebHookRegistrationSqlDbRepository, WebHookUpdatingSqlDbRepository,
 };
+use myc_redis::repositories::{
+    SessionTokenDeletionRedisDbRepository,
+    SessionTokenFetchingRedisDbRepository,
+    SessionTokenRegistrationRedisDbRepository,
+    SessionTokenUpdatingRedisDbRepository,
+};
 use myc_smtp::repositories::MessageSendingSqlDbRepository;
 use shaku::module;
 
@@ -296,6 +302,38 @@ module! {
 module! {
     pub WebHookDeletionModule {
         components = [WebHookDeletionSqlDbRepository],
+        providers = []
+    }
+}
+
+// ? ---------------------------------------------------------------------------
+// ? SessionTokens
+// ? ---------------------------------------------------------------------------
+
+module! {
+    pub SessionTokenRegistrationModule {
+        components = [SessionTokenRegistrationRedisDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub SessionTokenDeletionModule {
+        components = [SessionTokenDeletionRedisDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub SessionTokenFetchingModule {
+        components = [SessionTokenFetchingRedisDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub SessionTokenUpdatingModule {
+        components = [SessionTokenUpdatingRedisDbRepository],
         providers = []
     }
 }

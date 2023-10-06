@@ -1,3 +1,7 @@
+/// Temporary disabled
+///
+/// TODO: Implement Google OAuth2
+///
 use super::model::{AppState, TokenClaims};
 
 use actix_web::{

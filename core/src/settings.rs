@@ -30,27 +30,6 @@ pub const FORWARDING_KEYS: [&str; 9] = [
 ];
 
 // ? ---------------------------------------------------------------------------
-// ! DEPRECATING
-//
-// ? Configure expiration time
-//
-// Here routes and profile services are loaded.
-// ? ---------------------------------------------------------------------------
-
-lazy_static! {
-
-    /// A static value to be used on calculation of the tokens expiration time.
-    #[derive(Debug)]
-    pub(crate) static ref TOKENS_EXPIRATION_TIME: i64 =
-        match var_os("TOKENS_EXPIRATION_TIME") {
-            Some(path) => {
-                path.into_string().unwrap().parse::<i64>().unwrap().into()
-            }
-            None => 10,
-        };
-}
-
-// ? ---------------------------------------------------------------------------
 // ? Configure routes and profile
 //
 // Here routes and profile services are loaded.
@@ -91,3 +70,8 @@ pub async fn init_in_memory_routes() {
 // ? ---------------------------------------------------------------------------
 
 pub(crate) const SESSION_KEY_PREFIX: &str = "mycelium_session_key_for_{}";
+
+/// This function prefixes the session key with the Mycelium grouping key.
+pub(crate) fn build_session_key(session_key: String) -> String {
+    format!("mycelium/{}", session_key)
+}

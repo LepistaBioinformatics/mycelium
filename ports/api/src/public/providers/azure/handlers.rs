@@ -1,3 +1,7 @@
+/// Temporary disabled
+///
+/// TODO: Implement Azure OAuth2
+///
 use super::config::Config;
 
 use actix_web::{

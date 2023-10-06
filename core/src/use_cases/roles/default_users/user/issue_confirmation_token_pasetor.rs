@@ -1,6 +1,9 @@
-use crate::domain::{
-    dtos::session_token::{SessionToken, TokenSecret},
-    entities::{SessionTokenRegistration, SessionTokenUpdating},
+use crate::{
+    domain::{
+        dtos::session_token::{SessionToken, TokenSecret},
+        entities::{SessionTokenRegistration, SessionTokenUpdating},
+    },
+    settings::build_session_key,
 };
 
 use argon2::password_hash::rand_core::{OsRng, RngCore};
@@ -39,7 +42,10 @@ pub(super) async fn issue_confirmation_token_pasetor(
     // ? -----------------------------------------------------------------------
 
     token_registration_repo
-        .create(data_storage_key.to_owned(), String::new())
+        .create(
+            build_session_key(data_storage_key.to_owned()),
+            String::new(),
+        )
         .await?;
 
     // ? -----------------------------------------------------------------------
@@ -47,7 +53,7 @@ pub(super) async fn issue_confirmation_token_pasetor(
     // ? -----------------------------------------------------------------------
 
     token_updating_repo
-        .update(data_storage_key, {
+        .update(build_session_key(data_storage_key), {
             if is_for_password_change.is_some() {
                 chrono::Duration::hours(1)
             } else {
@@ -90,13 +96,14 @@ pub(super) async fn issue_confirmation_token_pasetor(
         .unwrap();
 
     let symmetric_key =
-        SymmetricKey::<V4>::from(token_secret.secret_key.as_bytes()).unwrap();
+        SymmetricKey::<V4>::from(token_secret.token_secret_key.as_bytes())
+            .unwrap();
 
     match local::encrypt(
         &symmetric_key,
         &claims,
         None,
-        Some(token_secret.hmac_secret.as_bytes()),
+        Some(token_secret.token_hmac_secret.as_bytes()),
     ) {
         Ok(token) => Ok(token),
         Err(_) => {

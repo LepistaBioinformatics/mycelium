@@ -1,3 +1,7 @@
+/// Temporary disabled
+///
+/// TODO: Implement Azure OAuth2
+///
 use oauth2::{
     basic::BasicClient, reqwest::http_client, AuthUrl, AuthorizationCode,
     ClientId, ClientSecret, CsrfToken, PkceCodeChallenge, RedirectUrl, Scope,
