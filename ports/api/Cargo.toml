@@ -10,15 +10,17 @@ readme = "./README.md"
 keywords = ["authorization", "identity", "permission", "keeper"]
 categories = ["http-client", "microservices"]
 
-# ? ---------------------------------------------------------------------------
+# ? ----------------------------------------------------------------------------
 # ? DEPENDENCIES
-# ? ---------------------------------------------------------------------------
+# ? ----------------------------------------------------------------------------
 
 [dependencies]
 
+myc-core = { path = "../../core" }
 mycelium-memory-db = { path = "../../adapters/mem_db" }
-mycelium-prisma = { path = "../../adapters/prisma" }
 mycelium-service = { path = "../../adapters/service" }
+mycelium-prisma = { path = "../../adapters/prisma" }
+mycelium-redis = { path = "../../adapters/redis" }
 mycelium-smtp = { path = "../../adapters/smtp" }
 
 actix = "0.13"
@@ -57,21 +59,18 @@ utoipa = { version = "3", features = [
 utoipa-swagger-ui = { version = "3", features = ["actix-web"] }
 uuid = { version = "1.1", features = ["v4", "serde", "fast-rng"] }
 
-[dependencies.myc-core]
-path = "../../core"
-
-# ? ---------------------------------------------------------------------------
+# ? ----------------------------------------------------------------------------
 # ? LIBRARY
-# ? ---------------------------------------------------------------------------
+# ? ----------------------------------------------------------------------------
 
 [lib]
 name = "myc_http_tools"
 path = "src/public/lib.rs"
 crate-type = ["staticlib", "lib"]
 
-# ? ---------------------------------------------------------------------------
+# ? ----------------------------------------------------------------------------
 # ? BINARIES
-# ? ---------------------------------------------------------------------------
+# ? ----------------------------------------------------------------------------
 
 [[bin]]
 name = "myc-api"

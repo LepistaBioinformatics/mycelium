@@ -3,6 +3,8 @@ use crate::settings::SESSION_KEY_PREFIX;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use super::email::Email;
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionToken {
@@ -33,7 +35,8 @@ impl SessionToken {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TokenSecret {
-    pub secret_key: String,
+    pub token_secret_key: String,
     pub token_expiration: i64,
-    pub hmac_secret: String,
+    pub token_hmac_secret: String,
+    pub token_email_notifier: Email,
 }

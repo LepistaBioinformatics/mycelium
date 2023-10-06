@@ -10,14 +10,16 @@ readme = "./README.md"
 keywords = ["authorization", "identity", "permission", "keeper"]
 categories = ["http-client", "microservices"]
 
-
 [dependencies]
+async-trait = "0.1"
+clean-base = "1.0"
+chrono = { version = "0.4", features = ["serde"] }
 deadpool-redis = "0.12"
-
+lazy_static = "1.4"
+shaku = "0.6"
 
 [dependencies.myc-core]
 path = "../../core"
-
 
 [lib]
 name = "myc_redis"

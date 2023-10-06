@@ -1,6 +1,9 @@
-use crate::domain::{
-    dtos::session_token::{SessionToken, TokenSecret},
-    entities::{SessionTokenDeletion, SessionTokenFetching},
+use crate::{
+    domain::{
+        dtos::session_token::{SessionToken, TokenSecret},
+        entities::{SessionTokenDeletion, SessionTokenFetching},
+    },
+    settings::build_session_key,
 };
 
 use clean_base::utils::errors::{factories::use_case_err, MappedErrors};
@@ -11,7 +14,7 @@ use pasetors::{
 
 pub async fn verify_confirmation_token_pasetor(
     token: String,
-    is_password: Option<bool>,
+    is_for_password_change: Option<bool>,
     token_secret: TokenSecret,
     token_fetching_repo: Box<&dyn SessionTokenFetching>,
     token_deletion_repo: Box<&dyn SessionTokenDeletion>,
@@ -21,7 +24,8 @@ pub async fn verify_confirmation_token_pasetor(
     // ? -----------------------------------------------------------------------
 
     let symmetric_key =
-        SymmetricKey::<V4>::from(token_secret.secret_key.as_bytes()).unwrap();
+        SymmetricKey::<V4>::from(token_secret.token_secret_key.as_bytes())
+            .unwrap();
 
     let validation_rules = ClaimsValidationRules::new();
     let untrusted_token = match UntrustedToken::<Local, V4>::try_from(&token) {
@@ -37,7 +41,7 @@ pub async fn verify_confirmation_token_pasetor(
         &untrusted_token,
         &validation_rules,
         None,
-        Some(token_secret.hmac_secret.as_bytes()),
+        Some(token_secret.token_hmac_secret.as_bytes()),
     ) {
         Ok(token) => token,
         Err(err) => {
@@ -73,11 +77,16 @@ pub async fn verify_confirmation_token_pasetor(
                 let data_storage_key =
                     SessionToken::build_prefixed_session_token(
                         session_key.to_owned(),
-                        is_password,
+                        is_for_password_change,
                     );
 
-                token_fetching_repo.get(data_storage_key.to_owned()).await?;
-                token_deletion_repo.delete(data_storage_key).await?;
+                token_fetching_repo
+                    .get(build_session_key(data_storage_key.to_owned()))
+                    .await?;
+
+                token_deletion_repo
+                    .delete(build_session_key(data_storage_key))
+                    .await?;
 
                 Ok(SessionToken { user_id: user_uuid })
             }

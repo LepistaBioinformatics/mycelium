@@ -10,12 +10,15 @@ use crate::modules::{
     LicensedResourcesFetchingModule, MessageSendingModule,
     ProfileFetchingModule, RoleDeletionModule, RoleFetchingModule,
     RoleRegistrationModule, RoleUpdatingModule, RoutesFetchingModule,
+    SessionTokenDeletionModule, SessionTokenFetchingModule,
+    SessionTokenRegistrationModule, SessionTokenUpdatingModule,
     UserDeletionModule, UserFetchingModule, UserRegistrationModule,
     UserUpdatingModule, WebHookDeletionModule, WebHookFetchingModule,
     WebHookRegistrationModule, WebHookUpdatingModule,
 };
 
 use actix_web::web;
+use myc_http_tools::Email;
 use myc_mem_db::repositories::{
     RoutesFetchingMemDbRepo, RoutesFetchingMemDbRepoParameters,
 };
@@ -69,6 +72,16 @@ use myc_prisma::repositories::{
     WebHookRegistrationSqlDbRepositoryParameters,
     WebHookUpdatingSqlDbRepository, WebHookUpdatingSqlDbRepositoryParameters,
 };
+use myc_redis::repositories::{
+    SessionTokenDeletionRedisDbRepository,
+    SessionTokenDeletionRedisDbRepositoryParameters,
+    SessionTokenFetchingRedisDbRepository,
+    SessionTokenFetchingRedisDbRepositoryParameters,
+    SessionTokenRegistrationRedisDbRepository,
+    SessionTokenRegistrationRedisDbRepositoryParameters,
+    SessionTokenUpdatingRedisDbRepository,
+    SessionTokenUpdatingRedisDbRepositoryParameters,
+};
 use myc_smtp::repositories::{
     MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
 };
@@ -82,6 +95,10 @@ pub struct SvcConfig {
     pub gateway_timeout: u64,
     pub tls_cert_path: Option<String>,
     pub tls_key_path: Option<String>,
+    pub token_secret_key: String,
+    pub token_expiration: i64,
+    pub token_hmac_secret: String,
+    pub token_email_notifier: Email,
 }
 
 impl SvcConfig {
@@ -105,7 +122,7 @@ impl SvcConfig {
                     .into_iter()
                     .map(|i| i.to_string())
                     .collect(),
-                None => vec!["http://localhost:8081".to_string()],
+                None => vec!["http://localhost:8080".to_string()],
             },
             service_workers: match var_os("SERVICE_WORKERS") {
                 Some(path) => {
@@ -127,6 +144,31 @@ impl SvcConfig {
                 Some(path) => Some(path.into_string().unwrap()),
                 None => None,
             },
+            token_secret_key: match var_os("TOKEN_SECRET_KEY") {
+                Some(path) => path.into_string().unwrap(),
+                None => panic!("TOKEN_SECRET_KEY is not set"),
+            },
+            token_expiration: match var_os("TOKEN_EXPIRATION") {
+                Some(path) => {
+                    path.into_string().unwrap().parse::<i64>().unwrap()
+                }
+                None => 3600,
+            },
+            token_hmac_secret: match var_os("TOKEN_HMAC_SECRET") {
+                Some(path) => path.into_string().unwrap(),
+                None => panic!("TOKEN_HMAC_SECRET is not set"),
+            },
+            token_email_notifier: match var_os("TOKEN_EMAIL_NOTIFIER") {
+                Some(email) => {
+                    match Email::from_string(email.into_string().unwrap()) {
+                        Ok(email) => email,
+                        Err(err) => panic!(
+                            "TOKEN_EMAIL_NOTIFIER is not a valid email: {err}"
+                        ),
+                    }
+                }
+                None => panic!("TOKEN_EMAIL_NOTIFIER is not set"),
+            },
         }
     }
 }
@@ -134,6 +176,7 @@ impl SvcConfig {
 /// Configure injection modules.
 pub fn configure(config: &mut web::ServiceConfig) {
     config
+        //.app_data(web::Data::new(redis_pool.clone()).clone())
         // ? -------------------------------------------------------------------
         // ? Account
         // ? -------------------------------------------------------------------
@@ -387,6 +430,37 @@ pub fn configure(config: &mut web::ServiceConfig) {
             WebHookUpdatingModule::builder()
                 .with_component_parameters::<WebHookUpdatingSqlDbRepository>(
                     WebHookUpdatingSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        // ? -------------------------------------------------------------------
+        // ? SessionTokens
+        // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            SessionTokenRegistrationModule::builder()
+                .with_component_parameters::<SessionTokenRegistrationRedisDbRepository>(
+                    SessionTokenRegistrationRedisDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            SessionTokenFetchingModule::builder()
+                .with_component_parameters::<SessionTokenFetchingRedisDbRepository>(
+                    SessionTokenFetchingRedisDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            SessionTokenDeletionModule::builder()
+                .with_component_parameters::<SessionTokenDeletionRedisDbRepository>(
+                    SessionTokenDeletionRedisDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            SessionTokenUpdatingModule::builder()
+                .with_component_parameters::<SessionTokenUpdatingRedisDbRepository>(
+                    SessionTokenUpdatingRedisDbRepositoryParameters {},
                 )
                 .build(),
         ));
