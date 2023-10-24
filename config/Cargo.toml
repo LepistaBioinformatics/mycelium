@@ -1,5 +1,5 @@
 [package]
-name = "myc-config"
+name = "mycelium-config"
 version = "4.1.1"
 edition = "2021"
 authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]

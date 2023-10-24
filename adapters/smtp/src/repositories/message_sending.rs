@@ -1,4 +1,4 @@
-use myc_core::domain::{dtos::message::Message, entities::MessageSending};
+use crate::models::SmtpConfig;
 
 use async_trait::async_trait;
 use clean_base::{
@@ -9,11 +9,14 @@ use lettre::{
     message::header::ContentType, transport::smtp::authentication::Credentials,
     Message as LettreMessage, SmtpTransport, Transport,
 };
+use myc_core::domain::{dtos::message::Message, entities::MessageSending};
 use shaku::Component;
 
 #[derive(Component)]
 #[shaku(interface = MessageSending)]
-pub struct MessageSendingSqlDbRepository {}
+pub struct MessageSendingSqlDbRepository {
+    pub config: SmtpConfig,
+}
 
 #[async_trait]
 impl MessageSending for MessageSendingSqlDbRepository {

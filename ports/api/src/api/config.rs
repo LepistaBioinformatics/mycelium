@@ -82,8 +82,11 @@ use myc_redis::repositories::{
     SessionTokenUpdatingRedisDbRepository,
     SessionTokenUpdatingRedisDbRepositoryParameters,
 };
-use myc_smtp::repositories::{
-    MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
+use myc_smtp::{
+    models::SmtpConfig,
+    repositories::{
+        MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
+    },
 };
 use std::{env::var_os, sync::Arc};
 
@@ -284,7 +287,11 @@ pub fn configure(config: &mut web::ServiceConfig) {
         .app_data(Arc::new(
             MessageSendingModule::builder()
                 .with_component_parameters::<MessageSendingSqlDbRepository>(
-                    MessageSendingSqlDbRepositoryParameters {},
+                    MessageSendingSqlDbRepositoryParameters {
+                        config: SmtpConfig::from_default_config_file(
+                            PathBuf::from("config.yaml"),
+                        ).await?
+                    },
                 )
                 .build(),
         ))
