@@ -8,8 +8,8 @@ use crate::domain::{
         user::{PasswordHash, Provider, User},
     },
     entities::{
-        MessageSending, SessionTokenRegistration, SessionTokenUpdating,
-        UserDeletion, UserRegistration,
+        MessageSending, SessionTokenRegistration, UserDeletion,
+        UserRegistration,
     },
 };
 
@@ -30,7 +30,6 @@ pub async fn create_default_user(
     user_registration_repo: Box<&dyn UserRegistration>,
     user_deletion_repo: Box<&dyn UserDeletion>,
     token_registration_repo: Box<&dyn SessionTokenRegistration>,
-    token_updating_repo: Box<&dyn SessionTokenUpdating>,
     message_sending_repo: Box<&dyn MessageSending>,
 ) -> Result<Uuid, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -110,7 +109,6 @@ pub async fn create_default_user(
         token_secret.to_owned(),
         None,
         token_registration_repo,
-        token_updating_repo,
     )
     .await
     {

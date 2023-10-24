@@ -5,14 +5,12 @@ use crate::models::config::ApiConfig;
 use clean_base::utils::errors::MappedErrors;
 use myc_core::models::CoreConfig;
 use myc_prisma::models::PrismaConfig;
-use myc_redis::models::RedisConfig;
 use myc_smtp::models::SmtpConfig;
 use std::path::PathBuf;
 
 pub struct ComposedSvcConfig {
     pub core: CoreConfig,
     pub prisma: PrismaConfig,
-    pub redis: RedisConfig,
     pub smtp: SmtpConfig,
     pub api: ApiConfig,
     //pub auth: String,
@@ -30,10 +28,6 @@ impl ComposedSvcConfig {
         let prisma_config =
             PrismaConfig::from_default_config_file(file.clone())?;
 
-        // Redis configuration should be used by the session token repository
-        // managements into the adapters layer.
-        let redis_config = RedisConfig::from_default_config_file(file.clone())?;
-
         // SMTP configuration should be used by the email sending repository
         // managements into the adapters layer.
         let smtp_config = SmtpConfig::from_default_config_file(file.clone())?;
@@ -45,7 +39,6 @@ impl ComposedSvcConfig {
         Ok(Self {
             core: core_config,
             prisma: prisma_config,
-            redis: redis_config,
             smtp: smtp_config,
             api: api_config,
             //auth: var_os("AUTH").unwrap().to_str().unwrap().to_string(),

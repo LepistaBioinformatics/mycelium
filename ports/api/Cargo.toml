@@ -21,7 +21,6 @@ myc-core = { path = "../../core" }
 mycelium-memory-db = { path = "../../adapters/mem_db" }
 mycelium-service = { path = "../../adapters/service" }
 mycelium-prisma = { path = "../../adapters/prisma" }
-mycelium-redis = { path = "../../adapters/redis" }
 mycelium-smtp = { path = "../../adapters/smtp" }
 
 actix = "0.13"
