@@ -2494,16 +2494,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "myc-config"
-version = "4.1.1"
-dependencies = [
- "clean-base",
- "serde",
- "serde_yaml",
- "tokio",
-]
-
-[[package]]
 name = "myc-core"
 version = "4.1.1"
 dependencies = [
@@ -2602,6 +2592,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "mycelium-config"
+version = "4.1.1"
+dependencies = [
+ "clean-base",
+ "serde",
+ "serde_yaml",
+ "tokio",
+]
+
+[[package]]
 name = "mycelium-memory-db"
 version = "4.1.1"
 dependencies = [
@@ -2679,6 +2679,7 @@ dependencies = [
  "log",
  "minijinja",
  "myc-core",
+ "mycelium-config",
  "serde",
  "serde_json",
  "shaku",

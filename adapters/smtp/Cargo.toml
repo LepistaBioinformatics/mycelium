@@ -14,6 +14,9 @@ categories = ["http-client", "microservices"]
 # https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+mycelium-config = { path = "../../config" }
+
 async-trait = "0.1"
 clean-base = "1.0"
 env_logger = "0.10"
