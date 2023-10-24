@@ -1,8 +1,7 @@
 use crate::modules::{
     MessageSendingModule, SessionTokenDeletionModule,
     SessionTokenFetchingModule, SessionTokenRegistrationModule,
-    SessionTokenUpdatingModule, UserDeletionModule, UserFetchingModule,
-    UserRegistrationModule,
+    UserDeletionModule, UserFetchingModule, UserRegistrationModule,
 };
 
 use actix_web::{get, http::header, post, web, HttpResponse, Responder};
@@ -13,8 +12,8 @@ use myc_core::{
         dtos::session_token::TokenSecret,
         entities::{
             MessageSending, SessionTokenDeletion, SessionTokenFetching,
-            SessionTokenRegistration, SessionTokenUpdating, UserDeletion,
-            UserFetching, UserRegistration,
+            SessionTokenRegistration, UserDeletion, UserFetching,
+            UserRegistration,
         },
     },
     use_cases::roles::default_users::user::{
@@ -175,10 +174,6 @@ pub async fn create_default_user_url(
         SessionTokenRegistrationModule,
         dyn SessionTokenRegistration,
     >,
-    token_updating_repo: Inject<
-        SessionTokenUpdatingModule,
-        dyn SessionTokenUpdating,
-    >,
     message_sending_repo: Inject<MessageSendingModule, dyn MessageSending>,
 ) -> impl Responder {
     match create_default_user(
@@ -191,7 +186,6 @@ pub async fn create_default_user_url(
         Box::new(&*user_registration_repo),
         Box::new(&*user_deletion_repo),
         Box::new(&*token_registration_repo),
-        Box::new(&*token_updating_repo),
         Box::new(&*message_sending_repo),
     )
     .await

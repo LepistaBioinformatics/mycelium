@@ -56,6 +56,14 @@ model IdentityProvider {
   @@map("identity_provider")
 }
 
+model SessionToken {
+  key        String
+  expiration DateTime @default(now()) @db.Timestamptz(6)
+
+  @@id([key])
+  @@map("session_token")
+}
+
 model Role {
   // Primary key
   id String @id @default(uuid())

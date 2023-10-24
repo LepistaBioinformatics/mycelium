@@ -1,12 +1,13 @@
 use crate::{
     domain::{
         dtos::session_token::{SessionToken, TokenSecret},
-        entities::{SessionTokenRegistration, SessionTokenUpdating},
+        entities::SessionTokenRegistration,
     },
     settings::build_session_key,
 };
 
 use argon2::password_hash::rand_core::{OsRng, RngCore};
+use chrono::Local;
 use clean_base::utils::errors::{factories::use_case_err, MappedErrors};
 use hex;
 use pasetors::{claims::Claims, keys::SymmetricKey, local, version4::V4};
@@ -17,7 +18,6 @@ pub(super) async fn issue_confirmation_token_pasetor(
     token_secret: TokenSecret,
     is_for_password_change: Option<bool>,
     token_registration_repo: Box<&dyn SessionTokenRegistration>,
-    token_updating_repo: Box<&dyn SessionTokenUpdating>,
 ) -> Result<String, MappedErrors> {
     // I just generate 128 bytes of random data for the session key
     // from something that is cryptographically secure (rand::CryptoRng)
@@ -44,7 +44,12 @@ pub(super) async fn issue_confirmation_token_pasetor(
     token_registration_repo
         .create(
             build_session_key(data_storage_key.to_owned()),
-            String::new(),
+            if is_for_password_change.is_some() {
+                Local::now() + chrono::Duration::hours(1)
+            } else {
+                Local::now() +
+                    chrono::Duration::hours(token_secret.token_expiration)
+            },
         )
         .await?;
 
@@ -52,15 +57,15 @@ pub(super) async fn issue_confirmation_token_pasetor(
     // ? Configure time to token expiration
     // ? -----------------------------------------------------------------------
 
-    token_updating_repo
-        .update(build_session_key(data_storage_key), {
-            if is_for_password_change.is_some() {
-                chrono::Duration::hours(1)
-            } else {
-                chrono::Duration::minutes(token_secret.token_expiration)
-            }
-        })
-        .await?;
+    /* token_updating_repo
+    .update(build_session_key(data_storage_key), {
+        if is_for_password_change.is_some() {
+            chrono::Duration::hours(1)
+        } else {
+            chrono::Duration::minutes(token_secret.token_expiration)
+        }
+    })
+    .await?; */
 
     // ? -----------------------------------------------------------------------
     // ? Build session Claims

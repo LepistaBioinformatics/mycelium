@@ -23,6 +23,9 @@ mod role_deletion;
 mod role_fetching;
 mod role_registration;
 mod role_updating;
+mod session_token_deletion;
+mod session_token_fetching;
+mod session_token_registration;
 mod user_deletion;
 mod user_fetching;
 mod user_registration;
@@ -116,6 +119,18 @@ pub use role_registration::{
 };
 pub use role_updating::{
     RoleUpdatingSqlDbRepository, RoleUpdatingSqlDbRepositoryParameters,
+};
+pub use session_token_deletion::{
+    SessionTokenDeletionSqlDbRepository,
+    SessionTokenDeletionSqlDbRepositoryParameters,
+};
+pub use session_token_fetching::{
+    SessionTokenFetchingSqlDbRepository,
+    SessionTokenFetchingSqlDbRepositoryParameters,
+};
+pub use session_token_registration::{
+    SessionTokenRegistrationSqlDbRepository,
+    SessionTokenRegistrationSqlDbRepositoryParameters,
 };
 pub use user_deletion::{
     UserDeletionSqlDbRepository, UserDeletionSqlDbRepositoryParameters,

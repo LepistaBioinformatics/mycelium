@@ -1,35 +1,27 @@
-use myc_redis::repositories::{
-    SessionTokenDeletionRedisDbRepository,
-    SessionTokenFetchingRedisDbRepository,
-    SessionTokenRegistrationRedisDbRepository,
-    SessionTokenUpdatingRedisDbRepository,
+use myc_prisma::repositories::{
+    SessionTokenDeletionSqlDbRepository, SessionTokenFetchingSqlDbRepository,
+    SessionTokenRegistrationSqlDbRepository,
 };
+
 use shaku::module;
 
 module! {
     pub SessionTokenRegistrationModule {
-        components = [SessionTokenRegistrationRedisDbRepository],
+        components = [SessionTokenRegistrationSqlDbRepository],
         providers = []
     }
 }
 
 module! {
     pub SessionTokenDeletionModule {
-        components = [SessionTokenDeletionRedisDbRepository],
+        components = [SessionTokenDeletionSqlDbRepository],
         providers = []
     }
 }
 
 module! {
     pub SessionTokenFetchingModule {
-        components = [SessionTokenFetchingRedisDbRepository],
-        providers = []
-    }
-}
-
-module! {
-    pub SessionTokenUpdatingModule {
-        components = [SessionTokenUpdatingRedisDbRepository],
+        components = [SessionTokenFetchingSqlDbRepository],
         providers = []
     }
 }

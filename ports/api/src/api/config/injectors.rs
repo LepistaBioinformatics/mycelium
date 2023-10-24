@@ -13,10 +13,9 @@ use crate::modules::{
     ProfileFetchingModule, RoleDeletionModule, RoleFetchingModule,
     RoleRegistrationModule, RoleUpdatingModule, RoutesFetchingModule,
     SessionTokenDeletionModule, SessionTokenFetchingModule,
-    SessionTokenRegistrationModule, SessionTokenUpdatingModule,
-    UserDeletionModule, UserFetchingModule, UserRegistrationModule,
-    UserUpdatingModule, WebHookDeletionModule, WebHookFetchingModule,
-    WebHookRegistrationModule, WebHookUpdatingModule,
+    SessionTokenRegistrationModule, UserDeletionModule, UserFetchingModule,
+    UserRegistrationModule, UserUpdatingModule, WebHookDeletionModule,
+    WebHookFetchingModule, WebHookRegistrationModule, WebHookUpdatingModule,
 };
 
 use actix_web::web;
@@ -63,6 +62,12 @@ use myc_prisma::repositories::{
     RoleFetchingSqlDbRepository, RoleFetchingSqlDbRepositoryParameters,
     RoleRegistrationSqlDbRepository, RoleRegistrationSqlDbRepositoryParameters,
     RoleUpdatingSqlDbRepository, RoleUpdatingSqlDbRepositoryParameters,
+    SessionTokenDeletionSqlDbRepository,
+    SessionTokenDeletionSqlDbRepositoryParameters,
+    SessionTokenFetchingSqlDbRepository,
+    SessionTokenFetchingSqlDbRepositoryParameters,
+    SessionTokenRegistrationSqlDbRepository,
+    SessionTokenRegistrationSqlDbRepositoryParameters,
     UserDeletionSqlDbRepository, UserDeletionSqlDbRepositoryParameters,
     UserFetchingSqlDbRepository, UserFetchingSqlDbRepositoryParameters,
     UserRegistrationSqlDbRepository, UserRegistrationSqlDbRepositoryParameters,
@@ -72,16 +77,6 @@ use myc_prisma::repositories::{
     WebHookRegistrationSqlDbRepository,
     WebHookRegistrationSqlDbRepositoryParameters,
     WebHookUpdatingSqlDbRepository, WebHookUpdatingSqlDbRepositoryParameters,
-};
-use myc_redis::repositories::{
-    SessionTokenDeletionRedisDbRepository,
-    SessionTokenDeletionRedisDbRepositoryParameters,
-    SessionTokenFetchingRedisDbRepository,
-    SessionTokenFetchingRedisDbRepositoryParameters,
-    SessionTokenRegistrationRedisDbRepository,
-    SessionTokenRegistrationRedisDbRepositoryParameters,
-    SessionTokenUpdatingRedisDbRepository,
-    SessionTokenUpdatingRedisDbRepositoryParameters,
 };
 use myc_smtp::repositories::{
     MessageSendingSmtpRepository, MessageSendingSmtpRepositoryParameters,
@@ -351,29 +346,22 @@ pub fn configure(config: &mut web::ServiceConfig) {
         // ? -------------------------------------------------------------------
         .app_data(Arc::new(
             SessionTokenRegistrationModule::builder()
-                .with_component_parameters::<SessionTokenRegistrationRedisDbRepository>(
-                    SessionTokenRegistrationRedisDbRepositoryParameters {},
+                .with_component_parameters::<SessionTokenRegistrationSqlDbRepository>(
+                    SessionTokenRegistrationSqlDbRepositoryParameters {},
                 )
                 .build(),
         ))
         .app_data(Arc::new(
             SessionTokenFetchingModule::builder()
-                .with_component_parameters::<SessionTokenFetchingRedisDbRepository>(
-                    SessionTokenFetchingRedisDbRepositoryParameters {},
+                .with_component_parameters::<SessionTokenFetchingSqlDbRepository>(
+                    SessionTokenFetchingSqlDbRepositoryParameters {},
                 )
                 .build(),
         ))
         .app_data(Arc::new(
             SessionTokenDeletionModule::builder()
-                .with_component_parameters::<SessionTokenDeletionRedisDbRepository>(
-                    SessionTokenDeletionRedisDbRepositoryParameters {},
-                )
-                .build(),
-        ))
-        .app_data(Arc::new(
-            SessionTokenUpdatingModule::builder()
-                .with_component_parameters::<SessionTokenUpdatingRedisDbRepository>(
-                    SessionTokenUpdatingRedisDbRepositoryParameters {},
+                .with_component_parameters::<SessionTokenDeletionSqlDbRepository>(
+                    SessionTokenDeletionSqlDbRepositoryParameters {},
                 )
                 .build(),
         ));
