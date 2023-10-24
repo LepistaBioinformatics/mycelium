@@ -11,6 +11,9 @@ keywords = ["authorization", "identity", "permission", "keeper"]
 categories = ["http-client", "microservices"]
 
 [dependencies]
+
+mycelium-config = { path = "../../config" }
+
 async-trait = "0.1"
 chrono = "0.4"
 clean-base = "1.0"

@@ -5,9 +5,7 @@ use std::path::PathBuf;
 /// Load configuration from YAML file
 ///
 /// It is a generic function to read a configuration file from a YAML file.
-pub async fn load_config_from_file<T>(
-    file_path: PathBuf,
-) -> Result<T, MappedErrors>
+pub fn load_config_from_file<T>(file_path: PathBuf) -> Result<T, MappedErrors>
 where
     for<'a> T: Deserialize<'a>,
 {
@@ -39,9 +37,7 @@ mod tests {
     #[tokio::test]
     async fn test_load_config_from_file() -> Result<(), MappedErrors> {
         let config: Config =
-            load_config_from_file(PathBuf::from("tests/config.yaml"))
-                .await
-                .unwrap();
+            load_config_from_file(PathBuf::from("tests/config.yaml")).unwrap();
 
         assert_eq!(config.name, "Name");
         assert_eq!(config.age, 99);

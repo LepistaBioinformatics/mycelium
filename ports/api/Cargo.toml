@@ -16,6 +16,7 @@ categories = ["http-client", "microservices"]
 
 [dependencies]
 
+mycelium-config = { path = "../../config" }
 myc-core = { path = "../../core" }
 mycelium-memory-db = { path = "../../adapters/mem_db" }
 mycelium-service = { path = "../../adapters/service" }

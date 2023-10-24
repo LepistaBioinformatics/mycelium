@@ -5,20 +5,17 @@ use std::path::PathBuf;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SmtpConfig {
-    pub enable: bool,
-    pub host: String,
-    pub username: String,
-    pub password: String,
+pub struct PrismaConfig {
+    pub database_url: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TmpConfig {
-    smtp: SmtpConfig,
+    prisma: PrismaConfig,
 }
 
-impl SmtpConfig {
+impl PrismaConfig {
     pub fn from_default_config_file(
         file: PathBuf,
     ) -> Result<Self, MappedErrors> {
@@ -31,7 +28,7 @@ impl SmtpConfig {
         }
 
         match load_config_from_file::<TmpConfig>(file) {
-            Ok(config) => Ok(config.smtp),
+            Ok(config) => Ok(config.prisma),
             Err(err) => Err(err),
         }
     }

@@ -11,11 +11,17 @@ keywords = ["authorization", "identity", "permission", "keeper"]
 categories = ["http-client", "microservices"]
 
 [dependencies]
+
+mycelium-config = { path = "../../config" }
+
 async-trait = "0.1"
 clean-base = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 deadpool-redis = "0.12"
+futures = "0.3"
 lazy_static = "1.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
 shaku = "0.6"
 
 [dependencies.myc-core]

@@ -39,12 +39,17 @@ lazy_static! {
     pub static ref ROUTES: Mutex<Vec<Route>> = Mutex::new(vec![]);
 }
 
-pub async fn init_in_memory_routes() {
-    let source_file_path = match var_os("SOURCE_FILE_PATH") {
-        Some(path) => Some(path.into_string().unwrap()),
+pub async fn init_in_memory_routes(routes_file: Option<String>) {
+    let source_file_path = match routes_file {
         None => {
-            panic!("Required environment variable SOURCE_FILE_PATH not set.")
+            match var_os("SOURCE_FILE_PATH") {
+                Some(path) => Some(path.into_string().unwrap()),
+                None => {
+                    panic!("Required environment variable SOURCE_FILE_PATH not set.")
+                }
+            }
         }
+        Some(path) => Some(path),
     };
 
     let db = match load_config_from_yaml(match source_file_path.to_owned() {

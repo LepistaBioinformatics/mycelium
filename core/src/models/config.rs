@@ -1,3 +1,5 @@
+use crate::domain::dtos::session_token::TokenSecret;
+
 use clean_base::utils::errors::{factories::creation_err, MappedErrors};
 use myc_config::load_config_from_file;
 use serde::Deserialize;
@@ -5,20 +7,17 @@ use std::path::PathBuf;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SmtpConfig {
-    pub enable: bool,
-    pub host: String,
-    pub username: String,
-    pub password: String,
+pub struct CoreConfig {
+    pub token: TokenSecret,
 }
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TmpConfig {
-    smtp: SmtpConfig,
+    core: CoreConfig,
 }
 
-impl SmtpConfig {
+impl CoreConfig {
     pub fn from_default_config_file(
         file: PathBuf,
     ) -> Result<Self, MappedErrors> {
@@ -31,7 +30,7 @@ impl SmtpConfig {
         }
 
         match load_config_from_file::<TmpConfig>(file) {
-            Ok(config) => Ok(config.smtp),
+            Ok(config) => Ok(config.core),
             Err(err) => Err(err),
         }
     }

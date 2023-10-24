@@ -8,6 +8,11 @@ dist
 postgres/volume
 cert.pem
 key.pem
+config.dev.yaml
 
 # Prisma related
 #adapters/prisma/src/migrations
+
+# Other
+redis
+postgres

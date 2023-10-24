@@ -21,6 +21,9 @@ categories = ["authentication", "network-programming"]
 # ? ---------------------------------------------------------------------------
 
 [dependencies]
+
+mycelium-config = { path = "../config" }
+
 actix-web = { version = "4", features = ["openssl"] }
 actix-web-httpauth = "0.8.0"
 argon2 = "0.5.2"

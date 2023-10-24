@@ -1,7 +1,6 @@
-extern crate myc_core;
-
 mod config;
 mod endpoints;
+mod models;
 mod modules;
 mod router;
 mod settings;
@@ -9,7 +8,9 @@ mod settings;
 use actix_cors::Cors;
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use awc::Client;
-use config::{configure as configure_injection_modules, SvcConfig};
+use config::{
+    injectors::configure as configure_injection_modules, ComposedSvcConfig,
+};
 use endpoints::{
     default_users::{
         account_endpoints as default_users_account_endpoints,
@@ -32,9 +33,7 @@ use endpoints::{
     },
 };
 use log::{debug, info};
-use myc_core::{
-    domain::dtos::session_token::TokenSecret, settings::init_in_memory_routes,
-};
+use myc_core::settings::init_in_memory_routes;
 use myc_http_tools::providers::{google_handlers, google_models::AppState};
 use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
@@ -44,7 +43,7 @@ use reqwest::header::{
 };
 use router::route_request;
 use settings::{GATEWAY_API_SCOPE, MYCELIUM_API_SCOPE};
-use std::process::id as process_id;
+use std::{path::PathBuf, process::id as process_id};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::{Config, SwaggerUi, Url};
 
@@ -54,26 +53,67 @@ use utoipa_swagger_ui::{Config, SwaggerUi, Url};
 
 #[actix_web::main]
 pub async fn main() -> std::io::Result<()> {
-    info!("Initializing Logging configuration.");
-    env_logger::init();
+    // ? -----------------------------------------------------------------------
+    // ? Initialize services configuration
+    //
+    // All configurations for the core, ports, and adapters layers should exists
+    // into the configuration file. Such file are loaded here.
+    //
+    // ? -----------------------------------------------------------------------
+    info!("Initializing services configuration");
 
-    info!("Initializing API configuration.");
-    let config = SvcConfig::new();
+    let env_config_path = match std::env::var("SETTINGS_PATH") {
+        Ok(path) => path,
+        Err(err) => panic!("Error on get env `SETTINGS_PATH`: {err}"),
+    };
 
-    info!("Initializing routes.");
-    init_in_memory_routes().await;
+    let config =
+        match ComposedSvcConfig::init_from_file(PathBuf::from(env_config_path))
+        {
+            Ok(res) => res,
+            Err(err) => panic!("Error on init config: {err}"),
+        };
 
-    info!("Start the database connectors.");
+    let api_config = config.api.clone();
+
+    // ? -----------------------------------------------------------------------
+    // ? Configure logging level
+    // ? -----------------------------------------------------------------------
+    info!("Initializing Logging configuration");
+    env_logger::init_from_env(
+        env_logger::Env::new()
+            .default_filter_or(api_config.to_owned().logging_level),
+    );
+
+    // ? -----------------------------------------------------------------------
+    // ? Routes should be used on API gateway
+    //
+    // When users perform queries to the API gateway, the gateway should
+    // redirect the request to the correct service. Services are loaded into
+    // memory and the gateway should know the routes during their execution.
+    //
+    // ? -----------------------------------------------------------------------
+    info!("Initializing routes");
+    init_in_memory_routes(None).await;
+
+    // ? -----------------------------------------------------------------------
+    // ? Here the current thread receives an instance of the prisma client.
+    //
+    // Each thread should contains a prisma instance. Otherwise the application
+    // should raise an adapter error on try to perform the first database query.
+    //
+    // ? -----------------------------------------------------------------------
+    info!("Start the database connectors");
     generate_prisma_client_of_thread(process_id()).await;
 
-    info!("Set the server configuration.");
+    info!("Set the server configuration");
     let server = HttpServer::new(move || {
-        let config = SvcConfig::new();
-        debug!("Configured Origins: {:?}", config.allowed_origins);
+        let api_config = config.api.clone();
+        let token_config = config.core.token.clone();
 
         let cors = Cors::default()
             .allowed_origin_fn(move |origin, _| {
-                config
+                api_config
                     .allowed_origins
                     .contains(&origin.to_str().unwrap_or("").to_string())
             })
@@ -93,18 +133,8 @@ pub async fn main() -> std::io::Result<()> {
 
         let db = AppState::init();
 
-        debug!("Configured DB: {:?}", db);
-
         App::new()
-            .app_data(
-                web::Data::new(TokenSecret {
-                    token_secret_key: config.token_secret_key,
-                    token_expiration: config.token_expiration,
-                    token_hmac_secret: config.token_hmac_secret,
-                    token_email_notifier: config.token_email_notifier,
-                })
-                .clone(),
-            )
+            .app_data(web::Data::new(token_config).clone())
             .app_data(web::Data::new(db).clone())
             // ? ---------------------------------------------------------------
             // ? Configure CORS policies
@@ -118,7 +148,12 @@ pub async fn main() -> std::io::Result<()> {
             .wrap(Logger::default().exclude_regex("/health/*"))
             // These wrap create the agent that performed the request and
             // exclude the health check route.
-            .wrap(Logger::new("%a %{User-Agent}i").exclude_regex("/health/*"))
+            .wrap(
+                Logger::new("%a %{User-Agent}i")
+                    .exclude_regex("/health/*")
+                    .exclude_regex("/swagger-ui/*")
+                    .exclude_regex("//auth/google/*"),
+            )
             // ? ---------------------------------------------------------------
             // ? Configure Injection modules
             // ? ---------------------------------------------------------------
@@ -224,14 +259,16 @@ pub async fn main() -> std::io::Result<()> {
             // ? Configure gateway routes
             // ? ---------------------------------------------------------------
             .app_data(web::Data::new(Client::default()))
-            .app_data(web::Data::new(config.gateway_timeout))
+            .app_data(web::Data::new(api_config.gateway_timeout))
             .service(
                 web::scope(&format!("/{}", GATEWAY_API_SCOPE))
                     .default_service(web::to(route_request)),
             )
     });
 
-    if config.tls_cert_path.is_some() && config.tls_key_path.is_some() {
+    if api_config.tls_cert_path.is_some() && api_config.tls_key_path.is_some() {
+        let api_config = api_config.clone();
+
         info!("Load TLS cert and key.");
 
         // To create a self-signed temporary cert for testing:
@@ -250,30 +287,33 @@ pub async fn main() -> std::io::Result<()> {
 
         builder
             .set_private_key_file(
-                config.tls_key_path.unwrap(),
+                api_config.tls_key_path.unwrap(),
                 SslFiletype::PEM,
             )
             .unwrap();
 
         builder
-            .set_certificate_chain_file(config.tls_cert_path.unwrap())
+            .set_certificate_chain_file(api_config.tls_cert_path.unwrap())
             .unwrap();
 
-        info!("Fire the server with TLS.");
+        info!("Fire the server with TLS");
         return server
             .bind_openssl(
-                format!("{}:{}", config.service_ip, config.service_port),
+                format!(
+                    "{}:{}",
+                    api_config.service_ip, api_config.service_port
+                ),
                 builder,
             )?
-            .workers(config.service_workers as usize)
+            .workers(api_config.service_workers.to_owned() as usize)
             .run()
             .await;
     }
 
-    info!("Fire the server without TLS.");
+    info!("Fire the server without TLS");
     server
-        .bind((config.service_ip, config.service_port))?
-        .workers(config.service_workers as usize)
+        .bind((api_config.service_ip, api_config.service_port))?
+        .workers(api_config.service_workers as usize)
         .run()
         .await
 }
