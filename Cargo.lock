@@ -2512,6 +2512,7 @@ dependencies = [
  "lazy_static",
  "log",
  "mockall",
+ "mycelium-config",
  "pasetors",
  "regex",
  "reqwest",
@@ -2550,6 +2551,7 @@ dependencies = [
  "lazy_static",
  "log",
  "myc-core",
+ "mycelium-config",
  "mycelium-memory-db",
  "mycelium-prisma",
  "mycelium-redis",
@@ -2628,6 +2630,7 @@ dependencies = [
  "lazy_static",
  "log",
  "myc-core",
+ "mycelium-config",
  "prisma-client-rust",
  "prisma-client-rust-cli",
  "serde",
@@ -2646,8 +2649,12 @@ dependencies = [
  "chrono",
  "clean-base",
  "deadpool-redis",
+ "futures",
  "lazy_static",
  "myc-core",
+ "mycelium-config",
+ "serde",
+ "serde_json",
  "shaku",
 ]
 
@@ -2675,6 +2682,7 @@ dependencies = [
  "async-trait",
  "clean-base",
  "env_logger",
+ "lazy_static",
  "lettre",
  "log",
  "minijinja",
@@ -2684,6 +2692,7 @@ dependencies = [
  "serde_json",
  "shaku",
  "shaku_actix",
+ "tokio",
 ]
 
 [[package]]

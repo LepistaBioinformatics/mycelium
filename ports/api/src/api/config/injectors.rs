@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use crate::modules::{
     AccountFetchingModule, AccountRegistrationModule,
     AccountTypeDeletionModule, AccountTypeRegistrationModule,
@@ -18,7 +20,6 @@ use crate::modules::{
 };
 
 use actix_web::web;
-use myc_http_tools::Email;
 use myc_mem_db::repositories::{
     RoutesFetchingMemDbRepo, RoutesFetchingMemDbRepoParameters,
 };
@@ -82,104 +83,13 @@ use myc_redis::repositories::{
     SessionTokenUpdatingRedisDbRepository,
     SessionTokenUpdatingRedisDbRepositoryParameters,
 };
-use myc_smtp::{
-    models::SmtpConfig,
-    repositories::{
-        MessageSendingSqlDbRepository, MessageSendingSqlDbRepositoryParameters,
-    },
+use myc_smtp::repositories::{
+    MessageSendingSmtpRepository, MessageSendingSmtpRepositoryParameters,
 };
-use std::{env::var_os, sync::Arc};
-
-pub struct SvcConfig {
-    pub service_ip: String,
-    pub service_port: u16,
-    pub allowed_origins: Vec<String>,
-    pub service_workers: i32,
-    pub gateway_timeout: u64,
-    pub tls_cert_path: Option<String>,
-    pub tls_key_path: Option<String>,
-    pub token_secret_key: String,
-    pub token_expiration: i64,
-    pub token_hmac_secret: String,
-    pub token_email_notifier: Email,
-}
-
-impl SvcConfig {
-    pub fn new() -> Self {
-        Self {
-            service_ip: match var_os("SERVICE_IP") {
-                Some(path) => path.into_string().unwrap(),
-                None => String::from("0.0.0.0"),
-            },
-            service_port: match var_os("SERVICE_PORT") {
-                Some(path) => {
-                    path.into_string().unwrap().parse::<u16>().unwrap()
-                }
-                None => 8080,
-            },
-            allowed_origins: match var_os("ALLOWED_ORIGINS") {
-                Some(path) => path
-                    .into_string()
-                    .unwrap()
-                    .split(",")
-                    .into_iter()
-                    .map(|i| i.to_string())
-                    .collect(),
-                None => vec!["http://localhost:8080".to_string()],
-            },
-            service_workers: match var_os("SERVICE_WORKERS") {
-                Some(path) => {
-                    path.into_string().unwrap().parse::<i32>().unwrap()
-                }
-                None => 10,
-            },
-            gateway_timeout: match var_os("GATEWAY_TIMEOUT") {
-                Some(path) => {
-                    path.into_string().unwrap().parse::<u64>().unwrap()
-                }
-                None => 5 as u64,
-            },
-            tls_cert_path: match var_os("TLS_CERT_PATH") {
-                Some(path) => Some(path.into_string().unwrap()),
-                None => None,
-            },
-            tls_key_path: match var_os("TLS_KEY_PATH") {
-                Some(path) => Some(path.into_string().unwrap()),
-                None => None,
-            },
-            token_secret_key: match var_os("TOKEN_SECRET_KEY") {
-                Some(path) => path.into_string().unwrap(),
-                None => panic!("TOKEN_SECRET_KEY is not set"),
-            },
-            token_expiration: match var_os("TOKEN_EXPIRATION") {
-                Some(path) => {
-                    path.into_string().unwrap().parse::<i64>().unwrap()
-                }
-                None => 3600,
-            },
-            token_hmac_secret: match var_os("TOKEN_HMAC_SECRET") {
-                Some(path) => path.into_string().unwrap(),
-                None => panic!("TOKEN_HMAC_SECRET is not set"),
-            },
-            token_email_notifier: match var_os("TOKEN_EMAIL_NOTIFIER") {
-                Some(email) => {
-                    match Email::from_string(email.into_string().unwrap()) {
-                        Ok(email) => email,
-                        Err(err) => panic!(
-                            "TOKEN_EMAIL_NOTIFIER is not a valid email: {err}"
-                        ),
-                    }
-                }
-                None => panic!("TOKEN_EMAIL_NOTIFIER is not set"),
-            },
-        }
-    }
-}
 
 /// Configure injection modules.
 pub fn configure(config: &mut web::ServiceConfig) {
     config
-        //.app_data(web::Data::new(redis_pool.clone()).clone())
         // ? -------------------------------------------------------------------
         // ? Account
         // ? -------------------------------------------------------------------
@@ -286,12 +196,8 @@ pub fn configure(config: &mut web::ServiceConfig) {
         // ? -------------------------------------------------------------------
         .app_data(Arc::new(
             MessageSendingModule::builder()
-                .with_component_parameters::<MessageSendingSqlDbRepository>(
-                    MessageSendingSqlDbRepositoryParameters {
-                        config: SmtpConfig::from_default_config_file(
-                            PathBuf::from("config.yaml"),
-                        ).await?
-                    },
+                .with_component_parameters::<MessageSendingSmtpRepository>(
+                    MessageSendingSmtpRepositoryParameters {},
                 )
                 .build(),
         ))

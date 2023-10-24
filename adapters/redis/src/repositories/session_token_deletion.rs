@@ -1,4 +1,5 @@
-use super::connectors::REDIS_CONNECTOR;
+use super::connectors::get_client;
+use std::process::id as process_id;
 
 use async_trait::async_trait;
 use clean_base::{
@@ -19,7 +20,19 @@ impl SessionTokenDeletion for SessionTokenDeletionRedisDbRepository {
         &self,
         session_key: String,
     ) -> Result<DeletionResponseKind<String>, MappedErrors> {
-        let mut connection = match REDIS_CONNECTOR.get().await {
+        let tmp_client = get_client("url".to_string()).await;
+
+        let client = match tmp_client.get(&process_id()) {
+            None => {
+                return creation_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .as_error()
+            }
+            Some(res) => res,
+        };
+
+        let mut connection = match client.get().await {
             Ok(conn) => conn,
             Err(err) => {
                 return creation_err(format!(

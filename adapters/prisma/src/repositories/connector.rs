@@ -6,7 +6,7 @@ use std::process::id as process_id;
 
 lazy_static! {
     #[derive(Debug)]
-    pub static ref PRIMA_CONNECTOR: Mutex<HashMap<u32, PrismaClient>> = Mutex::new(HashMap::new());
+    pub(crate) static ref PRIMA_CONNECTOR: Mutex<HashMap<u32, PrismaClient>> = Mutex::new(HashMap::new());
 }
 
 /// This function check it the current thread already contains a prisma client
