@@ -202,25 +202,18 @@ pub async fn main() -> std::io::Result<()> {
         // Google OAuth2
         //
         // ? -------------------------------------------------------------------
-        let (gateway_scopes, app) = match auth_config.google {
+        let gateway_scopes = match auth_config.google {
             OptionalConfig::Enabled(_) => {
-                debug!("Configuring Google authentication");
+                debug!("Configure Google authentication");
                 //
                 // Configure OAuth2 Scope
                 //
-                let scope = mycelium_scope.service(
+                mycelium_scope.service(
                     web::scope("/auth/google")
                         .configure(google_handlers::configure),
-                );
-                //
-                // Configure OAuth2 Data
-                //
-                //let updated_app =
-                //    app.app_data(web::Data::new(google_config).clone());
-
-                (scope, app)
+                )
             }
-            _ => (mycelium_scope, app),
+            _ => mycelium_scope,
         };
 
         app
