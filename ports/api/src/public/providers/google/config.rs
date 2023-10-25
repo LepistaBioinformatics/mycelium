@@ -7,9 +7,9 @@ pub struct GoogleOauthConfig {
     pub jwt_secret: String,
     pub jwt_expires_in: String,
     pub jwt_max_age: i64,
-    pub google_oauth_client_id: String,
-    pub google_oauth_client_secret: String,
-    pub google_oauth_redirect_url: String,
+    pub oauth_client_id: String,
+    pub oauth_client_secret: String,
+    pub oauth_redirect_url: String,
 }
 
 impl GoogleOauthConfig {
@@ -42,9 +42,9 @@ impl GoogleOauthConfig {
             jwt_secret,
             jwt_expires_in,
             jwt_max_age: jwt_max_age.parse::<i64>().unwrap(),
-            google_oauth_client_id,
-            google_oauth_client_secret,
-            google_oauth_redirect_url,
+            oauth_client_id: google_oauth_client_id,
+            oauth_client_secret: google_oauth_client_secret,
+            oauth_redirect_url: google_oauth_redirect_url,
         }
     }
 }
