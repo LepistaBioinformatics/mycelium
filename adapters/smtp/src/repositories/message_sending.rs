@@ -9,6 +9,7 @@ use lettre::{
     message::header::ContentType, transport::smtp::authentication::Credentials,
     Message as LettreMessage, SmtpTransport, Transport,
 };
+use myc_config::optional_config::OptionalConfig;
 use myc_core::domain::{dtos::message::Message, entities::MessageSending};
 use shaku::Component;
 
@@ -31,6 +32,16 @@ impl MessageSending for MessageSendingSmtpRepository {
                 )
                 .as_error()
             }
+        };
+
+        let config = match config {
+            OptionalConfig::Disabled => {
+                return Ok(CreateResponseKind::NotCreated(
+                    message,
+                    "SMTP config is disabled".to_string(),
+                ))
+            }
+            OptionalConfig::Enabled(config) => config,
         };
 
         let email = LettreMessage::builder()
@@ -67,7 +78,7 @@ impl MessageSending for MessageSendingSmtpRepository {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::settings::init_config_from_file;
+    use crate::settings::init_smtp_config_from_file;
 
     use myc_core::domain::dtos::email::Email;
     use std::{path::PathBuf, str::FromStr};
@@ -90,7 +101,7 @@ mod tests {
                 Err(err) => panic!("Error on parse ENV_TEST_EMAIL: {err}"),
             };
 
-        init_config_from_file(settings_env_path).await;
+        init_smtp_config_from_file(Some(settings_env_path), None).await;
 
         let email = match Email::from_string(env_test_email) {
             Ok(email) => email,

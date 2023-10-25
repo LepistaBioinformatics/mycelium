@@ -1,4 +1,4 @@
-use super::{auth::GoogleUserResult, config::Config};
+use super::{auth::GoogleUserResult, config::GoogleOauthConfig};
 
 use actix_web::{http::header::Header, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
@@ -13,6 +13,7 @@ use myc_core::domain::dtos::email::Email;
 /// request and return the user email as response.
 pub async fn check_credentials(
     req: HttpRequest,
+    config: GoogleOauthConfig,
 ) -> Result<Email, MappedErrors> {
     let auth = match Authorization::<Bearer>::parse(&req) {
         Err(err) => {
@@ -22,7 +23,7 @@ pub async fn check_credentials(
         Ok(res) => res,
     };
 
-    decode_bearer_token_on_google(auth.to_owned()).await
+    decode_bearer_token_on_google(auth.to_owned(), config).await
 }
 
 /// Decode the bearer token on Google.
@@ -33,8 +34,8 @@ pub async fn check_credentials(
 ///
 async fn decode_bearer_token_on_google(
     auth: Authorization<Bearer>,
+    config: GoogleOauthConfig,
 ) -> Result<Email, MappedErrors> {
-    let config = Config::init();
     match decode::<GoogleUserResult>(
         &auth
             .to_string()

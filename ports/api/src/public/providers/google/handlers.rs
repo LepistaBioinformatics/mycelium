@@ -1,7 +1,8 @@
 use super::{
     auth::{get_google_user, request_token},
-    model::{AppState, QueryCode, TokenClaims},
+    model::{QueryCode, TokenClaims},
 };
+use crate::models::auth_config::AuthConfig;
 
 use actix_web::{
     cookie::{time::Duration as ActixWebDuration, Cookie},
@@ -10,12 +11,13 @@ use actix_web::{
 use chrono::{prelude::*, Duration};
 use jsonwebtoken::{encode, EncodingKey, Header};
 use log::debug;
+use myc_config::optional_config::OptionalConfig;
 use reqwest::header::LOCATION;
 
 #[get("/callback")]
 async fn google_oauth_handler(
     query: web::Query<QueryCode>,
-    data: web::Data<AppState>,
+    data: web::Data<AuthConfig>,
 ) -> impl Responder {
     let code = &query.code;
     let state = &query.state;
@@ -52,11 +54,21 @@ async fn google_oauth_handler(
         Ok(res) => res,
     };
 
-    let jwt_secret = data.env.jwt_secret.to_owned();
+    let config = match data.as_ref().google.to_owned() {
+        OptionalConfig::Disabled => {
+            return HttpResponse::BadGateway().json(serde_json::json!({
+                "status": "fail",
+                "message": "Google Oauth2 is disabled!"
+            }));
+        }
+        OptionalConfig::Enabled(config) => config,
+    };
+
+    let jwt_secret = config.jwt_secret.to_owned();
     let now = Utc::now();
     let iat = now.timestamp() as usize;
     let exp =
-        (now + Duration::minutes(data.env.jwt_max_age)).timestamp() as usize;
+        (now + Duration::minutes(config.jwt_max_age)).timestamp() as usize;
 
     let claims = TokenClaims {
         sub: google_user.id.to_owned(),
@@ -85,12 +97,12 @@ async fn google_oauth_handler(
     HttpResponse::Ok()
         .append_header((
             LOCATION,
-            format!("{}{}", data.env.client_origin.to_owned(), state),
+            format!("{}{}", config.client_origin.to_owned(), state),
         ))
         .cookie(
             Cookie::build("token", token.to_owned())
                 .path("/")
-                .max_age(ActixWebDuration::new(60 * data.env.jwt_max_age, 0))
+                .max_age(ActixWebDuration::new(60 * config.jwt_max_age, 0))
                 .http_only(true)
                 .finish(),
         )

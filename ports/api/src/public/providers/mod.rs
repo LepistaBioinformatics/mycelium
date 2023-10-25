@@ -1,6 +1,9 @@
 // Export from this module
 mod azure;
-pub use azure::check_credentials::check_credentials as az_check_credentials;
+pub use azure::{
+    check_credentials::check_credentials as az_check_credentials,
+    config as azure_config,
+};
 
 mod google;
 pub use google::{

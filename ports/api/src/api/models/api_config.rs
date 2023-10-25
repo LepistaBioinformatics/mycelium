@@ -1,21 +1,26 @@
 use clean_base::utils::errors::{factories::creation_err, MappedErrors};
-use myc_config::load_config_from_file;
-use myc_http_tools::Email;
+use myc_config::{load_config_from_file, optional_config::OptionalConfig};
 use serde::Deserialize;
-use std::{env::var_os, path::PathBuf};
+use std::path::PathBuf;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ApiConfig {
+pub struct TlsConfig {
+    pub tls_cert_path: Option<String>,
+    pub tls_key_path: Option<String>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ApiConfig {
     pub service_ip: String,
     pub service_port: u16,
     pub allowed_origins: Vec<String>,
     pub service_workers: i32,
     pub gateway_timeout: u64,
-    pub tls_cert_path: Option<String>,
-    pub tls_key_path: Option<String>,
     pub logging_level: String,
     pub routes: String,
+    pub tls: OptionalConfig<TlsConfig>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -43,7 +48,7 @@ impl ApiConfig {
     }
 }
 
-pub struct SvcConfig {
+/* pub struct SvcConfig {
     pub service_ip: String,
     pub service_port: u16,
     pub allowed_origins: Vec<String>,
@@ -127,4 +132,4 @@ impl SvcConfig {
             },
         }
     }
-}
+} */
