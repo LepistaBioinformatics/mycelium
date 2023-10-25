@@ -1,3 +1,28 @@
+## v4.2.0 (2023-10-25)
+
+### Feat
+
+- upgrade auth models tobe loaded from config file
+- implements configuration passthrough from api port to another application layers
+- migrate session-token management from redis to postgres
+- wip - implements the config manager module
+- wip - implements the config manager module
+- wip - start implementation of the session token management during users accounts lyfe cycle
+- start implementation of the config manager
+- turn accounts creation process to possible without user registration
+- create is-principal field to indicate users which created the accounts
+- finish implementation of the user and account registrations in two independent steps
+- implements the email check function to start the proccess of authentication
+- upgrade prisma adapter user model to include providers as options
+
+### Fix
+
+- fix app configuration at the api port
+- fix google oauth configs wrong written
+- fix the user fetching and registration adapters to include and omit password informations and init creation of users endpoints
+- upgrade staff account creation flow to include password and hash into data persistence modules
+- include error handling if some exception occurred during the user registration
+
 ## v4.1.1 (2023-09-19)
 
 ### Fix
