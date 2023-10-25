@@ -1,19 +1,4 @@
-use super::config;
-
 use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone)]
-pub struct AppState {
-    pub env: config::Config,
-}
-
-impl AppState {
-    pub fn init() -> AppState {
-        AppState {
-            env: config::Config::init(),
-        }
-    }
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TokenClaims {

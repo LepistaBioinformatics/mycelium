@@ -37,16 +37,3 @@ services:
     networks:
       mycelium_net:
         ipv4_address: ${POSTGRES_SERVICE_SUBNET}
-
-  mycelium_redis:
-    container_name: mycelium-redis
-    image: redis:7-alpine
-    restart: on-failure
-    ports:
-      - ${REDIS_SERVICE_PORT}:6379/tcp
-    volumes:
-      - ./redis/volume:/data
-    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
-    networks:
-      mycelium_net:
-        ipv4_address: ${REDIS_SERVICE_SUBNET}

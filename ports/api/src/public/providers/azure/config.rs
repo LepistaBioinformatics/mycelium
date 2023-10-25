@@ -7,10 +7,12 @@ use oauth2::{
     ClientId, ClientSecret, CsrfToken, PkceCodeChallenge, RedirectUrl, Scope,
     TokenResponse, TokenUrl,
 };
+use serde::{Deserialize, Serialize};
 use url::ParseError;
 
-#[derive(Debug, Clone)]
-pub struct Config {
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AzureOauthConfig {
     pub client_origin: String,
     pub jwt_secret: String,
     pub jwt_expires_in: String,
@@ -20,8 +22,8 @@ pub struct Config {
     pub azure_oauth_redirect_url: String,
 }
 
-impl Config {
-    pub fn init() -> Config {
+impl AzureOauthConfig {
+    /* pub fn init() -> AzureOauthConfig {
         let client_origin = std::env::var("AZURE_CLIENT_ORIGIN")
             .expect("AZURE_CLIENT_ORIGIN must be set");
 
@@ -52,7 +54,7 @@ impl Config {
         let azure_oauth_token_url = std::env::var("AZURE_OAUTH_TOKEN_URL")
             .expect("AZURE_OAUTH_TOKEN_URL must be set");
 
-        Config {
+        AzureOauthConfig {
             client_origin,
             jwt_secret,
             jwt_expires_in,
@@ -61,11 +63,11 @@ impl Config {
             azure_oauth_client_secret,
             azure_oauth_redirect_url,
         }
-    }
+    } */
 
     pub fn init_basic_client(
         &self,
-        custom_config: Option<Config>,
+        custom_config: Option<AzureOauthConfig>,
     ) -> Result<(), ParseError> {
         let mut _config = self.to_owned();
 
@@ -160,7 +162,7 @@ mod tests {
 
     #[test]
     fn test_authorization_code_generation() {
-        let config = Config {
+        let config = AzureOauthConfig {
             jwt_secret: "secret".to_string(),
             jwt_expires_in: "60m".to_string(),
             jwt_max_age: 60,

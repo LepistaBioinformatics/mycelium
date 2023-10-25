@@ -149,7 +149,7 @@ pub async fn create_default_user(
 
     if let Err(err) = message_sending_repo
         .send(Message {
-            from: token_secret.token_email_notifier,
+            from: Email::from_string(token_secret.token_email_notifier)?,
             to: email_instance,
             cc: None,
             subject: String::from("Action required: Confirm your email address"),

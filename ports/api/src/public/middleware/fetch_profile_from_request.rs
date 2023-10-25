@@ -1,4 +1,5 @@
 use crate::{
+    models::auth_config::AuthConfig,
     providers::{az_check_credentials, gc_check_credentials},
     responses::GatewayError,
     LicensedResources, Profile,
@@ -9,6 +10,7 @@ use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use futures::Future;
 use jwt::{Header as JwtHeader, RegisteredClaims, Token};
 use log::{debug, warn};
+use myc_config::optional_config::OptionalConfig;
 use myc_core::{
     domain::dtos::{account::VerboseStatus, email::Email, profile::Owner},
     use_cases::roles::service::profile::{
@@ -173,7 +175,38 @@ async fn discover_provider(
     {
         az_check_credentials(req).await
     } else if auth_provider.contains("google") {
-        gc_check_credentials(req).await
+        //
+        // Try to extract authentication configurations from HTTP request.
+        //
+        let req_auth_config = req.app_data::<AuthConfig>().clone();
+        //
+        // If Google OAuth2 config if not available the returns a Forbidden.
+        //
+        if let None = req_auth_config {
+            return Err(GatewayError::Forbidden(format!(
+                "Unable to extract Google auth config from request."
+            )));
+        }
+        //
+        // If Google OAuth2 config if not available the returns a Forbidden
+        // response.
+        //
+        let config = match req_auth_config.unwrap().google.clone() {
+            OptionalConfig::Disabled => {
+                warn!(
+                    "Users trying to request and the Google OAuth2 is disabled."
+                );
+
+                return Err(GatewayError::Forbidden(format!(
+                    "Unable to extract auth config from request."
+                )));
+            }
+            OptionalConfig::Enabled(config) => config,
+        };
+        //
+        // Check if credentials are valid.
+        //
+        gc_check_credentials(req, config).await
     } else {
         return Err(GatewayError::Forbidden(format!(
             "Unknown identity provider: {auth_provider}",

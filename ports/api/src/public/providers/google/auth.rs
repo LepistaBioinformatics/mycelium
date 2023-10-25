@@ -1,6 +1,7 @@
-use super::model::AppState;
+use crate::models::auth_config::AuthConfig;
 
 use actix_web::web;
+use myc_config::optional_config::OptionalConfig;
 use reqwest::{Client, Url};
 use serde::Deserialize;
 use std::error::Error;
@@ -25,11 +26,20 @@ pub(crate) struct GoogleUserResult {
 
 pub(crate) async fn request_token(
     authorization_code: &str,
-    data: &web::Data<AppState>,
+    data: &web::Data<AuthConfig>,
 ) -> Result<OAuthResponse, Box<dyn Error>> {
-    let redirect_url = data.env.google_oauth_redirect_url.to_owned();
-    let client_secret = data.env.google_oauth_client_secret.to_owned();
-    let client_id = data.env.google_oauth_client_id.to_owned();
+    let config = match data.as_ref().google.to_owned() {
+        OptionalConfig::Disabled => {
+            return Err(From::from(
+                "Google Oauth2 is not enabled on this server.",
+            ));
+        }
+        OptionalConfig::Enabled(config) => config,
+    };
+
+    let redirect_url = config.google_oauth_redirect_url.to_owned();
+    let client_secret = config.google_oauth_client_secret.to_owned();
+    let client_id = config.google_oauth_client_id.to_owned();
 
     let root_url = "https://oauth2.googleapis.com/token";
     let client = Client::new();

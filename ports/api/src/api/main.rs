@@ -8,9 +8,7 @@ mod settings;
 use actix_cors::Cors;
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use awc::Client;
-use config::{
-    injectors::configure as configure_injection_modules, ComposedSvcConfig,
-};
+use config::injectors::configure as configure_injection_modules;
 use endpoints::{
     default_users::{
         account_endpoints as default_users_account_endpoints,
@@ -33,9 +31,12 @@ use endpoints::{
     },
 };
 use log::{debug, info};
+use models::config_handler::ConfigHandler;
+use myc_config::optional_config::OptionalConfig;
 use myc_core::settings::init_in_memory_routes;
-use myc_http_tools::providers::{google_handlers, google_models::AppState};
+use myc_http_tools::providers::google_handlers;
 use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
+use myc_smtp::settings::init_smtp_config_from_file;
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
@@ -68,8 +69,7 @@ pub async fn main() -> std::io::Result<()> {
     };
 
     let config =
-        match ComposedSvcConfig::init_from_file(PathBuf::from(env_config_path))
-        {
+        match ConfigHandler::init_from_file(PathBuf::from(env_config_path)) {
             Ok(res) => res,
             Err(err) => panic!("Error on init config: {err}"),
         };
@@ -94,7 +94,18 @@ pub async fn main() -> std::io::Result<()> {
     //
     // ? -----------------------------------------------------------------------
     info!("Initializing routes");
-    init_in_memory_routes(None).await;
+    init_in_memory_routes(Some(config.api.routes.clone())).await;
+
+    // ? -----------------------------------------------------------------------
+    // ? Routes should be used on API gateway
+    //
+    // When users perform queries to the API gateway, the gateway should
+    // redirect the request to the correct service. Services are loaded into
+    // memory and the gateway should know the routes during their execution.
+    //
+    // ? -----------------------------------------------------------------------
+    info!("Initializing SMTP configs");
+    init_smtp_config_from_file(None, Some(config.smtp)).await;
 
     // ? -----------------------------------------------------------------------
     // ? Here the current thread receives an instance of the prisma client.
@@ -104,11 +115,17 @@ pub async fn main() -> std::io::Result<()> {
     //
     // ? -----------------------------------------------------------------------
     info!("Start the database connectors");
+
+    std::env::set_var("DATABASE_URL", config.prisma.database_url.clone());
     generate_prisma_client_of_thread(process_id()).await;
 
+    // ? -----------------------------------------------------------------------
+    // ? Configure the server
+    // ? -----------------------------------------------------------------------
     info!("Set the server configuration");
     let server = HttpServer::new(move || {
         let api_config = config.api.clone();
+        let auth_config = config.auth.clone();
         let token_config = config.core.token.clone();
 
         let cors = Cors::default()
@@ -131,11 +148,82 @@ pub async fn main() -> std::io::Result<()> {
 
         debug!("Configured Cors: {:?}", cors);
 
-        let db = AppState::init();
+        // ? -------------------------------------------------------------------
+        // ? Configure base application
+        // ? -------------------------------------------------------------------
 
-        App::new()
+        let app = App::new()
             .app_data(web::Data::new(token_config).clone())
-            .app_data(web::Data::new(db).clone())
+            .app_data(web::Data::new(config.auth.clone()).clone());
+
+        // ? -------------------------------------------------------------------
+        // ? Configure base mycelium scope
+        // ? -------------------------------------------------------------------
+        let mycelium_scope = web::scope(&format!("/{}", MYCELIUM_API_SCOPE))
+            //
+            // Index
+            //
+            .service(
+                web::scope("/health")
+                    .configure(heath_check_endpoints::configure),
+            )
+            //
+            // Default Users
+            //
+            .service(
+                web::scope("/default-users")
+                    .configure(default_users_account_endpoints::configure)
+                    .configure(default_users_profile_endpoints::configure)
+                    .configure(default_users_user_endpoints::configure),
+            )
+            //
+            // Manager
+            //
+            .service(
+                web::scope("/managers")
+                    .configure(manager_account_endpoints::configure)
+                    .configure(manager_error_code_endpoints::configure)
+                    .configure(manager_guest_endpoints::configure)
+                    .configure(manager_guest_role_endpoints::configure)
+                    .configure(manager_role_endpoints::configure)
+                    .configure(manager_webhook_endpoints::configure),
+            )
+            //
+            // Staff
+            //
+            .service(
+                web::scope("/staffs")
+                    .configure(staff_account_endpoints::configure),
+            );
+
+        // ? -------------------------------------------------------------------
+        // ? Configure authentication elements
+        //
+        // Google OAuth2
+        //
+        // ? -------------------------------------------------------------------
+        let (gateway_scopes, app) = match auth_config.google {
+            OptionalConfig::Enabled(_) => {
+                debug!("Configuring Google authentication");
+                //
+                // Configure OAuth2 Scope
+                //
+                let scope = mycelium_scope.service(
+                    web::scope("/auth/google")
+                        .configure(google_handlers::configure),
+                );
+                //
+                // Configure OAuth2 Data
+                //
+                //let updated_app =
+                //    app.app_data(web::Data::new(google_config).clone());
+
+                (scope, app)
+            }
+            _ => (mycelium_scope, app),
+        };
+
+        app
             // ? ---------------------------------------------------------------
             // ? Configure CORS policies
             // ? ---------------------------------------------------------------
@@ -145,14 +233,12 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             // These wrap create the basic log elements and exclude the health
             // check route.
-            .wrap(Logger::default().exclude_regex("/health/*"))
-            // These wrap create the agent that performed the request and
-            // exclude the health check route.
             .wrap(
                 Logger::new("%a %{User-Agent}i")
                     .exclude_regex("/health/*")
                     .exclude_regex("/swagger-ui/*")
-                    .exclude_regex("//auth/google/*"),
+                    .exclude_regex("/auth/google/*")
+                    .exclude_regex("/auth/azure/*"),
             )
             // ? ---------------------------------------------------------------
             // ? Configure Injection modules
@@ -161,55 +247,7 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             // ? Configure mycelium routes
             // ? ---------------------------------------------------------------
-            .service(
-                web::scope(&format!("/{}", MYCELIUM_API_SCOPE))
-                    //
-                    // Auth
-                    //
-                    .service(
-                        web::scope("/auth/google")
-                            .configure(google_handlers::configure),
-                    )
-                    //
-                    // Index
-                    //
-                    .service(
-                        web::scope("/health")
-                            .configure(heath_check_endpoints::configure),
-                    )
-                    //
-                    // Default Users
-                    //
-                    .service(
-                        web::scope("/default-users")
-                            .configure(
-                                default_users_account_endpoints::configure,
-                            )
-                            .configure(
-                                default_users_profile_endpoints::configure,
-                            )
-                            .configure(default_users_user_endpoints::configure),
-                    )
-                    //
-                    // Manager
-                    //
-                    .service(
-                        web::scope("/managers")
-                            .configure(manager_account_endpoints::configure)
-                            .configure(manager_error_code_endpoints::configure)
-                            .configure(manager_guest_endpoints::configure)
-                            .configure(manager_guest_role_endpoints::configure)
-                            .configure(manager_role_endpoints::configure)
-                            .configure(manager_webhook_endpoints::configure),
-                    )
-                    //
-                    // Staff
-                    //
-                    .service(
-                        web::scope("/staffs")
-                            .configure(staff_account_endpoints::configure),
-                    ),
-            )
+            .service(gateway_scopes)
             // ? ---------------------------------------------------------------
             // ? Configure API documentation
             // ? ---------------------------------------------------------------
@@ -266,10 +304,17 @@ pub async fn main() -> std::io::Result<()> {
             )
     });
 
-    if api_config.tls_cert_path.is_some() && api_config.tls_key_path.is_some() {
+    let address = (
+        api_config.to_owned().service_ip,
+        api_config.to_owned().service_port,
+    );
+
+    info!("Listening on Address and Port: {:?}: ", address);
+
+    if let OptionalConfig::Enabled(tls_config) = api_config.to_owned().tls {
         let api_config = api_config.clone();
 
-        info!("Load TLS cert and key.");
+        info!("Load TLS cert and key");
 
         // To create a self-signed temporary cert for testing:
         //
@@ -287,24 +332,18 @@ pub async fn main() -> std::io::Result<()> {
 
         builder
             .set_private_key_file(
-                api_config.tls_key_path.unwrap(),
+                tls_config.tls_key_path.unwrap(),
                 SslFiletype::PEM,
             )
             .unwrap();
 
         builder
-            .set_certificate_chain_file(api_config.tls_cert_path.unwrap())
+            .set_certificate_chain_file(tls_config.tls_cert_path.unwrap())
             .unwrap();
 
         info!("Fire the server with TLS");
         return server
-            .bind_openssl(
-                format!(
-                    "{}:{}",
-                    api_config.service_ip, api_config.service_port
-                ),
-                builder,
-            )?
+            .bind_openssl(format!("{}:{}", address.0, address.1), builder)?
             .workers(api_config.service_workers.to_owned() as usize)
             .run()
             .await;
@@ -312,7 +351,7 @@ pub async fn main() -> std::io::Result<()> {
 
     info!("Fire the server without TLS");
     server
-        .bind((api_config.service_ip, api_config.service_port))?
+        .bind(address)?
         .workers(api_config.service_workers as usize)
         .run()
         .await

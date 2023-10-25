@@ -1,7 +1,7 @@
 pub mod middleware;
+pub mod models;
 pub mod providers;
 pub mod responses;
-
 pub mod settings;
 pub mod utils;
 

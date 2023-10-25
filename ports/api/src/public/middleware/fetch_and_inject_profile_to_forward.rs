@@ -1,3 +1,4 @@
+use super::fetch_profile_from_request;
 use crate::{responses::GatewayError, DEFAULT_PROFILE_KEY};
 
 use actix_web::HttpRequest;
@@ -5,8 +6,6 @@ use awc::ClientRequest;
 use log::warn;
 use reqwest::header::{HeaderName, HeaderValue};
 use std::str::FromStr;
-
-use super::fetch_profile_from_request;
 
 /// Fetch profile from email and inject on client request
 ///

@@ -1,5 +1,8 @@
-#[derive(Debug, Clone)]
-pub struct Config {
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GoogleOauthConfig {
     pub client_origin: String,
     pub jwt_secret: String,
     pub jwt_expires_in: String,
@@ -9,8 +12,8 @@ pub struct Config {
     pub google_oauth_redirect_url: String,
 }
 
-impl Config {
-    pub fn init() -> Config {
+impl GoogleOauthConfig {
+    pub fn init() -> GoogleOauthConfig {
         let client_origin = std::env::var("GOOGLE_CLIENT_ORIGIN")
             .expect("GOOGLE_CLIENT_ORIGIN must be set");
 
@@ -34,7 +37,7 @@ impl Config {
             std::env::var("GOOGLE_OAUTH_REDIRECT_URL")
                 .expect("GOOGLE_OAUTH_REDIRECT_URL must be set");
 
-        Config {
+        GoogleOauthConfig {
             client_origin,
             jwt_secret,
             jwt_expires_in,
