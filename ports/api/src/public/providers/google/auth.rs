@@ -37,9 +37,9 @@ pub(crate) async fn request_token(
         OptionalConfig::Enabled(config) => config,
     };
 
-    let redirect_url = config.google_oauth_redirect_url.to_owned();
-    let client_secret = config.google_oauth_client_secret.to_owned();
-    let client_id = config.google_oauth_client_id.to_owned();
+    let redirect_url = config.oauth_redirect_url.to_owned();
+    let client_secret = config.oauth_client_secret.to_owned();
+    let client_id = config.oauth_client_id.to_owned();
 
     let root_url = "https://oauth2.googleapis.com/token";
     let client = Client::new();

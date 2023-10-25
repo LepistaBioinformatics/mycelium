@@ -51,8 +51,8 @@ auth:
   google: disabled
   #  clientOrigin: ""
   #  jwtSecret: ""
-  #  tokenMaxAge: 60
-  #  tokenExpiredIn: 60m
+  #  jwtExpiresIn: 60m
+  #  jwtMaxAge: 60
   #  oauthClientId: ""
   #  oauthClientSecret: ""
   #  oauthRedirectUrl: ""
