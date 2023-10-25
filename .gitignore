@@ -14,5 +14,4 @@ config.dev.yaml
 #adapters/prisma/src/migrations
 
 # Other
-redis/volume
 postgres
