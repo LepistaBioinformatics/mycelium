@@ -2,32 +2,29 @@
 # ? CORE CONFIGURATIONS
 # ? ----------------------------------------------------------------------------
 core:
-  token_secret_key: ""
-  token_expiration: 3600
-  token_hmac_secret: ""
-  token_email_notifier: ""
+  token:
+    tokenSecretKey: ""
+    tokenExpiration: 3600
+    tokenHmacSecret: ""
+    tokenEmailNotifier: ""
 
 # ? ----------------------------------------------------------------------------
 # ? SQL DATABASE ADAPTER SETTINGS
 # ? ----------------------------------------------------------------------------
 prisma:
-  database_url: postgresql://postgres:postgres@175.20.10.2:5432/mycelium
-
-# ? ----------------------------------------------------------------------------
-# ? REDIS ADAPTER SETTINGS
-# ? ----------------------------------------------------------------------------
-redis:
-  enable: true
-  pool_max_open: 16
-  pool_max_idle: 8
-  pool_timeout_seconds: 1
-  pool_expire_seconds: 60
+  databaseUrl: postgresql://postgres:postgres@175.20.10.2:5432/mycelium
 
 # ? ----------------------------------------------------------------------------
 # ? SMTP ADAPTER SETTINGS SETTINGS
+#
+# SMTP value should be set disabled or configured with the smtp host, username,
+# and password. Case the smtp is disabled, the email notification will not be
+# sent.
+#
 # ? ----------------------------------------------------------------------------
+# Use the below commented line to disable smtp protocol usage.
+# smtp: disabled
 smtp:
-  enable: true
   host: ""
   username: ""
   password: ""
@@ -47,44 +44,40 @@ smtp:
 auth:
   # Internal authentication is the default authentication method. It uses the
   # database adapter plus the redis to flow along the users life cycle.
-  internal:
-    enable: true
+  internal: disabled
 
   # Google third party authentication. It uses the google oauth2 to authenticate
   # the user. It requires a valid client id and secret.
-  google:
-    enable: true
-    client_origin: http://localhost:3000
-    token_expired_in: 60m
-    token_max_age: 60
-    jwt_secret: ""
-    oauth_redirect_url: http://localhost:3000
-    oauth_client_id: ""
-    oauth_client_secret: ""
+  google: disabled
+  #  clientOrigin: ""
+  #  jwtSecret: ""
+  #  tokenMaxAge: 60
+  #  tokenExpiredIn: 60m
+  #  oauthClientId: ""
+  #  oauthClientSecret: ""
+  #  oauthRedirectUrl: ""
 
   # Azure third party authentication. It uses the azure oauth2 to authenticate
   # the user. It does not require a valid client id and secret. Working only
   # with the azure active directory.
-  azure:
-    enable: true
+  azure: disabled
 
 # ? ----------------------------------------------------------------------------
 # ? API PORT SETTINGS SETTINGS
 # ? ----------------------------------------------------------------------------
 api:
-  service_workers: 1
-  service_port: 8080
-  service_ip: 0.0.0.0
-  allowed_origins:
+  serviceIp: 0.0.0.0
+  servicePort: 8080
+  serviceWorkers: 1
+  gatewayTimeout: 60
+  allowedOrigins:
     - http://localhost:8080
     - http://localhost:3000
-
-  gateway_timeout: 60
 
   # ? --------------------------------------------------------------------------
   # ? LOGGING SETTINGS
   # ? --------------------------------------------------------------------------
-  logging_level: actix_web=debug,clean_base=debug,myc_api=debug
+  loggingLevel: actix_web=debug,clean_base=debug,myc_api=debug
 
   # ? --------------------------------------------------------------------------
   # ? API GATEWAY TLS SETTINGS
@@ -95,8 +88,9 @@ api:
   # able to connect to secure forwarding routes.
   #
   # ? --------------------------------------------------------------------------
-  tls_cert_path: ""
-  tls_key_path: ""
+  tls:
+    tlsCertPath: "cert.pem"
+    tlsKeyPath: "key.pem"
 
   # ? --------------------------------------------------------------------------
   # ? API GATEWAY ROUTE CONFIGURATION
@@ -121,7 +115,7 @@ api:
   #         protocol: https
   #
   # ? --------------------------------------------------------------------------
-  routes_file: test/mock/routes.yaml
+  routes: test/mock/routes.yaml
 
 # ? ----------------------------------------------------------------------------
 # ? API PORT SETTINGS SETTINGS
