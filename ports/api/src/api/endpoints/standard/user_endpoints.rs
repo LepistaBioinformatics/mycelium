@@ -20,7 +20,7 @@ use myc_core::{
             UserRegistration, UserUpdating,
         },
     },
-    use_cases::roles::default_users::user::{
+    use_cases::roles::standard::no_role::user::{
         check_email_password_validity, check_email_registration_status,
         check_token_and_activate_user, create_default_user,
         verify_confirmation_token_pasetor,

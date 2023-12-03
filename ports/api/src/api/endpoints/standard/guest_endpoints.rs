@@ -12,7 +12,7 @@ use myc_core::{
             GuestUserRegistration, MessageSending,
         },
     },
-    use_cases::roles::default_users::guest::guest_to_default_account,
+    use_cases::roles::standard::no_role::guest::guest_to_default_account,
 };
 use myc_http_tools::utils::JsonError;
 use serde::Deserialize;
