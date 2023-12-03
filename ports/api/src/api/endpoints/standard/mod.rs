@@ -14,7 +14,7 @@ use myc_core::{
         profile::{LicensedResources, Profile},
         user::User,
     },
-    use_cases::roles::default_users::user::EmailRegistrationStatus,
+    use_cases::roles::standard::no_role::user::EmailRegistrationStatus,
 };
 use myc_http_tools::utils::JsonError;
 use utoipa::OpenApi;

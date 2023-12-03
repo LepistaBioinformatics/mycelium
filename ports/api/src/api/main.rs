@@ -19,13 +19,6 @@ use actix_web::{
 use awc::Client;
 use config::injectors::configure as configure_injection_modules;
 use endpoints::{
-    default_users::{
-        account_endpoints as default_users_account_endpoints,
-        guest_endpoints as default_users_guest_endpoints,
-        profile_endpoints as default_users_profile_endpoints,
-        user_endpoints as default_users_user_endpoints,
-        ApiDoc as DefaultUsersApiDoc,
-    },
     index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
     manager::{
         account_endpoints as manager_account_endpoints,
@@ -38,6 +31,13 @@ use endpoints::{
     },
     staff::{
         account_endpoints as staff_account_endpoints, ApiDoc as StaffApiDoc,
+    },
+    standard::{
+        account_endpoints as standard_account_endpoints,
+        guest_endpoints as standard_guest_endpoints,
+        profile_endpoints as standard_profile_endpoints,
+        user_endpoints as standard_user_endpoints,
+        ApiDoc as DefaultUsersApiDoc,
     },
 };
 use log::{debug, info};
@@ -195,11 +195,13 @@ pub async fn main() -> std::io::Result<()> {
             // Default Users
             //
             .service(
-                web::scope("/default-users")
-                    .configure(default_users_account_endpoints::configure)
-                    .configure(default_users_profile_endpoints::configure)
-                    .configure(default_users_user_endpoints::configure)
-                    .configure(default_users_guest_endpoints::configure),
+                web::scope("/standard").service(
+                    web::scope("/no-role")
+                        .configure(standard_account_endpoints::configure)
+                        .configure(standard_profile_endpoints::configure)
+                        .configure(standard_user_endpoints::configure)
+                        .configure(standard_guest_endpoints::configure),
+                ),
             )
             //
             // Manager
@@ -299,7 +301,7 @@ pub async fn main() -> std::io::Result<()> {
                         ),
                         (
                             Url::new(
-                                "Default Users Endpoints",
+                                "Standard Users Endpoints",
                                 "/doc/default-users-openapi.json",
                             ),
                             DefaultUsersApiDoc::openapi(),
