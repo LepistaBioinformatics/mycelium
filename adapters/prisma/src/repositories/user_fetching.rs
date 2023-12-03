@@ -72,9 +72,9 @@ impl UserFetching for UserFetchingSqlDbRepository {
 
         if password_hash.is_some() {
             query_stmt.push(user_model::provider::is(vec![
-                identity_provider_model::password_hash::equals(Some(
-                    password_hash.unwrap().to_owned(),
-                )),
+                identity_provider_model::password_hash::equals(
+                    password_hash.to_owned(),
+                ),
             ]))
         }
 

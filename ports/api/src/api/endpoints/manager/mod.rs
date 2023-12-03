@@ -14,6 +14,7 @@ use myc_core::{
         guest::{GuestRole, GuestUser, Permissions},
         profile::{LicensedResources, Profile},
         role::Role,
+        webhook::{AccountPropagationWebHookResponse, HookTarget, WebHook},
     },
     use_cases::roles::managers::guest_role::ActionType,
 };
@@ -81,6 +82,9 @@ use utoipa::OpenApi;
             Profile,
             Role,
             VerboseStatus,
+            HookTarget,
+            WebHook,
+            AccountPropagationWebHookResponse,
             account_endpoints::CreateSubscriptionAccountBody,
             error_code_endpoints::CreateErrorCodeBody,
             error_code_endpoints::UpdateErrorCodeMessageAndDetailsBody,

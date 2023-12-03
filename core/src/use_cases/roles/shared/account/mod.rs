@@ -1,3 +1,3 @@
-mod get_or_create_default_account;
+mod get_or_create_default_subscription_account;
 
-pub use get_or_create_default_account::*;
+pub(crate) use get_or_create_default_subscription_account::*;

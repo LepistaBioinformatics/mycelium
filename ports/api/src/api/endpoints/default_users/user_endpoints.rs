@@ -1,10 +1,14 @@
-use crate::modules::{
-    MessageSendingModule, SessionTokenDeletionModule,
-    SessionTokenFetchingModule, SessionTokenRegistrationModule,
-    UserDeletionModule, UserFetchingModule, UserRegistrationModule,
+use crate::{
+    modules::{
+        MessageSendingModule, SessionTokenDeletionModule,
+        SessionTokenFetchingModule, SessionTokenRegistrationModule,
+        UserDeletionModule, UserFetchingModule, UserRegistrationModule,
+        UserUpdatingModule,
+    },
+    settings::{SESSION_KEY_EMAIL, SESSION_KEY_USER_ID},
 };
 
-use actix_web::{get, http::header, post, web, HttpResponse, Responder};
+use actix_web::{http::header, post, web, HttpResponse, Responder};
 use awc::error::HeaderValue;
 use log::warn;
 use myc_core::{
@@ -13,18 +17,19 @@ use myc_core::{
         entities::{
             MessageSending, SessionTokenDeletion, SessionTokenFetching,
             SessionTokenRegistration, UserDeletion, UserFetching,
-            UserRegistration,
+            UserRegistration, UserUpdating,
         },
     },
     use_cases::roles::default_users::user::{
-        check_email_registration_status, create_default_user,
+        check_email_password_validity, check_email_registration_status,
+        check_token_and_activate_user, create_default_user,
         verify_confirmation_token_pasetor,
     },
 };
 use myc_http_tools::{utils::JsonError, Email};
 use serde::Deserialize;
 use shaku_actix::Inject;
-use utoipa::{IntoParams, ToSchema};
+use utoipa::ToSchema;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -32,7 +37,12 @@ use utoipa::{IntoParams, ToSchema};
 
 pub fn configure(config: &mut web::ServiceConfig) {
     config.service(
-        web::scope("/users").service(check_email_registration_status_url),
+        web::scope("/users")
+            .service(check_email_registration_status_url)
+            .service(create_default_user_url)
+            .service(check_user_token_url)
+            .service(check_password_change_token_url)
+            .service(check_email_password_validity_url),
     );
 }
 
@@ -40,9 +50,9 @@ pub fn configure(config: &mut web::ServiceConfig) {
 // ? Define API structs
 // ? ---------------------------------------------------------------------------
 
-#[derive(Deserialize, IntoParams)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct CheckEmailStatusParams {
+pub struct CheckEmailStatusBody {
     email: String,
 }
 
@@ -54,6 +64,7 @@ pub struct CreateDefaultUserBody {
     last_name: Option<String>,
     password: Option<String>,
     provider_name: Option<String>,
+    redirect_url: String,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -61,6 +72,13 @@ pub struct CreateDefaultUserBody {
 pub struct CheckTokenBody {
     token: String,
     redirect_url: String,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckUserCredentialsBody {
+    email: String,
+    password: String,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -71,11 +89,9 @@ pub struct CheckTokenBody {
 // ? ---------------------------------------------------------------------------
 
 #[utoipa::path(
-    get,
+    post,
     context_path = "/myc/default-users/users",
-    params(
-        CheckEmailStatusParams,
-    ),
+    request_body = CheckEmailStatusBody,
     responses(
         (
             status = 500,
@@ -108,9 +124,9 @@ pub struct CheckTokenBody {
         ),
     ),
 )]
-#[get("/")]
+#[post("/status/")]
 pub async fn check_email_registration_status_url(
-    info: web::Query<CheckEmailStatusParams>,
+    info: web::Json<CheckEmailStatusBody>,
     user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
 ) -> impl Responder {
     let email_instance = match Email::from_string(info.email.to_owned()) {
@@ -137,7 +153,7 @@ pub async fn check_email_registration_status_url(
 #[utoipa::path(
     post,
     context_path = "/myc/default-users/users",
-    request_body = CreateDefaultAccountBody,
+    request_body = CreateDefaultUserBody,
     responses(
         (
             status = 500,
@@ -182,6 +198,7 @@ pub async fn create_default_user_url(
         body.last_name.to_owned(),
         body.password.to_owned(),
         body.provider_name.to_owned(),
+        body.redirect_url.to_owned(),
         token.get_ref().to_owned(),
         Box::new(&*user_registration_repo),
         Box::new(&*user_deletion_repo),
@@ -223,10 +240,12 @@ pub async fn create_default_user_url(
         ),
     ),
 )]
-#[post("/check-account-activation-token")]
-pub async fn check_activation_token_url(
+#[post("/check-user-activation-token/")]
+pub async fn check_user_token_url(
     body: web::Json<CheckTokenBody>,
     token: web::Data<TokenSecret>,
+    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
+    user_updating_repo: Inject<UserUpdatingModule, dyn UserUpdating>,
     token_fetching_repo: Inject<
         SessionTokenFetchingModule,
         dyn SessionTokenFetching,
@@ -245,10 +264,12 @@ pub async fn check_activation_token_url(
         Ok(res) => res,
     };
 
-    match verify_confirmation_token_pasetor(
+    match check_token_and_activate_user(
         body.token.to_owned(),
         None,
         token.get_ref().to_owned(),
+        Box::new(&*user_fetching_repo),
+        Box::new(&*user_updating_repo),
         Box::new(&*token_fetching_repo),
         Box::new(&*token_deletion_repo),
     )
@@ -257,6 +278,7 @@ pub async fn check_activation_token_url(
         Err(err) => HttpResponse::InternalServerError()
             .json(JsonError::new(err.to_string())),
         Ok(_) => {
+            println!("redirect_url: {:?}", redirect_url);
             let mut res = HttpResponse::TemporaryRedirect();
             res.append_header((header::LOCATION, redirect_url));
             res.finish()
@@ -291,7 +313,7 @@ pub async fn check_activation_token_url(
         ),
     ),
 )]
-#[post("/check-password-change-token")]
+#[post("/check-password-change-token/")]
 pub async fn check_password_change_token_url(
     body: web::Json<CheckTokenBody>,
     token: web::Data<TokenSecret>,
@@ -316,5 +338,79 @@ pub async fn check_password_change_token_url(
         Err(err) => HttpResponse::InternalServerError()
             .json(JsonError::new(err.to_string())),
         Ok(_) => HttpResponse::Created().json(true),
+    }
+}
+
+#[utoipa::path(
+    post,
+    context_path = "/myc/default-users/users",
+    request_body = CheckUserCredentialsBody,
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = JsonError,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = JsonError,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = JsonError,
+        ),
+        (
+            status = 200,
+            description = "Credentials are valid.",
+            body = User,
+        ),
+    ),
+)]
+#[post("/login/")]
+pub async fn check_email_password_validity_url(
+    body: web::Json<CheckUserCredentialsBody>,
+    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
+    session: actix_session::Session,
+) -> impl Responder {
+    let email_instance = match Email::from_string(body.email.to_owned()) {
+        Err(err) => {
+            warn!("Invalid email: {}", err);
+            return HttpResponse::BadRequest()
+                .json(JsonError::new("Invalid email address.".to_string()));
+        }
+        Ok(email) => email,
+    };
+
+    match check_email_password_validity(
+        email_instance,
+        body.password.to_owned(),
+        Box::new(&*user_fetching_repo),
+    )
+    .await
+    {
+        Err(err) => HttpResponse::InternalServerError()
+            .json(JsonError::new(err.to_string())),
+        Ok((valid, user)) => match valid {
+            true => {
+                let _user = if let None = user {
+                    return HttpResponse::NoContent().finish();
+                } else {
+                    user.unwrap()
+                };
+
+                session.renew();
+                session
+                    .insert(SESSION_KEY_USER_ID, _user.id.unwrap())
+                    .expect("Unable to persist user id in session");
+                session
+                    .insert(SESSION_KEY_EMAIL, _user.email.get_email())
+                    .expect("Unable to persist user email in session");
+
+                HttpResponse::Ok().json(_user)
+            }
+            false => HttpResponse::NoContent().finish(),
+        },
     }
 }

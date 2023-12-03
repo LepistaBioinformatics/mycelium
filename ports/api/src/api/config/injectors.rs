@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::modules::{
     AccountFetchingModule, AccountRegistrationModule,
     AccountTypeDeletionModule, AccountTypeRegistrationModule,
@@ -81,6 +79,7 @@ use myc_prisma::repositories::{
 use myc_smtp::repositories::{
     MessageSendingSmtpRepository, MessageSendingSmtpRepositoryParameters,
 };
+use std::sync::Arc;
 
 /// Configure injection modules.
 pub fn configure(config: &mut web::ServiceConfig) {

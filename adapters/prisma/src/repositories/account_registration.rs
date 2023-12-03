@@ -22,6 +22,7 @@ use myc_core::domain::{
     },
     entities::AccountRegistration,
 };
+use prisma_client_rust::or;
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -59,16 +60,6 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         // ? Build the initial query (get part of the get-or-create)
         // ? -------------------------------------------------------------------
 
-        let owner = match account.owners.to_owned() {
-            Children::Ids(_) => {
-                return creation_err(String::from(
-                    "Could not create account. User e-mail invalid.",
-                ))
-                .as_error()
-            }
-            Children::Records(res) => res.first().unwrap().to_owned(),
-        };
-
         let account_type_id = match account.account_type {
             ParentEnum::Id(id) => id.to_string(),
             ParentEnum::Record(record) => match record.id {
@@ -82,11 +73,22 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
             },
         };
 
+        let owners = match account.owners.to_owned() {
+            Children::Ids(_) => vec![],
+            Children::Records(res) => res
+                .into_iter()
+                .map(|user| user.email.get_email())
+                .collect::<Vec<String>>(),
+        };
+
         let response = client
             .account()
-            .find_first(vec![account_model::owners::some(vec![
-                user_model::email::equals(owner.email.get_email()),
-            ])])
+            .find_first(vec![or![
+                account_model::name::equals(account.name.to_owned()),
+                account_model::owners::some(vec![user_model::email::in_vec(
+                    owners
+                )]),
+            ]])
             .include(account_model::include!({ owners account_type }))
             .exec()
             .await;
@@ -278,6 +280,19 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
             // User creation is not omitted, so we create the account and the
             // user.
             //
+            let owner = match account.owners.to_owned() {
+                Children::Ids(_) => {
+                    return creation_err(String::from(
+                        "Could not create account. User e-mail invalid.",
+                    ))
+                    .as_error()
+                }
+                Children::Records(res) => res.first().unwrap().to_owned(),
+            };
+            //
+            // User creation is not omitted, so we create the account and the
+            // user.
+            //
             match client
                 ._transaction()
                 .run(|client| async move {
@@ -320,7 +335,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             )
                             .exec()
                             .await
-                            .map(|_| account)
+                            .map(|owner| (owner, account))
                     } else {
                         client
                             .user()
@@ -346,7 +361,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             )
                             .exec()
                             .await
-                            .map(|_| account)
+                            .map(|owner| (owner, account))
                     }
                 })
                 .await
@@ -359,7 +374,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                     .with_code(NativeErrorCodes::MYC00002.as_str())
                     .as_error();
                 }
-                Ok(account) => {
+                Ok((owner, account)) => {
                     let id = Uuid::parse_str(&account.id).unwrap();
 
                     Ok(GetOrCreateResponseKind::Created(Account {
@@ -374,35 +389,22 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             account.is_archived,
                         )),
                         is_default: false,
-                        owners: Children::Records(
-                            account
-                                .owners
-                                .into_iter()
-                                .map(|owner| {
-                                    User::new(
-                                        Some(
-                                            Uuid::parse_str(&owner.id).unwrap(),
-                                        ),
-                                        owner.username,
-                                        Email::from_string(owner.email)
-                                            .unwrap(),
-                                        Some(owner.first_name),
-                                        Some(owner.last_name),
-                                        owner.is_active,
-                                        owner.created.into(),
-                                        match owner.updated {
-                                            None => None,
-                                            Some(date) => {
-                                                Some(date.with_timezone(&Local))
-                                            }
-                                        },
-                                        Some(ParentEnum::Id(id)),
-                                        None,
-                                    )
-                                    .with_principal(owner.is_principal)
-                                })
-                                .collect::<Vec<User>>(),
-                        ),
+                        owners: Children::Records(vec![User::new(
+                            Some(Uuid::parse_str(&owner.id).unwrap()),
+                            owner.username,
+                            Email::from_string(owner.email).unwrap(),
+                            Some(owner.first_name),
+                            Some(owner.last_name),
+                            owner.is_active,
+                            owner.created.into(),
+                            match owner.updated {
+                                None => None,
+                                Some(date) => Some(date.with_timezone(&Local)),
+                            },
+                            Some(ParentEnum::Id(id)),
+                            None,
+                        )
+                        .with_principal(owner.is_principal)]),
                         account_type: ParentEnum::Record(AccountType {
                             id: Some(
                                 Uuid::parse_str(&account.account_type.id)

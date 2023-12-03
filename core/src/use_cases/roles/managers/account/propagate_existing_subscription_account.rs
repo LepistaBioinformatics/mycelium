@@ -1,12 +1,13 @@
-use super::propagate_subscription_account::{
-    propagate_subscription_account, PropagationResponse,
-};
+use super::propagate_subscription_account::propagate_subscription_account;
 use crate::{
     domain::{
-        dtos::{profile::Profile, webhook::HookTarget},
+        dtos::{
+            profile::Profile,
+            webhook::{AccountPropagationWebHookResponse, HookTarget},
+        },
         entities::{AccountFetching, WebHookFetching},
     },
-    use_cases::roles::managers::webhook::WebHookDefaultAction,
+    use_cases::roles::shared::webhook::default_actions::WebHookDefaultAction,
 };
 
 use clean_base::{
@@ -25,7 +26,7 @@ pub async fn propagate_existing_subscription_account(
     account_id: Uuid,
     account_fetching_repo: Box<&dyn AccountFetching>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
-) -> Result<PropagationResponse, MappedErrors> {
+) -> Result<AccountPropagationWebHookResponse, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------

@@ -6,12 +6,22 @@ mod router;
 mod settings;
 
 use actix_cors::Cors;
-use actix_web::{middleware::Logger, web, App, HttpServer};
+use actix_session::{
+    config::{BrowserSession, CookieContentSecurity},
+    storage::CookieSessionStore,
+    SessionMiddleware,
+};
+use actix_web::{
+    cookie::{Key, SameSite},
+    middleware::Logger,
+    web, App, HttpServer,
+};
 use awc::Client;
 use config::injectors::configure as configure_injection_modules;
 use endpoints::{
     default_users::{
         account_endpoints as default_users_account_endpoints,
+        guest_endpoints as default_users_guest_endpoints,
         profile_endpoints as default_users_profile_endpoints,
         user_endpoints as default_users_user_endpoints,
         ApiDoc as DefaultUsersApiDoc,
@@ -47,6 +57,20 @@ use settings::{GATEWAY_API_SCOPE, MYCELIUM_API_SCOPE};
 use std::{path::PathBuf, process::id as process_id};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::{Config, SwaggerUi, Url};
+
+fn session_middleware() -> SessionMiddleware<CookieSessionStore> {
+    SessionMiddleware::builder(
+        CookieSessionStore::default(),
+        Key::from(&[0; 64]),
+    )
+    .cookie_name(String::from("myc-gw-cookie")) // arbitrary name
+    .cookie_secure(true) // https only
+    .session_lifecycle(BrowserSession::default()) // expire at end of session
+    .cookie_same_site(SameSite::Lax)
+    .cookie_content_security(CookieContentSecurity::Private) // encrypt
+    .cookie_http_only(true) // disallow scripts from reading
+    .build()
+}
 
 // ? ---------------------------------------------------------------------------
 // ? API fire elements
@@ -174,7 +198,8 @@ pub async fn main() -> std::io::Result<()> {
                 web::scope("/default-users")
                     .configure(default_users_account_endpoints::configure)
                     .configure(default_users_profile_endpoints::configure)
-                    .configure(default_users_user_endpoints::configure),
+                    .configure(default_users_user_endpoints::configure)
+                    .configure(default_users_guest_endpoints::configure),
             )
             //
             // Manager
@@ -204,19 +229,28 @@ pub async fn main() -> std::io::Result<()> {
         // ? -------------------------------------------------------------------
         let gateway_scopes = match auth_config.google {
             OptionalConfig::Enabled(_) => {
-                debug!("Configure Google authentication");
                 //
                 // Configure OAuth2 Scope
                 //
-                mycelium_scope.service(
+                debug!("Configuring Google authentication");
+                let scope = mycelium_scope.service(
                     web::scope("/auth/google")
                         .configure(google_handlers::configure),
-                )
+                );
+                debug!("Google OAuth2 configuration done");
+                scope
             }
             _ => mycelium_scope,
         };
 
         app
+            // ? ---------------------------------------------------------------
+            // ? Configure Session
+            //
+            // https://docs.rs/actix-session/latest/actix_session/storage/struct.CookieSessionStore.html
+            //
+            // ? ---------------------------------------------------------------
+            .wrap(session_middleware())
             // ? ---------------------------------------------------------------
             // ? Configure CORS policies
             // ? ---------------------------------------------------------------

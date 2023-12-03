@@ -74,7 +74,7 @@ pub async fn init_in_memory_routes(routes_file: Option<String>) {
 // ? Configure session parameters
 // ? ---------------------------------------------------------------------------
 
-pub(crate) const SESSION_KEY_PREFIX: &str = "mycelium_session_key_for_{}";
+pub(crate) const SESSION_KEY_PREFIX: &str = "mycelium_session_key_for";
 
 /// This function prefixes the session key with the Mycelium grouping key.
 pub(crate) fn build_session_key(session_key: String) -> String {
