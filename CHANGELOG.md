@@ -1,3 +1,9 @@
+## v4.3.0 (2023-12-02)
+
+### Feat
+
+- implements new notifications and improve the accounts creation flow
+
 ## v4.2.0 (2023-10-25)
 
 ### Feat
