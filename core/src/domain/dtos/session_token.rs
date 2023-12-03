@@ -16,12 +16,12 @@ impl SessionToken {
     ) -> String {
         if let Some(true) = for_password_change {
             return format!(
-                "{}{}_password_change_token",
+                "{}_{}_password_change_token",
                 SESSION_KEY_PREFIX, session_key
             );
         }
 
-        format!("{}{}", SESSION_KEY_PREFIX, session_key)
+        format!("{}_{}", SESSION_KEY_PREFIX, session_key)
     }
 }
 

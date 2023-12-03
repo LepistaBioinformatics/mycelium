@@ -1,6 +1,7 @@
 use crate::modules::{
     AccountFetchingModule, AccountRegistrationModule,
     AccountTypeRegistrationModule, AccountUpdatingModule, UserFetchingModule,
+    WebHookFetchingModule,
 };
 
 use actix_web::{patch, post, web, HttpResponse, Responder};
@@ -9,7 +10,7 @@ use log::warn;
 use myc_core::{
     domain::entities::{
         AccountFetching, AccountRegistration, AccountTypeRegistration,
-        AccountUpdating, UserFetching,
+        AccountUpdating, UserFetching, WebHookFetching,
     },
     use_cases::roles::default_users::account::{
         create_default_account, update_own_account_name,
@@ -101,6 +102,7 @@ pub async fn create_default_account_url(
         AccountTypeRegistrationModule,
         dyn AccountTypeRegistration,
     >,
+    webhook_fetching_repo: Inject<WebHookFetchingModule, dyn WebHookFetching>,
 ) -> impl Responder {
     match create_default_account(
         body.user_id.to_owned(),
@@ -108,6 +110,7 @@ pub async fn create_default_account_url(
         Box::new(&*user_fetching_repo),
         Box::new(&*account_registration_repo),
         Box::new(&*account_type_registration_repo),
+        Box::new(&*webhook_fetching_repo),
     )
     .await
     {

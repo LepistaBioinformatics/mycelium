@@ -1,7 +1,9 @@
-use super::WebHookDefaultAction;
-use crate::domain::{
-    dtos::{profile::Profile, webhook::WebHook},
-    entities::WebHookRegistration,
+use crate::{
+    domain::{
+        dtos::{profile::Profile, webhook::WebHook},
+        entities::WebHookRegistration,
+    },
+    use_cases::roles::shared::webhook::default_actions::WebHookDefaultAction,
 };
 
 use clean_base::{entities::CreateResponseKind, utils::errors::MappedErrors};

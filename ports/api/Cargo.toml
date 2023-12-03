@@ -25,7 +25,7 @@ mycelium-smtp = { path = "../../adapters/smtp" }
 
 actix = "0.13"
 actix-cors = { version = "0.6.2" }
-actix-session = "0.7.2"
+actix-session = { version = "0.7.2", features = ["cookie-session"] }
 actix-web = { version = "4", features = ["openssl"] }
 actix-web-error = { version = "0.2" }
 actix-web-error-derive = { version = "0.2" }

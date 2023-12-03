@@ -11,7 +11,7 @@ use clean_base::{
     entities::{FetchResponseKind, GetOrCreateResponseKind},
     utils::errors::{factories::use_case_err, MappedErrors},
 };
-use log::{debug, info, warn};
+use log::{info, warn};
 use uuid::Uuid;
 
 /// Guest a user to perform actions into an account.
@@ -28,15 +28,7 @@ pub async fn guest_user(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    debug!("Requesting Profile: {:?}", profile);
-
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to guest accounts."
-                .to_string(),
-        )
-        .as_error();
-    };
+    profile.has_admin_privileges_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Check if account has subscription type

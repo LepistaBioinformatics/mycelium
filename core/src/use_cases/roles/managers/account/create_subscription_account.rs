@@ -1,21 +1,19 @@
-use super::propagate_subscription_account::{
-    propagate_subscription_account, PropagationResponse,
-};
+use super::propagate_subscription_account::propagate_subscription_account;
 use crate::{
     domain::{
         dtos::{
             account::{Account, AccountTypeEnum},
             native_error_codes::NativeErrorCodes,
             profile::Profile,
-            webhook::HookTarget,
+            webhook::{AccountPropagationWebHookResponse, HookTarget},
         },
         entities::{
             AccountRegistration, AccountTypeRegistration, WebHookFetching,
         },
     },
-    use_cases::roles::{
-        managers::webhook::WebHookDefaultAction,
-        shared::account_type::get_or_create_default_account_types,
+    use_cases::roles::shared::{
+        account_type::get_or_create_default_account_types,
+        webhook::default_actions::WebHookDefaultAction,
     },
 };
 
@@ -33,7 +31,7 @@ pub async fn create_subscription_account(
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
-) -> Result<PropagationResponse, MappedErrors> {
+) -> Result<AccountPropagationWebHookResponse, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------

@@ -1,8 +1,7 @@
-use super::issue_confirmation_token_pasetor::issue_confirmation_token_pasetor;
+use super::notify_internal_user::notify_internal_user;
 use crate::domain::{
     dtos::{
         email::Email,
-        message::Message,
         native_error_codes::NativeErrorCodes,
         session_token::TokenSecret,
         user::{PasswordHash, Provider, User},
@@ -14,10 +13,9 @@ use crate::domain::{
 };
 
 use clean_base::{
-    entities::{DeletionResponseKind, GetOrCreateResponseKind},
+    entities::GetOrCreateResponseKind,
     utils::errors::{factories::use_case_err, MappedErrors},
 };
-use log::error;
 use uuid::Uuid;
 
 pub async fn create_default_user(
@@ -26,6 +24,7 @@ pub async fn create_default_user(
     last_name: Option<String>,
     password: Option<String>,
     provider_name: Option<String>,
+    frontend_url_redirect: String,
     token_secret: TokenSecret,
     user_registration_repo: Box<&dyn UserRegistration>,
     user_deletion_repo: Box<&dyn UserDeletion>,
@@ -54,7 +53,7 @@ pub async fn create_default_user(
         .as_error();
     }
 
-    let mut user = User::new_secondary_with_provider(
+    let mut user = User::new_principal_with_provider(
         None,
         email_instance.to_owned(),
         match password {
@@ -76,9 +75,14 @@ pub async fn create_default_user(
     //
     // ? -----------------------------------------------------------------------
 
-    user.is_active = false;
+    if let Some(Provider::Internal(_)) = user.provider() {
+        user.is_active = false;
+    }
 
-    let new_user = match user_registration_repo.get_or_create(user).await? {
+    let new_user = match user_registration_repo
+        .get_or_create(user.to_owned())
+        .await?
+    {
         GetOrCreateResponseKind::NotCreated(user, _) => {
             return use_case_err(format!(
                 "User already registered: {}",
@@ -101,72 +105,21 @@ pub async fn create_default_user(
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Issue a verification token
+    // ? Notify internal user
     // ? -----------------------------------------------------------------------
 
-    let pasetor_token = match issue_confirmation_token_pasetor(
-        new_user_id.to_owned(),
-        token_secret.to_owned(),
-        None,
-        token_registration_repo,
-    )
-    .await
-    {
-        Ok(res) => res,
-        Err(err) => {
-            // ? ---------------------------------------------------------------
-            // ? Delete the user
-            //
-            // Delete user if the token registration process fails. This process
-            // should be executed to avoid the creation of zombie users.
-            //
-            // ? ---------------------------------------------------------------
-
-            if let DeletionResponseKind::NotDeleted(id, msg) =
-                user_deletion_repo.delete(new_user_id).await?
-            {
-                error!(
-                    "Unable to delete user: {}. Error: {}. Generated after: {}",
-                    id.to_string(),
-                    msg,
-                    err
-                );
-
-                return use_case_err(format!(
-                    "Unexpected error on create user: {}",
-                    email_instance.to_owned().get_email()
-                ))
-                .as_error();
-            };
-
-            return Err(err);
-        }
-    };
-
-    // ? -----------------------------------------------------------------------
-    // ? Notify guest user
-    // ? -----------------------------------------------------------------------
-
-    if let Err(err) = message_sending_repo
-        .send(Message {
-            from: Email::from_string(token_secret.token_email_notifier)?,
-            to: email_instance,
-            cc: None,
-            subject: String::from("Action required: Confirm your email address"),
-            message_head: Some(
-                "You must confirm your email address to complete your registration process"
-                .to_string()
-            ),
-            message_body: format!(
-                "Use the follow activation token to validate your identity:\n{}",
-                pasetor_token,
-            ),
-            message_footer: None,
-        })
-        .await
-    {
-        return use_case_err(format!("Unable to send email: {err}")).as_error();
-    };
+    if let Some(Provider::Internal(_)) = user.provider() {
+        notify_internal_user(
+            new_user_id,
+            token_secret.to_owned(),
+            email_instance.to_owned(),
+            frontend_url_redirect.to_owned(),
+            token_registration_repo,
+            user_deletion_repo,
+            message_sending_repo,
+        )
+        .await?;
+    }
 
     // ? -----------------------------------------------------------------------
     // ? Return a positive response

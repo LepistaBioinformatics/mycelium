@@ -54,20 +54,6 @@ pub(super) async fn issue_confirmation_token_pasetor(
         .await?;
 
     // ? -----------------------------------------------------------------------
-    // ? Configure time to token expiration
-    // ? -----------------------------------------------------------------------
-
-    /* token_updating_repo
-    .update(build_session_key(data_storage_key), {
-        if is_for_password_change.is_some() {
-            chrono::Duration::hours(1)
-        } else {
-            chrono::Duration::minutes(token_secret.token_expiration)
-        }
-    })
-    .await?; */
-
-    // ? -----------------------------------------------------------------------
     // ? Build session Claims
     // ? -----------------------------------------------------------------------
 
@@ -100,9 +86,17 @@ pub(super) async fn issue_confirmation_token_pasetor(
         .add_additional("session_key", serde_json::json!(session_key))
         .unwrap();
 
-    let symmetric_key =
-        SymmetricKey::<V4>::from(token_secret.token_secret_key.as_bytes())
-            .unwrap();
+    let symmetric_key = match SymmetricKey::<V4>::from(
+        token_secret.token_secret_key.as_bytes(),
+    ) {
+        Ok(key) => key,
+        Err(err) => {
+            return use_case_err(format!(
+                "Unable to generate confirmation token: {err}"
+            ))
+            .as_error()
+        }
+    };
 
     match local::encrypt(
         &symmetric_key,
@@ -111,10 +105,10 @@ pub(super) async fn issue_confirmation_token_pasetor(
         Some(token_secret.token_hmac_secret.as_bytes()),
     ) {
         Ok(token) => Ok(token),
-        Err(_) => {
-            return use_case_err(
-                "Unable to generate confirmation token".to_string(),
-            )
+        Err(err) => {
+            return use_case_err(format!(
+                "Unable to generate confirmation token: {err}"
+            ))
             .as_error()
         }
     }

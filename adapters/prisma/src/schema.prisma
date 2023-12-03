@@ -46,7 +46,7 @@ model IdentityProvider {
   password_salt String? @db.VarChar(255)
 
   // Backward relationship fields
-  user    User   @relation(fields: [user_id], references: [id])
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
   user_id String
 
   // Db compatibility and extra maps
@@ -145,7 +145,7 @@ model Account {
   id String @id @default(uuid())
 
   // Model fields
-  name            String      @db.VarChar(64)
+  name            String      @db.VarChar(256)
   //owner           User        @relation(fields: [owner_id], references: [id])
   //owner_id        String      @unique
   account_type    AccountType @relation(fields: [account_type_id], references: [id])

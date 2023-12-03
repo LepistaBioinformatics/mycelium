@@ -4,8 +4,9 @@ use actix_web::{delete, post, web, HttpResponse, Responder};
 use clean_base::entities::{CreateResponseKind, DeletionResponseKind};
 use myc_core::{
     domain::entities::{WebHookDeletion, WebHookRegistration},
-    use_cases::roles::managers::webhook::{
-        delete_webhook, register_webhook, WebHookDefaultAction,
+    use_cases::roles::{
+        managers::webhook::{delete_webhook, register_webhook},
+        shared::webhook::default_actions::WebHookDefaultAction,
     },
 };
 use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
