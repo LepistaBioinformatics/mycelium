@@ -1,11 +1,15 @@
-use crate::modules::{
-    AccountRegistrationModule, AccountTypeRegistrationModule,
-    GuestUserRegistrationModule, MessageSendingModule,
+use crate::{
+    endpoints::standard::shared::{build_actor_context, UrlGroup},
+    modules::{
+        AccountRegistrationModule, AccountTypeRegistrationModule,
+        GuestUserRegistrationModule, MessageSendingModule,
+    },
 };
 
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
+        actors::DefaultActor,
         dtos::{account::Account, session_token::TokenSecret},
         entities::{
             AccountRegistration, AccountTypeRegistration,
@@ -25,7 +29,7 @@ use uuid::Uuid;
 // ? ---------------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
-    config.service(web::scope("/guests").service(guest_to_default_account_url));
+    config.service(guest_to_default_account_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -52,7 +56,7 @@ pub struct GuestUserBody {
 /// path argument.
 #[utoipa::path(
     post,
-    context_path = "/myc/default-users/guests",
+    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Guests),
     params(
         ("role" = Uuid, Path, description = "The guest-role unique id."),
     ),

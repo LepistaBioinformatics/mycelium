@@ -1,9 +1,8 @@
-use crate::domain::{dtos::profile::Profile, entities::RoleDeletion};
-
-use clean_base::{
-    entities::DeletionResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+use crate::domain::{
+    actors::DefaultActor, dtos::profile::Profile, entities::RoleDeletion,
 };
+
+use clean_base::{entities::DeletionResponseKind, utils::errors::MappedErrors};
 use uuid::Uuid;
 
 /// Delete a single role.
@@ -16,13 +15,9 @@ pub async fn delete_role(
     // ? Check if the current account has sufficient privileges to create role
     // ? ----------------------------------------------------------------------
 
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to delete roles."
-                .to_string(),
-        )
-        .as_error();
-    }
+    profile.get_delete_ids_or_error(vec![
+        DefaultActor::GuestManager.to_string()
+    ])?;
 
     // ? ----------------------------------------------------------------------
     // ? Persist Role

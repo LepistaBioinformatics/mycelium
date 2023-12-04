@@ -1,4 +1,7 @@
+use crate::settings::MYCELIUM_API_SCOPE;
+
 use serde::Deserialize;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use utoipa::{
     openapi::security::{
         AuthorizationCode, ClientCredentials, Flow, Implicit, OAuth2, Scopes,
@@ -52,4 +55,24 @@ impl Modify for SecurityAddon {
             )),
         )
     }
+}
+
+pub(crate) enum UrlScopes {
+    Health,
+    Standards,
+    Staffs,
+}
+
+impl Display for UrlScopes {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        match self {
+            UrlScopes::Health => write!(f, "health"),
+            UrlScopes::Standards => write!(f, "std"),
+            UrlScopes::Staffs => write!(f, "staffs"),
+        }
+    }
+}
+
+pub fn build_scoped_path(scope: UrlScopes) -> String {
+    format!("/{}/{}", MYCELIUM_API_SCOPE, scope)
 }

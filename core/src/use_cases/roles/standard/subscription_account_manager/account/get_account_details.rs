@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::DefaultActors,
+    actors::DefaultActor,
     dtos::{account::Account, profile::Profile},
     entities::AccountFetching,
 };
@@ -21,7 +21,7 @@ pub async fn get_account_details(
     // ? -----------------------------------------------------------------------
 
     profile.get_create_ids_or_error(vec![
-        DefaultActors::SubscriptionAccountManager.to_string(),
+        DefaultActor::SubscriptionAccountManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

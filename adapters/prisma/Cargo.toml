@@ -16,7 +16,7 @@ mycelium-config = { path = "../../config" }
 
 async-trait = "0.1"
 chrono = "0.4"
-clean-base = "1.0"
+clean-base = "1.2"
 env_logger = "0.10"
 futures = "0.3"
 lazy_static = "1.4"

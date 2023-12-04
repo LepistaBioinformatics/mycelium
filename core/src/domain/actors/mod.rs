@@ -7,41 +7,65 @@ use utoipa::ToSchema;
 
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub enum DefaultActors {
+pub enum DefaultActor {
+    /// Subscription account manager
+    ///
+    /// This actor is responsible for managing subscription accounts.
+    NoRole,
+
+    /// Subscription account manager
+    ///
+    /// This actor is responsible for managing subscription accounts.
     SubscriptionAccountManager,
+
+    /// User account manager
+    ///
+    /// This actor is responsible for managing user accounts.
     UserAccountManager,
-    RoleManager,
+
+    /// Guest manager
+    ///
+    /// This actor is responsible for managing roles, guest-roles, and
+    /// guest-users.
+    GuestManager,
+
+    /// System manager
+    ///
+    /// This actor is responsible for managing system, including error messages,
+    /// webhooks, and others.
     SystemManager,
 }
 
-impl Display for DefaultActors {
+impl Display for DefaultActor {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
-            DefaultActors::SubscriptionAccountManager => {
+            DefaultActor::NoRole => write!(f, "anon"),
+            DefaultActor::SubscriptionAccountManager => {
                 write!(f, "subscription-account-manager")
             }
-            DefaultActors::UserAccountManager => {
+            DefaultActor::UserAccountManager => {
                 write!(f, "user-account-manager")
             }
-            DefaultActors::RoleManager => {
-                write!(f, "role-manager")
+            DefaultActor::GuestManager => {
+                write!(f, "guest-manager")
             }
-            DefaultActors::SystemManager => write!(f, "system-manager"),
+            DefaultActor::SystemManager => write!(f, "system-manager"),
         }
     }
 }
 
-impl FromStr for DefaultActors {
+impl FromStr for DefaultActor {
     type Err = ();
 
-    fn from_str(s: &str) -> Result<DefaultActors, ()> {
+    fn from_str(s: &str) -> Result<DefaultActor, ()> {
         match s {
+            "anon" => Ok(DefaultActor::NoRole),
             "subscription-account-manager" => {
-                Ok(DefaultActors::SubscriptionAccountManager)
+                Ok(DefaultActor::SubscriptionAccountManager)
             }
-            "user-account-manager" => Ok(DefaultActors::UserAccountManager),
-            "role-manager" => Ok(DefaultActors::RoleManager),
-            "system-manager" => Ok(DefaultActors::SystemManager),
+            "user-account-manager" => Ok(DefaultActor::UserAccountManager),
+            "guest-manager" => Ok(DefaultActor::GuestManager),
+            "system-manager" => Ok(DefaultActor::SystemManager),
 
             _ => Err(()),
         }

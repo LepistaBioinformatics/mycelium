@@ -1,7 +1,11 @@
-use crate::modules::{
-    AccountFetchingModule, GuestUserDeletionModule, GuestUserFetchingModule,
-    GuestUserOnAccountUpdatingModule, GuestUserRegistrationModule,
-    LicensedResourcesFetchingModule, MessageSendingModule,
+use crate::{
+    endpoints::standard::shared::{build_actor_context, UrlGroup},
+    modules::{
+        AccountFetchingModule, GuestUserDeletionModule,
+        GuestUserFetchingModule, GuestUserOnAccountUpdatingModule,
+        GuestUserRegistrationModule, LicensedResourcesFetchingModule,
+        MessageSendingModule,
+    },
 };
 
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
@@ -11,6 +15,7 @@ use clean_base::entities::{
 };
 use myc_core::{
     domain::{
+        actors::DefaultActor,
         dtos::email::Email,
         entities::{
             AccountFetching, GuestUserDeletion, GuestUserFetching,
@@ -18,7 +23,7 @@ use myc_core::{
             LicensedResourcesFetching, MessageSending,
         },
     },
-    use_cases::roles::managers::guest::{
+    use_cases::roles::standard::guest_manager::guest::{
         guest_user, list_guest_on_subscription_account,
         list_licensed_accounts_of_email, uninvite_guest,
         update_user_guest_role,
@@ -35,14 +40,12 @@ use uuid::Uuid;
 // ? -----------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
-    config.service(
-        web::scope("/guests")
-            .service(list_licensed_accounts_of_email_url)
-            .service(guest_user_url)
-            .service(uninvite_guest_url)
-            .service(update_user_guest_role_url)
-            .service(list_guest_on_subscription_account_url),
-    );
+    config
+        .service(list_licensed_accounts_of_email_url)
+        .service(guest_user_url)
+        .service(uninvite_guest_url)
+        .service(update_user_guest_role_url)
+        .service(list_guest_on_subscription_account_url);
 }
 
 // ? -----------------------------------------------------------------------
@@ -71,7 +74,7 @@ pub struct UpdateUserGuestRoleParams {
 /// List subscription accounts which email was guest
 #[utoipa::path(
     get,
-    context_path = "/myc/managers/guests",
+    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Guests),
     params(
         GuestUserBody
     ),
@@ -149,7 +152,7 @@ pub async fn list_licensed_accounts_of_email_url(
 /// path argument.
 #[utoipa::path(
     post,
-    context_path = "/myc/managers/guests",
+    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Guests),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
         ("role" = Uuid, Path, description = "The guest-role unique id."),
@@ -241,7 +244,7 @@ pub async fn guest_user_url(
 /// new role.
 #[utoipa::path(
     patch,
-    context_path = "/myc/managers/guests",
+    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Guests),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
         ("role" = Uuid, Path, description = "The guest-role unique id."),
@@ -312,7 +315,7 @@ pub async fn update_user_guest_role_url(
 /// Uninvite user to perform a role to account
 #[utoipa::path(
     delete,
-    context_path = "/myc/managers/guests",
+    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Guests),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
         ("role" = Uuid, Path, description = "The guest-role unique id."),
@@ -383,7 +386,7 @@ pub async fn uninvite_guest_url(
 /// informed subscription account.
 #[utoipa::path(
     get,
-    context_path = "/myc/managers/guests",
+    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Guests),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),

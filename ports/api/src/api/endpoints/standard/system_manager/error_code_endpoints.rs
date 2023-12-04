@@ -1,5 +1,8 @@
 use crate::{
-    endpoints::shared::PaginationParams,
+    endpoints::{
+        shared::PaginationParams,
+        standard::shared::{build_actor_context, UrlGroup},
+    },
     modules::{
         ErrorCodeDeletionModule, ErrorCodeFetchingModule,
         ErrorCodeRegistrationModule, ErrorCodeUpdatingModule,
@@ -7,17 +10,17 @@ use crate::{
 };
 
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
-use actix_web_httpauth::extractors::bearer::Config;
 use clean_base::entities::{FetchManyResponseKind, FetchResponseKind};
 use myc_core::{
     domain::{
+        actors::DefaultActor,
         dtos::native_error_codes::NativeErrorCodes,
         entities::{
             ErrorCodeDeletion, ErrorCodeFetching, ErrorCodeRegistration,
             ErrorCodeUpdating,
         },
     },
-    use_cases::gateway::error_codes::{
+    use_cases::roles::standard::system_manager::error_codes::{
         delete_error_code, get_error_code, list_error_codes,
         register_error_code, update_error_code_message_and_details,
     },
@@ -32,15 +35,12 @@ use utoipa::{IntoParams, ToSchema};
 // ? -----------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
-    config.service(
-        web::scope("/error-codes")
-            .app_data(Config::default())
-            .service(register_error_code_url)
-            .service(list_error_codes_url)
-            .service(get_error_code_url)
-            .service(update_error_code_message_and_details_url)
-            .service(delete_error_code_url),
-    );
+    config
+        .service(register_error_code_url)
+        .service(list_error_codes_url)
+        .service(get_error_code_url)
+        .service(update_error_code_message_and_details_url)
+        .service(delete_error_code_url);
 }
 
 // ? -----------------------------------------------------------------------
@@ -80,7 +80,7 @@ pub struct UpdateErrorCodeMessageAndDetailsBody {
 /// This action is restricted to manager users.
 #[utoipa::path(
     post,
-    context_path = "/myc/managers/error-codes",
+    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::ErrorCodes),
     request_body = CreateErrorCodeBody,
     responses(
         (
@@ -143,7 +143,7 @@ pub async fn register_error_code_url(
 ///
 #[utoipa::path(
     get,
-    context_path = "/myc/managers/error-codes",
+    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::ErrorCodes),
     params(
         ListErrorCodesParams,
         PaginationParams,
@@ -214,7 +214,7 @@ pub async fn list_error_codes_url(
 
 #[utoipa::path(
     get,
-    context_path = "/myc/managers/error-codes",
+    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::ErrorCodes),
     params(
         ("prefix" = String, Path, description = "The error prefix."),
         ("code" = i32, Path, description = "The error code."),
@@ -280,7 +280,7 @@ pub async fn get_error_code_url(
 
 #[utoipa::path(
     patch,
-    context_path = "/myc/managers/error-codes",
+    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::ErrorCodes),
     params(
         ("prefix" = String, Path, description = "The error prefix."),
         ("code" = i32, Path, description = "The error code."),
@@ -358,7 +358,7 @@ pub async fn update_error_code_message_and_details_url(
 
 #[utoipa::path(
     delete,
-    context_path = "/myc/managers/error-codes",
+    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::ErrorCodes),
     params(
         ("prefix" = String, Path, description = "The error prefix."),
         ("code" = i32, Path, description = "The error code."),

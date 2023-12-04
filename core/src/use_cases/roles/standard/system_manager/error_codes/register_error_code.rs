@@ -1,4 +1,5 @@
 use crate::domain::{
+    actors::DefaultActor,
     dtos::{error_code::ErrorCode, profile::Profile},
     entities::ErrorCodeRegistration,
 };
@@ -23,13 +24,9 @@ pub async fn register_error_code(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to register error"
-                .to_string(),
-        )
-        .as_error();
-    }
+    profile.get_create_ids_or_error(vec![
+        DefaultActor::SystemManager.to_string()
+    ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Build error code object

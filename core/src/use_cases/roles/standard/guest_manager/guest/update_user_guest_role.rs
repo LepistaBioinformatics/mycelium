@@ -1,13 +1,10 @@
 use crate::domain::{
+    actors::DefaultActor,
     dtos::{guest::GuestUser, profile::Profile},
     entities::GuestUserOnAccountUpdating,
 };
 
-use clean_base::{
-    entities::UpdatingResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
-};
-use log::debug;
+use clean_base::{entities::UpdatingResponseKind, utils::errors::MappedErrors};
 use uuid::Uuid;
 
 /// Update the user's guest role.
@@ -26,16 +23,13 @@ pub async fn update_user_guest_role(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    debug!("Requesting Profile: {:?}", profile);
+    profile.get_update_ids_or_error(vec![
+        DefaultActor::GuestManager.to_string()
+    ])?;
 
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to update 
-account guests."
-                .to_string(),
-        )
-        .as_error();
-    };
+    // ? -----------------------------------------------------------------------
+    // ? Update role
+    // ? -----------------------------------------------------------------------
 
     guest_user_on_account_updating_repo
         .update(account_id, old_guest_user_id, new_guest_user_id)

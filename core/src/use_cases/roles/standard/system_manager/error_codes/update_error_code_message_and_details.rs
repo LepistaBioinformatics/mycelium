@@ -1,4 +1,5 @@
 use crate::domain::{
+    actors::DefaultActor,
     dtos::{
         error_code::ErrorCode, native_error_codes::NativeErrorCodes,
         profile::Profile,
@@ -27,13 +28,9 @@ pub async fn update_error_code_message_and_details(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to update errors"
-                .to_string(),
-        )
-        .as_error();
-    }
+    profile.get_update_ids_or_error(vec![
+        DefaultActor::SystemManager.to_string()
+    ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch error code

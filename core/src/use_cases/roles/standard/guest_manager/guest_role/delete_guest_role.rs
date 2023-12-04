@@ -1,9 +1,8 @@
-use crate::domain::{dtos::profile::Profile, entities::GuestRoleDeletion};
-
-use clean_base::{
-    entities::DeletionResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+use crate::domain::{
+    actors::DefaultActor, dtos::profile::Profile, entities::GuestRoleDeletion,
 };
+
+use clean_base::{entities::DeletionResponseKind, utils::errors::MappedErrors};
 use uuid::Uuid;
 
 /// This function deletes a single role. Only manager user could execute such
@@ -19,12 +18,9 @@ pub async fn delete_guest_role(
     // Check if the user has manager status. Return an error if not.
     // ? ----------------------------------------------------------------------
 
-    if !profile.is_manager {
-        return use_case_err(
-            "Only manager users could perform such operation.".to_string(),
-        )
-        .as_error();
-    };
+    profile.get_delete_ids_or_error(vec![
+        DefaultActor::GuestManager.to_string()
+    ])?;
 
     // ? ----------------------------------------------------------------------
     // ? Perform the deletion operation

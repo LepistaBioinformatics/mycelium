@@ -1,11 +1,11 @@
 use crate::domain::{
+    actors::DefaultActor,
     dtos::{profile::Profile, role::Role},
     entities::RoleFetching,
 };
 
 use clean_base::{
-    entities::FetchManyResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+    entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 
 /// List available roles
@@ -18,14 +18,8 @@ pub async fn list_roles(
     // ? Check if the current account has sufficient privileges to create role
     // ? -----------------------------------------------------------------------
 
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to register new 
-            role."
-                .to_string(),
-        )
-        .as_error();
-    }
+    profile
+        .get_view_ids_or_error(vec![DefaultActor::GuestManager.to_string()])?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch Roles
