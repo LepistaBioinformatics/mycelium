@@ -1,3 +1,13 @@
+## v4.5.0 (2023-12-04)
+
+### Feat
+
+- implements the auxiliary endpoints
+
+### Refactor
+
+- move url groups api enumerator to a higher level inside the endpoints module
+
 ## v4.4.0 (2023-12-04)
 
 ### Feat
