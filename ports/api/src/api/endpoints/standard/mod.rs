@@ -5,6 +5,7 @@ mod subscription_account_manager;
 mod system_manager;
 mod user_account_manager;
 
+use super::shared::{SecurityAddon, UrlGroup};
 use guest_manager::{
     guest_endpoints as guest_manager_guest_endpoints,
     guest_role_endpoints as guest_manager_guest_role_endpoints,
@@ -23,9 +24,6 @@ use system_manager::{
 };
 use user_account_manager::account_endpoints as user_account_manager_account_endpoints;
 
-use self::shared::UrlGroup;
-
-use super::shared::SecurityAddon;
 use actix_web::web;
 use clean_base::dtos::{
     enums::{ChildrenEnum, ParentEnum},

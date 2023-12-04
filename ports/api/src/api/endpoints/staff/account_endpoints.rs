@@ -1,5 +1,9 @@
-use crate::modules::{
-    AccountFetchingModule, AccountTypeRegistrationModule, AccountUpdatingModule,
+use crate::{
+    endpoints::shared::{build_scoped_group, UrlGroup, UrlScopes},
+    modules::{
+        AccountFetchingModule, AccountTypeRegistrationModule,
+        AccountUpdatingModule,
+    },
 };
 
 use actix_web::{patch, web, HttpResponse, Responder};
@@ -53,7 +57,7 @@ pub struct UpgradeAccountPrivilegesParams {
 /// Increase permissions of the refereed account.
 #[utoipa::path(
     patch,
-    context_path = "/myc/staffs/accounts",
+    context_path = build_scoped_group(UrlScopes::Staffs, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
         UpgradeAccountPrivilegesParams,
@@ -126,7 +130,7 @@ pub async fn upgrade_account_privileges_url(
 /// Decrease permissions of the refereed account.
 #[utoipa::path(
     patch,
-    context_path = "/myc/staffs/accounts",
+    context_path = build_scoped_group(UrlScopes::Staffs, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
         UpgradeAccountPrivilegesParams,
