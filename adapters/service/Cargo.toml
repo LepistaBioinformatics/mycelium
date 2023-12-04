@@ -1,6 +1,6 @@
 [package]
 name = "mycelium-service"
-version = "4.4.0"
+version = "4.5.0"
 edition = "2021"
 authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
 license = "Apache-2.0"
