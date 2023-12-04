@@ -1,3 +1,15 @@
+## v4.4.0 (2023-12-04)
+
+### Feat
+
+- refactores standard and managers endpoints to mirror the new actors system
+
+### Refactor
+
+- move error codes to system-manager role use-cases group
+- move manager use-cases to dedicated actors folders
+- turn default-user endpoints and apis to mirrir the new default system actors
+
 ## v4.3.0 (2023-12-02)
 
 ### Feat
