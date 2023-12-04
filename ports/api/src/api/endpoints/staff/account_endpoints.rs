@@ -1,5 +1,5 @@
 use crate::{
-    endpoints::shared::{build_scoped_group, UrlGroup, UrlScopes},
+    endpoints::shared::{UrlGroup, UrlScopes},
     modules::{
         AccountFetchingModule, AccountTypeRegistrationModule,
         AccountUpdatingModule,
@@ -57,7 +57,7 @@ pub struct UpgradeAccountPrivilegesParams {
 /// Increase permissions of the refereed account.
 #[utoipa::path(
     patch,
-    context_path = build_scoped_group(UrlScopes::Staffs, UrlGroup::Accounts),
+    context_path = UrlGroup::Accounts.with_scope(UrlScopes::Staffs),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
         UpgradeAccountPrivilegesParams,
@@ -130,7 +130,7 @@ pub async fn upgrade_account_privileges_url(
 /// Decrease permissions of the refereed account.
 #[utoipa::path(
     patch,
-    context_path = build_scoped_group(UrlScopes::Staffs, UrlGroup::Accounts),
+    context_path = UrlGroup::Accounts.with_scope(UrlScopes::Staffs),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
         UpgradeAccountPrivilegesParams,

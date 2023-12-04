@@ -5,7 +5,7 @@ mod subscription_account_manager;
 mod system_manager;
 mod user_account_manager;
 
-use super::shared::{SecurityAddon, UrlGroup};
+use super::shared::UrlGroup;
 use guest_manager::{
     guest_endpoints as guest_manager_guest_endpoints,
     guest_role_endpoints as guest_manager_guest_role_endpoints,
@@ -203,7 +203,6 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         guest_manager_role_endpoints::delete_role_url,
         guest_manager_role_endpoints::update_role_name_and_description_url,
     ),
-    modifiers(&SecurityAddon),
     components(
         schemas(
             // Default relationship enumerators.
