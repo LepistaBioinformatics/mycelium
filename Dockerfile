@@ -9,6 +9,7 @@ WORKDIR /rust
 # ? The copy operations are performed in sepparate steps to allow caching layers
 # ? over building operations
 COPY core /rust/core
+COPY config /rust/config
 COPY adapters /rust/adapters
 COPY ports /rust/ports
 COPY test /rust/test

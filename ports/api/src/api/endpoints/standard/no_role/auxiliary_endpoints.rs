@@ -1,4 +1,4 @@
-use crate::endpoints::shared::{build_scoped_path, UrlScopes};
+use crate::endpoints::shared::UrlScopes;
 
 use actix_web::{get, web, HttpResponse, Responder};
 use myc_core::domain::actors::DefaultActor;
@@ -21,7 +21,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[utoipa::path(
         get,
         context_path = &format!(
-            "{}/aux/actors", build_scoped_path(UrlScopes::Standards),
+            "{}/aux/actors", UrlScopes::Standards.build_myc_path(),
         ),
         responses(
             (
