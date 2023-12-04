@@ -1,5 +1,6 @@
 use crate::{
     domain::{
+        actors::DefaultActors,
         dtos::{
             account::{Account, AccountTypeEnum},
             profile::Profile,
@@ -34,7 +35,9 @@ pub async fn list_accounts_by_type(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.has_admin_privileges_or_error()?;
+    profile.get_create_ids_or_error(vec![
+        DefaultActors::SubscriptionAccountManager.to_string(),
+    ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch account-type id

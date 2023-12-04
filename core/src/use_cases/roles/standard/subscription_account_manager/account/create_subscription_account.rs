@@ -1,6 +1,7 @@
 use super::propagate_subscription_account::propagate_subscription_account;
 use crate::{
     domain::{
+        actors::DefaultActors,
         dtos::{
             account::{Account, AccountTypeEnum},
             native_error_codes::NativeErrorCodes,
@@ -36,7 +37,9 @@ pub async fn create_subscription_account(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.has_admin_privileges_or_error()?;
+    profile.get_create_ids_or_error(vec![
+        DefaultActors::SubscriptionAccountManager.to_string(),
+    ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch account type
