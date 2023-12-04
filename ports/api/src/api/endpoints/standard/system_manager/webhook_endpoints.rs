@@ -1,12 +1,18 @@
-use crate::modules::{WebHookDeletionModule, WebHookRegistrationModule};
+use crate::{
+    endpoints::standard::shared::{build_actor_context, UrlGroup},
+    modules::{WebHookDeletionModule, WebHookRegistrationModule},
+};
 
 use actix_web::{delete, post, web, HttpResponse, Responder};
 use clean_base::entities::{CreateResponseKind, DeletionResponseKind};
 use myc_core::{
-    domain::entities::{WebHookDeletion, WebHookRegistration},
+    domain::{
+        actors::DefaultActor,
+        entities::{WebHookDeletion, WebHookRegistration},
+    },
     use_cases::roles::{
-        managers::webhook::{delete_webhook, register_webhook},
         shared::webhook::default_actions::WebHookDefaultAction,
+        standard::system_manager::webhook::{delete_webhook, register_webhook},
     },
 };
 use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
@@ -20,11 +26,9 @@ use uuid::Uuid;
 // ? ---------------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
-    config.service(
-        web::scope("/webhooks")
-            .service(crate_webhook_url)
-            .service(delete_webhook_url),
-    );
+    config
+        .service(crate_webhook_url)
+        .service(delete_webhook_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -44,7 +48,7 @@ pub struct CreateWebHookBody {
 
 #[utoipa::path(
     post,
-    context_path = "/myc/managers/webhooks",
+    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::Webhooks),
     request_body = CreateWebHookBody,
     responses(
         (
@@ -106,7 +110,7 @@ pub async fn crate_webhook_url(
 
 #[utoipa::path(
     delete,
-    context_path = "/myc/managers/webhooks",
+    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::Webhooks),
     params(
         ("id" = Uuid, Path, description = "The webhook primary key."),
     ),

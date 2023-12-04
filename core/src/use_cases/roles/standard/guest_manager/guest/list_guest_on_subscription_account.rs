@@ -6,6 +6,7 @@ use clean_base::{
 use uuid::Uuid;
 
 use crate::domain::{
+    actors::DefaultActor,
     dtos::{guest::GuestUser, profile::Profile},
     entities::{AccountFetching, GuestUserFetching},
 };
@@ -24,13 +25,8 @@ pub async fn list_guest_on_subscription_account(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to guest accounts."
-                .to_string(),
-        )
-        .as_error();
-    };
+    profile
+        .get_view_ids_or_error(vec![DefaultActor::GuestManager.to_string()])?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch the target subscription account

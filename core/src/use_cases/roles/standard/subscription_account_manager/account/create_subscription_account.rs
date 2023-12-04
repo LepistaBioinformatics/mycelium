@@ -1,7 +1,7 @@
 use super::propagate_subscription_account::propagate_subscription_account;
 use crate::{
     domain::{
-        actors::DefaultActors,
+        actors::DefaultActor,
         dtos::{
             account::{Account, AccountTypeEnum},
             native_error_codes::NativeErrorCodes,
@@ -38,7 +38,7 @@ pub async fn create_subscription_account(
     // ? -----------------------------------------------------------------------
 
     profile.get_create_ids_or_error(vec![
-        DefaultActors::SubscriptionAccountManager.to_string(),
+        DefaultActor::SubscriptionAccountManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

@@ -21,7 +21,7 @@ categories = ["authentication", "network-programming"]
 # ? ----------------------------------------------------------------------------
 
 [dependencies]
-clean-base = "1.1"
+clean-base = "1.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
 

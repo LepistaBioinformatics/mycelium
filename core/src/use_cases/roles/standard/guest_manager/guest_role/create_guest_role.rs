@@ -1,4 +1,5 @@
 use crate::domain::{
+    actors::DefaultActor,
     dtos::{
         guest::{GuestRole, Permissions},
         profile::Profile,
@@ -7,9 +8,8 @@ use crate::domain::{
 };
 
 use clean_base::{
-    dtos::enums::ParentEnum,
-    entities::GetOrCreateResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+    dtos::enums::ParentEnum, entities::GetOrCreateResponseKind,
+    utils::errors::MappedErrors,
 };
 use uuid::Uuid;
 
@@ -30,26 +30,12 @@ pub async fn create_guest_role(
     role_registration_repo: Box<&dyn GuestRoleRegistration>,
 ) -> Result<GetOrCreateResponseKind<GuestRole>, MappedErrors> {
     // ? ----------------------------------------------------------------------
-    // ? Collect permissions
-    //
-    // If permissions are None, their receives the default `View` only
-    // permission.
-    // ? ----------------------------------------------------------------------
-
-    let permissions = permissions.unwrap_or(vec![Permissions::View]);
-
-    // ? ----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges to create role
     // ? ----------------------------------------------------------------------
 
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to register new 
-            guest-roles."
-                .to_string(),
-        )
-        .as_error();
-    }
+    profile.get_create_ids_or_error(vec![
+        DefaultActor::GuestManager.to_string()
+    ])?;
 
     // ? ----------------------------------------------------------------------
     // ? Persist UserRole
@@ -61,7 +47,7 @@ pub async fn create_guest_role(
             name,
             description: Some(description),
             role: ParentEnum::Id(role),
-            permissions,
+            permissions: permissions.unwrap_or(vec![Permissions::View]),
         })
         .await
 }

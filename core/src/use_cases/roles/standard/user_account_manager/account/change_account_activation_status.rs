@@ -1,5 +1,6 @@
 use super::try_to_reach_desired_status::try_to_reach_desired_status;
 use crate::domain::{
+    actors::DefaultActor,
     dtos::{
         account::{Account, VerboseStatus},
         profile::Profile,
@@ -23,6 +24,14 @@ pub async fn change_account_activation_status(
     account_updating_repo: Box<&dyn AccountUpdating>,
 ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
+    // ? Check permissions
+    // ? -----------------------------------------------------------------------
+
+    profile.get_update_ids_or_error(vec![
+        DefaultActor::UserAccountManager.to_string()
+    ])?;
+
+    // ? -----------------------------------------------------------------------
     // ? Fetch target account
     // ? -----------------------------------------------------------------------
 
@@ -35,7 +44,7 @@ pub async fn change_account_activation_status(
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Check permissions
+    // ? Prevent self privilege escalation
     // ? -----------------------------------------------------------------------
 
     // Check if the account id os Some. Case false the operation is prohibited.
@@ -50,17 +59,9 @@ not be checked."
         Some(res) => res,
     };
 
-    // Check if the account that will perform approve action has enough
-    // privileges.
-    if ![
-        profile.is_manager,
-        target_account_id == profile.current_account_id,
-    ]
-    .into_iter()
-    .any(|i| i == true)
-    {
+    if target_account_id == profile.current_account_id {
         return use_case_err(format!(
-            "Not enough permissions to change activation status of account 
+            "Prohibited operation. Account ID ({account_id}) could not be 
 {target_account_id}."
         ))
         .as_error();

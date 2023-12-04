@@ -1,11 +1,11 @@
 use crate::domain::{
+    actors::DefaultActor,
     dtos::{profile::Profile, role::Role},
     entities::RoleRegistration,
 };
 
 use clean_base::{
-    entities::GetOrCreateResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+    entities::GetOrCreateResponseKind, utils::errors::MappedErrors,
 };
 
 /// Create a single role.
@@ -22,14 +22,9 @@ pub async fn create_role(
     // ? Check if the current account has sufficient privileges to create role
     // ? ----------------------------------------------------------------------
 
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to register new 
-            role."
-                .to_string(),
-        )
-        .as_error();
-    }
+    profile.get_create_ids_or_error(vec![
+        DefaultActor::GuestManager.to_string()
+    ])?;
 
     // ? ----------------------------------------------------------------------
     // ? Persist Role

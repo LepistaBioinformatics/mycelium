@@ -1,5 +1,6 @@
 use super::try_to_reach_desired_status::try_to_reach_desired_status;
 use crate::domain::{
+    actors::DefaultActor,
     dtos::{
         account::{Account, VerboseStatus},
         profile::Profile,
@@ -26,6 +27,14 @@ pub async fn change_account_archival_status(
     account_updating_repo: Box<&dyn AccountUpdating>,
 ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
+    // ? Check permissions
+    // ? -----------------------------------------------------------------------
+
+    profile.get_update_ids_or_error(vec![
+        DefaultActor::UserAccountManager.to_string()
+    ])?;
+
+    // ? -----------------------------------------------------------------------
     // ? Fetch target account
     // ? -----------------------------------------------------------------------
 
@@ -38,32 +47,8 @@ pub async fn change_account_archival_status(
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Check permissions
+    // ? Prevent self privilege escalation
     // ? -----------------------------------------------------------------------
-
-    // Check if the account id os Some. Case false the operation is prohibited.
-    let target_account_id = match account.id {
-        None => {
-            return use_case_err(format!(
-                "Prohibited operation. Target account ({account_id}) could 
-not be checked."
-            ))
-            .as_error()
-        }
-        Some(res) => res,
-    };
-
-    // Check if the account that will perform approve action has enough
-    // privileges.
-    if ![profile.is_manager, profile.is_staff]
-        .into_iter()
-        .any(|i| i == true)
-    {
-        return use_case_err(format!(
-            "Not enough permissions approve the account {target_account_id}."
-        ))
-        .as_error();
-    }
 
     // Check if the target account to be changed is a Standard account.
     match account.to_owned().account_type {

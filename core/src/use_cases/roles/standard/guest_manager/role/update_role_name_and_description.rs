@@ -1,4 +1,5 @@
 use crate::domain::{
+    actors::DefaultActor,
     dtos::{profile::Profile, role::Role},
     entities::{RoleFetching, RoleUpdating},
 };
@@ -23,13 +24,9 @@ pub async fn update_role_name_and_description(
     // ? Check if the current account has sufficient privileges to create role
     // ? ----------------------------------------------------------------------
 
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to update roles."
-                .to_string(),
-        )
-        .as_error();
-    }
+    profile.get_update_ids_or_error(vec![
+        DefaultActor::GuestManager.to_string()
+    ])?;
 
     // ? ----------------------------------------------------------------------
     // ? Fetch desired role

@@ -1,14 +1,11 @@
 use crate::domain::{
-    dtos::{
-        account::VerboseStatus::Active, error_code::ErrorCode,
-        native_error_codes::NativeErrorCodes::*, profile::Profile,
-    },
+    actors::DefaultActor,
+    dtos::{error_code::ErrorCode, profile::Profile},
     entities::ErrorCodeFetching,
 };
 
 use clean_base::{
-    entities::FetchManyResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+    entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 
 /// List all error codes
@@ -28,24 +25,8 @@ pub async fn list_error_codes(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    match profile.verbose_status {
-        None => {
-            return use_case_err(
-                "Unexpected error on check user status".to_string(),
-            )
-            .with_code(MYC00004.as_str())
-            .as_error()
-        }
-        Some(status) => {
-            if status != Active {
-                return use_case_err(
-                    "Only active users should perform this action".to_string(),
-                )
-                .with_code(MYC00005.as_str())
-                .as_error();
-            }
-        }
-    };
+    profile
+        .get_view_ids_or_error(vec![DefaultActor::SystemManager.to_string()])?;
 
     // ? -----------------------------------------------------------------------
     // ? List data repository error codes

@@ -1,4 +1,5 @@
 use crate::domain::{
+    actors::DefaultActor,
     dtos::{
         email::Email, guest::GuestUser, message::Message, profile::Profile,
     },
@@ -28,7 +29,9 @@ pub async fn guest_user(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.has_admin_privileges_or_error()?;
+    profile.get_create_ids_or_error(vec![
+        DefaultActor::GuestManager.to_string()
+    ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Check if account has subscription type

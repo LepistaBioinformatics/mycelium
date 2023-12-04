@@ -1,10 +1,8 @@
-use crate::domain::{dtos::profile::Profile, entities::GuestUserDeletion};
-
-use clean_base::{
-    entities::DeletionResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+use crate::domain::{
+    actors::DefaultActor, dtos::profile::Profile, entities::GuestUserDeletion,
 };
-use log::debug;
+
+use clean_base::{entities::DeletionResponseKind, utils::errors::MappedErrors};
 use uuid::Uuid;
 
 /// Uninvite user to perform a role actions from account
@@ -20,14 +18,9 @@ pub async fn uninvite_guest(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    debug!("Requesting Profile: {:?}", profile);
-
-    if !profile.is_manager {
-        return use_case_err(
-            "The current user has no sufficient privileges to uninvite accounts."
-                .to_string(),
-        ).as_error();
-    };
+    profile.get_update_ids_or_error(vec![
+        DefaultActor::GuestManager.to_string()
+    ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Uninvite guest

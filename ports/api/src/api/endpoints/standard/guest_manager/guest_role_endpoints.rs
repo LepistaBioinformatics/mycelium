@@ -1,6 +1,9 @@
-use crate::modules::{
-    GuestRoleDeletionModule, GuestRoleFetchingModule,
-    GuestRoleRegistrationModule, GuestRoleUpdatingModule,
+use crate::{
+    endpoints::standard::shared::{build_actor_context, UrlGroup},
+    modules::{
+        GuestRoleDeletionModule, GuestRoleFetchingModule,
+        GuestRoleRegistrationModule, GuestRoleUpdatingModule,
+    },
 };
 
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
@@ -10,13 +13,14 @@ use clean_base::entities::{
 };
 use myc_core::{
     domain::{
+        actors::DefaultActor,
         dtos::guest::Permissions,
         entities::{
             GuestRoleDeletion, GuestRoleFetching, GuestRoleRegistration,
             GuestRoleUpdating,
         },
     },
-    use_cases::roles::managers::guest_role::{
+    use_cases::roles::standard::guest_manager::guest_role::{
         create_guest_role, delete_guest_role, list_guest_roles,
         update_guest_role_name_and_description, update_guest_role_permissions,
         ActionType,
@@ -33,14 +37,12 @@ use uuid::Uuid;
 // ? -----------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
-    config.service(
-        web::scope("/guest-roles")
-            .service(crate_guest_role_url)
-            .service(list_guest_roles_url)
-            .service(delete_guest_role_url)
-            .service(update_guest_role_name_and_description_url)
-            .service(update_guest_role_permissions_url),
-    );
+    config
+        .service(crate_guest_role_url)
+        .service(list_guest_roles_url)
+        .service(delete_guest_role_url)
+        .service(update_guest_role_name_and_description_url)
+        .service(update_guest_role_permissions_url);
 }
 
 // ? -----------------------------------------------------------------------
@@ -80,7 +82,7 @@ pub struct UpdateGuestRolePermissionsParams {
 /// Guest Roles provide permissions to simple Roles.
 #[utoipa::path(
     post,
-    context_path = "/myc/managers/guest-roles",
+    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::GuestRoles),
     params(
         ("role" = Uuid, Path, description = "The guest-role primary key."),
     ),
@@ -149,7 +151,7 @@ pub async fn crate_guest_role_url(
 /// List Roles
 #[utoipa::path(
     get,
-    context_path = "/myc/managers/guest-roles",
+    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::GuestRoles),
     params(
         ListGuestRolesParams,
     ),
@@ -218,7 +220,7 @@ pub async fn list_guest_roles_url(
 /// Delete a single guest role.
 #[utoipa::path(
     delete,
-    context_path = "/myc/managers/guest-roles",
+    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::GuestRoles),
     params(
         ("role" = Uuid, Path, description = "The guest-role primary key."),
     ),
@@ -278,7 +280,7 @@ pub async fn delete_guest_role_url(
 /// Update name and description of a single Guest Role.
 #[utoipa::path(
     patch,
-    context_path = "/myc/managers/guest-roles",
+    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::GuestRoles),
     params(
         ("role" = Uuid, Path, description = "The guest-role primary key."),
         UpdateGuestRoleNameAndDescriptionParams,
@@ -347,7 +349,7 @@ pub async fn update_guest_role_name_and_description_url(
 /// Upgrade or Downgrade permissions of Guest Role.
 #[utoipa::path(
     patch,
-    context_path = "/myc/managers/guest-roles",
+    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::GuestRoles),
     params(
         ("role" = Uuid, Path, description = "The guest-role primary key."),
         UpdateGuestRolePermissionsParams,

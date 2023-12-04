@@ -1,7 +1,7 @@
 use super::propagate_subscription_account::propagate_subscription_account;
 use crate::{
     domain::{
-        actors::DefaultActors,
+        actors::DefaultActor,
         dtos::{
             profile::Profile,
             webhook::{AccountPropagationWebHookResponse, HookTarget},
@@ -33,7 +33,7 @@ pub async fn propagate_existing_subscription_account(
     // ? -----------------------------------------------------------------------
 
     profile.get_create_ids_or_error(vec![
-        DefaultActors::SubscriptionAccountManager.to_string(),
+        DefaultActor::SubscriptionAccountManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

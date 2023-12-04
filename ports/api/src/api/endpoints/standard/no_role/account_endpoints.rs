@@ -1,16 +1,22 @@
-use crate::modules::{
-    AccountFetchingModule, AccountRegistrationModule,
-    AccountTypeRegistrationModule, AccountUpdatingModule, UserFetchingModule,
-    WebHookFetchingModule,
+use crate::{
+    endpoints::standard::shared::{build_actor_context, UrlGroup},
+    modules::{
+        AccountFetchingModule, AccountRegistrationModule,
+        AccountTypeRegistrationModule, AccountUpdatingModule,
+        UserFetchingModule, WebHookFetchingModule,
+    },
 };
 
 use actix_web::{patch, post, web, HttpResponse, Responder};
 use clean_base::entities::UpdatingResponseKind;
 use log::warn;
 use myc_core::{
-    domain::entities::{
-        AccountFetching, AccountRegistration, AccountTypeRegistration,
-        AccountUpdating, UserFetching, WebHookFetching,
+    domain::{
+        actors::DefaultActor,
+        entities::{
+            AccountFetching, AccountRegistration, AccountTypeRegistration,
+            AccountUpdating, UserFetching, WebHookFetching,
+        },
     },
     use_cases::roles::standard::no_role::account::{
         create_default_account, update_own_account_name,
@@ -27,11 +33,9 @@ use uuid::Uuid;
 // ? ---------------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
-    config.service(
-        web::scope("/accounts")
-            .service(create_default_account_url)
-            .service(update_own_account_name_url),
-    );
+    config
+        .service(create_default_account_url)
+        .service(update_own_account_name_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -60,7 +64,7 @@ pub struct UpdateOwnAccountNameAccountBody {
 
 #[utoipa::path(
     post,
-    context_path = "/myc/default-users/accounts",
+    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Accounts),
     request_body = CreateDefaultAccountBody,
     responses(
         (
@@ -122,7 +126,7 @@ pub async fn create_default_account_url(
 
 #[utoipa::path(
     patch,
-    context_path = "/myc/default-users/accounts",
+    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Accounts),
     request_body = UpdateOwnAccountNameAccountBody,
     params(
         ("id" = Uuid, Path, description = "The account primary key."),

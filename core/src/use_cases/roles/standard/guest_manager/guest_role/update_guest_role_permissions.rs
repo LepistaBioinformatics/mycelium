@@ -1,4 +1,5 @@
 use crate::domain::{
+    actors::DefaultActor,
     dtos::{
         guest::{GuestRole, Permissions},
         profile::Profile,
@@ -37,12 +38,9 @@ pub async fn update_guest_role_permissions(
     // Check if the user has manager status. Return an error if not.
     // ? ----------------------------------------------------------------------
 
-    if !profile.is_manager {
-        return use_case_err(
-            "Only manager user could perform such operation.".to_string(),
-        )
-        .as_error();
-    };
+    profile.get_update_ids_or_error(vec![
+        DefaultActor::GuestManager.to_string()
+    ])?;
 
     // ? ----------------------------------------------------------------------
     // ? Fetch role from data persistence layer

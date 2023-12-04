@@ -1,6 +1,6 @@
 use crate::{
     domain::{
-        actors::DefaultActors,
+        actors::DefaultActor,
         dtos::{
             account::{Account, AccountTypeEnum},
             profile::Profile,
@@ -36,7 +36,7 @@ pub async fn list_accounts_by_type(
     // ? -----------------------------------------------------------------------
 
     profile.get_create_ids_or_error(vec![
-        DefaultActors::SubscriptionAccountManager.to_string(),
+        DefaultActor::SubscriptionAccountManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

@@ -1,6 +1,9 @@
-use crate::modules::{
-    RoleDeletionModule, RoleFetchingModule, RoleRegistrationModule,
-    RoleUpdatingModule,
+use crate::{
+    endpoints::standard::shared::{build_actor_context, UrlGroup},
+    modules::{
+        RoleDeletionModule, RoleFetchingModule, RoleRegistrationModule,
+        RoleUpdatingModule,
+    },
 };
 
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
@@ -9,10 +12,13 @@ use clean_base::entities::{
     UpdatingResponseKind,
 };
 use myc_core::{
-    domain::entities::{
-        RoleDeletion, RoleFetching, RoleRegistration, RoleUpdating,
+    domain::{
+        actors::DefaultActor,
+        entities::{
+            RoleDeletion, RoleFetching, RoleRegistration, RoleUpdating,
+        },
     },
-    use_cases::roles::managers::role::{
+    use_cases::roles::standard::guest_manager::role::{
         create_role, delete_role, list_roles, update_role_name_and_description,
     },
 };
@@ -27,13 +33,11 @@ use uuid::Uuid;
 // ? ---------------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
-    config.service(
-        web::scope("/roles")
-            .service(crate_role_url)
-            .service(list_roles_url)
-            .service(delete_role_url)
-            .service(update_role_name_and_description_url),
-    );
+    config
+        .service(crate_role_url)
+        .service(list_roles_url)
+        .service(delete_role_url)
+        .service(update_role_name_and_description_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -58,7 +62,7 @@ pub struct ListRolesParams {
 /// Roles are used to build Guest Role elements.
 #[utoipa::path(
     post,
-    context_path = "/myc/managers/roles",
+    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Roles),
     request_body = CreateRoleBody,
     responses(
         (
@@ -121,7 +125,7 @@ pub async fn crate_role_url(
 /// List Roles
 #[utoipa::path(
     get,
-    context_path = "/myc/managers/roles",
+    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Roles),
     params(
         ListRolesParams,
     ),
@@ -187,7 +191,7 @@ pub async fn list_roles_url(
 /// Delete a single role.
 #[utoipa::path(
     delete,
-    context_path = "/myc/managers/roles",
+    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Roles),
     params(
         ("role" = Uuid, Path, description = "The role primary key."),
     ),
@@ -247,7 +251,7 @@ pub async fn delete_role_url(
 /// Update name and description of a single Role.
 #[utoipa::path(
     patch,
-    context_path = "/myc/managers/roles",
+    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Roles),
     params(
         ("role" = Uuid, Path, description = "The role primary key."),
     ),

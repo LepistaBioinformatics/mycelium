@@ -1,4 +1,5 @@
 use crate::{
+    endpoints::standard::shared::{build_actor_context, UrlGroup},
     modules::{
         MessageSendingModule, SessionTokenDeletionModule,
         SessionTokenFetchingModule, SessionTokenRegistrationModule,
@@ -13,6 +14,7 @@ use awc::error::HeaderValue;
 use log::warn;
 use myc_core::{
     domain::{
+        actors::DefaultActor,
         dtos::session_token::TokenSecret,
         entities::{
             MessageSending, SessionTokenDeletion, SessionTokenFetching,
@@ -36,14 +38,12 @@ use utoipa::ToSchema;
 // ? ---------------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
-    config.service(
-        web::scope("/users")
-            .service(check_email_registration_status_url)
-            .service(create_default_user_url)
-            .service(check_user_token_url)
-            .service(check_password_change_token_url)
-            .service(check_email_password_validity_url),
-    );
+    config
+        .service(check_email_registration_status_url)
+        .service(create_default_user_url)
+        .service(check_user_token_url)
+        .service(check_password_change_token_url)
+        .service(check_email_password_validity_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -90,7 +90,7 @@ pub struct CheckUserCredentialsBody {
 
 #[utoipa::path(
     post,
-    context_path = "/myc/default-users/users",
+    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
     request_body = CheckEmailStatusBody,
     responses(
         (
@@ -152,7 +152,7 @@ pub async fn check_email_registration_status_url(
 
 #[utoipa::path(
     post,
-    context_path = "/myc/default-users/users",
+    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
     request_body = CreateDefaultUserBody,
     responses(
         (
@@ -215,7 +215,7 @@ pub async fn create_default_user_url(
 
 #[utoipa::path(
     post,
-    context_path = "/myc/default-users/users",
+    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
     request_body = CheckTokenBody,
     responses(
         (
@@ -288,7 +288,7 @@ pub async fn check_user_token_url(
 
 #[utoipa::path(
     post,
-    context_path = "/myc/default-users/users",
+    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
     request_body = CheckTokenBody,
     responses(
         (
@@ -343,7 +343,7 @@ pub async fn check_password_change_token_url(
 
 #[utoipa::path(
     post,
-    context_path = "/myc/default-users/users",
+    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
     request_body = CheckUserCredentialsBody,
     responses(
         (

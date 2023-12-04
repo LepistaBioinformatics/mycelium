@@ -20,24 +20,12 @@ use awc::Client;
 use config::injectors::configure as configure_injection_modules;
 use endpoints::{
     index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
-    manager::{
-        account_endpoints as manager_account_endpoints,
-        error_code_endpoints as manager_error_code_endpoints,
-        guest_endpoints as manager_guest_endpoints,
-        guest_role_endpoints as manager_guest_role_endpoints,
-        role_endpoints as manager_role_endpoints,
-        webhook_endpoints as manager_webhook_endpoints,
-        ApiDoc as ManagerApiDoc,
-    },
     staff::{
         account_endpoints as staff_account_endpoints, ApiDoc as StaffApiDoc,
     },
     standard::{
-        account_endpoints as standard_account_endpoints,
-        guest_endpoints as standard_guest_endpoints,
-        profile_endpoints as standard_profile_endpoints,
-        user_endpoints as standard_user_endpoints,
-        ApiDoc as DefaultUsersApiDoc,
+        configure as configure_standard_endpoints,
+        ApiDoc as StandardUsersApiDoc,
     },
 };
 use log::{debug, info};
@@ -188,39 +176,31 @@ pub async fn main() -> std::io::Result<()> {
             // Index
             //
             .service(
-                web::scope("/health")
-                    .configure(heath_check_endpoints::configure),
+                web::scope(
+                    format!("/{}", endpoints::shared::UrlScopes::Health)
+                        .as_str(),
+                )
+                .configure(heath_check_endpoints::configure),
             )
             //
-            // Default Users
+            // Standard Users
             //
             .service(
-                web::scope("/standard").service(
-                    web::scope("/no-role")
-                        .configure(standard_account_endpoints::configure)
-                        .configure(standard_profile_endpoints::configure)
-                        .configure(standard_user_endpoints::configure)
-                        .configure(standard_guest_endpoints::configure),
-                ),
-            )
-            //
-            // Manager
-            //
-            .service(
-                web::scope("/managers")
-                    .configure(manager_account_endpoints::configure)
-                    .configure(manager_error_code_endpoints::configure)
-                    .configure(manager_guest_endpoints::configure)
-                    .configure(manager_guest_role_endpoints::configure)
-                    .configure(manager_role_endpoints::configure)
-                    .configure(manager_webhook_endpoints::configure),
+                web::scope(
+                    format!("/{}", endpoints::shared::UrlScopes::Standards)
+                        .as_str(),
+                )
+                .configure(configure_standard_endpoints),
             )
             //
             // Staff
             //
             .service(
-                web::scope("/staffs")
-                    .configure(staff_account_endpoints::configure),
+                web::scope(
+                    format!("/{}", endpoints::shared::UrlScopes::Staffs)
+                        .as_str(),
+                )
+                .configure(staff_account_endpoints::configure),
             );
 
         // ? -------------------------------------------------------------------
@@ -304,14 +284,7 @@ pub async fn main() -> std::io::Result<()> {
                                 "Standard Users Endpoints",
                                 "/doc/default-users-openapi.json",
                             ),
-                            DefaultUsersApiDoc::openapi(),
-                        ),
-                        (
-                            Url::new(
-                                "Manager Users Endpoints",
-                                "/doc/manager-openapi.json",
-                            ),
-                            ManagerApiDoc::openapi(),
+                            StandardUsersApiDoc::openapi(),
                         ),
                         (
                             Url::new(
