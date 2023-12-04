@@ -39,7 +39,7 @@ pub enum DefaultActor {
 impl Display for DefaultActor {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
-            DefaultActor::NoRole => write!(f, "anon"),
+            DefaultActor::NoRole => write!(f, "no-role"),
             DefaultActor::SubscriptionAccountManager => {
                 write!(f, "subscription-account-manager")
             }
@@ -59,7 +59,7 @@ impl FromStr for DefaultActor {
 
     fn from_str(s: &str) -> Result<DefaultActor, ()> {
         match s {
-            "anon" => Ok(DefaultActor::NoRole),
+            "no-role" => Ok(DefaultActor::NoRole),
             "subscription-account-manager" => {
                 Ok(DefaultActor::SubscriptionAccountManager)
             }

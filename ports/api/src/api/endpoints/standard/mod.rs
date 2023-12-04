@@ -13,6 +13,7 @@ use guest_manager::{
 };
 use no_role::{
     account_endpoints as no_role_account_endpoints,
+    auxiliary_endpoints as no_role_auxiliary_endpoints,
     guest_endpoints as no_role_guest_endpoints,
     profile_endpoints as no_role_profile_endpoints,
     user_endpoints as no_role_user_endpoints,
@@ -55,6 +56,10 @@ use utoipa::OpenApi;
 
 pub(crate) fn configure(config: &mut web::ServiceConfig) {
     config
+        .service(
+            web::scope("/aux")
+                .configure(no_role_auxiliary_endpoints::configure),
+        )
         //
         // NoRole
         //
@@ -157,6 +162,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
 #[derive(OpenApi)]
 #[openapi(
     paths(
+        no_role_auxiliary_endpoints::list_actors_url,
         no_role_account_endpoints::create_default_account_url,
         no_role_account_endpoints::update_own_account_name_url,
         no_role_guest_endpoints::guest_to_default_account_url,

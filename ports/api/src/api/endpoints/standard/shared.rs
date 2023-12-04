@@ -4,7 +4,7 @@ use myc_core::domain::actors::DefaultActor;
 
 pub fn build_actor_context(actor: DefaultActor, group: UrlGroup) -> String {
     format!(
-        "{}/{}s/{}",
+        "{}/{}/{}",
         build_scoped_path(UrlScopes::Standards),
         actor,
         group
