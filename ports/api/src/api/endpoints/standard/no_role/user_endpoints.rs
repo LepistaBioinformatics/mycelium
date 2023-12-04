@@ -1,5 +1,5 @@
 use crate::{
-    endpoints::standard::shared::{build_actor_context, UrlGroup},
+    endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{
         MessageSendingModule, SessionTokenDeletionModule,
         SessionTokenFetchingModule, SessionTokenRegistrationModule,

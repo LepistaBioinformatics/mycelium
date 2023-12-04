@@ -1,7 +1,7 @@
 use crate::{
     endpoints::{
-        shared::PaginationParams,
-        standard::shared::{build_actor_context, UrlGroup},
+        shared::{PaginationParams, UrlGroup},
+        standard::shared::build_actor_context,
     },
     modules::{
         ErrorCodeDeletionModule, ErrorCodeFetchingModule,
