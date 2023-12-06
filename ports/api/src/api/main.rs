@@ -128,7 +128,14 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     info!("Start the database connectors");
 
-    std::env::set_var("DATABASE_URL", config.prisma.database_url.clone());
+    std::env::set_var(
+        "DATABASE_URL",
+        match config.prisma.database_url.get() {
+            Ok(url) => url,
+            Err(err) => panic!("Error on get database url: {err}"),
+        },
+    );
+
     generate_prisma_client_of_thread(process_id()).await;
 
     // ? -----------------------------------------------------------------------
