@@ -1,12 +1,12 @@
 use clean_base::utils::errors::{factories::creation_err, MappedErrors};
-use myc_config::load_config_from_file;
+use myc_config::{env_or_value::EnvOrValue, load_config_from_file};
 use serde::Deserialize;
 use std::path::PathBuf;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PrismaConfig {
-    pub database_url: String,
+    pub database_url: EnvOrValue<String>,
 }
 
 #[derive(Clone, Debug, Deserialize)]

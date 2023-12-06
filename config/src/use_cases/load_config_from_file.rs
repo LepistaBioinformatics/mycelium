@@ -24,6 +24,8 @@ where
 
 #[cfg(test)]
 mod tests {
+    use crate::env_or_value::EnvOrValue;
+
     use super::*;
     use clean_base::utils::errors::MappedErrors;
     use serde::Deserialize;
@@ -32,15 +34,21 @@ mod tests {
     struct Config {
         name: String,
         age: u8,
+        var_with_env: EnvOrValue<String>,
+        var_without_env: String,
     }
 
     #[tokio::test]
     async fn test_load_config_from_file() -> Result<(), MappedErrors> {
+        std::env::set_var("ENV_VAR", "env_value");
+
         let config: Config =
-            load_config_from_file(PathBuf::from("tests/config.yaml")).unwrap();
+            load_config_from_file(PathBuf::from("tests/config.yaml"))?;
 
         assert_eq!(config.name, "Name");
         assert_eq!(config.age, 99);
+        assert_eq!(config.var_with_env.get()?, "env_value");
+        assert_eq!(config.var_without_env, "value");
 
         Ok(())
     }
