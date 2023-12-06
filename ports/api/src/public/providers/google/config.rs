@@ -1,50 +1,14 @@
+use myc_config::env_or_value::EnvOrValue;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GoogleOauthConfig {
     pub client_origin: String,
-    pub jwt_secret: String,
+    pub jwt_secret: EnvOrValue<String>,
     pub jwt_expires_in: String,
     pub jwt_max_age: i64,
-    pub oauth_client_id: String,
-    pub oauth_client_secret: String,
+    pub oauth_client_id: EnvOrValue<String>,
+    pub oauth_client_secret: EnvOrValue<String>,
     pub oauth_redirect_url: String,
-}
-
-impl GoogleOauthConfig {
-    pub fn init() -> GoogleOauthConfig {
-        let client_origin = std::env::var("GOOGLE_CLIENT_ORIGIN")
-            .expect("GOOGLE_CLIENT_ORIGIN must be set");
-
-        let jwt_secret = std::env::var("GOOGLE_JWT_SECRET")
-            .expect("GOOGLE_JWT_SECRET must be set");
-
-        let jwt_expires_in = std::env::var("GOOGLE_TOKEN_EXPIRED_IN")
-            .expect("GOOGLE_TOKEN_EXPIRED_IN must be set");
-
-        let jwt_max_age = std::env::var("GOOGLE_TOKEN_MAX_AGE")
-            .expect("GOOGLE_TOKEN_MAX_AGE must be set");
-
-        let google_oauth_client_id = std::env::var("GOOGLE_OAUTH_CLIENT_ID")
-            .expect("GOOGLE_OAUTH_CLIENT_ID must be set");
-
-        let google_oauth_client_secret =
-            std::env::var("GOOGLE_OAUTH_CLIENT_SECRET")
-                .expect("GOOGLE_OAUTH_CLIENT_SECRET must be set");
-
-        let google_oauth_redirect_url =
-            std::env::var("GOOGLE_OAUTH_REDIRECT_URL")
-                .expect("GOOGLE_OAUTH_REDIRECT_URL must be set");
-
-        GoogleOauthConfig {
-            client_origin,
-            jwt_secret,
-            jwt_expires_in,
-            jwt_max_age: jwt_max_age.parse::<i64>().unwrap(),
-            oauth_client_id: google_oauth_client_id,
-            oauth_client_secret: google_oauth_client_secret,
-            oauth_redirect_url: google_oauth_redirect_url,
-        }
-    }
 }

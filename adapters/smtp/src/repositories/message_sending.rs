@@ -53,8 +53,8 @@ impl MessageSending for MessageSendingSmtpRepository {
             .unwrap();
 
         let credentials = Credentials::new(
-            config.username.to_owned(),
-            config.password.to_owned(),
+            config.username.get()?.to_owned(),
+            config.password.get()?.to_owned(),
         );
 
         let mailer = SmtpTransport::relay(&config.host.to_owned())

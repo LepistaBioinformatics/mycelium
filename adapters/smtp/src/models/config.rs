@@ -1,5 +1,8 @@
 use clean_base::utils::errors::{factories::creation_err, MappedErrors};
-use myc_config::{load_config_from_file, optional_config::OptionalConfig};
+use myc_config::{
+    env_or_value::EnvOrValue, load_config_from_file,
+    optional_config::OptionalConfig,
+};
 use serde::Deserialize;
 use std::path::PathBuf;
 
@@ -7,8 +10,8 @@ use std::path::PathBuf;
 #[serde(rename_all = "camelCase")]
 pub struct SmtpConfig {
     pub host: String,
-    pub username: String,
-    pub password: String,
+    pub username: EnvOrValue<String>,
+    pub password: EnvOrValue<String>,
 }
 
 #[derive(Clone, Debug, Deserialize)]

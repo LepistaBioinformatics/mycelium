@@ -85,14 +85,30 @@ async fn google_oauth_handler(
         locale: google_user.locale.to_owned(),
     };
 
-    debug!("claims: {:?}", claims);
+    let secret = match jwt_secret.get() {
+        Ok(secret) => secret,
+        Err(err) => {
+            return HttpResponse::BadGateway().json(serde_json::json!({
+                "status": "fail",
+                "message": err.to_string()
+            }));
+        }
+    };
 
-    let token = encode(
+    let token = match encode(
         &Header::default(),
         &claims,
-        &EncodingKey::from_secret(jwt_secret.as_ref()),
-    )
-    .unwrap();
+        &EncodingKey::from_secret(secret.as_ref()),
+    ) {
+        Ok(token) => token,
+        Err(err) => {
+            debug!("Error encoding token: {:?}", err);
+            return HttpResponse::BadGateway().json(serde_json::json!({
+                "status": "fail",
+                "message": "Error encoding token"
+            }));
+        }
+    };
 
     HttpResponse::Ok()
         .append_header((

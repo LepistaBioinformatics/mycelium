@@ -38,18 +38,33 @@ pub(crate) async fn request_token(
     };
 
     let redirect_url = config.oauth_redirect_url.to_owned();
-    let client_secret = config.oauth_client_secret.to_owned();
-    let client_id = config.oauth_client_id.to_owned();
-
     let root_url = "https://oauth2.googleapis.com/token";
     let client = Client::new();
+
+    let client_id = match config.oauth_client_id.get() {
+        Ok(secret) => secret,
+        Err(err) => {
+            return Err(From::from(format!(
+                "Could not retrieve client ID: {err}"
+            )));
+        }
+    };
+
+    let client_secret = match config.oauth_client_secret.get() {
+        Ok(secret) => secret,
+        Err(err) => {
+            return Err(From::from(format!(
+                "Could not retrieve client secret: {err}"
+            )));
+        }
+    };
 
     let params = [
         ("grant_type", "authorization_code"),
         ("redirect_uri", redirect_url.as_str()),
         ("client_id", client_id.as_str()),
+        ("client_secret", client_secret.as_ref()),
         ("code", authorization_code),
-        ("client_secret", client_secret.as_str()),
     ];
 
     let response = client.post(root_url).form(&params).send().await?;
