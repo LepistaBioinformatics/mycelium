@@ -1,3 +1,10 @@
+## v4.6.0 (2023-12-06)
+
+### Feat
+
+- implements the collection of secret values from environment instead of to use hardcoded configurations
+- implements the configuration loading from environment already
+
 ## v4.5.1 (2023-12-04)
 
 ## v4.5.0 (2023-12-04)
