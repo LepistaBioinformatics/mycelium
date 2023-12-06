@@ -87,7 +87,7 @@ pub(super) async fn issue_confirmation_token_pasetor(
         .unwrap();
 
     let symmetric_key = match SymmetricKey::<V4>::from(
-        token_secret.token_secret_key.as_bytes(),
+        token_secret.token_secret_key.get()?.as_bytes(),
     ) {
         Ok(key) => key,
         Err(err) => {
@@ -102,7 +102,7 @@ pub(super) async fn issue_confirmation_token_pasetor(
         &symmetric_key,
         &claims,
         None,
-        Some(token_secret.token_hmac_secret.as_bytes()),
+        Some(token_secret.token_hmac_secret.get()?.as_bytes()),
     ) {
         Ok(token) => Ok(token),
         Err(err) => {

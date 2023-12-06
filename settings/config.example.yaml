@@ -3,16 +3,20 @@
 # ? ----------------------------------------------------------------------------
 core:
   token:
-    tokenSecretKey: ""
     tokenExpiration: 3600
-    tokenHmacSecret: ""
-    tokenEmailNotifier: ""
+    tokenSecretKey:
+      env: MYC_TOKEN_SECRET_KEY
+    tokenHmacSecret:
+      env: MYC_TOKEN_HMAC_SECRET
+    tokenEmailNotifier:
+      env: MYC_TOKEN_EMAIL_NOTIFIER
 
 # ? ----------------------------------------------------------------------------
 # ? SQL DATABASE ADAPTER SETTINGS
 # ? ----------------------------------------------------------------------------
 prisma:
-  databaseUrl: postgresql://postgres:postgres@175.20.10.2:5432/mycelium
+  databaseUrl:
+    env: MYC_DATABASE_URL
 
 # ? ----------------------------------------------------------------------------
 # ? SMTP ADAPTER SETTINGS SETTINGS
@@ -26,8 +30,10 @@ prisma:
 # smtp: disabled
 smtp:
   host: ""
-  username: ""
-  password: ""
+  username:
+    env: MYC_SMTP_USERNAME
+  password:
+    env: MYC_SMTP_PASSWORD
 
 # ? ----------------------------------------------------------------------------
 # ? AUTHENTICATION SETTINGS
@@ -48,14 +54,17 @@ auth:
 
   # Google third party authentication. It uses the google oauth2 to authenticate
   # the user. It requires a valid client id and secret.
-  google: disabled
-  #  clientOrigin: ""
-  #  jwtSecret: ""
-  #  jwtExpiresIn: 60m
-  #  jwtMaxAge: 60
-  #  oauthClientId: ""
-  #  oauthClientSecret: ""
-  #  oauthRedirectUrl: ""
+  google:
+    clientOrigin: http://localhost:3000
+    jwtSecret:
+      env: MYC_GOOGLE_JWT_SECRET
+    jwtExpiresIn: 60m
+    jwtMaxAge: 60
+    oauthClientId:
+      env: MYC_GOOGLE_OAUTH_CLIENT_ID
+    oauthClientSecret:
+      env: MYC_GOOGLE_OAUTH_CLIENT_SECRET
+    oauthRedirectUrl: http://localhost:3000
 
   # Azure third party authentication. It uses the azure oauth2 to authenticate
   # the user. It does not require a valid client id and secret. Working only

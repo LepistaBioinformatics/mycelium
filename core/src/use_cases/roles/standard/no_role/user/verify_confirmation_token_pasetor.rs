@@ -23,9 +23,10 @@ pub async fn verify_confirmation_token_pasetor(
     // ? Validate token
     // ? -----------------------------------------------------------------------
 
-    let symmetric_key =
-        SymmetricKey::<V4>::from(token_secret.token_secret_key.as_bytes())
-            .unwrap();
+    let symmetric_key = SymmetricKey::<V4>::from(
+        token_secret.token_secret_key.get()?.as_bytes(),
+    )
+    .unwrap();
 
     let validation_rules = ClaimsValidationRules::new();
     let untrusted_token = match UntrustedToken::<Local, V4>::try_from(&token) {
@@ -41,7 +42,7 @@ pub async fn verify_confirmation_token_pasetor(
         &untrusted_token,
         &validation_rules,
         None,
-        Some(token_secret.token_hmac_secret.as_bytes()),
+        Some(token_secret.token_hmac_secret.get()?.as_bytes()),
     ) {
         Ok(token) => token,
         Err(err) => {
