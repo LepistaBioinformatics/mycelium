@@ -45,7 +45,7 @@ impl AzureOauthConfig {
                 .to_string(),
         )?;
 
-        let secret = match _config.azure_oauth_client_secret.get() {
+        let secret = match _config.azure_oauth_client_secret.get_or_error() {
             Ok(secret) => secret,
             Err(err) => {
                 panic!("Could not retrieve client secret: {err}");

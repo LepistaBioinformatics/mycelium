@@ -47,7 +47,7 @@ mod tests {
 
         assert_eq!(config.name, "Name");
         assert_eq!(config.age, 99);
-        assert_eq!(config.var_with_env.get()?, "env_value");
+        assert_eq!(config.var_with_env.get_or_error()?, "env_value");
         assert_eq!(config.var_without_env, "value");
 
         Ok(())

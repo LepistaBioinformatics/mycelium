@@ -130,7 +130,7 @@ pub async fn main() -> std::io::Result<()> {
 
     std::env::set_var(
         "DATABASE_URL",
-        match config.prisma.database_url.get() {
+        match config.prisma.database_url.get_or_error() {
             Ok(url) => url,
             Err(err) => panic!("Error on get database url: {err}"),
         },

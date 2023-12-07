@@ -85,7 +85,7 @@ async fn google_oauth_handler(
         locale: google_user.locale.to_owned(),
     };
 
-    let secret = match jwt_secret.get() {
+    let secret = match jwt_secret.get_or_error() {
         Ok(secret) => secret,
         Err(err) => {
             return HttpResponse::BadGateway().json(serde_json::json!({
