@@ -1,3 +1,9 @@
+## v4.6.1 (2023-12-07)
+
+### Refactor
+
+- rename accessor method of env-or-value from get to get-or-error to indicate that the mathod returns a result
+
 ## v4.6.0 (2023-12-06)
 
 ### Feat
