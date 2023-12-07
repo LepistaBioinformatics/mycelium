@@ -24,7 +24,7 @@ pub async fn verify_confirmation_token_pasetor(
     // ? -----------------------------------------------------------------------
 
     let symmetric_key = SymmetricKey::<V4>::from(
-        token_secret.token_secret_key.get()?.as_bytes(),
+        token_secret.token_secret_key.get_or_error()?.as_bytes(),
     )
     .unwrap();
 
@@ -42,7 +42,7 @@ pub async fn verify_confirmation_token_pasetor(
         &untrusted_token,
         &validation_rules,
         None,
-        Some(token_secret.token_hmac_secret.get()?.as_bytes()),
+        Some(token_secret.token_hmac_secret.get_or_error()?.as_bytes()),
     ) {
         Ok(token) => token,
         Err(err) => {

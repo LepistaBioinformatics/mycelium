@@ -41,7 +41,7 @@ async fn decode_bearer_token_on_google(
             .to_string()
             .replace("Bearer ", "")
             .replace("bearer ", ""),
-        &DecodingKey::from_secret(config.jwt_secret.get()?.as_ref()),
+        &DecodingKey::from_secret(config.jwt_secret.get_or_error()?.as_ref()),
         &Validation::default(),
     ) {
         Ok(token) => Email::from_string(token.claims.email),

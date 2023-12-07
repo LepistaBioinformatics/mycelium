@@ -15,7 +15,7 @@ pub enum EnvOrValue<T> {
 impl<T: FromStr + Debug + Clone> EnvOrValue<T> {
     /// Returns the value of the environment variable if it exists, otherwise
     /// returns the value.
-    pub fn get(&self) -> Result<T, MappedErrors> {
+    pub fn get_or_error(&self) -> Result<T, MappedErrors> {
         match self {
             EnvOrValue::Env(env) => match std::env::var(env) {
                 Ok(value) => match value.parse::<T>() {

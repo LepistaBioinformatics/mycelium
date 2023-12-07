@@ -41,8 +41,8 @@ pub(crate) async fn request_token(
     let root_url = "https://oauth2.googleapis.com/token";
     let client = Client::new();
 
-    let client_id = match config.oauth_client_id.get() {
-        Ok(secret) => secret,
+    let client_id = match config.oauth_client_id.get_or_error() {
+        Ok(res) => res,
         Err(err) => {
             return Err(From::from(format!(
                 "Could not retrieve client ID: {err}"
@@ -50,8 +50,8 @@ pub(crate) async fn request_token(
         }
     };
 
-    let client_secret = match config.oauth_client_secret.get() {
-        Ok(secret) => secret,
+    let client_secret = match config.oauth_client_secret.get_or_error() {
+        Ok(res) => res,
         Err(err) => {
             return Err(From::from(format!(
                 "Could not retrieve client secret: {err}"
