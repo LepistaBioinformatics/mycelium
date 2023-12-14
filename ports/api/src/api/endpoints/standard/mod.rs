@@ -188,6 +188,8 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         system_manager_error_code_endpoints::delete_error_code_url,
         system_manager_webhook_endpoints::crate_webhook_url,
         system_manager_webhook_endpoints::delete_webhook_url,
+        system_manager_webhook_endpoints::list_webhooks_url,
+        system_manager_webhook_endpoints::update_webhook_url,
         guest_manager_guest_endpoints::list_licensed_accounts_of_email_url,
         guest_manager_guest_endpoints::guest_user_url,
         guest_manager_guest_endpoints::uninvite_guest_url,
@@ -233,6 +235,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             WebHook,
             AccountPropagationWebHookResponse,
             subscription_account_manager_account_endpoints::CreateSubscriptionAccountBody,
+            system_manager_webhook_endpoints::UpdateWebHookBody,
         ),
     ),
     tags(

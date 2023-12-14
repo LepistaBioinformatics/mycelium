@@ -1,24 +1,36 @@
 use crate::{
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
-    modules::{WebHookDeletionModule, WebHookRegistrationModule},
+    modules::{
+        WebHookDeletionModule, WebHookFetchingModule,
+        WebHookRegistrationModule, WebHookUpdatingModule,
+    },
 };
 
-use actix_web::{delete, post, web, HttpResponse, Responder};
-use clean_base::entities::{CreateResponseKind, DeletionResponseKind};
+use actix_web::{delete, get, post, put, web, HttpResponse, Responder};
+use clean_base::entities::{
+    CreateResponseKind, DeletionResponseKind, FetchManyResponseKind,
+    UpdatingResponseKind,
+};
 use myc_core::{
     domain::{
         actors::DefaultActor,
-        entities::{WebHookDeletion, WebHookRegistration},
+        dtos::webhook::{HookTarget, WebHook},
+        entities::{
+            WebHookDeletion, WebHookFetching, WebHookRegistration,
+            WebHookUpdating,
+        },
     },
     use_cases::roles::{
         shared::webhook::default_actions::WebHookDefaultAction,
-        standard::system_manager::webhook::{delete_webhook, register_webhook},
+        standard::system_manager::webhook::{
+            delete_webhook, list_webhooks, register_webhook, update_webhook,
+        },
     },
 };
 use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
 use serde::Deserialize;
 use shaku_actix::Inject;
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
@@ -28,6 +40,8 @@ use uuid::Uuid;
 pub fn configure(config: &mut web::ServiceConfig) {
     config
         .service(crate_webhook_url)
+        .service(list_webhooks_url)
+        .service(update_webhook_url)
         .service(delete_webhook_url);
 }
 
@@ -38,8 +52,21 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateWebHookBody {
-    pub url: String,
-    pub action: WebHookDefaultAction,
+    url: String,
+    action: WebHookDefaultAction,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateWebHookBody {
+    webhook: WebHook,
+}
+
+#[derive(Deserialize, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct ListWebHooksParams {
+    name: Option<String>,
+    target: Option<HookTarget>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -103,6 +130,127 @@ pub async fn crate_webhook_url(
             }
             CreateResponseKind::Created(guest) => {
                 HttpResponse::Created().json(guest)
+            }
+        },
+    }
+}
+
+#[utoipa::path(
+    get,
+    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::Webhooks),
+    params(
+        ListWebHooksParams,
+    ),
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = JsonError,
+        ),
+        (
+            status = 204,
+            description = "Not found.",
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = JsonError,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = JsonError,
+        ),
+        (
+            status = 200,
+            description = "Fetching success.",
+            body = Webhook,
+        ),
+    ),
+)]
+#[get("/")]
+pub async fn list_webhooks_url(
+    info: web::Query<ListWebHooksParams>,
+    profile: MyceliumProfileData,
+    webhook_fetching_repo: Inject<WebHookFetchingModule, dyn WebHookFetching>,
+) -> impl Responder {
+    match list_webhooks(
+        profile.to_profile(),
+        info.name.to_owned(),
+        info.target.to_owned(),
+        Box::new(&*webhook_fetching_repo),
+    )
+    .await
+    {
+        Err(err) => HttpResponse::InternalServerError()
+            .json(JsonError::new(err.to_string())),
+        Ok(res) => match res {
+            FetchManyResponseKind::NotFound => {
+                HttpResponse::NotFound().finish()
+            }
+            FetchManyResponseKind::Found(guest) => {
+                HttpResponse::Ok().json(guest)
+            }
+            FetchManyResponseKind::FoundPaginated(guest) => {
+                HttpResponse::Ok().json(guest)
+            }
+        },
+    }
+}
+
+#[utoipa::path(
+    put,
+    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::Webhooks),
+    params(
+        ("id" = Uuid, Path, description = "The webhook primary key."),
+    ),
+    request_body = UpdateWebHookBody,
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = JsonError,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = JsonError,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = JsonError,
+        ),
+        (
+            status = 202,
+            description = "WebHook created.",
+            body = WebHook,
+        ),
+    ),
+)]
+#[put("/{id}")]
+pub async fn update_webhook_url(
+    body: web::Json<UpdateWebHookBody>,
+    path: web::Path<Uuid>,
+    profile: MyceliumProfileData,
+    webhook_updating_repo: Inject<WebHookUpdatingModule, dyn WebHookUpdating>,
+) -> impl Responder {
+    match update_webhook(
+        profile.to_profile(),
+        body.webhook.to_owned(),
+        path.to_owned(),
+        Box::new(&*webhook_updating_repo),
+    )
+    .await
+    {
+        Err(err) => HttpResponse::InternalServerError()
+            .json(JsonError::new(err.to_string())),
+        Ok(res) => match res {
+            UpdatingResponseKind::NotUpdated(_, msg) => {
+                HttpResponse::BadRequest().json(JsonError::new(msg))
+            }
+            UpdatingResponseKind::Updated(webhook) => {
+                HttpResponse::Accepted().json(webhook)
             }
         },
     }
