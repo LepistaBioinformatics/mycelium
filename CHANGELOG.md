@@ -1,3 +1,9 @@
+## v4.7.0 (2023-12-14)
+
+### Feat
+
+- implements webhook updating and listing
+
 ## v4.6.1 (2023-12-07)
 
 ### Refactor
