@@ -13,6 +13,7 @@ use log::warn;
 use myc_core::{
     domain::{
         actors::DefaultActor,
+        dtos::native_error_codes::NativeErrorCodes,
         entities::{
             AccountFetching, AccountRegistration, AccountTypeRegistration,
             AccountUpdating, UserFetching, WebHookFetching,
@@ -141,8 +142,18 @@ pub async fn create_default_account_url(
     )
     .await
     {
-        Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
+        Err(err) => {
+            let code_string = err.code().to_string();
+
+            if err.is_in(vec![NativeErrorCodes::MYC00003.as_str()]) {
+                return HttpResponse::Conflict().json(
+                    JsonError::new(err.to_string()).with_code(code_string),
+                );
+            }
+
+            HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string()).with_code(code_string))
+        }
         Ok(res) => HttpResponse::Created().json(res),
     }
 }
