@@ -129,7 +129,7 @@ pub(super) async fn fetch_profile_from_request(
 /// Try to populate profile to request header
 ///
 /// This function is used to check credentials from multiple identity providers.
-async fn check_credentials_with_multi_identity_provider(
+pub async fn check_credentials_with_multi_identity_provider(
     req: HttpRequest,
 ) -> Result<Option<Email>, GatewayError> {
     let issuer = parse_issuer_from_request(req.clone()).await?;

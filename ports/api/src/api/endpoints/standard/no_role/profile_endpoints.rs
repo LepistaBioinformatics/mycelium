@@ -1,10 +1,10 @@
-use actix_web::{get, web, HttpResponse, Responder};
-use myc_core::domain::actors::DefaultActor;
-use myc_http_tools::middleware::MyceliumProfileData;
-
 use crate::endpoints::{
     shared::UrlGroup, standard::shared::build_actor_context,
 };
+
+use actix_web::{get, web, HttpResponse, Responder};
+use myc_core::domain::actors::DefaultActor;
+use myc_http_tools::middleware::MyceliumProfileData;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
