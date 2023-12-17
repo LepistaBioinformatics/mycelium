@@ -2,6 +2,7 @@ use crate::{
     domain::{
         dtos::{
             account::{Account, AccountTypeEnum},
+            email::Email,
             user::Provider,
             webhook::{AccountPropagationWebHookResponse, HookTarget},
         },
@@ -22,7 +23,6 @@ use clean_base::{
     },
     utils::errors::{factories::use_case_err, MappedErrors},
 };
-use uuid::Uuid;
 
 /// Create a default account.
 ///
@@ -33,7 +33,7 @@ use uuid::Uuid;
 /// account-creation method also insert a new user into the database and set the
 /// default role as `default-user`.
 pub async fn create_default_account(
-    user_id: Uuid,
+    email: Email,
     account_name: String,
     user_fetching_repo: Box<&dyn UserFetching>,
     account_registration_repo: Box<&dyn AccountRegistration>,
@@ -44,7 +44,7 @@ pub async fn create_default_account(
     // ? Try to fetch user from database
     // ? -----------------------------------------------------------------------
 
-    let user = match user_fetching_repo.get(Some(user_id), None, None).await? {
+    let user = match user_fetching_repo.get(None, Some(email), None).await? {
         FetchResponseKind::NotFound(_) => {
             return use_case_err("User not found".to_string()).as_error();
         }

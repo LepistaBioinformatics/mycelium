@@ -7,7 +7,7 @@ use crate::{
     },
 };
 
-use actix_web::{patch, post, web, HttpResponse, Responder};
+use actix_web::{patch, post, web, HttpRequest, HttpResponse, Responder};
 use clean_base::entities::UpdatingResponseKind;
 use log::warn;
 use myc_core::{
@@ -22,7 +22,12 @@ use myc_core::{
         create_default_account, update_own_account_name,
     },
 };
-use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
+use myc_http_tools::{
+    middleware::{
+        check_credentials_with_multi_identity_provider, MyceliumProfileData,
+    },
+    utils::JsonError,
+};
 use serde::Deserialize;
 use shaku_actix::Inject;
 use utoipa::ToSchema;
@@ -45,7 +50,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateDefaultAccountBody {
-    user_id: Uuid,
     account_name: String,
 }
 
@@ -96,6 +100,7 @@ pub struct UpdateOwnAccountNameAccountBody {
 )]
 #[post("/")]
 pub async fn create_default_account_url(
+    req: HttpRequest,
     body: web::Json<CreateDefaultAccountBody>,
     user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
     account_registration_repo: Inject<
@@ -108,8 +113,26 @@ pub async fn create_default_account_url(
     >,
     webhook_fetching_repo: Inject<WebHookFetchingModule, dyn WebHookFetching>,
 ) -> impl Responder {
+    let opt_email =
+        match check_credentials_with_multi_identity_provider(req).await {
+            Err(err) => {
+                warn!("err: {:?}", err);
+                return HttpResponse::InternalServerError()
+                    .json(JsonError::new(err.to_string()));
+            }
+            Ok(res) => res,
+        };
+
+    let email = match opt_email {
+        None => return HttpResponse::Forbidden()
+            .json(JsonError::new(String::from(
+            "Unable o extract user identity from request. Account not created.",
+        ))),
+        Some(email) => email,
+    };
+
     match create_default_account(
-        body.user_id.to_owned(),
+        email,
         body.account_name.to_owned(),
         Box::new(&*user_fetching_repo),
         Box::new(&*account_registration_repo),
