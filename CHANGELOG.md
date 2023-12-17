@@ -1,3 +1,9 @@
+## v4.7.2 (2023-12-17)
+
+### Fix
+
+- **default-account-creation**: include identity extraction from request token on create default accounts
+
 ## v4.7.1 (2023-12-16)
 
 ### Fix
