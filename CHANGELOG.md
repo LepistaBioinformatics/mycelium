@@ -1,3 +1,9 @@
+## v4.7.1 (2023-12-16)
+
+### Fix
+
+- **default-user-creatio9n**: fix the absence of check of user token during user creation on use a third party provider
+
 ## v4.7.0 (2023-12-14)
 
 ### Feat
