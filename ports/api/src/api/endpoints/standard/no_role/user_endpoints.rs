@@ -17,7 +17,9 @@ use log::warn;
 use myc_core::{
     domain::{
         actors::DefaultActor,
-        dtos::session_token::TokenSecret,
+        dtos::{
+            native_error_codes::NativeErrorCodes, session_token::TokenSecret,
+        },
         entities::{
             MessageSending, SessionTokenDeletion, SessionTokenFetching,
             SessionTokenRegistration, UserDeletion, UserFetching,
@@ -225,8 +227,18 @@ pub async fn create_default_user_url(
     )
     .await
     {
-        Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
+        Err(err) => {
+            let code_string = err.code().to_string();
+
+            if err.is_in(vec![NativeErrorCodes::MYC00002.as_str()]) {
+                return HttpResponse::BadRequest().json(
+                    JsonError::new(err.to_string()).with_code(code_string),
+                );
+            }
+
+            HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string()).with_code(code_string))
+        }
         Ok(res) => HttpResponse::Created().json(res),
     }
 }
