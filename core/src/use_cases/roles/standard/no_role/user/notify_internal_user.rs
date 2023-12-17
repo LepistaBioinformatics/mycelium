@@ -72,7 +72,9 @@ pub(super) async fn notify_internal_user(
 
     if let Err(err) = message_sending_repo
         .send(Message {
-            from: Email::from_string(token_secret.token_email_notifier)?,
+            from: Email::from_string(
+                token_secret.token_email_notifier.get_or_error()?
+            )?,
             to: email,
             cc: None,
             subject: String::from("Action required: Confirm your email address"),

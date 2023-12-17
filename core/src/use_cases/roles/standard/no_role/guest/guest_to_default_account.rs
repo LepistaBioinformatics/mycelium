@@ -129,7 +129,9 @@ pub async fn guest_to_default_account(
 
     match message_sending_repo
         .send(Message {
-            from: Email::from_string(token_secret.token_email_notifier)?,
+            from: Email::from_string(
+                token_secret.token_email_notifier.get_or_error()?,
+            )?,
             to: guest_email,
             cc: None,
             subject: String::from("Congratulations! New collaboration invite"),

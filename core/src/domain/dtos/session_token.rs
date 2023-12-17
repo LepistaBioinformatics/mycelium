@@ -37,5 +37,5 @@ pub struct TokenSecret {
     pub token_secret_key: EnvOrValue<String>,
     pub token_expiration: i64,
     pub token_hmac_secret: EnvOrValue<String>,
-    pub token_email_notifier: String,
+    pub token_email_notifier: EnvOrValue<String>,
 }
