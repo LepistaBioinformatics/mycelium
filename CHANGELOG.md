@@ -1,3 +1,9 @@
+## v4.7.4 (2023-12-17)
+
+### Fix
+
+- fix the error handler on try to create existing users
+
 ## v4.7.3 (2023-12-17)
 
 ### Fix
