@@ -9,7 +9,9 @@ use crate::{
     settings::{SESSION_KEY_EMAIL, SESSION_KEY_USER_ID},
 };
 
-use actix_web::{http::header, post, web, HttpResponse, Responder};
+use actix_web::{
+    http::header, post, web, HttpRequest, HttpResponse, Responder,
+};
 use awc::error::HeaderValue;
 use log::warn;
 use myc_core::{
@@ -28,7 +30,10 @@ use myc_core::{
         verify_confirmation_token_pasetor,
     },
 };
-use myc_http_tools::{utils::JsonError, Email};
+use myc_http_tools::{
+    middleware::parse_issuer_from_request, responses::GatewayError,
+    utils::JsonError, Email,
+};
 use serde::Deserialize;
 use shaku_actix::Inject;
 use utoipa::ToSchema;
@@ -63,7 +68,6 @@ pub struct CreateDefaultUserBody {
     first_name: Option<String>,
     last_name: Option<String>,
     password: Option<String>,
-    provider_name: Option<String>,
     redirect_url: String,
 }
 
@@ -179,6 +183,7 @@ pub async fn check_email_registration_status_url(
 )]
 #[post("/")]
 pub async fn create_default_user_url(
+    req: HttpRequest,
     body: web::Json<CreateDefaultUserBody>,
     token: web::Data<TokenSecret>,
     user_registration_repo: Inject<
@@ -192,12 +197,25 @@ pub async fn create_default_user_url(
     >,
     message_sending_repo: Inject<MessageSendingModule, dyn MessageSending>,
 ) -> impl Responder {
+    let provider = match parse_issuer_from_request(req.clone()).await {
+        Err(err) => match err {
+            GatewayError::Forbidden(_) => None,
+            _ => {
+                warn!("Invalid issuer: {err}");
+
+                return HttpResponse::BadRequest()
+                    .json(JsonError::new("Invalid issuer.".to_string()));
+            }
+        },
+        Ok(res) => Some(res),
+    };
+
     match create_default_user(
         body.email.to_owned(),
         body.first_name.to_owned(),
         body.last_name.to_owned(),
         body.password.to_owned(),
-        body.provider_name.to_owned(),
+        provider,
         body.redirect_url.to_owned(),
         token.get_ref().to_owned(),
         Box::new(&*user_registration_repo),
