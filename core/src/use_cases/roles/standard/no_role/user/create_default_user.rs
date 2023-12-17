@@ -75,6 +75,9 @@ pub async fn create_default_user(
     //
     // ? -----------------------------------------------------------------------
 
+    // ! By default new users are created as active ones. But when the user
+    // ! provider is internal the user is created as inactive, forcing new users
+    // ! to check their email address before they can use the system.
     if let Some(Provider::Internal(_)) = user.provider() {
         user.is_active = false;
     }
