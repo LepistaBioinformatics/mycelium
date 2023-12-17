@@ -1,3 +1,9 @@
+## v4.7.5 (2023-12-17)
+
+### Fix
+
+- fix the response from account creation to return a 409 code if account exists
+
 ## v4.7.4 (2023-12-17)
 
 ### Fix
