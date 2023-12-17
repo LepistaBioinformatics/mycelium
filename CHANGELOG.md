@@ -1,3 +1,9 @@
+## v4.7.3 (2023-12-17)
+
+### Fix
+
+- move the email notifier on generate tokens to be collected form environment
+
 ## v4.7.2 (2023-12-17)
 
 ### Fix
