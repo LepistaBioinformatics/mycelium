@@ -231,7 +231,7 @@ pub async fn create_default_user_url(
             let code_string = err.code().to_string();
 
             if err.is_in(vec![NativeErrorCodes::MYC00002.as_str()]) {
-                return HttpResponse::BadRequest().json(
+                return HttpResponse::Conflict().json(
                     JsonError::new(err.to_string()).with_code(code_string),
                 );
             }

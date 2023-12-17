@@ -3,6 +3,7 @@ use crate::{
         dtos::{
             account::{Account, AccountTypeEnum},
             email::Email,
+            native_error_codes::NativeErrorCodes,
             user::Provider,
             webhook::{AccountPropagationWebHookResponse, HookTarget},
         },
@@ -92,6 +93,7 @@ pub async fn create_default_account(
         GetOrCreateResponseKind::Created(account) => account,
         GetOrCreateResponseKind::NotCreated(_, msg) => {
             return use_case_err(format!("Account not created: {msg}"))
+                .with_code(NativeErrorCodes::MYC00003.as_str())
                 .as_error()
         }
     };
