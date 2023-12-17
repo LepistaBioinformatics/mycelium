@@ -132,6 +132,16 @@ pub(super) async fn fetch_profile_from_request(
 async fn check_credentials_with_multi_identity_provider(
     req: HttpRequest,
 ) -> Result<Option<Email>, GatewayError> {
+    let issuer = parse_issuer_from_request(req.clone()).await?;
+    discover_provider(issuer.to_owned().to_lowercase(), req).await
+}
+
+/// Parse issuer from request
+///
+/// This function is used to parse issuer from request.
+pub async fn parse_issuer_from_request(
+    req: HttpRequest,
+) -> Result<String, GatewayError> {
     let auth = match Authorization::<Bearer>::parse(&req) {
         Err(err) => {
             return Err(GatewayError::Forbidden(format!("{err}")));
@@ -160,7 +170,7 @@ async fn check_credentials_with_multi_identity_provider(
                 "Could not check issuer.".to_string(),
             ))?;
 
-    discover_provider(issuer.to_owned().to_lowercase(), req).await
+    Ok(issuer.to_owned().to_lowercase())
 }
 
 /// Discover identity provider
