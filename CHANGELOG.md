@@ -1,3 +1,9 @@
+## v4.7.7 (2023-12-23)
+
+### Fix
+
+- upgrade commitizen config file to upgrade the version from workspace file
+
 ## v4.7.6 (2023-12-23)
 
 ### Refactor
