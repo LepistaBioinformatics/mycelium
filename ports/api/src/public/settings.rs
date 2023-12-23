@@ -1,7 +1,6 @@
-use std::env::var_os;
-
 use lazy_static::lazy_static;
 use reqwest::Client;
+use std::env::var_os;
 
 // ? ---------------------------------------------------------------------------
 // ? Authentication and authorization

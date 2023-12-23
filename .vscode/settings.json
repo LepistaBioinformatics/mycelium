@@ -6,6 +6,7 @@
     "datetime",
     "dtos",
     "Hmac",
+    "httpauth",
     "keyout",
     "Lettre",
     "newkey",

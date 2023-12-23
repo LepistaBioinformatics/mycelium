@@ -1,20 +1,16 @@
 [package]
 name = "myc-core"
-version = "4.7.5"
-edition = "2021"
-authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
-license = "Apache-2.0"
 description = "Provide base features of the Mycelium project as s and Use-cases."
-repository = "https://github.com/sgelias/mycelium"
-readme = "./README.md"
-keywords = [
-    "authorization",
-    "identity",
-    "permission",
-    "api-gateway",
-    "mycelium",
-]
-categories = ["authentication", "network-programming"]
+
+edition = { workspace = true }
+authors = { workspace = true }
+version = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+keywords = { workspace = true }
+categories = { workspace = true }
+readme = { workspace = true }
+
 
 # ? ---------------------------------------------------------------------------
 # ? DEPENDENCIES
@@ -22,22 +18,22 @@ categories = ["authentication", "network-programming"]
 
 [dependencies]
 
-mycelium-config = { path = "../config" }
+mycelium-config = { workspace = true }
+clean-base = { workspace = true }
+env_logger = { workspace = true }
+log = { workspace = true }
 
 actix-web = { version = "4", features = ["openssl"] }
 actix-web-httpauth = "0.8.0"
 argon2 = "0.5.2"
 async-trait = "0.1"
-clean-base = "1.2"
 chrono = { version = "0.4", features = ["serde"] }
 enum-iterator = "1.4.0"
-env_logger = "0.10"
 futures = "0.3"
 futures-util = "0.3"
 hex = "0.4.3"
 jsonwebtoken = "8.2"
 lazy_static = "1.4"
-log = "0.4"
 pasetors = "0.6"
 regex = "1.6"
 reqwest = { version = "0.11", features = ["json"] }

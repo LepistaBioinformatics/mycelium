@@ -1,14 +1,16 @@
 [package]
 name = "mycelium-cli"
-version = "4.7.5"
-edition = "2021"
-authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
-license = "Apache-2.0"
 description = "Provide CLI ports to the mycelium project."
-repository = "https://github.com/sgelias/mycelium"
-readme = "./README.md"
-keywords = ["authorization", "identity", "permission", "keeper"]
-categories = ["http-client", "microservices"]
+
+edition = { workspace = true }
+authors = { workspace = true }
+version = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+keywords = { workspace = true }
+categories = { workspace = true }
+readme = { workspace = true }
+
 
 # ? ---------------------------------------------------------------------------
 # ? DEPENDENCIES
@@ -16,19 +18,18 @@ categories = ["http-client", "microservices"]
 
 [dependencies]
 
-mycelium-prisma = { path = "../../adapters/prisma" }
-mycelium-smtp = { path = "../../adapters/smtp" }
+myc-core = { workspace = true }
+mycelium-prisma = { workspace = true }
+mycelium-smtp = { workspace = true }
+clean-base = { workspace = true }
+env_logger = { workspace = true }
+log = { workspace = true }
 
 clap = { version = "4", features = ["derive"] }
-clean-base = "1.2"
-env_logger = "0.10"
-log = "0.4"
 rpassword = "7.2.0"
 serde_json = "1.0"
 tokio = { version = "1", features = ["full"] }
 
-[dependencies.myc-core]
-path = "../../core"
 
 # ? ---------------------------------------------------------------------------
 # ? BINARIES

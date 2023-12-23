@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use crate::providers::{
     azure_config::AzureOauthConfig, google_config::GoogleOauthConfig,
 };
@@ -7,6 +5,7 @@ use crate::providers::{
 use clean_base::utils::errors::{factories::creation_err, MappedErrors};
 use myc_config::{load_config_from_file, optional_config::OptionalConfig};
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
