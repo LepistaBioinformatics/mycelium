@@ -1,3 +1,9 @@
+## v4.7.6 (2023-12-23)
+
+### Refactor
+
+- refactor the cargo dependencies to import shared dependencies from the workspace
+
 ## v4.7.5 (2023-12-17)
 
 ### Fix
