@@ -2,14 +2,14 @@
 name = "mycelium-api"
 description = "Provide API ports to the mycelium project."
 
-edition = { workspace = true }
-authors = { workspace = true }
-version = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
-keywords = { workspace = true }
-categories = { workspace = true }
-readme = { workspace = true }
+edition.workspace = true
+authors.workspace = true
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+readme.workspace = true
 
 
 # ? ----------------------------------------------------------------------------
@@ -18,15 +18,15 @@ readme = { workspace = true }
 
 [dependencies]
 
-myc-core = { workspace = true }
-mycelium-config = { workspace = true }
-mycelium-memory-db = { workspace = true }
-mycelium-service = { workspace = true }
-mycelium-prisma = { workspace = true }
-mycelium-smtp = { workspace = true }
-clean-base = { workspace = true }
-env_logger = { workspace = true }
-log = { workspace = true }
+myc-core.workspace = true
+mycelium-config.workspace = true
+mycelium-memory-db.workspace = true
+mycelium-service.workspace = true
+mycelium-prisma.workspace = true
+mycelium-smtp.workspace = true
+clean-base.workspace = true
+env_logger.workspace = true
+log.workspace = true
 
 actix = "0.13"
 actix-cors = { version = "0.6.2" }

@@ -2,22 +2,22 @@
 name = "mycelium-memory-db"
 description = "Provide memory database adapters to the mycelium project."
 
-edition = { workspace = true }
-authors = { workspace = true }
-version = { workspace = true }
-license = { workspace = true }
-repository = { workspace = true }
-keywords = { workspace = true }
-categories = { workspace = true }
-readme = { workspace = true }
+edition.workspace = true
+authors.workspace = true
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+readme.workspace = true
 
 
 [dependencies]
 
-myc-core = { workspace = true }
-clean-base = { workspace = true }
-env_logger = { workspace = true }
-log = { workspace = true }
+myc-core.workspace = true
+clean-base.workspace = true
+env_logger.workspace = true
+log.workspace = true
 
 actix-web = { version = "4", features = ["openssl"] }
 async-trait = "0.1"
