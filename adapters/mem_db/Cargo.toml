@@ -1,27 +1,30 @@
 [package]
 name = "mycelium-memory-db"
-version = "4.7.5"
-edition = "2021"
-authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
-license = "Apache-2.0"
 description = "Provide memory database adapters to the mycelium project."
-repository = "https://github.com/sgelias/mycelium"
-readme = "./README.md"
-keywords = ["authorization", "identity", "permission", "keeper"]
-categories = ["http-client", "microservices"]
+
+edition = { workspace = true }
+authors = { workspace = true }
+version = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+keywords = { workspace = true }
+categories = { workspace = true }
+readme = { workspace = true }
+
 
 [dependencies]
+
+myc-core = { workspace = true }
+clean-base = { workspace = true }
+env_logger = { workspace = true }
+log = { workspace = true }
+
 actix-web = { version = "4", features = ["openssl"] }
 async-trait = "0.1"
-clean-base = "1.2"
-env_logger = "0.10"
-log = "0.4"
 shaku = "0.6"
 shaku_actix = "0.2"
 wildmatch = "2.1"
 
-[dependencies.myc-core]
-path = "../../core"
 
 [lib]
 name = "myc_mem_db"

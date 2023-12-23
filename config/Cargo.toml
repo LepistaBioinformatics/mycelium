@@ -1,27 +1,24 @@
 [package]
 name = "mycelium-config"
-version = "4.2.0"
-edition = "2021"
-authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
-license = "Apache-2.0"
 description = "Provide config manager features of the Mycelium project as and use-cases."
-repository = "https://github.com/sgelias/mycelium"
-readme = "./README.md"
-keywords = [
-    "authorization",
-    "identity",
-    "permission",
-    "api-gateway",
-    "mycelium",
-]
-categories = ["authentication", "network-programming"]
+
+edition = { workspace = true }
+authors = { workspace = true }
+version = { workspace = true }
+license = { workspace = true }
+repository = { workspace = true }
+keywords = { workspace = true }
+categories = { workspace = true }
+readme = { workspace = true }
+
 
 # ? ----------------------------------------------------------------------------
 # ? DEPENDENCIES
 # ? ----------------------------------------------------------------------------
 
 [dependencies]
-clean-base = "1.2"
+clean-base = { workspace = true }
+
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9"
 

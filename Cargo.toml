@@ -1,3 +1,7 @@
+# ? ----------------------------------------------------------------------------
+# ? Workspace general configuration
+# ? ----------------------------------------------------------------------------
+
 [workspace]
 
 members = [
@@ -13,3 +17,51 @@ members = [
 ]
 
 resolver = "2"
+
+
+# ? ----------------------------------------------------------------------------
+# ? Workspace general configuration
+# ? ----------------------------------------------------------------------------
+
+[workspace.package]
+
+version = "4.7.5"
+edition = "2021"
+authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
+license = "Apache-2.0"
+repository = "https://github.com/sgelias/mycelium"
+readme = "./README.md"
+keywords = ["authorization", "identity", "permission", "keeper"]
+categories = ["http-client", "microservices"]
+
+
+# ? ----------------------------------------------------------------------------
+# ? Workspace dependencies
+# ? ----------------------------------------------------------------------------
+
+[workspace.dependencies]
+
+# ------------------------------------------------------------------------------
+#
+# External dependencies
+#
+# ------------------------------------------------------------------------------
+
+clean-base = "1.2"
+env_logger = "0.10"
+log = "0.4"
+
+# ------------------------------------------------------------------------------
+#
+# Internal dependencies
+#
+# ------------------------------------------------------------------------------
+
+mycelium-config = { path = "config" }
+myc-core = { path = "core" }
+mycelium-memory-db = { path = "adapters/mem_db" }
+mycelium-prisma = { path = "adapters/prisma" }
+mycelium-service = { path = "adapters/service" }
+mycelium-smtp = { path = "adapters/smtp" }
+mycelium-cli = { path = "ports/cli" }
+mycelium-api = { path = "ports/api" }
