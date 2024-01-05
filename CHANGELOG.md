@@ -1,3 +1,9 @@
+## v4.7.9 (2024-01-05)
+
+### Fix
+
+- fix guest-role url parameter wrong expecting the role id as url parameter
+
 ## v4.7.8 (2024-01-05)
 
 ### Fix
