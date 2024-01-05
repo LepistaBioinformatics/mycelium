@@ -54,6 +54,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub struct CreateGuestRoleBody {
     pub name: String,
     pub description: String,
+    pub role_id: Uuid,
 }
 
 #[derive(Deserialize, IntoParams)]
@@ -83,9 +84,6 @@ pub struct UpdateGuestRolePermissionsParams {
 #[utoipa::path(
     post,
     context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::GuestRoles),
-    params(
-        ("role" = Uuid, Path, description = "The guest-role primary key."),
-    ),
     request_body = CreateGuestRoleBody,
     responses(
         (
@@ -115,7 +113,7 @@ pub struct UpdateGuestRolePermissionsParams {
         ),
     ),
 )]
-#[post("/{role}/")]
+#[post("/")]
 pub async fn crate_guest_role_url(
     path: web::Path<Uuid>,
     json: web::Json<CreateGuestRoleBody>,
@@ -129,7 +127,7 @@ pub async fn crate_guest_role_url(
         profile.to_profile(),
         json.name.to_owned(),
         json.description.to_owned(),
-        path.to_owned(),
+        json.role_id.to_owned(),
         None,
         Box::new(&*role_registration_repo),
     )
@@ -251,7 +249,7 @@ pub async fn list_guest_roles_url(
         ),
     ),
 )]
-#[delete("/{role}/delete")]
+#[delete("/{role}")]
 pub async fn delete_guest_role_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
@@ -313,7 +311,7 @@ pub async fn delete_guest_role_url(
         ),
     ),
 )]
-#[patch("/{role}/update-name-and-description")]
+#[patch("/{role}")]
 pub async fn update_guest_role_name_and_description_url(
     path: web::Path<Uuid>,
     info: web::Query<UpdateGuestRoleNameAndDescriptionParams>,
@@ -382,7 +380,7 @@ pub async fn update_guest_role_name_and_description_url(
         ),
     ),
 )]
-#[patch("/{role}/update-permissions")]
+#[patch("/{role}/permissions")]
 pub async fn update_guest_role_permissions_url(
     path: web::Path<Uuid>,
     info: web::Query<UpdateGuestRolePermissionsParams>,
