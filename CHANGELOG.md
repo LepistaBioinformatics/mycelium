@@ -1,3 +1,9 @@
+## v4.7.10 (2024-01-05)
+
+### Fix
+
+- fix guest-role endpoints params to use from body instead header
+
 ## v4.7.9 (2024-01-05)
 
 ### Fix
