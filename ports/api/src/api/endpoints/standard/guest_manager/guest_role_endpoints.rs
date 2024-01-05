@@ -115,7 +115,6 @@ pub struct UpdateGuestRolePermissionsParams {
 )]
 #[post("/")]
 pub async fn crate_guest_role_url(
-    path: web::Path<Uuid>,
     json: web::Json<CreateGuestRoleBody>,
     profile: MyceliumProfileData,
     role_registration_repo: Inject<
