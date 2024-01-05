@@ -1,3 +1,9 @@
+## v4.7.8 (2024-01-05)
+
+### Fix
+
+- fix role and guest-role endpoints to use correct verbs and rest syntax
+
 ## v4.7.7 (2023-12-23)
 
 ### Fix
