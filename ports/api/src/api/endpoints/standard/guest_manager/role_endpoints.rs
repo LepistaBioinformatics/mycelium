@@ -222,7 +222,7 @@ pub async fn list_roles_url(
         ),
     ),
 )]
-#[delete("/{role}/delete")]
+#[delete("/{role}")]
 pub async fn delete_role_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
@@ -284,7 +284,7 @@ pub async fn delete_role_url(
         ),
     ),
 )]
-#[patch("/{role}/update-name-and-description")]
+#[patch("/{role}")]
 pub async fn update_role_name_and_description_url(
     path: web::Path<Uuid>,
     body: web::Json<CreateRoleBody>,
