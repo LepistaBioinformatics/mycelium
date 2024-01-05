@@ -64,16 +64,16 @@ pub struct ListGuestRolesParams {
     pub role_id: Option<Uuid>,
 }
 
-#[derive(Deserialize, IntoParams)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateGuestRoleNameAndDescriptionParams {
+pub struct UpdateGuestRoleNameAndDescriptionBody {
     pub name: Option<String>,
     pub description: Option<String>,
 }
 
-#[derive(Deserialize, IntoParams)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateGuestRolePermissionsParams {
+pub struct UpdateGuestRolePermissionsBody {
     pub permission: Permissions,
     pub action_type: ActionType,
 }
@@ -313,15 +313,15 @@ pub async fn delete_guest_role_url(
 #[patch("/{role}")]
 pub async fn update_guest_role_name_and_description_url(
     path: web::Path<Uuid>,
-    info: web::Query<UpdateGuestRoleNameAndDescriptionParams>,
+    body: web::Json<UpdateGuestRoleNameAndDescriptionBody>,
     profile: MyceliumProfileData,
     role_fetching_repo: Inject<GuestRoleFetchingModule, dyn GuestRoleFetching>,
     role_updating_repo: Inject<GuestRoleUpdatingModule, dyn GuestRoleUpdating>,
 ) -> impl Responder {
     match update_guest_role_name_and_description(
         profile.to_profile(),
-        info.name.to_owned(),
-        info.description.to_owned(),
+        body.name.to_owned(),
+        body.description.to_owned(),
         path.to_owned(),
         Box::new(&*role_fetching_repo),
         Box::new(&*role_updating_repo),
@@ -382,7 +382,7 @@ pub async fn update_guest_role_name_and_description_url(
 #[patch("/{role}/permissions")]
 pub async fn update_guest_role_permissions_url(
     path: web::Path<Uuid>,
-    info: web::Query<UpdateGuestRolePermissionsParams>,
+    body: web::Json<UpdateGuestRolePermissionsBody>,
     profile: MyceliumProfileData,
     role_fetching_repo: Inject<GuestRoleFetchingModule, dyn GuestRoleFetching>,
     role_updating_repo: Inject<GuestRoleUpdatingModule, dyn GuestRoleUpdating>,
@@ -390,8 +390,8 @@ pub async fn update_guest_role_permissions_url(
     match update_guest_role_permissions(
         profile.to_profile(),
         path.to_owned(),
-        info.permission.to_owned(),
-        info.action_type.to_owned(),
+        body.permission.to_owned(),
+        body.action_type.to_owned(),
         Box::new(&*role_fetching_repo),
         Box::new(&*role_updating_repo),
     )
