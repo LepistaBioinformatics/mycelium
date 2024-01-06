@@ -1,3 +1,9 @@
+## v4.7.11 (2024-01-06)
+
+### Fix
+
+- fix the argument delivery on guest-role endpoints
+
 ## v4.7.10 (2024-01-05)
 
 ### Fix
