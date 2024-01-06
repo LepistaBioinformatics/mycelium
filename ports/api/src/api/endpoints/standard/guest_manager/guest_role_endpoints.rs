@@ -280,8 +280,8 @@ pub async fn delete_guest_role_url(
     context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::GuestRoles),
     params(
         ("role" = Uuid, Path, description = "The guest-role primary key."),
-        UpdateGuestRoleNameAndDescriptionParams,
     ),
+    request_body = UpdateGuestRoleNameAndDescriptionBody,
     responses(
         (
             status = 500,
@@ -349,8 +349,8 @@ pub async fn update_guest_role_name_and_description_url(
     context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::GuestRoles),
     params(
         ("role" = Uuid, Path, description = "The guest-role primary key."),
-        UpdateGuestRolePermissionsParams,
     ),
+    request_body = UpdateGuestRolePermissionsBody,
     responses(
         (
             status = 500,
