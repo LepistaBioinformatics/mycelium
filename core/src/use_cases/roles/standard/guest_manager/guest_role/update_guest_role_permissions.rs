@@ -6,12 +6,15 @@ use crate::domain::{
     },
     entities::{GuestRoleFetching, GuestRoleUpdating},
 };
-
 use clean_base::{
     entities::{FetchResponseKind, UpdatingResponseKind},
     utils::errors::{factories::use_case_err, MappedErrors},
 };
 use serde::{Deserialize, Serialize};
+use std::{
+    fmt::{Display, Formatter, Result as FmtResult},
+    str::FromStr,
+};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
