@@ -1,3 +1,9 @@
+## v4.7.12 (2024-01-08)
+
+### Fix
+
+- include role creation models into openapi definitions
+
 ## v4.7.11 (2024-01-06)
 
 ### Fix
