@@ -22,6 +22,28 @@ pub enum ActionType {
     Downgrade,
 }
 
+impl Display for ActionType {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        match self {
+            ActionType::Upgrade => write!(f, "upgrade"),
+            ActionType::Downgrade => write!(f, "downgrade"),
+        }
+    }
+}
+
+impl FromStr for ActionType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<ActionType, ()> {
+        match s {
+            "upgrade" => Ok(ActionType::Upgrade),
+            "downgrade" => Ok(ActionType::Downgrade),
+
+            _ => Err(()),
+        }
+    }
+}
+
 /// This function allow users to include or remove permission from a single
 /// role. Only manager users should perform such action.
 pub async fn update_guest_role_permissions(
