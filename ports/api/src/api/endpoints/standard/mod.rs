@@ -45,7 +45,10 @@ use myc_core::{
             webhook::{AccountPropagationWebHookResponse, HookTarget, WebHook},
         },
     },
-    use_cases::roles::standard::no_role::user::EmailRegistrationStatus,
+    use_cases::roles::standard::{
+        guest_manager::guest_role::ActionType,
+        no_role::user::EmailRegistrationStatus,
+    },
 };
 use myc_http_tools::utils::JsonError;
 use utoipa::OpenApi;
@@ -217,6 +220,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             Account,
             AccountType,
             AccountTypeEnum,
+            ActionType,
             JsonError,
             LicensedResources,
             Profile,
@@ -236,6 +240,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             AccountPropagationWebHookResponse,
             subscription_account_manager_account_endpoints::CreateSubscriptionAccountBody,
             system_manager_webhook_endpoints::UpdateWebHookBody,
+            guest_manager_guest_role_endpoints::UpdateGuestRolePermissionsBody,
         ),
     ),
     tags(
