@@ -1,3 +1,9 @@
+## v4.7.13 (2024-01-08)
+
+### Fix
+
+- implementing serialization and deserialization into the permissions action type enumerator
+
 ## v4.7.12 (2024-01-08)
 
 ### Fix
