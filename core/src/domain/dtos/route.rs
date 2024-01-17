@@ -23,9 +23,13 @@ pub struct Route {
 impl Route {
     /// Check if a method is allowed.
     pub async fn allow_method(&self, method: HttpMethod) -> Option<HttpMethod> {
-        match self.methods.contains(&method) {
-            true => Some(method),
-            false => None,
+        match method {
+            HttpMethod::All => return Some(method),
+            HttpMethod::None => return None,
+            _ => match self.methods.contains(&method) {
+                true => Some(method),
+                false => None,
+            },
         }
     }
 

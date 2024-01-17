@@ -51,8 +51,8 @@ impl Display for HttpMethod {
             HttpMethod::Connect => write!(f, "CONNECT"),
             HttpMethod::Options => write!(f, "OPTIONS"),
             HttpMethod::Trace => write!(f, "TRACE"),
-            HttpMethod::All => write!(f, "*"),
-            HttpMethod::None => write!(f, "-"),
+            HttpMethod::All => write!(f, "ALL"),
+            HttpMethod::None => write!(f, "NONE"),
         }
     }
 }
@@ -71,7 +71,8 @@ impl FromStr for HttpMethod {
             "CONNECT" => Ok(HttpMethod::Connect),
             "OPTIONS" => Ok(HttpMethod::Options),
             "TRACE" => Ok(HttpMethod::Trace),
-            "*" => Ok(HttpMethod::All),
+            "ALL" => Ok(HttpMethod::All),
+            "NONE" => Ok(HttpMethod::None),
             _ => Err(HttpMethod::None),
         }
     }
