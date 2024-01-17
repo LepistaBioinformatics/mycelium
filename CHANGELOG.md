@@ -1,3 +1,9 @@
+## v4.7.16 (2024-01-17)
+
+### Fix
+
+- **router**: fix router to correctely check for all and none methods
+
 ## v4.7.15 (2024-01-17)
 
 ### Fix
