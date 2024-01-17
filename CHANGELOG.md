@@ -1,3 +1,9 @@
+## v4.7.15 (2024-01-17)
+
+### Fix
+
+- **router**: fix http method filtragion from gateway router
+
 ## v4.7.14 (2024-01-08)
 
 ### Fix
