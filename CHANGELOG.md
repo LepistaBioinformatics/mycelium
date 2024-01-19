@@ -1,3 +1,9 @@
+## v4.8.0 (2024-01-19)
+
+### Feat
+
+- implements the api port to interact with the propagation use-case
+
 ## v4.7.16 (2024-01-17)
 
 ### Fix
