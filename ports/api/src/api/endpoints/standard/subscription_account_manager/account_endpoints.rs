@@ -21,7 +21,8 @@ use myc_core::{
         },
     },
     use_cases::roles::standard::subscription_account_manager::account::{
-        create_subscription_account, get_account_details, list_accounts_by_type,
+        create_subscription_account, get_account_details,
+        list_accounts_by_type, propagate_existing_subscription_account,
     },
 };
 use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
@@ -38,7 +39,8 @@ pub fn configure(config: &mut web::ServiceConfig) {
     config
         .service(create_subscription_account_url)
         .service(list_accounts_by_type_url)
-        .service(get_account_details_url);
+        .service(get_account_details_url)
+        .service(propagate_existing_subscription_account_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -308,5 +310,62 @@ pub async fn get_account_details_url(
                 HttpResponse::Ok().json(accounts)
             }
         },
+    }
+}
+
+/// Propagate Subscription Account
+///
+/// Propagate a single subscription account.
+#[utoipa::path(
+    post,
+    context_path = build_actor_context(DefaultActor::SubscriptionAccountManager, UrlGroup::Accounts),
+    params(
+        ("account" = Uuid, Path, description = "The account primary key."),
+    ),
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = JsonError,
+        ),
+        (
+            status = 204,
+            description = "Not found.",
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = JsonError,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = JsonError,
+        ),
+        (
+            status = 200,
+            description = "Propagating success.",
+            body = Account,
+        ),
+    ),
+)]
+#[post("/{account}/propagate")]
+pub async fn propagate_existing_subscription_account_url(
+    path: web::Path<Uuid>,
+    profile: MyceliumProfileData,
+    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
+    webhook_fetching_repo: Inject<WebHookFetchingModule, dyn WebHookFetching>,
+) -> impl Responder {
+    match propagate_existing_subscription_account(
+        profile.to_profile(),
+        *path,
+        Box::new(&*account_fetching_repo),
+        Box::new(&*webhook_fetching_repo),
+    )
+    .await
+    {
+        Err(err) => HttpResponse::InternalServerError()
+            .json(JsonError::new(err.to_string())),
+        Ok(res) => HttpResponse::Ok().json(res),
     }
 }
