@@ -25,8 +25,9 @@ pub async fn list_error_codes(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile
-        .get_view_ids_or_error(vec![DefaultActor::SystemManager.to_string()])?;
+    profile.get_default_view_ids_or_error(vec![
+        DefaultActor::SystemManager.to_string()
+    ])?;
 
     // ? -----------------------------------------------------------------------
     // ? List data repository error codes

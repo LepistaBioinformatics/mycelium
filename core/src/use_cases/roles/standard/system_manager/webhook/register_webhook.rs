@@ -15,8 +15,8 @@ pub async fn register_webhook(
     action: WebHookDefaultAction,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
 ) -> Result<CreateResponseKind<WebHook>, MappedErrors> {
-    profile.get_create_ids_or_error(vec![
-        DefaultActor::SystemManager.to_string()
+    profile.get_default_create_ids_or_error(vec![
+        DefaultActor::SystemManager.to_string(),
     ])?;
 
     webhook_registration_repo

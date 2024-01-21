@@ -71,6 +71,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 account: select {
                     name
                     account_type
+                    is_default
                 }
             }))
             .exec()
@@ -91,6 +92,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 )
                 .unwrap(),
                 guest_account_name: record.account.name.to_owned(),
+                guest_account_is_default: record.account.is_default,
                 guest_role_id: Uuid::parse_str(
                     &record.guest_user.guest_role.id,
                 )

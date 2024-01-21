@@ -15,8 +15,8 @@ pub async fn delete_role(
     // ? Check if the current account has sufficient privileges to create role
     // ? ----------------------------------------------------------------------
 
-    profile.get_delete_ids_or_error(vec![
-        DefaultActor::GuestManager.to_string()
+    profile.get_default_delete_ids_or_error(vec![
+        DefaultActor::GuestManager.to_string(),
     ])?;
 
     // ? ----------------------------------------------------------------------
