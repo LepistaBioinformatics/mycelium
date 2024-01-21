@@ -1,3 +1,9 @@
+## v4.8.1 (2024-01-20)
+
+### Fix
+
+- upgrade the prisma model to include the flag is-default into database and update associated adapters
+
 ## v4.8.0 (2024-01-19)
 
 ### Feat
