@@ -1,3 +1,9 @@
+## v4.8.2 (2024-01-21)
+
+### Fix
+
+- upgrade all std use-cases to responds to default account on check actinos permissions from profile
+
 ## v4.8.1 (2024-01-20)
 
 ### Fix
