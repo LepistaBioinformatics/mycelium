@@ -25,8 +25,9 @@ pub async fn list_guest_on_subscription_account(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile
-        .get_view_ids_or_error(vec![DefaultActor::GuestManager.to_string()])?;
+    profile.get_default_view_ids_or_error(vec![
+        DefaultActor::GuestManager.to_string()
+    ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch the target subscription account

@@ -33,8 +33,8 @@ pub async fn update_webhook(
         .as_error();
     };
 
-    profile.get_update_ids_or_error(vec![
-        DefaultActor::SystemManager.to_string()
+    profile.get_default_update_ids_or_error(vec![
+        DefaultActor::SystemManager.to_string(),
     ])?;
 
     webhook_updating_repo.update(webhook).await

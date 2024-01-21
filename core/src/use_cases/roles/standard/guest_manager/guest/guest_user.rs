@@ -29,8 +29,8 @@ pub async fn guest_user(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_create_ids_or_error(vec![
-        DefaultActor::GuestManager.to_string()
+    profile.get_default_create_ids_or_error(vec![
+        DefaultActor::GuestManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

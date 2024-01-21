@@ -18,8 +18,8 @@ pub async fn uninvite_guest(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_update_ids_or_error(vec![
-        DefaultActor::GuestManager.to_string()
+    profile.get_default_update_ids_or_error(vec![
+        DefaultActor::GuestManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

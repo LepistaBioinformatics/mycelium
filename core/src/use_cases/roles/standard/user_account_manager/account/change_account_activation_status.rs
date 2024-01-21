@@ -27,8 +27,8 @@ pub async fn change_account_activation_status(
     // ? Check permissions
     // ? -----------------------------------------------------------------------
 
-    profile.get_update_ids_or_error(vec![
-        DefaultActor::UserAccountManager.to_string()
+    profile.get_default_update_ids_or_error(vec![
+        DefaultActor::UserAccountManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

@@ -37,7 +37,7 @@ pub async fn create_subscription_account(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_create_ids_or_error(vec![
+    profile.get_default_create_ids_or_error(vec![
         DefaultActor::SubscriptionAccountManager.to_string(),
     ])?;
 

@@ -19,8 +19,9 @@ pub async fn get_error_code(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile
-        .get_view_ids_or_error(vec![DefaultActor::SystemManager.to_string()])?;
+    profile.get_default_view_ids_or_error(vec![
+        DefaultActor::SystemManager.to_string()
+    ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Get error code

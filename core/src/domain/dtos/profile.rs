@@ -14,6 +14,12 @@ pub struct LicensedResources {
     /// resource to be managed.
     pub guest_account_id: Uuid,
 
+    /// The guest account unique id
+    ///
+    /// This is the unique identifier of the account that is own of the
+    /// resource to be managed.
+    pub guest_account_is_default: bool,
+
     /// The guest account name
     ///
     /// This is the name of the account that is own of the resource to be
@@ -162,7 +168,7 @@ impl Profile {
 
     /// Filter IDs with view permissions.
     pub fn get_view_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
-        self.get_licensed_ids(Permissions::View, roles)
+        self.get_licensed_ids(Permissions::View, roles, None)
     }
 
     /// Filter IDs with view permissions with error if empty.
@@ -170,12 +176,21 @@ impl Profile {
         &self,
         roles: Vec<String>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permissions::View, roles)
+        self.get_licensed_ids_or_error(Permissions::View, roles, None)
+    }
+
+    /// Filter IDs with view permissions to default accounts with error if
+    /// empty.
+    pub fn get_default_view_ids_or_error(
+        &self,
+        roles: Vec<String>,
+    ) -> Result<Vec<Uuid>, MappedErrors> {
+        self.get_licensed_ids_or_error(Permissions::View, roles, Some(true))
     }
 
     /// Filter IDs with create permissions.
     pub fn get_create_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
-        self.get_licensed_ids(Permissions::Create, roles)
+        self.get_licensed_ids(Permissions::Create, roles, None)
     }
 
     /// Filter IDs with create permissions with error if empty.
@@ -183,12 +198,21 @@ impl Profile {
         &self,
         roles: Vec<String>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permissions::Create, roles)
+        self.get_licensed_ids_or_error(Permissions::Create, roles, None)
+    }
+
+    /// Filter IDs with create permissions to default accounts with error if
+    /// empty.
+    pub fn get_default_create_ids_or_error(
+        &self,
+        roles: Vec<String>,
+    ) -> Result<Vec<Uuid>, MappedErrors> {
+        self.get_licensed_ids_or_error(Permissions::Create, roles, Some(true))
     }
 
     /// Filter IDs with update permissions.
     pub fn get_update_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
-        self.get_licensed_ids(Permissions::Update, roles)
+        self.get_licensed_ids(Permissions::Update, roles, None)
     }
 
     /// Filter IDs with update permissions with error if empty.
@@ -196,12 +220,21 @@ impl Profile {
         &self,
         roles: Vec<String>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permissions::Update, roles)
+        self.get_licensed_ids_or_error(Permissions::Update, roles, None)
+    }
+
+    /// Filter IDs with update permissions to default accounts with error if
+    /// empty.
+    pub fn get_default_update_ids_or_error(
+        &self,
+        roles: Vec<String>,
+    ) -> Result<Vec<Uuid>, MappedErrors> {
+        self.get_licensed_ids_or_error(Permissions::Update, roles, Some(true))
     }
 
     /// Filter IDs with delete permissions.
     pub fn get_delete_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
-        self.get_licensed_ids(Permissions::Delete, roles)
+        self.get_licensed_ids(Permissions::Delete, roles, None)
     }
 
     /// Filter IDs with delete permissions with error if empty.
@@ -209,7 +242,16 @@ impl Profile {
         &self,
         roles: Vec<String>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permissions::Delete, roles)
+        self.get_licensed_ids_or_error(Permissions::Delete, roles, None)
+    }
+
+    /// Filter IDs with delete permissions to default accounts with error if
+    /// empty.
+    pub fn get_default_delete_ids_or_error(
+        &self,
+        roles: Vec<String>,
+    ) -> Result<Vec<Uuid>, MappedErrors> {
+        self.get_licensed_ids_or_error(Permissions::Delete, roles, Some(true))
     }
 
     /// Create a list of licensed ids.
@@ -220,29 +262,46 @@ impl Profile {
         &self,
         permission: Permissions,
         roles: Vec<String>,
+        should_be_default: Option<bool>,
     ) -> Vec<Uuid> {
-        match &self.licensed_resources {
-            None => vec![self.current_account_id],
-            Some(res) => res
-                .into_iter()
-                .filter_map(|i| {
-                    match i.permissions.contains(&permission) &&
-                        roles.contains(&i.role)
-                    {
-                        false => None,
-                        true => Some(i.guest_account_id),
-                    }
-                })
-                .collect::<Vec<Uuid>>(),
+        if let None = self.licensed_resources {
+            return vec![self.current_account_id];
         }
+
+        let licensed_resources = if let Some(true) = should_be_default {
+            self.licensed_resources
+                .as_ref()
+                .unwrap()
+                .into_iter()
+                .filter_map(|license| match license.guest_account_is_default {
+                    true => Some(license.to_owned()),
+                    false => None,
+                })
+                .collect::<Vec<LicensedResources>>()
+        } else {
+            self.licensed_resources.as_ref().unwrap().to_vec()
+        };
+
+        licensed_resources
+            .into_iter()
+            .filter_map(|i| {
+                match i.permissions.contains(&permission) &&
+                    roles.contains(&i.role)
+                {
+                    false => None,
+                    true => Some(i.guest_account_id),
+                }
+            })
+            .collect::<Vec<Uuid>>()
     }
 
     fn get_licensed_ids_or_error(
         &self,
         permission: Permissions,
         roles: Vec<String>,
+        should_be_default: Option<bool>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        let ids = self.get_licensed_ids(permission, roles);
+        let ids = self.get_licensed_ids(permission, roles, should_be_default);
 
         if !vec![!ids.is_empty(), self.is_staff, self.is_manager]
             .into_iter()
@@ -300,6 +359,7 @@ mod tests {
                     )
                     .unwrap(),
                     guest_account_name: "guest_account_name".to_string(),
+                    guest_account_is_default: false,
                     guest_role_id: Uuid::from_str(
                         "e497848f-a0d4-49f4-8288-c3df11416ff2",
                     )
@@ -349,6 +409,7 @@ mod tests {
                     )
                     .unwrap(),
                     guest_account_name: "guest_account_name".to_string(),
+                    guest_account_is_default: false,
                     guest_role_id: Uuid::from_str(
                         "e497848f-a0d4-49f4-8288-c3df11416ff2",
                     )
