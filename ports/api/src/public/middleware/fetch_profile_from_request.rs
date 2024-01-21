@@ -108,19 +108,15 @@ pub(super) async fn fetch_profile_from_request(
             warn!("{:?}", err);
             return Err(GatewayError::InternalServerError(format!("{err}")));
         }
-        Ok(res) => {
-            debug!("Requesting Profile: {:?}", res);
-
-            match res {
-                ProfileResponse::UnregisteredUser(email) => {
-                    return Err(GatewayError::Forbidden(format!(
-                        "Unauthorized access: {:?}",
-                        email,
-                    )))
-                }
-                ProfileResponse::RegisteredUser(res) => res,
+        Ok(res) => match res {
+            ProfileResponse::UnregisteredUser(email) => {
+                return Err(GatewayError::Forbidden(format!(
+                    "Unauthorized access: {:?}",
+                    email,
+                )))
             }
-        }
+            ProfileResponse::RegisteredUser(res) => res,
+        },
     };
 
     Ok(MyceliumProfileData::from_profile(profile))

@@ -11,7 +11,6 @@ use clean_base::{
     entities::FetchManyResponseKind,
     utils::errors::{factories::fetching_err, MappedErrors},
 };
-use log::debug;
 use myc_core::domain::{
     dtos::{
         email::Email, guest::Permissions, native_error_codes::NativeErrorCodes,
@@ -36,8 +35,6 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         // ? -------------------------------------------------------------------
         // ? Build and execute the database query
         // ? -------------------------------------------------------------------
-
-        debug!("Target email: {:?}", email);
 
         let tmp_client = get_client().await;
 
@@ -82,8 +79,6 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         // ? Evaluate and parse the database response
         // ? -------------------------------------------------------------------
 
-        debug!("Raw Licensed Resources: {:?}", response);
-
         let licenses = response
             .into_iter()
             .map(|record| LicensedResources {
@@ -116,8 +111,6 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                     .collect(),
             })
             .collect::<Vec<LicensedResources>>();
-
-        debug!("Parsed Licensed Resources: {:?}", licenses);
 
         if licenses.len() == 0 {
             return Ok(FetchManyResponseKind::NotFound);

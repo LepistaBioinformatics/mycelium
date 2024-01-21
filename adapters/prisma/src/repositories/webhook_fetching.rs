@@ -8,6 +8,7 @@ use clean_base::{
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{factories::fetching_err, MappedErrors},
 };
+use log::debug;
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
@@ -154,6 +155,8 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                         },
                     })
                     .collect::<Vec<WebHook>>();
+
+                debug!("Webhooks found: {:?}", response);
 
                 if response.len() == 0 {
                     return Ok(FetchManyResponseKind::NotFound);

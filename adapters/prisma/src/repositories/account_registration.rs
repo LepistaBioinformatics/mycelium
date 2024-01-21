@@ -191,6 +191,9 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 account_model::is_archived::set(
                                     account.is_archived,
                                 ),
+                                account_model::is_default::set(
+                                    account.is_default,
+                                ),
                             ],
                         )
                         .include(
