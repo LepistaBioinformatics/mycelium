@@ -90,7 +90,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                             record.is_checked,
                             record.is_archived,
                         )),
-                        is_default: false,
+                        is_default: record.is_default,
                         owners: Children::Records(
                             record
                                 .owners
@@ -280,7 +280,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                         record.is_checked,
                         record.is_archived,
                     )),
-                    is_default: false,
+                    is_default: record.is_default,
                     owners: Children::Records(
                         record
                             .owners

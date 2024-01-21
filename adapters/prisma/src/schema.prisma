@@ -146,8 +146,6 @@ model Account {
 
   // Model fields
   name            String      @db.VarChar(256)
-  //owner           User        @relation(fields: [owner_id], references: [id])
-  //owner_id        String      @unique
   account_type    AccountType @relation(fields: [account_type_id], references: [id])
   account_type_id String
   created         DateTime    @default(now()) @db.Timestamptz(6)
@@ -155,6 +153,7 @@ model Account {
   is_active       Boolean     @default(true)
   is_checked      Boolean     @default(false)
   is_archived     Boolean     @default(false)
+  is_default      Boolean     @default(false)
 
   // Backward relationship fields
   owners      User[]
