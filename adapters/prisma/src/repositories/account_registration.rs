@@ -109,7 +109,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             record.is_checked,
                             record.is_archived,
                         )),
-                        is_default: false,
+                        is_default: record.is_default,
                         owners: Children::Records(
                             record
                                 .owners
@@ -223,7 +223,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             account.is_checked,
                             account.is_archived,
                         )),
-                        is_default: false,
+                        is_default: account.is_default,
                         owners: Children::Records(
                             account
                                 .owners
@@ -311,6 +311,9 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 account_model::is_archived::set(
                                     account.is_archived,
                                 ),
+                                account_model::is_default::set(
+                                    account.is_default,
+                                ),
                             ],
                         )
                         .include(
@@ -388,7 +391,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             account.is_checked,
                             account.is_archived,
                         )),
-                        is_default: false,
+                        is_default: account.is_default,
                         owners: Children::Records(vec![User::new(
                             Some(Uuid::parse_str(&owner.id).unwrap()),
                             owner.username,

@@ -74,6 +74,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                     account_model::is_active::set(account.is_active),
                     account_model::is_checked::set(account.is_checked),
                     account_model::is_archived::set(account.is_archived),
+                    account_model::is_default::set(account.is_default),
                     account_model::account_type_id::set(match account.account_type {
                         ParentEnum::Id(id) => id.to_string(),
                         ParentEnum::Record(record) => match record.id {
@@ -106,7 +107,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                         record.is_checked,
                         record.is_archived,
                     )),
-                    is_default: false,
+                    is_default: record.is_default,
                     owners: Children::Records(
                         record
                             .owners
