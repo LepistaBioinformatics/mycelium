@@ -1,3 +1,9 @@
+## v4.8.3 (2024-01-21)
+
+### Fix
+
+- fix the subscription account creation elements to allow propagation of default-users accounts
+
 ## v4.8.2 (2024-01-21)
 
 ### Fix
