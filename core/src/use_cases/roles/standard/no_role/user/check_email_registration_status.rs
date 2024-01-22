@@ -1,5 +1,5 @@
 use crate::domain::{dtos::email::Email, entities::UserFetching};
-use clean_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
+use mycelium_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 

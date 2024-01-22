@@ -2,9 +2,9 @@ use crate::domain::{
     actors::DefaultActor, dtos::profile::Profile, entities::ErrorCodeDeletion,
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::DeletionResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::{use_case_err, MappedErrors},
 };
 
 /// Delete a single error code

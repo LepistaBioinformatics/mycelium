@@ -4,7 +4,6 @@ use crate::{
 };
 
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
-use clean_base::entities::FetchResponseKind;
 use futures::Future;
 use log::warn;
 use myc_core::{
@@ -15,6 +14,7 @@ use myc_core::{
     settings::DEFAULT_PROFILE_KEY,
 };
 use myc_svc::repositories::ProfileFetchingSvcRepo;
+use mycelium_base::entities::FetchResponseKind;
 use serde::Deserialize;
 use std::{pin::Pin, str};
 use uuid::Uuid;

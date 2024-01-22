@@ -855,19 +855,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cd7cc57abe963c6d3b9d8be5b06ba7c8957a930305ca90304f24ef040aa6f961"
 
 [[package]]
-name = "clean-base"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48c4aa7ab5905a88d83ec718c56b8e8248343c07ea54f70f64063cf0fa7c5cad"
-dependencies = [
- "log",
- "regex",
- "serde",
- "serde_json",
- "utoipa",
-]
-
-[[package]]
 name = "codespan-reporting"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2492,7 +2479,6 @@ dependencies = [
  "argon2",
  "async-trait",
  "chrono",
- "clean-base",
  "enum-iterator",
  "env_logger",
  "futures",
@@ -2502,6 +2488,7 @@ dependencies = [
  "lazy_static",
  "log",
  "mockall",
+ "mycelium-base",
  "mycelium-config",
  "pasetors",
  "regex",
@@ -2531,7 +2518,6 @@ dependencies = [
  "async-trait",
  "awc",
  "chrono",
- "clean-base",
  "derive_more",
  "env_logger",
  "futures",
@@ -2541,6 +2527,7 @@ dependencies = [
  "lazy_static",
  "log",
  "myc-core",
+ "mycelium-base",
  "mycelium-config",
  "mycelium-memory-db",
  "mycelium-prisma",
@@ -2568,14 +2555,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "mycelium-base"
+version = "4.8.3"
+dependencies = [
+ "log",
+ "regex",
+ "serde",
+ "serde_json",
+ "utoipa",
+]
+
+[[package]]
 name = "mycelium-cli"
 version = "4.8.3"
 dependencies = [
  "clap",
- "clean-base",
  "env_logger",
  "log",
  "myc-core",
+ "mycelium-base",
  "mycelium-prisma",
  "mycelium-smtp",
  "rpassword",
@@ -2587,7 +2585,7 @@ dependencies = [
 name = "mycelium-config"
 version = "4.8.3"
 dependencies = [
- "clean-base",
+ "mycelium-base",
  "serde",
  "serde_yaml",
  "tokio",
@@ -2599,12 +2597,11 @@ version = "4.8.3"
 dependencies = [
  "actix-web",
  "async-trait",
- "clean-base",
  "env_logger",
  "log",
  "myc-core",
+ "mycelium-base",
  "shaku",
- "shaku_actix",
  "wildmatch",
 ]
 
@@ -2614,19 +2611,18 @@ version = "4.8.3"
 dependencies = [
  "async-trait",
  "chrono",
- "clean-base",
  "env_logger",
  "futures",
  "lazy_static",
  "log",
  "myc-core",
+ "mycelium-base",
  "mycelium-config",
  "prisma-client-rust",
  "prisma-client-rust-cli",
  "serde",
  "serde_json",
  "shaku",
- "shaku_actix",
  "tokio",
  "uuid",
 ]
@@ -2636,16 +2632,15 @@ name = "mycelium-service"
 version = "4.8.3"
 dependencies = [
  "async-trait",
- "clean-base",
  "env_logger",
  "lazy_static",
  "log",
  "myc-core",
+ "mycelium-base",
  "reqwest",
  "serde",
  "serde_json",
  "shaku",
- "shaku_actix",
 ]
 
 [[package]]
@@ -2653,18 +2648,17 @@ name = "mycelium-smtp"
 version = "4.8.3"
 dependencies = [
  "async-trait",
- "clean-base",
  "env_logger",
  "lazy_static",
  "lettre",
  "log",
  "minijinja",
  "myc-core",
+ "mycelium-base",
  "mycelium-config",
  "serde",
  "serde_json",
  "shaku",
- "shaku_actix",
  "tokio",
 ]
 

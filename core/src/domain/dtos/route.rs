@@ -4,7 +4,7 @@ use super::{
 };
 
 use actix_web::http::{uri::PathAndQuery, Uri};
-use clean_base::utils::errors::{execution_err, MappedErrors};
+use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -50,11 +50,11 @@ impl Route {
             .build()
         {
             Err(err) => {
-                return Err(execution_err(
-                    format!("Unexpected error on build URI: {}", err),
-                    Some(true),
-                    None,
+                return execution_err(format!(
+                    "Unexpected error on build URI: {}",
+                    err
                 ))
+                .as_error()
             }
             Ok(res) => Ok(res),
         }
@@ -92,11 +92,11 @@ impl Route {
             .build()
         {
             Err(err) => {
-                return Err(execution_err(
-                    format!("Unexpected error on build URI: {}", err),
-                    Some(true),
-                    None,
+                return execution_err(format!(
+                    "Unexpected error on build URI: {}",
+                    err
                 ))
+                .as_error()
             }
             Ok(res) => Ok(res),
         }

@@ -1,6 +1,6 @@
 use super::{account::VerboseStatus, guest::Permissions};
 
-use clean_base::utils::errors::{factories::execution_err, MappedErrors};
+use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;

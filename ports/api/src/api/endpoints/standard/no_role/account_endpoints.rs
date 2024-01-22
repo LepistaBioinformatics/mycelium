@@ -8,7 +8,6 @@ use crate::{
 };
 
 use actix_web::{patch, post, web, HttpRequest, HttpResponse, Responder};
-use clean_base::entities::UpdatingResponseKind;
 use log::warn;
 use myc_core::{
     domain::{
@@ -29,6 +28,7 @@ use myc_http_tools::{
     },
     utils::JsonError,
 };
+use mycelium_base::entities::UpdatingResponseKind;
 use serde::Deserialize;
 use shaku_actix::Inject;
 use utoipa::ToSchema;

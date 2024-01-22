@@ -8,17 +8,17 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::DateTime;
-use clean_base::{
-    dtos::enums::ParentEnum,
-    entities::GetOrCreateResponseKind,
-    utils::errors::{factories::creation_err, MappedErrors},
-};
 use log::debug;
 use myc_core::domain::{
     dtos::{
         email::Email, guest::GuestUser, native_error_codes::NativeErrorCodes,
     },
     entities::GuestUserRegistration,
+};
+use mycelium_base::{
+    dtos::Parent,
+    entities::GetOrCreateResponseKind,
+    utils::errors::{creation_err, MappedErrors},
 };
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
@@ -80,8 +80,8 @@ pub(super) async fn register_guest_user(
             ),
             guest_user_model::guest_role_id::equals(
                 match guest_user.guest_role.to_owned() {
-                    ParentEnum::Id(id) => id.to_string(),
-                    ParentEnum::Record(record) => match record.id {
+                    Parent::Id(id) => id.to_string(),
+                    Parent::Record(record) => match record.id {
                         None => {
                             // !
                             // ! Error case return
@@ -132,7 +132,7 @@ pub(super) async fn register_guest_user(
         Some(record) => GuestUser {
             id: Some(Uuid::from_str(&record.id).unwrap()),
             email: Email::from_string(record.email)?,
-            guest_role: ParentEnum::Id(
+            guest_role: Parent::Id(
                 Uuid::parse_str(&record.guest_role.id).unwrap(),
             ),
             created: record.created.into(),
@@ -151,8 +151,8 @@ pub(super) async fn register_guest_user(
                 guest_user.email.get_email(),
                 guest_role_model::id::equals(
                     match guest_user.guest_role.to_owned() {
-                        ParentEnum::Id(id) => id.to_string(),
-                        ParentEnum::Record(record) => match record.id {
+                        Parent::Id(id) => id.to_string(),
+                        Parent::Record(record) => match record.id {
                             None => {
                                 return creation_err(format!(
                                     "Role ID not available: {:?}",
@@ -185,7 +185,7 @@ pub(super) async fn register_guest_user(
             Ok(record) => GuestUser {
                 id: Some(Uuid::from_str(&record.id).unwrap()),
                 email: Email::from_string(record.email.to_owned())?,
-                guest_role: ParentEnum::Id(
+                guest_role: Parent::Id(
                     Uuid::parse_str(&record.guest_role.id).unwrap(),
                 ),
                 created: record.created.into(),

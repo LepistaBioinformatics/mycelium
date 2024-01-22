@@ -6,7 +6,7 @@ use crate::domain::{
     entities::UserFetching,
 };
 
-use clean_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
+use mycelium_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
 
 pub async fn check_email_password_validity(
     email: Email,

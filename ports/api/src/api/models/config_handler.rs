@@ -1,11 +1,11 @@
 use crate::models::api_config::ApiConfig;
 
-use clean_base::utils::errors::MappedErrors;
 use myc_config::optional_config::OptionalConfig;
 use myc_core::models::CoreConfig;
 use myc_http_tools::models::auth_config::AuthConfig;
 use myc_prisma::models::PrismaConfig;
 use myc_smtp::models::SmtpConfig;
+use mycelium_base::utils::errors::MappedErrors;
 use std::path::PathBuf;
 
 pub(crate) struct ConfigHandler {

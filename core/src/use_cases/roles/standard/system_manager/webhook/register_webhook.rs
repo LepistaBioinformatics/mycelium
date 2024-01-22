@@ -7,7 +7,9 @@ use crate::{
     use_cases::roles::shared::webhook::default_actions::WebHookDefaultAction,
 };
 
-use clean_base::{entities::CreateResponseKind, utils::errors::MappedErrors};
+use mycelium_base::{
+    entities::CreateResponseKind, utils::errors::MappedErrors,
+};
 
 pub async fn register_webhook(
     profile: Profile,

@@ -5,16 +5,6 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::{DateTime, Local};
-use clean_base::{
-    dtos::{
-        enums::{PaginatedRecord, ParentEnum},
-        Children,
-    },
-    entities::{FetchManyResponseKind, FetchResponseKind},
-    utils::errors::{
-        factories::creation_err, factories::fetching_err, MappedErrors,
-    },
-};
 use myc_core::domain::{
     dtos::{
         account::{Account, AccountType, VerboseStatus},
@@ -23,6 +13,13 @@ use myc_core::domain::{
         user::User,
     },
     entities::AccountFetching,
+};
+use mycelium_base::{
+    dtos::{
+        Children, {PaginatedRecord, Parent},
+    },
+    entities::{FetchManyResponseKind, FetchResponseKind},
+    utils::errors::{creation_err, fetching_err, MappedErrors},
 };
 use prisma_client_rust::{operator::and, or, Direction};
 use shaku::Component;
@@ -113,14 +110,14 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                                                 Some(date.with_timezone(&Local))
                                             }
                                         },
-                                        Some(ParentEnum::Id(id)),
+                                        Some(Parent::Id(id)),
                                         None,
                                     )
                                     .with_principal(owner.is_principal)
                                 })
                                 .collect::<Vec<User>>(),
                         ),
-                        account_type: ParentEnum::Record(AccountType {
+                        account_type: Parent::Record(AccountType {
                             id: Some(
                                 Uuid::from_str(&record.account_type.id)
                                     .unwrap(),
@@ -300,14 +297,14 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                                             Some(date.with_timezone(&Local))
                                         }
                                     },
-                                    Some(ParentEnum::Id(id)),
+                                    Some(Parent::Id(id)),
                                     None,
                                 )
                                 .with_principal(owner.is_principal)
                             })
                             .collect::<Vec<User>>(),
                     ),
-                    account_type: ParentEnum::Id(
+                    account_type: Parent::Id(
                         Uuid::from_str(&record.account_type_id).unwrap(),
                     ),
                     guest_users: None,

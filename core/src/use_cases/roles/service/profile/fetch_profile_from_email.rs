@@ -3,11 +3,11 @@ use crate::domain::{
     entities::{LicensedResourcesFetching, ProfileFetching},
 };
 
-use clean_base::{
+use futures::future;
+use mycelium_base::{
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::MappedErrors,
 };
-use futures::future;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 

@@ -18,11 +18,11 @@ use crate::{
     },
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::{
         FetchManyResponseKind, FetchResponseKind, GetOrCreateResponseKind,
     },
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::{use_case_err, MappedErrors},
 };
 
 /// Create a default account.

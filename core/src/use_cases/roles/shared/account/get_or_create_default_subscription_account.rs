@@ -3,7 +3,7 @@ use crate::domain::{
     entities::AccountRegistration,
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::GetOrCreateResponseKind, utils::errors::MappedErrors,
 };
 use uuid::Uuid;

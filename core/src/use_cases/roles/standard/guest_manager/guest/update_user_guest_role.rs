@@ -4,7 +4,9 @@ use crate::domain::{
     entities::GuestUserOnAccountUpdating,
 };
 
-use clean_base::{entities::UpdatingResponseKind, utils::errors::MappedErrors};
+use mycelium_base::{
+    entities::UpdatingResponseKind, utils::errors::MappedErrors,
+};
 use uuid::Uuid;
 
 /// Update the user's guest role.

@@ -1,0 +1,20 @@
+[package]
+name = "mycelium-base"
+description = "A simple package with useful dependencies for Rust packages."
+
+edition.workspace = true
+authors.workspace = true
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+readme.workspace = true
+
+[dependencies]
+
+log.workspace = true
+regex.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+utoipa.workspace = true

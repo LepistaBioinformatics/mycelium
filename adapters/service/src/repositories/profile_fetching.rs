@@ -1,13 +1,13 @@
 use super::client::get_client;
 
 use async_trait::async_trait;
-use clean_base::{
-    entities::FetchResponseKind,
-    utils::errors::{fetching_err, MappedErrors},
-};
 use myc_core::domain::{
     dtos::{email::Email, profile::Profile},
     entities::ProfileFetching,
+};
+use mycelium_base::{
+    entities::FetchResponseKind,
+    utils::errors::{fetching_err, MappedErrors},
 };
 use reqwest::{
     header::{HeaderName, HeaderValue},
@@ -30,13 +30,10 @@ impl ProfileFetching for ProfileFetchingSvcRepo {
         token: Option<String>,
     ) -> Result<FetchResponseKind<Profile, String>, MappedErrors> {
         let token = if let None = token {
-            return Err(fetching_err(
-                String::from(
-                    "Token could not be empty during profile checking.",
-                ),
-                Some(false),
-                None,
-            ));
+            return fetching_err(String::from(
+                "Token could not be empty during profile checking.",
+            ))
+            .as_error();
         } else {
             token.unwrap()
         };
@@ -61,11 +58,10 @@ impl ProfileFetching for ProfileFetchingSvcRepo {
             .await
         {
             Err(err) => {
-                return Err(fetching_err(
-                    format!("Unexpected error on fetch profile: {err}"),
-                    Some(true),
-                    None,
+                return fetching_err(format!(
+                    "Unexpected error on fetch profile: {err}"
                 ))
+                .as_error()
             }
             Ok(res) => res,
         };
@@ -81,11 +77,10 @@ impl ProfileFetching for ProfileFetchingSvcRepo {
             StatusCode::OK => {
                 let json_res = match response.json::<Profile>().await {
                     Err(err) => {
-                        return Err(fetching_err(
-                            format!("Unexpected error on parse profile: {err}"),
-                            Some(true),
-                            None,
+                        return fetching_err(format!(
+                            "Unexpected error on parse profile: {err}"
                         ))
+                        .as_error()
                     }
                     Ok(res) => res,
                 };
@@ -93,11 +88,8 @@ impl ProfileFetching for ProfileFetchingSvcRepo {
                 return Ok(FetchResponseKind::Found(json_res));
             }
             _ => {
-                return Err(fetching_err(
-                    format!("Invalid response from server."),
-                    Some(true),
-                    None,
-                ))
+                return fetching_err(format!("Invalid response from server."))
+                    .as_error()
             }
         }
     }

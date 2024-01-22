@@ -18,9 +18,9 @@ use crate::{
     },
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::GetOrCreateResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::{use_case_err, MappedErrors},
 };
 
 /// Create an account flagged as subscription.

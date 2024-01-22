@@ -4,7 +4,7 @@ use crate::domain::{
     entities::RoleRegistration,
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::GetOrCreateResponseKind, utils::errors::MappedErrors,
 };
 

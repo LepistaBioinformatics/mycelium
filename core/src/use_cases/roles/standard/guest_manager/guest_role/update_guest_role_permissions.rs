@@ -6,9 +6,9 @@ use crate::domain::{
     },
     entities::{GuestRoleFetching, GuestRoleUpdating},
 };
-use clean_base::{
+use mycelium_base::{
     entities::{FetchResponseKind, UpdatingResponseKind},
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::{use_case_err, MappedErrors},
 };
 use serde::{Deserialize, Serialize};
 use std::{

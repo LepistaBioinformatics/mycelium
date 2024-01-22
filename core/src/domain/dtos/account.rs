@@ -1,9 +1,9 @@
 use super::{guest::GuestUser, user::User};
 
 use chrono::{DateTime, Local};
-use clean_base::{
+use mycelium_base::{
     dtos::{Children, Parent},
-    utils::errors::{factories::invalid_arg_err, MappedErrors},
+    utils::errors::{invalid_arg_err, MappedErrors},
 };
 use serde::{Deserialize, Serialize};
 use std::{

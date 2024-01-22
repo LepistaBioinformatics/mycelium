@@ -1,5 +1,4 @@
 use clap::Parser;
-use clean_base::entities::GetOrCreateResponseKind;
 use log::{debug, error, info};
 use myc_core::use_cases::roles::staff::account::create_seed_staff_account;
 use myc_prisma::repositories::{
@@ -7,6 +6,7 @@ use myc_prisma::repositories::{
     AccountRegistrationSqlDbRepository, AccountTypeRegistrationSqlDbRepository,
     UserRegistrationSqlDbRepository,
 };
+use mycelium_base::entities::GetOrCreateResponseKind;
 use std::process::id as process_id;
 
 #[derive(Parser, Debug)]

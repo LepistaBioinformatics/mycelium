@@ -3,8 +3,8 @@ mod native_error_options;
 use self::native_error_options::get_error_code_maps;
 use crate::domain::dtos::error_code::ErrorCode;
 
-use clean_base::utils::errors::{factories::execution_err, MappedErrors};
 use enum_iterator::{all, Sequence};
+use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{

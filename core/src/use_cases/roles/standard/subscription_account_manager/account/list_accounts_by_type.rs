@@ -10,7 +10,7 @@ use crate::{
     use_cases::roles::shared::account_type::get_or_create_default_account_types,
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::{FetchManyResponseKind, GetOrCreateResponseKind},
     utils::errors::MappedErrors,
 };

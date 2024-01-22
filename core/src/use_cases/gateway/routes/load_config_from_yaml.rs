@@ -5,8 +5,8 @@ use crate::domain::dtos::{
     service::ClientService,
 };
 
-use clean_base::utils::errors::{factories::use_case_err, MappedErrors};
 use log::{error, info};
+use mycelium_base::utils::errors::{use_case_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use std::{mem::size_of_val, str::from_utf8};
 use tokio::fs::read as t_read;

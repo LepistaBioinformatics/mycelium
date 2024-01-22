@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use clean_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
+use mycelium_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
 use shaku::Interface;
 
 #[async_trait]

@@ -12,7 +12,7 @@ export SERVICE_WORKERS=1
 export SERVICE_PORT=8080
 
 # Configure logging
-export RUST_LOG=actix_web=debug,clean_base=debug,myc_api=debug
+export RUST_LOG=actix_web=debug,mycelium_base=debug,myc_api=debug
 export RUST_BACKTRACE=full
 
 # Configure routes

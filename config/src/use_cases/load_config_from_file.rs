@@ -1,4 +1,4 @@
-use clean_base::utils::errors::MappedErrors;
+use mycelium_base::utils::errors::MappedErrors;
 use serde::Deserialize;
 use std::path::PathBuf;
 
@@ -27,7 +27,7 @@ mod tests {
     use crate::env_or_value::EnvOrValue;
 
     use super::*;
-    use clean_base::utils::errors::MappedErrors;
+    use mycelium_base::utils::errors::MappedErrors;
     use serde::Deserialize;
 
     #[derive(Deserialize, Debug)]

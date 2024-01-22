@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use clean_base::{entities::DeletionResponseKind, utils::errors::MappedErrors};
+use mycelium_base::{entities::DeletionResponseKind, utils::errors::MappedErrors};
 use shaku::Interface;
 use uuid::Uuid;
 

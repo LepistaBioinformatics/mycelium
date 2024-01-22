@@ -1,7 +1,7 @@
 use crate::domain::dtos::account::AccountType;
 
 use async_trait::async_trait;
-use clean_base::{
+use mycelium_base::{
     entities::GetOrCreateResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Interface;

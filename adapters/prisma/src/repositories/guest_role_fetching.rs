@@ -3,17 +3,17 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use clean_base::{
-    dtos::enums::ParentEnum,
-    entities::{FetchManyResponseKind, FetchResponseKind},
-    utils::errors::{factories::fetching_err, MappedErrors},
-};
 use myc_core::domain::{
     dtos::{
         guest::{GuestRole, Permissions},
         native_error_codes::NativeErrorCodes,
     },
     entities::GuestRoleFetching,
+};
+use mycelium_base::{
+    dtos::Parent,
+    entities::{FetchManyResponseKind, FetchResponseKind},
+    utils::errors::{fetching_err, MappedErrors},
 };
 use shaku::Component;
 use std::process::id as process_id;
@@ -64,7 +64,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                 id: Some(Uuid::parse_str(&record.id).unwrap()),
                 name: record.name,
                 description: record.description,
-                role: ParentEnum::Id(Uuid::parse_str(&record.role_id).unwrap()),
+                role: Parent::Id(Uuid::parse_str(&record.role_id).unwrap()),
                 permissions: record
                     .permissions
                     .into_iter()
@@ -133,7 +133,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                         id: Some(Uuid::parse_str(&record.id).unwrap()),
                         name: record.name,
                         description: record.description,
-                        role: ParentEnum::Id(
+                        role: Parent::Id(
                             Uuid::parse_str(&record.role_id).unwrap(),
                         ),
                         permissions: record

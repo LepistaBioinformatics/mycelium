@@ -4,9 +4,9 @@ use crate::domain::{
     entities::ErrorCodeRegistration,
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::CreateResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::{use_case_err, MappedErrors},
 };
 
 /// Register a new error code
@@ -69,9 +69,9 @@ mod tests {
     };
 
     use async_trait::async_trait;
-    use clean_base::{
+    use mycelium_base::{
         entities::CreateResponseKind,
-        utils::errors::{factories::use_case_err, MappedErrors},
+        utils::errors::{use_case_err, MappedErrors},
     };
     use shaku::Component;
     use std::str::FromStr;

@@ -2,10 +2,10 @@ use super::{auth::GoogleUserResult, config::GoogleOauthConfig};
 
 use actix_web::{http::header::Header, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
-use clean_base::utils::errors::{factories::execution_err, MappedErrors};
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use log::warn;
 use myc_core::domain::dtos::email::Email;
+use mycelium_base::utils::errors::{execution_err, MappedErrors};
 
 /// Try to collect the user email.
 ///

@@ -6,7 +6,7 @@ use crate::{
     settings::build_session_key,
 };
 
-use clean_base::utils::errors::{factories::use_case_err, MappedErrors};
+use mycelium_base::utils::errors::{use_case_err, MappedErrors};
 use pasetors::{
     claims::ClaimsValidationRules, keys::SymmetricKey, local,
     token::UntrustedToken, version4::V4, Local,

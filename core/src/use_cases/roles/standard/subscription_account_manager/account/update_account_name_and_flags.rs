@@ -4,9 +4,9 @@ use crate::domain::{
     entities::{AccountFetching, AccountUpdating},
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::{FetchResponseKind, UpdatingResponseKind},
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 

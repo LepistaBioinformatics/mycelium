@@ -7,7 +7,7 @@ use crate::domain::{
     entities::WebHookFetching,
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 

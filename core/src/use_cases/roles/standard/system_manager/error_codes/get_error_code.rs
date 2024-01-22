@@ -4,7 +4,7 @@ use crate::domain::{
     entities::ErrorCodeFetching,
 };
 
-use clean_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
+use mycelium_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
 
 /// Get details of a single error code
 ///

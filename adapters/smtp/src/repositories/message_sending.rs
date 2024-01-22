@@ -1,16 +1,16 @@
 use crate::settings::SMTP_CONFIG;
 
 use async_trait::async_trait;
-use clean_base::{
-    entities::CreateResponseKind,
-    utils::errors::{factories::creation_err, MappedErrors},
-};
 use lettre::{
     message::header::ContentType, transport::smtp::authentication::Credentials,
     Message as LettreMessage, SmtpTransport, Transport,
 };
 use myc_config::optional_config::OptionalConfig;
 use myc_core::domain::{dtos::message::Message, entities::MessageSending};
+use mycelium_base::{
+    entities::CreateResponseKind,
+    utils::errors::{creation_err, MappedErrors},
+};
 use shaku::Component;
 
 #[derive(Component)]

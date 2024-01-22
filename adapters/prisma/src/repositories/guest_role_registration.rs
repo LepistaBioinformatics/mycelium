@@ -4,17 +4,17 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use clean_base::{
-    dtos::enums::ParentEnum,
-    entities::GetOrCreateResponseKind,
-    utils::errors::{factories::creation_err, MappedErrors},
-};
 use myc_core::domain::{
     dtos::{
         guest::{GuestRole, Permissions},
         native_error_codes::NativeErrorCodes,
     },
     entities::GuestRoleRegistration,
+};
+use mycelium_base::{
+    dtos::Parent,
+    entities::GetOrCreateResponseKind,
+    utils::errors::{creation_err, MappedErrors},
 };
 use shaku::Component;
 use std::process::id as process_id;
@@ -68,7 +68,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                         id: Some(Uuid::parse_str(&record.id).unwrap()),
                         name: record.name,
                         description: record.description.to_owned(),
-                        role: ParentEnum::Id(
+                        role: Parent::Id(
                             Uuid::parse_str(&record.role.id).unwrap(),
                         ),
                         permissions: record
@@ -92,8 +92,8 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
             .create(
                 guest_role.name.to_owned(),
                 role_model::id::equals(match guest_role.role {
-                    ParentEnum::Id(id) => id.to_string(),
-                    ParentEnum::Record(record) => match record.id {
+                    Parent::Id(id) => id.to_string(),
+                    Parent::Record(record) => match record.id {
                         None => {
                             return creation_err(format!(
                                 "Role ID not available: {:?}",
@@ -127,9 +127,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                     id: Some(Uuid::parse_str(&record.id).unwrap()),
                     name: record.name,
                     description: record.description,
-                    role: ParentEnum::Id(
-                        Uuid::parse_str(&record.role_id).unwrap(),
-                    ),
+                    role: Parent::Id(Uuid::parse_str(&record.role_id).unwrap()),
                     permissions: record
                         .permissions
                         .into_iter()

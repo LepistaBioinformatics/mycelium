@@ -2,7 +2,9 @@ use crate::domain::{
     actors::DefaultActor, dtos::profile::Profile, entities::WebHookDeletion,
 };
 
-use clean_base::{entities::DeletionResponseKind, utils::errors::MappedErrors};
+use mycelium_base::{
+    entities::DeletionResponseKind, utils::errors::MappedErrors,
+};
 use uuid::Uuid;
 
 pub async fn delete_webhook(

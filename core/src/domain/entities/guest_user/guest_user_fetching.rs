@@ -1,7 +1,7 @@
 use crate::domain::dtos::guest::GuestUser;
 
 use async_trait::async_trait;
-use clean_base::{
+use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Interface;
