@@ -5,24 +5,28 @@ use crate::{
     },
     modules::{
         AccountFetchingModule, AccountRegistrationModule,
-        AccountTypeRegistrationModule, WebHookFetchingModule,
+        AccountTypeRegistrationModule, AccountUpdatingModule,
+        WebHookFetchingModule,
     },
 };
 
-use actix_web::{get, post, web, HttpResponse, Responder};
-use clean_base::entities::{FetchManyResponseKind, FetchResponseKind};
+use actix_web::{get, patch, post, web, HttpResponse, Responder};
+use clean_base::entities::{
+    FetchManyResponseKind, FetchResponseKind, UpdatingResponseKind,
+};
 use myc_core::{
     domain::{
         actors::DefaultActor,
         dtos::{account::VerboseStatus, native_error_codes::NativeErrorCodes},
         entities::{
             AccountFetching, AccountRegistration, AccountTypeRegistration,
-            WebHookFetching,
+            AccountUpdating, WebHookFetching,
         },
     },
     use_cases::roles::standard::subscription_account_manager::account::{
         create_subscription_account, get_account_details,
         list_accounts_by_type, propagate_existing_subscription_account,
+        update_account_name_and_flags,
     },
 };
 use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
@@ -50,7 +54,17 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateSubscriptionAccountBody {
-    pub account_name: String,
+    account_name: String,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateSubscriptionAccountNameAndFlagsBody {
+    name: Option<String>,
+    is_active: Option<bool>,
+    is_checked: Option<bool>,
+    is_archived: Option<bool>,
+    is_default: Option<bool>,
 }
 
 #[derive(Deserialize, IntoParams)]
@@ -308,6 +322,79 @@ pub async fn get_account_details_url(
             }
             FetchResponseKind::Found(accounts) => {
                 HttpResponse::Ok().json(accounts)
+            }
+        },
+    }
+}
+
+/// Create Subscription Account
+///
+/// Subscription accounts represents shared entities, like institutions,
+/// groups, but not real persons.
+#[utoipa::path(
+    patch,
+    context_path = build_actor_context(DefaultActor::SubscriptionAccountManager, UrlGroup::Accounts),
+    params(
+        ("account" = Uuid, Path, description = "The account primary key."),
+    ),
+    request_body = UpdateSubscriptionAccountNameAndFlagsBody,
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = JsonError,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = JsonError,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = JsonError,
+        ),
+        (
+            status = 400,
+            description = "Account already exists.",
+            body = JsonError,
+        ),
+        (
+            status = 201,
+            description = "Account created.",
+            body = CreateSubscriptionResponse,
+        ),
+    ),
+)]
+#[patch("/{account}")]
+pub async fn update_account_name_and_flags_url(
+    path: web::Path<Uuid>,
+    body: web::Json<UpdateSubscriptionAccountNameAndFlagsBody>,
+    profile: MyceliumProfileData,
+    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
+    account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
+) -> impl Responder {
+    match update_account_name_and_flags(
+        profile.to_profile(),
+        *path,
+        body.name.to_owned(),
+        body.is_active.to_owned(),
+        body.is_checked.to_owned(),
+        body.is_archived.to_owned(),
+        body.is_default.to_owned(),
+        Box::new(&*account_fetching_repo),
+        Box::new(&*account_updating_repo),
+    )
+    .await
+    {
+        Err(err) => HttpResponse::InternalServerError()
+            .json(JsonError::new(err.to_string())),
+        Ok(res) => match res {
+            UpdatingResponseKind::NotUpdated(_, msg) => {
+                HttpResponse::BadRequest().json(JsonError::new(msg))
+            }
+            UpdatingResponseKind::Updated(account) => {
+                HttpResponse::Ok().json(account)
             }
         },
     }
