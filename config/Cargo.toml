@@ -22,7 +22,7 @@ serde.workspace = true
 serde_yaml.workspace = true
 
 [dev-dependencies]
-tokio = { version = "1", features = ["full"] }
+tokio.workspace = true
 
 # ? ----------------------------------------------------------------------------
 # ? LIBRARY
