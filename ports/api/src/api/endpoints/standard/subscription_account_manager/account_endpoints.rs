@@ -42,6 +42,7 @@ use uuid::Uuid;
 pub fn configure(config: &mut web::ServiceConfig) {
     config
         .service(create_subscription_account_url)
+        .service(update_account_name_and_flags_url)
         .service(list_accounts_by_type_url)
         .service(get_account_details_url)
         .service(propagate_existing_subscription_account_url);
