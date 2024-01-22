@@ -173,6 +173,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         no_role_user_endpoints::check_password_change_token_url,
         no_role_user_endpoints::check_email_password_validity_url,
         subscription_account_manager_account_endpoints::create_subscription_account_url,
+        subscription_account_manager_account_endpoints::update_account_name_and_flags_url,
         subscription_account_manager_account_endpoints::list_accounts_by_type_url,
         subscription_account_manager_account_endpoints::get_account_details_url,
         subscription_account_manager_account_endpoints::propagate_existing_subscription_account_url,
