@@ -1,3 +1,10 @@
+## v4.9.0 (2024-01-21)
+
+### Feat
+
+- implements the new base package to replace the clean-base package
+- **subscription-account**: implements a use-case and endpoint to update accounts name and flags
+
 ## v4.8.3 (2024-01-21)
 
 ### Fix
