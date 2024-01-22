@@ -11,9 +11,6 @@ use crate::{
 };
 
 use actix_web::{get, patch, post, web, HttpResponse, Responder};
-use clean_base::entities::{
-    FetchManyResponseKind, FetchResponseKind, UpdatingResponseKind,
-};
 use myc_core::{
     domain::{
         actors::DefaultActor,
@@ -30,6 +27,9 @@ use myc_core::{
     },
 };
 use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
+use mycelium_base::entities::{
+    FetchManyResponseKind, FetchResponseKind, UpdatingResponseKind,
+};
 use serde::Deserialize;
 use shaku_actix::Inject;
 use utoipa::{IntoParams, ToSchema};

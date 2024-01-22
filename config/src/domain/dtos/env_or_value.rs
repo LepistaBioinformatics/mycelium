@@ -1,4 +1,4 @@
-use clean_base::utils::errors::{factories::execution_err, MappedErrors};
+use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, str::FromStr};
 

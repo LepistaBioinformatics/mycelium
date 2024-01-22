@@ -1,7 +1,9 @@
 use crate::domain::dtos::guest::GuestUser;
 
 use async_trait::async_trait;
-use clean_base::{entities::UpdatingResponseKind, utils::errors::MappedErrors};
+use mycelium_base::{
+    entities::UpdatingResponseKind, utils::errors::MappedErrors,
+};
 use shaku::Interface;
 use uuid::Uuid;
 

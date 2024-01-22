@@ -2,13 +2,13 @@ use crate::{prisma::user as user_model, repositories::connector::get_client};
 
 use async_trait::async_trait;
 use chrono::Local;
-use clean_base::{
-    entities::UpdatingResponseKind,
-    utils::errors::{factories::updating_err, MappedErrors},
-};
 use myc_core::domain::{
     dtos::{email::Email, native_error_codes::NativeErrorCodes, user::User},
     entities::UserUpdating,
+};
+use mycelium_base::{
+    entities::UpdatingResponseKind,
+    utils::errors::{updating_err, MappedErrors},
 };
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
 use shaku::Component;

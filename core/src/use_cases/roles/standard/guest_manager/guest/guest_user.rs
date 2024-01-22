@@ -7,12 +7,12 @@ use crate::domain::{
 };
 
 use chrono::Local;
-use clean_base::{
-    dtos::enums::ParentEnum,
-    entities::{FetchResponseKind, GetOrCreateResponseKind},
-    utils::errors::{factories::use_case_err, MappedErrors},
-};
 use log::{info, warn};
+use mycelium_base::{
+    dtos::Parent,
+    entities::{FetchResponseKind, GetOrCreateResponseKind},
+    utils::errors::{use_case_err, MappedErrors},
+};
 use uuid::Uuid;
 
 /// Guest a user to perform actions into an account.
@@ -48,14 +48,14 @@ pub async fn guest_user(
             .as_error()
         }
         FetchResponseKind::Found(account) => match account.account_type {
-            ParentEnum::Id(id) => {
+            Parent::Id(id) => {
                 return use_case_err(format!(
                     "Could not check the account type validity: {}",
                     id
                 ))
                 .as_error()
             }
-            ParentEnum::Record(account_type) => {
+            Parent::Record(account_type) => {
                 if !account_type.is_subscription {
                     return use_case_err(format!(
                         "Invalid account ({:?}). Only subscription 
@@ -77,7 +77,7 @@ pub async fn guest_user(
             GuestUser {
                 id: None,
                 email: email.to_owned(),
-                guest_role: ParentEnum::Id(role),
+                guest_role: Parent::Id(role),
                 created: Local::now(),
                 updated: None,
                 accounts: None,

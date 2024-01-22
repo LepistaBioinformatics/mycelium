@@ -18,33 +18,33 @@ readme.workspace = true
 
 [dependencies]
 
-mycelium-config.workspace = true
-clean-base.workspace = true
+async-trait.workspace = true
+chrono.workspace = true
 env_logger.workspace = true
+futures.workspace = true
+futures-util.workspace = true
+jsonwebtoken.workspace = true
+lazy_static.workspace = true
 log.workspace = true
+mycelium-config.workspace = true
+mycelium-base.workspace = true
+regex.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml.workspace = true
+shaku.workspace = true
+shaku_actix.workspace = true
+utoipa.workspace = true
+uuid.workspace = true
+tokio.workspace = true
 
 actix-web = { version = "4", features = ["openssl"] }
 actix-web-httpauth = "0.8.0"
 argon2 = "0.5.2"
-async-trait = "0.1"
-chrono = { version = "0.4", features = ["serde"] }
 enum-iterator = "1.4.0"
-futures = "0.3"
-futures-util = "0.3"
 hex = "0.4.3"
-jsonwebtoken = "8.2"
-lazy_static = "1.4"
 pasetors = "0.6"
-regex = "1.6"
-reqwest = { version = "0.11", features = ["json"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-serde_yaml = "0.9"
-shaku = "0.6"
-shaku_actix = "0.2"
-tokio = { version = "1", features = ["full"] }
-utoipa = { version = "4", features = ["actix_extras", "uuid"] }
-uuid = { version = "1.3", features = ["v4", "serde", "fast-rng"] }
 
 [dev-dependencies]
 test-log = "0.2.8"

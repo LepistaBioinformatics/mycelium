@@ -5,6 +5,7 @@
 [workspace]
 
 members = [
+    "base",
     "config",
     "core",
     "ports/cli",
@@ -47,9 +48,29 @@ categories = ["http-client", "microservices"]
 #
 # ------------------------------------------------------------------------------
 
-clean-base = "1.2"
+async-trait = "0.1"
+chrono = "0.4"
 env_logger = "0.10"
+futures = "0.3"
+futures-util = "0.3"
+jsonwebtoken = "8.2"
+lazy_static = "1.4"
 log = "0.4"
+regex = "1"
+reqwest = { version = "0.11", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+shaku = "0.6"
+shaku_actix = "0.2"
+tokio = { version = "1", features = ["full"] }
+utoipa = { version = "4", features = [
+    "actix_extras",
+    "uuid",
+    "chrono",
+    "openapi_extensions",
+] }
+uuid = { version = "1.1", features = ["v4", "serde", "fast-rng"] }
 
 # ------------------------------------------------------------------------------
 #
@@ -57,8 +78,9 @@ log = "0.4"
 #
 # ------------------------------------------------------------------------------
 
-mycelium-config = { path = "config" }
 myc-core = { path = "core" }
+mycelium-config = { path = "config" }
+mycelium-base = { path = "base" }
 mycelium-memory-db = { path = "adapters/mem_db" }
 mycelium-prisma = { path = "adapters/prisma" }
 mycelium-service = { path = "adapters/service" }

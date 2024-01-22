@@ -8,11 +8,6 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::Local;
-use clean_base::{
-    dtos::Parent,
-    entities::FetchResponseKind,
-    utils::errors::{factories::fetching_err, MappedErrors},
-};
 use myc_core::domain::{
     dtos::{
         email::Email,
@@ -20,6 +15,11 @@ use myc_core::domain::{
         user::{PasswordHash, Provider, User},
     },
     entities::UserFetching,
+};
+use mycelium_base::{
+    dtos::Parent,
+    entities::FetchResponseKind,
+    utils::errors::{fetching_err, MappedErrors},
 };
 use shaku::Component;
 use std::process::id as process_id;

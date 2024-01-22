@@ -12,9 +12,9 @@ use crate::domain::{
     },
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::GetOrCreateResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 

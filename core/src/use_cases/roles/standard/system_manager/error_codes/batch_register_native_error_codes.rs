@@ -3,9 +3,11 @@ use crate::domain::{
     entities::ErrorCodeRegistration,
 };
 
-use clean_base::{entities::CreateResponseKind, utils::errors::MappedErrors};
 use futures::future::join_all;
 use log::error;
+use mycelium_base::{
+    entities::CreateResponseKind, utils::errors::MappedErrors,
+};
 
 /// Statistics about the error persistence process
 ///

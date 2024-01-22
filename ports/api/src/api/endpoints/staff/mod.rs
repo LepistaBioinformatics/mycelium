@@ -1,8 +1,8 @@
 pub mod account_endpoints;
 
-use clean_base::dtos::enums::{ChildrenEnum, ParentEnum};
 use myc_core::domain::dtos::account::{Account, AccountType, AccountTypeEnum};
 use myc_http_tools::utils::JsonError;
+use mycelium_base::dtos::{Children, Parent};
 use utoipa::OpenApi;
 
 // ? ---------------------------------------------------------------------------
@@ -18,8 +18,8 @@ use utoipa::OpenApi;
     components(
         schemas(
             // Default relationship enumerators.
-            ChildrenEnum<String, String>,
-            ParentEnum<String, String>,
+            Children<String, String>,
+            Parent<String, String>,
 
             // Schema models.
             Account,

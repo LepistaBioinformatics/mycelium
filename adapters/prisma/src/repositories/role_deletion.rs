@@ -1,12 +1,12 @@
 use crate::{prisma::role as role_model, repositories::connector::get_client};
 
 use async_trait::async_trait;
-use clean_base::{
-    entities::DeletionResponseKind,
-    utils::errors::{factories::deletion_err, MappedErrors},
-};
 use myc_core::domain::{
     dtos::native_error_codes::NativeErrorCodes, entities::RoleDeletion,
+};
+use mycelium_base::{
+    entities::DeletionResponseKind,
+    utils::errors::{deletion_err, MappedErrors},
 };
 use shaku::Component;
 use std::process::id as process_id;

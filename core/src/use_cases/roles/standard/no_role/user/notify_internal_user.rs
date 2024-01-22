@@ -4,11 +4,11 @@ use crate::domain::{
     entities::{MessageSending, SessionTokenRegistration, UserDeletion},
 };
 
-use clean_base::{
-    entities::DeletionResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
-};
 use log::error;
+use mycelium_base::{
+    entities::DeletionResponseKind,
+    utils::errors::{use_case_err, MappedErrors},
+};
 use uuid::Uuid;
 
 pub(super) async fn notify_internal_user(

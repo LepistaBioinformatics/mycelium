@@ -9,19 +9,18 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::DateTime;
-use clean_base::{
-    dtos::enums::ParentEnum,
-    entities::UpdatingResponseKind,
-    utils::errors::{
-        factories::{deletion_err, updating_err},
-        MappedErrors,
-    },
-};
 use myc_core::domain::{
     dtos::{
         email::Email, guest::GuestUser, native_error_codes::NativeErrorCodes,
     },
     entities::GuestUserOnAccountUpdating,
+};
+use mycelium_base::{
+    dtos::Parent,
+    entities::UpdatingResponseKind,
+    utils::errors::{
+        MappedErrors, {deletion_err, updating_err},
+    },
 };
 use prisma_client_rust::{prisma_errors::UnknownError, QueryError};
 use shaku::Component;
@@ -87,7 +86,7 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
                 Some(record) => GuestUser {
                     id: Some(Uuid::parse_str(&record.id).unwrap()),
                     email: Email::from_string(record.email.to_owned())?,
-                    guest_role: ParentEnum::Id(
+                    guest_role: Parent::Id(
                         Uuid::parse_str(&record.guest_role_id).unwrap(),
                     ),
                     created: record.created.into(),

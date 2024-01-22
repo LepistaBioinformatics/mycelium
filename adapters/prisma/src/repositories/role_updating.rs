@@ -1,13 +1,13 @@
 use crate::{prisma::role as role_model, repositories::connector::get_client};
 
 use async_trait::async_trait;
-use clean_base::{
-    entities::UpdatingResponseKind,
-    utils::errors::{factories::updating_err, MappedErrors},
-};
 use myc_core::domain::{
     dtos::{native_error_codes::NativeErrorCodes, role::Role},
     entities::RoleUpdating,
+};
+use mycelium_base::{
+    entities::UpdatingResponseKind,
+    utils::errors::{updating_err, MappedErrors},
 };
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
 use shaku::Component;

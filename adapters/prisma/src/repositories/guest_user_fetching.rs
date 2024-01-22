@@ -8,11 +8,6 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::DateTime;
-use clean_base::{
-    dtos::enums::ParentEnum,
-    entities::FetchManyResponseKind,
-    utils::errors::{factories::fetching_err, MappedErrors},
-};
 use log::debug;
 use myc_core::domain::{
     dtos::{
@@ -21,6 +16,11 @@ use myc_core::domain::{
         native_error_codes::NativeErrorCodes,
     },
     entities::GuestUserFetching,
+};
+use mycelium_base::{
+    dtos::Parent,
+    entities::FetchManyResponseKind,
+    utils::errors::{fetching_err, MappedErrors},
 };
 use shaku::Component;
 use std::process::id as process_id;
@@ -77,11 +77,11 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
             .map(|record| GuestUser {
                 id: Some(Uuid::parse_str(&record.id).unwrap()),
                 email: Email::from_string(record.email.to_owned()).unwrap(),
-                guest_role: ParentEnum::Record(GuestRole {
+                guest_role: Parent::Record(GuestRole {
                     id: Some(Uuid::parse_str(&record.guest_role.id).unwrap()),
                     name: record.guest_role.name.to_owned(),
                     description: record.guest_role.description.to_owned(),
-                    role: ParentEnum::Id(
+                    role: Parent::Id(
                         Uuid::parse_str(&record.guest_role.role_id).unwrap(),
                     ),
                     permissions: record

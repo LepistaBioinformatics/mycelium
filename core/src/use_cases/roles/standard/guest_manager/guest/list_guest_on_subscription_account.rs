@@ -1,7 +1,7 @@
-use clean_base::{
-    dtos::enums::ParentEnum,
+use mycelium_base::{
+    dtos::Parent,
     entities::{FetchManyResponseKind, FetchResponseKind},
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
@@ -46,11 +46,11 @@ pub async fn list_guest_on_subscription_account(
     // ? -----------------------------------------------------------------------
 
     match account.account_type {
-        ParentEnum::Id(id) => {
+        Parent::Id(id) => {
             return use_case_err(format!("Invalid account ID: {}", id))
                 .as_error()
         }
-        ParentEnum::Record(account_type) => {
+        Parent::Record(account_type) => {
             if !account_type.is_subscription {
                 return use_case_err(format!("Account is not subscription."))
                     .as_error();

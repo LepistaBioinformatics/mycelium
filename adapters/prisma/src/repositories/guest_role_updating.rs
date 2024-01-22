@@ -3,17 +3,17 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use clean_base::{
-    dtos::enums::ParentEnum,
-    entities::UpdatingResponseKind,
-    utils::errors::{factories::updating_err, MappedErrors},
-};
 use myc_core::domain::{
     dtos::{
         guest::{GuestRole, Permissions},
         native_error_codes::NativeErrorCodes,
     },
     entities::GuestRoleUpdating,
+};
+use mycelium_base::{
+    dtos::Parent,
+    entities::UpdatingResponseKind,
+    utils::errors::{updating_err, MappedErrors},
 };
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
 use shaku::Component;
@@ -86,7 +86,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                 id: Some(Uuid::from_str(&record.id).unwrap()),
                 name: record.name,
                 description: record.description,
-                role: ParentEnum::Id(Uuid::from_str(&record.role_id).unwrap()),
+                role: Parent::Id(Uuid::from_str(&record.role_id).unwrap()),
                 permissions: record
                     .permissions
                     .into_iter()

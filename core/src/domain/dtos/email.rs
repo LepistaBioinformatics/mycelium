@@ -1,4 +1,4 @@
-use clean_base::utils::errors::{invalid_arg_err, MappedErrors};
+use mycelium_base::utils::errors::{invalid_arg_err, MappedErrors};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -18,33 +18,27 @@ impl Email {
 
         let cap = match re.captures(email.as_str()) {
             None => {
-                return Err(invalid_arg_err(
-                    format!("Invalid Email format: {:?}", email.to_owned()),
-                    Some(true),
-                    None,
-                ));
+                return invalid_arg_err(format!(
+                    "Invalid Email format: {:?}",
+                    email.to_owned()
+                ))
+                .as_error();
             }
             Some(res) => res,
         };
 
         let username = match cap.get(1) {
             None => {
-                return Err(invalid_arg_err(
-                    "Invalid Email username.".to_string(),
-                    Some(true),
-                    None,
-                ));
+                return invalid_arg_err("Invalid Email username.".to_string())
+                    .as_error();
             }
             Some(val) => val.as_str().to_string(),
         };
 
         let domain = match cap.get(3) {
             None => {
-                return Err(invalid_arg_err(
-                    "Invalid Email domain.".to_string(),
-                    Some(true),
-                    None,
-                ));
+                return invalid_arg_err("Invalid Email domain.".to_string())
+                    .as_error();
             }
             Some(val) => val.as_str().to_string(),
         };

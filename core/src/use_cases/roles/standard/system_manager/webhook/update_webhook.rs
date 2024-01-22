@@ -4,9 +4,9 @@ use crate::domain::{
     entities::WebHookUpdating,
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::UpdatingResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 

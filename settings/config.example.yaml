@@ -86,7 +86,7 @@ api:
   # ? --------------------------------------------------------------------------
   # ? LOGGING SETTINGS
   # ? --------------------------------------------------------------------------
-  loggingLevel: actix_web=debug,clean_base=debug,myc_api=debug
+  loggingLevel: actix_web=debug,mycelium_base=debug,myc_api=debug
 
   # ? --------------------------------------------------------------------------
   # ? API GATEWAY TLS SETTINGS

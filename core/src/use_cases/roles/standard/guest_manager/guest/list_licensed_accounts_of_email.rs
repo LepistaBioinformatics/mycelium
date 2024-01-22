@@ -7,7 +7,7 @@ use crate::domain::{
     entities::LicensedResourcesFetching,
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 

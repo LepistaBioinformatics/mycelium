@@ -9,12 +9,12 @@ use crate::{
     use_cases::roles::shared::account_type::get_or_create_default_account_types,
 };
 
-use clean_base::{
-    dtos::enums::ParentEnum,
+use mycelium_base::{
+    dtos::Parent,
     entities::{
         FetchResponseKind, GetOrCreateResponseKind, UpdatingResponseKind,
     },
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
@@ -90,7 +90,7 @@ pub async fn upgrade_account_privileges(
     // ? Update and persist account name
     // ? -----------------------------------------------------------------------
 
-    account.account_type = ParentEnum::Record(account_type);
+    account.account_type = Parent::Record(account_type);
 
     account_updating_repo.update(account).await
 }

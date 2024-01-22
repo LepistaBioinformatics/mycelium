@@ -8,10 +8,10 @@ use crate::domain::{
     entities::{AccountFetching, AccountUpdating},
 };
 
-use clean_base::{
-    dtos::enums::ParentEnum::*,
+use mycelium_base::{
+    dtos::Parent::*,
     entities::{FetchResponseKind, UpdatingResponseKind},
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 

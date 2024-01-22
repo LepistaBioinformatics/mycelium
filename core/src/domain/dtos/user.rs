@@ -7,9 +7,9 @@ use argon2::{
     Argon2, PasswordHasher, PasswordVerifier,
 };
 use chrono::{DateTime, Local};
-use clean_base::{
+use mycelium_base::{
     dtos::Parent,
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::{use_case_err, MappedErrors},
 };
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use utoipa::ToSchema;

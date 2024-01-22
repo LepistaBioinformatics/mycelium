@@ -4,7 +4,7 @@ use crate::domain::{
     entities::AccountFetching,
 };
 
-use clean_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
+use mycelium_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
 use uuid::Uuid;
 
 /// Get details of a single account

@@ -13,9 +13,9 @@ use crate::{
     use_cases::roles::shared::account_type::get_or_create_default_account_types,
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::GetOrCreateResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::{use_case_err, MappedErrors},
 };
 
 /// Create a seed staff account.

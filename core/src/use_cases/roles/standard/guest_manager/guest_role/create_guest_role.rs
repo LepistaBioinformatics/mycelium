@@ -7,8 +7,8 @@ use crate::domain::{
     entities::GuestRoleRegistration,
 };
 
-use clean_base::{
-    dtos::enums::ParentEnum, entities::GetOrCreateResponseKind,
+use mycelium_base::{
+    dtos::Parent, entities::GetOrCreateResponseKind,
     utils::errors::MappedErrors,
 };
 use uuid::Uuid;
@@ -46,7 +46,7 @@ pub async fn create_guest_role(
             id: None,
             name,
             description: Some(description),
-            role: ParentEnum::Id(role),
+            role: Parent::Id(role),
             permissions: permissions.unwrap_or(vec![Permissions::View]),
         })
         .await

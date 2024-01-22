@@ -11,9 +11,9 @@ use crate::{
     use_cases::roles::shared::webhook::default_actions::WebHookDefaultAction,
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::FetchResponseKind,
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 

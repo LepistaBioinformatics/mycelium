@@ -8,11 +8,6 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::Local;
-use clean_base::{
-    dtos::{enums::ParentEnum, Children},
-    entities::{CreateResponseKind, GetOrCreateResponseKind},
-    utils::errors::{factories::creation_err, MappedErrors},
-};
 use myc_core::domain::{
     dtos::{
         account::{Account, AccountType, VerboseStatus},
@@ -21,6 +16,11 @@ use myc_core::domain::{
         user::User,
     },
     entities::AccountRegistration,
+};
+use mycelium_base::{
+    dtos::{Children, Parent},
+    entities::{CreateResponseKind, GetOrCreateResponseKind},
+    utils::errors::{creation_err, MappedErrors},
 };
 use prisma_client_rust::or;
 use shaku::Component;
@@ -61,8 +61,8 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         // ? -------------------------------------------------------------------
 
         let account_type_id = match account.account_type {
-            ParentEnum::Id(id) => id.to_string(),
-            ParentEnum::Record(record) => match record.id {
+            Parent::Id(id) => id.to_string(),
+            Parent::Record(record) => match record.id {
                 Some(res) => res.to_string(),
                 None => {
                     return creation_err(String::from(
@@ -132,14 +132,14 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                                 Some(date.with_timezone(&Local))
                                             }
                                         },
-                                        Some(ParentEnum::Id(id)),
+                                        Some(Parent::Id(id)),
                                         None,
                                     )
                                     .with_principal(owner.is_principal)
                                 })
                                 .collect::<Vec<User>>(),
                         ),
-                        account_type: ParentEnum::Record(AccountType {
+                        account_type: Parent::Record(AccountType {
                             id: Some(
                                 Uuid::parse_str(&record.account_type.id)
                                     .unwrap(),
@@ -249,14 +249,14 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                                 Some(date.with_timezone(&Local))
                                             }
                                         },
-                                        Some(ParentEnum::Id(id)),
+                                        Some(Parent::Id(id)),
                                         None,
                                     )
                                     .with_principal(owner.is_principal)
                                 })
                                 .collect::<Vec<User>>(),
                         ),
-                        account_type: ParentEnum::Record(AccountType {
+                        account_type: Parent::Record(AccountType {
                             id: Some(
                                 Uuid::parse_str(&account.account_type.id)
                                     .unwrap(),
@@ -407,11 +407,11 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 None => None,
                                 Some(date) => Some(date.with_timezone(&Local)),
                             },
-                            Some(ParentEnum::Id(id)),
+                            Some(Parent::Id(id)),
                             None,
                         )
                         .with_principal(owner.is_principal)]),
-                        account_type: ParentEnum::Record(AccountType {
+                        account_type: Parent::Record(AccountType {
                             id: Some(
                                 Uuid::parse_str(&account.account_type.id)
                                     .unwrap(),

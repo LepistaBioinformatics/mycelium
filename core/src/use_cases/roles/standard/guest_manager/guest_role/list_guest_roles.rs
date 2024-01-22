@@ -4,7 +4,7 @@ use crate::domain::{
     entities::GuestRoleFetching,
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 use uuid::Uuid;

@@ -15,14 +15,13 @@ readme.workspace = true
 [dependencies]
 
 myc-core.workspace = true
-clean-base.workspace = true
+mycelium-base.workspace = true
 env_logger.workspace = true
 log.workspace = true
+shaku.workspace = true
 
 actix-web = { version = "4", features = ["openssl"] }
 async-trait = "0.1"
-shaku = "0.6"
-shaku_actix = "0.2"
 wildmatch = "2.1"
 
 

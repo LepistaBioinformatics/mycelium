@@ -2,7 +2,7 @@ use crate::domain::dtos::route::Route;
 
 use actix_web::http::uri::PathAndQuery;
 use async_trait::async_trait;
-use clean_base::{
+use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Interface;

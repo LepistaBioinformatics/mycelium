@@ -4,10 +4,6 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::Local;
-use clean_base::{
-    entities::{FetchManyResponseKind, FetchResponseKind},
-    utils::errors::{factories::fetching_err, MappedErrors},
-};
 use log::debug;
 use myc_core::domain::{
     dtos::{
@@ -15,6 +11,10 @@ use myc_core::domain::{
         webhook::{HookTarget, WebHook},
     },
     entities::WebHookFetching,
+};
+use mycelium_base::{
+    entities::{FetchManyResponseKind, FetchResponseKind},
+    utils::errors::{fetching_err, MappedErrors},
 };
 use prisma_client_rust::operator::and;
 use shaku::Component;

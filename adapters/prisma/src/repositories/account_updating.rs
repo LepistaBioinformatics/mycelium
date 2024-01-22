@@ -4,11 +4,6 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::{DateTime, Local};
-use clean_base::{
-    dtos::{enums::ParentEnum, Children},
-    entities::UpdatingResponseKind,
-    utils::errors::{factories::updating_err, MappedErrors},
-};
 use myc_core::domain::{
     dtos::{
         account::{Account, VerboseStatus},
@@ -17,6 +12,11 @@ use myc_core::domain::{
         user::User,
     },
     entities::AccountUpdating,
+};
+use mycelium_base::{
+    dtos::{Children, Parent},
+    entities::UpdatingResponseKind,
+    utils::errors::{updating_err, MappedErrors},
 };
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
 use shaku::Component;
@@ -76,8 +76,8 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                     account_model::is_archived::set(account.is_archived),
                     account_model::is_default::set(account.is_default),
                     account_model::account_type_id::set(match account.account_type {
-                        ParentEnum::Id(id) => id.to_string(),
-                        ParentEnum::Record(record) => match record.id {
+                        Parent::Id(id) => id.to_string(),
+                        Parent::Record(record) => match record.id {
                             None => {
                                 return updating_err(
                                     String::from("Unable to update account. Invalid account type ID"),
@@ -127,14 +127,14 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                                             Some(date.with_timezone(&Local))
                                         }
                                     },
-                                    Some(ParentEnum::Id(id)),
+                                    Some(Parent::Id(id)),
                                     None,
                                 )
                                 .with_principal(owner.is_principal)
                             })
                             .collect::<Vec<User>>(),
                     ),
-                    account_type: ParentEnum::Id(
+                    account_type: Parent::Id(
                         Uuid::from_str(&record.account_type_id).unwrap(),
                     ),
                     guest_users: None,

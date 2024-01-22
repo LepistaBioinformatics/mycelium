@@ -2,7 +2,9 @@ use crate::domain::{
     actors::DefaultActor, dtos::profile::Profile, entities::GuestRoleDeletion,
 };
 
-use clean_base::{entities::DeletionResponseKind, utils::errors::MappedErrors};
+use mycelium_base::{
+    entities::DeletionResponseKind, utils::errors::MappedErrors,
+};
 use uuid::Uuid;
 
 /// This function deletes a single role. Only manager user could execute such

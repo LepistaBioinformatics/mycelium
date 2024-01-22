@@ -1,6 +1,6 @@
 use crate::domain::dtos::account::{Account, VerboseStatus};
 
-use clean_base::utils::errors::{factories::use_case_err, MappedErrors};
+use mycelium_base::utils::errors::{use_case_err, MappedErrors};
 
 /// Try to reach a desired account state
 ///
@@ -105,7 +105,7 @@ mod tests {
     };
 
     use chrono::Local;
-    use clean_base::dtos::{enums::ParentEnum, Children};
+    use mycelium_base::dtos::{Children, Parent};
 
     #[tokio::test]
     async fn test_if_try_to_reach_desired_status_works() {
@@ -141,7 +141,7 @@ mod tests {
             verbose_status: None,
             is_default: false,
             owners: Children::Records([user].to_vec()),
-            account_type: ParentEnum::Record(account_type),
+            account_type: Parent::Record(account_type),
             guest_users: None,
             created: Local::now(),
             updated: Some(Local::now()),

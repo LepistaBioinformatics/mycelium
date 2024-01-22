@@ -7,9 +7,9 @@ use crate::domain::{
     entities::{ErrorCodeFetching, ErrorCodeUpdating},
 };
 
-use clean_base::{
+use mycelium_base::{
     entities::{FetchResponseKind, UpdatingResponseKind},
-    utils::errors::{factories::use_case_err, MappedErrors},
+    utils::errors::{use_case_err, MappedErrors},
 };
 
 /// Update the message and details of an error code.

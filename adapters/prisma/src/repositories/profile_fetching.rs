@@ -4,10 +4,6 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use clean_base::{
-    entities::FetchResponseKind,
-    utils::errors::{factories::fetching_err, MappedErrors},
-};
 use myc_core::domain::{
     dtos::{
         account::VerboseStatus,
@@ -16,6 +12,10 @@ use myc_core::domain::{
         profile::{Owner, Profile},
     },
     entities::ProfileFetching,
+};
+use mycelium_base::{
+    entities::FetchResponseKind,
+    utils::errors::{fetching_err, MappedErrors},
 };
 use shaku::Component;
 use std::process::id as process_id;

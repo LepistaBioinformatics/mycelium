@@ -1,7 +1,9 @@
 use crate::domain::dtos::message::Message;
 
 use async_trait::async_trait;
-use clean_base::{entities::CreateResponseKind, utils::errors::MappedErrors};
+use mycelium_base::{
+    entities::CreateResponseKind, utils::errors::MappedErrors,
+};
 use shaku::Interface;
 
 #[async_trait]

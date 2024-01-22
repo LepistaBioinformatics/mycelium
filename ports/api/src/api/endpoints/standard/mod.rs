@@ -26,10 +26,6 @@ use system_manager::{
 use user_account_manager::account_endpoints as user_account_manager_account_endpoints;
 
 use actix_web::web;
-use clean_base::dtos::{
-    enums::{ChildrenEnum, ParentEnum},
-    Children, PaginatedRecord, Parent,
-};
 use myc_core::{
     domain::{
         actors::DefaultActor,
@@ -51,6 +47,7 @@ use myc_core::{
     },
 };
 use myc_http_tools::utils::JsonError;
+use mycelium_base::dtos::{Children, PaginatedRecord, Parent};
 use utoipa::OpenApi;
 
 // ? ---------------------------------------------------------------------------
@@ -213,9 +210,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         schemas(
             // Default relationship enumerators.
             Children<String, String>,
-            ChildrenEnum<String, String>,
             Parent<String, String>,
-            ParentEnum<String, String>,
 
             // Schema models.
             Account,

@@ -2,7 +2,7 @@ use crate::domain::{
     dtos::account::{AccountType, AccountTypeEnum},
     entities::AccountTypeRegistration,
 };
-use clean_base::{
+use mycelium_base::{
     entities::GetOrCreateResponseKind, utils::errors::MappedErrors,
 };
 

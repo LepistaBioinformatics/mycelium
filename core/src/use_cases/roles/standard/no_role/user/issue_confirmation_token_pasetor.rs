@@ -8,8 +8,8 @@ use crate::{
 
 use argon2::password_hash::rand_core::{OsRng, RngCore};
 use chrono::Local;
-use clean_base::utils::errors::{factories::use_case_err, MappedErrors};
 use hex;
+use mycelium_base::utils::errors::{use_case_err, MappedErrors};
 use pasetors::{claims::Claims, keys::SymmetricKey, local, version4::V4};
 use uuid::Uuid;
 

@@ -3,14 +3,14 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use clean_base::{
-    dtos::PaginatedRecord,
-    entities::{FetchManyResponseKind, FetchResponseKind},
-    utils::errors::{factories::fetching_err, MappedErrors},
-};
 use myc_core::domain::{
     dtos::{error_code::ErrorCode, native_error_codes::NativeErrorCodes},
     entities::ErrorCodeFetching,
+};
+use mycelium_base::{
+    dtos::PaginatedRecord,
+    entities::{FetchManyResponseKind, FetchResponseKind},
+    utils::errors::{fetching_err, MappedErrors},
 };
 use prisma_client_rust::Direction;
 use shaku::Component;
