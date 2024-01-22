@@ -16,6 +16,14 @@ readme.workspace = true
 # ? DEPENDENCIES
 # ? ----------------------------------------------------------------------------
 
+# ! This is a workaround for a bug in cargo that prevents it from building
+# ! workspaces with path dependencies.
+#
+# This sesction was introduced to fix build error on package 
+# `connection-string`
+[patch.crates-io]
+connection-string = "0.1.14"
+
 [dependencies]
 
 async-trait.workspace = true
