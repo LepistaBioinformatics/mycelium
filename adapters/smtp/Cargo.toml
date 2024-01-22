@@ -30,7 +30,7 @@ minijinja = "1.0.8"
 
 
 [dev-dependencies]
-tokio = { version = "1.0", features = ["full"] }
+tokio.workspace = true
 
 [lib]
 name = "myc_smtp"
