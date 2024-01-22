@@ -33,7 +33,7 @@ license = "Apache-2.0"
 repository = "https://github.com/sgelias/mycelium"
 readme = "./README.md"
 keywords = ["authorization", "identity", "permission", "keeper"]
-categories = ["http-client", "microservices"]
+categories = ["development-tools", "web-programming::http-server"]
 
 
 # ? ----------------------------------------------------------------------------
