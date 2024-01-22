@@ -1,3 +1,10 @@
+## v4.9.1 (2024-01-22)
+
+### Fix
+
+- **subscription-account**: include the subscription-accounts name and flags updating endpoint
+- fix tokio dependencies of config and adapters and update dockerfile to includ base into installatin
+
 ## v4.9.0 (2024-01-21)
 
 ### Feat
