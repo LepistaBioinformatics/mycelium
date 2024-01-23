@@ -24,6 +24,7 @@ use uuid::Uuid;
 ///
 pub async fn propagate_existing_subscription_account(
     profile: Profile,
+    bearer_token: String,
     account_id: Uuid,
     account_fetching_repo: Box<&dyn AccountFetching>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
@@ -54,6 +55,7 @@ pub async fn propagate_existing_subscription_account(
 
     propagate_subscription_account(
         profile,
+        bearer_token,
         account,
         WebHookDefaultAction::CreateSubscriptionAccount,
         HookTarget::Account,

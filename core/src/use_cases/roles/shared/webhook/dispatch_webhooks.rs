@@ -10,6 +10,7 @@ use std::collections::HashMap;
 pub(crate) async fn dispatch_webhooks(
     hooks: Vec<WebHook>,
     account: Account,
+    bearer_token: Option<String>,
 ) -> Option<Vec<HookResponse>> {
     let client = Client::new();
 
@@ -23,7 +24,15 @@ pub(crate) async fn dispatch_webhooks(
         .map(|hook| {
             let mut map = HashMap::new();
             map.insert("account", account.to_owned());
-            client.clone().post(hook.url.to_owned()).json(&map).send()
+            client
+                .clone()
+                .post(hook.url.to_owned())
+                .header(
+                    "Authorization",
+                    bearer_token.to_owned().unwrap_or("".to_string()),
+                )
+                .json(&map)
+                .send()
         })
         .collect();
 

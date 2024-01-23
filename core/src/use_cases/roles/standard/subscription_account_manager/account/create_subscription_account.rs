@@ -28,6 +28,7 @@ use mycelium_base::{
 /// Subscription accounts represents results centering accounts.
 pub async fn create_subscription_account(
     profile: Profile,
+    bearer_token: String,
     account_name: String,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
@@ -88,6 +89,7 @@ pub async fn create_subscription_account(
 
     propagate_subscription_account(
         profile,
+        bearer_token,
         account,
         WebHookDefaultAction::CreateSubscriptionAccount,
         HookTarget::Account,
