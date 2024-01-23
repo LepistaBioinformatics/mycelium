@@ -1,3 +1,9 @@
+## v4.11.0 (2024-01-23)
+
+### Feat
+
+- include default actors as an public object into the myc-http-tools
+
 ## v4.10.0 (2024-01-23)
 
 ### Feat
