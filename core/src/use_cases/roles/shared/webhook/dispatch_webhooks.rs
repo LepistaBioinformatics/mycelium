@@ -19,6 +19,12 @@ pub(crate) async fn dispatch_webhooks(
     // ? parsed by upstream urls.
     // ? -----------------------------------------------------------------------
 
+    let token = bearer_token
+        .to_owned()
+        .unwrap_or("".to_string())
+        .replace("Bearer ", "")
+        .replace("bearer ", "");
+
     let bodies: Vec<_> = hooks
         .iter()
         .map(|hook| {
@@ -27,10 +33,7 @@ pub(crate) async fn dispatch_webhooks(
             client
                 .clone()
                 .post(hook.url.to_owned())
-                .header(
-                    "Authorization",
-                    bearer_token.to_owned().unwrap_or("".to_string()),
-                )
+                .header("Authorization", format!("Bearer {}", token.to_owned()))
                 .json(&map)
                 .send()
         })
