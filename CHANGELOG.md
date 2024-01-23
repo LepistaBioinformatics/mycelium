@@ -1,3 +1,9 @@
+## v4.10.0 (2024-01-23)
+
+### Feat
+
+- upgrade webhook propagation functionalities to passthrough the bearer token together request
+
 ## v4.9.1 (2024-01-22)
 
 ### Fix
