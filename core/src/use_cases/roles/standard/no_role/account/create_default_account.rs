@@ -118,7 +118,7 @@ pub async fn create_default_account(
 
     let propagation_responses = match target_hooks {
         None => None,
-        Some(hooks) => dispatch_webhooks(hooks, account.to_owned()).await,
+        Some(hooks) => dispatch_webhooks(hooks, account.to_owned(), None).await,
     };
 
     Ok(AccountPropagationWebHookResponse {

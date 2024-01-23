@@ -11,6 +11,7 @@ use crate::{
 };
 
 use actix_web::{get, patch, post, web, HttpResponse, Responder};
+use actix_web_httpauth::extractors::bearer::BearerAuth;
 use myc_core::{
     domain::{
         actors::DefaultActor,
@@ -122,6 +123,7 @@ pub struct ListSubscriptionAccountParams {
 )]
 #[post("/")]
 pub async fn create_subscription_account_url(
+    auth: BearerAuth,
     body: web::Json<CreateSubscriptionAccountBody>,
     profile: MyceliumProfileData,
     account_type_registration_repo: Inject<
@@ -136,6 +138,7 @@ pub async fn create_subscription_account_url(
 ) -> impl Responder {
     match create_subscription_account(
         profile.to_profile(),
+        auth.token().to_owned(),
         body.account_name.to_owned(),
         Box::new(&*account_type_registration_repo),
         Box::new(&*account_registration_repo),
@@ -439,6 +442,7 @@ pub async fn update_account_name_and_flags_url(
 )]
 #[post("/{account}/propagate")]
 pub async fn propagate_existing_subscription_account_url(
+    auth: BearerAuth,
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
     account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
@@ -446,6 +450,7 @@ pub async fn propagate_existing_subscription_account_url(
 ) -> impl Responder {
     match propagate_existing_subscription_account(
         profile.to_profile(),
+        auth.token().to_owned(),
         *path,
         Box::new(&*account_fetching_repo),
         Box::new(&*webhook_fetching_repo),

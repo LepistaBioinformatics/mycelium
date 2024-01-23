@@ -24,6 +24,7 @@ use mycelium_base::{
 ///
 pub(super) async fn propagate_subscription_account(
     profile: Profile,
+    bearer_token: String,
     account: Account,
     webhook_default_action: WebHookDefaultAction,
     hook_target: HookTarget,
@@ -54,7 +55,10 @@ pub(super) async fn propagate_subscription_account(
 
     let propagation_responses = match target_hooks {
         None => None,
-        Some(hooks) => dispatch_webhooks(hooks, account.to_owned()).await,
+        Some(hooks) => {
+            dispatch_webhooks(hooks, account.to_owned(), Some(bearer_token))
+                .await
+        }
     };
 
     // ? -----------------------------------------------------------------------
