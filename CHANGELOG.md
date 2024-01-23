@@ -1,3 +1,9 @@
+## v4.11.1 (2024-01-23)
+
+### Fix
+
+- **subscription-account-propagation**: fix the subscription account propagation use-cases
+
 ## v4.11.0 (2024-01-23)
 
 ### Feat
