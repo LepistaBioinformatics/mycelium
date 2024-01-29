@@ -71,6 +71,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                 account_model::id::equals(account_id.to_string()),
                 vec![
                     account_model::name::set(account.name),
+                    account_model::slug::set(account.slug),
                     account_model::is_active::set(account.is_active),
                     account_model::is_checked::set(account.is_checked),
                     account_model::is_archived::set(account.is_archived),
@@ -99,6 +100,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                 Ok(UpdatingResponseKind::Updated(Account {
                     id: Some(id.to_owned()),
                     name: record.name,
+                    slug: record.slug,
                     is_active: record.is_active,
                     is_checked: record.is_checked,
                     is_archived: record.is_archived,

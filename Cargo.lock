@@ -2472,7 +2472,7 @@ dependencies = [
 
 [[package]]
 name = "myc-core"
-version = "4.11.0"
+version = "4.11.1"
 dependencies = [
  "actix-web",
  "actix-web-httpauth",
@@ -2498,6 +2498,7 @@ dependencies = [
  "serde_yaml",
  "shaku",
  "shaku_actix",
+ "slugify",
  "test-log",
  "tokio",
  "utoipa",
@@ -2506,7 +2507,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-api"
-version = "4.11.0"
+version = "4.11.1"
 dependencies = [
  "actix",
  "actix-cors",
@@ -2556,7 +2557,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-base"
-version = "4.11.0"
+version = "4.11.1"
 dependencies = [
  "log",
  "regex",
@@ -2567,7 +2568,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-cli"
-version = "4.11.0"
+version = "4.11.1"
 dependencies = [
  "clap",
  "env_logger",
@@ -2583,7 +2584,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-config"
-version = "4.11.0"
+version = "4.11.1"
 dependencies = [
  "mycelium-base",
  "serde",
@@ -2593,7 +2594,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-memory-db"
-version = "4.11.0"
+version = "4.11.1"
 dependencies = [
  "actix-web",
  "async-trait",
@@ -2607,7 +2608,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-prisma"
-version = "4.11.0"
+version = "4.11.1"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2629,7 +2630,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-service"
-version = "4.11.0"
+version = "4.11.1"
 dependencies = [
  "async-trait",
  "env_logger",
@@ -2645,7 +2646,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-smtp"
-version = "4.11.0"
+version = "4.11.1"
 dependencies = [
  "async-trait",
  "env_logger",
@@ -4310,6 +4311,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "slugify"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d6b8cf203d2088b831d7558f8e5151bfa420c57a34240b28cee29d0ae5f2ac8b"
+dependencies = [
+ "unidecode",
+]
+
+[[package]]
 name = "smallvec"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4918,6 +4928,12 @@ name = "unicode_categories"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e"
+
+[[package]]
+name = "unidecode"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "402bb19d8e03f1d1a7450e2bd613980869438e0666331be3e073089124aa1adc"
 
 [[package]]
 name = "universal-hash"

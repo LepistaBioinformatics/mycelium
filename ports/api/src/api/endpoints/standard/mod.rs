@@ -6,6 +6,8 @@ mod system_manager;
 mod user_account_manager;
 
 use super::shared::UrlGroup;
+use crate::endpoints::standard::shared::build_actor_context;
+
 use guest_manager::{
     guest_endpoints as guest_manager_guest_endpoints,
     guest_role_endpoints as guest_manager_guest_role_endpoints,
@@ -25,7 +27,7 @@ use system_manager::{
 };
 use user_account_manager::account_endpoints as user_account_manager_account_endpoints;
 
-use actix_web::web;
+use actix_web::{get, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::DefaultActor,
@@ -50,12 +52,44 @@ use myc_http_tools::utils::JsonError;
 use mycelium_base::dtos::{Children, PaginatedRecord, Parent};
 use utoipa::OpenApi;
 
+#[get("/")]
+pub async fn list_role_controlled_main_routes_url() -> impl Responder {
+    HttpResponse::Ok().json(
+        [
+            DefaultActor::NoRole,
+            DefaultActor::SubscriptionAccountManager,
+            DefaultActor::UserAccountManager,
+            DefaultActor::GuestManager,
+            DefaultActor::SystemManager,
+        ]
+        .into_iter()
+        .flat_map(|actor| {
+            [
+                UrlGroup::Accounts,
+                UrlGroup::GuestRoles,
+                UrlGroup::Guests,
+                UrlGroup::Roles,
+                UrlGroup::Users,
+                UrlGroup::Webhooks,
+                UrlGroup::ErrorCodes,
+                UrlGroup::Profile,
+            ]
+            .into_iter()
+            .map(|group| build_actor_context(actor, group))
+            .collect::<Vec<String>>()
+        })
+        .into_iter()
+        .collect::<Vec<String>>(),
+    )
+}
+
 // ? ---------------------------------------------------------------------------
 // ? Configure application re-routing
 // ? ---------------------------------------------------------------------------
 
 pub(crate) fn configure(config: &mut web::ServiceConfig) {
     config
+        .service(list_role_controlled_main_routes_url)
         .service(
             web::scope("/aux")
                 .configure(no_role_auxiliary_endpoints::configure),

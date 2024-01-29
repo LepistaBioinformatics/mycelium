@@ -79,6 +79,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                     Ok(FetchResponseKind::Found(Account {
                         id: Some(id),
                         name: record.name,
+                        slug: record.slug,
                         is_active: record.is_active,
                         is_checked: record.is_checked,
                         is_archived: record.is_archived,
@@ -269,6 +270,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                 Account {
                     id: Some(id),
                     name: record.name,
+                    slug: record.slug,
                     is_active: record.is_active,
                     is_checked: record.is_checked,
                     is_archived: record.is_archived,
