@@ -1,3 +1,10 @@
+## v4.13.0 (2024-01-29)
+
+### Feat
+
+- implements the tags creation endpoint entities and use-cases
+- implements the tag models into domain dtos and adapters
+
 ## v4.12.0 (2024-01-29)
 
 ### Feat
