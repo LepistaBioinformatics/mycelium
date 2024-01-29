@@ -1,3 +1,9 @@
+## v4.12.0 (2024-01-29)
+
+### Feat
+
+- implements the slug name to allow accounts renaming without rename
+
 ## v4.11.1 (2024-01-23)
 
 ### Fix
