@@ -136,6 +136,7 @@ mod tests {
             id: None,
             name: String::from("Account Name"),
             slug: String::from("account-name"),
+            tags: None,
             is_active: true,
             is_checked: false,
             is_archived: false,

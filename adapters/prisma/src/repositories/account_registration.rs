@@ -13,6 +13,7 @@ use myc_core::domain::{
         account::{Account, AccountType, VerboseStatus},
         email::Email,
         native_error_codes::NativeErrorCodes,
+        tag::Tag,
         user::User,
     },
     entities::AccountRegistration,
@@ -23,6 +24,7 @@ use mycelium_base::{
     utils::errors::{creation_err, MappedErrors},
 };
 use prisma_client_rust::or;
+use serde_json::from_value;
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -89,7 +91,15 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                     owners
                 )]),
             ]])
-            .include(account_model::include!({ owners account_type }))
+            .include(account_model::include!({
+                owners
+                account_type
+                tags: select {
+                    id
+                    value
+                    meta
+                }
+            }))
             .exec()
             .await;
 
@@ -102,6 +112,26 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         id: Some(id),
                         name: record.name,
                         slug: record.slug,
+                        tags: match record.tags.len() {
+                            0 => None,
+                            _ => Some(
+                                record
+                                    .tags
+                                    .to_owned()
+                                    .into_iter()
+                                    .map(|i| Tag {
+                                        id: Uuid::parse_str(&i.id).unwrap(),
+                                        value: i.value,
+                                        meta: match i.meta {
+                                            None => None,
+                                            Some(meta) => {
+                                                Some(from_value(meta).unwrap())
+                                            }
+                                        },
+                                    })
+                                    .collect::<Vec<Tag>>(),
+                            ),
+                        },
                         is_active: record.is_active,
                         is_checked: record.is_checked,
                         is_archived: record.is_archived,
@@ -198,9 +228,15 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 ),
                             ],
                         )
-                        .include(
-                            account_model::include!({ owners account_type }),
-                        )
+                        .include(account_model::include!({
+                            owners
+                            account_type
+                            tags: select {
+                                id
+                                value
+                                meta
+                            }
+                        }))
                         .exec()
                         .await
                 })
@@ -221,6 +257,26 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         id: Some(id),
                         name: account.name,
                         slug: account.slug,
+                        tags: match account.tags.len() {
+                            0 => None,
+                            _ => Some(
+                                account
+                                    .tags
+                                    .to_owned()
+                                    .into_iter()
+                                    .map(|i| Tag {
+                                        id: Uuid::parse_str(&i.id).unwrap(),
+                                        value: i.value,
+                                        meta: match i.meta {
+                                            None => None,
+                                            Some(meta) => {
+                                                Some(from_value(meta).unwrap())
+                                            }
+                                        },
+                                    })
+                                    .collect::<Vec<Tag>>(),
+                            ),
+                        },
                         is_active: account.is_active,
                         is_checked: account.is_checked,
                         is_archived: account.is_archived,
@@ -323,9 +379,15 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 ),
                             ],
                         )
-                        .include(
-                            account_model::include!({ owners account_type }),
-                        )
+                        .include(account_model::include!({
+                            owners
+                            account_type
+                            tags: select {
+                                id
+                                value
+                                meta
+                            }
+                        }))
                         .exec()
                         .await?;
 
@@ -391,6 +453,26 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         id: Some(id),
                         name: account.name,
                         slug: account.slug,
+                        tags: match account.tags.len() {
+                            0 => None,
+                            _ => Some(
+                                account
+                                    .tags
+                                    .to_owned()
+                                    .into_iter()
+                                    .map(|i| Tag {
+                                        id: Uuid::parse_str(&i.id).unwrap(),
+                                        value: i.value,
+                                        meta: match i.meta {
+                                            None => None,
+                                            Some(meta) => {
+                                                Some(from_value(meta).unwrap())
+                                            }
+                                        },
+                                    })
+                                    .collect::<Vec<Tag>>(),
+                            ),
+                        },
                         is_active: account.is_active,
                         is_checked: account.is_checked,
                         is_archived: account.is_archived,

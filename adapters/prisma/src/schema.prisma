@@ -159,10 +159,28 @@ model Account {
   // Backward relationship fields
   owners      User[]
   guest_users GuestUserOnAccount[]
+  tags        AccountTags[]
 
   // Db compatibility and extra maps
   @@unique([name])
   @@map("account")
+}
+
+model AccountTags {
+  // Primary key
+  id String @id @default(uuid())
+
+  // The tag
+  value String @db.VarChar(64)
+  meta  Json?
+
+  // Related models
+  account    Account @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  account_id String
+
+  // Db compatibility and extra maps
+  @@unique([value, account_id])
+  @@map("account_tag")
 }
 
 model GuestUserOnAccount {
