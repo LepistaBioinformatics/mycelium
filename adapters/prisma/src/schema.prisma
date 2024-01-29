@@ -146,6 +146,7 @@ model Account {
 
   // Model fields
   name            String      @db.VarChar(256)
+  slug            String      @db.VarChar(256)
   account_type    AccountType @relation(fields: [account_type_id], references: [id])
   account_type_id String
   created         DateTime    @default(now()) @db.Timestamptz(6)

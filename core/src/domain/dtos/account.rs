@@ -6,6 +6,7 @@ use mycelium_base::{
     utils::errors::{invalid_arg_err, MappedErrors},
 };
 use serde::{Deserialize, Serialize};
+use slugify::slugify;
 use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     str::FromStr,
@@ -150,6 +151,7 @@ pub struct Account {
     pub id: Option<Uuid>,
 
     pub name: String,
+    pub slug: String,
 
     // Account statuses and verbose status
     //
@@ -181,7 +183,8 @@ impl Account {
     ) -> Self {
         Self {
             id: None,
-            name: account_name,
+            name: account_name.to_owned(),
+            slug: slugify!(account_name.as_str()),
             is_active: true,
             is_checked: false,
             is_archived: false,
@@ -202,7 +205,8 @@ impl Account {
     ) -> Self {
         Self {
             id: None,
-            name: account_name,
+            name: account_name.to_owned(),
+            slug: slugify!(account_name.as_str()),
             is_active: true,
             is_checked: false,
             is_archived: false,
@@ -242,6 +246,7 @@ mod tests {
         let account = Account {
             id: None,
             name: String::from("Account Name"),
+            slug: String::from("account-name"),
             is_active: true,
             is_checked: false,
             is_archived: false,

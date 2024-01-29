@@ -84,7 +84,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         let response = client
             .account()
             .find_first(vec![or![
-                account_model::name::equals(account.name.to_owned()),
+                account_model::slug::equals(account.name.to_owned()),
                 account_model::owners::some(vec![user_model::email::in_vec(
                     owners
                 )]),
@@ -101,6 +101,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                     Account {
                         id: Some(id),
                         name: record.name,
+                        slug: record.slug,
                         is_active: record.is_active,
                         is_checked: record.is_checked,
                         is_archived: record.is_archived,
@@ -180,6 +181,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         .account()
                         .create(
                             account.name,
+                            account.slug,
                             account_type_model::id::equals(account_type_id),
                             vec![
                                 account_model::is_active::set(
@@ -218,6 +220,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                     return Ok(GetOrCreateResponseKind::Created(Account {
                         id: Some(id),
                         name: account.name,
+                        slug: account.slug,
                         is_active: account.is_active,
                         is_checked: account.is_checked,
                         is_archived: account.is_archived,
@@ -303,6 +306,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         .account()
                         .create(
                             account.name,
+                            account.slug,
                             account_type_model::id::equals(account_type_id),
                             vec![
                                 account_model::is_active::set(
@@ -386,6 +390,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                     Ok(GetOrCreateResponseKind::Created(Account {
                         id: Some(id),
                         name: account.name,
+                        slug: account.slug,
                         is_active: account.is_active,
                         is_checked: account.is_checked,
                         is_archived: account.is_archived,

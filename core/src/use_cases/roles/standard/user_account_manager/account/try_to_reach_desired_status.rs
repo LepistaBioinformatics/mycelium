@@ -135,6 +135,7 @@ mod tests {
         let mut account = Account {
             id: None,
             name: String::from("Account Name"),
+            slug: String::from("account-name"),
             is_active: true,
             is_checked: false,
             is_archived: false,

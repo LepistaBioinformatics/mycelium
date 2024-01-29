@@ -45,6 +45,7 @@ argon2 = "0.5.2"
 enum-iterator = "1.4.0"
 hex = "0.4.3"
 pasetors = "0.6"
+slugify = "0.1.0"
 
 [dev-dependencies]
 test-log = "0.2.8"
