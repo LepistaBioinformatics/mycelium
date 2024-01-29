@@ -9,6 +9,7 @@ mod profile;
 mod role;
 mod route;
 mod session_token;
+mod tag;
 mod user;
 mod webhook;
 
@@ -23,5 +24,6 @@ pub use profile::*;
 pub use role::*;
 pub use route::*;
 pub use session_token::*;
+pub use tag::*;
 pub use user::*;
 pub use webhook::*;

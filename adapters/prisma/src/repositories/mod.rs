@@ -26,6 +26,9 @@ mod role_updating;
 mod session_token_deletion;
 mod session_token_fetching;
 mod session_token_registration;
+mod tag_deletion;
+mod tag_registration;
+mod tag_updating;
 mod user_deletion;
 mod user_fetching;
 mod user_registration;
@@ -35,125 +38,40 @@ mod webhook_fetching;
 mod webhook_registration;
 mod webhook_updating;
 
-pub use account_fetching::{
-    AccountFetchingSqlDbRepository, AccountFetchingSqlDbRepositoryParameters,
-};
-pub use account_registration::{
-    AccountRegistrationSqlDbRepository,
-    AccountRegistrationSqlDbRepositoryParameters,
-};
-pub use account_type_deletion::{
-    AccountTypeDeletionSqlDbRepository,
-    AccountTypeDeletionSqlDbRepositoryParameters,
-};
-pub use account_type_registration::{
-    AccountTypeRegistrationSqlDbRepository,
-    AccountTypeRegistrationSqlDbRepositoryParameters,
-};
-pub use account_updating::{
-    AccountUpdatingSqlDbRepository, AccountUpdatingSqlDbRepositoryParameters,
-};
-pub use error_code_deletion::{
-    ErrorCodeDeletionDeletionSqlDbRepository,
-    ErrorCodeDeletionDeletionSqlDbRepositoryParameters,
-};
-pub use error_code_fetching::{
-    ErrorCodeFetchingSqlDbRepository,
-    ErrorCodeFetchingSqlDbRepositoryParameters,
-};
-pub use error_code_registration::{
-    ErrorCodeRegistrationSqlDbRepository,
-    ErrorCodeRegistrationSqlDbRepositoryParameters,
-};
-pub use error_code_updating::{
-    ErrorCodeUpdatingSqlDbRepository,
-    ErrorCodeUpdatingSqlDbRepositoryParameters,
-};
-pub use guest_role_deletion::{
-    GuestRoleDeletionSqlDbRepository,
-    GuestRoleDeletionSqlDbRepositoryParameters,
-};
-pub use guest_role_fetching::{
-    GuestRoleFetchingSqlDbRepository,
-    GuestRoleFetchingSqlDbRepositoryParameters,
-};
-pub use guest_role_registration::{
-    GuestRoleRegistrationSqlDbRepository,
-    GuestRoleRegistrationSqlDbRepositoryParameters,
-};
-pub use guest_role_updating::{
-    GuestRoleUpdatingSqlDbRepository,
-    GuestRoleUpdatingSqlDbRepositoryParameters,
-};
-pub use guest_user_deletion::{
-    GuestUserDeletionSqlDbRepository,
-    GuestUserDeletionSqlDbRepositoryParameters,
-};
-pub use guest_user_fetching::{
-    GuestUserFetchingSqlDbRepository,
-    GuestUserFetchingSqlDbRepositoryParameters,
-};
-pub use guest_user_on_account_updating::{
-    GuestUserOnAccountUpdatingSqlDbRepository,
-    GuestUserOnAccountUpdatingSqlDbRepositoryParameters,
-};
-pub use guest_user_registration::{
-    GuestUserRegistrationSqlDbRepository,
-    GuestUserRegistrationSqlDbRepositoryParameters,
-};
-pub use licensed_resources_fetching::{
-    LicensedResourcesFetchingSqlDbRepository,
-    LicensedResourcesFetchingSqlDbRepositoryParameters,
-};
-pub use profile_fetching::{
-    ProfileFetchingSqlDbRepository, ProfileFetchingSqlDbRepositoryParameters,
-};
-pub use role_deletion::{
-    RoleDeletionSqlDbRepository, RoleDeletionSqlDbRepositoryParameters,
-};
-pub use role_fetching::{
-    RoleFetchingSqlDbRepository, RoleFetchingSqlDbRepositoryParameters,
-};
-pub use role_registration::{
-    RoleRegistrationSqlDbRepository, RoleRegistrationSqlDbRepositoryParameters,
-};
-pub use role_updating::{
-    RoleUpdatingSqlDbRepository, RoleUpdatingSqlDbRepositoryParameters,
-};
-pub use session_token_deletion::{
-    SessionTokenDeletionSqlDbRepository,
-    SessionTokenDeletionSqlDbRepositoryParameters,
-};
-pub use session_token_fetching::{
-    SessionTokenFetchingSqlDbRepository,
-    SessionTokenFetchingSqlDbRepositoryParameters,
-};
-pub use session_token_registration::{
-    SessionTokenRegistrationSqlDbRepository,
-    SessionTokenRegistrationSqlDbRepositoryParameters,
-};
-pub use user_deletion::{
-    UserDeletionSqlDbRepository, UserDeletionSqlDbRepositoryParameters,
-};
-pub use user_fetching::{
-    UserFetchingSqlDbRepository, UserFetchingSqlDbRepositoryParameters,
-};
-pub use user_registration::{
-    UserRegistrationSqlDbRepository, UserRegistrationSqlDbRepositoryParameters,
-};
-pub use user_updating::{
-    UserUpdatingSqlDbRepository, UserUpdatingSqlDbRepositoryParameters,
-};
-pub use webhook_deletion::{
-    WebHookDeletionSqlDbRepository, WebHookDeletionSqlDbRepositoryParameters,
-};
-pub use webhook_fetching::{
-    WebHookFetchingSqlDbRepository, WebHookFetchingSqlDbRepositoryParameters,
-};
-pub use webhook_registration::{
-    WebHookRegistrationSqlDbRepository,
-    WebHookRegistrationSqlDbRepositoryParameters,
-};
-pub use webhook_updating::{
-    WebHookUpdatingSqlDbRepository, WebHookUpdatingSqlDbRepositoryParameters,
-};
+pub use account_fetching::*;
+pub use account_registration::*;
+pub use account_type_deletion::*;
+pub use account_type_registration::*;
+pub use account_updating::*;
+pub use error_code_deletion::*;
+pub use error_code_fetching::*;
+pub use error_code_registration::*;
+pub use error_code_updating::*;
+pub use guest_role_deletion::*;
+pub use guest_role_fetching::*;
+pub use guest_role_registration::*;
+pub use guest_role_updating::*;
+pub use guest_user_deletion::*;
+pub use guest_user_fetching::*;
+pub use guest_user_on_account_updating::*;
+pub use guest_user_registration::*;
+pub use licensed_resources_fetching::*;
+pub use profile_fetching::*;
+pub use role_deletion::*;
+pub use role_fetching::*;
+pub use role_registration::*;
+pub use role_updating::*;
+pub use session_token_deletion::*;
+pub use session_token_fetching::*;
+pub use session_token_registration::*;
+pub use tag_deletion::*;
+pub use tag_registration::*;
+pub use tag_updating::*;
+pub use user_deletion::*;
+pub use user_fetching::*;
+pub use user_registration::*;
+pub use user_updating::*;
+pub use webhook_deletion::*;
+pub use webhook_fetching::*;
+pub use webhook_registration::*;
+pub use webhook_updating::*;
