@@ -11,7 +11,8 @@ use crate::modules::{
     ProfileFetchingModule, RoleDeletionModule, RoleFetchingModule,
     RoleRegistrationModule, RoleUpdatingModule, RoutesFetchingModule,
     SessionTokenDeletionModule, SessionTokenFetchingModule,
-    SessionTokenRegistrationModule, UserDeletionModule, UserFetchingModule,
+    SessionTokenRegistrationModule, TagDeletionModule, TagRegistrationModule,
+    TagUpdatingModule, UserDeletionModule, UserFetchingModule,
     UserRegistrationModule, UserUpdatingModule, WebHookDeletionModule,
     WebHookFetchingModule, WebHookRegistrationModule, WebHookUpdatingModule,
 };
@@ -66,6 +67,9 @@ use myc_prisma::repositories::{
     SessionTokenFetchingSqlDbRepositoryParameters,
     SessionTokenRegistrationSqlDbRepository,
     SessionTokenRegistrationSqlDbRepositoryParameters,
+    TagDeletionSqlDbRepository, TagDeletionSqlDbRepositoryParameters,
+    TagRegistrationSqlDbRepository, TagRegistrationSqlDbRepositoryParameters,
+    TagUpdatingSqlDbRepository, TagUpdatingSqlDbRepositoryParameters,
     UserDeletionSqlDbRepository, UserDeletionSqlDbRepositoryParameters,
     UserFetchingSqlDbRepository, UserFetchingSqlDbRepositoryParameters,
     UserRegistrationSqlDbRepository, UserRegistrationSqlDbRepositoryParameters,
@@ -361,6 +365,30 @@ pub fn configure(config: &mut web::ServiceConfig) {
             SessionTokenDeletionModule::builder()
                 .with_component_parameters::<SessionTokenDeletionSqlDbRepository>(
                     SessionTokenDeletionSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        // ? -------------------------------------------------------------------
+        // ? Account Tag
+        // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            TagDeletionModule::builder()
+                .with_component_parameters::<TagDeletionSqlDbRepository>(
+                    TagDeletionSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            TagRegistrationModule::builder()
+                .with_component_parameters::<TagRegistrationSqlDbRepository>(
+                    TagRegistrationSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            TagUpdatingModule::builder()
+                .with_component_parameters::<TagUpdatingSqlDbRepository>(
+                    TagUpdatingSqlDbRepositoryParameters {},
                 )
                 .build(),
         ));
