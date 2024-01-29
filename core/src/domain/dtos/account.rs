@@ -1,4 +1,4 @@
-use super::{guest::GuestUser, user::User};
+use super::{guest::GuestUser, tag::Tag, user::User};
 
 use chrono::{DateTime, Local};
 use mycelium_base::{
@@ -153,6 +153,8 @@ pub struct Account {
     pub name: String,
     pub slug: String,
 
+    pub tags: Option<Vec<Tag>>,
+
     // Account statuses and verbose status
     //
     // Account statuses are used to determine the real (verbose) state of the
@@ -185,6 +187,7 @@ impl Account {
             id: None,
             name: account_name.to_owned(),
             slug: slugify!(account_name.as_str()),
+            tags: None,
             is_active: true,
             is_checked: false,
             is_archived: false,
@@ -207,6 +210,7 @@ impl Account {
             id: None,
             name: account_name.to_owned(),
             slug: slugify!(account_name.as_str()),
+            tags: None,
             is_active: true,
             is_checked: false,
             is_archived: false,
@@ -247,6 +251,7 @@ mod tests {
             id: None,
             name: String::from("Account Name"),
             slug: String::from("account-name"),
+            tags: None,
             is_active: true,
             is_checked: false,
             is_archived: false,

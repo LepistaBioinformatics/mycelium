@@ -9,6 +9,7 @@ use myc_core::domain::{
         account::{Account, VerboseStatus},
         email::Email,
         native_error_codes::NativeErrorCodes,
+        tag::Tag,
         user::User,
     },
     entities::AccountUpdating,
@@ -19,6 +20,7 @@ use mycelium_base::{
     utils::errors::{updating_err, MappedErrors},
 };
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
+use serde_json::from_value;
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
 use uuid::Uuid;
@@ -89,7 +91,14 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                     })
                 ],
             )
-            .include(account_model::include!({ owners }))
+            .include(account_model::include!({
+                owners
+                tags: select {
+                    id
+                    value
+                    meta
+                }
+            }))
             .exec()
             .await;
 
@@ -101,6 +110,26 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                     id: Some(id.to_owned()),
                     name: record.name,
                     slug: record.slug,
+                    tags: match record.tags.len() {
+                        0 => None,
+                        _ => Some(
+                            record
+                                .tags
+                                .to_owned()
+                                .into_iter()
+                                .map(|i| Tag {
+                                    id: Uuid::parse_str(&i.id).unwrap(),
+                                    value: i.value,
+                                    meta: match i.meta {
+                                        None => None,
+                                        Some(meta) => {
+                                            Some(from_value(meta).unwrap())
+                                        }
+                                    },
+                                })
+                                .collect::<Vec<Tag>>(),
+                        ),
+                    },
                     is_active: record.is_active,
                     is_checked: record.is_checked,
                     is_archived: record.is_archived,
