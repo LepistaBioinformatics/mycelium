@@ -174,6 +174,7 @@ pub struct Account {
     pub owners: Children<User, Uuid>,
     pub account_type: Parent<AccountType, Uuid>,
     pub guest_users: Option<Children<GuestUser, Uuid>>,
+
     pub created: DateTime<Local>,
     pub updated: Option<DateTime<Local>>,
 }

@@ -88,6 +88,7 @@ pub struct UpdateSubscriptionAccountNameAndFlagsBody {
 #[serde(rename_all = "camelCase")]
 pub struct ListSubscriptionAccountParams {
     term: Option<String>,
+    tag_value: Option<String>,
     is_subscription: Option<bool>,
     is_owner_active: Option<bool>,
     status: Option<VerboseStatus>,
@@ -268,6 +269,7 @@ pub async fn list_accounts_by_type_url(
         is_account_checked,
         is_account_archived,
         info.is_subscription.to_owned(),
+        info.tag_value.to_owned(),
         page.page_size.to_owned(),
         page.skip.to_owned(),
         Box::new(&*account_fetching_repo),
