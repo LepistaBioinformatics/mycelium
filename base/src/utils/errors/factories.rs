@@ -46,6 +46,18 @@ pub fn invalid_arg_err(msg: String) -> MappedErrors {
     MappedErrors::default(msg).with_error_type(ErrorType::InvalidArgumentError)
 }
 
+/// A factory for data transfer objects error
+pub fn dto_err(msg: String) -> MappedErrors {
+    MappedErrors::default(msg)
+        .with_error_type(ErrorType::DataTransferLayerError)
+}
+
+/// A factory for general errors
+pub fn general_err(msg: String, error_type: String) -> MappedErrors {
+    MappedErrors::default(msg)
+        .with_error_type(ErrorType::GeneralError(error_type))
+}
+
 // * ---------------------------------------------------------------------------
 // * TESTS
 // * ---------------------------------------------------------------------------
