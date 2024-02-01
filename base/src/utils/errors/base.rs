@@ -9,7 +9,7 @@ use std::{
 
 /// This enumerator are used to standardize errors codes dispatched during the
 /// `MappedErrors` struct usage.
-#[derive(Debug, Clone, Copy, Deserialize, PartialEq, Serialize)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum ErrorType {
     /// This error type is used when the error type is not defined. This is the
@@ -63,6 +63,16 @@ pub enum ErrorType {
     ///
     /// Related: Argument
     InvalidArgumentError,
+
+    /// This error type is used when an error occurs in the data transfer layer.
+    ///
+    /// Related: Data Transfer Objects
+    DataTransferLayerError,
+
+    /// This error type is used when a general error occurs.
+    ///
+    /// Related: General
+    GeneralError(String),
 }
 
 impl ErrorType {
@@ -88,6 +98,10 @@ impl Display for ErrorType {
             ErrorType::InvalidArgumentError => {
                 write!(f, "invalid-argument-error")
             }
+            ErrorType::DataTransferLayerError => {
+                write!(f, "data-transfer-layer-error")
+            }
+            ErrorType::GeneralError(msg) => write!(f, "{}", msg),
         }
     }
 }
@@ -107,7 +121,10 @@ impl FromStr for ErrorType {
             "execution-error" => Ok(ErrorType::ExecutionError),
             "invalid-repository-error" => Ok(ErrorType::InvalidRepositoryError),
             "invalid-argument-error" => Ok(ErrorType::InvalidArgumentError),
-            _ => Err(()),
+            "data-transfer-layer-error" => {
+                Ok(ErrorType::DataTransferLayerError)
+            }
+            other => Ok(ErrorType::GeneralError(other.to_string())),
         }
     }
 }
@@ -188,7 +205,7 @@ impl MappedErrors {
 
     /// This method returns the error type of the current error.
     pub fn error_type(&self) -> ErrorType {
-        self.error_type
+        self.error_type.to_owned()
     }
 
     /// This method returns the error message of the current error.
