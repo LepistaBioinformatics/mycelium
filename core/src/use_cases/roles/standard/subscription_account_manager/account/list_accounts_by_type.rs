@@ -6,6 +6,7 @@ use crate::{
             profile::Profile,
         },
         entities::{AccountFetching, AccountTypeRegistration},
+        utils::try_as_uuid,
     },
     use_cases::roles::shared::account_type::get_or_create_default_account_types,
 };
@@ -26,6 +27,7 @@ pub async fn list_accounts_by_type(
     is_account_checked: Option<bool>,
     is_account_archived: Option<bool>,
     is_subscription: Option<bool>,
+    tag_value: Option<String>,
     page_size: Option<i32>,
     skip: Option<i32>,
     account_fetching_repo: Box<&dyn AccountFetching>,
@@ -59,13 +61,38 @@ pub async fn list_accounts_by_type(
     // ? List accounts
     // ? -----------------------------------------------------------------------
 
+    let (updated_term, account_id) = {
+        if let Some(i) = term {
+            match try_as_uuid(&i) {
+                Ok(id) => (None, Some(id)),
+                Err(_) => (Some(i), None),
+            }
+        } else {
+            (None, None)
+        }
+    };
+
+    let (updated_tag, tag_id) = {
+        if let Some(i) = tag_value {
+            match try_as_uuid(&i) {
+                Ok(id) => (None, Some(id)),
+                Err(_) => (Some(i), None),
+            }
+        } else {
+            (None, None)
+        }
+    };
+
     account_fetching_repo
         .list(
-            term,
+            updated_term,
             is_owner_active,
             is_account_active,
             is_account_checked,
             is_account_archived,
+            tag_id,
+            updated_tag,
+            account_id,
             account_type_id,
             Some(is_subscription.unwrap_or(false)),
             page_size,

@@ -1,5 +1,8 @@
 use crate::{
-    prisma::{account as account_model, user as user_model},
+    prisma::{
+        account as account_model, account_tags as account_tags_model,
+        user as user_model, QueryMode,
+    },
     repositories::connector::get_client,
 };
 
@@ -22,7 +25,7 @@ use mycelium_base::{
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{creation_err, fetching_err, MappedErrors},
 };
-use prisma_client_rust::{operator::and, or, Direction};
+use prisma_client_rust::{and, operator::and, or, Direction};
 use serde_json::from_value;
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
@@ -180,6 +183,9 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         is_account_active: Option<bool>,
         is_account_checked: Option<bool>,
         is_account_archived: Option<bool>,
+        tag_id: Option<Uuid>,
+        tag_value: Option<String>,
+        account_id: Option<Uuid>,
         account_type_id: Option<Uuid>,
         show_subscription: Option<bool>,
         page_size: Option<i32>,
@@ -213,12 +219,23 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
 
         if term.is_some() {
             let term = term.unwrap();
+
             query_stmt.push(or![
-                account_model::name::contains(term.to_owned()),
-                account_model::owners::some(vec![user_model::email::contains(
-                    term
-                )])
+                and![
+                    account_model::name::mode(QueryMode::Insensitive),
+                    account_model::name::contains(term.to_owned()),
+                ],
+                account_model::owners::some(vec![and![
+                    user_model::email::mode(QueryMode::Insensitive),
+                    user_model::email::contains(term),
+                ]])
             ]);
+        }
+
+        if account_id.is_some() {
+            query_stmt.push(account_model::id::equals(
+                account_id.unwrap().to_string(),
+            ));
         }
 
         if is_owner_active.is_some() {
@@ -243,6 +260,21 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             and_query_stmt.push(account_model::is_archived::equals(
                 is_account_archived.unwrap(),
             ));
+        }
+
+        if tag_value.is_some() {
+            let tag_value = tag_value.unwrap();
+
+            and_query_stmt.push(account_model::tags::some(vec![and![
+                account_tags_model::value::mode(QueryMode::Insensitive),
+                account_tags_model::value::contains(tag_value),
+            ]]));
+        }
+
+        if tag_id.is_some() {
+            and_query_stmt.push(account_model::tags::some(vec![
+                account_tags_model::id::equals(tag_id.unwrap().to_string()),
+            ]));
         }
 
         if account_type_id.is_some() {
