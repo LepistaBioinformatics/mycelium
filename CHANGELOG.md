@@ -1,3 +1,13 @@
+## v4.14.0 (2024-02-01)
+
+### Feat
+
+- upgrade default festures to include new error handlings
+
+### Fix
+
+- fix the subscription accounts search to include tag search and a case insensitive search including uuid targeted search
+
 ## v4.13.0 (2024-01-29)
 
 ### Feat
