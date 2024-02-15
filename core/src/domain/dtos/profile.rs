@@ -1,4 +1,7 @@
-use super::{account::VerboseStatus, guest::Permissions};
+use super::{
+    account::VerboseStatus, guest::Permissions,
+    related_accounts::RelatedAccounts,
+};
 
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
@@ -166,6 +169,10 @@ impl Profile {
         }
     }
 
+    // ? -----------------------------------------------------------------------
+    // ? View filters
+    // ? -----------------------------------------------------------------------
+
     /// Filter IDs with view permissions.
     pub fn get_view_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
         self.get_licensed_ids(Permissions::View, roles, None)
@@ -187,6 +194,23 @@ impl Profile {
     ) -> Result<Vec<Uuid>, MappedErrors> {
         self.get_licensed_ids_or_error(Permissions::View, roles, Some(true))
     }
+
+    /// Filter RelatedAccounts with view permissions to default accounts with
+    /// error if empty.
+    pub fn get_related_account_with_default_view_or_error(
+        &self,
+        roles: Vec<String>,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        self.get_licensed_ids_as_related_accounts_or_error(
+            Permissions::View,
+            roles,
+            Some(true),
+        )
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? Create filters
+    // ? -----------------------------------------------------------------------
 
     /// Filter IDs with create permissions.
     pub fn get_create_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
@@ -210,6 +234,23 @@ impl Profile {
         self.get_licensed_ids_or_error(Permissions::Create, roles, Some(true))
     }
 
+    /// Filter RelatedAccounts with create permissions to default accounts with
+    /// error if empty.
+    pub fn get_related_account_with_default_create_or_error(
+        &self,
+        roles: Vec<String>,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        self.get_licensed_ids_as_related_accounts_or_error(
+            Permissions::Create,
+            roles,
+            Some(true),
+        )
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? Update filters
+    // ? -----------------------------------------------------------------------
+
     /// Filter IDs with update permissions.
     pub fn get_update_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
         self.get_licensed_ids(Permissions::Update, roles, None)
@@ -232,6 +273,23 @@ impl Profile {
         self.get_licensed_ids_or_error(Permissions::Update, roles, Some(true))
     }
 
+    /// Filter RelatedAccounts with update permissions to default accounts with
+    /// error if empty.
+    pub fn get_related_account_with_default_update_or_error(
+        &self,
+        roles: Vec<String>,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        self.get_licensed_ids_as_related_accounts_or_error(
+            Permissions::Update,
+            roles,
+            Some(true),
+        )
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? Delete filters
+    // ? -----------------------------------------------------------------------
+
     /// Filter IDs with delete permissions.
     pub fn get_delete_ids(&self, roles: Vec<String>) -> Vec<Uuid> {
         self.get_licensed_ids(Permissions::Delete, roles, None)
@@ -253,6 +311,23 @@ impl Profile {
     ) -> Result<Vec<Uuid>, MappedErrors> {
         self.get_licensed_ids_or_error(Permissions::Delete, roles, Some(true))
     }
+
+    /// Filter RelatedAccounts with delete permissions to default accounts with
+    /// error if empty.
+    pub fn get_related_account_with_default_delete_or_error(
+        &self,
+        roles: Vec<String>,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        self.get_licensed_ids_as_related_accounts_or_error(
+            Permissions::Delete,
+            roles,
+            Some(true),
+        )
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? Basic filter functions
+    // ? -----------------------------------------------------------------------
 
     /// Create a list of licensed ids.
     ///
@@ -315,6 +390,44 @@ impl Profile {
         }
 
         Ok(ids)
+    }
+
+    /// Check if the current profile has admin privileges or the licensed ids
+    /// are not empty. If so, return the licensed ids. Otherwise, return an
+    /// error.
+    ///
+    /// The Staff related account has high priority over the manager related
+    /// account. If the current profile is a staff, the function should return
+    /// `HasStaffPrivileges`. If the current profile is a manager, the function
+    /// should return `HasManagerPrivileges`. If the current profile has no
+    /// admin privileges and the licensed ids are empty, the function should
+    /// return an error.
+    ///
+    fn get_licensed_ids_as_related_accounts_or_error(
+        &self,
+        permission: Permissions,
+        roles: Vec<String>,
+        should_be_default: Option<bool>,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        if self.is_staff {
+            return Ok(RelatedAccounts::HasStaffPrivileges);
+        }
+
+        if self.is_manager {
+            return Ok(RelatedAccounts::HasManagerPrivileges);
+        }
+
+        let ids = self.get_licensed_ids(permission, roles, should_be_default);
+
+        if ids.is_empty() {
+            return execution_err(
+                "Insufficient privileges to perform these action".to_string(),
+            )
+            .with_exp_true()
+            .as_error();
+        }
+
+        Ok(RelatedAccounts::AllowedAccounts(ids))
     }
 }
 

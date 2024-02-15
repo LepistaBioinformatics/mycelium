@@ -14,6 +14,7 @@ pub use myc_core::{
             email::Email,
             guest::Permissions,
             profile::{LicensedResources, Profile},
+            related_accounts::RelatedAccounts,
         },
     },
     settings::DEFAULT_PROFILE_KEY,
