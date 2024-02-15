@@ -42,12 +42,6 @@ categories = ["development-tools", "web-programming::http-server"]
 
 [workspace.dependencies]
 
-# ------------------------------------------------------------------------------
-#
-# External dependencies
-#
-# ------------------------------------------------------------------------------
-
 async-trait = "0.1"
 chrono = { version = "0.4", features = ["serde"] }
 env_logger = "0.10"
@@ -71,19 +65,3 @@ utoipa = { version = "4", features = [
     "openapi_extensions",
 ] }
 uuid = { version = "1.1", features = ["v4", "serde", "fast-rng"] }
-
-# ------------------------------------------------------------------------------
-#
-# Internal dependencies
-#
-# ------------------------------------------------------------------------------
-
-myc-core = { path = "core" }
-mycelium-config = { path = "config" }
-mycelium-base = { path = "base" }
-mycelium-memory-db = { path = "adapters/mem_db" }
-mycelium-prisma = { path = "adapters/prisma" }
-mycelium-service = { path = "adapters/service" }
-mycelium-smtp = { path = "adapters/smtp" }
-mycelium-cli = { path = "ports/cli" }
-mycelium-api = { path = "ports/api" }

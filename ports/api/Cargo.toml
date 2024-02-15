@@ -26,6 +26,14 @@ connection-string = "0.1.14"
 
 [dependencies]
 
+myc-core = { version = "4.15.0", path = "../../core" }
+mycelium-base = { version = "4.15.0", path = "../../base" }
+mycelium-config = { version = "4.15.0", path = "../../config" }
+mycelium-memory-db = { version = "4.15.0", path = "../../adapters/mem_db" }
+mycelium-service = { version = "4.15.0", path = "../../adapters/service" }
+mycelium-prisma = { version = "4.15.0", path = "../../adapters/prisma" }
+mycelium-smtp = { version = "4.15.0", path = "../../adapters/smtp" }
+
 async-trait.workspace = true
 chrono.workspace = true
 env_logger.workspace = true
@@ -34,13 +42,6 @@ futures-util.workspace = true
 jsonwebtoken.workspace = true
 lazy_static.workspace = true
 log.workspace = true
-myc-core.workspace = true
-mycelium-config.workspace = true
-mycelium-memory-db.workspace = true
-mycelium-service.workspace = true
-mycelium-prisma.workspace = true
-mycelium-smtp.workspace = true
-mycelium-base.workspace = true
 reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true

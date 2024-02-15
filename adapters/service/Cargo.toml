@@ -14,12 +14,13 @@ readme.workspace = true
 
 [dependencies]
 
+myc-core = { version = "4.15.0", path = "../../core" }
+mycelium-base = { version = "4.15.0", path = "../../base" }
+
 async-trait.workspace = true
 env_logger.workspace = true
 lazy_static.workspace = true
 log.workspace = true
-myc-core.workspace = true
-mycelium-base.workspace = true
 reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true

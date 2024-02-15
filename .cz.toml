@@ -1,6 +1,17 @@
 [tool.commitizen]
 version = "4.15.0"
-version_files = ["Cargo.toml"]
+version_files = [
+    "Cargo.toml",
+    "base/Cargo.toml",
+    "config/Cargo.toml",
+    "core/Cargo.toml",
+    "adapters/mem_db/Cargo.toml",
+    "adapters/prisma/Cargo.toml",
+    "adapters/service/Cargo.toml",
+    "adapters/smtp/Cargo.toml",
+    "ports/api/Cargo.toml",
+    "ports/cli/Cargo.toml",
+]
 name = "cz_conventional_commits"
 tag_format = "v$version"
 bump_message = "bump: $current_version → $new_version [skip-ci]"
