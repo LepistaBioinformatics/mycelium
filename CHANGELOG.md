@@ -1,3 +1,10 @@
+## v4.15.1 (2024-02-15)
+
+### Fix
+
+- orient all internal paths dependencies to the project path instead to use directly into the workspace
+- implements related accounts filtering default methods
+
 ## v4.15.0 (2024-02-15)
 
 ### Feat
