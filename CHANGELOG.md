@@ -1,3 +1,9 @@
+## v4.15.0 (2024-02-15)
+
+### Feat
+
+- implements a reelated account enumerator that allow users to check permissions for a specified account or itself has privileged permissions
+
 ## v4.14.0 (2024-02-01)
 
 ### Feat
