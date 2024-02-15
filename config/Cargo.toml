@@ -17,7 +17,9 @@ readme.workspace = true
 # ? ----------------------------------------------------------------------------
 
 [dependencies]
-mycelium-base.workspace = true
+
+mycelium-base = { version = "4.15.0", path = "../base" }
+
 serde.workspace = true
 serde_yaml.workspace = true
 

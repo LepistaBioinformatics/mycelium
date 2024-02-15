@@ -18,6 +18,9 @@ readme.workspace = true
 
 [dependencies]
 
+mycelium-base = { version = "4.15.0", path = "../base" }
+mycelium-config = { version = "4.15.0", path = "../config" }
+
 async-trait.workspace = true
 chrono.workspace = true
 env_logger.workspace = true
@@ -26,8 +29,6 @@ futures-util.workspace = true
 jsonwebtoken.workspace = true
 lazy_static.workspace = true
 log.workspace = true
-mycelium-config.workspace = true
-mycelium-base.workspace = true
 regex.workspace = true
 reqwest.workspace = true
 serde.workspace = true

@@ -2602,6 +2602,7 @@ dependencies = [
  "log",
  "myc-core",
  "mycelium-base",
+ "mycelium-config",
  "shaku",
  "wildmatch",
 ]
