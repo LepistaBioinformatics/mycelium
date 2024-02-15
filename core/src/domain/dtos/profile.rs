@@ -186,6 +186,18 @@ impl Profile {
         self.get_licensed_ids_or_error(Permissions::View, roles, None)
     }
 
+    /// Filter IDs with view permissions to accounts with error if empty.
+    pub fn get_related_account_with_view_or_error(
+        &self,
+        roles: Vec<String>,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        self.get_licensed_ids_as_related_accounts_or_error(
+            Permissions::View,
+            roles,
+            None,
+        )
+    }
+
     /// Filter IDs with view permissions to default accounts with error if
     /// empty.
     pub fn get_default_view_ids_or_error(
@@ -223,6 +235,18 @@ impl Profile {
         roles: Vec<String>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
         self.get_licensed_ids_or_error(Permissions::Create, roles, None)
+    }
+
+    /// Filter IDs with create permissions to accounts with error if empty.
+    pub fn get_related_account_with_create_or_error(
+        &self,
+        roles: Vec<String>,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        self.get_licensed_ids_as_related_accounts_or_error(
+            Permissions::Create,
+            roles,
+            None,
+        )
     }
 
     /// Filter IDs with create permissions to default accounts with error if
@@ -264,6 +288,18 @@ impl Profile {
         self.get_licensed_ids_or_error(Permissions::Update, roles, None)
     }
 
+    /// Filter IDs with update permissions to accounts with error if empty.
+    pub fn get_related_account_with_update_or_error(
+        &self,
+        roles: Vec<String>,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        self.get_licensed_ids_as_related_accounts_or_error(
+            Permissions::Update,
+            roles,
+            None,
+        )
+    }
+
     /// Filter IDs with update permissions to default accounts with error if
     /// empty.
     pub fn get_default_update_ids_or_error(
@@ -301,6 +337,18 @@ impl Profile {
         roles: Vec<String>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
         self.get_licensed_ids_or_error(Permissions::Delete, roles, None)
+    }
+
+    /// Filter IDs with delete permissions to accounts with error if empty.
+    pub fn get_related_account_with_delete_or_error(
+        &self,
+        roles: Vec<String>,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        self.get_licensed_ids_as_related_accounts_or_error(
+            Permissions::Delete,
+            roles,
+            None,
+        )
     }
 
     /// Filter IDs with delete permissions to default accounts with error if
