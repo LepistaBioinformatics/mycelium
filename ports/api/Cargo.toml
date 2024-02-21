@@ -73,4 +73,4 @@ utoipa-swagger-ui = { version = "5", features = ["actix-web"] }
 
 [[bin]]
 name = "myc-api"
-path = "src/api/main.rs"
+path = "src/main.rs"
