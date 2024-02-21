@@ -8,6 +8,7 @@ members = [
     "base",
     "config",
     "core",
+    "http_tools",
     "ports/cli",
     "ports/api",
     "adapters/mem_db",
@@ -42,14 +43,20 @@ categories = ["development-tools", "web-programming::http-server"]
 
 [workspace.dependencies]
 
+actix-web = { version = "4", features = ["openssl"] }
+actix-web-httpauth = "0.8.0"
 async-trait = "0.1"
+awc = { version = "3", features = ["openssl"] }
 chrono = { version = "0.4", features = ["serde"] }
+derive_more = "0.99"
 env_logger = "0.10"
 futures = "0.3"
 futures-util = "0.3"
 jsonwebtoken = "8.2"
+jwt = "0.16.0"
 lazy_static = "1.4"
 log = "0.4"
+oauth2 = "4.4"
 regex = "1"
 reqwest = { version = "0.11", features = ["json"] }
 serde = { version = "1.0", features = ["derive"] }
@@ -58,6 +65,7 @@ serde_yaml = "0.9"
 shaku = "0.6"
 shaku_actix = "0.2"
 tokio = { version = "1", features = ["full"] }
+url = "2.2"
 utoipa = { version = "4", features = [
     "actix_extras",
     "uuid",

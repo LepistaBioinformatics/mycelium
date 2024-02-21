@@ -29,19 +29,26 @@ connection-string = "0.1.14"
 myc-core = { version = "4.15.1", path = "../../core" }
 mycelium-base = { version = "4.15.1", path = "../../base" }
 mycelium-config = { version = "4.15.1", path = "../../config" }
+mycelium-http-tools = { version = "4.15.1", path = "../../http_tools" }
 mycelium-memory-db = { version = "4.15.1", path = "../../adapters/mem_db" }
 mycelium-service = { version = "4.15.1", path = "../../adapters/service" }
 mycelium-prisma = { version = "4.15.1", path = "../../adapters/prisma" }
 mycelium-smtp = { version = "4.15.1", path = "../../adapters/smtp" }
 
+actix-web.workspace = true
+actix-web-httpauth.workspace = true
 async-trait.workspace = true
+awc.workspace = true
 chrono.workspace = true
+derive_more.workspace = true
 env_logger.workspace = true
 futures.workspace = true
 futures-util.workspace = true
 jsonwebtoken.workspace = true
+jwt.workspace = true
 lazy_static.workspace = true
 log.workspace = true
+oauth2.workspace = true
 reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -50,30 +57,15 @@ shaku_actix.workspace = true
 tokio.workspace = true
 utoipa.workspace = true
 uuid.workspace = true
+url.workspace = true
 
 actix = "0.13"
 actix-cors = { version = "0.6.2" }
 actix-session = { version = "0.7.2", features = ["cookie-session"] }
-actix-web = { version = "4", features = ["openssl"] }
 actix-web-error = { version = "0.2" }
 actix-web-error-derive = { version = "0.2" }
-actix-web-httpauth = "0.8.0"
-oauth2 = "4.4"
-awc = { version = "3", features = ["openssl"] }
-derive_more = "0.99"
-jwt = "0.16.0"
 openssl = { version = "0.10", features = ["v110"] }
-url = "2.2"
 utoipa-swagger-ui = { version = "5", features = ["actix-web"] }
-
-# ? ----------------------------------------------------------------------------
-# ? LIBRARY
-# ? ----------------------------------------------------------------------------
-
-[lib]
-name = "myc_http_tools"
-path = "src/public/lib.rs"
-crate-type = ["staticlib", "lib"]
 
 # ? ----------------------------------------------------------------------------
 # ? BINARIES
