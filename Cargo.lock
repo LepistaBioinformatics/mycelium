@@ -61,9 +61,9 @@ dependencies = [
 
 [[package]]
 name = "actix-http"
-version = "3.4.0"
+version = "3.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a92ef85799cba03f76e4f7c10f533e66d87c9a7e7055f3391f09000ad8351bc9"
+checksum = "d223b13fd481fc0d1f83bb12659ae774d9e3601814c68a0bc539731698cca743"
 dependencies = [
  "actix-codec",
  "actix-rt",
@@ -81,7 +81,7 @@ dependencies = [
  "flate2",
  "futures-core",
  "h2",
- "http",
+ "http 0.2.9",
  "httparse",
  "httpdate",
  "itoa",
@@ -116,7 +116,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d66ff4d247d2b160861fa2866457e85706833527840e4133f8f49aa423a38799"
 dependencies = [
  "bytestring",
- "http",
+ "http 0.2.9",
  "regex",
  "serde",
  "tracing",
@@ -180,20 +180,19 @@ dependencies = [
 
 [[package]]
 name = "actix-tls"
-version = "3.1.1"
+version = "3.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72616e7fbec0aa99c6f3164677fa48ff5a60036d0799c98cab894a44f3e0efc3"
+checksum = "d4cce60a2f2b477bc72e5cde0af1812a6e82d8fd85b5570a5dcf2a5bf2c5be5f"
 dependencies = [
  "actix-rt",
  "actix-service",
  "actix-utils",
  "futures-core",
- "http",
+ "http 0.2.9",
+ "http 1.0.0",
  "impl-more",
  "openssl",
  "pin-project-lite",
- "rustls 0.21.7",
- "rustls-webpki",
  "tokio",
  "tokio-openssl",
  "tokio-util",
@@ -235,7 +234,7 @@ dependencies = [
  "encoding_rs",
  "futures-core",
  "futures-util",
- "http",
+ "http 0.2.9",
  "itoa",
  "language-tags",
  "log",
@@ -280,7 +279,7 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61e2789c602f0c2ad274009620766690e334fe36f46aeaeea081d19b8af22c43"
 dependencies = [
- "http",
+ "http 0.2.9",
  "proc-macro2",
  "quote",
  "syn 2.0.18",
@@ -541,9 +540,9 @@ checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
 name = "awc"
-version = "3.2.0"
+version = "3.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fa3c705a9c7917ac0f41c0757a0a747b43bbc29b0b364b081bd7c5fc67fb223"
+checksum = "68c09cc97310b926f01621faee652f3d1b0962545a3cec6c9ac07def9ea36c2c"
 dependencies = [
  "actix-codec",
  "actix-http",
@@ -559,7 +558,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http",
+ "http 0.2.9",
  "itoa",
  "log",
  "mime",
@@ -1642,17 +1641,17 @@ dependencies = [
 
 [[package]]
 name = "h2"
-version = "0.3.21"
+version = "0.3.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91fc23aa11be92976ef4729127f1a74adf36d8436f7816b185d18df956790833"
+checksum = "bb2c4422095b67ee78da96fbb51a4cc413b3b25883c7717ff7ca1ab31022c9c9"
 dependencies = [
  "bytes",
  "fnv",
  "futures-core",
  "futures-sink",
  "futures-util",
- "http",
- "indexmap 1.9.2",
+ "http 0.2.9",
+ "indexmap 2.1.0",
  "slab",
  "tokio",
  "tokio-util",
@@ -1769,13 +1768,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "http"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b32afd38673a8016f7c9ae69e5af41a58f81b1d31689040f2f1959594ce194ea"
+dependencies = [
+ "bytes",
+ "fnv",
+ "itoa",
+]
+
+[[package]]
 name = "http-body"
 version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d5f38f16d184e36f2408a55281cd658ecbd3ca05cce6d6510a176eca393e26d1"
 dependencies = [
  "bytes",
- "http",
+ "http 0.2.9",
  "pin-project-lite",
 ]
 
@@ -1808,7 +1818,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http",
+ "http 0.2.9",
  "http-body",
  "httparse",
  "httpdate",
@@ -1827,9 +1837,9 @@ version = "0.23.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1788965e61b367cd03a62950836d5cd41560c3577d90e40e0819373194d1661c"
 dependencies = [
- "http",
+ "http 0.2.9",
  "hyper",
- "rustls 0.20.9",
+ "rustls",
  "tokio",
  "tokio-rustls",
 ]
@@ -2472,7 +2482,7 @@ dependencies = [
 
 [[package]]
 name = "myc-core"
-version = "4.15.0"
+version = "4.15.1"
 dependencies = [
  "actix-web",
  "actix-web-httpauth",
@@ -2507,7 +2517,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-api"
-version = "4.15.0"
+version = "4.15.1"
 dependencies = [
  "actix",
  "actix-cors",
@@ -2530,6 +2540,7 @@ dependencies = [
  "myc-core",
  "mycelium-base",
  "mycelium-config",
+ "mycelium-http-tools",
  "mycelium-memory-db",
  "mycelium-prisma",
  "mycelium-service",
@@ -2557,7 +2568,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-base"
-version = "4.15.0"
+version = "4.15.1"
 dependencies = [
  "log",
  "regex",
@@ -2568,7 +2579,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-cli"
-version = "4.15.0"
+version = "4.15.1"
 dependencies = [
  "clap",
  "env_logger",
@@ -2584,7 +2595,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-config"
-version = "4.15.0"
+version = "4.15.1"
 dependencies = [
  "mycelium-base",
  "serde",
@@ -2593,8 +2604,36 @@ dependencies = [
 ]
 
 [[package]]
+name = "mycelium-http-tools"
+version = "4.15.1"
+dependencies = [
+ "actix-web",
+ "actix-web-httpauth",
+ "awc",
+ "chrono",
+ "derive_more",
+ "futures",
+ "jsonwebtoken",
+ "jwt",
+ "lazy_static",
+ "log",
+ "myc-core",
+ "mycelium-base",
+ "mycelium-config",
+ "mycelium-prisma",
+ "mycelium-service",
+ "oauth2",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "url",
+ "utoipa",
+ "uuid",
+]
+
+[[package]]
 name = "mycelium-memory-db"
-version = "4.15.0"
+version = "4.15.1"
 dependencies = [
  "actix-web",
  "async-trait",
@@ -2609,7 +2648,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-prisma"
-version = "4.15.0"
+version = "4.15.1"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2631,7 +2670,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-service"
-version = "4.15.0"
+version = "4.15.1"
 dependencies = [
  "async-trait",
  "env_logger",
@@ -2647,7 +2686,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-smtp"
-version = "4.15.0"
+version = "4.15.1"
 dependencies = [
  "async-trait",
  "env_logger",
@@ -2813,7 +2852,7 @@ dependencies = [
  "base64 0.13.1",
  "chrono",
  "getrandom 0.2.8",
- "http",
+ "http 0.2.9",
  "rand 0.8.5",
  "reqwest",
  "serde",
@@ -3289,7 +3328,7 @@ source = "git+https://github.com/Brendonovich/prisma-client-rust?tag=0.6.11#3ac6
 dependencies = [
  "directories",
  "flate2",
- "http",
+ "http 0.2.9",
  "prisma-client-rust-sdk",
  "proc-macro2",
  "quote",
@@ -3779,7 +3818,7 @@ dependencies = [
  "futures-core",
  "futures-util",
  "h2",
- "http",
+ "http 0.2.9",
  "http-body",
  "hyper",
  "hyper-rustls",
@@ -3792,7 +3831,7 @@ dependencies = [
  "once_cell",
  "percent-encoding",
  "pin-project-lite",
- "rustls 0.20.9",
+ "rustls",
  "rustls-pemfile",
  "serde",
  "serde_json",
@@ -3936,34 +3975,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "rustls"
-version = "0.21.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd8d6c9f025a446bc4d18ad9632e69aec8f287aa84499ee335599fabd20c3fd8"
-dependencies = [
- "log",
- "ring 0.16.20",
- "rustls-webpki",
- "sct",
-]
-
-[[package]]
 name = "rustls-pemfile"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2d3987094b1d07b653b7dfdc3f70ce9a1da9c51ac18c1b06b662e4f9a0e9f4b2"
 dependencies = [
  "base64 0.21.2",
-]
-
-[[package]]
-name = "rustls-webpki"
-version = "0.101.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d93931baf2d282fff8d3a532bbfd7653f734643161b87e3e01e59a04439bf0d"
-dependencies = [
- "ring 0.16.20",
- "untrusted 0.7.1",
 ]
 
 [[package]]
@@ -4725,7 +4742,7 @@ version = "0.23.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c43ee83903113e03984cb9e5cebe6c04a5116269e900e3ddba8f068a62adda59"
 dependencies = [
- "rustls 0.20.9",
+ "rustls",
  "tokio",
  "webpki",
 ]
@@ -5447,20 +5464,19 @@ dependencies = [
 
 [[package]]
 name = "zstd"
-version = "0.12.3+zstd.1.5.2"
+version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76eea132fb024e0e13fd9c2f5d5d595d8a967aa72382ac2f9d39fcc95afd0806"
+checksum = "bffb3309596d527cfcba7dfc6ed6052f1d39dfbd7c867aa2e865e4a449c10110"
 dependencies = [
  "zstd-safe",
 ]
 
 [[package]]
 name = "zstd-safe"
-version = "6.0.4+zstd.1.5.4"
+version = "7.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7afb4b54b8910cf5447638cb54bf4e8a65cbedd783af98b98c62ffe91f185543"
+checksum = "43747c7422e2924c11144d5229878b98180ef8b06cca4ab5af37afc8a8d8ea3e"
 dependencies = [
- "libc",
  "zstd-sys",
 ]
 
