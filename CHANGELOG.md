@@ -1,3 +1,9 @@
+## v4.15.2 (2024-02-21)
+
+### Refactor
+
+- move the myc-http-tools to a dedicated package
+
 ## v4.15.1 (2024-02-15)
 
 ### Fix

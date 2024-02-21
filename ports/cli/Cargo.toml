@@ -18,10 +18,10 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "4.15.1", path = "../../core" }
-mycelium-base = { version = "4.15.1", path = "../../base" }
-mycelium-prisma = { version = "4.15.1", path = "../../adapters/prisma" }
-mycelium-smtp = { version = "4.15.1", path = "../../adapters/smtp" }
+myc-core = { version = "4.15.2", path = "../../core" }
+mycelium-base = { version = "4.15.2", path = "../../base" }
+mycelium-prisma = { version = "4.15.2", path = "../../adapters/prisma" }
+mycelium-smtp = { version = "4.15.2", path = "../../adapters/smtp" }
 
 env_logger.workspace = true
 log.workspace = true
