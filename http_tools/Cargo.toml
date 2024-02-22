@@ -1,6 +1,6 @@
 [package]
 name = "mycelium-http-tools"
-description = "Provide API ports to the mycelium project."
+description = "Provide HTTP related elements to the mycelium project."
 
 edition.workspace = true
 authors.workspace = true
@@ -17,7 +17,6 @@ myc-core = { version = "4.15.1", path = "../core" }
 mycelium-base = { version = "4.15.1", path = "../base" }
 mycelium-config = { version = "4.15.1", path = "../config" }
 mycelium-service = { version = "4.15.1", path = "../adapters/service" }
-mycelium-prisma = { version = "4.15.1", path = "../adapters/prisma" }
 
 actix-web.workspace = true
 actix-web-httpauth.workspace = true

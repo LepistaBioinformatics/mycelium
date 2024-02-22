@@ -1,5 +1,5 @@
+use super::middleware::fetch_and_inject_profile_to_forward;
 use crate::{modules::RoutesFetchingModule, settings::GATEWAY_API_SCOPE};
-
 use actix_web::{
     error, http::uri::PathAndQuery, web, HttpRequest, HttpResponse,
 };
@@ -15,10 +15,7 @@ use myc_core::{
         match_forward_address, RoutesMatchResponseEnum,
     },
 };
-use myc_http_tools::{
-    middleware::fetch_and_inject_profile_to_forward, responses::GatewayError,
-    DEFAULT_PROFILE_KEY,
-};
+use myc_http_tools::{responses::GatewayError, DEFAULT_PROFILE_KEY};
 use shaku_actix::Inject;
 use std::{str::FromStr, time::Duration};
 use url::Url;

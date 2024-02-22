@@ -1,95 +1,31 @@
-use crate::{
-    models::auth_config::AuthConfig,
-    providers::{az_check_credentials, gc_check_credentials},
-    responses::GatewayError,
-    LicensedResources, Profile,
-};
+use crate::dtos::MyceliumProfileData;
 
-use actix_web::{dev::Payload, http::header::Header, FromRequest, HttpRequest};
+use actix_web::{http::header::Header, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
-use futures::Future;
 use jwt::{Header as JwtHeader, RegisteredClaims, Token};
 use log::{debug, warn};
 use myc_config::optional_config::OptionalConfig;
 use myc_core::{
-    domain::dtos::{account::VerboseStatus, email::Email, profile::Owner},
+    domain::dtos::email::Email,
     use_cases::roles::service::profile::{
         fetch_profile_from_email, ProfileResponse,
     },
 };
+use myc_http_tools::{
+    models::auth_config::AuthConfig,
+    providers::{az_check_credentials, gc_check_credentials},
+    responses::GatewayError,
+};
 use myc_prisma::repositories::{
     LicensedResourcesFetchingSqlDbRepository, ProfileFetchingSqlDbRepository,
 };
-use serde::Deserialize;
-use std::pin::Pin;
-use uuid::Uuid;
-
-#[derive(Clone, Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct MyceliumProfileData {
-    pub owner_credentials: Vec<Owner>,
-    pub current_account_id: Uuid,
-    pub is_subscription: bool,
-    pub is_manager: bool,
-    pub is_staff: bool,
-    pub owner_is_active: bool,
-    pub account_is_active: bool,
-    pub account_was_approved: bool,
-    pub account_was_archived: bool,
-    pub verbose_status: Option<VerboseStatus>,
-    pub licensed_resources: Option<Vec<LicensedResources>>,
-}
-
-impl MyceliumProfileData {
-    pub fn from_profile(profile: Profile) -> Self {
-        Self {
-            owner_credentials: profile.owner_credentials,
-            current_account_id: profile.current_account_id,
-            is_subscription: profile.is_subscription,
-            is_manager: profile.is_manager,
-            is_staff: profile.is_staff,
-            owner_is_active: profile.owner_is_active,
-            account_is_active: profile.account_is_active,
-            account_was_approved: profile.account_was_approved,
-            account_was_archived: profile.account_was_archived,
-            verbose_status: profile.verbose_status,
-            licensed_resources: profile.licensed_resources,
-        }
-    }
-
-    pub fn to_profile(&self) -> Profile {
-        Profile {
-            owner_credentials: self.owner_credentials.to_owned(),
-            current_account_id: self.current_account_id,
-            is_subscription: self.is_subscription,
-            is_manager: self.is_manager,
-            is_staff: self.is_staff,
-            owner_is_active: self.owner_is_active,
-            account_is_active: self.account_is_active,
-            account_was_approved: self.account_was_approved,
-            account_was_archived: self.account_was_archived,
-            verbose_status: self.verbose_status.to_owned(),
-            licensed_resources: self.licensed_resources.to_owned(),
-        }
-    }
-}
-
-impl FromRequest for MyceliumProfileData {
-    type Error = GatewayError;
-    type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
-
-    fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
-        let req_clone = req.clone();
-
-        Box::pin(async move { fetch_profile_from_request(req_clone).await })
-    }
-}
 
 /// Try to populate profile to request header
-pub(super) async fn fetch_profile_from_request(
+pub(crate) async fn fetch_profile_from_request(
     req: HttpRequest,
 ) -> Result<MyceliumProfileData, GatewayError> {
-    let email = check_credentials_with_multi_identity_provider(req).await?;
+    let email =
+        check_credentials_with_multi_identity_provider(req.clone()).await?;
 
     if email.is_none() {
         return Err(GatewayError::Forbidden(format!(
@@ -97,10 +33,23 @@ pub(super) async fn fetch_profile_from_request(
         )));
     }
 
+    let profile_fetching_repo = req
+        .app_data::<ProfileFetchingSqlDbRepository>()
+        .ok_or(GatewayError::InternalServerError(
+            "Unable to extract profile repository from request.".to_string(),
+        ))?;
+
+    let licensed_resources_fetching_repo = req
+        .app_data::<LicensedResourcesFetchingSqlDbRepository>()
+        .ok_or(GatewayError::InternalServerError(
+            "Unable to extract licensed resources repository from request."
+                .to_string(),
+        ))?;
+
     let profile = match fetch_profile_from_email(
         email.to_owned().unwrap(),
-        Box::new(&ProfileFetchingSqlDbRepository {}),
-        Box::new(&LicensedResourcesFetchingSqlDbRepository {}),
+        Box::new(profile_fetching_repo),
+        Box::new(licensed_resources_fetching_repo),
     )
     .await
     {

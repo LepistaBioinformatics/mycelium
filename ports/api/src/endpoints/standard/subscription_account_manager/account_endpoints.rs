@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
 use crate::{
+    dtos::MyceliumProfileData,
     endpoints::{
         shared::{PaginationParams, UrlGroup},
         standard::shared::build_actor_context,
@@ -38,13 +37,14 @@ use myc_core::{
         tag::{delete_tag, register_tag, update_tag},
     },
 };
-use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
+use myc_http_tools::utils::JsonError;
 use mycelium_base::entities::{
     DeletionResponseKind, FetchManyResponseKind, FetchResponseKind,
     GetOrCreateResponseKind, UpdatingResponseKind,
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
+use std::collections::HashMap;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 

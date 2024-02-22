@@ -1,5 +1,7 @@
 use crate::{
+    dtos::MyceliumProfileData,
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
+    middleware::check_credentials_with_multi_identity_provider,
     modules::{
         AccountFetchingModule, AccountRegistrationModule,
         AccountTypeRegistrationModule, AccountUpdatingModule,
@@ -22,12 +24,7 @@ use myc_core::{
         create_default_account, update_own_account_name,
     },
 };
-use myc_http_tools::{
-    middleware::{
-        check_credentials_with_multi_identity_provider, MyceliumProfileData,
-    },
-    utils::JsonError,
-};
+use myc_http_tools::utils::JsonError;
 use mycelium_base::entities::UpdatingResponseKind;
 use serde::Deserialize;
 use shaku_actix::Inject;
