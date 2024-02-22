@@ -1,6 +1,6 @@
 use crate::{
     dtos::MyceliumProfileData,
-    endpoints::shared::{UrlGroup, UrlScopes},
+    endpoints::shared::{UrlGroup, UrlScope},
     modules::{
         AccountFetchingModule, AccountTypeRegistrationModule,
         AccountUpdatingModule,
@@ -58,7 +58,7 @@ pub struct UpgradeAccountPrivilegesParams {
 /// Increase permissions of the refereed account.
 #[utoipa::path(
     patch,
-    context_path = UrlGroup::Accounts.with_scope(UrlScopes::Staffs),
+    context_path = UrlGroup::Accounts.with_scope(UrlScope::Staffs),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
         UpgradeAccountPrivilegesParams,
@@ -131,7 +131,7 @@ pub async fn upgrade_account_privileges_url(
 /// Decrease permissions of the refereed account.
 #[utoipa::path(
     patch,
-    context_path = UrlGroup::Accounts.with_scope(UrlScopes::Staffs),
+    context_path = UrlGroup::Accounts.with_scope(UrlScope::Staffs),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
         UpgradeAccountPrivilegesParams,
