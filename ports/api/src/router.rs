@@ -1,5 +1,6 @@
 use super::middleware::fetch_and_inject_profile_to_forward;
 use crate::{modules::RoutesFetchingModule, settings::GATEWAY_API_SCOPE};
+
 use actix_web::{
     error, http::uri::PathAndQuery, web, HttpRequest, HttpResponse,
 };

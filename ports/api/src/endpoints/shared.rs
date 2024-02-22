@@ -12,23 +12,23 @@ pub struct PaginationParams {
     pub page_size: Option<i32>,
 }
 
-pub enum UrlScopes {
+pub enum UrlScope {
     Health,
     Standards,
     Staffs,
 }
 
-impl Display for UrlScopes {
+impl Display for UrlScope {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
-            UrlScopes::Health => write!(f, "health"),
-            UrlScopes::Standards => write!(f, "std"),
-            UrlScopes::Staffs => write!(f, "staffs"),
+            UrlScope::Health => write!(f, "health"),
+            UrlScope::Standards => write!(f, "std"),
+            UrlScope::Staffs => write!(f, "staffs"),
         }
     }
 }
 
-impl UrlScopes {
+impl UrlScope {
     pub fn build_myc_path(&self) -> String {
         format!("/{}/{}", MYCELIUM_API_SCOPE, self.to_owned())
     }
@@ -61,13 +61,13 @@ impl Display for UrlGroup {
 }
 
 impl UrlGroup {
-    pub fn with_scope(&self, scope: UrlScopes) -> String {
+    pub fn with_scope(&self, scope: UrlScope) -> String {
         format!("{}/{}", scope.build_myc_path(), self.to_owned())
     }
 
     pub fn with_scoped_actor(
         &self,
-        scope: UrlScopes,
+        scope: UrlScope,
         actor: DefaultActor,
     ) -> String {
         format!("{}/{}/{}", scope.build_myc_path(), actor, self.to_owned())

@@ -21,6 +21,9 @@ use myc_prisma::repositories::{
 };
 
 /// Try to populate profile to request header
+///
+/// This function is auxiliary of the MyceliumProfileData struct used to extract
+/// the Mycelium Profile from the request on mycelium native APIs.
 pub(crate) async fn fetch_profile_from_request(
     req: HttpRequest,
 ) -> Result<MyceliumProfileData, GatewayError> {
@@ -33,23 +36,10 @@ pub(crate) async fn fetch_profile_from_request(
         )));
     }
 
-    let profile_fetching_repo = req
-        .app_data::<ProfileFetchingSqlDbRepository>()
-        .ok_or(GatewayError::InternalServerError(
-            "Unable to extract profile repository from request.".to_string(),
-        ))?;
-
-    let licensed_resources_fetching_repo = req
-        .app_data::<LicensedResourcesFetchingSqlDbRepository>()
-        .ok_or(GatewayError::InternalServerError(
-            "Unable to extract licensed resources repository from request."
-                .to_string(),
-        ))?;
-
     let profile = match fetch_profile_from_email(
         email.to_owned().unwrap(),
-        Box::new(profile_fetching_repo),
-        Box::new(licensed_resources_fetching_repo),
+        Box::new(&ProfileFetchingSqlDbRepository {}),
+        Box::new(&LicensedResourcesFetchingSqlDbRepository {}),
     )
     .await
     {

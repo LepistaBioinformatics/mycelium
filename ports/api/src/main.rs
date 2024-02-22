@@ -186,7 +186,7 @@ pub async fn main() -> std::io::Result<()> {
             //
             .service(
                 web::scope(
-                    format!("/{}", endpoints::shared::UrlScopes::Health)
+                    format!("/{}", endpoints::shared::UrlScope::Health)
                         .as_str(),
                 )
                 .configure(heath_check_endpoints::configure),
@@ -196,7 +196,7 @@ pub async fn main() -> std::io::Result<()> {
             //
             .service(
                 web::scope(
-                    format!("/{}", endpoints::shared::UrlScopes::Standards)
+                    format!("/{}", endpoints::shared::UrlScope::Standards)
                         .as_str(),
                 )
                 .configure(configure_standard_endpoints),
@@ -206,7 +206,7 @@ pub async fn main() -> std::io::Result<()> {
             //
             .service(
                 web::scope(
-                    format!("/{}", endpoints::shared::UrlScopes::Staffs)
+                    format!("/{}", endpoints::shared::UrlScope::Staffs)
                         .as_str(),
                 )
                 .configure(staff_account_endpoints::configure),
