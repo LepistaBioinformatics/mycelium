@@ -1,4 +1,5 @@
 use crate::{
+    dtos::MyceliumProfileData,
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{AccountFetchingModule, AccountUpdatingModule},
 };
@@ -14,7 +15,7 @@ use myc_core::{
         change_account_archival_status,
     },
 };
-use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
+use myc_http_tools::utils::JsonError;
 use mycelium_base::entities::UpdatingResponseKind;
 use shaku_actix::Inject;
 use uuid::Uuid;

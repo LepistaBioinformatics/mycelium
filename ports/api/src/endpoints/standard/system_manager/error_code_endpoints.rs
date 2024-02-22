@@ -1,4 +1,5 @@
 use crate::{
+    dtos::MyceliumProfileData,
     endpoints::{
         shared::{PaginationParams, UrlGroup},
         standard::shared::build_actor_context,
@@ -24,7 +25,7 @@ use myc_core::{
         register_error_code, update_error_code_message_and_details,
     },
 };
-use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
+use myc_http_tools::utils::JsonError;
 use mycelium_base::entities::{FetchManyResponseKind, FetchResponseKind};
 use serde::Deserialize;
 use shaku_actix::Inject;

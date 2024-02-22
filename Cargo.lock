@@ -2620,7 +2620,6 @@ dependencies = [
  "myc-core",
  "mycelium-base",
  "mycelium-config",
- "mycelium-prisma",
  "mycelium-service",
  "oauth2",
  "reqwest",

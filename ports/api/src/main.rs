@@ -1,5 +1,7 @@
 mod config;
+mod dtos;
 mod endpoints;
+mod middleware;
 mod models;
 mod modules;
 mod router;

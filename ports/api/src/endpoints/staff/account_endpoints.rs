@@ -1,4 +1,5 @@
 use crate::{
+    dtos::MyceliumProfileData,
     endpoints::shared::{UrlGroup, UrlScopes},
     modules::{
         AccountFetchingModule, AccountTypeRegistrationModule,
@@ -16,7 +17,7 @@ use myc_core::{
         downgrade_account_privileges, upgrade_account_privileges,
     },
 };
-use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
+use myc_http_tools::utils::JsonError;
 use mycelium_base::entities::UpdatingResponseKind;
 use serde::Deserialize;
 use shaku_actix::Inject;

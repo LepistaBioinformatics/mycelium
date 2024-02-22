@@ -1,4 +1,5 @@
 use crate::{
+    dtos::MyceliumProfileData,
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{
         GuestRoleDeletionModule, GuestRoleFetchingModule,
@@ -22,7 +23,7 @@ use myc_core::{
         ActionType,
     },
 };
-use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
+use myc_http_tools::utils::JsonError;
 use mycelium_base::entities::{
     DeletionResponseKind, FetchManyResponseKind, GetOrCreateResponseKind,
     UpdatingResponseKind,

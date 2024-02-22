@@ -1,4 +1,5 @@
 use crate::{
+    dtos::MyceliumProfileData,
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{
         RoleDeletionModule, RoleFetchingModule, RoleRegistrationModule,
@@ -18,7 +19,7 @@ use myc_core::{
         create_role, delete_role, list_roles, update_role_name_and_description,
     },
 };
-use myc_http_tools::{middleware::MyceliumProfileData, utils::JsonError};
+use myc_http_tools::utils::JsonError;
 use mycelium_base::entities::{
     DeletionResponseKind, FetchManyResponseKind, GetOrCreateResponseKind,
     UpdatingResponseKind,

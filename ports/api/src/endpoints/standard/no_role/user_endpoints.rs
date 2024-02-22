@@ -1,5 +1,6 @@
 use crate::{
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
+    middleware::parse_issuer_from_request,
     modules::{
         MessageSendingModule, SessionTokenDeletionModule,
         SessionTokenFetchingModule, SessionTokenRegistrationModule,
@@ -32,10 +33,7 @@ use myc_core::{
         verify_confirmation_token_pasetor,
     },
 };
-use myc_http_tools::{
-    middleware::parse_issuer_from_request, responses::GatewayError,
-    utils::JsonError, Email,
-};
+use myc_http_tools::{responses::GatewayError, utils::JsonError, Email};
 use serde::Deserialize;
 use shaku_actix::Inject;
 use utoipa::ToSchema;
