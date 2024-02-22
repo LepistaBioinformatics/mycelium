@@ -1,3 +1,11 @@
+## v4.15.3 (2024-02-22)
+
+### Refactor
+
+- move the sql adapters used during the profile extraction from requests of the api middleware to the own funciton that execute the action
+- move the mycelium-http-tools to a dedicated module and kept the api related middleware elements to the api port module
+- move the api to a backward directory given the absence of the base myc-http-tools library
+
 ## v4.15.2 (2024-02-21)
 
 ### Refactor
