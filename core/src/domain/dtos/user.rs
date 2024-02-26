@@ -236,8 +236,7 @@ impl User {
             Some(Provider::External(_)) => Ok(false),
             None => use_case_err(
                 "User is probably registered but mycelium is unable to 
-check if user is internal or not. The user provider is None."
-                    .to_string(),
+check if user is internal or not. The user provider is None.",
             )
             .as_error(),
         }

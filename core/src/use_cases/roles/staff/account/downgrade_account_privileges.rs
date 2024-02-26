@@ -39,8 +39,7 @@ pub async fn downgrade_account_privileges(
     if !profile.is_staff {
         return use_case_err(
             "The current user has no sufficient privileges to downgrade 
-            accounts."
-                .to_string(),
+            accounts.",
         )
         .as_error();
     }
@@ -52,8 +51,7 @@ pub async fn downgrade_account_privileges(
     if !vec![AccountTypeEnum::Standard, AccountTypeEnum::Manager]
         .contains(&target_account_type)
     {
-        return use_case_err(String::from("Invalid upgrade target."))
-            .as_error();
+        return use_case_err("Invalid upgrade target.").as_error();
     }
 
     // ? -----------------------------------------------------------------------

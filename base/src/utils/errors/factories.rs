@@ -1,60 +1,68 @@
 use super::base::{ErrorType, MappedErrors};
 
 /// A factory for creation errors
-pub fn creation_err(msg: String) -> MappedErrors {
-    MappedErrors::default(msg).with_error_type(ErrorType::CreationError)
+pub fn creation_err<T: ToString>(msg: T) -> MappedErrors {
+    MappedErrors::default(msg.to_string())
+        .with_error_type(ErrorType::CreationError)
 }
 
 /// A factory for updating errors
-pub fn updating_err(msg: String) -> MappedErrors {
-    MappedErrors::default(msg).with_error_type(ErrorType::UpdatingError)
+pub fn updating_err<T: ToString>(msg: T) -> MappedErrors {
+    MappedErrors::default(msg.to_string())
+        .with_error_type(ErrorType::UpdatingError)
 }
 
 /// A factory for updating many errors
-pub fn updating_many_err(msg: String) -> MappedErrors {
-    MappedErrors::default(msg).with_error_type(ErrorType::UpdatingManyError)
+pub fn updating_many_err<T: ToString>(msg: T) -> MappedErrors {
+    MappedErrors::default(msg.to_string())
+        .with_error_type(ErrorType::UpdatingManyError)
 }
 
 /// A factory for fetching errors
-pub fn fetching_err(msg: String) -> MappedErrors {
-    MappedErrors::default(msg).with_error_type(ErrorType::FetchingError)
+pub fn fetching_err<T: ToString>(msg: T) -> MappedErrors {
+    MappedErrors::default(msg.to_string())
+        .with_error_type(ErrorType::FetchingError)
 }
 
 /// A factory for deletion errors
-pub fn deletion_err(msg: String) -> MappedErrors {
-    MappedErrors::default(msg).with_error_type(ErrorType::DeletionError)
+pub fn deletion_err<T: ToString>(msg: T) -> MappedErrors {
+    MappedErrors::default(msg.to_string())
+        .with_error_type(ErrorType::DeletionError)
 }
 
 /// A factory for use case errors
-pub fn use_case_err(msg: String) -> MappedErrors {
-    MappedErrors::default(msg).with_error_type(ErrorType::UseCaseError)
+pub fn use_case_err<T: ToString>(msg: T) -> MappedErrors {
+    MappedErrors::default(msg.to_string())
+        .with_error_type(ErrorType::UseCaseError)
 }
 
 /// A factory for execution errors
-pub fn execution_err(msg: String) -> MappedErrors {
-    MappedErrors::default(msg).with_error_type(ErrorType::ExecutionError)
+pub fn execution_err<T: ToString>(msg: T) -> MappedErrors {
+    MappedErrors::default(msg.to_string())
+        .with_error_type(ErrorType::ExecutionError)
 }
 
 /// A factory for invalid repository errors
-pub fn invalid_repo_err(msg: String) -> MappedErrors {
-    MappedErrors::default(msg)
+pub fn invalid_repo_err<T: ToString>(msg: T) -> MappedErrors {
+    MappedErrors::default(msg.to_string())
         .with_error_type(ErrorType::InvalidRepositoryError)
 }
 
 /// A factory for invalid argument errors
-pub fn invalid_arg_err(msg: String) -> MappedErrors {
-    MappedErrors::default(msg).with_error_type(ErrorType::InvalidArgumentError)
+pub fn invalid_arg_err<T: ToString>(msg: T) -> MappedErrors {
+    MappedErrors::default(msg.to_string())
+        .with_error_type(ErrorType::InvalidArgumentError)
 }
 
 /// A factory for data transfer objects error
-pub fn dto_err(msg: String) -> MappedErrors {
-    MappedErrors::default(msg)
+pub fn dto_err<T: ToString>(msg: T) -> MappedErrors {
+    MappedErrors::default(msg.to_string())
         .with_error_type(ErrorType::DataTransferLayerError)
 }
 
 /// A factory for general errors
 pub fn general_err(msg: String, error_type: String) -> MappedErrors {
-    MappedErrors::default(msg)
+    MappedErrors::default(msg.to_string())
         .with_error_type(ErrorType::GeneralError(error_type))
 }
 
@@ -70,7 +78,7 @@ mod test {
     #[test]
     fn test_default_factories() {
         assert_eq!(
-            creation_err("create".to_string()).error_type(),
+            creation_err("create").error_type(),
             ErrorType::CreationError
         );
 
