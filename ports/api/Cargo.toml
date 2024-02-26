@@ -26,14 +26,14 @@ connection-string = "0.1.14"
 
 [dependencies]
 
-myc-core = { version = "4.15.3", path = "../../core" }
-mycelium-base = { version = "4.15.3", path = "../../base" }
-mycelium-config = { version = "4.15.3", path = "../../config" }
-mycelium-http-tools = { version = "4.15.3", path = "../../http_tools" }
-mycelium-memory-db = { version = "4.15.3", path = "../../adapters/mem_db" }
-mycelium-service = { version = "4.15.3", path = "../../adapters/service" }
-mycelium-prisma = { version = "4.15.3", path = "../../adapters/prisma" }
-mycelium-smtp = { version = "4.15.3", path = "../../adapters/smtp" }
+myc-core = { version = "4.16.0", path = "../../core" }
+mycelium-base = { version = "4.16.0", path = "../../base" }
+mycelium-config = { version = "4.16.0", path = "../../config" }
+mycelium-http-tools = { version = "4.16.0", path = "../../http_tools" }
+mycelium-memory-db = { version = "4.16.0", path = "../../adapters/mem_db" }
+mycelium-service = { version = "4.16.0", path = "../../adapters/service" }
+mycelium-prisma = { version = "4.16.0", path = "../../adapters/prisma" }
+mycelium-smtp = { version = "4.16.0", path = "../../adapters/smtp" }
 
 actix-web.workspace = true
 actix-web-httpauth.workspace = true
