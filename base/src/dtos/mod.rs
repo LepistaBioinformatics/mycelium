@@ -1,8 +1,9 @@
 mod children;
-pub use children::{Children, UntaggedChildren};
-
+mod generic_map;
 mod paginated_record;
-pub use paginated_record::PaginatedRecord;
-
 mod parent;
-pub use parent::{Parent, UntaggedParent};
+
+pub use children::*;
+pub use generic_map::*;
+pub use paginated_record::*;
+pub use parent::*;
