@@ -1,3 +1,10 @@
+## v4.16.0 (2024-02-26)
+
+### Feat
+
+- **generic-maps**: implements a generic map to allow ynamic typing of hashmaps
+- replace error factories to accept generic types as the error message argument
+
 ## v4.15.3 (2024-02-22)
 
 ### Refactor
