@@ -2482,7 +2482,7 @@ dependencies = [
 
 [[package]]
 name = "myc-core"
-version = "4.15.3"
+version = "4.16.0"
 dependencies = [
  "actix-web",
  "actix-web-httpauth",
@@ -2517,7 +2517,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-api"
-version = "4.15.3"
+version = "4.16.0"
 dependencies = [
  "actix",
  "actix-cors",
@@ -2568,7 +2568,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-base"
-version = "4.15.3"
+version = "4.16.0"
 dependencies = [
  "log",
  "regex",
@@ -2579,7 +2579,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-cli"
-version = "4.15.3"
+version = "4.16.0"
 dependencies = [
  "clap",
  "env_logger",
@@ -2595,7 +2595,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-config"
-version = "4.15.3"
+version = "4.16.0"
 dependencies = [
  "mycelium-base",
  "serde",
@@ -2605,7 +2605,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-http-tools"
-version = "4.15.3"
+version = "4.16.0"
 dependencies = [
  "actix-web",
  "actix-web-httpauth",
@@ -2632,7 +2632,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-memory-db"
-version = "4.15.3"
+version = "4.16.0"
 dependencies = [
  "actix-web",
  "async-trait",
@@ -2647,7 +2647,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-prisma"
-version = "4.15.3"
+version = "4.16.0"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2669,7 +2669,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-service"
-version = "4.15.3"
+version = "4.16.0"
 dependencies = [
  "async-trait",
  "env_logger",
@@ -2685,7 +2685,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-smtp"
-version = "4.15.3"
+version = "4.16.0"
 dependencies = [
  "async-trait",
  "env_logger",
