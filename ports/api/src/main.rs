@@ -218,7 +218,7 @@ pub async fn main() -> std::io::Result<()> {
         // Google OAuth2
         //
         // ? -------------------------------------------------------------------
-        let gateway_scopes = match auth_config.google {
+        let mycelium_scope = match auth_config.google {
             OptionalConfig::Enabled(_) => {
                 //
                 // Configure OAuth2 Scope
@@ -233,6 +233,30 @@ pub async fn main() -> std::io::Result<()> {
             }
             _ => mycelium_scope,
         };
+
+        // ? -------------------------------------------------------------------
+        // TODO: Do implement the Azure AD authentication
+        //
+        // ? Configure authentication elements
+        //
+        // Azure AD OAuth2
+        //
+        // ? -------------------------------------------------------------------
+        // let mycelium_scope = match auth_config.azure {
+        //     OptionalConfig::Enabled(_) => {
+        //         //
+        //         // Configure OAuth2 Scope
+        //         //
+        //         debug!("Configuring Azure AD authentication");
+        //         let scope = mycelium_scope.service(
+        //             web::scope("/auth/azure")
+        //                 .configure(azure_handlers::configure),
+        //         );
+        //         debug!("Azure AD OAuth2 configuration done");
+        //         scope
+        //     }
+        //     _ => mycelium_scope,
+        // };
 
         app
             // ? ---------------------------------------------------------------
@@ -265,7 +289,7 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             // ? Configure mycelium routes
             // ? ---------------------------------------------------------------
-            .service(gateway_scopes)
+            .service(mycelium_scope)
             // ? ---------------------------------------------------------------
             // ? Configure API documentation
             // ? ---------------------------------------------------------------

@@ -11,6 +11,7 @@ WORKDIR /rust
 COPY base /rust/base
 COPY core /rust/core
 COPY config /rust/config
+COPY http_tools /rust/http_tools
 COPY adapters /rust/adapters
 COPY ports /rust/ports
 COPY test /rust/test
