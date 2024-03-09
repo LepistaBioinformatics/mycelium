@@ -38,8 +38,8 @@ pub struct GatewayProfileData {
 impl GatewayProfileData {
     pub fn from_profile(profile: Profile) -> Self {
         Self {
-            owner_credentials: profile.owner_credentials,
-            current_account_id: profile.current_account_id,
+            owner_credentials: profile.owners,
+            current_account_id: profile.acc_id,
             is_subscription: profile.is_subscription,
             is_manager: profile.is_manager,
             is_staff: profile.is_staff,
@@ -54,8 +54,8 @@ impl GatewayProfileData {
 
     pub fn to_profile(&self) -> Profile {
         Profile {
-            owner_credentials: self.owner_credentials.to_owned(),
-            current_account_id: self.current_account_id,
+            owners: self.owner_credentials.to_owned(),
+            acc_id: self.current_account_id,
             is_subscription: self.is_subscription,
             is_manager: self.is_manager,
             is_staff: self.is_staff,

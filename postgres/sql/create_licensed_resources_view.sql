@@ -1,0 +1,31 @@
+
+CREATE OR REPLACE VIEW licensed_resources AS
+SELECT DISTINCT
+	ac.id AS acc_id,
+	ac.name AS acc_name,
+	ac.is_default AS is_acc_std,
+	gr.id AS gr_id,
+	gr.name AS gr_name,
+	gr.permissions AS gr_perms,
+	rl.name AS rl_name,
+    gu.email AS gu_email
+FROM
+	guest_user_on_account AS ga
+JOIN
+	guest_user AS gu
+ON
+	ga.guest_user_id = gu.id 
+JOIN
+	guest_role AS gr
+ON
+	gr.id = gu.guest_role_id
+JOIN
+	account AS ac
+ON
+	ac.id = ga.account_id
+JOIN
+	role AS rl
+ON
+	rl.id = gr.role_id
+ORDER BY
+    gu_email, rl_name, acc_id, gr_id;

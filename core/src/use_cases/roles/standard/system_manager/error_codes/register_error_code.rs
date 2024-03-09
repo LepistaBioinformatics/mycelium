@@ -112,17 +112,15 @@ mod tests {
     #[tokio::test]
     async fn test_register_error_code() {
         let profile = Profile {
-            owner_credentials: vec![Owner {
+            owners: vec![Owner {
                 email: "agrobiota-results-expert-creator@biotrop.com.br"
                     .to_string(),
                 first_name: Some("first_name".to_string()),
                 last_name: Some("last_name".to_string()),
                 username: Some("username".to_string()),
             }],
-            current_account_id: Uuid::from_str(
-                "d776e96f-9417-4520-b2a9-9298136031b0",
-            )
-            .unwrap(),
+            acc_id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
+                .unwrap(),
             is_subscription: false,
             is_manager: true,
             is_staff: false,
@@ -159,17 +157,15 @@ mod tests {
     #[tokio::test]
     async fn test_register_error_code_with_invalid_prefix() {
         let profile = Profile {
-            owner_credentials: vec![Owner {
+            owners: vec![Owner {
                 email: "agrobiota-results-expert-creator@biotrop.com.br"
                     .to_string(),
                 first_name: Some("first_name".to_string()),
                 last_name: Some("last_name".to_string()),
                 username: Some("username".to_string()),
             }],
-            current_account_id: Uuid::from_str(
-                "d776e96f-9417-4520-b2a9-9298136031b0",
-            )
-            .unwrap(),
+            acc_id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
+                .unwrap(),
             is_subscription: false,
             is_manager: true,
             is_staff: false,

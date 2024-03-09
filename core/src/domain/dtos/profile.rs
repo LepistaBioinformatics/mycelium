@@ -15,19 +15,22 @@ pub struct LicensedResources {
     ///
     /// This is the unique identifier of the account that is own of the
     /// resource to be managed.
-    pub guest_account_id: Uuid,
+    #[serde(alias = "guest_account_id")]
+    pub acc_id: Uuid,
 
-    /// The guest account unique id
+    /// If the guest account is the standard account
     ///
-    /// This is the unique identifier of the account that is own of the
-    /// resource to be managed.
-    pub guest_account_is_default: bool,
+    /// Standard accounts has permissions to act as special users into the
+    /// Mycelium system.
+    #[serde(alias = "guest_account_is_default")]
+    pub is_acc_std: bool,
 
     /// The guest account name
     ///
     /// This is the name of the account that is own of the resource to be
     /// managed.
-    pub guest_account_name: String,
+    #[serde(alias = "guest_account_name")]
+    pub acc_name: String,
 
     /// The guest account role unique id
     ///
@@ -53,7 +56,8 @@ pub struct LicensedResources {
     ///
     /// # Example
     ///     * `["view", "create", "update"]`
-    pub permissions: Vec<Permissions>,
+    #[serde(alias = "permissions")]
+    pub perms: Vec<Permissions>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
@@ -81,7 +85,8 @@ pub struct Owner {
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Profile {
-    pub owner_credentials: Vec<Owner>,
+    #[serde(alias = "owner_credentials")]
+    pub owners: Vec<Owner>,
 
     /// The account unique id
     ///
@@ -89,7 +94,8 @@ pub struct Profile {
     /// primary key. In the case of the subscription accounts (accounts flagged
     /// with `is_subscription`) such ID should be propagated along the
     /// application flow.
-    pub current_account_id: Uuid,
+    #[serde(alias = "current_account_id")]
+    pub acc_id: Uuid,
 
     /// If profile belongs to a `subscription` account
     ///
@@ -388,7 +394,7 @@ impl Profile {
         should_be_default: Option<bool>,
     ) -> Vec<Uuid> {
         if let None = self.licensed_resources {
-            return vec![self.current_account_id];
+            return vec![self.acc_id];
         }
 
         let licensed_resources = if let Some(true) = should_be_default {
@@ -396,7 +402,7 @@ impl Profile {
                 .as_ref()
                 .unwrap()
                 .into_iter()
-                .filter_map(|license| match license.guest_account_is_default {
+                .filter_map(|license| match license.is_acc_std {
                     true => Some(license.to_owned()),
                     false => None,
                 })
@@ -408,11 +414,9 @@ impl Profile {
         licensed_resources
             .into_iter()
             .filter_map(|i| {
-                match i.permissions.contains(&permission) &&
-                    roles.contains(&i.role)
-                {
+                match i.perms.contains(&permission) && roles.contains(&i.role) {
                     false => None,
-                    true => Some(i.guest_account_id),
+                    true => Some(i.acc_id),
                 }
             })
             .collect::<Vec<Uuid>>()
@@ -494,17 +498,15 @@ mod tests {
     #[test]
     fn profile_get_ids_works() {
         let profile = Profile {
-            owner_credentials: vec![Owner {
+            owners: vec![Owner {
                 email: "agrobiota-results-expert-creator@biotrop.com.br"
                     .to_string(),
                 first_name: Some("first_name".to_string()),
                 last_name: Some("last_name".to_string()),
                 username: Some("username".to_string()),
             }],
-            current_account_id: Uuid::from_str(
-                "d776e96f-9417-4520-b2a9-9298136031b0",
-            )
-            .unwrap(),
+            acc_id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
+                .unwrap(),
             is_subscription: false,
             is_manager: false,
             is_staff: false,
@@ -515,20 +517,19 @@ mod tests {
             verbose_status: None,
             licensed_resources: Some(
                 [LicensedResources {
-                    guest_account_id: Uuid::from_str(
+                    acc_id: Uuid::from_str(
                         "e497848f-a0d4-49f4-8288-c3df11416ff1",
                     )
                     .unwrap(),
-                    guest_account_name: "guest_account_name".to_string(),
-                    guest_account_is_default: false,
+                    acc_name: "guest_account_name".to_string(),
+                    is_acc_std: false,
                     guest_role_id: Uuid::from_str(
                         "e497848f-a0d4-49f4-8288-c3df11416ff2",
                     )
                     .unwrap(),
                     guest_role_name: "guest_role_name".to_string(),
                     role: "service".to_string(),
-                    permissions: [Permissions::View, Permissions::Create]
-                        .to_vec(),
+                    perms: [Permissions::View, Permissions::Create].to_vec(),
                 }]
                 .to_vec(),
             ),
@@ -544,17 +545,15 @@ mod tests {
         let desired_role = "service".to_string();
 
         let mut profile = Profile {
-            owner_credentials: vec![Owner {
+            owners: vec![Owner {
                 email: "agrobiota-results-expert-creator@biotrop.com.br"
                     .to_string(),
                 first_name: Some("first_name".to_string()),
                 last_name: Some("last_name".to_string()),
                 username: Some("username".to_string()),
             }],
-            current_account_id: Uuid::from_str(
-                "d776e96f-9417-4520-b2a9-9298136031b0",
-            )
-            .unwrap(),
+            acc_id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
+                .unwrap(),
             is_subscription: false,
             is_manager: false,
             is_staff: false,
@@ -565,20 +564,19 @@ mod tests {
             verbose_status: None,
             licensed_resources: Some(
                 [LicensedResources {
-                    guest_account_id: Uuid::from_str(
+                    acc_id: Uuid::from_str(
                         "e497848f-a0d4-49f4-8288-c3df11416ff1",
                     )
                     .unwrap(),
-                    guest_account_name: "guest_account_name".to_string(),
-                    guest_account_is_default: false,
+                    acc_name: "guest_account_name".to_string(),
+                    is_acc_std: false,
                     guest_role_id: Uuid::from_str(
                         "e497848f-a0d4-49f4-8288-c3df11416ff2",
                     )
                     .unwrap(),
                     guest_role_name: "guest_role_name".to_string(),
                     role: desired_role.to_owned(),
-                    permissions: [Permissions::View, Permissions::Create]
-                        .to_vec(),
+                    perms: [Permissions::View, Permissions::Create].to_vec(),
                 }]
                 .to_vec(),
             ),
