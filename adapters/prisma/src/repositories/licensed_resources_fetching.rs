@@ -1,10 +1,4 @@
-use crate::{
-    prisma::{
-        guest_user as guest_user_model,
-        guest_user_on_account as guest_user_on_account_model,
-    },
-    repositories::connector::get_client,
-};
+use crate::repositories::connector::get_client;
 
 use async_trait::async_trait;
 use myc_core::domain::{
@@ -18,6 +12,8 @@ use mycelium_base::{
     entities::FetchManyResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
+use prisma_client_rust::{raw, PrismaValue};
+use serde::Deserialize;
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -25,6 +21,17 @@ use uuid::Uuid;
 #[derive(Component, Debug)]
 #[shaku(interface = LicensedResourcesFetching)]
 pub struct LicensedResourcesFetchingSqlDbRepository {}
+
+#[derive(Deserialize, Debug)]
+struct LicensedResourceRow {
+    acc_id: String,
+    acc_name: String,
+    is_acc_std: bool,
+    gr_id: String,
+    gr_name: String,
+    gr_perms: Vec<i32>,
+    rl_name: String,
+}
 
 #[async_trait]
 impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
@@ -49,31 +56,47 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             Some(res) => res,
         };
 
-        let response = client
-            .guest_user_on_account()
-            .find_many(vec![guest_user_on_account_model::guest_user::is(vec![
-                guest_user_model::email::equals(email.get_email()),
-            ])])
-            .include(guest_user_on_account_model::include!({
-                guest_user: select {
-                    guest_role: select {
-                        id
-                        name
-                        role: select {
-                            name
-                        }
-                        permissions
-                    }
-                }
-                account: select {
-                    name
-                    account_type
-                    is_default
-                }
-            }))
+        let response: Vec<LicensedResourceRow> = match client
+            ._query_raw(raw!(
+                "SELECT * FROM licensed_resources WHERE gu_email = {}",
+                PrismaValue::String(email.get_email())
+            ))
             .exec()
             .await
-            .unwrap();
+        {
+            Ok(res) => res,
+            Err(e) => {
+                return fetching_err(e.to_string())
+                    .with_code(NativeErrorCodes::MYC00001.as_str())
+                    .as_error()
+            }
+        };
+
+        /* let response = client
+        .guest_user_on_account()
+        .find_many(vec![guest_user_on_account_model::guest_user::is(vec![
+            guest_user_model::email::equals(email.get_email()),
+        ])])
+        .include(guest_user_on_account_model::include!({
+            guest_user: select {
+                guest_role: select {
+                    id
+                    name
+                    role: select {
+                        name
+                    }
+                    permissions
+                }
+            }
+            account: select {
+                name
+                account_type
+                is_default
+            }
+        }))
+        .exec()
+        .await
+        .unwrap(); */
 
         // ? -------------------------------------------------------------------
         // ? Evaluate and parse the database response
@@ -82,30 +105,14 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         let licenses = response
             .into_iter()
             .map(|record| LicensedResources {
-                guest_account_id: Uuid::parse_str(
-                    &record.account_id.to_owned(),
-                )
-                .unwrap(),
-                guest_account_name: record.account.name.to_owned(),
-                guest_account_is_default: record.account.is_default,
-                guest_role_id: Uuid::parse_str(
-                    &record.guest_user.guest_role.id,
-                )
-                .unwrap(),
-                guest_role_name: record.guest_user.guest_role.to_owned().name,
-                role: record
-                    .to_owned()
-                    .guest_user
-                    .guest_role
-                    .role
-                    .name
-                    .to_owned(),
-                permissions: record
-                    .to_owned()
-                    .guest_user
-                    .guest_role
-                    .permissions
-                    .to_owned()
+                acc_id: Uuid::parse_str(&record.acc_id.to_owned()).unwrap(),
+                acc_name: record.acc_name.to_owned(),
+                is_acc_std: record.is_acc_std,
+                guest_role_id: Uuid::parse_str(&record.gr_id).unwrap(),
+                guest_role_name: record.gr_name,
+                role: record.rl_name,
+                perms: record
+                    .gr_perms
                     .into_iter()
                     .map(|i| Permissions::from_i32(i))
                     .collect(),

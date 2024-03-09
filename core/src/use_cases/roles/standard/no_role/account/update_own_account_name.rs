@@ -22,10 +22,7 @@ pub async fn update_own_account_name(
     // ? Fetch the account
     // ? -----------------------------------------------------------------------
 
-    let mut account = match account_fetching_repo
-        .get(profile.current_account_id)
-        .await?
-    {
+    let mut account = match account_fetching_repo.get(profile.acc_id).await? {
         FetchResponseKind::NotFound(id) => {
             return use_case_err(format!("Invalid account id: {}", id.unwrap()))
                 .as_error()

@@ -200,11 +200,11 @@ pub async fn update_own_account_name_url(
 ) -> impl Responder {
     let profile = profile.to_profile();
 
-    if path.to_owned() != profile.current_account_id {
+    if path.to_owned() != profile.acc_id {
         warn!("No account owner trying to perform account updating.");
         warn!(
             "Account {} trying to update {}",
-            profile.current_account_id,
+            profile.acc_id,
             path.to_owned()
         );
 

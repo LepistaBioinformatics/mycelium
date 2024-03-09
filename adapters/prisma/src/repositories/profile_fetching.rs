@@ -86,7 +86,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
 
         match response {
             Some(record) => Ok(FetchResponseKind::Found(Profile {
-                owner_credentials: record
+                owners: record
                     .owners
                     .iter()
                     .map(|owner| Owner {
@@ -98,7 +98,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                         username: Some(owner.username.to_owned()),
                     })
                     .collect::<Vec<Owner>>(),
-                current_account_id: Uuid::parse_str(&record.id).unwrap(),
+                acc_id: Uuid::parse_str(&record.id).unwrap(),
                 is_subscription: record.account_type.is_subscription,
                 is_manager: record.account_type.is_manager,
                 is_staff: record.account_type.is_staff,

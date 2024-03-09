@@ -59,7 +59,7 @@ not be checked."
         Some(res) => res,
     };
 
-    if target_account_id == profile.current_account_id {
+    if target_account_id == profile.acc_id {
         return use_case_err(format!(
             "Prohibited operation. Account ID ({account_id}) could not be 
 {target_account_id}."

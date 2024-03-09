@@ -166,6 +166,20 @@ model Account {
   @@map("account")
 }
 
+//view LicensedResources {
+//  acc_id     String  @db.VarChar(36)
+//  acc_name   String  @db.VarChar(256)
+//  is_acc_std Boolean
+//  gr_id      String  @db.VarChar(36)
+//  gr_name    String  @db.VarChar(140)
+//  gr_perms   Int[]
+//  rl_name    String  @db.VarChar(140)
+//  gu_email   String
+//
+//  @@unique([acc_id, gr_id, gu_email])
+//  @@map("licensed_resources")
+//}
+
 model AccountTags {
   // Primary key
   id String @id @default(uuid())

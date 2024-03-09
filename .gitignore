@@ -5,7 +5,7 @@ dist
 
 # Environment related
 .env
-postgres/volume
+postgres/volume*
 cert.pem
 key.pem
 config.dev.yaml
@@ -14,5 +14,4 @@ config.dev.yaml
 #adapters/prisma/src/migrations
 
 # Other
-postgres
 *.drawio.bkp
