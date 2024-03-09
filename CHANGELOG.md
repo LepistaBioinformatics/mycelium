@@ -1,3 +1,13 @@
+## v5.0.0 (2024-03-08)
+
+### BREAKING CHANGE
+
+- main
+
+### Perf
+
+- **licensed-resources**: replace the licensed resources fetching to use a view instead to perform multiple joins to fetch licenses contents
+
 ## v4.16.0 (2024-02-26)
 
 ### Feat
