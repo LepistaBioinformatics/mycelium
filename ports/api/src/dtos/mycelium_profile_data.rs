@@ -11,8 +11,8 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct MyceliumProfileData {
-    pub owner_credentials: Vec<Owner>,
-    pub current_account_id: Uuid,
+    pub owners: Vec<Owner>,
+    pub acc_id: Uuid,
     pub is_subscription: bool,
     pub is_manager: bool,
     pub is_staff: bool,
@@ -27,8 +27,8 @@ pub(crate) struct MyceliumProfileData {
 impl MyceliumProfileData {
     pub(crate) fn from_profile(profile: Profile) -> Self {
         Self {
-            owner_credentials: profile.owners,
-            current_account_id: profile.acc_id,
+            owners: profile.owners,
+            acc_id: profile.acc_id,
             is_subscription: profile.is_subscription,
             is_manager: profile.is_manager,
             is_staff: profile.is_staff,
@@ -43,8 +43,8 @@ impl MyceliumProfileData {
 
     pub(crate) fn to_profile(&self) -> Profile {
         Profile {
-            owners: self.owner_credentials.to_owned(),
-            acc_id: self.current_account_id,
+            owners: self.owners.to_owned(),
+            acc_id: self.acc_id,
             is_subscription: self.is_subscription,
             is_manager: self.is_manager,
             is_staff: self.is_staff,
