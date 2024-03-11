@@ -1,3 +1,9 @@
+## v5.0.1 (2024-03-11)
+
+### Fix
+
+- rename gateway request estractors of the injected profile
+
 ## v5.0.0 (2024-03-08)
 
 ### BREAKING CHANGE
