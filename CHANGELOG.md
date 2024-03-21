@@ -1,3 +1,9 @@
+## v5.0.2 (2024-03-21)
+
+### Fix
+
+- fix actix-web corst to return specifig headers into responses
+
 ## v5.0.1 (2024-03-11)
 
 ### Fix
