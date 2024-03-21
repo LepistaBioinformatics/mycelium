@@ -40,7 +40,7 @@ use myc_smtp::settings::init_smtp_config_from_file;
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
-    ACCESS_CONTROL_ALLOW_ORIGIN, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE,
+    ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use router::route_request;
 use settings::{GATEWAY_API_SCOPE, MYCELIUM_API_SCOPE};
@@ -155,15 +155,24 @@ pub async fn main() -> std::io::Result<()> {
                     .allowed_origins
                     .contains(&origin.to_str().unwrap_or("").to_string())
             })
-            .allowed_headers(vec![
+            //.allowed_headers(vec![
+            //    ACCESS_CONTROL_ALLOW_CREDENTIALS,
+            //    ACCESS_CONTROL_ALLOW_METHODS,
+            //    ACCESS_CONTROL_ALLOW_ORIGIN,
+            //    CONTENT_LENGTH,
+            //    AUTHORIZATION,
+            //    ACCEPT,
+            //    CONTENT_TYPE,
+            //])
+            .expose_headers(vec![
                 ACCESS_CONTROL_ALLOW_CREDENTIALS,
                 ACCESS_CONTROL_ALLOW_METHODS,
                 ACCESS_CONTROL_ALLOW_ORIGIN,
                 CONTENT_LENGTH,
-                AUTHORIZATION,
-                ACCEPT,
                 CONTENT_TYPE,
+                ACCEPT,
             ])
+            .allow_any_header()
             .allow_any_method()
             .max_age(3600);
 
