@@ -1,3 +1,9 @@
+## v5.0.3 (2024-04-07)
+
+### Fix
+
+- **account-and-users**: turn the default user and account creation process to considering email as case-insensitive
+
 ## v5.0.2 (2024-03-21)
 
 ### Fix

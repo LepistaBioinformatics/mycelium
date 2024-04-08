@@ -14,9 +14,9 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "5.0.2", path = "../../core" }
-mycelium-base = { version = "5.0.2", path = "../../base" }
-mycelium-config = { version = "5.0.2", path = "../../config" }
+myc-core = { version = "5.0.3", path = "../../core" }
+mycelium-base = { version = "5.0.3", path = "../../base" }
+mycelium-config = { version = "5.0.3", path = "../../config" }
 
 async-trait.workspace = true
 chrono.workspace = true
