@@ -1,7 +1,7 @@
 use crate::{
     prisma::{
         identity_provider::{self as identity_provider_model},
-        user as user_model,
+        user as user_model, QueryMode,
     },
     repositories::connector::get_client,
 };
@@ -21,6 +21,7 @@ use mycelium_base::{
     entities::FetchResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
+use prisma_client_rust::and;
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -64,10 +65,11 @@ impl UserFetching for UserFetchingSqlDbRepository {
             query_stmt.push(user_model::id::equals(id.unwrap().to_string()))
         }
 
-        if email.is_some() {
-            query_stmt.push(user_model::email::equals(
-                email.unwrap().to_owned().get_email(),
-            ))
+        if let Some(email) = email {
+            query_stmt.push(and![
+                user_model::email::mode(QueryMode::Insensitive),
+                user_model::email::equals(email.get_email())
+            ])
         }
 
         if password_hash.is_some() {
