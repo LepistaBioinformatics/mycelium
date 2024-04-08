@@ -39,7 +39,7 @@ pub async fn create_default_user(
     //
     // ? -----------------------------------------------------------------------
 
-    let email_instance = Email::from_string(email)?;
+    let email_instance = Email::from_string(email.to_lowercase())?;
 
     // ? -----------------------------------------------------------------------
     // ? Build local user object
