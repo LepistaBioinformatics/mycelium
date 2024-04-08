@@ -1,7 +1,7 @@
 use crate::{
     prisma::{
         account as account_model, account_type as account_type_model,
-        user as user_model,
+        user as user_model, QueryMode,
     },
     repositories::connector::get_client,
 };
@@ -23,7 +23,7 @@ use mycelium_base::{
     entities::{CreateResponseKind, GetOrCreateResponseKind},
     utils::errors::{creation_err, MappedErrors},
 };
-use prisma_client_rust::or;
+use prisma_client_rust::{and, or};
 use serde_json::from_value;
 use shaku::Component;
 use std::process::id as process_id;
@@ -75,7 +75,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
             },
         };
 
-        let owners = match account.owners.to_owned() {
+        let emails = match account.owners.to_owned() {
             Children::Ids(_) => vec![],
             Children::Records(res) => res
                 .into_iter()
@@ -87,9 +87,10 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
             .account()
             .find_first(vec![or![
                 account_model::slug::equals(account.name.to_owned()),
-                account_model::owners::some(vec![user_model::email::in_vec(
-                    owners
-                )]),
+                account_model::owners::some(vec![and![
+                    user_model::email::mode(QueryMode::Insensitive),
+                    user_model::email::in_vec(emails),
+                ]]),
             ]])
             .include(account_model::include!({
                 owners

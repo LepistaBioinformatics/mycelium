@@ -47,7 +47,11 @@ impl Email {
     }
 
     pub fn get_email(&self) -> String {
-        format!("{}@{}", self.username, self.domain)
+        format!(
+            "{}@{}",
+            self.username.to_lowercase(),
+            self.domain.to_lowercase()
+        )
     }
 }
 
