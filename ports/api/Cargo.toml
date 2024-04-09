@@ -26,14 +26,14 @@ connection-string = "0.1.14"
 
 [dependencies]
 
-myc-core = { version = "5.0.3", path = "../../core" }
-mycelium-base = { version = "5.0.3", path = "../../base" }
-mycelium-config = { version = "5.0.3", path = "../../config" }
-mycelium-http-tools = { version = "5.0.3", path = "../../http_tools" }
-mycelium-memory-db = { version = "5.0.3", path = "../../adapters/mem_db" }
-mycelium-service = { version = "5.0.3", path = "../../adapters/service" }
-mycelium-prisma = { version = "5.0.3", path = "../../adapters/prisma" }
-mycelium-smtp = { version = "5.0.3", path = "../../adapters/smtp" }
+myc-core = { version = "5.0.4", path = "../../core" }
+mycelium-base = { version = "5.0.4", path = "../../base" }
+mycelium-config = { version = "5.0.4", path = "../../config" }
+mycelium-http-tools = { version = "5.0.4", path = "../../http_tools" }
+mycelium-memory-db = { version = "5.0.4", path = "../../adapters/mem_db" }
+mycelium-service = { version = "5.0.4", path = "../../adapters/service" }
+mycelium-prisma = { version = "5.0.4", path = "../../adapters/prisma" }
+mycelium-smtp = { version = "5.0.4", path = "../../adapters/smtp" }
 
 actix-web.workspace = true
 actix-web-httpauth.workspace = true

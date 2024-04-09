@@ -1,3 +1,9 @@
+## v5.0.4 (2024-04-09)
+
+### Fix
+
+- inplements the google checks for oauth2 token online
+
 ## v5.0.3 (2024-04-07)
 
 ### Fix
