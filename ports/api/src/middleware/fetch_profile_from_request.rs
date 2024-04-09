@@ -1,6 +1,6 @@
 use crate::dtos::MyceliumProfileData;
 
-use actix_web::{http::header::Header, HttpRequest};
+use actix_web::{http::header::Header, web, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use jwt::{Header as JwtHeader, RegisteredClaims, Token};
 use log::{debug, warn};
@@ -44,8 +44,11 @@ pub(crate) async fn fetch_profile_from_request(
     .await
     {
         Err(err) => {
-            warn!("{:?}", err);
-            return Err(GatewayError::InternalServerError(format!("{err}")));
+            let msg =
+                format!("Unexpected error on fetch profile from email: {err}");
+
+            warn!("{msg}");
+            return Err(GatewayError::InternalServerError(msg));
         }
         Ok(res) => match res {
             ProfileResponse::UnregisteredUser(email) => {
@@ -79,19 +82,25 @@ pub async fn parse_issuer_from_request(
 ) -> Result<String, GatewayError> {
     let auth = match Authorization::<Bearer>::parse(&req) {
         Err(err) => {
-            return Err(GatewayError::Forbidden(format!("{err}")));
+            return Err(GatewayError::Forbidden(format!(
+                "Unexpected error on get bearer from request: {err}"
+            )));
         }
         Ok(res) => res,
     }
-    .to_string();
-
-    let token = auth.replace("Bearer ", "");
+    .to_string()
+    .replace("Bearer ", "")
+    .replace("bearer ", "");
 
     let unverified: Token<JwtHeader, RegisteredClaims, _> =
-        match Token::parse_unverified(&token) {
+        match Token::parse_unverified(&auth) {
             Err(err) => {
-                warn!("{:?}", err);
-                return Err(GatewayError::Forbidden(format!("{err}")));
+                let msg = format!(
+                    "Unexpected error on parse unverified token: {err}"
+                );
+
+                warn!("{msg}");
+                return Err(GatewayError::Forbidden(msg));
             }
             Ok(res) => res,
         };
@@ -123,7 +132,7 @@ async fn discover_provider(
         //
         // Try to extract authentication configurations from HTTP request.
         //
-        let req_auth_config = req.app_data::<AuthConfig>().clone();
+        let req_auth_config = req.app_data::<web::Data<AuthConfig>>();
         //
         // If Google OAuth2 config if not available the returns a Forbidden.
         //
@@ -163,7 +172,7 @@ async fn discover_provider(
             let msg =
                 format!("Unexpected error on match Oauth2 provider: {err}");
 
-            warn!("{msg}");
+            warn!("Unexpected error on discovery provider: {msg}");
             Err(GatewayError::Forbidden(msg))
         }
         Ok(res) => {

@@ -14,7 +14,6 @@ use crate::{
 
 use actix_web::{delete, get, patch, post, put, web, HttpResponse, Responder};
 use actix_web_httpauth::extractors::bearer::BearerAuth;
-use log::debug;
 use myc_core::{
     domain::{
         actors::DefaultActor,
@@ -472,8 +471,6 @@ pub async fn propagate_existing_subscription_account_url(
     account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
     webhook_fetching_repo: Inject<WebHookFetchingModule, dyn WebHookFetching>,
 ) -> impl Responder {
-    debug!("propagation auth token: {}", auth.token().to_owned());
-
     match propagate_existing_subscription_account(
         profile.to_profile(),
         auth.token().to_owned(),

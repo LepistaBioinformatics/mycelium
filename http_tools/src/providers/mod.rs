@@ -1,4 +1,5 @@
-// Export from this module
+mod shared;
+
 mod azure;
 pub use azure::{
     check_credentials::check_credentials as az_check_credentials,
