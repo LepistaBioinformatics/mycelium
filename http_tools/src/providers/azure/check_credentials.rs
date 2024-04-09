@@ -1,11 +1,9 @@
-use crate::settings::get_client;
+use crate::providers::shared::check_token_online;
 
 use actix_web::{http::header::Header, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
-use log::warn;
 use myc_core::domain::dtos::email::Email;
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
-use reqwest::StatusCode;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
@@ -40,56 +38,10 @@ pub async fn check_credentials(
 async fn decode_bearer_token_on_ms_graph(
     auth: Authorization<Bearer>,
 ) -> Result<Email, MappedErrors> {
-    let response = match get_client()
-        .await
-        .get("https://graph.microsoft.com/v1.0/me/")
-        .header("Authorization", auth.to_string())
-        .send()
-        .await
-    {
-        Err(err) => {
-            return execution_err(format!("Invalid client request: {err}"))
-                .as_error()
-        }
-        Ok(res) => res,
-    };
+    let token = auth.into_scheme().token().to_string();
+    let token_response: MsGraphDecode =
+        check_token_online(token, "https://graph.microsoft.com/v1.0/me/", None)
+            .await?;
 
-    match response.status() {
-        StatusCode::NOT_FOUND => {
-            return execution_err(format!("Invalid user.")).as_error()
-        }
-        StatusCode::OK => {
-            let res = match response.json::<MsGraphDecode>().await {
-                Err(err) => {
-                    return execution_err(format!(
-                        "Unexpected error on fetch user from MS Graph: {err}"
-                    ))
-                    .as_error()
-                }
-                Ok(res) => match Email::from_string(res.mail) {
-                    Err(err) => {
-                        return execution_err(format!(
-                        "Unexpected error on parse user from MS Graph: {err}"
-                    ))
-                        .as_error()
-                    }
-                    Ok(res) => res,
-                },
-            };
-
-            return Ok(res);
-        }
-        _ => {
-            warn!(
-                "Unexpected error on fetch user from MS Graph (status {:?}) {:?}",
-                response.status(),
-                response.text().await
-            );
-
-            return execution_err(
-                "Unexpected error on fetch user from MS Graph.".to_string(),
-            )
-            .as_error();
-        }
-    }
+    Email::from_string(token_response.mail)
 }

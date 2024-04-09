@@ -184,7 +184,7 @@ pub async fn main() -> std::io::Result<()> {
 
         let app = App::new()
             .app_data(web::Data::new(token_config).clone())
-            .app_data(web::Data::new(config.auth.clone()).clone());
+            .app_data(web::Data::new(auth_config.to_owned()).clone());
 
         // ? -------------------------------------------------------------------
         // ? Configure base mycelium scope
