@@ -46,12 +46,6 @@ struct TempRouteDTO {
 /// This function will load the configuration from a JSON file and return a
 /// vector of routes.
 ///
-/// # Arguments
-///     * `source_file_path` - The path to the JSON file
-///
-/// # Returns
-///     * `Result<Vec<Route>, MappedErrors>` - A vector of routes or an error
-///
 pub async fn load_config_from_yaml(
     source_file_path: String,
 ) -> Result<Vec<Route>, MappedErrors> {

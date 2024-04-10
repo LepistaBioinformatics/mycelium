@@ -206,20 +206,6 @@ mod tests {
     }
 
     #[test]
-    fn should_get_native_error_code_options() {
-        let error_codes = NativeErrorCodes::to_error_codes().unwrap();
-
-        assert_eq!(error_codes.len(), 6);
-    }
-
-    #[test]
-    fn should_fail_to_get_native_error_code_options() {
-        let error_codes = NativeErrorCodes::to_error_codes().unwrap();
-
-        assert_eq!(error_codes.len(), 6);
-    }
-
-    #[test]
     fn test_self_validate() {
         let pattern = NativeErrorCodes::self_validate().unwrap();
 

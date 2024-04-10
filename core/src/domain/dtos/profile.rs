@@ -53,9 +53,6 @@ pub struct LicensedResources {
     /// The guest role permissions
     ///
     /// This is the list of permissions that the guest role has.
-    ///
-    /// # Example
-    ///     * `["view", "create", "update"]`
     #[serde(alias = "permissions")]
     pub perms: Vec<Permissions>,
 }
