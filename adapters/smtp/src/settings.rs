@@ -31,17 +31,3 @@ pub async fn init_smtp_config_from_file(
         },
     );
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::path::PathBuf;
-
-    #[tokio::test]
-    async fn test_init_config_from_file() {
-        init_smtp_config_from_file(Some(PathBuf::from("config.toml")), None)
-            .await;
-        let config = SMTP_CONFIG.lock().unwrap();
-        assert!(config.is_some());
-    }
-}

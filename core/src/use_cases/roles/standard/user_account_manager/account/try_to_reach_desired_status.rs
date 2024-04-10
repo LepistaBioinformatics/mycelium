@@ -44,21 +44,6 @@ pub(super) async fn try_to_reach_desired_status(
 /// Some state transitions are prohibited. This function guarantees that such
 /// operations not occurs.
 ///
-/// Allowed transition states seems:
-///
-///                                                          ---- Active
-///                                                        /
-///                                            --- Inactive
-///                                          /             \
-///                           --- Active ---                 ---- Archived
-///                         /                \
-///                        /                   --- Archived
-/// Status --- Pending ---
-///                        \
-///                          ---- Archived  ------ Pending
-///
-/// Operations not predicted on the above diagram are not permitted.
-///
 fn should_perform_state_transition(
     new_state: VerboseStatus,
     old_state: Option<VerboseStatus>,

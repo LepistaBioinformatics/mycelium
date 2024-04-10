@@ -11,34 +11,25 @@
 /// Parent and Children.
 ///
 /// ```
+/// use mycelium_base::dtos::{Children, Parent};
+///
 /// struct Post {
 ///    id: i32,
 ///    title: String,
 ///    comments: Children<Comment, i32>,
-/// }
+/// };
 ///
 /// struct Comment {
 ///     post: Parent<Post, i32>,
 ///     id: i32,
 ///     text: String,
-/// }
+/// };
 ///
-/// ```
-///
-/// Note that the relationship between Post and Comment is established by the
-/// foreign key `parent` in Comment. This foreign key is represented by the
-/// `Parent` struct. The `Parent` receives two generic parameters, the first one
-/// is the type of the record and the second one is the type of the primary key.
-/// In this case, the first parameter is Post and the second one is i32.
-///
-/// This, the instance representation of Post with comments as IDs would be:
-///
-/// ```
 /// let post_with_comments_as_ids = Post {
 ///     id: 1,
 ///     title: "Hello World".to_string(),
 ///     comments: Children::Ids(vec![1, 2, 3]),
-/// }
+/// };
 ///
 /// let post_with_comments_as_records = Post {
 ///     id: 1,
@@ -60,7 +51,7 @@
 ///             text: "Hello World from comment 3".to_string(),
 ///         },
 ///     ]),
-/// }
+/// };
 /// ```
 ///
 pub mod dtos;
