@@ -18,8 +18,8 @@ readme.workspace = true
 
 [dependencies]
 
-mycelium-base = { version = "5.0.4", path = "../base" }
-mycelium-config = { version = "5.0.4", path = "../config" }
+mycelium-base = { version = "5.0.5", path = "../base" }
+mycelium-config = { version = "5.0.5", path = "../config" }
 
 async-trait.workspace = true
 chrono.workspace = true
