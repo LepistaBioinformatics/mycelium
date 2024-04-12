@@ -20,4 +20,5 @@ jobs:
     - name: Publish
       env:
         CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-      run: scripts/publish-all.sh --token $CARGO_REGISTRY_TOKEN --verbose
+      run: scripts/publish-all.sh --token ${CARGO_REGISTRY_TOKEN} --verbose
+      #run: echo "The secret is ${CARGO_REGISTRY_TOKEN}"
