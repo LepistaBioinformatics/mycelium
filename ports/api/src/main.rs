@@ -285,11 +285,12 @@ pub async fn main() -> std::io::Result<()> {
             // These wrap create the basic log elements and exclude the health
             // check route.
             .wrap(
-                Logger::new("%a %{User-Agent}i")
+                //Logger::default("%a %r %s %b %{Referer}i %{User-Agent}i %T")
+                Logger::default()
                     .exclude_regex("/health/*")
-                    .exclude_regex("/swagger-ui/*")
-                    .exclude_regex("/auth/google/*")
-                    .exclude_regex("/auth/azure/*"),
+                    .exclude_regex("/swagger-ui/*"),
+                //.exclude_regex("/auth/google/*")
+                //.exclude_regex("/auth/azure/*"),
             )
             // ? ---------------------------------------------------------------
             // ? Configure Injection modules
