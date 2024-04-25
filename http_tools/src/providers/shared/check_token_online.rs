@@ -37,7 +37,10 @@ where
         Ok(res) => res,
     };
 
-    match response.status() {
+    let status = response.status();
+
+    match status {
+        // 2xx status code
         StatusCode::NOT_FOUND => {
             return execution_err(format!("Invalid user.")).as_error()
         }
@@ -50,10 +53,30 @@ where
             }
             Ok(res) => Ok(res),
         },
+        // 4xx status code
+        StatusCode::UNAUTHORIZED => {
+            let msg = response.text().await.unwrap_or("No message".to_string());
+
+            return execution_err(format!(
+                "Unauthorized user ({:?}): {:?}",
+                status, msg
+            ))
+            .as_error();
+        }
+        StatusCode::FORBIDDEN => {
+            let msg = response.text().await.unwrap_or("No message".to_string());
+
+            return execution_err(format!(
+                "Forbidden user ({:?}): {:?}",
+                status, msg
+            ))
+            .as_error();
+        }
+        // Other
         _ => {
             warn!(
                 "Unexpected error on fetch user info online (status {:?}): {:?}",
-                response.status(),
+                status,
                 response.text().await
             );
 
