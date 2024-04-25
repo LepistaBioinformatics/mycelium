@@ -1,3 +1,9 @@
+## v5.0.8 (2024-04-25)
+
+### Fix
+
+- wip - improve the google authentication checking logs and the api port logs to allow better debug
+
 ## v5.0.7 (2024-04-11)
 
 ## v5.0.6 (2024-04-09)
