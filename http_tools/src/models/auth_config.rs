@@ -1,3 +1,4 @@
+use super::internal_auth_config::InternalOauthConfig;
 use crate::providers::{
     azure_config::AzureOauthConfig, google_config::GoogleOauthConfig,
 };
@@ -10,7 +11,7 @@ use std::path::PathBuf;
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthConfig {
-    pub internal: OptionalConfig<bool>,
+    pub internal: OptionalConfig<InternalOauthConfig>,
     pub google: OptionalConfig<GoogleOauthConfig>,
     pub azure: OptionalConfig<AzureOauthConfig>,
 }

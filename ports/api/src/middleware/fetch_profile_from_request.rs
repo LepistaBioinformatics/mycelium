@@ -12,7 +12,10 @@ use myc_core::{
     },
 };
 use myc_http_tools::{
-    models::auth_config::AuthConfig,
+    functions::decode_jwt_hs512,
+    models::{
+        auth_config::AuthConfig, internal_auth_config::InternalOauthConfig,
+    },
     providers::{az_check_credentials, gc_check_credentials},
     responses::GatewayError,
 };
@@ -124,8 +127,8 @@ async fn discover_provider(
     auth_provider: String,
     req: HttpRequest,
 ) -> Result<Option<Email>, GatewayError> {
-    let provider = if auth_provider.contains("sts.windows.net") ||
-        auth_provider.contains("azure-ad")
+    let provider = if auth_provider.contains("sts.windows.net")
+        || auth_provider.contains("azure-ad")
     {
         az_check_credentials(req).await
     } else if auth_provider.contains("google") {
@@ -161,6 +164,70 @@ async fn discover_provider(
         // Check if credentials are valid.
         //
         gc_check_credentials(req, config).await
+    } else if auth_provider.contains("mycelium") {
+        //
+        // Extract the internal OAuth2 configuration from the HTTP request. If
+        // the configuration is not available returns a Forbidden response.
+        //
+        let req_auth_config = match req
+            .app_data::<web::Data<InternalOauthConfig>>()
+        {
+            Some(config) => config.jwt_secret.to_owned(),
+            None => {
+                return Err(GatewayError::InternalServerError(format!(
+                        "Unexpected error on validate internal auth config. Please contact the system administrator."
+                    )));
+            }
+        };
+        //
+        // Extract the token from the request. If the token is not available
+        // returns a Forbidden response.
+        //
+        let jwt_token = match req_auth_config.get_or_error() {
+            Ok(token) => token,
+            Err(err) => {
+                return Err(GatewayError::InternalServerError(format!(
+                    "Unexpected error on get jwt token: {err}"
+                )));
+            }
+        };
+        //
+        // Extract the bearer from the request. If the bearer is not available
+        // returns a Forbidden response.
+        //
+        let auth = match Authorization::<Bearer>::parse(&req) {
+            Err(err) => {
+                return Err(GatewayError::Forbidden(format!(
+                    "Unexpected error on get bearer from request: {err}"
+                )));
+            }
+            Ok(res) => res,
+        };
+        //
+        // Decode the JWT token. If the token is not valid returns a Forbidden
+        // response.
+        match decode_jwt_hs512(auth, jwt_token) {
+            Err(err) => {
+                return Err(GatewayError::Forbidden(format!(
+                    "Unexpected error on decode jwt token: {err}"
+                )));
+            }
+            Ok(res) => {
+                let claims = res.claims;
+                let email = claims.email;
+
+                match Email::from_string(email) {
+                    Err(err) => {
+                        return Err(GatewayError::Forbidden(format!(
+                            "Unexpected error on get email from claims: {err}"
+                        )));
+                    }
+                    Ok(res) => {
+                        return Ok(Some(res));
+                    }
+                }
+            }
+        }
     } else {
         return Err(GatewayError::Forbidden(format!(
             "Unknown identity provider: {auth_provider}",

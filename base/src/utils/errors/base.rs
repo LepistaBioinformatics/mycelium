@@ -1,4 +1,4 @@
-use log::{error, warn};
+use log::{debug, error, warn};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -257,7 +257,7 @@ impl MappedErrors {
     /// Evoked when a Err return is desired.
     pub fn as_error<T>(self) -> Result<T, Self> {
         if let true = self.expected {
-            warn!("{:?}", &self.to_string());
+            debug!("{:?}", &self.to_string());
         } else {
             error!("{:?}", &self.to_string());
         }
