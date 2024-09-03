@@ -18,7 +18,9 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PasswordHash {
+    #[serde(skip_serializing)]
     pub hash: String,
+    #[serde(skip_serializing)]
     pub salt: String,
 }
 

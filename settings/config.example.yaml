@@ -29,7 +29,7 @@ prisma:
 # Use the below commented line to disable smtp protocol usage.
 # smtp: disabled
 smtp:
-  host: ""
+  host: "smtp.gmail.com"
   username:
     env: MYC_SMTP_USERNAME
   password:
@@ -50,7 +50,10 @@ smtp:
 auth:
   # Internal authentication is the default authentication method. It uses the
   # database adapter plus the redis to flow along the users life cycle.
-  internal: disabled
+  internal:
+    jwtSecret:
+      env: MYC_INTERNAL_JWT_SECRET
+    jwtExpiresIn: 43200
 
   # Google third party authentication. It uses the google oauth2 to authenticate
   # the user. It requires a valid client id and secret.
@@ -80,8 +83,8 @@ api:
   serviceWorkers: 1
   gatewayTimeout: 60
   allowedOrigins:
-    - http://localhost:8080
-    - http://localhost:3000
+  - http://localhost:8080
+  - http://localhost:3000
 
   # ? --------------------------------------------------------------------------
   # ? LOGGING SETTINGS
@@ -97,9 +100,9 @@ api:
   # able to connect to secure forwarding routes.
   #
   # ? --------------------------------------------------------------------------
-  tls:
-    tlsCertPath: "cert.pem"
-    tlsKeyPath: "key.pem"
+  tls: disabled
+  #  tlsCertPath: "cert.pem"
+  #  tlsKeyPath: "key.pem"
 
   # ? --------------------------------------------------------------------------
   # ? API GATEWAY ROUTE CONFIGURATION

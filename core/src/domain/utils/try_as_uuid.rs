@@ -8,6 +8,7 @@ pub fn try_as_uuid(uuid: &str) -> Result<Uuid, MappedErrors> {
             format!("{uuid} is not a valid UUID"),
             "uuid".to_string(),
         )
+        .with_exp_true()
         .as_error(),
     }
 }

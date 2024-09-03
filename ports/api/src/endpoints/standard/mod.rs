@@ -276,6 +276,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             subscription_account_manager_account_endpoints::CreateTagBody,
             system_manager_webhook_endpoints::UpdateWebHookBody,
             guest_manager_guest_role_endpoints::UpdateGuestRolePermissionsBody,
+            no_role_user_endpoints::CheckEmailStatusBody,
         ),
     ),
     tags(

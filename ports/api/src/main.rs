@@ -221,6 +221,25 @@ pub async fn main() -> std::io::Result<()> {
                 .configure(staff_account_endpoints::configure),
             );
 
+        //.app_data(web::Data::new(auth_config.internal.to_owned()).clone())
+
+        // ? -------------------------------------------------------------------
+        // ? Configure authentication elements
+        //
+        // Mycelium Auth
+        //
+        // ? -------------------------------------------------------------------
+        let app = match auth_config.internal {
+            OptionalConfig::Enabled(config) => {
+                //
+                // Configure OAuth2 Scope
+                //
+                debug!("Configuring Mycelium Internal authentication");
+                app.app_data(web::Data::new(config.clone()))
+            }
+            _ => app,
+        };
+
         // ? -------------------------------------------------------------------
         // ? Configure authentication elements
         //

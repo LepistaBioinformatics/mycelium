@@ -1,13 +1,24 @@
-use crate::domain::{dtos::email::Email, entities::UserFetching};
+use self::EmailRegistrationStatus::*;
+use crate::domain::{
+    dtos::{email::Email, user::Provider},
+    entities::UserFetching,
+};
 use mycelium_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
+pub struct RegisteredWithProvider {
+    pub email: Email,
+    pub provider: Option<Provider>,
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub enum EmailRegistrationStatus {
-    RegisteredAndInternal(Email),
-    RegisteredButExternal(Email),
+    RegisteredAndInternal(RegisteredWithProvider),
+    RegisteredButExternal(RegisteredWithProvider),
     NotRegistered(Option<String>),
 }
 
@@ -39,9 +50,7 @@ pub async fn check_email_registration_status(
     {
         FetchResponseKind::Found(user) => user,
         FetchResponseKind::NotFound(_) => {
-            return Ok(EmailRegistrationStatus::NotRegistered(Some(
-                email.get_email(),
-            )))
+            return Ok(NotRegistered(Some(email.get_email())))
         }
     };
 
@@ -49,11 +58,16 @@ pub async fn check_email_registration_status(
     // ? Check if user is internal
     // ? -----------------------------------------------------------------------
 
+    let registered_user = RegisteredWithProvider {
+        email,
+        provider: user.provider(),
+    };
+
     match user.is_internal_or_error() {
         Err(err) => return Err(err),
         Ok(res) => match res {
-            true => Ok(EmailRegistrationStatus::RegisteredAndInternal(email)),
-            false => Ok(EmailRegistrationStatus::RegisteredButExternal(email)),
+            true => Ok(RegisteredAndInternal(registered_user)),
+            false => Ok(RegisteredButExternal(registered_user)),
         },
     }
 }

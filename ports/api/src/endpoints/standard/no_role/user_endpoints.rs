@@ -7,7 +7,6 @@ use crate::{
         UserDeletionModule, UserFetchingModule, UserRegistrationModule,
         UserUpdatingModule,
     },
-    settings::{SESSION_KEY_EMAIL, SESSION_KEY_USER_ID},
 };
 
 use actix_web::{
@@ -33,9 +32,13 @@ use myc_core::{
         verify_confirmation_token_pasetor,
     },
 };
-use myc_http_tools::{responses::GatewayError, utils::JsonError, Email};
+use myc_http_tools::{
+    functions::encode_jwt, models::internal_auth_config::InternalOauthConfig,
+    responses::GatewayError, utils::JsonError, Email,
+};
 use serde::Deserialize;
 use shaku_actix::Inject;
+use std::collections::HashMap;
 use utoipa::ToSchema;
 
 // ? ---------------------------------------------------------------------------
@@ -92,6 +95,8 @@ pub struct CheckUserCredentialsBody {
 //
 // ? ---------------------------------------------------------------------------
 
+/// Check email registration status
+///
 #[utoipa::path(
     post,
     context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
@@ -400,7 +405,7 @@ pub async fn check_password_change_token_url(
 pub async fn check_email_password_validity_url(
     body: web::Json<CheckUserCredentialsBody>,
     user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
-    session: actix_session::Session,
+    token: web::Data<InternalOauthConfig>,
 ) -> impl Responder {
     let email_instance = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
@@ -428,15 +433,26 @@ pub async fn check_email_password_validity_url(
                     user.unwrap()
                 };
 
-                session.renew();
-                session
-                    .insert(SESSION_KEY_USER_ID, _user.id.unwrap())
-                    .expect("Unable to persist user id in session");
-                session
-                    .insert(SESSION_KEY_EMAIL, _user.email.get_email())
-                    .expect("Unable to persist user email in session");
+                let token = match encode_jwt(
+                    _user.to_owned(),
+                    token.get_ref().to_owned(),
+                ) {
+                    Err(err) => return err,
+                    Ok(token) => token,
+                };
 
-                HttpResponse::Ok().json(_user)
+                let serialized_user = match serde_json::to_string(&_user) {
+                    Ok(user) => user,
+                    Err(err) => {
+                        return HttpResponse::InternalServerError()
+                            .json(JsonError::new(err.to_string()));
+                    }
+                };
+
+                HttpResponse::Ok().json(HashMap::from([
+                    ("token".to_string(), token),
+                    ("user".to_string(), serialized_user),
+                ]))
             }
             false => HttpResponse::NoContent().finish(),
         },
