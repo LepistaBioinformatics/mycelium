@@ -140,7 +140,7 @@ pub async fn register_error_code_url(
 /// List available error codes.
 ///
 /// List accounts with pagination. The `records` field contains a vector of
-/// [`ErrorCode`] model.
+/// `ErrorCode` model.
 ///
 #[utoipa::path(
     get,

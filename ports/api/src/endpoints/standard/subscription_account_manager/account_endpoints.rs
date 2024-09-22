@@ -192,7 +192,7 @@ pub async fn create_subscription_account_url(
 /// Get a filtered (or not) list of accounts.
 ///
 /// List accounts with pagination. The `records` field contains a vector of
-/// [`Account`] model.
+/// `Account` model.
 ///
 #[utoipa::path(
     get,

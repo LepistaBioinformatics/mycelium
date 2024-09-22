@@ -1,6 +1,7 @@
 # Rust related
 target
-docs
+docs/*
+!docs/draw.io
 dist
 
 # Environment related
