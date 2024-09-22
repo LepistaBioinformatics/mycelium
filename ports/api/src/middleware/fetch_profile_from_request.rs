@@ -1,7 +1,8 @@
 use crate::dtos::MyceliumProfileData;
 
-use actix_web::{http::header::Header, web, HttpRequest};
+use actix_web::{error::ParseError, http::header::Header, web, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
+use jsonwebtoken::errors::ErrorKind;
 use jwt::{Header as JwtHeader, RegisteredClaims, Token};
 use log::{debug, warn};
 use myc_config::optional_config::OptionalConfig;
@@ -196,22 +197,37 @@ async fn discover_provider(
         // returns a Forbidden response.
         //
         let auth = match Authorization::<Bearer>::parse(&req) {
-            Err(err) => {
-                return Err(GatewayError::Forbidden(format!(
-                    "Unexpected error on get bearer from request: {err}"
-                )));
-            }
+            Err(err) => match err {
+                ParseError::Header => {
+                    return Err(GatewayError::Unauthorized(format!(
+                        "Bearer token not found or invalid in request: {err}"
+                    )));
+                }
+                _ => {
+                    return Err(GatewayError::Forbidden(format!(
+                        "Invalid Bearer token: {err}"
+                    )));
+                }
+            },
             Ok(res) => res,
         };
         //
         // Decode the JWT token. If the token is not valid returns a Forbidden
         // response.
+        //
         match decode_jwt_hs512(auth, jwt_token) {
-            Err(err) => {
-                return Err(GatewayError::Forbidden(format!(
-                    "Unexpected error on decode jwt token: {err}"
-                )));
-            }
+            Err(err) => match err.kind() {
+                ErrorKind::ExpiredSignature => {
+                    return Err(GatewayError::Forbidden(format!(
+                        "Expired token: {err}"
+                    )));
+                }
+                _ => {
+                    return Err(GatewayError::Forbidden(format!(
+                        "Unexpected error on decode jwt token: {err}"
+                    )))
+                }
+            },
             Ok(res) => {
                 let claims = res.claims;
                 let email = claims.email;
@@ -219,17 +235,15 @@ async fn discover_provider(
                 match Email::from_string(email) {
                     Err(err) => {
                         return Err(GatewayError::Forbidden(format!(
-                            "Unexpected error on get email from claims: {err}"
+                            "Invalid email: {err}"
                         )));
                     }
-                    Ok(res) => {
-                        return Ok(Some(res));
-                    }
+                    Ok(res) => return Ok(Some(res)),
                 }
             }
         }
     } else {
-        return Err(GatewayError::Forbidden(format!(
+        return Err(GatewayError::Unauthorized(format!(
             "Unknown identity provider: {auth_provider}",
         )));
     };
