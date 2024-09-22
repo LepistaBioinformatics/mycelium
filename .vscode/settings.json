@@ -18,6 +18,7 @@
     "Routable",
     "shaku",
     "structs",
+    "Tera",
     "thiserror",
     "utoipa",
     "withscores",

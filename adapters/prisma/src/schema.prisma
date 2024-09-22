@@ -56,12 +56,12 @@ model IdentityProvider {
   @@map("identity_provider")
 }
 
-model SessionToken {
-  key        String
+model Token {
+  id         Int      @id @default(autoincrement())
+  meta       Json
   expiration DateTime @default(now()) @db.Timestamptz(6)
 
-  @@id([key])
-  @@map("session_token")
+  @@map("token")
 }
 
 model Role {

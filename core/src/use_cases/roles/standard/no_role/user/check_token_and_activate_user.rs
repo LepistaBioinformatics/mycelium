@@ -1,9 +1,6 @@
-use super::verify_confirmation_token_pasetor::verify_confirmation_token_pasetor;
 use crate::domain::{
-    dtos::{session_token::TokenSecret, user::User},
-    entities::{
-        SessionTokenDeletion, SessionTokenFetching, UserFetching, UserUpdating,
-    },
+    dtos::{email::Email, token::EmailConfirmationTokenMeta, user::User},
+    entities::{TokenFetching, UserFetching, UserUpdating},
 };
 
 use mycelium_base::{
@@ -13,55 +10,80 @@ use mycelium_base::{
 
 pub async fn check_token_and_activate_user(
     token: String,
-    is_for_password_change: Option<bool>,
-    token_secret: TokenSecret,
+    email: Email,
     user_fetching_repo: Box<&dyn UserFetching>,
     user_updating_repo: Box<&dyn UserUpdating>,
-    token_fetching_repo: Box<&dyn SessionTokenFetching>,
-    token_deletion_repo: Box<&dyn SessionTokenDeletion>,
+    token_fetching_repo: Box<&dyn TokenFetching>,
 ) -> Result<User, MappedErrors> {
+    // ? -----------------------------------------------------------------------
+    // ? Fetch user from email
+    // ? -----------------------------------------------------------------------
+
+    let mut inactive_user = match user_fetching_repo
+        .get(None, Some(email.to_owned()), None)
+        .await?
+    {
+        FetchResponseKind::NotFound(_) => {
+            return use_case_err(format!(
+                "User not found: {}",
+                email.get_email()
+            ))
+            .as_error()
+        }
+        FetchResponseKind::Found(user) => user,
+    };
+
+    //
+    // If the user is already active, return the user
+    //
+    if inactive_user.is_active {
+        return Ok(inactive_user);
+    }
+
     // ? -----------------------------------------------------------------------
     // ? Validate token
     // ? -----------------------------------------------------------------------
 
-    let session_token = verify_confirmation_token_pasetor(
-        token,
-        is_for_password_change,
-        token_secret,
-        token_fetching_repo,
-        token_deletion_repo,
-    )
-    .await?;
-
-    let id = session_token.user_id;
-
-    // ? -----------------------------------------------------------------------
-    // ? Fetch user with id contained in token
-    // ? -----------------------------------------------------------------------
-
-    let mut inactive_user =
-        match user_fetching_repo.get(Some(id), None, None).await? {
-            FetchResponseKind::NotFound(_) => {
+    let meta = EmailConfirmationTokenMeta::new(
+        match inactive_user.id {
+            Some(id) => id,
+            None => {
                 return use_case_err(format!(
-                    "User with id {} not found.",
-                    id.to_string()
+                    "User with email {} is invalid",
+                    email.get_email()
                 ))
                 .as_error()
             }
-            FetchResponseKind::Found(user) => user,
-        };
+        },
+        email.to_owned(),
+        token,
+    );
+
+    let user_id = match token_fetching_repo
+        .get_and_invalidate_email_confirmation_token(meta)
+        .await?
+    {
+        FetchResponseKind::NotFound(_) => {
+            return use_case_err(format!(
+                "Token not found or expired for user with email {}",
+                email.get_email()
+            ))
+            .as_error()
+        }
+        FetchResponseKind::Found(id) => id,
+    };
+
+    // ? -----------------------------------------------------------------------
+    // ? Activate user and return
+    // ? -----------------------------------------------------------------------
 
     inactive_user.is_active = true;
-
-    // ? -----------------------------------------------------------------------
-    // ? Activate user with id contained in token
-    // ? -----------------------------------------------------------------------
 
     match user_updating_repo.update(inactive_user).await? {
         UpdatingResponseKind::NotUpdated(_, msg) => {
             return use_case_err(format!(
                 "User with id {} could not be activated: {}",
-                id.to_string(),
+                user_id.to_string(),
                 msg
             ))
             .as_error()

@@ -6,6 +6,7 @@ use crate::{
 use futures::lock::Mutex;
 use lazy_static::lazy_static;
 use std::env::var_os;
+use tera::Tera;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure routes and profile
@@ -76,7 +77,18 @@ pub async fn init_in_memory_routes(routes_file: Option<String>) {
 
 pub(crate) const SESSION_KEY_PREFIX: &str = "mycelium_session_key_for";
 
-/// This function prefixes the session key with the Mycelium grouping key.
-pub(crate) fn build_session_key(session_key: String) -> String {
-    format!("mycelium/{}", session_key)
+// ? ---------------------------------------------------------------------------
+// ? Templates
+// ? ---------------------------------------------------------------------------
+
+lazy_static! {
+    pub static ref TEMPLATES: Tera = {
+        let mut _tera = match Tera::new("templates/**/*") {
+            Ok(res) => res,
+            Err(err) => panic!("Error on load tera templates: {}", err),
+        };
+
+        _tera.autoescape_on(vec![".jinja"]);
+        _tera
+    };
 }

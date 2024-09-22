@@ -10,11 +10,11 @@ use crate::modules::{
     LicensedResourcesFetchingModule, MessageSendingModule,
     ProfileFetchingModule, RoleDeletionModule, RoleFetchingModule,
     RoleRegistrationModule, RoleUpdatingModule, RoutesFetchingModule,
-    SessionTokenDeletionModule, SessionTokenFetchingModule,
-    SessionTokenRegistrationModule, TagDeletionModule, TagRegistrationModule,
-    TagUpdatingModule, UserDeletionModule, UserFetchingModule,
-    UserRegistrationModule, UserUpdatingModule, WebHookDeletionModule,
-    WebHookFetchingModule, WebHookRegistrationModule, WebHookUpdatingModule,
+    TagDeletionModule, TagRegistrationModule, TagUpdatingModule,
+    TokenFetchingModule, TokenRegistrationModule, UserDeletionModule,
+    UserFetchingModule, UserRegistrationModule, UserUpdatingModule,
+    WebHookDeletionModule, WebHookFetchingModule, WebHookRegistrationModule,
+    WebHookUpdatingModule,
 };
 
 use actix_web::web;
@@ -61,21 +61,18 @@ use myc_prisma::repositories::{
     RoleFetchingSqlDbRepository, RoleFetchingSqlDbRepositoryParameters,
     RoleRegistrationSqlDbRepository, RoleRegistrationSqlDbRepositoryParameters,
     RoleUpdatingSqlDbRepository, RoleUpdatingSqlDbRepositoryParameters,
-    SessionTokenDeletionSqlDbRepository,
-    SessionTokenDeletionSqlDbRepositoryParameters,
-    SessionTokenFetchingSqlDbRepository,
-    SessionTokenFetchingSqlDbRepositoryParameters,
-    SessionTokenRegistrationSqlDbRepository,
-    SessionTokenRegistrationSqlDbRepositoryParameters,
     TagDeletionSqlDbRepository, TagDeletionSqlDbRepositoryParameters,
     TagRegistrationSqlDbRepository, TagRegistrationSqlDbRepositoryParameters,
     TagUpdatingSqlDbRepository, TagUpdatingSqlDbRepositoryParameters,
-    UserDeletionSqlDbRepository, UserDeletionSqlDbRepositoryParameters,
-    UserFetchingSqlDbRepository, UserFetchingSqlDbRepositoryParameters,
-    UserRegistrationSqlDbRepository, UserRegistrationSqlDbRepositoryParameters,
-    UserUpdatingSqlDbRepository, UserUpdatingSqlDbRepositoryParameters,
-    WebHookDeletionSqlDbRepository, WebHookDeletionSqlDbRepositoryParameters,
-    WebHookFetchingSqlDbRepository, WebHookFetchingSqlDbRepositoryParameters,
+    TokenFetchingSqlDbRepository, TokenFetchingSqlDbRepositoryParameters,
+    TokenRegistrationSqlDbRepository,
+    TokenRegistrationSqlDbRepositoryParameters, UserDeletionSqlDbRepository,
+    UserDeletionSqlDbRepositoryParameters, UserFetchingSqlDbRepository,
+    UserFetchingSqlDbRepositoryParameters, UserRegistrationSqlDbRepository,
+    UserRegistrationSqlDbRepositoryParameters, UserUpdatingSqlDbRepository,
+    UserUpdatingSqlDbRepositoryParameters, WebHookDeletionSqlDbRepository,
+    WebHookDeletionSqlDbRepositoryParameters, WebHookFetchingSqlDbRepository,
+    WebHookFetchingSqlDbRepositoryParameters,
     WebHookRegistrationSqlDbRepository,
     WebHookRegistrationSqlDbRepositoryParameters,
     WebHookUpdatingSqlDbRepository, WebHookUpdatingSqlDbRepositoryParameters,
@@ -348,23 +345,16 @@ pub fn configure(config: &mut web::ServiceConfig) {
         // ? SessionTokens
         // ? -------------------------------------------------------------------
         .app_data(Arc::new(
-            SessionTokenRegistrationModule::builder()
-                .with_component_parameters::<SessionTokenRegistrationSqlDbRepository>(
-                    SessionTokenRegistrationSqlDbRepositoryParameters {},
+            TokenRegistrationModule::builder()
+                .with_component_parameters::<TokenRegistrationSqlDbRepository>(
+                    TokenRegistrationSqlDbRepositoryParameters {},
                 )
                 .build(),
         ))
         .app_data(Arc::new(
-            SessionTokenFetchingModule::builder()
-                .with_component_parameters::<SessionTokenFetchingSqlDbRepository>(
-                    SessionTokenFetchingSqlDbRepositoryParameters {},
-                )
-                .build(),
-        ))
-        .app_data(Arc::new(
-            SessionTokenDeletionModule::builder()
-                .with_component_parameters::<SessionTokenDeletionSqlDbRepository>(
-                    SessionTokenDeletionSqlDbRepositoryParameters {},
+            TokenFetchingModule::builder()
+                .with_component_parameters::<TokenFetchingSqlDbRepository>(
+                    TokenFetchingSqlDbRepositoryParameters {},
                 )
                 .build(),
         ))

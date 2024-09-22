@@ -1,4 +1,6 @@
-use super::notify_internal_user::notify_internal_user;
+//mod issue_confirmation_token_pasetor;
+mod register_token_and_notify_user;
+
 use crate::domain::{
     dtos::{
         email::Email,
@@ -7,8 +9,7 @@ use crate::domain::{
         user::{PasswordHash, Provider, User},
     },
     entities::{
-        MessageSending, SessionTokenRegistration, UserDeletion,
-        UserRegistration,
+        MessageSending, TokenRegistration, UserDeletion, UserRegistration,
     },
 };
 
@@ -16,20 +17,32 @@ use mycelium_base::{
     entities::GetOrCreateResponseKind,
     utils::errors::{use_case_err, MappedErrors},
 };
+use register_token_and_notify_user::register_token_and_notify_user;
 use uuid::Uuid;
 
+/// Create a new user with the default provider
+///
+/// This function creates a new user with the default provider. The default
+/// provider is the internal provider, which uses the user's email and
+/// password/provider to authenticate the user. Case the user is created with
+/// the internal provider, the user is created as inactive, forcing the user to
+/// confirm the email address before the user can use the system. The user
+/// activation process is done by sending a confirmation email to the user.
+/// If the user is created with an external provider, the user is created as
+/// active.
+///
 pub async fn create_default_user(
     email: String,
     first_name: Option<String>,
     last_name: Option<String>,
     password: Option<String>,
     provider_name: Option<String>,
-    frontend_url_redirect: String,
     token_secret: TokenSecret,
+    platform_url: Option<String>,
     user_registration_repo: Box<&dyn UserRegistration>,
-    user_deletion_repo: Box<&dyn UserDeletion>,
-    token_registration_repo: Box<&dyn SessionTokenRegistration>,
+    token_registration_repo: Box<&dyn TokenRegistration>,
     message_sending_repo: Box<&dyn MessageSending>,
+    user_deletion_repo: Box<&dyn UserDeletion>,
 ) -> Result<Uuid, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Build and validate email
@@ -112,14 +125,14 @@ pub async fn create_default_user(
     // ? -----------------------------------------------------------------------
 
     if let Some(Provider::Internal(_)) = user.provider() {
-        notify_internal_user(
+        register_token_and_notify_user(
             new_user_id,
-            token_secret.to_owned(),
             email_instance.to_owned(),
-            frontend_url_redirect.to_owned(),
+            token_secret,
+            platform_url,
             token_registration_repo,
-            user_deletion_repo,
             message_sending_repo,
+            user_deletion_repo,
         )
         .await?;
     }

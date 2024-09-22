@@ -232,7 +232,11 @@ impl User {
         self.provider.to_owned()
     }
 
-    pub fn is_internal_or_error(&self) -> Result<bool, MappedErrors> {
+    /// Check if the user has a provider or not.
+    ///
+    /// This method should be used to check if the user is registered in
+    /// Mycelium with an internal provider or not.
+    pub fn has_provider_or_error(&self) -> Result<bool, MappedErrors> {
         match self.provider {
             Some(Provider::Internal(_)) => Ok(true),
             Some(Provider::External(_)) => Ok(false),
