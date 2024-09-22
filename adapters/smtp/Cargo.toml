@@ -27,7 +27,6 @@ serde_json.workspace = true
 shaku.workspace = true
 
 lettre = "0.10.4"
-minijinja = "1.0.8"
 
 
 [dev-dependencies]

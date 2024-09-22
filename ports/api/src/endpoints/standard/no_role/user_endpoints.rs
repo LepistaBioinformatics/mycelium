@@ -2,17 +2,13 @@ use crate::{
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     middleware::parse_issuer_from_request,
     modules::{
-        MessageSendingModule, SessionTokenDeletionModule,
-        SessionTokenFetchingModule, SessionTokenRegistrationModule,
+        MessageSendingModule, TokenFetchingModule, TokenRegistrationModule,
         UserDeletionModule, UserFetchingModule, UserRegistrationModule,
         UserUpdatingModule,
     },
 };
 
-use actix_web::{
-    http::header, post, web, HttpRequest, HttpResponse, Responder,
-};
-use awc::error::HeaderValue;
+use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
 use log::warn;
 use myc_core::{
     domain::{
@@ -21,15 +17,13 @@ use myc_core::{
             native_error_codes::NativeErrorCodes, session_token::TokenSecret,
         },
         entities::{
-            MessageSending, SessionTokenDeletion, SessionTokenFetching,
-            SessionTokenRegistration, UserDeletion, UserFetching,
-            UserRegistration, UserUpdating,
+            MessageSending, TokenFetching, TokenRegistration, UserDeletion,
+            UserFetching, UserRegistration, UserUpdating,
         },
     },
     use_cases::roles::standard::no_role::user::{
         check_email_password_validity, check_email_registration_status,
         check_token_and_activate_user, create_default_user,
-        verify_confirmation_token_pasetor,
     },
 };
 use myc_http_tools::{
@@ -50,7 +44,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
         .service(check_email_registration_status_url)
         .service(create_default_user_url)
         .service(check_user_token_url)
-        .service(check_password_change_token_url)
+        //.service(check_password_change_token_url)
         .service(check_email_password_validity_url);
 }
 
@@ -71,14 +65,14 @@ pub struct CreateDefaultUserBody {
     first_name: Option<String>,
     last_name: Option<String>,
     password: Option<String>,
-    redirect_url: String,
+    platform_url: Option<String>,
 }
 
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CheckTokenBody {
     token: String,
-    redirect_url: String,
+    email: String,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -197,8 +191,8 @@ pub async fn create_default_user_url(
     >,
     user_deletion_repo: Inject<UserDeletionModule, dyn UserDeletion>,
     token_registration_repo: Inject<
-        SessionTokenRegistrationModule,
-        dyn SessionTokenRegistration,
+        TokenRegistrationModule,
+        dyn TokenRegistration,
     >,
     message_sending_repo: Inject<MessageSendingModule, dyn MessageSending>,
 ) -> impl Responder {
@@ -221,12 +215,12 @@ pub async fn create_default_user_url(
         body.last_name.to_owned(),
         body.password.to_owned(),
         provider,
-        body.redirect_url.to_owned(),
         token.get_ref().to_owned(),
+        body.platform_url.to_owned(),
         Box::new(&*user_registration_repo),
-        Box::new(&*user_deletion_repo),
         Box::new(&*token_registration_repo),
         Box::new(&*message_sending_repo),
+        Box::new(&*user_deletion_repo),
     )
     .await
     {
@@ -276,103 +270,82 @@ pub async fn create_default_user_url(
 #[post("/check-user-activation-token/")]
 pub async fn check_user_token_url(
     body: web::Json<CheckTokenBody>,
-    token: web::Data<TokenSecret>,
     user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
     user_updating_repo: Inject<UserUpdatingModule, dyn UserUpdating>,
-    token_fetching_repo: Inject<
-        SessionTokenFetchingModule,
-        dyn SessionTokenFetching,
-    >,
-    token_deletion_repo: Inject<
-        SessionTokenDeletionModule,
-        dyn SessionTokenDeletion,
-    >,
+    token_fetching_repo: Inject<TokenFetchingModule, dyn TokenFetching>,
 ) -> impl Responder {
-    let redirect_url = match HeaderValue::from_str(&body.redirect_url) {
+    let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
-            warn!("Invalid redirect url: {}", err);
+            warn!("Invalid email: {}", err);
             return HttpResponse::BadRequest()
-                .json(JsonError::new("Invalid redirect url.".to_string()));
+                .json(JsonError::new("Invalid email address.".to_string()));
         }
-        Ok(res) => res,
+        Ok(email) => email,
     };
 
     match check_token_and_activate_user(
         body.token.to_owned(),
-        None,
-        token.get_ref().to_owned(),
+        email,
         Box::new(&*user_fetching_repo),
         Box::new(&*user_updating_repo),
         Box::new(&*token_fetching_repo),
-        Box::new(&*token_deletion_repo),
     )
     .await
     {
         Err(err) => HttpResponse::InternalServerError()
             .json(JsonError::new(err.to_string())),
-        Ok(_) => {
-            println!("redirect_url: {:?}", redirect_url);
-            let mut res = HttpResponse::TemporaryRedirect();
-            res.append_header((header::LOCATION, redirect_url));
-            res.finish()
-        }
+        Ok(_) => HttpResponse::Ok().finish(),
     }
 }
 
-#[utoipa::path(
-    post,
-    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
-    request_body = CheckTokenBody,
-    responses(
-        (
-            status = 500,
-            description = "Unknown internal server error.",
-            body = JsonError,
-        ),
-        (
-            status = 403,
-            description = "Forbidden.",
-            body = JsonError,
-        ),
-        (
-            status = 401,
-            description = "Unauthorized.",
-            body = JsonError,
-        ),
-        (
-            status = 200,
-            description = "Password change token is valid.",
-            body = bool,
-        ),
-    ),
-)]
-#[post("/check-password-change-token/")]
-pub async fn check_password_change_token_url(
-    body: web::Json<CheckTokenBody>,
-    token: web::Data<TokenSecret>,
-    token_fetching_repo: Inject<
-        SessionTokenFetchingModule,
-        dyn SessionTokenFetching,
-    >,
-    token_deletion_repo: Inject<
-        SessionTokenDeletionModule,
-        dyn SessionTokenDeletion,
-    >,
-) -> impl Responder {
-    match verify_confirmation_token_pasetor(
-        body.token.to_owned(),
-        Some(true),
-        token.get_ref().to_owned(),
-        Box::new(&*token_fetching_repo),
-        Box::new(&*token_deletion_repo),
-    )
-    .await
-    {
-        Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(_) => HttpResponse::Created().json(true),
-    }
-}
+//#[utoipa::path(
+//    post,
+//    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
+//    request_body = CheckTokenBody,
+//    responses(
+//        (
+//            status = 500,
+//            description = "Unknown internal server error.",
+//            body = JsonError,
+//        ),
+//        (
+//            status = 403,
+//            description = "Forbidden.",
+//            body = JsonError,
+//        ),
+//        (
+//            status = 401,
+//            description = "Unauthorized.",
+//            body = JsonError,
+//        ),
+//        (
+//            status = 200,
+//            description = "Password change token is valid.",
+//            body = bool,
+//        ),
+//    ),
+//)]
+//#[post("/check-password-change-token/")]
+//pub async fn check_password_change_token_url(
+//    body: web::Json<CheckTokenBody>,
+//    token: web::Data<TokenSecret>,
+//    token_fetching_repo: Inject<TokenFetchingModule, dyn TokenFetching>,
+//    token_deletion_repo: Inject<TokenDeletionModule, dyn TokenDeletion>,
+//) -> impl Responder {
+//    match verify_confirmation_token_pasetor(
+//        body.token.to_owned(),
+//        Some(true),
+//        token.get_ref().to_owned(),
+//        Box::new(&*token_fetching_repo),
+//        Box::new(&*token_deletion_repo),
+//    )
+//    .await
+//    {
+//        Err(err) => HttpResponse::InternalServerError()
+//            .json(JsonError::new(err.to_string())),
+//        Ok(_) => HttpResponse::Created().json(true),
+//    }
+//}
 
 #[utoipa::path(
     post,

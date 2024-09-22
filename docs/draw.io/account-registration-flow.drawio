@@ -1,78 +1,149 @@
-<mxfile host="Electron" modified="2023-10-31T14:33:38.645Z" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/21.7.5 Chrome/114.0.5735.289 Electron/25.8.1 Safari/537.36" etag="VLXH5mSZBd-kq1hH3Ygv" version="21.7.5" type="device">
-  <diagram name="Page-1" id="h0gBqg-u4J8CJtZ1Ysuk">
-    <mxGraphModel dx="3086" dy="2088" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="880" pageHeight="750" math="0" shadow="0">
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.7.8 Chrome/128.0.6613.36 Electron/32.0.1 Safari/537.36" version="24.7.8">
+  <diagram name="User Registration - Native" id="h0gBqg-u4J8CJtZ1Ysuk">
+    <mxGraphModel dx="3007" dy="2449" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="880" pageHeight="750" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-27" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;flowAnimation=1;strokeWidth=2;" edge="1" parent="1" source="pjb_dXWNzki2_CWE8o_B-1" target="pjb_dXWNzki2_CWE8o_B-25">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-27" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;flowAnimation=1;strokeWidth=2;" parent="1" source="pjb_dXWNzki2_CWE8o_B-1" target="pjb_dXWNzki2_CWE8o_B-25" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-32" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;flowAnimation=1;" edge="1" parent="1" source="pjb_dXWNzki2_CWE8o_B-1" target="pjb_dXWNzki2_CWE8o_B-28">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-32" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;flowAnimation=1;" parent="1" source="pjb_dXWNzki2_CWE8o_B-1" target="pjb_dXWNzki2_CWE8o_B-28" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-1" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
-          <mxGeometry x="560" y="-440" width="30" height="60" as="geometry" />
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-1" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" parent="1" vertex="1">
+          <mxGeometry x="410" y="-450" width="30" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;strokeWidth=2;" edge="1" parent="1" source="pjb_dXWNzki2_CWE8o_B-5" target="pjb_dXWNzki2_CWE8o_B-6">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;strokeWidth=2;" parent="1" source="pjb_dXWNzki2_CWE8o_B-5" target="pjb_dXWNzki2_CWE8o_B-6" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-5" value="&lt;h1&gt;1. Check e-mail status&lt;/h1&gt;&lt;p&gt;Endpoint: /myc/default-users/users/status/&lt;/p&gt;&lt;p&gt;Details:&lt;span style=&quot;background-color: initial;&quot;&gt;&amp;nbsp;Response should include one of notRegisteres, registeredAndInternal, or registeredButExternal. Given status developers should forward user to an adequate route.&lt;/span&gt;&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-5" value="&lt;h1&gt;1. Check e-mail status&lt;/h1&gt;&lt;p&gt;Endpoint: /myc/default-users/users/status/&lt;/p&gt;&lt;p&gt;Details:&lt;span style=&quot;background-color: initial;&quot;&gt;&amp;nbsp;Response should include one of notRegisteres, registeredAndInternal, or registeredButExternal. Given status developers should forward user to an adequate route.&lt;/span&gt;&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="200" y="50" width="350" height="140" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;flowAnimation=1;strokeWidth=2;" edge="1" parent="1" source="pjb_dXWNzki2_CWE8o_B-6" target="pjb_dXWNzki2_CWE8o_B-10">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;flowAnimation=1;strokeWidth=2;" parent="1" source="pjb_dXWNzki2_CWE8o_B-6" target="pjb_dXWNzki2_CWE8o_B-10" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-6" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-6" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
           <mxGeometry x="65" y="170" width="20" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;strokeWidth=2;" edge="1" source="pjb_dXWNzki2_CWE8o_B-9" target="pjb_dXWNzki2_CWE8o_B-10" parent="1">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;strokeWidth=2;" parent="1" source="pjb_dXWNzki2_CWE8o_B-9" target="pjb_dXWNzki2_CWE8o_B-10" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-9" value="&lt;h1&gt;2. Register user&lt;/h1&gt;&lt;p&gt;Endpoint: /myc/default-users/users/&lt;/p&gt;&lt;p&gt;Details:&lt;span style=&quot;background-color: initial;&quot;&gt;&amp;nbsp;Only e-mail is required to register new users. On submit informations the system should send a verification e-mail to users to check the e-mail validity.&lt;/span&gt;&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-9" value="&lt;h1&gt;2. Register user&lt;/h1&gt;&lt;p&gt;Endpoint: /myc/default-users/users/&lt;/p&gt;&lt;p&gt;Details:&lt;span style=&quot;background-color: initial;&quot;&gt;&amp;nbsp;Only e-mail is required to register new users. On submit informations the system should send a verification e-mail to users to check the e-mail validity.&lt;/span&gt;&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="200" y="225" width="340" height="130" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;strokeWidth=2;" edge="1" parent="1" source="pjb_dXWNzki2_CWE8o_B-10" target="pjb_dXWNzki2_CWE8o_B-14">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;strokeWidth=2;" parent="1" source="pjb_dXWNzki2_CWE8o_B-10" target="pjb_dXWNzki2_CWE8o_B-14" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-10" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-10" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
           <mxGeometry x="65" y="340" width="20" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;strokeWidth=2;" edge="1" source="pjb_dXWNzki2_CWE8o_B-13" target="pjb_dXWNzki2_CWE8o_B-14" parent="1">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;strokeWidth=2;" parent="1" source="pjb_dXWNzki2_CWE8o_B-13" target="pjb_dXWNzki2_CWE8o_B-14" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-13" value="&lt;h1&gt;3. Validate and Activate User&lt;/h1&gt;&lt;p&gt;Endpoint: /myc/default-users/users/check-user-token/&lt;/p&gt;&lt;p&gt;Details:&lt;span style=&quot;background-color: initial;&quot;&gt;&amp;nbsp;Check token send by e-mail and turn user active. Tokens should be used once.&lt;/span&gt;&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-13" value="&lt;h1&gt;3. Validate and Activate User&lt;/h1&gt;&lt;p&gt;Endpoint: /myc/default-users/users/check-user-token/&lt;/p&gt;&lt;p&gt;Details:&lt;span style=&quot;background-color: initial;&quot;&gt;&amp;nbsp;Check token send by e-mail and turn user active. Tokens should be used once.&lt;/span&gt;&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="200" y="385" width="350" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-19" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;strokeWidth=2;entryX=0;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pjb_dXWNzki2_CWE8o_B-14" target="pjb_dXWNzki2_CWE8o_B-18">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-19" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;strokeWidth=2;entryX=0;entryY=0;entryDx=0;entryDy=0;" parent="1" source="pjb_dXWNzki2_CWE8o_B-14" target="pjb_dXWNzki2_CWE8o_B-18" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="460" y="960" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-14" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-14" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
           <mxGeometry x="65" y="495" width="20" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;strokeWidth=2;" edge="1" source="pjb_dXWNzki2_CWE8o_B-17" target="pjb_dXWNzki2_CWE8o_B-18" parent="1">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;strokeWidth=2;" parent="1" source="pjb_dXWNzki2_CWE8o_B-17" target="pjb_dXWNzki2_CWE8o_B-18" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-17" value="&lt;h1&gt;4. Create Default Account&lt;/h1&gt;&lt;p&gt;Endpoint: /myc/default-users/accounts/&lt;/p&gt;&lt;p&gt;Details:&lt;span style=&quot;background-color: initial;&quot;&gt;&amp;nbsp;Create account to already activated user. Only active users should have and account. Account are created as active as default.&lt;/span&gt;&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" vertex="1" parent="1">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-17" value="&lt;h1&gt;4. Create Default Account&lt;/h1&gt;&lt;p&gt;Endpoint: /myc/default-users/accounts/&lt;/p&gt;&lt;p&gt;Details:&lt;span style=&quot;background-color: initial;&quot;&gt;&amp;nbsp;Create account to already activated user. Only active users should have and account. Account are created as active as default.&lt;/span&gt;&lt;/p&gt;" style="text;html=1;strokeColor=none;fillColor=none;spacing=5;spacingTop=-20;whiteSpace=wrap;overflow=hidden;rounded=0;" parent="1" vertex="1">
           <mxGeometry x="745" y="760" width="340" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-18" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" vertex="1" parent="1">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-18" value="" style="ellipse;whiteSpace=wrap;html=1;aspect=fixed;" parent="1" vertex="1">
           <mxGeometry x="560" y="810" width="20" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;flowAnimation=1;" edge="1" parent="1" source="pjb_dXWNzki2_CWE8o_B-25" target="pjb_dXWNzki2_CWE8o_B-6">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;flowAnimation=1;" parent="1" source="pjb_dXWNzki2_CWE8o_B-25" target="pjb_dXWNzki2_CWE8o_B-6" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-25" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;Mycelium Native Accounts Flow&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-25" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;Mycelium Native Accounts Flow&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="-7.5" y="-80" width="165" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-29" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;strokeWidth=2;" edge="1" parent="1" source="pjb_dXWNzki2_CWE8o_B-28" target="pjb_dXWNzki2_CWE8o_B-18">
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-29" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;strokeWidth=2;" parent="1" source="pjb_dXWNzki2_CWE8o_B-28" target="pjb_dXWNzki2_CWE8o_B-18" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="760" y="690" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="pjb_dXWNzki2_CWE8o_B-28" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;Mycelium 3rd Party Accounts Flow&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
-          <mxGeometry x="740" y="-80" width="165" height="70" as="geometry" />
+        <mxCell id="pjb_dXWNzki2_CWE8o_B-28" value="&lt;font style=&quot;font-size: 18px;&quot;&gt;Mycelium 3rd Party Accounts Flow&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="745" y="-80" width="165" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="sSlvEamMKV7i5d8WLizn-2" target="sSlvEamMKV7i5d8WLizn-25">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1985" y="-445" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-9" value="YES" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=20;" vertex="1" connectable="0" parent="sSlvEamMKV7i5d8WLizn-6">
+          <mxGeometry x="0.2611" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="sSlvEamMKV7i5d8WLizn-2" target="sSlvEamMKV7i5d8WLizn-26">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1985" y="-165" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-10" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;NO&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="sSlvEamMKV7i5d8WLizn-8">
+          <mxGeometry x="0.2107" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-2" value="&lt;font style=&quot;font-size: 21px;&quot;&gt;Identity Provider?&lt;/font&gt;" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1660" y="-380" width="160" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="sSlvEamMKV7i5d8WLizn-11" target="sSlvEamMKV7i5d8WLizn-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-22" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;NOT_REGISTERED&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="sSlvEamMKV7i5d8WLizn-4">
+          <mxGeometry x="0.4117" relative="1" as="geometry">
+            <mxPoint x="-81" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-3" value="User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1">
+          <mxGeometry x="790" y="-600" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="sSlvEamMKV7i5d8WLizn-3" target="sSlvEamMKV7i5d8WLizn-11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="970" y="-300" as="sourcePoint" />
+            <mxPoint x="1410" y="-300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="sSlvEamMKV7i5d8WLizn-11" target="sSlvEamMKV7i5d8WLizn-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-24" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;REGISTERED_AND_EXTERNAL&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="sSlvEamMKV7i5d8WLizn-20">
+          <mxGeometry x="0.2495" y="2" relative="1" as="geometry">
+            <mxPoint x="-12" y="2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="sSlvEamMKV7i5d8WLizn-11" target="sSlvEamMKV7i5d8WLizn-18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-23" value="&lt;font style=&quot;font-size: 20px;&quot;&gt;REGISTERED_AND_INTERNAL&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="sSlvEamMKV7i5d8WLizn-21">
+          <mxGeometry x="-0.0753" relative="1" as="geometry">
+            <mxPoint x="6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-11" value="&lt;font style=&quot;font-size: 21px;&quot;&gt;Check Email Status&lt;/font&gt;" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="-650" width="160" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-18" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;LOGIN WITH EMAIL&lt;/font&gt;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+          <mxGeometry x="1660" y="-600" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-19" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;SIMPLE PERFORM REQUEST&lt;/font&gt;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+          <mxGeometry x="1660" y="-740" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-25" value="&lt;span style=&quot;font-size: 18px;&quot;&gt;Create Already Validated Account&lt;/span&gt;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+          <mxGeometry x="1970" y="-490" width="170" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="sSlvEamMKV7i5d8WLizn-26" value="&lt;span style=&quot;font-size: 18px;&quot;&gt;Account Validation Flow&lt;/span&gt;" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+          <mxGeometry x="1970" y="-190" width="170" height="60" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

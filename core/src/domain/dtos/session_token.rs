@@ -34,8 +34,15 @@ impl SessionToken {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct TokenSecret {
+    #[deprecated]
     pub token_secret_key: EnvOrValue<String>,
     pub token_expiration: i64,
+    #[deprecated]
     pub token_hmac_secret: EnvOrValue<String>,
-    pub token_email_notifier: EnvOrValue<String>,
+
+    /// General Purpose email
+    pub noreply_email: EnvOrValue<String>,
+
+    /// Support email
+    pub support_email: EnvOrValue<String>,
 }

@@ -19,7 +19,8 @@ pub struct RegisteredWithProvider {
 pub enum EmailRegistrationStatus {
     RegisteredAndInternal(RegisteredWithProvider),
     RegisteredButExternal(RegisteredWithProvider),
-    NotRegistered(Option<String>),
+    WaitingActivation(String),
+    NotRegistered(String),
 }
 
 /// Check if the user was already registered in Mycelium or not.
@@ -28,7 +29,9 @@ pub enum EmailRegistrationStatus {
 ///
 /// Case 2: The user was registered in Mycelium with an internal provider.
 ///
-/// Case 3: The user was not registered in Mycelium.
+/// Case 3: The user was registered in Mycelium and is waiting for activation.
+///
+/// Case 4: The user was not registered in Mycelium.
 ///
 /// ----------------------------------------------------------------------------
 ///
@@ -50,7 +53,7 @@ pub async fn check_email_registration_status(
     {
         FetchResponseKind::Found(user) => user,
         FetchResponseKind::NotFound(_) => {
-            return Ok(NotRegistered(Some(email.get_email())))
+            return Ok(NotRegistered(email.get_email()))
         }
     };
 
@@ -59,15 +62,21 @@ pub async fn check_email_registration_status(
     // ? -----------------------------------------------------------------------
 
     let registered_user = RegisteredWithProvider {
-        email,
+        email: email.to_owned(),
         provider: user.provider(),
     };
 
-    match user.is_internal_or_error() {
+    match user.has_provider_or_error() {
         Err(err) => return Err(err),
         Ok(res) => match res {
-            true => Ok(RegisteredAndInternal(registered_user)),
             false => Ok(RegisteredButExternal(registered_user)),
+            true => {
+                if !user.is_active {
+                    return Ok(WaitingActivation(email.get_email()));
+                }
+
+                Ok(RegisteredAndInternal(registered_user))
+            }
         },
     }
 }

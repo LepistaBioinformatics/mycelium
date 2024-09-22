@@ -8,8 +8,10 @@ core:
       env: MYC_TOKEN_SECRET_KEY
     tokenHmacSecret:
       env: MYC_TOKEN_HMAC_SECRET
-    tokenEmailNotifier:
+    noreplyEmail:
       env: MYC_TOKEN_EMAIL_NOTIFIER
+    supportEmail:
+      env: MYC_TOKEN_SUPPORT_EMAIL
 
 # ? ----------------------------------------------------------------------------
 # ? SQL DATABASE ADAPTER SETTINGS
