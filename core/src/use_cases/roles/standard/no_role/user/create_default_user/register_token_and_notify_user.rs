@@ -17,7 +17,7 @@ use mycelium_base::{
     entities::CreateResponseKind,
     utils::errors::{use_case_err, MappedErrors},
 };
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use rand::{thread_rng, Rng};
 use tera::Context;
 use uuid::Uuid;
 
@@ -38,16 +38,13 @@ pub(super) async fn register_token_and_notify_user(
     //
     // ? -----------------------------------------------------------------------
 
-    let random_number: String = thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(6)
-        .map(char::from)
-        .collect();
+    let random_number = thread_rng().gen_range(0..999_999);
+    let fixed_size_string = format!("{:06}", random_number);
 
     let meta = EmailConfirmationTokenMeta::new(
         user_id,
         email.to_owned(),
-        random_number,
+        fixed_size_string,
     );
 
     let token = match token_registration_repo
