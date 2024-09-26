@@ -6,7 +6,7 @@ use shaku::Interface;
 use uuid::Uuid;
 
 #[async_trait]
-pub trait TokenFetching: Interface + Send + Sync {
+pub trait TokenInvalidation: Interface + Send + Sync {
     /// Get the token and invalidate it on remove it from the store
     ///
     /// This should be used to get the email confirmation token

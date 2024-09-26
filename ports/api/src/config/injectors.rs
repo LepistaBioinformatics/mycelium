@@ -11,7 +11,7 @@ use crate::modules::{
     ProfileFetchingModule, RoleDeletionModule, RoleFetchingModule,
     RoleRegistrationModule, RoleUpdatingModule, RoutesFetchingModule,
     TagDeletionModule, TagRegistrationModule, TagUpdatingModule,
-    TokenFetchingModule, TokenRegistrationModule, UserDeletionModule,
+    TokenInvalidationModule, TokenRegistrationModule, UserDeletionModule,
     UserFetchingModule, UserRegistrationModule, UserUpdatingModule,
     WebHookDeletionModule, WebHookFetchingModule, WebHookRegistrationModule,
     WebHookUpdatingModule,
@@ -64,7 +64,8 @@ use myc_prisma::repositories::{
     TagDeletionSqlDbRepository, TagDeletionSqlDbRepositoryParameters,
     TagRegistrationSqlDbRepository, TagRegistrationSqlDbRepositoryParameters,
     TagUpdatingSqlDbRepository, TagUpdatingSqlDbRepositoryParameters,
-    TokenFetchingSqlDbRepository, TokenFetchingSqlDbRepositoryParameters,
+    TokenInvalidationSqlDbRepository,
+    TokenInvalidationSqlDbRepositoryParameters,
     TokenRegistrationSqlDbRepository,
     TokenRegistrationSqlDbRepositoryParameters, UserDeletionSqlDbRepository,
     UserDeletionSqlDbRepositoryParameters, UserFetchingSqlDbRepository,
@@ -352,9 +353,9 @@ pub fn configure(config: &mut web::ServiceConfig) {
                 .build(),
         ))
         .app_data(Arc::new(
-            TokenFetchingModule::builder()
-                .with_component_parameters::<TokenFetchingSqlDbRepository>(
-                    TokenFetchingSqlDbRepositoryParameters {},
+            TokenInvalidationModule::builder()
+                .with_component_parameters::<TokenInvalidationSqlDbRepository>(
+                    TokenInvalidationSqlDbRepositoryParameters {},
                 )
                 .build(),
         ))

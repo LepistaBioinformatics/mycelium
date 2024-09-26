@@ -1,5 +1,5 @@
 use myc_prisma::repositories::{
-    TokenFetchingSqlDbRepository, TokenRegistrationSqlDbRepository,
+    TokenInvalidationSqlDbRepository, TokenRegistrationSqlDbRepository,
 };
 
 use shaku::module;
@@ -12,8 +12,8 @@ module! {
 }
 
 module! {
-    pub TokenFetchingModule {
-        components = [TokenFetchingSqlDbRepository],
+    pub TokenInvalidationModule {
+        components = [TokenInvalidationSqlDbRepository],
         providers = []
     }
 }
