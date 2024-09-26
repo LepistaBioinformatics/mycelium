@@ -13,14 +13,13 @@ use log::warn;
 use myc_core::{
     domain::{
         actors::DefaultActor,
-        dtos::{
-            native_error_codes::NativeErrorCodes, session_token::TokenSecret,
-        },
+        dtos::native_error_codes::NativeErrorCodes,
         entities::{
             MessageSending, TokenFetching, TokenRegistration, UserDeletion,
             UserFetching, UserRegistration, UserUpdating,
         },
     },
+    models::AccountLifeCycle,
     use_cases::roles::standard::no_role::user::{
         check_email_password_validity, check_email_registration_status,
         check_token_and_activate_user, create_default_user,
@@ -184,7 +183,7 @@ pub async fn check_email_registration_status_url(
 pub async fn create_default_user_url(
     req: HttpRequest,
     body: web::Json<CreateDefaultUserBody>,
-    token: web::Data<TokenSecret>,
+    token: web::Data<AccountLifeCycle>,
     user_registration_repo: Inject<
         UserRegistrationModule,
         dyn UserRegistration,

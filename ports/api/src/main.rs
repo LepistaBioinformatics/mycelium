@@ -147,7 +147,7 @@ pub async fn main() -> std::io::Result<()> {
     let server = HttpServer::new(move || {
         let api_config = config.api.clone();
         let auth_config = config.auth.clone();
-        let token_config = config.core.token.clone();
+        let token_config = config.core.account_life_cycle.clone();
 
         let cors = Cors::default()
             .allowed_origin_fn(move |origin, _| {

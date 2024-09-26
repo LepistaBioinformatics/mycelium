@@ -2,7 +2,7 @@
 # ? CORE CONFIGURATIONS
 # ? ----------------------------------------------------------------------------
 core:
-  token:
+  accountLifeCycle:
     tokenExpiration: 3600
     tokenSecretKey:
       env: MYC_TOKEN_SECRET_KEY

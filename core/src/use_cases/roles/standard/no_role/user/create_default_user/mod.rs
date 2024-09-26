@@ -1,16 +1,17 @@
-//mod issue_confirmation_token_pasetor;
 mod register_token_and_notify_user;
 
-use crate::domain::{
-    dtos::{
-        email::Email,
-        native_error_codes::NativeErrorCodes,
-        session_token::TokenSecret,
-        user::{PasswordHash, Provider, User},
+use crate::{
+    domain::{
+        dtos::{
+            email::Email,
+            native_error_codes::NativeErrorCodes,
+            user::{PasswordHash, Provider, User},
+        },
+        entities::{
+            MessageSending, TokenRegistration, UserDeletion, UserRegistration,
+        },
     },
-    entities::{
-        MessageSending, TokenRegistration, UserDeletion, UserRegistration,
-    },
+    models::AccountLifeCycle,
 };
 
 use mycelium_base::{
@@ -37,7 +38,7 @@ pub async fn create_default_user(
     last_name: Option<String>,
     password: Option<String>,
     provider_name: Option<String>,
-    token_secret: TokenSecret,
+    token_secret: AccountLifeCycle,
     platform_url: Option<String>,
     user_registration_repo: Box<&dyn UserRegistration>,
     token_registration_repo: Box<&dyn TokenRegistration>,

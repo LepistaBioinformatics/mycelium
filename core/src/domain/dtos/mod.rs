@@ -11,7 +11,6 @@ pub mod related_accounts;
 pub mod role;
 pub mod route;
 pub mod service;
-pub mod session_token;
 pub mod tag;
 pub mod token;
 pub mod user;
