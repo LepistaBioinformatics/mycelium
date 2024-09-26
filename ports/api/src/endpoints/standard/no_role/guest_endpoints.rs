@@ -10,12 +10,13 @@ use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::DefaultActor,
-        dtos::{account::Account, session_token::TokenSecret},
+        dtos::account::Account,
         entities::{
             AccountRegistration, AccountTypeRegistration,
             GuestUserRegistration, MessageSending,
         },
     },
+    models::AccountLifeCycle,
     use_cases::roles::standard::no_role::guest::guest_to_default_account,
 };
 use myc_http_tools::utils::JsonError;
@@ -98,7 +99,7 @@ pub struct GuestUserBody {
 pub async fn guest_to_default_account_url(
     path: web::Path<(Uuid,)>,
     body: web::Json<GuestUserBody>,
-    token: web::Data<TokenSecret>,
+    token: web::Data<AccountLifeCycle>,
     account_type_registration_repo: Inject<
         AccountTypeRegistrationModule,
         dyn AccountTypeRegistration,

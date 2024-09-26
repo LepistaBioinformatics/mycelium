@@ -1,4 +1,4 @@
-use crate::domain::dtos::session_token::TokenSecret;
+use super::account_life_cycle::AccountLifeCycle;
 
 use myc_config::load_config_from_file;
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
@@ -8,7 +8,7 @@ use std::path::PathBuf;
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CoreConfig {
-    pub token: TokenSecret,
+    pub account_life_cycle: AccountLifeCycle,
 }
 
 #[derive(Clone, Debug, Deserialize)]

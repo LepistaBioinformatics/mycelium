@@ -5,7 +5,6 @@ use crate::{
             email::Email,
             guest::GuestUser,
             message::Message,
-            session_token::TokenSecret,
             user::User,
         },
         entities::{
@@ -13,6 +12,7 @@ use crate::{
             GuestUserRegistration, MessageSending,
         },
     },
+    models::AccountLifeCycle,
     use_cases::roles::shared::{
         account::get_or_create_default_subscription_account,
         account_type::get_or_create_default_account_types,
@@ -31,7 +31,7 @@ use uuid::Uuid;
 pub async fn guest_to_default_account(
     role: Uuid,
     account: Account,
-    token_secret: TokenSecret,
+    token_secret: AccountLifeCycle,
     account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
     message_sending_repo: Box<&dyn MessageSending>,

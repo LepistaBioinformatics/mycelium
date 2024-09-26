@@ -3,11 +3,11 @@ use crate::{
         dtos::{
             email::Email,
             message::Message,
-            session_token::TokenSecret,
             token::{EmailConfirmationTokenMeta, TokenMeta},
         },
         entities::{MessageSending, TokenRegistration, UserDeletion},
     },
+    models::AccountLifeCycle,
     settings::TEMPLATES,
     use_cases::roles::standard::no_role::user::delete_default_user,
 };
@@ -24,7 +24,7 @@ use uuid::Uuid;
 pub(super) async fn register_token_and_notify_user(
     user_id: Uuid,
     email: Email,
-    token_secret: TokenSecret,
+    token_secret: AccountLifeCycle,
     platform_url: Option<String>,
     token_registration_repo: Box<&dyn TokenRegistration>,
     message_sending_repo: Box<&dyn MessageSending>,
