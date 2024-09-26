@@ -2,7 +2,7 @@ use crate::{
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     middleware::parse_issuer_from_request,
     modules::{
-        MessageSendingModule, TokenFetchingModule, TokenRegistrationModule,
+        MessageSendingModule, TokenInvalidationModule, TokenRegistrationModule,
         UserDeletionModule, UserFetchingModule, UserRegistrationModule,
         UserUpdatingModule,
     },
@@ -15,7 +15,7 @@ use myc_core::{
         actors::DefaultActor,
         dtos::native_error_codes::NativeErrorCodes,
         entities::{
-            MessageSending, TokenFetching, TokenRegistration, UserDeletion,
+            MessageSending, TokenInvalidation, TokenRegistration, UserDeletion,
             UserFetching, UserRegistration, UserUpdating,
         },
     },
@@ -266,12 +266,15 @@ pub async fn create_default_user_url(
         ),
     ),
 )]
-#[post("/check-user-activation-token/")]
+#[post("/validate-activation-token/")]
 pub async fn check_user_token_url(
     body: web::Json<CheckTokenBody>,
     user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
     user_updating_repo: Inject<UserUpdatingModule, dyn UserUpdating>,
-    token_fetching_repo: Inject<TokenFetchingModule, dyn TokenFetching>,
+    token_invalidation_repo: Inject<
+        TokenInvalidationModule,
+        dyn TokenInvalidation,
+    >,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
@@ -287,12 +290,22 @@ pub async fn check_user_token_url(
         email,
         Box::new(&*user_fetching_repo),
         Box::new(&*user_updating_repo),
-        Box::new(&*token_fetching_repo),
+        Box::new(&*token_invalidation_repo),
     )
     .await
     {
-        Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
+        Err(err) => {
+            let code_string = err.code().to_string();
+
+            if err.is_in(vec![NativeErrorCodes::MYC00002.as_str()]) {
+                return HttpResponse::Conflict().json(
+                    JsonError::new(err.to_string()).with_code(code_string),
+                );
+            }
+
+            HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string()).with_code(code_string))
+        }
         Ok(_) => HttpResponse::Ok().finish(),
     }
 }

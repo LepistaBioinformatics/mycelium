@@ -1,6 +1,6 @@
 use crate::domain::{
     dtos::{email::Email, token::EmailConfirmationTokenMeta, user::User},
-    entities::{TokenFetching, UserFetching, UserUpdating},
+    entities::{TokenInvalidation, UserFetching, UserUpdating},
 };
 
 use mycelium_base::{
@@ -13,7 +13,7 @@ pub async fn check_token_and_activate_user(
     email: Email,
     user_fetching_repo: Box<&dyn UserFetching>,
     user_updating_repo: Box<&dyn UserUpdating>,
-    token_fetching_repo: Box<&dyn TokenFetching>,
+    token_invalidation_repo: Box<&dyn TokenInvalidation>,
 ) -> Result<User, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch user from email
@@ -32,13 +32,6 @@ pub async fn check_token_and_activate_user(
         }
         FetchResponseKind::Found(user) => user,
     };
-
-    //
-    // If the user is already active, return the user
-    //
-    if inactive_user.is_active {
-        return Ok(inactive_user);
-    }
 
     // ? -----------------------------------------------------------------------
     // ? Validate token
@@ -59,7 +52,7 @@ pub async fn check_token_and_activate_user(
         token,
     );
 
-    let user_id = match token_fetching_repo
+    let user_id = match token_invalidation_repo
         .get_and_invalidate_email_confirmation_token(meta)
         .await?
     {
