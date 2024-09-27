@@ -9,6 +9,7 @@ use uuid::Uuid;
 
 /// Uninvite user to perform a role actions from account
 ///
+#[tracing::instrument(name = "uninvite_guest", skip_all)]
 pub async fn uninvite_guest(
     profile: Profile,
     account_id: Uuid,

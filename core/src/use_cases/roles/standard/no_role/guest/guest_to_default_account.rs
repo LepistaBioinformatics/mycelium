@@ -20,14 +20,15 @@ use crate::{
 };
 
 use chrono::Local;
-use log::{info, warn};
 use mycelium_base::{
     dtos::{Children, Parent},
     entities::GetOrCreateResponseKind,
     utils::errors::{use_case_err, MappedErrors},
 };
+use tracing::{info, warn};
 use uuid::Uuid;
 
+#[tracing::instrument(name = "guest_to_default_account", skip_all)]
 pub async fn guest_to_default_account(
     role: Uuid,
     account: Account,

@@ -5,6 +5,7 @@
 //
 //use uuid::Uuid;
 
+#[tracing::instrument(name = "guest_with_my_role_to_account", skip_all)]
 pub async fn guest_with_my_role_to_account(//profile: Profile,
     //email: Email,
     //role: Uuid,

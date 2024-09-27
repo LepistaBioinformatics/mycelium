@@ -9,6 +9,10 @@ use mycelium_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
 /// Get details of a single error code
 ///
 /// This action should be only performed by manager or staff users.
+#[tracing::instrument(
+    name = "get_error_code",
+    skip(profile, error_code_fetching_repo)
+)]
 pub async fn get_error_code(
     profile: Profile,
     prefix: String,

@@ -12,6 +12,10 @@ use uuid::Uuid;
 /// Update the role name and description.
 ///
 /// This function would be allowed only by manager users.
+#[tracing::instrument(
+    name = "list_roles",
+    skip(profile, description, role_fetching_repo, role_updating_repo)
+)]
 pub async fn update_role_name_and_description(
     profile: Profile,
     role_id: Uuid,

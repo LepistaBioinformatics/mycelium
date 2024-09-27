@@ -10,7 +10,6 @@ use crate::{
 };
 
 use actix_web::{patch, post, web, HttpRequest, HttpResponse, Responder};
-use log::warn;
 use myc_core::{
     domain::{
         actors::DefaultActor,
@@ -28,6 +27,7 @@ use myc_http_tools::utils::JsonError;
 use mycelium_base::entities::UpdatingResponseKind;
 use serde::Deserialize;
 use shaku_actix::Inject;
+use tracing::warn;
 use utoipa::ToSchema;
 use uuid::Uuid;
 

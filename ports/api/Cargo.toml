@@ -41,19 +41,18 @@ async-trait.workspace = true
 awc.workspace = true
 chrono.workspace = true
 derive_more.workspace = true
-env_logger.workspace = true
 futures.workspace = true
 futures-util.workspace = true
 jsonwebtoken.workspace = true
 jwt.workspace = true
 lazy_static.workspace = true
-log.workspace = true
 oauth2.workspace = true
 reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 shaku.workspace = true
 shaku_actix.workspace = true
+tracing.workspace = true
 tokio.workspace = true
 utoipa.workspace = true
 uuid.workspace = true
@@ -78,7 +77,6 @@ opentelemetry-otlp = { version = "0.25", features = [
 ] }
 opentelemetry-stdout = "0.25"
 tonic = { version = "0.12", features = ["tls", "tls-roots"] }
-tracing = "0.1"
 tracing-actix-web = { version = "0.7", features = ["opentelemetry_0_25"] }
 tracing-appender = "0.2"
 tracing-opentelemetry = "0.26"

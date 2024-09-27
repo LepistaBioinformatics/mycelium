@@ -22,6 +22,7 @@ use uuid::Uuid;
 ///
 /// This action should be used to downgrade Standard and Manager accounts.
 /// Subscription and Staff accounts should not be downgraded.
+#[tracing::instrument(name = "downgrade_account_privileges", skip_all)]
 pub async fn downgrade_account_privileges(
     profile: Profile,
     account_id: Uuid,

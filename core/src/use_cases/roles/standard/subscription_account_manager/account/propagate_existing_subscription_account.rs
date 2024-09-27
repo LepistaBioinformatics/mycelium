@@ -22,6 +22,10 @@ use uuid::Uuid;
 /// The propagation is done asynchronously, and the response is returned
 /// immediately.
 ///
+#[tracing::instrument(
+    name = "propagate_existing_subscription_account",
+    skip_all
+)]
 pub async fn propagate_existing_subscription_account(
     profile: Profile,
     bearer_token: String,

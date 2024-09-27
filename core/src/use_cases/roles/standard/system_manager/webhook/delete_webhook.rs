@@ -7,6 +7,10 @@ use mycelium_base::{
 };
 use uuid::Uuid;
 
+#[tracing::instrument(
+    name = "delete_webhook",
+    skip(profile, webhook_deletion_repo)
+)]
 pub async fn delete_webhook(
     profile: Profile,
     hook_id: Uuid,

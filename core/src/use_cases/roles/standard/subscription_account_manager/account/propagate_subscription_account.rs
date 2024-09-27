@@ -22,6 +22,7 @@ use mycelium_base::{
 /// The propagation is done asynchronously, and the response is returned
 /// immediately.
 ///
+#[tracing::instrument(name = "propagate_subscription_account", skip_all)]
 pub(super) async fn propagate_subscription_account(
     profile: Profile,
     bearer_token: String,

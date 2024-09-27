@@ -10,6 +10,10 @@ use mycelium_base::{
 };
 use uuid::Uuid;
 
+#[tracing::instrument(
+    name = "update_webhook",
+    skip(profile, webhook_updating_repo)
+)]
 pub async fn update_webhook(
     profile: Profile,
     webhook: WebHook,

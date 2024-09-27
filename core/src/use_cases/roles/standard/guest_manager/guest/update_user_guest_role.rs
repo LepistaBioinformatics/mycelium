@@ -14,6 +14,7 @@ use uuid::Uuid;
 /// This use case is used to replace the user's guest role. The user's guest
 /// role is the role that the user has in the account.
 ///
+#[tracing::instrument(name = "update_user_guest_role", skip_all)]
 pub async fn update_user_guest_role(
     profile: Profile,
     account_id: Uuid,

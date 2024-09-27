@@ -4,10 +4,10 @@ use crate::domain::{
 };
 
 use futures::future::join_all;
-use log::error;
 use mycelium_base::{
     entities::CreateResponseKind, utils::errors::MappedErrors,
 };
+use tracing::error;
 
 /// Statistics about the error persistence process
 ///
@@ -19,6 +19,7 @@ pub struct ErrorPersistenceStatistics {
 }
 
 /// Persist all native error codes in the data repository
+#[tracing::instrument(name = "batch_register_native_error_codes", skip_all)]
 pub async fn batch_register_native_error_codes(
     error_code_registration_repo: Box<&dyn ErrorCodeRegistration>,
 ) -> Result<ErrorPersistenceStatistics, MappedErrors> {

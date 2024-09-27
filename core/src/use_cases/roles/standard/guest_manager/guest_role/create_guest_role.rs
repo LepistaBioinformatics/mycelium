@@ -21,6 +21,7 @@ use uuid::Uuid;
 /// of a single application. Thus, the role should include only the `View`
 /// permission (level zero) for the `Movie` application. Thus, the role name
 /// should be: "Movie Viewers".
+#[tracing::instrument(name = "create_guest_role", skip_all)]
 pub async fn create_guest_role(
     profile: Profile,
     name: String,

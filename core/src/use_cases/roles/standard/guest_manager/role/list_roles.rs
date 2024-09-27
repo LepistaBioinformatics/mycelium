@@ -9,6 +9,7 @@ use mycelium_base::{
 };
 
 /// List available roles
+#[tracing::instrument(name = "list_roles", skip(profile, roles_fetching_repo))]
 pub async fn list_roles(
     profile: Profile,
     name: Option<String>,

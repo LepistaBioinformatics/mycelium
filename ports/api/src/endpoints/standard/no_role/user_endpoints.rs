@@ -9,7 +9,6 @@ use crate::{
 };
 
 use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
-use log::warn;
 use myc_core::{
     domain::{
         actors::DefaultActor,
@@ -32,6 +31,7 @@ use myc_http_tools::{
 use serde::Deserialize;
 use shaku_actix::Inject;
 use std::collections::HashMap;
+use tracing::warn;
 use utoipa::ToSchema;
 
 // ? ---------------------------------------------------------------------------

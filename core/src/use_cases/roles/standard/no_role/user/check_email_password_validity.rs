@@ -8,6 +8,7 @@ use crate::domain::{
 
 use mycelium_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
 
+#[tracing::instrument(name = "check_email_password_validity", skip_all)]
 pub async fn check_email_password_validity(
     email: Email,
     password: String,

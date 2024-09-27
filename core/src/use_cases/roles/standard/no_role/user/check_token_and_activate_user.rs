@@ -11,6 +11,7 @@ use mycelium_base::{
     utils::errors::{use_case_err, MappedErrors},
 };
 
+#[tracing::instrument(name = "check_token_and_activate_user", skip_all)]
 pub async fn check_token_and_activate_user(
     token: String,
     email: Email,

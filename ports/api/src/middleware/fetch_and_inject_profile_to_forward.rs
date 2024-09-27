@@ -2,10 +2,10 @@ use super::fetch_profile_from_request;
 
 use actix_web::HttpRequest;
 use awc::ClientRequest;
-use log::warn;
 use myc_http_tools::{responses::GatewayError, DEFAULT_PROFILE_KEY};
 use reqwest::header::{HeaderName, HeaderValue};
 use std::str::FromStr;
+use tracing::warn;
 
 /// Fetch profile from email and inject on client request
 ///

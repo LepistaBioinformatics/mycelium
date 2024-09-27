@@ -7,6 +7,7 @@ use futures_util::future::join_all;
 use reqwest::Client;
 use std::collections::HashMap;
 
+#[tracing::instrument(name = "dispatch_webhooks", skip(bearer_token, account))]
 pub(crate) async fn dispatch_webhooks(
     hooks: Vec<WebHook>,
     account: Account,

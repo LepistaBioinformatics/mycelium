@@ -39,6 +39,7 @@ pub enum EmailRegistrationStatus {
 /// authentication. The first step is to check if the user is registered in
 /// Mycelium.
 ///
+#[tracing::instrument(name = "check_email_registration_status", skip_all)]
 pub async fn check_email_registration_status(
     email: Email,
     user_fetching_repo: Box<&dyn UserFetching>,

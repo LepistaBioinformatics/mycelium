@@ -22,6 +22,7 @@ use uuid::Uuid;
 ///
 /// This action should be used to upgrade Standard, Manager, and Staff accounts.
 /// Subscription accounts should not be upgraded.
+#[tracing::instrument(name = "upgrade_account_privileges", skip_all)]
 pub async fn upgrade_account_privileges(
     profile: Profile,
     account_id: Uuid,

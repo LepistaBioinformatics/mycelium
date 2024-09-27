@@ -7,15 +7,16 @@ use crate::domain::{
 };
 
 use chrono::Local;
-use log::{info, warn};
 use mycelium_base::{
     dtos::Parent,
     entities::{FetchResponseKind, GetOrCreateResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
+use tracing::{info, warn};
 use uuid::Uuid;
 
 /// Guest a user to perform actions into an account.
+#[tracing::instrument(name = "guest_user", skip_all)]
 pub async fn guest_user(
     profile: Profile,
     email: Email,

@@ -5,7 +5,6 @@ use actix_web::{
     error, http::uri::PathAndQuery, web, HttpRequest, HttpResponse,
 };
 use awc::Client;
-use log::{debug, warn};
 use myc_core::{
     domain::{
         dtos::http::{HttpMethod, RouteType},
@@ -19,6 +18,7 @@ use myc_core::{
 use myc_http_tools::{responses::GatewayError, DEFAULT_PROFILE_KEY};
 use shaku_actix::Inject;
 use std::{str::FromStr, time::Duration};
+use tracing::{debug, warn};
 use url::Url;
 
 /// Forward request to the client service.
@@ -31,6 +31,7 @@ use url::Url;
 /// TODO: unofficial X-Forwarded-For header but not the official Forwarded
 /// TODO: one.
 ///
+#[tracing::instrument(name = "route_request", skip_all)]
 pub(crate) async fn route_request(
     req: HttpRequest,
     payload: web::Payload,

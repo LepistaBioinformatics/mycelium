@@ -28,7 +28,6 @@ futures.workspace = true
 futures-util.workspace = true
 jsonwebtoken.workspace = true
 lazy_static.workspace = true
-log.workspace = true
 regex.workspace = true
 reqwest.workspace = true
 serde.workspace = true
@@ -38,6 +37,7 @@ shaku.workspace = true
 shaku_actix.workspace = true
 utoipa.workspace = true
 uuid.workspace = true
+tracing.workspace = true
 tokio.workspace = true
 
 actix-web = { version = "4", features = ["openssl"] }

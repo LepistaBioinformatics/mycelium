@@ -8,6 +8,7 @@ use mycelium_base::{
 use uuid::Uuid;
 
 /// Delete a single role.
+#[tracing::instrument(name = "delete_role", skip(profile, role_deletion_repo))]
 pub async fn delete_role(
     profile: Profile,
     role_id: Uuid,

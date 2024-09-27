@@ -1,11 +1,11 @@
 use crate::domain::{dtos::route::Route, entities::RoutesFetching};
 
 use actix_web::http::uri::PathAndQuery;
-use log::debug;
 use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 use serde::{Deserialize, Serialize};
+use tracing::debug;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -19,6 +19,10 @@ pub enum RoutesMatchResponseEnum {
 ///
 /// This function should be called by the main middleware router function. It
 /// will try to match the address to a route and return the route if found.
+#[tracing::instrument(
+    name = "match_forward_address",
+    skip(routes_fetching_repo)
+)]
 pub async fn match_forward_address(
     path: PathAndQuery,
     routes_fetching_repo: Box<&dyn RoutesFetching>,

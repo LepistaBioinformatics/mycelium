@@ -21,6 +21,7 @@ use rand::{thread_rng, Rng};
 use tera::Context;
 use uuid::Uuid;
 
+#[tracing::instrument(name = "register_token_and_notify_user", skip_all)]
 pub(super) async fn register_token_and_notify_user(
     user_id: Uuid,
     email: Email,
