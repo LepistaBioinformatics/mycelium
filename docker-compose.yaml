@@ -3,31 +3,34 @@
 # ? ----------------------------------------------------------------------------
 networks:
   mycelium_net:
-    ipam:
-      config:
-        - subnet: ${SERVICES_SUBNET}
+    driver: bridge
+
+# ? ----------------------------------------------------------------------------
+# ? SHARED CONFIGURATION
+# ? ----------------------------------------------------------------------------
+x-common-mycelium: &common-config
+  networks:
+    - mycelium_net
 
 # ? ----------------------------------------------------------------------------
 # ? SERVICES DEFINITION
 # ? ----------------------------------------------------------------------------
 services:
-  x-common-mycelium:
-    networks:
-      mycelium_net:
-        ipv4_address: ${SERVICES_SUBNET}
-
   # ? --------------------------------------------------------------------------
   # ? DATABASES
   # ? --------------------------------------------------------------------------
-  mycelium_postgres:
-    container_name: mycelium-postgres
+  myc-postgres:
+    # Inject all shared configs
+    <<: *common-config
+
+    container_name: myc-postgres
     image: 'postgres:12'
     restart: on-failure
     environment:
       - POSTGRES_USERNAME=postgres
       - POSTGRES_PASSWORD=postgres
     ports:
-      - ${POSTGRES_SERVICE_PORT}:5432/tcp
+      - 5432:5432/tcp
     volumes:
       - ./postgres/volume:/var/lib/postgresql/data
       - ./postgres/sql/create_databases.sql:/docker-entrypoint-initdb.d/create_databases.sql:cached
@@ -36,6 +39,17 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
-    networks:
-      mycelium_net:
-        ipv4_address: ${POSTGRES_SERVICE_SUBNET}
+
+  myc-jaeger:
+    # Inject all shared configs
+    <<: *common-config
+
+    container_name: myc-jaeger
+    image: 'jaegertracing/all-in-one:latest'
+    restart: on-failure
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - 16686:16686
+      - 4317:4317 # OTLP gRPC receiver
+      - 4318:4318 # OTLP HTTP receiver
