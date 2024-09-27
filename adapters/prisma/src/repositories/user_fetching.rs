@@ -49,7 +49,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
                 return fetching_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code(NativeErrorCodes::MYC00001.as_str())
+                .with_code(NativeErrorCodes::MYC00001)
                 .as_error()
             }
             Some(res) => res,
@@ -114,8 +114,8 @@ impl UserFetching for UserFetchingSqlDbRepository {
                     let record_provider_name = &record_provider.name;
 
                     let provider = {
-                        if record_password_hash.is_some() &&
-                            record_password_salt.is_some()
+                        if record_password_hash.is_some()
+                            && record_password_salt.is_some()
                         {
                             Provider::Internal(PasswordHash {
                                 hash: record_password_hash.clone().unwrap(),

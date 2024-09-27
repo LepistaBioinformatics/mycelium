@@ -6,7 +6,6 @@ dist
 
 # Environment related
 .env
-postgres/volume*
 cert.pem
 key.pem
 config.dev.yaml
@@ -16,3 +15,9 @@ config.dev.yaml
 
 # Other
 *.drawio.bkp
+
+# Logging 
+logs/*
+
+# Docker
+postgres/volume*

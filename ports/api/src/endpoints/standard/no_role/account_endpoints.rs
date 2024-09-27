@@ -142,7 +142,7 @@ pub async fn create_default_account_url(
         Err(err) => {
             let code_string = err.code().to_string();
 
-            if err.is_in(vec![NativeErrorCodes::MYC00003.as_str()]) {
+            if err.is_in(vec![NativeErrorCodes::MYC00003]) {
                 return HttpResponse::Conflict().json(
                     JsonError::new(err.to_string()).with_code(code_string),
                 );

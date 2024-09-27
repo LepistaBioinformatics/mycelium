@@ -43,7 +43,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                 return creation_err(String::from(
                     "Provider is required to create a user",
                 ))
-                .with_code(NativeErrorCodes::MYC00002.as_str())
+                .with_code(NativeErrorCodes::MYC00002)
                 .as_error()
             }
             Some(provider) => provider,
@@ -60,7 +60,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                 return creation_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code(NativeErrorCodes::MYC00001.as_str())
+                .with_code(NativeErrorCodes::MYC00001)
                 .as_error()
             }
             Some(res) => res,

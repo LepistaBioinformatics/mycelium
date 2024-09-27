@@ -91,7 +91,30 @@ api:
   # ? --------------------------------------------------------------------------
   # ? LOGGING SETTINGS
   # ? --------------------------------------------------------------------------
-  loggingLevel: actix_web=debug,mycelium_base=debug,myc_api=debug
+  logging:
+    # Possible values: trace, debug, info, warn, error or specific level for
+    # each module.
+    level: actix_web=debug,mycelium_base=debug,myc_api=debug
+
+    # Possible values: json, ascii
+    format: json
+
+    # Possible values: jsonl, ansi
+    format: ansi
+
+    # Specify the log target. Possible values: stdout, file, or jaeger
+    target: !jaeger
+      protocol: http
+      host: localhost
+      portGrpc: 4317
+      portHttp: 4318
+
+    # Example with file target
+    #target: !file
+    #  path: logs/api.log
+
+    # Example with stdout target
+    #target: !stdout
 
   # ? --------------------------------------------------------------------------
   # ? API GATEWAY TLS SETTINGS

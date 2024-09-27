@@ -343,10 +343,11 @@ pub async fn update_error_code_message_and_details_url(
     .await
     {
         Err(err) => {
-            let target_msg = NativeErrorCodes::MYC00005.as_str();
+            let target_msg = NativeErrorCodes::MYC00005;
             if err.is_in(vec![target_msg]) {
                 return HttpResponse::BadRequest().json(
-                    JsonError::new(err.to_string()).with_code_str(target_msg),
+                    JsonError::new(err.to_string())
+                        .with_code_str(target_msg.as_str()),
                 );
             }
 
@@ -411,11 +412,12 @@ pub async fn delete_error_code_url(
     .await
     {
         Err(err) => {
-            let target_msg = NativeErrorCodes::MYC00007.as_str();
+            let target_msg = NativeErrorCodes::MYC00007;
 
             if err.is_in(vec![target_msg]) {
                 return HttpResponse::Forbidden().json(
-                    JsonError::new(err.to_string()).with_code_str(target_msg),
+                    JsonError::new(err.to_string())
+                        .with_code_str(target_msg.as_str()),
                 );
             }
 

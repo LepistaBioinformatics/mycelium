@@ -11,6 +11,10 @@ networks:
 # ? SERVICES DEFINITION
 # ? ----------------------------------------------------------------------------
 services:
+  x-common-mycelium:
+    networks:
+      mycelium_net:
+        ipv4_address: ${SERVICES_SUBNET}
 
   # ? --------------------------------------------------------------------------
   # ? DATABASES

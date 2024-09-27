@@ -74,7 +74,7 @@ pub async fn create_seed_staff_account(
                 "User already registered: {}",
                 user.email.get_email()
             ))
-            .with_code(NativeErrorCodes::MYC00002.as_str())
+            .with_code(NativeErrorCodes::MYC00002)
             .as_error()
         }
         GetOrCreateResponseKind::Created(user) => user,

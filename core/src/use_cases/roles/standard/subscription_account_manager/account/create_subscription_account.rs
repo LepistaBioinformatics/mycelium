@@ -77,7 +77,7 @@ pub async fn create_subscription_account(
     {
         GetOrCreateResponseKind::NotCreated(account, msg) => {
             return use_case_err(format!("({}): {}", account.name, msg))
-                .with_code(NativeErrorCodes::MYC00003.as_str())
+                .with_code(NativeErrorCodes::MYC00003)
                 .as_error()
         }
         GetOrCreateResponseKind::Created(account) => account,

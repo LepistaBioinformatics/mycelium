@@ -172,8 +172,8 @@ pub async fn create_subscription_account_url(
             let code_string = err.code().to_string();
 
             if err.is_in(vec![
-                NativeErrorCodes::MYC00002.as_str(),
-                NativeErrorCodes::MYC00003.as_str(),
+                NativeErrorCodes::MYC00002,
+                NativeErrorCodes::MYC00003,
             ]) {
                 return HttpResponse::Conflict().json(
                     JsonError::new(err.to_string()).with_code(code_string),

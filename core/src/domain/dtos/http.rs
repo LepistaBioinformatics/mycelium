@@ -83,6 +83,7 @@ impl FromStr for HttpMethod {
 pub enum Protocol {
     Http,
     Https,
+    Grpc,
 }
 
 impl Display for Protocol {
@@ -90,6 +91,7 @@ impl Display for Protocol {
         match self {
             Protocol::Http => write!(f, "http"),
             Protocol::Https => write!(f, "https"),
+            Protocol::Grpc => write!(f, "grpc"),
         }
     }
 }

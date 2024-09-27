@@ -38,7 +38,7 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
                 return updating_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code(NativeErrorCodes::MYC00001.as_str())
+                .with_code(NativeErrorCodes::MYC00001)
                 .as_error()
             }
             Some(res) => res,
