@@ -3,6 +3,7 @@ use crate::{
 };
 
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
@@ -14,6 +15,7 @@ use mycelium_base::{
     entities::FetchResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
+use prisma_client_rust::and;
 use serde_json::{from_value, to_value};
 use shaku::Component;
 use std::process::id as process_id;
@@ -56,7 +58,6 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
                 return fetching_err(String::from(
                     "Could not serialize meta data.",
                 ))
-                .with_code(NativeErrorCodes::MYC00002.as_str())
                 .as_error()
             }
         };
@@ -66,7 +67,12 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
             .run(|client| async move {
                 let token_option = client
                     .token()
-                    .find_first(vec![token_model::meta::equals(search_meta)])
+                    .find_first(vec![and![
+                        token_model::meta::equals(search_meta),
+                        token_model::expiration::gte(DateTime::from(
+                            Utc::now(),
+                        )),
+                    ]])
                     .exec()
                     .await?;
 
@@ -78,11 +84,7 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
                         .await
                     {
                         Err(err) => return Err(err),
-                        Ok(res) => {
-                            println!("Token deletion result: {:?}", res);
-
-                            true
-                        }
+                        Ok(_) => true,
                     };
 
                     Ok((Some(token_data), delete_res))
@@ -107,7 +109,6 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
                 return fetching_err(format!(
                     "Unexpected error detected on fetching token: {err}"
                 ))
-                .with_code(NativeErrorCodes::MYC00003.as_str())
                 .as_error()
             }
         };
