@@ -41,7 +41,7 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
                 return creation_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code(NativeErrorCodes::MYC00001.as_str())
+                .with_code(NativeErrorCodes::MYC00001)
                 .as_error()
             }
             Some(res) => res,
@@ -60,7 +60,7 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
                         return creation_err(String::from(
                             "Could not serialize the meta data",
                         ))
-                        .with_code(NativeErrorCodes::MYC00002.as_str())
+                        .with_code(NativeErrorCodes::MYC00002)
                         .as_error()
                     }
                 },

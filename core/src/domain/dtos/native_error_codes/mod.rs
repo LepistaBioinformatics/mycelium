@@ -19,13 +19,86 @@ use std::{
     Debug, PartialEq, Sequence, Serialize, Deserialize, Hash, Eq, Clone, Copy,
 )]
 pub enum NativeErrorCodes {
+    ///
+    /// code: "MYC00001",
+    /// message: "Prisma Client Unavailable error",
+    /// details: "Prisma Client error. Could not fetch client.",
+    /// is_internal: true,
+    /// is_native: true
+    ///
     MYC00001 = 1,
+
+    ///
+    /// code: "MYC00002",
+    /// message: "User already registered in Mycelium",
+    /// details: "When a manager account try to register a new account and the account owner already exists this error should be returned.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
     MYC00002,
+
+    ///
+    /// code: "MYC00003",
+    /// message: "Account already registered in Mycelium",
+    /// details: "When a manager account try to register a new account and the account already exists this error should be returned.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
     MYC00003,
+
+    ///
+    /// code: "MYC00004",
+    /// message: "Could not check profile verbose status",
+    /// details: "This error should be dispatched when use-cases could not access the account verbose-status during validations.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
     MYC00004,
+
+    ///
+    /// code: "MYC00005",
+    /// message: "Action restricted to active users",
+    /// details: "Indicates that the desired action should only be performed by active users.",
+    /// is_internal: true,
+    /// is_native: true
+    ///
     MYC00005,
+
+    ///
+    /// code: "MYC00006",
+    /// message: "Action restricted to manager users",
+    /// details: "Indicates that the action requires manager privileges.",
+    /// is_internal: true,
+    /// is_native: true
+    ///
     MYC00006,
+
+    ///
+    /// code: "MYC00007",
+    /// message: "Updating action failed",
+    /// details: "Action dispatched when an update action was preceded by unknown error.",
+    /// is_internal: true,
+    /// is_native: true
+    ///
     MYC00007,
+
+    ///
+    /// code: "MYC00008",
+    /// message: "Token not found or expired",
+    /// details: "Indicates that the token was not found or has expired.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00008,
+
+    ///
+    /// code: "MYC00009",
+    /// message: "User not found",
+    /// details: "Indicates that the user was not found.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00009,
 }
 
 impl NativeErrorCodes {
@@ -60,6 +133,8 @@ impl NativeErrorCodes {
             Self::MYC00005 => "MYC00005",
             Self::MYC00006 => "MYC00006",
             Self::MYC00007 => "MYC00007",
+            Self::MYC00008 => "MYC00008",
+            Self::MYC00009 => "MYC00009",
         }
     }
 

@@ -237,9 +237,9 @@ impl MappedErrors {
         return false;
     }
 
-    pub fn is_in(&self, codes: Vec<&str>) -> bool {
+    pub fn is_in<T: ToString>(&self, codes: Vec<T>) -> bool {
         for code in codes {
-            if self.has_str_code(code) {
+            if self.has_str_code(code.to_string().as_str()) {
                 return true;
             }
         }
@@ -272,8 +272,9 @@ impl MappedErrors {
     }
 
     /// Set the error code of the current error.
-    pub fn with_code(mut self, code: &str) -> Self {
-        let code = code.to_string();
+    pub fn with_code<T: ToString>(mut self, code: T) -> Self {
+        let binding = code.to_string();
+        let code = binding.as_str();
         if code == "none" {
             return self;
         }
@@ -283,7 +284,7 @@ impl MappedErrors {
             ErrorCodes::Unmapped => vec![],
         };
 
-        codes.push(code);
+        codes.push(code.to_string());
         codes.sort();
         codes.dedup();
 

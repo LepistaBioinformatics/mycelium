@@ -1,5 +1,8 @@
 use crate::domain::{
-    dtos::{email::Email, token::EmailConfirmationTokenMeta, user::User},
+    dtos::{
+        email::Email, native_error_codes::NativeErrorCodes,
+        token::EmailConfirmationTokenMeta, user::User,
+    },
     entities::{TokenInvalidation, UserFetching, UserUpdating},
 };
 
@@ -28,6 +31,8 @@ pub async fn check_token_and_activate_user(
                 "User not found: {}",
                 email.get_email()
             ))
+            .with_code(NativeErrorCodes::MYC00009)
+            .with_exp_true()
             .as_error()
         }
         FetchResponseKind::Found(user) => user,
@@ -42,8 +47,8 @@ pub async fn check_token_and_activate_user(
             Some(id) => id,
             None => {
                 return use_case_err(format!(
-                    "User with email {} is invalid",
-                    email.get_email()
+                    "Unexpected error: User with email {email} has no id",
+                    email = email.get_email()
                 ))
                 .as_error()
             }
@@ -61,6 +66,8 @@ pub async fn check_token_and_activate_user(
                 "Token not found or expired for user with email {}",
                 email.get_email()
             ))
+            .with_code(NativeErrorCodes::MYC00008)
+            .with_exp_true()
             .as_error()
         }
         FetchResponseKind::Found(id) => id,
@@ -79,6 +86,8 @@ pub async fn check_token_and_activate_user(
                 user_id.to_string(),
                 msg
             ))
+            .with_code(NativeErrorCodes::MYC00008)
+            .with_exp_true()
             .as_error()
         }
         UpdatingResponseKind::Updated(user) => Ok(user),

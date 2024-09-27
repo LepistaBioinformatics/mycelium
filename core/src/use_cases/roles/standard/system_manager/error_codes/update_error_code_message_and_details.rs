@@ -45,7 +45,7 @@ pub async fn update_error_code_message_and_details(
                 "Unable to match errors with prefix {} and code {}",
                 prefix, code
             ))
-            .with_code(NativeErrorCodes::MYC00006.as_str())
+            .with_code(NativeErrorCodes::MYC00006)
             .as_error();
         }
         FetchResponseKind::Found(error_code) => error_code,
@@ -61,7 +61,7 @@ pub async fn update_error_code_message_and_details(
     match error_code_updating_repo.update(error_code).await? {
         UpdatingResponseKind::NotUpdated(_, msg) => {
             return use_case_err(msg)
-                .with_code(NativeErrorCodes::MYC00007.as_str())
+                .with_code(NativeErrorCodes::MYC00007)
                 .as_error();
         }
         UpdatingResponseKind::Updated(error_code) => Ok(error_code),

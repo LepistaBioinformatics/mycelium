@@ -1,6 +1,7 @@
 {
   "cSpell.words": [
     "actix",
+    "appender",
     "catfact",
     "chrono",
     "datetime",
@@ -11,6 +12,8 @@
     "Lettre",
     "newkey",
     "openapi",
+    "opentelemetry",
+    "otlp",
     "pasetor",
     "pasetors",
     "repr",

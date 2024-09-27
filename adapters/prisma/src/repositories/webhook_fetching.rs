@@ -42,7 +42,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                 return fetching_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code(NativeErrorCodes::MYC00001.as_str())
+                .with_code(NativeErrorCodes::MYC00001)
                 .as_error()
             }
             Some(res) => res,
@@ -100,7 +100,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                 return fetching_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
-                .with_code(NativeErrorCodes::MYC00001.as_str())
+                .with_code(NativeErrorCodes::MYC00001)
                 .as_error()
             }
             Some(res) => res,
