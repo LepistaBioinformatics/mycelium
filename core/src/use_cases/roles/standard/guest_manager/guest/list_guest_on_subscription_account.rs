@@ -15,6 +15,7 @@ use crate::domain::{
 ///
 /// Fetch a list of the guest accounts associated with a single subscription
 /// account.
+#[tracing::instrument(name = "list_guest_on_subscription_account", skip_all)]
 pub async fn list_guest_on_subscription_account(
     profile: Profile,
     account_id: Uuid,

@@ -16,6 +16,7 @@ use mycelium_base::{
 use uuid::Uuid;
 
 /// Change activation status of the target account.
+#[tracing::instrument(name = "change_account_activation_status", skip_all)]
 pub async fn change_account_activation_status(
     profile: Profile,
     account_id: Uuid,

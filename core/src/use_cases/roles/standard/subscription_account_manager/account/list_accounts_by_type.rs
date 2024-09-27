@@ -19,6 +19,7 @@ use mycelium_base::{
 /// List account given an account-type
 ///
 /// Get a list of available accounts given the AccountTypeEnum.
+#[tracing::instrument(name = "list_accounts_by_type", skip_all)]
 pub async fn list_accounts_by_type(
     profile: Profile,
     term: Option<String>,

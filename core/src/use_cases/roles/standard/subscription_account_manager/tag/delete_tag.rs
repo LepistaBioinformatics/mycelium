@@ -7,6 +7,7 @@ use mycelium_base::{
 };
 use uuid::Uuid;
 
+#[tracing::instrument(name = "delete_tag", skip_all)]
 pub async fn delete_tag(
     profile: Profile,
     tag_id: Uuid,

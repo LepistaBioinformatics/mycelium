@@ -12,6 +12,10 @@ use mycelium_base::{
 /// Register a new error code
 ///
 /// This action should be only performed by manager or staff users.
+#[tracing::instrument(
+    name = "register_error_code",
+    skip(profile, message, details, error_code_registration_repo)
+)]
 pub async fn register_error_code(
     profile: Profile,
     prefix: String,

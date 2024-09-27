@@ -9,6 +9,7 @@ use uuid::Uuid;
 
 /// This function deletes a single role. Only manager user could execute such
 /// operation.
+#[tracing::instrument(name = "delete_guest_role", skip_all)]
 pub async fn delete_guest_role(
     profile: Profile,
     role_id: Uuid,

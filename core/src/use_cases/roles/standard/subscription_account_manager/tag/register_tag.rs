@@ -10,6 +10,7 @@ use mycelium_base::{
 use std::collections::HashMap;
 use uuid::Uuid;
 
+#[tracing::instrument(name = "register_tag", skip_all)]
 pub async fn register_tag(
     profile: Profile,
     tag: String,

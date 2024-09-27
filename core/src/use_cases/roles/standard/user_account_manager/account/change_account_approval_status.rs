@@ -20,6 +20,7 @@ use uuid::Uuid;
 /// This action is needed when a new account is created but not approved by a
 /// system administrator. Only checked accounts could perform actions over the
 /// system.
+#[tracing::instrument(name = "change_account_approval_status", skip_all)]
 pub async fn change_account_approval_status(
     profile: Profile,
     account_id: Uuid,

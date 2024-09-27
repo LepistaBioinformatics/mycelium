@@ -11,6 +11,10 @@ use mycelium_base::{
     entities::CreateResponseKind, utils::errors::MappedErrors,
 };
 
+#[tracing::instrument(
+    name = "register_webhook",
+    skip(profile, webhook_registration_repo)
+)]
 pub async fn register_webhook(
     profile: Profile,
     url: String,

@@ -49,6 +49,7 @@ impl FromStr for ActionType {
 
 /// This function allow users to include or remove permission from a single
 /// role. Only manager users should perform such action.
+#[tracing::instrument(name = "update_guest_role_permissions", skip_all)]
 pub async fn update_guest_role_permissions(
     profile: Profile,
     role_id: Uuid,

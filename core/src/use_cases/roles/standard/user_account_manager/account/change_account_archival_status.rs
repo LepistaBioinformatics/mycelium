@@ -19,6 +19,7 @@ use uuid::Uuid;
 ///
 /// After created new accounts could be approved or archived. Case archived
 /// these use-case should be used.
+#[tracing::instrument(name = "change_account_archival_status", skip_all)]
 pub async fn change_account_archival_status(
     profile: Profile,
     account_id: Uuid,

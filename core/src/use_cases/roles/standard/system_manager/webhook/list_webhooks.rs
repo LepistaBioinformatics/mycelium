@@ -11,6 +11,10 @@ use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 
+#[tracing::instrument(
+    name = "list_webhooks",
+    skip(profile, webhook_fetching_repo)
+)]
 pub async fn list_webhooks(
     profile: Profile,
     name: Option<String>,

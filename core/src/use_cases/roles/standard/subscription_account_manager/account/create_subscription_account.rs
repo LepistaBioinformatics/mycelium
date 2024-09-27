@@ -26,6 +26,7 @@ use mycelium_base::{
 /// Create an account flagged as subscription.
 ///
 /// Subscription accounts represents results centering accounts.
+#[tracing::instrument(name = "create_subscription_account", skip_all)]
 pub async fn create_subscription_account(
     profile: Profile,
     bearer_token: String,

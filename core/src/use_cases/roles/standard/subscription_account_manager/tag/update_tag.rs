@@ -8,6 +8,7 @@ use mycelium_base::{
     entities::UpdatingResponseKind, utils::errors::MappedErrors,
 };
 
+#[tracing::instrument(name = "update_tag", skip_all)]
 pub async fn update_tag(
     profile: Profile,
     tag: Tag,

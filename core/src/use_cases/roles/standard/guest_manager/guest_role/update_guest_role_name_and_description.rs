@@ -12,6 +12,10 @@ use uuid::Uuid;
 
 /// This function allows only the update of name and description attributes of
 /// a single role.
+#[tracing::instrument(
+    name = "update_guest_role_name_and_description",
+    skip_all
+)]
 pub async fn update_guest_role_name_and_description(
     profile: Profile,
     name: Option<String>,

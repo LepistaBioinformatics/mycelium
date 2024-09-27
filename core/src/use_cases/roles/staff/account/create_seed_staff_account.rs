@@ -28,6 +28,7 @@ use mycelium_base::{
 ///
 /// Given the possibility to create seed staff accounts without profile
 /// checking, this function could not be exposed through API ports.
+#[tracing::instrument(name = "create_seed_staff_account", skip_all)]
 pub async fn create_seed_staff_account(
     email: String,
     account_name: String,

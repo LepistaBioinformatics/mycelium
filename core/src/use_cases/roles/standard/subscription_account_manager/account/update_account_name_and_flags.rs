@@ -10,6 +10,7 @@ use mycelium_base::{
 };
 use uuid::Uuid;
 
+#[tracing::instrument(name = "update_account_name_and_flags", skip_all)]
 pub async fn update_account_name_and_flags(
     profile: Profile,
     account_id: Uuid,

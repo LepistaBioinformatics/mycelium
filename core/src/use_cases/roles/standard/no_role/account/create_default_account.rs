@@ -33,6 +33,7 @@ use mycelium_base::{
 /// This function are called when a new user start into the system. The
 /// account-creation method also insert a new user into the database and set the
 /// default role as `default-user`.
+#[tracing::instrument(name = "create_default_account", skip_all)]
 pub async fn create_default_account(
     email: Email,
     account_name: String,

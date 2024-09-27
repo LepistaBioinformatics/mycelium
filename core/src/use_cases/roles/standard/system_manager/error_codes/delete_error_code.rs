@@ -10,6 +10,10 @@ use mycelium_base::{
 /// Delete a single error code
 ///
 /// This action should be only performed by manager or staff users.
+#[tracing::instrument(
+    name = "delete_error_code",
+    skip(profile, error_code_deletion_repo)
+)]
 pub async fn delete_error_code(
     profile: Profile,
     prefix: String,

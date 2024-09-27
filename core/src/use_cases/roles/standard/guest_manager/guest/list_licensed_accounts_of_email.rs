@@ -14,6 +14,7 @@ use mycelium_base::{
 /// Get all licenses related to email
 ///
 /// Fetch all subscription accounts which an email was guest.
+#[tracing::instrument(name = "list_licensed_accounts_of_email", skip_all)]
 pub async fn list_licensed_accounts_of_email(
     profile: Profile,
     email: Email,

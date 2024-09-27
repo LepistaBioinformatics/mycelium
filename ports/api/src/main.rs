@@ -31,7 +31,6 @@ use endpoints::{
         ApiDoc as StandardUsersApiDoc,
     },
 };
-use log::{debug, info};
 use models::{
     api_config::{LogFormat, LoggingTarget},
     config_handler::ConfigHandler,
@@ -52,6 +51,7 @@ use router::route_request;
 use settings::{GATEWAY_API_SCOPE, MYCELIUM_API_SCOPE};
 use std::{path::PathBuf, process::id as process_id, str::FromStr};
 use tonic::metadata::{Ascii, MetadataKey, MetadataMap, MetadataValue};
+use tracing::{debug, info};
 use tracing_actix_web::TracingLogger;
 use tracing_subscriber::prelude::*;
 use tracing_subscriber::{fmt, EnvFilter};

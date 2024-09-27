@@ -10,6 +10,10 @@ use mycelium_base::{
 ///
 /// This use-case should only be executed by another use-cases, thus, could not
 /// be exposed through system ports.
+#[tracing::instrument(
+    name = "get_or_create_default_account_types",
+    skip(account_type_registration, description)
+)]
 pub(crate) async fn get_or_create_default_account_types(
     account_type: AccountTypeEnum,
     name: Option<String>,

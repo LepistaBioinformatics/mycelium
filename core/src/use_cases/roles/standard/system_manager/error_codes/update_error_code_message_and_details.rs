@@ -15,6 +15,16 @@ use mycelium_base::{
 /// Update the message and details of an error code.
 ///
 /// This action should be only performed by any registered and active user.
+#[tracing::instrument(
+    name = "update_error_code_message_and_details",
+    skip(
+        profile,
+        message,
+        details,
+        error_code_fetching_repo,
+        error_code_updating_repo
+    )
+)]
 pub async fn update_error_code_message_and_details(
     profile: Profile,
     prefix: String,

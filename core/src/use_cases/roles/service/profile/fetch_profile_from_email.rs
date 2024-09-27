@@ -19,6 +19,7 @@ pub enum ProfileResponse {
 }
 
 /// Fetch the user profile from email address.
+#[tracing::instrument(name = "fetch_profile_from_email", skip_all)]
 pub async fn fetch_profile_from_email(
     email: Email,
     profile_fetching_repo: Box<&dyn ProfileFetching>,

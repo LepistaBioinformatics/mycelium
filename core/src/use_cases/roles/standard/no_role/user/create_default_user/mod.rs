@@ -32,6 +32,7 @@ use uuid::Uuid;
 /// If the user is created with an external provider, the user is created as
 /// active.
 ///
+#[tracing::instrument(name = "create_default_user", skip_all)]
 pub async fn create_default_user(
     email: String,
     first_name: Option<String>,

@@ -4,7 +4,6 @@ use actix_web::{error::ParseError, http::header::Header, web, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use jsonwebtoken::errors::ErrorKind;
 use jwt::{Header as JwtHeader, RegisteredClaims, Token};
-use log::{debug, warn};
 use myc_config::optional_config::OptionalConfig;
 use myc_core::{
     domain::dtos::email::Email,
@@ -23,11 +22,13 @@ use myc_http_tools::{
 use myc_prisma::repositories::{
     LicensedResourcesFetchingSqlDbRepository, ProfileFetchingSqlDbRepository,
 };
+use tracing::{debug, warn};
 
 /// Try to populate profile to request header
 ///
 /// This function is auxiliary of the MyceliumProfileData struct used to extract
 /// the Mycelium Profile from the request on mycelium native APIs.
+#[tracing::instrument(name = "fetch_profile_from_request", skip_all)]
 pub(crate) async fn fetch_profile_from_request(
     req: HttpRequest,
 ) -> Result<MyceliumProfileData, GatewayError> {
@@ -71,6 +72,10 @@ pub(crate) async fn fetch_profile_from_request(
 /// Try to populate profile to request header
 ///
 /// This function is used to check credentials from multiple identity providers.
+#[tracing::instrument(
+    name = "check_credentials_with_multi_identity_provider",
+    skip_all
+)]
 pub async fn check_credentials_with_multi_identity_provider(
     req: HttpRequest,
 ) -> Result<Option<Email>, GatewayError> {
@@ -81,6 +86,7 @@ pub async fn check_credentials_with_multi_identity_provider(
 /// Parse issuer from request
 ///
 /// This function is used to parse issuer from request.
+#[tracing::instrument(name = "parse_issuer_from_request", skip_all)]
 pub async fn parse_issuer_from_request(
     req: HttpRequest,
 ) -> Result<String, GatewayError> {
@@ -124,6 +130,7 @@ pub async fn parse_issuer_from_request(
 /// Discover identity provider
 ///
 /// This function is used to discover identity provider and check credentials.
+#[tracing::instrument(name = "discover_provider", skip_all)]
 async fn discover_provider(
     auth_provider: String,
     req: HttpRequest,

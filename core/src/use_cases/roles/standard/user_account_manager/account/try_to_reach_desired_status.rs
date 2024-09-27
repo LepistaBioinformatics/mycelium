@@ -6,6 +6,7 @@ use mycelium_base::utils::errors::{use_case_err, MappedErrors};
 ///
 /// The desired state is reached when the need set of flags reaches the boolean
 /// final state without generate errors.
+#[tracing::instrument(name = "try_to_reach_desired_status", skip_all)]
 pub(super) async fn try_to_reach_desired_status(
     mut account: Account,
     desired_status: VerboseStatus,

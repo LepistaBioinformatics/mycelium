@@ -5,11 +5,11 @@ use crate::domain::dtos::{
     service::ClientService,
 };
 
-use log::{error, info};
 use mycelium_base::utils::errors::{use_case_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use std::{mem::size_of_val, str::from_utf8};
 use tokio::fs::read as t_read;
+use tracing::{error, info};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -46,6 +46,7 @@ struct TempRouteDTO {
 /// This function will load the configuration from a JSON file and return a
 /// vector of routes.
 ///
+#[tracing::instrument(name = "load_config_from_yaml")]
 pub async fn load_config_from_yaml(
     source_file_path: String,
 ) -> Result<Vec<Route>, MappedErrors> {

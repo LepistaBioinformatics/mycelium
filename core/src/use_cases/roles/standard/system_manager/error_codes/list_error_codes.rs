@@ -12,6 +12,10 @@ use mycelium_base::{
 ///
 /// This function should be used to list all error codes in the application.
 /// This action should be only performed by any registered and active user.
+#[tracing::instrument(
+    name = "list_error_codes",
+    skip(profile, page_size, skip, error_code_fetching_repo)
+)]
 pub async fn list_error_codes(
     profile: Profile,
     prefix: Option<String>,

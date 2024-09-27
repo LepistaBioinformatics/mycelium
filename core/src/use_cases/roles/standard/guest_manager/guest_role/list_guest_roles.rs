@@ -10,6 +10,7 @@ use mycelium_base::{
 use uuid::Uuid;
 
 /// List guest roles
+#[tracing::instrument(name = "list_guest_roles", skip_all)]
 pub async fn list_guest_roles(
     profile: Profile,
     name: Option<String>,

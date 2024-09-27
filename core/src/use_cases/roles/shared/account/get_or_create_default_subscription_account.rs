@@ -17,6 +17,10 @@ use uuid::Uuid;
 /// Default accounts given specific accesses to the user. For example, a default
 /// user should be able to view example data. Staff user should be able to
 /// create new users and so on.
+#[tracing::instrument(
+    name = "get_or_create_default_subscription_account",
+    skip(account_registration_repo)
+)]
 pub(crate) async fn get_or_create_default_subscription_account(
     role: Uuid,
     account_type: AccountType,

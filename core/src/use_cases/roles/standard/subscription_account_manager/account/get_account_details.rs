@@ -11,6 +11,7 @@ use uuid::Uuid;
 ///
 /// These details could include information about guest accounts, modifications
 /// and others.
+#[tracing::instrument(name = "get_account_details", skip_all)]
 pub async fn get_account_details(
     profile: Profile,
     account_id: Uuid,

@@ -12,6 +12,10 @@ use mycelium_base::{
 ///
 /// This function should be executed before the Guest Roles creation. Role
 /// examples should be: ResultsExpert, CustomerExpert, Staff.
+#[tracing::instrument(
+    name = "create_role",
+    skip(profile, description, role_registration_repo)
+)]
 pub async fn create_role(
     profile: Profile,
     name: String,
