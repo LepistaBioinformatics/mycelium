@@ -112,6 +112,45 @@ pub async fn main() -> std::io::Result<()> {
 
     let logging_config = api_config.to_owned().logging;
 
+    let (non_blocking, _guard) = match logging_config.target.to_owned() {
+        //
+        // If a log file is provided, log to the file
+        //
+        Some(LoggingTarget::File { path }) => {
+            let mut log_file = PathBuf::from(path);
+
+            let binding = log_file.to_owned();
+            let parent_dir = binding
+                .parent()
+                .expect("Log file parent directory not found");
+
+            match logging_config.format {
+                LogFormat::Jsonl => {
+                    log_file.set_extension("jsonl");
+                }
+                LogFormat::Ansi => {
+                    log_file.set_extension("log");
+                }
+            };
+
+            if log_file.exists() {
+                std::fs::remove_file(&log_file)?;
+            }
+
+            let file_name =
+                log_file.file_name().expect("Log file name not found");
+
+            let file_appender =
+                tracing_appender::rolling::never(parent_dir, file_name);
+
+            tracing_appender::non_blocking(file_appender)
+        }
+        //
+        // If no log file is provided, log to stderr
+        //
+        _ => tracing_appender::non_blocking(std::io::stderr()),
+    };
+
     if let Some(LoggingTarget::Jaeger {
         name,
         protocol,
@@ -162,44 +201,6 @@ pub async fn main() -> std::io::Result<()> {
         //
         // Default logging configurations
         //
-        let (non_blocking, _guard) = match logging_config.target.to_owned() {
-            //
-            // If a log file is provided, log to the file
-            //
-            Some(LoggingTarget::File { path }) => {
-                let mut log_file = PathBuf::from(path);
-
-                let binding = log_file.to_owned();
-                let parent_dir = binding
-                    .parent()
-                    .expect("Log file parent directory not found");
-
-                match logging_config.format {
-                    LogFormat::Jsonl => {
-                        log_file.set_extension("jsonl");
-                    }
-                    LogFormat::Ansi => {
-                        log_file.set_extension("log");
-                    }
-                };
-
-                if log_file.exists() {
-                    std::fs::remove_file(&log_file)?;
-                }
-
-                let file_name =
-                    log_file.file_name().expect("Log file name not found");
-
-                let file_appender =
-                    tracing_appender::rolling::never(parent_dir, file_name);
-
-                tracing_appender::non_blocking(file_appender)
-            }
-            //
-            // If no log file is provided, log to stderr
-            //
-            _ => tracing_appender::non_blocking(std::io::stderr()),
-        };
 
         let tracing_formatting_layer = tracing_subscriber::fmt()
             .event_format(
