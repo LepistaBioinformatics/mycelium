@@ -7,7 +7,10 @@ use chrono::{DateTime, Local};
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
-        token::{EmailConfirmationTokenMeta, Token, TokenMeta},
+        token::{
+            EmailConfirmationTokenMeta, PasswordChangeTokenMeta, Token,
+            TokenMeta,
+        },
     },
     entities::TokenRegistration,
 };
@@ -51,16 +54,24 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
         // ? Build the initial query (get part of the get-or-create)
         // ? -------------------------------------------------------------------
 
+        let mut meta_clone = meta.clone();
+
+        if let Err(err) = meta_clone.encrypted_token() {
+            return creation_err(format!(
+                "Unexpected error detected on token processing: {err}"
+            ))
+            .as_error();
+        }
+
         let response = client
             .token()
             .create(
-                match to_value(meta) {
+                match to_value(meta_clone) {
                     Ok(value) => value,
                     Err(_) => {
                         return creation_err(String::from(
                             "Could not serialize the meta data",
                         ))
-                        .with_code(NativeErrorCodes::MYC00002)
                         .as_error()
                     }
                 },
@@ -93,9 +104,75 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
 
     async fn create_password_change_token(
         &self,
-        _meta: EmailConfirmationTokenMeta,
-        _expires: DateTime<Local>,
+        meta: PasswordChangeTokenMeta,
+        expires: DateTime<Local>,
     ) -> Result<CreateResponseKind<Token>, MappedErrors> {
-        unimplemented!("`TokenRegistration::create_password_change_token` is not implemented")
+        // ? -------------------------------------------------------------------
+        // ? Try to build the prisma client
+        // ? -------------------------------------------------------------------
+
+        let tmp_client = get_client().await;
+
+        let client = match tmp_client.get(&process_id()) {
+            None => {
+                return creation_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .with_code(NativeErrorCodes::MYC00001)
+                .as_error()
+            }
+            Some(res) => res,
+        };
+
+        // ? -------------------------------------------------------------------
+        // ? Build the initial query (get part of the get-or-create)
+        // ? -------------------------------------------------------------------
+
+        let mut meta_clone = meta.clone();
+
+        if let Err(err) = meta_clone.encrypted_token() {
+            return creation_err(format!(
+                "Unexpected error detected on token processing: {err}"
+            ))
+            .as_error();
+        }
+
+        let response = client
+            .token()
+            .create(
+                match to_value(meta_clone) {
+                    Ok(value) => value,
+                    Err(_) => {
+                        return creation_err(String::from(
+                            "Could not serialize the meta data",
+                        ))
+                        .as_error()
+                    }
+                },
+                vec![token_model::expiration::set(DateTime::from(expires))],
+            )
+            .exec()
+            .await;
+
+        match response {
+            Ok(res) => {
+                let meta: PasswordChangeTokenMeta =
+                    from_value(res.meta).unwrap();
+
+                let token = Token::new(
+                    Some(res.id),
+                    res.expiration.into(),
+                    TokenMeta::PasswordChange(meta),
+                );
+
+                return Ok(CreateResponseKind::Created(token));
+            }
+            Err(err) => {
+                return creation_err(format!(
+                    "Unexpected error detected on create record: {err}"
+                ))
+                .as_error();
+            }
+        }
     }
 }

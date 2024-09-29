@@ -39,7 +39,7 @@ pub async fn create_default_user(
     last_name: Option<String>,
     password: Option<String>,
     provider_name: Option<String>,
-    token_secret: AccountLifeCycle,
+    life_cycle_settings: AccountLifeCycle,
     platform_url: Option<String>,
     user_registration_repo: Box<&dyn UserRegistration>,
     token_registration_repo: Box<&dyn TokenRegistration>,
@@ -107,6 +107,7 @@ pub async fn create_default_user(
                 user.email.get_email()
             ))
             .with_code(NativeErrorCodes::MYC00002)
+            .with_exp_true()
             .as_error()
         }
         GetOrCreateResponseKind::Created(user) => user,
@@ -130,7 +131,7 @@ pub async fn create_default_user(
         register_token_and_notify_user(
             new_user_id,
             email_instance.to_owned(),
-            token_secret,
+            life_cycle_settings,
             platform_url,
             token_registration_repo,
             message_sending_repo,

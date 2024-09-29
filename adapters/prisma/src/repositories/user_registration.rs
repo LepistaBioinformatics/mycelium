@@ -140,11 +140,6 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                             pass.to_owned().hash,
                         )),
                     );
-                    provider_params.push(
-                        identity_provider_model::password_salt::set(Some(
-                            pass.to_owned().salt,
-                        )),
-                    );
                 };
 
                 client

@@ -19,6 +19,7 @@ pub struct MessageSendingSmtpRepository {}
 
 #[async_trait]
 impl MessageSending for MessageSendingSmtpRepository {
+    #[tracing::instrument(name = "MessageSendingSmtpRepository.send", skip_all)]
     async fn send(
         &self,
         message: Message,

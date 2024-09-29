@@ -4,50 +4,78 @@ use crate::{
             email::Email,
             message::Message,
             native_error_codes::NativeErrorCodes,
-            token::{EmailConfirmationTokenMeta, TokenMeta},
+            token::{PasswordChangeTokenMeta, TokenMeta},
         },
-        entities::{MessageSending, TokenRegistration, UserDeletion},
+        entities::{MessageSending, TokenRegistration, UserFetching},
     },
     models::AccountLifeCycle,
     settings::TEMPLATES,
-    use_cases::roles::standard::no_role::user::delete_default_user,
 };
 
 use chrono::Local;
 use mycelium_base::{
-    entities::CreateResponseKind,
+    entities::{CreateResponseKind, FetchResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
 use tera::Context;
-use uuid::Uuid;
 
-#[tracing::instrument(name = "register_token_and_notify_user", skip_all)]
-pub(super) async fn register_token_and_notify_user(
-    user_id: Uuid,
+#[tracing::instrument(name = "start_password_redefinition", skip_all)]
+pub async fn start_password_redefinition(
     email: Email,
     life_cycle_settings: AccountLifeCycle,
     platform_url: Option<String>,
+    user_fetching_repo: Box<&dyn UserFetching>,
     token_registration_repo: Box<&dyn TokenRegistration>,
     message_sending_repo: Box<&dyn MessageSending>,
-    user_deletion_repo: Box<&dyn UserDeletion>,
 ) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
-    // ? Register confirmation token
+    // ? Fetch user from email
+    // ? -----------------------------------------------------------------------
+
+    let user = match user_fetching_repo
+        .get(None, Some(email.to_owned()), None)
+        .await?
+    {
+        FetchResponseKind::NotFound(_) => {
+            return use_case_err(format!(
+                "User not found: {}",
+                email.get_email()
+            ))
+            .with_code(NativeErrorCodes::MYC00009)
+            .with_exp_true()
+            .as_error()
+        }
+        FetchResponseKind::Found(user) => user,
+    };
+
+    // ? -----------------------------------------------------------------------
+    // ? Register password redefinition token
     //
     // The token should be a random number with 6 decimal places. Example:
     // 096579
     //
     // ? -----------------------------------------------------------------------
 
-    let meta = EmailConfirmationTokenMeta::new_with_random_token(
+    let user_id = match user.id {
+        Some(id) => id,
+        None => {
+            return use_case_err(format!(
+                "Unexpected error: User with email {email} has no id",
+                email = email.get_email()
+            ))
+            .as_error()
+        }
+    };
+
+    let meta = PasswordChangeTokenMeta::new_with_random_token(
         user_id,
         email.to_owned(),
-        0,
-        499_999,
+        500_000,
+        999_999,
     );
 
     let token = match token_registration_repo
-        .create_email_confirmation_token(
+        .create_password_change_token(
             meta.to_owned(),
             Local::now()
                 + chrono::Duration::seconds(
@@ -59,43 +87,15 @@ pub(super) async fn register_token_and_notify_user(
         Ok(res) => match res {
             CreateResponseKind::Created(token) => token,
             CreateResponseKind::NotCreated(_, msg) => {
-                // ? -----------------------------------------------------------
-                // ? Delete the user
-                //
-                // Delete user if the token registration process fails. This
-                // process should be executed to avoid the creation of zombie
-                // users.
-                //
-                // ? -----------------------------------------------------------
-
-                delete_default_user(user_id, user_deletion_repo.to_owned())
-                    .await?;
-                return use_case_err(msg).as_error();
+                return use_case_err(msg).as_error()
             }
         },
-        Err(err) => {
-            // ? ---------------------------------------------------------------
-            // ? Delete the user
-            //
-            // Delete user if the token registration process fails. This process
-            // should be executed to avoid the creation of zombie users.
-            //
-            // ? ---------------------------------------------------------------
-
-            delete_default_user(user_id, user_deletion_repo.to_owned()).await?;
-            return Err(err);
-        }
+        Err(err) => return Err(err),
     };
 
     let token_metadata = match token.to_owned().meta {
-        TokenMeta::EmailConfirmation(meta) => meta,
-        _ => {
-            // ? ---------------------------------------------------------------
-            // ? Delete the user
-            // ? ---------------------------------------------------------------
-            delete_default_user(user_id, user_deletion_repo.to_owned()).await?;
-            return use_case_err("Invalid token type").as_error();
-        }
+        TokenMeta::PasswordChange(meta) => meta,
+        _ => return use_case_err("Invalid token type").as_error(),
     };
 
     // ? -----------------------------------------------------------------------
@@ -114,11 +114,10 @@ pub(super) async fn register_token_and_notify_user(
     }
 
     let email_template = match TEMPLATES
-        .render("email/activation-code.jinja", &context)
+        .render("email/password-reset-initiated.jinja", &context)
     {
         Ok(res) => res,
         Err(err) => {
-            delete_default_user(user_id, user_deletion_repo.to_owned()).await?;
             return use_case_err(format!(
                 "Unable to render email template: {err}"
             ))
@@ -138,7 +137,7 @@ pub(super) async fn register_token_and_notify_user(
             to: token_metadata.email,
             cc: None,
             subject: String::from(
-                "[Email Validation] Please confirm your email address",
+                "[Password Reset Request] Email address confirmation",
             ),
             message_head: None,
             message_body: email_template,
@@ -147,7 +146,7 @@ pub(super) async fn register_token_and_notify_user(
         .await
     {
         return use_case_err(format!("Unable to send email: {err}"))
-            .with_code(NativeErrorCodes::MYC00009)
+            .with_code(NativeErrorCodes::MYC00010)
             .as_error();
     };
 

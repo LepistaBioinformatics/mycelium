@@ -110,16 +110,12 @@ impl UserFetching for UserFetchingSqlDbRepository {
 
                     let record_provider = &record.provider.unwrap();
                     let record_password_hash = &record_provider.password_hash;
-                    let record_password_salt = &record_provider.password_salt;
                     let record_provider_name = &record_provider.name;
 
                     let provider = {
-                        if record_password_hash.is_some()
-                            && record_password_salt.is_some()
-                        {
+                        if record_password_hash.is_some() {
                             Provider::Internal(PasswordHash {
                                 hash: record_password_hash.clone().unwrap(),
-                                salt: record_password_salt.clone().unwrap(),
                             })
                         } else if record_provider_name.is_some() {
                             Provider::External(

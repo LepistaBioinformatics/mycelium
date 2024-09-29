@@ -99,6 +99,15 @@ pub enum NativeErrorCodes {
     /// is_native: true
     ///
     MYC00009,
+
+    ///
+    /// code: "MYC00010",
+    /// message: "Unable to notify user",
+    /// details: "Indicates that the system was unable to notify the user, but the action was successful.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00010,
 }
 
 impl NativeErrorCodes {
@@ -135,6 +144,7 @@ impl NativeErrorCodes {
             Self::MYC00007 => "MYC00007",
             Self::MYC00008 => "MYC00008",
             Self::MYC00009 => "MYC00009",
+            Self::MYC00010 => "MYC00010",
         }
     }
 

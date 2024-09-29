@@ -2912,10 +2912,10 @@ dependencies = [
 name = "mycelium-base"
 version = "5.0.8"
 dependencies = [
- "log",
  "regex",
  "serde",
  "serde_json",
+ "tracing",
  "utoipa",
 ]
 
@@ -3030,10 +3030,8 @@ name = "mycelium-smtp"
 version = "5.0.8"
 dependencies = [
  "async-trait",
- "env_logger",
  "lazy_static",
  "lettre",
- "log",
  "myc-core",
  "mycelium-base",
  "mycelium-config",
@@ -3041,6 +3039,7 @@ dependencies = [
  "serde_json",
  "shaku",
  "tokio",
+ "tracing",
 ]
 
 [[package]]

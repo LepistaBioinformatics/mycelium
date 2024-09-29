@@ -1,4 +1,3 @@
-use log::{debug, error, warn};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -6,6 +5,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     str::FromStr,
 };
+use tracing::{debug, error, warn};
 
 /// This enumerator are used to standardize errors codes dispatched during the
 /// `MappedErrors` struct usage.
