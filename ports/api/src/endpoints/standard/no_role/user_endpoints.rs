@@ -21,7 +21,8 @@ use myc_core::{
     models::AccountLifeCycle,
     use_cases::roles::standard::no_role::user::{
         check_email_password_validity, check_email_registration_status,
-        check_token_and_activate_user, create_default_user,
+        check_token_and_activate_user, check_token_and_reset_password,
+        create_default_user, start_password_redefinition,
     },
 };
 use myc_http_tools::{
@@ -43,7 +44,8 @@ pub fn configure(config: &mut web::ServiceConfig) {
         .service(check_email_registration_status_url)
         .service(create_default_user_url)
         .service(check_user_token_url)
-        //.service(check_password_change_token_url)
+        .service(start_password_redefinition_url)
+        .service(check_token_and_reset_password_url)
         .service(check_email_password_validity_url);
 }
 
@@ -72,6 +74,22 @@ pub struct CreateDefaultUserBody {
 pub struct CheckTokenBody {
     token: String,
     email: String,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct StartPasswordResetBody {
+    email: String,
+    platform_url: Option<String>,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct ResetPasswordBody {
+    token: String,
+    email: String,
+    new_password: String,
+    platform_url: Option<String>,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -183,7 +201,7 @@ pub async fn check_email_registration_status_url(
 pub async fn create_default_user_url(
     req: HttpRequest,
     body: web::Json<CreateDefaultUserBody>,
-    token: web::Data<AccountLifeCycle>,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
     user_registration_repo: Inject<
         UserRegistrationModule,
         dyn UserRegistration,
@@ -214,7 +232,7 @@ pub async fn create_default_user_url(
         body.last_name.to_owned(),
         body.password.to_owned(),
         provider,
-        token.get_ref().to_owned(),
+        life_cycle_settings.get_ref().to_owned(),
         body.platform_url.to_owned(),
         Box::new(&*user_registration_repo),
         Box::new(&*token_registration_repo),
@@ -319,54 +337,155 @@ pub async fn check_user_token_url(
     }
 }
 
-//#[utoipa::path(
-//    post,
-//    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
-//    request_body = CheckTokenBody,
-//    responses(
-//        (
-//            status = 500,
-//            description = "Unknown internal server error.",
-//            body = JsonError,
-//        ),
-//        (
-//            status = 403,
-//            description = "Forbidden.",
-//            body = JsonError,
-//        ),
-//        (
-//            status = 401,
-//            description = "Unauthorized.",
-//            body = JsonError,
-//        ),
-//        (
-//            status = 200,
-//            description = "Password change token is valid.",
-//            body = bool,
-//        ),
-//    ),
-//)]
-//#[post("/check-password-change-token/")]
-//pub async fn check_password_change_token_url(
-//    body: web::Json<CheckTokenBody>,
-//    token: web::Data<TokenSecret>,
-//    token_fetching_repo: Inject<TokenFetchingModule, dyn TokenFetching>,
-//    token_deletion_repo: Inject<TokenDeletionModule, dyn TokenDeletion>,
-//) -> impl Responder {
-//    match verify_confirmation_token_pasetor(
-//        body.token.to_owned(),
-//        Some(true),
-//        token.get_ref().to_owned(),
-//        Box::new(&*token_fetching_repo),
-//        Box::new(&*token_deletion_repo),
-//    )
-//    .await
-//    {
-//        Err(err) => HttpResponse::InternalServerError()
-//            .json(JsonError::new(err.to_string())),
-//        Ok(_) => HttpResponse::Created().json(true),
-//    }
-//}
+#[utoipa::path(
+    post,
+    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
+    request_body = CheckTokenBody,
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = JsonError,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = JsonError,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = JsonError,
+        ),
+        (
+            status = 200,
+            description = "Password change requested.",
+            body = bool,
+        ),
+    ),
+)]
+#[post("/start-password-reset/")]
+pub async fn start_password_redefinition_url(
+    body: web::Json<StartPasswordResetBody>,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
+    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
+    token_registration_repo: Inject<
+        TokenRegistrationModule,
+        dyn TokenRegistration,
+    >,
+    message_sending_repo: Inject<MessageSendingModule, dyn MessageSending>,
+) -> impl Responder {
+    let email = match Email::from_string(body.email.to_owned()) {
+        Err(err) => {
+            warn!("Invalid email: {}", err);
+            return HttpResponse::BadRequest()
+                .json(JsonError::new("Invalid email address.".to_string()));
+        }
+        Ok(email) => email,
+    };
+
+    match start_password_redefinition(
+        email,
+        life_cycle_settings.get_ref().to_owned(),
+        body.platform_url.to_owned(),
+        Box::new(&*user_fetching_repo),
+        Box::new(&*token_registration_repo),
+        Box::new(&*message_sending_repo),
+    )
+    .await
+    {
+        Err(err) => {
+            let code_string = err.code().to_string();
+
+            if err.is_in(vec![NativeErrorCodes::MYC00009]) {
+                return HttpResponse::BadRequest().json(
+                    JsonError::new(err.to_string()).with_code(code_string),
+                );
+            }
+
+            HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string()).with_code(code_string))
+        }
+        Ok(_) => HttpResponse::Ok().json(true),
+    }
+}
+
+#[utoipa::path(
+    post,
+    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
+    request_body = CheckTokenBody,
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = JsonError,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = JsonError,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = JsonError,
+        ),
+        (
+            status = 200,
+            description = "Password change requested.",
+            body = bool,
+        ),
+    ),
+)]
+#[post("/reset-password/")]
+pub async fn check_token_and_reset_password_url(
+    body: web::Json<ResetPasswordBody>,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
+    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
+    user_updating_repo: Inject<UserUpdatingModule, dyn UserUpdating>,
+    token_registration_repo: Inject<
+        TokenInvalidationModule,
+        dyn TokenInvalidation,
+    >,
+    message_sending_repo: Inject<MessageSendingModule, dyn MessageSending>,
+) -> impl Responder {
+    let email = match Email::from_string(body.email.to_owned()) {
+        Err(err) => {
+            warn!("Invalid email: {}", err);
+            return HttpResponse::BadRequest()
+                .json(JsonError::new("Invalid email address.".to_string()));
+        }
+        Ok(email) => email,
+    };
+
+    match check_token_and_reset_password(
+        body.token.to_owned(),
+        email,
+        body.new_password.to_owned(),
+        body.platform_url.to_owned(),
+        life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*user_fetching_repo),
+        Box::new(&*user_updating_repo),
+        Box::new(&*token_registration_repo),
+        Box::new(&*message_sending_repo),
+    )
+    .await
+    {
+        Err(err) => {
+            let code_string = err.code().to_string();
+
+            if err.is_in(vec![NativeErrorCodes::MYC00009]) {
+                return HttpResponse::BadRequest().json(
+                    JsonError::new(err.to_string()).with_code(code_string),
+                );
+            }
+
+            HttpResponse::InternalServerError()
+                .json(JsonError::new(err.to_string()).with_code(code_string))
+        }
+        Ok(_) => HttpResponse::Ok().json(true),
+    }
+}
 
 #[utoipa::path(
     post,

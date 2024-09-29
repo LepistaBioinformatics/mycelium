@@ -43,7 +43,6 @@ model IdentityProvider {
   // Model fields
   name          String? @db.VarChar(255)
   password_hash String? @db.VarChar(255)
-  password_salt String? @db.VarChar(255)
 
   // Backward relationship fields
   user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade)
@@ -51,7 +50,7 @@ model IdentityProvider {
 
   // Db compatibility and extra maps
   @@id([user_id])
-  @@unique([user_id, password_hash, password_salt])
+  @@unique([user_id, password_hash])
   @@unique([user_id, name])
   @@map("identity_provider")
 }

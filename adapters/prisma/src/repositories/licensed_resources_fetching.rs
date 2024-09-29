@@ -72,32 +72,6 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             }
         };
 
-        /* let response = client
-        .guest_user_on_account()
-        .find_many(vec![guest_user_on_account_model::guest_user::is(vec![
-            guest_user_model::email::equals(email.get_email()),
-        ])])
-        .include(guest_user_on_account_model::include!({
-            guest_user: select {
-                guest_role: select {
-                    id
-                    name
-                    role: select {
-                        name
-                    }
-                    permissions
-                }
-            }
-            account: select {
-                name
-                account_type
-                is_default
-            }
-        }))
-        .exec()
-        .await
-        .unwrap(); */
-
         // ? -------------------------------------------------------------------
         // ? Evaluate and parse the database response
         // ? -------------------------------------------------------------------

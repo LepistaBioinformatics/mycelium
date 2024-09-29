@@ -20,22 +20,13 @@ use uuid::Uuid;
 pub struct PasswordHash {
     #[serde(skip_serializing)]
     pub hash: String,
-    #[serde(skip_serializing)]
-    pub salt: String,
 }
 
 impl PasswordHash {
-    pub fn new(hash: String, salt: String) -> Self {
-        Self { hash, salt }
-    }
-
     pub fn hash_user_password(password: &[u8]) -> Self {
-        let salt = SaltString::generate(&mut OsRng);
-
         Self {
-            salt: salt.to_string(),
             hash: Argon2::default()
-                .hash_password(password, &salt)
+                .hash_password(password, &SaltString::generate(&mut OsRng))
                 .expect("Unable to hash password.")
                 .to_string(),
         }

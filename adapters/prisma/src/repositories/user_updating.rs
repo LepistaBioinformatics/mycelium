@@ -1,9 +1,18 @@
-use crate::{prisma::user as user_model, repositories::connector::get_client};
+use crate::{
+    prisma::{
+        identity_provider as identity_provider_model, user as user_model,
+    },
+    repositories::connector::get_client,
+};
 
 use async_trait::async_trait;
 use chrono::Local;
 use myc_core::domain::{
-    dtos::{email::Email, native_error_codes::NativeErrorCodes, user::User},
+    dtos::{
+        email::Email,
+        native_error_codes::NativeErrorCodes,
+        user::{PasswordHash, User},
+    },
     entities::UserUpdating,
 };
 use mycelium_base::{
@@ -106,6 +115,61 @@ impl UserUpdating for UserUpdatingSqlDbRepository {
                 return updating_err(format!(
                     "Unexpected error detected on update record: {}",
                     err
+                ))
+                .as_error();
+            }
+        }
+    }
+
+    async fn update_password(
+        &self,
+        user_id: Uuid,
+        new_password: PasswordHash,
+    ) -> Result<UpdatingResponseKind<bool>, MappedErrors> {
+        // ? -------------------------------------------------------------------
+        // ? Try to build the prisma client
+        // ? -------------------------------------------------------------------
+
+        let tmp_client = get_client().await;
+
+        let client = match tmp_client.get(&process_id()) {
+            None => {
+                return updating_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .with_code(NativeErrorCodes::MYC00001)
+                .as_error()
+            }
+            Some(res) => res,
+        };
+
+        // ? -------------------------------------------------------------------
+        // ? Try to update record
+        // ? -------------------------------------------------------------------
+
+        match client
+            .identity_provider()
+            .update(
+                identity_provider_model::user_id::equals(user_id.to_string()),
+                vec![identity_provider_model::password_hash::set(Some(
+                    new_password.hash,
+                ))],
+            )
+            .exec()
+            .await
+        {
+            Ok(_) => Ok(UpdatingResponseKind::Updated(true)),
+            Err(err) => {
+                if err.is_prisma_error::<RecordNotFound>() {
+                    return updating_err(format!(
+                        "Invalid user type: {:?}",
+                        user_id
+                    ))
+                    .as_error();
+                };
+
+                return updating_err(format!(
+                    "Unexpected error detected on update record: {err}",
                 ))
                 .as_error();
             }
