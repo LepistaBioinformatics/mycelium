@@ -108,6 +108,24 @@ pub enum NativeErrorCodes {
     /// is_native: true
     ///
     MYC00010,
+
+    ///
+    /// code: "MYC00011",
+    /// message: "New Password is the same as the old one",
+    /// details: "Indicates that the new password is the same as the old one.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00011,
+
+    ///
+    /// code: "MYC00012",
+    /// message: "Unable to validate password",
+    /// details: "Indicates that the system was unable to validate the password.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00012,
 }
 
 impl NativeErrorCodes {
@@ -145,6 +163,8 @@ impl NativeErrorCodes {
             Self::MYC00008 => "MYC00008",
             Self::MYC00009 => "MYC00009",
             Self::MYC00010 => "MYC00010",
+            Self::MYC00011 => "MYC00011",
+            Self::MYC00012 => "MYC00012",
         }
     }
 

@@ -474,7 +474,10 @@ pub async fn check_token_and_reset_password_url(
         Err(err) => {
             let code_string = err.code().to_string();
 
-            if err.is_in(vec![NativeErrorCodes::MYC00009]) {
+            if err.is_in(vec![
+                NativeErrorCodes::MYC00009,
+                NativeErrorCodes::MYC00011,
+            ]) {
                 return HttpResponse::BadRequest().json(
                     JsonError::new(err.to_string()).with_code(code_string),
                 );
@@ -540,10 +543,10 @@ pub async fn check_email_password_validity_url(
             .json(JsonError::new(err.to_string())),
         Ok((valid, user)) => match valid {
             true => {
-                let _user = if let None = user {
-                    return HttpResponse::NoContent().finish();
+                let _user = if let Some(u) = user {
+                    u
                 } else {
-                    user.unwrap()
+                    return HttpResponse::NoContent().finish();
                 };
 
                 let token = match encode_jwt(
@@ -567,7 +570,7 @@ pub async fn check_email_password_validity_url(
                     ("user".to_string(), serialized_user),
                 ]))
             }
-            false => HttpResponse::NoContent().finish(),
+            false => HttpResponse::Unauthorized().finish(),
         },
     }
 }

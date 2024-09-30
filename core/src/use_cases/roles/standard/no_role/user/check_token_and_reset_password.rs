@@ -90,21 +90,27 @@ pub async fn check_token_and_reset_password(
     // ? Update user password
     // ? -----------------------------------------------------------------------
 
-    let hash_password =
+    let mut hash_password =
         PasswordHash::hash_user_password(new_password.as_bytes());
 
-    if let UpdatingResponseKind::NotUpdated(_, msg) = user_updating_repo
+    hash_password.with_raw_password(new_password);
+
+    if let UpdatingResponseKind::NotUpdated((code, _), msg) = user_updating_repo
         .update_password(user_id, hash_password)
         .await?
     {
-        return use_case_err(format!(
+        let mut error = use_case_err(format!(
             "User with id {} could not be activated: {}",
             user_id.to_string(),
             msg
         ))
-        .with_code(NativeErrorCodes::MYC00008)
-        .with_exp_true()
-        .as_error();
+        .with_exp_true();
+
+        if let Some(c) = code {
+            error = error.with_code(c);
+        }
+
+        return error.as_error();
     }
 
     // ? -----------------------------------------------------------------------
