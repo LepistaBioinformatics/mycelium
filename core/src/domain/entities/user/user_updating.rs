@@ -1,4 +1,7 @@
-use crate::domain::dtos::user::{PasswordHash, User};
+use crate::domain::dtos::{
+    native_error_codes::NativeErrorCodes,
+    user::{PasswordHash, User},
+};
 
 use async_trait::async_trait;
 use mycelium_base::{
@@ -18,5 +21,8 @@ pub trait UserUpdating: Interface + Send + Sync {
         &self,
         user_id: Uuid,
         new_password: PasswordHash,
-    ) -> Result<UpdatingResponseKind<bool>, MappedErrors>;
+    ) -> Result<
+        UpdatingResponseKind<(Option<NativeErrorCodes>, bool)>,
+        MappedErrors,
+    >;
 }

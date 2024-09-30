@@ -71,10 +71,8 @@ where
     }
 
     pub fn check_password(&self, password: &[u8]) -> Result<(), MappedErrors> {
-        (PasswordHash {
-            hash: self.token.to_string(),
-        })
-        .check_password(password)
+        PasswordHash::new_from_hash(self.token.to_string())
+            .check_password(password)
     }
 
     pub(crate) fn get_token(&self) -> T {

@@ -20,15 +20,26 @@ use uuid::Uuid;
 pub struct PasswordHash {
     #[serde(skip_serializing)]
     pub hash: String,
+
+    #[serde(skip_serializing, skip_deserializing)]
+    password: Option<String>,
 }
 
 impl PasswordHash {
+    pub fn new_from_hash(hash: String) -> Self {
+        Self {
+            hash,
+            password: None,
+        }
+    }
+
     pub fn hash_user_password(password: &[u8]) -> Self {
         Self {
             hash: Argon2::default()
                 .hash_password(password, &SaltString::generate(&mut OsRng))
                 .expect("Unable to hash password.")
                 .to_string(),
+            password: None,
         }
     }
 
@@ -50,6 +61,15 @@ impl PasswordHash {
                     .as_error()
             }
         }
+    }
+
+    pub fn get_raw_password(&self) -> Option<String> {
+        self.password.to_owned()
+    }
+
+    pub fn with_raw_password(&mut self, password: String) -> Self {
+        self.password = Some(password);
+        self.to_owned()
     }
 }
 
