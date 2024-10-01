@@ -1,1 +1,3 @@
-pub mod account;
+mod tenant;
+
+pub use tenant::*;
