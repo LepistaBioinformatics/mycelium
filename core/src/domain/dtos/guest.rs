@@ -7,7 +7,7 @@ use std::str::FromStr;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum Permissions {
     View = 0,
@@ -42,7 +42,7 @@ impl FromStr for Permissions {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct GuestRole {
     pub id: Option<Uuid>,
@@ -65,7 +65,7 @@ impl GuestRole {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct GuestUser {
     pub id: Option<Uuid>,

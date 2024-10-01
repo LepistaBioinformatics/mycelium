@@ -34,6 +34,11 @@ pub enum DefaultActor {
     /// This actor is responsible for managing system, including error messages,
     /// webhooks, and others.
     SystemManager,
+
+    /// Tenant manager
+    ///
+    /// This actor is responsible for managing tenants.
+    TenantManager,
 }
 
 impl Display for DefaultActor {
@@ -50,6 +55,7 @@ impl Display for DefaultActor {
                 write!(f, "guest-manager")
             }
             DefaultActor::SystemManager => write!(f, "system-manager"),
+            DefaultActor::TenantManager => write!(f, "tenant-manager"),
         }
     }
 }
@@ -66,6 +72,7 @@ impl FromStr for DefaultActor {
             "user-account-manager" => Ok(DefaultActor::UserAccountManager),
             "guest-manager" => Ok(DefaultActor::GuestManager),
             "system-manager" => Ok(DefaultActor::SystemManager),
+            "tenant-manager" => Ok(DefaultActor::TenantManager),
 
             _ => Err(()),
         }

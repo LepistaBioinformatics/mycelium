@@ -15,7 +15,7 @@ use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct PasswordHash {
     #[serde(skip_serializing)]
@@ -73,14 +73,14 @@ impl PasswordHash {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum Provider {
     External(String),
     Internal(PasswordHash),
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, ToSchema)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
     pub id: Option<Uuid>,

@@ -6,7 +6,9 @@ use utoipa::ToSchema;
 ///
 /// This enumerator allow represents the children elements using their primary
 /// keys (Ids option) or the true records (Record option).
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
+#[derive(
+    Clone, Debug, Deserialize, Serialize, Eq, Hash, PartialEq, ToSchema,
+)]
 #[serde(rename_all = "camelCase")]
 pub enum Children<T, U> {
     Records(Vec<T>),
@@ -26,7 +28,9 @@ where
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
+#[derive(
+    Clone, Debug, Deserialize, Serialize, Eq, Hash, PartialEq, ToSchema,
+)]
 #[serde(untagged, rename_all = "camelCase")]
 pub enum UntaggedChildren<T, U> {
     Records(Vec<T>),
