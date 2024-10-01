@@ -39,7 +39,7 @@ pub async fn list_accounts_by_type(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_view_ids_or_error(vec![
-        DefaultActor::SubscriptionAccountManager.to_string(),
+        DefaultActor::SubscriptionManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

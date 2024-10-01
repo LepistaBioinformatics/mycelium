@@ -113,7 +113,7 @@ pub struct CreateTagBody {
 /// groups, but not real persons.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::SubscriptionAccountManager, UrlGroup::Accounts),
+    context_path = build_actor_context(DefaultActor::SubscriptionManager, UrlGroup::Accounts),
     request_body = CreateSubscriptionAccountBody,
     responses(
         (
@@ -196,7 +196,7 @@ pub async fn create_subscription_account_url(
 ///
 #[utoipa::path(
     get,
-    context_path = build_actor_context(DefaultActor::SubscriptionAccountManager, UrlGroup::Accounts),
+    context_path = build_actor_context(DefaultActor::SubscriptionManager, UrlGroup::Accounts),
     params(
         ListSubscriptionAccountParams,
         PaginationParams,
@@ -297,7 +297,7 @@ pub async fn list_accounts_by_type_url(
 /// Get a single subscription account.
 #[utoipa::path(
     get,
-    context_path = build_actor_context(DefaultActor::SubscriptionAccountManager, UrlGroup::Accounts),
+    context_path = build_actor_context(DefaultActor::SubscriptionManager, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
@@ -360,7 +360,7 @@ pub async fn get_account_details_url(
 /// groups, but not real persons.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(DefaultActor::SubscriptionAccountManager, UrlGroup::Accounts),
+    context_path = build_actor_context(DefaultActor::SubscriptionManager, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
@@ -432,7 +432,7 @@ pub async fn update_account_name_and_flags_url(
 /// Propagate a single subscription account.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::SubscriptionAccountManager, UrlGroup::Accounts),
+    context_path = build_actor_context(DefaultActor::SubscriptionManager, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
@@ -488,7 +488,7 @@ pub async fn propagate_existing_subscription_account_url(
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::SubscriptionAccountManager, UrlGroup::Accounts),
+    context_path = build_actor_context(DefaultActor::SubscriptionManager, UrlGroup::Accounts),
     params(
         ("id" = Uuid, Path, description = "The account primary key."),
     ),
@@ -552,7 +552,7 @@ pub async fn register_tag_url(
 
 #[utoipa::path(
     put,
-    context_path = build_actor_context(DefaultActor::SubscriptionAccountManager, UrlGroup::Accounts),
+    context_path = build_actor_context(DefaultActor::SubscriptionManager, UrlGroup::Accounts),
     params(
         ("id" = Uuid, Path, description = "The account primary key."),
         ("tag_id" = Uuid, Path, description = "The tag primary key."),
@@ -619,7 +619,7 @@ pub async fn update_tag_url(
 
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(DefaultActor::SubscriptionAccountManager, UrlGroup::Accounts),
+    context_path = build_actor_context(DefaultActor::SubscriptionManager, UrlGroup::Accounts),
     params(
         ("id" = Uuid, Path, description = "The account primary key."),
         ("tag_id" = Uuid, Path, description = "The tag primary key."),
