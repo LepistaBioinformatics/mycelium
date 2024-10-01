@@ -18,7 +18,7 @@ pub async fn delete_tag(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_create_ids_or_error(vec![
-        DefaultActor::SubscriptionAccountManager.to_string(),
+        DefaultActor::SubscriptionManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

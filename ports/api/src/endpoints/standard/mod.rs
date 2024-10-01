@@ -56,8 +56,8 @@ pub async fn list_role_controlled_main_routes_url() -> impl Responder {
     HttpResponse::Ok().json(
         [
             DefaultActor::NoRole,
-            DefaultActor::SubscriptionAccountManager,
-            DefaultActor::UserAccountManager,
+            DefaultActor::SubscriptionManager,
+            DefaultActor::UserManager,
             DefaultActor::GuestManager,
             DefaultActor::SystemManager,
         ]
@@ -124,9 +124,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         .service(
             web::scope(&format!(
                 "/{}",
-                DefaultActor::SubscriptionAccountManager
-                    .to_string()
-                    .as_str()
+                DefaultActor::SubscriptionManager.to_string().as_str()
             ))
             .service(
                 web::scope(&format!("/{}", UrlGroup::Accounts)).configure(
@@ -140,7 +138,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         .service(
             web::scope(&format!(
                 "/{}",
-                DefaultActor::UserAccountManager.to_string().as_str()
+                DefaultActor::UserManager.to_string().as_str()
             ))
             .service(
                 web::scope(&format!("/{}", UrlGroup::Accounts)).configure(

@@ -36,8 +36,8 @@ pub async fn list_actors_url() -> impl Responder {
     HttpResponse::Ok().json(
         vec![
             DefaultActor::NoRole,
-            DefaultActor::SubscriptionAccountManager,
-            DefaultActor::UserAccountManager,
+            DefaultActor::SubscriptionManager,
+            DefaultActor::UserManager,
             DefaultActor::GuestManager,
             DefaultActor::SystemManager,
         ]

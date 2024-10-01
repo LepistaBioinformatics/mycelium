@@ -33,7 +33,7 @@ pub async fn change_account_approval_status(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_update_ids_or_error(vec![
-        DefaultActor::UserAccountManager.to_string(),
+        DefaultActor::UserManager.to_string()
     ])?;
 
     // ? -----------------------------------------------------------------------

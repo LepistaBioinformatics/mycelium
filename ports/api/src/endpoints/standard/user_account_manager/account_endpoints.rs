@@ -47,7 +47,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 /// operation on the system. These endpoint should approve such account.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(DefaultActor::UserAccountManager, UrlGroup::Accounts),
+    context_path = build_actor_context(DefaultActor::UserManager, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
@@ -114,7 +114,7 @@ pub async fn approve_account_url(
 /// work for this.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(DefaultActor::UserAccountManager, UrlGroup::Accounts),
+    context_path = build_actor_context(DefaultActor::UserManager, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
@@ -181,7 +181,7 @@ pub async fn disapprove_account_url(
 /// account active.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(DefaultActor::UserAccountManager, UrlGroup::Accounts),
+    context_path = build_actor_context(DefaultActor::UserManager, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
@@ -248,7 +248,7 @@ pub async fn activate_account_url(
 /// account deactivated.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(DefaultActor::UserAccountManager, UrlGroup::Accounts),
+    context_path = build_actor_context(DefaultActor::UserManager, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
@@ -314,7 +314,7 @@ pub async fn deactivate_account_url(
 /// Set target account as archived.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(DefaultActor::UserAccountManager, UrlGroup::Accounts),
+    context_path = build_actor_context(DefaultActor::UserManager, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
@@ -380,7 +380,7 @@ pub async fn archive_account_url(
 /// Set target account as un-archived.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(DefaultActor::UserAccountManager, UrlGroup::Accounts),
+    context_path = build_actor_context(DefaultActor::UserManager, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),

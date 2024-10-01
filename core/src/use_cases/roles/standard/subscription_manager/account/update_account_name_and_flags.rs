@@ -27,7 +27,7 @@ pub async fn update_account_name_and_flags(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_update_ids_or_error(vec![
-        DefaultActor::SubscriptionAccountManager.to_string(),
+        DefaultActor::SubscriptionManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------
