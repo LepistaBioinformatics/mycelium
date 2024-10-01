@@ -10,7 +10,7 @@ use myc_core::{
         actors::DefaultActor,
         entities::{AccountFetching, AccountUpdating},
     },
-    use_cases::roles::standard::user_account_manager::account::{
+    use_cases::roles::standard::user_manager::account::{
         change_account_activation_status, change_account_approval_status,
         change_account_archival_status,
     },

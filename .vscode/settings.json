@@ -23,6 +23,7 @@
     "structs",
     "Tera",
     "thiserror",
+    "uninvite",
     "utoipa",
     "withscores",
     "ZRANGE"
