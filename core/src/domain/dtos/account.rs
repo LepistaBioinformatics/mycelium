@@ -14,7 +14,7 @@ use std::{
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountType {
     pub id: Option<Uuid>,
@@ -27,7 +27,9 @@ pub struct AccountType {
     pub is_staff: bool,
 }
 
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize, ToSchema)]
+#[derive(
+    Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize, ToSchema,
+)]
 #[serde(rename_all = "camelCase")]
 pub enum AccountTypeEnum {
     Standard,
@@ -47,7 +49,7 @@ impl Display for AccountTypeEnum {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum VerboseStatus {
     Pending,
@@ -145,7 +147,7 @@ impl VerboseStatus {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Account {
     pub id: Option<Uuid>,
@@ -171,8 +173,27 @@ pub struct Account {
     // account.
     pub is_default: bool,
 
+    /// The Account Tenant
+    ///
+    /// This is the tenant of the account. The tenant is the organization that
+    /// the account belongs to.
+    //pub tenant: Parent<Tenant, Uuid>,
+
+    /// The Account Owners
+    ///
+    /// This is the list of account owners. The account owners are the users who
+    /// have the account owner role.
     pub owners: Children<User, Uuid>,
+
+    /// The Account Type
+    ///
+    /// Account type is the type of the account. The account type is used to
+    /// categorize the account.
     pub account_type: Parent<AccountType, Uuid>,
+
+    /// The Account Guest Users
+    ///
+    /// This is the list of guest users of the account.
     pub guest_users: Option<Children<GuestUser, Uuid>>,
 
     pub created: DateTime<Local>,
@@ -183,6 +204,7 @@ impl Account {
     pub fn new_subscription_account(
         account_name: String,
         account_type: AccountType,
+        //tenant: Parent<Tenant, Uuid>,
     ) -> Self {
         Self {
             id: None,
@@ -194,6 +216,7 @@ impl Account {
             is_archived: false,
             verbose_status: None,
             is_default: false,
+            //tenant,
             owners: Children::Ids([].to_vec()),
             account_type: Parent::Record(account_type),
             guest_users: None,
@@ -206,6 +229,7 @@ impl Account {
         account_name: String,
         principal_owner: User,
         account_type: AccountType,
+        //tenant: Parent<Tenant, Uuid>,
     ) -> Self {
         Self {
             id: None,
@@ -217,6 +241,7 @@ impl Account {
             is_archived: false,
             verbose_status: None,
             is_default: false,
+            //tenant,
             owners: Children::Records([principal_owner].to_vec()),
             account_type: Parent::Record(account_type),
             guest_users: None,
@@ -258,6 +283,7 @@ mod tests {
             is_archived: false,
             verbose_status: None,
             is_default: false,
+            //tenant: Parent::Id(Uuid::new_v4()),
             owners: Children::Records([].to_vec()),
             account_type: Parent::Record(account_type),
             guest_users: None,

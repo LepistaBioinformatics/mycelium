@@ -12,6 +12,7 @@ pub mod role;
 pub mod route;
 pub mod service;
 pub mod tag;
+pub mod tenant;
 pub mod token;
 pub mod user;
 pub mod webhook;
