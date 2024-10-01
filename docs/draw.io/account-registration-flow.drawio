@@ -346,6 +346,31 @@
         <mxCell id="FVk5c1Z8qgSLQEcz-GKA-99" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-95" target="FVk5c1Z8qgSLQEcz-GKA-71" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
+        <mxCell id="mjyBg8GIDeBmyG9hf5XO-5" value="&lt;font color=&quot;#ffffff&quot;&gt;USER ACCOUNT&lt;/font&gt;" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.organizations_account;" vertex="1" parent="1">
+          <mxGeometry x="-1280" y="757.7" width="74" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="mjyBg8GIDeBmyG9hf5XO-6" value="ACOUNT&lt;div&gt;OWNER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;" vertex="1" parent="1">
+          <mxGeometry x="-1050" y="697.9" width="44.4" height="48.8" as="geometry" />
+        </mxCell>
+        <mxCell id="mjyBg8GIDeBmyG9hf5XO-7" value="ACOUNT&lt;div&gt;GUEST&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;" vertex="1" parent="1">
+          <mxGeometry x="-1050" y="817.3000000000001" width="44.4" height="48.8" as="geometry" />
+        </mxCell>
+        <mxCell id="mjyBg8GIDeBmyG9hf5XO-8" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;" edge="1" source="mjyBg8GIDeBmyG9hf5XO-5" target="mjyBg8GIDeBmyG9hf5XO-7" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mjyBg8GIDeBmyG9hf5XO-10" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;xN&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="mjyBg8GIDeBmyG9hf5XO-8">
+          <mxGeometry x="-0.0841" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="mjyBg8GIDeBmyG9hf5XO-9" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;" edge="1" source="mjyBg8GIDeBmyG9hf5XO-5" target="mjyBg8GIDeBmyG9hf5XO-6" parent="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mjyBg8GIDeBmyG9hf5XO-11" value="&lt;font style=&quot;font-size: 16px;&quot;&gt;x1&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="mjyBg8GIDeBmyG9hf5XO-9">
+          <mxGeometry x="-0.1009" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>

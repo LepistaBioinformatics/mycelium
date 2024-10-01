@@ -35,6 +35,11 @@ pub enum DefaultActor {
     /// webhooks, and others.
     SystemManager,
 
+    /// Tenant owner
+    ///
+    /// This actor is responsible for managing tenant metadata, tags, and owner.
+    TenantOwner,
+
     /// Tenant manager
     ///
     /// This actor is responsible for managing tenants.
@@ -55,6 +60,7 @@ impl Display for DefaultActor {
                 write!(f, "guest-manager")
             }
             DefaultActor::SystemManager => write!(f, "system-manager"),
+            DefaultActor::TenantOwner => write!(f, "tenant-owner"),
             DefaultActor::TenantManager => write!(f, "tenant-manager"),
         }
     }
@@ -73,6 +79,7 @@ impl FromStr for DefaultActor {
             "guest-manager" => Ok(DefaultActor::GuestManager),
             "system-manager" => Ok(DefaultActor::SystemManager),
             "tenant-manager" => Ok(DefaultActor::TenantManager),
+            "tenant-owner" => Ok(DefaultActor::TenantOwner),
 
             _ => Err(()),
         }
