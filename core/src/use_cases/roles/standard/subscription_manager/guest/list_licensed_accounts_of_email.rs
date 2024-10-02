@@ -14,7 +14,11 @@ use mycelium_base::{
 /// Get all licenses related to email
 ///
 /// Fetch all subscription accounts which an email was guest.
-#[tracing::instrument(name = "list_licensed_accounts_of_email", skip_all)]
+#[tracing::instrument(
+    name = "list_licensed_accounts_of_email",
+    fields(account_id = %profile.acc_id),
+    skip_all
+)]
 pub async fn list_licensed_accounts_of_email(
     profile: Profile,
     email: Email,
@@ -25,7 +29,9 @@ pub async fn list_licensed_accounts_of_email(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_view_ids_or_error(vec![
-        DefaultActor::GuestManager.to_string()
+        DefaultActor::TenantOwner.to_string(),
+        DefaultActor::TenantManager.to_string(),
+        DefaultActor::SubscriptionManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

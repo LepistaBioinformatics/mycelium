@@ -14,7 +14,11 @@ use uuid::Uuid;
 /// This use case is used to replace the user's guest role. The user's guest
 /// role is the role that the user has in the account.
 ///
-#[tracing::instrument(name = "update_user_guest_role", skip_all)]
+#[tracing::instrument(
+    name = "update_user_guest_role",
+    fields(account_id = %profile.acc_id),
+    skip_all
+)]
 pub async fn update_user_guest_role(
     profile: Profile,
     account_id: Uuid,
@@ -27,7 +31,9 @@ pub async fn update_user_guest_role(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_update_ids_or_error(vec![
-        DefaultActor::GuestManager.to_string(),
+        DefaultActor::TenantOwner.to_string(),
+        DefaultActor::TenantManager.to_string(),
+        DefaultActor::SubscriptionManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

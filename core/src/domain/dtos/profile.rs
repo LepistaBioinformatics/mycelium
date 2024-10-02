@@ -1,6 +1,6 @@
 use super::{
     account::VerboseStatus, guest::Permissions,
-    related_accounts::RelatedAccounts,
+    related_accounts::RelatedAccounts, user::User,
 };
 
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
@@ -57,7 +57,7 @@ pub struct LicensedResources {
     pub perms: Vec<Permissions>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Owner {
     /// The owner email
@@ -76,6 +76,17 @@ pub struct Owner {
 
     /// The owner username
     pub username: Option<String>,
+}
+
+impl Owner {
+    pub fn from_user(user: User) -> Self {
+        Self {
+            email: user.email.get_email(),
+            first_name: user.first_name,
+            last_name: user.last_name,
+            username: Some(user.username),
+        }
+    }
 }
 
 /// This object should be used over the application layer operations.
@@ -157,6 +168,10 @@ pub struct Profile {
 }
 
 impl Profile {
+    pub fn profile_string(&self) -> String {
+        format!("profile:{}", self.acc_id.to_string())
+    }
+
     pub fn has_admin_privileges(&self) -> bool {
         self.is_staff || self.is_manager
     }

@@ -7,12 +7,19 @@ use mycelium_base::{
 use shaku::Interface;
 use std::fmt::Result as FmResult;
 use std::fmt::{Debug, Display, Formatter};
+use uuid::Uuid;
 
 #[async_trait]
 pub trait TenantRegistration: Interface + Send + Sync {
     async fn create(
         &self,
         tenant: Tenant,
+    ) -> Result<CreateResponseKind<Tenant>, MappedErrors>;
+
+    async fn register_owner(
+        &self,
+        tenant_id: Uuid,
+        owner_id: Uuid,
     ) -> Result<CreateResponseKind<Tenant>, MappedErrors>;
 }
 

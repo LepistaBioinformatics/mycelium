@@ -1,3 +1,10 @@
+// All actions listed below should ve performed by:
+//
+// - Subscription Manager
+// - Tenant Manager
+// - Tenant Owner
+//
+
 mod create_subscription_account;
 mod get_account_details;
 mod list_accounts_by_type;

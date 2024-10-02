@@ -26,7 +26,11 @@ use mycelium_base::{
 /// Create an account flagged as subscription.
 ///
 /// Subscription accounts represents results centering accounts.
-#[tracing::instrument(name = "create_subscription_account", skip_all)]
+#[tracing::instrument(
+    name = "create_subscription_account",
+    fields(account_id = %profile.acc_id),
+    skip_all
+)]
 pub async fn create_subscription_account(
     profile: Profile,
     bearer_token: String,
@@ -40,6 +44,8 @@ pub async fn create_subscription_account(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_create_ids_or_error(vec![
+        DefaultActor::TenantOwner.to_string(),
+        DefaultActor::TenantManager.to_string(),
         DefaultActor::SubscriptionManager.to_string(),
     ])?;
 
