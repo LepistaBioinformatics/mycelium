@@ -6,15 +6,16 @@ use mycelium_base::{
 use uuid::Uuid;
 
 #[tracing::instrument(
-    name = "delete_tenant",
+    name = "exclude_tenant_owner",
     fields(
         account_id = %profile.acc_id,
         owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
     ),
     skip(profile, tenant_deletion_repo))]
-pub async fn delete_tenant(
+pub async fn exclude_tenant_owner(
     profile: Profile,
     tenant_id: Uuid,
+    owner_id: Uuid,
     tenant_deletion_repo: Box<&dyn TenantDeletion>,
 ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -24,8 +25,8 @@ pub async fn delete_tenant(
     profile.has_admin_privileges_or_error()?;
 
     // ? -----------------------------------------------------------------------
-    // ? Delete tenant
+    // ? Delete owner
     // ? -----------------------------------------------------------------------
 
-    tenant_deletion_repo.delete(tenant_id).await
+    tenant_deletion_repo.delete_owner(tenant_id, owner_id).await
 }

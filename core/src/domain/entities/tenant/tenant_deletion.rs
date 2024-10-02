@@ -13,6 +13,12 @@ pub trait TenantDeletion: Interface + Send + Sync {
         &self,
         id: Uuid,
     ) -> Result<DeletionResponseKind<Uuid>, MappedErrors>;
+
+    async fn delete_owner(
+        &self,
+        tenant_id: Uuid,
+        owner_id: Uuid,
+    ) -> Result<DeletionResponseKind<Uuid>, MappedErrors>;
 }
 
 impl Display for dyn TenantDeletion {

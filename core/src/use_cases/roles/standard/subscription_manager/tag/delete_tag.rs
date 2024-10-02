@@ -7,7 +7,11 @@ use mycelium_base::{
 };
 use uuid::Uuid;
 
-#[tracing::instrument(name = "delete_tag", skip_all)]
+#[tracing::instrument(
+    name = "delete_tag",
+    fields(account_id = %profile.acc_id),
+    skip_all
+)]
 pub async fn delete_tag(
     profile: Profile,
     tag_id: Uuid,
@@ -15,9 +19,15 @@ pub async fn delete_tag(
 ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check the user permissions
+    //
+    // Despite the action itself is a deletion one, user must have the
+    // permission to update the guest account.
+    //
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_create_ids_or_error(vec![
+    profile.get_default_update_ids_or_error(vec![
+        DefaultActor::TenantOwner.to_string(),
+        DefaultActor::TenantManager.to_string(),
         DefaultActor::SubscriptionManager.to_string(),
     ])?;
 

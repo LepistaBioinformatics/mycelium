@@ -7,12 +7,42 @@ use mycelium_base::{
 use shaku::Interface;
 use std::fmt::Result as FmResult;
 use std::fmt::{Debug, Display, Formatter};
+use uuid::Uuid;
 
 #[async_trait]
 pub trait TenantUpdating: Interface + Send + Sync {
     async fn update(
         &self,
-        tag: Tenant,
+        tenant: Tenant,
+    ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors>;
+
+    async fn update_name_and_description(
+        &self,
+        name: Option<String>,
+        description: Option<String>,
+    ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors>;
+
+    async fn update_tenant_verifying_status(
+        &self,
+        id: Uuid,
+        made_by: String,
+    ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors>;
+
+    async fn update_tenant_archiving_status(
+        &self,
+        id: Uuid,
+        made_by: String,
+    ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors>;
+
+    async fn update_tenant_trashing_status(
+        &self,
+        id: Uuid,
+        made_by: String,
+    ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors>;
+
+    async fn trash_tenant_by_id(
+        &self,
+        id: Uuid,
     ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors>;
 }
 

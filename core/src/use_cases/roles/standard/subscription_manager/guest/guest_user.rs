@@ -16,7 +16,11 @@ use tracing::{info, warn};
 use uuid::Uuid;
 
 /// Guest a user to perform actions into an account.
-#[tracing::instrument(name = "guest_user", skip_all)]
+#[tracing::instrument(
+    name = "guest_user",
+    fields(account_id = %profile.acc_id),
+    skip_all
+)]
 pub async fn guest_user(
     profile: Profile,
     email: Email,
@@ -31,7 +35,9 @@ pub async fn guest_user(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_create_ids_or_error(vec![
-        DefaultActor::GuestManager.to_string(),
+        DefaultActor::TenantOwner.to_string(),
+        DefaultActor::TenantManager.to_string(),
+        DefaultActor::SubscriptionManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

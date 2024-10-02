@@ -9,7 +9,11 @@ use uuid::Uuid;
 
 /// Uninvite user to perform a role actions from account
 ///
-#[tracing::instrument(name = "uninvite_guest", skip_all)]
+#[tracing::instrument(
+    name = "uninvite_guest",
+    fields(account_id = %profile.acc_id),
+    skip_all
+)]
 pub async fn uninvite_guest(
     profile: Profile,
     account_id: Uuid,
@@ -19,10 +23,16 @@ pub async fn uninvite_guest(
 ) -> Result<DeletionResponseKind<(Uuid, Uuid)>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
+    //
+    // Despite the action itself is a deletion one, user must have the
+    // permission to update the guest account.
+    //
     // ? -----------------------------------------------------------------------
 
     profile.get_default_update_ids_or_error(vec![
-        DefaultActor::GuestManager.to_string(),
+        DefaultActor::TenantOwner.to_string(),
+        DefaultActor::TenantManager.to_string(),
+        DefaultActor::SubscriptionManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

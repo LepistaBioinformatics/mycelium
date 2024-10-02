@@ -20,7 +20,7 @@ use myc_core::{
             LicensedResourcesFetching, MessageSending,
         },
     },
-    use_cases::roles::standard::guest_manager::guest::{
+    use_cases::roles::standard::subscription_manager::guest::{
         guest_user, list_guest_on_subscription_account,
         list_licensed_accounts_of_email, uninvite_guest,
         update_user_guest_role,

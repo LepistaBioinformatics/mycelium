@@ -10,7 +10,11 @@ use mycelium_base::{
 };
 use uuid::Uuid;
 
-#[tracing::instrument(name = "update_account_name_and_flags", skip_all)]
+#[tracing::instrument(
+    name = "update_account_name_and_flags",
+    fields(account_id = %profile.acc_id),
+    skip_all
+)]
 pub async fn update_account_name_and_flags(
     profile: Profile,
     account_id: Uuid,
@@ -27,6 +31,8 @@ pub async fn update_account_name_and_flags(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_update_ids_or_error(vec![
+        DefaultActor::TenantOwner.to_string(),
+        DefaultActor::TenantManager.to_string(),
         DefaultActor::SubscriptionManager.to_string(),
     ])?;
 

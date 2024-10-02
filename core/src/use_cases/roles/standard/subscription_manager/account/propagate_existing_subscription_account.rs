@@ -24,6 +24,7 @@ use uuid::Uuid;
 ///
 #[tracing::instrument(
     name = "propagate_existing_subscription_account",
+    fields(account_id = %profile.acc_id, target_account_id = %account_id),
     skip_all
 )]
 pub async fn propagate_existing_subscription_account(
@@ -38,6 +39,8 @@ pub async fn propagate_existing_subscription_account(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_create_ids_or_error(vec![
+        DefaultActor::TenantOwner.to_string(),
+        DefaultActor::TenantManager.to_string(),
         DefaultActor::SubscriptionManager.to_string(),
     ])?;
 

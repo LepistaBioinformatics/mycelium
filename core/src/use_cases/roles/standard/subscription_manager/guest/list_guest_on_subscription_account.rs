@@ -15,7 +15,11 @@ use crate::domain::{
 ///
 /// Fetch a list of the guest accounts associated with a single subscription
 /// account.
-#[tracing::instrument(name = "list_guest_on_subscription_account", skip_all)]
+#[tracing::instrument(
+    name = "list_guest_on_subscription_account",
+    fields(account_id = %profile.acc_id),
+    skip_all
+)]
 pub async fn list_guest_on_subscription_account(
     profile: Profile,
     account_id: Uuid,
@@ -27,7 +31,9 @@ pub async fn list_guest_on_subscription_account(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_view_ids_or_error(vec![
-        DefaultActor::GuestManager.to_string()
+        DefaultActor::TenantOwner.to_string(),
+        DefaultActor::TenantManager.to_string(),
+        DefaultActor::SubscriptionManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

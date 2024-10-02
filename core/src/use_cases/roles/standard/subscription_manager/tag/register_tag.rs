@@ -10,7 +10,11 @@ use mycelium_base::{
 use std::collections::HashMap;
 use uuid::Uuid;
 
-#[tracing::instrument(name = "register_tag", skip_all)]
+#[tracing::instrument(
+    name = "register_tag",
+    fields(account_id = %profile.acc_id),
+    skip_all
+)]
 pub async fn register_tag(
     profile: Profile,
     tag: String,
@@ -23,6 +27,8 @@ pub async fn register_tag(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_create_ids_or_error(vec![
+        DefaultActor::TenantOwner.to_string(),
+        DefaultActor::TenantManager.to_string(),
         DefaultActor::SubscriptionManager.to_string(),
     ])?;
 

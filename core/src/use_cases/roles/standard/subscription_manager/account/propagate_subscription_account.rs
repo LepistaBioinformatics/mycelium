@@ -22,7 +22,11 @@ use mycelium_base::{
 /// The propagation is done asynchronously, and the response is returned
 /// immediately.
 ///
-#[tracing::instrument(name = "propagate_subscription_account", skip_all)]
+#[tracing::instrument(
+    name = "propagate_subscription_account", 
+    fields(account_id = %profile.acc_id, hook_target = %hook_target),
+    skip_all
+)]
 pub(super) async fn propagate_subscription_account(
     profile: Profile,
     bearer_token: String,
@@ -36,6 +40,8 @@ pub(super) async fn propagate_subscription_account(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_create_ids_or_error(vec![
+        DefaultActor::TenantOwner.to_string(),
+        DefaultActor::TenantManager.to_string(),
         DefaultActor::SubscriptionManager.to_string(),
     ])?;
 

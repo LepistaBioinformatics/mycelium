@@ -11,7 +11,11 @@ use uuid::Uuid;
 ///
 /// These details could include information about guest accounts, modifications
 /// and others.
-#[tracing::instrument(name = "get_account_details", skip_all)]
+#[tracing::instrument(
+    name = "get_account_details",
+    fields(account_id = %profile.acc_id),
+    skip_all
+)]
 pub async fn get_account_details(
     profile: Profile,
     account_id: Uuid,
@@ -21,7 +25,9 @@ pub async fn get_account_details(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_create_ids_or_error(vec![
+    profile.get_default_view_ids_or_error(vec![
+        DefaultActor::TenantOwner.to_string(),
+        DefaultActor::TenantManager.to_string(),
         DefaultActor::SubscriptionManager.to_string(),
     ])?;
 
