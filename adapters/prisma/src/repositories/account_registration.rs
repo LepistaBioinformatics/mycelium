@@ -534,4 +534,12 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
     ) -> Result<CreateResponseKind<Account>, MappedErrors> {
         panic!("Not implemented method `create`.")
     }
+
+    async fn create_subscription_account(
+        &self,
+        _: Account,
+        _: Uuid,
+    ) -> Result<CreateResponseKind<Account>, MappedErrors> {
+        panic!("Not implemented method `create_subscription_account`.")
+    }
 }

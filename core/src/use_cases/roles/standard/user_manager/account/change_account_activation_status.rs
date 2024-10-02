@@ -29,7 +29,7 @@ pub async fn change_account_activation_status(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_update_ids_or_error(vec![
-        DefaultActor::UserManager.to_string(),
+        DefaultActor::UserManager.to_string()
     ])?;
 
     // ? -----------------------------------------------------------------------

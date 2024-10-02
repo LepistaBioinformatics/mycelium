@@ -1,4 +1,7 @@
-use crate::domain::dtos::tenant::{Tenant, TenantMeta, TenantStatus};
+use crate::domain::dtos::{
+    related_accounts::RelatedAccounts,
+    tenant::{Tenant, TenantMeta, TenantStatus},
+};
 
 use async_trait::async_trait;
 use mycelium_base::{
@@ -12,7 +15,8 @@ use uuid::Uuid;
 pub trait TenantFetching: Interface + Send + Sync {
     async fn get(
         &self,
-        id: Option<Uuid>,
+        id: Uuid,
+        related_accounts: RelatedAccounts,
     ) -> Result<FetchResponseKind<Tenant, String>, MappedErrors>;
 
     async fn filter(

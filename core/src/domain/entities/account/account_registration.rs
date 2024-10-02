@@ -6,6 +6,7 @@ use mycelium_base::{
     utils::errors::MappedErrors,
 };
 use shaku::Interface;
+use uuid::Uuid;
 
 #[async_trait]
 pub trait AccountRegistration: Interface + Send + Sync {
@@ -19,5 +20,11 @@ pub trait AccountRegistration: Interface + Send + Sync {
     async fn create(
         &self,
         user: Account,
+    ) -> Result<CreateResponseKind<Account>, MappedErrors>;
+
+    async fn create_subscription_account(
+        &self,
+        account: Account,
+        tenant_id: Uuid,
     ) -> Result<CreateResponseKind<Account>, MappedErrors>;
 }
