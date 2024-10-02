@@ -5,7 +5,10 @@ pub use meta::TenantMeta;
 pub use status::TenantStatus;
 
 use super::{account::Account, profile::Owner, tag::Tag};
-use mycelium_base::dtos::Children;
+use mycelium_base::{
+    dtos::{Children, Parent},
+    utils::errors::{dto_err, MappedErrors},
+};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 use utoipa::ToSchema;
@@ -24,11 +27,10 @@ pub struct Tenant {
     /// tenant owner should be set on tenant creation.
     pub owners: Children<Owner, Uuid>,
 
-    /// The tenant admins
+    /// The tenant manager
     ///
-    /// This is the list of tenant admins. The tenant admins are the users who
-    /// have the tenant manager role.
-    pub managers: Option<Children<Account, Uuid>>,
+    /// The account of the tenant manager.
+    pub manager: Option<Parent<Account, Uuid>>,
 
     /// The tags of the tenant
     ///
@@ -62,10 +64,18 @@ impl Tenant {
             name,
             description,
             owners,
-            managers: None,
+            manager: None,
             tags: None,
             meta: None,
             status: None,
+        }
+    }
+
+    pub fn tenant_string_or_error(&self) -> Result<String, MappedErrors> {
+        if let Some(id) = self.id {
+            Ok(format!("tenant/{}", id.to_string()))
+        } else {
+            dto_err("Unable to format owner name").as_error()
         }
     }
 }

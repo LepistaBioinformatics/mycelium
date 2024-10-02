@@ -1,5 +1,11 @@
-// Only account owners should guest new owners as owners. Then, the new owner
-// should be able to manage the tenant to perform the following functions:
+// All actions listed below should ve performed by:
+//
+// - Platform Staffs
+// - Platform Managers
+// - Tenant Owner
+//
+// The above cited roles should be able to manage the tenant to perform the
+// following functions:
 //
 // - Guest new owners as the tenant owners;
 // - Revoking a tenant owner;

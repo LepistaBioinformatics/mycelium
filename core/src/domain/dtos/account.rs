@@ -225,6 +225,11 @@ impl Account {
         }
     }
 
+    pub fn with_id(&mut self) -> Self {
+        self.id = Some(Uuid::new_v4());
+        self.clone()
+    }
+
     pub fn new(
         account_name: String,
         principal_owner: User,

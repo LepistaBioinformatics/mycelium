@@ -1,5 +1,11 @@
-// Only tenant owners should menage tenant metadata. Then, the tenant owner
-// should be able to manage the tenant to perform the following functions:
+// All actions listed below should ve performed by:
+//
+// - Platform Staffs
+// - Platform Managers
+// - Tenant Owner
+//
+// The above cited roles should be able to manage the tenant to perform the
+// following functions:
 //
 // - Create tenant metadata;
 // - Update tenant metadata;

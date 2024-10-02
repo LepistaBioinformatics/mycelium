@@ -130,8 +130,8 @@ mod test {
         let result = result_function().unwrap_err();
 
         assert!(
-            result.code() ==
-                ErrorCodes::Codes(vec![
+            result.code()
+                == ErrorCodes::Codes(vec![
                     "ID001".to_string(),
                     "ID002".to_string()
                 ])

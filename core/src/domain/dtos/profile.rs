@@ -169,7 +169,7 @@ pub struct Profile {
 
 impl Profile {
     pub fn profile_string(&self) -> String {
-        format!("profile:{}", self.acc_id.to_string())
+        format!("profile/{}", self.acc_id.to_string())
     }
 
     pub fn has_admin_privileges(&self) -> bool {

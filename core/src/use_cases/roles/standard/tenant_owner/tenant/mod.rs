@@ -1,8 +1,15 @@
 // All actions listed below should ve performed by:
 //
-// - Tenant Owner
-// - Platform Managers
 // - Platform Staffs
+// - Platform Managers
+// - Tenant Owner
+//
+// Tenant Owner should be able to perform the following actions:
+//
+// - Update Tenant Name and Description
+// - Update Tenant Archiving Status
+// - Update Tenant Trashing Status
+// - Update Tenant Verifying Status
 //
 
 mod update_tenant_archiving_status;
