@@ -19,7 +19,7 @@ use crate::domain::{
 /// account.
 #[tracing::instrument(
     name = "list_guest_on_subscription_account",
-    fields(account_id = %profile.acc_id),
+    fields(profile_id = %profile.acc_id),
     skip_all
 )]
 pub async fn list_guest_on_subscription_account(

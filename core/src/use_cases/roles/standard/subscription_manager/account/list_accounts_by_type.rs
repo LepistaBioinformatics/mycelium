@@ -15,7 +15,7 @@ use uuid::Uuid;
 /// Get a list of available accounts given the AccountTypeEnum.
 #[tracing::instrument(
     name = "list_accounts_by_type",
-    fields(account_id = %profile.acc_id),
+    fields(profile_id = %profile.acc_id),
     skip_all
 )]
 pub async fn list_accounts_by_type(

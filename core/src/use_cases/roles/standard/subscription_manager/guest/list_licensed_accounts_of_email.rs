@@ -17,7 +17,7 @@ use uuid::Uuid;
 /// Fetch all subscription accounts which an email was guest.
 #[tracing::instrument(
     name = "list_licensed_accounts_of_email",
-    fields(account_id = %profile.acc_id),
+    fields(profile_id = %profile.acc_id),
     skip_all
 )]
 pub async fn list_licensed_accounts_of_email(

@@ -10,7 +10,7 @@ use mycelium_base::{
 
 #[tracing::instrument(
     name = "update_tag", 
-    fields(account_id = %profile.acc_id),
+    fields(profile_id = %profile.acc_id),
     skip_all
 )]
 pub async fn update_tag(

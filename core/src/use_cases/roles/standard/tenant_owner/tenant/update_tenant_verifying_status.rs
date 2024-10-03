@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 #[tracing::instrument(
     name = "update_tenant_verifying_status", 
-    fields(account_id = %profile.acc_id),
+    fields(profile_id = %profile.acc_id),
     skip_all
 )]
 pub async fn update_tenant_verifying_status(

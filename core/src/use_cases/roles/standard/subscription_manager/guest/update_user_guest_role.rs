@@ -20,7 +20,7 @@ use uuid::Uuid;
 ///
 #[tracing::instrument(
     name = "update_user_guest_role",
-    fields(account_id = %profile.acc_id),
+    fields(profile_id = %profile.acc_id),
     skip_all
 )]
 pub async fn update_user_guest_role(
