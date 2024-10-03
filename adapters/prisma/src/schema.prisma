@@ -12,6 +12,42 @@ datasource db {
 }
 
 // -----------------------------------------------------------------------------
+// TENANT RELATED MODELS
+// -----------------------------------------------------------------------------
+
+model Tenant {
+  id          String  @id @default(uuid())
+  name        String  @db.VarChar(140)
+  description String? @db.VarChar(255)
+
+  owners User[]
+  tags   TenantTag[]
+
+  meta   Json?
+  status Json[]
+
+  manager    Account? @relation(fields: [manager_id], references: [id])
+  manager_id String?
+}
+
+model TenantTag {
+  // Primary key
+  id String @id @default(uuid())
+
+  // The tag
+  value String @db.VarChar(64)
+  meta  Json?
+
+  // Related models
+  tenant    Tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  tenant_id String
+
+  // Db compatibility and extra maps
+  @@unique([value, tenant_id])
+  @@map("tenant_tag")
+}
+
+// -----------------------------------------------------------------------------
 // USER RELATED MODELS
 // -----------------------------------------------------------------------------
 
@@ -33,6 +69,8 @@ model User {
   account    Account?          @relation(fields: [account_id], references: [id])
   account_id String?
   provider   IdentityProvider?
+  tenant     Tenant?           @relation(fields: [tenant_id], references: [id])
+  tenant_id  String?
 
   // Db compatibility and extra maps
   @@unique([email, account_id])
@@ -159,6 +197,7 @@ model Account {
   owners      User[]
   guest_users GuestUserOnAccount[]
   tags        AccountTags[]
+  tenants     Tenant[]
 
   // Db compatibility and extra maps
   @@unique([name])

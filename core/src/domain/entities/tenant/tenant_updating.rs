@@ -1,3 +1,4 @@
+use crate::domain::dtos::email::Email;
 use crate::domain::dtos::tenant::Tenant;
 
 use async_trait::async_trait;
@@ -43,6 +44,19 @@ pub trait TenantUpdating: Interface + Send + Sync {
     async fn trash_tenant_by_id(
         &self,
         id: Uuid,
+    ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors>;
+
+    async fn register_owner(
+        &self,
+        tenant_id: Uuid,
+        owner_id: Uuid,
+    ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors>;
+
+    async fn remove_owner(
+        &self,
+        tenant_id: Uuid,
+        owner_id: Option<Uuid>,
+        owner_email: Option<Email>,
     ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors>;
 }
 
