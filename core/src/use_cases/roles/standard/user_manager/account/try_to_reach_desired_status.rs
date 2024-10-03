@@ -85,25 +85,17 @@ fn should_perform_state_transition(
 mod tests {
     use super::{should_perform_state_transition, try_to_reach_desired_status};
     use crate::domain::dtos::{
-        account::{Account, AccountType, VerboseStatus},
+        account::{Account, VerboseStatus},
+        account_type::AccountTypeV2,
         email::Email,
         user::User,
     };
 
     use chrono::Local;
-    use mycelium_base::dtos::{Children, Parent};
+    use mycelium_base::dtos::Children;
 
     #[tokio::test]
     async fn test_if_try_to_reach_desired_status_works() {
-        let account_type = AccountType {
-            id: None,
-            name: "".to_string(),
-            description: "".to_string(),
-            is_subscription: false,
-            is_manager: false,
-            is_staff: false,
-        };
-
         let user = User::new(
             None,
             "username".to_string(),
@@ -129,7 +121,7 @@ mod tests {
             verbose_status: None,
             is_default: false,
             owners: Children::Records([user].to_vec()),
-            account_type: Parent::Record(account_type),
+            account_type: AccountTypeV2::User,
             guest_users: None,
             created: Local::now(),
             updated: Some(Local::now()),

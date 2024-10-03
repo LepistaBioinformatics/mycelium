@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::DefaultActor,
+    actors::ActorName,
     dtos::{email::Email, profile::Profile, tenant::Tenant},
     entities::{TenantFetching, TenantUpdating},
 };
@@ -28,8 +28,9 @@ pub async fn guest_tenant_owner(
     // ? -----------------------------------------------------------------------
 
     let related_accounts = profile
+        .on_tenant(tenant_id)
         .get_related_account_with_default_update_or_error(vec![
-            DefaultActor::TenantOwner.to_string(),
+            ActorName::TenantOwner.to_string(),
         ])?;
 
     // ? -----------------------------------------------------------------------

@@ -1,19 +1,10 @@
-use crate::{
-    domain::{
-        dtos::{
-            account::{Account, AccountTypeEnum},
-            profile::Profile,
-        },
-        entities::{AccountFetching, AccountTypeRegistration, AccountUpdating},
-    },
-    use_cases::roles::shared::account_type::get_or_create_default_account_types,
+use crate::domain::{
+    dtos::{account::Account, account_type::AccountTypeV2, profile::Profile},
+    entities::AccountUpdating,
 };
 
 use mycelium_base::{
-    dtos::Parent,
-    entities::{
-        FetchResponseKind, GetOrCreateResponseKind, UpdatingResponseKind,
-    },
+    entities::UpdatingResponseKind,
     utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
@@ -26,10 +17,8 @@ use uuid::Uuid;
 pub async fn upgrade_account_privileges(
     profile: Profile,
     account_id: Uuid,
-    target_account_type: AccountTypeEnum,
-    account_fetching_repo: Box<&dyn AccountFetching>,
+    target_account_type: AccountTypeV2,
     account_updating_repo: Box<&dyn AccountUpdating>,
-    account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
 ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
@@ -50,7 +39,7 @@ pub async fn upgrade_account_privileges(
     // ? Check if the account type if allowed
     // ? -----------------------------------------------------------------------
 
-    if !vec![AccountTypeEnum::Manager, AccountTypeEnum::Staff]
+    if !vec![AccountTypeV2::Manager, AccountTypeV2::Staff]
         .contains(&target_account_type)
     {
         return use_case_err(String::from("Invalid upgrade target."))
@@ -58,40 +47,10 @@ pub async fn upgrade_account_privileges(
     }
 
     // ? -----------------------------------------------------------------------
-    // ? Fetch the account
-    // ? -----------------------------------------------------------------------
-
-    let mut account = match account_fetching_repo.get(account_id).await? {
-        FetchResponseKind::NotFound(id) => {
-            return use_case_err(format!("Invalid account id: {}", id.unwrap()))
-                .as_error()
-        }
-        FetchResponseKind::Found(res) => res,
-    };
-
-    // ? -----------------------------------------------------------------------
-    // ? Fetch account type
-    //
-    // Get or create the default account-type.
-    // ? -----------------------------------------------------------------------
-
-    let account_type = match get_or_create_default_account_types(
-        target_account_type,
-        None,
-        None,
-        account_type_registration_repo,
-    )
-    .await?
-    {
-        GetOrCreateResponseKind::NotCreated(account_type, _) => account_type,
-        GetOrCreateResponseKind::Created(account_type) => account_type,
-    };
-
-    // ? -----------------------------------------------------------------------
     // ? Update and persist account name
     // ? -----------------------------------------------------------------------
 
-    account.account_type = Parent::Record(account_type);
-
-    account_updating_repo.update(account).await
+    account_updating_repo
+        .update_account_type(account_id, target_account_type)
+        .await
 }

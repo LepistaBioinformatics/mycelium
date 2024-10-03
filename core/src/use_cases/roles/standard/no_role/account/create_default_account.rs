@@ -1,20 +1,17 @@
 use crate::{
     domain::{
         dtos::{
-            account::{Account, AccountTypeEnum},
+            account::Account,
+            account_type::AccountTypeV2,
             email::Email,
             native_error_codes::NativeErrorCodes,
             user::Provider,
             webhook::{AccountPropagationWebHookResponse, HookTarget},
         },
-        entities::{
-            AccountRegistration, AccountTypeRegistration, UserFetching,
-            WebHookFetching,
-        },
+        entities::{AccountRegistration, UserFetching, WebHookFetching},
     },
-    use_cases::roles::shared::{
-        account_type::get_or_create_default_account_types,
-        webhook::{default_actions::WebHookDefaultAction, dispatch_webhooks},
+    use_cases::roles::shared::webhook::{
+        default_actions::WebHookDefaultAction, dispatch_webhooks,
     },
 };
 
@@ -39,7 +36,6 @@ pub async fn create_default_account(
     account_name: String,
     user_fetching_repo: Box<&dyn UserFetching>,
     account_registration_repo: Box<&dyn AccountRegistration>,
-    account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
 ) -> Result<AccountPropagationWebHookResponse, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -60,24 +56,6 @@ pub async fn create_default_account(
     }
 
     // ? -----------------------------------------------------------------------
-    // ? Get or Create default account type
-    //
-    // Get or create the default account-type.
-    // ? -----------------------------------------------------------------------
-
-    let account_type = match get_or_create_default_account_types(
-        AccountTypeEnum::Standard,
-        None,
-        None,
-        account_type_registration_repo,
-    )
-    .await?
-    {
-        GetOrCreateResponseKind::NotCreated(account_type, _) => account_type,
-        GetOrCreateResponseKind::Created(account_type) => account_type,
-    };
-
-    // ? -----------------------------------------------------------------------
     // ? Register the account
     //
     // The account are registered using the already created user.
@@ -85,7 +63,7 @@ pub async fn create_default_account(
 
     let account = match account_registration_repo
         .get_or_create(
-            Account::new(account_name, user, account_type),
+            Account::new(account_name, user, AccountTypeV2::User),
             true,
             false,
         )

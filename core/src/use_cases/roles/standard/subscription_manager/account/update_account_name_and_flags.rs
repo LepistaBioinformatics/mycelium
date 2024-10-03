@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::DefaultActor,
+    actors::ActorName,
     dtos::{account::Account, profile::Profile},
     entities::{AccountFetching, AccountUpdating},
 };
@@ -18,6 +18,7 @@ use uuid::Uuid;
 pub async fn update_account_name_and_flags(
     profile: Profile,
     account_id: Uuid,
+    tenant_id: Uuid,
     name: Option<String>,
     is_active: Option<bool>,
     is_checked: Option<bool>,
@@ -30,17 +31,22 @@ pub async fn update_account_name_and_flags(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_update_ids_or_error(vec![
-        DefaultActor::TenantOwner.to_string(),
-        DefaultActor::TenantManager.to_string(),
-        DefaultActor::SubscriptionManager.to_string(),
-    ])?;
+    let related_accounts = profile
+        .on_tenant(tenant_id)
+        .get_related_account_with_default_update_or_error(vec![
+            ActorName::TenantOwner.to_string(),
+            ActorName::TenantManager.to_string(),
+            ActorName::SubscriptionManager.to_string(),
+        ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch account
     // ? -----------------------------------------------------------------------
 
-    let mut account = match account_fetching_repo.get(account_id).await? {
+    let mut account = match account_fetching_repo
+        .get(account_id, related_accounts)
+        .await?
+    {
         FetchResponseKind::Found(account) => account,
         FetchResponseKind::NotFound(id) => {
             return use_case_err(format!(

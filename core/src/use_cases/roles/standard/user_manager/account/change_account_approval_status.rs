@@ -1,15 +1,15 @@
 use super::try_to_reach_desired_status::try_to_reach_desired_status;
 use crate::domain::{
-    actors::DefaultActor,
+    actors::ActorName,
     dtos::{
         account::{Account, VerboseStatus},
+        account_type::AccountTypeV2,
         profile::Profile,
     },
     entities::{AccountFetching, AccountUpdating},
 };
 
 use mycelium_base::{
-    dtos::Parent::*,
     entities::{FetchResponseKind, UpdatingResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
@@ -32,15 +32,19 @@ pub async fn change_account_approval_status(
     // ? Check permissions
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_update_ids_or_error(vec![
-        DefaultActor::UserManager.to_string()
-    ])?;
+    let related_accounts = profile
+        .get_related_account_with_default_update_or_error(vec![
+            ActorName::UserManager,
+        ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch target account
     // ? -----------------------------------------------------------------------
 
-    let account = match account_fetching_repo.get(account_id).await? {
+    let account = match account_fetching_repo
+        .get(account_id, related_accounts)
+        .await?
+    {
         FetchResponseKind::NotFound(id) => {
             return use_case_err(format!("Invalid account ID: {:?}", id))
                 .as_error()
@@ -52,23 +56,21 @@ pub async fn change_account_approval_status(
     // ? Prevent self privilege escalation
     // ? -----------------------------------------------------------------------
 
-    // Check if the target account to be changed is a Standard account.
     match account.to_owned().account_type {
-        Id(_) => {
-            return use_case_err(format!(
-                "Prohibited operation. Account type of the target account 
-({account_id}) could not be checked."
-            ))
-            .as_error()
-        }
-        Record(res) => {
-            if profile.is_manager && !profile.is_staff && res.is_staff {
+        AccountTypeV2::Staff => {
+            if profile.is_manager && !profile.is_staff {
                 return use_case_err(String::from(
-                    "Prohibited operation. Managers could not perform 
-editions on accounts with more privileges than himself.",
+                    "Prohibited operation. Managers could not perform editions 
+on accounts with more privileges than himself.",
                 ))
                 .as_error();
             }
+        }
+        _ => {
+            return use_case_err(format!(
+                "Prohibited operation. Invalid account type"
+            ))
+            .as_error()
         }
     };
 

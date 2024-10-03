@@ -1,20 +1,14 @@
-use crate::{
-    domain::{
-        actors::DefaultActor,
-        dtos::{
-            account::{Account, AccountTypeEnum},
-            profile::Profile,
-        },
-        entities::{AccountFetching, AccountTypeRegistration},
-        utils::try_as_uuid,
-    },
-    use_cases::roles::shared::account_type::get_or_create_default_account_types,
+use crate::domain::{
+    actors::ActorName,
+    dtos::{account::Account, account_type::AccountTypeV2, profile::Profile},
+    entities::AccountFetching,
+    utils::try_as_uuid,
 };
 
 use mycelium_base::{
-    entities::{FetchManyResponseKind, GetOrCreateResponseKind},
-    utils::errors::MappedErrors,
+    entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
+use uuid::Uuid;
 
 /// List account given an account-type
 ///
@@ -26,6 +20,7 @@ use mycelium_base::{
 )]
 pub async fn list_accounts_by_type(
     profile: Profile,
+    tenant_id: Uuid,
     term: Option<String>,
     is_owner_active: Option<bool>,
     is_account_active: Option<bool>,
@@ -36,33 +31,18 @@ pub async fn list_accounts_by_type(
     page_size: Option<i32>,
     skip: Option<i32>,
     account_fetching_repo: Box<&dyn AccountFetching>,
-    account_type_registration: Box<&dyn AccountTypeRegistration>,
 ) -> Result<FetchManyResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_view_ids_or_error(vec![
-        DefaultActor::TenantOwner.to_string(),
-        DefaultActor::TenantManager.to_string(),
-        DefaultActor::SubscriptionManager.to_string(),
-    ])?;
-
-    // ? -----------------------------------------------------------------------
-    // ? Fetch account-type id
-    // ? -----------------------------------------------------------------------
-
-    let account_type_id = match get_or_create_default_account_types(
-        AccountTypeEnum::Subscription,
-        None,
-        None,
-        account_type_registration,
-    )
-    .await?
-    {
-        GetOrCreateResponseKind::NotCreated(res, _) => res.id,
-        GetOrCreateResponseKind::Created(res) => res.id,
-    };
+    let related_accounts = profile
+        .on_tenant(tenant_id)
+        .get_related_account_with_default_view_or_error(vec![
+            ActorName::TenantOwner.to_string(),
+            ActorName::TenantManager.to_string(),
+            ActorName::SubscriptionManager.to_string(),
+        ])?;
 
     // ? -----------------------------------------------------------------------
     // ? List accounts
@@ -92,6 +72,7 @@ pub async fn list_accounts_by_type(
 
     account_fetching_repo
         .list(
+            related_accounts,
             updated_term,
             is_owner_active,
             is_account_active,
@@ -100,7 +81,11 @@ pub async fn list_accounts_by_type(
             tag_id,
             updated_tag,
             account_id,
-            account_type_id,
+            if let Some(true) = is_subscription {
+                Some(AccountTypeV2::Subscription { tenant_id })
+            } else {
+                None
+            },
             Some(is_subscription.unwrap_or(false)),
             page_size,
             skip,

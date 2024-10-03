@@ -1,4 +1,7 @@
-use crate::domain::dtos::account::Account;
+use crate::domain::dtos::{
+    account::Account, account_type::AccountTypeV2,
+    related_accounts::RelatedAccounts,
+};
 
 use async_trait::async_trait;
 use mycelium_base::{
@@ -13,9 +16,12 @@ pub trait AccountFetching: Interface + Send + Sync {
     async fn get(
         &self,
         id: Uuid,
+        related_accounts: RelatedAccounts,
     ) -> Result<FetchResponseKind<Account, Uuid>, MappedErrors>;
+
     async fn list(
         &self,
+        related_accounts: RelatedAccounts,
         term: Option<String>,
         is_owner_active: Option<bool>,
         is_account_active: Option<bool>,
@@ -24,7 +30,7 @@ pub trait AccountFetching: Interface + Send + Sync {
         tag_id: Option<Uuid>,
         tag_value: Option<String>,
         account_id: Option<Uuid>,
-        account_type_id: Option<Uuid>,
+        account_type: Option<AccountTypeV2>,
         show_subscription: Option<bool>,
         page_size: Option<i32>,
         skip: Option<i32>,

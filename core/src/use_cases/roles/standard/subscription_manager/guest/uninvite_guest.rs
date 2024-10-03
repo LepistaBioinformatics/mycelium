@@ -1,9 +1,15 @@
 use crate::domain::{
-    actors::DefaultActor, dtos::profile::Profile, entities::GuestUserDeletion,
+    actors::ActorName,
+    dtos::{
+        native_error_codes::NativeErrorCodes, profile::Profile,
+        related_accounts::RelatedAccounts,
+    },
+    entities::GuestUserDeletion,
 };
 
 use mycelium_base::{
-    entities::DeletionResponseKind, utils::errors::MappedErrors,
+    entities::DeletionResponseKind,
+    utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
@@ -16,6 +22,7 @@ use uuid::Uuid;
 )]
 pub async fn uninvite_guest(
     profile: Profile,
+    tenant_id: Uuid,
     account_id: Uuid,
     guest_role_id: Uuid,
     email: String,
@@ -29,11 +36,22 @@ pub async fn uninvite_guest(
     //
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_update_ids_or_error(vec![
-        DefaultActor::TenantOwner.to_string(),
-        DefaultActor::TenantManager.to_string(),
-        DefaultActor::SubscriptionManager.to_string(),
-    ])?;
+    if let RelatedAccounts::AllowedAccounts(allowed_ids) = &profile
+        .on_tenant(tenant_id)
+        .get_related_account_with_default_update_or_error(vec![
+            ActorName::TenantOwner.to_string(),
+            ActorName::TenantManager.to_string(),
+            ActorName::SubscriptionManager.to_string(),
+        ])?
+    {
+        if !allowed_ids.contains(&account_id) {
+            return use_case_err(
+                "User is not allowed to perform this action".to_string(),
+            )
+            .with_code(NativeErrorCodes::MYC00013)
+            .as_error();
+        }
+    };
 
     // ? -----------------------------------------------------------------------
     // ? Uninvite guest

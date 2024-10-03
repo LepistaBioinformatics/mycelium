@@ -5,9 +5,11 @@ use std::{
 };
 use utoipa::ToSchema;
 
-#[derive(Debug, Clone, Copy, Deserialize, Serialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
-pub enum DefaultActor {
+pub enum ActorName {
+    CustomRole(String),
+
     /// No role
     ///
     /// This actor is used when no role is assigned to the user.
@@ -46,42 +48,43 @@ pub enum DefaultActor {
     TenantManager,
 }
 
-impl Display for DefaultActor {
+impl Display for ActorName {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
-            DefaultActor::NoRole => write!(f, "no-role"),
-            DefaultActor::SubscriptionManager => {
+            ActorName::CustomRole(role) => write!(f, "custom-role:{}", role),
+            ActorName::NoRole => write!(f, "no-role"),
+            ActorName::SubscriptionManager => {
                 write!(f, "subscription-manager")
             }
-            DefaultActor::UserManager => {
+            ActorName::UserManager => {
                 write!(f, "user-manager")
             }
-            DefaultActor::GuestManager => {
+            ActorName::GuestManager => {
                 write!(f, "guest-manager")
             }
-            DefaultActor::SystemManager => write!(f, "system-manager"),
-            DefaultActor::TenantOwner => write!(f, "tenant-owner"),
-            DefaultActor::TenantManager => write!(f, "tenant-manager"),
+            ActorName::SystemManager => write!(f, "system-manager"),
+            ActorName::TenantOwner => write!(f, "tenant-owner"),
+            ActorName::TenantManager => write!(f, "tenant-manager"),
         }
     }
 }
 
-impl FromStr for DefaultActor {
+impl FromStr for ActorName {
     type Err = ();
 
-    fn from_str(s: &str) -> Result<DefaultActor, ()> {
+    fn from_str(s: &str) -> Result<ActorName, ()> {
         match s {
-            "no-role" => Ok(DefaultActor::NoRole),
+            "no-role" => Ok(ActorName::NoRole),
             "subscription-account-manager" => {
-                Ok(DefaultActor::SubscriptionManager)
+                Ok(ActorName::SubscriptionManager)
             }
-            "subscription-manager" => Ok(DefaultActor::SubscriptionManager),
-            "user-account-manager" => Ok(DefaultActor::UserManager),
-            "user-manager" => Ok(DefaultActor::UserManager),
-            "guest-manager" => Ok(DefaultActor::GuestManager),
-            "system-manager" => Ok(DefaultActor::SystemManager),
-            "tenant-manager" => Ok(DefaultActor::TenantManager),
-            "tenant-owner" => Ok(DefaultActor::TenantOwner),
+            "subscription-manager" => Ok(ActorName::SubscriptionManager),
+            "user-account-manager" => Ok(ActorName::UserManager),
+            "user-manager" => Ok(ActorName::UserManager),
+            "guest-manager" => Ok(ActorName::GuestManager),
+            "system-manager" => Ok(ActorName::SystemManager),
+            "tenant-manager" => Ok(ActorName::TenantManager),
+            "tenant-owner" => Ok(ActorName::TenantOwner),
 
             _ => Err(()),
         }

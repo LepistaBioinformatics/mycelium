@@ -126,6 +126,15 @@ pub enum NativeErrorCodes {
     /// is_native: true
     ///
     MYC00012,
+
+    ///
+    /// code: "MYC00013",
+    /// message: "Unauthorized action",
+    /// details: "Indicates that the action is unauthorized.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00013,
 }
 
 impl NativeErrorCodes {
@@ -165,6 +174,7 @@ impl NativeErrorCodes {
             Self::MYC00010 => "MYC00010",
             Self::MYC00011 => "MYC00011",
             Self::MYC00012 => "MYC00012",
+            Self::MYC00013 => "MYC00013",
         }
     }
 

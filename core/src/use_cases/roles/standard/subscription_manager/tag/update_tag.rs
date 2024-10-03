@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::DefaultActor,
+    actors::ActorName,
     dtos::{profile::Profile, tag::Tag},
     entities::TagUpdating,
 };
@@ -23,9 +23,9 @@ pub async fn update_tag(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_update_ids_or_error(vec![
-        DefaultActor::TenantOwner.to_string(),
-        DefaultActor::TenantManager.to_string(),
-        DefaultActor::SubscriptionManager.to_string(),
+        ActorName::TenantOwner.to_string(),
+        ActorName::TenantManager.to_string(),
+        ActorName::SubscriptionManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

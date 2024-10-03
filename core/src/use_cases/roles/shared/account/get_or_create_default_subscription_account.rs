@@ -1,6 +1,5 @@
 use crate::domain::{
-    dtos::account::{Account, AccountType},
-    entities::AccountRegistration,
+    actors::ActorName, dtos::account::Account, entities::AccountRegistration,
 };
 
 use mycelium_base::{
@@ -18,21 +17,24 @@ use uuid::Uuid;
 /// user should be able to view example data. Staff user should be able to
 /// create new users and so on.
 #[tracing::instrument(
-    name = "get_or_create_default_subscription_account",
+    name = "get_or_create_role_related_account",
     skip(account_registration_repo)
 )]
-pub(crate) async fn get_or_create_default_subscription_account(
-    role: Uuid,
-    account_type: AccountType,
+pub(crate) async fn get_or_create_role_related_account(
+    tenant_id: Uuid,
+    role_id: Uuid,
+    role_name: ActorName,
     account_registration_repo: Box<&dyn AccountRegistration>,
 ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Initialize default account
     // ? -----------------------------------------------------------------------
 
-    let mut unchecked_account = Account::new_subscription_account(
-        format!("default-subscription-for-role-{}", role.to_string()),
-        account_type,
+    let mut unchecked_account = Account::new_role_related_account(
+        format!("default-subscription-for-role-{}", role_id.to_string()),
+        tenant_id,
+        role_id,
+        role_name,
     );
 
     unchecked_account.is_checked = true;

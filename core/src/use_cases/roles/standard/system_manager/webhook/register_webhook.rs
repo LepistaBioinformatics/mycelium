@@ -1,6 +1,6 @@
 use crate::{
     domain::{
-        actors::DefaultActor,
+        actors::ActorName,
         dtos::{profile::Profile, webhook::WebHook},
         entities::WebHookRegistration,
     },
@@ -22,7 +22,7 @@ pub async fn register_webhook(
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
 ) -> Result<CreateResponseKind<WebHook>, MappedErrors> {
     profile.get_default_create_ids_or_error(vec![
-        DefaultActor::SystemManager.to_string(),
+        ActorName::SystemManager.to_string(),
     ])?;
 
     webhook_registration_repo

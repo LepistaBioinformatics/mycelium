@@ -1,8 +1,12 @@
-use super::{guest::GuestUser, tag::Tag, user::User};
+use crate::domain::actors::ActorName;
+
+use super::{
+    account_type::AccountTypeV2, guest::GuestUser, tag::Tag, user::User,
+};
 
 use chrono::{DateTime, Local};
 use mycelium_base::{
-    dtos::{Children, Parent},
+    dtos::Children,
     utils::errors::{invalid_arg_err, MappedErrors},
 };
 use serde::{Deserialize, Serialize};
@@ -173,12 +177,6 @@ pub struct Account {
     // account.
     pub is_default: bool,
 
-    /// The Account Tenant
-    ///
-    /// This is the tenant of the account. The tenant is the organization that
-    /// the account belongs to.
-    //pub tenant: Parent<Tenant, Uuid>,
-
     /// The Account Owners
     ///
     /// This is the list of account owners. The account owners are the users who
@@ -189,7 +187,7 @@ pub struct Account {
     ///
     /// Account type is the type of the account. The account type is used to
     /// categorize the account.
-    pub account_type: Parent<AccountType, Uuid>,
+    pub account_type: AccountTypeV2,
 
     /// The Account Guest Users
     ///
@@ -201,10 +199,12 @@ pub struct Account {
 }
 
 impl Account {
+    /// Create a new subscription account
+    ///
+    /// Use this method to create standard subscription accounts.
     pub fn new_subscription_account(
         account_name: String,
-        account_type: AccountType,
-        //tenant: Parent<Tenant, Uuid>,
+        tenant_id: Uuid,
     ) -> Self {
         Self {
             id: None,
@@ -216,9 +216,58 @@ impl Account {
             is_archived: false,
             verbose_status: None,
             is_default: false,
-            //tenant,
             owners: Children::Ids([].to_vec()),
-            account_type: Parent::Record(account_type),
+            account_type: AccountTypeV2::Subscription { tenant_id },
+            guest_users: None,
+            created: Local::now(),
+            updated: None,
+        }
+    }
+
+    pub fn new_role_related_account(
+        account_name: String,
+        tenant_id: Uuid,
+        role_id: Uuid,
+        role_name: ActorName,
+    ) -> Self {
+        Self {
+            id: None,
+            name: account_name.to_owned(),
+            slug: slugify!(account_name.as_str()),
+            tags: None,
+            is_active: true,
+            is_checked: false,
+            is_archived: false,
+            verbose_status: None,
+            is_default: false,
+            owners: Children::Ids([].to_vec()),
+            account_type: AccountTypeV2::StandardRoleAssociated {
+                tenant_id,
+                role_id,
+                role_name,
+            },
+            guest_users: None,
+            created: Local::now(),
+            updated: None,
+        }
+    }
+
+    pub fn new_tenant_management_account(
+        account_name: String,
+        tenant_id: Uuid,
+    ) -> Self {
+        Self {
+            id: None,
+            name: account_name.to_owned(),
+            slug: slugify!(account_name.as_str()),
+            tags: None,
+            is_active: true,
+            is_checked: false,
+            is_archived: false,
+            verbose_status: None,
+            is_default: false,
+            owners: Children::Ids([].to_vec()),
+            account_type: AccountTypeV2::TenantManager { tenant_id },
             guest_users: None,
             created: Local::now(),
             updated: None,
@@ -233,8 +282,7 @@ impl Account {
     pub fn new(
         account_name: String,
         principal_owner: User,
-        account_type: AccountType,
-        //tenant: Parent<Tenant, Uuid>,
+        account_type: AccountTypeV2,
     ) -> Self {
         Self {
             id: None,
@@ -246,9 +294,8 @@ impl Account {
             is_archived: false,
             verbose_status: None,
             is_default: false,
-            //tenant,
             owners: Children::Records([principal_owner].to_vec()),
-            account_type: Parent::Record(account_type),
+            account_type,
             guest_users: None,
             created: Local::now(),
             updated: None,
@@ -266,18 +313,10 @@ mod tests {
     use crate::domain::dtos::email::Email;
 
     use chrono::Local;
+    use mycelium_base::dtos::Parent;
 
     #[test]
     fn test_if_account_works() {
-        let account_type = AccountType {
-            id: None,
-            name: "".to_string(),
-            description: "".to_string(),
-            is_subscription: false,
-            is_manager: false,
-            is_staff: false,
-        };
-
         let account = Account {
             id: None,
             name: String::from("Account Name"),
@@ -288,9 +327,8 @@ mod tests {
             is_archived: false,
             verbose_status: None,
             is_default: false,
-            //tenant: Parent::Id(Uuid::new_v4()),
             owners: Children::Records([].to_vec()),
-            account_type: Parent::Record(account_type),
+            account_type: AccountTypeV2::User,
             guest_users: None,
             created: Local::now(),
             updated: Some(Local::now()),

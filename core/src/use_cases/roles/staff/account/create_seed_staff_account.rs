@@ -1,16 +1,12 @@
-use crate::{
-    domain::{
-        dtos::{
-            account::{Account, AccountTypeEnum},
-            email::Email,
-            native_error_codes::NativeErrorCodes,
-            user::{PasswordHash, Provider, User},
-        },
-        entities::{
-            AccountRegistration, AccountTypeRegistration, UserRegistration,
-        },
+use crate::domain::{
+    dtos::{
+        account::Account,
+        account_type::AccountTypeV2,
+        email::Email,
+        native_error_codes::NativeErrorCodes,
+        user::{PasswordHash, Provider, User},
     },
-    use_cases::roles::shared::account_type::get_or_create_default_account_types,
+    entities::{AccountRegistration, UserRegistration},
 };
 
 use mycelium_base::{
@@ -36,7 +32,6 @@ pub async fn create_seed_staff_account(
     last_name: String,
     password: String,
     user_registration_repo: Box<&dyn UserRegistration>,
-    account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
 ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -82,24 +77,6 @@ pub async fn create_seed_staff_account(
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Fetch account type
-    //
-    // Get or create the default account-type.
-    // ? -----------------------------------------------------------------------
-
-    let account_type = match get_or_create_default_account_types(
-        AccountTypeEnum::Staff,
-        None,
-        None,
-        account_type_registration_repo,
-    )
-    .await?
-    {
-        GetOrCreateResponseKind::NotCreated(account_type, _) => account_type,
-        GetOrCreateResponseKind::Created(account_type) => account_type,
-    };
-
-    // ? -----------------------------------------------------------------------
     // ? Register the account
     //
     // The account are registered using the already created user.
@@ -107,7 +84,7 @@ pub async fn create_seed_staff_account(
 
     account_registration_repo
         .get_or_create(
-            Account::new(account_name, new_user, account_type),
+            Account::new(account_name, new_user, AccountTypeV2::Staff),
             true,
             false,
         )
