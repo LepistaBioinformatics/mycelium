@@ -1,4 +1,4 @@
-use crate::domain::dtos::tenant::Tenant;
+use crate::domain::dtos::tenant::{Tenant, TenantMeta, TenantMetaKey};
 
 use async_trait::async_trait;
 use mycelium_base::{
@@ -21,6 +21,13 @@ pub trait TenantRegistration: Interface + Send + Sync {
         tenant_id: Uuid,
         owner_id: Uuid,
     ) -> Result<CreateResponseKind<Tenant>, MappedErrors>;
+
+    async fn register_tenant_meta(
+        &self,
+        tenant_id: Uuid,
+        key: TenantMetaKey,
+        value: String,
+    ) -> Result<CreateResponseKind<TenantMeta>, MappedErrors>;
 }
 
 impl Display for dyn TenantRegistration {

@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::domain::{
     dtos::{
         profile::Profile,
-        tenant::{Tenant, TenantMeta, TenantStatus},
+        tenant::{Tenant, TenantMetaKey, TenantStatus},
     },
     entities::TenantFetching,
 };
@@ -23,7 +23,7 @@ pub async fn list_tenant(
     profile: Profile,
     name: Option<String>,
     owner: Option<Uuid>,
-    metadata: Option<TenantMeta>,
+    metadata: Option<TenantMetaKey>,
     status: Option<TenantStatus>,
     tag_value: Option<String>,
     tag_meta: Option<String>,

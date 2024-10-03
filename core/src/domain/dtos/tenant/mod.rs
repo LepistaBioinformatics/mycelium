@@ -1,7 +1,7 @@
 mod meta;
 mod status;
 
-pub use meta::TenantMeta;
+pub use meta::TenantMetaKey;
 pub use status::TenantStatus;
 
 use super::{account::Account, profile::Owner, tag::Tag};
@@ -13,6 +13,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use utoipa::ToSchema;
 use uuid::Uuid;
+
+pub type TenantMeta = HashMap<TenantMetaKey, String>;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -43,7 +45,7 @@ pub struct Tenant {
     /// This is the meta information of the tenant. The meta information is a
     /// key-value pair of string. The key is the name of the meta information,
     /// and the value is the value of the meta information.
-    pub meta: Option<HashMap<TenantMeta, String>>,
+    pub meta: Option<TenantMeta>,
 
     /// The status of the tenant
     ///

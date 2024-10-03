@@ -1,3 +1,5 @@
+use crate::domain::dtos::tenant::TenantMetaKey;
+
 use async_trait::async_trait;
 use mycelium_base::{
     entities::DeletionResponseKind, utils::errors::MappedErrors,
@@ -18,6 +20,12 @@ pub trait TenantDeletion: Interface + Send + Sync {
         &self,
         tenant_id: Uuid,
         owner_id: Uuid,
+    ) -> Result<DeletionResponseKind<Uuid>, MappedErrors>;
+
+    async fn delete_tenant_meta(
+        &self,
+        tenant_id: Uuid,
+        key: TenantMetaKey,
     ) -> Result<DeletionResponseKind<Uuid>, MappedErrors>;
 }
 
