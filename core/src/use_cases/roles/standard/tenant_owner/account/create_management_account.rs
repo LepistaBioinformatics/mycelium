@@ -13,7 +13,7 @@ use uuid::Uuid;
 #[tracing::instrument(
     name = "create_management_account",
     fields(
-        account_id = %profile.acc_id,
+        profile_id = %profile.acc_id,
         owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
     ),
     skip(profile, tenant_fetching_repo, account_registration_repo)

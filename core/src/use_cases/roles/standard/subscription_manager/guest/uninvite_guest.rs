@@ -17,7 +17,7 @@ use uuid::Uuid;
 ///
 #[tracing::instrument(
     name = "uninvite_guest",
-    fields(account_id = %profile.acc_id),
+    fields(profile_id = %profile.acc_id),
     skip_all
 )]
 pub async fn uninvite_guest(

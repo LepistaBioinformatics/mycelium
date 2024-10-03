@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 #[tracing::instrument(
     name = "guest_tenant_owner", 
-    fields(account_id = %profile.acc_id),
+    fields(profile_id = %profile.acc_id),
     skip_all
 )]
 pub async fn guest_tenant_owner(

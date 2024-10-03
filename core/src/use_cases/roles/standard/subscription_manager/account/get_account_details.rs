@@ -13,7 +13,7 @@ use uuid::Uuid;
 /// and others.
 #[tracing::instrument(
     name = "get_account_details",
-    fields(account_id = %profile.acc_id),
+    fields(profile_id = %profile.acc_id),
     skip_all
 )]
 pub async fn get_account_details(

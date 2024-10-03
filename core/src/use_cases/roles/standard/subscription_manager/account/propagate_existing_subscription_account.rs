@@ -24,7 +24,7 @@ use uuid::Uuid;
 ///
 #[tracing::instrument(
     name = "propagate_existing_subscription_account",
-    fields(account_id = %profile.acc_id, target_account_id = %account_id),
+    fields(profile_id = %profile.acc_id, target_account_id = %account_id),
     skip_all
 )]
 pub async fn propagate_existing_subscription_account(

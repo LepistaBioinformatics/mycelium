@@ -17,7 +17,7 @@ use uuid::Uuid;
 #[tracing::instrument(
     name = "create_tenant",
     fields(
-        account_id = %profile.acc_id,
+        profile_id = %profile.acc_id,
         owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
     ),
     skip(profile, user_fetching_repo, tenant_registration_repo)

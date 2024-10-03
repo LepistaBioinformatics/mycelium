@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 #[tracing::instrument(
     name = "delete_tag",
-    fields(account_id = %profile.acc_id),
+    fields(profile_id = %profile.acc_id),
     skip_all
 )]
 pub async fn delete_tag(

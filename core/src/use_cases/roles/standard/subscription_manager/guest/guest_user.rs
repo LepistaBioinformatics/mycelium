@@ -20,14 +20,14 @@ use uuid::Uuid;
 /// Guest a user to perform actions into an account.
 #[tracing::instrument(
     name = "guest_user",
-    fields(account_id = %profile.acc_id),
+    fields(profile_id = %profile.acc_id),
     skip_all
 )]
 pub async fn guest_user(
     profile: Profile,
     tenant_id: Uuid,
     email: Email,
-    role: Uuid,
+    role_id: Uuid,
     target_account_id: Uuid,
     account_fetching_repo: Box<&dyn AccountFetching>,
     guest_user_registration_repo: Box<&dyn GuestUserRegistration>,
@@ -80,7 +80,7 @@ pub async fn guest_user(
             GuestUser {
                 id: None,
                 email: email.to_owned(),
-                guest_role: Parent::Id(role),
+                guest_role: Parent::Id(role_id),
                 created: Local::now(),
                 updated: None,
                 accounts: None,

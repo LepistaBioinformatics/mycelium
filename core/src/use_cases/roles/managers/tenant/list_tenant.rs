@@ -14,7 +14,7 @@ use crate::domain::{
 #[tracing::instrument(
     name = "list_tenant",
     fields(
-        account_id = %profile.acc_id,
+        profile_id = %profile.acc_id,
         owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
     ),
     skip(profile, tenant_fetching_repo)

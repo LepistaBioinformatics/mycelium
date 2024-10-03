@@ -24,7 +24,7 @@ use uuid::Uuid;
 /// Subscription accounts represents results centering accounts.
 #[tracing::instrument(
     name = "create_subscription_account",
-    fields(account_id = %profile.acc_id),
+    fields(profile_id = %profile.acc_id),
     skip_all
 )]
 pub async fn create_subscription_account(
