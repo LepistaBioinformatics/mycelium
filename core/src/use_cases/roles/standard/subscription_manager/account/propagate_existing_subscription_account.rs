@@ -1,7 +1,7 @@
 use super::propagate_subscription_account::propagate_subscription_account;
 use crate::{
     domain::{
-        actors::DefaultActor,
+        actors::ActorName,
         dtos::{
             profile::Profile,
             webhook::{AccountPropagationWebHookResponse, HookTarget},
@@ -29,6 +29,7 @@ use uuid::Uuid;
 )]
 pub async fn propagate_existing_subscription_account(
     profile: Profile,
+    tenant_id: Uuid,
     bearer_token: String,
     account_id: Uuid,
     account_fetching_repo: Box<&dyn AccountFetching>,
@@ -38,17 +39,22 @@ pub async fn propagate_existing_subscription_account(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_create_ids_or_error(vec![
-        DefaultActor::TenantOwner.to_string(),
-        DefaultActor::TenantManager.to_string(),
-        DefaultActor::SubscriptionManager.to_string(),
-    ])?;
+    let related_accounts = profile
+        .on_tenant(tenant_id)
+        .get_related_account_with_default_create_or_error(vec![
+            ActorName::TenantOwner.to_string(),
+            ActorName::TenantManager.to_string(),
+            ActorName::SubscriptionManager.to_string(),
+        ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch subscription account
     // ? -----------------------------------------------------------------------
 
-    let account = match account_fetching_repo.get(account_id).await? {
+    let account = match account_fetching_repo
+        .get(account_id, related_accounts)
+        .await?
+    {
         FetchResponseKind::Found(account) => account,
         FetchResponseKind::NotFound(_) => {
             return use_case_err("The account was not found.".to_string())
@@ -62,6 +68,7 @@ pub async fn propagate_existing_subscription_account(
 
     propagate_subscription_account(
         profile,
+        tenant_id,
         bearer_token,
         account,
         WebHookDefaultAction::CreateSubscriptionAccount,

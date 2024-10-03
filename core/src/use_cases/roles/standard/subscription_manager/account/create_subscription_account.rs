@@ -1,27 +1,23 @@
 use super::propagate_subscription_account::propagate_subscription_account;
 use crate::{
     domain::{
-        actors::DefaultActor,
+        actors::ActorName,
         dtos::{
-            account::{Account, AccountTypeEnum},
+            account::Account,
             native_error_codes::NativeErrorCodes,
             profile::Profile,
             webhook::{AccountPropagationWebHookResponse, HookTarget},
         },
-        entities::{
-            AccountRegistration, AccountTypeRegistration, WebHookFetching,
-        },
+        entities::{AccountRegistration, WebHookFetching},
     },
-    use_cases::roles::shared::{
-        account_type::get_or_create_default_account_types,
-        webhook::default_actions::WebHookDefaultAction,
-    },
+    use_cases::roles::shared::webhook::default_actions::WebHookDefaultAction,
 };
 
 use mycelium_base::{
     entities::GetOrCreateResponseKind,
     utils::errors::{use_case_err, MappedErrors},
 };
+use uuid::Uuid;
 
 /// Create an account flagged as subscription.
 ///
@@ -33,9 +29,9 @@ use mycelium_base::{
 )]
 pub async fn create_subscription_account(
     profile: Profile,
+    tenant_id: Uuid,
     bearer_token: String,
     account_name: String,
-    account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
 ) -> Result<AccountPropagationWebHookResponse, MappedErrors> {
@@ -43,29 +39,13 @@ pub async fn create_subscription_account(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_create_ids_or_error(vec![
-        DefaultActor::TenantOwner.to_string(),
-        DefaultActor::TenantManager.to_string(),
-        DefaultActor::SubscriptionManager.to_string(),
-    ])?;
-
-    // ? -----------------------------------------------------------------------
-    // ? Fetch account type
-    //
-    // Get or create the default account-type.
-    // ? -----------------------------------------------------------------------
-
-    let account_type = match get_or_create_default_account_types(
-        AccountTypeEnum::Subscription,
-        None,
-        None,
-        account_type_registration_repo,
-    )
-    .await?
-    {
-        GetOrCreateResponseKind::NotCreated(account_type, _) => account_type,
-        GetOrCreateResponseKind::Created(account_type) => account_type,
-    };
+    profile
+        .on_tenant(tenant_id)
+        .get_default_create_ids_or_error(vec![
+            ActorName::TenantOwner.to_string(),
+            ActorName::TenantManager.to_string(),
+            ActorName::SubscriptionManager.to_string(),
+        ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Register the account
@@ -74,7 +54,7 @@ pub async fn create_subscription_account(
     // ? -----------------------------------------------------------------------
 
     let mut unchecked_account =
-        Account::new_subscription_account(account_name, account_type);
+        Account::new_subscription_account(account_name, tenant_id);
 
     unchecked_account.is_checked = true;
 
@@ -96,6 +76,7 @@ pub async fn create_subscription_account(
 
     propagate_subscription_account(
         profile,
+        tenant_id,
         bearer_token,
         account,
         WebHookDefaultAction::CreateSubscriptionAccount,

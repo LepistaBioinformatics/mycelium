@@ -11,7 +11,7 @@ pub mod utils;
 /// from myc-api instead of the myc-core.
 pub use myc_core::{
     domain::{
-        actors::DefaultActor,
+        actors::ActorName,
         dtos::{
             email::Email,
             guest::Permissions,

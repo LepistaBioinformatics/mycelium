@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::DefaultActor,
+    actors::ActorName,
     dtos::{
         guest::{GuestRole, Permissions},
         profile::Profile,
@@ -35,7 +35,7 @@ pub async fn create_guest_role(
     // ? ----------------------------------------------------------------------
 
     profile.get_default_create_ids_or_error(vec![
-        DefaultActor::GuestManager.to_string(),
+        ActorName::GuestManager.to_string()
     ])?;
 
     // ? ----------------------------------------------------------------------

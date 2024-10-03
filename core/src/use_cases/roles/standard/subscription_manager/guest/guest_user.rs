@@ -1,7 +1,9 @@
 use crate::domain::{
-    actors::DefaultActor,
+    actors::ActorName,
     dtos::{
-        email::Email, guest::GuestUser, message::Message, profile::Profile,
+        account_type::AccountTypeV2, email::Email, guest::GuestUser,
+        message::Message, native_error_codes::NativeErrorCodes,
+        profile::Profile,
     },
     entities::{AccountFetching, GuestUserRegistration, MessageSending},
 };
@@ -23,6 +25,7 @@ use uuid::Uuid;
 )]
 pub async fn guest_user(
     profile: Profile,
+    tenant_id: Uuid,
     email: Email,
     role: Uuid,
     target_account_id: Uuid,
@@ -34,11 +37,13 @@ pub async fn guest_user(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_create_ids_or_error(vec![
-        DefaultActor::TenantOwner.to_string(),
-        DefaultActor::TenantManager.to_string(),
-        DefaultActor::SubscriptionManager.to_string(),
-    ])?;
+    let related_accounts = profile
+        .on_tenant(tenant_id)
+        .get_related_account_with_default_create_or_error(vec![
+            ActorName::TenantOwner.to_string(),
+            ActorName::TenantManager.to_string(),
+            ActorName::SubscriptionManager.to_string(),
+        ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Check if account has subscription type
@@ -46,31 +51,22 @@ pub async fn guest_user(
     // Check if the target account is a subscription account.
     // ? -----------------------------------------------------------------------
 
-    match account_fetching_repo.get(target_account_id).await? {
+    match account_fetching_repo.get(target_account_id, related_accounts).await? {
         FetchResponseKind::NotFound(id) => {
             return use_case_err(format!(
                 "Target account not found: {:?}",
                 id.unwrap()
             ))
+            .with_code(NativeErrorCodes::MYC00013)
             .as_error()
         }
         FetchResponseKind::Found(account) => match account.account_type {
-            Parent::Id(id) => {
-                return use_case_err(format!(
-                    "Could not check the account type validity: {}",
-                    id
-                ))
+            AccountTypeV2::Subscription { .. } => (),
+            _ => {
+                return use_case_err(
+                    "Invalid account. Only subscription accounts should receive guesting."
+                )
                 .as_error()
-            }
-            Parent::Record(account_type) => {
-                if !account_type.is_subscription {
-                    return use_case_err(format!(
-                        "Invalid account ({:?}). Only subscription 
-                            accounts should receive guesting.",
-                        account_type.id
-                    ))
-                    .as_error();
-                }
             }
         },
     }

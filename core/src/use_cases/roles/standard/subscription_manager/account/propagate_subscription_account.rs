@@ -1,6 +1,6 @@
 use crate::{
     domain::{
-        actors::DefaultActor,
+        actors::ActorName,
         dtos::{
             account::Account,
             profile::Profile,
@@ -16,6 +16,7 @@ use crate::{
 use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
+use uuid::Uuid;
 
 /// Propagate a new subscription account to all webhooks.
 ///
@@ -29,6 +30,7 @@ use mycelium_base::{
 )]
 pub(super) async fn propagate_subscription_account(
     profile: Profile,
+    tenant_id: Uuid,
     bearer_token: String,
     account: Account,
     webhook_default_action: WebHookDefaultAction,
@@ -39,11 +41,13 @@ pub(super) async fn propagate_subscription_account(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_create_ids_or_error(vec![
-        DefaultActor::TenantOwner.to_string(),
-        DefaultActor::TenantManager.to_string(),
-        DefaultActor::SubscriptionManager.to_string(),
-    ])?;
+    profile
+        .on_tenant(tenant_id)
+        .get_related_account_with_default_create_or_error(vec![
+            ActorName::TenantOwner.to_string(),
+            ActorName::TenantManager.to_string(),
+            ActorName::SubscriptionManager.to_string(),
+        ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Propagate new account

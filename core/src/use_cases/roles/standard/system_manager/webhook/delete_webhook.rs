@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::DefaultActor, dtos::profile::Profile, entities::WebHookDeletion,
+    actors::ActorName, dtos::profile::Profile, entities::WebHookDeletion,
 };
 
 use mycelium_base::{
@@ -17,7 +17,7 @@ pub async fn delete_webhook(
     webhook_deletion_repo: Box<&dyn WebHookDeletion>,
 ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
     profile.get_default_delete_ids_or_error(vec![
-        DefaultActor::SystemManager.to_string(),
+        ActorName::SystemManager.to_string(),
     ])?;
 
     webhook_deletion_repo.delete(hook_id).await

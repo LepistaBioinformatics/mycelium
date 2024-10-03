@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::DefaultActor,
+    actors::ActorName,
     dtos::{account::Account, profile::Profile},
     entities::AccountFetching,
 };
@@ -18,6 +18,7 @@ use uuid::Uuid;
 )]
 pub async fn get_account_details(
     profile: Profile,
+    tenant_id: Uuid,
     account_id: Uuid,
     account_fetching_repo: Box<&dyn AccountFetching>,
 ) -> Result<FetchResponseKind<Account, Uuid>, MappedErrors> {
@@ -25,15 +26,19 @@ pub async fn get_account_details(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_view_ids_or_error(vec![
-        DefaultActor::TenantOwner.to_string(),
-        DefaultActor::TenantManager.to_string(),
-        DefaultActor::SubscriptionManager.to_string(),
-    ])?;
+    let related_accounts = profile
+        .on_tenant(tenant_id)
+        .get_related_account_with_default_view_or_error(vec![
+            ActorName::TenantOwner.to_string(),
+            ActorName::TenantManager.to_string(),
+            ActorName::SubscriptionManager.to_string(),
+        ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch account
     // ? -----------------------------------------------------------------------
 
-    account_fetching_repo.get(account_id).await
+    account_fetching_repo
+        .get(account_id, related_accounts)
+        .await
 }

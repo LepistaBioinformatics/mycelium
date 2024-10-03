@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::DefaultActor,
+    actors::ActorName,
     dtos::{
         error_code::ErrorCode, native_error_codes::NativeErrorCodes,
         profile::Profile,
@@ -39,7 +39,7 @@ pub async fn update_error_code_message_and_details(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_update_ids_or_error(vec![
-        DefaultActor::SystemManager.to_string(),
+        ActorName::SystemManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

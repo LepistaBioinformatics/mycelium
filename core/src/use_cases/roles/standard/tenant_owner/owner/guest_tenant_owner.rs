@@ -1,9 +1,6 @@
 use crate::domain::{
-    actors::DefaultActor,
-    dtos::{
-        email::Email, profile::Profile, related_accounts::RelatedAccounts,
-        tenant::Tenant, user::Provider,
-    },
+    actors::ActorName,
+    dtos::{email::Email, profile::Profile, tenant::Tenant, user::Provider},
     entities::{TenantUpdating, UserFetching},
 };
 
@@ -29,18 +26,11 @@ pub async fn guest_tenant_owner(
     // ? Check the user permissions
     // ? -----------------------------------------------------------------------
 
-    if let RelatedAccounts::AllowedAccounts(allowed_ids) = &profile
+    profile
+        .on_tenant(tenant_id)
         .get_related_account_with_default_update_or_error(vec![
-            DefaultActor::TenantOwner.to_string(),
-        ])?
-    {
-        if !allowed_ids.contains(&tenant_id) {
-            return use_case_err(
-                "User is not allowed to perform this action".to_string(),
-            )
-            .as_error();
-        }
-    }
+            ActorName::TenantOwner.to_string(),
+        ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Collect user

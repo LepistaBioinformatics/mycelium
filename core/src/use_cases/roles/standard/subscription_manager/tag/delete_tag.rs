@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::DefaultActor, dtos::profile::Profile, entities::TagDeletion,
+    actors::ActorName, dtos::profile::Profile, entities::TagDeletion,
 };
 
 use mycelium_base::{
@@ -26,9 +26,9 @@ pub async fn delete_tag(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_update_ids_or_error(vec![
-        DefaultActor::TenantOwner.to_string(),
-        DefaultActor::TenantManager.to_string(),
-        DefaultActor::SubscriptionManager.to_string(),
+        ActorName::TenantOwner.to_string(),
+        ActorName::TenantManager.to_string(),
+        ActorName::SubscriptionManager.to_string(),
     ])?;
 
     // ? -----------------------------------------------------------------------

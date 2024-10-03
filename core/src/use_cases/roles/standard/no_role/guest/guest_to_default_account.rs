@@ -1,22 +1,16 @@
 use crate::{
     domain::{
+        actors::ActorName,
         dtos::{
-            account::{Account, AccountTypeEnum},
-            email::Email,
-            guest::GuestUser,
-            message::Message,
+            account::Account, email::Email, guest::GuestUser, message::Message,
             user::User,
         },
         entities::{
-            AccountRegistration, AccountTypeRegistration,
-            GuestUserRegistration, MessageSending,
+            AccountRegistration, GuestUserRegistration, MessageSending,
         },
     },
     models::AccountLifeCycle,
-    use_cases::roles::shared::{
-        account::get_or_create_default_subscription_account,
-        account_type::get_or_create_default_account_types,
-    },
+    use_cases::roles::shared::account::get_or_create_role_related_account,
 };
 
 use chrono::Local;
@@ -30,47 +24,29 @@ use uuid::Uuid;
 
 #[tracing::instrument(name = "guest_to_default_account", skip_all)]
 pub async fn guest_to_default_account(
-    role: Uuid,
+    role_id: Uuid,
     account: Account,
+    tenant_id: Uuid,
     token_secret: AccountLifeCycle,
-    account_type_registration_repo: Box<&dyn AccountTypeRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
     message_sending_repo: Box<&dyn MessageSending>,
     guest_user_registration_repo: Box<&dyn GuestUserRegistration>,
 ) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
-    // ? Fetch account type
-    //
-    // Get or create the default account-type.
-    // ? -----------------------------------------------------------------------
-
-    let account_type = match get_or_create_default_account_types(
-        AccountTypeEnum::Subscription,
-        None,
-        None,
-        account_type_registration_repo,
-    )
-    .await?
-    {
-        GetOrCreateResponseKind::NotCreated(account_type, _) => account_type,
-        GetOrCreateResponseKind::Created(account_type) => account_type,
-    };
-
-    // ? -----------------------------------------------------------------------
     // ? Fetch default account
     // ? -----------------------------------------------------------------------
 
-    let default_subscription_account =
-        match get_or_create_default_subscription_account(
-            role,
-            account_type,
-            account_registration_repo,
-        )
-        .await?
-        {
-            GetOrCreateResponseKind::NotCreated(account, _) => account,
-            GetOrCreateResponseKind::Created(account) => account,
-        };
+    let default_subscription_account = match get_or_create_role_related_account(
+        tenant_id,
+        role_id,
+        ActorName::CustomRole(role_id.to_string()),
+        account_registration_repo,
+    )
+    .await?
+    {
+        GetOrCreateResponseKind::NotCreated(account, _) => account,
+        GetOrCreateResponseKind::Created(account) => account,
+    };
 
     // ? -----------------------------------------------------------------------
     // ? Persist changes
@@ -95,7 +71,7 @@ pub async fn guest_to_default_account(
             GuestUser {
                 id: None,
                 email: guest_email.to_owned(),
-                guest_role: Parent::Id(role),
+                guest_role: Parent::Id(role_id),
                 created: Local::now(),
                 updated: None,
                 accounts: None,

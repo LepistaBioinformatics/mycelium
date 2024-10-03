@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::DefaultActor, dtos::profile::Profile, entities::GuestRoleDeletion,
+    actors::ActorName, dtos::profile::Profile, entities::GuestRoleDeletion,
 };
 
 use mycelium_base::{
@@ -22,7 +22,7 @@ pub async fn delete_guest_role(
     // ? ----------------------------------------------------------------------
 
     profile.get_default_delete_ids_or_error(vec![
-        DefaultActor::GuestManager.to_string(),
+        ActorName::GuestManager.to_string()
     ])?;
 
     // ? ----------------------------------------------------------------------

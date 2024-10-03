@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::DefaultActor,
+    actors::ActorName,
     dtos::{
         email::Email,
         profile::{LicensedResources, Profile},
@@ -10,6 +10,7 @@ use crate::domain::{
 use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
+use uuid::Uuid;
 
 /// Get all licenses related to email
 ///
@@ -21,6 +22,7 @@ use mycelium_base::{
 )]
 pub async fn list_licensed_accounts_of_email(
     profile: Profile,
+    tenant_id: Uuid,
     email: Email,
     licensed_resources_fetching_repo: Box<&dyn LicensedResourcesFetching>,
 ) -> Result<FetchManyResponseKind<LicensedResources>, MappedErrors> {
@@ -28,15 +30,19 @@ pub async fn list_licensed_accounts_of_email(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_view_ids_or_error(vec![
-        DefaultActor::TenantOwner.to_string(),
-        DefaultActor::TenantManager.to_string(),
-        DefaultActor::SubscriptionManager.to_string(),
-    ])?;
+    let related_accounts = profile
+        .on_tenant(tenant_id)
+        .get_related_account_with_default_view_or_error(vec![
+            ActorName::TenantOwner.to_string(),
+            ActorName::TenantManager.to_string(),
+            ActorName::SubscriptionManager.to_string(),
+        ])?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch subscriptions from email
     // ? -----------------------------------------------------------------------
 
-    licensed_resources_fetching_repo.list(email).await
+    licensed_resources_fetching_repo
+        .list(email, Some(related_accounts))
+        .await
 }

@@ -1,11 +1,15 @@
 use crate::domain::{
-    actors::DefaultActor,
-    dtos::{guest::GuestUser, profile::Profile},
+    actors::ActorName,
+    dtos::{
+        guest::GuestUser, native_error_codes::NativeErrorCodes,
+        profile::Profile, related_accounts::RelatedAccounts,
+    },
     entities::GuestUserOnAccountUpdating,
 };
 
 use mycelium_base::{
-    entities::UpdatingResponseKind, utils::errors::MappedErrors,
+    entities::UpdatingResponseKind,
+    utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
@@ -21,6 +25,7 @@ use uuid::Uuid;
 )]
 pub async fn update_user_guest_role(
     profile: Profile,
+    tenant_id: Uuid,
     account_id: Uuid,
     old_guest_user_id: Uuid,
     new_guest_user_id: Uuid,
@@ -30,11 +35,22 @@ pub async fn update_user_guest_role(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_update_ids_or_error(vec![
-        DefaultActor::TenantOwner.to_string(),
-        DefaultActor::TenantManager.to_string(),
-        DefaultActor::SubscriptionManager.to_string(),
-    ])?;
+    if let RelatedAccounts::AllowedAccounts(allowed_ids) = &profile
+        .on_tenant(tenant_id)
+        .get_related_account_with_default_update_or_error(vec![
+            ActorName::TenantOwner.to_string(),
+            ActorName::TenantManager.to_string(),
+            ActorName::SubscriptionManager.to_string(),
+        ])?
+    {
+        if !allowed_ids.contains(&account_id) {
+            return use_case_err(
+                "User is not allowed to perform this action".to_string(),
+            )
+            .with_code(NativeErrorCodes::MYC00013)
+            .as_error();
+        }
+    };
 
     // ? -----------------------------------------------------------------------
     // ? Update role
