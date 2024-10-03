@@ -1,6 +1,5 @@
 use crate::{
     domain::{
-        actors::ActorName,
         dtos::{
             account::Account, email::Email, guest::GuestUser, message::Message,
             user::User,
@@ -22,6 +21,10 @@ use mycelium_base::{
 use tracing::{info, warn};
 use uuid::Uuid;
 
+/// Guest a user to a default account
+///
+/// This method should be called from webhooks to propagate a new user to a
+/// default account.
 #[tracing::instrument(name = "guest_to_default_account", skip_all)]
 pub async fn guest_to_default_account(
     role_id: Uuid,
@@ -39,7 +42,6 @@ pub async fn guest_to_default_account(
     let default_subscription_account = match get_or_create_role_related_account(
         tenant_id,
         role_id,
-        ActorName::CustomRole(role_id.to_string()),
         account_registration_repo,
     )
     .await?
