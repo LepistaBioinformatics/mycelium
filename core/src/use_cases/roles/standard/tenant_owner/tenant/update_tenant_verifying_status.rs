@@ -1,11 +1,14 @@
 use crate::domain::{
     actors::DefaultActor,
-    dtos::{profile::Profile, tenant::Tenant},
+    dtos::{
+        profile::Profile, related_accounts::RelatedAccounts, tenant::Tenant,
+    },
     entities::TenantUpdating,
 };
 
 use mycelium_base::{
-    entities::UpdatingResponseKind, utils::errors::MappedErrors,
+    entities::UpdatingResponseKind,
+    utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
@@ -23,9 +26,18 @@ pub async fn update_tenant_verifying_status(
     // ? Check the user permissions
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_update_ids_or_error(vec![
-        DefaultActor::TenantOwner.to_string()
-    ])?;
+    if let RelatedAccounts::AllowedAccounts(allowed_ids) = &profile
+        .get_related_account_with_default_update_or_error(vec![
+            DefaultActor::TenantOwner.to_string(),
+        ])?
+    {
+        if !allowed_ids.contains(&tenant_id) {
+            return use_case_err(
+                "User is not allowed to perform this action".to_string(),
+            )
+            .as_error();
+        }
+    }
 
     // ? -----------------------------------------------------------------------
     // ? Update tenant
