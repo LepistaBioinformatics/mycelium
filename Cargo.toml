@@ -12,7 +12,7 @@ members = [
     #"ports/cli",
     #"ports/api",
     "adapters/mem_db",
-    "adapters/prisma",
+    #"adapters/prisma",
     "adapters/service",
     "adapters/smtp",
     "test/bin",

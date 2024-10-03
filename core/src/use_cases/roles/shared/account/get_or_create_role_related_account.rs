@@ -23,7 +23,6 @@ use uuid::Uuid;
 pub(crate) async fn get_or_create_role_related_account(
     tenant_id: Uuid,
     role_id: Uuid,
-    role_name: ActorName,
     account_registration_repo: Box<&dyn AccountRegistration>,
 ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -34,7 +33,7 @@ pub(crate) async fn get_or_create_role_related_account(
         format!("default-subscription-for-role-{}", role_id.to_string()),
         tenant_id,
         role_id,
-        role_name,
+        ActorName::CustomRole(role_id.to_string()),
     );
 
     unchecked_account.is_checked = true;

@@ -7,6 +7,7 @@ use chrono::{DateTime, Local};
 use myc_core::domain::{
     dtos::{
         account::{Account, VerboseStatus},
+        account_type::AccountTypeV2,
         email::Email,
         native_error_codes::NativeErrorCodes,
         tag::Tag,
@@ -193,5 +194,21 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                 .as_error();
             }
         }
+    }
+
+    async fn update_own_account_name(
+        &self,
+        account_id: Uuid,
+        name: String,
+    ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
+        unimplemented!()
+    }
+
+    async fn update_account_type(
+        &self,
+        account_id: Uuid,
+        account_type: AccountTypeV2,
+    ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
+        unimplemented!()
     }
 }

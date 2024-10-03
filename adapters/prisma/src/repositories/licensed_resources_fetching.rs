@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use myc_core::domain::{
     dtos::{
         email::Email, guest::Permissions, native_error_codes::NativeErrorCodes,
-        profile::LicensedResources,
+        profile::LicensedResources, related_accounts::RelatedAccounts,
     },
     entities::LicensedResourcesFetching,
 };
@@ -38,6 +38,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
     async fn list(
         &self,
         email: Email,
+        related_accounts: Option<RelatedAccounts>,
     ) -> Result<FetchManyResponseKind<LicensedResources>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Build and execute the database query

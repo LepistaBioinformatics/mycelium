@@ -13,6 +13,7 @@ use myc_core::domain::{
         account::{Account, AccountType, VerboseStatus},
         email::Email,
         native_error_codes::NativeErrorCodes,
+        related_accounts::RelatedAccounts,
         tag::Tag,
         user::User,
     },
@@ -40,6 +41,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
     async fn get(
         &self,
         id: Uuid,
+        related_accounts: RelatedAccounts,
     ) -> Result<FetchResponseKind<Account, Uuid>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
