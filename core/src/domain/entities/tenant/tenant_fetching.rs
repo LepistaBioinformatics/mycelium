@@ -1,6 +1,6 @@
 use crate::domain::dtos::{
     related_accounts::RelatedAccounts,
-    tenant::{Tenant, TenantMeta, TenantStatus},
+    tenant::{Tenant, TenantMetaKey, TenantStatus},
 };
 
 use async_trait::async_trait;
@@ -23,7 +23,7 @@ pub trait TenantFetching: Interface + Send + Sync {
         &self,
         name: Option<String>,
         owner: Option<Uuid>,
-        metadata: Option<TenantMeta>,
+        metadata: Option<TenantMetaKey>,
         status: Option<TenantStatus>,
         tag_value: Option<String>,
         tag_meta: Option<String>,

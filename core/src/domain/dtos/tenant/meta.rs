@@ -5,7 +5,7 @@ use utoipa::ToSchema;
     Clone, Debug, Deserialize, Serialize, ToSchema, Eq, Hash, PartialEq,
 )]
 #[serde(rename_all = "camelCase")]
-pub enum TenantMeta {
+pub enum TenantMetaKey {
     /// Federal Revenue Register
     ///
     /// The Federal Revenue Register is the register of the federal revenue

@@ -1,5 +1,5 @@
 use crate::domain::dtos::email::Email;
-use crate::domain::dtos::tenant::Tenant;
+use crate::domain::dtos::tenant::{Tenant, TenantMeta, TenantMetaKey};
 
 use async_trait::async_trait;
 use mycelium_base::{
@@ -59,6 +59,13 @@ pub trait TenantUpdating: Interface + Send + Sync {
         owner_id: Option<Uuid>,
         owner_email: Option<Email>,
     ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors>;
+
+    async fn update_tenant_meta(
+        &self,
+        tenant_id: Uuid,
+        key: TenantMetaKey,
+        value: String,
+    ) -> Result<UpdatingResponseKind<TenantMeta>, MappedErrors>;
 }
 
 impl Display for dyn TenantUpdating {
