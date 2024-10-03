@@ -10,7 +10,7 @@ use mycelium_base::{
     utils::errors::{dto_err, MappedErrors},
 };
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -43,7 +43,7 @@ pub struct Tenant {
     /// This is the meta information of the tenant. The meta information is a
     /// key-value pair of string. The key is the name of the meta information,
     /// and the value is the value of the meta information.
-    pub meta: Option<HashSet<TenantMeta>>,
+    pub meta: Option<HashMap<TenantMeta, String>>,
 
     /// The status of the tenant
     ///

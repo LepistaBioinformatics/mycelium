@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Local};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
@@ -17,7 +17,7 @@ pub enum TenantStatus {
     ///
     /// The verified at status is the status of the tenant that indicates the
     /// date when the tenant was verified.
-    VerifiedAt(DateTime<Utc>),
+    VerifiedAt(DateTime<Local>),
 
     /// The user who verified the tenant
     ///
@@ -35,7 +35,7 @@ pub enum TenantStatus {
     ///
     /// The trashed at status is the status of the tenant that indicates the
     /// date when the tenant was trashed.
-    TrashedAt(DateTime<Utc>),
+    TrashedAt(DateTime<Local>),
 
     /// The user who trashed the tenant
     ///
@@ -53,7 +53,7 @@ pub enum TenantStatus {
     ///
     /// The archived at status is the status of the tenant that indicates the
     /// date when the tenant was archived.
-    ArchivedAt(DateTime<Utc>),
+    ArchivedAt(DateTime<Local>),
 
     /// The user who archived the tenant
     ///
