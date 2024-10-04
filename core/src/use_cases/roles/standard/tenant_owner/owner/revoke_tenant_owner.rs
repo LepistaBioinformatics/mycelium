@@ -12,11 +12,11 @@ use mycelium_base::{
 use uuid::Uuid;
 
 #[tracing::instrument(
-    name = "guest_tenant_owner", 
+    name = "revoke_tenant_owner", 
     fields(profile_id = %profile.acc_id),
-    skip_all
+    skip(profile, owner_email, tenant_fetching_repo, tenant_updating_repo)
 )]
-pub async fn guest_tenant_owner(
+pub async fn revoke_tenant_owner(
     profile: Profile,
     owner_email: Email,
     tenant_id: Uuid,
