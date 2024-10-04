@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName, dtos::profile::Profile, entities::TagDeletion,
+    actors::ActorName, dtos::profile::Profile, entities::AccountTagDeletion,
 };
 
 use mycelium_base::{
@@ -15,7 +15,7 @@ use uuid::Uuid;
 pub async fn delete_tag(
     profile: Profile,
     tag_id: Uuid,
-    tag_deletion_repo: Box<&dyn TagDeletion>,
+    tag_deletion_repo: Box<&dyn AccountTagDeletion>,
 ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check the user permissions

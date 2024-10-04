@@ -1,28 +1,27 @@
-use crate::domain::dtos::tag::Tag;
-
 use async_trait::async_trait;
 use mycelium_base::{
-    entities::UpdatingResponseKind, utils::errors::MappedErrors,
+    entities::DeletionResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Interface;
 use std::fmt::Result as FmResult;
 use std::fmt::{Debug, Display, Formatter};
+use uuid::Uuid;
 
 #[async_trait]
-pub trait TagUpdating: Interface + Send + Sync {
-    async fn update(
+pub trait AccountTagDeletion: Interface + Send + Sync {
+    async fn delete(
         &self,
-        tag: Tag,
-    ) -> Result<UpdatingResponseKind<Tag>, MappedErrors>;
+        id: Uuid,
+    ) -> Result<DeletionResponseKind<Uuid>, MappedErrors>;
 }
 
-impl Display for dyn TagUpdating {
+impl Display for dyn AccountTagDeletion {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmResult {
         write!(f, "{}", self)
     }
 }
 
-impl Debug for dyn TagUpdating {
+impl Debug for dyn AccountTagDeletion {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmResult {
         write!(f, "{}", self)
     }
