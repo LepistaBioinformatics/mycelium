@@ -1,5 +1,8 @@
 use crate::{
-    prisma::{account as account_model, user as user_model, QueryMode},
+    prisma::{
+        account as account_model, tenant as tenant_model, user as user_model,
+        QueryMode,
+    },
     repositories::connector::get_client,
 };
 
@@ -12,6 +15,7 @@ use myc_core::domain::{
         email::Email,
         native_error_codes::NativeErrorCodes,
         tag::Tag,
+        tenant::TenantId,
         user::User,
     },
     entities::AccountRegistration,
@@ -22,7 +26,7 @@ use mycelium_base::{
     utils::errors::{creation_err, MappedErrors},
 };
 use prisma_client_rust::{and, or};
-use serde_json::from_value;
+use serde_json::{from_value, to_value};
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -33,7 +37,145 @@ pub struct AccountRegistrationSqlDbRepository {}
 
 #[async_trait]
 impl AccountRegistration for AccountRegistrationSqlDbRepository {
-    async fn get_or_create(
+    async fn create_subscription_account(
+        &self,
+        account: Account,
+        tenant_id: TenantId,
+    ) -> Result<CreateResponseKind<Account>, MappedErrors> {
+        // ? -------------------------------------------------------------------
+        // ? Try to build the prisma client
+        // ? -------------------------------------------------------------------
+
+        let tmp_client = get_client().await;
+
+        let client = match tmp_client.get(&process_id()) {
+            None => {
+                return creation_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .with_code(NativeErrorCodes::MYC00001)
+                .as_error()
+            }
+            Some(res) => res,
+        };
+
+        // ? -------------------------------------------------------------------
+        // ? Try to build the prisma client
+        // ? -------------------------------------------------------------------
+
+        match client
+            .account()
+            .create(
+                account.name,
+                account.slug,
+                tenant_model::id::equals(tenant_id.to_string()),
+                vec![
+                    account_model::account_type::set(
+                        to_value(AccountTypeV2::Subscription { tenant_id })
+                            .unwrap(),
+                    ),
+                    account_model::is_active::set(account.is_active),
+                    account_model::is_checked::set(account.is_checked),
+                    account_model::is_archived::set(account.is_archived),
+                    account_model::is_default::set(account.is_default),
+                ],
+            )
+            .include(account_model::include!({
+                owners
+                tags: select {
+                    id
+                    value
+                    meta
+                }
+            }))
+            .exec()
+            .await
+        {
+            Err(err) => {
+                return creation_err(format!(
+                    "Unexpected error detected on update record: {}",
+                    err
+                ))
+                .with_code(NativeErrorCodes::MYC00002)
+                .as_error();
+            }
+            Ok(account) => {
+                let id = Uuid::parse_str(&account.id).unwrap();
+
+                return Ok(CreateResponseKind::Created(Account {
+                    id: Some(id),
+                    name: account.name,
+                    slug: account.slug,
+                    tags: match account.tags.len() {
+                        0 => None,
+                        _ => Some(
+                            account
+                                .tags
+                                .to_owned()
+                                .into_iter()
+                                .map(|i| Tag {
+                                    id: Uuid::parse_str(&i.id).unwrap(),
+                                    value: i.value,
+                                    meta: match i.meta {
+                                        None => None,
+                                        Some(meta) => {
+                                            Some(from_value(meta).unwrap())
+                                        }
+                                    },
+                                })
+                                .collect::<Vec<Tag>>(),
+                        ),
+                    },
+                    is_active: account.is_active,
+                    is_checked: account.is_checked,
+                    is_archived: account.is_archived,
+                    verbose_status: Some(VerboseStatus::from_flags(
+                        account.is_active,
+                        account.is_checked,
+                        account.is_archived,
+                    )),
+                    is_default: account.is_default,
+                    owners: Children::Records(
+                        account
+                            .owners
+                            .into_iter()
+                            .map(|owner| {
+                                User::new(
+                                    Some(Uuid::parse_str(&owner.id).unwrap()),
+                                    owner.username,
+                                    Email::from_string(owner.email).unwrap(),
+                                    Some(owner.first_name),
+                                    Some(owner.last_name),
+                                    owner.is_active,
+                                    owner.created.into(),
+                                    match owner.updated {
+                                        None => None,
+                                        Some(date) => {
+                                            Some(date.with_timezone(&Local))
+                                        }
+                                    },
+                                    Some(Parent::Id(id)),
+                                    None,
+                                )
+                                .with_principal(owner.is_principal)
+                            })
+                            .collect::<Vec<User>>(),
+                    ),
+                    account_type: from_value(account.account_type).unwrap(),
+                    guest_users: None,
+                    created: account.created.into(),
+                    updated: match account.updated {
+                        None => None,
+                        Some(date) => Some(date.with_timezone(&Local)),
+                    },
+                }));
+            }
+        }
+
+        panic!("Not implemented method `create_subscription_account`.")
+    }
+
+    async fn get_or_create_user_account(
         &self,
         account: Account,
         user_exists: bool,
@@ -60,19 +202,6 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         // ? Build the initial query (get part of the get-or-create)
         // ? -------------------------------------------------------------------
 
-        /* let account_type_id = match account.account_type {
-            Parent::Id(id) => id.to_string(),
-            Parent::Record(record) => match record.id {
-                Some(res) => res.to_string(),
-                None => {
-                    return creation_err(String::from(
-                        "Could not create account. Invalid account type.",
-                    ))
-                    .as_error()
-                }
-            },
-        }; */
-
         let emails = match account.owners.to_owned() {
             Children::Ids(_) => vec![],
             Children::Records(res) => res
@@ -92,7 +221,6 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
             ]])
             .include(account_model::include!({
                 owners
-                //account_type
                 tags: select {
                     id
                     value
@@ -187,48 +315,37 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         // ? Build create part of the get-or-create
         // ? -------------------------------------------------------------------
 
-        unimplemented!("Finish implementing the get-or-create method.");
+        unimplemented!();
 
         /* if omit_user_creation {
             //
             // User creation is omitted, so we just create the account
             //
             match client
-                ._transaction()
-                .run(|client| async move {
-                    client
-                        .account()
-                        .create(
-                            account.name,
-                            account.slug,
-                            //account_type_model::id::equals(account_type_id),
-                            vec![
-                                account_model::is_active::set(
-                                    account.is_active,
-                                ),
-                                account_model::is_checked::set(
-                                    account.is_checked,
-                                ),
-                                account_model::is_archived::set(
-                                    account.is_archived,
-                                ),
-                                account_model::is_default::set(
-                                    account.is_default,
-                                ),
-                            ],
-                        )
-                        .include(account_model::include!({
-                            owners
-                            account_type
-                            tags: select {
-                                id
-                                value
-                                meta
-                            }
-                        }))
-                        .exec()
-                        .await
-                })
+                .account()
+                .create(
+                    account.name,
+                    account.slug,
+                    tenant_model::id::equals(account.account_type),
+                    vec![
+                        account_model::account_type::set(
+                            to_value(account.account_type).unwrap(),
+                        ),
+                        account_model::is_active::set(account.is_active),
+                        account_model::is_checked::set(account.is_checked),
+                        account_model::is_archived::set(account.is_archived),
+                        account_model::is_default::set(account.is_default),
+                    ],
+                )
+                .include(account_model::include!({
+                    owners
+                    tags: select {
+                        id
+                        value
+                        meta
+                    }
+                }))
+                .exec()
                 .await
             {
                 Err(err) => {
@@ -304,7 +421,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 })
                                 .collect::<Vec<User>>(),
                         ),
-                        account_type: AccountTypeV2::User,
+                        account_type: from_value(account.account_type).unwrap(),
                         guest_users: None,
                         created: account.created.into(),
                         updated: match account.updated {
@@ -340,8 +457,10 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         .create(
                             account.name,
                             account.slug,
-                            account_type_model::id::equals(account_type_id),
                             vec![
+                                account_model::account_type::set(
+                                    to_value(account.account_type).unwrap(),
+                                ),
                                 account_model::is_active::set(
                                     account.is_active,
                                 ),
@@ -358,7 +477,6 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         )
                         .include(account_model::include!({
                             owners
-                            account_type
                             tags: select {
                                 id
                                 value
@@ -475,7 +593,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             None,
                         )
                         .with_principal(owner.is_principal)]),
-                        account_type: AccountTypeV2::User,
+                        account_type: from_value(account.account_type).unwrap(),
                         guest_users: None,
                         created: account.created.into(),
                         updated: match account.updated {
@@ -497,13 +615,5 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         _: Account,
     ) -> Result<CreateResponseKind<Account>, MappedErrors> {
         panic!("Not implemented method `create`.")
-    }
-
-    async fn create_subscription_account(
-        &self,
-        _: Account,
-        _: Uuid,
-    ) -> Result<CreateResponseKind<Account>, MappedErrors> {
-        panic!("Not implemented method `create_subscription_account`.")
     }
 }

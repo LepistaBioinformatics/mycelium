@@ -62,7 +62,7 @@ pub async fn create_default_account(
     // ? -----------------------------------------------------------------------
 
     let account = match account_registration_repo
-        .get_or_create(
+        .get_or_create_user_account(
             Account::new(account_name, user, AccountTypeV2::User),
             true,
             false,
