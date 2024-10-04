@@ -18,7 +18,7 @@ datasource db {
 model Tenant {
   id          String  @id @default(uuid())
   name        String  @db.VarChar(140)
-  description String? @db.VarChar(255)
+  description String? @db.Text
 
   owners User[]
   tags   TenantTag[]
@@ -158,40 +158,20 @@ model GuestUser {
 // ACCOUNT RELATED MODELS
 // -----------------------------------------------------------------------------
 
-model AccountType {
-  // Primary key
-  id String @id @default(uuid())
-
-  // Model fields
-  name            String  @db.VarChar(128)
-  description     String  @db.VarChar(255)
-  is_subscription Boolean @default(false)
-  is_manager      Boolean @default(false)
-  is_staff        Boolean @default(false)
-
-  // Backward relationship fields
-  accounts Account[]
-
-  // Db compatibility and extra maps
-  @@unique([name])
-  @@map("account_type")
-}
-
 model Account {
   // Primary key
   id String @id @default(uuid())
 
   // Model fields
-  name            String      @db.VarChar(256)
-  slug            String      @db.VarChar(256)
-  account_type    AccountType @relation(fields: [account_type_id], references: [id])
-  account_type_id String
-  created         DateTime    @default(now()) @db.Timestamptz(6)
-  updated         DateTime?   @updatedAt @db.Timestamptz(6)
-  is_active       Boolean     @default(true)
-  is_checked      Boolean     @default(false)
-  is_archived     Boolean     @default(false)
-  is_default      Boolean     @default(false)
+  name         String    @db.VarChar(256)
+  slug         String    @db.VarChar(256)
+  account_type Json
+  created      DateTime  @default(now()) @db.Timestamptz(6)
+  updated      DateTime? @updatedAt @db.Timestamptz(6)
+  is_active    Boolean   @default(true)
+  is_checked   Boolean   @default(false)
+  is_archived  Boolean   @default(false)
+  is_default   Boolean   @default(false)
 
   // Backward relationship fields
   owners      User[]
