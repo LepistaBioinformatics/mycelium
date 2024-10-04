@@ -83,7 +83,7 @@ pub async fn create_seed_staff_account(
     // ? -----------------------------------------------------------------------
 
     account_registration_repo
-        .get_or_create(
+        .get_or_create_user_account(
             Account::new(account_name, new_user, AccountTypeV2::Staff),
             true,
             false,

@@ -69,7 +69,6 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             .account()
             .find_unique(account_model::id::equals(id.to_owned().to_string()))
             .include(account_model::include!({
-                //account_type
                 owners
                 tags: select {
                     id
@@ -154,7 +153,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                                 })
                                 .collect::<Vec<User>>(),
                         ),
-                        account_type: AccountTypeV2::User,
+                        account_type: from_value(record.account_type).unwrap(),
                         guest_users: None,
                         created: record.created.into(),
                         updated: match record.updated {
@@ -269,19 +268,6 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             ]));
         }
 
-        /* if account_type_id.is_some() {
-            match show_subscription.unwrap_or(false) {
-                true => {
-                    query_stmt.push(account_model::account_type_id::equals(
-                        account_type_id.unwrap().to_string(),
-                    ))
-                }
-                false => query_stmt.push(account_model::account_type_id::not(
-                    account_type_id.unwrap().to_string(),
-                )),
-            };
-        } */
-
         if !and_query_stmt.is_empty() {
             query_stmt.push(and(and_query_stmt));
         }
@@ -387,7 +373,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                             })
                             .collect::<Vec<User>>(),
                     ),
-                    account_type: AccountTypeV2::User,
+                    account_type: from_value(record.account_type).unwrap(),
                     guest_users: None,
                     created: record.created.into(),
                     updated: match record.updated {

@@ -20,18 +20,38 @@ model Tenant {
   name        String  @db.VarChar(255)
   description String? @db.Text
 
-  owners User[]
-  tags   TenantTag[]
+  owners   User[]
+  manager  ManagerAccountOnTenant?
+  accounts Account[]
+  tags     TenantTag[]
 
   meta   Json?
   status Json[]
 
-  manager    Account? @relation(fields: [manager_id], references: [id])
-  manager_id String?
+  created DateTime  @default(now()) @db.Timestamptz(6)
+  updated DateTime? @updatedAt @db.Timestamptz(6)
 
   // Db compatibility and extra maps
-  @@unique([name, manager_id])
+  @@unique([name])
   @@map("tenant")
+}
+
+model ManagerAccountOnTenant {
+  id String @id @default(uuid())
+
+  tenant    Tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  tenant_id String
+
+  account    Account @relation(fields: [account_id], references: [id], onDelete: Cascade)
+  account_id String
+
+  created DateTime  @default(now()) @db.Timestamptz(6)
+  updated DateTime? @updatedAt @db.Timestamptz(6)
+
+  @@unique([tenant_id])
+  @@unique([account_id])
+  @@unique([tenant_id, account_id])
+  @@map("manager_account_on_tenant")
 }
 
 model TenantTag {
@@ -181,10 +201,14 @@ model Account {
   owners      User[]
   guest_users GuestUserOnAccount[]
   tags        AccountTags[]
-  tenants     Tenant[]
+
+  // Related models
+  tenant     Tenant                  @relation(fields: [tenant_id], references: [id])
+  tenant_id  String
+  manager_of ManagerAccountOnTenant?
 
   // Db compatibility and extra maps
-  @@unique([name])
+  @@unique([name, tenant_id])
   @@map("account")
 }
 
