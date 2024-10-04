@@ -28,7 +28,7 @@ use mycelium_base::{
     utils::errors::{creation_err, fetching_err, MappedErrors},
 };
 use prisma_client_rust::{and, operator::and, or, Direction};
-use serde_json::from_value;
+use serde_json::{from_value, to_value};
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
 use uuid::Uuid;
@@ -64,6 +64,12 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         // ? -------------------------------------------------------------------
         // ? Get the account
         // ? -------------------------------------------------------------------
+
+        if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
+            if !ids.contains(&id) {
+                return Ok(FetchResponseKind::NotFound(Some(id)));
+            }
+        };
 
         match client
             .account()
@@ -178,7 +184,6 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         tag_value: Option<String>,
         account_id: Option<Uuid>,
         account_type: Option<AccountTypeV2>,
-        show_subscription: Option<bool>,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Account>, MappedErrors> {
@@ -208,9 +213,21 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         let mut query_stmt = vec![];
         let mut and_query_stmt = vec![];
 
-        if term.is_some() {
-            let term = term.unwrap();
+        if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
+            and_query_stmt.push(account_model::id::in_vec(
+                ids.into_iter()
+                    .map(|i| i.to_string())
+                    .collect::<Vec<String>>(),
+            ))
+        }
 
+        if let Some(account_type) = account_type {
+            and_query_stmt.push(account_model::account_type::equals(
+                to_value(account_type).unwrap(),
+            ))
+        }
+
+        if let Some(term) = term {
             query_stmt.push(or![
                 and![
                     account_model::name::mode(QueryMode::Insensitive),
@@ -223,48 +240,41 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             ]);
         }
 
-        if account_id.is_some() {
-            query_stmt.push(account_model::id::equals(
-                account_id.unwrap().to_string(),
-            ));
+        if let Some(account_id) = account_id {
+            query_stmt.push(account_model::id::equals(account_id.to_string()));
         }
 
-        if is_owner_active.is_some() {
+        if let Some(is_owner_active) = is_owner_active {
             and_query_stmt.push(account_model::owners::some(vec![
-                user_model::is_active::equals(is_owner_active.unwrap()),
+                user_model::is_active::equals(is_owner_active),
             ]));
         }
 
-        if is_account_active.is_some() {
-            and_query_stmt.push(account_model::is_active::equals(
-                is_account_active.unwrap(),
-            ));
+        if let Some(is_account_active) = is_account_active {
+            and_query_stmt
+                .push(account_model::is_active::equals(is_account_active));
         }
 
-        if is_account_checked.is_some() {
-            and_query_stmt.push(account_model::is_checked::equals(
-                is_account_checked.unwrap(),
-            ));
+        if let Some(is_account_checked) = is_account_checked {
+            and_query_stmt
+                .push(account_model::is_checked::equals(is_account_checked));
         }
 
-        if is_account_archived.is_some() {
-            and_query_stmt.push(account_model::is_archived::equals(
-                is_account_archived.unwrap(),
-            ));
+        if let Some(is_account_archived) = is_account_archived {
+            and_query_stmt
+                .push(account_model::is_archived::equals(is_account_archived));
         }
 
-        if tag_value.is_some() {
-            let tag_value = tag_value.unwrap();
-
+        if let Some(tag_value) = tag_value {
             and_query_stmt.push(account_model::tags::some(vec![and![
                 account_tags_model::value::mode(QueryMode::Insensitive),
                 account_tags_model::value::contains(tag_value),
             ]]));
         }
 
-        if tag_id.is_some() {
+        if let Some(tag_id) = tag_id {
             and_query_stmt.push(account_model::tags::some(vec![
-                account_tags_model::id::equals(tag_id.unwrap().to_string()),
+                account_tags_model::id::equals(tag_id.to_string()),
             ]));
         }
 

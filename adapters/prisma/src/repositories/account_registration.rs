@@ -1,8 +1,5 @@
 use crate::{
-    prisma::{
-        account as account_model, tenant as tenant_model, user as user_model,
-        QueryMode,
-    },
+    prisma::{account as account_model, user as user_model, QueryMode},
     repositories::connector::get_client,
 };
 
@@ -68,8 +65,8 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
             .create(
                 account.name,
                 account.slug,
-                tenant_model::id::equals(tenant_id.to_string()),
                 vec![
+                    account_model::tenant_id::set(Some(tenant_id.to_string())),
                     account_model::account_type::set(
                         to_value(AccountTypeV2::Subscription { tenant_id })
                             .unwrap(),
@@ -171,8 +168,6 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 }));
             }
         }
-
-        panic!("Not implemented method `create_subscription_account`.")
     }
 
     async fn get_or_create_user_account(
@@ -297,7 +292,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 })
                                 .collect::<Vec<User>>(),
                         ),
-                        account_type: AccountTypeV2::User,
+                        account_type: from_value(record.account_type).unwrap(),
                         guest_users: None,
                         created: record.created.into(),
                         updated: match record.updated {
@@ -315,9 +310,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         // ? Build create part of the get-or-create
         // ? -------------------------------------------------------------------
 
-        unimplemented!();
-
-        /* if omit_user_creation {
+        if omit_user_creation {
             //
             // User creation is omitted, so we just create the account
             //
@@ -326,7 +319,6 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 .create(
                     account.name,
                     account.slug,
-                    tenant_model::id::equals(account.account_type),
                     vec![
                         account_model::account_type::set(
                             to_value(account.account_type).unwrap(),
@@ -603,17 +595,6 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                     }))
                 }
             }
-        } */
-    }
-
-    // ? -----------------------------------------------------------------------
-    // ! NOT IMPLEMENTED METHODS
-    // ? -----------------------------------------------------------------------
-
-    async fn create(
-        &self,
-        _: Account,
-    ) -> Result<CreateResponseKind<Account>, MappedErrors> {
-        panic!("Not implemented method `create`.")
+        }
     }
 }

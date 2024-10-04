@@ -86,7 +86,6 @@ pub async fn list_accounts_by_type(
             } else {
                 None
             },
-            Some(is_subscription.unwrap_or(false)),
             page_size,
             skip,
         )

@@ -12,7 +12,7 @@ use mycelium_base::{
     entities::FetchManyResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
-use prisma_client_rust::{raw, PrismaValue};
+use prisma_client_rust::{raw, PrismaValue, Raw};
 use serde::Deserialize;
 use shaku::Component;
 use std::process::id as process_id;
@@ -26,6 +26,7 @@ pub struct LicensedResourcesFetchingSqlDbRepository {}
 struct LicensedResourceRow {
     acc_id: String,
     acc_name: String,
+    tenant_id: String,
     is_acc_std: bool,
     gr_id: String,
     gr_name: String,
@@ -57,21 +58,32 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             Some(res) => res,
         };
 
-        let response: Vec<LicensedResourceRow> = match client
-            ._query_raw(raw!(
-                "SELECT * FROM licensed_resources WHERE gu_email = {}",
-                PrismaValue::String(email.get_email())
-            ))
-            .exec()
-            .await
-        {
-            Ok(res) => res,
-            Err(e) => {
-                return fetching_err(e.to_string())
-                    .with_code(NativeErrorCodes::MYC00001)
-                    .as_error()
+        let mut standard_query = raw!(
+            "SELECT * FROM licensed_resources WHERE gu_email = {}",
+            PrismaValue::String(email.get_email())
+        );
+
+        if let Some(related_accounts) = related_accounts {
+            if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
+                standard_query = Raw::new(
+                    "SELECT * FROM licensed_resources WHERE gu_email = {} ANS acc_id IN ({})",
+                    vec![
+                        PrismaValue::String(email.get_email()),
+                        PrismaValue::String(ids.into_iter().map(|i| i.to_string()).collect::<Vec<String>>().join(",")),
+                    ]
+                )
             }
         };
+
+        let response: Vec<LicensedResourceRow> =
+            match client._query_raw(standard_query).exec().await {
+                Ok(res) => res,
+                Err(e) => {
+                    return fetching_err(e.to_string())
+                        .with_code(NativeErrorCodes::MYC00001)
+                        .as_error()
+                }
+            };
 
         // ? -------------------------------------------------------------------
         // ? Evaluate and parse the database response
@@ -81,7 +93,8 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             .into_iter()
             .map(|record| LicensedResources {
                 acc_id: Uuid::parse_str(&record.acc_id.to_owned()).unwrap(),
-                tenant_id: Uuid::from_u128(0),
+                tenant_id: Uuid::parse_str(&&record.tenant_id.to_owned())
+                    .unwrap(),
                 acc_name: record.acc_name.to_owned(),
                 is_acc_std: record.is_acc_std,
                 guest_role_id: Uuid::parse_str(&record.gr_id).unwrap(),

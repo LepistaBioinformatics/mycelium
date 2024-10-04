@@ -16,12 +16,6 @@ pub trait AccountRegistration: Interface + Send + Sync {
         omit_user_creation: bool,
     ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors>;
 
-    #[deprecated]
-    async fn create(
-        &self,
-        account: Account,
-    ) -> Result<CreateResponseKind<Account>, MappedErrors>;
-
     async fn create_subscription_account(
         &self,
         account: Account,
