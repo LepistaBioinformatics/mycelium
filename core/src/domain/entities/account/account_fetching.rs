@@ -31,7 +31,6 @@ pub trait AccountFetching: Interface + Send + Sync {
         tag_value: Option<String>,
         account_id: Option<Uuid>,
         account_type: Option<AccountTypeV2>,
-        show_subscription: Option<bool>,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Account>, MappedErrors>;

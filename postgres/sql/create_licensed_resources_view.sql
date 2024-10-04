@@ -3,6 +3,7 @@ CREATE OR REPLACE VIEW licensed_resources AS
 SELECT DISTINCT
 	ac.id AS acc_id,
 	ac.name AS acc_name,
+	ac.tenant_id AS tenant_id,
 	ac.is_default AS is_acc_std,
 	gr.id AS gr_id,
 	gr.name AS gr_name,

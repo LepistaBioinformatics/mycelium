@@ -203,8 +203,8 @@ model Account {
   tags        AccountTags[]
 
   // Related models
-  tenant     Tenant                  @relation(fields: [tenant_id], references: [id])
-  tenant_id  String
+  tenant     Tenant?                 @relation(fields: [tenant_id], references: [id])
+  tenant_id  String?
   manager_of ManagerAccountOnTenant?
 
   // Db compatibility and extra maps
