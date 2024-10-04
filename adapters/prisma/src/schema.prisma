@@ -17,7 +17,7 @@ datasource db {
 
 model Tenant {
   id          String  @id @default(uuid())
-  name        String  @db.VarChar(140)
+  name        String  @db.VarChar(255)
   description String? @db.Text
 
   owners User[]
@@ -28,6 +28,10 @@ model Tenant {
 
   manager    Account? @relation(fields: [manager_id], references: [id])
   manager_id String?
+
+  // Db compatibility and extra maps
+  @@unique([name, manager_id])
+  @@map("tenant")
 }
 
 model TenantTag {
@@ -165,7 +169,7 @@ model Account {
   // Model fields
   name         String    @db.VarChar(256)
   slug         String    @db.VarChar(256)
-  account_type Json
+  account_type Json      @default("{}") @db.Json
   created      DateTime  @default(now()) @db.Timestamptz(6)
   updated      DateTime? @updatedAt @db.Timestamptz(6)
   is_active    Boolean   @default(true)

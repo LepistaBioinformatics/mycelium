@@ -1,6 +1,6 @@
 mod account;
 mod account_tag;
-mod account_type;
+//mod account_type;
 mod error_code;
 mod guest_role;
 mod guest_user;
@@ -17,7 +17,7 @@ mod webhook;
 
 pub use account::*;
 pub use account_tag::*;
-pub use account_type::*;
+//pub use account_type::*;
 pub use error_code::*;
 pub use guest_role::*;
 pub use guest_user::*;

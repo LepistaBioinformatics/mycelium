@@ -2,8 +2,6 @@ pub mod connector;
 
 mod account_fetching;
 mod account_registration;
-mod account_type_deletion;
-mod account_type_registration;
 mod account_updating;
 mod error_code_deletion;
 mod error_code_fetching;
@@ -39,8 +37,6 @@ mod webhook_updating;
 
 pub use account_fetching::*;
 pub use account_registration::*;
-pub use account_type_deletion::*;
-pub use account_type_registration::*;
 pub use account_updating::*;
 pub use error_code_deletion::*;
 pub use error_code_fetching::*;

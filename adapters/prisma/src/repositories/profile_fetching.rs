@@ -71,11 +71,11 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                     username
                     is_active
                 }
-                account_type: select {
-                    is_subscription
-                    is_manager
-                    is_staff
-                }
+                //account_type: select {
+                //    is_subscription
+                //    is_manager
+                //    is_staff
+                //}
             }));
 
         let response = query.exec().await.unwrap();
@@ -99,9 +99,9 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                     })
                     .collect::<Vec<Owner>>(),
                 acc_id: Uuid::parse_str(&record.id).unwrap(),
-                is_subscription: record.account_type.is_subscription,
-                is_manager: record.account_type.is_manager,
-                is_staff: record.account_type.is_staff,
+                is_subscription: false,
+                is_manager: false,
+                is_staff: false,
                 owner_is_active: record
                     .owners
                     .iter()

@@ -2,7 +2,7 @@ use super::connector::get_client;
 use crate::prisma::account_tags as result_tags_model;
 
 use async_trait::async_trait;
-use myc_core::domain::entities::TagDeletion;
+use myc_core::domain::entities::AccountTagDeletion;
 use mycelium_base::{
     entities::DeletionResponseKind,
     utils::errors::{deletion_err, MappedErrors},
@@ -13,11 +13,11 @@ use std::process::id as process_id;
 use uuid::Uuid;
 
 #[derive(Component)]
-#[shaku(interface = TagDeletion)]
-pub struct TagDeletionSqlDbRepository {}
+#[shaku(interface = AccountTagDeletion)]
+pub struct AccountTagDeletionSqlDbRepository {}
 
 #[async_trait]
-impl TagDeletion for TagDeletionSqlDbRepository {
+impl AccountTagDeletion for AccountTagDeletionSqlDbRepository {
     // ? ----------------------------------------------------------------------
     // ? Abstract methods implementation
     // ? ----------------------------------------------------------------------
