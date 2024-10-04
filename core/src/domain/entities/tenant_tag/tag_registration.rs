@@ -11,22 +11,22 @@ use std::fmt::{Debug, Display, Formatter};
 use uuid::Uuid;
 
 #[async_trait]
-pub trait TagRegistration: Interface + Send + Sync {
+pub trait TenantTagRegistration: Interface + Send + Sync {
     async fn get_or_create(
         &self,
-        analysis_id: Uuid,
+        tenant_id: Uuid,
         tag: String,
         meta: HashMap<String, String>,
     ) -> Result<GetOrCreateResponseKind<Tag>, MappedErrors>;
 }
 
-impl Display for dyn TagRegistration {
+impl Display for dyn TenantTagRegistration {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmResult {
         write!(f, "{}", self)
     }
 }
 
-impl Debug for dyn TagRegistration {
+impl Debug for dyn TenantTagRegistration {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmResult {
         write!(f, "{}", self)
     }

@@ -1,7 +1,7 @@
 use crate::domain::{
     actors::ActorName,
     dtos::{profile::Profile, tag::Tag},
-    entities::TagUpdating,
+    entities::AccountTagUpdating,
 };
 
 use mycelium_base::{
@@ -16,7 +16,7 @@ use mycelium_base::{
 pub async fn update_tag(
     profile: Profile,
     tag: Tag,
-    tag_updating_repo: Box<&dyn TagUpdating>,
+    tag_updating_repo: Box<&dyn AccountTagUpdating>,
 ) -> Result<UpdatingResponseKind<Tag>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check the user permissions

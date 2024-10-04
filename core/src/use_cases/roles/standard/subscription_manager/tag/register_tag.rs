@@ -1,7 +1,7 @@
 use crate::domain::{
     actors::ActorName,
     dtos::{profile::Profile, tag::Tag},
-    entities::TagRegistration,
+    entities::AccountTagRegistration,
 };
 
 use mycelium_base::{
@@ -20,7 +20,7 @@ pub async fn register_tag(
     tag: String,
     meta: HashMap<String, String>,
     account_id: Uuid,
-    tag_registration_repo: Box<&dyn TagRegistration>,
+    tag_registration_repo: Box<&dyn AccountTagRegistration>,
 ) -> Result<GetOrCreateResponseKind<Tag>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check the user permissions
