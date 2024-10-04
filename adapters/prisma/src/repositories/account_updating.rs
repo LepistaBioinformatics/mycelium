@@ -68,7 +68,9 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
             Some(res) => res,
         };
 
-        let response = client
+        unimplemented!("Need to implement the update method");
+
+        /* let response = client
             .account()
             .update(
                 account_model::id::equals(account_id.to_string()),
@@ -193,7 +195,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                 ))
                 .as_error();
             }
-        }
+        } */
     }
 
     async fn update_own_account_name(

@@ -81,6 +81,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             .into_iter()
             .map(|record| LicensedResources {
                 acc_id: Uuid::parse_str(&record.acc_id.to_owned()).unwrap(),
+                tenant_id: Uuid::from_u128(0),
                 acc_name: record.acc_name.to_owned(),
                 is_acc_std: record.is_acc_std,
                 guest_role_id: Uuid::parse_str(&record.gr_id).unwrap(),

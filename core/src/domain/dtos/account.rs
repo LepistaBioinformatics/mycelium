@@ -18,40 +18,40 @@ use std::{
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct AccountType {
-    pub id: Option<Uuid>,
+//#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
+//#[serde(rename_all = "camelCase")]
+//pub struct AccountType {
+//    pub id: Option<Uuid>,
+//
+//    pub name: String,
+//    pub description: String,
+//
+//    pub is_subscription: bool,
+//    pub is_manager: bool,
+//    pub is_staff: bool,
+//}
 
-    pub name: String,
-    pub description: String,
+//#[derive(
+//    Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize, ToSchema,
+//)]
+//#[serde(rename_all = "camelCase")]
+//pub enum AccountTypeEnum {
+//    Standard,
+//    Manager,
+//    Staff,
+//    Subscription,
+//}
 
-    pub is_subscription: bool,
-    pub is_manager: bool,
-    pub is_staff: bool,
-}
-
-#[derive(
-    Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize, ToSchema,
-)]
-#[serde(rename_all = "camelCase")]
-pub enum AccountTypeEnum {
-    Standard,
-    Manager,
-    Staff,
-    Subscription,
-}
-
-impl Display for AccountTypeEnum {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        match self {
-            AccountTypeEnum::Standard => write!(f, "Standard"),
-            AccountTypeEnum::Manager => write!(f, "Manager"),
-            AccountTypeEnum::Staff => write!(f, "Staff"),
-            AccountTypeEnum::Subscription => write!(f, "Subscription"),
-        }
-    }
-}
+//impl Display for AccountTypeEnum {
+//    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+//        match self {
+//            AccountTypeEnum::Standard => write!(f, "Standard"),
+//            AccountTypeEnum::Manager => write!(f, "Manager"),
+//            AccountTypeEnum::Staff => write!(f, "Staff"),
+//            AccountTypeEnum::Subscription => write!(f, "Subscription"),
+//        }
+//    }
+//}
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]

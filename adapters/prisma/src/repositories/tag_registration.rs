@@ -4,7 +4,7 @@ use crate::prisma::{
 };
 
 use async_trait::async_trait;
-use myc_core::domain::{dtos::tag::Tag, entities::TagRegistration};
+use myc_core::domain::{dtos::tag::Tag, entities::AccountTagRegistration};
 use mycelium_base::{
     entities::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
@@ -15,11 +15,11 @@ use std::{collections::HashMap, process::id as process_id};
 use uuid::Uuid;
 
 #[derive(Component)]
-#[shaku(interface = TagRegistration)]
-pub struct TagRegistrationSqlDbRepository {}
+#[shaku(interface = AccountTagRegistration)]
+pub struct AccountTagRegistrationSqlDbRepository {}
 
 #[async_trait]
-impl TagRegistration for TagRegistrationSqlDbRepository {
+impl AccountTagRegistration for AccountTagRegistrationSqlDbRepository {
     async fn get_or_create(
         &self,
         analysis_id: Uuid,

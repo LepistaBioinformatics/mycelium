@@ -1,8 +1,5 @@
 use crate::{
-    prisma::{
-        account as account_model, account_type as account_type_model,
-        user as user_model, QueryMode,
-    },
+    prisma::{account as account_model, user as user_model, QueryMode},
     repositories::connector::get_client,
 };
 
@@ -10,7 +7,8 @@ use async_trait::async_trait;
 use chrono::Local;
 use myc_core::domain::{
     dtos::{
-        account::{Account, AccountType, VerboseStatus},
+        account::{Account, VerboseStatus},
+        account_type::AccountTypeV2,
         email::Email,
         native_error_codes::NativeErrorCodes,
         tag::Tag,
@@ -62,7 +60,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         // ? Build the initial query (get part of the get-or-create)
         // ? -------------------------------------------------------------------
 
-        let account_type_id = match account.account_type {
+        /* let account_type_id = match account.account_type {
             Parent::Id(id) => id.to_string(),
             Parent::Record(record) => match record.id {
                 Some(res) => res.to_string(),
@@ -73,7 +71,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                     .as_error()
                 }
             },
-        };
+        }; */
 
         let emails = match account.owners.to_owned() {
             Children::Ids(_) => vec![],
@@ -94,7 +92,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
             ]])
             .include(account_model::include!({
                 owners
-                account_type
+                //account_type
                 tags: select {
                     id
                     value
@@ -171,19 +169,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 })
                                 .collect::<Vec<User>>(),
                         ),
-                        account_type: Parent::Record(AccountType {
-                            id: Some(
-                                Uuid::parse_str(&record.account_type.id)
-                                    .unwrap(),
-                            ),
-                            name: record.account_type.name,
-                            description: record.account_type.description,
-                            is_subscription: record
-                                .account_type
-                                .is_subscription,
-                            is_manager: record.account_type.is_manager,
-                            is_staff: record.account_type.is_staff,
-                        }),
+                        account_type: AccountTypeV2::User,
                         guest_users: None,
                         created: record.created.into(),
                         updated: match record.updated {
@@ -201,7 +187,9 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         // ? Build create part of the get-or-create
         // ? -------------------------------------------------------------------
 
-        if omit_user_creation {
+        unimplemented!("Finish implementing the get-or-create method.");
+
+        /* if omit_user_creation {
             //
             // User creation is omitted, so we just create the account
             //
@@ -213,7 +201,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         .create(
                             account.name,
                             account.slug,
-                            account_type_model::id::equals(account_type_id),
+                            //account_type_model::id::equals(account_type_id),
                             vec![
                                 account_model::is_active::set(
                                     account.is_active,
@@ -316,19 +304,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 })
                                 .collect::<Vec<User>>(),
                         ),
-                        account_type: Parent::Record(AccountType {
-                            id: Some(
-                                Uuid::parse_str(&account.account_type.id)
-                                    .unwrap(),
-                            ),
-                            name: account.account_type.name,
-                            description: account.account_type.description,
-                            is_subscription: account
-                                .account_type
-                                .is_subscription,
-                            is_manager: account.account_type.is_manager,
-                            is_staff: account.account_type.is_staff,
-                        }),
+                        account_type: AccountTypeV2::User,
                         guest_users: None,
                         created: account.created.into(),
                         updated: match account.updated {
@@ -499,19 +475,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             None,
                         )
                         .with_principal(owner.is_principal)]),
-                        account_type: Parent::Record(AccountType {
-                            id: Some(
-                                Uuid::parse_str(&account.account_type.id)
-                                    .unwrap(),
-                            ),
-                            name: account.account_type.name,
-                            description: account.account_type.description,
-                            is_subscription: account
-                                .account_type
-                                .is_subscription,
-                            is_manager: account.account_type.is_manager,
-                            is_staff: account.account_type.is_staff,
-                        }),
+                        account_type: AccountTypeV2::User,
                         guest_users: None,
                         created: account.created.into(),
                         updated: match account.updated {
@@ -521,7 +485,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                     }))
                 }
             }
-        }
+        } */
     }
 
     // ? -----------------------------------------------------------------------

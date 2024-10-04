@@ -2,7 +2,7 @@ use super::connector::get_client;
 use crate::prisma::account_tags as account_tags_model;
 
 use async_trait::async_trait;
-use myc_core::domain::{dtos::tag::Tag, entities::TagUpdating};
+use myc_core::domain::{dtos::tag::Tag, entities::AccountTagUpdating};
 use mycelium_base::{
     entities::UpdatingResponseKind,
     utils::errors::{updating_err, MappedErrors},
@@ -14,11 +14,11 @@ use std::process::id as process_id;
 use uuid::Uuid;
 
 #[derive(Component)]
-#[shaku(interface = TagUpdating)]
-pub struct TagUpdatingSqlDbRepository {}
+#[shaku(interface = AccountTagUpdating)]
+pub struct AccountTagUpdatingSqlDbRepository {}
 
 #[async_trait]
-impl TagUpdating for TagUpdatingSqlDbRepository {
+impl AccountTagUpdating for AccountTagUpdatingSqlDbRepository {
     // ? ----------------------------------------------------------------------
     // ? Abstract methods implementation
     // ? ----------------------------------------------------------------------

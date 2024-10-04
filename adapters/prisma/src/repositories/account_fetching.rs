@@ -10,7 +10,8 @@ use async_trait::async_trait;
 use chrono::{DateTime, Local};
 use myc_core::domain::{
     dtos::{
-        account::{Account, AccountType, VerboseStatus},
+        account::{Account, VerboseStatus},
+        account_type::AccountTypeV2,
         email::Email,
         native_error_codes::NativeErrorCodes,
         related_accounts::RelatedAccounts,
@@ -68,7 +69,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             .account()
             .find_unique(account_model::id::equals(id.to_owned().to_string()))
             .include(account_model::include!({
-                account_type
+                //account_type
                 owners
                 tags: select {
                     id
@@ -153,19 +154,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                                 })
                                 .collect::<Vec<User>>(),
                         ),
-                        account_type: Parent::Record(AccountType {
-                            id: Some(
-                                Uuid::from_str(&record.account_type.id)
-                                    .unwrap(),
-                            ),
-                            name: record.account_type.name,
-                            description: record.account_type.description,
-                            is_subscription: record
-                                .account_type
-                                .is_subscription,
-                            is_manager: record.account_type.is_manager,
-                            is_staff: record.account_type.is_staff,
-                        }),
+                        account_type: AccountTypeV2::User,
                         guest_users: None,
                         created: record.created.into(),
                         updated: match record.updated {
@@ -180,6 +169,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
 
     async fn list(
         &self,
+        related_accounts: RelatedAccounts,
         term: Option<String>,
         is_owner_active: Option<bool>,
         is_account_active: Option<bool>,
@@ -188,7 +178,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         tag_id: Option<Uuid>,
         tag_value: Option<String>,
         account_id: Option<Uuid>,
-        account_type_id: Option<Uuid>,
+        account_type: Option<AccountTypeV2>,
         show_subscription: Option<bool>,
         page_size: Option<i32>,
         skip: Option<i32>,
@@ -279,7 +269,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             ]));
         }
 
-        if account_type_id.is_some() {
+        /* if account_type_id.is_some() {
             match show_subscription.unwrap_or(false) {
                 true => {
                     query_stmt.push(account_model::account_type_id::equals(
@@ -290,7 +280,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                     account_type_id.unwrap().to_string(),
                 )),
             };
-        }
+        } */
 
         if !and_query_stmt.is_empty() {
             query_stmt.push(and(and_query_stmt));
@@ -397,9 +387,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                             })
                             .collect::<Vec<User>>(),
                     ),
-                    account_type: Parent::Id(
-                        Uuid::from_str(&record.account_type_id).unwrap(),
-                    ),
+                    account_type: AccountTypeV2::User,
                     guest_users: None,
                     created: record.created.into(),
                     updated: match record.updated {
