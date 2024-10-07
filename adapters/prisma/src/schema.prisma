@@ -20,7 +20,7 @@ model Tenant {
   name        String  @db.VarChar(255)
   description String? @db.Text
 
-  owners   User[]
+  owners   OwnerOnTenant[]
   manager  ManagerAccountOnTenant?
   accounts Account[]
   tags     TenantTag[]
@@ -34,6 +34,25 @@ model Tenant {
   // Db compatibility and extra maps
   @@unique([name])
   @@map("tenant")
+}
+
+model OwnerOnTenant {
+  id String @id @default(uuid())
+
+  tenant    Tenant @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  tenant_id String
+
+  owner    User   @relation(fields: [owner_id], references: [id], onDelete: Cascade)
+  owner_id String
+
+  guest_by String
+  created  DateTime  @default(now()) @db.Timestamptz(6)
+  updated  DateTime? @updatedAt @db.Timestamptz(6)
+
+  @@unique([tenant_id])
+  @@unique([owner_id])
+  @@unique([tenant_id, owner_id])
+  @@map("owner_on_tenant")
 }
 
 model ManagerAccountOnTenant {
@@ -90,11 +109,10 @@ model User {
   updated      DateTime? @updatedAt @db.Timestamptz(6)
 
   // Backward relationship fields
-  account    Account?          @relation(fields: [account_id], references: [id])
-  account_id String?
-  provider   IdentityProvider?
-  tenant     Tenant?           @relation(fields: [tenant_id], references: [id])
-  tenant_id  String?
+  account         Account?          @relation(fields: [account_id], references: [id])
+  account_id      String?
+  provider        IdentityProvider?
+  owner_of_tenant OwnerOnTenant[]
 
   // Db compatibility and extra maps
   @@unique([email, account_id])
