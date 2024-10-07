@@ -1,6 +1,7 @@
 mod meta;
 mod status;
 
+use chrono::{DateTime, Local};
 pub use meta::TenantMetaKey;
 pub use status::TenantStatus;
 
@@ -55,6 +56,12 @@ pub struct Tenant {
     /// string. The key is the name of the status (defined in `StatusKey`), and
     /// the value is the value of the status.
     pub status: Option<HashSet<TenantStatus>>,
+
+    /// The date and time the tenant was created
+    pub created: DateTime<Local>,
+
+    /// The date and time the tenant was last updated
+    pub updated: Option<DateTime<Local>>,
 }
 
 impl Tenant {
@@ -72,6 +79,8 @@ impl Tenant {
             tags: None,
             meta: None,
             status: None,
+            created: Local::now(),
+            updated: None,
         }
     }
 

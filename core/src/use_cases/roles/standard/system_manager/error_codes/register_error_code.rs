@@ -29,7 +29,7 @@ pub async fn register_error_code(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_create_ids_or_error(vec![
-        ActorName::SystemManager.to_string(),
+        ActorName::SystemManager.to_string()
     ])?;
 
     // ? -----------------------------------------------------------------------
@@ -117,6 +117,8 @@ mod tests {
     async fn test_register_error_code() {
         let profile = Profile {
             owners: vec![Owner {
+                id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
+                    .unwrap(),
                 email: "agrobiota-results-expert-creator@biotrop.com.br"
                     .to_string(),
                 first_name: Some("first_name".to_string()),
@@ -162,6 +164,8 @@ mod tests {
     async fn test_register_error_code_with_invalid_prefix() {
         let profile = Profile {
             owners: vec![Owner {
+                id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
+                    .unwrap(),
                 email: "agrobiota-results-expert-creator@biotrop.com.br"
                     .to_string(),
                 first_name: Some("first_name".to_string()),

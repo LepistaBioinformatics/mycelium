@@ -62,12 +62,14 @@ pub async fn create_tenant(
     let tenant = Tenant::new_with_owners(
         tenant_name,
         tenant_description,
-        Children::Records(vec![Owner::from_user(user)]),
+        Children::Records(vec![Owner::from_user(user)?]),
     );
 
     // ? -----------------------------------------------------------------------
     // ? Register tenant
     // ? -----------------------------------------------------------------------
 
-    tenant_registration_repo.create(tenant).await
+    tenant_registration_repo
+        .create(tenant, format!("account-id:{}", profile.acc_id.to_string()))
+        .await
 }

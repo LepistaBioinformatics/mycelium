@@ -65,6 +65,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
             ])])
             .include(account_model::include!({
                 owners: select {
+                    id
                     email
                     first_name
                     last_name
@@ -90,6 +91,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                     .owners
                     .iter()
                     .map(|owner| Owner {
+                        id: Uuid::parse_str(&owner.id).unwrap(),
                         email: Email::from_string(owner.email.to_owned())
                             .unwrap()
                             .get_email(),

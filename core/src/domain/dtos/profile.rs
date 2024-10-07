@@ -3,7 +3,7 @@ use super::{
     related_accounts::RelatedAccounts, user::User,
 };
 
-use mycelium_base::utils::errors::{execution_err, MappedErrors};
+use mycelium_base::utils::errors::{dto_err, execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -66,6 +66,8 @@ pub struct LicensedResources {
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Owner {
+    pub id: Uuid,
+
     /// The owner email
     ///
     /// The email of the user that administrate the profile. Email denotes the
@@ -85,13 +87,22 @@ pub struct Owner {
 }
 
 impl Owner {
-    pub fn from_user(user: User) -> Self {
-        Self {
+    pub fn from_user(user: User) -> Result<Self, MappedErrors> {
+        let user_id = match user.id {
+            Some(id) => id,
+            None => {
+                return dto_err("User ID should not be empty".to_string())
+                    .as_error()
+            }
+        };
+
+        Ok(Self {
+            id: user_id,
             email: user.email.get_email(),
             first_name: user.first_name,
             last_name: user.last_name,
             username: Some(user.username),
-        }
+        })
     }
 }
 
@@ -557,6 +568,8 @@ mod tests {
     fn profile_get_ids_works() {
         let profile = Profile {
             owners: vec![Owner {
+                id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
+                    .unwrap(),
                 email: "agrobiota-results-expert-creator@biotrop.com.br"
                     .to_string(),
                 first_name: Some("first_name".to_string()),
@@ -608,6 +621,8 @@ mod tests {
 
         let mut profile = Profile {
             owners: vec![Owner {
+                id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
+                    .unwrap(),
                 email: "agrobiota-results-expert-creator@biotrop.com.br"
                     .to_string(),
                 first_name: Some("first_name".to_string()),
