@@ -1,7 +1,6 @@
 use super::connector::get_client;
 use crate::prisma::{
     owner_on_tenant as owner_on_tenant_model, tenant as tenant_model,
-    user as user_model,
 };
 
 use async_trait::async_trait;
@@ -11,13 +10,14 @@ use myc_core::domain::{
         profile::Owner,
         tenant::{Tenant, TenantMeta, TenantMetaKey},
     },
-    entities::{TenantOwnerConnection, TenantRegistration},
+    entities::TenantRegistration,
 };
 use mycelium_base::{
     dtos::Children,
     entities::CreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
+use prisma_client_rust::{and, operator::and as and_o};
 use serde_json::{from_value, to_value};
 use shaku::Component;
 use std::{collections::HashMap, process::id as process_id, str::FromStr};
@@ -155,55 +155,9 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
         }
     }
 
-    async fn register_owner(
-        &self,
-        tenant_id: Uuid,
-        owner_id: Uuid,
-        guest_by: String,
-    ) -> Result<CreateResponseKind<TenantOwnerConnection>, MappedErrors> {
-        let tmp_client = get_client().await;
-
-        let client = match tmp_client.get(&process_id()) {
-            None => {
-                return creation_err(String::from(
-                    "Prisma Client error. Could not fetch client.",
-                ))
-                .with_code(NativeErrorCodes::MYC00001)
-                .as_error()
-            }
-            Some(res) => res,
-        };
-
-        match client
-            .owner_on_tenant()
-            .create(
-                tenant_model::id::equals(tenant_id.to_owned().to_string()),
-                user_model::id::equals(owner_id.to_string()),
-                guest_by,
-                vec![],
-            )
-            .exec()
-            .await
-        {
-            Ok(record) => {
-                Ok(CreateResponseKind::Created(TenantOwnerConnection {
-                    tenant_id: Uuid::parse_str(&record.tenant_id).unwrap(),
-                    owner_id: Uuid::parse_str(&record.owner_id).unwrap(),
-                    guest_by: record.guest_by,
-                    created: record.created.into(),
-                    updated: match record.updated {
-                        None => None,
-                        Some(updated) => Some(updated.into()),
-                    },
-                }))
-            }
-            Err(err) => creation_err(format!("Could not create tenant: {err}"))
-                .as_error(),
-        }
-    }
-
     async fn register_tenant_meta(
         &self,
+        owners_ids: Vec<Uuid>,
         tenant_id: Uuid,
         key: TenantMetaKey,
         value: String,
@@ -226,9 +180,17 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
             .run(|client| async move {
                 let tenant = client
                     .tenant()
-                    .find_unique(tenant_model::id::equals(
-                        tenant_id.to_string(),
-                    ))
+                    .find_first(vec![and![
+                        tenant_model::id::equals(tenant_id.to_string()),
+                        tenant_model::owners::some(vec![and_o(vec![
+                            owner_on_tenant_model::owner_id::in_vec(
+                                owners_ids
+                                    .iter()
+                                    .map(|id| id.to_string())
+                                    .collect(),
+                            ),
+                        ])])
+                    ]])
                     .select(tenant_model::select!({ meta }))
                     .exec()
                     .await?;

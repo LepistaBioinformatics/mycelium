@@ -1,5 +1,4 @@
 use crate::domain::{
-    actors::ActorName,
     dtos::{account::Account, profile::Profile},
     entities::{AccountRegistration, TenantFetching},
 };
@@ -25,21 +24,11 @@ pub async fn create_management_account(
     account_registration_repo: Box<&dyn AccountRegistration>,
 ) -> Result<CreateResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
-    // ? Check the user permissions
-    // ? -----------------------------------------------------------------------
-
-    let related_accounts = profile
-        .on_tenant(tenant_id)
-        .get_related_account_with_default_create_or_error(vec![
-            ActorName::TenantOwner.to_string(),
-        ])?;
-
-    // ? -----------------------------------------------------------------------
     // ? Fetch tenant
     // ? -----------------------------------------------------------------------
 
     let tenant = match tenant_fetching_repo
-        .get(tenant_id, related_accounts)
+        .get_tenant_owned_by_me(tenant_id, profile.get_owners_ids())
         .await?
     {
         FetchResponseKind::NotFound(msg) => {

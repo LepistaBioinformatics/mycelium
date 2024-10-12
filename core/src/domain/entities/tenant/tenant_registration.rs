@@ -32,15 +32,9 @@ pub trait TenantRegistration: Interface + Send + Sync {
         guest_by: String,
     ) -> Result<CreateResponseKind<Tenant>, MappedErrors>;
 
-    async fn register_owner(
-        &self,
-        tenant_id: Uuid,
-        owner_id: Uuid,
-        guest_by: String,
-    ) -> Result<CreateResponseKind<TenantOwnerConnection>, MappedErrors>;
-
     async fn register_tenant_meta(
         &self,
+        owners_ids: Vec<Uuid>,
         tenant_id: Uuid,
         key: TenantMetaKey,
         value: String,

@@ -1,5 +1,4 @@
 use crate::domain::{
-    actors::ActorName,
     dtos::{
         profile::Profile,
         tenant::{TenantMeta, TenantMetaKey},
@@ -25,20 +24,10 @@ pub async fn create_tenant_meta(
     tenant_registration_repo: Box<&dyn TenantRegistration>,
 ) -> Result<CreateResponseKind<TenantMeta>, MappedErrors> {
     // ? -----------------------------------------------------------------------
-    // ? Check if the current account has sufficient privileges
-    // ? -----------------------------------------------------------------------
-
-    profile
-        .on_tenant(tenant_id)
-        .get_default_create_ids_or_error(vec![
-            ActorName::TenantOwner.to_string()
-        ])?;
-
-    // ? -----------------------------------------------------------------------
     // ? Register the account
     // ? -----------------------------------------------------------------------
 
     tenant_registration_repo
-        .register_tenant_meta(tenant_id, key, value)
+        .register_tenant_meta(profile.get_owners_ids(), tenant_id, key, value)
         .await
 }

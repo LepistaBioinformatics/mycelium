@@ -1,6 +1,6 @@
 use crate::domain::{
     dtos::profile::Profile,
-    entities::{TenantOwnerConnection, TenantRegistration},
+    entities::{TenantOwnerConnection, TenantUpdating},
 };
 
 use mycelium_base::{
@@ -14,12 +14,12 @@ use uuid::Uuid;
         profile_id = %profile.acc_id,
         owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
     ),
-    skip(profile, tenant_registration_repo))]
+    skip(profile, tenant_updating_repo))]
 pub async fn include_tenant_owner(
     profile: Profile,
     tenant_id: Uuid,
     owner_id: Uuid,
-    tenant_registration_repo: Box<&dyn TenantRegistration>,
+    tenant_updating_repo: Box<&dyn TenantUpdating>,
 ) -> Result<CreateResponseKind<TenantOwnerConnection>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check the user permissions
@@ -31,7 +31,7 @@ pub async fn include_tenant_owner(
     // ? Delete owner
     // ? -----------------------------------------------------------------------
 
-    tenant_registration_repo
+    tenant_updating_repo
         .register_owner(
             tenant_id,
             owner_id,

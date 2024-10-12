@@ -28,5 +28,7 @@ pub async fn exclude_tenant_owner(
     // ? Delete owner
     // ? -----------------------------------------------------------------------
 
-    tenant_deletion_repo.delete_owner(tenant_id, owner_id).await
+    tenant_deletion_repo
+        .delete_owner(tenant_id, Some(owner_id), None)
+        .await
 }

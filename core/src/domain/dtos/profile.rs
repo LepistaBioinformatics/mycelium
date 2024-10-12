@@ -189,6 +189,10 @@ impl Profile {
         format!("profile/{}", self.acc_id.to_string())
     }
 
+    pub fn get_owners_ids(&self) -> Vec<Uuid> {
+        self.owners.iter().map(|i| i.id).collect()
+    }
+
     pub fn has_admin_privileges(&self) -> bool {
         self.is_staff || self.is_manager
     }

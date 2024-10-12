@@ -1,9 +1,13 @@
 use crate::domain::{
     actors::ActorName,
-    dtos::{profile::Profile, tenant::Tenant},
+    dtos::{
+        profile::Profile,
+        tenant::{Tenant, TenantStatus},
+    },
     entities::TenantUpdating,
 };
 
+use chrono::Local;
 use mycelium_base::{
     entities::UpdatingResponseKind, utils::errors::MappedErrors,
 };
@@ -17,6 +21,7 @@ use uuid::Uuid;
 pub async fn update_tenant_archiving_status(
     profile: Profile,
     tenant_id: Uuid,
+    archived: bool,
     tenant_updating_repo: Box<&dyn TenantUpdating>,
 ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -34,6 +39,13 @@ pub async fn update_tenant_archiving_status(
     // ? -----------------------------------------------------------------------
 
     tenant_updating_repo
-        .update_tenant_archiving_status(tenant_id, profile.profile_string())
+        .update_tenant_status(
+            tenant_id,
+            TenantStatus::Archived {
+                archived,
+                at: Local::now(),
+                by: profile.profile_string(),
+            },
+        )
         .await
 }

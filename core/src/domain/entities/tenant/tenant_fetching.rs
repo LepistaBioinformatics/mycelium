@@ -1,7 +1,4 @@
-use crate::domain::dtos::{
-    related_accounts::RelatedAccounts,
-    tenant::{Tenant, TenantMetaKey, TenantStatus},
-};
+use crate::domain::dtos::tenant::{Tenant, TenantMetaKey};
 
 use async_trait::async_trait;
 use mycelium_base::{
@@ -13,18 +10,35 @@ use uuid::Uuid;
 
 #[async_trait]
 pub trait TenantFetching: Interface + Send + Sync {
-    async fn get(
+    /// Get tenant owned by me
+    ///
+    /// This use-case should be used by tenant-owners only
+    async fn get_tenant_owned_by_me(
         &self,
         id: Uuid,
-        related_accounts: RelatedAccounts,
+        owners_ids: Vec<Uuid>,
     ) -> Result<FetchResponseKind<Tenant, String>, MappedErrors>;
 
-    async fn filter(
+    /// Get tenants with we are tenant manager
+    ///
+    /// This use-case should ve used by tenant-managers only
+    async fn get_for_tenants_by_manager_account(
+        &self,
+        id: Uuid,
+        manager_ids: Vec<Uuid>,
+    ) -> Result<FetchResponseKind<Tenant, String>, MappedErrors>;
+
+    /// Get tenants with we are manager
+    ///
+    /// This use-case should ve used by managers only
+    async fn filter_tenants_as_manager(
         &self,
         name: Option<String>,
         owner: Option<Uuid>,
-        metadata: Option<TenantMetaKey>,
-        status: Option<TenantStatus>,
+        metadata_key: Option<TenantMetaKey>,
+        status_verified: Option<bool>,
+        status_archived: Option<bool>,
+        status_trashed: Option<bool>,
         tag_value: Option<String>,
         tag_meta: Option<String>,
     ) -> Result<FetchManyResponseKind<Tenant>, MappedErrors>;
