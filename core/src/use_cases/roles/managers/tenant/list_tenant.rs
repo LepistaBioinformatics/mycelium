@@ -1,15 +1,15 @@
+use crate::domain::{
+    dtos::{
+        profile::Profile,
+        tenant::{Tenant, TenantMetaKey},
+    },
+    entities::TenantFetching,
+};
+
 use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 use uuid::Uuid;
-
-use crate::domain::{
-    dtos::{
-        profile::Profile,
-        tenant::{Tenant, TenantMetaKey, TenantStatus},
-    },
-    entities::TenantFetching,
-};
 
 #[tracing::instrument(
     name = "list_tenant",
@@ -23,8 +23,10 @@ pub async fn list_tenant(
     profile: Profile,
     name: Option<String>,
     owner: Option<Uuid>,
-    metadata: Option<TenantMetaKey>,
-    status: Option<TenantStatus>,
+    metadata_key: Option<TenantMetaKey>,
+    status_verified: Option<bool>,
+    status_archived: Option<bool>,
+    status_trashed: Option<bool>,
     tag_value: Option<String>,
     tag_meta: Option<String>,
     tenant_fetching_repo: Box<&dyn TenantFetching>,
@@ -40,6 +42,15 @@ pub async fn list_tenant(
     // ? -----------------------------------------------------------------------
 
     tenant_fetching_repo
-        .filter(name, owner, metadata, status, tag_value, tag_meta)
+        .filter_tenants_as_manager(
+            name,
+            owner,
+            metadata_key,
+            status_verified,
+            status_archived,
+            status_trashed,
+            tag_value,
+            tag_meta,
+        )
         .await
 }

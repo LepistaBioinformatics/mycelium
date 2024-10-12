@@ -1,12 +1,11 @@
 use crate::domain::{
-    actors::ActorName,
-    dtos::{email::Email, profile::Profile, tenant::Tenant},
-    entities::{TenantFetching, TenantUpdating},
+    dtos::{email::Email, profile::Profile},
+    entities::{TenantDeletion, TenantFetching},
 };
 
 use mycelium_base::{
     dtos::Children,
-    entities::{FetchResponseKind, UpdatingResponseKind},
+    entities::{DeletionResponseKind, FetchResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
@@ -14,31 +13,24 @@ use uuid::Uuid;
 #[tracing::instrument(
     name = "revoke_tenant_owner", 
     fields(profile_id = %profile.acc_id),
-    skip(profile, owner_email, tenant_fetching_repo, tenant_updating_repo)
+    skip(profile, owner_email, tenant_fetching_repo, tenant_deletion_repo)
 )]
 pub async fn revoke_tenant_owner(
     profile: Profile,
     owner_email: Email,
     tenant_id: Uuid,
     tenant_fetching_repo: Box<&dyn TenantFetching>,
-    tenant_updating_repo: Box<&dyn TenantUpdating>,
-) -> Result<UpdatingResponseKind<Tenant>, MappedErrors> {
-    // ? -----------------------------------------------------------------------
-    // ? Check the user permissions
-    // ? -----------------------------------------------------------------------
-
-    let related_accounts = profile
-        .on_tenant(tenant_id)
-        .get_related_account_with_default_update_or_error(vec![
-            ActorName::TenantOwner.to_string(),
-        ])?;
-
+    tenant_deletion_repo: Box<&dyn TenantDeletion>,
+) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Collect user
     // ? -----------------------------------------------------------------------
 
     let tenant = match tenant_fetching_repo
-        .get(tenant_id, related_accounts)
+        .get_tenant_owned_by_me(
+            tenant_id,
+            profile.owners.iter().map(|o| o.id).collect(),
+        )
         .await?
     {
         FetchResponseKind::NotFound(_) => {
@@ -86,7 +78,7 @@ pub async fn revoke_tenant_owner(
     // ? Register the owner
     // ? -----------------------------------------------------------------------
 
-    tenant_updating_repo
-        .remove_owner(tenant_id, None, Some(owner_email))
+    tenant_deletion_repo
+        .delete_owner(tenant_id, None, Some(owner_email))
         .await
 }

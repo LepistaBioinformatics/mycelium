@@ -1,3 +1,4 @@
+use crate::domain::dtos::email::Email;
 use crate::domain::dtos::tenant::TenantMetaKey;
 
 use async_trait::async_trait;
@@ -19,7 +20,8 @@ pub trait TenantDeletion: Interface + Send + Sync {
     async fn delete_owner(
         &self,
         tenant_id: Uuid,
-        owner_id: Uuid,
+        owner_id: Option<Uuid>,
+        owner_email: Option<Email>,
     ) -> Result<DeletionResponseKind<Uuid>, MappedErrors>;
 
     async fn delete_tenant_meta(

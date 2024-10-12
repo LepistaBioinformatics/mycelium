@@ -11,7 +11,7 @@ use mycelium_base::{
     utils::errors::{dto_err, MappedErrors},
 };
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -55,7 +55,7 @@ pub struct Tenant {
     /// This is the status of the tenant. The status is a key-value pair of
     /// string. The key is the name of the status (defined in `StatusKey`), and
     /// the value is the value of the status.
-    pub status: Option<HashSet<TenantStatus>>,
+    pub status: Option<Vec<TenantStatus>>,
 
     /// The date and time the tenant was created
     pub created: DateTime<Local>,
