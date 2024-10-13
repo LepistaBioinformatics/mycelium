@@ -18,46 +18,11 @@ use std::{
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-//#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
-//#[serde(rename_all = "camelCase")]
-//pub struct AccountType {
-//    pub id: Option<Uuid>,
-//
-//    pub name: String,
-//    pub description: String,
-//
-//    pub is_subscription: bool,
-//    pub is_manager: bool,
-//    pub is_staff: bool,
-//}
-
-//#[derive(
-//    Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize, ToSchema,
-//)]
-//#[serde(rename_all = "camelCase")]
-//pub enum AccountTypeEnum {
-//    Standard,
-//    Manager,
-//    Staff,
-//    Subscription,
-//}
-
-//impl Display for AccountTypeEnum {
-//    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-//        match self {
-//            AccountTypeEnum::Standard => write!(f, "Standard"),
-//            AccountTypeEnum::Manager => write!(f, "Manager"),
-//            AccountTypeEnum::Staff => write!(f, "Staff"),
-//            AccountTypeEnum::Subscription => write!(f, "Subscription"),
-//        }
-//    }
-//}
-
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum VerboseStatus {
-    Pending,
-    Active,
+    Unverified,
+    Verified,
     Inactive,
     Archived,
     Unknown,
@@ -68,8 +33,8 @@ impl FromStr for VerboseStatus {
 
     fn from_str(s: &str) -> Result<VerboseStatus, VerboseStatus> {
         match s {
-            "pending" => Ok(VerboseStatus::Pending),
-            "active" => Ok(VerboseStatus::Active),
+            "unverified" => Ok(VerboseStatus::Unverified),
+            "verified" => Ok(VerboseStatus::Verified),
             "inactive" => Ok(VerboseStatus::Inactive),
             "archived" => Ok(VerboseStatus::Archived),
             _ => Err(VerboseStatus::Unknown),
@@ -80,8 +45,8 @@ impl FromStr for VerboseStatus {
 impl Display for VerboseStatus {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
-            VerboseStatus::Pending => write!(f, "pending"),
-            VerboseStatus::Active => write!(f, "active"),
+            VerboseStatus::Unverified => write!(f, "unverified"),
+            VerboseStatus::Verified => write!(f, "verified"),
             VerboseStatus::Inactive => write!(f, "inactive"),
             VerboseStatus::Archived => write!(f, "archived"),
             VerboseStatus::Unknown => write!(f, "unknown"),
@@ -107,7 +72,7 @@ impl VerboseStatus {
         }
 
         if is_checked == false {
-            return VerboseStatus::Pending;
+            return VerboseStatus::Unverified;
         }
 
         if is_archived == true {
@@ -115,7 +80,7 @@ impl VerboseStatus {
         }
 
         if is_archived == false {
-            return VerboseStatus::Active;
+            return VerboseStatus::Verified;
         }
 
         VerboseStatus::Unknown
@@ -128,7 +93,7 @@ impl VerboseStatus {
                 is_checked: None,
                 is_archived: None,
             }),
-            VerboseStatus::Pending => Ok(FlagResponse {
+            VerboseStatus::Unverified => Ok(FlagResponse {
                 is_active: Some(true),
                 is_checked: Some(false),
                 is_archived: None,
@@ -138,7 +103,7 @@ impl VerboseStatus {
                 is_checked: Some(true),
                 is_archived: Some(true),
             }),
-            VerboseStatus::Active => Ok(FlagResponse {
+            VerboseStatus::Verified => Ok(FlagResponse {
                 is_active: Some(true),
                 is_checked: Some(true),
                 is_archived: Some(false),
@@ -356,10 +321,10 @@ mod tests {
             ((false, false, true), VerboseStatus::Inactive),
             ((false, true, false), VerboseStatus::Inactive),
             ((false, false, false), VerboseStatus::Inactive),
-            ((true, false, false), VerboseStatus::Pending),
-            ((true, false, true), VerboseStatus::Pending),
+            ((true, false, false), VerboseStatus::Unverified),
+            ((true, false, true), VerboseStatus::Unverified),
             ((true, true, true), VerboseStatus::Archived),
-            ((true, true, false), VerboseStatus::Active),
+            ((true, true, false), VerboseStatus::Verified),
             // Unknown responses should not be returned over all above
             // combinations. Them, all will be tested.
             ((false, true, true), VerboseStatus::Unknown),
@@ -398,7 +363,7 @@ mod tests {
                         expected_value
                     );
                 }
-                VerboseStatus::Pending => {
+                VerboseStatus::Unverified => {
                     assert_eq!(
                         VerboseStatus::from_flags(
                             flags_response.is_active.unwrap(),
@@ -418,7 +383,7 @@ mod tests {
                         expected_value
                     );
                 }
-                VerboseStatus::Active => {
+                VerboseStatus::Verified => {
                     assert_eq!(
                         VerboseStatus::from_flags(
                             flags_response.is_active.unwrap(),
