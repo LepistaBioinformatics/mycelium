@@ -81,7 +81,7 @@ on accounts with more privileges than himself.",
         account.to_owned(),
         match is_archived {
             true => VerboseStatus::Archived,
-            false => VerboseStatus::Pending,
+            false => VerboseStatus::Unverified,
         },
     )
     .await?;

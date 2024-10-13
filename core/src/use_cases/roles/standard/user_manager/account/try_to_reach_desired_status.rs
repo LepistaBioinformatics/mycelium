@@ -52,22 +52,22 @@ fn should_perform_state_transition(
     let mut allowed_statuses = vec![None, Some(new_state.to_owned())];
 
     match new_state {
-        VerboseStatus::Active => allowed_statuses.extend(vec![
-            Some(VerboseStatus::Pending),
+        VerboseStatus::Verified => allowed_statuses.extend(vec![
+            Some(VerboseStatus::Unverified),
             Some(VerboseStatus::Inactive),
         ]),
 
-        VerboseStatus::Pending => {
+        VerboseStatus::Unverified => {
             allowed_statuses.extend(vec![Some(VerboseStatus::Archived)])
         }
 
         VerboseStatus::Inactive => {
-            allowed_statuses.extend(vec![Some(VerboseStatus::Active)])
+            allowed_statuses.extend(vec![Some(VerboseStatus::Verified)])
         }
 
         VerboseStatus::Archived => allowed_statuses.extend(vec![
-            Some(VerboseStatus::Pending),
-            Some(VerboseStatus::Active),
+            Some(VerboseStatus::Unverified),
+            Some(VerboseStatus::Verified),
             Some(VerboseStatus::Inactive),
         ]),
 
@@ -134,8 +134,8 @@ mod tests {
         ));
 
         for status in vec![
-            VerboseStatus::Active,
-            VerboseStatus::Pending,
+            VerboseStatus::Verified,
+            VerboseStatus::Unverified,
             VerboseStatus::Archived,
         ] {
             let response = match try_to_reach_desired_status(
@@ -171,15 +171,35 @@ mod tests {
     fn test_if_should_perform_state_transition_works() {
         for (is_allowed, desired_state, current_state) in [
             // Allowed operations
-            (true, VerboseStatus::Active, Some(VerboseStatus::Pending)),
-            (true, VerboseStatus::Active, Some(VerboseStatus::Inactive)),
-            (true, VerboseStatus::Archived, Some(VerboseStatus::Pending)),
+            (
+                true,
+                VerboseStatus::Verified,
+                Some(VerboseStatus::Unverified),
+            ),
+            (true, VerboseStatus::Verified, Some(VerboseStatus::Inactive)),
+            (
+                true,
+                VerboseStatus::Archived,
+                Some(VerboseStatus::Unverified),
+            ),
             (true, VerboseStatus::Archived, Some(VerboseStatus::Inactive)),
-            (true, VerboseStatus::Pending, Some(VerboseStatus::Archived)),
-            (true, VerboseStatus::Inactive, Some(VerboseStatus::Active)),
+            (
+                true,
+                VerboseStatus::Unverified,
+                Some(VerboseStatus::Archived),
+            ),
+            (true, VerboseStatus::Inactive, Some(VerboseStatus::Verified)),
             // Disallowed operations
-            (false, VerboseStatus::Active, Some(VerboseStatus::Archived)),
-            (false, VerboseStatus::Inactive, Some(VerboseStatus::Pending)),
+            (
+                false,
+                VerboseStatus::Verified,
+                Some(VerboseStatus::Archived),
+            ),
+            (
+                false,
+                VerboseStatus::Inactive,
+                Some(VerboseStatus::Unverified),
+            ),
         ] {
             let response =
                 should_perform_state_transition(desired_state, current_state);

@@ -97,7 +97,7 @@ on accounts with more privileges than himself.",
     let updated_account = try_to_reach_desired_status(
         account.to_owned(),
         match is_active {
-            true => VerboseStatus::Active,
+            true => VerboseStatus::Verified,
             false => VerboseStatus::Inactive,
         },
     )
