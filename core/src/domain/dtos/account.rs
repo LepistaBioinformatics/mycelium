@@ -1,8 +1,7 @@
-use crate::domain::actors::ActorName;
-
 use super::{
     account_type::AccountTypeV2, guest::GuestUser, tag::Tag, user::User,
 };
+use crate::domain::actors::ActorName;
 
 use chrono::{DateTime, Local};
 use mycelium_base::{
