@@ -3,8 +3,7 @@ use log::{debug, error, info};
 use myc_core::use_cases::roles::staff::account::create_seed_staff_account;
 use myc_prisma::repositories::{
     connector::generate_prisma_client_of_thread,
-    AccountRegistrationSqlDbRepository, AccountTypeRegistrationSqlDbRepository,
-    UserRegistrationSqlDbRepository,
+    AccountRegistrationSqlDbRepository, UserRegistrationSqlDbRepository,
 };
 use mycelium_base::entities::GetOrCreateResponseKind;
 use std::process::id as process_id;
@@ -44,7 +43,6 @@ pub(crate) async fn create_seed_staff_account_cmd(
         args.last_name.to_owned(),
         password,
         Box::new(&UserRegistrationSqlDbRepository {}),
-        Box::new(&AccountTypeRegistrationSqlDbRepository {}),
         Box::new(&AccountRegistrationSqlDbRepository {}),
     )
     .await

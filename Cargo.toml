@@ -9,7 +9,7 @@ members = [
     "config",
     "core",
     "http_tools",
-    #"ports/cli",
+    "ports/cli",
     #"ports/api",
     "adapters/mem_db",
     "adapters/prisma",
