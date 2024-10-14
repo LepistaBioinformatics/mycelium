@@ -1,0 +1,446 @@
+_type: export
+__export_format: 4
+__export_date: 2024-10-14T17:50:54.845Z
+__export_source: insomnia.desktop.app:v9.3.2
+resources:
+- _id: req_b77c07e110b14c89ab723eb26d2093ca
+  parentId: fld_23e013a37cb74f62a051f6733b7a3b1a
+  modified: 1728926668696
+  created: 1728924990037
+  url: http://localhost:8080/myc/managers/tenants/
+  name: Create Tenant
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: |-
+      {
+      	"name": "Standard Tenant 2",
+      	"description": "Standard Tenant Description",
+      	"ownerId": "5b621e7f-04b9-4aa1-80f7-84612b36f818"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1728924995168
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: fld_23e013a37cb74f62a051f6733b7a3b1a
+  parentId: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
+  modified: 1728924947695
+  created: 1728924947695
+  name: Manager
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1728924947695
+  _type: request_group
+- _id: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
+  parentId: null
+  modified: 1726967531567
+  created: 1726967531567
+  name: Mycelium
+  description: ""
+  scope: collection
+  _type: workspace
+- _id: req_d2ef35d129e5464289f3084ebb76eca8
+  parentId: fld_23e013a37cb74f62a051f6733b7a3b1a
+  modified: 1728926962678
+  created: 1728926885429
+  url: http://localhost:8080/myc/managers/tenants/ebd177d8-600c-4390-b66c-92ded1ad0240/owner/5b621e7f-04b9-4aa1-80f7-84612b36f818
+  name: Create Tenant Owner
+  description: ""
+  method: PATCH
+  body: {}
+  parameters: []
+  headers:
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1728773351567.625
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_0c24912ccb114e28ba80ee6dd2f4803f
+  parentId: fld_23e013a37cb74f62a051f6733b7a3b1a
+  modified: 1728927186283
+  created: 1728927183199
+  url: http://localhost:8080/myc/managers/tenants/ebd177d8-600c-4390-b66c-92ded1ad0240/owner/5b621e7f-04b9-4aa1-80f7-84612b36f818
+  name: Delete Tenant Owner
+  description: ""
+  method: DELETE
+  body: {}
+  parameters: []
+  headers:
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1728697529767.4375
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_3b2c6b52ace442b7ac85a5fb95310051
+  parentId: fld_23e013a37cb74f62a051f6733b7a3b1a
+  modified: 1728926832164
+  created: 1728926798711
+  url: http://localhost:8080/myc/managers/tenants/99514bc8-e97e-4df3-aa30-f5e277788e43
+  name: Delete Tenant
+  description: ""
+  method: DELETE
+  body:
+    mimeType: application/json
+    text: |-
+      {
+      	"name": "Standard Tenant 2",
+      	"description": "Standard Tenant Description",
+      	"ownerId": "5b621e7f-04b9-4aa1-80f7-84612b36f818"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1728621707967.25
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_919b832aa744487bbea3ee29e51396af
+  parentId: fld_23e013a37cb74f62a051f6733b7a3b1a
+  modified: 1728926816248
+  created: 1728926728426
+  url: http://localhost:8080/myc/managers/tenants/
+  name: List Tenant
+  description: ""
+  method: GET
+  body: {}
+  parameters: []
+  headers:
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1728318420766.5
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_b8c0da81dfeb42e9b2819315593745bb
+  parentId: fld_785abbf0493a42e5a179dcddf1929954
+  modified: 1727631061135
+  created: 1726967651407
+  url: ""
+  name: 03 - Register Account
+  description: ""
+  method: GET
+  body: {}
+  parameters: []
+  headers:
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication: {}
+  metaSortKey: -1727631061094
+  isPrivate: false
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: fld_785abbf0493a42e5a179dcddf1929954
+  parentId: fld_fbe7ef6614e2422ea28d81670ae7ab35
+  modified: 1727631038183
+  created: 1727631038183
+  name: Account
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1727631038183
+  _type: request_group
+- _id: fld_fbe7ef6614e2422ea28d81670ae7ab35
+  parentId: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
+  modified: 1726967563200
+  created: 1726967558518
+  name: NoRole
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1726967558518
+  _type: request_group
+- _id: req_f495410a82f94cf3b98be034209610b8
+  parentId: fld_19fc6d839bed43c88c0d9626ffdc7185
+  modified: 1727631004494
+  created: 1726967566930
+  url: http://localhost:8080/myc/std/no-role/users/
+  name: 00 - Register User
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: |-
+      {
+        "email": "sgelias@outlook.com",
+        "firstName": "Samuel",
+        "lastName": "Galvão Elias",
+      	"password": "super-secure",
+        "platformUrl": "https://localhost:8080"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication: {}
+  metaSortKey: -1727631004464
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: fld_19fc6d839bed43c88c0d9626ffdc7185
+  parentId: fld_fbe7ef6614e2422ea28d81670ae7ab35
+  modified: 1727630994578
+  created: 1727630994578
+  name: User
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1727630994578
+  _type: request_group
+- _id: req_623d3de587b34b07aa28a8159c33308e
+  parentId: fld_19fc6d839bed43c88c0d9626ffdc7185
+  modified: 1727631008747
+  created: 1727368426267
+  url: http://localhost:8080/myc/std/no-role/users/status/
+  name: 01 - Check Email Status
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: |-
+      {
+        "email": "sgelias@outlook.com"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication: {}
+  metaSortKey: -1727631004364
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_fd94ea21562f4f9088696e360f799298
+  parentId: fld_19fc6d839bed43c88c0d9626ffdc7185
+  modified: 1727640127668
+  created: 1726967596388
+  url: http://localhost:8080/myc/std/no-role/users/validate-activation-token/
+  name: 02 - Validate Activation Code
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: |-
+      {
+        "email": "sgelias@outlook.com",
+      	"token": "348884"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication: {}
+  metaSortKey: -1727631004264
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_41d4d857c5604c90adcfa5f6a5f913ec
+  parentId: fld_19fc6d839bed43c88c0d9626ffdc7185
+  modified: 1727657314517
+  created: 1727643853220
+  url: http://localhost:8080/myc/std/no-role/users/login/
+  name: 03 - Login User
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: |-
+      {
+        "email": "sgelias@outlook.com",
+      	"password": "ultra-secure-password-v2"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication: {}
+  metaSortKey: -1727586941376.25
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_0bbfcd10c6df4df9bed63c4d733893a6
+  parentId: fld_19fc6d839bed43c88c0d9626ffdc7185
+  modified: 1727643857770
+  created: 1727631018295
+  url: http://localhost:8080/myc/std/no-role/users/start-password-reset/
+  name: 04 - Start Password Recovery
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: |-
+      {
+        "email": "sgelias@outlook.com",
+        "platformUrl": "https://localhost:8080"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication: {}
+  metaSortKey: -1727542878488.5
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_c3812f23a7e24f4098f892e39d04df82
+  parentId: fld_19fc6d839bed43c88c0d9626ffdc7185
+  modified: 1728924283869
+  created: 1727642420670
+  url: http://localhost:8080/myc/std/no-role/users/reset-password/
+  name: 05 - Reset Password
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: |-
+      {
+        "email": "sgelias@outlook.com",
+      	"token": "960492",
+      	"newPassword": "ultra-secure-password-v2",
+        "platformUrl": "https://localhost:8080"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication: {}
+  metaSortKey: -1727498815600.75
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: env_73d3f39cb12da4d4ee0fe8025ef5a1d920e9df51
+  parentId: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
+  modified: 1728925050022
+  created: 1726967531568
+  name: Base Environment
+  data:
+    bearerToken: "bearerToken"
+  dataPropertyOrder:
+    "&":
+    - bearerToken
+  color: null
+  isPrivate: false
+  metaSortKey: 1726967531568
+  _type: environment
+- _id: jar_73d3f39cb12da4d4ee0fe8025ef5a1d920e9df51
+  parentId: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
+  modified: 1726967531570
+  created: 1726967531570
+  name: Default Jar
+  cookies: []
+  _type: cookie_jar
