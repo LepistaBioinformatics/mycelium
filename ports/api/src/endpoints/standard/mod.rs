@@ -1,7 +1,7 @@
 //mod guest_manager;
 mod no_role;
 mod shared;
-//mod subscription_account_manager;
+mod subscription_manager;
 //mod system_manager;
 //mod user_account_manager;
 
@@ -44,7 +44,11 @@ use no_role::{
     profile_endpoints as no_role_profile_endpoints,
     user_endpoints as no_role_user_endpoints,
 };
-//use subscription_account_manager::account_endpoints as subscription_account_manager_account_endpoints;
+use subscription_manager::{
+    account_endpoints as subscription_manager_account_endpoints,
+    guest_endpoints as subscription_manager_guest_endpoints,
+    tag_endpoints as subscription_manager_tag_endpoints,
+};
 //use system_manager::{
 //    error_code_endpoints as system_manager_error_code_endpoints,
 //    webhook_endpoints as system_manager_webhook_endpoints,
@@ -115,21 +119,29 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                     web::scope(&format!("/{}", UrlGroup::Users))
                         .configure(no_role_user_endpoints::configure),
                 ),
+        )
+        //
+        // Subscription Managers
+        //
+        .service(
+            web::scope(&format!(
+                "/{}",
+                ActorName::SubscriptionManager.to_string().as_str()
+            ))
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Accounts)).configure(
+                    subscription_manager_account_endpoints::configure,
+                ),
+            )
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Tags))
+                    .configure(subscription_manager_tag_endpoints::configure),
+            )
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Guests))
+                    .configure(subscription_manager_guest_endpoints::configure),
+            ),
         );
-    //
-    // Subscription Accounts Managers
-    //
-    //.service(
-    //    web::scope(&format!(
-    //        "/{}",
-    //        DefaultActor::SubscriptionManager.to_string().as_str()
-    //    ))
-    //    .service(
-    //        web::scope(&format!("/{}", UrlGroup::Accounts)).configure(
-    //            subscription_account_manager_account_endpoints::configure,
-    //        ),
-    //    ),
-    //)
     //
     // User Accounts Managers
     //
@@ -155,10 +167,6 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
     //    .service(
     //        web::scope(&format!("/{}", UrlGroup::Roles))
     //            .configure(guest_manager_role_endpoints::configure),
-    //    )
-    //    .service(
-    //        web::scope(&format!("/{}", UrlGroup::Guests))
-    //            .configure(guest_manager_guest_endpoints::configure),
     //    )
     //    .service(
     //        web::scope(&format!("/{}", UrlGroup::GuestRoles))
@@ -202,14 +210,19 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         no_role_user_endpoints::start_password_redefinition_url,
         no_role_user_endpoints::check_token_and_reset_password_url,
         no_role_user_endpoints::check_email_password_validity_url,
-        //subscription_account_manager_account_endpoints::create_subscription_account_url,
-        //subscription_account_manager_account_endpoints::update_account_name_and_flags_url,
-        //subscription_account_manager_account_endpoints::list_accounts_by_type_url,
-        //subscription_account_manager_account_endpoints::get_account_details_url,
-        //subscription_account_manager_account_endpoints::propagate_existing_subscription_account_url,
-        //subscription_account_manager_account_endpoints::register_tag_url,
-        //subscription_account_manager_account_endpoints::update_tag_url,
-        //subscription_account_manager_account_endpoints::delete_tag_url,
+        subscription_manager_account_endpoints::create_subscription_account_url,
+        subscription_manager_account_endpoints::update_account_name_and_flags_url,
+        subscription_manager_account_endpoints::list_accounts_by_type_url,
+        subscription_manager_account_endpoints::get_account_details_url,
+        subscription_manager_account_endpoints::propagate_existing_subscription_account_url,
+        subscription_manager_tag_endpoints::register_tag_url,
+        subscription_manager_tag_endpoints::update_tag_url,
+        subscription_manager_tag_endpoints::delete_tag_url,
+        subscription_manager_guest_endpoints::list_licensed_accounts_of_email_url,
+        subscription_manager_guest_endpoints::guest_user_url,
+        subscription_manager_guest_endpoints::uninvite_guest_url,
+        subscription_manager_guest_endpoints::update_user_guest_role_url,
+        subscription_manager_guest_endpoints::list_guest_on_subscription_account_url,
         //user_account_manager_account_endpoints::approve_account_url,
         //user_account_manager_account_endpoints::disapprove_account_url,
         //user_account_manager_account_endpoints::activate_account_url,
@@ -225,11 +238,6 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         //system_manager_webhook_endpoints::delete_webhook_url,
         //system_manager_webhook_endpoints::list_webhooks_url,
         //system_manager_webhook_endpoints::update_webhook_url,
-        //guest_manager_guest_endpoints::list_licensed_accounts_of_email_url,
-        //guest_manager_guest_endpoints::guest_user_url,
-        //guest_manager_guest_endpoints::uninvite_guest_url,
-        //guest_manager_guest_endpoints::update_user_guest_role_url,
-        //guest_manager_guest_endpoints::list_guest_on_subscription_account_url,
         //guest_manager_guest_role_endpoints::crate_guest_role_url,
         //guest_manager_guest_role_endpoints::list_guest_roles_url,
         //guest_manager_guest_role_endpoints::delete_guest_role_url,
