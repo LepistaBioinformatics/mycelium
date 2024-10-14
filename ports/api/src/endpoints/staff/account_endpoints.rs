@@ -1,18 +1,12 @@
 use crate::{
     dtos::MyceliumProfileData,
     endpoints::shared::{UrlGroup, UrlScope},
-    modules::{
-        AccountFetchingModule, AccountTypeRegistrationModule,
-        AccountUpdatingModule,
-    },
+    modules::AccountUpdatingModule,
 };
 
 use actix_web::{patch, web, HttpResponse, Responder};
 use myc_core::{
-    domain::{
-        dtos::account::AccountTypeEnum,
-        entities::{AccountFetching, AccountTypeRegistration, AccountUpdating},
-    },
+    domain::{dtos::account_type::AccountTypeV2, entities::AccountUpdating},
     use_cases::roles::staff::account::{
         downgrade_account_privileges, upgrade_account_privileges,
     },
@@ -43,7 +37,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct UpgradeAccountPrivilegesParams {
-    pub target_account_type: AccountTypeEnum,
+    pub target_account_type: AccountTypeV2,
 }
 
 // ? -----------------------------------------------------------------------
@@ -96,20 +90,13 @@ pub async fn upgrade_account_privileges_url(
     path: web::Path<Uuid>,
     info: web::Query<UpgradeAccountPrivilegesParams>,
     profile: MyceliumProfileData,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
     account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
-    account_type_registration_repo: Inject<
-        AccountTypeRegistrationModule,
-        dyn AccountTypeRegistration,
-    >,
 ) -> impl Responder {
     match upgrade_account_privileges(
         profile.to_profile(),
         path.to_owned(),
         info.target_account_type.to_owned(),
-        Box::new(&*account_fetching_repo),
         Box::new(&*account_updating_repo),
-        Box::new(&*account_type_registration_repo),
     )
     .await
     {
@@ -169,20 +156,13 @@ pub async fn downgrade_account_privileges_url(
     path: web::Path<Uuid>,
     info: web::Query<UpgradeAccountPrivilegesParams>,
     profile: MyceliumProfileData,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
     account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
-    account_type_registration_repo: Inject<
-        AccountTypeRegistrationModule,
-        dyn AccountTypeRegistration,
-    >,
 ) -> impl Responder {
     match downgrade_account_privileges(
         profile.to_profile(),
         path.to_owned(),
         info.target_account_type.to_owned(),
-        Box::new(&*account_fetching_repo),
         Box::new(&*account_updating_repo),
-        Box::new(&*account_type_registration_repo),
     )
     .await
     {

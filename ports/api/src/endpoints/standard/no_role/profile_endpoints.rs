@@ -4,7 +4,7 @@ use crate::{
 };
 
 use actix_web::{get, web, HttpResponse, Responder};
-use myc_core::domain::actors::DefaultActor;
+use myc_core::domain::actors::ActorName;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -23,7 +23,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 
 #[utoipa::path(
     get,
-    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Profile),
+    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Profile),
     responses(
         (
             status = 500,

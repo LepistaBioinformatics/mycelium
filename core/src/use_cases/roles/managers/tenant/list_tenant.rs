@@ -29,6 +29,8 @@ pub async fn list_tenant(
     status_trashed: Option<bool>,
     tag_value: Option<String>,
     tag_meta: Option<String>,
+    page_size: Option<i32>,
+    skip: Option<i32>,
     tenant_fetching_repo: Box<&dyn TenantFetching>,
 ) -> Result<FetchManyResponseKind<Tenant>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -51,6 +53,8 @@ pub async fn list_tenant(
             status_trashed,
             tag_value,
             tag_meta,
+            page_size,
+            skip,
         )
         .await
 }

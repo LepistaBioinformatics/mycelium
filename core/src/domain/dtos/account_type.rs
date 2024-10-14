@@ -1,10 +1,9 @@
+use super::tenant::TenantId;
 use crate::domain::actors::ActorName;
 
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
-
-use super::tenant::TenantId;
 
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]

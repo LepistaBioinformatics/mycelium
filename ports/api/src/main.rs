@@ -23,9 +23,10 @@ use awc::Client;
 use config::injectors::configure as configure_injection_modules;
 use endpoints::{
     index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
-    staff::{
-        account_endpoints as staff_account_endpoints, ApiDoc as StaffApiDoc,
-    },
+    manager::{tenant_endpoints, ApiDoc as ManagerApiDoc},
+    //staff::{
+    //    account_endpoints as staff_account_endpoints, ApiDoc as StaffApiDoc,
+    //},
     standard::{
         configure as configure_standard_endpoints,
         ApiDoc as StandardUsersApiDoc,
@@ -326,6 +327,16 @@ pub async fn main() -> std::io::Result<()> {
                 .configure(heath_check_endpoints::configure),
             )
             //
+            // Manager Users
+            //
+            .service(
+                web::scope(
+                    format!("/{}", endpoints::shared::UrlScope::Managers)
+                        .as_str(),
+                )
+                .configure(tenant_endpoints::configure),
+            )
+            //
             // Standard Users
             //
             .service(
@@ -334,17 +345,16 @@ pub async fn main() -> std::io::Result<()> {
                         .as_str(),
                 )
                 .configure(configure_standard_endpoints),
-            )
-            //
-            // Staff
-            //
-            .service(
-                web::scope(
-                    format!("/{}", endpoints::shared::UrlScope::Staffs)
-                        .as_str(),
-                )
-                .configure(staff_account_endpoints::configure),
             );
+        //
+        // Staff
+        //
+        //.service(
+        //    web::scope(
+        //        format!("/{}", endpoints::shared::UrlScope::Staffs)
+        //            .as_str(),
+        //    ), //.configure(staff_account_endpoints::configure),
+        //);
 
         // ? -------------------------------------------------------------------
         // ? Configure authentication elements
@@ -465,19 +475,27 @@ pub async fn main() -> std::io::Result<()> {
                             HealthCheckApiDoc::openapi(),
                         ),
                         (
+                            Url::with_primary(
+                                "Manager Users Endpoints",
+                                "/doc/manager-openapi.json",
+                                true,
+                            ),
+                            ManagerApiDoc::openapi(),
+                        ),
+                        (
                             Url::new(
                                 "Standard Users Endpoints",
                                 "/doc/default-users-openapi.json",
                             ),
                             StandardUsersApiDoc::openapi(),
                         ),
-                        (
-                            Url::new(
-                                "Staff Users Endpoints",
-                                "/doc/staff-openapi.json",
-                            ),
-                            StaffApiDoc::openapi(),
-                        ),
+                        //(
+                        //    Url::new(
+                        //        "Staff Users Endpoints",
+                        //        "/doc/staff-openapi.json",
+                        //    ),
+                        //    StaffApiDoc::openapi(),
+                        //),
                     ]),
             )
             // ? ---------------------------------------------------------------

@@ -12,7 +12,7 @@ use crate::{
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
-        actors::DefaultActor,
+        actors::ActorName,
         dtos::email::Email,
         entities::{
             AccountFetching, GuestUserDeletion, GuestUserFetching,
@@ -57,12 +57,14 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[serde(rename_all = "camelCase")]
 pub struct GuestUserBody {
     pub email: String,
+    pub tenant_id: Uuid,
 }
 
 #[derive(Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateUserGuestRoleParams {
     pub new_guest_role_id: Uuid,
+    pub tenant_id: Uuid,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -75,7 +77,7 @@ pub struct UpdateUserGuestRoleParams {
 /// List subscription accounts which email was guest
 #[utoipa::path(
     get,
-    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Guests),
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Guests),
     params(
         GuestUserBody
     ),
@@ -125,6 +127,7 @@ pub async fn list_licensed_accounts_of_email_url(
 
     match list_licensed_accounts_of_email(
         profile.to_profile(),
+        info.tenant_id.to_owned(),
         email.to_owned(),
         Box::new(&*licensed_resources_fetching_repo),
     )
@@ -153,7 +156,7 @@ pub async fn list_licensed_accounts_of_email_url(
 /// path argument.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Guests),
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Guests),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
         ("role" = Uuid, Path, description = "The guest-role unique id."),
@@ -216,6 +219,7 @@ pub async fn guest_user_url(
 
     match guest_user(
         profile.to_profile(),
+        body.tenant_id.to_owned(),
         email,
         role_id,
         account_id,
@@ -245,7 +249,7 @@ pub async fn guest_user_url(
 /// new role.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Guests),
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Guests),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
         ("role" = Uuid, Path, description = "The guest-role unique id."),
@@ -293,6 +297,7 @@ pub async fn update_user_guest_role_url(
 
     match update_user_guest_role(
         profile.to_profile(),
+        info.tenant_id.to_owned(),
         role_id,
         account_id,
         info.new_guest_role_id.to_owned(),
@@ -316,7 +321,7 @@ pub async fn update_user_guest_role_url(
 /// Uninvite user to perform a role to account
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Guests),
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Guests),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
         ("role" = Uuid, Path, description = "The guest-role unique id."),
@@ -363,6 +368,7 @@ pub async fn uninvite_guest_url(
 
     match uninvite_guest(
         profile.to_profile(),
+        info.tenant_id.to_owned(),
         account_id,
         role_id,
         info.email.to_owned(),
@@ -387,7 +393,7 @@ pub async fn uninvite_guest_url(
 /// informed subscription account.
 #[utoipa::path(
     get,
-    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Guests),
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Guests),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
@@ -430,6 +436,12 @@ pub async fn list_guest_on_subscription_account_url(
 ) -> impl Responder {
     let account_id = path.to_owned();
 
+    //
+    // REVISAR TODAS AS URL PARA VERIFICAR SE ELAS ESTÃO POSICIONADAS
+    // CORRETAMENTE NOS SEUS DEVIDOS PAPEIS. ESSA URL POR EXEMPLO ESTÁ MAL
+    // POSICIONADA, DEVERIA ESTAR NO PAPEL DE SUBSCRIPTION MANAGER OU ALGO
+    // PARECIDO.
+    //
     match list_guest_on_subscription_account(
         profile.to_profile(),
         account_id.to_owned(),

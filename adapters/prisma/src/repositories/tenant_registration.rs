@@ -17,7 +17,10 @@ use mycelium_base::{
     entities::CreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
-use prisma_client_rust::{and, operator::and as and_o};
+use prisma_client_rust::{
+    and, operator::and as and_o,
+    prisma_errors::query_engine::UniqueKeyViolation,
+};
 use serde_json::{from_value, to_value};
 use shaku::Component;
 use std::{collections::HashMap, process::id as process_id, str::FromStr};
@@ -146,12 +149,22 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
                         status: None,
                     }))
                 } else {
-                    creation_err(String::from("Could not create tenant"))
-                        .as_error()
+                    creation_err(String::from("Tenant not created")).as_error()
                 }
             }
-            Err(err) => creation_err(format!("Could not create tenant: {err}"))
-                .as_error(),
+            Err(err) => {
+                if err.is_prisma_error::<UniqueKeyViolation>() {
+                    return creation_err(
+                        "A close related name already registered",
+                    )
+                    .with_code(NativeErrorCodes::MYC00014)
+                    .with_exp_true()
+                    .as_error();
+                };
+
+                creation_err(format!("Could not create tenant: {err}"))
+                    .as_error()
+            }
         }
     }
 

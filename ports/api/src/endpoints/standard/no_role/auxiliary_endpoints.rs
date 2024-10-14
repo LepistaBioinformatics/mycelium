@@ -1,7 +1,7 @@
 use crate::endpoints::shared::UrlScope;
 
 use actix_web::{get, web, HttpResponse, Responder};
-use myc_core::domain::actors::DefaultActor;
+use myc_http_tools::ActorName;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -35,11 +35,12 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub async fn list_actors_url() -> impl Responder {
     HttpResponse::Ok().json(
         vec![
-            DefaultActor::NoRole,
-            DefaultActor::SubscriptionManager,
-            DefaultActor::UserManager,
-            DefaultActor::GuestManager,
-            DefaultActor::SystemManager,
+            ActorName::CustomRole("CustomRole".to_string()),
+            ActorName::NoRole,
+            ActorName::SubscriptionManager,
+            ActorName::UserManager,
+            ActorName::GuestManager,
+            ActorName::SystemManager,
         ]
         .into_iter()
         .map(|x| x.to_string())

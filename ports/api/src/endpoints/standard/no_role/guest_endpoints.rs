@@ -1,19 +1,18 @@
 use crate::{
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{
-        AccountRegistrationModule, AccountTypeRegistrationModule,
-        GuestUserRegistrationModule, MessageSendingModule,
+        AccountRegistrationModule, GuestUserRegistrationModule,
+        MessageSendingModule,
     },
 };
 
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
-        actors::DefaultActor,
+        actors::ActorName,
         dtos::account::Account,
         entities::{
-            AccountRegistration, AccountTypeRegistration,
-            GuestUserRegistration, MessageSending,
+            AccountRegistration, GuestUserRegistration, MessageSending,
         },
     },
     models::AccountLifeCycle,
@@ -40,7 +39,8 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct GuestUserBody {
-    pub account: Account,
+    account: Account,
+    tenant_id: Uuid,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -57,7 +57,7 @@ pub struct GuestUserBody {
 /// path argument.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Guests),
+    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Guests),
     params(
         ("role" = Uuid, Path, description = "The guest-role unique id."),
     ),
@@ -100,10 +100,6 @@ pub async fn guest_to_default_account_url(
     path: web::Path<(Uuid,)>,
     body: web::Json<GuestUserBody>,
     token: web::Data<AccountLifeCycle>,
-    account_type_registration_repo: Inject<
-        AccountTypeRegistrationModule,
-        dyn AccountTypeRegistration,
-    >,
     account_registration_repo: Inject<
         AccountRegistrationModule,
         dyn AccountRegistration,
@@ -119,8 +115,8 @@ pub async fn guest_to_default_account_url(
     match guest_to_default_account(
         path.0,
         account.to_owned(),
+        body.tenant_id.to_owned(),
         token.get_ref().to_owned(),
-        Box::new(&*account_type_registration_repo),
         Box::new(&*account_registration_repo),
         Box::new(&*message_sending_repo),
         Box::new(&*guest_registration_repo),

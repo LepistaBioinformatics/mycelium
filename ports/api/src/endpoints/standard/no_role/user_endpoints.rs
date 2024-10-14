@@ -11,7 +11,7 @@ use crate::{
 use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
 use myc_core::{
     domain::{
-        actors::DefaultActor,
+        actors::ActorName,
         dtos::native_error_codes::NativeErrorCodes,
         entities::{
             MessageSending, TokenInvalidation, TokenRegistration, UserDeletion,
@@ -110,7 +110,7 @@ pub struct CheckUserCredentialsBody {
 ///
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
+    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
     request_body = CheckEmailStatusBody,
     responses(
         (
@@ -172,7 +172,7 @@ pub async fn check_email_registration_status_url(
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
+    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
     request_body = CreateDefaultUserBody,
     responses(
         (
@@ -259,7 +259,7 @@ pub async fn create_default_user_url(
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
+    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
     request_body = CheckTokenBody,
     responses(
         (
@@ -339,7 +339,7 @@ pub async fn check_user_token_url(
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
+    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
     request_body = CheckTokenBody,
     responses(
         (
@@ -412,7 +412,7 @@ pub async fn start_password_redefinition_url(
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
+    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
     request_body = CheckTokenBody,
     responses(
         (
@@ -492,7 +492,7 @@ pub async fn check_token_and_reset_password_url(
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Users),
+    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
     request_body = CheckUserCredentialsBody,
     responses(
         (

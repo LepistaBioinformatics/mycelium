@@ -15,7 +15,9 @@ use mycelium_base::{
     entities::{CreateResponseKind, UpdatingResponseKind},
     utils::errors::{creation_err, MappedErrors},
 };
-use prisma_client_rust::QueryError;
+use prisma_client_rust::{
+    prisma_errors::query_engine::UniqueKeyViolation, QueryError,
+};
 use serde_json::{from_value, to_value};
 use shaku::Component;
 use std::{collections::HashMap, process::id as process_id};
@@ -267,8 +269,19 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
                     },
                 }))
             }
-            Err(err) => creation_err(format!("Could not create tenant: {err}"))
-                .as_error(),
+            Err(err) => {
+                if err.is_prisma_error::<UniqueKeyViolation>() {
+                    return creation_err(
+                        "The specified owner is already registered on the tenant.",
+                    )
+                    .with_code(NativeErrorCodes::MYC00015)
+                    .with_exp_true()
+                    .as_error();
+                };
+
+                creation_err(format!("Could not create tenant owner: {err}"))
+                    .as_error()
+            }
         }
     }
 

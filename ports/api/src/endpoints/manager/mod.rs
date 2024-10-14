@@ -1,6 +1,11 @@
-pub mod account_endpoints;
+pub(crate) mod tenant_endpoints;
 
-use myc_core::domain::dtos::{account::Account, account_type::AccountTypeV2};
+use myc_core::domain::dtos::{
+    account::Account,
+    account_type::AccountTypeV2,
+    tag::Tag,
+    tenant::{Tenant, TenantMetaKey, TenantStatus},
+};
 use myc_http_tools::utils::JsonError;
 use mycelium_base::dtos::{Children, Parent};
 use utoipa::OpenApi;
@@ -12,8 +17,11 @@ use utoipa::OpenApi;
 #[derive(OpenApi)]
 #[openapi(
     paths(
-        account_endpoints::upgrade_account_privileges_url,
-        account_endpoints::downgrade_account_privileges_url,
+        tenant_endpoints::create_tenant_url,
+        tenant_endpoints::list_tenant_url,
+        tenant_endpoints::delete_tenant_url,
+        tenant_endpoints::include_tenant_owner_url,
+        tenant_endpoints::exclude_tenant_owner_url,
     ),
     components(
         schemas(
@@ -24,14 +32,19 @@ use utoipa::OpenApi;
             // Schema models.
             Account,
             AccountTypeV2,
+            Tag,
+            Tenant,
+            TenantMetaKey,
+            TenantStatus,
             JsonError,
+            tenant_endpoints::CreateTenantBody,
         ),
     ),
     tags(
         (
-            name = "service",
-            description = "Service management endpoints."
+            name = "manager",
+            description = "Portal Manager endpoints"
         )
     ),
 )]
-pub struct ApiDoc;
+pub(crate) struct ApiDoc;
