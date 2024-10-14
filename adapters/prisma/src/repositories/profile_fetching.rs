@@ -7,6 +7,7 @@ use async_trait::async_trait;
 use myc_core::domain::{
     dtos::{
         account::VerboseStatus,
+        account_type::AccountTypeV2,
         email::Email,
         native_error_codes::NativeErrorCodes,
         profile::{Owner, Profile},
@@ -17,8 +18,10 @@ use mycelium_base::{
     entities::FetchResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
+use serde_json::from_value;
 use shaku::Component;
 use std::process::id as process_id;
+use tracing::error;
 use uuid::Uuid;
 
 #[derive(Component, Debug)]
@@ -72,11 +75,6 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                     username
                     is_active
                 }
-                //account_type: select {
-                //    is_subscription
-                //    is_manager
-                //    is_staff
-                //}
             }));
 
         let response = query.exec().await.unwrap();
@@ -86,38 +84,64 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
         // ? -------------------------------------------------------------------
 
         match response {
-            Some(record) => Ok(FetchResponseKind::Found(Profile {
-                owners: record
-                    .owners
-                    .iter()
-                    .map(|owner| Owner {
-                        id: Uuid::parse_str(&owner.id).unwrap(),
-                        email: Email::from_string(owner.email.to_owned())
-                            .unwrap()
-                            .get_email(),
-                        first_name: Some(owner.first_name.to_owned()),
-                        last_name: Some(owner.last_name.to_owned()),
-                        username: Some(owner.username.to_owned()),
-                    })
-                    .collect::<Vec<Owner>>(),
-                acc_id: Uuid::parse_str(&record.id).unwrap(),
-                is_subscription: false,
-                is_manager: false,
-                is_staff: false,
-                owner_is_active: record
-                    .owners
-                    .iter()
-                    .any(|i| i.is_active == true),
-                account_is_active: record.is_active,
-                account_was_approved: record.is_checked,
-                account_was_archived: record.is_archived,
-                verbose_status: Some(VerboseStatus::from_flags(
-                    record.is_active,
-                    record.is_checked,
-                    record.is_archived,
-                )),
-                licensed_resources: None,
-            })),
+            Some(record) => {
+                let account_type: AccountTypeV2 =
+                    match from_value(record.account_type) {
+                        Ok(res) => res,
+                        Err(err) => {
+                            error!("Error on discovery account type: {err}");
+
+                            return fetching_err(String::from(
+                                "Unexpected error on discovery account type.",
+                            ))
+                            .as_error();
+                        }
+                    };
+
+                let (is_subscription, is_manager, is_staff) = match account_type
+                {
+                    AccountTypeV2::Subscription { .. }
+                    | AccountTypeV2::StandardRoleAssociated { .. } => {
+                        (true, false, false)
+                    }
+                    AccountTypeV2::Manager => (false, true, false),
+                    AccountTypeV2::Staff => (false, true, true),
+                    _ => (false, false, false),
+                };
+
+                Ok(FetchResponseKind::Found(Profile {
+                    owners: record
+                        .owners
+                        .iter()
+                        .map(|owner| Owner {
+                            id: Uuid::parse_str(&owner.id).unwrap(),
+                            email: Email::from_string(owner.email.to_owned())
+                                .unwrap()
+                                .get_email(),
+                            first_name: Some(owner.first_name.to_owned()),
+                            last_name: Some(owner.last_name.to_owned()),
+                            username: Some(owner.username.to_owned()),
+                        })
+                        .collect::<Vec<Owner>>(),
+                    acc_id: Uuid::parse_str(&record.id).unwrap(),
+                    is_subscription,
+                    is_manager,
+                    is_staff,
+                    owner_is_active: record
+                        .owners
+                        .iter()
+                        .any(|i| i.is_active == true),
+                    account_is_active: record.is_active,
+                    account_was_approved: record.is_checked,
+                    account_was_archived: record.is_archived,
+                    verbose_status: Some(VerboseStatus::from_flags(
+                        record.is_active,
+                        record.is_checked,
+                        record.is_archived,
+                    )),
+                    licensed_resources: None,
+                }))
+            }
             None => Ok(FetchResponseKind::NotFound(Some(email.get_email()))),
         }
     }

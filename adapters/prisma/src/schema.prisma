@@ -49,8 +49,6 @@ model OwnerOnTenant {
   created  DateTime  @default(now()) @db.Timestamptz(6)
   updated  DateTime? @updatedAt @db.Timestamptz(6)
 
-  @@unique([tenant_id])
-  @@unique([owner_id])
   @@unique([tenant_id, owner_id])
   @@map("owner_on_tenant")
 }

@@ -41,5 +41,7 @@ pub trait TenantFetching: Interface + Send + Sync {
         status_trashed: Option<bool>,
         tag_value: Option<String>,
         tag_meta: Option<String>,
+        page_size: Option<i32>,
+        skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Tenant>, MappedErrors>;
 }

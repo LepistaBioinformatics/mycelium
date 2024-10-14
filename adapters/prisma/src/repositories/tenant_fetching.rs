@@ -15,11 +15,11 @@ use myc_core::domain::{
     entities::TenantFetching,
 };
 use mycelium_base::{
-    dtos::Children,
+    dtos::{Children, PaginatedRecord},
     entities::{FetchManyResponseKind, FetchResponseKind},
-    utils::errors::{creation_err, MappedErrors},
+    utils::errors::{fetching_err, MappedErrors},
 };
-use prisma_client_rust::{and, operator::and as and_o};
+use prisma_client_rust::{and, operator::and as and_o, Direction};
 use serde_json::to_value;
 use shaku::Component;
 use std::{collections::HashMap, process::id as process_id};
@@ -40,7 +40,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return creation_err(String::from(
+                return fetching_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
                 .with_code(NativeErrorCodes::MYC00001)
@@ -118,7 +118,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                     Ok(FetchResponseKind::NotFound(Some(id.to_string())))
                 }
             }
-            Err(err) => creation_err(format!("Could not create tenant: {err}"))
+            Err(err) => fetching_err(format!("Could not create tenant: {err}"))
                 .as_error(),
         }
     }
@@ -132,7 +132,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return creation_err(String::from(
+                return fetching_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
                 .with_code(NativeErrorCodes::MYC00001)
@@ -209,7 +209,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                     Ok(FetchResponseKind::NotFound(Some(id.to_string())))
                 }
             }
-            Err(err) => creation_err(format!("Could not create tenant: {err}"))
+            Err(err) => fetching_err(format!("Could not create tenant: {err}"))
                 .as_error(),
         }
     }
@@ -224,12 +224,14 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         status_trashed: Option<bool>,
         tag_value: Option<String>,
         tag_meta: Option<String>,
+        page_size: Option<i32>,
+        skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Tenant>, MappedErrors> {
         let tmp_client = get_client().await;
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return creation_err(String::from(
+                return fetching_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
                 .with_code(NativeErrorCodes::MYC00001)
@@ -238,6 +240,8 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
             Some(res) => res,
         };
 
+        let page_size = page_size.unwrap_or(10);
+        let skip = skip.unwrap_or(0);
         let mut and_statement = vec![];
 
         if let Some(name) = name {
@@ -299,74 +303,85 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
             ]));
         }
 
-        match client
-            .tenant()
-            .find_many(vec![and_o(and_statement)])
-            .include(tenant_model::include!({
-                owners: select {
-                    id
-                    owner: select {
-                        id
-                        email
-                        first_name
-                        last_name
-                        username
-                    }
-                }
-            }))
-            .exec()
+        let query_stmt = vec![and_o(and_statement)];
+
+        let (count, response) = match client
+            ._batch((
+                client.tenant().count(query_stmt.to_owned()),
+                client
+                    .tenant()
+                    .find_many(query_stmt)
+                    .skip(skip.into())
+                    .take(page_size.into())
+                    .order_by(tenant_model::updated::order(Direction::Desc))
+                    .include(tenant_model::include!({
+                        owners: select {
+                            id
+                            owner: select {
+                                id
+                                email
+                                first_name
+                                last_name
+                                username
+                            }
+                        }
+                    })),
+            ))
             .await
         {
-            Ok(records) => {
-                let parsed_records: Vec<Tenant> = records
-                    .iter()
-                    .map(|record| Tenant {
-                        id: Some(Uuid::parse_str(&record.id).unwrap()),
-                        name: record.name.to_owned(),
-                        description: record.description.to_owned(),
-                        owners: Children::Records(
-                            record
-                                .owners
-                                .iter()
-                                .map(|owner| {
-                                    let owner = owner.owner.to_owned();
-
-                                    Owner {
-                                        id: Uuid::parse_str(&owner.id).unwrap(),
-                                        email: owner.email.clone(),
-                                        first_name: owner
-                                            .first_name
-                                            .clone()
-                                            .into(),
-                                        last_name: owner
-                                            .last_name
-                                            .clone()
-                                            .into(),
-                                        username: owner.username.clone().into(),
-                                    }
-                                })
-                                .collect(),
-                        ),
-                        created: record.created.into(),
-                        updated: match record.updated {
-                            None => None,
-                            Some(updated) => Some(updated.into()),
-                        },
-                        manager: None,
-                        tags: None,
-                        meta: None,
-                        status: None,
-                    })
-                    .collect();
-
-                if parsed_records.is_empty() {
-                    Ok(FetchManyResponseKind::NotFound)
-                } else {
-                    Ok(FetchManyResponseKind::Found(parsed_records))
-                }
+            Err(err) => {
+                return fetching_err(format!(
+                    "Unexpected error on fetch accounts: {err}",
+                ))
+                .as_error()
             }
-            Err(err) => creation_err(format!("Could not create tenant: {err}"))
-                .as_error(),
+            Ok(res) => res,
+        };
+
+        if response.len() == 0 {
+            return Ok(FetchManyResponseKind::NotFound);
         }
+
+        let records: Vec<Tenant> = response
+            .into_iter()
+            .map(|record| Tenant {
+                id: Some(Uuid::parse_str(&record.id).unwrap()),
+                name: record.name.to_owned(),
+                description: record.description.to_owned(),
+                owners: Children::Records(
+                    record
+                        .owners
+                        .iter()
+                        .map(|owner| {
+                            let owner = owner.owner.to_owned();
+
+                            Owner {
+                                id: Uuid::parse_str(&owner.id).unwrap(),
+                                email: owner.email.clone(),
+                                first_name: owner.first_name.clone().into(),
+                                last_name: owner.last_name.clone().into(),
+                                username: owner.username.clone().into(),
+                            }
+                        })
+                        .collect(),
+                ),
+                created: record.created.into(),
+                updated: match record.updated {
+                    None => None,
+                    Some(updated) => Some(updated.into()),
+                },
+                manager: None,
+                tags: None,
+                meta: None,
+                status: None,
+            })
+            .collect();
+
+        Ok(FetchManyResponseKind::FoundPaginated(PaginatedRecord {
+            count,
+            skip: Some(skip.into()),
+            size: Some(page_size.into()),
+            records,
+        }))
     }
 }

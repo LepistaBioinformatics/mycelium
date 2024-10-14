@@ -1,27 +1,27 @@
 use myc_prisma::repositories::{
-    TagDeletionSqlDbRepository, TagRegistrationSqlDbRepository,
-    TagUpdatingSqlDbRepository,
+    AccountTagDeletionSqlDbRepository, AccountTagRegistrationSqlDbRepository,
+    AccountTagUpdatingSqlDbRepository,
 };
 
 use shaku::module;
 
 module! {
-    pub TagRegistrationModule {
-        components = [TagRegistrationSqlDbRepository],
+    pub AccountTagRegistrationModule {
+        components = [AccountTagRegistrationSqlDbRepository],
         providers = []
     }
 }
 
 module! {
-    pub TagDeletionModule {
-        components = [TagDeletionSqlDbRepository],
+    pub AccountTagDeletionModule {
+        components = [AccountTagDeletionSqlDbRepository],
         providers = []
     }
 }
 
 module! {
-    pub TagUpdatingModule {
-        components = [TagUpdatingSqlDbRepository],
+    pub AccountTagUpdatingModule {
+        components = [AccountTagUpdatingSqlDbRepository],
         providers = []
     }
 }

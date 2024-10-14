@@ -3,20 +3,18 @@ use crate::{
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     middleware::check_credentials_with_multi_identity_provider,
     modules::{
-        AccountFetchingModule, AccountRegistrationModule,
-        AccountTypeRegistrationModule, AccountUpdatingModule,
-        UserFetchingModule, WebHookFetchingModule,
+        AccountRegistrationModule, AccountUpdatingModule, UserFetchingModule,
+        WebHookFetchingModule,
     },
 };
 
 use actix_web::{patch, post, web, HttpRequest, HttpResponse, Responder};
 use myc_core::{
     domain::{
-        actors::DefaultActor,
+        actors::ActorName,
         dtos::native_error_codes::NativeErrorCodes,
         entities::{
-            AccountFetching, AccountRegistration, AccountTypeRegistration,
-            AccountUpdating, UserFetching, WebHookFetching,
+            AccountRegistration, AccountUpdating, UserFetching, WebHookFetching,
         },
     },
     use_cases::roles::standard::no_role::account::{
@@ -66,7 +64,7 @@ pub struct UpdateOwnAccountNameAccountBody {
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Accounts),
+    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Accounts),
     request_body = CreateDefaultAccountBody,
     responses(
         (
@@ -105,10 +103,6 @@ pub async fn create_default_account_url(
         AccountRegistrationModule,
         dyn AccountRegistration,
     >,
-    account_type_registration_repo: Inject<
-        AccountTypeRegistrationModule,
-        dyn AccountTypeRegistration,
-    >,
     webhook_fetching_repo: Inject<WebHookFetchingModule, dyn WebHookFetching>,
 ) -> impl Responder {
     let opt_email =
@@ -134,7 +128,6 @@ pub async fn create_default_account_url(
         body.account_name.to_owned(),
         Box::new(&*user_fetching_repo),
         Box::new(&*account_registration_repo),
-        Box::new(&*account_type_registration_repo),
         Box::new(&*webhook_fetching_repo),
     )
     .await
@@ -157,7 +150,7 @@ pub async fn create_default_account_url(
 
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(DefaultActor::NoRole, UrlGroup::Accounts),
+    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Accounts),
     request_body = UpdateOwnAccountNameAccountBody,
     params(
         ("id" = Uuid, Path, description = "The account primary key."),
@@ -195,7 +188,6 @@ pub async fn update_own_account_name_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateOwnAccountNameAccountBody>,
     profile: MyceliumProfileData,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
     account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
 ) -> impl Responder {
     let profile = profile.to_profile();
@@ -216,7 +208,6 @@ pub async fn update_own_account_name_url(
     match update_own_account_name(
         profile,
         body.name.to_owned(),
-        Box::new(&*account_fetching_repo),
         Box::new(&*account_updating_repo),
     )
     .await

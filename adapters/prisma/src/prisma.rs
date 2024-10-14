@@ -1895,8 +1895,10 @@ pub mod owner_on_tenant {
         ) -> OrderByParam {
             OrderByParam::TenantId(direction)
         }
-        pub fn equals<T: From<UniqueWhereParam>>(value: String) -> T {
-            UniqueWhereParam::TenantIdEquals(value).into()
+        pub fn equals(value: String) -> WhereParam {
+            WhereParam::TenantId(_prisma::read_filters::StringFilter::Equals(
+                value,
+            ))
         }
         ::prisma_client_rust::scalar_where_param_fns!(
             _prisma::read_filters::StringFilter,
@@ -2058,8 +2060,10 @@ pub mod owner_on_tenant {
         ) -> OrderByParam {
             OrderByParam::OwnerId(direction)
         }
-        pub fn equals<T: From<UniqueWhereParam>>(value: String) -> T {
-            UniqueWhereParam::OwnerIdEquals(value).into()
+        pub fn equals(value: String) -> WhereParam {
+            WhereParam::OwnerId(_prisma::read_filters::StringFilter::Equals(
+                value,
+            ))
         }
         ::prisma_client_rust::scalar_where_param_fns!(
             _prisma::read_filters::StringFilter,
@@ -2714,20 +2718,12 @@ pub mod owner_on_tenant {
     }
     #[derive(Clone)]
     pub enum UniqueWhereParam {
-        TenantIdEquals(String),
-        OwnerIdEquals(String),
         TenantIdOwnerIdEquals(String, String),
         IdEquals(String),
     }
     impl From<UniqueWhereParam> for WhereParam {
         fn from(value: UniqueWhereParam) -> Self {
             match value {
-                UniqueWhereParam::TenantIdEquals(value) => Self::TenantId(
-                    _prisma::read_filters::StringFilter::Equals(value),
-                ),
-                UniqueWhereParam::OwnerIdEquals(value) => Self::OwnerId(
-                    _prisma::read_filters::StringFilter::Equals(value),
-                ),
                 UniqueWhereParam::TenantIdOwnerIdEquals(
                     tenant_id,
                     owner_id,

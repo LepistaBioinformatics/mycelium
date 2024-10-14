@@ -7,7 +7,7 @@ use crate::{
     modules::{
         AccountFetchingModule, AccountRegistrationModule,
         AccountTypeRegistrationModule, AccountUpdatingModule,
-        TagDeletionModule, TagRegistrationModule, TagUpdatingModule,
+        AccountTagDeletionModule, AccountTagRegistrationModule, AccountTagUpdatingModule,
         WebHookFetchingModule,
     },
 };
@@ -526,7 +526,7 @@ pub async fn register_tag_url(
     profile: MyceliumProfileData,
     path: web::Path<(Uuid,)>,
     body: web::Json<CreateTagBody>,
-    tag_registration_repo: Inject<TagRegistrationModule, dyn TagRegistration>,
+    tag_registration_repo: Inject<AccountTagRegistrationModule, dyn TagRegistration>,
 ) -> impl Responder {
     match register_tag(
         profile.to_profile(),
@@ -591,7 +591,7 @@ pub async fn update_tag_url(
     profile: MyceliumProfileData,
     path: web::Path<(Uuid, Uuid)>,
     body: web::Json<CreateTagBody>,
-    tag_updating_repo: Inject<TagUpdatingModule, dyn TagUpdating>,
+    tag_updating_repo: Inject<AccountTagUpdatingModule, dyn TagUpdating>,
 ) -> impl Responder {
     match update_tag(
         profile.to_profile(),
@@ -656,7 +656,7 @@ pub async fn update_tag_url(
 pub async fn delete_tag_url(
     profile: MyceliumProfileData,
     path: web::Path<(Uuid, Uuid)>,
-    tag_deletion_repo: Inject<TagDeletionModule, dyn TagDeletion>,
+    tag_deletion_repo: Inject<AccountTagDeletionModule, dyn TagDeletion>,
 ) -> impl Responder {
     match delete_tag(
         profile.to_profile(),

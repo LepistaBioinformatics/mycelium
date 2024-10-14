@@ -17,7 +17,9 @@ use mycelium_base::{
     entities::DeletionResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
-use prisma_client_rust::{operator::and, QueryError};
+use prisma_client_rust::{
+    operator::and, prisma_errors::query_engine::RecordNotFound, QueryError,
+};
 use serde_json::{from_value, to_value};
 use shaku::Component;
 use std::{collections::HashMap, process::id as process_id};
@@ -116,8 +118,19 @@ impl TenantDeletion for TenantDeletionSqlDbRepository {
             .await
         {
             Ok(_) => Ok(DeletionResponseKind::Deleted),
-            Err(err) => creation_err(format!("Could not create tenant: {err}"))
-                .as_error(),
+            Err(err) => {
+                if err.is_prisma_error::<RecordNotFound>() {
+                    return creation_err(
+                        "The specified owner is already registered on the tenant.",
+                    )
+                    .with_code(NativeErrorCodes::MYC00016)
+                    .with_exp_true()
+                    .as_error();
+                };
+
+                creation_err(format!("Could not create tenant: {err}"))
+                    .as_error()
+            }
         }
     }
 

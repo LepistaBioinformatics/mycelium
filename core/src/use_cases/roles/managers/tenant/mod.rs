@@ -1,3 +1,11 @@
+/// Actions listed below should be performed by a Mycelium Managers and Staffs:
+///
+/// - Create Tenant
+/// - Delete Tenant
+/// - Include Tenant Owner
+/// - Exclude Tenant Owner
+/// - List Tenant
+///
 mod create_tenant;
 mod delete_tenant;
 mod exclude_tenant_owner;

@@ -1,6 +1,6 @@
 use crate::modules::{
-    AccountFetchingModule, AccountRegistrationModule,
-    AccountTypeDeletionModule, AccountTypeRegistrationModule,
+    AccountFetchingModule, AccountRegistrationModule, AccountTagDeletionModule,
+    AccountTagRegistrationModule, AccountTagUpdatingModule,
     AccountUpdatingModule, ErrorCodeDeletionModule, ErrorCodeFetchingModule,
     ErrorCodeRegistrationModule, ErrorCodeUpdatingModule,
     GuestRoleDeletionModule, GuestRoleFetchingModule,
@@ -10,11 +10,11 @@ use crate::modules::{
     LicensedResourcesFetchingModule, MessageSendingModule,
     ProfileFetchingModule, RoleDeletionModule, RoleFetchingModule,
     RoleRegistrationModule, RoleUpdatingModule, RoutesFetchingModule,
-    TagDeletionModule, TagRegistrationModule, TagUpdatingModule,
-    TokenInvalidationModule, TokenRegistrationModule, UserDeletionModule,
-    UserFetchingModule, UserRegistrationModule, UserUpdatingModule,
-    WebHookDeletionModule, WebHookFetchingModule, WebHookRegistrationModule,
-    WebHookUpdatingModule,
+    TenantDeletionModule, TenantFetchingModule, TenantRegistrationModule,
+    TenantUpdatingModule, TokenInvalidationModule, TokenRegistrationModule,
+    UserDeletionModule, UserFetchingModule, UserRegistrationModule,
+    UserUpdatingModule, WebHookDeletionModule, WebHookFetchingModule,
+    WebHookRegistrationModule, WebHookUpdatingModule,
 };
 
 use actix_web::web;
@@ -25,10 +25,12 @@ use myc_prisma::repositories::{
     AccountFetchingSqlDbRepository, AccountFetchingSqlDbRepositoryParameters,
     AccountRegistrationSqlDbRepository,
     AccountRegistrationSqlDbRepositoryParameters,
-    AccountTypeDeletionSqlDbRepository,
-    AccountTypeDeletionSqlDbRepositoryParameters,
-    AccountTypeRegistrationSqlDbRepository,
-    AccountTypeRegistrationSqlDbRepositoryParameters,
+    AccountTagDeletionSqlDbRepository,
+    AccountTagDeletionSqlDbRepositoryParameters,
+    AccountTagRegistrationSqlDbRepository,
+    AccountTagRegistrationSqlDbRepositoryParameters,
+    AccountTagUpdatingSqlDbRepository,
+    AccountTagUpdatingSqlDbRepositoryParameters,
     AccountUpdatingSqlDbRepository, AccountUpdatingSqlDbRepositoryParameters,
     ErrorCodeDeletionDeletionSqlDbRepository,
     ErrorCodeDeletionDeletionSqlDbRepositoryParameters,
@@ -61,10 +63,11 @@ use myc_prisma::repositories::{
     RoleFetchingSqlDbRepository, RoleFetchingSqlDbRepositoryParameters,
     RoleRegistrationSqlDbRepository, RoleRegistrationSqlDbRepositoryParameters,
     RoleUpdatingSqlDbRepository, RoleUpdatingSqlDbRepositoryParameters,
-    TagDeletionSqlDbRepository, TagDeletionSqlDbRepositoryParameters,
-    TagRegistrationSqlDbRepository, TagRegistrationSqlDbRepositoryParameters,
-    TagUpdatingSqlDbRepository, TagUpdatingSqlDbRepositoryParameters,
-    TokenInvalidationSqlDbRepository,
+    TenantDeletionSqlDbRepository, TenantDeletionSqlDbRepositoryParameters,
+    TenantFetchingSqlDbRepository, TenantFetchingSqlDbRepositoryParameters,
+    TenantRegistrationSqlDbRepository,
+    TenantRegistrationSqlDbRepositoryParameters, TenantUpdatingSqlDbRepository,
+    TenantUpdatingSqlDbRepositoryParameters, TokenInvalidationSqlDbRepository,
     TokenInvalidationSqlDbRepositoryParameters,
     TokenRegistrationSqlDbRepository,
     TokenRegistrationSqlDbRepositoryParameters, UserDeletionSqlDbRepository,
@@ -107,23 +110,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
                 .with_component_parameters::<AccountUpdatingSqlDbRepository>(
                     AccountUpdatingSqlDbRepositoryParameters {}
                 ).build()
-        ))
-        // ? -------------------------------------------------------------------
-        // ? Account Type
-        // ? -------------------------------------------------------------------
-        .app_data(Arc::new(
-            AccountTypeRegistrationModule::builder()
-                .with_component_parameters::<AccountTypeRegistrationSqlDbRepository>(
-                    AccountTypeRegistrationSqlDbRepositoryParameters {},
-                )
-                .build(),
-        ))
-        .app_data(Arc::new(
-            AccountTypeDeletionModule::builder()
-                .with_component_parameters::<AccountTypeDeletionSqlDbRepository>(
-                    AccountTypeDeletionSqlDbRepositoryParameters {},
-                )
-                .build(),
         ))
         // ? -------------------------------------------------------------------
         // ? Guest User
@@ -363,23 +349,54 @@ pub fn configure(config: &mut web::ServiceConfig) {
         // ? Account Tag
         // ? -------------------------------------------------------------------
         .app_data(Arc::new(
-            TagDeletionModule::builder()
-                .with_component_parameters::<TagDeletionSqlDbRepository>(
-                    TagDeletionSqlDbRepositoryParameters {},
+            AccountTagDeletionModule::builder()
+                .with_component_parameters::<AccountTagDeletionSqlDbRepository>(
+                    AccountTagDeletionSqlDbRepositoryParameters {},
                 )
                 .build(),
         ))
         .app_data(Arc::new(
-            TagRegistrationModule::builder()
-                .with_component_parameters::<TagRegistrationSqlDbRepository>(
-                    TagRegistrationSqlDbRepositoryParameters {},
+            AccountTagRegistrationModule::builder()
+                .with_component_parameters::<AccountTagRegistrationSqlDbRepository>(
+                    AccountTagRegistrationSqlDbRepositoryParameters {},
                 )
                 .build(),
         ))
         .app_data(Arc::new(
-            TagUpdatingModule::builder()
-                .with_component_parameters::<TagUpdatingSqlDbRepository>(
-                    TagUpdatingSqlDbRepositoryParameters {},
+            AccountTagUpdatingModule::builder()
+                .with_component_parameters::<AccountTagUpdatingSqlDbRepository>(
+                    AccountTagUpdatingSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        // ? -------------------------------------------------------------------
+        // ? Tenant
+        // ? -------------------------------------------------------------------
+        .app_data(Arc::new(
+            TenantFetchingModule::builder()
+                .with_component_parameters::<TenantFetchingSqlDbRepository>(
+                    TenantFetchingSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            TenantRegistrationModule::builder()
+                .with_component_parameters::<TenantRegistrationSqlDbRepository>(
+                    TenantRegistrationSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            TenantUpdatingModule::builder()
+                .with_component_parameters::<TenantUpdatingSqlDbRepository>(
+                    TenantUpdatingSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            TenantDeletionModule::builder()
+                .with_component_parameters::<TenantDeletionSqlDbRepository>(
+                    TenantDeletionSqlDbRepositoryParameters {},
                 )
                 .build(),
         ));

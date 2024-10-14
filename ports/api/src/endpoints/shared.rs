@@ -1,6 +1,6 @@
 use crate::settings::MYCELIUM_API_SCOPE;
 
-use myc_core::domain::actors::DefaultActor;
+use myc_http_tools::ActorName;
 use serde::Deserialize;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use utoipa::IntoParams;
@@ -15,6 +15,7 @@ pub struct PaginationParams {
 pub enum UrlScope {
     Health,
     Standards,
+    Managers,
     Staffs,
 }
 
@@ -23,6 +24,7 @@ impl Display for UrlScope {
         match self {
             UrlScope::Health => write!(f, "health"),
             UrlScope::Standards => write!(f, "std"),
+            UrlScope::Managers => write!(f, "managers"),
             UrlScope::Staffs => write!(f, "staffs"),
         }
     }
@@ -35,6 +37,7 @@ impl UrlScope {
 }
 
 pub enum UrlGroup {
+    Tenants,
     Accounts,
     GuestRoles,
     Guests,
@@ -48,6 +51,7 @@ pub enum UrlGroup {
 impl Display for UrlGroup {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
+            UrlGroup::Tenants => write!(f, "tenants"),
             UrlGroup::Accounts => write!(f, "accounts"),
             UrlGroup::GuestRoles => write!(f, "guest-roles"),
             UrlGroup::Guests => write!(f, "guests"),
@@ -68,7 +72,7 @@ impl UrlGroup {
     pub fn with_scoped_actor(
         &self,
         scope: UrlScope,
-        actor: DefaultActor,
+        actor: ActorName,
     ) -> String {
         format!("{}/{}/{}", scope.build_myc_path(), actor, self.to_owned())
     }
