@@ -46,6 +46,7 @@ pub enum UrlGroup {
     Webhooks,
     ErrorCodes,
     Profile,
+    Tags,
 }
 
 impl Display for UrlGroup {
@@ -60,6 +61,7 @@ impl Display for UrlGroup {
             UrlGroup::Webhooks => write!(f, "webhooks"),
             UrlGroup::ErrorCodes => write!(f, "error-codes"),
             UrlGroup::Profile => write!(f, "profile"),
+            UrlGroup::Tags => write!(f, "tags"),
         }
     }
 }
