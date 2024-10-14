@@ -24,9 +24,9 @@ use config::injectors::configure as configure_injection_modules;
 use endpoints::{
     index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
     manager::{tenant_endpoints, ApiDoc as ManagerApiDoc},
-    //staff::{
-    //    account_endpoints as staff_account_endpoints, ApiDoc as StaffApiDoc,
-    //},
+    staff::{
+        account_endpoints as staff_account_endpoints, ApiDoc as StaffApiDoc,
+    },
     standard::{
         configure as configure_standard_endpoints,
         ApiDoc as StandardUsersApiDoc,
@@ -345,16 +345,17 @@ pub async fn main() -> std::io::Result<()> {
                         .as_str(),
                 )
                 .configure(configure_standard_endpoints),
+            )
+            //
+            // Staff
+            //
+            .service(
+                web::scope(
+                    format!("/{}", endpoints::shared::UrlScope::Staffs)
+                        .as_str(),
+                )
+                .configure(staff_account_endpoints::configure),
             );
-        //
-        // Staff
-        //
-        //.service(
-        //    web::scope(
-        //        format!("/{}", endpoints::shared::UrlScope::Staffs)
-        //            .as_str(),
-        //    ), //.configure(staff_account_endpoints::configure),
-        //);
 
         // ? -------------------------------------------------------------------
         // ? Configure authentication elements
@@ -437,12 +438,11 @@ pub async fn main() -> std::io::Result<()> {
             // These wrap create the basic log elements and exclude the health
             // check route.
             .wrap(
-                //Logger::default("%a %r %s %b %{Referer}i %{User-Agent}i %T")
                 Logger::default()
                     .exclude_regex("/health/*")
-                    .exclude_regex("/swagger-ui/*"),
-                //.exclude_regex("/auth/google/*")
-                //.exclude_regex("/auth/azure/*"),
+                    .exclude_regex("/swagger-ui/*")
+                    .exclude_regex("/auth/google/*")
+                    .exclude_regex("/auth/azure/*"),
             )
             // ? ---------------------------------------------------------------
             // ? Configure Injection modules
@@ -489,13 +489,13 @@ pub async fn main() -> std::io::Result<()> {
                             ),
                             StandardUsersApiDoc::openapi(),
                         ),
-                        //(
-                        //    Url::new(
-                        //        "Staff Users Endpoints",
-                        //        "/doc/staff-openapi.json",
-                        //    ),
-                        //    StaffApiDoc::openapi(),
-                        //),
+                        (
+                            Url::new(
+                                "Staff Users Endpoints",
+                                "/doc/staff-openapi.json",
+                            ),
+                            StaffApiDoc::openapi(),
+                        ),
                     ]),
             )
             // ? ---------------------------------------------------------------
