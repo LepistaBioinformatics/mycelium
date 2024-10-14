@@ -2,6 +2,7 @@
 target
 docs/*
 !docs/draw.io
+!docs/insomnia
 dist
 
 # Environment related
