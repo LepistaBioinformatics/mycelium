@@ -10,7 +10,7 @@ use crate::{
 use actix_web::{delete, get, post, put, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
-        actors::DefaultActor,
+        actors::ActorName,
         dtos::webhook::{HookTarget, WebHook},
         entities::{
             WebHookDeletion, WebHookFetching, WebHookRegistration,
@@ -76,7 +76,7 @@ pub struct ListWebHooksParams {
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::Webhooks),
+    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::Webhooks),
     request_body = CreateWebHookBody,
     responses(
         (
@@ -138,7 +138,7 @@ pub async fn crate_webhook_url(
 
 #[utoipa::path(
     get,
-    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::Webhooks),
+    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::Webhooks),
     params(
         ListWebHooksParams,
     ),
@@ -201,7 +201,7 @@ pub async fn list_webhooks_url(
 
 #[utoipa::path(
     put,
-    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::Webhooks),
+    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::Webhooks),
     params(
         ("id" = Uuid, Path, description = "The webhook primary key."),
     ),
@@ -259,7 +259,7 @@ pub async fn update_webhook_url(
 
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::Webhooks),
+    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::Webhooks),
     params(
         ("id" = Uuid, Path, description = "The webhook primary key."),
     ),

@@ -10,7 +10,7 @@ use crate::{
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
-        actors::DefaultActor,
+        actors::ActorName,
         dtos::guest::Permissions,
         entities::{
             GuestRoleDeletion, GuestRoleFetching, GuestRoleRegistration,
@@ -84,7 +84,7 @@ pub struct UpdateGuestRolePermissionsBody {
 /// Guest Roles provide permissions to simple Roles.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::GuestRoles),
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     request_body = CreateGuestRoleBody,
     responses(
         (
@@ -149,7 +149,7 @@ pub async fn crate_guest_role_url(
 /// List Roles
 #[utoipa::path(
     get,
-    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::GuestRoles),
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
         ListGuestRolesParams,
     ),
@@ -218,7 +218,7 @@ pub async fn list_guest_roles_url(
 /// Delete a single guest role.
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::GuestRoles),
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
         ("role" = Uuid, Path, description = "The guest-role primary key."),
     ),
@@ -278,7 +278,7 @@ pub async fn delete_guest_role_url(
 /// Update name and description of a single Guest Role.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::GuestRoles),
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
         ("role" = Uuid, Path, description = "The guest-role primary key."),
     ),
@@ -347,7 +347,7 @@ pub async fn update_guest_role_name_and_description_url(
 /// Upgrade or Downgrade permissions of Guest Role.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::GuestRoles),
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
         ("role" = Uuid, Path, description = "The guest-role primary key."),
     ),

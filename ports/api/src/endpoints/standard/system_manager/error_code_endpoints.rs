@@ -13,7 +13,7 @@ use crate::{
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
-        actors::DefaultActor,
+        actors::ActorName,
         dtos::native_error_codes::NativeErrorCodes,
         entities::{
             ErrorCodeDeletion, ErrorCodeFetching, ErrorCodeRegistration,
@@ -81,7 +81,7 @@ pub struct UpdateErrorCodeMessageAndDetailsBody {
 /// This action is restricted to manager users.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::ErrorCodes),
+    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::ErrorCodes),
     request_body = CreateErrorCodeBody,
     responses(
         (
@@ -144,7 +144,7 @@ pub async fn register_error_code_url(
 ///
 #[utoipa::path(
     get,
-    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::ErrorCodes),
+    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::ErrorCodes),
     params(
         ListErrorCodesParams,
         PaginationParams,
@@ -215,7 +215,7 @@ pub async fn list_error_codes_url(
 
 #[utoipa::path(
     get,
-    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::ErrorCodes),
+    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::ErrorCodes),
     params(
         ("prefix" = String, Path, description = "The error prefix."),
         ("code" = i32, Path, description = "The error code."),
@@ -281,7 +281,7 @@ pub async fn get_error_code_url(
 
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::ErrorCodes),
+    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::ErrorCodes),
     params(
         ("prefix" = String, Path, description = "The error prefix."),
         ("code" = i32, Path, description = "The error code."),
@@ -360,7 +360,7 @@ pub async fn update_error_code_message_and_details_url(
 
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(DefaultActor::SystemManager, UrlGroup::ErrorCodes),
+    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::ErrorCodes),
     params(
         ("prefix" = String, Path, description = "The error prefix."),
         ("code" = i32, Path, description = "The error code."),

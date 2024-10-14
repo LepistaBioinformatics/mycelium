@@ -10,7 +10,7 @@ use crate::{
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
-        actors::DefaultActor,
+        actors::ActorName,
         entities::{
             RoleDeletion, RoleFetching, RoleRegistration, RoleUpdating,
         },
@@ -63,7 +63,7 @@ pub struct ListRolesParams {
 /// Roles are used to build Guest Role elements.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Roles),
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Roles),
     request_body = CreateRoleBody,
     responses(
         (
@@ -126,7 +126,7 @@ pub async fn crate_role_url(
 /// List Roles
 #[utoipa::path(
     get,
-    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Roles),
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Roles),
     params(
         ListRolesParams,
     ),
@@ -192,7 +192,7 @@ pub async fn list_roles_url(
 /// Delete a single role.
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Roles),
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Roles),
     params(
         ("role" = Uuid, Path, description = "The role primary key."),
     ),
@@ -252,7 +252,7 @@ pub async fn delete_role_url(
 /// Update name and description of a single Role.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(DefaultActor::GuestManager, UrlGroup::Roles),
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Roles),
     params(
         ("role" = Uuid, Path, description = "The role primary key."),
     ),
