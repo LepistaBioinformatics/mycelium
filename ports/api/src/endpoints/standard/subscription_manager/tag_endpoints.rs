@@ -20,9 +20,12 @@ use myc_core::{
         delete_tag, register_tag, update_tag,
     },
 };
-use myc_http_tools::utils::JsonError;
-use mycelium_base::entities::{
-    DeletionResponseKind, GetOrCreateResponseKind, UpdatingResponseKind,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        delete_response_kind, get_or_create_response_kind,
+        updating_response_kind,
+    },
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -113,16 +116,9 @@ pub async fn register_tag_url(
     )
     .await
     {
+        Ok(res) => get_or_create_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            GetOrCreateResponseKind::Created(record) => {
-                HttpResponse::Created().json(record)
-            }
-            GetOrCreateResponseKind::NotCreated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -180,16 +176,9 @@ pub async fn update_tag_url(
     )
     .await
     {
+        Ok(res) => updating_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            UpdatingResponseKind::Updated(record) => {
-                HttpResponse::Accepted().json(record)
-            }
-            UpdatingResponseKind::NotUpdated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -241,13 +230,8 @@ pub async fn delete_tag_url(
     )
     .await
     {
+        Ok(res) => delete_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            DeletionResponseKind::Deleted => HttpResponse::NoContent().finish(),
-            DeletionResponseKind::NotDeleted(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }

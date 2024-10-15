@@ -27,7 +27,7 @@ use myc_core::{
 };
 use myc_http_tools::{
     functions::encode_jwt, models::internal_auth_config::InternalOauthConfig,
-    responses::GatewayError, utils::JsonError, Email,
+    responses::GatewayError, utils::HttpJsonResponse, Email,
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -152,8 +152,11 @@ pub async fn check_email_registration_status_url(
     let email_instance = match Email::from_string(info.email.to_owned()) {
         Err(err) => {
             warn!("Invalid email: {}", err);
-            return HttpResponse::BadRequest()
-                .json(JsonError::new("Invalid email address.".to_string()));
+            return HttpResponse::BadRequest().json(
+                HttpJsonResponse::new_message(
+                    "Invalid email address.".to_string(),
+                ),
+            );
         }
         Ok(email) => email,
     };
@@ -164,9 +167,9 @@ pub async fn check_email_registration_status_url(
     )
     .await
     {
-        Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
         Ok(res) => HttpResponse::Ok().json(res),
+        Err(err) => HttpResponse::InternalServerError()
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -219,8 +222,11 @@ pub async fn create_default_user_url(
             _ => {
                 warn!("Invalid issuer: {err}");
 
-                return HttpResponse::BadRequest()
-                    .json(JsonError::new("Invalid issuer.".to_string()));
+                return HttpResponse::BadRequest().json(
+                    HttpJsonResponse::new_message(
+                        "Invalid issuer.".to_string(),
+                    ),
+                );
             }
         },
         Ok(res) => Some(res),
@@ -241,19 +247,22 @@ pub async fn create_default_user_url(
     )
     .await
     {
+        Ok(res) => HttpResponse::Created().json(res),
         Err(err) => {
             let code_string = err.code().to_string();
 
             if err.is_in(vec![NativeErrorCodes::MYC00002]) {
                 return HttpResponse::Conflict().json(
-                    JsonError::new(err.to_string()).with_code(code_string),
+                    HttpJsonResponse::new_message(err.to_string())
+                        .with_code(code_string),
                 );
             }
 
-            HttpResponse::InternalServerError()
-                .json(JsonError::new(err.to_string()).with_code(code_string))
+            HttpResponse::InternalServerError().json(
+                HttpJsonResponse::new_message(err.to_string())
+                    .with_code(code_string),
+            )
         }
-        Ok(res) => HttpResponse::Created().json(res),
     }
 }
 
@@ -297,8 +306,11 @@ pub async fn check_user_token_url(
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
             warn!("Invalid email: {}", err);
-            return HttpResponse::BadRequest()
-                .json(JsonError::new("Invalid email address.".to_string()));
+            return HttpResponse::BadRequest().json(
+                HttpJsonResponse::new_message(
+                    "Invalid email address.".to_string(),
+                ),
+            );
         }
         Ok(email) => email,
     };
@@ -312,12 +324,14 @@ pub async fn check_user_token_url(
     )
     .await
     {
+        Ok(_) => HttpResponse::Ok().finish(),
         Err(err) => {
             let code_string = err.code().to_string();
 
             if err.is_in(vec![NativeErrorCodes::MYC00002]) {
                 return HttpResponse::Conflict().json(
-                    JsonError::new(err.to_string()).with_code(code_string),
+                    HttpJsonResponse::new_message(err.to_string())
+                        .with_code(code_string),
                 );
             }
 
@@ -326,14 +340,16 @@ pub async fn check_user_token_url(
                 NativeErrorCodes::MYC00009,
             ]) {
                 return HttpResponse::BadRequest().json(
-                    JsonError::new(err.to_string()).with_code(code_string),
+                    HttpJsonResponse::new_message(err.to_string())
+                        .with_code(code_string),
                 );
             }
 
-            HttpResponse::InternalServerError()
-                .json(JsonError::new(err.to_string()).with_code(code_string))
+            HttpResponse::InternalServerError().json(
+                HttpJsonResponse::new_message(err.to_string())
+                    .with_code(code_string),
+            )
         }
-        Ok(_) => HttpResponse::Ok().finish(),
     }
 }
 
@@ -378,8 +394,11 @@ pub async fn start_password_redefinition_url(
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
             warn!("Invalid email: {}", err);
-            return HttpResponse::BadRequest()
-                .json(JsonError::new("Invalid email address.".to_string()));
+            return HttpResponse::BadRequest().json(
+                HttpJsonResponse::new_message(
+                    "Invalid email address.".to_string(),
+                ),
+            );
         }
         Ok(email) => email,
     };
@@ -394,19 +413,22 @@ pub async fn start_password_redefinition_url(
     )
     .await
     {
+        Ok(_) => HttpResponse::Ok().json(true),
         Err(err) => {
             let code_string = err.code().to_string();
 
             if err.is_in(vec![NativeErrorCodes::MYC00009]) {
                 return HttpResponse::BadRequest().json(
-                    JsonError::new(err.to_string()).with_code(code_string),
+                    HttpJsonResponse::new_message(err.to_string())
+                        .with_code(code_string),
                 );
             }
 
-            HttpResponse::InternalServerError()
-                .json(JsonError::new(err.to_string()).with_code(code_string))
+            HttpResponse::InternalServerError().json(
+                HttpJsonResponse::new_message(err.to_string())
+                    .with_code(code_string),
+            )
         }
-        Ok(_) => HttpResponse::Ok().json(true),
     }
 }
 
@@ -452,8 +474,11 @@ pub async fn check_token_and_reset_password_url(
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
             warn!("Invalid email: {}", err);
-            return HttpResponse::BadRequest()
-                .json(JsonError::new("Invalid email address.".to_string()));
+            return HttpResponse::BadRequest().json(
+                HttpJsonResponse::new_message(
+                    "Invalid email address.".to_string(),
+                ),
+            );
         }
         Ok(email) => email,
     };
@@ -471,6 +496,7 @@ pub async fn check_token_and_reset_password_url(
     )
     .await
     {
+        Ok(_) => HttpResponse::Ok().json(true),
         Err(err) => {
             let code_string = err.code().to_string();
 
@@ -479,14 +505,16 @@ pub async fn check_token_and_reset_password_url(
                 NativeErrorCodes::MYC00011,
             ]) {
                 return HttpResponse::BadRequest().json(
-                    JsonError::new(err.to_string()).with_code(code_string),
+                    HttpJsonResponse::new_message(err.to_string())
+                        .with_code(code_string),
                 );
             }
 
-            HttpResponse::InternalServerError()
-                .json(JsonError::new(err.to_string()).with_code(code_string))
+            HttpResponse::InternalServerError().json(
+                HttpJsonResponse::new_message(err.to_string())
+                    .with_code(code_string),
+            )
         }
-        Ok(_) => HttpResponse::Ok().json(true),
     }
 }
 
@@ -526,8 +554,11 @@ pub async fn check_email_password_validity_url(
     let email_instance = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
             warn!("Invalid email: {}", err);
-            return HttpResponse::BadRequest()
-                .json(JsonError::new("Invalid email address.".to_string()));
+            return HttpResponse::BadRequest().json(
+                HttpJsonResponse::new_message(
+                    "Invalid email address.".to_string(),
+                ),
+            );
         }
         Ok(email) => email,
     };
@@ -540,7 +571,7 @@ pub async fn check_email_password_validity_url(
     .await
     {
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
+            .json(HttpJsonResponse::new_message(err.to_string())),
         Ok((valid, user)) => match valid {
             true => {
                 let _user = if let Some(u) = user {
@@ -560,8 +591,9 @@ pub async fn check_email_password_validity_url(
                 let serialized_user = match serde_json::to_string(&_user) {
                     Ok(user) => user,
                     Err(err) => {
-                        return HttpResponse::InternalServerError()
-                            .json(JsonError::new(err.to_string()));
+                        return HttpResponse::InternalServerError().json(
+                            HttpJsonResponse::new_message(err.to_string()),
+                        );
                     }
                 };
 

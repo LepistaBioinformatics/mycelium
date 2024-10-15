@@ -21,9 +21,11 @@ use myc_core::{
         include_tenant_owner, list_tenant,
     },
 };
-use myc_http_tools::utils::JsonError;
-use mycelium_base::entities::{
-    CreateResponseKind, DeletionResponseKind, FetchManyResponseKind,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        create_response_kind, delete_response_kind, fetch_many_response_kind,
+    },
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -131,26 +133,22 @@ pub async fn create_tenant_url(
     )
     .await
     {
+        Ok(res) => create_response_kind(res),
         Err(err) => {
             let code_string = err.code().to_string();
 
             if err.is_in(vec![NativeErrorCodes::MYC00014]) {
                 return HttpResponse::Conflict().json(
-                    JsonError::new(err.to_string()).with_code(code_string),
+                    HttpJsonResponse::new_message(err.to_string())
+                        .with_code(code_string),
                 );
             }
 
-            HttpResponse::InternalServerError()
-                .json(JsonError::new(err.to_string()).with_code(code_string))
+            HttpResponse::InternalServerError().json(
+                HttpJsonResponse::new_message(err.to_string())
+                    .with_code(code_string),
+            )
         }
-        Ok(res) => match res {
-            CreateResponseKind::NotCreated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            CreateResponseKind::Created(tenant) => {
-                HttpResponse::Created().json(tenant)
-            }
-        },
     }
 }
 
@@ -211,19 +209,9 @@ pub async fn list_tenant_url(
     )
     .await
     {
+        Ok(res) => fetch_many_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            FetchManyResponseKind::NotFound => {
-                HttpResponse::NoContent().finish()
-            }
-            FetchManyResponseKind::Found(accounts) => {
-                HttpResponse::Ok().json(accounts)
-            }
-            FetchManyResponseKind::FoundPaginated(accounts) => {
-                HttpResponse::Ok().json(accounts)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -274,14 +262,9 @@ pub async fn delete_tenant_url(
     )
     .await
     {
+        Ok(res) => delete_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            DeletionResponseKind::Deleted => HttpResponse::NoContent().finish(),
-            DeletionResponseKind::NotDeleted(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -330,26 +313,22 @@ pub async fn include_tenant_owner_url(
     )
     .await
     {
+        Ok(res) => create_response_kind(res),
         Err(err) => {
             let code_string = err.code().to_string();
 
             if err.is_in(vec![NativeErrorCodes::MYC00015]) {
                 return HttpResponse::Conflict().json(
-                    JsonError::new(err.to_string()).with_code(code_string),
+                    HttpJsonResponse::new_message(err.to_string())
+                        .with_code(code_string),
                 );
             }
 
-            HttpResponse::InternalServerError()
-                .json(JsonError::new(err.to_string()).with_code(code_string))
+            HttpResponse::InternalServerError().json(
+                HttpJsonResponse::new_message(err.to_string())
+                    .with_code(code_string),
+            )
         }
-        Ok(res) => match res {
-            CreateResponseKind::NotCreated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            CreateResponseKind::Created(tenant) => {
-                HttpResponse::Created().json(tenant)
-            }
-        },
     }
 }
 
@@ -397,23 +376,21 @@ pub async fn exclude_tenant_owner_url(
     )
     .await
     {
+        Ok(res) => delete_response_kind(res),
         Err(err) => {
             let code_string = err.code().to_string();
 
             if err.is_in(vec![NativeErrorCodes::MYC00016]) {
                 return HttpResponse::Conflict().json(
-                    JsonError::new(err.to_string()).with_code(code_string),
+                    HttpJsonResponse::new_message(err.to_string())
+                        .with_code(code_string),
                 );
             }
 
-            HttpResponse::InternalServerError()
-                .json(JsonError::new(err.to_string()).with_code(code_string))
+            HttpResponse::InternalServerError().json(
+                HttpJsonResponse::new_message(err.to_string())
+                    .with_code(code_string),
+            )
         }
-        Ok(res) => match res {
-            DeletionResponseKind::NotDeleted(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            DeletionResponseKind::Deleted => HttpResponse::NoContent().finish(),
-        },
     }
 }

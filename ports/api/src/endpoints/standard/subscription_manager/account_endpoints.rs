@@ -27,9 +27,11 @@ use myc_core::{
         update_account_name_and_flags,
     },
 };
-use myc_http_tools::utils::JsonError;
-use mycelium_base::entities::{
-    FetchManyResponseKind, FetchResponseKind, UpdatingResponseKind,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        fetch_many_response_kind, fetch_response_kind, updating_response_kind,
+    },
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -155,12 +157,15 @@ pub async fn create_subscription_account_url(
                 NativeErrorCodes::MYC00003,
             ]) {
                 return HttpResponse::Conflict().json(
-                    JsonError::new(err.to_string()).with_code(code_string),
+                    HttpJsonResponse::new_message(err.to_string())
+                        .with_code(code_string),
                 );
             }
 
-            HttpResponse::InternalServerError()
-                .json(JsonError::new(err.to_string()).with_code(code_string))
+            HttpResponse::InternalServerError().json(
+                HttpJsonResponse::new_message(err.to_string())
+                    .with_code(code_string),
+            )
         }
         Ok(account) => HttpResponse::Created().json(account),
     }
@@ -225,7 +230,7 @@ pub async fn list_accounts_by_type_url(
             let flags = match res.to_flags() {
                 Err(err) => {
                     return HttpResponse::InternalServerError()
-                        .json(JsonError::new(err.to_string()))
+                        .json(HttpJsonResponse::new_message(err.to_string()))
                 }
                 Ok(res) => res,
             };
@@ -253,19 +258,9 @@ pub async fn list_accounts_by_type_url(
     )
     .await
     {
+        Ok(res) => fetch_many_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            FetchManyResponseKind::NotFound => {
-                HttpResponse::NoContent().finish()
-            }
-            FetchManyResponseKind::Found(accounts) => {
-                HttpResponse::Ok().json(accounts)
-            }
-            FetchManyResponseKind::FoundPaginated(accounts) => {
-                HttpResponse::Ok().json(accounts)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -322,16 +317,9 @@ pub async fn get_account_details_url(
     )
     .await
     {
+        Ok(res) => fetch_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            FetchResponseKind::NotFound(_) => {
-                HttpResponse::NoContent().finish()
-            }
-            FetchResponseKind::Found(accounts) => {
-                HttpResponse::Ok().json(accounts)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -399,16 +387,9 @@ pub async fn update_account_name_and_flags_url(
     )
     .await
     {
+        Ok(res) => updating_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            UpdatingResponseKind::NotUpdated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            UpdatingResponseKind::Updated(account) => {
-                HttpResponse::Ok().json(account)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -469,8 +450,8 @@ pub async fn propagate_existing_subscription_account_url(
     )
     .await
     {
-        Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
         Ok(res) => HttpResponse::Ok().json(res),
+        Err(err) => HttpResponse::InternalServerError()
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }

@@ -18,7 +18,7 @@ use myc_core::{
     models::AccountLifeCycle,
     use_cases::roles::standard::no_role::guest::guest_to_default_account,
 };
-use myc_http_tools::utils::JsonError;
+use myc_http_tools::utils::HttpJsonResponse;
 use serde::Deserialize;
 use shaku_actix::Inject;
 use utoipa::{IntoParams, ToSchema};
@@ -123,8 +123,8 @@ pub async fn guest_to_default_account_url(
     )
     .await
     {
-        Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
         Ok(_) => HttpResponse::Created().json(account),
+        Err(err) => HttpResponse::InternalServerError()
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
