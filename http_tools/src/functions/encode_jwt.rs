@@ -1,6 +1,6 @@
 use crate::{
     dtos::claims::Claims, models::internal_auth_config::InternalOauthConfig,
-    utils::JsonError,
+    utils::HttpJsonResponse,
 };
 
 use actix_web::HttpResponse;
@@ -34,7 +34,7 @@ pub fn encode_jwt(
         Ok(key) => key,
         Err(_) => {
             return Err(HttpResponse::InternalServerError().json(
-                JsonError::new("Could not get token secret key.".to_string()),
+                HttpJsonResponse::new_message("Could not get token secret key.".to_string()),
             ));
         }
     };
@@ -46,6 +46,6 @@ pub fn encode_jwt(
     ) {
         Ok(token) => Ok(token),
         Err(err) => Err(HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string()))),
+            .json(HttpJsonResponse::new_message(err.to_string()))),
     }
 }

@@ -24,10 +24,12 @@ use myc_core::{
         },
     },
 };
-use myc_http_tools::utils::JsonError;
-use mycelium_base::entities::{
-    CreateResponseKind, DeletionResponseKind, FetchManyResponseKind,
-    UpdatingResponseKind,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        create_response_kind, delete_response_kind, fetch_many_response_kind,
+        updating_response_kind,
+    },
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -123,16 +125,9 @@ pub async fn crate_webhook_url(
     )
     .await
     {
+        Ok(res) => create_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            CreateResponseKind::NotCreated(guest, _) => {
-                HttpResponse::Ok().json(guest)
-            }
-            CreateResponseKind::Created(guest) => {
-                HttpResponse::Created().json(guest)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -183,19 +178,9 @@ pub async fn list_webhooks_url(
     )
     .await
     {
+        Ok(res) => fetch_many_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            FetchManyResponseKind::NotFound => {
-                HttpResponse::NotFound().finish()
-            }
-            FetchManyResponseKind::Found(guest) => {
-                HttpResponse::Ok().json(guest)
-            }
-            FetchManyResponseKind::FoundPaginated(guest) => {
-                HttpResponse::Ok().json(guest)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -244,16 +229,9 @@ pub async fn update_webhook_url(
     )
     .await
     {
+        Ok(res) => updating_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            UpdatingResponseKind::NotUpdated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            UpdatingResponseKind::Updated(webhook) => {
-                HttpResponse::Accepted().json(webhook)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -303,13 +281,8 @@ pub async fn delete_webhook_url(
     )
     .await
     {
+        Ok(res) => delete_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            DeletionResponseKind::NotDeleted(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            DeletionResponseKind::Deleted => HttpResponse::NoContent().finish(),
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }

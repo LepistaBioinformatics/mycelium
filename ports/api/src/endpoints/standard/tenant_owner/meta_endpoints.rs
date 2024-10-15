@@ -2,34 +2,29 @@ use crate::{
     dtos::MyceliumProfileData,
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{
-        AccountTagDeletionModule, AccountTagRegistrationModule,
-        AccountTagUpdatingModule,
+        TenantDeletionModule, TenantRegistrationModule, TenantUpdatingModule,
     },
 };
 
-use actix_web::{delete, post, put, web, HttpResponse, Responder};
+use actix_web::{delete, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
-        dtos::tag::Tag,
-        entities::{
-            AccountTagDeletion, AccountTagRegistration, AccountTagUpdating,
-        },
+        dtos::tenant::TenantMetaKey,
+        entities::{TenantDeletion, TenantRegistration, TenantUpdating},
     },
-    use_cases::roles::standard::subscription_manager::tag::{
-        delete_tag, register_tag, update_tag,
+    use_cases::roles::standard::tenant_owner::{
+        create_tenant_meta, delete_tenant_meta, update_tenant_meta,
     },
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
-        delete_response_kind, get_or_create_response_kind,
-        updating_response_kind,
+        create_response_kind, delete_response_kind, updating_response_kind,
     },
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
-use std::collections::HashMap;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -39,9 +34,9 @@ use uuid::Uuid;
 
 pub fn configure(config: &mut web::ServiceConfig) {
     config
-        .service(register_tag_url)
-        .service(update_tag_url)
-        .service(delete_tag_url);
+        .service(create_tenant_meta_url)
+        .service(delete_tenant_meta_url)
+        .service(update_tenant_meta_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -50,25 +45,28 @@ pub fn configure(config: &mut web::ServiceConfig) {
 
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateTagBody {
+pub struct CreateTenantMetaBody {
+    key: TenantMetaKey,
     value: String,
-    meta: HashMap<String, String>,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DeleteTenantMetaBody {
+    key: TenantMetaKey,
 }
 
 // ? ---------------------------------------------------------------------------
 // ? Define API paths
-//
-// Account
-//
 // ? ---------------------------------------------------------------------------
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Tags),
+    context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Meta),
     params(
-        ("id" = Uuid, Path, description = "The account primary key."),
+        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
     ),
-    request_body = CreateTagBody,
+    request_body = CreateTenantMetaBody,
     responses(
         (
             status = 500,
@@ -87,96 +85,36 @@ pub struct CreateTagBody {
         ),
         (
             status = 400,
-            description = "Bad request.",
+            description = "Meta already exists.",
             body = JsonError,
         ),
         (
             status = 201,
-            description = "Tag successfully registered.",
-            body = Tag,
+            description = "Meta created.",
+            body = TenantMeta,
         ),
     ),
 )]
-#[post("/{id}/tags/")]
-pub async fn register_tag_url(
+#[post("/{tenant_id}")]
+pub async fn create_tenant_meta_url(
+    path: web::Path<Uuid>,
+    body: web::Json<CreateTenantMetaBody>,
     profile: MyceliumProfileData,
-    path: web::Path<(Uuid,)>,
-    body: web::Json<CreateTagBody>,
-    tag_registration_repo: Inject<
-        AccountTagRegistrationModule,
-        dyn AccountTagRegistration,
+    tenant_registration_repo: Inject<
+        TenantRegistrationModule,
+        dyn TenantRegistration,
     >,
 ) -> impl Responder {
-    match register_tag(
+    match create_tenant_meta(
         profile.to_profile(),
+        path.into_inner(),
+        body.key.to_owned(),
         body.value.to_owned(),
-        body.meta.to_owned(),
-        path.into_inner().0,
-        Box::from(&*tag_registration_repo),
+        Box::new(&*tenant_registration_repo),
     )
     .await
     {
-        Ok(res) => get_or_create_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
-    }
-}
-
-#[utoipa::path(
-    put,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Tags),
-    params(
-        ("id" = Uuid, Path, description = "The account primary key."),
-        ("tag_id" = Uuid, Path, description = "The tag primary key."),
-    ),
-    request_body = CreateTagBody,
-    responses(
-        (
-            status = 500,
-            description = "Unknown internal server error.",
-            body = JsonError,
-        ),
-        (
-            status = 403,
-            description = "Forbidden.",
-            body = JsonError,
-        ),
-        (
-            status = 401,
-            description = "Unauthorized.",
-            body = JsonError,
-        ),
-        (
-            status = 400,
-            description = "Bad request.",
-            body = JsonError,
-        ),
-        (
-            status = 201,
-            description = "Tag successfully registered.",
-            body = Tag,
-        ),
-    ),
-)]
-#[put("/{id}/tags/{tag_id}")]
-pub async fn update_tag_url(
-    profile: MyceliumProfileData,
-    path: web::Path<(Uuid, Uuid)>,
-    body: web::Json<CreateTagBody>,
-    tag_updating_repo: Inject<AccountTagUpdatingModule, dyn AccountTagUpdating>,
-) -> impl Responder {
-    match update_tag(
-        profile.to_profile(),
-        Tag {
-            id: path.into_inner().1,
-            value: body.value.to_owned(),
-            meta: Some(body.meta.to_owned()),
-        },
-        Box::from(&*tag_updating_repo),
-    )
-    .await
-    {
-        Ok(res) => updating_response_kind(res),
+        Ok(res) => create_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
             .json(HttpJsonResponse::new_message(err.to_string())),
     }
@@ -184,11 +122,11 @@ pub async fn update_tag_url(
 
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Tags),
+    context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Meta),
     params(
-        ("id" = Uuid, Path, description = "The account primary key."),
-        ("tag_id" = Uuid, Path, description = "The tag primary key."),
+        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
     ),
+    request_body = DeleteTenantMetaBody,
     responses(
         (
             status = 500,
@@ -207,30 +145,87 @@ pub async fn update_tag_url(
         ),
         (
             status = 400,
-            description = "Bad request.",
+            description = "Meta not deleted.",
             body = JsonError,
         ),
         (
-            status = 201,
-            description = "Tag successfully registered.",
-            body = Tag,
+            status = 204,
+            description = "Meta deleted.",
         ),
     ),
 )]
-#[delete("/{id}/tags/{tag_id}")]
-pub async fn delete_tag_url(
+#[delete("/{tenant_id}")]
+pub async fn delete_tenant_meta_url(
+    path: web::Path<Uuid>,
+    body: web::Json<DeleteTenantMetaBody>,
     profile: MyceliumProfileData,
-    path: web::Path<(Uuid, Uuid)>,
-    tag_deletion_repo: Inject<AccountTagDeletionModule, dyn AccountTagDeletion>,
+    tenant_deletion_repo: Inject<TenantDeletionModule, dyn TenantDeletion>,
 ) -> impl Responder {
-    match delete_tag(
+    match delete_tenant_meta(
         profile.to_profile(),
-        path.into_inner().1,
-        Box::from(&*tag_deletion_repo),
+        path.to_owned(),
+        body.key.to_owned(),
+        Box::new(&*tenant_deletion_repo),
     )
     .await
     {
         Ok(res) => delete_response_kind(res),
+        Err(err) => HttpResponse::InternalServerError()
+            .json(HttpJsonResponse::new_message(err.to_string())),
+    }
+}
+
+#[utoipa::path(
+    patch,
+    context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Meta),
+    params(
+        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+    ),
+    request_body = CreateTenantMetaBody,
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = JsonError,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = JsonError,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = JsonError,
+        ),
+        (
+            status = 400,
+            description = "Meta not updated.",
+            body = JsonError,
+        ),
+        (
+            status = 202,
+            description = "Meta updated.",
+        ),
+    ),
+)]
+#[patch("/{tenant_id}")]
+pub async fn update_tenant_meta_url(
+    path: web::Path<Uuid>,
+    body: web::Json<CreateTenantMetaBody>,
+    profile: MyceliumProfileData,
+    tenant_updating_repo: Inject<TenantUpdatingModule, dyn TenantUpdating>,
+) -> impl Responder {
+    match update_tenant_meta(
+        profile.to_profile(),
+        path.to_owned(),
+        body.key.to_owned(),
+        body.value.to_owned(),
+        Box::new(&*tenant_updating_repo),
+    )
+    .await
+    {
+        Ok(res) => updating_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
             .json(HttpJsonResponse::new_message(err.to_string())),
     }
