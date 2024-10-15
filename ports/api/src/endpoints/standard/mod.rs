@@ -55,6 +55,10 @@ use system_manager::{
     error_code_endpoints as system_manager_error_code_endpoints,
     webhook_endpoints as system_manager_webhook_endpoints,
 };
+use tenant_manager::{
+    account_endpoints as tenant_manager_account_endpoints,
+    tag_endpoints as tenant_manager_tag_endpoints,
+};
 use tenant_owner::{
     account_endpoints as tenant_owner_account_endpoints,
     meta_endpoints as tenant_owner_meta_endpoints,
@@ -185,6 +189,23 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             ),
         )
         //
+        // Tenant Manager
+        //
+        .service(
+            web::scope(&format!(
+                "/{}",
+                ActorName::TenantManager.to_string().as_str()
+            ))
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Accounts))
+                    .configure(tenant_manager_account_endpoints::configure),
+            )
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Tags))
+                    .configure(tenant_manager_tag_endpoints::configure),
+            ),
+        )
+        //
         // Tenant Owner
         //
         .service(
@@ -289,6 +310,10 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         tenant_owner_tenant_endpoints::update_tenant_archiving_status_url,
         tenant_owner_tenant_endpoints::update_tenant_trashing_status_url,
         tenant_owner_tenant_endpoints::update_tenant_verifying_status_url,
+        tenant_manager_account_endpoints::delete_subscription_account_url,
+        tenant_manager_tag_endpoints::register_tag_url,
+        tenant_manager_tag_endpoints::update_tag_url,
+        tenant_manager_tag_endpoints::delete_tag_url,
     ),
     components(
         schemas(
@@ -339,6 +364,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             tenant_owner_tenant_endpoints::UpdateTenantArchivingBody,
             tenant_owner_tenant_endpoints::UpdateTenantTrashingBody,
             tenant_owner_tenant_endpoints::UpdateTenantVerifyingBody,
+            tenant_manager_tag_endpoints::CreateTagBody,
         ),
     ),
     tags(

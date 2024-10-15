@@ -2,8 +2,8 @@ use crate::{
     dtos::MyceliumProfileData,
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{
-        AccountTagDeletionModule, AccountTagRegistrationModule,
-        AccountTagUpdatingModule,
+        TenantTagDeletionModule, TenantTagRegistrationModule,
+        TenantTagUpdatingModule,
     },
 };
 
@@ -13,10 +13,10 @@ use myc_core::{
         actors::ActorName,
         dtos::tag::Tag,
         entities::{
-            AccountTagDeletion, AccountTagRegistration, AccountTagUpdating,
+            TenantTagDeletion, TenantTagRegistration, TenantTagUpdating,
         },
     },
-    use_cases::roles::standard::subscription_manager::tag::{
+    use_cases::roles::standard::tenant_manager::{
         delete_tag, register_tag, update_tag,
     },
 };
@@ -64,9 +64,9 @@ pub struct CreateTagBody {
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Tags),
+    context_path = build_actor_context(ActorName::TenantManager, UrlGroup::Tags),
     params(
-        ("id" = Uuid, Path, description = "The account primary key."),
+        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
     ),
     request_body = CreateTagBody,
     responses(
@@ -97,21 +97,21 @@ pub struct CreateTagBody {
         ),
     ),
 )]
-#[post("/{id}/tags/")]
+#[post("/{tenant_id}/tags/")]
 pub async fn register_tag_url(
     profile: MyceliumProfileData,
-    path: web::Path<(Uuid,)>,
+    path: web::Path<Uuid>,
     body: web::Json<CreateTagBody>,
     tag_registration_repo: Inject<
-        AccountTagRegistrationModule,
-        dyn AccountTagRegistration,
+        TenantTagRegistrationModule,
+        dyn TenantTagRegistration,
     >,
 ) -> impl Responder {
     match register_tag(
         profile.to_profile(),
         body.value.to_owned(),
         body.meta.to_owned(),
-        path.into_inner().0,
+        path.into_inner(),
         Box::from(&*tag_registration_repo),
     )
     .await
@@ -124,9 +124,9 @@ pub async fn register_tag_url(
 
 #[utoipa::path(
     put,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Tags),
+    context_path = build_actor_context(ActorName::TenantManager, UrlGroup::Tags),
     params(
-        ("id" = Uuid, Path, description = "The account primary key."),
+        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
         ("tag_id" = Uuid, Path, description = "The tag primary key."),
     ),
     request_body = CreateTagBody,
@@ -158,12 +158,12 @@ pub async fn register_tag_url(
         ),
     ),
 )]
-#[put("/{id}/tags/{tag_id}")]
+#[put("/{tenant_id}/tags/{tag_id}")]
 pub async fn update_tag_url(
     profile: MyceliumProfileData,
     path: web::Path<(Uuid, Uuid)>,
     body: web::Json<CreateTagBody>,
-    tag_updating_repo: Inject<AccountTagUpdatingModule, dyn AccountTagUpdating>,
+    tag_updating_repo: Inject<TenantTagUpdatingModule, dyn TenantTagUpdating>,
 ) -> impl Responder {
     match update_tag(
         profile.to_profile(),
@@ -184,9 +184,9 @@ pub async fn update_tag_url(
 
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Tags),
+    context_path = build_actor_context(ActorName::TenantManager, UrlGroup::Tags),
     params(
-        ("id" = Uuid, Path, description = "The account primary key."),
+        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
         ("tag_id" = Uuid, Path, description = "The tag primary key."),
     ),
     responses(
@@ -217,11 +217,11 @@ pub async fn update_tag_url(
         ),
     ),
 )]
-#[delete("/{id}/tags/{tag_id}")]
+#[delete("/{tenant_id}/tags/{tag_id}")]
 pub async fn delete_tag_url(
     profile: MyceliumProfileData,
     path: web::Path<(Uuid, Uuid)>,
-    tag_deletion_repo: Inject<AccountTagDeletionModule, dyn AccountTagDeletion>,
+    tag_deletion_repo: Inject<TenantTagDeletionModule, dyn TenantTagDeletion>,
 ) -> impl Responder {
     match delete_tag(
         profile.to_profile(),
