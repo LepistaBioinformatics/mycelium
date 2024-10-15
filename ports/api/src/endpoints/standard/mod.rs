@@ -55,6 +55,12 @@ use system_manager::{
     error_code_endpoints as system_manager_error_code_endpoints,
     webhook_endpoints as system_manager_webhook_endpoints,
 };
+use tenant_owner::{
+    account_endpoints as tenant_owner_account_endpoints,
+    meta_endpoints as tenant_owner_meta_endpoints,
+    owner_endpoints as tenant_owner_owner_endpoints,
+    tenant_endpoints as tenant_owner_tenant_endpoints,
+};
 use user_manager::account_endpoints as user_manager_account_endpoints;
 use utoipa::OpenApi;
 
@@ -123,6 +129,23 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                 ),
         )
         //
+        // Guest Managers
+        //
+        .service(
+            web::scope(&format!(
+                "/{}",
+                ActorName::GuestManager.to_string().as_str()
+            ))
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Roles))
+                    .configure(guest_manager_role_endpoints::configure),
+            )
+            .service(
+                web::scope(&format!("/{}", UrlGroup::GuestRoles))
+                    .configure(guest_manager_guest_role_endpoints::configure),
+            ),
+        )
+        //
         // Subscription Managers
         //
         .service(
@@ -145,36 +168,6 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             ),
         )
         //
-        // Guest Managers
-        //
-        .service(
-            web::scope(&format!(
-                "/{}",
-                ActorName::GuestManager.to_string().as_str()
-            ))
-            .service(
-                web::scope(&format!("/{}", UrlGroup::Roles))
-                    .configure(guest_manager_role_endpoints::configure),
-            )
-            .service(
-                web::scope(&format!("/{}", UrlGroup::GuestRoles))
-                    .configure(guest_manager_guest_role_endpoints::configure),
-            ),
-        )
-        //
-        // User Accounts Managers
-        //
-        .service(
-            web::scope(&format!(
-                "/{}",
-                ActorName::UserManager.to_string().as_str()
-            ))
-            .service(
-                web::scope(&format!("/{}", UrlGroup::Accounts))
-                    .configure(user_manager_account_endpoints::configure),
-            ),
-        )
-        //
         // System Managers
         //
         .service(
@@ -189,6 +182,44 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             .service(
                 web::scope(&format!("/{}", UrlGroup::Webhooks))
                     .configure(system_manager_webhook_endpoints::configure),
+            ),
+        )
+        //
+        // Tenant Owner
+        //
+        .service(
+            web::scope(&format!(
+                "/{}",
+                ActorName::TenantOwner.to_string().as_str()
+            ))
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Accounts))
+                    .configure(tenant_owner_account_endpoints::configure),
+            )
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Meta))
+                    .configure(tenant_owner_meta_endpoints::configure),
+            )
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Owners))
+                    .configure(tenant_owner_owner_endpoints::configure),
+            )
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Tenants))
+                    .configure(tenant_owner_tenant_endpoints::configure),
+            ),
+        )
+        //
+        // User Accounts Managers
+        //
+        .service(
+            web::scope(&format!(
+                "/{}",
+                ActorName::UserManager.to_string().as_str()
+            ))
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Accounts))
+                    .configure(user_manager_account_endpoints::configure),
             ),
         );
 }
@@ -248,6 +279,16 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         guest_manager_role_endpoints::list_roles_url,
         guest_manager_role_endpoints::delete_role_url,
         guest_manager_role_endpoints::update_role_name_and_description_url,
+        tenant_owner_account_endpoints::create_management_account_url,
+        tenant_owner_meta_endpoints::create_tenant_meta_url,
+        tenant_owner_meta_endpoints::delete_tenant_meta_url,
+        tenant_owner_meta_endpoints::update_tenant_meta_url,
+        tenant_owner_owner_endpoints::guest_tenant_owner_url,
+        tenant_owner_owner_endpoints::revoke_tenant_owner_url,
+        tenant_owner_tenant_endpoints::update_tenant_name_and_description_url,
+        tenant_owner_tenant_endpoints::update_tenant_archiving_status_url,
+        tenant_owner_tenant_endpoints::update_tenant_trashing_status_url,
+        tenant_owner_tenant_endpoints::update_tenant_verifying_status_url,
     ),
     components(
         schemas(
@@ -291,6 +332,13 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             no_role_user_endpoints::StartPasswordResetBody,
             no_role_user_endpoints::ResetPasswordBody,
             no_role_user_endpoints::CheckUserCredentialsBody,
+            tenant_owner_meta_endpoints::CreateTenantMetaBody,
+            tenant_owner_meta_endpoints::DeleteTenantMetaBody,
+            tenant_owner_owner_endpoints::GuestTenantOwnerBody,
+            tenant_owner_tenant_endpoints::UpdateTenantNameAndDescriptionBody,
+            tenant_owner_tenant_endpoints::UpdateTenantArchivingBody,
+            tenant_owner_tenant_endpoints::UpdateTenantTrashingBody,
+            tenant_owner_tenant_endpoints::UpdateTenantVerifyingBody,
         ),
     ),
     tags(

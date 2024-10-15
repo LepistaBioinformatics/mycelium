@@ -47,6 +47,8 @@ pub enum UrlGroup {
     ErrorCodes,
     Profile,
     Tags,
+    Meta,
+    Owners,
 }
 
 impl Display for UrlGroup {
@@ -62,6 +64,8 @@ impl Display for UrlGroup {
             UrlGroup::ErrorCodes => write!(f, "error-codes"),
             UrlGroup::Profile => write!(f, "profile"),
             UrlGroup::Tags => write!(f, "tags"),
+            UrlGroup::Meta => write!(f, "meta"),
+            UrlGroup::Owners => write!(f, "owners"),
         }
     }
 }

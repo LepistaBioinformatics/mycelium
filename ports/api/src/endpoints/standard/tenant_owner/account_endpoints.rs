@@ -90,8 +90,8 @@ pub async fn create_management_account_url(
     )
     .await
     {
+        Ok(res) => create_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
             .json(HttpJsonResponse::new_message(err.to_string())),
-        Ok(res) => create_response_kind(res),
     }
 }
