@@ -45,22 +45,22 @@ pub fn configure(config: &mut web::ServiceConfig) {
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Account deleted.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 204,
