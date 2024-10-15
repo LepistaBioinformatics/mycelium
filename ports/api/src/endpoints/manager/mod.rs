@@ -6,7 +6,7 @@ use myc_core::domain::dtos::{
     tag::Tag,
     tenant::{Tenant, TenantMetaKey, TenantStatus},
 };
-use myc_http_tools::utils::JsonError;
+use myc_http_tools::utils::HttpJsonResponse;
 use mycelium_base::dtos::{Children, Parent};
 use utoipa::OpenApi;
 
@@ -36,7 +36,7 @@ use utoipa::OpenApi;
             Tenant,
             TenantMetaKey,
             TenantStatus,
-            JsonError,
+            HttpJsonResponse,
             tenant_endpoints::CreateTenantBody,
         ),
     ),

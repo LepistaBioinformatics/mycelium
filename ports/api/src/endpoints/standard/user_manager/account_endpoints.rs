@@ -15,8 +15,10 @@ use myc_core::{
         change_account_archival_status,
     },
 };
-use myc_http_tools::utils::JsonError;
-use mycelium_base::entities::UpdatingResponseKind;
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::updating_response_kind,
+};
 use shaku_actix::Inject;
 use uuid::Uuid;
 
@@ -95,16 +97,9 @@ pub async fn approve_account_url(
     )
     .await
     {
+        Ok(res) => updating_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            UpdatingResponseKind::NotUpdated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            UpdatingResponseKind::Updated(record) => {
-                HttpResponse::Accepted().json(record)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -162,16 +157,9 @@ pub async fn disapprove_account_url(
     )
     .await
     {
+        Ok(res) => updating_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            UpdatingResponseKind::NotUpdated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            UpdatingResponseKind::Updated(record) => {
-                HttpResponse::Accepted().json(record)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -229,16 +217,9 @@ pub async fn activate_account_url(
     )
     .await
     {
+        Ok(res) => updating_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            UpdatingResponseKind::NotUpdated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            UpdatingResponseKind::Updated(record) => {
-                HttpResponse::Accepted().json(record)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -296,16 +277,9 @@ pub async fn deactivate_account_url(
     )
     .await
     {
+        Ok(res) => updating_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            UpdatingResponseKind::NotUpdated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            UpdatingResponseKind::Updated(record) => {
-                HttpResponse::Accepted().json(record)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -362,16 +336,9 @@ pub async fn archive_account_url(
     )
     .await
     {
+        Ok(res) => updating_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            UpdatingResponseKind::NotUpdated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            UpdatingResponseKind::Updated(record) => {
-                HttpResponse::Accepted().json(record)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -428,15 +395,8 @@ pub async fn unarchive_account_url(
     )
     .await
     {
+        Ok(res) => updating_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            UpdatingResponseKind::NotUpdated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            UpdatingResponseKind::Updated(record) => {
-                HttpResponse::Accepted().json(record)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }

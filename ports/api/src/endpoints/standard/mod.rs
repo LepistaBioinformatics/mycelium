@@ -3,6 +3,8 @@ mod no_role;
 mod shared;
 mod subscription_manager;
 mod system_manager;
+mod tenant_manager;
+mod tenant_owner;
 mod user_manager;
 
 use super::shared::UrlGroup;
@@ -35,7 +37,7 @@ use myc_core::{
         no_role::user::EmailRegistrationStatus,
     },
 };
-use myc_http_tools::utils::JsonError;
+use myc_http_tools::utils::HttpJsonResponse;
 use mycelium_base::dtos::{Children, PaginatedRecord, Parent};
 use no_role::{
     account_endpoints as no_role_account_endpoints,
@@ -258,7 +260,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             AccountTypeV2,
             ActionType,
             ActorName,
-            JsonError,
+            HttpJsonResponse,
             LicensedResources,
             PasswordHash,
             Profile,
