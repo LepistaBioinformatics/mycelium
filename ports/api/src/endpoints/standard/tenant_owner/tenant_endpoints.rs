@@ -77,22 +77,22 @@ pub struct UpdateTenantVerifyingBody {
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Tenant not updated.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 202,
@@ -133,22 +133,22 @@ pub async fn update_tenant_name_and_description_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Tenant not updated.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 202,
@@ -188,22 +188,22 @@ pub async fn update_tenant_archiving_status_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Tenant not updated.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 202,
@@ -243,22 +243,22 @@ pub async fn update_tenant_trashing_status_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Tenant not updated.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 202,

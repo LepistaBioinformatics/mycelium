@@ -86,7 +86,7 @@ pub struct UpdateUserGuestRoleParams {
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 204,
@@ -95,12 +95,12 @@ pub struct UpdateUserGuestRoleParams {
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 200,
@@ -160,22 +160,22 @@ pub async fn list_licensed_accounts_of_email_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Bad request.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 201,
@@ -247,22 +247,22 @@ pub async fn guest_user_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Bad request.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 201,
@@ -313,22 +313,22 @@ pub async fn update_user_guest_role_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Guest User not uninvited.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 204,
@@ -379,7 +379,7 @@ pub async fn uninvite_guest_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 204,
@@ -388,12 +388,12 @@ pub async fn uninvite_guest_url(
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 200,

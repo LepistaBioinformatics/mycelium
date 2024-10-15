@@ -71,22 +71,22 @@ pub struct DeleteTenantMetaBody {
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Meta already exists.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 201,
@@ -131,22 +131,22 @@ pub async fn create_tenant_meta_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Meta not deleted.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 204,
@@ -186,22 +186,22 @@ pub async fn delete_tenant_meta_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Meta not updated.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 202,

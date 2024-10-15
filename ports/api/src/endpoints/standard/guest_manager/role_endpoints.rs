@@ -71,17 +71,17 @@ pub struct ListRolesParams {
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 201,
@@ -129,7 +129,7 @@ pub async fn crate_role_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 204,
@@ -138,12 +138,12 @@ pub async fn crate_role_url(
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 200,
@@ -186,22 +186,22 @@ pub async fn list_roles_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Role not deleted.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 204,
@@ -242,22 +242,22 @@ pub async fn delete_role_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Guest Role not deleted.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 202,

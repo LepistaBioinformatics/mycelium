@@ -84,17 +84,17 @@ pub struct ListWebHooksParams {
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 201,
@@ -141,7 +141,7 @@ pub async fn crate_webhook_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 204,
@@ -150,12 +150,12 @@ pub async fn crate_webhook_url(
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 200,
@@ -195,17 +195,17 @@ pub async fn list_webhooks_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 202,
@@ -245,22 +245,22 @@ pub async fn update_webhook_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Webhook not deleted.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 204,

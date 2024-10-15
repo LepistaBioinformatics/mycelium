@@ -63,22 +63,22 @@ pub struct UpgradeAccountPrivilegesParams {
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Account not upgraded.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 202,
@@ -122,22 +122,22 @@ pub async fn upgrade_account_privileges_url(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Account not downgraded.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 202,
