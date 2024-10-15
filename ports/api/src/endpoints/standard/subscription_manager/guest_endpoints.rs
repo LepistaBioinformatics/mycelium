@@ -26,10 +26,12 @@ use myc_core::{
         update_user_guest_role,
     },
 };
-use myc_http_tools::utils::JsonError;
-use mycelium_base::entities::{
-    DeletionResponseKind, FetchManyResponseKind, GetOrCreateResponseKind,
-    UpdatingResponseKind,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        delete_response_kind, fetch_many_response_kind,
+        get_or_create_response_kind, updating_response_kind,
+    },
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -119,8 +121,9 @@ pub async fn list_licensed_accounts_of_email_url(
 ) -> impl Responder {
     let email = match Email::from_string(info.email.to_owned()) {
         Err(err) => {
-            return HttpResponse::BadRequest()
-                .json(JsonError::new(format!("Invalid email: {err}")))
+            return HttpResponse::BadRequest().json(
+                HttpJsonResponse::new_message(format!("Invalid email: {err}")),
+            )
         }
         Ok(res) => res,
     };
@@ -133,19 +136,9 @@ pub async fn list_licensed_accounts_of_email_url(
     )
     .await
     {
+        Ok(res) => fetch_many_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            FetchManyResponseKind::NotFound => {
-                HttpResponse::NoContent().finish()
-            }
-            FetchManyResponseKind::Found(guests) => {
-                HttpResponse::Ok().json(guests)
-            }
-            FetchManyResponseKind::FoundPaginated(guests) => {
-                HttpResponse::Ok().json(guests)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -213,7 +206,7 @@ pub async fn guest_user_url(
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
             return HttpResponse::BadRequest()
-                .json(JsonError::new(err.to_string()))
+                .json(HttpJsonResponse::new_message(err.to_string()))
         }
         Ok(res) => res,
     };
@@ -230,16 +223,9 @@ pub async fn guest_user_url(
     )
     .await
     {
+        Ok(res) => get_or_create_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            GetOrCreateResponseKind::NotCreated(guest, _) => {
-                HttpResponse::Ok().json(guest)
-            }
-            GetOrCreateResponseKind::Created(guest) => {
-                HttpResponse::Created().json(guest)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -307,16 +293,9 @@ pub async fn update_user_guest_role_url(
     )
     .await
     {
+        Ok(res) => updating_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            UpdatingResponseKind::NotUpdated(_, msg) => {
-                HttpResponse::Ok().json(JsonError::new(msg))
-            }
-            UpdatingResponseKind::Updated(guest) => {
-                HttpResponse::Created().json(guest)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -379,14 +358,9 @@ pub async fn uninvite_guest_url(
     )
     .await
     {
+        Ok(res) => delete_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            DeletionResponseKind::NotDeleted(_, msg) => {
-                HttpResponse::Conflict().json(JsonError::new(msg))
-            }
-            DeletionResponseKind::Deleted => HttpResponse::NoContent().finish(),
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -449,18 +423,8 @@ pub async fn list_guest_on_subscription_account_url(
     )
     .await
     {
+        Ok(res) => fetch_many_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            FetchManyResponseKind::NotFound => {
-                HttpResponse::NoContent().finish()
-            }
-            FetchManyResponseKind::Found(guests) => {
-                HttpResponse::Ok().json(guests)
-            }
-            FetchManyResponseKind::FoundPaginated(guests) => {
-                HttpResponse::Ok().json(guests)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }

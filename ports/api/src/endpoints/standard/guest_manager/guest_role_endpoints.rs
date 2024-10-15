@@ -23,10 +23,12 @@ use myc_core::{
         ActionType,
     },
 };
-use myc_http_tools::utils::JsonError;
-use mycelium_base::entities::{
-    DeletionResponseKind, FetchManyResponseKind, GetOrCreateResponseKind,
-    UpdatingResponseKind,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        delete_response_kind, fetch_many_response_kind,
+        get_or_create_response_kind, updating_response_kind,
+    },
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -133,16 +135,9 @@ pub async fn crate_guest_role_url(
     )
     .await
     {
+        Ok(res) => get_or_create_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            GetOrCreateResponseKind::NotCreated(guest, _) => {
-                HttpResponse::Ok().json(guest)
-            }
-            GetOrCreateResponseKind::Created(guest) => {
-                HttpResponse::Created().json(guest)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -197,19 +192,9 @@ pub async fn list_guest_roles_url(
     )
     .await
     {
+        Ok(res) => fetch_many_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            FetchManyResponseKind::NotFound => {
-                HttpResponse::NoContent().finish()
-            }
-            FetchManyResponseKind::Found(roles) => {
-                HttpResponse::Ok().json(roles)
-            }
-            FetchManyResponseKind::FoundPaginated(roles) => {
-                HttpResponse::Ok().json(roles)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -262,14 +247,9 @@ pub async fn delete_guest_role_url(
     )
     .await
     {
+        Ok(res) => delete_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            DeletionResponseKind::NotDeleted(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            DeletionResponseKind::Deleted => HttpResponse::NoContent().finish(),
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -329,16 +309,9 @@ pub async fn update_guest_role_name_and_description_url(
     )
     .await
     {
+        Ok(res) => updating_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            UpdatingResponseKind::NotUpdated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            UpdatingResponseKind::Updated(record) => {
-                HttpResponse::Accepted().json(record)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -398,15 +371,8 @@ pub async fn update_guest_role_permissions_url(
     )
     .await
     {
+        Ok(res) => updating_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            UpdatingResponseKind::NotUpdated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            UpdatingResponseKind::Updated(record) => {
-                HttpResponse::Accepted().json(record)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }

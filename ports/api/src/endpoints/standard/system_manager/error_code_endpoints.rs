@@ -25,8 +25,11 @@ use myc_core::{
         register_error_code, update_error_code_message_and_details,
     },
 };
-use myc_http_tools::utils::JsonError;
-use mycelium_base::entities::{FetchManyResponseKind, FetchResponseKind};
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::fetch_many_response_kind,
+};
+use mycelium_base::entities::FetchResponseKind;
 use serde::Deserialize;
 use shaku_actix::Inject;
 use utoipa::{IntoParams, ToSchema};
@@ -130,10 +133,11 @@ pub async fn register_error_code_url(
     )
     .await
     {
-        Err(err) => HttpResponse::InternalServerError().json(
-            JsonError::new(err.to_string()).with_code(err.code().to_string()),
-        ),
         Ok(account) => HttpResponse::Created().json(account),
+        Err(err) => HttpResponse::InternalServerError().json(
+            HttpJsonResponse::new_message(err.to_string())
+                .with_code(err.code().to_string()),
+        ),
     }
 }
 
@@ -197,19 +201,9 @@ pub async fn list_error_codes_url(
     )
     .await
     {
+        Ok(res) => fetch_many_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            FetchManyResponseKind::NotFound => {
-                HttpResponse::NoContent().finish()
-            }
-            FetchManyResponseKind::Found(accounts) => {
-                HttpResponse::Ok().json(accounts)
-            }
-            FetchManyResponseKind::FoundPaginated(accounts) => {
-                HttpResponse::Ok().json(accounts)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
 
@@ -267,13 +261,13 @@ pub async fn get_error_code_url(
     .await
     {
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
+            .json(HttpJsonResponse::new_message(err.to_string())),
         Ok(res) => match res {
             FetchResponseKind::NotFound(_) => {
                 HttpResponse::NoContent().finish()
             }
-            FetchResponseKind::Found(accounts) => {
-                HttpResponse::Ok().json(accounts)
+            FetchResponseKind::Found(error_code) => {
+                HttpResponse::Ok().json(error_code)
             }
         },
     }
@@ -346,13 +340,13 @@ pub async fn update_error_code_message_and_details_url(
             let target_msg = NativeErrorCodes::MYC00005;
             if err.is_in(vec![target_msg]) {
                 return HttpResponse::BadRequest().json(
-                    JsonError::new(err.to_string())
+                    HttpJsonResponse::new_message(err.to_string())
                         .with_code_str(target_msg.as_str()),
                 );
             }
 
             HttpResponse::InternalServerError()
-                .json(JsonError::new(err.to_string()))
+                .json(HttpJsonResponse::new_message(err.to_string()))
         }
         Ok(res) => HttpResponse::Accepted().json(res),
     }
@@ -416,13 +410,13 @@ pub async fn delete_error_code_url(
 
             if err.is_in(vec![target_msg]) {
                 return HttpResponse::Forbidden().json(
-                    JsonError::new(err.to_string())
+                    HttpJsonResponse::new_message(err.to_string())
                         .with_code_str(target_msg.as_str()),
                 );
             }
 
             HttpResponse::InternalServerError()
-                .json(JsonError::new(err.to_string()))
+                .json(HttpJsonResponse::new_message(err.to_string()))
         }
         Ok(_) => HttpResponse::NoContent().finish(),
     }

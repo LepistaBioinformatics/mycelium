@@ -1,7 +1,7 @@
 pub mod account_endpoints;
 
 use myc_core::domain::dtos::{account::Account, account_type::AccountTypeV2};
-use myc_http_tools::utils::JsonError;
+use myc_http_tools::utils::HttpJsonResponse;
 use mycelium_base::dtos::{Children, Parent};
 use utoipa::OpenApi;
 
@@ -24,7 +24,7 @@ use utoipa::OpenApi;
             // Schema models.
             Account,
             AccountTypeV2,
-            JsonError,
+            HttpJsonResponse,
         ),
     ),
     tags(

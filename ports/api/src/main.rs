@@ -440,9 +440,7 @@ pub async fn main() -> std::io::Result<()> {
             .wrap(
                 Logger::default()
                     .exclude_regex("/health/*")
-                    .exclude_regex("/swagger-ui/*")
-                    .exclude_regex("/auth/google/*")
-                    .exclude_regex("/auth/azure/*"),
+                    .exclude_regex("/swagger-ui/*"),
             )
             // ? ---------------------------------------------------------------
             // ? Configure Injection modules

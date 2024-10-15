@@ -90,10 +90,8 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         {
             Err(err) => {
                 return creation_err(format!(
-                    "Unexpected error detected on update record: {}",
-                    err
+                    "Unexpected error detected on update record: {err}"
                 ))
-                .with_code(NativeErrorCodes::MYC00002)
                 .as_error();
             }
             Ok(account) => {

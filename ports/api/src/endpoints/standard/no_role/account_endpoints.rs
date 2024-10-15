@@ -21,8 +21,10 @@ use myc_core::{
         create_default_account, update_own_account_name,
     },
 };
-use myc_http_tools::utils::JsonError;
-use mycelium_base::entities::UpdatingResponseKind;
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::updating_response_kind,
+};
 use serde::Deserialize;
 use shaku_actix::Inject;
 use tracing::warn;
@@ -110,14 +112,14 @@ pub async fn create_default_account_url(
             Err(err) => {
                 warn!("err: {:?}", err);
                 return HttpResponse::InternalServerError()
-                    .json(JsonError::new(err.to_string()));
+                    .json(HttpJsonResponse::new_message(err.to_string()));
             }
             Ok(res) => res,
         };
 
     let email = match opt_email {
         None => return HttpResponse::Forbidden()
-            .json(JsonError::new(String::from(
+            .json(HttpJsonResponse::new_message(String::from(
             "Unable o extract user identity from request. Account not created.",
         ))),
         Some(email) => email,
@@ -132,19 +134,22 @@ pub async fn create_default_account_url(
     )
     .await
     {
+        Ok(res) => HttpResponse::Created().json(res),
         Err(err) => {
             let code_string = err.code().to_string();
 
             if err.is_in(vec![NativeErrorCodes::MYC00003]) {
                 return HttpResponse::Conflict().json(
-                    JsonError::new(err.to_string()).with_code(code_string),
+                    HttpJsonResponse::new_message(err.to_string())
+                        .with_code(code_string),
                 );
             }
 
-            HttpResponse::InternalServerError()
-                .json(JsonError::new(err.to_string()).with_code(code_string))
+            HttpResponse::InternalServerError().json(
+                HttpJsonResponse::new_message(err.to_string())
+                    .with_code(code_string),
+            )
         }
-        Ok(res) => HttpResponse::Created().json(res),
     }
 }
 
@@ -200,9 +205,11 @@ pub async fn update_own_account_name_url(
             path.to_owned()
         );
 
-        return HttpResponse::Forbidden().json(JsonError::new(String::from(
-            "Invalid operation. Operation restricted to account owners.",
-        )));
+        return HttpResponse::Forbidden().json(HttpJsonResponse::new_message(
+            String::from(
+                "Invalid operation. Operation restricted to account owners.",
+            ),
+        ));
     }
 
     match update_own_account_name(
@@ -212,15 +219,8 @@ pub async fn update_own_account_name_url(
     )
     .await
     {
+        Ok(res) => updating_response_kind(res),
         Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            UpdatingResponseKind::NotUpdated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            UpdatingResponseKind::Updated(record) => {
-                HttpResponse::Accepted().json(record)
-            }
-        },
+            .json(HttpJsonResponse::new_message(err.to_string())),
     }
 }
