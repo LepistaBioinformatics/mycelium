@@ -1,6 +1,6 @@
 [package]
-name = "mycelium-smtp"
-description = "Provide smtp adapters to the mycelium project."
+name = "mycelium-notifier"
+description = "Provide message adapters to the mycelium project."
 
 edition.workspace = true
 authors.workspace = true
@@ -20,10 +20,12 @@ mycelium-config = { version = "5.0.8", path = "../../config" }
 
 async-trait.workspace = true
 lazy_static.workspace = true
+redis.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 shaku.workspace = true
 tracing.workspace = true
+uuid.workspace = true
 
 lettre = "0.10.4"
 
@@ -32,6 +34,6 @@ lettre = "0.10.4"
 tokio.workspace = true
 
 [lib]
-name = "myc_smtp"
+name = "myc_notifier"
 path = "src/lib.rs"
 crate-type = ["staticlib", "lib"]

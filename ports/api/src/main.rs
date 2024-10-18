@@ -40,8 +40,11 @@ use models::{
 use myc_config::optional_config::OptionalConfig;
 use myc_core::{domain::dtos::http::Protocol, settings::init_in_memory_routes};
 use myc_http_tools::providers::google_handlers;
+use myc_notifier::{
+    executor::consume_messages,
+    settings::{init_queue_config_from_file, init_smtp_config_from_file},
+};
 use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
-use myc_smtp::settings::init_smtp_config_from_file;
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use opentelemetry::trace::TracerProvider;
 use opentelemetry_otlp::WithExportConfig;
@@ -52,7 +55,9 @@ use reqwest::header::{
 };
 use router::route_request;
 use settings::{GATEWAY_API_SCOPE, MYCELIUM_API_SCOPE};
-use std::{path::PathBuf, process::id as process_id, str::FromStr};
+use std::{
+    path::PathBuf, process::id as process_id, str::FromStr, time::Duration,
+};
 use tracing::{debug, info};
 use tracing_actix_web::TracingLogger;
 use tracing_subscriber::prelude::*;
@@ -236,15 +241,13 @@ pub async fn main() -> std::io::Result<()> {
     init_in_memory_routes(Some(config.api.routes.clone())).await;
 
     // ? -----------------------------------------------------------------------
-    // ? Routes should be used on API gateway
-    //
-    // When users perform queries to the API gateway, the gateway should
-    // redirect the request to the correct service. Services are loaded into
-    // memory and the gateway should know the routes during their execution.
-    //
+    // ? Initialize notifier elements
     // ? -----------------------------------------------------------------------
     info!("Initializing SMTP configs");
     init_smtp_config_from_file(None, Some(config.smtp)).await;
+
+    info!("Initializing QUEUE configs");
+    init_queue_config_from_file(None, Some(config.queue)).await;
 
     // ? -----------------------------------------------------------------------
     // ? Here the current thread receives an instance of the prisma client.
@@ -412,6 +415,25 @@ pub async fn main() -> std::io::Result<()> {
         //     _ => mycelium_scope,
         // };
 
+        // ? -------------------------------------------------------------------
+        // ? Fire the scheduler
+        // ? -------------------------------------------------------------------
+        info!("Fire mycelium scheduler");
+
+        actix_rt::spawn(async {
+            let mut interval =
+                actix_rt::time::interval(Duration::from_secs(20));
+
+            loop {
+                interval.tick().await;
+                let result = consume_messages().await;
+                debug!("20 sec {:?}", result);
+            }
+        });
+
+        // ? -------------------------------------------------------------------
+        // ? Fire the server
+        // ? -------------------------------------------------------------------
         app
             // ? ---------------------------------------------------------------
             // ? Configure Session

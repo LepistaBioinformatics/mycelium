@@ -11,6 +11,8 @@ networks:
 x-common-mycelium: &common-config
   networks:
     - mycelium_net
+  env_file:
+    - .env
 
 # ? ----------------------------------------------------------------------------
 # ? SERVICES DEFINITION
@@ -53,3 +55,16 @@ services:
       - 16686:16686
       - 4317:4317 # OTLP gRPC receiver
       - 4318:4318 # OTLP HTTP receiver
+
+  myc-redis:
+    # Inject all shared configs
+    <<: *common-config
+
+    container_name: myc-redis
+    image: redis:6.2-alpine
+    restart: on-failure
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass ${MYC_REDIS_PASS}
+    volumes:
+      - ./redis:/data
