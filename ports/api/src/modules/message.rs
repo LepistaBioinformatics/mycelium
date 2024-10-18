@@ -1,4 +1,4 @@
-use myc_smtp::repositories::MessageSendingSmtpRepository;
+use myc_notifier::repositories::MessageSendingSmtpRepository;
 use shaku::module;
 
 module! {

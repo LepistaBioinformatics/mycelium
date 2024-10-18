@@ -89,7 +89,7 @@ use myc_prisma::repositories::{
     WebHookRegistrationSqlDbRepositoryParameters,
     WebHookUpdatingSqlDbRepository, WebHookUpdatingSqlDbRepositoryParameters,
 };
-use myc_smtp::repositories::{
+use myc_notifier::repositories::{
     MessageSendingSmtpRepository, MessageSendingSmtpRepositoryParameters,
 };
 use std::sync::Arc;
