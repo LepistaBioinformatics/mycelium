@@ -1,4 +1,5 @@
 use super::get_client;
+use crate::settings::get_queue_config;
 
 use async_trait::async_trait;
 use myc_core::domain::{dtos::message::Message, entities::MessageSending};
@@ -7,9 +8,17 @@ use mycelium_base::{
     utils::errors::{creation_err, MappedErrors},
 };
 use redis::RedisError;
+use serde::{Deserialize, Serialize};
 use shaku::Component;
-use tracing::error;
+use tracing::{debug, error};
 use uuid::Uuid;
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct QueueMessage {
+    pub(crate) message: Message,
+    pub(crate) correspondence_key: Uuid,
+}
 
 #[derive(Component)]
 #[shaku(interface = MessageSending)]
@@ -36,9 +45,13 @@ impl MessageSending for MessageSendingQueueRepository {
             }
         };
 
+        let config = get_queue_config().await;
         let correspondence_key = Uuid::new_v4();
 
-        let message_string = match serde_json::to_string(&message) {
+        let message_string = match serde_json::to_string(&QueueMessage {
+            correspondence_key: correspondence_key.to_owned(),
+            message: message.to_owned(),
+        }) {
             Ok(message) => message,
             Err(err) => {
                 return creation_err(format!(
@@ -48,13 +61,16 @@ impl MessageSending for MessageSendingQueueRepository {
             }
         };
 
-        let res: Result<(), RedisError> = redis::cmd("SET")
-            .arg(correspondence_key.to_owned().to_string())
+        let res: Result<u32, RedisError> = redis::cmd("LPUSH")
+            .arg(config.email_queue_name)
             .arg(message_string)
             .query(&mut connection);
 
         match res {
-            Ok(_) => Ok(CreateResponseKind::Created(Some(correspondence_key))),
+            Ok(res) => {
+                debug!("New message sent to the queue: {res}");
+                Ok(CreateResponseKind::Created(Some(correspondence_key)))
+            }
             Err(err) => {
                 error!(
                     "Failed to send notification to the message queue: {err}"

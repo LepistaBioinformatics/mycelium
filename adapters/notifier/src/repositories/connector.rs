@@ -26,8 +26,8 @@ pub async fn init_queue_client_from_url(
 
     QUEUE_CLIENT
         .lock()
-        .unwrap()
-        .replace(Client::open(url).unwrap());
+        .expect("Could not fix the queue config")
+        .replace(Client::open(url).expect("Could not connect to the queue"));
 
     Ok(())
 }
@@ -36,11 +36,13 @@ pub async fn init_queue_client_from_url(
 ///
 /// This function should be used to get the queue client instance from the
 /// application.
-pub(super) async fn get_client() -> Client {
-    QUEUE_CLIENT
+pub(crate) async fn get_client() -> Client {
+    match QUEUE_CLIENT
         .lock()
         .expect("Could not connect to the queue")
         .as_ref()
-        .expect("Queue client not initialized")
-        .to_owned()
+    {
+        Some(client) => client.clone(),
+        None => panic!("Queue client is not initialized"),
+    }
 }

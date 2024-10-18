@@ -44,9 +44,16 @@ pub async fn init_queue_config_from_file(
 ) {
     if let Some(config) = config_instance {
         if let OptionalConfig::Enabled(config) = config {
-            init_queue_client_from_url(config)
-                .await
-                .expect("Unable to initialize queue client");
+            if let Err(err) =
+                init_queue_client_from_url(config.to_owned()).await
+            {
+                panic!("Error detected on initialize queue config: {err}");
+            };
+
+            QUEUE_CONFIG
+                .lock()
+                .expect("Unable to initialize config")
+                .replace(config);
 
             return;
         }
@@ -71,4 +78,13 @@ pub async fn init_queue_config_from_file(
             }
         },
     );
+}
+
+pub(crate) async fn get_queue_config() -> QueueConfig {
+    QUEUE_CONFIG
+        .lock()
+        .expect("Could not connect to the queue")
+        .as_ref()
+        .expect("Queue config not initialized")
+        .to_owned()
 }

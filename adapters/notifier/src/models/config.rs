@@ -20,6 +20,7 @@ pub struct QueueConfig {
     pub protocol: String,
     pub hostname: EnvOrValue<String>,
     pub password: EnvOrValue<String>,
+    pub email_queue_name: String,
 }
 
 #[derive(Clone, Debug, Deserialize)]

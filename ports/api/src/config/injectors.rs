@@ -7,7 +7,7 @@ use crate::modules::{
     GuestRoleRegistrationModule, GuestRoleUpdatingModule,
     GuestUserDeletionModule, GuestUserFetchingModule,
     GuestUserOnAccountUpdatingModule, GuestUserRegistrationModule,
-    LicensedResourcesFetchingModule, MessageSendingModule,
+    LicensedResourcesFetchingModule, MessageSendingQueueModule,
     ProfileFetchingModule, RoleDeletionModule, RoleFetchingModule,
     RoleRegistrationModule, RoleUpdatingModule, RoutesFetchingModule,
     TenantDeletionModule, TenantFetchingModule, TenantRegistrationModule,
@@ -21,6 +21,9 @@ use crate::modules::{
 use actix_web::web;
 use myc_mem_db::repositories::{
     RoutesFetchingMemDbRepo, RoutesFetchingMemDbRepoParameters,
+};
+use myc_notifier::repositories::{
+    MessageSendingQueueRepository, MessageSendingQueueRepositoryParameters,
 };
 use myc_prisma::repositories::{
     AccountDeletionSqlDbRepository, AccountDeletionSqlDbRepositoryParameters,
@@ -88,9 +91,6 @@ use myc_prisma::repositories::{
     WebHookRegistrationSqlDbRepository,
     WebHookRegistrationSqlDbRepositoryParameters,
     WebHookUpdatingSqlDbRepository, WebHookUpdatingSqlDbRepositoryParameters,
-};
-use myc_notifier::repositories::{
-    MessageSendingSmtpRepository, MessageSendingSmtpRepositoryParameters,
 };
 use std::sync::Arc;
 
@@ -191,9 +191,9 @@ pub fn configure(config: &mut web::ServiceConfig) {
         // ? Message sending
         // ? -------------------------------------------------------------------
         .app_data(Arc::new(
-            MessageSendingModule::builder()
-                .with_component_parameters::<MessageSendingSmtpRepository>(
-                    MessageSendingSmtpRepositoryParameters {},
+            MessageSendingQueueModule::builder()
+                .with_component_parameters::<MessageSendingQueueRepository>(
+                    MessageSendingQueueRepositoryParameters {},
                 )
                 .build(),
         ))
