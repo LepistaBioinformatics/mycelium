@@ -1,9 +1,9 @@
-use myc_notifier::repositories::MessageSendingSmtpRepository;
+use myc_notifier::repositories::MessageSendingQueueRepository;
 use shaku::module;
 
 module! {
-    pub MessageSendingModule {
-        components = [MessageSendingSmtpRepository],
+    pub MessageSendingQueueModule {
+        components = [MessageSendingQueueRepository],
         providers = []
     }
 }

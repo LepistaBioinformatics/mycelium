@@ -22,6 +22,7 @@ use actix_web::{
 use actix_web_opentelemetry::RequestTracing;
 use awc::Client;
 use config::injectors::configure as configure_injection_modules;
+use core::panic;
 use endpoints::{
     index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
     manager::{tenant_endpoints, ApiDoc as ManagerApiDoc},
@@ -42,6 +43,7 @@ use myc_core::{domain::dtos::http::Protocol, settings::init_in_memory_routes};
 use myc_http_tools::providers::google_handlers;
 use myc_notifier::{
     executor::consume_messages,
+    repositories::MessageSendingSmtpRepository,
     settings::{init_queue_config_from_file, init_smtp_config_from_file},
 };
 use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
@@ -247,7 +249,7 @@ pub async fn main() -> std::io::Result<()> {
     init_smtp_config_from_file(None, Some(config.smtp)).await;
 
     info!("Initializing QUEUE configs");
-    init_queue_config_from_file(None, Some(config.queue)).await;
+    init_queue_config_from_file(None, Some(config.queue.to_owned())).await;
 
     // ? -----------------------------------------------------------------------
     // ? Here the current thread receives an instance of the prisma client.
@@ -420,14 +422,27 @@ pub async fn main() -> std::io::Result<()> {
         // ? -------------------------------------------------------------------
         info!("Fire mycelium scheduler");
 
-        actix_rt::spawn(async {
-            let mut interval =
-                actix_rt::time::interval(Duration::from_secs(20));
+        let queue_config = match config.queue.to_owned() {
+            OptionalConfig::Enabled(queue) => queue,
+            _ => panic!("Queue config not found"),
+        };
+
+        actix_rt::spawn(async move {
+            let mut interval = actix_rt::time::interval(Duration::from_secs(5));
 
             loop {
                 interval.tick().await;
-                let result = consume_messages().await;
-                debug!("20 sec {:?}", result);
+                let result = consume_messages(
+                    queue_config.clone().email_queue_name,
+                    Box::new(&MessageSendingSmtpRepository {}),
+                )
+                .await;
+
+                if let Err(err) = result {
+                    if !err.expected() {
+                        panic!("Error on consume messages: {err}");
+                    }
+                }
             }
         });
 

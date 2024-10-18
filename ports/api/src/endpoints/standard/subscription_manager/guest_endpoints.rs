@@ -5,7 +5,7 @@ use crate::{
         AccountFetchingModule, GuestUserDeletionModule,
         GuestUserFetchingModule, GuestUserOnAccountUpdatingModule,
         GuestUserRegistrationModule, LicensedResourcesFetchingModule,
-        MessageSendingModule,
+        MessageSendingQueueModule,
     },
 };
 
@@ -199,7 +199,7 @@ pub async fn guest_user_url(
         GuestUserRegistrationModule,
         dyn GuestUserRegistration,
     >,
-    message_sending_repo: Inject<MessageSendingModule, dyn MessageSending>,
+    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let (tenant_id, account_id, role_id) = path.to_owned();
 
