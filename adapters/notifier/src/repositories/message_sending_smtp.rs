@@ -12,6 +12,7 @@ use mycelium_base::{
     utils::errors::{creation_err, MappedErrors},
 };
 use shaku::Component;
+use uuid::Uuid;
 
 #[derive(Component)]
 #[shaku(interface = MessageSending)]
@@ -23,7 +24,7 @@ impl MessageSending for MessageSendingSmtpRepository {
     async fn send(
         &self,
         message: Message,
-    ) -> Result<CreateResponseKind<Message>, MappedErrors> {
+    ) -> Result<CreateResponseKind<Option<Uuid>>, MappedErrors> {
         let binding = SMTP_CONFIG.lock().unwrap();
         let config = match binding.as_ref() {
             Some(config) => config,
@@ -38,7 +39,7 @@ impl MessageSending for MessageSendingSmtpRepository {
         let config = match config {
             OptionalConfig::Disabled => {
                 return Ok(CreateResponseKind::NotCreated(
-                    message,
+                    None,
                     "SMTP config is disabled".to_string(),
                 ))
             }
@@ -64,7 +65,7 @@ impl MessageSending for MessageSendingSmtpRepository {
             .build();
 
         match mailer.send(&email) {
-            Ok(_) => Ok(CreateResponseKind::Created(message)),
+            Ok(_) => Ok(CreateResponseKind::Created(None)),
             Err(err) => {
                 creation_err(format!("Could not send email: {err}")).as_error()
             }

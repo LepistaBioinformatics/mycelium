@@ -158,9 +158,9 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
         let (user_id, deleted) = match client
             ._transaction()
             .run(|client| async move {
-                let mut token_option: Vec<token_model::Data> = client
+                let token_option: Vec<token_model::Data> = client
                     ._query_raw(Raw::new(
-                        "SELECT id, expiration, meta FROM token WHERE meta->'email'->>'username' = {} AND meta->'email'->>'domain' = {} AND meta->>'userId' = {}",
+                        "SELECT DISTINCT id, expiration, meta FROM token WHERE meta->'email'->>'username' = {} AND meta->'email'->>'domain' = {} AND meta->>'userId' = {} ORDER BY expiration DESC LIMIT 1",
                         vec![
                             PrismaValue::String(meta.to_owned().email.username),
                             PrismaValue::String(meta.to_owned().email.domain),
@@ -175,7 +175,7 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
                 }
 
                 // Get the token with the earliest expiration date
-                token_option.sort_by(|a, b| a.expiration.cmp(&b.expiration));
+                //token_option.sort_by(|a, b| a.expiration.cmp(&b.expiration));
 
                 if let Some(token_data) = token_option.to_owned().first() {
                     if token_data.expiration < Utc::now() {

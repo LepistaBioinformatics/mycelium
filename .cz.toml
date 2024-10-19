@@ -9,7 +9,7 @@ version_files = [
     "adapters/mem_db/Cargo.toml",
     "adapters/prisma/Cargo.toml",
     "adapters/service/Cargo.toml",
-    "adapters/smtp/Cargo.toml",
+    "adapters/notifier/Cargo.toml",
     "ports/api/Cargo.toml",
     "ports/cli/Cargo.toml",
 ]

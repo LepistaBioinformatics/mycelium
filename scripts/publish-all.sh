@@ -10,7 +10,7 @@ cargo publish -p myc-core $ARGS
 # Adapters
 cargo publish -p mycelium-memory-db $ARGS
 cargo publish -p mycelium-service $ARGS
-cargo publish -p mycelium-smtp $ARGS
+cargo publish -p mycelium-notifier $ARGS
 
 # Ports and related
 cargo publish -p mycelium-http-tools $ARGS
