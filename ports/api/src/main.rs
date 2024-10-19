@@ -22,6 +22,7 @@ use actix_web::{
 use actix_web_opentelemetry::RequestTracing;
 use awc::Client;
 use config::injectors::configure as configure_injection_modules;
+use core::panic;
 use endpoints::{
     index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
     manager::{tenant_endpoints, ApiDoc as ManagerApiDoc},
@@ -40,8 +41,12 @@ use models::{
 use myc_config::optional_config::OptionalConfig;
 use myc_core::{domain::dtos::http::Protocol, settings::init_in_memory_routes};
 use myc_http_tools::providers::google_handlers;
+use myc_notifier::{
+    executor::consume_messages,
+    repositories::MessageSendingSmtpRepository,
+    settings::{init_queue_config_from_file, init_smtp_config_from_file},
+};
 use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
-use myc_smtp::settings::init_smtp_config_from_file;
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use opentelemetry::trace::TracerProvider;
 use opentelemetry_otlp::WithExportConfig;
@@ -52,8 +57,10 @@ use reqwest::header::{
 };
 use router::route_request;
 use settings::{GATEWAY_API_SCOPE, MYCELIUM_API_SCOPE};
-use std::{path::PathBuf, process::id as process_id, str::FromStr};
-use tracing::{debug, info};
+use std::{
+    path::PathBuf, process::id as process_id, str::FromStr, time::Duration,
+};
+use tracing::{debug, info, trace};
 use tracing_actix_web::TracingLogger;
 use tracing_subscriber::prelude::*;
 use tracing_subscriber::{fmt, EnvFilter};
@@ -236,15 +243,13 @@ pub async fn main() -> std::io::Result<()> {
     init_in_memory_routes(Some(config.api.routes.clone())).await;
 
     // ? -----------------------------------------------------------------------
-    // ? Routes should be used on API gateway
-    //
-    // When users perform queries to the API gateway, the gateway should
-    // redirect the request to the correct service. Services are loaded into
-    // memory and the gateway should know the routes during their execution.
-    //
+    // ? Initialize notifier elements
     // ? -----------------------------------------------------------------------
     info!("Initializing SMTP configs");
     init_smtp_config_from_file(None, Some(config.smtp)).await;
+
+    info!("Initializing QUEUE configs");
+    init_queue_config_from_file(None, Some(config.queue.to_owned())).await;
 
     // ? -----------------------------------------------------------------------
     // ? Here the current thread receives an instance of the prisma client.
@@ -264,6 +269,45 @@ pub async fn main() -> std::io::Result<()> {
     );
 
     generate_prisma_client_of_thread(process_id()).await;
+
+    // ? -----------------------------------------------------------------------
+    // ? Fire the scheduler
+    // ? -----------------------------------------------------------------------
+    info!("Fire mycelium scheduler");
+
+    let queue_config = match config.queue.to_owned() {
+        OptionalConfig::Enabled(queue) => queue,
+        _ => panic!("Queue config not found"),
+    };
+
+    actix_rt::spawn(async move {
+        let mut interval = actix_rt::time::interval(Duration::from_secs(
+            queue_config.consume_interval_in_secs,
+        ));
+
+        loop {
+            interval.tick().await;
+
+            let queue_name = queue_config.clone().email_queue_name;
+
+            trace!(
+                "Consume messages from the queue: {}",
+                queue_name.to_owned()
+            );
+
+            let result = consume_messages(
+                queue_name,
+                Box::new(&MessageSendingSmtpRepository {}),
+            )
+            .await;
+
+            if let Err(err) = result {
+                if !err.expected() {
+                    panic!("Error on consume messages: {err}");
+                }
+            }
+        }
+    });
 
     // ? -----------------------------------------------------------------------
     // ? Configure the server
@@ -412,6 +456,9 @@ pub async fn main() -> std::io::Result<()> {
         //     _ => mycelium_scope,
         // };
 
+        // ? -------------------------------------------------------------------
+        // ? Fire the server
+        // ? -------------------------------------------------------------------
         app
             // ? ---------------------------------------------------------------
             // ? Configure Session

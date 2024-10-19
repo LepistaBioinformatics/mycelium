@@ -2,7 +2,7 @@ use crate::{
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{
         AccountRegistrationModule, GuestUserRegistrationModule,
-        MessageSendingModule,
+        MessageSendingQueueModule,
     },
 };
 
@@ -108,7 +108,7 @@ pub async fn guest_to_default_account_url(
         GuestUserRegistrationModule,
         dyn GuestUserRegistration,
     >,
-    message_sending_repo: Inject<MessageSendingModule, dyn MessageSending>,
+    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let account = body.account.to_owned();
 

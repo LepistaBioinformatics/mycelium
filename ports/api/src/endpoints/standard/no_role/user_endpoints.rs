@@ -2,9 +2,9 @@ use crate::{
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     middleware::parse_issuer_from_request,
     modules::{
-        MessageSendingModule, TokenInvalidationModule, TokenRegistrationModule,
-        UserDeletionModule, UserFetchingModule, UserRegistrationModule,
-        UserUpdatingModule,
+        MessageSendingQueueModule, TokenInvalidationModule,
+        TokenRegistrationModule, UserDeletionModule, UserFetchingModule,
+        UserRegistrationModule, UserUpdatingModule,
     },
 };
 
@@ -214,7 +214,7 @@ pub async fn create_default_user_url(
         TokenRegistrationModule,
         dyn TokenRegistration,
     >,
-    message_sending_repo: Inject<MessageSendingModule, dyn MessageSending>,
+    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let provider = match parse_issuer_from_request(req.clone()).await {
         Err(err) => match err {
@@ -389,7 +389,7 @@ pub async fn start_password_redefinition_url(
         TokenRegistrationModule,
         dyn TokenRegistration,
     >,
-    message_sending_repo: Inject<MessageSendingModule, dyn MessageSending>,
+    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
@@ -469,7 +469,7 @@ pub async fn check_token_and_reset_password_url(
         TokenInvalidationModule,
         dyn TokenInvalidation,
     >,
-    message_sending_repo: Inject<MessageSendingModule, dyn MessageSending>,
+    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
@@ -501,6 +501,7 @@ pub async fn check_token_and_reset_password_url(
             let code_string = err.code().to_string();
 
             if err.is_in(vec![
+                NativeErrorCodes::MYC00008,
                 NativeErrorCodes::MYC00009,
                 NativeErrorCodes::MYC00011,
             ]) {

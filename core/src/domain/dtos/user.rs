@@ -58,6 +58,7 @@ impl PasswordHash {
             Ok(_) => Ok(()),
             Err(err) => {
                 use_case_err(format!("Unable to verify password: {err}"))
+                    .with_exp_true()
                     .as_error()
             }
         }
