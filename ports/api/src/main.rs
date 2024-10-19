@@ -60,7 +60,7 @@ use settings::{GATEWAY_API_SCOPE, MYCELIUM_API_SCOPE};
 use std::{
     path::PathBuf, process::id as process_id, str::FromStr, time::Duration,
 };
-use tracing::{debug, info};
+use tracing::{debug, info, trace};
 use tracing_actix_web::TracingLogger;
 use tracing_subscriber::prelude::*;
 use tracing_subscriber::{fmt, EnvFilter};
@@ -271,6 +271,45 @@ pub async fn main() -> std::io::Result<()> {
     generate_prisma_client_of_thread(process_id()).await;
 
     // ? -----------------------------------------------------------------------
+    // ? Fire the scheduler
+    // ? -----------------------------------------------------------------------
+    info!("Fire mycelium scheduler");
+
+    let queue_config = match config.queue.to_owned() {
+        OptionalConfig::Enabled(queue) => queue,
+        _ => panic!("Queue config not found"),
+    };
+
+    actix_rt::spawn(async move {
+        let mut interval = actix_rt::time::interval(Duration::from_secs(
+            queue_config.consume_interval_in_secs,
+        ));
+
+        loop {
+            interval.tick().await;
+
+            let queue_name = queue_config.clone().email_queue_name;
+
+            trace!(
+                "Consume messages from the queue: {}",
+                queue_name.to_owned()
+            );
+
+            let result = consume_messages(
+                queue_name,
+                Box::new(&MessageSendingSmtpRepository {}),
+            )
+            .await;
+
+            if let Err(err) = result {
+                if !err.expected() {
+                    panic!("Error on consume messages: {err}");
+                }
+            }
+        }
+    });
+
+    // ? -----------------------------------------------------------------------
     // ? Configure the server
     // ? -----------------------------------------------------------------------
     info!("Set the server configuration");
@@ -416,35 +455,6 @@ pub async fn main() -> std::io::Result<()> {
         //     }
         //     _ => mycelium_scope,
         // };
-
-        // ? -------------------------------------------------------------------
-        // ? Fire the scheduler
-        // ? -------------------------------------------------------------------
-        info!("Fire mycelium scheduler");
-
-        let queue_config = match config.queue.to_owned() {
-            OptionalConfig::Enabled(queue) => queue,
-            _ => panic!("Queue config not found"),
-        };
-
-        actix_rt::spawn(async move {
-            let mut interval = actix_rt::time::interval(Duration::from_secs(5));
-
-            loop {
-                interval.tick().await;
-                let result = consume_messages(
-                    queue_config.clone().email_queue_name,
-                    Box::new(&MessageSendingSmtpRepository {}),
-                )
-                .await;
-
-                if let Err(err) = result {
-                    if !err.expected() {
-                        panic!("Error on consume messages: {err}");
-                    }
-                }
-            }
-        });
 
         // ? -------------------------------------------------------------------
         // ? Fire the server

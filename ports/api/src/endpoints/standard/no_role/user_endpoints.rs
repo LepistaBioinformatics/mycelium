@@ -501,6 +501,7 @@ pub async fn check_token_and_reset_password_url(
             let code_string = err.code().to_string();
 
             if err.is_in(vec![
+                NativeErrorCodes::MYC00008,
                 NativeErrorCodes::MYC00009,
                 NativeErrorCodes::MYC00011,
             ]) {

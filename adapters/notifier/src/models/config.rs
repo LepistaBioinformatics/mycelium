@@ -21,6 +21,7 @@ pub struct QueueConfig {
     pub hostname: EnvOrValue<String>,
     pub password: EnvOrValue<String>,
     pub email_queue_name: String,
+    pub consume_interval_in_secs: u64,
 }
 
 #[derive(Clone, Debug, Deserialize)]
