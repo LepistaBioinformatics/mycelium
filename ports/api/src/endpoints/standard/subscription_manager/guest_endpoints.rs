@@ -2,10 +2,10 @@ use crate::{
     dtos::MyceliumProfileData,
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{
-        AccountFetchingModule, GuestUserDeletionModule,
-        GuestUserFetchingModule, GuestUserOnAccountUpdatingModule,
-        GuestUserRegistrationModule, LicensedResourcesFetchingModule,
-        MessageSendingQueueModule,
+        AccountFetchingModule, GuestRoleFetchingModule,
+        GuestUserDeletionModule, GuestUserFetchingModule,
+        GuestUserOnAccountUpdatingModule, GuestUserRegistrationModule,
+        LicensedResourcesFetchingModule, MessageSendingQueueModule,
     },
 };
 
@@ -15,11 +15,12 @@ use myc_core::{
         actors::ActorName,
         dtos::email::Email,
         entities::{
-            AccountFetching, GuestUserDeletion, GuestUserFetching,
-            GuestUserOnAccountUpdating, GuestUserRegistration,
-            LicensedResourcesFetching, MessageSending,
+            AccountFetching, GuestRoleFetching, GuestUserDeletion,
+            GuestUserFetching, GuestUserOnAccountUpdating,
+            GuestUserRegistration, LicensedResourcesFetching, MessageSending,
         },
     },
+    models::AccountLifeCycle,
     use_cases::roles::standard::subscription_manager::guest::{
         guest_user, list_guest_on_subscription_account,
         list_licensed_accounts_of_email, uninvite_guest,
@@ -58,13 +59,14 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct GuestUserBody {
-    pub email: String,
+    email: String,
+    platform_url: Option<String>,
 }
 
 #[derive(Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateUserGuestRoleParams {
-    pub new_guest_role_id: Uuid,
+    new_guest_role_id: Uuid,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -189,12 +191,17 @@ pub async fn list_licensed_accounts_of_email_url(
         ),
     ),
 )]
-#[post("/{tenant_id}/account/{account_id}/role/{role_id}")]
+#[post("/{tenant_id}/accounts/{account_id}/role/{role_id}")]
 pub async fn guest_user_url(
     path: web::Path<(Uuid, Uuid, Uuid)>,
     body: web::Json<GuestUserBody>,
     profile: MyceliumProfileData,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
     account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
+    guest_role_fetching_repo: Inject<
+        GuestRoleFetchingModule,
+        dyn GuestRoleFetching,
+    >,
     guest_registration_repo: Inject<
         GuestUserRegistrationModule,
         dyn GuestUserRegistration,
@@ -217,7 +224,10 @@ pub async fn guest_user_url(
         email,
         role_id,
         account_id,
+        body.platform_url.to_owned(),
+        life_cycle_settings.get_ref().to_owned(),
         Box::new(&*account_fetching_repo),
+        Box::new(&*guest_role_fetching_repo),
         Box::new(&*guest_registration_repo),
         Box::new(&*message_sending_repo),
     )
@@ -271,7 +281,7 @@ pub async fn guest_user_url(
         ),
     ),
 )]
-#[patch("/{tenant_id}/account/{account_id}/role/{role_id}")]
+#[patch("/{tenant_id}/accounts/{account_id}/role/{role_id}")]
 pub async fn update_user_guest_role_url(
     path: web::Path<(Uuid, Uuid, Uuid)>,
     info: web::Query<UpdateUserGuestRoleParams>,
@@ -336,7 +346,7 @@ pub async fn update_user_guest_role_url(
         ),
     ),
 )]
-#[delete("/{tenant_id}/account/{account_id}/role/{role_id}")]
+#[delete("/{tenant_id}/accounts/{account_id}/role/{role_id}")]
 pub async fn uninvite_guest_url(
     path: web::Path<(Uuid, Uuid, Uuid)>,
     info: web::Query<GuestUserBody>,
@@ -402,7 +412,7 @@ pub async fn uninvite_guest_url(
         ),
     ),
 )]
-#[get("/{tenant_id}/account/{account_id}")]
+#[get("/{tenant_id}/accounts/{account_id}")]
 pub async fn list_guest_on_subscription_account_url(
     path: web::Path<(Uuid, Uuid)>,
     profile: MyceliumProfileData,
