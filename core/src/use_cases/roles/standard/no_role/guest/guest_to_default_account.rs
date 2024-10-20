@@ -2,22 +2,26 @@ use crate::{
     domain::{
         dtos::{
             account::Account, email::Email, guest::GuestUser, message::Message,
-            user::User,
+            native_error_codes::NativeErrorCodes, user::User,
         },
         entities::{
-            AccountRegistration, GuestUserRegistration, MessageSending,
+            AccountRegistration, GuestRoleFetching, GuestUserRegistration,
+            MessageSending,
         },
     },
     models::AccountLifeCycle,
+    settings::TEMPLATES,
     use_cases::roles::shared::account::get_or_create_role_related_account,
 };
 
 use chrono::Local;
+use futures::future;
 use mycelium_base::{
     dtos::{Children, Parent},
-    entities::GetOrCreateResponseKind,
+    entities::{FetchResponseKind, GetOrCreateResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
+use tera::Context;
 use tracing::{info, warn};
 use uuid::Uuid;
 
@@ -30,24 +34,47 @@ pub async fn guest_to_default_account(
     role_id: Uuid,
     account: Account,
     tenant_id: Uuid,
-    token_secret: AccountLifeCycle,
+    platform_url: Option<String>,
+    life_cycle_settings: AccountLifeCycle,
     account_registration_repo: Box<&dyn AccountRegistration>,
+    guest_role_fetching_repo: Box<&dyn GuestRoleFetching>,
     message_sending_repo: Box<&dyn MessageSending>,
     guest_user_registration_repo: Box<&dyn GuestUserRegistration>,
 ) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
-    // ? Fetch default account
+    // ? Guarantee needed information to evaluate guesting
+    //
+    // Check if the target account is a subscription account or a standard role
+    // associated account. Only these accounts can receive guesting. Already
+    // check the role_id to be a guest role is valid and exists.
+    //
     // ? -----------------------------------------------------------------------
 
-    let default_subscription_account = match get_or_create_role_related_account(
-        tenant_id,
-        role_id,
-        account_registration_repo,
+    let (target_account_response, target_role_response) = future::join(
+        get_or_create_role_related_account(
+            tenant_id,
+            role_id,
+            account_registration_repo,
+        ),
+        guest_role_fetching_repo.get(role_id),
     )
-    .await?
-    {
+    .await;
+
+    let default_subscription_account = match target_account_response? {
         GetOrCreateResponseKind::NotCreated(account, _) => account,
         GetOrCreateResponseKind::Created(account) => account,
+    };
+
+    let target_role = match target_role_response? {
+        FetchResponseKind::NotFound(id) => {
+            return use_case_err(format!(
+                "Guest role not found: {:?}",
+                id.unwrap()
+            ))
+            .with_code(NativeErrorCodes::MYC00012)
+            .as_error()
+        }
+        FetchResponseKind::Found(role) => role,
     };
 
     // ? -----------------------------------------------------------------------
@@ -103,28 +130,76 @@ pub async fn guest_to_default_account(
     };
 
     // ? -----------------------------------------------------------------------
+    // ? Build notification message
+    // ? -----------------------------------------------------------------------
+
+    let mut context = Context::new();
+    context.insert(
+        "account_name",
+        &default_subscription_account.name.to_uppercase(),
+    );
+    context.insert("role_name", &target_role.name.to_uppercase());
+
+    if let Some(description) = target_role.description {
+        context.insert("role_description", &description);
+    }
+
+    context.insert("role_description", &target_role.name);
+
+    context.insert(
+        "role_permissions",
+        &target_role
+            .permissions
+            .iter()
+            .map(|p| p.to_string().to_uppercase())
+            .collect::<Vec<String>>(),
+    );
+
+    context.insert(
+        "support_email",
+        &life_cycle_settings.support_email.get_or_error()?,
+    );
+
+    if let Some(url) = platform_url {
+        context.insert("platform_url", &url);
+    }
+
+    let email_template = match TEMPLATES
+        .render("email/guest-to-subscription-account.jinja", &context)
+    {
+        Ok(res) => res,
+        Err(err) => {
+            return use_case_err(format!(
+                "Unable to render email template: {err}"
+            ))
+            .as_error();
+        }
+    };
+
+    // ? -----------------------------------------------------------------------
     // ? Notify guest user
     // ? -----------------------------------------------------------------------
 
     match message_sending_repo
         .send(Message {
             from: Email::from_string(
-                token_secret.noreply_email.get_or_error()?,
+                life_cycle_settings.noreply_email.get_or_error()?,
             )?,
             to: guest_email,
             cc: None,
-            subject: String::from("Congratulations! New collaboration invite"),
-            message_head: Some(
-                "Your account was successfully created".to_string(),
+            subject: String::from(
+                "[Guest to Account] You have been invited to collaborate",
             ),
-            message_body: "Your account was activated with success."
-                .to_string(),
+            message_head: None,
+            message_body: email_template,
             message_footer: None,
         })
         .await
     {
         Err(err) => {
-            warn!("Guesting to default account not occurred: {:?}", err)
+            return use_case_err(format!("Unable to send email: {err}"))
+                .with_code(NativeErrorCodes::MYC00010)
+                .as_error()
         }
         Ok(res) => {
             info!("Guesting to default account successfully done: {:?}", res)

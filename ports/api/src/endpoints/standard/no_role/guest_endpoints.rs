@@ -1,8 +1,8 @@
 use crate::{
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{
-        AccountRegistrationModule, GuestUserRegistrationModule,
-        MessageSendingQueueModule,
+        AccountRegistrationModule, GuestRoleFetchingModule,
+        GuestUserRegistrationModule, MessageSendingQueueModule,
     },
 };
 
@@ -12,7 +12,8 @@ use myc_core::{
         actors::ActorName,
         dtos::account::Account,
         entities::{
-            AccountRegistration, GuestUserRegistration, MessageSending,
+            AccountRegistration, GuestRoleFetching, GuestUserRegistration,
+            MessageSending,
         },
     },
     models::AccountLifeCycle,
@@ -41,6 +42,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub struct GuestUserBody {
     account: Account,
     tenant_id: Uuid,
+    platform_url: Option<String>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -99,10 +101,14 @@ pub struct GuestUserBody {
 pub async fn guest_to_default_account_url(
     path: web::Path<(Uuid,)>,
     body: web::Json<GuestUserBody>,
-    token: web::Data<AccountLifeCycle>,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
     account_registration_repo: Inject<
         AccountRegistrationModule,
         dyn AccountRegistration,
+    >,
+    guest_role_fetching_repo: Inject<
+        GuestRoleFetchingModule,
+        dyn GuestRoleFetching,
     >,
     guest_registration_repo: Inject<
         GuestUserRegistrationModule,
@@ -116,8 +122,10 @@ pub async fn guest_to_default_account_url(
         path.0,
         account.to_owned(),
         body.tenant_id.to_owned(),
-        token.get_ref().to_owned(),
+        body.platform_url.to_owned(),
+        life_cycle_settings.get_ref().to_owned(),
         Box::new(&*account_registration_repo),
+        Box::new(&*guest_role_fetching_repo),
         Box::new(&*message_sending_repo),
         Box::new(&*guest_registration_repo),
     )

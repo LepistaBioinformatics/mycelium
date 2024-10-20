@@ -42,6 +42,17 @@ impl FromStr for Permissions {
     }
 }
 
+impl ToString for Permissions {
+    fn to_string(&self) -> String {
+        match self {
+            Permissions::View => "view".to_string(),
+            Permissions::Create => "create".to_string(),
+            Permissions::Update => "update".to_string(),
+            Permissions::Delete => "delete".to_string(),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct GuestRole {
