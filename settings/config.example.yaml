@@ -4,10 +4,6 @@
 core:
   accountLifeCycle:
     tokenExpiration: 3600
-    tokenSecretKey:
-      env: MYC_TOKEN_SECRET_KEY
-    tokenHmacSecret:
-      env: MYC_TOKEN_HMAC_SECRET
     noreplyEmail:
       env: MYC_TOKEN_EMAIL_NOTIFIER
     supportEmail:
@@ -21,21 +17,28 @@ prisma:
     env: MYC_DATABASE_URL
 
 # ? ----------------------------------------------------------------------------
-# ? SMTP ADAPTER SETTINGS SETTINGS
+# ? NOTIFIER ADAPTER SETTINGS SETTINGS
 #
-# SMTP value should be set disabled or configured with the smtp host, username,
-# and password. Case the smtp is disabled, the email notification will not be
-# sent.
+# SMTP and QUEUE value should be set disabled or configured with the smtp host,
+# username, and password. Case the smtp is disabled, the email notification will
+# not be sent.
 #
 # ? ----------------------------------------------------------------------------
-# Use the below commented line to disable smtp protocol usage.
-# smtp: disabled
 smtp:
   host: "smtp.gmail.com"
   username:
     env: MYC_SMTP_USERNAME
   password:
     env: MYC_SMTP_PASSWORD
+
+queue:
+  protocol: redis # should be rediss for secure connection
+  hostname:
+    env: MYC_REDIS_HOSTNAME
+  password:
+    env: MYC_REDIS_PASSWORD
+  emailQueueName: emails
+  consumeIntervalInSecs: 120
 
 # ? ----------------------------------------------------------------------------
 # ? AUTHENTICATION SETTINGS
@@ -96,25 +99,28 @@ api:
     # each module.
     level: actix_web=debug,mycelium_base=debug,myc_api=debug
 
-    # Possible values: json, ascii
-    format: json
-
     # Possible values: jsonl, ansi
     format: ansi
 
     # Specify the log target. Possible values: stdout, file, or jaeger
-    target: !jaeger
-      protocol: http
-      host: localhost
-      portGrpc: 4317
-      portHttp: 4318
+    #target: !jaeger
+    #  name: mycelium-api
+    #  # Hostname of the jaeger agent
+    #  host: localhost
+    #  # Allowed values:
+    #  # - http
+    #  # - https
+    #  # - grpc
+    #  protocol: grpc
+    #  # Use (for default ports for each protocol):
+    #  port: 4317
 
     # Example with file target
     #target: !file
     #  path: logs/api.log
 
     # Example with stdout target
-    #target: !stdout
+    target: stdout
 
   # ? --------------------------------------------------------------------------
   # ? API GATEWAY TLS SETTINGS
