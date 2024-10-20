@@ -14,7 +14,7 @@ use crate::{
 };
 
 use mycelium_base::{
-    entities::GetOrCreateResponseKind,
+    entities::CreateResponseKind,
     utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
@@ -59,15 +59,15 @@ pub async fn create_subscription_account(
     unchecked_account.is_checked = true;
 
     let account = match account_registration_repo
-        .get_or_create_user_account(unchecked_account, false, true)
+        .create_subscription_account(unchecked_account, tenant_id)
         .await?
     {
-        GetOrCreateResponseKind::NotCreated(account, msg) => {
+        CreateResponseKind::NotCreated(account, msg) => {
             return use_case_err(format!("({}): {}", account.name, msg))
                 .with_code(NativeErrorCodes::MYC00003)
                 .as_error()
         }
-        GetOrCreateResponseKind::Created(account) => account,
+        CreateResponseKind::Created(account) => account,
     };
 
     // ? -----------------------------------------------------------------------

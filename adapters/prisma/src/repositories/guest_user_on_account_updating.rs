@@ -17,10 +17,8 @@ use myc_core::domain::{
 };
 use mycelium_base::{
     dtos::Parent,
-    entities::UpdatingResponseKind,
-    utils::errors::{
-        MappedErrors, {deletion_err, updating_err},
-    },
+    entities::{GetOrCreateResponseKind, UpdatingResponseKind},
+    utils::errors::{deletion_err, updating_err, MappedErrors},
 };
 use prisma_client_rust::{prisma_errors::UnknownError, QueryError};
 use shaku::Component;
@@ -143,7 +141,20 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
                 .with_exp_true()
                 .as_error()
             }
-            Ok(res) => Ok(UpdatingResponseKind::Updated(res)),
+            Ok(res) => match res {
+                GetOrCreateResponseKind::NotCreated(guest_user, msg) => {
+                    return updating_err(format!(
+                        "Unexpected error on update guest user ({}): {}",
+                        guest_user.email.get_email(),
+                        msg
+                    ))
+                    .with_code(NativeErrorCodes::MYC00003)
+                    .as_error()
+                }
+                GetOrCreateResponseKind::Created(guest_user) => {
+                    Ok(UpdatingResponseKind::Updated(guest_user))
+                }
+            },
         }
     }
 }

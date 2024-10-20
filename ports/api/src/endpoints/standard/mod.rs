@@ -32,9 +32,12 @@ use myc_core::{
             webhook::{AccountPropagationWebHookResponse, HookTarget, WebHook},
         },
     },
-    use_cases::roles::standard::{
-        guest_manager::guest_role::ActionType,
-        no_role::user::EmailRegistrationStatus,
+    use_cases::roles::{
+        shared::webhook::default_actions::WebHookDefaultAction,
+        standard::{
+            guest_manager::guest_role::ActionType,
+            no_role::user::EmailRegistrationStatus,
+        },
     },
 };
 use myc_http_tools::utils::HttpJsonResponse;
@@ -343,9 +346,11 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             PaginatedRecord<ErrorCode>,
             Role,
             HookTarget,
+            WebHookDefaultAction,
             WebHook,
             AccountPropagationWebHookResponse,
             Tag,
+            system_manager_webhook_endpoints::CreateWebHookBody,
             system_manager_webhook_endpoints::UpdateWebHookBody,
             guest_manager_guest_role_endpoints::UpdateGuestRolePermissionsBody,
             no_role_account_endpoints::CreateDefaultAccountBody,

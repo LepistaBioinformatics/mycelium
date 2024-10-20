@@ -123,7 +123,7 @@ pub async fn guest_user(
     // ? Persist changes
     // ? -----------------------------------------------------------------------
 
-    let guest_user = guest_user_registration_repo
+    let guest_user = match guest_user_registration_repo
         .get_or_create(
             GuestUser {
                 id: None,
@@ -135,7 +135,15 @@ pub async fn guest_user(
             },
             target_account_id,
         )
-        .await;
+        .await {
+            Ok(res) => res,
+            Err(err) => {
+                return use_case_err(format!("Unable to create guest user: {err}"))
+                    .with_code(NativeErrorCodes::MYC00017)
+                    .with_exp_true()
+                    .as_error()
+            }
+        };
 
     // ? -----------------------------------------------------------------------
     // ? Build notification message
@@ -185,32 +193,30 @@ pub async fn guest_user(
     // ? Notify guest user
     // ? -----------------------------------------------------------------------
 
-    if guest_user.is_ok() {
-        if let Err(err) = message_sending_repo
-            .send(Message {
-                from: Email::from_string(
-                    life_cycle_settings.noreply_email.get_or_error()?,
-                )?,
-                to: email,
-                cc: None,
-                subject: String::from(
-                    "[Guest to Account] You have been invited to collaborate",
-                ),
-                message_head: None,
-                message_body: email_template,
-                message_footer: None,
-            })
-            .await
-        {
-            return use_case_err(format!("Unable to send email: {err}"))
-                .with_code(NativeErrorCodes::MYC00010)
-                .as_error()
-        };
-    }
+    if let Err(err) = message_sending_repo
+        .send(Message {
+            from: Email::from_string(
+                life_cycle_settings.noreply_email.get_or_error()?,
+            )?,
+            to: email,
+            cc: None,
+            subject: String::from(
+                "[Guest to Account] You have been invited to collaborate",
+            ),
+            message_head: None,
+            message_body: email_template,
+            message_footer: None,
+        })
+        .await
+    {
+        return use_case_err(format!("Unable to send email: {err}"))
+            .with_code(NativeErrorCodes::MYC00010)
+            .as_error()
+    };
 
     // ? -----------------------------------------------------------------------
     // ? Send the guesting response
     // ? -----------------------------------------------------------------------
 
-    guest_user
+    Ok(guest_user)
 }

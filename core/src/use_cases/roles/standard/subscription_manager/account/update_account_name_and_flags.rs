@@ -8,6 +8,7 @@ use mycelium_base::{
     entities::{FetchResponseKind, UpdatingResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
+use slugify::slugify;
 use uuid::Uuid;
 
 #[tracing::instrument(
@@ -58,7 +59,8 @@ pub async fn update_account_name_and_flags(
     };
 
     if let Some(name) = name {
-        account.name = name;
+        account.name = name.to_owned();
+        account.slug = slugify!(&name.as_str());
     }
 
     if let Some(is_active) = is_active {

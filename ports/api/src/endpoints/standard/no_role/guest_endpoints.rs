@@ -41,8 +41,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[serde(rename_all = "camelCase")]
 pub struct GuestUserBody {
     account: Account,
-    tenant_id: Uuid,
-    platform_url: Option<String>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -97,9 +95,9 @@ pub struct GuestUserBody {
         ),
     ),
 )]
-#[post("/role/{role}")]
+#[post("/{tenant_id}/role/{role}")]
 pub async fn guest_to_default_account_url(
-    path: web::Path<(Uuid,)>,
+    path: web::Path<(Uuid, Uuid)>,
     body: web::Json<GuestUserBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     account_registration_repo: Inject<
@@ -116,13 +114,13 @@ pub async fn guest_to_default_account_url(
     >,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
+    let (tenant_id, role_id) = path.to_owned();
     let account = body.account.to_owned();
 
     match guest_to_default_account(
-        path.0,
+        role_id,
         account.to_owned(),
-        body.tenant_id.to_owned(),
-        body.platform_url.to_owned(),
+        tenant_id,
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*account_registration_repo),
         Box::new(&*guest_role_fetching_repo),

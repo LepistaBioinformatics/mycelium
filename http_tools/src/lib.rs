@@ -14,6 +14,7 @@ pub use myc_core::{
     domain::{
         actors::ActorName,
         dtos::{
+            account::Account,
             email::Email,
             guest::Permissions,
             profile::{LicensedResources, Profile},

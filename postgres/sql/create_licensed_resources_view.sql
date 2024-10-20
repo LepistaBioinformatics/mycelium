@@ -3,13 +3,13 @@ CREATE OR REPLACE VIEW licensed_resources AS
 SELECT DISTINCT
 	ac.id AS acc_id,
 	ac.name AS acc_name,
-	ac.tenant_id AS tenant_id,
 	ac.is_default AS is_acc_std,
 	gr.id AS gr_id,
 	gr.name AS gr_name,
 	gr.permissions AS gr_perms,
 	rl.name AS rl_name,
-    gu.email AS gu_email
+    gu.email AS gu_email,
+	ac.tenant_id AS tenant_id
 FROM
 	guest_user_on_account AS ga
 JOIN

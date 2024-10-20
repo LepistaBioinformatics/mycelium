@@ -153,6 +153,7 @@ pub enum NativeErrorCodes {
     /// is_native: true
     ///
     MYC00015,
+
     ///
     /// code: "MYC00016",
     /// message: "Tenant owner not found",
@@ -161,6 +162,15 @@ pub enum NativeErrorCodes {
     /// is_native: true
     ///
     MYC00016,
+
+    ///
+    /// code: "MYC00017",
+    /// message: "Guest already exists",
+    /// details: "Indicates that the guest already exists.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00017,
 }
 
 impl NativeErrorCodes {
@@ -204,6 +214,7 @@ impl NativeErrorCodes {
             Self::MYC00014 => "MYC00014",
             Self::MYC00015 => "MYC00015",
             Self::MYC00016 => "MYC00016",
+            Self::MYC00017 => "MYC00017",
         }
     }
 

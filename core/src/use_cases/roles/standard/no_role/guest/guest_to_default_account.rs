@@ -34,7 +34,6 @@ pub async fn guest_to_default_account(
     role_id: Uuid,
     account: Account,
     tenant_id: Uuid,
-    platform_url: Option<String>,
     life_cycle_settings: AccountLifeCycle,
     account_registration_repo: Box<&dyn AccountRegistration>,
     guest_role_fetching_repo: Box<&dyn GuestRoleFetching>,
@@ -159,10 +158,6 @@ pub async fn guest_to_default_account(
         "support_email",
         &life_cycle_settings.support_email.get_or_error()?,
     );
-
-    if let Some(url) = platform_url {
-        context.insert("platform_url", &url);
-    }
 
     let email_template = match TEMPLATES
         .render("email/guest-to-subscription-account.jinja", &context)
