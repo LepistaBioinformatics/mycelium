@@ -44,6 +44,6 @@ pub(crate) async fn get_or_create_role_related_account(
     // ? -----------------------------------------------------------------------
 
     account_registration_repo
-        .get_or_create_user_account(unchecked_account, false, true)
+        .get_or_create_role_related_account(unchecked_account)
         .await
 }

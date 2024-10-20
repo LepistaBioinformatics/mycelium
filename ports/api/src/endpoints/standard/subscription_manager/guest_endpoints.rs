@@ -13,7 +13,7 @@ use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
-        dtos::email::Email,
+        dtos::{email::Email, native_error_codes::NativeErrorCodes},
         entities::{
             AccountFetching, GuestRoleFetching, GuestUserDeletion,
             GuestUserFetching, GuestUserOnAccountUpdating,
@@ -234,8 +234,19 @@ pub async fn guest_user_url(
     .await
     {
         Ok(res) => get_or_create_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => {
+            let code_string = err.code().to_string();
+
+            if err.is_in(vec![NativeErrorCodes::MYC00017]) {
+                return HttpResponse::Conflict().json(
+                    HttpJsonResponse::new_message(err.to_string())
+                        .with_code(code_string),
+                );
+            }
+
+            HttpResponse::InternalServerError()
+                .json(HttpJsonResponse::new_message(err.to_string()))
+        }
     }
 }
 

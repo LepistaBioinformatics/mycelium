@@ -55,6 +55,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateWebHookBody {
+    name: String,
     url: String,
     action: WebHookDefaultAction,
 }
@@ -119,6 +120,7 @@ pub async fn crate_webhook_url(
 ) -> impl Responder {
     match register_webhook(
         profile.to_profile(),
+        body.name.to_owned(),
         body.url.to_owned(),
         body.action.to_owned(),
         Box::new(&*webhook_registration_repo),

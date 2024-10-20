@@ -21,6 +21,7 @@ use mycelium_base::{
     },
     utils::errors::{use_case_err, MappedErrors},
 };
+use tracing::error;
 
 /// Create a default account.
 ///
@@ -90,8 +91,9 @@ pub async fn create_default_account(
     {
         FetchManyResponseKind::NotFound => None,
         FetchManyResponseKind::Found(records) => Some(records),
-        FetchManyResponseKind::FoundPaginated(paginated_records) => {
-            Some(paginated_records.records)
+        _ => {
+            error!("Webhook response should not be paginated");
+            None
         }
     };
 

@@ -20,8 +20,10 @@ use mycelium_base::{
     entities::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
+use prisma_client_rust::prisma_errors::query_engine::UniqueKeyViolation;
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
+use tracing::warn;
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -52,10 +54,9 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
             Some(res) => res,
         };
 
-        let _guest_user =
-            register_guest_user(client, guest_user, account_id).await?;
+        register_guest_user(client, guest_user, account_id).await
 
-        Ok(GetOrCreateResponseKind::Created(_guest_user))
+        //Ok(GetOrCreateResponseKind::Created(_guest_user))
     }
 }
 
@@ -63,7 +64,7 @@ pub(super) async fn register_guest_user(
     client: &PrismaClient,
     guest_user: GuestUser,
     account_id: Uuid,
-) -> Result<GuestUser, MappedErrors> {
+) -> Result<GetOrCreateResponseKind<GuestUser>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Try to get the guest user
     //
@@ -228,14 +229,18 @@ pub(super) async fn register_guest_user(
         .await
     {
         Err(err) => {
-            return creation_err(format!(
-                "Unexpected error on create guest: {:?}",
-                err
-            ))
-            .as_error()
-        }
-        Ok(res) => res,
-    };
+            if err.is_prisma_error::<UniqueKeyViolation>() {
+                warn!("Guest user already exists: {err}");
 
-    Ok(_guest_user)
+                return creation_err("Guest user already exists")
+                    .with_code(NativeErrorCodes::MYC00017)
+                    .with_exp_true()
+                    .as_error();
+            };
+
+            creation_err(format!("Unexpected error on create guest: {err}"))
+                .as_error()
+        }
+        Ok(_) => Ok(GetOrCreateResponseKind::Created(_guest_user)),
+    }
 }
