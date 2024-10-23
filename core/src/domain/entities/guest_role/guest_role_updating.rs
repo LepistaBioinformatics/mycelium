@@ -14,13 +14,13 @@ pub trait GuestRoleUpdating: Interface + Send + Sync {
         user_role: GuestRole,
     ) -> Result<UpdatingResponseKind<GuestRole>, MappedErrors>;
 
-    async fn insert_role_children(
+    async fn insert_role_child(
         &self,
         role_id: Uuid,
         child_id: Uuid,
     ) -> Result<UpdatingResponseKind<GuestRole>, MappedErrors>;
 
-    async fn remove_role_children(
+    async fn remove_role_child(
         &self,
         role_id: Uuid,
         child_id: Uuid,

@@ -9,8 +9,8 @@ use mycelium_base::{
 };
 use uuid::Uuid;
 
-#[tracing::instrument(name = "insert_role_parent", skip_all)]
-pub async fn insert_role_children(
+#[tracing::instrument(name = "insert_role_child", skip_all)]
+pub async fn insert_role_child(
     profile: Profile,
     role_id: Uuid,
     child_id: Uuid,
@@ -27,6 +27,6 @@ pub async fn insert_role_children(
     // ? ----------------------------------------------------------------------
 
     guest_role_updating_repo
-        .insert_role_children(role_id, child_id)
+        .insert_role_child(role_id, child_id)
         .await
 }
