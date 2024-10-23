@@ -71,6 +71,17 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                         role: Parent::Id(
                             Uuid::parse_str(&record.role.id).unwrap(),
                         ),
+                        children: match record.children.len() {
+                            0 => None,
+                            _ => Some(
+                                record
+                                    .children
+                                    .into_iter()
+                                    .map(|i| Uuid::parse_str(&i).unwrap())
+                                    .collect(),
+                            ),
+                        },
+
                         permissions: record
                             .permissions
                             .into_iter()
@@ -128,6 +139,17 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                     name: record.name,
                     description: record.description,
                     role: Parent::Id(Uuid::parse_str(&record.role_id).unwrap()),
+                    children: match record.children.len() {
+                        0 => None,
+                        _ => Some(
+                            record
+                                .children
+                                .into_iter()
+                                .map(|i| Uuid::parse_str(&i).unwrap())
+                                .collect(),
+                        ),
+                    },
+
                     permissions: record
                         .permissions
                         .into_iter()

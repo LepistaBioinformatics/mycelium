@@ -120,7 +120,7 @@ pub struct UpdateGuestRolePermissionsBody {
 pub async fn crate_guest_role_url(
     json: web::Json<CreateGuestRoleBody>,
     profile: MyceliumProfileData,
-    role_registration_repo: Inject<
+    guest_role_registration_repo: Inject<
         GuestRoleRegistrationModule,
         dyn GuestRoleRegistration,
     >,
@@ -131,7 +131,7 @@ pub async fn crate_guest_role_url(
         json.description.to_owned(),
         json.role_id.to_owned(),
         None,
-        Box::new(&*role_registration_repo),
+        Box::new(&*guest_role_registration_repo),
     )
     .await
     {

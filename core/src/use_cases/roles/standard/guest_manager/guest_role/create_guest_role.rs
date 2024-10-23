@@ -28,27 +28,26 @@ pub async fn create_guest_role(
     description: String,
     role: Uuid,
     permissions: Option<Vec<Permissions>>,
-    role_registration_repo: Box<&dyn GuestRoleRegistration>,
+    guest_role_registration_repo: Box<&dyn GuestRoleRegistration>,
 ) -> Result<GetOrCreateResponseKind<GuestRole>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges to create role
     // ? ----------------------------------------------------------------------
 
-    profile.get_default_create_ids_or_error(vec![
-        ActorName::GuestManager.to_string()
-    ])?;
+    profile.get_default_create_ids_or_error(vec![ActorName::GuestManager])?;
 
     // ? ----------------------------------------------------------------------
     // ? Persist UserRole
     // ? ----------------------------------------------------------------------
 
-    role_registration_repo
+    guest_role_registration_repo
         .get_or_create(GuestRole {
             id: None,
             name,
             description: Some(description),
             role: Parent::Id(role),
             permissions: permissions.unwrap_or(vec![Permissions::View]),
+            children: None,
         })
         .await
 }
