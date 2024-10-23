@@ -9,8 +9,8 @@ use mycelium_base::{
 };
 use uuid::Uuid;
 
-#[tracing::instrument(name = "remove_role_parent", skip_all)]
-pub async fn remove_role_parent(
+#[tracing::instrument(name = "remove_role_child", skip_all)]
+pub async fn remove_role_child(
     profile: Profile,
     role_id: Uuid,
     child_id: Uuid,
@@ -27,6 +27,6 @@ pub async fn remove_role_parent(
     // ? ----------------------------------------------------------------------
 
     guest_role_updating_repo
-        .remove_role_children(role_id, child_id)
+        .remove_role_child(role_id, child_id)
         .await
 }

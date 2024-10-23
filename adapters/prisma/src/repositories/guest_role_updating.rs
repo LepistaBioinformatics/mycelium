@@ -122,7 +122,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
         }
     }
 
-    async fn insert_role_children(
+    async fn insert_role_child(
         &self,
         role_id: Uuid,
         child_id: Uuid,
@@ -223,7 +223,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
         }
     }
 
-    async fn remove_role_children(
+    async fn remove_role_child(
         &self,
         role_id: Uuid,
         child_id: Uuid,
