@@ -87,6 +87,16 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                 name: record.name,
                 description: record.description,
                 role: Parent::Id(Uuid::from_str(&record.role_id).unwrap()),
+                children: match record.children.len() {
+                    0 => None,
+                    _ => Some(
+                        record
+                            .children
+                            .into_iter()
+                            .map(|i| Uuid::parse_str(&i).unwrap())
+                            .collect(),
+                    ),
+                },
                 permissions: record
                     .permissions
                     .into_iter()
@@ -98,6 +108,210 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                     return updating_err(format!(
                         "Invalid primary key: {:?}",
                         user_role_id
+                    ))
+                    .with_exp_true()
+                    .as_error();
+                };
+
+                return updating_err(format!(
+                    "Unexpected error detected on update record: {}",
+                    err
+                ))
+                .as_error();
+            }
+        }
+    }
+
+    async fn insert_role_children(
+        &self,
+        role_id: Uuid,
+        child_id: Uuid,
+    ) -> Result<UpdatingResponseKind<GuestRole>, MappedErrors> {
+        // ? -------------------------------------------------------------------
+        // ? Try to build the prisma client
+        // ? -------------------------------------------------------------------
+
+        let tmp_client = get_client().await;
+
+        let client = match tmp_client.get(&process_id()) {
+            None => {
+                return updating_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .with_code(NativeErrorCodes::MYC00001)
+                .as_error()
+            }
+            Some(res) => res,
+        };
+
+        // ? -------------------------------------------------------------------
+        // ? Try to update record
+        // ? -------------------------------------------------------------------
+        let response = client
+            ._transaction()
+            .run(|client| async move {
+                let guest_role = client
+                    .guest_role()
+                    .find_unique(guest_role_model::id::equals(
+                        role_id.to_string(),
+                    ))
+                    .select(guest_role_model::select!({ children }))
+                    .exec()
+                    .await?;
+
+                let children = if let Some(data) = guest_role {
+                    let mut children = data.children;
+
+                    if !children.contains(&child_id.to_string()) {
+                        children.push(child_id.to_string());
+                    }
+
+                    children
+                } else {
+                    vec![child_id.to_string()]
+                };
+
+                client
+                    .guest_role()
+                    .update(
+                        guest_role_model::id::equals(role_id.to_string()),
+                        vec![guest_role_model::children::set(children)],
+                    )
+                    .exec()
+                    .await
+            })
+            .await;
+
+        match response {
+            Ok(record) => Ok(UpdatingResponseKind::Updated(GuestRole {
+                id: Some(Uuid::from_str(&record.id).unwrap()),
+                name: record.name,
+                description: record.description,
+                role: Parent::Id(Uuid::from_str(&record.role_id).unwrap()),
+                children: match record.children.len() {
+                    0 => None,
+                    _ => Some(
+                        record
+                            .children
+                            .into_iter()
+                            .map(|i| Uuid::parse_str(&i).unwrap())
+                            .collect(),
+                    ),
+                },
+                permissions: record
+                    .permissions
+                    .into_iter()
+                    .map(|i| Permissions::from_i32(i))
+                    .collect(),
+            })),
+            Err(err) => {
+                if err.is_prisma_error::<RecordNotFound>() {
+                    return updating_err(format!(
+                        "Invalid guest-role key: {:?}",
+                        role_id
+                    ))
+                    .with_exp_true()
+                    .as_error();
+                };
+
+                return updating_err(format!(
+                    "Unexpected error detected on update record: {}",
+                    err
+                ))
+                .as_error();
+            }
+        }
+    }
+
+    async fn remove_role_children(
+        &self,
+        role_id: Uuid,
+        child_id: Uuid,
+    ) -> Result<UpdatingResponseKind<GuestRole>, MappedErrors> {
+        // ? -------------------------------------------------------------------
+        // ? Try to build the prisma client
+        // ? -------------------------------------------------------------------
+
+        let tmp_client = get_client().await;
+
+        let client = match tmp_client.get(&process_id()) {
+            None => {
+                return updating_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .with_code(NativeErrorCodes::MYC00001)
+                .as_error()
+            }
+            Some(res) => res,
+        };
+
+        // ? -------------------------------------------------------------------
+        // ? Try to update record
+        // ? -------------------------------------------------------------------
+        let response = client
+            ._transaction()
+            .run(|client| async move {
+                let guest_role = client
+                    .guest_role()
+                    .find_unique(guest_role_model::id::equals(
+                        role_id.to_string(),
+                    ))
+                    .select(guest_role_model::select!({ children }))
+                    .exec()
+                    .await?;
+
+                let children = if let Some(data) = guest_role {
+                    let mut children = data.children;
+
+                    if let Some(index) =
+                        children.iter().position(|i| i == &child_id.to_string())
+                    {
+                        children.remove(index);
+                    }
+
+                    children
+                } else {
+                    vec![child_id.to_string()]
+                };
+
+                client
+                    .guest_role()
+                    .update(
+                        guest_role_model::id::equals(role_id.to_string()),
+                        vec![guest_role_model::children::set(children)],
+                    )
+                    .exec()
+                    .await
+            })
+            .await;
+
+        match response {
+            Ok(record) => Ok(UpdatingResponseKind::Updated(GuestRole {
+                id: Some(Uuid::from_str(&record.id).unwrap()),
+                name: record.name,
+                description: record.description,
+                role: Parent::Id(Uuid::from_str(&record.role_id).unwrap()),
+                children: match record.children.len() {
+                    0 => None,
+                    _ => Some(
+                        record
+                            .children
+                            .into_iter()
+                            .map(|i| Uuid::parse_str(&i).unwrap())
+                            .collect(),
+                    ),
+                },
+                permissions: record
+                    .permissions
+                    .into_iter()
+                    .map(|i| Permissions::from_i32(i))
+                    .collect(),
+            })),
+            Err(err) => {
+                if err.is_prisma_error::<RecordNotFound>() {
+                    return updating_err(format!(
+                        "Invalid guest-role key: {:?}",
+                        role_id
                     ))
                     .with_exp_true()
                     .as_error();

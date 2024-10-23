@@ -61,6 +61,11 @@ pub struct GuestRole {
     pub description: Option<String>,
     pub role: Parent<Role, Uuid>,
     pub permissions: Vec<Permissions>,
+
+    /// Children roles represents guest roles that are children of the current
+    /// role, and should be used to determine the allowed roles for the role
+    /// owner guest other users.
+    pub children: Option<Vec<Uuid>>,
 }
 
 impl GuestRole {

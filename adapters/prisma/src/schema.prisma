@@ -161,11 +161,12 @@ model GuestRole {
   id String @id @default(uuid())
 
   // Model fields
-  name        String  @db.VarChar(140)
-  description String? @db.VarChar(255)
-  role        Role    @relation(fields: [role_id], references: [id])
+  name        String   @db.VarChar(140)
+  description String?  @db.VarChar(255)
+  role        Role     @relation(fields: [role_id], references: [id])
   role_id     String
   permissions Int[]
+  children    String[]
 
   // Backward relationship fields
   guest_users GuestUser[]

@@ -8,7 +8,6 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::DateTime;
-use log::debug;
 use myc_core::domain::{
     dtos::{
         email::Email,
@@ -71,8 +70,6 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
             .await
             .unwrap();
 
-        debug!("Guest Record from Account ID: {:?}", response);
-
         let records: Vec<GuestUser> = response
             .iter()
             .map(|record| GuestUser {
@@ -85,6 +82,17 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
                     role: Parent::Id(
                         Uuid::parse_str(&record.guest_role.role_id).unwrap(),
                     ),
+                    children: match record.guest_role.children.len() {
+                        0 => None,
+                        _ => Some(
+                            record
+                                .guest_role
+                                .children
+                                .iter()
+                                .map(|i| Uuid::parse_str(&i).unwrap())
+                                .collect(),
+                        ),
+                    },
                     permissions: record
                         .guest_role
                         .permissions
