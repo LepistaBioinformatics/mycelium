@@ -36,7 +36,7 @@ pub(crate) async fn fetch_profile_from_request(
         check_credentials_with_multi_identity_provider(req.clone()).await?;
 
     if email.is_none() {
-        return Err(GatewayError::Forbidden(format!(
+        return Err(GatewayError::Unauthorized(format!(
             "Unable o extract user identity from request."
         )));
     }
@@ -92,7 +92,7 @@ pub async fn parse_issuer_from_request(
 ) -> Result<String, GatewayError> {
     let auth = match Authorization::<Bearer>::parse(&req) {
         Err(err) => {
-            return Err(GatewayError::Forbidden(format!(
+            return Err(GatewayError::Unauthorized(format!(
                 "Unexpected error on get bearer from request: {err}"
             )));
         }
@@ -110,19 +110,14 @@ pub async fn parse_issuer_from_request(
                 );
 
                 warn!("{msg}");
-                return Err(GatewayError::Forbidden(msg));
+                return Err(GatewayError::Unauthorized(msg));
             }
             Ok(res) => res,
         };
 
-    let issuer =
-        unverified
-            .claims()
-            .issuer
-            .as_ref()
-            .ok_or(GatewayError::Forbidden(
-                "Could not check issuer.".to_string(),
-            ))?;
+    let issuer = unverified.claims().issuer.as_ref().ok_or(
+        GatewayError::Unauthorized("Could not check issuer.".to_string()),
+    )?;
 
     Ok(issuer.to_owned().to_lowercase())
 }
@@ -145,15 +140,15 @@ async fn discover_provider(
         //
         let req_auth_config = req.app_data::<web::Data<AuthConfig>>();
         //
-        // If Google OAuth2 config if not available the returns a Forbidden.
+        // If Google OAuth2 config if not available the returns a Unauthorized.
         //
         if let None = req_auth_config {
-            return Err(GatewayError::Forbidden(format!(
+            return Err(GatewayError::Unauthorized(format!(
                 "Unable to extract Google auth config from request."
             )));
         }
         //
-        // If Google OAuth2 config if not available the returns a Forbidden
+        // If Google OAuth2 config if not available the returns a Unauthorized
         // response.
         //
         let config = match req_auth_config.unwrap().google.clone() {
@@ -162,7 +157,7 @@ async fn discover_provider(
                     "Users trying to request and the Google OAuth2 is disabled."
                 );
 
-                return Err(GatewayError::Forbidden(format!(
+                return Err(GatewayError::Unauthorized(format!(
                     "Unable to extract auth config from request."
                 )));
             }
@@ -175,7 +170,8 @@ async fn discover_provider(
     } else if auth_provider.contains("mycelium") {
         //
         // Extract the internal OAuth2 configuration from the HTTP request. If
-        // the configuration is not available returns a Forbidden response.
+        // the configuration is not available returns a InternalServerError
+        // response.
         //
         let req_auth_config = match req
             .app_data::<web::Data<InternalOauthConfig>>()
@@ -189,7 +185,7 @@ async fn discover_provider(
         };
         //
         // Extract the token from the request. If the token is not available
-        // returns a Forbidden response.
+        // returns a InternalServerError response.
         //
         let jwt_token = match req_auth_config.get_or_error() {
             Ok(token) => token,
@@ -201,7 +197,7 @@ async fn discover_provider(
         };
         //
         // Extract the bearer from the request. If the bearer is not available
-        // returns a Forbidden response.
+        // returns a Unauthorized response.
         //
         let auth = match Authorization::<Bearer>::parse(&req) {
             Err(err) => match err {
@@ -211,7 +207,7 @@ async fn discover_provider(
                     )));
                 }
                 _ => {
-                    return Err(GatewayError::Forbidden(format!(
+                    return Err(GatewayError::Unauthorized(format!(
                         "Invalid Bearer token: {err}"
                     )));
                 }
@@ -219,18 +215,18 @@ async fn discover_provider(
             Ok(res) => res,
         };
         //
-        // Decode the JWT token. If the token is not valid returns a Forbidden
-        // response.
+        // Decode the JWT token. If the token is not valid returns a
+        // Unauthorized response.
         //
         match decode_jwt_hs512(auth, jwt_token) {
             Err(err) => match err.kind() {
                 ErrorKind::ExpiredSignature => {
-                    return Err(GatewayError::Forbidden(format!(
+                    return Err(GatewayError::Unauthorized(format!(
                         "Expired token: {err}"
                     )));
                 }
                 _ => {
-                    return Err(GatewayError::Forbidden(format!(
+                    return Err(GatewayError::Unauthorized(format!(
                         "Unexpected error on decode jwt token: {err}"
                     )))
                 }
@@ -241,7 +237,7 @@ async fn discover_provider(
 
                 match Email::from_string(email) {
                     Err(err) => {
-                        return Err(GatewayError::Forbidden(format!(
+                        return Err(GatewayError::Unauthorized(format!(
                             "Invalid email: {err}"
                         )));
                     }
