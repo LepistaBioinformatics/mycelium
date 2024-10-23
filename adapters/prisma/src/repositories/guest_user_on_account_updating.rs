@@ -11,7 +11,7 @@ use async_trait::async_trait;
 use chrono::DateTime;
 use myc_core::domain::{
     dtos::{
-        email::Email, guest::GuestUser, native_error_codes::NativeErrorCodes,
+        email::Email, guest_user::GuestUser, native_error_codes::NativeErrorCodes,
     },
     entities::GuestUserOnAccountUpdating,
 };

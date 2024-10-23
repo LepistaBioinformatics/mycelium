@@ -1,5 +1,5 @@
 use super::{
-    account::VerboseStatus, guest::Permissions,
+    account::VerboseStatus, guest_role::Permissions,
     related_accounts::RelatedAccounts, user::User,
 };
 
@@ -563,7 +563,7 @@ impl Profile {
 #[cfg(test)]
 mod tests {
     use super::{LicensedResources, Owner, Profile};
-    use crate::domain::dtos::guest::Permissions;
+    use crate::domain::dtos::guest_role::Permissions;
     use std::str::FromStr;
     use test_log::test;
     use uuid::Uuid;

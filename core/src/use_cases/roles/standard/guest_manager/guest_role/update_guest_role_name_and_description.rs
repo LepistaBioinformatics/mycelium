@@ -1,6 +1,6 @@
 use crate::domain::{
     actors::ActorName,
-    dtos::{guest::GuestRole, profile::Profile},
+    dtos::{guest_role::GuestRole, profile::Profile},
     entities::{GuestRoleFetching, GuestRoleUpdating},
 };
 
@@ -31,7 +31,7 @@ pub async fn update_guest_role_name_and_description(
     // ? ----------------------------------------------------------------------
 
     profile.get_default_update_ids_or_error(vec![
-        ActorName::GuestManager.to_string(),
+        ActorName::GuestManager.to_string()
     ])?;
 
     // ? ----------------------------------------------------------------------

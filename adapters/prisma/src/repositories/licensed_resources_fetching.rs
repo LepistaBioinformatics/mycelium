@@ -3,8 +3,9 @@ use crate::repositories::connector::get_client;
 use async_trait::async_trait;
 use myc_core::domain::{
     dtos::{
-        email::Email, guest::Permissions, native_error_codes::NativeErrorCodes,
-        profile::LicensedResources, related_accounts::RelatedAccounts,
+        email::Email, guest_role::Permissions,
+        native_error_codes::NativeErrorCodes, profile::LicensedResources,
+        related_accounts::RelatedAccounts,
     },
     entities::LicensedResourcesFetching,
 };

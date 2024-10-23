@@ -1,5 +1,5 @@
 use super::{
-    account_type::AccountTypeV2, guest::GuestUser, tag::Tag, user::User,
+    account_type::AccountTypeV2, guest_user::GuestUser, tag::Tag, user::User,
 };
 use crate::domain::actors::ActorName;
 

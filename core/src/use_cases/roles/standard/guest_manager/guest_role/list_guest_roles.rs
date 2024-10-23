@@ -1,6 +1,6 @@
 use crate::domain::{
     actors::ActorName,
-    dtos::{guest::GuestRole, profile::Profile},
+    dtos::{guest_role::GuestRole, profile::Profile},
     entities::GuestRoleFetching,
 };
 

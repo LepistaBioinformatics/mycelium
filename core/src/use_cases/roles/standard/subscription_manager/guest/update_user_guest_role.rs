@@ -1,7 +1,7 @@
 use crate::domain::{
     actors::ActorName,
     dtos::{
-        guest::GuestUser, native_error_codes::NativeErrorCodes,
+        guest_user::GuestUser, native_error_codes::NativeErrorCodes,
         profile::Profile, related_accounts::RelatedAccounts,
     },
     entities::GuestUserOnAccountUpdating,

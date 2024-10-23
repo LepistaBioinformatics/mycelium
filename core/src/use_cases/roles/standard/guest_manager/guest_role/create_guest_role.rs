@@ -1,7 +1,7 @@
 use crate::domain::{
     actors::ActorName,
     dtos::{
-        guest::{GuestRole, Permissions},
+        guest_role::{GuestRole, Permissions},
         profile::Profile,
     },
     entities::GuestRoleRegistration,

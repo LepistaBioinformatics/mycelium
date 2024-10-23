@@ -11,7 +11,7 @@ use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
-        dtos::guest::Permissions,
+        dtos::guest_role::Permissions,
         entities::{
             GuestRoleDeletion, GuestRoleFetching, GuestRoleRegistration,
             GuestRoleUpdating,
