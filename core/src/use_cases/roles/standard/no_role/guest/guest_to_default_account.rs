@@ -1,8 +1,8 @@
 use crate::{
     domain::{
         dtos::{
-            account::Account, email::Email, guest::GuestUser, message::Message,
-            native_error_codes::NativeErrorCodes, user::User,
+            account::Account, email::Email, guest_user::GuestUser,
+            message::Message, native_error_codes::NativeErrorCodes, user::User,
         },
         entities::{
             AccountRegistration, GuestRoleFetching, GuestUserRegistration,

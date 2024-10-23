@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::domain::{
     actors::ActorName,
     dtos::{
-        account_type::AccountTypeV2, guest::GuestUser,
+        account_type::AccountTypeV2, guest_user::GuestUser,
         native_error_codes::NativeErrorCodes, profile::Profile,
     },
     entities::{AccountFetching, GuestUserFetching},

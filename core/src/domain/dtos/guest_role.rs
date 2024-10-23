@@ -1,7 +1,6 @@
-use super::{account::Account, email::Email, role::Role};
+use super::role::Role;
 
-use chrono::{DateTime, Local};
-use mycelium_base::dtos::{Children, Parent};
+use mycelium_base::dtos::Parent;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use utoipa::ToSchema;
@@ -67,30 +66,6 @@ pub struct GuestRole {
 impl GuestRole {
     pub fn build_role_url(&self, base_url: String) -> Result<String, ()> {
         match self.role.to_owned() {
-            Parent::Id(id) => Ok(format!("{}/{}", base_url, id)),
-            Parent::Record(record) => match record.id {
-                Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
-                None => Err(()),
-            },
-        }
-    }
-}
-
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct GuestUser {
-    pub id: Option<Uuid>,
-
-    pub email: Email,
-    pub guest_role: Parent<GuestRole, Uuid>,
-    pub created: DateTime<Local>,
-    pub updated: Option<DateTime<Local>>,
-    pub accounts: Option<Children<Account, Uuid>>,
-}
-
-impl GuestUser {
-    pub fn build_role_url(&self, base_url: String) -> Result<String, ()> {
-        match self.guest_role.to_owned() {
             Parent::Id(id) => Ok(format!("{}/{}", base_url, id)),
             Parent::Record(record) => match record.id {
                 Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),

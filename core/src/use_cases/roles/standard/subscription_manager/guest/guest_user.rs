@@ -5,7 +5,7 @@ use crate::{
             account::VerboseStatus, 
             account_type::AccountTypeV2, 
             email::Email, 
-            guest::GuestUser, 
+            guest_user::GuestUser, 
             message::Message, 
             native_error_codes::NativeErrorCodes, 
             profile::Profile

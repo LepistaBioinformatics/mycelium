@@ -1,4 +1,4 @@
-use crate::domain::dtos::guest::GuestUser;
+use crate::domain::dtos::guest_user::GuestUser;
 
 use async_trait::async_trait;
 use mycelium_base::{

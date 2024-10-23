@@ -12,7 +12,8 @@ use log::debug;
 use myc_core::domain::{
     dtos::{
         email::Email,
-        guest::{GuestRole, GuestUser, Permissions},
+        guest_role::{GuestRole, Permissions},
+        guest_user::GuestUser,
         native_error_codes::NativeErrorCodes,
     },
     entities::GuestUserFetching,

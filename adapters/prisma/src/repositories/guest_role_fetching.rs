@@ -5,7 +5,7 @@ use crate::{
 use async_trait::async_trait;
 use myc_core::domain::{
     dtos::{
-        guest::{GuestRole, Permissions},
+        guest_role::{GuestRole, Permissions},
         native_error_codes::NativeErrorCodes,
     },
     entities::GuestRoleFetching,
