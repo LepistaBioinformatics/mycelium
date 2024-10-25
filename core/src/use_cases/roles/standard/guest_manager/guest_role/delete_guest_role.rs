@@ -21,7 +21,7 @@ pub async fn delete_guest_role(
     // Check if the user has manager status. Return an error if not.
     // ? ----------------------------------------------------------------------
 
-    profile.get_default_delete_ids_or_error(vec![ActorName::GuestManager])?;
+    profile.get_default_write_ids_or_error(vec![ActorName::GuestManager])?;
 
     // ? ----------------------------------------------------------------------
     // ? Perform the deletion operation

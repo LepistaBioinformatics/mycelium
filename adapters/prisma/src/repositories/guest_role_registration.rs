@@ -12,7 +12,7 @@ use myc_core::domain::{
     entities::GuestRoleRegistration,
 };
 use mycelium_base::{
-    dtos::Parent,
+    dtos::{Children, Parent},
     entities::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
@@ -56,7 +56,12 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
             .find_first(vec![guest_role_model::name::equals(
                 guest_role.name.to_owned(),
             )])
-            .include(guest_role_model::include!({ role: select { id } }))
+            .include(guest_role_model::include!({
+                role: select {
+                    id
+                }
+                children
+            }))
             .exec()
             .await;
 
@@ -73,13 +78,16 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                         ),
                         children: match record.children.len() {
                             0 => None,
-                            _ => Some(
+                            _ => Some(Children::Ids(
                                 record
                                     .children
                                     .into_iter()
-                                    .map(|i| Uuid::parse_str(&i).unwrap())
+                                    .map(|i| {
+                                        Uuid::parse_str(&i.child_role_id)
+                                            .unwrap()
+                                    })
                                     .collect(),
-                            ),
+                            )),
                         },
 
                         permissions: record
@@ -127,6 +135,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                     ),
                 ],
             )
+            .include(guest_role_model::include!({ children }))
             .exec()
             .await;
 
@@ -141,13 +150,15 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                     role: Parent::Id(Uuid::parse_str(&record.role_id).unwrap()),
                     children: match record.children.len() {
                         0 => None,
-                        _ => Some(
+                        _ => Some(Children::Ids(
                             record
                                 .children
                                 .into_iter()
-                                .map(|i| Uuid::parse_str(&i).unwrap())
+                                .map(|i| {
+                                    Uuid::parse_str(&i.child_role_id).unwrap()
+                                })
                                 .collect(),
-                        ),
+                        )),
                     },
 
                     permissions: record

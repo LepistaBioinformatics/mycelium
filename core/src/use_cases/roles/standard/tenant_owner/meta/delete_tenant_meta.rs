@@ -26,7 +26,7 @@ pub async fn delete_tenant_meta(
 
     profile
         .on_tenant(tenant_id)
-        .get_default_update_ids_or_error(vec![ActorName::TenantOwner])?;
+        .get_default_write_ids_or_error(vec![ActorName::TenantOwner])?;
 
     // ? -----------------------------------------------------------------------
     // ? Register the account

@@ -32,7 +32,7 @@ pub async fn list_licensed_accounts_of_email(
 
     let related_accounts = profile
         .on_tenant(tenant_id)
-        .get_related_account_with_default_view_or_error(vec![
+        .get_related_account_with_default_read_or_error(vec![
             ActorName::TenantOwner.to_string(),
             ActorName::TenantManager.to_string(),
             ActorName::SubscriptionManager.to_string(),

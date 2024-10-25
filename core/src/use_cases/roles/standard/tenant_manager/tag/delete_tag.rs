@@ -25,7 +25,7 @@ pub async fn delete_tag(
     //
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_update_ids_or_error(vec![
+    profile.get_default_write_ids_or_error(vec![
         ActorName::TenantOwner.to_string(),
         ActorName::TenantManager.to_string(),
     ])?;

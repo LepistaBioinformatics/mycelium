@@ -55,7 +55,7 @@ pub async fn guest_user(
 
     let related_accounts = profile
         .on_tenant(tenant_id)
-        .get_related_account_with_default_create_or_error(vec![
+        .get_related_account_with_default_write_or_error(vec![
             ActorName::TenantOwner.to_string(),
             ActorName::TenantManager.to_string(),
             ActorName::SubscriptionManager.to_string(),

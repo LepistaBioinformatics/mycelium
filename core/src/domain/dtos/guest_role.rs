@@ -1,6 +1,6 @@
 use super::role::Role;
 
-use mycelium_base::dtos::Parent;
+use mycelium_base::dtos::{Children, Parent};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use utoipa::ToSchema;
@@ -9,20 +9,16 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum Permissions {
-    View = 0,
-    Create = 1,
-    Update = 2,
-    Delete = 3,
+    Read = 0,
+    Write = 1,
 }
 
 impl Permissions {
     pub fn from_i32(v: i32) -> Self {
         match v {
-            0 => Permissions::View,
-            1 => Permissions::Create,
-            2 => Permissions::Update,
-            3 => Permissions::Delete,
-            _ => Permissions::View,
+            0 => Permissions::Read,
+            1 => Permissions::Write,
+            _ => Permissions::Read,
         }
     }
 }
@@ -32,10 +28,8 @@ impl FromStr for Permissions {
 
     fn from_str(s: &str) -> Result<Permissions, ()> {
         match s {
-            "view" => Ok(Permissions::View),
-            "create" => Ok(Permissions::Create),
-            "update" => Ok(Permissions::Update),
-            "delete" => Ok(Permissions::Delete),
+            "read" => Ok(Permissions::Read),
+            "write" => Ok(Permissions::Write),
             _ => Err(()),
         }
     }
@@ -44,10 +38,8 @@ impl FromStr for Permissions {
 impl ToString for Permissions {
     fn to_string(&self) -> String {
         match self {
-            Permissions::View => "view".to_string(),
-            Permissions::Create => "create".to_string(),
-            Permissions::Update => "update".to_string(),
-            Permissions::Delete => "delete".to_string(),
+            Permissions::Read => "read".to_string(),
+            Permissions::Write => "write".to_string(),
         }
     }
 }
@@ -65,7 +57,7 @@ pub struct GuestRole {
     /// Children roles represents guest roles that are children of the current
     /// role, and should be used to determine the allowed roles for the role
     /// owner guest other users.
-    pub children: Option<Vec<Uuid>>,
+    pub children: Option<Children<GuestRole, Uuid>>,
 }
 
 impl GuestRole {

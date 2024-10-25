@@ -161,19 +161,33 @@ model GuestRole {
   id String @id @default(uuid())
 
   // Model fields
-  name        String   @db.VarChar(140)
-  description String?  @db.VarChar(255)
-  role        Role     @relation(fields: [role_id], references: [id])
+  name        String  @db.VarChar(140)
+  description String? @db.VarChar(255)
+  role        Role    @relation(fields: [role_id], references: [id])
   role_id     String
   permissions Int[]
-  children    String[]
 
   // Backward relationship fields
   guest_users GuestUser[]
+  children    GuestRoleChildren[] @relation(name: "ParentGuestRole")
+  parent      GuestRoleChildren[] @relation(name: "ChildGuestRole")
 
   // Db compatibility and extra maps
   @@unique([name])
   @@map("guest_role")
+}
+
+model GuestRoleChildren {
+  // Model fields
+  parent    GuestRole @relation(name: "ParentGuestRole", fields: [parent_id], references: [id])
+  parent_id String
+
+  child_role    GuestRole @relation(name: "ChildGuestRole", fields: [child_role_id], references: [id])
+  child_role_id String
+
+  // Db compatibility and extra maps
+  @@id([parent_id, child_role_id])
+  @@map("guest_role_children")
 }
 
 model GuestUser {

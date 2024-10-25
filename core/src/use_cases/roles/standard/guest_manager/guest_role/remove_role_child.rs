@@ -15,12 +15,12 @@ pub async fn remove_role_child(
     role_id: Uuid,
     child_id: Uuid,
     guest_role_updating_repo: Box<&dyn GuestRoleUpdating>,
-) -> Result<UpdatingResponseKind<GuestRole>, MappedErrors> {
+) -> Result<UpdatingResponseKind<Option<GuestRole>>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges to create role
     // ? ----------------------------------------------------------------------
 
-    profile.get_default_update_ids_or_error(vec![ActorName::GuestManager])?;
+    profile.get_default_write_ids_or_error(vec![ActorName::GuestManager])?;
 
     // ? ----------------------------------------------------------------------
     // ? Persist UserRole
