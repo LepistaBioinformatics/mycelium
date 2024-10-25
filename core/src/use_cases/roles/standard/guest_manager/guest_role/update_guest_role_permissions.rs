@@ -64,7 +64,7 @@ pub async fn update_guest_role_permissions(
     // Check if the user has manager status. Return an error if not.
     // ? ----------------------------------------------------------------------
 
-    profile.get_default_update_ids_or_error(vec![ActorName::GuestManager])?;
+    profile.get_default_write_ids_or_error(vec![ActorName::GuestManager])?;
 
     // ? ----------------------------------------------------------------------
     // ? Fetch role from data persistence layer

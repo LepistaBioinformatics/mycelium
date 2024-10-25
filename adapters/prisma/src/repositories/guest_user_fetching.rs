@@ -18,7 +18,7 @@ use myc_core::domain::{
     entities::GuestUserFetching,
 };
 use mycelium_base::{
-    dtos::Parent,
+    dtos::{Children, Parent},
     entities::FetchManyResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
@@ -65,7 +65,18 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
                     account_id.to_string(),
                 ),
             ])])
-            .include(guest_user_model::include!({ guest_role }))
+            .include(guest_user_model::include!({
+                guest_role: select {
+                    id
+                    name
+                    description
+                    role: select {
+                        id
+                    }
+                    children
+                    permissions
+                }
+            }))
             .exec()
             .await
             .unwrap();
@@ -80,18 +91,20 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
                     name: record.guest_role.name.to_owned(),
                     description: record.guest_role.description.to_owned(),
                     role: Parent::Id(
-                        Uuid::parse_str(&record.guest_role.role_id).unwrap(),
+                        Uuid::parse_str(&record.guest_role.role.id).unwrap(),
                     ),
                     children: match record.guest_role.children.len() {
                         0 => None,
-                        _ => Some(
+                        _ => Some(Children::Ids(
                             record
                                 .guest_role
                                 .children
                                 .iter()
-                                .map(|i| Uuid::parse_str(&i).unwrap())
+                                .map(|i| {
+                                    Uuid::parse_str(&i.child_role_id).unwrap()
+                                })
                                 .collect(),
-                        ),
+                        )),
                     },
                     permissions: record
                         .guest_role

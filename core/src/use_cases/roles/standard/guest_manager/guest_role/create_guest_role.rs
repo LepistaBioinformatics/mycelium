@@ -34,7 +34,7 @@ pub async fn create_guest_role(
     // ? Check if the current account has sufficient privileges to create role
     // ? ----------------------------------------------------------------------
 
-    profile.get_default_create_ids_or_error(vec![ActorName::GuestManager])?;
+    profile.get_default_write_ids_or_error(vec![ActorName::GuestManager])?;
 
     // ? ----------------------------------------------------------------------
     // ? Persist UserRole
@@ -46,7 +46,7 @@ pub async fn create_guest_role(
             name,
             description: Some(description),
             role: Parent::Id(role),
-            permissions: permissions.unwrap_or(vec![Permissions::View]),
+            permissions: permissions.unwrap_or(vec![Permissions::Read]),
             children: None,
         })
         .await

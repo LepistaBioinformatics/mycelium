@@ -26,8 +26,8 @@ pub async fn create_role(
     // ? Check if the current account has sufficient privileges to create role
     // ? ----------------------------------------------------------------------
 
-    profile.get_default_create_ids_or_error(vec![
-        ActorName::GuestManager.to_string(),
+    profile.get_default_write_ids_or_error(vec![
+        ActorName::GuestManager.to_string()
     ])?;
 
     // ? ----------------------------------------------------------------------
