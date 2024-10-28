@@ -1,5 +1,6 @@
 use super::{
-    http::{HttpMethod, Protocol, RouteType},
+    http::{HttpMethod, Protocol},
+    route_type::RouteType,
     service::ClientService,
 };
 

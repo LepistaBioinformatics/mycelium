@@ -65,6 +65,8 @@ impl FromRequest for MyceliumProfileData {
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
         let req_clone = req.clone();
 
-        Box::pin(async move { fetch_profile_from_request(req_clone).await })
+        Box::pin(
+            async move { fetch_profile_from_request(req_clone, None).await },
+        )
     }
 }

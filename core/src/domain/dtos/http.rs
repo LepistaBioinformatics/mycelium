@@ -95,10 +95,3 @@ impl Display for Protocol {
         }
     }
 }
-
-#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub enum RouteType {
-    Public,
-    Protected,
-}

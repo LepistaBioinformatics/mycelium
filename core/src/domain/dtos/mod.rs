@@ -12,6 +12,7 @@ pub mod profile;
 pub mod related_accounts;
 pub mod role;
 pub mod route;
+pub mod route_type;
 pub mod service;
 pub mod tag;
 pub mod tenant;

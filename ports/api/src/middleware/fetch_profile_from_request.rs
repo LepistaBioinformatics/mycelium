@@ -31,6 +31,7 @@ use tracing::{debug, warn};
 #[tracing::instrument(name = "fetch_profile_from_request", skip_all)]
 pub(crate) async fn fetch_profile_from_request(
     req: HttpRequest,
+    roles: Option<Vec<String>>,
 ) -> Result<MyceliumProfileData, GatewayError> {
     let email =
         check_credentials_with_multi_identity_provider(req.clone()).await?;
@@ -43,6 +44,7 @@ pub(crate) async fn fetch_profile_from_request(
 
     let profile = match fetch_profile_from_email(
         email.to_owned().unwrap(),
+        roles,
         Box::new(&ProfileFetchingSqlDbRepository {}),
         Box::new(&LicensedResourcesFetchingSqlDbRepository {}),
     )

@@ -7,7 +7,7 @@ use actix_web::{
 use awc::Client;
 use myc_core::{
     domain::{
-        dtos::http::{HttpMethod, RouteType},
+        dtos::{http::HttpMethod, route_type::RouteType},
         entities::RoutesFetching,
     },
     settings::{FORWARDING_KEYS, FORWARD_FOR_KEY},
@@ -174,12 +174,28 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    if let RouteType::Protected = route.group.to_owned() {
-        //
-        // Try to populate profile from the request
-        //
-        forwarded_req =
-            fetch_and_inject_profile_to_forward(req, forwarded_req).await?;
+    match route.group.to_owned() {
+        RouteType::Protected => {
+            //
+            // Try to populate profile from the request
+            //
+            forwarded_req =
+                fetch_and_inject_profile_to_forward(req, forwarded_req, None)
+                    .await?;
+        }
+        RouteType::RoleProtected { roles } => {
+            //
+            // Try to populate profile from the request filtering licensed
+            // resources by roles
+            //
+            forwarded_req = fetch_and_inject_profile_to_forward(
+                req,
+                forwarded_req,
+                Some(roles),
+            )
+            .await?;
+        }
+        _ => (),
     }
 
     // ? -----------------------------------------------------------------------
