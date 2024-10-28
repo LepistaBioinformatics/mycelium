@@ -34,9 +34,7 @@
 
           <p>
             Role permissions:
-            {% for permission in role_permissions %}
-            <br />- {{ permission }}
-            {% endfor %}
+            - {{ role_permissions }}
           </p>
 
           {% if support_email %}

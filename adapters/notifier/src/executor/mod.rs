@@ -15,7 +15,7 @@ use tracing::error;
 pub async fn consume_messages(
     queue_name: String,
     message_sending_repo: Box<&dyn MessageSending>,
-) -> Result<(), MappedErrors> {
+) -> Result<i32, MappedErrors> {
     let client = get_client().await;
     let mut connection = match client.get_connection() {
         Ok(conn) => conn,
@@ -31,6 +31,7 @@ pub async fn consume_messages(
     let error_queue = format!("{}_error_queue", queue_name);
     let max_retries = 3;
     let mut retries = 0;
+    let mut processed_messages = 0;
 
     //
     // Consume the queue up to the end
@@ -123,6 +124,8 @@ pub async fn consume_messages(
         // temporary queue
         //
         if let Some(message) = message {
+            processed_messages += 1;
+
             let _: Value = match redis::cmd("LREM")
                 .arg(processing_queue.to_owned())
                 .arg(message.to_owned())
@@ -140,7 +143,7 @@ pub async fn consume_messages(
         }
     }
 
-    Ok(())
+    Ok(processed_messages)
 }
 
 async fn process_record(
