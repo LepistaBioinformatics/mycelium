@@ -296,6 +296,8 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         guest_manager_guest_role_endpoints::delete_guest_role_url,
         guest_manager_guest_role_endpoints::update_guest_role_name_and_description_url,
         guest_manager_guest_role_endpoints::update_guest_role_permissions_url,
+        guest_manager_guest_role_endpoints::insert_role_child_url,
+        guest_manager_guest_role_endpoints::remove_role_child_url,
         guest_manager_role_endpoints::crate_role_url,
         guest_manager_role_endpoints::list_roles_url,
         guest_manager_role_endpoints::delete_role_url,

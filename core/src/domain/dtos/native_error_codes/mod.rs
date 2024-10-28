@@ -171,6 +171,15 @@ pub enum NativeErrorCodes {
     /// is_native: true
     ///
     MYC00017,
+
+    ///
+    /// code: "MYC00018",
+    /// message: "Invalid user operation",
+    /// details: "Indicates that the user operation is invalid.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00018,
 }
 
 impl NativeErrorCodes {
@@ -215,6 +224,7 @@ impl NativeErrorCodes {
             Self::MYC00015 => "MYC00015",
             Self::MYC00016 => "MYC00016",
             Self::MYC00017 => "MYC00017",
+            Self::MYC00018 => "MYC00018",
         }
     }
 

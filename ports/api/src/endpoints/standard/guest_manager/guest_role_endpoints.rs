@@ -45,7 +45,9 @@ pub fn configure(config: &mut web::ServiceConfig) {
         .service(list_guest_roles_url)
         .service(delete_guest_role_url)
         .service(update_guest_role_name_and_description_url)
-        .service(update_guest_role_permissions_url);
+        .service(update_guest_role_permissions_url)
+        .service(insert_role_child_url)
+        .service(remove_role_child_url);
 }
 
 // ? -----------------------------------------------------------------------
@@ -418,6 +420,10 @@ pub async fn update_guest_role_permissions_url(
 pub async fn insert_role_child_url(
     path: web::Path<(Uuid, Uuid)>,
     profile: MyceliumProfileData,
+    guest_role_fetching_repo: Inject<
+        GuestRoleFetchingModule,
+        dyn GuestRoleFetching,
+    >,
     guest_role_updating_repo: Inject<
         GuestRoleUpdatingModule,
         dyn GuestRoleUpdating,
@@ -429,6 +435,7 @@ pub async fn insert_role_child_url(
         profile.to_profile(),
         role_id,
         child_id,
+        Box::new(&*guest_role_fetching_repo),
         Box::new(&*guest_role_updating_repo),
     )
     .await
