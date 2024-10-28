@@ -1,7 +1,8 @@
 use crate::domain::dtos::{
     health_check::HealthCheckConfig,
-    http::{HttpMethod, Protocol, RouteType},
+    http::{HttpMethod, Protocol},
     route::Route,
+    route_type::RouteType,
     service::ClientService,
 };
 

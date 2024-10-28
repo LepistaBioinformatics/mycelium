@@ -218,7 +218,7 @@ pub async fn create_default_user_url(
 ) -> impl Responder {
     let provider = match parse_issuer_from_request(req.clone()).await {
         Err(err) => match err {
-            GatewayError::Forbidden(_) => None,
+            GatewayError::Unauthorized(_) => None,
             _ => {
                 warn!("Invalid issuer: {err}");
 

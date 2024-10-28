@@ -11,16 +11,16 @@ use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
-        dtos::guest::Permissions,
+        dtos::guest_role::Permission,
         entities::{
             GuestRoleDeletion, GuestRoleFetching, GuestRoleRegistration,
             GuestRoleUpdating,
         },
     },
     use_cases::roles::standard::guest_manager::guest_role::{
-        create_guest_role, delete_guest_role, list_guest_roles,
-        update_guest_role_name_and_description, update_guest_role_permissions,
-        ActionType,
+        create_guest_role, delete_guest_role, insert_role_child,
+        list_guest_roles, remove_role_child,
+        update_guest_role_name_and_description, update_guest_role_permission,
     },
 };
 use myc_http_tools::{
@@ -35,9 +35,9 @@ use shaku_actix::Inject;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 // ? Configure application
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
     config
@@ -45,12 +45,14 @@ pub fn configure(config: &mut web::ServiceConfig) {
         .service(list_guest_roles_url)
         .service(delete_guest_role_url)
         .service(update_guest_role_name_and_description_url)
-        .service(update_guest_role_permissions_url);
+        .service(update_guest_role_permissions_url)
+        .service(insert_role_child_url)
+        .service(remove_role_child_url);
 }
 
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 // ? Define API structs
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -77,8 +79,7 @@ pub struct UpdateGuestRoleNameAndDescriptionBody {
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateGuestRolePermissionsBody {
-    pub permission: Permissions,
-    pub action_type: ActionType,
+    pub permission: Permission,
 }
 
 /// Create Guest Role
@@ -120,7 +121,7 @@ pub struct UpdateGuestRolePermissionsBody {
 pub async fn crate_guest_role_url(
     json: web::Json<CreateGuestRoleBody>,
     profile: MyceliumProfileData,
-    role_registration_repo: Inject<
+    guest_role_registration_repo: Inject<
         GuestRoleRegistrationModule,
         dyn GuestRoleRegistration,
     >,
@@ -131,7 +132,7 @@ pub async fn crate_guest_role_url(
         json.description.to_owned(),
         json.role_id.to_owned(),
         None,
-        Box::new(&*role_registration_repo),
+        Box::new(&*guest_role_registration_repo),
     )
     .await
     {
@@ -205,7 +206,7 @@ pub async fn list_guest_roles_url(
     delete,
     context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
-        ("role" = Uuid, Path, description = "The guest-role primary key."),
+        ("role_id" = Uuid, Path, description = "The guest-role primary key."),
     ),
     responses(
         (
@@ -234,7 +235,7 @@ pub async fn list_guest_roles_url(
         ),
     ),
 )]
-#[delete("/{role}")]
+#[delete("/{role_id}")]
 pub async fn delete_guest_role_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
@@ -260,7 +261,7 @@ pub async fn delete_guest_role_url(
     patch,
     context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
-        ("role" = Uuid, Path, description = "The guest-role primary key."),
+        ("role_id" = Uuid, Path, description = "The guest-role primary key."),
     ),
     request_body = UpdateGuestRoleNameAndDescriptionBody,
     responses(
@@ -291,7 +292,7 @@ pub async fn delete_guest_role_url(
         ),
     ),
 )]
-#[patch("/{role}")]
+#[patch("/{role_id}")]
 pub async fn update_guest_role_name_and_description_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateGuestRoleNameAndDescriptionBody>,
@@ -353,7 +354,7 @@ pub async fn update_guest_role_name_and_description_url(
         ),
     ),
 )]
-#[patch("/{role}/permissions")]
+#[patch("/{role_id}/permissions")]
 pub async fn update_guest_role_permissions_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateGuestRolePermissionsBody>,
@@ -361,13 +362,145 @@ pub async fn update_guest_role_permissions_url(
     role_fetching_repo: Inject<GuestRoleFetchingModule, dyn GuestRoleFetching>,
     role_updating_repo: Inject<GuestRoleUpdatingModule, dyn GuestRoleUpdating>,
 ) -> impl Responder {
-    match update_guest_role_permissions(
+    match update_guest_role_permission(
         profile.to_profile(),
         path.to_owned(),
         body.permission.to_owned(),
-        body.action_type.to_owned(),
         Box::new(&*role_fetching_repo),
         Box::new(&*role_updating_repo),
+    )
+    .await
+    {
+        Ok(res) => updating_response_kind(res),
+        Err(err) => HttpResponse::InternalServerError()
+            .json(HttpJsonResponse::new_message(err.to_string())),
+    }
+}
+
+/// Set Child Role
+///
+/// Insert a child role to a parent role.
+#[utoipa::path(
+    post,
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
+    params(
+        ("role_id" = Uuid, Path, description = "The guest-role primary key."),
+        ("child_id" = Uuid, Path, description = "The child guest-role primary key."),
+    ),
+    request_body = UpdateGuestRolePermissionsBody,
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 400,
+            description = "Guest Role not deleted.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 202,
+            description = "Guest Role updated.",
+            body = GuestRole,
+        ),
+    ),
+)]
+#[post("/{role_id}/children/{child_id}")]
+pub async fn insert_role_child_url(
+    path: web::Path<(Uuid, Uuid)>,
+    profile: MyceliumProfileData,
+    guest_role_fetching_repo: Inject<
+        GuestRoleFetchingModule,
+        dyn GuestRoleFetching,
+    >,
+    guest_role_updating_repo: Inject<
+        GuestRoleUpdatingModule,
+        dyn GuestRoleUpdating,
+    >,
+) -> impl Responder {
+    let (role_id, child_id) = path.into_inner();
+
+    match insert_role_child(
+        profile.to_profile(),
+        role_id,
+        child_id,
+        Box::new(&*guest_role_fetching_repo),
+        Box::new(&*guest_role_updating_repo),
+    )
+    .await
+    {
+        Ok(res) => updating_response_kind(res),
+        Err(err) => HttpResponse::InternalServerError()
+            .json(HttpJsonResponse::new_message(err.to_string())),
+    }
+}
+
+/// Delete Child Role
+///
+/// Delete a child role to a parent role.
+#[utoipa::path(
+    delete,
+    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
+    params(
+        ("role_id" = Uuid, Path, description = "The guest-role primary key."),
+        ("child_id" = Uuid, Path, description = "The child guest-role primary key."),
+    ),
+    request_body = UpdateGuestRolePermissionsBody,
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 400,
+            description = "Guest Role not deleted.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 202,
+            description = "Guest Role updated.",
+            body = GuestRole,
+        ),
+    ),
+)]
+#[delete("/{role_id}/children/{child_id}")]
+pub async fn remove_role_child_url(
+    path: web::Path<(Uuid, Uuid)>,
+    profile: MyceliumProfileData,
+    guest_role_updating_repo: Inject<
+        GuestRoleUpdatingModule,
+        dyn GuestRoleUpdating,
+    >,
+) -> impl Responder {
+    let (role_id, child_id) = path.into_inner();
+
+    match remove_role_child(
+        profile.to_profile(),
+        role_id,
+        child_id,
+        Box::new(&*guest_role_updating_repo),
     )
     .await
     {

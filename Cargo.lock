@@ -2291,15 +2291,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "itertools"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
-dependencies = [
- "either",
-]
-
-[[package]]
 name = "itoa"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3772,7 +3763,7 @@ checksum = "59230a63c37f3e18569bdb90e4a89cbf5bf8b06fea0b84e65ea10cc4df47addd"
 dependencies = [
  "difflib",
  "float-cmp",
- "itertools 0.10.5",
+ "itertools",
  "normalize-line-endings",
  "predicates-core",
  "regex",
@@ -3884,7 +3875,7 @@ source = "git+https://github.com/Brendonovich/prisma-engines?tag=pcr-0.6.10#c4ae
 dependencies = [
  "bigdecimal",
  "chrono",
- "itertools 0.10.5",
+ "itertools",
  "once_cell",
  "prisma-value",
  "psl",
@@ -3958,7 +3949,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e9552f850d5f0964a4e4d0bf306459ac29323ddfbae05e35a7c0d35cb0803cc5"
 dependencies = [
  "anyhow",
- "itertools 0.13.0",
+ "itertools",
  "proc-macro2",
  "quote",
  "syn 2.0.79",
@@ -3984,7 +3975,7 @@ dependencies = [
  "diagnostics",
  "enumflags2",
  "indoc",
- "itertools 0.10.5",
+ "itertools",
  "lsp-types",
  "once_cell",
  "parser-database",
@@ -4056,7 +4047,7 @@ dependencies = [
  "chrono",
  "futures",
  "indexmap 1.9.3",
- "itertools 0.10.5",
+ "itertools",
  "prisma-models",
  "prisma-value",
  "serde",
@@ -4081,7 +4072,7 @@ dependencies = [
  "enumflags2",
  "futures",
  "indexmap 1.9.3",
- "itertools 0.10.5",
+ "itertools",
  "lazy_static",
  "lru",
  "once_cell",
@@ -4393,7 +4384,7 @@ dependencies = [
  "futures",
  "graphql-parser",
  "indexmap 1.9.3",
- "itertools 0.10.5",
+ "itertools",
  "psl",
  "query-core",
  "serde",
@@ -4751,7 +4742,7 @@ name = "schema-builder"
 version = "0.1.0"
 source = "git+https://github.com/Brendonovich/prisma-engines?tag=pcr-0.6.10#c4aeef82dbae310e974d6122160c7e3b5fb6df53"
 dependencies = [
- "itertools 0.10.5",
+ "itertools",
  "lazy_static",
  "once_cell",
  "prisma-models",
@@ -5167,7 +5158,7 @@ dependencies = [
  "chrono",
  "cuid",
  "futures",
- "itertools 0.10.5",
+ "itertools",
  "once_cell",
  "opentelemetry 0.17.0",
  "prisma-models",
@@ -5689,9 +5680,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-actix-web"
-version = "0.7.13"
+version = "0.7.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "15bc0cd5f72e837e310f4d978a90abf202a7f7d8ef3272246bae381d0086d3bf"
+checksum = "6b87073920bcce23e9f5cb0d2671e9f01d6803bb5229c159b2f5ce6806d73ffc"
 dependencies = [
  "actix-web",
  "mutually_exclusive_features",
@@ -5910,12 +5901,9 @@ dependencies = [
 
 [[package]]
 name = "unicase"
-version = "2.7.0"
+version = "2.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7d2d4dafb69621809a81864c9c1b864479e1235c0dd4e199924b9742439ed89"
-dependencies = [
- "version_check",
-]
+checksum = "7e51b68083f157f853b6379db119d1c1be0e6e4dec98101079dec41f6f5cf6df"
 
 [[package]]
 name = "unicode-bidi"

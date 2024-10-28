@@ -38,7 +38,7 @@ pub async fn update_error_code_message_and_details(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_update_ids_or_error(vec![
+    profile.get_default_write_ids_or_error(vec![
         ActorName::SystemManager.to_string(),
     ])?;
 

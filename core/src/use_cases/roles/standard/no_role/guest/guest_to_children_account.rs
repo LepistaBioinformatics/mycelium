@@ -5,8 +5,13 @@
 //
 //use uuid::Uuid;
 
-#[tracing::instrument(name = "guest_with_my_role_to_account", skip_all)]
-pub async fn guest_with_my_role_to_account(//profile: Profile,
+/// Guest users to collaborate to an account children of a role which I have
+/// guest to collaborate.
+///
+/// This action should be allowed only to accounts that contains registered
+/// children accounts already registered.
+#[tracing::instrument(name = "guest_to_children_account", skip_all)]
+pub async fn guest_to_children_account(//profile: Profile,
     //email: Email,
     //role: Uuid,
     //target_account_id: Uuid,
@@ -14,5 +19,5 @@ pub async fn guest_with_my_role_to_account(//profile: Profile,
     //guest_user_registration_repo: Box<&dyn GuestUserRegistration>,
     //message_sending_repo: Box<&dyn MessageSending>,
 ) {
-    unimplemented!("guest_with_my_role_to_account")
+    unimplemented!("guest_to_children_account")
 }

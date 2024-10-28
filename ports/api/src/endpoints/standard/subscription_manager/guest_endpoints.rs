@@ -63,6 +63,13 @@ pub struct GuestUserBody {
     platform_url: Option<String>,
 }
 
+#[derive(Deserialize, ToSchema, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct ListLicensedAccountsOfEmailBody {
+    email: String,
+    roles: Option<Vec<String>>,
+}
+
 #[derive(Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateUserGuestRoleParams {
@@ -82,7 +89,7 @@ pub struct UpdateUserGuestRoleParams {
     context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Guests),
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
-        GuestUserBody
+        ListLicensedAccountsOfEmailBody
     ),
     responses(
         (
@@ -114,7 +121,7 @@ pub struct UpdateUserGuestRoleParams {
 #[get("/{tenant_id}")]
 pub async fn list_licensed_accounts_of_email_url(
     path: web::Path<Uuid>,
-    info: web::Query<GuestUserBody>,
+    info: web::Query<ListLicensedAccountsOfEmailBody>,
     profile: MyceliumProfileData,
     licensed_resources_fetching_repo: Inject<
         LicensedResourcesFetchingModule,
@@ -134,6 +141,7 @@ pub async fn list_licensed_accounts_of_email_url(
         profile.to_profile(),
         *path,
         email.to_owned(),
+        info.roles.to_owned(),
         Box::new(&*licensed_resources_fetching_repo),
     )
     .await

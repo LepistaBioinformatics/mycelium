@@ -23,8 +23,8 @@ use myc_core::{
             account_type::AccountTypeV2,
             email::Email,
             error_code::ErrorCode,
-            guest::Permissions,
-            guest::{GuestRole, GuestUser},
+            guest_role::{GuestRole, Permission},
+            guest_user::GuestUser,
             profile::{LicensedResources, Profile},
             role::Role,
             tag::Tag,
@@ -34,10 +34,7 @@ use myc_core::{
     },
     use_cases::roles::{
         shared::webhook::default_actions::WebHookDefaultAction,
-        standard::{
-            guest_manager::guest_role::ActionType,
-            no_role::user::EmailRegistrationStatus,
-        },
+        standard::no_role::user::EmailRegistrationStatus,
     },
 };
 use myc_http_tools::utils::HttpJsonResponse;
@@ -299,6 +296,8 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         guest_manager_guest_role_endpoints::delete_guest_role_url,
         guest_manager_guest_role_endpoints::update_guest_role_name_and_description_url,
         guest_manager_guest_role_endpoints::update_guest_role_permissions_url,
+        guest_manager_guest_role_endpoints::insert_role_child_url,
+        guest_manager_guest_role_endpoints::remove_role_child_url,
         guest_manager_role_endpoints::crate_role_url,
         guest_manager_role_endpoints::list_roles_url,
         guest_manager_role_endpoints::delete_role_url,
@@ -327,14 +326,13 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             // Schema models.
             Account,
             AccountTypeV2,
-            ActionType,
             ActorName,
             HttpJsonResponse,
             LicensedResources,
             PasswordHash,
             Profile,
             Provider,
-            Permissions,
+            Permission,
             VerboseStatus,
             User,
             Email,
