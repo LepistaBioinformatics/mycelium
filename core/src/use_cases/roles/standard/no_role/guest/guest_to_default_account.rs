@@ -137,22 +137,13 @@ pub async fn guest_to_default_account(
         "account_name",
         &default_subscription_account.name.to_uppercase(),
     );
-    context.insert("role_name", &target_role.name.to_uppercase());
-
     if let Some(description) = target_role.description {
         context.insert("role_description", &description);
     }
 
+    context.insert("role_name", &target_role.name.to_uppercase());
     context.insert("role_description", &target_role.name);
-
-    context.insert(
-        "role_permissions",
-        &target_role
-            .permissions
-            .iter()
-            .map(|p| p.to_string().to_uppercase())
-            .collect::<Vec<String>>(),
-    );
+    context.insert("role_permissions", &target_role.permission.to_string());
 
     context.insert(
         "support_email",

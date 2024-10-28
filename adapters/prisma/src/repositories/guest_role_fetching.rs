@@ -9,7 +9,7 @@ use crate::{
 use async_trait::async_trait;
 use myc_core::domain::{
     dtos::{
-        guest_role::{GuestRole, Permissions},
+        guest_role::{GuestRole, Permission},
         native_error_codes::NativeErrorCodes,
     },
     entities::GuestRoleFetching,
@@ -119,21 +119,15 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                                             .unwrap(),
                                     ),
                                     children: None,
-                                    permissions: child_role
-                                        .permissions
-                                        .into_iter()
-                                        .map(|i| Permissions::from_i32(i))
-                                        .collect(),
+                                    permission: Permission::from_i32(
+                                        child_role.permission,
+                                    ),
                                 }
                             })
                             .collect(),
                     )),
                 },
-                permissions: record
-                    .permissions
-                    .into_iter()
-                    .map(|i| Permissions::from_i32(i))
-                    .collect(),
+                permission: Permission::from_i32(record.permission),
             })),
             None => Ok(FetchResponseKind::NotFound(Some(id))),
         }
@@ -219,11 +213,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                                     .collect(),
                             )),
                         },
-                        permissions: record
-                            .permissions
-                            .into_iter()
-                            .map(|i| Permissions::from_i32(i))
-                            .collect(),
+                        permission: Permission::from_i32(record.permission),
                     })
                     .collect::<Vec<GuestRole>>();
 

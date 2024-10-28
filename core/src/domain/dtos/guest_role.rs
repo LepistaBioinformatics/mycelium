@@ -8,38 +8,41 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub enum Permissions {
+pub enum Permission {
     Read = 0,
     Write = 1,
+    ReadWrite = 2,
 }
 
-impl Permissions {
+impl Permission {
     pub fn from_i32(v: i32) -> Self {
         match v {
-            0 => Permissions::Read,
-            1 => Permissions::Write,
-            _ => Permissions::Read,
+            0 => Permission::Read,
+            1 => Permission::Write,
+            2 => Permission::ReadWrite,
+            _ => Permission::Read,
         }
     }
 }
 
-impl FromStr for Permissions {
+impl FromStr for Permission {
     type Err = ();
 
-    fn from_str(s: &str) -> Result<Permissions, ()> {
+    fn from_str(s: &str) -> Result<Permission, ()> {
         match s {
-            "read" => Ok(Permissions::Read),
-            "write" => Ok(Permissions::Write),
+            "read" => Ok(Permission::Read),
+            "write" => Ok(Permission::Write),
             _ => Err(()),
         }
     }
 }
 
-impl ToString for Permissions {
+impl ToString for Permission {
     fn to_string(&self) -> String {
         match self {
-            Permissions::Read => "read".to_string(),
-            Permissions::Write => "write".to_string(),
+            Permission::Read => "read".to_string(),
+            Permission::Write => "write".to_string(),
+            Permission::ReadWrite => "read-write".to_string(),
         }
     }
 }
@@ -52,7 +55,7 @@ pub struct GuestRole {
     pub name: String,
     pub description: Option<String>,
     pub role: Parent<Role, Uuid>,
-    pub permissions: Vec<Permissions>,
+    pub permission: Permission,
 
     /// Children roles represents guest roles that are children of the current
     /// role, and should be used to determine the allowed roles for the role

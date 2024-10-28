@@ -158,14 +158,11 @@ pub async fn guest_user(
     }
 
     context.insert("role_description", &target_role.name);
-
     context.insert(
         "role_permissions", 
         &target_role
-            .permissions
-            .iter()
-            .map(|p| p.to_string().to_uppercase())
-            .collect::<Vec<String>>()
+            .permission
+            .to_string()
     );
 
     context.insert(

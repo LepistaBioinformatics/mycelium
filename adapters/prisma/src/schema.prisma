@@ -165,7 +165,7 @@ model GuestRole {
   description String? @db.VarChar(255)
   role        Role    @relation(fields: [role_id], references: [id])
   role_id     String
-  permissions Int[]
+  permission  Int     @default(0)
 
   // Backward relationship fields
   guest_users GuestUser[]
