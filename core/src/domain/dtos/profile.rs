@@ -1,5 +1,5 @@
 use super::{
-    account::VerboseStatus, guest::Permissions,
+    account::VerboseStatus, guest_role::Permission,
     related_accounts::RelatedAccounts, user::User,
 };
 
@@ -59,8 +59,8 @@ pub struct LicensedResources {
     /// The guest role permissions
     ///
     /// This is the list of permissions that the guest role has.
-    #[serde(alias = "permissions")]
-    pub perms: Vec<Permissions>,
+    #[serde(alias = "permission")]
+    pub perm: Permission,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
@@ -243,102 +243,153 @@ impl Profile {
     }
 
     // ? -----------------------------------------------------------------------
-    // ? View filters
+    // ? Read filters
     // ? -----------------------------------------------------------------------
 
-    /// Filter IDs with view permissions.
-    pub fn get_view_ids<T: ToString>(&self, roles: Vec<T>) -> Vec<Uuid> {
-        self.get_licensed_ids(Permissions::View, roles, None)
+    /// Filter IDs with read permissions.
+    pub fn get_read_ids<T: ToString>(&self, roles: Vec<T>) -> Vec<Uuid> {
+        self.get_licensed_ids(Permission::Read, roles, None)
     }
 
-    /// Filter IDs with view permissions with error if empty.
-    pub fn get_view_ids_or_error<T: ToString>(
+    /// Filter IDs with read permissions with error if empty.
+    pub fn get_read_ids_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permissions::View, roles, None)
+        self.get_licensed_ids_or_error(Permission::Read, roles, None)
     }
 
-    /// Filter IDs with view permissions to accounts with error if empty.
-    pub fn get_related_account_with_view_or_error<T: ToString>(
+    /// Filter IDs with read permissions to accounts with error if empty.
+    pub fn get_related_account_with_read_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<RelatedAccounts, MappedErrors> {
         self.get_licensed_ids_as_related_accounts_or_error(
-            Permissions::View,
+            Permission::Read,
             roles,
             None,
         )
     }
 
-    /// Filter IDs with view permissions to default accounts with error if
+    /// Filter IDs with read permissions to default accounts with error if
     /// empty.
-    pub fn get_default_view_ids_or_error<T: ToString>(
+    pub fn get_default_read_ids_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permissions::View, roles, Some(true))
+        self.get_licensed_ids_or_error(Permission::Read, roles, Some(true))
     }
 
-    /// Filter RelatedAccounts with view permissions to default accounts with
+    /// Filter RelatedAccounts with read permissions to default accounts with
     /// error if empty.
-    pub fn get_related_account_with_default_view_or_error<T: ToString>(
+    pub fn get_related_account_with_default_read_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<RelatedAccounts, MappedErrors> {
         self.get_licensed_ids_as_related_accounts_or_error(
-            Permissions::View,
+            Permission::Read,
             roles,
             Some(true),
         )
     }
 
     // ? -----------------------------------------------------------------------
-    // ? Create filters
+    // ? Write filters
     // ? -----------------------------------------------------------------------
 
-    /// Filter IDs with create permissions.
-    pub fn get_create_ids<T: ToString>(&self, roles: Vec<T>) -> Vec<Uuid> {
-        self.get_licensed_ids(Permissions::Create, roles, None)
+    /// Filter IDs with write permissions.
+    pub fn get_write_ids<T: ToString>(&self, roles: Vec<T>) -> Vec<Uuid> {
+        self.get_licensed_ids(Permission::Write, roles, None)
     }
 
-    /// Filter IDs with create permissions with error if empty.
-    pub fn get_create_ids_or_error<T: ToString>(
+    /// Filter IDs with write permissions with error if empty.
+    pub fn get_write_ids_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permissions::Create, roles, None)
+        self.get_licensed_ids_or_error(Permission::Write, roles, None)
     }
 
-    /// Filter IDs with create permissions to accounts with error if empty.
-    pub fn get_related_account_with_create_or_error<T: ToString>(
+    /// Filter IDs with write permissions to accounts with error if empty.
+    pub fn get_related_account_with_write_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<RelatedAccounts, MappedErrors> {
         self.get_licensed_ids_as_related_accounts_or_error(
-            Permissions::Create,
+            Permission::Write,
             roles,
             None,
         )
     }
 
-    /// Filter IDs with create permissions to default accounts with error if
+    /// Filter IDs with write permissions to default accounts with error if
     /// empty.
-    pub fn get_default_create_ids_or_error<T: ToString>(
+    pub fn get_default_write_ids_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permissions::Create, roles, Some(true))
+        self.get_licensed_ids_or_error(Permission::Write, roles, Some(true))
     }
 
-    /// Filter RelatedAccounts with create permissions to default accounts with
+    /// Filter RelatedAccounts with write permissions to default accounts with
     /// error if empty.
-    pub fn get_related_account_with_default_create_or_error<T: ToString>(
+    pub fn get_related_account_with_default_write_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<RelatedAccounts, MappedErrors> {
         self.get_licensed_ids_as_related_accounts_or_error(
-            Permissions::Create,
+            Permission::Write,
+            roles,
+            Some(true),
+        )
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? Read/Write filters
+    // ? -----------------------------------------------------------------------
+
+    /// Filter IDs with write permissions.
+    pub fn get_read_write_ids<T: ToString>(&self, roles: Vec<T>) -> Vec<Uuid> {
+        self.get_licensed_ids(Permission::ReadWrite, roles, None)
+    }
+
+    /// Filter IDs with write permissions with error if empty.
+    pub fn get_read_write_ids_or_error<T: ToString>(
+        &self,
+        roles: Vec<T>,
+    ) -> Result<Vec<Uuid>, MappedErrors> {
+        self.get_licensed_ids_or_error(Permission::ReadWrite, roles, None)
+    }
+
+    /// Filter IDs with write permissions to accounts with error if empty.
+    pub fn get_related_account_with_read_write_or_error<T: ToString>(
+        &self,
+        roles: Vec<T>,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        self.get_licensed_ids_as_related_accounts_or_error(
+            Permission::ReadWrite,
+            roles,
+            None,
+        )
+    }
+
+    /// Filter IDs with write permissions to default accounts with error if
+    /// empty.
+    pub fn get_default_read_write_ids_or_error<T: ToString>(
+        &self,
+        roles: Vec<T>,
+    ) -> Result<Vec<Uuid>, MappedErrors> {
+        self.get_licensed_ids_or_error(Permission::ReadWrite, roles, Some(true))
+    }
+
+    /// Filter RelatedAccounts with write permissions to default accounts with
+    /// error if empty.
+    pub fn get_related_account_with_default_read_write_or_error<T: ToString>(
+        &self,
+        roles: Vec<T>,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        self.get_licensed_ids_as_related_accounts_or_error(
+            Permission::ReadWrite,
             roles,
             Some(true),
         )
@@ -349,25 +400,28 @@ impl Profile {
     // ? -----------------------------------------------------------------------
 
     /// Filter IDs with update permissions.
+    #[deprecated(note = "Use get_write_ids instead")]
     pub fn get_update_ids<T: ToString>(&self, roles: Vec<T>) -> Vec<Uuid> {
-        self.get_licensed_ids(Permissions::Update, roles, None)
+        self.get_licensed_ids(Permission::Write, roles, None)
     }
 
     /// Filter IDs with update permissions with error if empty.
+    #[deprecated(note = "Use get_write_ids_or_error instead")]
     pub fn get_update_ids_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permissions::Update, roles, None)
+        self.get_licensed_ids_or_error(Permission::Write, roles, None)
     }
 
     /// Filter IDs with update permissions to accounts with error if empty.
+    #[deprecated(note = "Use get_related_account_with_write_or_error instead")]
     pub fn get_related_account_with_update_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<RelatedAccounts, MappedErrors> {
         self.get_licensed_ids_as_related_accounts_or_error(
-            Permissions::Update,
+            Permission::Write,
             roles,
             None,
         )
@@ -375,21 +429,25 @@ impl Profile {
 
     /// Filter IDs with update permissions to default accounts with error if
     /// empty.
+    #[deprecated(note = "Use get_default_write_ids_or_error instead")]
     pub fn get_default_update_ids_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permissions::Update, roles, Some(true))
+        self.get_licensed_ids_or_error(Permission::Write, roles, Some(true))
     }
 
     /// Filter RelatedAccounts with update permissions to default accounts with
     /// error if empty.
+    #[deprecated(
+        note = "Use get_related_account_with_default_write_or_error instead"
+    )]
     pub fn get_related_account_with_default_update_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<RelatedAccounts, MappedErrors> {
         self.get_licensed_ids_as_related_accounts_or_error(
-            Permissions::Update,
+            Permission::Write,
             roles,
             Some(true),
         )
@@ -400,25 +458,28 @@ impl Profile {
     // ? -----------------------------------------------------------------------
 
     /// Filter IDs with delete permissions.
+    #[deprecated(note = "Use get_write_ids instead")]
     pub fn get_delete_ids<T: ToString>(&self, roles: Vec<T>) -> Vec<Uuid> {
-        self.get_licensed_ids(Permissions::Delete, roles, None)
+        self.get_licensed_ids(Permission::Write, roles, None)
     }
 
     /// Filter IDs with delete permissions with error if empty.
+    #[deprecated(note = "Use get_write_ids_or_error instead")]
     pub fn get_delete_ids_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permissions::Delete, roles, None)
+        self.get_licensed_ids_or_error(Permission::Write, roles, None)
     }
 
     /// Filter IDs with delete permissions to accounts with error if empty.
+    #[deprecated(note = "Use get_related_account_with_write_or_error instead")]
     pub fn get_related_account_with_delete_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<RelatedAccounts, MappedErrors> {
         self.get_licensed_ids_as_related_accounts_or_error(
-            Permissions::Delete,
+            Permission::Write,
             roles,
             None,
         )
@@ -426,21 +487,25 @@ impl Profile {
 
     /// Filter IDs with delete permissions to default accounts with error if
     /// empty.
+    #[deprecated(note = "Use get_default_write_ids_or_error instead")]
     pub fn get_default_delete_ids_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permissions::Delete, roles, Some(true))
+        self.get_licensed_ids_or_error(Permission::Write, roles, Some(true))
     }
 
     /// Filter RelatedAccounts with delete permissions to default accounts with
     /// error if empty.
+    #[deprecated(
+        note = "Use get_related_account_with_default_write_or_error instead"
+    )]
     pub fn get_related_account_with_default_delete_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
     ) -> Result<RelatedAccounts, MappedErrors> {
         self.get_licensed_ids_as_related_accounts_or_error(
-            Permissions::Delete,
+            Permission::Write,
             roles,
             Some(true),
         )
@@ -456,7 +521,7 @@ impl Profile {
     /// to do based on the specified `PermissionsType`.
     fn get_licensed_ids<T: ToString>(
         &self,
-        permission: Permissions,
+        permission: Permission,
         roles: Vec<T>,
         should_be_default: Option<bool>,
     ) -> Vec<Uuid> {
@@ -481,7 +546,7 @@ impl Profile {
         licensed_resources
             .into_iter()
             .filter_map(|i| {
-                match i.perms.contains(&permission)
+                match i.perm == permission
                     && roles
                         .iter()
                         .map(|i| i.to_string())
@@ -497,7 +562,7 @@ impl Profile {
 
     fn get_licensed_ids_or_error<T: ToString>(
         &self,
-        permission: Permissions,
+        permission: Permission,
         roles: Vec<T>,
         should_be_default: Option<bool>,
     ) -> Result<Vec<Uuid>, MappedErrors> {
@@ -530,7 +595,7 @@ impl Profile {
     ///
     fn get_licensed_ids_as_related_accounts_or_error<T: ToString>(
         &self,
-        permission: Permissions,
+        permission: Permission,
         roles: Vec<T>,
         should_be_default: Option<bool>,
     ) -> Result<RelatedAccounts, MappedErrors> {
@@ -563,7 +628,7 @@ impl Profile {
 #[cfg(test)]
 mod tests {
     use super::{LicensedResources, Owner, Profile};
-    use crate::domain::dtos::guest::Permissions;
+    use crate::domain::dtos::guest_role::Permission;
     use std::str::FromStr;
     use test_log::test;
     use uuid::Uuid;
@@ -608,13 +673,13 @@ mod tests {
                     .unwrap(),
                     guest_role_name: "guest_role_name".to_string(),
                     role: "service".to_string(),
-                    perms: [Permissions::View, Permissions::Create].to_vec(),
+                    perm: Permission::ReadWrite,
                 }]
                 .to_vec(),
             ),
         };
 
-        let ids = profile.get_create_ids(["service".to_string()].to_vec());
+        let ids = profile.get_write_ids(["service".to_string()].to_vec());
 
         assert!(ids.len() == 1);
     }
@@ -661,7 +726,7 @@ mod tests {
                     .unwrap(),
                     guest_role_name: "guest_role_name".to_string(),
                     role: desired_role.to_owned(),
-                    perms: [Permissions::View, Permissions::Create].to_vec(),
+                    perm: Permission::ReadWrite,
                 }]
                 .to_vec(),
             ),
@@ -670,14 +735,14 @@ mod tests {
         assert_eq!(
             false,
             profile
-                .get_update_ids_or_error([desired_role.to_owned()].to_vec(),)
+                .get_write_ids_or_error([desired_role.to_owned()].to_vec(),)
                 .is_ok(),
         );
 
         assert_eq!(
             false,
             profile
-                .get_update_ids_or_error([desired_role.to_owned()].to_vec(),)
+                .get_write_ids_or_error([desired_role.to_owned()].to_vec(),)
                 .is_ok(),
         );
 
@@ -686,7 +751,7 @@ mod tests {
         assert_eq!(
             true,
             profile
-                .get_update_ids_or_error([desired_role.to_owned()].to_vec(),)
+                .get_write_ids_or_error([desired_role.to_owned()].to_vec(),)
                 .is_ok(),
         );
 
@@ -696,7 +761,7 @@ mod tests {
         assert_eq!(
             true,
             profile
-                .get_update_ids_or_error([desired_role.to_owned()].to_vec(),)
+                .get_write_ids_or_error([desired_role.to_owned()].to_vec(),)
                 .is_ok(),
         );
 
@@ -705,7 +770,7 @@ mod tests {
         assert_eq!(
             false,
             profile
-                .get_update_ids_or_error([desired_role].to_vec())
+                .get_write_ids_or_error([desired_role].to_vec())
                 .is_ok(),
         );
     }

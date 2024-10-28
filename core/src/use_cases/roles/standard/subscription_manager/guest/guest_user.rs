@@ -5,7 +5,7 @@ use crate::{
             account::VerboseStatus, 
             account_type::AccountTypeV2, 
             email::Email, 
-            guest::GuestUser, 
+            guest_user::GuestUser, 
             message::Message, 
             native_error_codes::NativeErrorCodes, 
             profile::Profile
@@ -55,7 +55,7 @@ pub async fn guest_user(
 
     let related_accounts = profile
         .on_tenant(tenant_id)
-        .get_related_account_with_default_create_or_error(vec![
+        .get_related_account_with_default_write_or_error(vec![
             ActorName::TenantOwner.to_string(),
             ActorName::TenantManager.to_string(),
             ActorName::SubscriptionManager.to_string(),
@@ -158,14 +158,11 @@ pub async fn guest_user(
     }
 
     context.insert("role_description", &target_role.name);
-
     context.insert(
         "role_permissions", 
         &target_role
-            .permissions
-            .iter()
-            .map(|p| p.to_string().to_uppercase())
-            .collect::<Vec<String>>()
+            .permission
+            .to_string()
     );
 
     context.insert(

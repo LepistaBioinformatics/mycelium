@@ -1,60 +1,25 @@
 use crate::domain::{
     actors::ActorName,
     dtos::{
-        guest::{GuestRole, Permissions},
+        guest_role::{GuestRole, Permission},
         profile::Profile,
     },
     entities::{GuestRoleFetching, GuestRoleUpdating},
 };
+
 use mycelium_base::{
     entities::{FetchResponseKind, UpdatingResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
-use serde::{Deserialize, Serialize};
-use std::{
-    fmt::{Display, Formatter, Result as FmtResult},
-    str::FromStr,
-};
-use utoipa::ToSchema;
 use uuid::Uuid;
-
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub enum ActionType {
-    Upgrade,
-    Downgrade,
-}
-
-impl Display for ActionType {
-    fn fmt(&self, f: &mut Formatter) -> FmtResult {
-        match self {
-            ActionType::Upgrade => write!(f, "upgrade"),
-            ActionType::Downgrade => write!(f, "downgrade"),
-        }
-    }
-}
-
-impl FromStr for ActionType {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<ActionType, ()> {
-        match s {
-            "upgrade" => Ok(ActionType::Upgrade),
-            "downgrade" => Ok(ActionType::Downgrade),
-
-            _ => Err(()),
-        }
-    }
-}
 
 /// This function allow users to include or remove permission from a single
 /// role. Only manager users should perform such action.
-#[tracing::instrument(name = "update_guest_role_permissions", skip_all)]
-pub async fn update_guest_role_permissions(
+#[tracing::instrument(name = "update_guest_role_permission", skip_all)]
+pub async fn update_guest_role_permission(
     profile: Profile,
     role_id: Uuid,
-    permission: Permissions,
-    action_type: ActionType,
+    permission: Permission,
     role_fetching_repo: Box<&dyn GuestRoleFetching>,
     role_updating_repo: Box<&dyn GuestRoleUpdating>,
 ) -> Result<UpdatingResponseKind<GuestRole>, MappedErrors> {
@@ -64,9 +29,8 @@ pub async fn update_guest_role_permissions(
     // Check if the user has manager status. Return an error if not.
     // ? ----------------------------------------------------------------------
 
-    profile.get_default_update_ids_or_error(vec![
-        ActorName::GuestManager.to_string(),
-    ])?;
+    profile
+        .get_default_read_write_ids_or_error(vec![ActorName::GuestManager])?;
 
     // ? ----------------------------------------------------------------------
     // ? Fetch role from data persistence layer
@@ -87,19 +51,7 @@ pub async fn update_guest_role_permissions(
     // ? Update permissions
     // ? ----------------------------------------------------------------------
 
-    let mut updated_permissions = user_role.to_owned().permissions;
-
-    user_role.permissions = match action_type {
-        ActionType::Upgrade => {
-            updated_permissions.push(permission);
-            updated_permissions.dedup();
-            updated_permissions
-        }
-        ActionType::Downgrade => {
-            updated_permissions.retain(|perm| *perm != permission);
-            updated_permissions
-        }
-    };
+    user_role.permission = permission;
 
     // ? ----------------------------------------------------------------------
     // ? Perform the updating operation

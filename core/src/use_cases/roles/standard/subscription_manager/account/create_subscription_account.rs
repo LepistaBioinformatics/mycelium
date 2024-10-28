@@ -41,7 +41,7 @@ pub async fn create_subscription_account(
 
     profile
         .on_tenant(tenant_id)
-        .get_default_create_ids_or_error(vec![
+        .get_default_write_ids_or_error(vec![
             ActorName::TenantOwner.to_string(),
             ActorName::TenantManager.to_string(),
             ActorName::SubscriptionManager.to_string(),

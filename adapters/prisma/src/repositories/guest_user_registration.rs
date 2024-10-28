@@ -11,7 +11,7 @@ use chrono::DateTime;
 use log::debug;
 use myc_core::domain::{
     dtos::{
-        email::Email, guest::GuestUser, native_error_codes::NativeErrorCodes,
+        email::Email, guest_user::GuestUser, native_error_codes::NativeErrorCodes,
     },
     entities::GuestUserRegistration,
 };

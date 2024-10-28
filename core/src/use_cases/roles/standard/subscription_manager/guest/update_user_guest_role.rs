@@ -1,7 +1,7 @@
 use crate::domain::{
     actors::ActorName,
     dtos::{
-        guest::GuestUser, native_error_codes::NativeErrorCodes,
+        guest_user::GuestUser, native_error_codes::NativeErrorCodes,
         profile::Profile, related_accounts::RelatedAccounts,
     },
     entities::GuestUserOnAccountUpdating,
@@ -37,7 +37,7 @@ pub async fn update_user_guest_role(
 
     if let RelatedAccounts::AllowedAccounts(allowed_ids) = &profile
         .on_tenant(tenant_id)
-        .get_related_account_with_default_update_or_error(vec![
+        .get_related_account_with_default_write_or_error(vec![
             ActorName::TenantOwner.to_string(),
             ActorName::TenantManager.to_string(),
             ActorName::SubscriptionManager.to_string(),

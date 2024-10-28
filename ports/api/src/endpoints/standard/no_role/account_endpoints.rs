@@ -48,7 +48,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateDefaultAccountBody {
-    account_name: String,
+    name: String,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -127,7 +127,7 @@ pub async fn create_default_account_url(
 
     match create_default_account(
         email,
-        body.account_name.to_owned(),
+        body.name.to_owned(),
         Box::new(&*user_fetching_repo),
         Box::new(&*account_registration_repo),
         Box::new(&*webhook_fetching_repo),

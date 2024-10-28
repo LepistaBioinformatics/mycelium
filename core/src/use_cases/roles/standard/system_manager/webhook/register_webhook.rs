@@ -22,7 +22,7 @@ pub async fn register_webhook(
     action: WebHookDefaultAction,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
 ) -> Result<CreateResponseKind<WebHook>, MappedErrors> {
-    profile.get_default_create_ids_or_error(vec![
+    profile.get_default_write_ids_or_error(vec![
         ActorName::SystemManager.to_string()
     ])?;
 

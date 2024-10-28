@@ -1,6 +1,6 @@
 use crate::domain::{
     actors::ActorName,
-    dtos::{guest::GuestRole, profile::Profile},
+    dtos::{guest_role::GuestRole, profile::Profile},
     entities::{GuestRoleFetching, GuestRoleUpdating},
 };
 
@@ -30,9 +30,8 @@ pub async fn update_guest_role_name_and_description(
     // Check if the user has manager status. Return an error if not.
     // ? ----------------------------------------------------------------------
 
-    profile.get_default_update_ids_or_error(vec![
-        ActorName::GuestManager.to_string(),
-    ])?;
+    profile
+        .get_default_read_write_ids_or_error(vec![ActorName::GuestManager])?;
 
     // ? ----------------------------------------------------------------------
     // ? Fetch role from data persistence layer

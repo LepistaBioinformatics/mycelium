@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::domain::{
     actors::ActorName,
     dtos::{
-        account_type::AccountTypeV2, guest::GuestUser,
+        account_type::AccountTypeV2, guest_user::GuestUser,
         native_error_codes::NativeErrorCodes, profile::Profile,
     },
     entities::{AccountFetching, GuestUserFetching},
@@ -35,7 +35,7 @@ pub async fn list_guest_on_subscription_account(
 
     let related_accounts = profile
         .on_tenant(tenant_id)
-        .get_related_account_with_default_view_or_error(vec![
+        .get_related_account_with_default_read_or_error(vec![
             ActorName::TenantOwner.to_string(),
             ActorName::TenantManager.to_string(),
             ActorName::SubscriptionManager.to_string(),

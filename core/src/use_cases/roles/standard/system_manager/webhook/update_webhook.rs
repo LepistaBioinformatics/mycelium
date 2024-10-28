@@ -37,7 +37,7 @@ pub async fn update_webhook(
         .as_error();
     };
 
-    profile.get_default_update_ids_or_error(vec![
+    profile.get_default_write_ids_or_error(vec![
         ActorName::SystemManager.to_string(),
     ])?;
 

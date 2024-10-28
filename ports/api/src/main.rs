@@ -287,25 +287,29 @@ pub async fn main() -> std::io::Result<()> {
 
         loop {
             interval.tick().await;
-
             let queue_name = queue_config.clone().email_queue_name;
 
-            trace!(
-                "Consume messages from the queue: {}",
-                queue_name.to_owned()
-            );
-
-            let result = consume_messages(
-                queue_name,
+            match consume_messages(
+                queue_name.to_owned(),
                 Box::new(&MessageSendingSmtpRepository {}),
             )
-            .await;
-
-            if let Err(err) = result {
-                if !err.expected() {
-                    panic!("Error on consume messages: {err}");
+            .await
+            {
+                Ok(messages) => {
+                    if messages > 0 {
+                        trace!(
+                            "'{}' messages consumed from the queue '{}'",
+                            messages,
+                            queue_name.to_owned()
+                        )
+                    }
                 }
-            }
+                Err(err) => {
+                    if !err.expected() {
+                        panic!("Error on consume messages: {err}");
+                    }
+                }
+            };
         }
     });
 

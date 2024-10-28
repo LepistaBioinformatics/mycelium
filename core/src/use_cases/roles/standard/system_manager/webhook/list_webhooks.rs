@@ -21,7 +21,7 @@ pub async fn list_webhooks(
     target: Option<HookTarget>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
 ) -> Result<FetchManyResponseKind<WebHook>, MappedErrors> {
-    profile.get_default_view_ids_or_error(vec![
+    profile.get_default_read_ids_or_error(vec![
         ActorName::SystemManager.to_string()
     ])?;
 

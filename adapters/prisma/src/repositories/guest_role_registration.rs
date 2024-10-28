@@ -6,13 +6,13 @@ use crate::{
 use async_trait::async_trait;
 use myc_core::domain::{
     dtos::{
-        guest::{GuestRole, Permissions},
+        guest_role::{GuestRole, Permission},
         native_error_codes::NativeErrorCodes,
     },
     entities::GuestRoleRegistration,
 };
 use mycelium_base::{
-    dtos::Parent,
+    dtos::{Children, Parent},
     entities::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
@@ -56,7 +56,12 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
             .find_first(vec![guest_role_model::name::equals(
                 guest_role.name.to_owned(),
             )])
-            .include(guest_role_model::include!({ role: select { id } }))
+            .include(guest_role_model::include!({
+                role: select {
+                    id
+                }
+                children
+            }))
             .exec()
             .await;
 
@@ -71,11 +76,20 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                         role: Parent::Id(
                             Uuid::parse_str(&record.role.id).unwrap(),
                         ),
-                        permissions: record
-                            .permissions
-                            .into_iter()
-                            .map(|i| Permissions::from_i32(i))
-                            .collect(),
+                        children: match record.children.len() {
+                            0 => None,
+                            _ => Some(Children::Ids(
+                                record
+                                    .children
+                                    .into_iter()
+                                    .map(|i| {
+                                        Uuid::parse_str(&i.child_role_id)
+                                            .unwrap()
+                                    })
+                                    .collect(),
+                            )),
+                        },
+                        permission: Permission::from_i32(record.permission),
                     },
                     String::from("Account type already exists"),
                 ));
@@ -107,15 +121,12 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                 }),
                 vec![
                     guest_role_model::description::set(guest_role.description),
-                    guest_role_model::permissions::set(
-                        guest_role
-                            .permissions
-                            .into_iter()
-                            .map(|i| i as i32)
-                            .collect::<Vec<i32>>(),
+                    guest_role_model::permission::set(
+                        guest_role.permission as i32,
                     ),
                 ],
             )
+            .include(guest_role_model::include!({ children }))
             .exec()
             .await;
 
@@ -128,11 +139,19 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                     name: record.name,
                     description: record.description,
                     role: Parent::Id(Uuid::parse_str(&record.role_id).unwrap()),
-                    permissions: record
-                        .permissions
-                        .into_iter()
-                        .map(|i| Permissions::from_i32(i))
-                        .collect(),
+                    children: match record.children.len() {
+                        0 => None,
+                        _ => Some(Children::Ids(
+                            record
+                                .children
+                                .into_iter()
+                                .map(|i| {
+                                    Uuid::parse_str(&i.child_role_id).unwrap()
+                                })
+                                .collect(),
+                        )),
+                    },
+                    permission: Permission::from_i32(record.permission),
                 }))
             }
             Err(err) => {

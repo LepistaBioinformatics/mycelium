@@ -29,7 +29,7 @@ pub async fn list_error_codes(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_view_ids_or_error(vec![
+    profile.get_default_read_ids_or_error(vec![
         ActorName::SystemManager.to_string()
     ])?;
 

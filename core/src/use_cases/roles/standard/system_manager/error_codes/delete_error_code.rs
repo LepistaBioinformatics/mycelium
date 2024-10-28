@@ -24,8 +24,8 @@ pub async fn delete_error_code(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_delete_ids_or_error(vec![
-        ActorName::SystemManager.to_string(),
+    profile.get_default_write_ids_or_error(vec![
+        ActorName::SystemManager.to_string()
     ])?;
 
     // ? -----------------------------------------------------------------------

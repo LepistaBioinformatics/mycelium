@@ -17,12 +17,12 @@ use myc_http_tools::{
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
-use utoipa::IntoParams;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 // ? Configure application
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
     config.service(
@@ -32,22 +32,42 @@ pub fn configure(config: &mut web::ServiceConfig) {
     );
 }
 
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 // ? Define API structs
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 
-#[derive(Deserialize, IntoParams)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct UpgradeAccountPrivilegesParams {
-    pub target_account_type: AccountTypeV2,
+enum UpgradeTargetAccountType {
+    Staff,
+    Manager,
 }
 
-// ? -----------------------------------------------------------------------
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+enum DowngradeTargetAccountType {
+    Manager,
+    User,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct UpgradeAccountPrivilegesBody {
+    to: UpgradeTargetAccountType,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DowngradeAccountPrivilegesBody {
+    to: DowngradeTargetAccountType,
+}
+
+// ? ---------------------------------------------------------------------------
 // ? Define API paths
 //
 // Account
 //
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 
 /// Upgrade account privileges
 ///
@@ -57,8 +77,8 @@ pub struct UpgradeAccountPrivilegesParams {
     context_path = UrlGroup::Accounts.with_scope(UrlScope::Staffs),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
-        UpgradeAccountPrivilegesParams,
     ),
+    request_body = UpgradeAccountPrivilegesBody,
     responses(
         (
             status = 500,
@@ -90,14 +110,17 @@ pub struct UpgradeAccountPrivilegesParams {
 #[patch("/{account}/upgrade")]
 pub async fn upgrade_account_privileges_url(
     path: web::Path<Uuid>,
-    info: web::Query<UpgradeAccountPrivilegesParams>,
+    body: web::Json<UpgradeAccountPrivilegesBody>,
     profile: MyceliumProfileData,
     account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
 ) -> impl Responder {
     match upgrade_account_privileges(
         profile.to_profile(),
         path.to_owned(),
-        info.target_account_type.to_owned(),
+        match body.to {
+            UpgradeTargetAccountType::Manager => AccountTypeV2::Manager,
+            UpgradeTargetAccountType::Staff => AccountTypeV2::Staff,
+        },
         Box::new(&*account_updating_repo),
     )
     .await
@@ -116,8 +139,8 @@ pub async fn upgrade_account_privileges_url(
     context_path = UrlGroup::Accounts.with_scope(UrlScope::Staffs),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
-        UpgradeAccountPrivilegesParams,
     ),
+    request_body = DowngradeAccountPrivilegesBody,
     responses(
         (
             status = 500,
@@ -149,14 +172,17 @@ pub async fn upgrade_account_privileges_url(
 #[patch("/{account}/downgrade")]
 pub async fn downgrade_account_privileges_url(
     path: web::Path<Uuid>,
-    info: web::Query<UpgradeAccountPrivilegesParams>,
+    body: web::Json<DowngradeAccountPrivilegesBody>,
     profile: MyceliumProfileData,
     account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
 ) -> impl Responder {
     match downgrade_account_privileges(
         profile.to_profile(),
         path.to_owned(),
-        info.target_account_type.to_owned(),
+        match body.to {
+            DowngradeTargetAccountType::Manager => AccountTypeV2::Manager,
+            DowngradeTargetAccountType::User => AccountTypeV2::User,
+        },
         Box::new(&*account_updating_repo),
     )
     .await
