@@ -71,7 +71,7 @@ pub async fn create_default_user(
     let mut user = User::new_principal_with_provider(
         None,
         email_instance.to_owned(),
-        match password {
+        match password.to_owned() {
             Some(password) => Provider::Internal(
                 PasswordHash::hash_user_password(password.as_bytes()),
             ),
@@ -102,13 +102,21 @@ pub async fn create_default_user(
         .await?
     {
         GetOrCreateResponseKind::NotCreated(user, _) => {
-            return use_case_err(format!(
-                "User already registered: {}",
-                user.email.get_email()
-            ))
-            .with_code(NativeErrorCodes::MYC00002)
-            .with_exp_true()
-            .as_error()
+            if let Some(Provider::Internal(_)) = user.provider() {
+                if user.is_active {
+                    return use_case_err(
+                        "You are trying to re-create an active user. Try to recovery your password instead"
+                            .to_string(),
+                    )
+                    .with_code(NativeErrorCodes::MYC00002)
+                    .with_exp_true()
+                    .as_error();
+                }
+
+                user
+            } else {
+                user
+            }
         }
         GetOrCreateResponseKind::Created(user) => user,
     };

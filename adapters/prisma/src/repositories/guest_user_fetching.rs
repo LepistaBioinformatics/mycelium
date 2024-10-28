@@ -11,7 +11,7 @@ use chrono::DateTime;
 use myc_core::domain::{
     dtos::{
         email::Email,
-        guest_role::{GuestRole, Permissions},
+        guest_role::{GuestRole, Permission},
         guest_user::GuestUser,
         native_error_codes::NativeErrorCodes,
     },
@@ -74,7 +74,7 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
                         id
                     }
                     children
-                    permissions
+                    permission
                 }
             }))
             .exec()
@@ -106,13 +106,9 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
                                 .collect(),
                         )),
                     },
-                    permissions: record
-                        .guest_role
-                        .permissions
-                        .to_owned()
-                        .into_iter()
-                        .map(|i| Permissions::from_i32(i))
-                        .collect(),
+                    permission: Permission::from_i32(
+                        record.guest_role.permission,
+                    ),
                 }),
                 created: record.created.into(),
                 updated: match record.updated {

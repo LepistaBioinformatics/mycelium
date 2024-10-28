@@ -6,7 +6,7 @@ SELECT DISTINCT
 	ac.is_default AS is_acc_std,
 	gr.id AS gr_id,
 	gr.name AS gr_name,
-	gr.permissions AS gr_perms,
+	gr.permission AS gr_perm,
 	rl.name AS rl_name,
     gu.email AS gu_email,
 	ac.tenant_id AS tenant_id

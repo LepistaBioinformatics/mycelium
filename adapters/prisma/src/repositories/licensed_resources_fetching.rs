@@ -3,7 +3,7 @@ use crate::repositories::connector::get_client;
 use async_trait::async_trait;
 use myc_core::domain::{
     dtos::{
-        email::Email, guest_role::Permissions,
+        email::Email, guest_role::Permission,
         native_error_codes::NativeErrorCodes, profile::LicensedResources,
         related_accounts::RelatedAccounts,
     },
@@ -31,7 +31,7 @@ struct LicensedResourceRow {
     is_acc_std: bool,
     gr_id: String,
     gr_name: String,
-    gr_perms: Vec<i32>,
+    gr_perm: i32,
     rl_name: String,
 }
 
@@ -101,11 +101,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 guest_role_id: Uuid::parse_str(&record.gr_id).unwrap(),
                 guest_role_name: record.gr_name,
                 role: record.rl_name,
-                perms: record
-                    .gr_perms
-                    .into_iter()
-                    .map(|i| Permissions::from_i32(i))
-                    .collect(),
+                perm: Permission::from_i32(record.gr_perm),
             })
             .collect::<Vec<LicensedResources>>();
 

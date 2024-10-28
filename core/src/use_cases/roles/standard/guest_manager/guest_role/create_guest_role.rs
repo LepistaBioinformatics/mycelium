@@ -1,7 +1,7 @@
 use crate::domain::{
     actors::ActorName,
     dtos::{
-        guest_role::{GuestRole, Permissions},
+        guest_role::{GuestRole, Permission},
         profile::Profile,
     },
     entities::GuestRoleRegistration,
@@ -27,7 +27,7 @@ pub async fn create_guest_role(
     name: String,
     description: String,
     role: Uuid,
-    permissions: Option<Vec<Permissions>>,
+    permission: Option<Permission>,
     guest_role_registration_repo: Box<&dyn GuestRoleRegistration>,
 ) -> Result<GetOrCreateResponseKind<GuestRole>, MappedErrors> {
     // ? ----------------------------------------------------------------------
@@ -46,7 +46,7 @@ pub async fn create_guest_role(
             name,
             description: Some(description),
             role: Parent::Id(role),
-            permissions: permissions.unwrap_or(vec![Permissions::Read]),
+            permission: permission.unwrap_or(Permission::Read),
             children: None,
         })
         .await

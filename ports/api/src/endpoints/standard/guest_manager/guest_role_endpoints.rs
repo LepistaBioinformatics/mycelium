@@ -11,7 +11,7 @@ use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
-        dtos::guest_role::Permissions,
+        dtos::guest_role::Permission,
         entities::{
             GuestRoleDeletion, GuestRoleFetching, GuestRoleRegistration,
             GuestRoleUpdating,
@@ -20,8 +20,7 @@ use myc_core::{
     use_cases::roles::standard::guest_manager::guest_role::{
         create_guest_role, delete_guest_role, insert_role_child,
         list_guest_roles, remove_role_child,
-        update_guest_role_name_and_description, update_guest_role_permissions,
-        ActionType,
+        update_guest_role_name_and_description, update_guest_role_permission,
     },
 };
 use myc_http_tools::{
@@ -78,8 +77,7 @@ pub struct UpdateGuestRoleNameAndDescriptionBody {
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateGuestRolePermissionsBody {
-    pub permission: Permissions,
-    pub action_type: ActionType,
+    pub permission: Permission,
 }
 
 /// Create Guest Role
@@ -362,11 +360,10 @@ pub async fn update_guest_role_permissions_url(
     role_fetching_repo: Inject<GuestRoleFetchingModule, dyn GuestRoleFetching>,
     role_updating_repo: Inject<GuestRoleUpdatingModule, dyn GuestRoleUpdating>,
 ) -> impl Responder {
-    match update_guest_role_permissions(
+    match update_guest_role_permission(
         profile.to_profile(),
         path.to_owned(),
         body.permission.to_owned(),
-        body.action_type.to_owned(),
         Box::new(&*role_fetching_repo),
         Box::new(&*role_updating_repo),
     )

@@ -16,7 +16,7 @@ pub use myc_core::{
         dtos::{
             account::Account,
             email::Email,
-            guest_role::Permissions,
+            guest_role::Permission,
             profile::{LicensedResources, Profile},
             related_accounts::RelatedAccounts,
         },

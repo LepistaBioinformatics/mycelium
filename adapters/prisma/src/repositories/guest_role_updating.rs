@@ -9,7 +9,7 @@ use crate::{
 use async_trait::async_trait;
 use myc_core::domain::{
     dtos::{
-        guest_role::{GuestRole, Permissions},
+        guest_role::{GuestRole, Permission},
         native_error_codes::NativeErrorCodes,
     },
     entities::GuestRoleUpdating,
@@ -73,12 +73,8 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                 vec![
                     guest_role_model::name::set(user_role.name),
                     guest_role_model::description::set(user_role.description),
-                    guest_role_model::permissions::set(
-                        user_role
-                            .permissions
-                            .into_iter()
-                            .map(|i| i as i32)
-                            .collect::<Vec<i32>>(),
+                    guest_role_model::permission::set(
+                        user_role.permission as i32,
                     ),
                 ],
             )
@@ -102,11 +98,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                             .collect(),
                     )),
                 },
-                permissions: record
-                    .permissions
-                    .into_iter()
-                    .map(|i| Permissions::from_i32(i))
-                    .collect(),
+                permission: Permission::from_i32(record.permission),
             })),
             Err(err) => {
                 if err.is_prisma_error::<RecordNotFound>() {
@@ -201,11 +193,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                                         .collect(),
                                 )),
                             },
-                            permissions: record
-                                .permissions
-                                .into_iter()
-                                .map(|i| Permissions::from_i32(i))
-                                .collect(),
+                            permission: Permission::from_i32(record.permission),
                         },
                     )));
                 };
@@ -306,11 +294,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                                         .collect(),
                                 )),
                             },
-                            permissions: record
-                                .permissions
-                                .into_iter()
-                                .map(|i| Permissions::from_i32(i))
-                                .collect(),
+                            permission: Permission::from_i32(record.permission),
                         },
                     )));
                 };
