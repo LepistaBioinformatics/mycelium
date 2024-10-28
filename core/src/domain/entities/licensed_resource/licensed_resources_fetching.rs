@@ -13,6 +13,7 @@ pub trait LicensedResourcesFetching: Interface + Send + Sync {
     async fn list(
         &self,
         email: Email,
+        roles: Option<Vec<String>>,
         related_accounts: Option<RelatedAccounts>,
     ) -> Result<FetchManyResponseKind<LicensedResources>, MappedErrors>;
 }

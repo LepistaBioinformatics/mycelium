@@ -13,7 +13,7 @@ use mycelium_base::{
     entities::FetchManyResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
-use prisma_client_rust::{raw, PrismaValue, Raw};
+use prisma_client_rust::{PrismaValue, Raw};
 use serde::Deserialize;
 use shaku::Component;
 use std::process::id as process_id;
@@ -40,6 +40,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
     async fn list(
         &self,
         email: Email,
+        roles: Option<Vec<String>>,
         related_accounts: Option<RelatedAccounts>,
     ) -> Result<FetchManyResponseKind<LicensedResources>, MappedErrors> {
         // ? -------------------------------------------------------------------
@@ -59,32 +60,46 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             Some(res) => res,
         };
 
-        let mut standard_query = raw!(
-            "SELECT * FROM licensed_resources WHERE gu_email = {}",
-            PrismaValue::String(email.get_email())
-        );
+        let mut query =
+            vec!["SELECT * FROM licensed_resources WHERE gu_email = {}"];
+
+        let mut params = vec![PrismaValue::String(email.get_email())];
 
         if let Some(related_accounts) = related_accounts {
             if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
-                standard_query = Raw::new(
-                    "SELECT * FROM licensed_resources WHERE gu_email = {} ANS acc_id IN ({})",
-                    vec![
-                        PrismaValue::String(email.get_email()),
-                        PrismaValue::String(ids.into_iter().map(|i| i.to_string()).collect::<Vec<String>>().join(",")),
-                    ]
-                )
+                query.push("AND acc_id = ANY({})");
+                params.push(PrismaValue::List(
+                    ids.into_iter()
+                        .map(|i| PrismaValue::Uuid(i))
+                        .collect::<Vec<PrismaValue>>(),
+                ));
             }
         };
 
-        let response: Vec<LicensedResourceRow> =
-            match client._query_raw(standard_query).exec().await {
-                Ok(res) => res,
-                Err(e) => {
-                    return fetching_err(e.to_string())
-                        .with_code(NativeErrorCodes::MYC00001)
-                        .as_error()
-                }
-            };
+        if let Some(roles) = roles {
+            query.push("AND rl_name = ANY({})");
+            params.push(PrismaValue::List(
+                roles
+                    .into_iter()
+                    .map(|i| PrismaValue::String(i.to_string()))
+                    .collect::<Vec<PrismaValue>>(),
+            ));
+        };
+
+        let join_query = query.join(" ");
+
+        let response: Vec<LicensedResourceRow> = match client
+            ._query_raw(Raw::new(join_query.as_str(), params))
+            .exec()
+            .await
+        {
+            Ok(res) => res,
+            Err(e) => {
+                return fetching_err(e.to_string())
+                    .with_code(NativeErrorCodes::MYC00001)
+                    .as_error()
+            }
+        };
 
         // ? -------------------------------------------------------------------
         // ? Evaluate and parse the database response

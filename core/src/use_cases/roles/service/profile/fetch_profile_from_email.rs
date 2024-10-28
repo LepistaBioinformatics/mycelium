@@ -22,6 +22,7 @@ pub enum ProfileResponse {
 #[tracing::instrument(name = "fetch_profile_from_email", skip_all)]
 pub async fn fetch_profile_from_email(
     email: Email,
+    roles: Option<Vec<String>>,
     profile_fetching_repo: Box<&dyn ProfileFetching>,
     licensed_resources_fetching_repo: Box<&dyn LicensedResourcesFetching>,
 ) -> Result<ProfileResponse, MappedErrors> {
@@ -31,7 +32,7 @@ pub async fn fetch_profile_from_email(
 
     let (profile, licenses) = future::join(
         profile_fetching_repo.get(Some(email.to_owned()), None),
-        licensed_resources_fetching_repo.list(email.to_owned(), None),
+        licensed_resources_fetching_repo.list(email.to_owned(), roles, None),
     )
     .await;
 

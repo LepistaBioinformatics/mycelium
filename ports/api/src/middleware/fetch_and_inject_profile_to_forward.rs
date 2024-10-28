@@ -17,8 +17,18 @@ use tracing::warn;
 pub async fn fetch_and_inject_profile_to_forward(
     req: HttpRequest,
     mut forwarded_req: ClientRequest,
+    roles: Option<Vec<String>>,
 ) -> Result<ClientRequest, GatewayError> {
-    let profile = fetch_profile_from_request(req).await?;
+    let profile = fetch_profile_from_request(req, roles.to_owned()).await?;
+
+    if let Some(_) = roles {
+        if profile.licensed_resources.is_none() {
+            return Err(GatewayError::Forbidden(
+                "User does not have permission to perform this action"
+                    .to_string(),
+            ));
+        }
+    }
 
     forwarded_req.headers_mut().insert(
         HeaderName::from_str(DEFAULT_PROFILE_KEY).unwrap(),
