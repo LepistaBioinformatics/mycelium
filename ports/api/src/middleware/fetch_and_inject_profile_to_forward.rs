@@ -22,7 +22,9 @@ pub async fn fetch_and_inject_profile_to_forward(
     let profile = fetch_profile_from_request(req, roles.to_owned()).await?;
 
     if let Some(_) = roles {
-        if profile.licensed_resources.is_none() {
+        if profile.licensed_resources.is_none()
+            && (!profile.is_manager && !profile.is_staff)
+        {
             return Err(GatewayError::Forbidden(
                 "User does not have permission to perform this action"
                     .to_string(),
