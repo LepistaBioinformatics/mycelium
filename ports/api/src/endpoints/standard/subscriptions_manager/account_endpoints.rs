@@ -21,7 +21,7 @@ use myc_core::{
             WebHookFetching,
         },
     },
-    use_cases::roles::standard::subscription_manager::account::{
+    use_cases::roles::standard::subscriptions_manager::account::{
         create_subscription_account, get_account_details,
         list_accounts_by_type, propagate_existing_subscription_account,
         update_account_name_and_flags,
@@ -94,7 +94,7 @@ pub struct ListSubscriptionAccountParams {
 /// groups, but not real persons.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Accounts),
+    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
     ),
@@ -180,7 +180,7 @@ pub async fn create_subscription_account_url(
 ///
 #[utoipa::path(
     get,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Accounts),
+    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
         ListSubscriptionAccountParams,
@@ -269,7 +269,7 @@ pub async fn list_accounts_by_type_url(
 /// Get a single subscription account.
 #[utoipa::path(
     get,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Accounts),
+    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
         ("account_id" = Uuid, Path, description = "The account primary key."),
@@ -329,7 +329,7 @@ pub async fn get_account_details_url(
 /// groups, but not real persons.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Accounts),
+    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
         ("account" = Uuid, Path, description = "The account primary key."),
@@ -398,7 +398,7 @@ pub async fn update_account_name_and_flags_url(
 /// Propagate a single subscription account.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Accounts),
+    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
         ("account" = Uuid, Path, description = "The account primary key."),

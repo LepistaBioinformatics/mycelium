@@ -58,7 +58,7 @@ pub async fn guest_user(
         .get_related_account_with_default_write_or_error(vec![
             ActorName::TenantOwner.to_string(),
             ActorName::TenantManager.to_string(),
-            ActorName::SubscriptionManager.to_string(),
+            ActorName::SubscriptionsManager.to_string(),
         ])?;
 
     // ? -----------------------------------------------------------------------

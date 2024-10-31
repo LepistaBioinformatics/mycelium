@@ -1,83 +1,79 @@
+use super::propagate_subscription_account::propagate_subscription_account;
 use crate::{
     domain::{
         actors::ActorName,
         dtos::{
-            account::Account,
             profile::Profile,
             webhook::{AccountPropagationWebHookResponse, HookTarget},
         },
-        entities::WebHookFetching,
+        entities::{AccountFetching, WebHookFetching},
     },
-    use_cases::roles::shared::webhook::{
-        default_actions::WebHookDefaultAction, dispatch_webhooks,
-    },
+    use_cases::roles::shared::webhook::default_actions::WebHookDefaultAction,
 };
 
 use mycelium_base::{
-    entities::FetchManyResponseKind, utils::errors::MappedErrors,
+    entities::FetchResponseKind,
+    utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
-/// Propagate a new subscription account to all webhooks.
+/// Propagate an existing subscription account to all webhooks.
 ///
 /// The propagation is done asynchronously, and the response is returned
 /// immediately.
 ///
 #[tracing::instrument(
-    name = "propagate_subscription_account", 
-    fields(profile_id = %profile.acc_id, hook_target = %hook_target),
+    name = "propagate_existing_subscription_account",
+    fields(profile_id = %profile.acc_id, target_account_id = %account_id),
     skip_all
 )]
-pub(super) async fn propagate_subscription_account(
+pub async fn propagate_existing_subscription_account(
     profile: Profile,
     tenant_id: Uuid,
     bearer_token: String,
-    account: Account,
-    webhook_default_action: WebHookDefaultAction,
-    hook_target: HookTarget,
+    account_id: Uuid,
+    account_fetching_repo: Box<&dyn AccountFetching>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
 ) -> Result<AccountPropagationWebHookResponse, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile
+    let related_accounts = profile
         .on_tenant(tenant_id)
         .get_related_account_with_default_write_or_error(vec![
             ActorName::TenantOwner.to_string(),
             ActorName::TenantManager.to_string(),
-            ActorName::SubscriptionManager.to_string(),
+            ActorName::SubscriptionsManager.to_string(),
         ])?;
 
     // ? -----------------------------------------------------------------------
-    // ? Propagate new account
+    // ? Fetch subscription account
     // ? -----------------------------------------------------------------------
 
-    let target_hooks = match webhook_fetching_repo
-        .list(Some(webhook_default_action.to_string()), Some(hook_target))
+    let account = match account_fetching_repo
+        .get(account_id, related_accounts)
         .await?
     {
-        FetchManyResponseKind::NotFound => None,
-        FetchManyResponseKind::Found(records) => Some(records),
-        FetchManyResponseKind::FoundPaginated(paginated_records) => {
-            Some(paginated_records.records)
-        }
-    };
-
-    let propagation_responses = match target_hooks {
-        None => None,
-        Some(hooks) => {
-            dispatch_webhooks(hooks, account.to_owned(), Some(bearer_token))
-                .await
+        FetchResponseKind::Found(account) => account,
+        FetchResponseKind::NotFound(_) => {
+            return use_case_err("The account was not found.".to_string())
+                .as_error()
         }
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Return created account
+    // ? Propagate account
     // ? -----------------------------------------------------------------------
 
-    Ok(AccountPropagationWebHookResponse {
+    propagate_subscription_account(
+        profile,
+        tenant_id,
+        bearer_token,
         account,
-        propagation_responses,
-    })
+        WebHookDefaultAction::CreateSubscriptionAccount,
+        HookTarget::Account,
+        webhook_fetching_repo,
+    )
+    .await
 }

@@ -24,7 +24,7 @@ use myc_core::{
         },
     },
     models::AccountLifeCycle,
-    use_cases::roles::standard::subscription_manager::guest::{
+    use_cases::roles::standard::subscriptions_manager::guest::{
         guest_user, list_guest_on_subscription_account,
         list_licensed_accounts_of_email, uninvite_guest,
         update_user_guest_role,
@@ -90,7 +90,7 @@ pub struct UpdateUserGuestRoleParams {
 /// List subscription accounts which email was guest
 #[utoipa::path(
     get,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Guests),
+    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
     ),
@@ -164,7 +164,7 @@ pub async fn list_licensed_accounts_of_email_url(
 /// path argument.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Guests),
+    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
         ("account_id" = Uuid, Path, description = "The account primary key."),
@@ -270,7 +270,7 @@ pub async fn guest_user_url(
 /// new role.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Guests),
+    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
         ("account_id" = Uuid, Path, description = "The account primary key."),
@@ -336,7 +336,7 @@ pub async fn update_user_guest_role_url(
 /// Uninvite user to perform a role to account
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Guests),
+    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
         ("account_id" = Uuid, Path, description = "The account primary key."),
@@ -404,7 +404,7 @@ pub async fn uninvite_guest_url(
 /// informed subscription account.
 #[utoipa::path(
     get,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Guests),
+    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
         ("account_id" = Uuid, Path, description = "The account primary key."),

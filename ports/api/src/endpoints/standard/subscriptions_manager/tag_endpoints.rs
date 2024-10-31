@@ -16,7 +16,7 @@ use myc_core::{
             AccountTagDeletion, AccountTagRegistration, AccountTagUpdating,
         },
     },
-    use_cases::roles::standard::subscription_manager::tag::{
+    use_cases::roles::standard::subscriptions_manager::tag::{
         delete_tag, register_tag, update_tag,
     },
 };
@@ -64,7 +64,7 @@ pub struct CreateTagBody {
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Tags),
+    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Tags),
     params(
         ("id" = Uuid, Path, description = "The account primary key."),
     ),
@@ -124,7 +124,7 @@ pub async fn register_tag_url(
 
 #[utoipa::path(
     put,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Tags),
+    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Tags),
     params(
         ("id" = Uuid, Path, description = "The account primary key."),
         ("tag_id" = Uuid, Path, description = "The tag primary key."),
@@ -184,7 +184,7 @@ pub async fn update_tag_url(
 
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Tags),
+    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Tags),
     params(
         ("id" = Uuid, Path, description = "The account primary key."),
         ("tag_id" = Uuid, Path, description = "The tag primary key."),

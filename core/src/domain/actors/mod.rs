@@ -15,15 +15,20 @@ pub enum ActorName {
     /// This actor is used when no role is assigned to the user.
     NoRole,
 
-    /// Subscription manager
+    /// Subscriptions manager
     ///
-    /// This actor is responsible for managing subscription accounts.
-    SubscriptionManager,
+    /// This actor is responsible for managing subscriptions accounts.
+    SubscriptionsManager,
 
-    /// User account manager
+    /// Users account manager
     ///
-    /// This actor is responsible for managing user accounts.
-    UserManager,
+    /// This actor is responsible for managing users accounts.
+    UsersManager,
+
+    /// Account manager
+    ///
+    /// This actor is responsible for managing a single subscription account.
+    AccountManager,
 
     /// Guest manager
     ///
@@ -53,11 +58,14 @@ impl Display for ActorName {
         match self {
             ActorName::CustomRole(role) => write!(f, "custom-role:{}", role),
             ActorName::NoRole => write!(f, "no-role"),
-            ActorName::SubscriptionManager => {
-                write!(f, "subscription-manager")
+            ActorName::SubscriptionsManager => {
+                write!(f, "subscriptions-manager")
             }
-            ActorName::UserManager => {
-                write!(f, "user-manager")
+            ActorName::UsersManager => {
+                write!(f, "users-manager")
+            }
+            ActorName::AccountManager => {
+                write!(f, "account-manager")
             }
             ActorName::GuestManager => {
                 write!(f, "guest-manager")
@@ -75,12 +83,13 @@ impl FromStr for ActorName {
     fn from_str(s: &str) -> Result<ActorName, ()> {
         match s {
             "no-role" => Ok(ActorName::NoRole),
-            "subscription-account-manager" => {
-                Ok(ActorName::SubscriptionManager)
+            "subscriptions-account-manager" => {
+                Ok(ActorName::SubscriptionsManager)
             }
-            "subscription-manager" => Ok(ActorName::SubscriptionManager),
-            "user-account-manager" => Ok(ActorName::UserManager),
-            "user-manager" => Ok(ActorName::UserManager),
+            "subscriptions-manager" => Ok(ActorName::SubscriptionsManager),
+            "users-account-manager" => Ok(ActorName::UsersManager),
+            "users-manager" => Ok(ActorName::UsersManager),
+            "account-manager" => Ok(ActorName::AccountManager),
             "guest-manager" => Ok(ActorName::GuestManager),
             "system-manager" => Ok(ActorName::SystemManager),
             "tenant-manager" => Ok(ActorName::TenantManager),

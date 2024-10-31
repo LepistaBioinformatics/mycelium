@@ -1,11 +1,11 @@
 mod guest_manager;
 mod no_role;
 mod shared;
-mod subscription_manager;
+mod subscriptions_manager;
 mod system_manager;
 mod tenant_manager;
 mod tenant_owner;
-mod user_manager;
+mod users_manager;
 
 use super::shared::UrlGroup;
 pub(crate) use crate::endpoints::standard::shared::build_actor_context;
@@ -46,7 +46,7 @@ use no_role::{
     profile_endpoints as no_role_profile_endpoints,
     user_endpoints as no_role_user_endpoints,
 };
-use subscription_manager::{
+use subscriptions_manager::{
     account_endpoints as subscription_manager_account_endpoints,
     guest_endpoints as subscription_manager_guest_endpoints,
     tag_endpoints as subscription_manager_tag_endpoints,
@@ -65,7 +65,7 @@ use tenant_owner::{
     owner_endpoints as tenant_owner_owner_endpoints,
     tenant_endpoints as tenant_owner_tenant_endpoints,
 };
-use user_manager::account_endpoints as user_manager_account_endpoints;
+use users_manager::account_endpoints as user_manager_account_endpoints;
 use utoipa::OpenApi;
 
 #[get("/")]
@@ -73,8 +73,8 @@ pub async fn list_role_controlled_main_routes_url() -> impl Responder {
     HttpResponse::Ok().json(
         [
             ActorName::NoRole,
-            ActorName::SubscriptionManager,
-            ActorName::UserManager,
+            ActorName::SubscriptionsManager,
+            ActorName::UsersManager,
             ActorName::GuestManager,
             ActorName::SystemManager,
         ]
@@ -155,7 +155,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         .service(
             web::scope(&format!(
                 "/{}",
-                ActorName::SubscriptionManager.to_string().as_str()
+                ActorName::SubscriptionsManager.to_string().as_str()
             ))
             .service(
                 web::scope(&format!("/{}", UrlGroup::Accounts)).configure(
@@ -236,7 +236,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         .service(
             web::scope(&format!(
                 "/{}",
-                ActorName::UserManager.to_string().as_str()
+                ActorName::UsersManager.to_string().as_str()
             ))
             .service(
                 web::scope(&format!("/{}", UrlGroup::Accounts))

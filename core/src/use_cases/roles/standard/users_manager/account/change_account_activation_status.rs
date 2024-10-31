@@ -30,7 +30,7 @@ pub async fn change_account_activation_status(
 
     let related_accounts = profile
         .get_related_account_with_default_write_or_error(vec![
-            ActorName::UserManager,
+            ActorName::UsersManager,
         ])?;
 
     // ? -----------------------------------------------------------------------
