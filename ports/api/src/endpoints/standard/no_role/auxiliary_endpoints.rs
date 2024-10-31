@@ -37,8 +37,8 @@ pub async fn list_actors_url() -> impl Responder {
         vec![
             ActorName::CustomRole("CustomRole".to_string()),
             ActorName::NoRole,
-            ActorName::SubscriptionManager,
-            ActorName::UserManager,
+            ActorName::SubscriptionsManager,
+            ActorName::UsersManager,
             ActorName::GuestManager,
             ActorName::SystemManager,
         ]

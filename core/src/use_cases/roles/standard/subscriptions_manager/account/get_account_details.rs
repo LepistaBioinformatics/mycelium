@@ -31,7 +31,7 @@ pub async fn get_account_details(
         .get_related_account_with_default_read_or_error(vec![
             ActorName::TenantOwner.to_string(),
             ActorName::TenantManager.to_string(),
-            ActorName::SubscriptionManager.to_string(),
+            ActorName::SubscriptionsManager.to_string(),
         ])?;
 
     // ? -----------------------------------------------------------------------

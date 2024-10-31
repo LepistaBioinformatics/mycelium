@@ -1,79 +1,83 @@
-use super::propagate_subscription_account::propagate_subscription_account;
 use crate::{
     domain::{
         actors::ActorName,
         dtos::{
+            account::Account,
             profile::Profile,
             webhook::{AccountPropagationWebHookResponse, HookTarget},
         },
-        entities::{AccountFetching, WebHookFetching},
+        entities::WebHookFetching,
     },
-    use_cases::roles::shared::webhook::default_actions::WebHookDefaultAction,
+    use_cases::roles::shared::webhook::{
+        default_actions::WebHookDefaultAction, dispatch_webhooks,
+    },
 };
 
 use mycelium_base::{
-    entities::FetchResponseKind,
-    utils::errors::{use_case_err, MappedErrors},
+    entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 use uuid::Uuid;
 
-/// Propagate an existing subscription account to all webhooks.
+/// Propagate a new subscription account to all webhooks.
 ///
 /// The propagation is done asynchronously, and the response is returned
 /// immediately.
 ///
 #[tracing::instrument(
-    name = "propagate_existing_subscription_account",
-    fields(profile_id = %profile.acc_id, target_account_id = %account_id),
+    name = "propagate_subscription_account", 
+    fields(profile_id = %profile.acc_id, hook_target = %hook_target),
     skip_all
 )]
-pub async fn propagate_existing_subscription_account(
+pub(super) async fn propagate_subscription_account(
     profile: Profile,
     tenant_id: Uuid,
     bearer_token: String,
-    account_id: Uuid,
-    account_fetching_repo: Box<&dyn AccountFetching>,
+    account: Account,
+    webhook_default_action: WebHookDefaultAction,
+    hook_target: HookTarget,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
 ) -> Result<AccountPropagationWebHookResponse, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    let related_accounts = profile
+    profile
         .on_tenant(tenant_id)
         .get_related_account_with_default_write_or_error(vec![
             ActorName::TenantOwner.to_string(),
             ActorName::TenantManager.to_string(),
-            ActorName::SubscriptionManager.to_string(),
+            ActorName::SubscriptionsManager.to_string(),
         ])?;
 
     // ? -----------------------------------------------------------------------
-    // ? Fetch subscription account
+    // ? Propagate new account
     // ? -----------------------------------------------------------------------
 
-    let account = match account_fetching_repo
-        .get(account_id, related_accounts)
+    let target_hooks = match webhook_fetching_repo
+        .list(Some(webhook_default_action.to_string()), Some(hook_target))
         .await?
     {
-        FetchResponseKind::Found(account) => account,
-        FetchResponseKind::NotFound(_) => {
-            return use_case_err("The account was not found.".to_string())
-                .as_error()
+        FetchManyResponseKind::NotFound => None,
+        FetchManyResponseKind::Found(records) => Some(records),
+        FetchManyResponseKind::FoundPaginated(paginated_records) => {
+            Some(paginated_records.records)
+        }
+    };
+
+    let propagation_responses = match target_hooks {
+        None => None,
+        Some(hooks) => {
+            dispatch_webhooks(hooks, account.to_owned(), Some(bearer_token))
+                .await
         }
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Propagate account
+    // ? Return created account
     // ? -----------------------------------------------------------------------
 
-    propagate_subscription_account(
-        profile,
-        tenant_id,
-        bearer_token,
+    Ok(AccountPropagationWebHookResponse {
         account,
-        WebHookDefaultAction::CreateSubscriptionAccount,
-        HookTarget::Account,
-        webhook_fetching_repo,
-    )
-    .await
+        propagation_responses,
+    })
 }
