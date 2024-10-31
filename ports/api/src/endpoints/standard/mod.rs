@@ -1,3 +1,4 @@
+mod account_manager;
 mod guest_manager;
 mod no_role;
 mod shared;
@@ -10,6 +11,7 @@ mod users_manager;
 use super::shared::UrlGroup;
 pub(crate) use crate::endpoints::standard::shared::build_actor_context;
 
+use account_manager::guest_endpoints as account_manager_guest_endpoints;
 use actix_web::{get, web, HttpResponse, Responder};
 use guest_manager::{
     guest_role_endpoints as guest_manager_guest_role_endpoints,
@@ -75,6 +77,9 @@ pub async fn list_role_controlled_main_routes_url() -> impl Responder {
             ActorName::NoRole,
             ActorName::SubscriptionsManager,
             ActorName::UsersManager,
+            ActorName::TenantOwner,
+            ActorName::TenantManager,
+            ActorName::AccountManager,
             ActorName::GuestManager,
             ActorName::SystemManager,
         ]
@@ -169,6 +174,19 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             .service(
                 web::scope(&format!("/{}", UrlGroup::Guests))
                     .configure(subscription_manager_guest_endpoints::configure),
+            ),
+        )
+        //
+        // Account Managers
+        //
+        .service(
+            web::scope(&format!(
+                "/{}",
+                ActorName::AccountManager.to_string().as_str()
+            ))
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Guests))
+                    .configure(account_manager_guest_endpoints::configure),
             ),
         )
         //
@@ -282,6 +300,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         user_manager_account_endpoints::deactivate_account_url,
         user_manager_account_endpoints::archive_account_url,
         user_manager_account_endpoints::unarchive_account_url,
+        account_manager_guest_endpoints::guest_to_children_account_url,
         system_manager_error_code_endpoints::register_error_code_url,
         system_manager_error_code_endpoints::list_error_codes_url,
         system_manager_error_code_endpoints::get_error_code_url,
@@ -351,6 +370,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             system_manager_webhook_endpoints::CreateWebHookBody,
             system_manager_webhook_endpoints::UpdateWebHookBody,
             guest_manager_guest_role_endpoints::UpdateGuestRolePermissionsBody,
+            account_manager_guest_endpoints::GuestUserBody,
             no_role_account_endpoints::CreateDefaultAccountBody,
             no_role_account_endpoints::UpdateOwnAccountNameAccountBody,
             no_role_guest_endpoints::GuestUserBody,

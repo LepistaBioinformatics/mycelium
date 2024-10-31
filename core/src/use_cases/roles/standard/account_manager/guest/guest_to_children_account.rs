@@ -1,46 +1,42 @@
-use crate::{
-    domain::{
-        actors::ActorName,
-        dtos::{
-            account::VerboseStatus, 
-            account_type::AccountTypeV2, 
-            email::Email, 
-            guest_user::GuestUser, 
-            message::Message, 
-            native_error_codes::NativeErrorCodes, 
-            profile::Profile
-        },
-        entities::{
-            AccountFetching, 
-            GuestRoleFetching, 
-            GuestUserRegistration, 
-            MessageSending
-        },
-    }, 
-    models::AccountLifeCycle, settings::TEMPLATES
-};
+use crate::{domain::{
+    actors::ActorName,
+    dtos::{
+        account::VerboseStatus,
+        account_type::AccountTypeV2, 
+        email::Email, 
+        guest_user::GuestUser, 
+        message::Message, 
+        native_error_codes::NativeErrorCodes, 
+        profile::Profile
+    },
+    entities::{
+        AccountFetching, GuestRoleFetching, GuestUserRegistration,
+        MessageSending,
+    },
+}, models::AccountLifeCycle, settings::TEMPLATES};
 
 use chrono::Local;
 use futures::future;
 use mycelium_base::{
-    dtos::Parent,
-    entities::{FetchResponseKind, GetOrCreateResponseKind},
-    utils::errors::{use_case_err, MappedErrors},
+    dtos::{Children, Parent}, 
+    entities::{FetchResponseKind, GetOrCreateResponseKind}, 
+    utils::errors::{use_case_err, MappedErrors}
 };
 use tera::Context;
 use uuid::Uuid;
 
-/// Guest a user to perform actions into an account.
-#[tracing::instrument(
-    name = "guest_user",
-    fields(profile_id = %profile.acc_id),
-    skip_all
-)]
-pub async fn guest_user(
+/// Guest users to collaborate to an account children of a role which I have
+/// guest to collaborate.
+///
+/// This action should be allowed only to accounts that contains registered
+/// children accounts already registered.
+#[tracing::instrument(name = "guest_to_children_account", skip_all)]
+pub async fn guest_to_children_account(
     profile: Profile,
     tenant_id: Uuid,
     email: Email,
-    role_id: Uuid,
+    parent_role_id: Uuid,
+    target_role_id: Uuid,
     target_account_id: Uuid,
     platform_url: Option<String>,
     life_cycle_settings: AccountLifeCycle,
@@ -56,9 +52,7 @@ pub async fn guest_user(
     let related_accounts = profile
         .on_tenant(tenant_id)
         .get_related_account_with_default_write_or_error(vec![
-            ActorName::TenantOwner.to_string(),
-            ActorName::TenantManager.to_string(),
-            ActorName::SubscriptionsManager.to_string(),
+            ActorName::AccountManager.to_string(),
         ])?;
 
     // ? -----------------------------------------------------------------------
@@ -70,18 +64,21 @@ pub async fn guest_user(
     //
     // ? -----------------------------------------------------------------------
 
-    let (target_account_response, target_role_response) = future::join(
-        account_fetching_repo.get(target_account_id, related_accounts),
-        guest_role_fetching_repo.get(role_id),
-    )
-    .await;
+    let (target_account_response, parent_role_response, target_role_response) =
+        future::join3(
+            account_fetching_repo.get(target_account_id, related_accounts),
+            guest_role_fetching_repo.get(parent_role_id),
+            guest_role_fetching_repo.get(target_role_id),
+        )
+        .await;
 
-    let target_account = match target_account_response? {
+        let target_account = match target_account_response? {
         FetchResponseKind::NotFound(id) => {
             return use_case_err(format!(
                 "Target account not found: {:?}",
                 id.unwrap()
             ))
+            .with_exp_true()
             .with_code(NativeErrorCodes::MYC00013)
             .as_error()
         }
@@ -107,17 +104,52 @@ pub async fn guest_user(
             .as_error();
     }
 
+    let parent_role = match parent_role_response? {
+        FetchResponseKind::NotFound(id) => {
+            return use_case_err(format!(
+                "Guest role parent not found: {:?}",
+                id.unwrap()
+            ))
+            .with_exp_true()
+            .with_code(NativeErrorCodes::MYC00013)
+            .as_error()
+        }
+        FetchResponseKind::Found(role) => role,
+    };
+
     let target_role = match target_role_response? {
         FetchResponseKind::NotFound(id) => {
             return use_case_err(format!(
                 "Guest role not found: {:?}",
                 id.unwrap()
             ))
+            .with_exp_true()
             .with_code(NativeErrorCodes::MYC00013)
             .as_error()
         }
         FetchResponseKind::Found(role) => role,
     };
+
+    if let Some(children) = parent_role.children {
+        let target_ids = match children {
+            Children::Ids(ids) => ids,
+            Children::Records(records) => records
+                .iter()
+                .filter_map(|i| i.id).collect::<Vec<Uuid>>(),
+        };
+
+        if !target_ids.contains(&target_role_id) {
+            return use_case_err("Invalid target role. Children role is not belong to the parent role")
+                .with_exp_true()
+                .with_code(NativeErrorCodes::MYC00013)
+                .as_error();
+        }
+    } else {
+        return use_case_err("Invalid parent role. Only roles with children can receive guesting")
+            .with_exp_true()
+            .with_code(NativeErrorCodes::MYC00013)
+            .as_error();
+    }
 
     // ? -----------------------------------------------------------------------
     // ? Persist changes
@@ -128,7 +160,7 @@ pub async fn guest_user(
             GuestUser {
                 id: None,
                 email: email.to_owned(),
-                guest_role: Parent::Id(role_id),
+                guest_role: Parent::Id(target_role_id),
                 created: Local::now(),
                 updated: None,
                 accounts: None,

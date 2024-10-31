@@ -204,7 +204,7 @@ pub async fn list_licensed_accounts_of_email_url(
         ),
     ),
 )]
-#[post("/{tenant_id}/accounts/{account_id}/role/{role_id}")]
+#[post("/{tenant_id}/accounts/{account_id}/roles/{role_id}")]
 pub async fn guest_user_url(
     path: web::Path<(Uuid, Uuid, Uuid)>,
     body: web::Json<GuestUserBody>,
@@ -305,7 +305,7 @@ pub async fn guest_user_url(
         ),
     ),
 )]
-#[patch("/{tenant_id}/accounts/{account_id}/role/{role_id}")]
+#[patch("/{tenant_id}/accounts/{account_id}/roles/{role_id}")]
 pub async fn update_user_guest_role_url(
     path: web::Path<(Uuid, Uuid, Uuid)>,
     info: web::Query<UpdateUserGuestRoleParams>,
@@ -370,7 +370,7 @@ pub async fn update_user_guest_role_url(
         ),
     ),
 )]
-#[delete("/{tenant_id}/accounts/{account_id}/role/{role_id}")]
+#[delete("/{tenant_id}/accounts/{account_id}/roles/{role_id}")]
 pub async fn uninvite_guest_url(
     path: web::Path<(Uuid, Uuid, Uuid)>,
     info: web::Query<GuestUserBody>,

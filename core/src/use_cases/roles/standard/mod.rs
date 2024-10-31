@@ -1,3 +1,4 @@
+pub mod account_manager;
 pub mod guest_manager;
 pub mod no_role;
 pub mod subscriptions_manager;
