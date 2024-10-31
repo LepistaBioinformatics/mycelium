@@ -3,6 +3,7 @@ use crate::domain::{
     dtos::{
         email::Email,
         profile::{LicensedResources, Profile},
+        route_type::PermissionedRoles,
     },
     entities::LicensedResourcesFetching,
 };
@@ -25,6 +26,7 @@ pub async fn list_licensed_accounts_of_email(
     tenant_id: Uuid,
     email: Email,
     roles: Option<Vec<String>>,
+    permissioned_roles: Option<PermissionedRoles>,
     licensed_resources_fetching_repo: Box<&dyn LicensedResourcesFetching>,
 ) -> Result<FetchManyResponseKind<LicensedResources>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -44,6 +46,6 @@ pub async fn list_licensed_accounts_of_email(
     // ? -----------------------------------------------------------------------
 
     licensed_resources_fetching_repo
-        .list(email, roles, Some(related_accounts))
+        .list(email, roles, permissioned_roles, Some(related_accounts))
         .await
 }
