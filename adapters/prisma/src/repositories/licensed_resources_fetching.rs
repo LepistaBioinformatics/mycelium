@@ -5,7 +5,7 @@ use myc_core::domain::{
     dtos::{
         email::Email, guest_role::Permission,
         native_error_codes::NativeErrorCodes, profile::LicensedResources,
-        related_accounts::RelatedAccounts,
+        related_accounts::RelatedAccounts, route_type::PermissionedRoles,
     },
     entities::LicensedResourcesFetching,
 };
@@ -41,6 +41,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         &self,
         email: Email,
         roles: Option<Vec<String>>,
+        permissioned_roles: Option<PermissionedRoles>,
         related_accounts: Option<RelatedAccounts>,
     ) -> Result<FetchManyResponseKind<LicensedResources>, MappedErrors> {
         // ? -------------------------------------------------------------------
@@ -60,6 +61,11 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             Some(res) => res,
         };
 
+        let mut _role = roles.clone();
+        if roles.is_some() && permissioned_roles.is_some() {
+            _role = None;
+        }
+
         let mut query =
             vec!["SELECT * FROM licensed_resources WHERE gu_email = {}"];
 
@@ -76,7 +82,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             }
         };
 
-        if let Some(roles) = roles {
+        if let Some(roles) = _role {
             query.push("AND rl_name = ANY({})");
             params.push(PrismaValue::List(
                 roles
@@ -84,6 +90,31 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                     .map(|i| PrismaValue::String(i.to_string()))
                     .collect::<Vec<PrismaValue>>(),
             ));
+        };
+
+        let query = if let Some(permissioned_roles) = permissioned_roles {
+            let mut _query =
+                query.iter().map(|i| i.to_string()).collect::<Vec<String>>();
+
+            let statement = permissioned_roles.iter().fold(
+                String::new(),
+                |acc, (role, permission)| {
+                    format!(
+                        "{}(rl_name = '{}' AND gr_perm >= {}) OR ",
+                        acc,
+                        role,
+                        permission.to_owned() as i64
+                    )
+                },
+            );
+
+            let statement = statement.trim_end_matches(" OR ").to_owned();
+            let binding = format!("AND ({})", statement.clone());
+
+            _query.push(binding);
+            _query.iter().map(|i| i.to_owned()).collect::<Vec<_>>()
+        } else {
+            query.iter().map(|i| i.to_string()).collect::<Vec<_>>()
         };
 
         let join_query = query.join(" ");

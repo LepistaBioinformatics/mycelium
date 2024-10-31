@@ -175,15 +175,31 @@ pub(crate) async fn route_request(
     // ? -----------------------------------------------------------------------
 
     match route.group.to_owned() {
+        //
+        // Public routes do not need any authentication or profile injection.
+        //
+        RouteType::Public => (),
+        //
+        // Protected routes should include the full qualified user profile into
+        // the header
+        //
         RouteType::Protected => {
             //
             // Try to populate profile from the request
             //
-            forwarded_req =
-                fetch_and_inject_profile_to_forward(req, forwarded_req, None)
-                    .await?;
+            forwarded_req = fetch_and_inject_profile_to_forward(
+                req,
+                forwarded_req,
+                None,
+                None,
+            )
+            .await?;
         }
-        RouteType::RoleProtected { roles } => {
+        //
+        // Protected routes should include the user profile filtered by roles
+        // into the header
+        //
+        RouteType::ProtectedByRoles { roles } => {
             //
             // Try to populate profile from the request filtering licensed
             // resources by roles
@@ -192,10 +208,27 @@ pub(crate) async fn route_request(
                 req,
                 forwarded_req,
                 Some(roles),
+                None,
             )
             .await?;
         }
-        _ => (),
+        //
+        // Protected routes should include the user profile filtered by roles
+        // and permissions into the header
+        //
+        RouteType::ProtectedByPermissionedRoles { permissioned_roles } => {
+            //
+            // Try to populate profile from the request filtering licensed
+            // resources by roles and permissions
+            //
+            forwarded_req = fetch_and_inject_profile_to_forward(
+                req,
+                forwarded_req,
+                None,
+                Some(permissioned_roles),
+            )
+            .await?;
+        }
     }
 
     // ? -----------------------------------------------------------------------

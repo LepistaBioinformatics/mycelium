@@ -6,7 +6,7 @@ use jsonwebtoken::errors::ErrorKind;
 use jwt::{Header as JwtHeader, RegisteredClaims, Token};
 use myc_config::optional_config::OptionalConfig;
 use myc_core::{
-    domain::dtos::email::Email,
+    domain::dtos::{email::Email, route_type::PermissionedRoles},
     use_cases::roles::service::profile::{
         fetch_profile_from_email, ProfileResponse,
     },
@@ -32,6 +32,7 @@ use tracing::{debug, warn};
 pub(crate) async fn fetch_profile_from_request(
     req: HttpRequest,
     roles: Option<Vec<String>>,
+    permissioned_roles: Option<PermissionedRoles>,
 ) -> Result<MyceliumProfileData, GatewayError> {
     let email =
         check_credentials_with_multi_identity_provider(req.clone()).await?;
@@ -45,6 +46,7 @@ pub(crate) async fn fetch_profile_from_request(
     let profile = match fetch_profile_from_email(
         email.to_owned().unwrap(),
         roles,
+        permissioned_roles,
         Box::new(&ProfileFetchingSqlDbRepository {}),
         Box::new(&LicensedResourcesFetchingSqlDbRepository {}),
     )

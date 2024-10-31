@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::{email::Email, profile::Profile},
+    dtos::{email::Email, profile::Profile, route_type::PermissionedRoles},
     entities::{LicensedResourcesFetching, ProfileFetching},
 };
 
@@ -23,6 +23,7 @@ pub enum ProfileResponse {
 pub async fn fetch_profile_from_email(
     email: Email,
     roles: Option<Vec<String>>,
+    permissioned_roles: Option<PermissionedRoles>,
     profile_fetching_repo: Box<&dyn ProfileFetching>,
     licensed_resources_fetching_repo: Box<&dyn LicensedResourcesFetching>,
 ) -> Result<ProfileResponse, MappedErrors> {
@@ -32,7 +33,12 @@ pub async fn fetch_profile_from_email(
 
     let (profile, licenses) = future::join(
         profile_fetching_repo.get(Some(email.to_owned()), None),
-        licensed_resources_fetching_repo.list(email.to_owned(), roles, None),
+        licensed_resources_fetching_repo.list(
+            email.to_owned(),
+            roles,
+            permissioned_roles,
+            None,
+        ),
     )
     .await;
 

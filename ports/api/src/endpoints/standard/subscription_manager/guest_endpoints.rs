@@ -13,7 +13,10 @@ use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
-        dtos::{email::Email, native_error_codes::NativeErrorCodes},
+        dtos::{
+            email::Email, native_error_codes::NativeErrorCodes,
+            route_type::PermissionedRoles,
+        },
         entities::{
             AccountFetching, GuestRoleFetching, GuestUserDeletion,
             GuestUserFetching, GuestUserOnAccountUpdating,
@@ -68,6 +71,7 @@ pub struct GuestUserBody {
 pub struct ListLicensedAccountsOfEmailBody {
     email: String,
     roles: Option<Vec<String>>,
+    permissioned_roles: Option<PermissionedRoles>,
 }
 
 #[derive(Deserialize, IntoParams)]
@@ -89,8 +93,8 @@ pub struct UpdateUserGuestRoleParams {
     context_path = build_actor_context(ActorName::SubscriptionManager, UrlGroup::Guests),
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
-        ListLicensedAccountsOfEmailBody
     ),
+    request_body = ListLicensedAccountsOfEmailBody,
     responses(
         (
             status = 500,
@@ -121,14 +125,14 @@ pub struct UpdateUserGuestRoleParams {
 #[get("/{tenant_id}")]
 pub async fn list_licensed_accounts_of_email_url(
     path: web::Path<Uuid>,
-    info: web::Query<ListLicensedAccountsOfEmailBody>,
+    body: web::Json<ListLicensedAccountsOfEmailBody>,
     profile: MyceliumProfileData,
     licensed_resources_fetching_repo: Inject<
         LicensedResourcesFetchingModule,
         dyn LicensedResourcesFetching,
     >,
 ) -> impl Responder {
-    let email = match Email::from_string(info.email.to_owned()) {
+    let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
             return HttpResponse::BadRequest().json(
                 HttpJsonResponse::new_message(format!("Invalid email: {err}")),
@@ -141,7 +145,8 @@ pub async fn list_licensed_accounts_of_email_url(
         profile.to_profile(),
         *path,
         email.to_owned(),
-        info.roles.to_owned(),
+        body.roles.to_owned(),
+        body.permissioned_roles.to_owned(),
         Box::new(&*licensed_resources_fetching_repo),
     )
     .await
