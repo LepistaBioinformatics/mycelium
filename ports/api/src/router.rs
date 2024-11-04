@@ -229,6 +229,19 @@ pub(crate) async fn route_request(
             )
             .await?;
         }
+        //
+        // Protected routes by service token should include the users role which
+        // the service token is associated
+        //
+        RouteType::ProtectedByServiceToken { roles } => {
+            //
+            // Try to populate profile from the request filtering licensed
+            // resources by roles and permissions
+            //
+            println!("roles: {:?}", roles);
+
+            unimplemented!("ProtectedByServiceToken not implemented yet");
+        }
     }
 
     // ? -----------------------------------------------------------------------

@@ -4,7 +4,7 @@ use crate::{
             email::Email,
             message::Message,
             native_error_codes::NativeErrorCodes,
-            token::{PasswordChangeTokenMeta, TokenMeta},
+            token::{MultiTypeMeta, PasswordChangeTokenMeta},
         },
         entities::{MessageSending, TokenRegistration, UserFetching},
     },
@@ -94,7 +94,7 @@ pub async fn start_password_redefinition(
     };
 
     let token_metadata = match token.to_owned().meta {
-        TokenMeta::PasswordChange(meta) => meta,
+        MultiTypeMeta::PasswordChange(meta) => meta,
         _ => return use_case_err("Invalid token type").as_error(),
     };
 

@@ -8,8 +8,8 @@ use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
         token::{
-            EmailConfirmationTokenMeta, PasswordChangeTokenMeta, Token,
-            TokenMeta,
+            EmailConfirmationTokenMeta, MultiTypeMeta, PasswordChangeTokenMeta,
+            Token,
         },
     },
     entities::TokenRegistration,
@@ -88,7 +88,7 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
                 let token = Token::new(
                     Some(res.id),
                     res.expiration.into(),
-                    TokenMeta::EmailConfirmation(meta),
+                    MultiTypeMeta::EmailConfirmation(meta),
                 );
 
                 return Ok(CreateResponseKind::Created(token));
@@ -162,7 +162,7 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
                 let token = Token::new(
                     Some(res.id),
                     res.expiration.into(),
-                    TokenMeta::PasswordChange(meta),
+                    MultiTypeMeta::PasswordChange(meta),
                 );
 
                 return Ok(CreateResponseKind::Created(token));

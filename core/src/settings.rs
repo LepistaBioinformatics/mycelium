@@ -14,10 +14,32 @@ use tera::Tera;
 // Here default system constants are configured.
 // ? ---------------------------------------------------------------------------
 
+/// Default profile key
+///
+/// This is the default key used to store the profile in the request headers and
+/// send it to the gateway downstream services.
+///
 pub const DEFAULT_PROFILE_KEY: &str = "x-mycelium-profile";
 
+/// Default service account key
+///
+/// This is the default key used to store the service account in the request
+/// headers and send it to the gateway downstream services.
+///
+pub const DEFAULT_SERVICE_ACCOUNT_KEY: &str = "x-mycelium-sa-token";
+
+/// Default forward header key
+///
+/// This is the default key used to store the forward header in the request
+/// headers and send it to the gateway downstream services.
+///
 pub const FORWARD_FOR_KEY: &str = "x-forwarded-for";
 
+/// Default forwarding keys
+///
+/// Such keys are used to map the headers that should be removed from the
+/// downstream response before stream it back to the client.
+///
 pub const FORWARDING_KEYS: [&str; 9] = [
     "Host",
     "Connection",
