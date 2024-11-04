@@ -39,8 +39,11 @@ pub async fn list_actors_url() -> impl Responder {
             ActorName::NoRole,
             ActorName::SubscriptionsManager,
             ActorName::UsersManager,
+            ActorName::AccountManager,
             ActorName::GuestManager,
             ActorName::SystemManager,
+            ActorName::TenantOwner,
+            ActorName::TenantManager,
         ]
         .into_iter()
         .map(|x| x.to_string())

@@ -4,7 +4,7 @@ use crate::{
             email::Email,
             message::Message,
             native_error_codes::NativeErrorCodes,
-            token::{EmailConfirmationTokenMeta, TokenMeta},
+            token::{EmailConfirmationTokenMeta, MultiTypeMeta},
         },
         entities::{MessageSending, TokenRegistration, UserDeletion},
     },
@@ -88,7 +88,7 @@ pub(super) async fn register_token_and_notify_user(
     };
 
     let token_metadata = match token.to_owned().meta {
-        TokenMeta::EmailConfirmation(meta) => meta,
+        MultiTypeMeta::EmailConfirmation(meta) => meta,
         _ => {
             // ? ---------------------------------------------------------------
             // ? Delete the user

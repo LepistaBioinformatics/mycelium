@@ -1,4 +1,5 @@
 use myc_config::env_or_value::EnvOrValue;
+use mycelium_base::utils::errors::MappedErrors;
 use serde::{Deserialize, Serialize};
 
 /// This struct is used to manage the token secret and the token expiration
@@ -20,4 +21,15 @@ pub struct AccountLifeCycle {
 
     /// Support email
     pub support_email: EnvOrValue<String>,
+
+    /// Token secret
+    ///
+    /// Toke secret is used to sign tokens
+    pub(crate) token_secret: EnvOrValue<String>,
+}
+
+impl AccountLifeCycle {
+    pub fn get_secret(&self) -> Result<String, MappedErrors> {
+        self.token_secret.get_or_error()
+    }
 }

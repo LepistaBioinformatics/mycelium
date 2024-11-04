@@ -3,6 +3,7 @@ use super::role::Role;
 use mycelium_base::dtos::{Children, Parent};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
+use tracing::error;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -23,6 +24,14 @@ impl Permission {
             _ => Permission::Read,
         }
     }
+
+    pub fn to_i32(&self) -> i32 {
+        match self {
+            Permission::Read => 0,
+            Permission::Write => 1,
+            Permission::ReadWrite => 2,
+        }
+    }
 }
 
 impl FromStr for Permission {
@@ -32,7 +41,11 @@ impl FromStr for Permission {
         match s {
             "read" => Ok(Permission::Read),
             "write" => Ok(Permission::Write),
-            _ => Err(()),
+            "read-write" => Ok(Permission::ReadWrite),
+            _ => {
+                error!("Invalid permission: {}", s);
+                Ok(Permission::Read)
+            }
         }
     }
 }

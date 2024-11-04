@@ -28,4 +28,8 @@ pub enum RouteType {
     ProtectedByPermissionedRoles {
         permissioned_roles: PermissionedRoles,
     },
+    ///
+    /// Protect the route with service token associated to a specific role list
+    ///
+    ProtectedByServiceToken { roles: Vec<String> },
 }
