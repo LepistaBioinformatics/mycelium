@@ -1,7 +1,7 @@
 // ? ---------------------------------------------------------------------------
-// ? AccountScopedServiceTokenMeta
+// ? AccountScopedConnectionStringMeta
 //
-// Data type used to store service tokens scoped to an specific account
+// Data type used to store connection string scoped to an specific account
 //
 // ? ---------------------------------------------------------------------------
 
