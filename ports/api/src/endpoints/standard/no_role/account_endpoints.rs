@@ -12,7 +12,6 @@ use actix_web::{patch, post, web, HttpRequest, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
-        dtos::native_error_codes::NativeErrorCodes,
         entities::{
             AccountRegistration, AccountUpdating, UserFetching, WebHookFetching,
         },

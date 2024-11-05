@@ -19,10 +19,7 @@ use myc_core::{
     models::AccountLifeCycle,
     use_cases::roles::standard::no_role::guest::guest_to_default_account,
 };
-use myc_http_tools::{
-    utils::HttpJsonResponse,
-    wrappers::default_response_to_http_response::handle_mapped_error,
-};
+use myc_http_tools::wrappers::default_response_to_http_response::handle_mapped_error;
 use serde::Deserialize;
 use shaku_actix::Inject;
 use utoipa::{IntoParams, ToSchema};

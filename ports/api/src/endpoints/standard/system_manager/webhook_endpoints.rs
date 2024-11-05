@@ -7,7 +7,7 @@ use crate::{
     },
 };
 
-use actix_web::{delete, get, post, put, web, HttpResponse, Responder};
+use actix_web::{delete, get, post, put, web, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
@@ -24,12 +24,9 @@ use myc_core::{
         },
     },
 };
-use myc_http_tools::{
-    utils::HttpJsonResponse,
-    wrappers::default_response_to_http_response::{
-        create_response_kind, delete_response_kind, fetch_many_response_kind,
-        handle_mapped_error, updating_response_kind,
-    },
+use myc_http_tools::wrappers::default_response_to_http_response::{
+    create_response_kind, delete_response_kind, fetch_many_response_kind,
+    handle_mapped_error, updating_response_kind,
 };
 use serde::Deserialize;
 use shaku_actix::Inject;

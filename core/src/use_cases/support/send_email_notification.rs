@@ -1,8 +1,12 @@
 use crate::{
     domain::{
-        dtos::{email::Email, message::Message},
+        dtos::{
+            email::Email,
+            message::{FromEmail, Message},
+        },
         entities::MessageSending,
     },
+    models::AccountLifeCycle,
     settings::TEMPLATES,
 };
 
@@ -17,7 +21,7 @@ use uuid::Uuid;
 pub(crate) async fn send_email_notification<T: ToString>(
     parameters: Vec<(T, String)>,
     template_path: T,
-    from: Email,
+    config: AccountLifeCycle,
     to: Email,
     cc: Option<Email>,
     subject: String,
@@ -40,9 +44,14 @@ pub(crate) async fn send_email_notification<T: ToString>(
             }
         };
 
+    let from = Email::from_string(config.noreply_email.get_or_error()?)?;
+
     message_sending_repo
         .send(Message {
-            from,
+            from: FromEmail::NamedEmail(format!(
+                "Sou Agrobiota <{}>",
+                from.get_email()
+            )),
             to,
             cc,
             subject,
