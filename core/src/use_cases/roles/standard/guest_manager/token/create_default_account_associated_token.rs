@@ -34,7 +34,7 @@ pub async fn create_default_account_associated_token(
     life_cycle_settings: AccountLifeCycle,
     token_registration_repo: Box<&dyn TokenRegistration>,
     message_sending_repo: Box<&dyn MessageSending>,
-) -> Result<AccountScopedConnectionStringMeta, MappedErrors> {
+) -> Result<String, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges to create role
     // ? -----------------------------------------------------------------------
@@ -132,5 +132,5 @@ pub async fn create_default_account_associated_token(
     // ? Send user the token
     // ? -----------------------------------------------------------------------
 
-    Ok(account_scoped_connection_string)
+    Ok(account_scoped_connection_string.scope.to_string())
 }

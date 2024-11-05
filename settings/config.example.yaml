@@ -4,6 +4,8 @@
 core:
   accountLifeCycle:
     tokenExpiration: 3600
+    tokenSecret:
+      env: MYC_TOKEN_SECRET
     noreplyName: "Mycelium Keeper"
     noreplyEmail:
       env: MYC_TOKEN_EMAIL_NOTIFIER

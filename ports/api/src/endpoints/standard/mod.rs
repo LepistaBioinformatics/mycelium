@@ -16,6 +16,7 @@ use actix_web::{get, web, HttpResponse, Responder};
 use guest_manager::{
     guest_role_endpoints as guest_manager_guest_role_endpoints,
     role_endpoints as guest_manager_role_endpoints,
+    token_endpoints as guest_manager_token_endpoints,
 };
 use myc_core::{
     domain::{
@@ -152,6 +153,10 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             .service(
                 web::scope(&format!("/{}", UrlGroup::GuestRoles))
                     .configure(guest_manager_guest_role_endpoints::configure),
+            )
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Tokens))
+                    .configure(guest_manager_token_endpoints::configure),
             ),
         )
         //
@@ -321,6 +326,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         guest_manager_role_endpoints::list_roles_url,
         guest_manager_role_endpoints::delete_role_url,
         guest_manager_role_endpoints::update_role_name_and_description_url,
+        guest_manager_token_endpoints::create_default_account_associated_token_url,
         tenant_owner_account_endpoints::create_management_account_url,
         tenant_owner_meta_endpoints::create_tenant_meta_url,
         tenant_owner_meta_endpoints::delete_tenant_meta_url,
@@ -370,6 +376,8 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             system_manager_webhook_endpoints::CreateWebHookBody,
             system_manager_webhook_endpoints::UpdateWebHookBody,
             guest_manager_guest_role_endpoints::UpdateGuestRolePermissionsBody,
+            guest_manager_token_endpoints::CreateDefaultAccountAssociatedTokenBody,
+            guest_manager_token_endpoints::CreateDefaultAccountAssociatedTokenResponse,
             account_manager_guest_endpoints::GuestUserBody,
             no_role_account_endpoints::CreateDefaultAccountBody,
             no_role_account_endpoints::UpdateOwnAccountNameAccountBody,
