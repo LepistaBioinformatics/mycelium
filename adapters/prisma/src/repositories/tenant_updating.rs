@@ -74,6 +74,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
                         first_name
                         last_name
                         username
+                        is_principal
                     }
                 }
             }))
@@ -97,6 +98,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
                                 first_name: owner.first_name.clone().into(),
                                 last_name: owner.last_name.clone().into(),
                                 username: owner.username.clone().into(),
+                                is_principal: owner.is_principal,
                             }
                         })
                         .collect(),
@@ -179,6 +181,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
                                 first_name
                                 last_name
                                 username
+                                is_principal
                             }
                         }
                     }))
@@ -204,6 +207,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
                                 first_name: owner.first_name.clone().into(),
                                 last_name: owner.last_name.clone().into(),
                                 username: owner.username.clone().into(),
+                                is_principal: owner.is_principal,
                             }
                         })
                         .collect(),

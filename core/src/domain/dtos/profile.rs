@@ -1,6 +1,7 @@
 use super::{
     account::VerboseStatus, guest_role::Permission,
-    related_accounts::RelatedAccounts, user::User,
+    native_error_codes::NativeErrorCodes, related_accounts::RelatedAccounts,
+    user::User,
 };
 
 use mycelium_base::utils::errors::{dto_err, execution_err, MappedErrors};
@@ -84,6 +85,9 @@ pub struct Owner {
 
     /// The owner username
     pub username: Option<String>,
+
+    /// If the owner is the principal account owner
+    pub is_principal: bool,
 }
 
 impl Owner {
@@ -99,9 +103,10 @@ impl Owner {
         Ok(Self {
             id: user_id,
             email: user.email.get_email(),
-            first_name: user.first_name,
-            last_name: user.last_name,
-            username: Some(user.username),
+            first_name: user.to_owned().first_name,
+            last_name: user.to_owned().last_name,
+            username: Some(user.to_owned().username),
+            is_principal: user.is_principal(),
         })
     }
 }
@@ -202,6 +207,7 @@ impl Profile {
             false => execution_err(
                 "Current account has no administration privileges".to_string(),
             )
+            .with_code(NativeErrorCodes::MYC00013)
             .with_exp_true()
             .as_error(),
             true => Ok(()),
@@ -575,6 +581,7 @@ impl Profile {
             return execution_err(
                 "Insufficient privileges to perform these action".to_string(),
             )
+            .with_code(NativeErrorCodes::MYC00013)
             .with_exp_true()
             .as_error();
         }
@@ -613,6 +620,7 @@ impl Profile {
             return execution_err(
                 "Insufficient privileges to perform these action".to_string(),
             )
+            .with_code(NativeErrorCodes::MYC00013)
             .with_exp_true()
             .as_error();
         }
@@ -644,6 +652,7 @@ mod tests {
                 first_name: Some("first_name".to_string()),
                 last_name: Some("last_name".to_string()),
                 username: Some("username".to_string()),
+                is_principal: true,
             }],
             acc_id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
                 .unwrap(),
@@ -697,6 +706,7 @@ mod tests {
                 first_name: Some("first_name".to_string()),
                 last_name: Some("last_name".to_string()),
                 username: Some("username".to_string()),
+                is_principal: true,
             }],
             acc_id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
                 .unwrap(),

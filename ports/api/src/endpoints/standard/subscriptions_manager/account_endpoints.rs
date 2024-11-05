@@ -30,7 +30,8 @@ use myc_core::{
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
-        fetch_many_response_kind, fetch_response_kind, updating_response_kind,
+        fetch_many_response_kind, fetch_response_kind, handle_mapped_error,
+        updating_response_kind,
     },
 };
 use serde::Deserialize;
@@ -149,24 +150,7 @@ pub async fn create_subscription_account_url(
     )
     .await
     {
-        Err(err) => {
-            let code_string = err.code().to_string();
-
-            if err.is_in(vec![
-                NativeErrorCodes::MYC00002,
-                NativeErrorCodes::MYC00003,
-            ]) {
-                return HttpResponse::Conflict().json(
-                    HttpJsonResponse::new_message(err.to_string())
-                        .with_code(code_string),
-                );
-            }
-
-            HttpResponse::InternalServerError().json(
-                HttpJsonResponse::new_message(err.to_string())
-                    .with_code(code_string),
-            )
-        }
+        Err(err) => handle_mapped_error(err),
         Ok(account) => HttpResponse::Created().json(account),
     }
 }
@@ -259,8 +243,7 @@ pub async fn list_accounts_by_type_url(
     .await
     {
         Ok(res) => fetch_many_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -318,8 +301,7 @@ pub async fn get_account_details_url(
     .await
     {
         Ok(res) => fetch_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -388,8 +370,7 @@ pub async fn update_account_name_and_flags_url(
     .await
     {
         Ok(res) => updating_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -451,7 +432,6 @@ pub async fn propagate_existing_subscription_account_url(
     .await
     {
         Ok(res) => HttpResponse::Ok().json(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }

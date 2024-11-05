@@ -1,28 +1,27 @@
-use crate::{domain::{
-    actors::ActorName,
-    dtos::{
-        account::VerboseStatus,
-        account_type::AccountTypeV2, 
-        email::Email, 
-        guest_user::GuestUser, 
-        message::Message, 
-        native_error_codes::NativeErrorCodes, 
-        profile::Profile
+use crate::{
+    domain::{
+        actors::ActorName,
+        dtos::{
+            account::VerboseStatus, account_type::AccountTypeV2, email::Email,
+            guest_user::GuestUser, native_error_codes::NativeErrorCodes,
+            profile::Profile,
+        },
+        entities::{
+            AccountFetching, GuestRoleFetching, GuestUserRegistration,
+            MessageSending,
+        },
     },
-    entities::{
-        AccountFetching, GuestRoleFetching, GuestUserRegistration,
-        MessageSending,
-    },
-}, models::AccountLifeCycle, settings::TEMPLATES};
+    models::AccountLifeCycle,
+    use_cases::support::send_email_notification,
+};
 
 use chrono::Local;
 use futures::future;
 use mycelium_base::{
-    dtos::{Children, Parent}, 
-    entities::{FetchResponseKind, GetOrCreateResponseKind}, 
-    utils::errors::{use_case_err, MappedErrors}
+    dtos::{Children, Parent},
+    entities::{FetchResponseKind, GetOrCreateResponseKind},
+    utils::errors::{use_case_err, MappedErrors},
 };
-use tera::Context;
 use uuid::Uuid;
 
 /// Guest users to collaborate to an account children of a role which I have
@@ -72,7 +71,7 @@ pub async fn guest_to_children_account(
         )
         .await;
 
-        let target_account = match target_account_response? {
+    let target_account = match target_account_response? {
         FetchResponseKind::NotFound(id) => {
             return use_case_err(format!(
                 "Target account not found: {:?}",
@@ -83,25 +82,30 @@ pub async fn guest_to_children_account(
             .as_error()
         }
         FetchResponseKind::Found(account) => match account.account_type {
-            AccountTypeV2::Subscription { .. } | 
-            AccountTypeV2::StandardRoleAssociated { .. } => account,
-            _ => {
-                return use_case_err(
-                    "Invalid account. Only subscription accounts should receive guesting."
-                )
-                .as_error()
-            }
+            AccountTypeV2::Subscription { .. }
+            | AccountTypeV2::StandardRoleAssociated { .. } => account,
+            _ => return use_case_err(
+                "Invalid account. Only subscription accounts should receive \
+                guesting.",
+            )
+            .as_error(),
         },
     };
 
     if let Some(status) = target_account.verbose_status {
         if status != VerboseStatus::Verified {
-            return use_case_err("Invalid account status. Only active accounts should receive guesting.")
-                .as_error();
+            return use_case_err(
+                "Invalid account status. Only active accounts \
+                should receive guesting.",
+            )
+            .as_error();
         }
     } else {
-        return use_case_err("Unable to check account status for guesting. Account is maybe inactive.")
-            .as_error();
+        return use_case_err(
+            "Unable to check account status for guesting. \
+            Account is maybe inactive.",
+        )
+        .as_error();
     }
 
     let parent_role = match parent_role_response? {
@@ -133,22 +137,28 @@ pub async fn guest_to_children_account(
     if let Some(children) = parent_role.children {
         let target_ids = match children {
             Children::Ids(ids) => ids,
-            Children::Records(records) => records
-                .iter()
-                .filter_map(|i| i.id).collect::<Vec<Uuid>>(),
+            Children::Records(records) => {
+                records.iter().filter_map(|i| i.id).collect::<Vec<Uuid>>()
+            }
         };
 
         if !target_ids.contains(&target_role_id) {
-            return use_case_err("Invalid target role. Children role is not belong to the parent role")
-                .with_exp_true()
-                .with_code(NativeErrorCodes::MYC00013)
-                .as_error();
-        }
-    } else {
-        return use_case_err("Invalid parent role. Only roles with children can receive guesting")
+            return use_case_err(
+                "Invalid target role. Children role is not belong to the \
+                parent role",
+            )
             .with_exp_true()
             .with_code(NativeErrorCodes::MYC00013)
             .as_error();
+        }
+    } else {
+        return use_case_err(
+            "Invalid parent role. Only roles with children can receive \
+            guesting",
+        )
+        .with_exp_true()
+        .with_code(NativeErrorCodes::MYC00013)
+        .as_error();
     }
 
     // ? -----------------------------------------------------------------------
@@ -167,80 +177,54 @@ pub async fn guest_to_children_account(
             },
             target_account_id,
         )
-        .await {
-            Ok(res) => res,
-            Err(err) => {
-                return use_case_err(format!("Unable to create guest user: {err}"))
-                    .with_code(NativeErrorCodes::MYC00017)
-                    .with_exp_true()
-                    .as_error()
-            }
-        };
-
-    // ? -----------------------------------------------------------------------
-    // ? Build notification message
-    // ? -----------------------------------------------------------------------
-
-    let mut context = Context::new();
-    context.insert("account_name", &target_account.name.to_uppercase());
-    context.insert("role_name", &target_role.name.to_uppercase());
-
-    if let Some(description) = target_role.description {
-        context.insert("role_description", &description);
-    }
-
-    context.insert("role_description", &target_role.name);
-    context.insert(
-        "role_permissions", 
-        &target_role
-            .permission
-            .to_string()
-    );
-
-    context.insert(
-        "support_email",
-        &life_cycle_settings.support_email.get_or_error()?,
-    );
-
-    if let Some(url) = platform_url {
-        context.insert("platform_url", &url);
-    }
-
-    let email_template = match TEMPLATES
-        .render("email/guest-to-subscription-account.jinja", &context)
+        .await
     {
         Ok(res) => res,
         Err(err) => {
-            return use_case_err(format!(
-                "Unable to render email template: {err}"
-            ))
-            .as_error();
+            return use_case_err(format!("Unable to create guest user: {err}"))
+                .with_code(NativeErrorCodes::MYC00017)
+                .with_exp_true()
+                .as_error()
         }
     };
-    
+
     // ? -----------------------------------------------------------------------
     // ? Notify guest user
     // ? -----------------------------------------------------------------------
 
-    if let Err(err) = message_sending_repo
-        .send(Message {
-            from: Email::from_string(
-                life_cycle_settings.noreply_email.get_or_error()?,
-            )?,
-            to: email,
-            cc: None,
-            subject: String::from(
-                "[Guest to Account] You have been invited to collaborate",
-            ),
-            message_head: None,
-            message_body: email_template,
-            message_footer: None,
-        })
-        .await
+    let mut parameters = vec![
+        ("account_name", target_account.name.to_uppercase()),
+        ("role_name", target_role.name.to_uppercase()),
+        ("role_description", target_role.name),
+        ("role_permissions", target_role.permission.to_string()),
+        (
+            "support_email",
+            life_cycle_settings.support_email.get_or_error()?,
+        ),
+    ];
+
+    if let Some(description) = target_role.description {
+        parameters.push(("role_description", description));
+    }
+
+    if let Some(url) = platform_url {
+        parameters.push(("platform_url", url));
+    }
+
+    if let Err(err) = send_email_notification(
+        parameters,
+        "email/guest-to-subscription-account.jinja",
+        Email::from_string(life_cycle_settings.noreply_email.get_or_error()?)?,
+        email,
+        None,
+        String::from("[Guest to Account] You have been invited to collaborate"),
+        message_sending_repo,
+    )
+    .await
     {
         return use_case_err(format!("Unable to send email: {err}"))
             .with_code(NativeErrorCodes::MYC00010)
-            .as_error()
+            .as_error();
     };
 
     // ? -----------------------------------------------------------------------

@@ -101,6 +101,7 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
                                 first_name
                                 last_name
                                 username
+                                is_principal
                             }
                         }
                     }))
@@ -134,6 +135,7 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
                                             .clone()
                                             .into(),
                                         username: owner.username.clone().into(),
+                                        is_principal: owner.is_principal,
                                     }
                                 })
                                 .collect(),

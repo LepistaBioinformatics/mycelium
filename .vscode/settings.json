@@ -29,5 +29,5 @@
     "withscores",
     "ZRANGE"
   ],
-  "rust-analyzer.showUnlinkedFileNotification": false,
+  "rust-analyzer.showUnlinkedFileNotification": true,
 }

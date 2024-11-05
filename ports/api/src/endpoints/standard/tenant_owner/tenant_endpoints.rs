@@ -14,7 +14,9 @@ use myc_core::{
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,
-    wrappers::default_response_to_http_response::updating_response_kind,
+    wrappers::default_response_to_http_response::{
+        handle_mapped_error, updating_response_kind,
+    },
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -117,8 +119,7 @@ pub async fn update_tenant_name_and_description_url(
     .await
     {
         Ok(res) => updating_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -172,8 +173,7 @@ pub async fn update_tenant_archiving_status_url(
     .await
     {
         Ok(res) => updating_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -227,8 +227,7 @@ pub async fn update_tenant_trashing_status_url(
     .await
     {
         Ok(res) => updating_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -282,7 +281,6 @@ pub async fn update_tenant_verifying_status_url(
     .await
     {
         Ok(res) => updating_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }

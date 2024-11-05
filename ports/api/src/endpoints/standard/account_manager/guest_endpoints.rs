@@ -22,7 +22,9 @@ use myc_core::{
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,
-    wrappers::default_response_to_http_response::get_or_create_response_kind,
+    wrappers::default_response_to_http_response::{
+        get_or_create_response_kind, handle_mapped_error,
+    },
     Email,
 };
 use serde::Deserialize;
@@ -148,18 +150,6 @@ pub async fn guest_to_children_account_url(
     .await
     {
         Ok(res) => get_or_create_response_kind(res),
-        Err(err) => {
-            let code_string = err.code().to_string();
-
-            if err.is_in(vec![NativeErrorCodes::MYC00013]) {
-                return HttpResponse::Conflict().json(
-                    HttpJsonResponse::new_message(err.to_string())
-                        .with_code(code_string),
-                );
-            }
-
-            HttpResponse::InternalServerError()
-                .json(HttpJsonResponse::new_message(err.to_string()))
-        }
+        Err(err) => handle_mapped_error(err),
     }
 }

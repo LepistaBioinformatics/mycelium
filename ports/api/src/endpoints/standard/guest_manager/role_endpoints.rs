@@ -23,7 +23,8 @@ use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
         delete_response_kind, fetch_many_response_kind,
-        get_or_create_response_kind, updating_response_kind,
+        get_or_create_response_kind, handle_mapped_error,
+        updating_response_kind,
     },
 };
 use serde::Deserialize;
@@ -113,8 +114,7 @@ pub async fn crate_role_url(
     .await
     {
         Ok(res) => get_or_create_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -168,8 +168,7 @@ pub async fn list_roles_url(
     .await
     {
         Ok(res) => fetch_many_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -223,8 +222,7 @@ pub async fn delete_role_url(
     .await
     {
         Ok(res) => delete_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -285,7 +283,6 @@ pub async fn update_role_name_and_description_url(
     .await
     {
         Ok(res) => updating_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }

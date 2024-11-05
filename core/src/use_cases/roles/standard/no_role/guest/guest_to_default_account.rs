@@ -2,7 +2,7 @@ use crate::{
     domain::{
         dtos::{
             account::Account, email::Email, guest_user::GuestUser,
-            message::Message, native_error_codes::NativeErrorCodes, user::User,
+            native_error_codes::NativeErrorCodes, user::User,
         },
         entities::{
             AccountRegistration, GuestRoleFetching, GuestUserRegistration,
@@ -10,8 +10,10 @@ use crate::{
         },
     },
     models::AccountLifeCycle,
-    settings::TEMPLATES,
-    use_cases::roles::shared::account::get_or_create_role_related_account,
+    use_cases::{
+        roles::shared::account::get_or_create_role_related_account,
+        support::send_email_notification,
+    },
 };
 
 use chrono::Local;
@@ -21,7 +23,6 @@ use mycelium_base::{
     entities::{FetchResponseKind, GetOrCreateResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
-use tera::Context;
 use tracing::{info, warn};
 use uuid::Uuid;
 
@@ -129,67 +130,41 @@ pub async fn guest_to_default_account(
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Build notification message
-    // ? -----------------------------------------------------------------------
-
-    let mut context = Context::new();
-    context.insert(
-        "account_name",
-        &default_subscription_account.name.to_uppercase(),
-    );
-    if let Some(description) = target_role.description {
-        context.insert("role_description", &description);
-    }
-
-    context.insert("role_name", &target_role.name.to_uppercase());
-    context.insert("role_description", &target_role.name);
-    context.insert("role_permissions", &target_role.permission.to_string());
-
-    context.insert(
-        "support_email",
-        &life_cycle_settings.support_email.get_or_error()?,
-    );
-
-    let email_template = match TEMPLATES
-        .render("email/guest-to-subscription-account.jinja", &context)
-    {
-        Ok(res) => res,
-        Err(err) => {
-            return use_case_err(format!(
-                "Unable to render email template: {err}"
-            ))
-            .as_error();
-        }
-    };
-
-    // ? -----------------------------------------------------------------------
     // ? Notify guest user
     // ? -----------------------------------------------------------------------
 
-    match message_sending_repo
-        .send(Message {
-            from: Email::from_string(
-                life_cycle_settings.noreply_email.get_or_error()?,
-            )?,
-            to: guest_email,
-            cc: None,
-            subject: String::from(
-                "[Guest to Account] You have been invited to collaborate",
-            ),
-            message_head: None,
-            message_body: email_template,
-            message_footer: None,
-        })
-        .await
+    let mut parameters = vec![
+        (
+            "account_name",
+            default_subscription_account.name.to_uppercase(),
+        ),
+        ("role_name", target_role.name.to_uppercase()),
+        ("role_description", target_role.name),
+        ("role_permissions", target_role.permission.to_string()),
+        (
+            "support_email",
+            life_cycle_settings.support_email.get_or_error()?,
+        ),
+    ];
+
+    if let Some(description) = target_role.description {
+        parameters.push(("role_description", description));
+    }
+
+    if let Err(err) = send_email_notification(
+        parameters,
+        "email/guest-to-subscription-account.jinja",
+        Email::from_string(life_cycle_settings.noreply_email.get_or_error()?)?,
+        guest_email,
+        None,
+        String::from("[Guest to Account] You have been invited to collaborate"),
+        message_sending_repo,
+    )
+    .await
     {
-        Err(err) => {
-            return use_case_err(format!("Unable to send email: {err}"))
-                .with_code(NativeErrorCodes::MYC00010)
-                .as_error()
-        }
-        Ok(res) => {
-            info!("Guesting to default account successfully done: {:?}", res)
-        }
+        return use_case_err(format!("Unable to send email: {err}"))
+            .with_code(NativeErrorCodes::MYC00010)
+            .as_error();
     };
 
     Ok(())

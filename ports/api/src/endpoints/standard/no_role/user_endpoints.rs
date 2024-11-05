@@ -27,7 +27,8 @@ use myc_core::{
 };
 use myc_http_tools::{
     functions::encode_jwt, models::internal_auth_config::InternalOauthConfig,
-    responses::GatewayError, utils::HttpJsonResponse, Email,
+    responses::GatewayError, utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::handle_mapped_error, Email,
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -168,8 +169,7 @@ pub async fn check_email_registration_status_url(
     .await
     {
         Ok(res) => HttpResponse::Ok().json(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -248,21 +248,7 @@ pub async fn create_default_user_url(
     .await
     {
         Ok(res) => HttpResponse::Created().json(res),
-        Err(err) => {
-            let code_string = err.code().to_string();
-
-            if err.is_in(vec![NativeErrorCodes::MYC00002]) {
-                return HttpResponse::Conflict().json(
-                    HttpJsonResponse::new_message(err.to_string())
-                        .with_code(code_string),
-                );
-            }
-
-            HttpResponse::InternalServerError().json(
-                HttpJsonResponse::new_message(err.to_string())
-                    .with_code(code_string),
-            )
-        }
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -325,31 +311,7 @@ pub async fn check_user_token_url(
     .await
     {
         Ok(_) => HttpResponse::Ok().finish(),
-        Err(err) => {
-            let code_string = err.code().to_string();
-
-            if err.is_in(vec![NativeErrorCodes::MYC00002]) {
-                return HttpResponse::Conflict().json(
-                    HttpJsonResponse::new_message(err.to_string())
-                        .with_code(code_string),
-                );
-            }
-
-            if err.is_in(vec![
-                NativeErrorCodes::MYC00008,
-                NativeErrorCodes::MYC00009,
-            ]) {
-                return HttpResponse::BadRequest().json(
-                    HttpJsonResponse::new_message(err.to_string())
-                        .with_code(code_string),
-                );
-            }
-
-            HttpResponse::InternalServerError().json(
-                HttpJsonResponse::new_message(err.to_string())
-                    .with_code(code_string),
-            )
-        }
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -414,21 +376,7 @@ pub async fn start_password_redefinition_url(
     .await
     {
         Ok(_) => HttpResponse::Ok().json(true),
-        Err(err) => {
-            let code_string = err.code().to_string();
-
-            if err.is_in(vec![NativeErrorCodes::MYC00009]) {
-                return HttpResponse::BadRequest().json(
-                    HttpJsonResponse::new_message(err.to_string())
-                        .with_code(code_string),
-                );
-            }
-
-            HttpResponse::InternalServerError().json(
-                HttpJsonResponse::new_message(err.to_string())
-                    .with_code(code_string),
-            )
-        }
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -497,25 +445,7 @@ pub async fn check_token_and_reset_password_url(
     .await
     {
         Ok(_) => HttpResponse::Ok().json(true),
-        Err(err) => {
-            let code_string = err.code().to_string();
-
-            if err.is_in(vec![
-                NativeErrorCodes::MYC00008,
-                NativeErrorCodes::MYC00009,
-                NativeErrorCodes::MYC00011,
-            ]) {
-                return HttpResponse::BadRequest().json(
-                    HttpJsonResponse::new_message(err.to_string())
-                        .with_code(code_string),
-                );
-            }
-
-            HttpResponse::InternalServerError().json(
-                HttpJsonResponse::new_message(err.to_string())
-                    .with_code(code_string),
-            )
-        }
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -571,8 +501,7 @@ pub async fn check_email_password_validity_url(
     )
     .await
     {
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
         Ok((valid, user)) => match valid {
             true => {
                 let _user = if let Some(u) = user {

@@ -74,6 +74,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                     last_name
                     username
                     is_active
+                    is_principal
                 }
             }));
 
@@ -121,6 +122,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                             first_name: Some(owner.first_name.to_owned()),
                             last_name: Some(owner.last_name.to_owned()),
                             username: Some(owner.username.to_owned()),
+                            is_principal: owner.is_principal,
                         })
                         .collect::<Vec<Owner>>(),
                     acc_id: Uuid::parse_str(&record.id).unwrap(),

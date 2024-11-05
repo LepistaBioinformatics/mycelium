@@ -14,7 +14,9 @@ use myc_core::{
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,
-    wrappers::default_response_to_http_response::create_response_kind,
+    wrappers::default_response_to_http_response::{
+        create_response_kind, handle_mapped_error,
+    },
 };
 use shaku_actix::Inject;
 use uuid::Uuid;
@@ -91,7 +93,6 @@ pub async fn create_management_account_url(
     .await
     {
         Ok(res) => create_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
