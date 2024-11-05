@@ -16,8 +16,14 @@ pub struct AccountLifeCycle {
     /// registration
     pub token_expiration: i64,
 
+    /// General Purpose email name
+    pub noreply_name: Option<String>,
+
     /// General Purpose email
     pub noreply_email: EnvOrValue<String>,
+
+    /// Support email name
+    pub support_name: Option<String>,
 
     /// Support email
     pub support_email: EnvOrValue<String>,
