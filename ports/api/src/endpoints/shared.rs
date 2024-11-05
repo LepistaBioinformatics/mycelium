@@ -37,35 +37,37 @@ impl UrlScope {
 }
 
 pub enum UrlGroup {
-    Tenants,
     Accounts,
+    ErrorCodes,
     GuestRoles,
     Guests,
-    Roles,
-    Users,
-    Webhooks,
-    ErrorCodes,
-    Profile,
-    Tags,
     Meta,
     Owners,
+    Profile,
+    Roles,
+    Tags,
+    Tenants,
+    Tokens,
+    Users,
+    Webhooks,
 }
 
 impl Display for UrlGroup {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
-            UrlGroup::Tenants => write!(f, "tenants"),
             UrlGroup::Accounts => write!(f, "accounts"),
+            UrlGroup::ErrorCodes => write!(f, "error-codes"),
             UrlGroup::GuestRoles => write!(f, "guest-roles"),
             UrlGroup::Guests => write!(f, "guests"),
-            UrlGroup::Roles => write!(f, "roles"),
-            UrlGroup::Users => write!(f, "users"),
-            UrlGroup::Webhooks => write!(f, "webhooks"),
-            UrlGroup::ErrorCodes => write!(f, "error-codes"),
-            UrlGroup::Profile => write!(f, "profile"),
-            UrlGroup::Tags => write!(f, "tags"),
             UrlGroup::Meta => write!(f, "meta"),
             UrlGroup::Owners => write!(f, "owners"),
+            UrlGroup::Profile => write!(f, "profile"),
+            UrlGroup::Roles => write!(f, "roles"),
+            UrlGroup::Tags => write!(f, "tags"),
+            UrlGroup::Tenants => write!(f, "tenants"),
+            UrlGroup::Tokens => write!(f, "tokens"),
+            UrlGroup::Users => write!(f, "users"),
+            UrlGroup::Webhooks => write!(f, "webhooks"),
         }
     }
 }
