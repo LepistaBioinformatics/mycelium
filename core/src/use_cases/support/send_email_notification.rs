@@ -44,14 +44,17 @@ pub(crate) async fn send_email_notification<T: ToString>(
             }
         };
 
-    let from = Email::from_string(config.noreply_email.get_or_error()?)?;
+    let from_email = Email::from_string(config.noreply_email.get_or_error()?)?;
+
+    let from = if let Some(name) = config.noreply_name {
+        FromEmail::NamedEmail(format!("{} <{}>", name, from_email.get_email()))
+    } else {
+        FromEmail::Email(from_email)
+    };
 
     message_sending_repo
         .send(Message {
-            from: FromEmail::NamedEmail(format!(
-                "Sou Agrobiota <{}>",
-                from.get_email()
-            )),
+            from,
             to,
             cc,
             subject,

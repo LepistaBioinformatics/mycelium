@@ -173,7 +173,9 @@ mod tests {
     fn test_new_signed_token() {
         let config = AccountLifeCycle {
             token_expiration: 30,
+            noreply_name: None,
             noreply_email: EnvOrValue::Value("test".to_string()),
+            support_name: None,
             support_email: EnvOrValue::Value("test".to_string()),
             token_secret: EnvOrValue::Value("test".to_string()),
         };

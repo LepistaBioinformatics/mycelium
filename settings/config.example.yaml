@@ -4,8 +4,10 @@
 core:
   accountLifeCycle:
     tokenExpiration: 3600
+    noreplyName: "Mycelium Keeper"
     noreplyEmail:
       env: MYC_TOKEN_EMAIL_NOTIFIER
+    supportName: "Mycelium Keeper"
     supportEmail:
       env: MYC_TOKEN_SUPPORT_EMAIL
 
@@ -90,7 +92,6 @@ api:
   allowedOrigins:
   - http://localhost:8080
   - http://localhost:3000
-
   # ? --------------------------------------------------------------------------
   # ? LOGGING SETTINGS
   # ? --------------------------------------------------------------------------
