@@ -207,7 +207,7 @@ impl Profile {
             false => execution_err(
                 "Current account has no administration privileges".to_string(),
             )
-            .with_code(NativeErrorCodes::MYC00013)
+            .with_code(NativeErrorCodes::MYC00019)
             .with_exp_true()
             .as_error(),
             true => Ok(()),
@@ -581,7 +581,7 @@ impl Profile {
             return execution_err(
                 "Insufficient privileges to perform these action".to_string(),
             )
-            .with_code(NativeErrorCodes::MYC00013)
+            .with_code(NativeErrorCodes::MYC00019)
             .with_exp_true()
             .as_error();
         }
@@ -620,7 +620,7 @@ impl Profile {
             return execution_err(
                 "Insufficient privileges to perform these action".to_string(),
             )
-            .with_code(NativeErrorCodes::MYC00013)
+            .with_code(NativeErrorCodes::MYC00019)
             .with_exp_true()
             .as_error();
         }
