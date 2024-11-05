@@ -4,7 +4,7 @@ use crate::{
     modules::{AccountRegistrationModule, TenantFetchingModule},
 };
 
-use actix_web::{post, web, HttpResponse, Responder};
+use actix_web::{post, web, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
@@ -12,11 +12,8 @@ use myc_core::{
     },
     use_cases::roles::standard::tenant_owner::create_management_account,
 };
-use myc_http_tools::{
-    utils::HttpJsonResponse,
-    wrappers::default_response_to_http_response::{
-        create_response_kind, handle_mapped_error,
-    },
+use myc_http_tools::wrappers::default_response_to_http_response::{
+    create_response_kind, handle_mapped_error,
 };
 use shaku_actix::Inject;
 use uuid::Uuid;

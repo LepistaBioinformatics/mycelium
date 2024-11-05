@@ -6,7 +6,10 @@ use lettre::{
     Message as LettreMessage, SmtpTransport, Transport,
 };
 use myc_config::optional_config::OptionalConfig;
-use myc_core::domain::{dtos::message::Message, entities::MessageSending};
+use myc_core::domain::{
+    dtos::message::{FromEmail, Message},
+    entities::MessageSending,
+};
 use mycelium_base::{
     entities::CreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
@@ -47,7 +50,14 @@ impl MessageSending for MessageSendingSmtpRepository {
         };
 
         let email = LettreMessage::builder()
-            .from(message.to_owned().from.get_email().parse().unwrap())
+            .from(
+                (match message.to_owned().from {
+                    FromEmail::Email(email) => email.get_email(),
+                    FromEmail::NamedEmail(named_email) => named_email,
+                })
+                .parse()
+                .unwrap(),
+            )
             .to(message.to_owned().to.get_email().parse().unwrap())
             .subject(message.to_owned().subject)
             .header(ContentType::TEXT_HTML)

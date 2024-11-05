@@ -15,7 +15,7 @@ use actix_web_httpauth::extractors::bearer::BearerAuth;
 use myc_core::{
     domain::{
         actors::ActorName,
-        dtos::{account::VerboseStatus, native_error_codes::NativeErrorCodes},
+        dtos::account::VerboseStatus,
         entities::{
             AccountFetching, AccountRegistration, AccountUpdating,
             WebHookFetching,

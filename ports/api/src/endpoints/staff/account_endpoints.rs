@@ -4,18 +4,15 @@ use crate::{
     modules::AccountUpdatingModule,
 };
 
-use actix_web::{patch, web, HttpResponse, Responder};
+use actix_web::{patch, web, Responder};
 use myc_core::{
     domain::{dtos::account_type::AccountTypeV2, entities::AccountUpdating},
     use_cases::roles::staff::account::{
         downgrade_account_privileges, upgrade_account_privileges,
     },
 };
-use myc_http_tools::{
-    utils::HttpJsonResponse,
-    wrappers::default_response_to_http_response::{
-        handle_mapped_error, updating_response_kind,
-    },
+use myc_http_tools::wrappers::default_response_to_http_response::{
+    handle_mapped_error, updating_response_kind,
 };
 use serde::Deserialize;
 use shaku_actix::Inject;

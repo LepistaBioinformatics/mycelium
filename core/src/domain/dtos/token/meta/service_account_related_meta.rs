@@ -125,11 +125,4 @@ where
         PasswordHash::new_from_hash(self.token.to_string())
             .check_password(token)
     }
-
-    /// Get the token
-    ///
-    /// This function returns the token
-    pub(crate) fn get_token(&self) -> TokenType {
-        self.token.to_owned()
-    }
 }

@@ -1,7 +1,7 @@
 use crate::{
     domain::{
         dtos::{
-            account::Account, email::Email, guest_user::GuestUser,
+            account::Account, guest_user::GuestUser,
             native_error_codes::NativeErrorCodes, user::User,
         },
         entities::{
@@ -154,7 +154,7 @@ pub async fn guest_to_default_account(
     if let Err(err) = send_email_notification(
         parameters,
         "email/guest-to-subscription-account.jinja",
-        Email::from_string(life_cycle_settings.noreply_email.get_or_error()?)?,
+        life_cycle_settings,
         guest_email,
         None,
         String::from("[Guest to Account] You have been invited to collaborate"),

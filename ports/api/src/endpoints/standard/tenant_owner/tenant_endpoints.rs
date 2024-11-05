@@ -4,7 +4,7 @@ use crate::{
     modules::TenantUpdatingModule,
 };
 
-use actix_web::{patch, web, HttpResponse, Responder};
+use actix_web::{patch, web, Responder};
 use myc_core::{
     domain::{actors::ActorName, entities::TenantUpdating},
     use_cases::roles::standard::tenant_owner::{
@@ -12,11 +12,8 @@ use myc_core::{
         update_tenant_trashing_status, update_tenant_verifying_status,
     },
 };
-use myc_http_tools::{
-    utils::HttpJsonResponse,
-    wrappers::default_response_to_http_response::{
-        handle_mapped_error, updating_response_kind,
-    },
+use myc_http_tools::wrappers::default_response_to_http_response::{
+    handle_mapped_error, updating_response_kind,
 };
 use serde::Deserialize;
 use shaku_actix::Inject;

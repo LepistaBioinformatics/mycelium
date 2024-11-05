@@ -130,7 +130,7 @@ pub async fn check_token_and_reset_password(
     if let Err(err) = send_email_notification(
         parameters,
         "email/password-reset-confirmation.jinja",
-        Email::from_string(life_cycle_settings.noreply_email.get_or_error()?)?,
+        life_cycle_settings,
         email,
         None,
         String::from("[Password Reset Success] Email address confirmation"),

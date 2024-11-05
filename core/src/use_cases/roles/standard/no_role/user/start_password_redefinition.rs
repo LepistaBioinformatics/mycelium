@@ -119,7 +119,7 @@ pub async fn start_password_redefinition(
     if let Err(err) = send_email_notification(
         parameters,
         "email/password-reset-initiated.jinja",
-        Email::from_string(life_cycle_settings.noreply_email.get_or_error()?)?,
+        life_cycle_settings,
         token_metadata.email,
         None,
         String::from("[Password Reset Request] Email address confirmation"),

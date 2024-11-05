@@ -12,7 +12,6 @@ use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
-        dtos::native_error_codes::NativeErrorCodes,
         entities::{
             MessageSending, TokenInvalidation, TokenRegistration, UserDeletion,
             UserFetching, UserRegistration, UserUpdating,

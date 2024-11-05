@@ -13,10 +13,7 @@ use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
-        dtos::{
-            email::Email, native_error_codes::NativeErrorCodes,
-            route_type::PermissionedRoles,
-        },
+        dtos::{email::Email, route_type::PermissionedRoles},
         entities::{
             AccountFetching, GuestRoleFetching, GuestUserDeletion,
             GuestUserFetching, GuestUserOnAccountUpdating,

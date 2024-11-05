@@ -114,7 +114,7 @@ pub(super) async fn register_token_and_notify_user(
     if let Err(err) = send_email_notification(
         parameters,
         "email/activation-code.jinja",
-        Email::from_string(life_cycle_settings.noreply_email.get_or_error()?)?,
+        life_cycle_settings,
         token_metadata.email,
         None,
         String::from("[Email Validation] Please confirm your email address"),

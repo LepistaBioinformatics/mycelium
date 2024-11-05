@@ -14,7 +14,6 @@ use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
-        dtos::native_error_codes::NativeErrorCodes,
         entities::{
             ErrorCodeDeletion, ErrorCodeFetching, ErrorCodeRegistration,
             ErrorCodeUpdating,
@@ -25,11 +24,8 @@ use myc_core::{
         register_error_code, update_error_code_message_and_details,
     },
 };
-use myc_http_tools::{
-    utils::HttpJsonResponse,
-    wrappers::default_response_to_http_response::{
-        fetch_many_response_kind, handle_mapped_error,
-    },
+use myc_http_tools::wrappers::default_response_to_http_response::{
+    fetch_many_response_kind, handle_mapped_error,
 };
 use mycelium_base::entities::FetchResponseKind;
 use serde::Deserialize;

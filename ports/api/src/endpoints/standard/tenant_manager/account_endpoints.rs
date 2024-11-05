@@ -4,16 +4,13 @@ use crate::{
     modules::AccountDeletionModule,
 };
 
-use actix_web::{delete, web, HttpResponse, Responder};
+use actix_web::{delete, web, Responder};
 use myc_core::{
     domain::{actors::ActorName, entities::AccountDeletion},
     use_cases::roles::standard::tenant_manager::delete_subscription_account,
 };
-use myc_http_tools::{
-    utils::HttpJsonResponse,
-    wrappers::default_response_to_http_response::{
-        delete_response_kind, handle_mapped_error,
-    },
+use myc_http_tools::wrappers::default_response_to_http_response::{
+    delete_response_kind, handle_mapped_error,
 };
 use shaku_actix::Inject;
 use uuid::Uuid;

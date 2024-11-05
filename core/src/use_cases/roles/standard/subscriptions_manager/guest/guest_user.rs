@@ -173,7 +173,7 @@ pub async fn guest_user(
     if let Err(err) = send_email_notification(
         parameters,
         "email/guest-to-subscription-account.jinja",
-        Email::from_string(life_cycle_settings.noreply_email.get_or_error()?)?,
+        life_cycle_settings,
         email,
         None,
         String::from("[Guest to Account] You have been invited to collaborate"),
