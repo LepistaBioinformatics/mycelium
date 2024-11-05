@@ -180,6 +180,15 @@ pub enum NativeErrorCodes {
     /// is_native: true
     ///
     MYC00018,
+
+    ///
+    /// code: "MYC00019",
+    /// message: "Insufficient privileges",
+    /// details: "Indicates that the user has insufficient privileges.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00019,
 }
 
 impl NativeErrorCodes {
@@ -225,6 +234,7 @@ impl NativeErrorCodes {
             Self::MYC00016 => "MYC00016",
             Self::MYC00017 => "MYC00017",
             Self::MYC00018 => "MYC00018",
+            Self::MYC00019 => "MYC00019",
         }
     }
 
