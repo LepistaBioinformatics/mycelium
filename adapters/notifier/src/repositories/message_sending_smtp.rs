@@ -51,7 +51,7 @@ impl MessageSending for MessageSendingSmtpRepository {
             .to(message.to_owned().to.get_email().parse().unwrap())
             .subject(message.to_owned().subject)
             .header(ContentType::TEXT_HTML)
-            .body(message.to_owned().message_body)
+            .body(message.to_owned().body)
             .unwrap();
 
         let credentials = Credentials::new(

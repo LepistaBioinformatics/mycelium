@@ -20,7 +20,8 @@ use myc_core::{
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
-        create_response_kind, delete_response_kind, updating_response_kind,
+        create_response_kind, delete_response_kind, handle_mapped_error,
+        updating_response_kind,
     },
 };
 use serde::Deserialize;
@@ -115,8 +116,7 @@ pub async fn create_tenant_meta_url(
     .await
     {
         Ok(res) => create_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -170,8 +170,7 @@ pub async fn delete_tenant_meta_url(
     .await
     {
         Ok(res) => delete_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -226,7 +225,6 @@ pub async fn update_tenant_meta_url(
     .await
     {
         Ok(res) => updating_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }

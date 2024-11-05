@@ -25,6 +25,7 @@ use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
         create_response_kind, delete_response_kind, fetch_many_response_kind,
+        handle_mapped_error,
     },
 };
 use serde::Deserialize;
@@ -134,21 +135,7 @@ pub async fn create_tenant_url(
     .await
     {
         Ok(res) => create_response_kind(res),
-        Err(err) => {
-            let code_string = err.code().to_string();
-
-            if err.is_in(vec![NativeErrorCodes::MYC00014]) {
-                return HttpResponse::Conflict().json(
-                    HttpJsonResponse::new_message(err.to_string())
-                        .with_code(code_string),
-                );
-            }
-
-            HttpResponse::InternalServerError().json(
-                HttpJsonResponse::new_message(err.to_string())
-                    .with_code(code_string),
-            )
-        }
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -210,8 +197,7 @@ pub async fn list_tenant_url(
     .await
     {
         Ok(res) => fetch_many_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -263,8 +249,7 @@ pub async fn delete_tenant_url(
     .await
     {
         Ok(res) => delete_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -314,21 +299,7 @@ pub async fn include_tenant_owner_url(
     .await
     {
         Ok(res) => create_response_kind(res),
-        Err(err) => {
-            let code_string = err.code().to_string();
-
-            if err.is_in(vec![NativeErrorCodes::MYC00015]) {
-                return HttpResponse::Conflict().json(
-                    HttpJsonResponse::new_message(err.to_string())
-                        .with_code(code_string),
-                );
-            }
-
-            HttpResponse::InternalServerError().json(
-                HttpJsonResponse::new_message(err.to_string())
-                    .with_code(code_string),
-            )
-        }
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -377,20 +348,6 @@ pub async fn exclude_tenant_owner_url(
     .await
     {
         Ok(res) => delete_response_kind(res),
-        Err(err) => {
-            let code_string = err.code().to_string();
-
-            if err.is_in(vec![NativeErrorCodes::MYC00016]) {
-                return HttpResponse::Conflict().json(
-                    HttpJsonResponse::new_message(err.to_string())
-                        .with_code(code_string),
-                );
-            }
-
-            HttpResponse::InternalServerError().json(
-                HttpJsonResponse::new_message(err.to_string())
-                    .with_code(code_string),
-            )
-        }
+        Err(err) => handle_mapped_error(err),
     }
 }

@@ -17,7 +17,9 @@ use myc_core::{
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,
-    wrappers::default_response_to_http_response::updating_response_kind,
+    wrappers::default_response_to_http_response::{
+        handle_mapped_error, updating_response_kind,
+    },
 };
 use shaku_actix::Inject;
 use uuid::Uuid;
@@ -98,8 +100,7 @@ pub async fn approve_account_url(
     .await
     {
         Ok(res) => updating_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -158,8 +159,7 @@ pub async fn disapprove_account_url(
     .await
     {
         Ok(res) => updating_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -218,8 +218,7 @@ pub async fn activate_account_url(
     .await
     {
         Ok(res) => updating_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -278,8 +277,7 @@ pub async fn deactivate_account_url(
     .await
     {
         Ok(res) => updating_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -337,8 +335,7 @@ pub async fn archive_account_url(
     .await
     {
         Ok(res) => updating_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -396,7 +393,6 @@ pub async fn unarchive_account_url(
     .await
     {
         Ok(res) => updating_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }

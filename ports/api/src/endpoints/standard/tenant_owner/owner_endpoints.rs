@@ -22,7 +22,7 @@ use myc_core::{
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
-        create_response_kind, delete_response_kind,
+        create_response_kind, delete_response_kind, handle_mapped_error,
     },
     Email,
 };
@@ -116,8 +116,7 @@ pub async fn guest_tenant_owner_url(
     .await
     {
         Ok(res) => create_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -181,7 +180,6 @@ pub async fn revoke_tenant_owner_url(
     .await
     {
         Ok(res) => delete_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }

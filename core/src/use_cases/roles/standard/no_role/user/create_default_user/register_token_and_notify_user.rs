@@ -2,23 +2,23 @@ use crate::{
     domain::{
         dtos::{
             email::Email,
-            message::Message,
             native_error_codes::NativeErrorCodes,
             token::{EmailConfirmationTokenMeta, MultiTypeMeta},
         },
         entities::{MessageSending, TokenRegistration, UserDeletion},
     },
     models::AccountLifeCycle,
-    settings::TEMPLATES,
-    use_cases::roles::standard::no_role::user::delete_default_user,
+    use_cases::{
+        roles::standard::no_role::user::delete_default_user,
+        support::send_email_notification,
+    },
 };
 
-use chrono::Local;
+use chrono::{Duration, Local};
 use mycelium_base::{
     entities::CreateResponseKind,
     utils::errors::{use_case_err, MappedErrors},
 };
-use tera::Context;
 use uuid::Uuid;
 
 #[tracing::instrument(name = "register_token_and_notify_user", skip_all)]
@@ -46,14 +46,11 @@ pub(super) async fn register_token_and_notify_user(
         499_999,
     );
 
+    let expires_at =
+        Local::now() + Duration::seconds(life_cycle_settings.token_expiration);
+
     let token = match token_registration_repo
-        .create_email_confirmation_token(
-            meta.to_owned(),
-            Local::now()
-                + chrono::Duration::seconds(
-                    life_cycle_settings.token_expiration,
-                ),
-        )
+        .create_email_confirmation_token(meta.to_owned(), expires_at)
         .await
     {
         Ok(res) => match res {
@@ -99,55 +96,34 @@ pub(super) async fn register_token_and_notify_user(
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Build notification message
+    // ? Notify guest user
     // ? -----------------------------------------------------------------------
 
-    let mut context = Context::new();
-    context.insert("verification_code", &meta.get_token());
-    context.insert(
-        "support_email",
-        &life_cycle_settings.support_email.get_or_error()?,
-    );
+    let mut parameters = vec![
+        ("verification_code", meta.get_token()),
+        (
+            "support_email",
+            life_cycle_settings.support_email.get_or_error()?,
+        ),
+    ];
 
     if let Some(url) = platform_url {
-        context.insert("platform_url", &url);
+        parameters.push(("platform_url", url));
     }
 
-    let email_template = match TEMPLATES
-        .render("email/activation-code.jinja", &context)
-    {
-        Ok(res) => res,
-        Err(err) => {
-            delete_default_user(user_id, user_deletion_repo.to_owned()).await?;
-            return use_case_err(format!(
-                "Unable to render email template: {err}"
-            ))
-            .as_error();
-        }
-    };
-
-    // ? -----------------------------------------------------------------------
-    // ? Notify user owner
-    // ? -----------------------------------------------------------------------
-
-    if let Err(err) = message_sending_repo
-        .send(Message {
-            from: Email::from_string(
-                life_cycle_settings.noreply_email.get_or_error()?,
-            )?,
-            to: token_metadata.email,
-            cc: None,
-            subject: String::from(
-                "[Email Validation] Please confirm your email address",
-            ),
-            message_head: None,
-            message_body: email_template,
-            message_footer: None,
-        })
-        .await
+    if let Err(err) = send_email_notification(
+        parameters,
+        "email/activation-code.jinja",
+        Email::from_string(life_cycle_settings.noreply_email.get_or_error()?)?,
+        token_metadata.email,
+        None,
+        String::from("[Email Validation] Please confirm your email address"),
+        message_sending_repo,
+    )
+    .await
     {
         return use_case_err(format!("Unable to send email: {err}"))
-            .with_code(NativeErrorCodes::MYC00009)
+            .with_code(NativeErrorCodes::MYC00010)
             .as_error();
     };
 

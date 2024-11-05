@@ -124,6 +124,7 @@ mod tests {
                 first_name: Some("first_name".to_string()),
                 last_name: Some("last_name".to_string()),
                 username: Some("username".to_string()),
+                is_principal: true,
             }],
             acc_id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
                 .unwrap(),
@@ -171,6 +172,7 @@ mod tests {
                 first_name: Some("first_name".to_string()),
                 last_name: Some("last_name".to_string()),
                 username: Some("username".to_string()),
+                is_principal: true,
             }],
             acc_id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
                 .unwrap(),

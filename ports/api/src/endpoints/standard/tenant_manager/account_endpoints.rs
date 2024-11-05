@@ -11,7 +11,9 @@ use myc_core::{
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,
-    wrappers::default_response_to_http_response::delete_response_kind,
+    wrappers::default_response_to_http_response::{
+        delete_response_kind, handle_mapped_error,
+    },
 };
 use shaku_actix::Inject;
 use uuid::Uuid;
@@ -85,7 +87,6 @@ pub async fn delete_subscription_account_url(
     .await
     {
         Ok(res) => delete_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }

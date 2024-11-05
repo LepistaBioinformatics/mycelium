@@ -13,7 +13,5 @@ pub struct Message {
 
     // Message
     pub subject: String,
-    pub message_head: Option<String>,
-    pub message_body: String,
-    pub message_footer: Option<String>,
+    pub body: String,
 }

@@ -14,6 +14,7 @@ use crate::{
     models::AccountLifeCycle,
 };
 
+use chrono::{DateTime, Local};
 use hmac::{Hmac, Mac};
 use mycelium_base::utils::errors::{dto_err, MappedErrors};
 use serde::{Deserialize, Serialize};
@@ -40,12 +41,14 @@ impl AccountScope {
         tenant_id: Uuid,
         account_id: Uuid,
         permissioned_roles: PermissionedRoles,
+        expires_at: DateTime<Local>,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
         let mut self_signed_scope = Self(vec![
             ConnectionStringBean::TenantId(tenant_id),
             ConnectionStringBean::AccountId(account_id),
             ConnectionStringBean::PermissionedRoles(permissioned_roles),
+            ConnectionStringBean::ExpirationDateTime(expires_at),
         ]);
 
         self_signed_scope.sign_token(config, None)?;
@@ -179,6 +182,7 @@ mod tests {
             Uuid::new_v4(),
             Uuid::new_v4(),
             vec![("role".to_string(), Permission::ReadWrite)],
+            Local::now(),
             config.to_owned(),
         );
 

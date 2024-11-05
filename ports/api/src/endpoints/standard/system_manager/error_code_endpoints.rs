@@ -27,7 +27,9 @@ use myc_core::{
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,
-    wrappers::default_response_to_http_response::fetch_many_response_kind,
+    wrappers::default_response_to_http_response::{
+        fetch_many_response_kind, handle_mapped_error,
+    },
 };
 use mycelium_base::entities::FetchResponseKind;
 use serde::Deserialize;
@@ -134,10 +136,7 @@ pub async fn register_error_code_url(
     .await
     {
         Ok(account) => HttpResponse::Created().json(account),
-        Err(err) => HttpResponse::InternalServerError().json(
-            HttpJsonResponse::new_message(err.to_string())
-                .with_code(err.code().to_string()),
-        ),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -202,8 +201,7 @@ pub async fn list_error_codes_url(
     .await
     {
         Ok(res) => fetch_many_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -260,8 +258,7 @@ pub async fn get_error_code_url(
     )
     .await
     {
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
         Ok(res) => match res {
             FetchResponseKind::NotFound(_) => {
                 HttpResponse::NoContent().finish()
@@ -336,18 +333,7 @@ pub async fn update_error_code_message_and_details_url(
     )
     .await
     {
-        Err(err) => {
-            let target_msg = NativeErrorCodes::MYC00005;
-            if err.is_in(vec![target_msg]) {
-                return HttpResponse::BadRequest().json(
-                    HttpJsonResponse::new_message(err.to_string())
-                        .with_code_str(target_msg.as_str()),
-                );
-            }
-
-            HttpResponse::InternalServerError()
-                .json(HttpJsonResponse::new_message(err.to_string()))
-        }
+        Err(err) => handle_mapped_error(err),
         Ok(res) => HttpResponse::Accepted().json(res),
     }
 }
@@ -405,19 +391,7 @@ pub async fn delete_error_code_url(
     )
     .await
     {
-        Err(err) => {
-            let target_msg = NativeErrorCodes::MYC00007;
-
-            if err.is_in(vec![target_msg]) {
-                return HttpResponse::Forbidden().json(
-                    HttpJsonResponse::new_message(err.to_string())
-                        .with_code_str(target_msg.as_str()),
-                );
-            }
-
-            HttpResponse::InternalServerError()
-                .json(HttpJsonResponse::new_message(err.to_string()))
-        }
+        Err(err) => handle_mapped_error(err),
         Ok(_) => HttpResponse::NoContent().finish(),
     }
 }

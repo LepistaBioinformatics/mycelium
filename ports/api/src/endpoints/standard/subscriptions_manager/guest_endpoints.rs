@@ -34,7 +34,8 @@ use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
         delete_response_kind, fetch_many_response_kind,
-        get_or_create_response_kind, updating_response_kind,
+        get_or_create_response_kind, handle_mapped_error,
+        updating_response_kind,
     },
 };
 use serde::Deserialize;
@@ -152,8 +153,7 @@ pub async fn list_licensed_accounts_of_email_url(
     .await
     {
         Ok(res) => fetch_many_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -247,19 +247,7 @@ pub async fn guest_user_url(
     .await
     {
         Ok(res) => get_or_create_response_kind(res),
-        Err(err) => {
-            let code_string = err.code().to_string();
-
-            if err.is_in(vec![NativeErrorCodes::MYC00017]) {
-                return HttpResponse::Conflict().json(
-                    HttpJsonResponse::new_message(err.to_string())
-                        .with_code(code_string),
-                );
-            }
-
-            HttpResponse::InternalServerError()
-                .json(HttpJsonResponse::new_message(err.to_string()))
-        }
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -328,8 +316,7 @@ pub async fn update_user_guest_role_url(
     .await
     {
         Ok(res) => updating_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -393,8 +380,7 @@ pub async fn uninvite_guest_url(
     .await
     {
         Ok(res) => delete_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -458,7 +444,6 @@ pub async fn list_guest_on_subscription_account_url(
     .await
     {
         Ok(res) => fetch_many_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }

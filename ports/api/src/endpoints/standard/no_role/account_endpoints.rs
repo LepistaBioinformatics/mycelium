@@ -23,7 +23,9 @@ use myc_core::{
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,
-    wrappers::default_response_to_http_response::updating_response_kind,
+    wrappers::default_response_to_http_response::{
+        handle_mapped_error, updating_response_kind,
+    },
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -135,21 +137,7 @@ pub async fn create_default_account_url(
     .await
     {
         Ok(res) => HttpResponse::Created().json(res),
-        Err(err) => {
-            let code_string = err.code().to_string();
-
-            if err.is_in(vec![NativeErrorCodes::MYC00003]) {
-                return HttpResponse::Conflict().json(
-                    HttpJsonResponse::new_message(err.to_string())
-                        .with_code(code_string),
-                );
-            }
-
-            HttpResponse::InternalServerError().json(
-                HttpJsonResponse::new_message(err.to_string())
-                    .with_code(code_string),
-            )
-        }
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -220,7 +208,6 @@ pub async fn update_own_account_name_url(
     .await
     {
         Ok(res) => updating_response_kind(res),
-        Err(err) => HttpResponse::InternalServerError()
-            .json(HttpJsonResponse::new_message(err.to_string())),
+        Err(err) => handle_mapped_error(err),
     }
 }
