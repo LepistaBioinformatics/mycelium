@@ -12,10 +12,11 @@ use crate::modules::{
     RoleRegistrationModule, RoleUpdatingModule, RoutesFetchingModule,
     TenantDeletionModule, TenantFetchingModule, TenantRegistrationModule,
     TenantTagDeletionModule, TenantTagRegistrationModule,
-    TenantTagUpdatingModule, TenantUpdatingModule, TokenInvalidationModule,
-    TokenRegistrationModule, UserDeletionModule, UserFetchingModule,
-    UserRegistrationModule, UserUpdatingModule, WebHookDeletionModule,
-    WebHookFetchingModule, WebHookRegistrationModule, WebHookUpdatingModule,
+    TenantTagUpdatingModule, TenantUpdatingModule, TokenFetchingModule,
+    TokenInvalidationModule, TokenRegistrationModule, UserDeletionModule,
+    UserFetchingModule, UserRegistrationModule, UserUpdatingModule,
+    WebHookDeletionModule, WebHookFetchingModule, WebHookRegistrationModule,
+    WebHookUpdatingModule,
 };
 
 use actix_web::web;
@@ -78,7 +79,8 @@ use myc_prisma::repositories::{
     TenantTagRegistrationSqlDbRepositoryParameters,
     TenantTagUpdatingSqlDbRepository,
     TenantTagUpdatingSqlDbRepositoryParameters, TenantUpdatingSqlDbRepository,
-    TenantUpdatingSqlDbRepositoryParameters, TokenInvalidationSqlDbRepository,
+    TenantUpdatingSqlDbRepositoryParameters, TokenFetchingSqlDbRepository,
+    TokenFetchingSqlDbRepositoryParameters, TokenInvalidationSqlDbRepository,
     TokenInvalidationSqlDbRepositoryParameters,
     TokenRegistrationSqlDbRepository,
     TokenRegistrationSqlDbRepositoryParameters, UserDeletionSqlDbRepository,
@@ -356,6 +358,13 @@ pub fn configure(config: &mut web::ServiceConfig) {
             TokenInvalidationModule::builder()
                 .with_component_parameters::<TokenInvalidationSqlDbRepository>(
                     TokenInvalidationSqlDbRepositoryParameters {},
+                )
+                .build(),
+        ))
+        .app_data(Arc::new(
+            TokenFetchingModule::builder()
+                .with_component_parameters::<TokenFetchingSqlDbRepository>(
+                    TokenFetchingSqlDbRepositoryParameters {},
                 )
                 .build(),
         ))

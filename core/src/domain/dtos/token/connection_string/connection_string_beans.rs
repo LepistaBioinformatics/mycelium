@@ -1,49 +1,65 @@
+use std::str::FromStr;
+
 use crate::domain::dtos::{
     guest_role::Permission, route_type::PermissionedRoles,
 };
 
 use chrono::{DateTime, Local, Timelike};
 use serde::{Deserialize, Serialize};
-use std::str::FromStr;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
 pub enum ConnectionStringBean {
-    Signature(String),
-    ExpirationDateTime(DateTime<Local>),
-    TenantId(Uuid),
-    AccountId(Uuid),
-    Role(String),
-    Permission(Permission),
-    PermissionedRoles(PermissionedRoles),
-    Endpoint(String),
+    SIG(String),
+
+    /// The expiration date time
+    EDT(DateTime<Local>),
+
+    /// The tenant ID
+    TID(Uuid),
+
+    /// The account ID
+    AID(Uuid),
+
+    /// The role
+    RL(String),
+
+    /// The permission
+    PM(Permission),
+
+    /// The permissioned roles
+    PR(PermissionedRoles),
+
+    /// The endpoint URL
+    URL(String),
 }
 
 impl ToString for ConnectionStringBean {
     fn to_string(&self) -> String {
         match self {
-            ConnectionStringBean::Signature(signature) => {
-                format!("Signature={}", signature)
+            ConnectionStringBean::SIG(signature) => {
+                format!("sig={}", signature)
             }
-            ConnectionStringBean::ExpirationDateTime(expiration_date) => {
+            ConnectionStringBean::EDT(expiration_date) => {
                 format!(
-                    "ExpirationDateTime={}",
+                    "edt={}",
                     expiration_date.format("%Y-%m-%dT%H:%M:%S%:z").to_string()
                 )
             }
-            ConnectionStringBean::TenantId(tenant_id) => {
-                format!("TenantId={}", tenant_id.to_string())
+            ConnectionStringBean::TID(tenant_id) => {
+                format!("tid={}", tenant_id.to_string())
             }
-            ConnectionStringBean::AccountId(account_id) => {
-                format!("AccountId={}", account_id.to_string())
+            ConnectionStringBean::AID(account_id) => {
+                format!("aid={}", account_id.to_string())
             }
-            ConnectionStringBean::Role(role) => {
-                format!("Role={}", role)
+            ConnectionStringBean::RL(role) => {
+                format!("rl={}", role)
             }
-            ConnectionStringBean::Permission(permission) => {
-                format!("Permission={}", permission.to_string())
+            ConnectionStringBean::PM(permission) => {
+                format!("pm={}", permission.to_string())
             }
-            ConnectionStringBean::PermissionedRoles(permissioned_roles) => {
+            ConnectionStringBean::PR(permissioned_roles) => {
                 let roles = permissioned_roles
                     .iter()
                     .fold(String::new(), |acc, (role, permission)| {
@@ -52,10 +68,10 @@ impl ToString for ConnectionStringBean {
                     .trim_end_matches(',')
                     .to_string();
 
-                format!("PermissionedRoles={}", roles)
+                format!("pr={}", roles)
             }
-            ConnectionStringBean::Endpoint(endpoint) => {
-                format!("Endpoint={}", endpoint)
+            ConnectionStringBean::URL(endpoint) => {
+                format!("url={}", endpoint)
             }
         }
     }
@@ -75,10 +91,8 @@ impl TryFrom<String> for ConnectionStringBean {
         let value = parts[1];
 
         match key {
-            "Signature" => {
-                Ok(ConnectionStringBean::Signature(value.to_string()))
-            }
-            "ExpirationDateTime" => {
+            "SIG" | "sig" => Ok(ConnectionStringBean::SIG(value.to_string())),
+            "EDT" | "edt" => {
                 let datetime = match DateTime::parse_from_str(
                     value,
                     "%Y-%m-%dT%H:%M:%S%:z",
@@ -93,22 +107,22 @@ impl TryFrom<String> for ConnectionStringBean {
                     }
                 };
 
-                Ok(ConnectionStringBean::ExpirationDateTime(datetime))
+                Ok(ConnectionStringBean::EDT(datetime))
             }
-            "TenantId" => {
+            "TID" | "tid" => {
                 let tenant_id = Uuid::parse_str(value).map_err(|_| ())?;
-                Ok(ConnectionStringBean::TenantId(tenant_id))
+                Ok(ConnectionStringBean::TID(tenant_id))
             }
-            "AccountId" => {
+            "AID" | "aid" => {
                 let account_id = Uuid::parse_str(value).map_err(|_| ())?;
-                Ok(ConnectionStringBean::AccountId(account_id))
+                Ok(ConnectionStringBean::AID(account_id))
             }
-            "Role" => Ok(ConnectionStringBean::Role(value.to_string())),
-            "Permission" => {
+            "RL" | "rl" => Ok(ConnectionStringBean::RL(value.to_string())),
+            "PM" | "pm" => {
                 let permission = Permission::from_str(value).map_err(|_| ())?;
-                Ok(ConnectionStringBean::Permission(permission))
+                Ok(ConnectionStringBean::PM(permission))
             }
-            "PermissionedRoles" => {
+            "PR" | "pr" => {
                 let roles = value
                     .split(',')
                     .map(|role| {
@@ -129,9 +143,9 @@ impl TryFrom<String> for ConnectionStringBean {
                     })
                     .collect::<Result<PermissionedRoles, ()>>()?;
 
-                Ok(ConnectionStringBean::PermissionedRoles(roles))
+                Ok(ConnectionStringBean::PR(roles))
             }
-            "Endpoint" => Ok(ConnectionStringBean::Endpoint(value.to_string())),
+            "URL" | "url" => Ok(ConnectionStringBean::URL(value.to_string())),
             _ => Err(()),
         }
     }
@@ -155,35 +169,31 @@ mod tests {
         permissioned_roles.push(("role1".to_string(), Permission::Write));
         permissioned_roles.push(("role2".to_string(), Permission::Read));
 
-        let signature_bean = ConnectionStringBean::Signature(signature.clone());
-        let tenant_id_bean = ConnectionStringBean::TenantId(tenant_id);
-        let account_id_bean = ConnectionStringBean::AccountId(account_id);
-        let role_bean = ConnectionStringBean::Role(role.clone());
-        let permission_bean =
-            ConnectionStringBean::Permission(permission.to_owned());
+        let signature_bean = ConnectionStringBean::SIG(signature.clone());
+        let tenant_id_bean = ConnectionStringBean::TID(tenant_id);
+        let account_id_bean = ConnectionStringBean::AID(account_id);
+        let role_bean = ConnectionStringBean::RL(role.clone());
+        let permission_bean = ConnectionStringBean::PM(permission.to_owned());
         let permissioned_roles_bean =
-            ConnectionStringBean::PermissionedRoles(permissioned_roles);
+            ConnectionStringBean::PR(permissioned_roles);
 
-        assert_eq!(
-            signature_bean.to_string(),
-            format!("Signature={}", signature)
-        );
+        assert_eq!(signature_bean.to_string(), format!("sig={}", signature));
         assert_eq!(
             tenant_id_bean.to_string(),
-            format!("TenantId={}", tenant_id.to_string())
+            format!("tid={}", tenant_id.to_string())
         );
         assert_eq!(
             account_id_bean.to_string(),
-            format!("AccountId={}", account_id.to_string())
+            format!("aid={}", account_id.to_string())
         );
-        assert_eq!(role_bean.to_string(), format!("Role={}", role));
+        assert_eq!(role_bean.to_string(), format!("rl={}", role));
         assert_eq!(
             permission_bean.to_string(),
-            format!("Permission={}", permission.to_string())
+            format!("pm={}", permission.to_string())
         );
 
         let expected_permissioned_roles_string =
-            format!("PermissionedRoles=role1:0,role1:1,role2:0");
+            format!("pr=role1:0,role1:1,role2:0");
 
         assert_eq!(
             permissioned_roles_bean.to_string(),
@@ -203,14 +213,13 @@ mod tests {
         permissioned_roles.push(("role1".to_string(), Permission::Write));
         permissioned_roles.push(("role2".to_string(), Permission::Read));
 
-        let signature_bean = ConnectionStringBean::Signature(signature.clone());
-        let tenant_id_bean = ConnectionStringBean::TenantId(tenant_id);
-        let account_id_bean = ConnectionStringBean::AccountId(account_id);
-        let role_bean = ConnectionStringBean::Role(role.clone());
-        let permission_bean =
-            ConnectionStringBean::Permission(permission.to_owned());
+        let signature_bean = ConnectionStringBean::SIG(signature.clone());
+        let tenant_id_bean = ConnectionStringBean::TID(tenant_id);
+        let account_id_bean = ConnectionStringBean::AID(account_id);
+        let role_bean = ConnectionStringBean::RL(role.clone());
+        let permission_bean = ConnectionStringBean::PM(permission.to_owned());
         let permissioned_roles_bean =
-            ConnectionStringBean::PermissionedRoles(permissioned_roles);
+            ConnectionStringBean::PR(permissioned_roles);
 
         assert_eq!(
             ConnectionStringBean::try_from(signature_bean.to_string()).unwrap(),
@@ -249,18 +258,12 @@ mod tests {
         permissioned_roles.push(("role2".to_string(), Permission::Read));
 
         let permissioned_roles_bean =
-            ConnectionStringBean::PermissionedRoles(permissioned_roles);
-
-        println!("1) {:?}", permissioned_roles_bean);
+            ConnectionStringBean::PR(permissioned_roles);
 
         let permissioned_roles_string = permissioned_roles_bean.to_string();
 
-        println!("2) {}", permissioned_roles_string);
-
         let parsed_permissioned_roles_bean =
             ConnectionStringBean::try_from(permissioned_roles_string).unwrap();
-
-        println!("3) {:?}", parsed_permissioned_roles_bean);
 
         assert_eq!(permissioned_roles_bean, parsed_permissioned_roles_bean);
     }
