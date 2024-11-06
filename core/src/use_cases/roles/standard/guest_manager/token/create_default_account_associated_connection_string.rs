@@ -25,11 +25,11 @@ use mycelium_base::{
 use uuid::Uuid;
 
 #[tracing::instrument(
-    name = "create_default_account_associated_token",
+    name = "create_default_account_associated_connection_string",
     fields(profile_id = %profile.acc_id),
     skip_all
 )]
-pub async fn create_default_account_associated_token(
+pub async fn create_default_account_associated_connection_string(
     profile: Profile,
     tenant_id: Uuid,
     account_id: Uuid,
