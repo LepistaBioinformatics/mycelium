@@ -1,4 +1,4 @@
-use crate::domain::dtos::webhook::{HookTarget, WebHook};
+use crate::domain::dtos::webhook::{WebHook, WebhookTrigger};
 
 use async_trait::async_trait;
 use mycelium_base::{
@@ -14,9 +14,15 @@ pub trait WebHookFetching: Interface + Send + Sync {
         &self,
         id: Uuid,
     ) -> Result<FetchResponseKind<WebHook, Uuid>, MappedErrors>;
+
     async fn list(
         &self,
         name: Option<String>,
-        target: Option<HookTarget>,
+        trigger: Option<WebhookTrigger>,
+    ) -> Result<FetchManyResponseKind<WebHook>, MappedErrors>;
+
+    async fn list_by_trigger(
+        &self,
+        trigger: WebhookTrigger,
     ) -> Result<FetchManyResponseKind<WebHook>, MappedErrors>;
 }

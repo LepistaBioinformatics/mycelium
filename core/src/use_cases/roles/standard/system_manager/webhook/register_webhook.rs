@@ -1,33 +1,44 @@
-use crate::{
-    domain::{
-        actors::ActorName,
-        dtos::{profile::Profile, webhook::WebHook},
-        entities::WebHookRegistration,
+use crate::{domain::{
+    actors::ActorName,
+    dtos::{
+        profile::Profile,
+        webhook::{WebHook, WebHookSecret, WebhookTrigger},
     },
-    use_cases::roles::shared::webhook::default_actions::WebHookDefaultAction,
-};
+    entities::WebHookRegistration,
+}, models::AccountLifeCycle};
 
 use mycelium_base::{
     entities::CreateResponseKind, utils::errors::MappedErrors,
 };
 
 #[tracing::instrument(
-    name = "register_webhook",
-    skip(profile, webhook_registration_repo)
+    name = "register_webhook", 
+    fields(profile_id = %profile.acc_id), 
+    skip_all
 )]
 pub async fn register_webhook(
     profile: Profile,
     name: String,
+    description: Option<String>,
     url: String,
-    action: WebHookDefaultAction,
+    trigger: WebhookTrigger,
+    secret: Option<WebHookSecret>,
+    config: AccountLifeCycle,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
 ) -> Result<CreateResponseKind<WebHook>, MappedErrors> {
-    profile.get_default_write_ids_or_error(vec![
-        ActorName::SystemManager.to_string()
-    ])?;
+    // ? -----------------------------------------------------------------------
+    // ? Check if the current account has sufficient privileges
+    // ? -----------------------------------------------------------------------
 
-    let mut webhook = action.as_webhook(url);
-    webhook.name = name;
+    profile.get_default_write_ids_or_error(vec![ActorName::SystemManager])?;
 
-    webhook_registration_repo.create(webhook).await
+    // ? -----------------------------------------------------------------------
+    // ? Register webhook
+    // ? -----------------------------------------------------------------------
+
+    let webhook = WebHook::new_encrypted(name, description, url, trigger, secret, config)?;
+
+    webhook_registration_repo
+        .create(webhook)
+        .await
 }

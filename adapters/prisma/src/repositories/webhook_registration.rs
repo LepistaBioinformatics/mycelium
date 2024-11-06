@@ -51,7 +51,7 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
             .webhook()
             .create(
                 webhook.name.to_owned(),
-                webhook.target.to_owned().to_string(),
+                webhook.trigger.to_owned().to_string(),
                 webhook.url.to_owned(),
                 vec![webhook_model::description::set(
                     webhook.description.to_owned(),
@@ -60,19 +60,25 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
             .exec()
             .await
         {
-            Ok(record) => Ok(CreateResponseKind::Created(WebHook {
-                id: Some(Uuid::from_str(&record.id).unwrap()),
-                name: record.name,
-                description: record.description,
-                target: record.target.parse().unwrap(),
-                url: record.url,
-                is_active: record.is_active,
-                created: record.created.into(),
-                updated: match record.updated {
+            Ok(record) => {
+                let mut webhook = WebHook::new(
+                    record.name,
+                    record.description.into(),
+                    record.url,
+                    record.trigger.parse().unwrap(),
+                    None,
+                );
+
+                webhook.id = Some(Uuid::from_str(&record.id).unwrap());
+                webhook.is_active = record.is_active;
+                webhook.created = record.created.into();
+                webhook.updated = match record.updated {
                     None => None,
                     Some(date) => Some(date.with_timezone(&Local)),
-                },
-            })),
+                };
+
+                Ok(CreateResponseKind::Created(webhook))
+            }
             Err(err) => {
                 return creation_err(format!(
                     "Unexpected error detected on create record: {err}"

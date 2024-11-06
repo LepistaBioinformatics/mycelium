@@ -11,17 +11,15 @@ use actix_web::{delete, get, post, put, web, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
-        dtos::webhook::{HookTarget, WebHook},
+        dtos::webhook::{WebHook, WebHookSecret, WebhookTrigger},
         entities::{
             WebHookDeletion, WebHookFetching, WebHookRegistration,
             WebHookUpdating,
         },
     },
-    use_cases::roles::{
-        shared::webhook::default_actions::WebHookDefaultAction,
-        standard::system_manager::webhook::{
-            delete_webhook, list_webhooks, register_webhook, update_webhook,
-        },
+    models::AccountLifeCycle,
+    use_cases::roles::standard::system_manager::webhook::{
+        delete_webhook, list_webhooks, register_webhook, update_webhook,
     },
 };
 use myc_http_tools::wrappers::default_response_to_http_response::{
@@ -53,8 +51,10 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[serde(rename_all = "camelCase")]
 pub struct CreateWebHookBody {
     name: String,
+    description: Option<String>,
     url: String,
-    action: WebHookDefaultAction,
+    trigger: WebhookTrigger,
+    secret: Option<WebHookSecret>,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -67,7 +67,7 @@ pub struct UpdateWebHookBody {
 #[serde(rename_all = "camelCase")]
 pub struct ListWebHooksParams {
     name: Option<String>,
-    target: Option<HookTarget>,
+    trigger: Option<WebhookTrigger>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -110,6 +110,7 @@ pub struct ListWebHooksParams {
 pub async fn crate_webhook_url(
     body: web::Json<CreateWebHookBody>,
     profile: MyceliumProfileData,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
     webhook_registration_repo: Inject<
         WebHookRegistrationModule,
         dyn WebHookRegistration,
@@ -118,8 +119,11 @@ pub async fn crate_webhook_url(
     match register_webhook(
         profile.to_profile(),
         body.name.to_owned(),
+        body.description.to_owned(),
         body.url.to_owned(),
-        body.action.to_owned(),
+        body.trigger.to_owned(),
+        body.secret.to_owned(),
+        life_cycle_settings.get_ref().to_owned(),
         Box::new(&*webhook_registration_repo),
     )
     .await
@@ -171,7 +175,7 @@ pub async fn list_webhooks_url(
     match list_webhooks(
         profile.to_profile(),
         info.name.to_owned(),
-        info.target.to_owned(),
+        info.trigger.to_owned(),
         Box::new(&*webhook_fetching_repo),
     )
     .await
