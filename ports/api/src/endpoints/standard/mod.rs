@@ -32,13 +32,12 @@ use myc_core::{
             role::Role,
             tag::Tag,
             user::{PasswordHash, Provider, User},
-            webhook::{AccountPropagationWebHookResponse, HookTarget, WebHook},
+            webhook::{
+                AccountPropagationWebHookResponse, WebHook, WebHookSecret,
+            },
         },
     },
-    use_cases::roles::{
-        shared::webhook::default_actions::WebHookDefaultAction,
-        standard::no_role::user::EmailRegistrationStatus,
-    },
+    use_cases::roles::standard::no_role::user::EmailRegistrationStatus,
 };
 use myc_http_tools::utils::HttpJsonResponse;
 use mycelium_base::dtos::{Children, PaginatedRecord, Parent};
@@ -368,8 +367,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             PaginatedRecord<Account>,
             PaginatedRecord<ErrorCode>,
             Role,
-            HookTarget,
-            WebHookDefaultAction,
+            WebHookSecret,
             WebHook,
             AccountPropagationWebHookResponse,
             Tag,

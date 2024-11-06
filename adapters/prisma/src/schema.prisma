@@ -318,13 +318,14 @@ model Webhook {
   // Model fields
   name        String    @db.VarChar(140)
   description String?   @db.VarChar(255)
-  target      String    @db.VarChar(15)
-  url         String    @db.VarChar(255)
+  url         String
+  trigger     String    @db.VarChar(255)
   is_active   Boolean   @default(true)
   created     DateTime  @default(now()) @db.Timestamptz(6)
   updated     DateTime? @updatedAt @db.Timestamptz(6)
+  secret      Json?
 
   // Db compatibility and extra maps
-  @@unique([name, url, target])
+  @@unique([name, url, trigger])
   @@map("webhook")
 }

@@ -16771,78 +16771,6 @@ pub mod webhook {
             }
         }
     }
-    pub mod target {
-        use super::super::*;
-        use super::_prisma::*;
-        use super::{
-            OrderByParam, SetParam, UncheckedSetParam, UniqueWhereParam,
-            WhereParam, WithParam,
-        };
-        pub const NAME: &str = "target";
-        pub struct Set(pub String);
-        impl From<Set> for SetParam {
-            fn from(Set(v): Set) -> Self {
-                Self::SetTarget(v)
-            }
-        }
-        impl From<Set> for UncheckedSetParam {
-            fn from(Set(v): Set) -> Self {
-                Self::Target(v)
-            }
-        }
-        pub fn set<T: From<Set>>(value: String) -> T {
-            Set(value).into()
-        }
-        pub fn order(
-            direction: ::prisma_client_rust::Direction,
-        ) -> OrderByParam {
-            OrderByParam::Target(direction)
-        }
-        pub fn equals(value: String) -> WhereParam {
-            WhereParam::Target(_prisma::read_filters::StringFilter::Equals(
-                value,
-            ))
-        }
-        ::prisma_client_rust::scalar_where_param_fns!(
-            _prisma::read_filters::StringFilter,
-            Target,
-            {
-                fn in_vec(_: Vec<String>) -> InVec;
-                fn not_in_vec(_: Vec<String>) -> NotInVec;
-                fn lt(_: String) -> Lt;
-                fn lte(_: String) -> Lte;
-                fn gt(_: String) -> Gt;
-                fn gte(_: String) -> Gte;
-                fn contains(_: String) -> Contains;
-                fn starts_with(_: String) -> StartsWith;
-                fn ends_with(_: String) -> EndsWith;
-                fn mode(_: super::super::QueryMode) -> Mode;
-                fn not(_: String) -> Not;
-            }
-        );
-        pub struct Include;
-        impl Into<super::IncludeParam> for Include {
-            fn into(self) -> super::IncludeParam {
-                super::IncludeParam::Target(self)
-            }
-        }
-        impl Include {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                ::prisma_client_rust::sel(NAME)
-            }
-        }
-        pub struct Select;
-        impl Into<super::SelectParam> for Select {
-            fn into(self) -> super::SelectParam {
-                super::SelectParam::Target(self)
-            }
-        }
-        impl Select {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                ::prisma_client_rust::sel(NAME)
-            }
-        }
-    }
     pub mod url {
         use super::super::*;
         use super::_prisma::*;
@@ -16905,6 +16833,78 @@ pub mod webhook {
         impl Into<super::SelectParam> for Select {
             fn into(self) -> super::SelectParam {
                 super::SelectParam::Url(self)
+            }
+        }
+        impl Select {
+            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
+                ::prisma_client_rust::sel(NAME)
+            }
+        }
+    }
+    pub mod trigger {
+        use super::super::*;
+        use super::_prisma::*;
+        use super::{
+            OrderByParam, SetParam, UncheckedSetParam, UniqueWhereParam,
+            WhereParam, WithParam,
+        };
+        pub const NAME: &str = "trigger";
+        pub struct Set(pub String);
+        impl From<Set> for SetParam {
+            fn from(Set(v): Set) -> Self {
+                Self::SetTrigger(v)
+            }
+        }
+        impl From<Set> for UncheckedSetParam {
+            fn from(Set(v): Set) -> Self {
+                Self::Trigger(v)
+            }
+        }
+        pub fn set<T: From<Set>>(value: String) -> T {
+            Set(value).into()
+        }
+        pub fn order(
+            direction: ::prisma_client_rust::Direction,
+        ) -> OrderByParam {
+            OrderByParam::Trigger(direction)
+        }
+        pub fn equals(value: String) -> WhereParam {
+            WhereParam::Trigger(_prisma::read_filters::StringFilter::Equals(
+                value,
+            ))
+        }
+        ::prisma_client_rust::scalar_where_param_fns!(
+            _prisma::read_filters::StringFilter,
+            Trigger,
+            {
+                fn in_vec(_: Vec<String>) -> InVec;
+                fn not_in_vec(_: Vec<String>) -> NotInVec;
+                fn lt(_: String) -> Lt;
+                fn lte(_: String) -> Lte;
+                fn gt(_: String) -> Gt;
+                fn gte(_: String) -> Gte;
+                fn contains(_: String) -> Contains;
+                fn starts_with(_: String) -> StartsWith;
+                fn ends_with(_: String) -> EndsWith;
+                fn mode(_: super::super::QueryMode) -> Mode;
+                fn not(_: String) -> Not;
+            }
+        );
+        pub struct Include;
+        impl Into<super::IncludeParam> for Include {
+            fn into(self) -> super::IncludeParam {
+                super::IncludeParam::Trigger(self)
+            }
+        }
+        impl Include {
+            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
+                ::prisma_client_rust::sel(NAME)
+            }
+        }
+        pub struct Select;
+        impl Into<super::SelectParam> for Select {
+            fn into(self) -> super::SelectParam {
+                super::SelectParam::Trigger(self)
             }
         }
         impl Select {
@@ -17207,41 +17207,125 @@ pub mod webhook {
             }
         }
     }
-    pub fn name_url_target<T: From<UniqueWhereParam>>(
+    pub mod secret {
+        use super::super::*;
+        use super::_prisma::*;
+        use super::{
+            OrderByParam, SetParam, UncheckedSetParam, UniqueWhereParam,
+            WhereParam, WithParam,
+        };
+        pub const NAME: &str = "secret";
+        pub struct Set(pub Option<::prisma_client_rust::serde_json::Value>);
+        impl From<Set> for SetParam {
+            fn from(Set(v): Set) -> Self {
+                Self::SetSecret(v)
+            }
+        }
+        impl From<Set> for UncheckedSetParam {
+            fn from(Set(v): Set) -> Self {
+                Self::Secret(v)
+            }
+        }
+        pub fn set<T: From<Set>>(
+            value: Option<::prisma_client_rust::serde_json::Value>,
+        ) -> T {
+            Set(value).into()
+        }
+        pub fn order(
+            direction: ::prisma_client_rust::Direction,
+        ) -> OrderByParam {
+            OrderByParam::Secret(direction)
+        }
+        pub fn equals(
+            value: ::prisma_client_rust::serde_json::Value,
+        ) -> WhereParam {
+            WhereParam::Secret(
+                _prisma::read_filters::JsonNullableFilter::Equals(value),
+            )
+        }
+        ::prisma_client_rust::scalar_where_param_fns!(
+            _prisma::read_filters::JsonNullableFilter,
+            Secret,
+            {
+                fn path(_: Vec<String>) -> Path;
+                fn string_contains(_: String) -> StringContains;
+                fn string_starts_with(_: String) -> StringStartsWith;
+                fn string_ends_with(_: String) -> StringEndsWith;
+                fn array_contains(
+                    _: Option<::prisma_client_rust::serde_json::Value>,
+                ) -> ArrayContains;
+                fn array_starts_with(
+                    _: Option<::prisma_client_rust::serde_json::Value>,
+                ) -> ArrayStartsWith;
+                fn array_ends_with(
+                    _: Option<::prisma_client_rust::serde_json::Value>,
+                ) -> ArrayEndsWith;
+                fn lt(_: ::prisma_client_rust::serde_json::Value) -> Lt;
+                fn lte(_: ::prisma_client_rust::serde_json::Value) -> Lte;
+                fn gt(_: ::prisma_client_rust::serde_json::Value) -> Gt;
+                fn gte(_: ::prisma_client_rust::serde_json::Value) -> Gte;
+                fn not(_: ::prisma_client_rust::serde_json::Value) -> Not;
+            }
+        );
+        pub struct Include;
+        impl Into<super::IncludeParam> for Include {
+            fn into(self) -> super::IncludeParam {
+                super::IncludeParam::Secret(self)
+            }
+        }
+        impl Include {
+            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
+                ::prisma_client_rust::sel(NAME)
+            }
+        }
+        pub struct Select;
+        impl Into<super::SelectParam> for Select {
+            fn into(self) -> super::SelectParam {
+                super::SelectParam::Secret(self)
+            }
+        }
+        impl Select {
+            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
+                ::prisma_client_rust::sel(NAME)
+            }
+        }
+    }
+    pub fn name_url_trigger<T: From<UniqueWhereParam>>(
         name: String,
         url: String,
-        target: String,
+        trigger: String,
     ) -> T {
-        UniqueWhereParam::NameUrlTargetEquals(name, url, target).into()
+        UniqueWhereParam::NameUrlTriggerEquals(name, url, trigger).into()
     }
     pub fn create(
         name: String,
-        target: String,
         url: String,
+        trigger: String,
         _params: Vec<SetParam>,
     ) -> (String, String, String, Vec<SetParam>) {
-        (name, target, url, _params)
+        (name, url, trigger, _params)
     }
     pub fn create_unchecked(
         name: String,
-        target: String,
         url: String,
+        trigger: String,
         _params: Vec<SetParam>,
     ) -> (String, String, String, Vec<SetParam>) {
-        (name, target, url, _params)
+        (name, url, trigger, _params)
     }
     #[macro_export]
-    macro_rules ! _select_webhook { ($ (($ ($ func_arg : ident : $ func_arg_ty : ty) , +) =>) ? $ module_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { # [allow (warnings)] pub mod $ module_name { crate :: prisma :: webhook :: select ! (@ definitions ; $ module_name ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; use super :: * ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: SelectType for Selection { type Data = Data ; type ModelData = crate :: prisma :: webhook :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } pub fn select ($ ($ ($ func_arg : $ func_arg_ty) , +) ?) -> Selection { Selection ([crate :: prisma :: webhook :: select ! (@ selections_to_params ; : select { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () ,] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } } ; ({ $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { { crate :: prisma :: webhook :: select ! (@ definitions ; ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: SelectType for Selection { type Data = Data ; type ModelData = crate :: prisma :: webhook :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } Selection ([crate :: prisma :: webhook :: select ! (@ selections_to_params ; : select { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () ,] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } ; (@ definitions ; $ ($ module_name : ident) ? ; $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) +) => { # [allow (warnings)] enum Fields { id , name , description , target , url , is_active , created , updated } # [allow (warnings)] impl Fields { fn selections () { $ (let _ = Fields :: $ field ;) + } } # [allow (warnings)] # [derive (std :: fmt :: Debug , Clone)] pub struct Data { $ (pub $ field : crate :: prisma :: webhook :: select ! (@ field_type ; $ field $ (: $ selection_mode { $ ($ selections) + }) ?) ,) + } impl :: serde :: Serialize for Data { fn serialize < S > (& self , serializer : S) -> Result < S :: Ok , S :: Error > where S : :: serde :: Serializer , { use :: serde :: ser :: SerializeStruct ; let mut state = serializer . serialize_struct ("Data" , [$ (stringify ! ($ field) ,) +] . len ()) ? ; $ (state . serialize_field (crate :: prisma :: webhook :: $ field :: NAME , & self . $ field) ? ;) * state . end () } } impl < 'de > :: serde :: Deserialize < 'de > for Data { fn deserialize < D > (deserializer : D) -> Result < Self , D :: Error > where D : :: serde :: Deserializer < 'de > , { # [allow (warnings)] enum Field { $ ($ field) , + , } impl < 'de > :: serde :: Deserialize < 'de > for Field { fn deserialize < D > (deserializer : D) -> Result < Field , D :: Error > where D : :: serde :: Deserializer < 'de > , { struct FieldVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for FieldVisitor { type Value = Field ; fn expecting (& self , formatter : & mut :: std :: fmt :: Formatter) -> :: std :: fmt :: Result { formatter . write_str (& [$ (crate :: prisma :: webhook :: $ field :: NAME) , + ,] . into_iter () . collect :: < Vec < _ >> () . join (", ")) } fn visit_str < E > (self , value : & str) -> Result < Field , E > where E : :: serde :: de :: Error , { match value { $ (crate :: prisma :: webhook :: $ field :: NAME => Ok (Field :: $ field)) , * , _ => Err (:: serde :: de :: Error :: unknown_field (value , FIELDS)) , } } } deserializer . deserialize_identifier (FieldVisitor) } } struct DataVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for DataVisitor { type Value = Data ; fn expecting (& self , formatter : & mut std :: fmt :: Formatter) -> std :: fmt :: Result { formatter . write_str ("struct Data") } fn visit_map < V > (self , mut map : V) -> Result < Data , V :: Error > where V : :: serde :: de :: MapAccess < 'de > , { $ (let mut $ field = None ;) * while let Some (key) = map . next_key () ? { match key { $ (Field :: $ field => { if $ field . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: $ field :: NAME)) ; } $ field = Some (map . next_value () ?) ; }) * } } $ (let $ field = $ field . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: $ field :: NAME)) ? ;) * Ok (Data { $ ($ field) , * }) } } const FIELDS : & 'static [& 'static str] = & ["id" , "name" , "description" , "target" , "url" , "is_active" , "created" , "updated"] ; deserializer . deserialize_struct ("Data" , FIELDS , DataVisitor) } } $ ($ (pub mod $ field { crate :: prisma :: webhook :: $ selection_mode ! (@ field_module ; $ field : $ selection_mode { $ ($ selections) + }) ; }) ?) + } ; (@ field_type ; id) => { String } ; (@ field_type ; name) => { String } ; (@ field_type ; description) => { Option < String > } ; (@ field_type ; target) => { String } ; (@ field_type ; url) => { String } ; (@ field_type ; is_active) => { bool } ; (@ field_type ; created) => { :: prisma_client_rust :: chrono :: DateTime < :: prisma_client_rust :: chrono :: FixedOffset , > } ; (@ field_type ; updated) => { Option < :: prisma_client_rust :: chrono :: DateTime < :: prisma_client_rust :: chrono :: FixedOffset , > > } ; (@ field_type ; $ field : ident $ ($ tokens : tt) *) => { compile_error ! (stringify ! (Cannot include nonexistent relation $ field on model "Webhook" , available relations are "id, name, description, target, url, is_active, created, updated")) } ; (@ field_module ; $ ($ tokens : tt) *) => { } ; (@ selection_field_to_selection_param ; id) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: id :: Select) } ; (@ selection_field_to_selection_param ; name) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: name :: Select) } ; (@ selection_field_to_selection_param ; description) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: description :: Select) } ; (@ selection_field_to_selection_param ; target) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: target :: Select) } ; (@ selection_field_to_selection_param ; url) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: url :: Select) } ; (@ selection_field_to_selection_param ; is_active) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: is_active :: Select) } ; (@ selection_field_to_selection_param ; created) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: created :: Select) } ; (@ selection_field_to_selection_param ; updated) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: updated :: Select) } ; (@ selection_field_to_selection_param ; $ ($ tokens : tt) *) => { compile_error ! (stringify ! ($ ($ tokens) *)) } ; (@ selections_to_params ; : $ macro_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { [$ (crate :: prisma :: webhook :: $ macro_name ! (@ selection_field_to_selection_param ; $ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) ,) +] } ; (@ filters_to_args ;) => { vec ! [] } ; (@ filters_to_args ; $ ($ t : tt) *) => { $ ($ t) * } ; (@ field_serde_name ; id) => { "id" } ; (@ field_serde_name ; name) => { "name" } ; (@ field_serde_name ; description) => { "description" } ; (@ field_serde_name ; target) => { "target" } ; (@ field_serde_name ; url) => { "url" } ; (@ field_serde_name ; is_active) => { "is_active" } ; (@ field_serde_name ; created) => { "created" } ; (@ field_serde_name ; updated) => { "updated" } ; }
+    macro_rules ! _select_webhook { ($ (($ ($ func_arg : ident : $ func_arg_ty : ty) , +) =>) ? $ module_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { # [allow (warnings)] pub mod $ module_name { crate :: prisma :: webhook :: select ! (@ definitions ; $ module_name ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; use super :: * ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: SelectType for Selection { type Data = Data ; type ModelData = crate :: prisma :: webhook :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } pub fn select ($ ($ ($ func_arg : $ func_arg_ty) , +) ?) -> Selection { Selection ([crate :: prisma :: webhook :: select ! (@ selections_to_params ; : select { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () ,] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } } ; ({ $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { { crate :: prisma :: webhook :: select ! (@ definitions ; ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: SelectType for Selection { type Data = Data ; type ModelData = crate :: prisma :: webhook :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } Selection ([crate :: prisma :: webhook :: select ! (@ selections_to_params ; : select { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () ,] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } ; (@ definitions ; $ ($ module_name : ident) ? ; $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) +) => { # [allow (warnings)] enum Fields { id , name , description , url , trigger , is_active , created , updated , secret } # [allow (warnings)] impl Fields { fn selections () { $ (let _ = Fields :: $ field ;) + } } # [allow (warnings)] # [derive (std :: fmt :: Debug , Clone)] pub struct Data { $ (pub $ field : crate :: prisma :: webhook :: select ! (@ field_type ; $ field $ (: $ selection_mode { $ ($ selections) + }) ?) ,) + } impl :: serde :: Serialize for Data { fn serialize < S > (& self , serializer : S) -> Result < S :: Ok , S :: Error > where S : :: serde :: Serializer , { use :: serde :: ser :: SerializeStruct ; let mut state = serializer . serialize_struct ("Data" , [$ (stringify ! ($ field) ,) +] . len ()) ? ; $ (state . serialize_field (crate :: prisma :: webhook :: $ field :: NAME , & self . $ field) ? ;) * state . end () } } impl < 'de > :: serde :: Deserialize < 'de > for Data { fn deserialize < D > (deserializer : D) -> Result < Self , D :: Error > where D : :: serde :: Deserializer < 'de > , { # [allow (warnings)] enum Field { $ ($ field) , + , } impl < 'de > :: serde :: Deserialize < 'de > for Field { fn deserialize < D > (deserializer : D) -> Result < Field , D :: Error > where D : :: serde :: Deserializer < 'de > , { struct FieldVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for FieldVisitor { type Value = Field ; fn expecting (& self , formatter : & mut :: std :: fmt :: Formatter) -> :: std :: fmt :: Result { formatter . write_str (& [$ (crate :: prisma :: webhook :: $ field :: NAME) , + ,] . into_iter () . collect :: < Vec < _ >> () . join (", ")) } fn visit_str < E > (self , value : & str) -> Result < Field , E > where E : :: serde :: de :: Error , { match value { $ (crate :: prisma :: webhook :: $ field :: NAME => Ok (Field :: $ field)) , * , _ => Err (:: serde :: de :: Error :: unknown_field (value , FIELDS)) , } } } deserializer . deserialize_identifier (FieldVisitor) } } struct DataVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for DataVisitor { type Value = Data ; fn expecting (& self , formatter : & mut std :: fmt :: Formatter) -> std :: fmt :: Result { formatter . write_str ("struct Data") } fn visit_map < V > (self , mut map : V) -> Result < Data , V :: Error > where V : :: serde :: de :: MapAccess < 'de > , { $ (let mut $ field = None ;) * while let Some (key) = map . next_key () ? { match key { $ (Field :: $ field => { if $ field . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: $ field :: NAME)) ; } $ field = Some (map . next_value () ?) ; }) * } } $ (let $ field = $ field . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: $ field :: NAME)) ? ;) * Ok (Data { $ ($ field) , * }) } } const FIELDS : & 'static [& 'static str] = & ["id" , "name" , "description" , "url" , "trigger" , "is_active" , "created" , "updated" , "secret"] ; deserializer . deserialize_struct ("Data" , FIELDS , DataVisitor) } } $ ($ (pub mod $ field { crate :: prisma :: webhook :: $ selection_mode ! (@ field_module ; $ field : $ selection_mode { $ ($ selections) + }) ; }) ?) + } ; (@ field_type ; id) => { String } ; (@ field_type ; name) => { String } ; (@ field_type ; description) => { Option < String > } ; (@ field_type ; url) => { String } ; (@ field_type ; trigger) => { String } ; (@ field_type ; is_active) => { bool } ; (@ field_type ; created) => { :: prisma_client_rust :: chrono :: DateTime < :: prisma_client_rust :: chrono :: FixedOffset , > } ; (@ field_type ; updated) => { Option < :: prisma_client_rust :: chrono :: DateTime < :: prisma_client_rust :: chrono :: FixedOffset , > > } ; (@ field_type ; secret) => { Option < :: prisma_client_rust :: serde_json :: Value > } ; (@ field_type ; $ field : ident $ ($ tokens : tt) *) => { compile_error ! (stringify ! (Cannot include nonexistent relation $ field on model "Webhook" , available relations are "id, name, description, url, trigger, is_active, created, updated, secret")) } ; (@ field_module ; $ ($ tokens : tt) *) => { } ; (@ selection_field_to_selection_param ; id) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: id :: Select) } ; (@ selection_field_to_selection_param ; name) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: name :: Select) } ; (@ selection_field_to_selection_param ; description) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: description :: Select) } ; (@ selection_field_to_selection_param ; url) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: url :: Select) } ; (@ selection_field_to_selection_param ; trigger) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: trigger :: Select) } ; (@ selection_field_to_selection_param ; is_active) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: is_active :: Select) } ; (@ selection_field_to_selection_param ; created) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: created :: Select) } ; (@ selection_field_to_selection_param ; updated) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: updated :: Select) } ; (@ selection_field_to_selection_param ; secret) => { Into :: < crate :: prisma :: webhook :: SelectParam > :: into (crate :: prisma :: webhook :: secret :: Select) } ; (@ selection_field_to_selection_param ; $ ($ tokens : tt) *) => { compile_error ! (stringify ! ($ ($ tokens) *)) } ; (@ selections_to_params ; : $ macro_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { [$ (crate :: prisma :: webhook :: $ macro_name ! (@ selection_field_to_selection_param ; $ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) ,) +] } ; (@ filters_to_args ;) => { vec ! [] } ; (@ filters_to_args ; $ ($ t : tt) *) => { $ ($ t) * } ; (@ field_serde_name ; id) => { "id" } ; (@ field_serde_name ; name) => { "name" } ; (@ field_serde_name ; description) => { "description" } ; (@ field_serde_name ; url) => { "url" } ; (@ field_serde_name ; trigger) => { "trigger" } ; (@ field_serde_name ; is_active) => { "is_active" } ; (@ field_serde_name ; created) => { "created" } ; (@ field_serde_name ; updated) => { "updated" } ; (@ field_serde_name ; secret) => { "secret" } ; }
     pub use _select_webhook as select;
     pub enum SelectParam {
         Id(id::Select),
         Name(name::Select),
         Description(description::Select),
-        Target(target::Select),
         Url(url::Select),
+        Trigger(trigger::Select),
         IsActive(is_active::Select),
         Created(created::Select),
         Updated(updated::Select),
+        Secret(secret::Select),
     }
     impl SelectParam {
         pub fn to_selection(self) -> ::prisma_client_rust::Selection {
@@ -17249,26 +17333,28 @@ pub mod webhook {
                 Self::Id(data) => data.to_selection(),
                 Self::Name(data) => data.to_selection(),
                 Self::Description(data) => data.to_selection(),
-                Self::Target(data) => data.to_selection(),
                 Self::Url(data) => data.to_selection(),
+                Self::Trigger(data) => data.to_selection(),
                 Self::IsActive(data) => data.to_selection(),
                 Self::Created(data) => data.to_selection(),
                 Self::Updated(data) => data.to_selection(),
+                Self::Secret(data) => data.to_selection(),
             }
         }
     }
     #[macro_export]
-    macro_rules ! _include_webhook { ($ (($ ($ func_arg : ident : $ func_arg_ty : ty) , +) =>) ? $ module_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { # [allow (warnings)] pub mod $ module_name { crate :: prisma :: webhook :: include ! (@ definitions ; $ module_name ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; use super :: * ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: IncludeType for Selection { type Data = Data ; type ModelData = crate :: prisma :: webhook :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } pub fn include ($ ($ ($ func_arg : $ func_arg_ty) , +) ?) -> Selection { Selection ([crate :: prisma :: webhook :: include ! (@ selections_to_params ; : include { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () , < crate :: prisma :: webhook :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections ()] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } } ; ({ $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { { crate :: prisma :: webhook :: include ! (@ definitions ; ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: IncludeType for Selection { type Data = Data ; type ModelData = crate :: prisma :: webhook :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } Selection ([crate :: prisma :: webhook :: include ! (@ selections_to_params ; : include { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () , < crate :: prisma :: webhook :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections ()] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } ; (@ definitions ; $ ($ module_name : ident) ? ; $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) +) => { # [allow (warnings)] enum Fields { } # [allow (warnings)] impl Fields { fn selections () { $ (let _ = Fields :: $ field ;) + } } # [allow (warnings)] # [derive (std :: fmt :: Debug , Clone)] pub struct Data { pub id : String , pub name : String , pub description : Option < String > , pub target : String , pub url : String , pub is_active : bool , pub created : :: prisma_client_rust :: chrono :: DateTime < :: prisma_client_rust :: chrono :: FixedOffset , > , pub updated : Option < :: prisma_client_rust :: chrono :: DateTime < :: prisma_client_rust :: chrono :: FixedOffset , > > , $ (pub $ field : crate :: prisma :: webhook :: include ! (@ field_type ; $ field $ (: $ selection_mode { $ ($ selections) + }) ?) ,) + } impl :: serde :: Serialize for Data { fn serialize < S > (& self , serializer : S) -> Result < S :: Ok , S :: Error > where S : :: serde :: Serializer , { use :: serde :: ser :: SerializeStruct ; let mut state = serializer . serialize_struct ("Data" , [$ (stringify ! ($ field) ,) + stringify ! (id) , stringify ! (name) , stringify ! (description) , stringify ! (target) , stringify ! (url) , stringify ! (is_active) , stringify ! (created) , stringify ! (updated)] . len ()) ? ; $ (state . serialize_field (crate :: prisma :: webhook :: $ field :: NAME , & self . $ field) ? ;) * state . serialize_field (crate :: prisma :: webhook :: id :: NAME , & self . id) ? ; state . serialize_field (crate :: prisma :: webhook :: name :: NAME , & self . name) ? ; state . serialize_field (crate :: prisma :: webhook :: description :: NAME , & self . description) ? ; state . serialize_field (crate :: prisma :: webhook :: target :: NAME , & self . target) ? ; state . serialize_field (crate :: prisma :: webhook :: url :: NAME , & self . url) ? ; state . serialize_field (crate :: prisma :: webhook :: is_active :: NAME , & self . is_active) ? ; state . serialize_field (crate :: prisma :: webhook :: created :: NAME , & self . created) ? ; state . serialize_field (crate :: prisma :: webhook :: updated :: NAME , & self . updated) ? ; state . end () } } impl < 'de > :: serde :: Deserialize < 'de > for Data { fn deserialize < D > (deserializer : D) -> Result < Self , D :: Error > where D : :: serde :: Deserializer < 'de > , { # [allow (warnings)] enum Field { $ ($ field) , + , id , name , description , target , url , is_active , created , updated } impl < 'de > :: serde :: Deserialize < 'de > for Field { fn deserialize < D > (deserializer : D) -> Result < Field , D :: Error > where D : :: serde :: Deserializer < 'de > , { struct FieldVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for FieldVisitor { type Value = Field ; fn expecting (& self , formatter : & mut :: std :: fmt :: Formatter) -> :: std :: fmt :: Result { formatter . write_str (& [$ (crate :: prisma :: webhook :: $ field :: NAME) , + , crate :: prisma :: webhook :: id :: NAME , crate :: prisma :: webhook :: name :: NAME , crate :: prisma :: webhook :: description :: NAME , crate :: prisma :: webhook :: target :: NAME , crate :: prisma :: webhook :: url :: NAME , crate :: prisma :: webhook :: is_active :: NAME , crate :: prisma :: webhook :: created :: NAME , crate :: prisma :: webhook :: updated :: NAME] . into_iter () . collect :: < Vec < _ >> () . join (", ")) } fn visit_str < E > (self , value : & str) -> Result < Field , E > where E : :: serde :: de :: Error , { match value { $ (crate :: prisma :: webhook :: $ field :: NAME => Ok (Field :: $ field)) , * , crate :: prisma :: webhook :: id :: NAME => Ok (Field :: id) , crate :: prisma :: webhook :: name :: NAME => Ok (Field :: name) , crate :: prisma :: webhook :: description :: NAME => Ok (Field :: description) , crate :: prisma :: webhook :: target :: NAME => Ok (Field :: target) , crate :: prisma :: webhook :: url :: NAME => Ok (Field :: url) , crate :: prisma :: webhook :: is_active :: NAME => Ok (Field :: is_active) , crate :: prisma :: webhook :: created :: NAME => Ok (Field :: created) , crate :: prisma :: webhook :: updated :: NAME => Ok (Field :: updated) , _ => Err (:: serde :: de :: Error :: unknown_field (value , FIELDS)) , } } } deserializer . deserialize_identifier (FieldVisitor) } } struct DataVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for DataVisitor { type Value = Data ; fn expecting (& self , formatter : & mut std :: fmt :: Formatter) -> std :: fmt :: Result { formatter . write_str ("struct Data") } fn visit_map < V > (self , mut map : V) -> Result < Data , V :: Error > where V : :: serde :: de :: MapAccess < 'de > , { $ (let mut $ field = None ;) * let mut id = None ; let mut name = None ; let mut description = None ; let mut target = None ; let mut url = None ; let mut is_active = None ; let mut created = None ; let mut updated = None ; while let Some (key) = map . next_key () ? { match key { Field :: id => { if id . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: id :: NAME)) ; } id = Some (map . next_value () ?) ; } Field :: name => { if name . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: name :: NAME)) ; } name = Some (map . next_value () ?) ; } Field :: description => { if description . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: description :: NAME)) ; } description = Some (map . next_value () ?) ; } Field :: target => { if target . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: target :: NAME)) ; } target = Some (map . next_value () ?) ; } Field :: url => { if url . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: url :: NAME)) ; } url = Some (map . next_value () ?) ; } Field :: is_active => { if is_active . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: is_active :: NAME)) ; } is_active = Some (map . next_value () ?) ; } Field :: created => { if created . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: created :: NAME)) ; } created = Some (map . next_value () ?) ; } Field :: updated => { if updated . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: updated :: NAME)) ; } updated = Some (map . next_value () ?) ; } $ (Field :: $ field => { if $ field . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: $ field :: NAME)) ; } $ field = Some (map . next_value () ?) ; }) * } } $ (let $ field = $ field . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: $ field :: NAME)) ? ;) * let id = id . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: id :: NAME)) ? ; let name = name . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: name :: NAME)) ? ; let description = description . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: description :: NAME)) ? ; let target = target . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: target :: NAME)) ? ; let url = url . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: url :: NAME)) ? ; let is_active = is_active . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: is_active :: NAME)) ? ; let created = created . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: created :: NAME)) ? ; let updated = updated . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: updated :: NAME)) ? ; Ok (Data { id , name , description , target , url , is_active , created , updated , $ ($ field) , * }) } } const FIELDS : & 'static [& 'static str] = & ["id" , "name" , "description" , "target" , "url" , "is_active" , "created" , "updated"] ; deserializer . deserialize_struct ("Data" , FIELDS , DataVisitor) } } $ ($ (pub mod $ field { crate :: prisma :: webhook :: $ selection_mode ! (@ field_module ; $ field : $ selection_mode { $ ($ selections) + }) ; }) ?) + } ; (@ field_type ; $ field : ident $ ($ tokens : tt) *) => { compile_error ! (stringify ! (Cannot include nonexistent relation $ field on model "Webhook" , available relations are "")) } ; (@ field_module ; $ ($ tokens : tt) *) => { } ; (@ selection_field_to_selection_param ; $ ($ tokens : tt) *) => { compile_error ! (stringify ! ($ ($ tokens) *)) } ; (@ selections_to_params ; : $ macro_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { [$ (crate :: prisma :: webhook :: $ macro_name ! (@ selection_field_to_selection_param ; $ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) ,) +] } ; (@ filters_to_args ;) => { vec ! [] } ; (@ filters_to_args ; $ ($ t : tt) *) => { $ ($ t) * } ; (@ field_serde_name ; id) => { "id" } ; (@ field_serde_name ; name) => { "name" } ; (@ field_serde_name ; description) => { "description" } ; (@ field_serde_name ; target) => { "target" } ; (@ field_serde_name ; url) => { "url" } ; (@ field_serde_name ; is_active) => { "is_active" } ; (@ field_serde_name ; created) => { "created" } ; (@ field_serde_name ; updated) => { "updated" } ; }
+    macro_rules ! _include_webhook { ($ (($ ($ func_arg : ident : $ func_arg_ty : ty) , +) =>) ? $ module_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { # [allow (warnings)] pub mod $ module_name { crate :: prisma :: webhook :: include ! (@ definitions ; $ module_name ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; use super :: * ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: IncludeType for Selection { type Data = Data ; type ModelData = crate :: prisma :: webhook :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } pub fn include ($ ($ ($ func_arg : $ func_arg_ty) , +) ?) -> Selection { Selection ([crate :: prisma :: webhook :: include ! (@ selections_to_params ; : include { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () , < crate :: prisma :: webhook :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections ()] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } } ; ({ $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { { crate :: prisma :: webhook :: include ! (@ definitions ; ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: IncludeType for Selection { type Data = Data ; type ModelData = crate :: prisma :: webhook :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } Selection ([crate :: prisma :: webhook :: include ! (@ selections_to_params ; : include { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () , < crate :: prisma :: webhook :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections ()] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } ; (@ definitions ; $ ($ module_name : ident) ? ; $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) +) => { # [allow (warnings)] enum Fields { } # [allow (warnings)] impl Fields { fn selections () { $ (let _ = Fields :: $ field ;) + } } # [allow (warnings)] # [derive (std :: fmt :: Debug , Clone)] pub struct Data { pub id : String , pub name : String , pub description : Option < String > , pub url : String , pub trigger : String , pub is_active : bool , pub created : :: prisma_client_rust :: chrono :: DateTime < :: prisma_client_rust :: chrono :: FixedOffset , > , pub updated : Option < :: prisma_client_rust :: chrono :: DateTime < :: prisma_client_rust :: chrono :: FixedOffset , > > , pub secret : Option < :: prisma_client_rust :: serde_json :: Value > , $ (pub $ field : crate :: prisma :: webhook :: include ! (@ field_type ; $ field $ (: $ selection_mode { $ ($ selections) + }) ?) ,) + } impl :: serde :: Serialize for Data { fn serialize < S > (& self , serializer : S) -> Result < S :: Ok , S :: Error > where S : :: serde :: Serializer , { use :: serde :: ser :: SerializeStruct ; let mut state = serializer . serialize_struct ("Data" , [$ (stringify ! ($ field) ,) + stringify ! (id) , stringify ! (name) , stringify ! (description) , stringify ! (url) , stringify ! (trigger) , stringify ! (is_active) , stringify ! (created) , stringify ! (updated) , stringify ! (secret)] . len ()) ? ; $ (state . serialize_field (crate :: prisma :: webhook :: $ field :: NAME , & self . $ field) ? ;) * state . serialize_field (crate :: prisma :: webhook :: id :: NAME , & self . id) ? ; state . serialize_field (crate :: prisma :: webhook :: name :: NAME , & self . name) ? ; state . serialize_field (crate :: prisma :: webhook :: description :: NAME , & self . description) ? ; state . serialize_field (crate :: prisma :: webhook :: url :: NAME , & self . url) ? ; state . serialize_field (crate :: prisma :: webhook :: trigger :: NAME , & self . trigger) ? ; state . serialize_field (crate :: prisma :: webhook :: is_active :: NAME , & self . is_active) ? ; state . serialize_field (crate :: prisma :: webhook :: created :: NAME , & self . created) ? ; state . serialize_field (crate :: prisma :: webhook :: updated :: NAME , & self . updated) ? ; state . serialize_field (crate :: prisma :: webhook :: secret :: NAME , & self . secret) ? ; state . end () } } impl < 'de > :: serde :: Deserialize < 'de > for Data { fn deserialize < D > (deserializer : D) -> Result < Self , D :: Error > where D : :: serde :: Deserializer < 'de > , { # [allow (warnings)] enum Field { $ ($ field) , + , id , name , description , url , trigger , is_active , created , updated , secret } impl < 'de > :: serde :: Deserialize < 'de > for Field { fn deserialize < D > (deserializer : D) -> Result < Field , D :: Error > where D : :: serde :: Deserializer < 'de > , { struct FieldVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for FieldVisitor { type Value = Field ; fn expecting (& self , formatter : & mut :: std :: fmt :: Formatter) -> :: std :: fmt :: Result { formatter . write_str (& [$ (crate :: prisma :: webhook :: $ field :: NAME) , + , crate :: prisma :: webhook :: id :: NAME , crate :: prisma :: webhook :: name :: NAME , crate :: prisma :: webhook :: description :: NAME , crate :: prisma :: webhook :: url :: NAME , crate :: prisma :: webhook :: trigger :: NAME , crate :: prisma :: webhook :: is_active :: NAME , crate :: prisma :: webhook :: created :: NAME , crate :: prisma :: webhook :: updated :: NAME , crate :: prisma :: webhook :: secret :: NAME] . into_iter () . collect :: < Vec < _ >> () . join (", ")) } fn visit_str < E > (self , value : & str) -> Result < Field , E > where E : :: serde :: de :: Error , { match value { $ (crate :: prisma :: webhook :: $ field :: NAME => Ok (Field :: $ field)) , * , crate :: prisma :: webhook :: id :: NAME => Ok (Field :: id) , crate :: prisma :: webhook :: name :: NAME => Ok (Field :: name) , crate :: prisma :: webhook :: description :: NAME => Ok (Field :: description) , crate :: prisma :: webhook :: url :: NAME => Ok (Field :: url) , crate :: prisma :: webhook :: trigger :: NAME => Ok (Field :: trigger) , crate :: prisma :: webhook :: is_active :: NAME => Ok (Field :: is_active) , crate :: prisma :: webhook :: created :: NAME => Ok (Field :: created) , crate :: prisma :: webhook :: updated :: NAME => Ok (Field :: updated) , crate :: prisma :: webhook :: secret :: NAME => Ok (Field :: secret) , _ => Err (:: serde :: de :: Error :: unknown_field (value , FIELDS)) , } } } deserializer . deserialize_identifier (FieldVisitor) } } struct DataVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for DataVisitor { type Value = Data ; fn expecting (& self , formatter : & mut std :: fmt :: Formatter) -> std :: fmt :: Result { formatter . write_str ("struct Data") } fn visit_map < V > (self , mut map : V) -> Result < Data , V :: Error > where V : :: serde :: de :: MapAccess < 'de > , { $ (let mut $ field = None ;) * let mut id = None ; let mut name = None ; let mut description = None ; let mut url = None ; let mut trigger = None ; let mut is_active = None ; let mut created = None ; let mut updated = None ; let mut secret = None ; while let Some (key) = map . next_key () ? { match key { Field :: id => { if id . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: id :: NAME)) ; } id = Some (map . next_value () ?) ; } Field :: name => { if name . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: name :: NAME)) ; } name = Some (map . next_value () ?) ; } Field :: description => { if description . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: description :: NAME)) ; } description = Some (map . next_value () ?) ; } Field :: url => { if url . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: url :: NAME)) ; } url = Some (map . next_value () ?) ; } Field :: trigger => { if trigger . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: trigger :: NAME)) ; } trigger = Some (map . next_value () ?) ; } Field :: is_active => { if is_active . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: is_active :: NAME)) ; } is_active = Some (map . next_value () ?) ; } Field :: created => { if created . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: created :: NAME)) ; } created = Some (map . next_value () ?) ; } Field :: updated => { if updated . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: updated :: NAME)) ; } updated = Some (map . next_value () ?) ; } Field :: secret => { if secret . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: secret :: NAME)) ; } secret = Some (map . next_value () ?) ; } $ (Field :: $ field => { if $ field . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: webhook :: $ field :: NAME)) ; } $ field = Some (map . next_value () ?) ; }) * } } $ (let $ field = $ field . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: $ field :: NAME)) ? ;) * let id = id . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: id :: NAME)) ? ; let name = name . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: name :: NAME)) ? ; let description = description . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: description :: NAME)) ? ; let url = url . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: url :: NAME)) ? ; let trigger = trigger . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: trigger :: NAME)) ? ; let is_active = is_active . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: is_active :: NAME)) ? ; let created = created . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: created :: NAME)) ? ; let updated = updated . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: updated :: NAME)) ? ; let secret = secret . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: webhook :: secret :: NAME)) ? ; Ok (Data { id , name , description , url , trigger , is_active , created , updated , secret , $ ($ field) , * }) } } const FIELDS : & 'static [& 'static str] = & ["id" , "name" , "description" , "url" , "trigger" , "is_active" , "created" , "updated" , "secret"] ; deserializer . deserialize_struct ("Data" , FIELDS , DataVisitor) } } $ ($ (pub mod $ field { crate :: prisma :: webhook :: $ selection_mode ! (@ field_module ; $ field : $ selection_mode { $ ($ selections) + }) ; }) ?) + } ; (@ field_type ; $ field : ident $ ($ tokens : tt) *) => { compile_error ! (stringify ! (Cannot include nonexistent relation $ field on model "Webhook" , available relations are "")) } ; (@ field_module ; $ ($ tokens : tt) *) => { } ; (@ selection_field_to_selection_param ; $ ($ tokens : tt) *) => { compile_error ! (stringify ! ($ ($ tokens) *)) } ; (@ selections_to_params ; : $ macro_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { [$ (crate :: prisma :: webhook :: $ macro_name ! (@ selection_field_to_selection_param ; $ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) ,) +] } ; (@ filters_to_args ;) => { vec ! [] } ; (@ filters_to_args ; $ ($ t : tt) *) => { $ ($ t) * } ; (@ field_serde_name ; id) => { "id" } ; (@ field_serde_name ; name) => { "name" } ; (@ field_serde_name ; description) => { "description" } ; (@ field_serde_name ; url) => { "url" } ; (@ field_serde_name ; trigger) => { "trigger" } ; (@ field_serde_name ; is_active) => { "is_active" } ; (@ field_serde_name ; created) => { "created" } ; (@ field_serde_name ; updated) => { "updated" } ; (@ field_serde_name ; secret) => { "secret" } ; }
     pub use _include_webhook as include;
     pub enum IncludeParam {
         Id(id::Include),
         Name(name::Include),
         Description(description::Include),
-        Target(target::Include),
         Url(url::Include),
+        Trigger(trigger::Include),
         IsActive(is_active::Include),
         Created(created::Include),
         Updated(updated::Include),
+        Secret(secret::Include),
     }
     impl IncludeParam {
         pub fn to_selection(self) -> ::prisma_client_rust::Selection {
@@ -17276,16 +17362,17 @@ pub mod webhook {
                 Self::Id(data) => data.to_selection(),
                 Self::Name(data) => data.to_selection(),
                 Self::Description(data) => data.to_selection(),
-                Self::Target(data) => data.to_selection(),
                 Self::Url(data) => data.to_selection(),
+                Self::Trigger(data) => data.to_selection(),
                 Self::IsActive(data) => data.to_selection(),
                 Self::Created(data) => data.to_selection(),
                 Self::Updated(data) => data.to_selection(),
+                Self::Secret(data) => data.to_selection(),
             }
         }
     }
     #[macro_export]
-    macro_rules ! _partial_unchecked_webhook { ($ struct_name : ident { $ ($ scalar_field : ident) + }) => { :: prisma_client_rust :: macros :: partial_unchecked ! { crate :: prisma :: webhook struct $ struct_name { # [serde (rename = "id")] pub id : String , # [serde (rename = "name")] pub name : String , # [serde (rename = "description")] # [serde (default , with = "::prisma_client_rust::serde::double_option")] pub description : Option < String > , # [serde (rename = "target")] pub target : String , # [serde (rename = "url")] pub url : String , # [serde (rename = "is_active")] pub is_active : bool , # [serde (rename = "created")] pub created : :: prisma_client_rust :: chrono :: DateTime < :: prisma_client_rust :: chrono :: FixedOffset , > , # [serde (rename = "updated")] # [serde (default , with = "::prisma_client_rust::serde::double_option")] pub updated : Option < :: prisma_client_rust :: chrono :: DateTime < :: prisma_client_rust :: chrono :: FixedOffset , > > } [$ ($ scalar_field) , +] } } ; }
+    macro_rules ! _partial_unchecked_webhook { ($ struct_name : ident { $ ($ scalar_field : ident) + }) => { :: prisma_client_rust :: macros :: partial_unchecked ! { crate :: prisma :: webhook struct $ struct_name { # [serde (rename = "id")] pub id : String , # [serde (rename = "name")] pub name : String , # [serde (rename = "description")] # [serde (default , with = "::prisma_client_rust::serde::double_option")] pub description : Option < String > , # [serde (rename = "url")] pub url : String , # [serde (rename = "trigger")] pub trigger : String , # [serde (rename = "is_active")] pub is_active : bool , # [serde (rename = "created")] pub created : :: prisma_client_rust :: chrono :: DateTime < :: prisma_client_rust :: chrono :: FixedOffset , > , # [serde (rename = "updated")] # [serde (default , with = "::prisma_client_rust::serde::double_option")] pub updated : Option < :: prisma_client_rust :: chrono :: DateTime < :: prisma_client_rust :: chrono :: FixedOffset , > > , # [serde (rename = "secret")] # [serde (default , with = "::prisma_client_rust::serde::double_option")] pub secret : Option < :: prisma_client_rust :: serde_json :: Value > } [$ ($ scalar_field) , +] } } ; }
     pub use _partial_unchecked_webhook as partial_unchecked;
     #[derive(Debug, Clone, :: serde :: Serialize, :: serde :: Deserialize)]
     pub struct Data {
@@ -17295,10 +17382,10 @@ pub mod webhook {
         pub name: String,
         #[serde(rename = "description")]
         pub description: Option<String>,
-        #[serde(rename = "target")]
-        pub target: String,
         #[serde(rename = "url")]
         pub url: String,
+        #[serde(rename = "trigger")]
+        pub trigger: String,
         #[serde(rename = "is_active")]
         pub is_active: bool,
         #[serde(rename = "created")]
@@ -17311,6 +17398,8 @@ pub mod webhook {
                 ::prisma_client_rust::chrono::FixedOffset,
             >,
         >,
+        #[serde(rename = "secret")]
+        pub secret: Option<::prisma_client_rust::serde_json::Value>,
     }
     impl Data {}
     #[derive(Clone)]
@@ -17325,8 +17414,8 @@ pub mod webhook {
         SetId(String),
         SetName(String),
         SetDescription(Option<String>),
-        SetTarget(String),
         SetUrl(String),
+        SetTrigger(String),
         SetIsActive(bool),
         SetCreated(
             ::prisma_client_rust::chrono::DateTime<
@@ -17340,6 +17429,7 @@ pub mod webhook {
                 >,
             >,
         ),
+        SetSecret(Option<::prisma_client_rust::serde_json::Value>),
     }
     impl From<SetParam> for (String, ::prisma_client_rust::PrismaValue) {
         fn from(param: SetParam) -> Self {
@@ -17362,12 +17452,12 @@ pub mod webhook {
                             ::prisma_client_rust::PrismaValue::Null
                         }),
                 ),
-                SetParam::SetTarget(value) => (
-                    target::NAME.to_string(),
-                    ::prisma_client_rust::PrismaValue::String(value),
-                ),
                 SetParam::SetUrl(value) => (
                     url::NAME.to_string(),
+                    ::prisma_client_rust::PrismaValue::String(value),
+                ),
+                SetParam::SetTrigger(value) => (
+                    trigger::NAME.to_string(),
                     ::prisma_client_rust::PrismaValue::String(value),
                 ),
                 SetParam::SetIsActive(value) => (
@@ -17388,6 +17478,21 @@ pub mod webhook {
                             ::prisma_client_rust::PrismaValue::Null
                         }),
                 ),
+                SetParam::SetSecret(value) => (
+                    secret::NAME.to_string(),
+                    value
+                        .map(|value| {
+                            ::prisma_client_rust::PrismaValue::Json(
+                                ::prisma_client_rust::serde_json::to_string(
+                                    &value,
+                                )
+                                .unwrap(),
+                            )
+                        })
+                        .unwrap_or_else(|| {
+                            ::prisma_client_rust::PrismaValue::Null
+                        }),
+                ),
             }
         }
     }
@@ -17396,8 +17501,8 @@ pub mod webhook {
         Id(String),
         Name(String),
         Description(Option<String>),
-        Target(String),
         Url(String),
+        Trigger(String),
         IsActive(bool),
         Created(
             ::prisma_client_rust::chrono::DateTime<
@@ -17411,6 +17516,7 @@ pub mod webhook {
                 >,
             >,
         ),
+        Secret(Option<::prisma_client_rust::serde_json::Value>),
     }
     impl From<UncheckedSetParam> for SetParam {
         fn from(param: UncheckedSetParam) -> Self {
@@ -17420,11 +17526,12 @@ pub mod webhook {
                 UncheckedSetParam::Description(value) => {
                     Self::SetDescription(value)
                 }
-                UncheckedSetParam::Target(value) => Self::SetTarget(value),
                 UncheckedSetParam::Url(value) => Self::SetUrl(value),
+                UncheckedSetParam::Trigger(value) => Self::SetTrigger(value),
                 UncheckedSetParam::IsActive(value) => Self::SetIsActive(value),
                 UncheckedSetParam::Created(value) => Self::SetCreated(value),
                 UncheckedSetParam::Updated(value) => Self::SetUpdated(value),
+                UncheckedSetParam::Secret(value) => Self::SetSecret(value),
             }
         }
     }
@@ -17433,11 +17540,12 @@ pub mod webhook {
         Id(::prisma_client_rust::Direction),
         Name(::prisma_client_rust::Direction),
         Description(::prisma_client_rust::Direction),
-        Target(::prisma_client_rust::Direction),
         Url(::prisma_client_rust::Direction),
+        Trigger(::prisma_client_rust::Direction),
         IsActive(::prisma_client_rust::Direction),
         Created(::prisma_client_rust::Direction),
         Updated(::prisma_client_rust::Direction),
+        Secret(::prisma_client_rust::Direction),
     }
     impl Into<(String, ::prisma_client_rust::PrismaValue)> for OrderByParam {
         fn into(self) -> (String, ::prisma_client_rust::PrismaValue) {
@@ -17460,14 +17568,14 @@ pub mod webhook {
                         direction.to_string(),
                     ),
                 ),
-                Self::Target(direction) => (
-                    target::NAME.to_string(),
+                Self::Url(direction) => (
+                    url::NAME.to_string(),
                     ::prisma_client_rust::PrismaValue::String(
                         direction.to_string(),
                     ),
                 ),
-                Self::Url(direction) => (
-                    url::NAME.to_string(),
+                Self::Trigger(direction) => (
+                    trigger::NAME.to_string(),
                     ::prisma_client_rust::PrismaValue::String(
                         direction.to_string(),
                     ),
@@ -17490,6 +17598,12 @@ pub mod webhook {
                         direction.to_string(),
                     ),
                 ),
+                Self::Secret(direction) => (
+                    secret::NAME.to_string(),
+                    ::prisma_client_rust::PrismaValue::String(
+                        direction.to_string(),
+                    ),
+                ),
             }
         }
     }
@@ -17498,15 +17612,16 @@ pub mod webhook {
         Not(Vec<WhereParam>),
         Or(Vec<WhereParam>),
         And(Vec<WhereParam>),
-        NameUrlTargetEquals(String, String, String),
+        NameUrlTriggerEquals(String, String, String),
         Id(_prisma::read_filters::StringFilter),
         Name(_prisma::read_filters::StringFilter),
         Description(_prisma::read_filters::StringNullableFilter),
-        Target(_prisma::read_filters::StringFilter),
         Url(_prisma::read_filters::StringFilter),
+        Trigger(_prisma::read_filters::StringFilter),
         IsActive(_prisma::read_filters::BoolFilter),
         Created(_prisma::read_filters::DateTimeFilter),
         Updated(_prisma::read_filters::DateTimeNullableFilter),
+        Secret(_prisma::read_filters::JsonNullableFilter),
     }
     impl ::prisma_client_rust::WhereInput for WhereParam {
         fn serialize(self) -> ::prisma_client_rust::SerializedWhereInput {
@@ -17551,8 +17666,8 @@ pub mod webhook {
                         ),
                     ),
                 ),
-                Self::NameUrlTargetEquals(name, url, target) => (
-                    "name_url_target",
+                Self::NameUrlTriggerEquals(name, url, trigger) => (
+                    "name_url_trigger",
                     ::prisma_client_rust::SerializedWhereValue::Object(vec![
                         (
                             name::NAME.to_string(),
@@ -17563,33 +17678,34 @@ pub mod webhook {
                             ::prisma_client_rust::PrismaValue::String(url),
                         ),
                         (
-                            target::NAME.to_string(),
-                            ::prisma_client_rust::PrismaValue::String(target),
+                            trigger::NAME.to_string(),
+                            ::prisma_client_rust::PrismaValue::String(trigger),
                         ),
                     ]),
                 ),
                 Self::Id(value) => (id::NAME, value.into()),
                 Self::Name(value) => (name::NAME, value.into()),
                 Self::Description(value) => (description::NAME, value.into()),
-                Self::Target(value) => (target::NAME, value.into()),
                 Self::Url(value) => (url::NAME, value.into()),
+                Self::Trigger(value) => (trigger::NAME, value.into()),
                 Self::IsActive(value) => (is_active::NAME, value.into()),
                 Self::Created(value) => (created::NAME, value.into()),
                 Self::Updated(value) => (updated::NAME, value.into()),
+                Self::Secret(value) => (secret::NAME, value.into()),
             };
             ::prisma_client_rust::SerializedWhereInput::new(name, value.into())
         }
     }
     #[derive(Clone)]
     pub enum UniqueWhereParam {
-        NameUrlTargetEquals(String, String, String),
+        NameUrlTriggerEquals(String, String, String),
         IdEquals(String),
     }
     impl From<UniqueWhereParam> for WhereParam {
         fn from(value: UniqueWhereParam) -> Self {
             match value {
-                UniqueWhereParam::NameUrlTargetEquals(name, url, target) => {
-                    Self::NameUrlTargetEquals(name, url, target)
+                UniqueWhereParam::NameUrlTriggerEquals(name, url, trigger) => {
+                    Self::NameUrlTriggerEquals(name, url, trigger)
                 }
                 UniqueWhereParam::IdEquals(value) => {
                     Self::Id(_prisma::read_filters::StringFilter::Equals(value))
@@ -17622,11 +17738,12 @@ pub mod webhook {
                 ::prisma_client_rust::sel(id::NAME),
                 ::prisma_client_rust::sel(name::NAME),
                 ::prisma_client_rust::sel(description::NAME),
-                ::prisma_client_rust::sel(target::NAME),
                 ::prisma_client_rust::sel(url::NAME),
+                ::prisma_client_rust::sel(trigger::NAME),
                 ::prisma_client_rust::sel(is_active::NAME),
                 ::prisma_client_rust::sel(created::NAME),
                 ::prisma_client_rust::sel(updated::NAME),
+                ::prisma_client_rust::sel(secret::NAME),
             ]
         }
     }
@@ -17660,28 +17777,28 @@ pub mod webhook {
         pub fn create(
             self,
             name: String,
-            target: String,
             url: String,
+            trigger: String,
             mut _params: Vec<SetParam>,
         ) -> Create<'a> {
             _params.extend([
                 name::set(name),
-                target::set(target),
                 url::set(url),
+                trigger::set(trigger),
             ]);
             Create::new(self.client, _params)
         }
         pub fn create_unchecked(
             self,
             name: String,
-            target: String,
             url: String,
+            trigger: String,
             mut _params: Vec<UncheckedSetParam>,
         ) -> Create<'a> {
             _params.extend([
                 name::set(name),
-                target::set(target),
                 url::set(url),
+                trigger::set(trigger),
             ]);
             Create::new(
                 self.client,
@@ -17694,11 +17811,11 @@ pub mod webhook {
         ) -> CreateMany<'a> {
             let data = data
                 .into_iter()
-                .map(|(name, target, url, mut _params)| {
+                .map(|(name, url, trigger, mut _params)| {
                     _params.extend([
                         name::set(name),
-                        target::set(target),
                         url::set(url),
+                        trigger::set(trigger),
                     ]);
                     _params
                 })
@@ -17734,7 +17851,7 @@ pub mod webhook {
         pub fn upsert(
             self,
             _where: UniqueWhereParam,
-            (name, target, url, mut _params): (
+            (name, url, trigger, mut _params): (
                 String,
                 String,
                 String,
@@ -17744,8 +17861,8 @@ pub mod webhook {
         ) -> Upsert<'a> {
             _params.extend([
                 name::set(name),
-                target::set(target),
                 url::set(url),
+                trigger::set(trigger),
             ]);
             Upsert::new(self.client, _where.into(), _params, _update)
         }
@@ -18554,16 +18671,18 @@ pub mod _prisma {
         Name,
         #[serde(rename = "description")]
         Description,
-        #[serde(rename = "target")]
-        Target,
         #[serde(rename = "url")]
         Url,
+        #[serde(rename = "trigger")]
+        Trigger,
         #[serde(rename = "is_active")]
         IsActive,
         #[serde(rename = "created")]
         Created,
         #[serde(rename = "updated")]
         Updated,
+        #[serde(rename = "secret")]
+        Secret,
     }
     impl ToString for WebhookScalarFieldEnum {
         fn to_string(&self) -> String {
@@ -18571,11 +18690,12 @@ pub mod _prisma {
                 Self::Id => "id".to_string(),
                 Self::Name => "name".to_string(),
                 Self::Description => "description".to_string(),
-                Self::Target => "target".to_string(),
                 Self::Url => "url".to_string(),
+                Self::Trigger => "trigger".to_string(),
                 Self::IsActive => "is_active".to_string(),
                 Self::Created => "created".to_string(),
                 Self::Updated => "updated".to_string(),
+                Self::Secret => "secret".to_string(),
             }
         }
     }

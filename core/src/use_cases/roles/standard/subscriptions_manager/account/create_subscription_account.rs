@@ -1,16 +1,13 @@
 use super::propagate_subscription_account::propagate_subscription_account;
-use crate::{
-    domain::{
-        actors::ActorName,
-        dtos::{
-            account::Account,
-            native_error_codes::NativeErrorCodes,
-            profile::Profile,
-            webhook::{AccountPropagationWebHookResponse, HookTarget},
-        },
-        entities::{AccountRegistration, WebHookFetching},
+use crate::domain::{
+    actors::ActorName,
+    dtos::{
+        account::Account,
+        native_error_codes::NativeErrorCodes,
+        profile::Profile,
+        webhook::{AccountPropagationWebHookResponse, WebhookTrigger},
     },
-    use_cases::roles::shared::webhook::default_actions::WebHookDefaultAction,
+    entities::{AccountRegistration, WebHookFetching},
 };
 
 use mycelium_base::{
@@ -79,8 +76,7 @@ pub async fn create_subscription_account(
         tenant_id,
         bearer_token,
         account,
-        WebHookDefaultAction::CreateSubscriptionAccount,
-        HookTarget::Account,
+        WebhookTrigger::CreateSubscriptionAccount,
         webhook_fetching_repo,
     )
     .await

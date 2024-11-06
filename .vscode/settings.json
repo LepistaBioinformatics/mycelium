@@ -2,8 +2,10 @@
   "cSpell.words": [
     "actix",
     "appender",
+    "arrayref",
     "catfact",
     "chrono",
+    "ciphertext",
     "datetime",
     "dtos",
     "Hmac",

@@ -6,13 +6,11 @@ use crate::{
             email::Email,
             native_error_codes::NativeErrorCodes,
             user::Provider,
-            webhook::{AccountPropagationWebHookResponse, HookTarget},
+            webhook::{AccountPropagationWebHookResponse, WebhookTrigger},
         },
         entities::{AccountRegistration, UserFetching, WebHookFetching},
     },
-    use_cases::roles::shared::webhook::{
-        default_actions::WebHookDefaultAction, dispatch_webhooks,
-    },
+    use_cases::roles::shared::webhook::dispatch_webhooks,
 };
 
 use mycelium_base::{
@@ -83,10 +81,7 @@ pub async fn create_default_account(
     // ? -----------------------------------------------------------------------
 
     let target_hooks = match webhook_fetching_repo
-        .list(
-            Some(WebHookDefaultAction::CreateDefaultUserAccount.to_string()),
-            Some(HookTarget::Account),
-        )
+        .list_by_trigger(WebhookTrigger::CreateUserAccount)
         .await?
     {
         FetchManyResponseKind::NotFound => None,

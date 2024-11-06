@@ -16,9 +16,15 @@ pub async fn delete_webhook(
     hook_id: Uuid,
     webhook_deletion_repo: Box<&dyn WebHookDeletion>,
 ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
-    profile.get_default_write_ids_or_error(vec![
-        ActorName::SystemManager.to_string(),
-    ])?;
+    // ? -----------------------------------------------------------------------
+    // ? Check if the current account has sufficient privileges
+    // ? -----------------------------------------------------------------------
+
+    profile.get_default_write_ids_or_error(vec![ActorName::SystemManager])?;
+
+    // ? -----------------------------------------------------------------------
+    // ? Delete webhook
+    // ? -----------------------------------------------------------------------
 
     webhook_deletion_repo.delete(hook_id).await
 }

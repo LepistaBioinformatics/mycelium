@@ -2,7 +2,7 @@ use crate::domain::{
     actors::ActorName,
     dtos::{
         profile::Profile,
-        webhook::{HookTarget, WebHook},
+        webhook::{WebHook, WebhookTrigger},
     },
     entities::WebHookFetching,
 };
@@ -18,12 +18,18 @@ use mycelium_base::{
 pub async fn list_webhooks(
     profile: Profile,
     name: Option<String>,
-    target: Option<HookTarget>,
+    trigger: Option<WebhookTrigger>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
 ) -> Result<FetchManyResponseKind<WebHook>, MappedErrors> {
-    profile.get_default_read_ids_or_error(vec![
-        ActorName::SystemManager.to_string()
-    ])?;
+    // ? -----------------------------------------------------------------------
+    // ? Check if the current account has sufficient privileges
+    // ? -----------------------------------------------------------------------
 
-    webhook_fetching_repo.list(name, target).await
+    profile.get_default_read_ids_or_error(vec![ActorName::SystemManager])?;
+
+    // ? -----------------------------------------------------------------------
+    // ? Fetch webhooks
+    // ? -----------------------------------------------------------------------
+
+    webhook_fetching_repo.list(name, trigger).await
 }
