@@ -1,3 +1,3 @@
-mod create_default_account_associated_token;
+mod create_default_account_associated_connection_string;
 
-pub use create_default_account_associated_token::*;
+pub use create_default_account_associated_connection_string::*;

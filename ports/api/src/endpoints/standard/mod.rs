@@ -326,7 +326,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         guest_manager_role_endpoints::list_roles_url,
         guest_manager_role_endpoints::delete_role_url,
         guest_manager_role_endpoints::update_role_name_and_description_url,
-        guest_manager_token_endpoints::create_default_account_associated_token_url,
+        guest_manager_token_endpoints::create_default_account_associated_connection_string_url,
         tenant_owner_account_endpoints::create_management_account_url,
         tenant_owner_meta_endpoints::create_tenant_meta_url,
         tenant_owner_meta_endpoints::delete_tenant_meta_url,

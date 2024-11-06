@@ -12,7 +12,7 @@ use myc_core::{
         entities::{MessageSending, TokenRegistration},
     },
     models::AccountLifeCycle,
-    use_cases::roles::standard::guest_manager::token::create_default_account_associated_token,
+    use_cases::roles::standard::guest_manager::token::create_default_account_associated_connection_string,
 };
 use myc_http_tools::wrappers::default_response_to_http_response::handle_mapped_error;
 use serde::{Deserialize, Serialize};
@@ -25,7 +25,7 @@ use uuid::Uuid;
 // ? ---------------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
-    config.service(create_default_account_associated_token_url);
+    config.service(create_default_account_associated_connection_string_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -77,7 +77,7 @@ pub struct CreateDefaultAccountAssociatedTokenResponse {
     ),
 )]
 #[post("/")]
-pub async fn create_default_account_associated_token_url(
+pub async fn create_default_account_associated_connection_string_url(
     json: web::Json<CreateDefaultAccountAssociatedTokenBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
@@ -87,7 +87,7 @@ pub async fn create_default_account_associated_token_url(
     >,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
-    match create_default_account_associated_token(
+    match create_default_account_associated_connection_string(
         profile.to_profile(),
         json.tenant_id.to_owned(),
         json.account_id.to_owned(),
