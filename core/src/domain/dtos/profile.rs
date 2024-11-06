@@ -682,13 +682,15 @@ mod tests {
                     .unwrap(),
                     guest_role_name: "guest_role_name".to_string(),
                     role: "service".to_string(),
-                    perm: Permission::ReadWrite,
+                    perm: Permission::Write,
                 }]
                 .to_vec(),
             ),
         };
 
         let ids = profile.get_write_ids(["service".to_string()].to_vec());
+
+        println!("{:?}", ids);
 
         assert!(ids.len() == 1);
     }

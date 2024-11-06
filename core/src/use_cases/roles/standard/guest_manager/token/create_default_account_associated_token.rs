@@ -6,7 +6,10 @@ use crate::{
             native_error_codes::NativeErrorCodes,
             profile::Profile,
             route_type::PermissionedRoles,
-            token::{AccountScope, AccountScopedConnectionStringMeta},
+            token::{
+                AccountScopedConnectionStringMeta,
+                AccountWithPermissionedRolesScope,
+            },
         },
         entities::{MessageSending, TokenRegistration},
     },
@@ -60,7 +63,7 @@ pub async fn create_default_account_associated_token(
     let expires_at =
         Local::now() + Duration::seconds(life_cycle_settings.token_expiration);
 
-    let mut account_scope = AccountScope::new(
+    let mut account_scope = AccountWithPermissionedRolesScope::new(
         tenant_id,
         account_id,
         permissioned_roles.to_owned(),

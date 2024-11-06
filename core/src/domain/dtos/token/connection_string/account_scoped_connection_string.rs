@@ -27,9 +27,9 @@ type HmacSha256 = Hmac<Sha512>;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct AccountScope(Vec<ConnectionStringBean>);
+pub struct AccountWithPermissionedRolesScope(Vec<ConnectionStringBean>);
 
-impl AccountScope {
+impl AccountWithPermissionedRolesScope {
     /// Create a new AccountScope
     ///
     /// Account scope is a list of ConnectionStringBean including the tenant_id,
@@ -45,15 +45,23 @@ impl AccountScope {
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
         let mut self_signed_scope = Self(vec![
-            ConnectionStringBean::TenantId(tenant_id),
-            ConnectionStringBean::AccountId(account_id),
-            ConnectionStringBean::PermissionedRoles(permissioned_roles),
-            ConnectionStringBean::ExpirationDateTime(expires_at),
+            ConnectionStringBean::TID(tenant_id),
+            ConnectionStringBean::AID(account_id),
+            ConnectionStringBean::PR(permissioned_roles),
+            ConnectionStringBean::EDT(expires_at),
         ]);
 
         self_signed_scope.sign_token(config, None)?;
 
         Ok(self_signed_scope)
+    }
+
+    /// Get the scope beans
+    ///
+    /// A simple function to expose the scope beans
+    #[tracing::instrument(name = "get_scope_beans", skip(self))]
+    pub fn get_scope_beans(&self) -> Vec<ConnectionStringBean> {
+        self.0.clone()
     }
 
     /// Get the scope signature
@@ -62,8 +70,19 @@ impl AccountScope {
     #[tracing::instrument(name = "get_signature", skip(self))]
     fn get_signature(&self) -> Option<String> {
         self.0.iter().find_map(|bean| {
-            if let ConnectionStringBean::Signature(signature) = bean {
+            if let ConnectionStringBean::SIG(signature) = bean {
                 return Some(signature.clone());
+            }
+
+            None
+        })
+    }
+
+    #[tracing::instrument(name = "get_permissioned_roles", skip(self))]
+    fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
+        self.0.iter().find_map(|bean| {
+            if let ConnectionStringBean::PR(permissioned_roles) = bean {
+                return Some(permissioned_roles.clone());
             }
 
             None
@@ -71,7 +90,7 @@ impl AccountScope {
     }
 }
 
-impl ScopedMixin for AccountScope {
+impl ScopedMixin for AccountWithPermissionedRolesScope {
     /// Sign the token with secret and data
     ///
     /// Add or replace a signature to self with the HMAC of the data and the
@@ -106,7 +125,7 @@ impl ScopedMixin for AccountScope {
             .0
             .iter()
             .filter(|bean| {
-                if let ConnectionStringBean::Signature(_) = bean {
+                if let ConnectionStringBean::SIG(_) = bean {
                     return false;
                 }
 
@@ -115,14 +134,13 @@ impl ScopedMixin for AccountScope {
             .cloned()
             .collect();
 
-        self.0
-            .push(ConnectionStringBean::Signature(hex_string.clone()));
+        self.0.push(ConnectionStringBean::SIG(hex_string.clone()));
 
         Ok(hex_string)
     }
 }
 
-impl ToString for AccountScope {
+impl ToString for AccountWithPermissionedRolesScope {
     fn to_string(&self) -> String {
         self.0
             .iter()
@@ -134,7 +152,7 @@ impl ToString for AccountScope {
     }
 }
 
-impl TryFrom<String> for AccountScope {
+impl TryFrom<String> for AccountWithPermissionedRolesScope {
     type Error = ();
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -148,12 +166,17 @@ impl TryFrom<String> for AccountScope {
 }
 
 pub type AccountScopedConnectionStringMeta =
-    ServiceAccountRelatedMeta<String, AccountScope>;
+    ServiceAccountRelatedMeta<String, AccountWithPermissionedRolesScope>;
 
 impl AccountScopedConnectionStringMeta {
     #[tracing::instrument(name = "get_signature", skip(self))]
     pub fn get_signature(&self) -> Option<String> {
         self.scope.get_signature()
+    }
+
+    #[tracing::instrument(name = "get_permissioned_roles", skip(self))]
+    pub fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
+        self.scope.get_permissioned_roles()
     }
 }
 
@@ -180,7 +203,7 @@ mod tests {
             token_secret: EnvOrValue::Value("test".to_string()),
         };
 
-        let account_scope = AccountScope::new(
+        let account_scope = AccountWithPermissionedRolesScope::new(
             Uuid::new_v4(),
             Uuid::new_v4(),
             vec![("role".to_string(), Permission::ReadWrite)],
