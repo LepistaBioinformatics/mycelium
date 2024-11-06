@@ -100,7 +100,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 String::new(),
                 |acc, (role, permission)| {
                     format!(
-                        "{}(rl_name = '{}' AND gr_perm >= {}) OR ",
+                        "{}(rl_name = '{}' AND gr_perm = {}) OR ",
                         acc,
                         role,
                         permission.to_owned() as i64
