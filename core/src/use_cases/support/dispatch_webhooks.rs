@@ -32,14 +32,16 @@ pub(crate) async fn dispatch_webhooks<
     // ? Find for webhooks that are triggered by the event
     // ? -----------------------------------------------------------------------
 
-    let hooks_fetching_response =
-        match webhook_fetching_repo.list_by_trigger(trigger).await {
-            Ok(response) => response,
-            Err(err) => {
-                error!("Error on fetching webhooks: {:?}", err);
-                return webhook_response;
-            }
-        };
+    let hooks_fetching_response = match webhook_fetching_repo
+        .list_by_trigger(trigger.to_owned())
+        .await
+    {
+        Ok(response) => response,
+        Err(err) => {
+            error!("Error on fetching webhooks: {:?}", err);
+            return webhook_response;
+        }
+    };
 
     let hooks: Vec<WebHook> = match hooks_fetching_response {
         FetchManyResponseKind::Found(records) => records,
@@ -50,6 +52,21 @@ pub(crate) async fn dispatch_webhooks<
             error!("Webhook response should not be paginated");
             return webhook_response;
         }
+    };
+
+    // ? -----------------------------------------------------------------------
+    // ? Adjust the HTTP method given the trigger
+    // ? -----------------------------------------------------------------------
+
+    let method = match trigger {
+        WebHookTrigger::CreateSubscriptionAccount
+        | WebHookTrigger::CreateUserAccount
+        | WebHookTrigger::InviteGuestAccount => "POST",
+        WebHookTrigger::UpdateSubscriptionAccount
+        | WebHookTrigger::UpdateUserAccount => "PUT",
+        WebHookTrigger::DeleteSubscriptionAccount
+        | WebHookTrigger::DeleteUserAccount
+        | WebHookTrigger::UninviteGuestAccount => "DELETE",
     };
 
     // ? -----------------------------------------------------------------------
@@ -68,7 +85,19 @@ pub(crate) async fn dispatch_webhooks<
             //
             // Create a base request to the webhook url
             //
-            let base_request = client.clone().post(hook.url.to_owned());
+            let base_request = client.clone();
+            //
+            // Build the request based on the method
+            //
+            let base_request = match method {
+                "POST" => base_request.post(hook.url.to_owned()),
+                "PUT" => base_request.put(hook.url.to_owned()),
+                "DELETE" => base_request.delete(hook.url.to_owned()),
+                _ => {
+                    error!("Unknown method: {method}");
+                    base_request.post(hook.url.to_owned())
+                }
+            };
             //
             // Attach the secret to the request if it exists
             //
