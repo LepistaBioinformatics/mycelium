@@ -1,11 +1,1033 @@
 _type: export
 __export_format: 4
-__export_date: 2024-10-14T17:50:54.845Z
+__export_date: 2024-11-07T12:16:33.637Z
 __export_source: insomnia.desktop.app:v9.3.2
 resources:
+- _id: req_452502f910ab4d51bfec295b9c91d2e7
+  parentId: fld_5adf1639c84444e2b2c2d24dc6d74b6e
+  modified: 1730402290709
+  created: 1730402164631
+  url: http://localhost:8080/myc/std/account-manager/guests/{{ _.tenantId
+    }}/accounts/3c3bda9a-397b-43f2-8f91-cdc9927ac4ab/roles/40273fb1-33ae-45ad-afef-e74cba4c27d4
+  name: Guest to Colaborate to Child Account
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: |-
+      {
+      	"email": "sgelias@outlook.com",
+      	"platformUrl": "http://localhost:8080",
+      	"parentRoleId": "384a77ac-c9d4-445e-9cfd-5ed86c76f188"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1730402172921
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: fld_5adf1639c84444e2b2c2d24dc6d74b6e
+  parentId: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
+  modified: 1730402146107
+  created: 1730402146107
+  name: Account Manager
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1730402146107
+  _type: request_group
+- _id: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
+  parentId: null
+  modified: 1726967531567
+  created: 1726967531567
+  name: Mycelium
+  description: ""
+  scope: collection
+  _type: workspace
+- _id: req_d5ed2fff086d4236b1533c5f1fdfd930
+  parentId: fld_a9b504f42c474d9ba5eca28238c79482
+  modified: 1730085378238
+  created: 1730085276596
+  url: http://localhost:8080/gw/test-service-01/public/
+  name: Get Public Route
+  description: ""
+  method: GET
+  body: {}
+  parameters: []
+  headers:
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication: {}
+  metaSortKey: -1730085306190
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: fld_a9b504f42c474d9ba5eca28238c79482
+  parentId: fld_49139b61c73242d6bcf47316ec997b17
+  modified: 1730085303199
+  created: 1730085303199
+  name: SVC1
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1730085303199
+  _type: request_group
+- _id: fld_49139b61c73242d6bcf47316ec997b17
+  parentId: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
+  modified: 1730085256997
+  created: 1730085256997
+  name: Gateway
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1730085256997
+  _type: request_group
+- _id: req_cf8cd710b6d545a59db525eb172ceeb3
+  parentId: fld_a9b504f42c474d9ba5eca28238c79482
+  modified: 1730085410195
+  created: 1730085388343
+  url: http://localhost:8080/gw/test-service-01/protected/
+  name: Get Public Protected
+  description: ""
+  method: GET
+  body: {}
+  parameters: []
+  headers:
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1730085275683.5
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_0d6ae91efa084e0a98a51c5416d08e5f
+  parentId: fld_a9b504f42c474d9ba5eca28238c79482
+  modified: 1730085424359
+  created: 1730085421478
+  url: http://localhost:8080/gw/test-service-01/role-protected/
+  name: Get Public Role Protected
+  description: ""
+  method: GET
+  body: {}
+  parameters: []
+  headers:
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1730085260430.25
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_5675a773114845c6aca4babc3c556923
+  parentId: fld_81008059c9514733a7664cd618ac6191
+  modified: 1730394126280
+  created: 1730394009305
+  url: http://localhost:8080/gw/test-service-02/public/
+  name: Get Public Route
+  description: ""
+  method: GET
+  body: {}
+  parameters: []
+  headers:
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication: {}
+  metaSortKey: -1730085306190
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: fld_81008059c9514733a7664cd618ac6191
+  parentId: fld_49139b61c73242d6bcf47316ec997b17
+  modified: 1730394009304
+  created: 1730394009304
+  name: SVC2
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1730085280098
+  _type: request_group
+- _id: req_d6d255fafa4a486f978b70cd1a14cb87
+  parentId: fld_81008059c9514733a7664cd618ac6191
+  modified: 1730394131725
+  created: 1730394009306
+  url: http://localhost:8080/gw/test-service-02/protected/
+  name: Get Public Protected
+  description: ""
+  method: GET
+  body: {}
+  parameters: []
+  headers:
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1730085275683.5
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_ded33b9fd61a4ed083139c1c4f2b6603
+  parentId: fld_81008059c9514733a7664cd618ac6191
+  modified: 1730394119337
+  created: 1730394009307
+  url: http://localhost:8080/gw/test-service-02/role-protected/
+  name: Get Public Permissioned Role Protected
+  description: ""
+  method: GET
+  body: {}
+  parameters: []
+  headers:
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1730085260430.25
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_ea8ece71dbfa4d14a3f34b7467e6fcdb
+  parentId: fld_dce4294a5a74440a9a2163662f976e5a
+  modified: 1730085245215
+  created: 1730078404460
+  url: http://localhost:8080/myc/health/
+  name: Health Check
+  description: ""
+  method: GET
+  body: {}
+  parameters: []
+  headers:
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication: {}
+  metaSortKey: -1730085245177
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: fld_dce4294a5a74440a9a2163662f976e5a
+  parentId: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
+  modified: 1730085240176
+  created: 1730085240176
+  name: Index
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1730085240176
+  _type: request_group
+- _id: req_f7f743edb7fa4f609b63354b9a81fe4a
+  parentId: fld_dce4294a5a74440a9a2163662f976e5a
+  modified: 1730085247398
+  created: 1730078448131
+  url: http://localhost:8080/myc/health/now
+  name: Health Check Now
+  description: ""
+  method: GET
+  body: {}
+  parameters: []
+  headers:
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication: {}
+  metaSortKey: -1730085245077
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_3ca8f7490e8c40ffb39cd96ab7b86a3b
+  parentId: fld_fc7d3e282a754c169ece96ba456320dd
+  modified: 1730079550774
+  created: 1730078672318
+  url: http://localhost:8080/myc/staffs/accounts/1d64114f-567e-4785-93fe-98bb92f31fd8/upgrade
+  name: Uprade Account
+  description: ""
+  method: PATCH
+  body:
+    mimeType: application/json
+    text: |-
+      {
+      	"to": "staff"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1730078654007
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: fld_fc7d3e282a754c169ece96ba456320dd
+  parentId: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
+  modified: 1730078579832
+  created: 1730078579832
+  name: Staff
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1730078579832
+  _type: request_group
+- _id: req_2e642ee344ab481ab2ef44647057d057
+  parentId: fld_fc7d3e282a754c169ece96ba456320dd
+  modified: 1730079545416
+  created: 1730079229479
+  url: http://localhost:8080/myc/staffs/accounts/1d64114f-567e-4785-93fe-98bb92f31fd8/downgrade
+  name: Downgrade Account
+  description: ""
+  method: PATCH
+  body:
+    mimeType: application/json
+    text: |-
+      {
+      	"to": "manager"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1730078616969.5
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_5108c2efaea04a22a5d2a6fcaf15e0a8
+  parentId: fld_87332e9d8eba4f199d469853189da195
+  modified: 1729454880286
+  created: 1729453390603
+  url: http://localhost:8080/myc/std/system-manager/webhooks/
+  name: List Webhooks
+  description: ""
+  method: GET
+  body:
+    mimeType: application/json
+    text: ""
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729453394867
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: fld_87332e9d8eba4f199d469853189da195
+  parentId: fld_69106fddedda4491bfc6dae9ed3f8bbf
+  modified: 1729453343093
+  created: 1729453343093
+  name: Webhooks
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1729453343093
+  _type: request_group
+- _id: fld_69106fddedda4491bfc6dae9ed3f8bbf
+  parentId: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
+  modified: 1729453333136
+  created: 1729453333136
+  name: System Manager
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1729453333136
+  _type: request_group
+- _id: req_30c76a73a14e401884d5ed13c5c84cf0
+  parentId: fld_87332e9d8eba4f199d469853189da195
+  modified: 1730981558785
+  created: 1730981455712
+  url: http://localhost:8080/myc/std/system-manager/webhooks/56b6a6a7-c3e2-4604-bf5e-ac02f9f064ff
+  name: Delete Webhook
+  description: ""
+  method: DELETE
+  body:
+    mimeType: application/json
+    text: ""
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729436498074
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_a567526582c748f9a1c0963d8cd326f7
+  parentId: fld_87332e9d8eba4f199d469853189da195
+  modified: 1730981373146
+  created: 1729453440487
+  url: http://localhost:8080/myc/std/system-manager/webhooks/
+  name: Create Webhooks
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: >-
+      {
+      	"name": "Propagate New Accounts to Test Service",
+        "description": "When a new user is registrated this actions dispatches a guest operation to invite the new created user to a specifig account",
+        "url": "http://localhost:8083/webhook/",
+      	"trigger": "createSubscriptionAccount",
+      	"secret": {
+      		"queryParameter": {
+      			"name": "connection-string",
+            "token": "REDACTED"
+      		}
+      	}
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729419601281
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_fa204c0fdb1c40fd8dcf4d6896b05b1e
+  parentId: fld_ed90f213cf744d2eb9f23ac50fccd56f
+  modified: 1730828579337
+  created: 1730828359282
+  url: http://localhost:8080/myc/std/guest-manager/tokens/
+  name: Create Detault Account Associated Token
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: |-
+      {
+        "accountId": "3c3bda9a-397b-43f2-8f91-cdc9927ac4ab",
+        "tenantId": "{{ _.tenantId }}",
+        "permissionedRoles": [
+      		["new-user", "read"]
+      	]
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1730828362272
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: fld_ed90f213cf744d2eb9f23ac50fccd56f
+  parentId: fld_cea76a760a964d38b053401593752b13
+  modified: 1730828332197
+  created: 1730828332197
+  name: Token
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1730828332197
+  _type: request_group
+- _id: fld_cea76a760a964d38b053401593752b13
+  parentId: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
+  modified: 1729385338807
+  created: 1729385338807
+  name: Guest Manager
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1729385338807
+  _type: request_group
+- _id: req_92c6835c8dd145978c1a7883286fe042
+  parentId: fld_79614bc8d6e74f1596b4459027cc0c6b
+  modified: 1729385818349
+  created: 1729385802646
+  url: http://localhost:8080/myc/std/guest-manager/guest-roles/
+  name: List Guest Role
+  description: ""
+  method: GET
+  body:
+    mimeType: application/json
+    text: ""
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729385807695
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: fld_79614bc8d6e74f1596b4459027cc0c6b
+  parentId: fld_cea76a760a964d38b053401593752b13
+  modified: 1729385793376
+  created: 1729385793376
+  name: Guest Role
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1729385793376
+  _type: request_group
+- _id: req_47a9b18f591b4c8ebeeddce8d55c45db
+  parentId: fld_79614bc8d6e74f1596b4459027cc0c6b
+  modified: 1730081083955
+  created: 1729385849808
+  url: http://localhost:8080/myc/std/guest-manager/guest-roles/
+  name: Create Guest Role
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: |-
+      {
+      	"name": "new-user-child-read",
+      	"description": "New Users with read only permission",
+      	"roleId": "cfbf7f67-7659-45e1-89cd-a14c13fe08cc"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729385702713
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_54029607f677468990553c42934081b6
+  parentId: fld_79614bc8d6e74f1596b4459027cc0c6b
+  modified: 1730081287195
+  created: 1730081146690
+  url: http://localhost:8080/myc/std/guest-manager/guest-roles/384a77ac-c9d4-445e-9cfd-5ed86c76f188/permissions
+  name: Update Guest Role Permissions
+  description: ""
+  method: PATCH
+  body:
+    mimeType: application/json
+    text: |-
+      {
+      	"permission": "readWrite"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729385650222
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_00dae8c2003f4ed996cce0e78d1383a1
+  parentId: fld_79614bc8d6e74f1596b4459027cc0c6b
+  modified: 1730081341200
+  created: 1730081261539
+  url: http://localhost:8080/myc/std/guest-manager/guest-roles/384a77ac-c9d4-445e-9cfd-5ed86c76f188
+  name: Update Guest Role Name and Description
+  description: ""
+  method: PATCH
+  body:
+    mimeType: application/json
+    text: |-
+      {
+      	"name": "new-user-read-and-write",
+      	"description": "New Users with read and write permissions"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729385623976.5
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_a9d33e74da0e42d391de73d299ead185
+  parentId: fld_79614bc8d6e74f1596b4459027cc0c6b
+  modified: 1730081478512
+  created: 1730081443190
+  url: http://localhost:8080/myc/std/guest-manager/guest-roles/384a77ac-c9d4-445e-9cfd-5ed86c76f188/children/40273fb1-33ae-45ad-afef-e74cba4c27d4
+  name: Include Guest Role Child
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: ""
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729385610853.75
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_10036b712714416e84a48e5bf5182f80
+  parentId: fld_79614bc8d6e74f1596b4459027cc0c6b
+  modified: 1730082091907
+  created: 1730082089400
+  url: http://localhost:8080/myc/std/guest-manager/guest-roles/384a77ac-c9d4-445e-9cfd-5ed86c76f188/children/40273fb1-33ae-45ad-afef-e74cba4c27d4
+  name: Exclude Guest Role Child
+  description: ""
+  method: DELETE
+  body:
+    mimeType: application/json
+    text: ""
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729385604292.375
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_a504a0dc446f4e3aa5b4660612e6408a
+  parentId: fld_17e37bcab6074eab90edfe6ecf429fb0
+  modified: 1729385597774
+  created: 1729385351260
+  url: http://localhost:8080/myc/std/guest-manager/roles/
+  name: List Role
+  description: ""
+  method: GET
+  body:
+    mimeType: application/json
+    text: ""
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729385597731
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: fld_17e37bcab6074eab90edfe6ecf429fb0
+  parentId: fld_cea76a760a964d38b053401593752b13
+  modified: 1729385595095
+  created: 1729385595095
+  name: Roles
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1729385595095
+  _type: request_group
+- _id: req_1ea38ce710de414cba3db65313abe389
+  parentId: fld_17e37bcab6074eab90edfe6ecf429fb0
+  modified: 1730077775021
+  created: 1729385529256
+  url: http://localhost:8080/myc/std/guest-manager/roles/
+  name: Create Role
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: |-
+      {
+      	"name": "new-user",
+      	"description": "New User"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729385597631
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_b59bb5113ee0470ab8840f49963e17f5
+  parentId: fld_17e37bcab6074eab90edfe6ecf429fb0
+  modified: 1729385660159
+  created: 1729385630890
+  url: http://localhost:8080/myc/std/guest-manager/roles/eb92aa59-e60a-47b9-bfaf-02a9499dd858
+  name: Delete Role
+  description: ""
+  method: DELETE
+  body:
+    mimeType: application/json
+    text: ""
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729385366331
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_cfee660aa0764b25b9595fb2d2558572
+  parentId: fld_17e37bcab6074eab90edfe6ecf429fb0
+  modified: 1729385730903
+  created: 1729385690984
+  url: http://localhost:8080/myc/std/guest-manager/roles/6f4cc2d8-b159-4e28-9e2c-97a6e315895f
+  name: Update Role Name and Description
+  description: ""
+  method: PATCH
+  body:
+    mimeType: application/json
+    text: |-
+      {
+      	"name": "new-user",
+      	"description": "New User"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729385250681
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_5aaec25283e74a8489c16fa3b3d4e26d
+  parentId: fld_8d059fe1fbd842b0841a2857be759efd
+  modified: 1730078280481
+  created: 1729385128879
+  url: http://localhost:8080/myc/std/subscription-manager/guests/{{ _.tenantId
+    }}/accounts/3c3bda9a-397b-43f2-8f91-cdc9927ac4ab/role/384a77ac-c9d4-445e-9cfd-5ed86c76f188
+  name: Guest to Colaborate to Account
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: |-
+      {
+      	"email": "sgelias@outlook.com",
+      	"platformUrl": "http://localhost:8080"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729385135031
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: fld_8d059fe1fbd842b0841a2857be759efd
+  parentId: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
+  modified: 1729385110648
+  created: 1729385110648
+  name: Subscription Manager
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1729385110648
+  _type: request_group
+- _id: req_1c226c596d90490199a11ea1b7438e3b
+  parentId: fld_8d059fe1fbd842b0841a2857be759efd
+  modified: 1729449369025
+  created: 1729387693794
+  url: http://localhost:8080/myc/std/subscription-manager/guests/{{ _.tenantId
+    }}/accounts/8327eb31-fe3e-4979-a090-97faeee1d473/role/1205e39e-d23a-4970-afa8-cc5ac1b3d9a4?email=sgelias@outlook.com
+  name: Uninvite to Colaborate to Account
+  description: ""
+  method: DELETE
+  body:
+    mimeType: application/json
+    text: ""
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729270100065.25
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: req_f5538135474e4779a01dfca3afbaa137
+  parentId: fld_8d059fe1fbd842b0841a2857be759efd
+  modified: 1730981383699
+  created: 1729386050390
+  url: http://localhost:8080/myc/std/subscriptions-manager/accounts/{{ _.tenantId }}
+  name: Create Subscription Account
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: |-
+      {
+      	"name": "Subscription Account 6"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1729155065099.5
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
 - _id: req_b77c07e110b14c89ab723eb26d2093ca
   parentId: fld_23e013a37cb74f62a051f6733b7a3b1a
-  modified: 1728926668696
+  modified: 1730078180260
   created: 1728924990037
   url: http://localhost:8080/myc/managers/tenants/
   name: Create Tenant
@@ -17,7 +1039,7 @@ resources:
       {
       	"name": "Standard Tenant 2",
       	"description": "Standard Tenant Description",
-      	"ownerId": "5b621e7f-04b9-4aa1-80f7-84612b36f818"
+      	"ownerId": "4685fe5a-390a-4b2f-b056-e859d1133ed7"
       }
   parameters: []
   headers:
@@ -49,14 +1071,6 @@ resources:
   environmentPropertyOrder: null
   metaSortKey: -1728924947695
   _type: request_group
-- _id: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
-  parentId: null
-  modified: 1726967531567
-  created: 1726967531567
-  name: Mycelium
-  description: ""
-  scope: collection
-  _type: workspace
 - _id: req_d2ef35d129e5464289f3084ebb76eca8
   parentId: fld_23e013a37cb74f62a051f6733b7a3b1a
   modified: 1728926962678
@@ -174,22 +1188,84 @@ resources:
   settingRebuildPath: true
   settingFollowRedirects: global
   _type: request
-- _id: req_b8c0da81dfeb42e9b2819315593745bb
-  parentId: fld_785abbf0493a42e5a179dcddf1929954
-  modified: 1727631061135
-  created: 1726967651407
-  url: ""
-  name: 03 - Register Account
+- _id: req_3df2fa43da4c4c53ab3ffd4d4f58d0d7
+  parentId: fld_623171d6adc94c59be5ec7adf48b226d
+  modified: 1730071828275
+  created: 1730071745182
+  url: http://localhost:8080/myc/std/no-role/profile/
+  name: Get User Profile
   description: ""
   method: GET
-  body: {}
+  body:
+    mimeType: application/json
+    text: ""
   parameters: []
   headers:
+  - name: Content-Type
+    value: application/json
   - name: User-Agent
     value: insomnia/9.3.2
-  authentication: {}
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
+  metaSortKey: -1730071749636
+  isPrivate: false
+  pathParameters: []
+  settingStoreCookies: true
+  settingSendCookies: true
+  settingDisableRenderRequestBody: false
+  settingEncodeUrl: true
+  settingRebuildPath: true
+  settingFollowRedirects: global
+  _type: request
+- _id: fld_623171d6adc94c59be5ec7adf48b226d
+  parentId: fld_fbe7ef6614e2422ea28d81670ae7ab35
+  modified: 1730071717392
+  created: 1730071717392
+  name: Profile
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1730071717392
+  _type: request_group
+- _id: fld_fbe7ef6614e2422ea28d81670ae7ab35
+  parentId: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
+  modified: 1728993434654
+  created: 1726967558518
+  name: NoRole
+  description: ""
+  environment: {}
+  environmentPropertyOrder: null
+  metaSortKey: -1726967558518
+  _type: request_group
+- _id: req_b8c0da81dfeb42e9b2819315593745bb
+  parentId: fld_785abbf0493a42e5a179dcddf1929954
+  modified: 1730079593077
+  created: 1726967651407
+  url: http://localhost:8080/myc/std/no-role/accounts/
+  name: 06 - Register Account
+  description: ""
+  method: POST
+  body:
+    mimeType: application/json
+    text: |-
+      {
+      	"name": "sgelias"
+      }
+  parameters: []
+  headers:
+  - name: Content-Type
+    value: application/json
+  - name: User-Agent
+    value: insomnia/9.3.2
+  authentication:
+    type: bearer
+    token: "{{ _.bearerToken }}"
+    prefix: Bearer
   metaSortKey: -1727631061094
   isPrivate: false
+  pathParameters: []
   settingStoreCookies: true
   settingSendCookies: true
   settingDisableRenderRequestBody: false
@@ -207,19 +1283,9 @@ resources:
   environmentPropertyOrder: null
   metaSortKey: -1727631038183
   _type: request_group
-- _id: fld_fbe7ef6614e2422ea28d81670ae7ab35
-  parentId: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
-  modified: 1726967563200
-  created: 1726967558518
-  name: NoRole
-  description: ""
-  environment: {}
-  environmentPropertyOrder: null
-  metaSortKey: -1726967558518
-  _type: request_group
 - _id: req_f495410a82f94cf3b98be034209610b8
   parentId: fld_19fc6d839bed43c88c0d9626ffdc7185
-  modified: 1727631004494
+  modified: 1730074299045
   created: 1726967566930
   url: http://localhost:8080/myc/std/no-role/users/
   name: 00 - Register User
@@ -264,7 +1330,7 @@ resources:
   _type: request_group
 - _id: req_623d3de587b34b07aa28a8159c33308e
   parentId: fld_19fc6d839bed43c88c0d9626ffdc7185
-  modified: 1727631008747
+  modified: 1730071663160
   created: 1727368426267
   url: http://localhost:8080/myc/std/no-role/users/status/
   name: 01 - Check Email Status
@@ -295,7 +1361,7 @@ resources:
   _type: request
 - _id: req_fd94ea21562f4f9088696e360f799298
   parentId: fld_19fc6d839bed43c88c0d9626ffdc7185
-  modified: 1727640127668
+  modified: 1730075801355
   created: 1726967596388
   url: http://localhost:8080/myc/std/no-role/users/validate-activation-token/
   name: 02 - Validate Activation Code
@@ -306,7 +1372,7 @@ resources:
     text: |-
       {
         "email": "sgelias@outlook.com",
-      	"token": "348884"
+      	"token": "163662"
       }
   parameters: []
   headers:
@@ -327,7 +1393,7 @@ resources:
   _type: request
 - _id: req_41d4d857c5604c90adcfa5f6a5f913ec
   parentId: fld_19fc6d839bed43c88c0d9626ffdc7185
-  modified: 1727657314517
+  modified: 1730077385443
   created: 1727643853220
   url: http://localhost:8080/myc/std/no-role/users/login/
   name: 03 - Login User
@@ -338,7 +1404,7 @@ resources:
     text: |-
       {
         "email": "sgelias@outlook.com",
-      	"password": "ultra-secure-password-v2"
+      	"password": "super-secure"
       }
   parameters: []
   headers:
@@ -391,7 +1457,7 @@ resources:
   _type: request
 - _id: req_c3812f23a7e24f4098f892e39d04df82
   parentId: fld_19fc6d839bed43c88c0d9626ffdc7185
-  modified: 1728924283869
+  modified: 1729380946112
   created: 1727642420670
   url: http://localhost:8080/myc/std/no-role/users/reset-password/
   name: 05 - Reset Password
@@ -402,8 +1468,8 @@ resources:
     text: |-
       {
         "email": "sgelias@outlook.com",
-      	"token": "960492",
-      	"newPassword": "ultra-secure-password-v2",
+      	"token": "710922",
+      	"newPassword": "ultra-secure-password-v3",
         "platformUrl": "https://localhost:8080"
       }
   parameters: []
@@ -425,14 +1491,16 @@ resources:
   _type: request
 - _id: env_73d3f39cb12da4d4ee0fe8025ef5a1d920e9df51
   parentId: wrk_23eeed6ebd894762a0b054d4ba4f0a9d
-  modified: 1728925050022
+  modified: 1730981205366
   created: 1726967531568
   name: Base Environment
   data:
-    bearerToken: "bearerToken"
+    bearerToken: REDACTED
+    tenantId: c8282c6d-ce0b-4fed-a4e8-8e8a70f5b789
   dataPropertyOrder:
     "&":
     - bearerToken
+    - tenantId
   color: null
   isPrivate: false
   metaSortKey: 1726967531568
