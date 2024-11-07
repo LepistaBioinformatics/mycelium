@@ -145,18 +145,26 @@ pub(crate) async fn dispatch_webhooks<
         let hook_res = match hook_res {
             Ok(res) => res,
             Err(err) => {
+                error!("Error on connect to webhook: {:?}", err);
+
                 responses.push(HookResponse {
                     url: "".to_string(),
                     status: 500,
-                    body: Some(format!("Error on connect to webhook: {err}")),
+                    body: Some("Error on connect to webhook".to_string()),
                 });
 
                 continue;
             }
         };
 
+        let url = hook_res.url();
+        let scheme = url.scheme();
+        let host = url.host_str().unwrap_or("");
+        let port = url.port().map(|p| format!(":{}", p)).unwrap_or_default();
+        let path = url.path();
+
         responses.push(HookResponse {
-            url: hook_res.url().to_string(),
+            url: format!("{}://{}{}{}", scheme, host, port, path),
             status: hook_res.status().as_u16(),
             body: hook_res.text().await.ok(),
         });
