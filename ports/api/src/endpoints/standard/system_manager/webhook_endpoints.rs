@@ -11,7 +11,7 @@ use actix_web::{delete, get, post, put, web, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
-        dtos::webhook::{WebHook, WebHookSecret, WebhookTrigger},
+        dtos::webhook::{WebHook, WebHookSecret, WebHookTrigger},
         entities::{
             WebHookDeletion, WebHookFetching, WebHookRegistration,
             WebHookUpdating,
@@ -53,7 +53,7 @@ pub struct CreateWebHookBody {
     name: String,
     description: Option<String>,
     url: String,
-    trigger: WebhookTrigger,
+    trigger: WebHookTrigger,
     secret: Option<WebHookSecret>,
 }
 
@@ -67,7 +67,7 @@ pub struct UpdateWebHookBody {
 #[serde(rename_all = "camelCase")]
 pub struct ListWebHooksParams {
     name: Option<String>,
-    trigger: Option<WebhookTrigger>,
+    trigger: Option<WebHookTrigger>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -268,7 +268,7 @@ pub async fn update_webhook_url(
         ),
     ),
 )]
-#[delete("/{id}/delete")]
+#[delete("/{id}")]
 pub async fn delete_webhook_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,

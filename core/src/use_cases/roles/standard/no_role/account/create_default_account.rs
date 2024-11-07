@@ -6,7 +6,7 @@ use crate::{
             email::Email,
             native_error_codes::NativeErrorCodes,
             user::Provider,
-            webhook::{AccountPropagationWebHookResponse, WebhookTrigger},
+            webhook::{WebHookPropagationResponse, WebHookTrigger},
         },
         entities::{AccountRegistration, UserFetching, WebHookFetching},
     },
@@ -14,12 +14,9 @@ use crate::{
 };
 
 use mycelium_base::{
-    entities::{
-        FetchManyResponseKind, FetchResponseKind, GetOrCreateResponseKind,
-    },
+    entities::{FetchResponseKind, GetOrCreateResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
-use tracing::error;
 
 /// Create a default account.
 ///
@@ -36,7 +33,7 @@ pub async fn create_default_account(
     user_fetching_repo: Box<&dyn UserFetching>,
     account_registration_repo: Box<&dyn AccountRegistration>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
-) -> Result<AccountPropagationWebHookResponse, MappedErrors> {
+) -> Result<WebHookPropagationResponse<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Try to fetch user from database
     // ? -----------------------------------------------------------------------
@@ -80,25 +77,12 @@ pub async fn create_default_account(
     // ? Dispatch associated webhooks
     // ? -----------------------------------------------------------------------
 
-    let target_hooks = match webhook_fetching_repo
-        .list_by_trigger(WebhookTrigger::CreateUserAccount)
-        .await?
-    {
-        FetchManyResponseKind::NotFound => None,
-        FetchManyResponseKind::Found(records) => Some(records),
-        _ => {
-            error!("Webhook response should not be paginated");
-            None
-        }
-    };
+    let responses = dispatch_webhooks(
+        WebHookTrigger::CreateUserAccount,
+        account.to_owned(),
+        webhook_fetching_repo,
+    )
+    .await;
 
-    let propagation_responses = match target_hooks {
-        None => None,
-        Some(hooks) => dispatch_webhooks(hooks, account.to_owned(), None).await,
-    };
-
-    Ok(AccountPropagationWebHookResponse {
-        account,
-        propagation_responses,
-    })
+    Ok(responses)
 }

@@ -1,11 +1,14 @@
-use super::propagate_subscription_account::propagate_subscription_account;
-use crate::domain::{
-    actors::ActorName,
-    dtos::{
-        profile::Profile,
-        webhook::{AccountPropagationWebHookResponse, WebhookTrigger},
+use crate::{
+    domain::{
+        actors::ActorName,
+        dtos::{
+            account::Account,
+            profile::Profile,
+            webhook::{WebHookPropagationResponse, WebHookTrigger},
+        },
+        entities::{AccountFetching, WebHookFetching},
     },
-    entities::{AccountFetching, WebHookFetching},
+    use_cases::support::dispatch_webhooks,
 };
 
 use mycelium_base::{
@@ -27,11 +30,10 @@ use uuid::Uuid;
 pub async fn propagate_existing_subscription_account(
     profile: Profile,
     tenant_id: Uuid,
-    bearer_token: String,
     account_id: Uuid,
     account_fetching_repo: Box<&dyn AccountFetching>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
-) -> Result<AccountPropagationWebHookResponse, MappedErrors> {
+) -> Result<WebHookPropagationResponse<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
@@ -63,13 +65,12 @@ pub async fn propagate_existing_subscription_account(
     // ? Propagate account
     // ? -----------------------------------------------------------------------
 
-    propagate_subscription_account(
-        profile,
-        tenant_id,
-        bearer_token,
-        account,
-        WebhookTrigger::CreateSubscriptionAccount,
+    let responses = dispatch_webhooks(
+        WebHookTrigger::CreateSubscriptionAccount,
+        account.to_owned(),
         webhook_fetching_repo,
     )
-    .await
+    .await;
+
+    Ok(responses)
 }

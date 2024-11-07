@@ -1,5 +1,4 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-use myc_http_tools::Account;
 use serde::Deserialize;
 use std::env::var_os;
 
@@ -25,7 +24,9 @@ async fn role_protected(
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct WebHookBody {
-    pub account: Account,
+    pub id: String,
+    pub name: String,
+    pub created: String,
 }
 
 #[post("/")]

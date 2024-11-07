@@ -2,7 +2,6 @@ mod responses;
 mod secret;
 mod trigger;
 
-use mycelium_base::utils::errors::MappedErrors;
 pub use responses::*;
 pub use secret::*;
 pub use trigger::*;
@@ -10,6 +9,7 @@ pub use trigger::*;
 use crate::models::AccountLifeCycle;
 
 use chrono::{DateTime, Local};
+use mycelium_base::utils::errors::MappedErrors;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -22,7 +22,7 @@ pub struct WebHook {
     pub name: String,
     pub description: Option<String>,
     pub url: String,
-    pub trigger: WebhookTrigger,
+    pub trigger: WebHookTrigger,
     pub is_active: bool,
     pub created: DateTime<Local>,
     pub updated: Option<DateTime<Local>>,
@@ -35,7 +35,7 @@ impl WebHook {
         name: String,
         description: Option<String>,
         url: String,
-        trigger: WebhookTrigger,
+        trigger: WebHookTrigger,
         secret: Option<WebHookSecret>,
     ) -> Self {
         Self {
@@ -55,7 +55,7 @@ impl WebHook {
         name: String,
         description: Option<String>,
         url: String,
-        trigger: WebhookTrigger,
+        trigger: WebHookTrigger,
         secret: Option<WebHookSecret>,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {

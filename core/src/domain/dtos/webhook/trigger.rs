@@ -5,7 +5,7 @@ use utoipa::ToSchema;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub enum WebhookTrigger {
+pub enum WebHookTrigger {
     // ? -----------------------------------------------------------------------
     // ? Subscription account related actions
     // ? -----------------------------------------------------------------------
@@ -40,7 +40,7 @@ pub enum WebhookTrigger {
     UninviteGuestAccount,
 }
 
-impl Display for WebhookTrigger {
+impl Display for WebHookTrigger {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::CreateSubscriptionAccount => {
@@ -61,7 +61,7 @@ impl Display for WebhookTrigger {
     }
 }
 
-impl FromStr for WebhookTrigger {
+impl FromStr for WebHookTrigger {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
