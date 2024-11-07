@@ -2,7 +2,7 @@ use crate::{domain::{
     actors::ActorName,
     dtos::{
         profile::Profile,
-        webhook::{WebHook, WebHookSecret, WebhookTrigger},
+        webhook::{WebHook, WebHookSecret, WebHookTrigger},
     },
     entities::WebHookRegistration,
 }, models::AccountLifeCycle};
@@ -21,7 +21,7 @@ pub async fn register_webhook(
     name: String,
     description: Option<String>,
     url: String,
-    trigger: WebhookTrigger,
+    trigger: WebHookTrigger,
     secret: Option<WebHookSecret>,
     config: AccountLifeCycle,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,

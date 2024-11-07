@@ -1,48 +1,114 @@
-use crate::domain::dtos::{
-    account::Account,
-    webhook::{HookResponse, WebHook},
+use crate::domain::{
+    dtos::webhook::{
+        HookResponse, WebHook, WebHookPropagationResponse, WebHookSecret,
+        WebHookTrigger,
+    },
+    entities::WebHookFetching,
 };
 
 use futures_util::future::join_all;
+use mycelium_base::entities::FetchManyResponseKind;
 use reqwest::Client;
-use std::collections::HashMap;
+use tracing::error;
 
-#[tracing::instrument(name = "dispatch_webhooks", skip(bearer_token, account))]
-pub(crate) async fn dispatch_webhooks(
-    hooks: Vec<WebHook>,
-    account: Account,
-    bearer_token: Option<String>,
-) -> Option<Vec<HookResponse>> {
+#[tracing::instrument(name = "dispatch_webhooks", skip_all)]
+pub(crate) async fn dispatch_webhooks<
+    PayloadBody: serde::ser::Serialize + Clone,
+>(
+    trigger: WebHookTrigger,
+    payload_body: PayloadBody,
+    webhook_fetching_repo: Box<&dyn WebHookFetching>,
+) -> WebHookPropagationResponse<PayloadBody> {
+    // ? -----------------------------------------------------------------------
+    // ? Initialize webhook response
+    // ? -----------------------------------------------------------------------
+
+    let mut webhook_response = WebHookPropagationResponse {
+        payload: payload_body.to_owned(),
+        propagations: None,
+    };
+
+    // ? -----------------------------------------------------------------------
+    // ? Find for webhooks that are triggered by the event
+    // ? -----------------------------------------------------------------------
+
+    let hooks_fetching_response =
+        match webhook_fetching_repo.list_by_trigger(trigger).await {
+            Ok(response) => response,
+            Err(err) => {
+                error!("Error on fetching webhooks: {:?}", err);
+                return webhook_response;
+            }
+        };
+
+    let hooks: Vec<WebHook> = match hooks_fetching_response {
+        FetchManyResponseKind::Found(records) => records,
+        FetchManyResponseKind::NotFound => {
+            return webhook_response;
+        }
+        _ => {
+            error!("Webhook response should not be paginated");
+            return webhook_response;
+        }
+    };
+
+    // ? -----------------------------------------------------------------------
+    // ? Build requests to the webhooks
+    //
+    // Request bodies contains the account object as a JSON. It should be parsed
+    // by upstream urls.
+    //
+    // ? -----------------------------------------------------------------------
+
     let client = Client::new();
-
-    // ? -----------------------------------------------------------------------
-    // ? Request bodies contains the account object as a JSON. It should be
-    // ? parsed by upstream urls.
-    // ? -----------------------------------------------------------------------
-
-    let token = bearer_token
-        .to_owned()
-        .unwrap_or("".to_string())
-        .replace("Bearer ", "")
-        .replace("bearer ", "");
 
     let bodies: Vec<_> = hooks
         .iter()
         .map(|hook| {
-            let mut map = HashMap::new();
-            map.insert("account", account.to_owned());
-            client
-                .clone()
-                .post(hook.url.to_owned())
-                .header("Authorization", format!("Bearer {}", token.to_owned()))
-                .json(&map)
-                .send()
+            //
+            // Create a base request to the webhook url
+            //
+            let base_request = client.clone().post(hook.url.to_owned());
+            //
+            // Attach the secret to the request if it exists
+            //
+            (match &hook.get_secret() {
+                Some(secret) => match secret {
+                    WebHookSecret::AuthorizationHeader {
+                        name,
+                        prefix,
+                        token,
+                    } => {
+                        let credential_key = name
+                            .to_owned()
+                            .unwrap_or("Authorization".to_string());
+
+                        let credential_value = if let Some(prefix) = prefix {
+                            format!("{} {}", prefix, token)
+                        } else {
+                            token.to_owned()
+                        };
+
+                        base_request.header(credential_key, credential_value)
+                    }
+                    WebHookSecret::QueryParameter { name, token } => {
+                        base_request
+                            .query(&[(name.to_owned(), token.to_owned())])
+                    }
+                },
+                None => base_request,
+            })
+            .json(&payload_body)
+            .send()
         })
         .collect();
 
     // ? -----------------------------------------------------------------------
-    // ? Propagation responses are collected and returned as a response. Users
-    // ? can check if the propagation was successful.
+    // ? Propagate responses
+    //
+    // Propagation responses are collected and returned as a response. Users can
+    // check if the propagation was successful.
+    //
     // ? -----------------------------------------------------------------------
 
     let mut responses = Vec::<HookResponse>::new();
@@ -67,8 +133,14 @@ pub(crate) async fn dispatch_webhooks(
         });
     }
 
-    match responses.is_empty() {
+    // ? -----------------------------------------------------------------------
+    // ? Update the response and return
+    // ? -----------------------------------------------------------------------
+
+    webhook_response.propagations = match responses.is_empty() {
         true => None,
         false => Some(responses),
-    }
+    };
+
+    webhook_response
 }

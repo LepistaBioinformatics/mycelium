@@ -2,7 +2,7 @@ use crate::domain::{
     actors::ActorName,
     dtos::{
         profile::Profile,
-        webhook::{WebHook, WebhookTrigger},
+        webhook::{WebHook, WebHookTrigger},
     },
     entities::WebHookFetching,
 };
@@ -18,7 +18,7 @@ use mycelium_base::{
 pub async fn list_webhooks(
     profile: Profile,
     name: Option<String>,
-    trigger: Option<WebhookTrigger>,
+    trigger: Option<WebHookTrigger>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
 ) -> Result<FetchManyResponseKind<WebHook>, MappedErrors> {
     // ? -----------------------------------------------------------------------

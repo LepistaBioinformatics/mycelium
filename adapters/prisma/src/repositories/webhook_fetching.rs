@@ -7,7 +7,7 @@ use chrono::Local;
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
-        webhook::{WebHook, WebhookTrigger},
+        webhook::{WebHook, WebHookTrigger},
     },
     entities::WebHookFetching,
 };
@@ -94,7 +94,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
     async fn list(
         &self,
         name: Option<String>,
-        trigger: Option<WebhookTrigger>,
+        trigger: Option<WebHookTrigger>,
     ) -> Result<FetchManyResponseKind<WebHook>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
@@ -184,7 +184,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
 
     async fn list_by_trigger(
         &self,
-        trigger: WebhookTrigger,
+        trigger: WebHookTrigger,
     ) -> Result<FetchManyResponseKind<WebHook>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
