@@ -26,7 +26,7 @@ pub async fn list_accounts_by_type(
     is_account_active: Option<bool>,
     is_account_checked: Option<bool>,
     is_account_archived: Option<bool>,
-    is_subscription: Option<bool>,
+    account_type: Option<AccountTypeV2>,
     tag_value: Option<String>,
     page_size: Option<i32>,
     skip: Option<i32>,
@@ -81,11 +81,7 @@ pub async fn list_accounts_by_type(
             tag_id,
             updated_tag,
             account_id,
-            if let Some(true) = is_subscription {
-                Some(AccountTypeV2::Subscription { tenant_id })
-            } else {
-                None
-            },
+            account_type,
             page_size,
             skip,
         )

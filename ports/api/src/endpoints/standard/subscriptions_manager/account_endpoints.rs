@@ -14,7 +14,7 @@ use actix_web::{get, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
-        dtos::account::VerboseStatus,
+        dtos::{account::VerboseStatus, account_type::AccountTypeV2},
         entities::{
             AccountFetching, AccountRegistration, AccountUpdating,
             WebHookFetching,
@@ -71,14 +71,63 @@ pub struct UpdateSubscriptionAccountNameAndFlagsBody {
     is_default: Option<bool>,
 }
 
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+enum APIAccountType {
+    Staff,
+    Manager,
+    User,
+    Subscription,
+    StandardRoleAssociated,
+    TenantManager,
+}
+
+impl APIAccountType {
+    fn into_account_type_v2(
+        &self,
+        tenant_id: Uuid,
+        role_name: Option<String>,
+        role_id: Option<Uuid>,
+    ) -> Result<AccountTypeV2, HttpResponse> {
+        match self {
+            APIAccountType::Staff => Ok(AccountTypeV2::Staff),
+            APIAccountType::Manager => Ok(AccountTypeV2::Manager),
+            APIAccountType::User => Ok(AccountTypeV2::User),
+            APIAccountType::TenantManager => Ok(AccountTypeV2::TenantManager {
+                tenant_id: tenant_id.to_owned(),
+            }),
+            APIAccountType::Subscription => Ok(AccountTypeV2::Subscription {
+                tenant_id: tenant_id.to_owned(),
+            }),
+            APIAccountType::StandardRoleAssociated => {
+                if role_name.is_none() || role_id.is_none() {
+                    return Err(HttpResponse::BadRequest().json(
+                        HttpJsonResponse::new_message(
+                            "Role name and role id are required.",
+                        ),
+                    ));
+                }
+
+                Ok(AccountTypeV2::StandardRoleAssociated {
+                    tenant_id: tenant_id.to_owned(),
+                    role_name: ActorName::CustomRole(role_name.unwrap()),
+                    role_id: role_id.unwrap(),
+                })
+            }
+        }
+    }
+}
+
 #[derive(Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct ListSubscriptionAccountParams {
     term: Option<String>,
     tag_value: Option<String>,
-    is_subscription: Option<bool>,
+    account_type: Option<APIAccountType>,
     is_owner_active: Option<bool>,
     status: Option<VerboseStatus>,
+    role_name: Option<String>,
+    role_id: Option<Uuid>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -223,15 +272,29 @@ pub async fn list_accounts_by_type_url(
         _ => (),
     }
 
+    let tenant_id = path.into_inner();
+
+    let account_type = match &info.account_type {
+        None => None,
+        Some(res) => match res.into_account_type_v2(
+            tenant_id,
+            info.role_name.to_owned(),
+            info.role_id,
+        ) {
+            Ok(res) => Some(res),
+            Err(err) => return err,
+        },
+    };
+
     match list_accounts_by_type(
         profile.to_profile(),
-        path.into_inner(),
+        tenant_id.to_owned(),
         info.term.to_owned(),
         info.is_owner_active.to_owned(),
         is_account_active,
         is_account_checked,
         is_account_archived,
-        info.is_subscription.to_owned(),
+        account_type,
         info.tag_value.to_owned(),
         page.page_size.to_owned(),
         page.skip.to_owned(),
