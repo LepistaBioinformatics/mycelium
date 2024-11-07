@@ -30,7 +30,10 @@ pub(crate) async fn get_or_create_role_related_account(
     // ? -----------------------------------------------------------------------
 
     let mut unchecked_account = Account::new_role_related_account(
-        format!("default-subscription-for-role-{}", role_id.to_string()),
+        format!(
+            "[role/{}] Default subscription account",
+            role_id.to_string()
+        ),
         tenant_id,
         role_id,
         ActorName::CustomRole(role_id.to_string()),
