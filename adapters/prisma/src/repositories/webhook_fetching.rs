@@ -4,7 +4,6 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::Local;
-use log::debug;
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
@@ -17,6 +16,7 @@ use mycelium_base::{
     utils::errors::{fetching_err, MappedErrors},
 };
 use prisma_client_rust::{and, operator::and as and_o};
+use serde_json::from_value;
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
 use uuid::Uuid;
@@ -60,8 +60,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
         {
             Err(err) => {
                 return fetching_err(format!(
-                    "Unexpected error on parse user email: {:?}",
-                    err
+                    "Unexpected error on parse user email: {err}"
                 ))
                 .as_error()
             }
@@ -73,7 +72,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                         record.description.into(),
                         record.url,
                         record.trigger.parse().unwrap(),
-                        None,
+                        record.secret.map(|secret| from_value(secret).unwrap()),
                     );
 
                     webhook.id = Some(Uuid::from_str(&record.id).unwrap());
@@ -83,6 +82,8 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                         None => None,
                         Some(date) => Some(date.with_timezone(&Local)),
                     };
+
+                    webhook.redact_secret_token();
 
                     Ok(FetchResponseKind::Found(webhook))
                 }
@@ -153,7 +154,9 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                             record.description.into(),
                             record.url,
                             record.trigger.parse().unwrap(),
-                            None,
+                            record
+                                .secret
+                                .map(|secret| from_value(secret).unwrap()),
                         );
 
                         webhook.id = Some(Uuid::from_str(&record.id).unwrap());
@@ -163,6 +166,8 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                             None => None,
                             Some(date) => Some(date.with_timezone(&Local)),
                         };
+
+                        webhook.redact_secret_token();
 
                         webhook
                     })
@@ -226,7 +231,9 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                             record.description.into(),
                             record.url,
                             record.trigger.parse().unwrap(),
-                            None,
+                            record
+                                .secret
+                                .map(|secret| from_value(secret).unwrap()),
                         );
 
                         webhook.id = Some(Uuid::from_str(&record.id).unwrap());
@@ -240,8 +247,6 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                         webhook
                     })
                     .collect::<Vec<WebHook>>();
-
-                debug!("Webhooks found: {:?}", response);
 
                 if response.len() == 0 {
                     return Ok(FetchManyResponseKind::NotFound);

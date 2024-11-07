@@ -13,6 +13,7 @@ use mycelium_base::{
     utils::errors::{updating_err, MappedErrors},
 };
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
+use serde_json::from_value;
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
 use uuid::Uuid;
@@ -83,7 +84,7 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
                     record.description.into(),
                     record.url,
                     record.trigger.parse().unwrap(),
-                    None,
+                    record.secret.map(|secret| from_value(secret).unwrap()),
                 );
 
                 webhook.id = Some(Uuid::from_str(&record.id).unwrap());
@@ -93,6 +94,8 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
                     None => None,
                     Some(date) => Some(date.with_timezone(&Local)),
                 };
+
+                webhook.redact_secret_token();
 
                 Ok(UpdatingResponseKind::Updated(webhook))
             }

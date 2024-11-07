@@ -76,4 +76,14 @@ impl WebHook {
             secret: encrypted_secret,
         })
     }
+
+    pub fn redact_secret_token(&mut self) {
+        if let Some(secret) = &mut self.secret {
+            secret.redact_token();
+        }
+    }
+
+    pub fn get_secret(&self) -> Option<WebHookSecret> {
+        self.secret.clone()
+    }
 }

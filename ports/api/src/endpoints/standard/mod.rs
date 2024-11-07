@@ -34,6 +34,7 @@ use myc_core::{
             user::{PasswordHash, Provider, User},
             webhook::{
                 AccountPropagationWebHookResponse, WebHook, WebHookSecret,
+                WebhookTrigger,
             },
         },
     },
@@ -368,6 +369,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             PaginatedRecord<ErrorCode>,
             Role,
             WebHookSecret,
+            WebhookTrigger,
             WebHook,
             AccountPropagationWebHookResponse,
             Tag,

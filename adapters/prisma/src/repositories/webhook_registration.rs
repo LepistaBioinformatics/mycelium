@@ -12,6 +12,7 @@ use mycelium_base::{
     entities::CreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
+use serde_json::{from_value, to_value};
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
 use uuid::Uuid;
@@ -51,11 +52,19 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
             .webhook()
             .create(
                 webhook.name.to_owned(),
-                webhook.trigger.to_owned().to_string(),
                 webhook.url.to_owned(),
-                vec![webhook_model::description::set(
-                    webhook.description.to_owned(),
-                )],
+                webhook.trigger.to_owned().to_string(),
+                vec![
+                    webhook_model::description::set(
+                        webhook.description.to_owned(),
+                    ),
+                    webhook_model::is_active::set(webhook.is_active),
+                    webhook_model::secret::set(
+                        webhook
+                            .get_secret()
+                            .map(|secret| to_value(secret).unwrap()),
+                    ),
+                ],
             )
             .exec()
             .await
@@ -66,7 +75,7 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
                     record.description.into(),
                     record.url,
                     record.trigger.parse().unwrap(),
-                    None,
+                    record.secret.map(|secret| from_value(secret).unwrap()),
                 );
 
                 webhook.id = Some(Uuid::from_str(&record.id).unwrap());
@@ -76,6 +85,8 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
                     None => None,
                     Some(date) => Some(date.with_timezone(&Local)),
                 };
+
+                webhook.redact_secret_token();
 
                 Ok(CreateResponseKind::Created(webhook))
             }
