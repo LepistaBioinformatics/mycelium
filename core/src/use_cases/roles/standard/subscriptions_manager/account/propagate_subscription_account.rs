@@ -8,7 +8,7 @@ use crate::{
         },
         entities::WebHookFetching,
     },
-    use_cases::roles::shared::webhook::dispatch_webhooks,
+    use_cases::support::dispatch_webhooks,
 };
 
 use mycelium_base::{

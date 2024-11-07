@@ -10,9 +10,8 @@ use crate::{
         },
     },
     models::AccountLifeCycle,
-    use_cases::{
-        roles::shared::account::get_or_create_role_related_account,
-        support::send_email_notification,
+    use_cases::support::{
+        get_or_create_role_related_account, send_email_notification,
     },
 };
 
