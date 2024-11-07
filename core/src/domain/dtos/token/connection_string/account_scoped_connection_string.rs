@@ -200,7 +200,7 @@ mod tests {
             noreply_email: EnvOrValue::Value("test".to_string()),
             support_name: None,
             support_email: EnvOrValue::Value("test".to_string()),
-            token_secret: EnvOrValue::Value("test".to_string()),
+            token_secret: EnvOrValue::Value(Uuid::new_v4()),
         };
 
         let account_scope = AccountWithPermissionedRolesScope::new(

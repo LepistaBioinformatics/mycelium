@@ -3,11 +3,15 @@ use crate::models::AccountLifeCycle;
 use arrayref::array_ref;
 use base64::{engine::general_purpose, Engine};
 use mycelium_base::utils::errors::{dto_err, MappedErrors};
-use ring::aead::{Aad, LessSafeKey, Nonce, UnboundKey, AES_256_GCM};
-use ring::rand::{SecureRandom, SystemRandom};
+use ring::{
+    aead::{Aad, LessSafeKey, Nonce, UnboundKey, AES_256_GCM},
+    digest,
+    rand::{SecureRandom, SystemRandom},
+};
 use serde::{Deserialize, Serialize};
 use tracing::error;
 use utoipa::ToSchema;
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -72,17 +76,16 @@ impl WebHookSecret {
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
         let encryption_key = config.get_secret()?;
+        let key_bytes = Self::derive_key_from_uuid(&encryption_key);
 
-        let unbound_key =
-            match UnboundKey::new(&AES_256_GCM, encryption_key.as_bytes()) {
-                Ok(key) => key,
-                Err(err) => {
-                    error!("Failed to create encryption key: {:?}", err);
+        let unbound_key = match UnboundKey::new(&AES_256_GCM, &key_bytes) {
+            Ok(key) => key,
+            Err(err) => {
+                error!("Failed to create unbound key: {:?}", err);
 
-                    return dto_err("Failed to create encryption key")
-                        .as_error();
-                }
-            };
+                return dto_err("Failed to create unbound key").as_error();
+            }
+        };
 
         let key = LessSafeKey::new(unbound_key);
 
@@ -149,14 +152,14 @@ impl WebHookSecret {
     ) -> Result<Self, MappedErrors> {
         let encryption_key = config.get_secret()?;
 
-        let encrypted = (match self {
+        let token_vector = (match self {
             Self::AuthorizationHeader { token, .. } => token,
             Self::QueryParameter { token, .. } => token,
         })
         .as_bytes()
         .to_vec();
 
-        let encrypted = match general_purpose::STANDARD.decode(encrypted) {
+        let encrypted = match general_purpose::STANDARD.decode(token_vector) {
             Ok(data) => data,
             Err(err) => {
                 error!("Failed to decode encrypted secret: {:?}", err);
@@ -221,5 +224,28 @@ impl WebHookSecret {
         };
 
         Ok(self_decrypted)
+    }
+
+    #[tracing::instrument(name = "redact_token", skip_all)]
+    pub(crate) fn redact_token(&mut self) {
+        let redacted_word = "REDACTED".to_string();
+
+        match self {
+            Self::AuthorizationHeader { token, .. } => {
+                *token = redacted_word;
+            }
+            Self::QueryParameter { token, .. } => {
+                *token = redacted_word;
+            }
+        }
+    }
+
+    #[tracing::instrument(name = "derive_key_from_uuid", skip_all)]
+    fn derive_key_from_uuid(uuid: &Uuid) -> [u8; 32] {
+        let uuid_bytes = uuid.as_bytes();
+        let digest = digest::digest(&digest::SHA256, uuid_bytes);
+        let mut key = [0u8; 32];
+        key.copy_from_slice(digest.as_ref());
+        key
     }
 }

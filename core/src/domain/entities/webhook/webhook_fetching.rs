@@ -21,6 +21,10 @@ pub trait WebHookFetching: Interface + Send + Sync {
         trigger: Option<WebhookTrigger>,
     ) -> Result<FetchManyResponseKind<WebHook>, MappedErrors>;
 
+    /// List all webhooks by trigger
+    ///
+    /// WARNING: This method should only be used for internal purposes.
+    ///
     async fn list_by_trigger(
         &self,
         trigger: WebhookTrigger,

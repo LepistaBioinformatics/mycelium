@@ -1,6 +1,7 @@
 use myc_config::env_or_value::EnvOrValue;
 use mycelium_base::utils::errors::MappedErrors;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /// This struct is used to manage the token secret and the token expiration
 /// times.
@@ -31,11 +32,11 @@ pub struct AccountLifeCycle {
     /// Token secret
     ///
     /// Toke secret is used to sign tokens
-    pub(crate) token_secret: EnvOrValue<String>,
+    pub(crate) token_secret: EnvOrValue<Uuid>,
 }
 
 impl AccountLifeCycle {
-    pub fn get_secret(&self) -> Result<String, MappedErrors> {
+    pub fn get_secret(&self) -> Result<Uuid, MappedErrors> {
         self.token_secret.get_or_error()
     }
 }
