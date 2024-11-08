@@ -1,4 +1,7 @@
+use std::{borrow::Cow, io::Read};
+
 use super::{account::Account, email::Email};
+use crate::models::AccountLifeCycle;
 
 use argon2::{
     password_hash::{
@@ -6,12 +9,20 @@ use argon2::{
     },
     Argon2, PasswordHasher, PasswordVerifier,
 };
+use arrayref::array_ref;
+use base64::{engine::general_purpose, Engine};
 use chrono::{DateTime, Local};
 use mycelium_base::{
     dtos::Parent,
-    utils::errors::{use_case_err, MappedErrors},
+    utils::errors::{dto_err, use_case_err, MappedErrors},
+};
+use ring::{
+    aead::{Aad, LessSafeKey, Nonce, UnboundKey, AES_256_GCM},
+    digest,
+    rand::{SecureRandom, SystemRandom},
 };
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
+use tracing::error;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -81,6 +92,281 @@ pub enum Provider {
     Internal(PasswordHash),
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub enum Totp {
+    Disabled,
+
+    /// The TOTP when enabled
+    ///
+    /// The TOTP is enabled when the user has verified the TOTP and the auth
+    /// url is set. The secret is not serialized to avoid that the secret is
+    /// exposed to the outside.
+    ///
+    #[serde(rename_all = "camelCase")]
+    Enabled {
+        verified: bool,
+        issuer: String,
+        secret: Option<String>,
+    },
+}
+
+impl Totp {
+    #[tracing::instrument(name = "build_auth_url", skip_all)]
+    pub(crate) fn build_auth_url(
+        &self,
+        email: Email,
+        config: AccountLifeCycle,
+    ) -> Result<String, MappedErrors> {
+        let mut self_copy = self.clone();
+        println!("self_copy: {:?}", self_copy);
+        self_copy = self_copy.decrypt_me(config)?;
+
+        let (secret, issuer) = match self_copy {
+            Self::Enabled { issuer, secret, .. } => match secret {
+                Some(secret) => (secret, issuer.to_owned()),
+                None => {
+                    return use_case_err("Totp is enabled but secret is None.")
+                        .as_error()
+                }
+            },
+            _ => {
+                return use_case_err(
+                    "Totp is disabled and should not be enabled.",
+                )
+                .as_error()
+            }
+        };
+
+        Ok(format!(
+            "otpauth://totp/{issuer}:{email}?secret={secret}&issuer={issuer}",
+            issuer = issuer,
+            email = email.get_email(),
+            secret = secret
+        ))
+    }
+
+    #[tracing::instrument(name = "encrypt_secret", skip_all)]
+    pub(crate) fn encrypt_me(
+        &self,
+        config: AccountLifeCycle,
+    ) -> Result<Self, MappedErrors> {
+        let encryption_key = config.get_secret()?;
+        let key_bytes = Self::derive_key_from_uuid(&encryption_key);
+
+        let unbound_key = match UnboundKey::new(&AES_256_GCM, &key_bytes) {
+            Ok(key) => key,
+            Err(err) => {
+                error!("Failed to create unbound key: {:?}", err);
+
+                return dto_err("Failed to create unbound key").as_error();
+            }
+        };
+
+        let key = LessSafeKey::new(unbound_key);
+
+        // Generate nonce
+        let rand = SystemRandom::new();
+        let mut nonce_bytes = [0u8; 12];
+
+        match rand.fill(&mut nonce_bytes) {
+            Ok(_) => (),
+            Err(err) => {
+                error!("Failed to generate nonce: {:?}", err);
+
+                return dto_err("Failed to generate nonce").as_error();
+            }
+        };
+
+        let nonce = Nonce::assume_unique_for_key(nonce_bytes);
+
+        // Crypt secret
+        //let mut in_out = secret.as_bytes().to_vec();
+        let mut in_out = (match self {
+            Self::Enabled { secret, .. } => match secret {
+                Some(secret) => secret.to_owned(),
+                None => {
+                    return use_case_err("Totp is enabled but secret is None.")
+                        .as_error()
+                }
+            },
+            _ => {
+                return use_case_err(
+                    "Totp is disabled and should not be encrypted.",
+                )
+                .as_error()
+            }
+        })
+        .as_bytes()
+        .to_vec();
+
+        match key.seal_in_place_append_tag(nonce, Aad::empty(), &mut in_out) {
+            Ok(_) => (),
+            Err(err) => {
+                error!("Failed to encrypt secret: {:?}", err);
+
+                return dto_err("Failed to encrypt secret").as_error();
+            }
+        };
+
+        // Concatenate nonce + ciphertext to store
+        let mut result = nonce_bytes.to_vec();
+        result.extend_from_slice(&in_out);
+
+        let encrypted_decoded_token = general_purpose::STANDARD.encode(result);
+
+        let self_encrypted = match self {
+            Self::Enabled {
+                verified,
+                issuer,
+                secret: _,
+            } => Self::Enabled {
+                verified: verified.to_owned(),
+                issuer: issuer.to_owned(),
+                secret: Some(encrypted_decoded_token),
+            },
+            _ => {
+                return use_case_err(
+                    "Totp is disabled and should not be encrypted.",
+                )
+                .as_error()
+            }
+        };
+
+        Ok(self_encrypted)
+    }
+
+    #[tracing::instrument(name = "decrypt_secret", skip_all)]
+    pub(crate) fn decrypt_me(
+        &self,
+        config: AccountLifeCycle,
+    ) -> Result<Self, MappedErrors> {
+        let encryption_key = config.get_secret()?;
+        let key_bytes = Self::derive_key_from_uuid(&encryption_key);
+
+        let token_vector = (match self {
+            Self::Enabled { secret, .. } => match secret {
+                Some(secret) => secret.to_owned(),
+                None => {
+                    return use_case_err("Totp is enabled but secret is None.")
+                        .as_error()
+                }
+            },
+            _ => {
+                return use_case_err(
+                    "Totp is disabled and should not be encrypted.",
+                )
+                .as_error()
+            }
+        })
+        .as_bytes()
+        .to_vec();
+
+        let encrypted = match general_purpose::STANDARD.decode(token_vector) {
+            Ok(data) => data,
+            Err(err) => {
+                error!("Failed to decode encrypted secret: {err}");
+
+                return dto_err("Failed to decode encrypted secret").as_error();
+            }
+        };
+
+        let (nonce_bytes, ciphertext) = encrypted.split_at(12);
+
+        let unbound_key = match UnboundKey::new(&AES_256_GCM, &key_bytes) {
+            Ok(key) => key,
+            Err(err) => {
+                error!("Failed to create encryption key: {err}");
+
+                return dto_err(format!(
+                    "Failed to create encryption key: {err}"
+                ))
+                .as_error();
+            }
+        };
+
+        let key = LessSafeKey::new(unbound_key);
+        let nonce =
+            Nonce::assume_unique_for_key(*array_ref!(nonce_bytes, 0, 12));
+
+        let mut in_out = ciphertext.to_vec();
+
+        match key.open_in_place(nonce, Aad::empty(), &mut in_out) {
+            Ok(_) => (),
+            Err(err) => {
+                error!("Failed to decrypt secret: {:?}", err);
+
+                return dto_err("Failed to decrypt secret").as_error();
+            }
+        };
+
+        let response = match String::from_utf8_lossy(&in_out) {
+            Cow::Borrowed(s) => s.to_string(),
+            Cow::Owned(s) => s,
+        };
+
+        let self_decrypted = match self {
+            Self::Enabled {
+                verified,
+                issuer,
+                secret: _,
+            } => Self::Enabled {
+                verified: verified.to_owned(),
+                issuer: issuer.to_owned(),
+                secret: Some(response),
+            },
+            _ => {
+                return use_case_err(
+                    "Totp is disabled and should not be decrypted.",
+                )
+                .as_error()
+            }
+        };
+
+        Ok(self_decrypted)
+    }
+
+    #[tracing::instrument(name = "derive_key_from_uuid", skip_all)]
+    fn derive_key_from_uuid(uuid: &Uuid) -> [u8; 32] {
+        let uuid_bytes = uuid.as_bytes();
+        let digest = digest::digest(&digest::SHA256, uuid_bytes);
+        let mut key = [0u8; 32];
+        key.copy_from_slice(digest.as_ref());
+        key
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct MultiFactorAuthentication {
+    /// The TOTP
+    ///
+    /// The TOTP is disabled by default.
+    ///
+    pub totp: Totp,
+}
+
+impl MultiFactorAuthentication {
+    pub fn redact_secrets(&mut self) -> Self {
+        match &self.totp {
+            Totp::Enabled {
+                verified,
+                issuer,
+                secret: _,
+            } => {
+                self.totp = Totp::Enabled {
+                    verified: *verified,
+                    issuer: issuer.to_owned(),
+                    secret: Some("REDACTED".to_string()),
+                }
+            }
+            _ => {}
+        }
+
+        self.to_owned()
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
@@ -116,6 +402,12 @@ pub struct User {
     /// ! Thus, be careful on change this field.
     ///
     provider: Option<Provider>,
+
+    /// The user TOTP
+    ///
+    /// When enabled the user has verified the TOTP and the auth url is set.
+    ///
+    mfa: MultiFactorAuthentication,
 }
 
 impl Serialize for User {
@@ -127,7 +419,17 @@ impl Serialize for User {
         S: ::serde::ser::Serializer,
     {
         let mut user = self.clone();
-        user.provider = None;
+        user.provider = match self.provider.to_owned() {
+            Some(Provider::Internal(_)) => Some(Provider::Internal(
+                PasswordHash::new_from_hash("".to_string()),
+            )),
+            Some(Provider::External(external)) => {
+                Some(Provider::External(external))
+            }
+            None => None,
+        };
+
+        user.mfa = user.mfa.redact_secrets();
 
         let mut state = serializer.serialize_struct("User", 10)?;
         state.serialize_field("id", &user.id)?;
@@ -141,6 +443,7 @@ impl Serialize for User {
         state.serialize_field("updated", &user.updated)?;
         state.serialize_field("account", &user.account)?;
         state.serialize_field("provider", &user.provider)?;
+        state.serialize_field("mfa", &user.mfa)?;
         state.end()
     }
 }
@@ -173,6 +476,9 @@ impl User {
             created: Local::now(),
             updated: None,
             account: None,
+            mfa: MultiFactorAuthentication {
+                totp: Totp::Disabled,
+            },
         })
     }
 
@@ -224,6 +530,9 @@ impl User {
             account,
             provider,
             is_principal: false,
+            mfa: MultiFactorAuthentication {
+                totp: Totp::Disabled,
+            },
         }
     }
 
@@ -236,12 +545,21 @@ impl User {
         self.to_owned()
     }
 
+    pub fn with_mfa(&mut self, mfa: MultiFactorAuthentication) -> Self {
+        self.mfa = mfa;
+        self.to_owned()
+    }
+
     pub fn is_principal(&self) -> bool {
         self.is_principal
     }
 
     pub fn provider(&self) -> Option<Provider> {
         self.provider.to_owned()
+    }
+
+    pub fn mfa(&self) -> MultiFactorAuthentication {
+        self.mfa.to_owned()
     }
 
     /// Check if the user has a provider or not.
@@ -258,5 +576,43 @@ check if user is internal or not. The user provider is None.",
             )
             .as_error(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::AccountLifeCycle;
+
+    use myc_config::env_or_value::EnvOrValue;
+
+    #[test]
+    fn test_encrypt_and_decrypt_totp_secret() {
+        let secret = "secret";
+        let issuer = "issuer";
+        let totp = Totp::Enabled {
+            verified: true,
+            issuer: issuer.to_string(),
+            secret: Some(secret.to_string()),
+        };
+
+        let config = AccountLifeCycle {
+            token_expiration: 30,
+            noreply_name: None,
+            noreply_email: EnvOrValue::Value("test".to_string()),
+            support_name: None,
+            support_email: EnvOrValue::Value("test".to_string()),
+            token_secret: EnvOrValue::Value(Uuid::new_v4()),
+        };
+
+        let encrypted = totp.encrypt_me(config.to_owned()).unwrap();
+
+        println!("Encrypted: {:?}", encrypted);
+
+        let decrypted = encrypted.decrypt_me(config).unwrap();
+
+        println!("Decrypted: {:?}", decrypted);
+
+        assert_eq!(totp, decrypted);
     }
 }
