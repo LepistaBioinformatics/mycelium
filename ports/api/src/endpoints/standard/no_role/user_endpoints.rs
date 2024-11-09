@@ -1,6 +1,9 @@
 use crate::{
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
-    middleware::parse_issuer_from_request,
+    middleware::{
+        check_credentials_with_multi_identity_provider,
+        parse_issuer_from_request,
+    },
     modules::{
         MessageSendingQueueModule, TokenInvalidationModule,
         TokenRegistrationModule, UserDeletionModule, UserFetchingModule,
@@ -12,6 +15,7 @@ use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
+        dtos::user::User,
         entities::{
             MessageSending, TokenInvalidation, TokenRegistration, UserDeletion,
             UserFetching, UserRegistration, UserUpdating,
@@ -22,6 +26,7 @@ use myc_core::{
         check_email_password_validity, check_email_registration_status,
         check_token_and_activate_user, check_token_and_reset_password,
         create_default_user, start_password_redefinition,
+        start_totp_activation,
     },
 };
 use myc_http_tools::{
@@ -29,9 +34,9 @@ use myc_http_tools::{
     responses::GatewayError, utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error, Email,
 };
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
+use serde_json::json;
 use shaku_actix::Inject;
-use std::collections::HashMap;
 use tracing::warn;
 use utoipa::ToSchema;
 
@@ -46,7 +51,11 @@ pub fn configure(config: &mut web::ServiceConfig) {
         .service(check_user_token_url)
         .service(start_password_redefinition_url)
         .service(check_token_and_reset_password_url)
-        .service(check_email_password_validity_url);
+        .service(check_email_password_validity_url)
+        .service(totp_start_activation_url)
+        .service(totp_finish_activation_url)
+        .service(totp_check_token_url)
+        .service(totp_disable_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -57,6 +66,21 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[serde(rename_all = "camelCase")]
 pub struct CheckEmailStatusBody {
     email: String,
+}
+
+#[derive(Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct LoginResponse {
+    token: String,
+
+    #[serde(flatten)]
+    user: User,
+}
+
+#[derive(Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct TotpActivationStartedResponse {
+    totp_url: String,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -246,7 +270,7 @@ pub async fn create_default_user_url(
     )
     .await
     {
-        Ok(res) => HttpResponse::Created().json(res),
+        Ok(res) => HttpResponse::Created().json(json!({"id": res})),
         Err(err) => handle_mapped_error(err),
     }
 }
@@ -471,7 +495,7 @@ pub async fn check_token_and_reset_password_url(
         (
             status = 200,
             description = "Credentials are valid.",
-            body = User,
+            body = LoginResponse,
         ),
     ),
 )]
@@ -503,8 +527,8 @@ pub async fn check_email_password_validity_url(
         Err(err) => handle_mapped_error(err),
         Ok((valid, user)) => match valid {
             true => {
-                let _user = if let Some(u) = user {
-                    u
+                let _user = if let Some(user) = user {
+                    user
                 } else {
                     return HttpResponse::NoContent().finish();
                 };
@@ -517,21 +541,190 @@ pub async fn check_email_password_validity_url(
                     Ok(token) => token,
                 };
 
-                let serialized_user = match serde_json::to_string(&_user) {
-                    Ok(user) => user,
-                    Err(err) => {
-                        return HttpResponse::InternalServerError().json(
-                            HttpJsonResponse::new_message(err.to_string()),
-                        );
-                    }
-                };
-
-                HttpResponse::Ok().json(HashMap::from([
-                    ("token".to_string(), token),
-                    ("user".to_string(), serialized_user),
-                ]))
+                HttpResponse::Ok().json(LoginResponse { token, user: _user })
             }
             false => HttpResponse::Unauthorized().finish(),
         },
     }
+}
+
+/// Enable TOTP
+///
+/// This route should be used to enable the TOTP app. Before enabling the TOTP
+/// the user must be authenticated using the `/login/` route.
+///
+#[utoipa::path(
+    post,
+    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 200,
+            description = "Totp Activation Started.",
+            body = TotpActivationStartedResponse,
+        ),
+    ),
+)]
+#[post("/totp/enable/")]
+pub async fn totp_start_activation_url(
+    req: HttpRequest,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
+    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
+    user_updating_repo: Inject<UserUpdatingModule, dyn UserUpdating>,
+    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
+) -> impl Responder {
+    let opt_email =
+        match check_credentials_with_multi_identity_provider(req).await {
+            Err(err) => {
+                warn!("err: {:?}", err);
+                return HttpResponse::InternalServerError()
+                    .json(HttpJsonResponse::new_message(err));
+            }
+            Ok(res) => res,
+        };
+
+    let email = match opt_email {
+        None => {
+            return HttpResponse::Forbidden().json(
+                HttpJsonResponse::new_message(
+                    "User not authenticated. Please login first.",
+                ),
+            )
+        }
+        Some(email) => email,
+    };
+
+    match start_totp_activation(
+        email,
+        life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*user_fetching_repo),
+        Box::new(&*user_updating_repo),
+        Box::new(&*message_sending_repo),
+    )
+    .await
+    {
+        Ok(res) => HttpResponse::Ok()
+            .json(TotpActivationStartedResponse { totp_url: res }),
+        Err(err) => handle_mapped_error(err),
+    }
+}
+
+/// Validation of the TOTP app
+///
+/// This route should be used to validate the TOTP app after enabling it.
+///
+#[utoipa::path(
+    post,
+    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 200,
+            description = "Credentials are valid.",
+            body = LoginResponse,
+        ),
+    ),
+)]
+#[post("/totp/validate-app/")]
+pub async fn totp_finish_activation_url() -> impl Responder {
+    HttpResponse::Ok().finish()
+}
+
+/// Check TOTP token
+///
+/// This route should be used to check the TOTP token when tht totp app is
+/// enabled.
+///
+#[utoipa::path(
+    post,
+    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 200,
+            description = "Credentials are valid.",
+            body = LoginResponse,
+        ),
+    ),
+)]
+#[post("/totp/check-token/")]
+pub async fn totp_check_token_url() -> impl Responder {
+    HttpResponse::Ok().finish()
+}
+
+/// Disable TOTP
+///
+/// This route should be used to disable the TOTP app.
+///
+#[utoipa::path(
+    post,
+    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 200,
+            description = "Credentials are valid.",
+            body = LoginResponse,
+        ),
+    ),
+)]
+#[post("/totp/disable/")]
+pub async fn totp_disable_url() -> impl Responder {
+    HttpResponse::Ok().finish()
 }

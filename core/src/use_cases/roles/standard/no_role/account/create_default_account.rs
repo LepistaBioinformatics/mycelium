@@ -38,7 +38,7 @@ pub async fn create_default_account(
     // ? Try to fetch user from database
     // ? -----------------------------------------------------------------------
 
-    let user = match user_fetching_repo.get(None, Some(email), None).await? {
+    let user = match user_fetching_repo.get_user_by_email(email).await? {
         FetchResponseKind::NotFound(_) => {
             return use_case_err("User not found".to_string()).as_error();
         }

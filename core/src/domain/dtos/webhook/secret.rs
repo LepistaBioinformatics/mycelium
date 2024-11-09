@@ -1,17 +1,14 @@
-use crate::models::AccountLifeCycle;
+use crate::{domain::utils::derive_key_from_uuid, models::AccountLifeCycle};
 
-use arrayref::array_ref;
 use base64::{engine::general_purpose, Engine};
 use mycelium_base::utils::errors::{dto_err, MappedErrors};
 use ring::{
     aead::{Aad, LessSafeKey, Nonce, UnboundKey, AES_256_GCM},
-    digest,
     rand::{SecureRandom, SystemRandom},
 };
 use serde::{Deserialize, Serialize};
 use tracing::error;
 use utoipa::ToSchema;
-use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -75,37 +72,40 @@ impl WebHookSecret {
         &self,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
+        //
+        // Create a key from the account's secret
+        //
         let encryption_key = config.get_secret()?;
-        let key_bytes = Self::derive_key_from_uuid(&encryption_key);
+        let key_bytes = derive_key_from_uuid(&encryption_key);
 
         let unbound_key = match UnboundKey::new(&AES_256_GCM, &key_bytes) {
             Ok(key) => key,
             Err(err) => {
                 error!("Failed to create unbound key: {:?}", err);
-
                 return dto_err("Failed to create unbound key").as_error();
             }
         };
 
         let key = LessSafeKey::new(unbound_key);
 
-        // Generate nonce
+        //
+        // Generate a nonce
+        //
         let rand = SystemRandom::new();
         let mut nonce_bytes = [0u8; 12];
-
         match rand.fill(&mut nonce_bytes) {
-            Ok(_) => (),
+            Ok(_) => {}
             Err(err) => {
                 error!("Failed to generate nonce: {:?}", err);
-
                 return dto_err("Failed to generate nonce").as_error();
             }
         };
 
         let nonce = Nonce::assume_unique_for_key(nonce_bytes);
 
-        // Crypt secret
-        //let mut in_out = secret.as_bytes().to_vec();
+        //
+        // Prepare secret data to encrypt
+        //
         let mut in_out = (match self {
             Self::AuthorizationHeader { token, .. } => token,
             Self::QueryParameter { token, .. } => token,
@@ -113,31 +113,39 @@ impl WebHookSecret {
         .as_bytes()
         .to_vec();
 
+        //
+        // Encrypt in-place and append the authentication tag
+        //
         match key.seal_in_place_append_tag(nonce, Aad::empty(), &mut in_out) {
-            Ok(_) => (),
+            Ok(_) => {}
             Err(err) => {
-                error!("Failed to encrypt secret: {:?}", err);
-
-                return dto_err("Failed to encrypt secret").as_error();
+                error!("Failed to encrypt data: {:?}", err);
+                return dto_err("Failed to encrypt data").as_error();
             }
         };
 
-        // Concatenate nonce + ciphertext to store
-        let mut result = nonce_bytes.to_vec();
-        result.extend_from_slice(&in_out);
+        //
+        // Combine nonce and ciphertext for storage
+        //
+        let mut encrypted_data = nonce_bytes.to_vec();
 
-        let encrypted_decoded_token = general_purpose::STANDARD.encode(result);
+        encrypted_data.extend_from_slice(&in_out);
 
+        let encrypted_string = general_purpose::STANDARD.encode(encrypted_data);
+
+        //
+        // Return encrypted TOTP instance
+        //
         let self_encrypted = match self {
             Self::AuthorizationHeader { name, prefix, .. } => {
                 Self::AuthorizationHeader {
-                    token: encrypted_decoded_token.to_owned(),
+                    token: encrypted_string.to_owned(),
                     name: name.to_owned(),
                     prefix: prefix.to_owned(),
                 }
             }
             Self::QueryParameter { name, .. } => Self::QueryParameter {
-                token: encrypted_decoded_token.to_owned(),
+                token: encrypted_string.to_owned(),
                 name: name.to_owned(),
             },
         };
@@ -150,75 +158,97 @@ impl WebHookSecret {
         &self,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
+        //
+        // Create a key from the account's secret
+        //
         let encryption_key = config.get_secret()?;
+        let key_bytes = derive_key_from_uuid(&encryption_key);
 
-        let token_vector = (match self {
-            Self::AuthorizationHeader { token, .. } => token,
-            Self::QueryParameter { token, .. } => token,
-        })
-        .as_bytes()
-        .to_vec();
-
-        let encrypted = match general_purpose::STANDARD.decode(token_vector) {
-            Ok(data) => data,
+        let unbound_key = match UnboundKey::new(&AES_256_GCM, &key_bytes) {
+            Ok(key) => key,
             Err(err) => {
-                error!("Failed to decode encrypted secret: {:?}", err);
-
-                return dto_err("Failed to decode encrypted secret").as_error();
+                error!("Failed to create unbound key: {:?}", err);
+                return dto_err("Failed to create unbound key").as_error();
             }
         };
 
+        let key = LessSafeKey::new(unbound_key);
+
+        //
+        // Extract and decode the encrypted secret
+        //
+        let secret = match self {
+            Self::AuthorizationHeader { token, .. } => token,
+            Self::QueryParameter { token, .. } => token,
+        };
+
+        let encrypted = match general_purpose::STANDARD.decode(secret) {
+            Ok(encrypted) => encrypted,
+            Err(err) => {
+                error!("Failed to decode encrypted data: {:?}", err);
+                return dto_err("Failed to decode encrypted data").as_error();
+            }
+        };
+
+        //
+        // Verify that the encrypted data is long enough to contain the nonce
+        //
+        if encrypted.len() < 12 {
+            return dto_err("Encrypted data is too short").as_error();
+        }
+
+        //
+        // Split encrypted data into nonce and ciphertext
+        //
         let (nonce_bytes, ciphertext) = encrypted.split_at(12);
 
-        let unbound_key =
-            match UnboundKey::new(&AES_256_GCM, encryption_key.as_bytes()) {
-                Ok(key) => key,
-                Err(err) => {
-                    error!("Failed to create encryption key: {:?}", err);
-
-                    return dto_err("Failed to create encryption key")
-                        .as_error();
-                }
-            };
-
-        let key = LessSafeKey::new(unbound_key);
-        let nonce =
-            Nonce::assume_unique_for_key(*array_ref!(nonce_bytes, 0, 12));
+        let nonce = match Nonce::try_assume_unique_for_key(nonce_bytes) {
+            Ok(nonce) => nonce,
+            Err(_) => {
+                return dto_err("Invalid nonce").as_error();
+            }
+        };
 
         let mut in_out = ciphertext.to_vec();
 
         match key.open_in_place(nonce, Aad::empty(), &mut in_out) {
-            Ok(_) => (),
+            Ok(_) => {}
             Err(err) => {
-                error!("Failed to decrypt secret: {:?}", err);
-
-                return dto_err("Failed to decrypt secret").as_error();
+                error!("Failed to decrypt data: {:?}", err);
+                return dto_err("Failed to decrypt data").as_error();
             }
         };
 
-        let response = match String::from_utf8(in_out) {
-            Ok(response) => response,
-            Err(err) => {
-                error!(
-                    "Failed to convert decrypted secret to string: {:?}",
-                    err
-                );
+        let in_out_slice = if in_out.len() > 16 {
+            in_out.truncate(in_out.len() - 16);
+            in_out
+        } else {
+            in_out
+        };
 
-                return dto_err("Failed to convert decrypted secret to string")
-                    .as_error();
+        //
+        // Convert decrypted data from UTF-8 to String
+        //
+        let decrypted_secret = match String::from_utf8(in_out_slice) {
+            Ok(secret) => secret,
+            Err(err) => {
+                return dto_err(format!(
+                    "Failed to convert decrypted data to string: {err}"
+                ))
+                .as_error();
             }
         };
 
         let self_decrypted = match self {
             Self::AuthorizationHeader { name, prefix, .. } => {
                 Self::AuthorizationHeader {
-                    token: response.to_owned(),
+                    token: decrypted_secret.to_owned(),
                     name: name.to_owned(),
                     prefix: prefix.to_owned(),
                 }
             }
             Self::QueryParameter { name, .. } => Self::QueryParameter {
-                token: response.to_owned(),
+                token: decrypted_secret,
                 name: name.to_owned(),
             },
         };
@@ -238,14 +268,5 @@ impl WebHookSecret {
                 *token = redacted_word;
             }
         }
-    }
-
-    #[tracing::instrument(name = "derive_key_from_uuid", skip_all)]
-    fn derive_key_from_uuid(uuid: &Uuid) -> [u8; 32] {
-        let uuid_bytes = uuid.as_bytes();
-        let digest = digest::digest(&digest::SHA256, uuid_bytes);
-        let mut key = [0u8; 32];
-        key.copy_from_slice(digest.as_ref());
-        key
     }
 }

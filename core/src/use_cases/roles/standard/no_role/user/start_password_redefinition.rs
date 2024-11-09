@@ -31,7 +31,7 @@ pub async fn start_password_redefinition(
     // ? -----------------------------------------------------------------------
 
     let user = match user_fetching_repo
-        .get(None, Some(email.to_owned()), None)
+        .get_user_by_email(email.to_owned())
         .await?
     {
         FetchResponseKind::NotFound(_) => {
@@ -97,7 +97,7 @@ pub async fn start_password_redefinition(
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Notify guest user
+    // ? Notify user owner
     // ? -----------------------------------------------------------------------
 
     let mut parameters = vec![
@@ -111,10 +111,6 @@ pub async fn start_password_redefinition(
     if let Some(url) = platform_url {
         parameters.push(("platform_url", url));
     }
-
-    // ? -----------------------------------------------------------------------
-    // ? Notify user owner
-    // ? -----------------------------------------------------------------------
 
     if let Err(err) = send_email_notification(
         parameters,

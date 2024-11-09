@@ -17,9 +17,10 @@ use myc_core::domain::{
 };
 use mycelium_base::{
     dtos::Parent,
-    entities::{CreateResponseKind, GetOrCreateResponseKind},
+    entities::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
+use serde_json::to_value;
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -123,9 +124,11 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                         vec![
                             user_model::is_active::set(user.is_active),
                             user_model::is_principal::set(user.is_principal()),
+                            user_model::mfa::set(Some(
+                                to_value(user.mfa().to_owned()).unwrap(),
+                            )),
                         ],
                     )
-                    //.include(user_model::include!({ account }))
                     .exec()
                     .await?;
 
@@ -186,16 +189,5 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                 .as_error();
             }
         }
-    }
-
-    // ? -----------------------------------------------------------------------
-    // ! NOT IMPLEMENTED METHODS
-    // ? -----------------------------------------------------------------------
-
-    async fn create(
-        &self,
-        user: User,
-    ) -> Result<CreateResponseKind<User>, MappedErrors> {
-        self.create(user).await
     }
 }

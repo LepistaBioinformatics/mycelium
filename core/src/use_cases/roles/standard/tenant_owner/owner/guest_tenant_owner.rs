@@ -36,10 +36,7 @@ pub async fn guest_tenant_owner(
     // ? Collect user
     // ? -----------------------------------------------------------------------
 
-    let user = match owner_fetching_repo
-        .get(None, Some(owner_email), None)
-        .await?
-    {
+    let user = match owner_fetching_repo.get_user_by_email(owner_email).await? {
         FetchResponseKind::NotFound(_) => {
             return use_case_err("User not found".to_string()).as_error();
         }

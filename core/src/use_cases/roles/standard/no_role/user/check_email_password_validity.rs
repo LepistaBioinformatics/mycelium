@@ -18,7 +18,10 @@ pub async fn check_email_password_validity(
     // ? Fetch user
     // ? -----------------------------------------------------------------------
 
-    let user = match user_fetching_repo.get(None, Some(email), None).await {
+    let user = match user_fetching_repo
+        .get_not_redacted_user_by_email(email)
+        .await
+    {
         Ok(FetchResponseKind::Found(user)) => user,
         _ => return Ok((false, None)),
     };

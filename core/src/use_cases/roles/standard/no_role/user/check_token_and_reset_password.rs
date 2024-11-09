@@ -34,7 +34,7 @@ pub async fn check_token_and_reset_password(
     // ? -----------------------------------------------------------------------
 
     let target_user = match user_fetching_repo
-        .get(None, Some(email.to_owned()), None)
+        .get_user_by_email(email.to_owned())
         .await?
     {
         FetchResponseKind::NotFound(_) => {

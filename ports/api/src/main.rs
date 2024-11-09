@@ -408,7 +408,7 @@ pub async fn main() -> std::io::Result<()> {
                 //
                 // Configure OAuth2 Scope
                 //
-                debug!("Configuring Mycelium Internal authentication");
+                info!("Configuring Mycelium Internal authentication");
                 app.app_data(web::Data::new(config.clone()))
             }
             _ => app,
@@ -425,12 +425,12 @@ pub async fn main() -> std::io::Result<()> {
                 //
                 // Configure OAuth2 Scope
                 //
-                debug!("Configuring Google authentication");
+                info!("Configuring Google authentication");
                 let scope = mycelium_scope.service(
                     web::scope("/auth/google")
                         .configure(google_handlers::configure),
                 );
-                debug!("Google OAuth2 configuration done");
+
                 scope
             }
             _ => mycelium_scope,

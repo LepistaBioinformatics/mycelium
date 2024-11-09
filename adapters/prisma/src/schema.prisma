@@ -105,6 +105,7 @@ model User {
   is_principal Boolean   @default(false)
   created      DateTime  @default(now()) @db.Timestamptz(6)
   updated      DateTime? @updatedAt @db.Timestamptz(6)
+  mfa          Json?
 
   // Backward relationship fields
   account         Account?          @relation(fields: [account_id], references: [id])
