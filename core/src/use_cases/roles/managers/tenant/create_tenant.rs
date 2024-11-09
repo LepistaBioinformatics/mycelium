@@ -40,10 +40,7 @@ pub async fn create_tenant(
     // ? Check if the proposed tenant owner exists
     // ? -----------------------------------------------------------------------
 
-    let user = match user_fetching_repo
-        .get(Some(tenant_owner_id), None, None)
-        .await?
-    {
+    let user = match user_fetching_repo.get_user_by_id(tenant_owner_id).await? {
         FetchResponseKind::Found(res) => res,
         FetchResponseKind::NotFound(_) => {
             return use_case_err(format!(

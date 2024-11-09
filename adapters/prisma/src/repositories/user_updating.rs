@@ -11,7 +11,7 @@ use myc_core::domain::{
     dtos::{
         email::Email,
         native_error_codes::NativeErrorCodes,
-        user::{PasswordHash, User},
+        user::{MultiFactorAuthentication, PasswordHash, User},
     },
     entities::UserUpdating,
 };
@@ -20,6 +20,7 @@ use mycelium_base::{
     utils::errors::{updating_err, MappedErrors},
 };
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
+use serde_json::to_value;
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -230,6 +231,61 @@ impl UserUpdating for UserUpdatingSqlDbRepository {
                     ))
                 }
             },
+            Err(err) => {
+                if err.is_prisma_error::<RecordNotFound>() {
+                    return updating_err(format!(
+                        "Invalid user type: {:?}",
+                        user_id
+                    ))
+                    .as_error();
+                };
+
+                return updating_err(format!(
+                    "Unexpected error detected on update record: {err}",
+                ))
+                .as_error();
+            }
+        }
+    }
+
+    async fn update_mfa(
+        &self,
+        user_id: Uuid,
+        mfa: MultiFactorAuthentication,
+    ) -> Result<UpdatingResponseKind<bool>, MappedErrors> {
+        // ? -------------------------------------------------------------------
+        // ? Try to build the prisma client
+        // ? -------------------------------------------------------------------
+
+        let tmp_client = get_client().await;
+
+        let client = match tmp_client.get(&process_id()) {
+            None => {
+                return updating_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .with_code(NativeErrorCodes::MYC00001)
+                .as_error()
+            }
+            Some(res) => res,
+        };
+
+        // ? -------------------------------------------------------------------
+        // ? Try to update record
+        // ? -------------------------------------------------------------------
+
+        match client
+            .user()
+            .update(
+                user_model::id::equals(user_id.to_string()),
+                vec![user_model::mfa::set(Some(
+                    to_value(mfa.to_owned()).unwrap(),
+                ))],
+            )
+            .exec()
+            .await
+        {
+            Ok(_) => Ok(UpdatingResponseKind::Updated(true)),
             Err(err) => {
                 if err.is_prisma_error::<RecordNotFound>() {
                     return updating_err(format!(

@@ -7,10 +7,22 @@ use uuid::Uuid;
 
 #[async_trait]
 pub trait UserFetching: Interface + Send + Sync {
-    async fn get(
+    async fn get_user_by_email(
         &self,
-        id: Option<Uuid>,
-        email: Option<Email>,
-        password_hash: Option<String>,
+        email: Email,
+    ) -> Result<FetchResponseKind<User, String>, MappedErrors>;
+
+    async fn get_user_by_id(
+        &self,
+        id: Uuid,
+    ) -> Result<FetchResponseKind<User, String>, MappedErrors>;
+
+    /// Fetches a user by email without redacting secrets
+    ///
+    /// WARNING: This method should only be used for internal purposes.
+    ///
+    async fn get_not_redacted_user_by_email(
+        &self,
+        email: Email,
     ) -> Result<FetchResponseKind<User, String>, MappedErrors>;
 }

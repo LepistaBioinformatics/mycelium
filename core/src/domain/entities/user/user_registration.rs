@@ -2,8 +2,7 @@ use crate::domain::dtos::user::User;
 
 use async_trait::async_trait;
 use mycelium_base::{
-    entities::{CreateResponseKind, GetOrCreateResponseKind},
-    utils::errors::MappedErrors,
+    entities::GetOrCreateResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Interface;
 
@@ -13,9 +12,4 @@ pub trait UserRegistration: Interface + Send + Sync {
         &self,
         user: User,
     ) -> Result<GetOrCreateResponseKind<User>, MappedErrors>;
-
-    async fn create(
-        &self,
-        user: User,
-    ) -> Result<CreateResponseKind<User>, MappedErrors>;
 }

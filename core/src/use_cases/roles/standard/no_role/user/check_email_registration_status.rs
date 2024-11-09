@@ -49,7 +49,7 @@ pub async fn check_email_registration_status(
     // ? -----------------------------------------------------------------------
 
     let user = match user_fetching_repo
-        .get(None, Some(email.to_owned()), None)
+        .get_user_by_email(email.to_owned())
         .await?
     {
         FetchResponseKind::Found(user) => user,

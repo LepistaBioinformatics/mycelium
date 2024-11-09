@@ -28,6 +28,12 @@ pub const DEFAULT_PROFILE_KEY: &str = "x-mycelium-profile";
 ///
 pub const DEFAULT_SERVICE_ACCOUNT_KEY: &str = "x-mycelium-sa-token";
 
+/// Default TOTP domain
+///
+/// This is the default domain used to generate the TOTP token.
+///
+pub const DEFAULT_TOTP_DOMAIN: &str = "Mycelium";
+
 /// Default forward header key
 ///
 /// This is the default key used to store the forward header in the request
