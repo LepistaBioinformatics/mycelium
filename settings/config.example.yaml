@@ -63,6 +63,7 @@ auth:
     jwtSecret:
       env: MYC_INTERNAL_JWT_SECRET
     jwtExpiresIn: 43200 # 12 hours
+    tmpExpiresIn: 300 # 5 minutes
 
   # Google third party authentication. It uses the google oauth2 to authenticate
   # the user. It requires a valid client id and secret.

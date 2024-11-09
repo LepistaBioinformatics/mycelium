@@ -12,11 +12,25 @@ use myc_core::domain::dtos::user::User;
 pub fn encode_jwt(
     user: User,
     token: InternalOauthConfig,
+    is_temporary: bool,
 ) -> Result<String, HttpResponse> {
-    let expiration = Utc::now()
-        .checked_add_signed(chrono::Duration::seconds(token.jwt_expires_in))
-        .expect("valid timestamp")
-        .timestamp();
+    let expires_in = match is_temporary {
+        true => token.tmp_expires_in,
+        false => token.jwt_expires_in,
+    };
+
+    let expiration = match Utc::now()
+        .checked_add_signed(chrono::Duration::seconds(expires_in))
+    {
+        Some(exp) => exp.timestamp(),
+        None => {
+            return Err(HttpResponse::InternalServerError().json(
+                HttpJsonResponse::new_message(
+                    "Could not calculate token expiration.".to_string(),
+                ),
+            ));
+        }
+    };
 
     let claims = Claims {
         sub: match user.id.to_owned() {
@@ -34,7 +48,9 @@ pub fn encode_jwt(
         Ok(key) => key,
         Err(_) => {
             return Err(HttpResponse::InternalServerError().json(
-                HttpJsonResponse::new_message("Could not get token secret key.".to_string()),
+                HttpJsonResponse::new_message(
+                    "Could not get token secret key.".to_string(),
+                ),
             ));
         }
     };

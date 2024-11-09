@@ -207,6 +207,24 @@ pub enum NativeErrorCodes {
     /// is_native: true
     ///
     MYC00021,
+
+    ///
+    /// code: "MYC00022",
+    /// message: "Totp Disabled",
+    /// details: "Indicates that the user does not have TOTP enabled.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00022,
+
+    ///
+    /// code: "MYC00023",
+    /// message: "Totp Token invalid",
+    /// details: "Indicates that the TOTP token is invalid.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00023,
 }
 
 impl NativeErrorCodes {
@@ -255,6 +273,8 @@ impl NativeErrorCodes {
             Self::MYC00019 => "MYC00019",
             Self::MYC00020 => "MYC00020",
             Self::MYC00021 => "MYC00021",
+            Self::MYC00022 => "MYC00022",
+            Self::MYC00023 => "MYC00023",
         }
     }
 
