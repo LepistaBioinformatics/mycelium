@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MFA Activation Finished</title>
+</head>
+
+<body>
+  <table
+    style="max-width: 555px; width: 100%; font-family: 'Open Sans', Segoe, 'Segoe UI', 'DejaVu Sans', 'Trebuchet MS', Verdana, sans-serif; background: #fff; font-size: 13px; color: #323232;"
+    cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+    <tbody>
+      <tr>
+        <td align="left">
+          <h1 style="text-align: center">
+            <span style="font-size: 15px">
+              <strong>Multiple Factor Authentication Activation Sucess</strong>
+            </span>
+          </h1>
+
+          <p>
+            You have successfully activated multiple factor authentication.
+          </p>
+
+          {% if support_email %}
+          <table
+            style="max-width: 555px; width: 100%; font-family: 'Open Sans', arial, sans-serif; font-size: 13px; color: #323232;"
+            cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+            <tbody>
+              <tr>
+                <td height="10">&nbsp;</td>
+              </tr>
+              <tr>
+                <td align="left">
+                  <p>
+                    If you have any questions, please contact us at
+                    <a href="mailto:{{ support_email }}">{{ support_email }}</a>.
+                  </p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          {% endif %}
+
+          {% if platform_url %}
+          <table
+            style="max-width: 555px; width: 100%; font-family: 'Open Sans', arial, sans-serif; font-size: 13px; color: #323232;"
+            cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+            <tbody>
+              <tr>
+                <td height="10">&nbsp;</td>
+              </tr>
+              <tr>
+                <td align="left">
+                  <p>
+                    You can also visit our website at
+                    <a href="{{ platform_url }}">{{ platform_url }}</a>.
+                  </p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          {% endif %}
+        </td>
+      </tr>
+
+    </tbody>
+  </table>
+</body>
+
+</html>

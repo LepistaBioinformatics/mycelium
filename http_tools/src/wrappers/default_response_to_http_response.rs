@@ -190,6 +190,8 @@ pub fn handle_mapped_error(err: MappedErrors) -> HttpResponse {
         (MYC00019, HttpResponse::Forbidden()),
         (MYC00020, HttpResponse::Forbidden()),
         (MYC00021, HttpResponse::BadRequest()),
+        (MYC00022, HttpResponse::BadRequest()),
+        (MYC00023, HttpResponse::BadRequest()),
     ];
 
     for (code, mut response) in error_maps {

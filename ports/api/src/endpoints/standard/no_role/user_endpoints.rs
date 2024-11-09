@@ -15,7 +15,7 @@ use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
-        dtos::user::User,
+        dtos::user::{Totp, User},
         entities::{
             MessageSending, TokenInvalidation, TokenRegistration, UserDeletion,
             UserFetching, UserRegistration, UserUpdating,
@@ -26,7 +26,7 @@ use myc_core::{
         check_email_password_validity, check_email_registration_status,
         check_token_and_activate_user, check_token_and_reset_password,
         create_default_user, start_password_redefinition,
-        start_totp_activation,
+        start_totp_activation, validate_totp_activation,
     },
 };
 use myc_http_tools::{
@@ -72,6 +72,7 @@ pub struct CheckEmailStatusBody {
 #[serde(rename_all = "camelCase")]
 pub struct LoginResponse {
     token: String,
+    totp_required: bool,
 
     #[serde(flatten)]
     user: User,
@@ -81,6 +82,18 @@ pub struct LoginResponse {
 #[serde(rename_all = "camelCase")]
 pub struct TotpActivationStartedResponse {
     totp_url: String,
+}
+
+#[derive(Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct TotpActivationFinishedResponse {
+    status: bool,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct TotpActivationValidationBody {
+    token: String,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -533,15 +546,64 @@ pub async fn check_email_password_validity_url(
                     return HttpResponse::NoContent().finish();
                 };
 
-                let token = match encode_jwt(
-                    _user.to_owned(),
-                    token.get_ref().to_owned(),
-                ) {
-                    Err(err) => return err,
-                    Ok(token) => token,
-                };
+                match _user.mfa().totp {
+                    //
+                    // If TOTP is disabled, we can proceed with the login
+                    // process without any further checks.
+                    //
+                    Totp::Disabled => match encode_jwt(
+                        _user.to_owned(),
+                        token.get_ref().to_owned(),
+                        false,
+                    ) {
+                        Err(err) => return err,
+                        Ok(token) => {
+                            return HttpResponse::Ok().json(LoginResponse {
+                                token,
+                                totp_required: false,
+                                user: _user,
+                            })
+                        }
+                    },
+                    //
+                    // If TOTP is enabled, we need to check if the user has
+                    // already verified the TOTP app.
+                    //
+                    Totp::Enabled { verified, .. } => {
+                        if !verified {
+                            //
+                            // Redirect user to TOTP activation
+                            //
+                            return HttpResponse::TemporaryRedirect()
+                                .append_header((
+                                    "Location",
+                                    format!(
+                                        "{}/totp/enable/",
+                                        build_actor_context(
+                                            ActorName::NoRole,
+                                            UrlGroup::Users
+                                        )
+                                    ),
+                                ))
+                                .finish();
+                        }
 
-                HttpResponse::Ok().json(LoginResponse { token, user: _user })
+                        match encode_jwt(
+                            _user.to_owned(),
+                            token.get_ref().to_owned(),
+                            true,
+                        ) {
+                            Err(err) => return err,
+                            Ok(token) => {
+                                return HttpResponse::Ok().json(LoginResponse {
+                                    token,
+                                    totp_required: true,
+                                    user: _user,
+                                })
+                            }
+                        }
+                    }
+                }
             }
             false => HttpResponse::Unauthorized().finish(),
         },
@@ -630,6 +692,7 @@ pub async fn totp_start_activation_url(
 #[utoipa::path(
     post,
     context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
+    request_body = TotpActivationValidationBody,
     responses(
         (
             status = 500,
@@ -654,8 +717,49 @@ pub async fn totp_start_activation_url(
     ),
 )]
 #[post("/totp/validate-app/")]
-pub async fn totp_finish_activation_url() -> impl Responder {
-    HttpResponse::Ok().finish()
+pub async fn totp_finish_activation_url(
+    req: HttpRequest,
+    body: web::Json<TotpActivationValidationBody>,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
+    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
+    user_updating_repo: Inject<UserUpdatingModule, dyn UserUpdating>,
+    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
+) -> impl Responder {
+    let opt_email =
+        match check_credentials_with_multi_identity_provider(req).await {
+            Err(err) => {
+                warn!("err: {:?}", err);
+                return HttpResponse::InternalServerError()
+                    .json(HttpJsonResponse::new_message(err));
+            }
+            Ok(res) => res,
+        };
+
+    let email = match opt_email {
+        None => {
+            return HttpResponse::Forbidden().json(
+                HttpJsonResponse::new_message(
+                    "User not authenticated. Please login first.",
+                ),
+            )
+        }
+        Some(email) => email,
+    };
+
+    match validate_totp_activation(
+        email,
+        body.token.to_owned(),
+        life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*user_fetching_repo),
+        Box::new(&*user_updating_repo),
+        Box::new(&*message_sending_repo),
+    )
+    .await
+    {
+        Ok(_) => HttpResponse::Ok()
+            .json(TotpActivationFinishedResponse { status: true }),
+        Err(err) => handle_mapped_error(err),
+    }
 }
 
 /// Check TOTP token

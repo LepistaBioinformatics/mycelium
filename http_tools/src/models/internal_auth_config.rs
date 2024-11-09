@@ -6,4 +6,5 @@ use serde::{Deserialize, Serialize};
 pub struct InternalOauthConfig {
     pub jwt_secret: EnvOrValue<String>,
     pub jwt_expires_in: i64,
+    pub tmp_expires_in: i64,
 }
