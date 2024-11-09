@@ -27,7 +27,7 @@ use myc_core::{
         check_email_password_validity, check_email_registration_status,
         check_token_and_activate_user, check_token_and_reset_password,
         create_default_user, start_password_redefinition, totp_check_token,
-        totp_finish_activation, totp_start_activation,
+        totp_disable, totp_finish_activation, totp_start_activation,
     },
 };
 use myc_http_tools::{
@@ -100,12 +100,12 @@ pub struct TotpActivationStartedResponse {
 #[derive(Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct TotpActivationFinishedResponse {
-    status: bool,
+    finished: bool,
 }
 
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct TotpActivationValidationBody {
+pub struct TotpUpdatingValidationBody {
     token: String,
 }
 
@@ -734,7 +734,7 @@ pub async fn totp_start_activation_url(
 #[post("/totp/validate-app/")]
 pub async fn totp_finish_activation_url(
     req: HttpRequest,
-    body: web::Json<TotpActivationValidationBody>,
+    body: web::Json<TotpUpdatingValidationBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
     user_updating_repo: Inject<UserUpdatingModule, dyn UserUpdating>,
@@ -772,7 +772,7 @@ pub async fn totp_finish_activation_url(
     .await
     {
         Ok(_) => HttpResponse::Ok()
-            .json(TotpActivationFinishedResponse { status: true }),
+            .json(TotpActivationFinishedResponse { finished: true }),
         Err(err) => handle_mapped_error(err),
     }
 }
@@ -785,6 +785,7 @@ pub async fn totp_finish_activation_url(
 #[utoipa::path(
     post,
     context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
+    request_body = TotpActivationValidationBody,
     responses(
         (
             status = 500,
@@ -811,7 +812,7 @@ pub async fn totp_finish_activation_url(
 #[post("/totp/check-token/")]
 pub async fn totp_check_token_url(
     req: HttpRequest,
-    body: web::Json<TotpActivationValidationBody>,
+    body: web::Json<TotpUpdatingValidationBody>,
     auth_config: web::Data<InternalOauthConfig>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
@@ -873,6 +874,7 @@ pub async fn totp_check_token_url(
 #[utoipa::path(
     post,
     context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
+    request_body = TotpActivationValidationBody,
     responses(
         (
             status = 500,
@@ -897,6 +899,46 @@ pub async fn totp_check_token_url(
     ),
 )]
 #[post("/totp/disable/")]
-pub async fn totp_disable_url() -> impl Responder {
-    HttpResponse::Ok().finish()
+pub async fn totp_disable_url(
+    req: HttpRequest,
+    body: web::Json<TotpUpdatingValidationBody>,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
+    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
+    user_updating_repo: Inject<UserUpdatingModule, dyn UserUpdating>,
+    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
+) -> impl Responder {
+    let opt_email =
+        match check_credentials_with_multi_identity_provider(req).await {
+            Err(err) => {
+                warn!("err: {:?}", err);
+                return HttpResponse::InternalServerError()
+                    .json(HttpJsonResponse::new_message(err));
+            }
+            Ok(res) => res,
+        };
+
+    let email = match opt_email {
+        None => {
+            return HttpResponse::Forbidden().json(
+                HttpJsonResponse::new_message(
+                    "User not authenticated. Please login first.",
+                ),
+            )
+        }
+        Some(email) => email,
+    };
+
+    match totp_disable(
+        email,
+        body.token.to_owned(),
+        life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*user_fetching_repo),
+        Box::new(&*user_updating_repo),
+        Box::new(&*message_sending_repo),
+    )
+    .await
+    {
+        Ok(_) => HttpResponse::NoContent().finish(),
+        Err(err) => handle_mapped_error(err),
+    }
 }
