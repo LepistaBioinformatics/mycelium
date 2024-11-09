@@ -3,12 +3,13 @@ use crate::{
         dtos::{
             email::Email,
             native_error_codes::NativeErrorCodes,
-            user::{Totp, User},
+            user::{MultiFactorAuthentication, Totp},
         },
-        entities::UserFetching,
+        entities::{MessageSending, UserFetching, UserUpdating},
     },
     models::AccountLifeCycle,
     settings::DEFAULT_TOTP_DOMAIN,
+    use_cases::support::send_email_notification,
 };
 
 use mycelium_base::{
@@ -17,18 +18,20 @@ use mycelium_base::{
 };
 use totp_rs::{Algorithm, Secret, TOTP};
 
-#[tracing::instrument(name = "totp_check_token", skip_all)]
-pub async fn totp_check_token(
+#[tracing::instrument(name = "totp_disable", skip_all)]
+pub async fn totp_disable(
     email: Email,
     token: String,
     life_cycle_settings: AccountLifeCycle,
     user_fetching_repo: Box<&dyn UserFetching>,
-) -> Result<User, MappedErrors> {
+    user_updating_repo: Box<&dyn UserUpdating>,
+    message_sending_repo: Box<&dyn MessageSending>,
+) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch user from email
     // ? -----------------------------------------------------------------------
 
-    let user = match user_fetching_repo
+    let mut user = match user_fetching_repo
         .get_not_redacted_user_by_email(email.to_owned())
         .await?
     {
@@ -122,5 +125,51 @@ pub async fn totp_check_token(
         .as_error();
     }
 
-    Ok(user)
+    // ? -----------------------------------------------------------------------
+    // ? Update user and persist changes in datastore
+    // ? -----------------------------------------------------------------------
+
+    user.with_mfa(MultiFactorAuthentication {
+        totp: Totp::Disabled,
+    });
+
+    let user_id = match user.id {
+        Some(id) => id,
+        None => {
+            return use_case_err(format!(
+                "Unexpected error: User with email {email} has no id",
+                email = email.get_email()
+            ))
+            .as_error()
+        }
+    };
+
+    user_updating_repo.update_mfa(user_id, user.mfa()).await?;
+
+    // ? -----------------------------------------------------------------------
+    // ? Inform user about TOTP activation
+    // ? -----------------------------------------------------------------------
+
+    let parameters = vec![(
+        "support_email",
+        life_cycle_settings.support_email.get_or_error()?,
+    )];
+
+    if let Err(err) = send_email_notification(
+        parameters,
+        "email/mfa-disable.jinja",
+        life_cycle_settings.to_owned(),
+        email.to_owned(),
+        None,
+        String::from("[MFA Disabled] Multiple Factor Authentication Disabled"),
+        message_sending_repo,
+    )
+    .await
+    {
+        return use_case_err(format!("Unable to send email: {err}"))
+            .with_code(NativeErrorCodes::MYC00010)
+            .as_error();
+    };
+
+    Ok(())
 }
