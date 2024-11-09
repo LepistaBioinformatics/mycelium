@@ -1,7 +1,5 @@
-use std::{borrow::Cow, io::Read};
-
 use super::{account::Account, email::Email};
-use crate::models::AccountLifeCycle;
+use crate::{domain::utils::derive_key_from_uuid, models::AccountLifeCycle};
 
 use argon2::{
     password_hash::{
@@ -9,7 +7,6 @@ use argon2::{
     },
     Argon2, PasswordHasher, PasswordVerifier,
 };
-use arrayref::array_ref;
 use base64::{engine::general_purpose, Engine};
 use chrono::{DateTime, Local};
 use mycelium_base::{
@@ -18,7 +15,6 @@ use mycelium_base::{
 };
 use ring::{
     aead::{Aad, LessSafeKey, Nonce, UnboundKey, AES_256_GCM},
-    digest,
     rand::{SecureRandom, SystemRandom},
 };
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
@@ -151,89 +147,84 @@ impl Totp {
         &self,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
+        //
+        // Create a key from the account's secret
+        //
         let encryption_key = config.get_secret()?;
-        let key_bytes = Self::derive_key_from_uuid(&encryption_key);
+        let key_bytes = derive_key_from_uuid(&encryption_key);
 
         let unbound_key = match UnboundKey::new(&AES_256_GCM, &key_bytes) {
             Ok(key) => key,
             Err(err) => {
                 error!("Failed to create unbound key: {:?}", err);
-
                 return dto_err("Failed to create unbound key").as_error();
             }
         };
 
         let key = LessSafeKey::new(unbound_key);
 
-        // Generate nonce
+        //
+        // Generate a nonce
+        //
         let rand = SystemRandom::new();
         let mut nonce_bytes = [0u8; 12];
-
         match rand.fill(&mut nonce_bytes) {
-            Ok(_) => (),
+            Ok(_) => {}
             Err(err) => {
                 error!("Failed to generate nonce: {:?}", err);
-
                 return dto_err("Failed to generate nonce").as_error();
             }
         };
 
         let nonce = Nonce::assume_unique_for_key(nonce_bytes);
 
-        // Crypt secret
-        //let mut in_out = secret.as_bytes().to_vec();
-        let mut in_out = (match self {
-            Self::Enabled { secret, .. } => match secret {
-                Some(secret) => secret.to_owned(),
-                None => {
-                    return use_case_err("Totp is enabled but secret is None.")
-                        .as_error()
-                }
-            },
-            _ => {
-                return use_case_err(
-                    "Totp is disabled and should not be encrypted.",
-                )
-                .as_error()
-            }
-        })
-        .as_bytes()
-        .to_vec();
-
-        match key.seal_in_place_append_tag(nonce, Aad::empty(), &mut in_out) {
-            Ok(_) => (),
-            Err(err) => {
-                error!("Failed to encrypt secret: {:?}", err);
-
-                return dto_err("Failed to encrypt secret").as_error();
-            }
-        };
-
-        // Concatenate nonce + ciphertext to store
-        let mut result = nonce_bytes.to_vec();
-        result.extend_from_slice(&in_out);
-
-        let encrypted_decoded_token = general_purpose::STANDARD.encode(result);
-
-        let self_encrypted = match self {
+        //
+        // Prepare secret data to encrypt
+        //
+        let mut in_out = match self {
             Self::Enabled {
-                verified,
-                issuer,
-                secret: _,
-            } => Self::Enabled {
-                verified: verified.to_owned(),
-                issuer: issuer.to_owned(),
-                secret: Some(encrypted_decoded_token),
-            },
+                secret: Some(secret),
+                ..
+            } => secret.as_bytes().to_vec(),
             _ => {
-                return use_case_err(
-                    "Totp is disabled and should not be encrypted.",
-                )
-                .as_error()
+                return use_case_err("Totp is not enabled or secret is missing")
+                    .as_error()
             }
         };
 
-        Ok(self_encrypted)
+        //
+        // Encrypt in-place and append the authentication tag
+        //
+        match key.seal_in_place_append_tag(nonce, Aad::empty(), &mut in_out) {
+            Ok(_) => {}
+            Err(err) => {
+                error!("Failed to encrypt data: {:?}", err);
+                return dto_err("Failed to encrypt data").as_error();
+            }
+        };
+
+        //
+        // Combine nonce and ciphertext for storage
+        //
+        let mut encrypted_data = nonce_bytes.to_vec();
+
+        encrypted_data.extend_from_slice(&in_out);
+
+        let encrypted_string = general_purpose::STANDARD.encode(encrypted_data);
+
+        //
+        // Return encrypted TOTP instance
+        //
+        let encrypted_totp = Self::Enabled {
+            verified: matches!(self, Self::Enabled { verified, .. } if *verified),
+            issuer: match self {
+                Self::Enabled { issuer, .. } => issuer.clone(),
+                _ => return use_case_err("Expected enabled Totp").as_error(),
+            },
+            secret: Some(encrypted_string),
+        };
+
+        Ok(encrypted_totp)
     }
 
     #[tracing::instrument(name = "decrypt_secret", skip_all)]
@@ -241,98 +232,103 @@ impl Totp {
         &self,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
+        //
+        // Create a key from the account's secret
+        //
         let encryption_key = config.get_secret()?;
-        let key_bytes = Self::derive_key_from_uuid(&encryption_key);
-
-        let token_vector = (match self {
-            Self::Enabled { secret, .. } => match secret {
-                Some(secret) => secret.to_owned(),
-                None => {
-                    return use_case_err("Totp is enabled but secret is None.")
-                        .as_error()
-                }
-            },
-            _ => {
-                return use_case_err(
-                    "Totp is disabled and should not be encrypted.",
-                )
-                .as_error()
-            }
-        })
-        .as_bytes()
-        .to_vec();
-
-        let encrypted = match general_purpose::STANDARD.decode(token_vector) {
-            Ok(data) => data,
-            Err(err) => {
-                error!("Failed to decode encrypted secret: {err}");
-
-                return dto_err("Failed to decode encrypted secret").as_error();
-            }
-        };
-
-        let (nonce_bytes, ciphertext) = encrypted.split_at(12);
+        let key_bytes = derive_key_from_uuid(&encryption_key);
 
         let unbound_key = match UnboundKey::new(&AES_256_GCM, &key_bytes) {
             Ok(key) => key,
             Err(err) => {
-                error!("Failed to create encryption key: {err}");
+                error!("Failed to create unbound key: {:?}", err);
+                return dto_err("Failed to create unbound key").as_error();
+            }
+        };
 
+        let key = LessSafeKey::new(unbound_key);
+
+        //
+        // Extract and decode the encrypted secret
+        //
+        let secret = match self {
+            Self::Enabled {
+                secret: Some(secret),
+                ..
+            } => secret,
+            _ => {
+                return use_case_err("Totp is not enabled or secret is missing")
+                    .as_error()
+            }
+        };
+
+        let encrypted = match general_purpose::STANDARD.decode(secret) {
+            Ok(encrypted) => encrypted,
+            Err(err) => {
+                error!("Failed to decode encrypted data: {:?}", err);
+                return dto_err("Failed to decode encrypted data").as_error();
+            }
+        };
+
+        //
+        // Verify that the encrypted data is long enough to contain the nonce
+        //
+        if encrypted.len() < 12 {
+            return dto_err("Encrypted data is too short").as_error();
+        }
+
+        //
+        // Split encrypted data into nonce and ciphertext
+        //
+        let (nonce_bytes, ciphertext) = encrypted.split_at(12);
+
+        let nonce = match Nonce::try_assume_unique_for_key(nonce_bytes) {
+            Ok(nonce) => nonce,
+            Err(_) => {
+                return dto_err("Invalid nonce").as_error();
+            }
+        };
+
+        let mut in_out = ciphertext.to_vec();
+
+        match key.open_in_place(nonce, Aad::empty(), &mut in_out) {
+            Ok(_) => {}
+            Err(err) => {
+                error!("Failed to decrypt data: {:?}", err);
+                return dto_err("Failed to decrypt data").as_error();
+            }
+        };
+
+        let in_out_slice = if in_out.len() > 16 {
+            in_out.truncate(in_out.len() - 16);
+            in_out
+        } else {
+            in_out
+        };
+
+        //
+        // Convert decrypted data from UTF-8 to String
+        //
+        let decrypted_secret = match String::from_utf8(in_out_slice) {
+            Ok(secret) => secret,
+            Err(err) => {
                 return dto_err(format!(
-                    "Failed to create encryption key: {err}"
+                    "Failed to convert decrypted data to string: {err}"
                 ))
                 .as_error();
             }
         };
 
-        let key = LessSafeKey::new(unbound_key);
-        let nonce =
-            Nonce::assume_unique_for_key(*array_ref!(nonce_bytes, 0, 12));
-
-        let mut in_out = ciphertext.to_vec();
-
-        match key.open_in_place(nonce, Aad::empty(), &mut in_out) {
-            Ok(_) => (),
-            Err(err) => {
-                error!("Failed to decrypt secret: {:?}", err);
-
-                return dto_err("Failed to decrypt secret").as_error();
-            }
-        };
-
-        let response = match String::from_utf8_lossy(&in_out) {
-            Cow::Borrowed(s) => s.to_string(),
-            Cow::Owned(s) => s,
-        };
-
-        let self_decrypted = match self {
-            Self::Enabled {
-                verified,
-                issuer,
-                secret: _,
-            } => Self::Enabled {
-                verified: verified.to_owned(),
-                issuer: issuer.to_owned(),
-                secret: Some(response),
+        let decrypted_totp = Self::Enabled {
+            verified: matches!(self, Self::Enabled { verified, .. } if *verified),
+            issuer: match self {
+                Self::Enabled { issuer, .. } => issuer.clone(),
+                _ => return use_case_err("Expected enabled Totp").as_error(),
             },
-            _ => {
-                return use_case_err(
-                    "Totp is disabled and should not be decrypted.",
-                )
-                .as_error()
-            }
+            secret: Some(decrypted_secret),
         };
 
-        Ok(self_decrypted)
-    }
-
-    #[tracing::instrument(name = "derive_key_from_uuid", skip_all)]
-    fn derive_key_from_uuid(uuid: &Uuid) -> [u8; 32] {
-        let uuid_bytes = uuid.as_bytes();
-        let digest = digest::digest(&digest::SHA256, uuid_bytes);
-        let mut key = [0u8; 32];
-        key.copy_from_slice(digest.as_ref());
-        key
+        Ok(decrypted_totp)
     }
 }
 
@@ -431,7 +427,7 @@ impl Serialize for User {
 
         user.mfa = user.mfa.redact_secrets();
 
-        let mut state = serializer.serialize_struct("User", 10)?;
+        let mut state = serializer.serialize_struct("User", 12)?;
         state.serialize_field("id", &user.id)?;
         state.serialize_field("username", &user.username)?;
         state.serialize_field("email", &user.email)?;
@@ -605,14 +601,14 @@ mod tests {
             token_secret: EnvOrValue::Value(Uuid::new_v4()),
         };
 
-        let encrypted = totp.encrypt_me(config.to_owned()).unwrap();
+        let encrypted = totp.encrypt_me(config.to_owned());
 
-        println!("Encrypted: {:?}", encrypted);
+        assert!(encrypted.is_ok());
 
-        let decrypted = encrypted.decrypt_me(config).unwrap();
+        let decrypted = encrypted.unwrap().decrypt_me(config);
 
-        println!("Decrypted: {:?}", decrypted);
+        assert!(decrypted.is_ok());
 
-        assert_eq!(totp, decrypted);
+        assert_eq!(totp, decrypted.unwrap());
     }
 }
