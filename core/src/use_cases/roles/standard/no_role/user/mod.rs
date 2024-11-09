@@ -5,8 +5,9 @@ mod check_token_and_reset_password;
 mod create_default_user;
 mod delete_default_user;
 mod start_password_redefinition;
-mod start_totp_activation;
-mod validate_totp_activation;
+mod totp_check_token;
+mod totp_finish_activation;
+mod totp_start_activation;
 
 use delete_default_user::*;
 
@@ -16,5 +17,6 @@ pub use check_token_and_activate_user::*;
 pub use check_token_and_reset_password::*;
 pub use create_default_user::*;
 pub use start_password_redefinition::*;
-pub use start_totp_activation::*;
-pub use validate_totp_activation::*;
+pub use totp_check_token::*;
+pub use totp_finish_activation::*;
+pub use totp_start_activation::*;

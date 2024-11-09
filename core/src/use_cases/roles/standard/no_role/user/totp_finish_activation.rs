@@ -18,8 +18,8 @@ use mycelium_base::{
 };
 use totp_rs::{Algorithm, Secret, TOTP};
 
-#[tracing::instrument(name = "validate_totp_activation", skip_all)]
-pub async fn validate_totp_activation(
+#[tracing::instrument(name = "totp_finish_activation", skip_all)]
+pub async fn totp_finish_activation(
     email: Email,
     token: String,
     life_cycle_settings: AccountLifeCycle,
