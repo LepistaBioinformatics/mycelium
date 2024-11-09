@@ -12,6 +12,7 @@ use crate::{
 };
 
 use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
+use chrono::Duration;
 use myc_core::{
     domain::{
         actors::ActorName,
@@ -25,8 +26,8 @@ use myc_core::{
     use_cases::roles::standard::no_role::user::{
         check_email_password_validity, check_email_registration_status,
         check_token_and_activate_user, check_token_and_reset_password,
-        create_default_user, start_password_redefinition,
-        start_totp_activation, validate_totp_activation,
+        create_default_user, start_password_redefinition, totp_check_token,
+        totp_finish_activation, totp_start_activation,
     },
 };
 use myc_http_tools::{
@@ -34,7 +35,7 @@ use myc_http_tools::{
     responses::GatewayError, utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error, Email,
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 use serde_json::json;
 use shaku_actix::Inject;
 use tracing::warn;
@@ -68,10 +69,22 @@ pub struct CheckEmailStatusBody {
     email: String,
 }
 
+fn serialize_duration<S>(
+    duration: &Duration,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+{
+    serializer.serialize_u64(duration.num_seconds() as u64)
+}
+
 #[derive(Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct LoginResponse {
     token: String,
+    #[serde(serialize_with = "serialize_duration")]
+    duration: Duration,
     totp_required: bool,
 
     #[serde(flatten)]
@@ -516,7 +529,7 @@ pub async fn check_token_and_reset_password_url(
 pub async fn check_email_password_validity_url(
     body: web::Json<CheckUserCredentialsBody>,
     user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
-    token: web::Data<InternalOauthConfig>,
+    auth_config: web::Data<InternalOauthConfig>,
 ) -> impl Responder {
     let email_instance = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
@@ -553,13 +566,14 @@ pub async fn check_email_password_validity_url(
                     //
                     Totp::Disabled => match encode_jwt(
                         _user.to_owned(),
-                        token.get_ref().to_owned(),
+                        auth_config.get_ref().to_owned(),
                         false,
                     ) {
                         Err(err) => return err,
-                        Ok(token) => {
+                        Ok((token, duration)) => {
                             return HttpResponse::Ok().json(LoginResponse {
                                 token,
+                                duration,
                                 totp_required: false,
                                 user: _user,
                             })
@@ -590,13 +604,14 @@ pub async fn check_email_password_validity_url(
 
                         match encode_jwt(
                             _user.to_owned(),
-                            token.get_ref().to_owned(),
+                            auth_config.get_ref().to_owned(),
                             true,
                         ) {
                             Err(err) => return err,
-                            Ok(token) => {
+                            Ok((token, duration)) => {
                                 return HttpResponse::Ok().json(LoginResponse {
                                     token,
+                                    duration,
                                     totp_required: true,
                                     user: _user,
                                 })
@@ -670,7 +685,7 @@ pub async fn totp_start_activation_url(
         Some(email) => email,
     };
 
-    match start_totp_activation(
+    match totp_start_activation(
         email,
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*user_fetching_repo),
@@ -746,7 +761,7 @@ pub async fn totp_finish_activation_url(
         Some(email) => email,
     };
 
-    match validate_totp_activation(
+    match totp_finish_activation(
         email,
         body.token.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
@@ -794,8 +809,61 @@ pub async fn totp_finish_activation_url(
     ),
 )]
 #[post("/totp/check-token/")]
-pub async fn totp_check_token_url() -> impl Responder {
-    HttpResponse::Ok().finish()
+pub async fn totp_check_token_url(
+    req: HttpRequest,
+    body: web::Json<TotpActivationValidationBody>,
+    auth_config: web::Data<InternalOauthConfig>,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
+    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
+) -> impl Responder {
+    let opt_email =
+        match check_credentials_with_multi_identity_provider(req).await {
+            Err(err) => {
+                warn!("err: {:?}", err);
+                return HttpResponse::InternalServerError()
+                    .json(HttpJsonResponse::new_message(err));
+            }
+            Ok(res) => res,
+        };
+
+    let email = match opt_email {
+        None => {
+            return HttpResponse::Forbidden().json(
+                HttpJsonResponse::new_message(
+                    "User not authenticated. Please login first.",
+                ),
+            )
+        }
+        Some(email) => email,
+    };
+
+    match totp_check_token(
+        email,
+        body.token.to_owned(),
+        life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*user_fetching_repo),
+    )
+    .await
+    {
+        Ok(res) => {
+            match encode_jwt(
+                res.to_owned(),
+                auth_config.get_ref().to_owned(),
+                false,
+            ) {
+                Err(err) => return err,
+                Ok((token, duration)) => {
+                    return HttpResponse::Ok().json(LoginResponse {
+                        token,
+                        duration,
+                        totp_required: false,
+                        user: res,
+                    })
+                }
+            }
+        }
+        Err(err) => handle_mapped_error(err),
+    }
 }
 
 /// Disable TOTP

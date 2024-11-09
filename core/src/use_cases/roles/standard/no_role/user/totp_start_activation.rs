@@ -19,8 +19,8 @@ use mycelium_base::{
 use rand::Rng;
 use totp_rs::{Algorithm, Secret, TOTP};
 
-#[tracing::instrument(name = "start_totp_activation", skip_all)]
-pub async fn start_totp_activation(
+#[tracing::instrument(name = "totp_start_activation", skip_all)]
+pub async fn totp_start_activation(
     email: Email,
     life_cycle_settings: AccountLifeCycle,
     user_fetching_repo: Box<&dyn UserFetching>,

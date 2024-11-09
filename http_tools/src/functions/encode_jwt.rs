@@ -4,7 +4,7 @@ use crate::{
 };
 
 use actix_web::HttpResponse;
-use chrono::Utc;
+use chrono::{Duration, Utc};
 use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use myc_core::domain::dtos::user::User;
 
@@ -13,15 +13,15 @@ pub fn encode_jwt(
     user: User,
     token: InternalOauthConfig,
     is_temporary: bool,
-) -> Result<String, HttpResponse> {
+) -> Result<(String, Duration), HttpResponse> {
     let expires_in = match is_temporary {
         true => token.tmp_expires_in,
         false => token.jwt_expires_in,
     };
 
-    let expiration = match Utc::now()
-        .checked_add_signed(chrono::Duration::seconds(expires_in))
-    {
+    let duration = chrono::Duration::seconds(expires_in);
+
+    let expiration = match Utc::now().checked_add_signed(duration) {
         Some(exp) => exp.timestamp(),
         None => {
             return Err(HttpResponse::InternalServerError().json(
@@ -60,7 +60,7 @@ pub fn encode_jwt(
         &claims,
         &EncodingKey::from_secret(secret.as_bytes()),
     ) {
-        Ok(token) => Ok(token),
+        Ok(token) => Ok((token, duration)),
         Err(err) => Err(HttpResponse::InternalServerError()
             .json(HttpJsonResponse::new_message(err.to_string()))),
     }
