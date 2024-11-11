@@ -1,15 +1,10 @@
+use super::models::MsGraphDecode;
 use crate::providers::shared::check_token_online;
 
 use actix_web::{http::header::Header, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use myc_core::domain::dtos::email::Email;
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
-use serde::Deserialize;
-
-#[derive(Deserialize, Debug)]
-pub struct MsGraphDecode {
-    pub mail: String,
-}
 
 /// Try to collect the user email.
 ///

@@ -40,7 +40,7 @@ use models::{
 };
 use myc_config::optional_config::OptionalConfig;
 use myc_core::{domain::dtos::http::Protocol, settings::init_in_memory_routes};
-use myc_http_tools::providers::google_handlers;
+use myc_http_tools::providers::google_endpoints;
 use myc_notifier::{
     executor::consume_messages,
     repositories::MessageSendingSmtpRepository,
@@ -428,7 +428,7 @@ pub async fn main() -> std::io::Result<()> {
                 info!("Configuring Google authentication");
                 let scope = mycelium_scope.service(
                     web::scope("/auth/google")
-                        .configure(google_handlers::configure),
+                        .configure(google_endpoints::configure),
                 );
 
                 scope

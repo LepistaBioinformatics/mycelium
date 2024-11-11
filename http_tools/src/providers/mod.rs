@@ -2,13 +2,13 @@ mod shared;
 
 mod azure;
 pub use azure::{
-    check_credentials::check_credentials as az_check_credentials,
     config as azure_config,
+    functions::check_credentials as az_check_credentials,
 };
 
 mod google;
 pub use google::{
-    check_credentials::check_credentials as gc_check_credentials,
-    config as google_config, handlers as google_handlers,
-    model as google_models,
+    config as google_config, endpoints as google_endpoints,
+    functions::check_credentials as gc_check_credentials,
+    models as google_models,
 };

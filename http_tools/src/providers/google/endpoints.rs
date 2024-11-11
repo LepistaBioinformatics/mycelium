@@ -1,6 +1,6 @@
 use super::{
-    auth::{get_google_user, request_token},
-    model::{QueryCode, TokenClaims},
+    functions::{get_google_user, request_token},
+    models::{QueryCode, TokenClaims},
 };
 use crate::models::auth_config::AuthConfig;
 
@@ -13,6 +13,10 @@ use jsonwebtoken::{encode, EncodingKey, Header};
 use log::debug;
 use myc_config::optional_config::OptionalConfig;
 use reqwest::header::LOCATION;
+
+pub fn configure(conf: &mut web::ServiceConfig) {
+    conf.service(google_oauth_handler);
+}
 
 #[get("/callback")]
 async fn google_oauth_handler(
@@ -126,8 +130,4 @@ async fn google_oauth_handler(
             "status": "success",
             "token": token
         }))
-}
-
-pub fn configure(conf: &mut web::ServiceConfig) {
-    conf.service(google_oauth_handler);
 }
