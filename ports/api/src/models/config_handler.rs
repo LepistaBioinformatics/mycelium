@@ -8,7 +8,7 @@ use myc_prisma::models::PrismaConfig;
 use mycelium_base::utils::errors::MappedErrors;
 use std::path::PathBuf;
 
-pub(crate) struct ConfigHandler {
+pub struct ConfigHandler {
     pub core: CoreConfig,
     pub prisma: PrismaConfig,
     pub api: ApiConfig,
@@ -27,18 +27,18 @@ impl ConfigHandler {
             // responsible for the communication with the database into the
             // adapters layer.
             prisma: PrismaConfig::from_default_config_file(file.clone())?,
-            // SMTP configuration should be used by the email sending repository
-            // managements into the adapters layer.
-            smtp: SmtpConfig::from_default_config_file(file.clone())?,
-            // Queue configuration should be used by the queue repository
-            // managements into the adapters layer.
-            queue: QueueConfig::from_default_config_file(file.clone())?,
             // API configuration should be used by the web server into the ports
             // layer.
             api: ApiConfig::from_default_config_file(file.clone())?,
             // Auth configuration should be used by the web server into the
             // ports.
             auth: AuthConfig::from_default_config_file(file.clone())?,
+            // SMTP configuration should be used by the email sending repository
+            // managements into the adapters layer.
+            smtp: SmtpConfig::from_default_config_file(file.clone())?,
+            // Queue configuration should be used by the queue repository
+            // managements into the adapters layer.
+            queue: QueueConfig::from_default_config_file(file.clone())?,
         })
     }
 }

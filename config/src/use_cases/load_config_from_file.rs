@@ -10,10 +10,10 @@ where
     for<'a> T: Deserialize<'a>,
 {
     let f = std::fs::File::open(file_path.as_path().to_str().unwrap())
-        .expect("Could not open config file.");
+        .expect("Could not open config file");
 
     let config: T =
-        serde_yaml::from_reader(f).expect("Could not read config file.");
+        serde_yaml::from_reader(f).expect("Could not read config file");
 
     Ok(config)
 }

@@ -28,6 +28,7 @@ jsonwebtoken.workspace = true
 jwt.workspace = true
 log.workspace = true
 oauth2.workspace = true
+rand.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 utoipa.workspace = true
@@ -35,6 +36,7 @@ lazy_static.workspace = true
 reqwest.workspace = true
 url.workspace = true
 uuid.workspace = true
+tracing.workspace = true
 
 
 # ? ----------------------------------------------------------------------------
