@@ -101,11 +101,11 @@ pub(super) async fn request_token(
         OptionalConfig::Enabled(config) => config,
     };
 
-    let redirect_url = config.oauth_redirect_url.to_owned();
+    let redirect_url = config.redirect_url.to_owned();
     let root_url = "https://oauth2.googleapis.com/token";
     let client = Client::new();
 
-    let client_id = match config.oauth_client_id.get_or_error() {
+    let client_id = match config.client_id.get_or_error() {
         Ok(res) => res,
         Err(err) => {
             return Err(From::from(format!(
@@ -114,7 +114,7 @@ pub(super) async fn request_token(
         }
     };
 
-    let client_secret = match config.oauth_client_secret.get_or_error() {
+    let client_secret = match config.client_secret.get_or_error() {
         Ok(res) => res,
         Err(err) => {
             return Err(From::from(format!(

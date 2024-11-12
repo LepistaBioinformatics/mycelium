@@ -62,7 +62,6 @@ url.workspace = true
 actix = "0.13"
 actix-cors = { version = "0.6.2" }
 actix-rt = "2.10"
-actix-session = { version = "0.7.2", features = ["cookie-session"] }
 actix-web-error = { version = "0.2" }
 actix-web-error-derive = { version = "0.2" }
 actix-web-opentelemetry = "0.18.0"

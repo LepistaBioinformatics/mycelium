@@ -191,7 +191,7 @@ pub async fn totp_finish_activation(
         email.to_owned(),
         None,
         String::from(
-            "[MFA Activation Finished] Multiple Factor Authentication Write",
+            "[MFA Activation Finished] Multiple Factor Authentication Ready",
         ),
         message_sending_repo,
     )

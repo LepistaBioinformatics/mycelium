@@ -9,16 +9,7 @@ mod router;
 mod settings;
 
 use actix_cors::Cors;
-use actix_session::{
-    config::{BrowserSession, CookieContentSecurity},
-    storage::CookieSessionStore,
-    SessionMiddleware,
-};
-use actix_web::{
-    cookie::{Key, SameSite},
-    middleware::Logger,
-    web, App, HttpServer,
-};
+use actix_web::{middleware::Logger, web, App, HttpServer};
 use actix_web_opentelemetry::RequestTracing;
 use awc::Client;
 use config::injectors::configure as configure_injection_modules;
@@ -40,7 +31,7 @@ use models::{
 };
 use myc_config::optional_config::OptionalConfig;
 use myc_core::{domain::dtos::http::Protocol, settings::init_in_memory_routes};
-use myc_http_tools::providers::google_endpoints;
+use myc_http_tools::providers::{azure_endpoints, google_endpoints};
 use myc_notifier::{
     executor::consume_messages,
     repositories::MessageSendingSmtpRepository,
@@ -66,20 +57,6 @@ use tracing_subscriber::prelude::*;
 use tracing_subscriber::{fmt, EnvFilter};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::{Config, SwaggerUi, Url};
-
-fn session_middleware() -> SessionMiddleware<CookieSessionStore> {
-    SessionMiddleware::builder(
-        CookieSessionStore::default(),
-        Key::from(&[0; 64]),
-    )
-    .cookie_name(String::from("myc-gw-cookie")) // arbitrary name
-    .cookie_secure(true) // https only
-    .session_lifecycle(BrowserSession::default()) // expire at end of session
-    .cookie_same_site(SameSite::Lax)
-    .cookie_content_security(CookieContentSecurity::Private) // encrypt
-    .cookie_http_only(true) // disallow scripts from reading
-    .build()
-}
 
 // ? ---------------------------------------------------------------------------
 // ? API fire elements
@@ -437,40 +414,31 @@ pub async fn main() -> std::io::Result<()> {
         };
 
         // ? -------------------------------------------------------------------
-        // TODO: Do implement the Azure AD authentication
-        //
         // ? Configure authentication elements
         //
         // Azure AD OAuth2
         //
         // ? -------------------------------------------------------------------
-        // let mycelium_scope = match auth_config.azure {
-        //     OptionalConfig::Enabled(_) => {
-        //         //
-        //         // Configure OAuth2 Scope
-        //         //
-        //         debug!("Configuring Azure AD authentication");
-        //         let scope = mycelium_scope.service(
-        //             web::scope("/auth/azure")
-        //                 .configure(azure_handlers::configure),
-        //         );
-        //         debug!("Azure AD OAuth2 configuration done");
-        //         scope
-        //     }
-        //     _ => mycelium_scope,
-        // };
+        let mycelium_scope = match auth_config.azure {
+            OptionalConfig::Enabled(_) => {
+                //
+                // Configure OAuth2 Scope
+                //
+                info!("Configuring Azure AD authentication");
+                let scope = mycelium_scope.service(
+                    web::scope("/auth/azure")
+                        .configure(azure_endpoints::configure),
+                );
+
+                scope
+            }
+            _ => mycelium_scope,
+        };
 
         // ? -------------------------------------------------------------------
         // ? Fire the server
         // ? -------------------------------------------------------------------
         app
-            // ? ---------------------------------------------------------------
-            // ? Configure Session
-            //
-            // https://docs.rs/actix-session/latest/actix_session/storage/struct.CookieSessionStore.html
-            //
-            // ? ---------------------------------------------------------------
-            .wrap(session_middleware())
             // ? ---------------------------------------------------------------
             // ? Configure CORS policies
             // ? ---------------------------------------------------------------

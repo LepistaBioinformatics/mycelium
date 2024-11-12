@@ -115,7 +115,6 @@ impl Totp {
         config: AccountLifeCycle,
     ) -> Result<String, MappedErrors> {
         let mut self_copy = self.clone();
-        println!("self_copy: {:?}", self_copy);
         self_copy = self_copy.decrypt_me(config)?;
 
         let (secret, issuer) = match self_copy {

@@ -2,7 +2,7 @@ mod shared;
 
 mod azure;
 pub use azure::{
-    config as azure_config,
+    config as azure_config, endpoints as azure_endpoints,
     functions::check_credentials as az_check_credentials,
 };
 

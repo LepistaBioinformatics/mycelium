@@ -1,10 +1,13 @@
-use super::models::MsGraphDecode;
+use super::{config::AzureOauthConfig, models::MsGraphDecode};
 use crate::providers::shared::check_token_online;
 
 use actix_web::{http::header::Header, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use myc_core::domain::dtos::email::Email;
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
+use oauth2::{
+    basic::BasicClient, AuthUrl, ClientId, ClientSecret, RedirectUrl, TokenUrl,
+};
 
 /// Try to collect the user email.
 ///
@@ -39,4 +42,64 @@ async fn decode_bearer_token_on_ms_graph(
             .await?;
 
     Email::from_string(token_response.mail)
+}
+
+pub(super) fn oauth_client(
+    config: AzureOauthConfig,
+) -> Result<BasicClient, MappedErrors> {
+    let tenant = config.tenant_id;
+
+    let client_id = ClientId::new(config.client_id);
+
+    let client_secret = ClientSecret::new(config.client_secret.get_or_error()?);
+
+    let auth_url = match AuthUrl::new(
+        format!(
+            "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize"
+        )
+        .to_string(),
+    ) {
+        Ok(url) => url,
+        Err(err) => {
+            return execution_err(format!(
+                "Invalid authorization endpoint URL: {err}"
+            ))
+            .as_error();
+        }
+    };
+
+    let token_url = match TokenUrl::new(
+        format!("https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token")
+            .to_string(),
+    ) {
+        Ok(url) => url,
+        Err(err) => {
+            return execution_err(format!("Invalid token endpoint URL: {err}"))
+                .as_error();
+        }
+    };
+
+    let redirect_url = match RedirectUrl::new(format!(
+        "{redirect_url}/{callback_path}",
+        redirect_url = config.redirect_url,
+        callback_path = config
+            .callback_path
+            .unwrap_or("/myc/auth/azure/callback".into())
+    )) {
+        Ok(url) => url,
+        Err(err) => {
+            return execution_err(format!("Invalid redirect URL: {err}"))
+                .as_error();
+        }
+    };
+
+    let client = BasicClient::new(
+        client_id,
+        Some(client_secret),
+        auth_url,
+        Some(token_url),
+    )
+    .set_redirect_uri(redirect_url);
+
+    Ok(client)
 }
