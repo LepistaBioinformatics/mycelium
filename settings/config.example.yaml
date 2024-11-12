@@ -28,14 +28,14 @@ prisma:
 # not be sent.
 #
 # ? ----------------------------------------------------------------------------
-smtp:
+smtp: !enabled
   host: "smtp.gmail.com"
   username:
     env: MYC_SMTP_USERNAME
   password:
     env: MYC_SMTP_PASSWORD
 
-queue:
+queue: !enabled
   protocol: redis # should be rediss for secure connection
   hostname:
     env: MYC_REDIS_HOSTNAME
@@ -59,7 +59,7 @@ queue:
 auth:
   # Internal authentication is the default authentication method. It uses the
   # database adapter plus the redis to flow along the users life cycle.
-  internal:
+  internal: !enabled
     jwtSecret:
       env: MYC_INTERNAL_JWT_SECRET
     jwtExpiresIn: 43200 # 12 hours
@@ -67,7 +67,7 @@ auth:
 
   # Google third party authentication. It uses the google oauth2 to authenticate
   # the user. It requires a valid client id and secret.
-  google:
+  google: !enabled
     clientOrigin: http://localhost:3000
     jwtSecret:
       env: MYC_GOOGLE_JWT_SECRET
@@ -82,7 +82,16 @@ auth:
   # Azure third party authentication. It uses the azure oauth2 to authenticate
   # the user. It does not require a valid client id and secret. Working only
   # with the azure active directory.
-  azure: disabled
+  azure: !enabled
+    clientOrigin: http://localhost:3000
+    # ! Should be collected from environment variable in production
+    tenantId: "my_tenant_id"
+    # ! Should be collected from environment variable in production
+    clientId: "my_client_id"
+    # ! Should be collected from environment variable in production
+    clientSecret: "my_client_secret"
+    redirectUrl: http://localhost:3000
+    callbackPath: /auth/azure/callback
 
 # ? ----------------------------------------------------------------------------
 # ? API PORT SETTINGS SETTINGS
