@@ -9,18 +9,12 @@ pub struct MsGraphDecode {
     pub mail: String,
 }
 
-//#[derive(Debug, Serialize, Deserialize)]
-//pub(super) struct AzureTokenResponse {
-//    pub(super) access_token: String,
-//    pub(super) id_token: String,
-//    pub(super) expires_in: i64,
-//    pub(super) scope: String,
-//    pub(super) token_type: String,
-//}
-
 #[derive(Debug, Deserialize)]
 pub(super) struct QueryCode {
-    pub code: String,
+    pub code: Option<String>,
+    pub error: Option<String>,
+    pub error_description: Option<String>,
+    pub state: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -33,6 +27,7 @@ pub(super) type AzureTokenResponse =
 
 #[derive(Debug, Serialize, Deserialize)]
 pub(super) struct CsrfTokenClaims {
-    pub(super) csrf: String, // Um identificador exclusivo
-    pub(super) exp: usize,   // Data de expiração
+    pub(super) csrf: String,
+    pub(super) exp: usize,
+    pub(super) code_verifier: String,
 }

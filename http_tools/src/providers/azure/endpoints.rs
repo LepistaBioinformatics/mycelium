@@ -15,7 +15,7 @@ use jsonwebtoken::{
 use myc_config::optional_config::OptionalConfig;
 use oauth2::{
     reqwest::async_http_client, AuthorizationCode, CsrfToken,
-    PkceCodeChallenge, Scope, TokenResponse,
+    PkceCodeChallenge, PkceCodeVerifier, Scope, TokenResponse,
 };
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde_json::json;
@@ -50,9 +50,12 @@ pub async fn login(config: web::Data<AuthConfig>) -> HttpResponse {
         .map(char::from)
         .collect();
 
+    let (challenge, verifier) = PkceCodeChallenge::new_random_sha256();
+
     let claims = CsrfTokenClaims {
         exp: (Utc::now().timestamp() + config.csrf_token_expiration) as usize,
-        csrf,
+        csrf: csrf.to_owned(),
+        code_verifier: verifier.secret().to_owned(),
     };
 
     let jwt_secret = match config.jwt_secret.get_or_error() {
@@ -75,26 +78,46 @@ pub async fn login(config: web::Data<AuthConfig>) -> HttpResponse {
         }
     };
 
-    let (challenge, _) = PkceCodeChallenge::new_random_sha256();
+    let state_fn = move || CsrfToken::new(csrf_token_jwt.clone());
 
     let (authorize_url, _) = client
-        .authorize_url(CsrfToken::new_random)
+        .authorize_url(state_fn)
         .add_scope(Scope::new("openid".to_string()))
         .set_pkce_challenge(challenge)
         .url();
 
     HttpResponse::Ok().json(json!({
-        "authorize_url": authorize_url.to_string(),
-        "csrf_token": csrf_token_jwt
+        "authorize_url": authorize_url.to_string()
     }))
 }
 
 #[get("/callback")]
 pub async fn callback(
-    csrf_token_jwt: String,
     query: web::Query<QueryCode>,
     config: web::Data<AuthConfig>,
 ) -> HttpResponse {
+    if let Some(err) = query.error.to_owned() {
+        let error_description =
+            query.error_description.to_owned().unwrap_or("".to_owned());
+
+        error!("Error on callback: {err}: {error_description}");
+
+        return HttpResponse::BadRequest().json(json!({
+            "error": err,
+            "description": error_description,
+            "step": "callback"
+        }));
+    }
+
+    let code = match query.code.to_owned() {
+        Some(code) => code,
+        None => {
+            return HttpResponse::BadRequest().json(
+                HttpJsonResponse::new_message("Code not found".to_owned()),
+            );
+        }
+    };
+
     let config = if let OptionalConfig::Enabled(config) =
         config.get_ref().azure.to_owned()
     {
@@ -125,8 +148,8 @@ pub async fn callback(
     //
     // If the token is invalid or expired, return an error
     //
-    let _ = match decode::<CsrfTokenClaims>(
-        &csrf_token_jwt,
+    let csrf_claims = match decode::<CsrfTokenClaims>(
+        &query.state.to_owned(),
         &DecodingKey::from_secret(jwt_secret.as_ref()),
         &Validation::default(),
     ) {
@@ -140,23 +163,23 @@ pub async fn callback(
                 );
             }
             _ => {
-                return HttpResponse::Unauthorized().json(
-                    HttpJsonResponse::new_message(
-                        "Invalid CSRF Token".to_owned(),
-                    ),
-                )
+                return HttpResponse::Unauthorized().json(json!({
+                    "error": "Invalid CSRF Token",
+                    "description": err.to_string(),
+                    "step": "csrf"
+                }));
             }
         },
     };
 
-    let code = AuthorizationCode::new(query.code.clone());
+    let code = AuthorizationCode::new(code.clone());
 
-    let token_result = client
+    match client
         .exchange_code(code)
+        .set_pkce_verifier(PkceCodeVerifier::new(csrf_claims.code_verifier))
         .request_async(async_http_client)
-        .await;
-
-    match token_result {
+        .await
+    {
         Ok(token) => {
             let access_token = token.access_token();
 
@@ -168,8 +191,34 @@ pub async fn callback(
 
             HttpResponse::Ok().json(token_response)
         }
-        Err(_) => {
-            HttpResponse::InternalServerError().body("Error on token exchange")
+        Err(err) => {
+            match err {
+                oauth2::RequestTokenError::ServerResponse(response) => {
+                    return HttpResponse::InternalServerError().json(json!({
+                        "error": response.error().to_string(),
+                        "error_description": response.error_description(),
+                        "step": "token_exchange_server"
+                    }))
+                }
+                oauth2::RequestTokenError::Request(ref err) => {
+                    return HttpResponse::InternalServerError().json(json!({
+                        "error": err.to_string(),
+                        "step": "token_exchange_request"
+                    }))
+                }
+                ref response => {
+                    error!(
+                        "Error on token exchange: {:?}",
+                        response.to_string()
+                    );
+                }
+            }
+
+            HttpResponse::InternalServerError().json(
+                HttpJsonResponse::new_message(format!(
+                    "Error on token exchange: {err}"
+                )),
+            )
         }
     }
 }

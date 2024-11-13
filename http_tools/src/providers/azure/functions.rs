@@ -80,7 +80,7 @@ pub(super) fn oauth_client(
     };
 
     let redirect_url = match RedirectUrl::new(format!(
-        "{redirect_url}/{callback_path}",
+        "{redirect_url}{callback_path}",
         redirect_url = config.redirect_url,
         callback_path = config
             .callback_path

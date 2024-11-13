@@ -7,8 +7,6 @@ pub struct AzureOauthConfig {
     pub client_origin: String,
     pub jwt_secret: EnvOrValue<String>,
     pub csrf_token_expiration: i64,
-    //pub jwt_expires_in: String,
-    //pub jwt_max_age: i64,
     pub tenant_id: String,
     pub client_id: String,
     pub client_secret: EnvOrValue<String>,
