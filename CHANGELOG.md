@@ -1,3 +1,107 @@
+## v6.0.0 (2024-11-13)
+
+### BREAKING CHANGE
+
+- feature/gh14
+
+### Feat
+
+- upgrade the azure authorization flow in replacement to the remote check
+- implements the totp disable
+- implements the two setp login using totp flow
+- implements the totp activation
+- implements the totp initial steps for the otp registration
+- implements the secret encryption during the totl registration on user mfa flow
+- implements the totp encryption and decryption
+- implements the prisma and api injectors for token fetching module
+- implements the token creation endpoint of guest-manager
+- implements the noreply and internal emails naming
+- implements the prisma adapter to create new connection string tokens and remove unused imports from native-errors in endpoints
+- implements the connection string elements to generate service tokens
+- implements the guest-to-children-account use-case as a api port endpoint
+- implements the route filtration by permissioned roles
+- implements the route level filtration by role
+- implemens the children guest role management endpoints
+- wip - implements the guest role children insertion and deletion features
+- replace the smtp direct sender by a scheduler sender
+- implements the tenant-manager endpoint related elements
+- implements the tenant-owner endpoints
+- implements the tenant management endpoints
+- re-include the myc-cli crate on the project after fixing
+- do implements the tenant management for prisma repositories
+- wip - implements the prisma repository for tenant registration
+- implements the abstract code for tenant tag management
+- implement use-cases for metadata management in tenant-owner modules
+- implement the account deletion repo
+- do implement the tenant owner guest and revoke use-cases
+- wip - do implement the tenant-owner functionalitie
+- wip - do implement the new tenant based accounts management
+- wip - do implement the base logic fot the tenant implementation
+- implements the password recovery flow
+- replace logs from the core use-cases by tracing
+- implements the base for opentelemetry in lycelium
+- improve the user activation code
+- wip - initialize the migration from activation url to numeric token on create new user accounts
+- improve the mycelium native auth to allow logins
+- upgrade the internal authentication flow to generate simple authentication tokens from mycelium
+
+### Fix
+
+- finish the authorization code flow for the azure ad
+- review the account list method to allow filter directly by account-type
+- remove url query string from webhook response to avoid expose secrets
+- fix the guest to default subscription account name inserted at the account name
+- adjust the webhook dispatching method based on the webhook trigger
+- fix the webhook lifecycle to live as a more verbose to the final users
+- include the redaction function on get webhook from database
+- remove greather than equal from licensed resource fetching using prisma to use only equal to permissions
+- replace the myc00013 response from profile permissions check by a myc00019 code
+- allow users and staffs to use role protected routes
+- fix the email processing counter and fix the child role invitation use-case to avoid guest to different roles that the target one
+- fix staff endpoints to upgrade and downgrade accounts
+- replace the profile injection to responds with unauthorized instead of forbidden
+- fix the guest process
+- replace the guesting email template element to use the tera template
+- fix the email consumption queue processor
+- remove google and azure endpoints from logging ignore rules
+- reintroduce the system and users management endpoints
+- re-introduce the staff endpoints
+- fix account and licensed resources prisma repositories
+- fix database connection between tenant and account
+- migrate sql database before fix the prisma repositories
+- rename revoke tenant owner wrongly named use-case function
+- fix role-related account propagation through the webhook element
+- solve the permission check for the tenant operations to include validation over the manager and staff accounts
+- fix return tyoe of login function
+- move the tracing initialization to move it to the root of the main api function
+- include expiration time during the account activation token fetching from database
+- move the email template location and fix the email verification code generation
+
+### Refactor
+
+- refactor providers to standardize modules
+- move the shared functions from the roles module to a support module
+- refactor webhooks to follow de main stream format widely used in web applications
+- rename the token generator for the account associated connection string use-case
+- move the email sender to a dedicated module shared between use-cases and create a new mapped-error-to-http-response mapping handled
+- rename user to users and subscription by subscriptions as default actors and mirror to dependent elements
+- refactor the permissions to be a integer with read write and read-write options only
+- replace all crud related permissioner elements by simple read-write ones
+- rename child insertion and removal use-cases files
+- move the guest-role to a dedicated dto module
+- refactor the mycelium smtp to be a general purpose notifier
+- rename all json-error occurrent by http-json-error crate
+- move otel acessory functions from main api port file to a dedicated otel file
+- refactor endpoints to use the standard error code wrappers
+- turn tenant endpoints of manager api module a file
+- reactivate guests endpoints and move it to the subscription-manager endpoints group
+- rename the checked status to verified or unverified in verbose-status
+- adequate all core elements to include tenant on the profile filtering
+- move the guest to subscription-manager instead to guest-managers
+- move the staff tenant management elements to manager management elements
+- rename the user and subscription manager roles
+- move the session_token to account-life-cycle module
+
 ## v5.0.8 (2024-04-25)
 
 ### Fix
