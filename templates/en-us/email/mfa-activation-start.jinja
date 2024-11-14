@@ -1,0 +1,25 @@
+{% extends "en-us/email/base.jinja" %}
+
+{% block title %}
+MFA Activation Started
+{% endblock title %}
+
+{% block head %}
+{{ super() }}
+{% endblock head %}
+
+{% block contenttitle %}
+Multi-Factor Authentication Activation Started
+{% endblock contenttitle %}
+
+{% block contenttable %}
+<tbody>
+  <tr>
+    <td align="left">
+      <p>
+        You have started the activation of multi-factor authentication.
+      </p>
+    </td>
+  </tr>
+</tbody>
+{% endblock contenttable %}

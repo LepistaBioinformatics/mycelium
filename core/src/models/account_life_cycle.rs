@@ -17,6 +17,9 @@ pub struct AccountLifeCycle {
     /// Domain URL
     pub domain_url: Option<String>,
 
+    /// Default language
+    pub locale: Option<String>,
+
     /// Token expiration time in seconds
     ///
     /// This information is used to calculate the lifetime for new user

@@ -40,16 +40,22 @@ pub(crate) async fn send_email_notification<T: ToString>(
         context.insert(key.to_string(), &value.to_string());
     }
 
-    let email_template =
-        match TEMPLATES.render(&template_path.to_string().as_str(), &context) {
-            Ok(res) => res,
-            Err(err) => {
-                return use_case_err(format!(
-                    "Unable to render email template: {err}"
-                ))
-                .as_error();
-            }
-        };
+    let locale_path = format!(
+        "{locale}/{path}",
+        locale = config.locale.unwrap_or_else(|| "en-us".to_string()),
+        path = template_path.to_string()
+    );
+
+    let email_template = match TEMPLATES.render(&locale_path.as_str(), &context)
+    {
+        Ok(res) => res,
+        Err(err) => {
+            return use_case_err(format!(
+                "Unable to render email template: {err}"
+            ))
+            .as_error();
+        }
+    };
 
     let from_email = Email::from_string(config.noreply_email.get_or_error()?)?;
 
