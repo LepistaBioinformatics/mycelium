@@ -179,13 +179,8 @@ pub async fn totp_finish_activation(
     // ? Inform user about TOTP activation
     // ? -----------------------------------------------------------------------
 
-    let parameters = vec![(
-        "support_email",
-        life_cycle_settings.support_email.get_or_error()?,
-    )];
-
     if let Err(err) = send_email_notification(
-        parameters,
+        vec![],
         "email/mfa-activation-validated.jinja",
         life_cycle_settings.to_owned(),
         email.to_owned(),

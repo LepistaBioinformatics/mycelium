@@ -61,7 +61,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[serde(rename_all = "camelCase")]
 pub struct GuestUserBody {
     email: String,
-    platform_url: Option<String>,
 }
 
 #[derive(Deserialize, ToSchema, IntoParams)]
@@ -234,7 +233,6 @@ pub async fn guest_user_url(
         email,
         role_id,
         account_id,
-        body.platform_url.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*account_fetching_repo),
         Box::new(&*guest_role_fetching_repo),

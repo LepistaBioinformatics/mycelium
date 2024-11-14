@@ -11,6 +11,12 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountLifeCycle {
+    /// Domain name
+    pub domain_name: String,
+
+    /// Domain URL
+    pub domain_url: Option<String>,
+
     /// Token expiration time in seconds
     ///
     /// This information is used to calculate the lifetime for new user

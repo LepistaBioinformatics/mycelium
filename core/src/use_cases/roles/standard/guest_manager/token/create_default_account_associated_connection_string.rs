@@ -109,10 +109,6 @@ pub async fn create_default_account_associated_connection_string(
                 },
             ),
         ),
-        (
-            "support_email",
-            life_cycle_settings.support_email.get_or_error()?,
-        ),
     ];
 
     if let Err(err) = send_email_notification(

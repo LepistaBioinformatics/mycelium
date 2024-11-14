@@ -21,7 +21,6 @@ use mycelium_base::{
 pub async fn start_password_redefinition(
     email: Email,
     life_cycle_settings: AccountLifeCycle,
-    platform_url: Option<String>,
     user_fetching_repo: Box<&dyn UserFetching>,
     token_registration_repo: Box<&dyn TokenRegistration>,
     message_sending_repo: Box<&dyn MessageSending>,
@@ -100,20 +99,8 @@ pub async fn start_password_redefinition(
     // ? Notify user owner
     // ? -----------------------------------------------------------------------
 
-    let mut parameters = vec![
-        ("verification_code", meta.get_token()),
-        (
-            "support_email",
-            life_cycle_settings.support_email.get_or_error()?,
-        ),
-    ];
-
-    if let Some(url) = platform_url {
-        parameters.push(("platform_url", url));
-    }
-
     if let Err(err) = send_email_notification(
-        parameters,
+        vec![("verification_code", meta.get_token())],
         "email/password-reset-initiated.jinja",
         life_cycle_settings,
         token_metadata.email,

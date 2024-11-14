@@ -48,7 +48,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub struct GuestUserBody {
     email: String,
     parent_role_id: Uuid,
-    platform_url: Option<String>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -139,7 +138,6 @@ pub async fn guest_to_children_account_url(
         body.parent_role_id.to_owned(),
         role_id,
         account_id,
-        body.platform_url.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*account_fetching_repo),
         Box::new(&*guest_role_fetching_repo),

@@ -195,6 +195,8 @@ mod tests {
     #[test]
     fn test_new_signed_token() {
         let config = AccountLifeCycle {
+            domain_url: None,
+            domain_name: "test".to_string(),
             token_expiration: 30,
             noreply_name: None,
             noreply_email: EnvOrValue::Value("test".to_string()),

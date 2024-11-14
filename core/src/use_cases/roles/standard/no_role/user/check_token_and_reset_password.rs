@@ -22,7 +22,6 @@ pub async fn check_token_and_reset_password(
     token: String,
     email: Email,
     new_password: String,
-    platform_url: Option<String>,
     life_cycle_settings: AccountLifeCycle,
     user_fetching_repo: Box<&dyn UserFetching>,
     user_updating_repo: Box<&dyn UserUpdating>,
@@ -115,20 +114,8 @@ pub async fn check_token_and_reset_password(
     // ? Notify guest user
     // ? -----------------------------------------------------------------------
 
-    let mut parameters = vec![
-        ("verification_code", meta.get_token()),
-        (
-            "support_email",
-            life_cycle_settings.support_email.get_or_error()?,
-        ),
-    ];
-
-    if let Some(url) = platform_url {
-        parameters.push(("platform_url", url));
-    }
-
     if let Err(err) = send_email_notification(
-        parameters,
+        vec![("verification_code", meta.get_token())],
         "email/password-reset-confirmation.jinja",
         life_cycle_settings,
         email,

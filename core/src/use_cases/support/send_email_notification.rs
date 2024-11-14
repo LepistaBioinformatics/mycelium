@@ -29,6 +29,13 @@ pub(crate) async fn send_email_notification<T: ToString>(
 ) -> Result<CreateResponseKind<Option<Uuid>>, MappedErrors> {
     let mut context = Context::new();
 
+    context.insert("domain_name", config.domain_name.as_str());
+    context.insert("support_email", &config.support_email.get_or_error()?);
+
+    if let Some(domain_url) = config.domain_url {
+        context.insert("domain_url", domain_url.as_str());
+    }
+
     for (key, value) in parameters {
         context.insert(key.to_string(), &value.to_string());
     }

@@ -36,7 +36,6 @@ pub async fn guest_user(
     email: Email,
     role_id: Uuid,
     target_account_id: Uuid,
-    platform_url: Option<String>,
     life_cycle_settings: AccountLifeCycle,
     account_fetching_repo: Box<&dyn AccountFetching>,
     guest_role_fetching_repo: Box<&dyn GuestRoleFetching>,
@@ -156,18 +155,10 @@ pub async fn guest_user(
         ("role_name", target_role.name.to_uppercase()),
         ("role_description", target_role.name.to_uppercase()),
         ("role_permissions", target_role.permission.to_string()),
-        (
-            "support_email",
-            life_cycle_settings.support_email.get_or_error()?,
-        ),
     ];
 
     if let Some(description) = target_role.description {
         parameters.push(("role_description", description));
-    }
-
-    if let Some(url) = platform_url {
-        parameters.push(("platform_url", url));
     }
 
     if let Err(err) = send_email_notification(

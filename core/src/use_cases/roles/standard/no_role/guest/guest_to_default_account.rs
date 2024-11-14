@@ -140,10 +140,6 @@ pub async fn guest_to_default_account(
         ("role_name", target_role.name.to_uppercase()),
         ("role_description", target_role.name),
         ("role_permissions", target_role.permission.to_string()),
-        (
-            "support_email",
-            life_cycle_settings.support_email.get_or_error()?,
-        ),
     ];
 
     if let Some(description) = target_role.description {

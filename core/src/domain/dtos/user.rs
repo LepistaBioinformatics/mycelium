@@ -592,6 +592,8 @@ mod tests {
         };
 
         let config = AccountLifeCycle {
+            domain_name: "test".to_string(),
+            domain_url: None,
             token_expiration: 30,
             noreply_name: None,
             noreply_email: EnvOrValue::Value("test".to_string()),
