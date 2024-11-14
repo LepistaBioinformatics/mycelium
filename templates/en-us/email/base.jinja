@@ -9,7 +9,30 @@
 </head>
 
 <body>
-  <div id="content">{% block content %}{% endblock content %}</div>
+  <div id="content">
+    {% block content %}
+    <table
+      style="max-width: 555px; width: 100%; font-family: 'Open Sans', Segoe, 'Segoe UI', 'DejaVu Sans', 'Trebuchet MS', Verdana, sans-serif; background: #fff; font-size: 13px; color: #323232;"
+      cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+
+      <tbody>
+        <tr>
+          <td>
+            <h1 style="text-align: center; font-size: 15px;">
+              <strong style="font-size: 22px;">
+                {% block contenttitle %}{% endblock contenttitle %}
+              </strong>
+            </h1>
+          </td>
+        </tr>
+      </tbody>
+
+      {% block contenttable %}{% endblock contenttable %}
+
+    </table>
+    {% endblock content %}
+  </div>
+
   <div id="footer">
     {% if support_email %}
     <table

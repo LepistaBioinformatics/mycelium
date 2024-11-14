@@ -3,7 +3,8 @@
 # ? ----------------------------------------------------------------------------
 core:
   accountLifeCycle:
-    portalName: "Mycelium"
+    domainName: "Mycelium"
+    domainUrl: "http://localhost:8080"
     tokenExpiration: 3600
     tokenSecret:
       env: MYC_TOKEN_SECRET

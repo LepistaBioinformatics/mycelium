@@ -1,0 +1,40 @@
+{% extends "en-us/email/base.jinja" %}
+
+{% block title %}
+New Connection String
+{% endblock title %}
+
+{% block head %}
+{{ super() }}
+{% endblock head %}
+
+{% block contenttitle %}
+New Connection String
+{% endblock contenttitle %}
+
+{% block contenttable %}
+<tbody>
+  <tr>
+    <td align="left">
+      <p>
+        A new connection string was registered.
+      </p>
+
+      <p>
+        Tenant ID:<br />
+        {{ tenant_id }}
+      </p>
+
+      <p>
+        Account ID:<br />
+        {{ account_id }}
+      </p>
+
+      <p>
+        Roles with Permissions<br />
+        {{ permissioned_roles }}
+      </p>
+    </td>
+  </tr>
+</tbody>
+{% endblock contenttable %}
