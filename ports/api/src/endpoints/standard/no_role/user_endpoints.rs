@@ -116,7 +116,6 @@ pub struct CreateDefaultUserBody {
     first_name: Option<String>,
     last_name: Option<String>,
     password: Option<String>,
-    platform_url: Option<String>,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -130,7 +129,6 @@ pub struct CheckTokenBody {
 #[serde(rename_all = "camelCase")]
 pub struct StartPasswordResetBody {
     email: String,
-    platform_url: Option<String>,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -139,7 +137,6 @@ pub struct ResetPasswordBody {
     token: String,
     email: String,
     new_password: String,
-    platform_url: Option<String>,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -288,7 +285,6 @@ pub async fn create_default_user_url(
         body.password.to_owned(),
         provider,
         life_cycle_settings.get_ref().to_owned(),
-        body.platform_url.to_owned(),
         Box::new(&*user_registration_repo),
         Box::new(&*token_registration_repo),
         Box::new(&*message_sending_repo),
@@ -417,7 +413,6 @@ pub async fn start_password_redefinition_url(
     match start_password_redefinition(
         email,
         life_cycle_settings.get_ref().to_owned(),
-        body.platform_url.to_owned(),
         Box::new(&*user_fetching_repo),
         Box::new(&*token_registration_repo),
         Box::new(&*message_sending_repo),
@@ -484,7 +479,6 @@ pub async fn check_token_and_reset_password_url(
         body.token.to_owned(),
         email,
         body.new_password.to_owned(),
-        body.platform_url.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*user_fetching_repo),
         Box::new(&*user_updating_repo),

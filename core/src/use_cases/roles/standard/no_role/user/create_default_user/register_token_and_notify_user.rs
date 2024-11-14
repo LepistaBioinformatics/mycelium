@@ -26,7 +26,6 @@ pub(super) async fn register_token_and_notify_user(
     user_id: Uuid,
     email: Email,
     life_cycle_settings: AccountLifeCycle,
-    platform_url: Option<String>,
     token_registration_repo: Box<&dyn TokenRegistration>,
     message_sending_repo: Box<&dyn MessageSending>,
     user_deletion_repo: Box<&dyn UserDeletion>,
@@ -99,17 +98,7 @@ pub(super) async fn register_token_and_notify_user(
     // ? Notify guest user
     // ? -----------------------------------------------------------------------
 
-    let mut parameters = vec![
-        ("verification_code", meta.get_token()),
-        (
-            "support_email",
-            life_cycle_settings.support_email.get_or_error()?,
-        ),
-    ];
-
-    if let Some(url) = platform_url {
-        parameters.push(("platform_url", url));
-    }
+    let parameters = vec![("verification_code", meta.get_token())];
 
     if let Err(err) = send_email_notification(
         parameters,
