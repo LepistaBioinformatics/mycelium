@@ -35,7 +35,7 @@ services:
     protocol: http
 
   - group: !protectedByRoles
-      roles: [new-user]
+      roles: [ new-users ]
     methods:
     - GET
     downstreamUrl: /role-protected/*
@@ -63,14 +63,14 @@ services:
 
   - group: !protectedByPermissionedRoles
       permissionedRoles:
-      - [admin, read]
+      - [ admin, read ]
     methods:
     - GET
     downstreamUrl: /role-protected/*
     protocol: http
 
   - group: !protectedByServiceToken
-      roles: [new-user]
+      roles: [ new-user ]
     methods:
     - GET
     downstreamUrl: /role-protected/*

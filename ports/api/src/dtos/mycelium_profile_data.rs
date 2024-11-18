@@ -2,8 +2,11 @@ use crate::middleware::fetch_profile_from_request;
 
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
-use myc_core::domain::dtos::{account::VerboseStatus, profile::Owner};
-use myc_http_tools::{responses::GatewayError, LicensedResources, Profile};
+use myc_core::domain::dtos::{
+    account::VerboseStatus,
+    profile::{LicensedResources, Owner},
+};
+use myc_http_tools::{responses::GatewayError, Profile};
 use serde::Deserialize;
 use std::pin::Pin;
 use uuid::Uuid;
@@ -21,7 +24,7 @@ pub(crate) struct MyceliumProfileData {
     pub account_was_approved: bool,
     pub account_was_archived: bool,
     pub verbose_status: Option<VerboseStatus>,
-    pub licensed_resources: Option<Vec<LicensedResources>>,
+    pub licensed_resources: Option<LicensedResources>,
 }
 
 impl MyceliumProfileData {

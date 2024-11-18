@@ -1,5 +1,9 @@
 use crate::domain::{
-    dtos::{email::Email, profile::Profile, route_type::PermissionedRoles},
+    dtos::{
+        email::Email,
+        profile::{LicensedResources, Profile},
+        route_type::PermissionedRoles,
+    },
     entities::{LicensedResourcesFetching, ProfileFetching},
 };
 
@@ -59,7 +63,7 @@ pub async fn fetch_profile_from_email(
 
     let licenses = match licenses? {
         FetchManyResponseKind::NotFound => None,
-        FetchManyResponseKind::Found(records) => Some(records),
+        FetchManyResponseKind::Found(records) => Some(LicensedResources::Records(records)),
         _ => panic!(
             "Paginated results parsing not implemented in `fetch_profile_from_email` use-case."
         ),

@@ -4,7 +4,9 @@ use crate::{
 };
 
 use actix_web::{get, web, HttpResponse, Responder};
-use myc_core::domain::actors::ActorName;
+use myc_core::domain::{actors::ActorName, dtos::profile::LicensedResources};
+use serde::Deserialize;
+use utoipa::IntoParams;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -21,9 +23,16 @@ pub fn configure(config: &mut web::ServiceConfig) {
 //
 // ? ---------------------------------------------------------------------------
 
+#[derive(Deserialize, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct ProfileParams {
+    with_url: Option<bool>,
+}
+
 #[utoipa::path(
     get,
     context_path = build_actor_context(ActorName::NoRole, UrlGroup::Profile),
+    params(ProfileParams),
     responses(
         (
             status = 500,
@@ -57,6 +66,28 @@ pub fn configure(config: &mut web::ServiceConfig) {
     ),
 )]
 #[get("/")]
-pub async fn fetch_profile(profile: MyceliumProfileData) -> impl Responder {
-    HttpResponse::Ok().json(profile.to_profile())
+pub async fn fetch_profile(
+    query: web::Query<ProfileParams>,
+    mut profile: MyceliumProfileData,
+) -> impl Responder {
+    match query.with_url.unwrap_or(true) {
+        true => {
+            if let Some(licensed_resources) = profile.licensed_resources {
+                let resources = match licensed_resources {
+                    LicensedResources::Records(records) => {
+                        records.iter().map(|r| r.to_string()).collect()
+                    }
+                    LicensedResources::Urls(urls) => urls,
+                };
+
+                profile.licensed_resources =
+                    Some(LicensedResources::Urls(resources));
+
+                HttpResponse::Ok().json(profile.to_profile())
+            } else {
+                HttpResponse::NoContent().finish()
+            }
+        }
+        _ => HttpResponse::Ok().json(profile.to_profile()),
+    }
 }

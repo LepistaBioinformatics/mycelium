@@ -1,13 +1,15 @@
 use crate::{
-    middleware::fetch_profile_from_token, responses::GatewayError,
-    LicensedResources, Profile,
+    middleware::fetch_profile_from_token, responses::GatewayError, Profile,
 };
 
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
 use log::warn;
 use myc_core::{
-    domain::dtos::{account::VerboseStatus, profile::Owner},
+    domain::dtos::{
+        account::VerboseStatus,
+        profile::{LicensedResources, Owner},
+    },
     settings::DEFAULT_PROFILE_KEY,
 };
 use serde::Deserialize;
@@ -32,7 +34,7 @@ pub struct GatewayProfileData {
     pub account_was_approved: bool,
     pub account_was_archived: bool,
     pub verbose_status: Option<VerboseStatus>,
-    pub licensed_resources: Option<Vec<LicensedResources>>,
+    pub licensed_resources: Option<LicensedResources>,
 }
 
 impl GatewayProfileData {
