@@ -2,7 +2,7 @@ use crate::domain::{
     actors::ActorName,
     dtos::{
         email::Email,
-        profile::{LicensedResources, Profile},
+        profile::{LicensedResource, Profile},
         route_type::PermissionedRoles,
     },
     entities::LicensedResourcesFetching,
@@ -28,7 +28,7 @@ pub async fn list_licensed_accounts_of_email(
     roles: Option<Vec<String>>,
     permissioned_roles: Option<PermissionedRoles>,
     licensed_resources_fetching_repo: Box<&dyn LicensedResourcesFetching>,
-) -> Result<FetchManyResponseKind<LicensedResources>, MappedErrors> {
+) -> Result<FetchManyResponseKind<LicensedResource>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------

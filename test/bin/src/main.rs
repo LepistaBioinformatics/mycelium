@@ -1,4 +1,5 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use myc_http_tools::dtos::gateway_profile_data::GatewayProfileData;
 use serde::Deserialize;
 use std::env::var_os;
 
@@ -8,14 +9,14 @@ async fn default_public() -> impl Responder {
 }
 
 #[get("/")]
-async fn protected() -> impl Responder {
+async fn protected(profile: GatewayProfileData) -> impl Responder {
+    println!("{:?}", profile);
+
     HttpResponse::Ok().body("success")
 }
 
 #[get("/")]
-async fn role_protected(
-    profile: myc_http_tools::dtos::gateway_profile_data::GatewayProfileData,
-) -> impl Responder {
+async fn role_protected(profile: GatewayProfileData) -> impl Responder {
     println!("{:?}", profile);
 
     HttpResponse::Ok().body("success")

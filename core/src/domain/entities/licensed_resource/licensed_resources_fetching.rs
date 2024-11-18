@@ -1,6 +1,6 @@
 use crate::domain::dtos::{
-    email::Email, profile::LicensedResources,
-    related_accounts::RelatedAccounts, route_type::PermissionedRoles,
+    email::Email, profile::LicensedResource, related_accounts::RelatedAccounts,
+    route_type::PermissionedRoles,
 };
 
 use async_trait::async_trait;
@@ -17,5 +17,5 @@ pub trait LicensedResourcesFetching: Interface + Send + Sync {
         roles: Option<Vec<String>>,
         permissioned_roles: Option<PermissionedRoles>,
         related_accounts: Option<RelatedAccounts>,
-    ) -> Result<FetchManyResponseKind<LicensedResources>, MappedErrors>;
+    ) -> Result<FetchManyResponseKind<LicensedResource>, MappedErrors>;
 }

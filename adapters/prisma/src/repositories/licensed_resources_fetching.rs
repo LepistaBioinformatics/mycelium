@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use myc_core::domain::{
     dtos::{
         email::Email, guest_role::Permission,
-        native_error_codes::NativeErrorCodes, profile::LicensedResources,
+        native_error_codes::NativeErrorCodes, profile::LicensedResource,
         related_accounts::RelatedAccounts, route_type::PermissionedRoles,
     },
     entities::LicensedResourcesFetching,
@@ -43,7 +43,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         roles: Option<Vec<String>>,
         permissioned_roles: Option<PermissionedRoles>,
         related_accounts: Option<RelatedAccounts>,
-    ) -> Result<FetchManyResponseKind<LicensedResources>, MappedErrors> {
+    ) -> Result<FetchManyResponseKind<LicensedResource>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Build and execute the database query
         // ? -------------------------------------------------------------------
@@ -138,7 +138,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
 
         let licenses = response
             .into_iter()
-            .map(|record| LicensedResources {
+            .map(|record| LicensedResource {
                 acc_id: Uuid::parse_str(&record.acc_id.to_owned()).unwrap(),
                 tenant_id: Uuid::parse_str(&&record.tenant_id.to_owned())
                     .unwrap(),
@@ -149,7 +149,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 role: record.rl_name,
                 perm: Permission::from_i32(record.gr_perm),
             })
-            .collect::<Vec<LicensedResources>>();
+            .collect::<Vec<LicensedResource>>();
 
         if licenses.len() == 0 {
             return Ok(FetchManyResponseKind::NotFound);

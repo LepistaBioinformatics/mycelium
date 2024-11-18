@@ -119,8 +119,7 @@ mod tests {
             owners: vec![Owner {
                 id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
                     .unwrap(),
-                email: "agrobiota-results-expert-creator@biotrop.com.br"
-                    .to_string(),
+                email: "username@domain.com".to_string(),
                 first_name: Some("first_name".to_string()),
                 last_name: Some("last_name".to_string()),
                 username: Some("username".to_string()),
@@ -167,8 +166,7 @@ mod tests {
             owners: vec![Owner {
                 id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
                     .unwrap(),
-                email: "agrobiota-results-expert-creator@biotrop.com.br"
-                    .to_string(),
+                email: "username@domain.com".to_string(),
                 first_name: Some("first_name".to_string()),
                 last_name: Some("last_name".to_string()),
                 username: Some("username".to_string()),

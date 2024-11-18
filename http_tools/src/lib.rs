@@ -17,7 +17,7 @@ pub use myc_core::{
             account::Account,
             email::Email,
             guest_role::Permission,
-            profile::{LicensedResources, Profile},
+            profile::{LicensedResource, Profile},
             related_accounts::RelatedAccounts,
         },
     },

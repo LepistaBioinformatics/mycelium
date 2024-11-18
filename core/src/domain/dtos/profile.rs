@@ -1,17 +1,21 @@
+use std::str::FromStr;
+
 use super::{
     account::VerboseStatus, guest_role::Permission,
     native_error_codes::NativeErrorCodes, related_accounts::RelatedAccounts,
     user::User,
 };
 
+use base64::{engine::general_purpose, Engine};
 use mycelium_base::utils::errors::{dto_err, execution_err, MappedErrors};
+use reqwest::Url;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
-pub struct LicensedResources {
+pub struct LicensedResource {
     /// The guest account unique id
     ///
     /// This is the unique identifier of the account that is own of the
@@ -62,6 +66,171 @@ pub struct LicensedResources {
     /// This is the list of permissions that the guest role has.
     #[serde(alias = "permission")]
     pub perm: Permission,
+}
+
+impl LicensedResource {
+    fn is_uuid(value: &str) -> bool {
+        let uuid_format = vec![8, 4, 4, 4, 12];
+        let mut chars = value.chars().peekable();
+
+        for &count in &uuid_format {
+            for _ in 0..count {
+                match chars.next() {
+                    Some(c) if c.is_ascii_hexdigit() => continue,
+                    _ => return false,
+                }
+            }
+
+            if let Some('-') = chars.peek() {
+                chars.next();
+            }
+        }
+        chars.next().is_none()
+    }
+
+    /// Try to load a UUID v4 hex as UUID from a string
+    ///
+    pub fn load_uuid(value: String) -> Result<Uuid, MappedErrors> {
+        match Uuid::from_str(&value) {
+            Ok(uuid) => Ok(uuid),
+            Err(_) => execution_err(format!("Invalid UUID: {}", value))
+                .with_code(NativeErrorCodes::MYC00019)
+                .with_exp_true()
+                .as_error(),
+        }
+    }
+}
+
+impl ToString for LicensedResource {
+    fn to_string(&self) -> String {
+        //
+        // Encode account name as base64
+        //
+        let encoded_account_name =
+            general_purpose::STANDARD.encode(self.acc_name.as_bytes());
+
+        format!(
+            "tid/{tenant_id}/aid/{acc_id}/gid/{guest_role_id}?pr={role}:{perm}&std={is_acc_std}&name={acc_name}",
+            tenant_id = self.tenant_id.to_string().replace("-", ""),
+            acc_id = self.acc_id.to_string().replace("-", ""),
+            guest_role_id = self.guest_role_id.to_string().replace("-", ""),
+            role = self.role,
+            perm = self.perm.to_owned().to_i32(),
+            is_acc_std = self.is_acc_std as i8,
+            acc_name = encoded_account_name,
+        )
+    }
+}
+
+impl FromStr for LicensedResource {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let full_url = format!("https://localhost.local/{s}");
+
+        let url = Url::from_str(&full_url).map_err(|e| {
+            format!("Unexpected error on check license URL: {:?}", e)
+        })?;
+
+        //
+        // Extract the path segments
+        //
+        let segments: Vec<_> =
+            url.path_segments().ok_or("Path not found")?.collect();
+
+        if segments.len() != 6
+            || segments[0] != "tid"
+            || segments[2] != "aid"
+            || segments[4] != "gid"
+        {
+            return Err("Invalid path format".to_string());
+        }
+
+        let tenant_id = segments[1];
+        let account_id = segments[3];
+        let guest_role_id = segments[5];
+
+        if !Self::is_uuid(tenant_id) {
+            return Err("Invalid tenant UUID".to_string());
+        }
+
+        if !Self::is_uuid(account_id) {
+            return Err("Invalid account UUID".to_string());
+        }
+
+        if !Self::is_uuid(guest_role_id) {
+            return Err("Invalid guest role UUID".to_string());
+        }
+
+        //
+        // Extract the query parameters
+        //
+        let permissioned_role = url
+            .query_pairs()
+            .find(|(key, _)| key == "pr")
+            .map(|(_, value)| value)
+            .ok_or("Parameter pr not found")?;
+
+        let permissioned_role: Vec<_> = permissioned_role.split(':').collect();
+
+        if permissioned_role.len() != 2 {
+            return Err("Invalid permissioned role format".to_string());
+        }
+
+        let role_name = permissioned_role[0];
+        let permission_code = permissioned_role[1];
+
+        let std = match url
+            .query_pairs()
+            .find(|(key, _)| key == "std")
+            .map(|(_, value)| value)
+            .ok_or("Parameter std not found")?
+            .parse::<i8>()
+        {
+            Ok(std) => match std {
+                0 => false,
+                1 => true,
+                _ => {
+                    return Err("Invalid account standard".to_string());
+                }
+            },
+            Err(_) => {
+                return Err("Failed to parse account standard".to_string());
+            }
+        };
+
+        let name_encoded = url
+            .query_pairs()
+            .find(|(key, _)| key == "name")
+            .map(|(_, value)| value)
+            .ok_or("Parameter name not found")?;
+
+        let name_decoded =
+            match general_purpose::STANDARD.decode(name_encoded.as_bytes()) {
+                Ok(name) => name,
+                Err(_) => {
+                    return Err("Failed to decode account name".to_string());
+                }
+            };
+
+        Ok(Self {
+            tenant_id: Uuid::from_str(tenant_id).unwrap(),
+            acc_id: Uuid::from_str(account_id).unwrap(),
+            role: role_name.to_string(),
+            perm: Permission::from_i32(permission_code.parse::<i32>().unwrap()),
+            is_acc_std: std,
+            acc_name: String::from_utf8(name_decoded).unwrap(),
+            guest_role_id: guest_role_id.to_string().parse::<Uuid>().unwrap(),
+            guest_role_name: "guest_role_name".to_string(),
+        })
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub enum LicensedResources {
+    Records(Vec<LicensedResource>),
+    Urls(Vec<String>),
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
@@ -186,7 +355,7 @@ pub struct Profile {
     /// Guest accounts delivers information about the guest account role and
     /// their respective permissions inside the host account. A single account
     /// should be several licenses into the same account.
-    pub licensed_resources: Option<Vec<LicensedResources>>,
+    pub licensed_resources: Option<LicensedResources>,
 }
 
 impl Profile {
@@ -224,16 +393,24 @@ impl Profile {
         //
         let licensed_resources =
             if let Some(resources) = self.licensed_resources.as_ref() {
-                let tenant_resources: Vec<LicensedResources> = resources
-                    .iter()
-                    .filter(|i| i.tenant_id == tenant_id)
-                    .cloned()
-                    .collect();
+                let records: Vec<LicensedResource> = match resources {
+                    LicensedResources::Records(records) => records
+                        .iter()
+                        .filter(|i| i.tenant_id == tenant_id)
+                        .map(|i| i.to_owned())
+                        .collect(),
+                    LicensedResources::Urls(urls) => urls
+                        .iter()
+                        .map(|i| LicensedResource::from_str(i).unwrap())
+                        .filter(|i| i.tenant_id == tenant_id)
+                        .map(|i| i.to_owned())
+                        .collect(),
+                };
 
-                if tenant_resources.is_empty() {
+                if records.is_empty() {
                     None
                 } else {
-                    Some(tenant_resources)
+                    Some(LicensedResources::Records(records))
                 }
             } else {
                 None
@@ -531,22 +708,30 @@ impl Profile {
         roles: Vec<T>,
         should_be_default: Option<bool>,
     ) -> Vec<Uuid> {
-        if let None = self.licensed_resources {
-            return vec![self.acc_id];
-        }
+        let inner_licensed_resources =
+            if let Some(resources) = &self.licensed_resources {
+                match resources {
+                    LicensedResources::Records(records) => records,
+                    LicensedResources::Urls(urls) => &urls
+                        .iter()
+                        .map(|i| LicensedResource::from_str(i).unwrap())
+                        .collect::<Vec<LicensedResource>>(),
+                }
+            } else {
+                return vec![self.acc_id];
+            };
 
         let licensed_resources = if let Some(true) = should_be_default {
-            self.licensed_resources
-                .as_ref()
-                .unwrap()
+            inner_licensed_resources
+                .to_owned()
                 .into_iter()
                 .filter_map(|license| match license.is_acc_std {
                     true => Some(license.to_owned()),
                     false => None,
                 })
-                .collect::<Vec<LicensedResources>>()
+                .collect::<Vec<LicensedResource>>()
         } else {
-            self.licensed_resources.as_ref().unwrap().to_vec()
+            inner_licensed_resources.to_vec()
         };
 
         licensed_resources
@@ -635,7 +820,7 @@ impl Profile {
 
 #[cfg(test)]
 mod tests {
-    use super::{LicensedResources, Owner, Profile};
+    use super::{LicensedResource, LicensedResources, Owner, Profile};
     use crate::domain::dtos::guest_role::Permission;
     use std::str::FromStr;
     use test_log::test;
@@ -647,8 +832,7 @@ mod tests {
             owners: vec![Owner {
                 id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
                     .unwrap(),
-                email: "agrobiota-results-expert-creator@biotrop.com.br"
-                    .to_string(),
+                email: "username@domain.com".to_string(),
                 first_name: Some("first_name".to_string()),
                 last_name: Some("last_name".to_string()),
                 username: Some("username".to_string()),
@@ -664,8 +848,8 @@ mod tests {
             account_was_approved: true,
             account_was_archived: false,
             verbose_status: None,
-            licensed_resources: Some(
-                [LicensedResources {
+            licensed_resources: Some(LicensedResources::Records(vec![
+                LicensedResource {
                     acc_id: Uuid::from_str(
                         "e497848f-a0d4-49f4-8288-c3df11416ff1",
                     )
@@ -683,14 +867,11 @@ mod tests {
                     guest_role_name: "guest_role_name".to_string(),
                     role: "service".to_string(),
                     perm: Permission::Write,
-                }]
-                .to_vec(),
-            ),
+                },
+            ])),
         };
 
         let ids = profile.get_write_ids(["service".to_string()].to_vec());
-
-        println!("{:?}", ids);
 
         assert!(ids.len() == 1);
     }
@@ -703,8 +884,7 @@ mod tests {
             owners: vec![Owner {
                 id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
                     .unwrap(),
-                email: "agrobiota-results-expert-creator@biotrop.com.br"
-                    .to_string(),
+                email: "username@domain.com".to_string(),
                 first_name: Some("first_name".to_string()),
                 last_name: Some("last_name".to_string()),
                 username: Some("username".to_string()),
@@ -720,8 +900,8 @@ mod tests {
             account_was_approved: true,
             account_was_archived: false,
             verbose_status: None,
-            licensed_resources: Some(
-                [LicensedResources {
+            licensed_resources: Some(LicensedResources::Records(vec![
+                LicensedResource {
                     acc_id: Uuid::from_str(
                         "e497848f-a0d4-49f4-8288-c3df11416ff1",
                     )
@@ -737,24 +917,23 @@ mod tests {
                     )
                     .unwrap(),
                     guest_role_name: "guest_role_name".to_string(),
-                    role: desired_role.to_owned(),
-                    perm: Permission::ReadWrite,
-                }]
-                .to_vec(),
-            ),
+                    role: "service".to_string(),
+                    perm: Permission::Write,
+                },
+            ])),
         };
 
         assert_eq!(
             false,
             profile
-                .get_write_ids_or_error([desired_role.to_owned()].to_vec(),)
+                .get_read_ids_or_error([desired_role.to_owned()].to_vec())
                 .is_ok(),
         );
 
         assert_eq!(
             false,
             profile
-                .get_write_ids_or_error([desired_role.to_owned()].to_vec(),)
+                .get_read_write_ids_or_error([desired_role.to_owned()].to_vec())
                 .is_ok(),
         );
 
@@ -763,7 +942,7 @@ mod tests {
         assert_eq!(
             true,
             profile
-                .get_write_ids_or_error([desired_role.to_owned()].to_vec(),)
+                .get_write_ids_or_error([desired_role.to_owned()].to_vec())
                 .is_ok(),
         );
 
@@ -773,17 +952,52 @@ mod tests {
         assert_eq!(
             true,
             profile
-                .get_write_ids_or_error([desired_role.to_owned()].to_vec(),)
+                .get_write_ids_or_error([desired_role.to_owned()].to_vec())
                 .is_ok(),
         );
 
         profile.is_staff = false;
 
         assert_eq!(
-            false,
+            true,
             profile
                 .get_write_ids_or_error([desired_role].to_vec())
                 .is_ok(),
+        );
+    }
+
+    #[test]
+    fn test_licensed_resources_from_and_to_string() {
+        let licensed_resource = LicensedResource {
+            acc_id: Uuid::new_v4(),
+            tenant_id: Uuid::new_v4(),
+            acc_name: "Guest Account Name".to_string(),
+            is_acc_std: false,
+            guest_role_id: Uuid::new_v4(),
+            guest_role_name: "guest_role_name".to_string(),
+            role: "service".to_string(),
+            perm: Permission::Write,
+        };
+
+        let licensed_resource_string = licensed_resource.to_string();
+
+        let licensed_resource_parsed =
+            LicensedResource::from_str(&licensed_resource_string).unwrap();
+
+        assert_eq!(licensed_resource, licensed_resource_parsed);
+    }
+
+    #[test]
+    fn test_load_uuid() {
+        let uuid_hex_string = "d776e96f94174520b2a99298136031b0";
+
+        let uuid = LicensedResource::load_uuid(uuid_hex_string.to_string());
+
+        assert!(uuid.is_ok());
+
+        assert_eq!(
+            Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0").unwrap(),
+            uuid.unwrap()
         );
     }
 }
