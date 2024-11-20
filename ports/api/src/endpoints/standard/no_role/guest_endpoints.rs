@@ -1,4 +1,5 @@
 use crate::{
+    dtos::{MyceliumRoleScopedConnectionStringData, TenantData},
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{
         AccountRegistrationModule, GuestRoleFetchingModule,
@@ -40,6 +41,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct GuestUserBody {
+    #[serde(flatten)]
     account: Account,
 }
 
@@ -59,7 +61,17 @@ pub struct GuestUserBody {
     post,
     context_path = build_actor_context(ActorName::NoRole, UrlGroup::Guests),
     params(
-        ("role" = Uuid, Path, description = "The guest-role unique id."),
+        ("role_id" = Uuid, Path, description = "The guest-role unique id."),
+        (
+            "x-mycelium-connection-string" = MyceliumRoleScopedConnectionStringData,
+            Header,
+            description = "The connection string to the role-scoped database."
+        ),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
     ),
     request_body = GuestUserBody,
     responses(
@@ -95,9 +107,11 @@ pub struct GuestUserBody {
         ),
     ),
 )]
-#[post("/{tenant_id}/role/{role}")]
+#[post("/roles/{role_id}")]
 pub async fn guest_to_default_account_url(
-    path: web::Path<(Uuid, Uuid)>,
+    path: web::Path<Uuid>,
+    tenant: TenantData,
+    connection_string: MyceliumRoleScopedConnectionStringData,
     body: web::Json<GuestUserBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     account_registration_repo: Inject<
@@ -114,13 +128,14 @@ pub async fn guest_to_default_account_url(
     >,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
-    let (tenant_id, role_id) = path.to_owned();
+    let role_id = path.to_owned();
     let account = body.account.to_owned();
 
     match guest_to_default_account(
+        connection_string.connection_string().clone(),
         role_id,
         account.to_owned(),
-        tenant_id,
+        tenant.tenant_id().to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*account_registration_repo),
         Box::new(&*guest_role_fetching_repo),

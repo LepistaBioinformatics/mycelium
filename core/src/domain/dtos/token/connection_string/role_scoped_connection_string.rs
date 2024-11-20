@@ -8,6 +8,7 @@
 use super::ConnectionStringBean;
 use crate::{
     domain::dtos::{
+        native_error_codes::NativeErrorCodes,
         route_type::PermissionedRoles,
         token::{HmacSha256, ScopedMixin, ServiceAccountRelatedMeta},
     },
@@ -24,9 +25,9 @@ use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct AccountWithPermissionedRolesScope(Vec<ConnectionStringBean>);
+pub struct RoleWithPermissionsScope(Vec<ConnectionStringBean>);
 
-impl AccountWithPermissionedRolesScope {
+impl RoleWithPermissionsScope {
     /// Create a new AccountScope
     ///
     /// Account scope is a list of ConnectionStringBean including the tenant_id,
@@ -36,14 +37,14 @@ impl AccountWithPermissionedRolesScope {
     #[tracing::instrument(name = "new", skip(config))]
     pub fn new(
         tenant_id: Uuid,
-        account_id: Uuid,
+        role_id: Uuid,
         permissioned_roles: PermissionedRoles,
         expires_at: DateTime<Local>,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
         let mut self_signed_scope = Self(vec![
             ConnectionStringBean::TID(tenant_id),
-            ConnectionStringBean::AID(account_id),
+            ConnectionStringBean::RID(role_id),
             ConnectionStringBean::PR(permissioned_roles),
             ConnectionStringBean::EDT(expires_at),
         ]);
@@ -98,7 +99,7 @@ impl AccountWithPermissionedRolesScope {
     }
 }
 
-impl ScopedMixin for AccountWithPermissionedRolesScope {
+impl ScopedMixin for RoleWithPermissionsScope {
     /// Sign the token with secret and data
     ///
     /// Add or replace a signature to self with the HMAC of the data and the
@@ -148,7 +149,7 @@ impl ScopedMixin for AccountWithPermissionedRolesScope {
     }
 }
 
-impl ToString for AccountWithPermissionedRolesScope {
+impl ToString for RoleWithPermissionsScope {
     fn to_string(&self) -> String {
         self.0
             .iter()
@@ -160,7 +161,7 @@ impl ToString for AccountWithPermissionedRolesScope {
     }
 }
 
-impl TryFrom<String> for AccountWithPermissionedRolesScope {
+impl TryFrom<String> for RoleWithPermissionsScope {
     type Error = ();
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -173,10 +174,10 @@ impl TryFrom<String> for AccountWithPermissionedRolesScope {
     }
 }
 
-pub type AccountScopedConnectionString =
-    ServiceAccountRelatedMeta<String, AccountWithPermissionedRolesScope>;
+pub type RoleScopedConnectionString =
+    ServiceAccountRelatedMeta<String, RoleWithPermissionsScope>;
 
-impl AccountScopedConnectionString {
+impl RoleScopedConnectionString {
     #[tracing::instrument(name = "get_signature", skip(self))]
     pub fn get_signature(&self) -> Option<String> {
         self.scope.get_signature()
@@ -185,6 +186,50 @@ impl AccountScopedConnectionString {
     #[tracing::instrument(name = "get_permissioned_roles", skip(self))]
     pub fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
         self.scope.get_permissioned_roles()
+    }
+
+    #[tracing::instrument(name = "contain_enough_permissions", skip(self))]
+    pub fn contain_enough_permissions(
+        &self,
+        tenant_id: Uuid,
+        role_id: Uuid,
+        permissioned_roles: PermissionedRoles,
+    ) -> Result<(), MappedErrors> {
+        if !self.scope.include_tenant(tenant_id) {
+            return dto_err("Tenant not included in the scope")
+                .with_code(NativeErrorCodes::MYC00013)
+                .as_error();
+        }
+
+        if self.scope.0.iter().any(|bean| {
+            if let ConnectionStringBean::PR(permissions) = bean {
+                for (role, permission) in permissions {
+                    if permissioned_roles
+                        .contains(&(role.clone(), permission.clone()))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            false
+        }) {
+            return Ok(());
+        };
+
+        if self.scope.get_scope_beans().iter().any(|bean| {
+            if let ConnectionStringBean::RID(id) = bean {
+                return *id == role_id;
+            }
+
+            false
+        }) {
+            return Ok(());
+        }
+
+        dto_err("Role not included in the scope")
+            .with_code(NativeErrorCodes::MYC00013)
+            .as_error()
     }
 }
 
@@ -214,7 +259,7 @@ mod tests {
             token_secret: EnvOrValue::Value(Uuid::new_v4()),
         };
 
-        let account_scope = AccountWithPermissionedRolesScope::new(
+        let role_scope = RoleWithPermissionsScope::new(
             Uuid::new_v4(),
             Uuid::new_v4(),
             vec![("role".to_string(), Permission::ReadWrite)],
@@ -222,9 +267,9 @@ mod tests {
             config.to_owned(),
         );
 
-        assert!(account_scope.is_ok());
+        assert!(role_scope.is_ok());
 
-        let mut account_scope = account_scope.unwrap();
+        let mut role_scope = role_scope.unwrap();
 
         let user_id = Uuid::new_v4();
         let email = Email {
@@ -232,32 +277,32 @@ mod tests {
             domain: "test.com".to_string(),
         };
 
-        let account_scoped_connection_string =
-            AccountScopedConnectionString::new_signed_token(
-                &mut account_scope,
+        let role_scoped_connection_string =
+            RoleScopedConnectionString::new_signed_token(
+                &mut role_scope,
                 user_id,
                 email,
                 config,
             );
 
-        assert!(account_scoped_connection_string.is_ok());
+        assert!(role_scoped_connection_string.is_ok());
 
-        let mut account_scoped_connection_string =
-            account_scoped_connection_string.unwrap();
+        let mut role_scoped_connection_string =
+            role_scoped_connection_string.unwrap();
 
-        let signature = account_scoped_connection_string.get_signature();
+        let signature = role_scoped_connection_string.get_signature();
 
         assert!(signature.is_some());
 
         let signature = signature.unwrap();
 
         let with_encrypted_token =
-            account_scoped_connection_string.encrypted_token();
+            role_scoped_connection_string.encrypted_token();
 
         assert!(with_encrypted_token.is_ok());
 
         let password_check =
-            account_scoped_connection_string.check_token(signature.as_bytes());
+            role_scoped_connection_string.check_token(signature.as_bytes());
 
         assert!(password_check.is_ok());
     }

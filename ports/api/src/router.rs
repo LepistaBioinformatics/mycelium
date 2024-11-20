@@ -18,7 +18,7 @@ use myc_core::{
 use myc_http_tools::{responses::GatewayError, DEFAULT_PROFILE_KEY};
 use shaku_actix::Inject;
 use std::{str::FromStr, time::Duration};
-use tracing::{debug, warn};
+use tracing::{debug, trace, warn};
 use url::Url;
 
 /// Forward request to the client service.
@@ -31,7 +31,13 @@ use url::Url;
 /// TODO: unofficial X-Forwarded-For header but not the official Forwarded
 /// TODO: one.
 ///
-#[tracing::instrument(name = "route_request", skip_all)]
+#[tracing::instrument(
+    name = "route_request", 
+    skip_all,
+    fields(
+        routing_time = tracing::field::Empty,
+    )
+)]
 pub(crate) async fn route_request(
     req: HttpRequest,
     payload: web::Payload,
@@ -48,6 +54,8 @@ pub(crate) async fn route_request(
     // BadClient error. Otherwise proceed the pipeline.
     //
     // ? -----------------------------------------------------------------------
+
+    trace!("Discovering route for request");
 
     let request_path = match PathAndQuery::from_str(
         &req.uri()
@@ -96,6 +104,8 @@ pub(crate) async fn route_request(
     // ? Check if the method is allowed
     // ? -----------------------------------------------------------------------
 
+    trace!("Checking if method is allowed");
+
     match route
         .allow_method(HttpMethod::from_reqwest_method(req.method().to_owned()))
         .await
@@ -121,6 +131,8 @@ pub(crate) async fn route_request(
     // With the service collected, try to build the downstream URL.
     //
     // ? -----------------------------------------------------------------------
+
+    trace!("Building downstream URL");
 
     let registered_uri = match route.build_uri().await {
         Err(err) => {
@@ -173,6 +185,8 @@ pub(crate) async fn route_request(
     // collected by client service.
     //
     // ? -----------------------------------------------------------------------
+
+    trace!("Checking authentication and permissions");
 
     match route.group.to_owned() {
         //
@@ -233,12 +247,27 @@ pub(crate) async fn route_request(
         // Protected routes by service token should include the users role which
         // the service token is associated
         //
-        RouteType::ProtectedByServiceToken { roles } => {
+        RouteType::ProtectedByServiceTokenWithRole { roles } => {
             //
             // Try to populate profile from the request filtering licensed
             // resources by roles and permissions
             //
             println!("roles: {:?}", roles);
+
+            unimplemented!("ProtectedByServiceToken not implemented yet");
+        }
+        //
+        // Protected routes by service token should include the users role which
+        // the service token is associated
+        //
+        RouteType::ProtectedByServiceTokenWithPermissionedRoles {
+            permissioned_roles,
+        } => {
+            //
+            // Try to populate profile from the request filtering licensed
+            // resources by roles and permissions
+            //
+            println!("permissioned_roles: {:?}", permissioned_roles);
 
             unimplemented!("ProtectedByServiceToken not implemented yet");
         }
@@ -249,6 +278,8 @@ pub(crate) async fn route_request(
     //
     // Submit the request and stream the response to the requester.
     // ? -----------------------------------------------------------------------
+
+    trace!("Forwarding request to service");
 
     let binding_response = match forwarded_req
         .send_stream(payload)
@@ -288,6 +319,8 @@ pub(crate) async fn route_request(
         client_response
             .insert_header((header_name.clone(), header_value.clone()));
     }
+
+    trace!("Route request completed");
 
     Ok(client_response.streaming(binding_response))
 }

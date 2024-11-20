@@ -21,12 +21,19 @@ use tera::Tera;
 ///
 pub const DEFAULT_PROFILE_KEY: &str = "x-mycelium-profile";
 
-/// Default service account key
+/// Default connection string key
 ///
-/// This is the default key used to store the service account in the request
+/// This is the default key used to store the connection string in the request
 /// headers and send it to the gateway downstream services.
 ///
-pub const DEFAULT_SERVICE_ACCOUNT_KEY: &str = "x-mycelium-sa-token";
+pub const DEFAULT_CONNECTION_STRING_KEY: &str = "x-mycelium-connection-string";
+
+/// Default tenant id key
+///
+/// This is the default key used to store the tenant id in the request headers
+/// and send it to the gateway downstream services.
+///
+pub const DEFAULT_TENANT_ID_KEY: &str = "x-mycelium-tenant-id";
 
 /// Default TOTP domain
 ///

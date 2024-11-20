@@ -23,6 +23,9 @@ pub enum ConnectionStringBean {
     AID(Uuid),
 
     /// The role
+    RID(Uuid),
+
+    /// The role
     RL(String),
 
     /// The permission
@@ -52,6 +55,9 @@ impl ToString for ConnectionStringBean {
             }
             ConnectionStringBean::AID(account_id) => {
                 format!("aid={}", account_id.to_string())
+            }
+            ConnectionStringBean::RID(role_id) => {
+                format!("rid={}", role_id.to_string())
             }
             ConnectionStringBean::RL(role) => {
                 format!("rl={}", role)
@@ -116,6 +122,10 @@ impl TryFrom<String> for ConnectionStringBean {
             "AID" | "aid" => {
                 let account_id = Uuid::parse_str(value).map_err(|_| ())?;
                 Ok(ConnectionStringBean::AID(account_id))
+            }
+            "RID" | "rid" => {
+                let role_id = Uuid::parse_str(value).map_err(|_| ())?;
+                Ok(ConnectionStringBean::RID(role_id))
             }
             "RL" | "rl" => Ok(ConnectionStringBean::RL(value.to_string())),
             "PM" | "pm" => {
