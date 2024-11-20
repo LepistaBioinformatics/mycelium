@@ -6,10 +6,7 @@ use crate::{
             native_error_codes::NativeErrorCodes,
             profile::Profile,
             route_type::PermissionedRoles,
-            token::{
-                AccountScopedConnectionString,
-                AccountWithPermissionedRolesScope,
-            },
+            token::{RoleScopedConnectionString, RoleWithPermissionsScope},
         },
         entities::{MessageSending, TokenRegistration},
     },
@@ -25,14 +22,14 @@ use mycelium_base::{
 use uuid::Uuid;
 
 #[tracing::instrument(
-    name = "create_default_account_associated_connection_string",
+    name = "create_role_associated_connection_string",
     fields(profile_id = %profile.acc_id),
     skip_all
 )]
-pub async fn create_default_account_associated_connection_string(
+pub async fn create_role_associated_connection_string(
     profile: Profile,
     tenant_id: Uuid,
-    account_id: Uuid,
+    role_id: Uuid,
     permissioned_roles: PermissionedRoles,
     life_cycle_settings: AccountLifeCycle,
     token_registration_repo: Box<&dyn TokenRegistration>,
@@ -63,17 +60,17 @@ pub async fn create_default_account_associated_connection_string(
     let expires_at =
         Local::now() + Duration::seconds(life_cycle_settings.token_expiration);
 
-    let mut account_scope = AccountWithPermissionedRolesScope::new(
+    let mut role_scope = RoleWithPermissionsScope::new(
         tenant_id,
-        account_id,
+        role_id,
         permissioned_roles.to_owned(),
         expires_at,
         life_cycle_settings.to_owned(),
     )?;
 
-    let account_scoped_connection_string =
-        AccountScopedConnectionString::new_signed_token(
-            &mut account_scope,
+    let role_scoped_connection_string =
+        RoleScopedConnectionString::new_signed_token(
+            &mut role_scope,
             owner.id,
             Email::from_string(owner.email.to_owned())?,
             life_cycle_settings.to_owned(),
@@ -84,8 +81,8 @@ pub async fn create_default_account_associated_connection_string(
     // ? -----------------------------------------------------------------------
 
     if let CreateResponseKind::NotCreated(_, msg) = token_registration_repo
-        .create_account_scoped_connection_string(
-            account_scoped_connection_string.to_owned(),
+        .create_role_scoped_connection_string(
+            role_scoped_connection_string.to_owned(),
             expires_at,
         )
         .await?
@@ -99,7 +96,7 @@ pub async fn create_default_account_associated_connection_string(
 
     let parameters = vec![
         ("tenant_id", tenant_id.to_string().to_uppercase()),
-        ("target_id", account_id.to_string().to_uppercase()),
+        ("target_id", role_id.to_string().to_uppercase()),
         (
             "permissioned_roles",
             permissioned_roles.iter().fold(
@@ -131,5 +128,5 @@ pub async fn create_default_account_associated_connection_string(
     // ? Send user the token
     // ? -----------------------------------------------------------------------
 
-    Ok(account_scoped_connection_string.scope.to_string())
+    Ok(role_scoped_connection_string.scope.to_string())
 }

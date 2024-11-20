@@ -1,8 +1,10 @@
 use crate::{
     domain::{
+        actors::ActorName::*,
         dtos::{
-            account::Account, guest_user::GuestUser,
-            native_error_codes::NativeErrorCodes, user::User,
+            account::Account, guest_role::Permission, guest_user::GuestUser,
+            native_error_codes::NativeErrorCodes,
+            token::RoleScopedConnectionString, user::User,
         },
         entities::{
             AccountRegistration, GuestRoleFetching, GuestUserRegistration,
@@ -31,6 +33,7 @@ use uuid::Uuid;
 /// default account.
 #[tracing::instrument(name = "guest_to_default_account", skip_all)]
 pub async fn guest_to_default_account(
+    scope: RoleScopedConnectionString,
     role_id: Uuid,
     account: Account,
     tenant_id: Uuid,
@@ -40,6 +43,19 @@ pub async fn guest_to_default_account(
     message_sending_repo: Box<&dyn MessageSending>,
     guest_user_registration_repo: Box<&dyn GuestUserRegistration>,
 ) -> Result<(), MappedErrors> {
+    // ? -----------------------------------------------------------------------
+    // ? Check permissions
+    // ? -----------------------------------------------------------------------
+
+    scope.contain_enough_permissions(
+        tenant_id,
+        role_id,
+        vec![
+            (GuestManager.to_string(), Permission::Write),
+            (SubscriptionsManager.to_string(), Permission::Write),
+        ],
+    )?;
+
     // ? -----------------------------------------------------------------------
     // ? Guarantee needed information to evaluate guesting
     //

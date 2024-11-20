@@ -8,9 +8,21 @@ use crate::{
     models::AccountLifeCycle,
 };
 
+use hmac::Hmac;
 use mycelium_base::utils::errors::{dto_err, MappedErrors};
 use serde::{Deserialize, Serialize};
+use sha2::Sha512;
 use uuid::Uuid;
+
+pub(crate) type HmacSha256 = Hmac<Sha512>;
+
+pub trait ScopedMixin {
+    fn sign_token(
+        &mut self,
+        config: AccountLifeCycle,
+        extra_data: Option<String>,
+    ) -> Result<String, MappedErrors>;
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -32,14 +44,6 @@ where
 
     /// This is the email confirmation token
     token: TokenType,
-}
-
-pub trait ScopedMixin {
-    fn sign_token(
-        &mut self,
-        config: AccountLifeCycle,
-        extra_data: Option<String>,
-    ) -> Result<String, MappedErrors>;
 }
 
 impl<TokenType, Scope> ServiceAccountRelatedMeta<TokenType, Scope>

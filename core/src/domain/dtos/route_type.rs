@@ -31,5 +31,14 @@ pub enum RouteType {
     ///
     /// Protect the route with service token associated to a specific role list
     ///
-    ProtectedByServiceToken { roles: Vec<String> },
+    #[serde(rename_all = "camelCase")]
+    ProtectedByServiceTokenWithRole { roles: Vec<String> },
+    ///
+    /// Protect the route with service token associated to a specific role and
+    /// permissions
+    ///
+    #[serde(rename_all = "camelCase")]
+    ProtectedByServiceTokenWithPermissionedRoles {
+        permissioned_roles: PermissionedRoles,
+    },
 }
