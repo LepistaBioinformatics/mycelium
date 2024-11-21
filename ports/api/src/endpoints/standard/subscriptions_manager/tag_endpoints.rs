@@ -63,7 +63,7 @@ pub struct CreateTagBody {
     post,
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Tags),
     params(
-        ("id" = Uuid, Path, description = "The account primary key."),
+        ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
     request_body = CreateTagBody,
     responses(
@@ -94,7 +94,7 @@ pub struct CreateTagBody {
         ),
     ),
 )]
-#[post("/{id}/tags/")]
+#[post("/{account_id}/tags/")]
 pub async fn register_tag_url(
     profile: MyceliumProfileData,
     path: web::Path<(Uuid,)>,
@@ -122,7 +122,7 @@ pub async fn register_tag_url(
     put,
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Tags),
     params(
-        ("id" = Uuid, Path, description = "The account primary key."),
+        ("account_id" = Uuid, Path, description = "The account primary key."),
         ("tag_id" = Uuid, Path, description = "The tag primary key."),
     ),
     request_body = CreateTagBody,
@@ -154,7 +154,7 @@ pub async fn register_tag_url(
         ),
     ),
 )]
-#[put("/{id}/tags/{tag_id}")]
+#[put("/{account_id}/tags/{tag_id}")]
 pub async fn update_tag_url(
     profile: MyceliumProfileData,
     path: web::Path<(Uuid, Uuid)>,
@@ -181,7 +181,7 @@ pub async fn update_tag_url(
     delete,
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Tags),
     params(
-        ("id" = Uuid, Path, description = "The account primary key."),
+        ("account_id" = Uuid, Path, description = "The account primary key."),
         ("tag_id" = Uuid, Path, description = "The tag primary key."),
     ),
     responses(
@@ -212,7 +212,7 @@ pub async fn update_tag_url(
         ),
     ),
 )]
-#[delete("/{id}/tags/{tag_id}")]
+#[delete("/{account_id}/tags/{tag_id}")]
 pub async fn delete_tag_url(
     profile: MyceliumProfileData,
     path: web::Path<(Uuid, Uuid)>,

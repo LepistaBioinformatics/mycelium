@@ -1,5 +1,5 @@
 use crate::{
-    dtos::MyceliumProfileData,
+    dtos::{MyceliumProfileData, TenantData},
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{
         TenantDeletionModule, TenantRegistrationModule, TenantUpdatingModule,
@@ -24,7 +24,6 @@ use myc_http_tools::wrappers::default_response_to_http_response::{
 use serde::Deserialize;
 use shaku_actix::Inject;
 use utoipa::ToSchema;
-use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -62,7 +61,11 @@ pub struct DeleteTenantMetaBody {
     post,
     context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Meta),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
     ),
     request_body = CreateTenantMetaBody,
     responses(
@@ -93,9 +96,9 @@ pub struct DeleteTenantMetaBody {
         ),
     ),
 )]
-#[post("/{tenant_id}")]
+#[post("/")]
 pub async fn create_tenant_meta_url(
-    path: web::Path<Uuid>,
+    tenant: TenantData,
     body: web::Json<CreateTenantMetaBody>,
     profile: MyceliumProfileData,
     tenant_registration_repo: Inject<
@@ -105,7 +108,7 @@ pub async fn create_tenant_meta_url(
 ) -> impl Responder {
     match create_tenant_meta(
         profile.to_profile(),
-        path.into_inner(),
+        tenant.tenant_id().to_owned(),
         body.key.to_owned(),
         body.value.to_owned(),
         Box::new(&*tenant_registration_repo),
@@ -121,7 +124,11 @@ pub async fn create_tenant_meta_url(
     delete,
     context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Meta),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
     ),
     request_body = DeleteTenantMetaBody,
     responses(
@@ -151,16 +158,16 @@ pub async fn create_tenant_meta_url(
         ),
     ),
 )]
-#[delete("/{tenant_id}")]
+#[delete("/")]
 pub async fn delete_tenant_meta_url(
-    path: web::Path<Uuid>,
+    tenant: TenantData,
     body: web::Json<DeleteTenantMetaBody>,
     profile: MyceliumProfileData,
     tenant_deletion_repo: Inject<TenantDeletionModule, dyn TenantDeletion>,
 ) -> impl Responder {
     match delete_tenant_meta(
         profile.to_profile(),
-        path.to_owned(),
+        tenant.tenant_id().to_owned(),
         body.key.to_owned(),
         Box::new(&*tenant_deletion_repo),
     )
@@ -175,7 +182,11 @@ pub async fn delete_tenant_meta_url(
     patch,
     context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Meta),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
     ),
     request_body = CreateTenantMetaBody,
     responses(
@@ -205,16 +216,16 @@ pub async fn delete_tenant_meta_url(
         ),
     ),
 )]
-#[patch("/{tenant_id}")]
+#[patch("/")]
 pub async fn update_tenant_meta_url(
-    path: web::Path<Uuid>,
+    tenant: TenantData,
     body: web::Json<CreateTenantMetaBody>,
     profile: MyceliumProfileData,
     tenant_updating_repo: Inject<TenantUpdatingModule, dyn TenantUpdating>,
 ) -> impl Responder {
     match update_tenant_meta(
         profile.to_profile(),
-        path.to_owned(),
+        tenant.tenant_id().to_owned(),
         body.key.to_owned(),
         body.value.to_owned(),
         Box::new(&*tenant_updating_repo),

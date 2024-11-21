@@ -9,10 +9,8 @@ mod guest_user;
 mod list_guest_on_subscription_account;
 mod list_licensed_accounts_of_email;
 mod uninvite_guest;
-mod update_user_guest_role;
 
 pub use guest_user::*;
 pub use list_guest_on_subscription_account::*;
 pub use list_licensed_accounts_of_email::*;
 pub use uninvite_guest::*;
-pub use update_user_guest_role::*;

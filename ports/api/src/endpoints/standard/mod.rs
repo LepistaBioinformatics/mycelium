@@ -305,7 +305,6 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         subscription_manager_guest_endpoints::list_licensed_accounts_of_email_url,
         subscription_manager_guest_endpoints::guest_user_url,
         subscription_manager_guest_endpoints::uninvite_guest_url,
-        subscription_manager_guest_endpoints::update_user_guest_role_url,
         subscription_manager_guest_endpoints::list_guest_on_subscription_account_url,
         user_manager_account_endpoints::approve_account_url,
         user_manager_account_endpoints::disapprove_account_url,
