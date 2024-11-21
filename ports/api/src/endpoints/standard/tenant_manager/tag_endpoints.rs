@@ -1,5 +1,5 @@
 use crate::{
-    dtos::MyceliumProfileData,
+    dtos::{MyceliumProfileData, TenantData},
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{
         TenantTagDeletionModule, TenantTagRegistrationModule,
@@ -63,7 +63,11 @@ pub struct CreateTagBody {
     post,
     context_path = build_actor_context(ActorName::TenantManager, UrlGroup::Tags),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
     ),
     request_body = CreateTagBody,
     responses(
@@ -94,8 +98,9 @@ pub struct CreateTagBody {
         ),
     ),
 )]
-#[post("/{tenant_id}/tags/")]
+#[post("/tags/")]
 pub async fn register_tag_url(
+    _: TenantData,
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
     body: web::Json<CreateTagBody>,
@@ -122,7 +127,11 @@ pub async fn register_tag_url(
     put,
     context_path = build_actor_context(ActorName::TenantManager, UrlGroup::Tags),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
         ("tag_id" = Uuid, Path, description = "The tag primary key."),
     ),
     request_body = CreateTagBody,
@@ -154,17 +163,18 @@ pub async fn register_tag_url(
         ),
     ),
 )]
-#[put("/{tenant_id}/tags/{tag_id}")]
+#[put("/tags/{tag_id}")]
 pub async fn update_tag_url(
+    _: TenantData,
     profile: MyceliumProfileData,
-    path: web::Path<(Uuid, Uuid)>,
+    path: web::Path<Uuid>,
     body: web::Json<CreateTagBody>,
     tag_updating_repo: Inject<TenantTagUpdatingModule, dyn TenantTagUpdating>,
 ) -> impl Responder {
     match update_tag(
         profile.to_profile(),
         Tag {
-            id: path.into_inner().1,
+            id: path.into_inner(),
             value: body.value.to_owned(),
             meta: Some(body.meta.to_owned()),
         },
@@ -181,7 +191,11 @@ pub async fn update_tag_url(
     delete,
     context_path = build_actor_context(ActorName::TenantManager, UrlGroup::Tags),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
         ("tag_id" = Uuid, Path, description = "The tag primary key."),
     ),
     responses(
@@ -212,15 +226,16 @@ pub async fn update_tag_url(
         ),
     ),
 )]
-#[delete("/{tenant_id}/tags/{tag_id}")]
+#[delete("/tags/{tag_id}")]
 pub async fn delete_tag_url(
+    _: TenantData,
     profile: MyceliumProfileData,
-    path: web::Path<(Uuid, Uuid)>,
+    path: web::Path<Uuid>,
     tag_deletion_repo: Inject<TenantTagDeletionModule, dyn TenantTagDeletion>,
 ) -> impl Responder {
     match delete_tag(
         profile.to_profile(),
-        path.into_inner().1,
+        path.into_inner(),
         Box::from(&*tag_deletion_repo),
     )
     .await

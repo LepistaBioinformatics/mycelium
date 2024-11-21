@@ -31,9 +31,10 @@ impl FromRequest for TenantData {
                 .headers()
                 .get(DEFAULT_TENANT_ID_KEY)
                 .ok_or_else(|| {
-                    GatewayError::BadRequest(
-                        "Missing tenant id in request".to_string(),
-                    )
+                    GatewayError::BadRequest(format!(
+                        "Missing tenant id in request. Expected header: {}",
+                        DEFAULT_TENANT_ID_KEY
+                    ))
                 })?
                 .to_str()
                 .map_err(|_| {

@@ -1,5 +1,5 @@
 use crate::{
-    dtos::MyceliumProfileData,
+    dtos::{MyceliumProfileData, TenantData},
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{
         TenantDeletionModule, TenantFetchingModule, TenantUpdatingModule,
@@ -29,7 +29,6 @@ use myc_http_tools::{
 use serde::Deserialize;
 use shaku_actix::Inject;
 use utoipa::ToSchema;
-use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -59,7 +58,11 @@ pub struct GuestTenantOwnerBody {
     post,
     context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Owners),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
     ),
     request_body = GuestTenantOwnerBody,
     responses(
@@ -90,9 +93,9 @@ pub struct GuestTenantOwnerBody {
         ),
     ),
 )]
-#[post("/{tenant_id}")]
+#[post("/")]
 pub async fn guest_tenant_owner_url(
-    path: web::Path<Uuid>,
+    tenant: TenantData,
     body: web::Json<GuestTenantOwnerBody>,
     profile: MyceliumProfileData,
     owner_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
@@ -109,7 +112,7 @@ pub async fn guest_tenant_owner_url(
     match guest_tenant_owner(
         profile.to_profile(),
         email,
-        path.into_inner(),
+        tenant.tenant_id().to_owned(),
         Box::new(&*owner_fetching_repo),
         Box::new(&*tenant_updating_repo),
     )
@@ -124,7 +127,11 @@ pub async fn guest_tenant_owner_url(
     delete,
     context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Owners),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
     ),
     request_body = GuestTenantOwnerBody,
     responses(
@@ -154,9 +161,9 @@ pub async fn guest_tenant_owner_url(
         ),
     ),
 )]
-#[delete("/{tenant_id}")]
+#[delete("/")]
 pub async fn revoke_tenant_owner_url(
-    path: web::Path<Uuid>,
+    tenant: TenantData,
     body: web::Json<GuestTenantOwnerBody>,
     profile: MyceliumProfileData,
     tenant_fetching_repo: Inject<TenantFetchingModule, dyn TenantFetching>,
@@ -173,7 +180,7 @@ pub async fn revoke_tenant_owner_url(
     match revoke_tenant_owner(
         profile.to_profile(),
         email,
-        path.into_inner(),
+        tenant.tenant_id().to_owned(),
         Box::new(&*tenant_fetching_repo),
         Box::new(&*tenant_deletion_repo),
     )

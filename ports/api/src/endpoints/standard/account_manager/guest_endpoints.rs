@@ -1,5 +1,5 @@
 use crate::{
-    dtos::MyceliumProfileData,
+    dtos::{MyceliumProfileData, TenantData},
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{
         AccountFetchingModule, GuestRoleFetchingModule,
@@ -66,7 +66,11 @@ pub struct GuestUserBody {
     post,
     context_path = build_actor_context(ActorName::AccountManager, UrlGroup::Guests),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
         ("account_id" = Uuid, Path, description = "The account primary key."),
         ("role_id" = Uuid, Path, description = "The guest-role unique id."),
     ),
@@ -104,9 +108,10 @@ pub struct GuestUserBody {
         ),
     ),
 )]
-#[post("/{tenant_id}/accounts/{account_id}/roles/{role_id}")]
+#[post("/accounts/{account_id}/roles/{role_id}")]
 pub async fn guest_to_children_account_url(
-    path: web::Path<(Uuid, Uuid, Uuid)>,
+    tenant: TenantData,
+    path: web::Path<(Uuid, Uuid)>,
     body: web::Json<GuestUserBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
@@ -121,7 +126,7 @@ pub async fn guest_to_children_account_url(
     >,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
-    let (tenant_id, account_id, role_id) = path.to_owned();
+    let (account_id, role_id) = path.to_owned();
 
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
@@ -133,7 +138,7 @@ pub async fn guest_to_children_account_url(
 
     match guest_to_children_account(
         profile.to_profile(),
-        tenant_id,
+        tenant.tenant_id().to_owned(),
         email,
         body.parent_role_id.to_owned(),
         role_id,

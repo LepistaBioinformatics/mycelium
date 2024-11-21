@@ -1,5 +1,5 @@
 use crate::{
-    dtos::MyceliumProfileData,
+    dtos::{MyceliumProfileData, TenantData},
     endpoints::{
         shared::{PaginationParams, UrlGroup},
         standard::shared::build_actor_context,
@@ -10,7 +10,7 @@ use crate::{
     },
 };
 
-use actix_web::{get, post, web, HttpResponse, Responder};
+use actix_web::{get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
@@ -145,7 +145,11 @@ pub struct ListSubscriptionAccountParams {
     post,
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
     ),
     request_body = CreateSubscriptionAccountBody,
     responses(
@@ -176,9 +180,9 @@ pub struct ListSubscriptionAccountParams {
         ),
     ),
 )]
-#[post("/{tenant_id}")]
+#[post("/")]
 pub async fn create_subscription_account_url(
-    path: web::Path<Uuid>,
+    tenant: TenantData,
     body: web::Json<CreateSubscriptionAccountBody>,
     profile: MyceliumProfileData,
     account_registration_repo: Inject<
@@ -189,7 +193,7 @@ pub async fn create_subscription_account_url(
 ) -> impl Responder {
     match create_subscription_account(
         profile.to_profile(),
-        path.into_inner(),
+        tenant.tenant_id().to_owned(),
         body.name.to_owned(),
         Box::new(&*account_registration_repo),
         Box::new(&*webhook_fetching_repo),
@@ -212,7 +216,11 @@ pub async fn create_subscription_account_url(
     get,
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
         ListSubscriptionAccountParams,
         PaginationParams,
     ),
@@ -243,9 +251,9 @@ pub async fn create_subscription_account_url(
         ),
     ),
 )]
-#[get("/{tenant_id}")]
+#[get("/")]
 pub async fn list_accounts_by_type_url(
-    path: web::Path<Uuid>,
+    tenant: TenantData,
     info: web::Query<ListSubscriptionAccountParams>,
     page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
@@ -272,7 +280,7 @@ pub async fn list_accounts_by_type_url(
         _ => (),
     }
 
-    let tenant_id = path.into_inner();
+    let tenant_id = tenant.tenant_id().to_owned();
 
     let account_type = match &info.account_type {
         None => None,
@@ -314,7 +322,11 @@ pub async fn list_accounts_by_type_url(
     get,
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
         ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
     responses(
@@ -344,17 +356,18 @@ pub async fn list_accounts_by_type_url(
         ),
     ),
 )]
-#[get("/{tenant_id}/accounts/{account_id}")]
+#[get("/{account_id}")]
 pub async fn get_account_details_url(
-    path: web::Path<(Uuid, Uuid)>,
+    tenant: TenantData,
+    path: web::Path<Uuid>,
     profile: MyceliumProfileData,
     account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
 ) -> impl Responder {
-    let (tenant_id, account_id) = path.into_inner();
+    let account_id = path.into_inner();
 
     match get_account_details(
         profile.to_profile(),
-        tenant_id,
+        tenant.tenant_id().to_owned(),
         account_id,
         Box::new(&*account_fetching_repo),
     )
@@ -373,7 +386,11 @@ pub async fn get_account_details_url(
     patch,
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
     request_body = UpdateSubscriptionAccountNameAndFlagsBody,
@@ -405,20 +422,21 @@ pub async fn get_account_details_url(
         ),
     ),
 )]
-#[get("/{tenant_id}/accounts/{account_id}")]
+#[patch("/{account_id}")]
 pub async fn update_account_name_and_flags_url(
-    path: web::Path<(Uuid, Uuid)>,
+    tenant: TenantData,
+    path: web::Path<Uuid>,
     body: web::Json<UpdateSubscriptionAccountNameAndFlagsBody>,
     profile: MyceliumProfileData,
     account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
     account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
 ) -> impl Responder {
-    let (tenant_id, account_id) = path.into_inner();
+    let account_id = path.into_inner();
 
     match update_account_name_and_flags(
         profile.to_profile(),
         account_id,
-        tenant_id,
+        tenant.tenant_id().to_owned(),
         body.name.to_owned(),
         body.is_active.to_owned(),
         body.is_checked.to_owned(),
@@ -441,7 +459,11 @@ pub async fn update_account_name_and_flags_url(
     post,
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
     responses(
@@ -471,18 +493,19 @@ pub async fn update_account_name_and_flags_url(
         ),
     ),
 )]
-#[post("/{tenant_id}/accounts/{account_id}/propagate")]
+#[post("/{account_id}/propagate")]
 pub async fn propagate_existing_subscription_account_url(
-    path: web::Path<(Uuid, Uuid)>,
+    tenant: TenantData,
+    path: web::Path<Uuid>,
     profile: MyceliumProfileData,
     account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
     webhook_fetching_repo: Inject<WebHookFetchingModule, dyn WebHookFetching>,
 ) -> impl Responder {
-    let (tenant_id, account_id) = path.into_inner();
+    let account_id = path.into_inner();
 
     match propagate_existing_subscription_account(
         profile.to_profile(),
-        tenant_id,
+        tenant.tenant_id().to_owned(),
         account_id,
         Box::new(&*account_fetching_repo),
         Box::new(&*webhook_fetching_repo),

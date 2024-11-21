@@ -1,5 +1,5 @@
 use crate::{
-    dtos::MyceliumProfileData,
+    dtos::{MyceliumProfileData, TenantData},
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::AccountDeletionModule,
 };
@@ -24,12 +24,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
 }
 
 // ? ---------------------------------------------------------------------------
-// ? Define API structs
-// ? ---------------------------------------------------------------------------
-
-// TODO
-
-// ? ---------------------------------------------------------------------------
 // ? Define API paths
 // ? ---------------------------------------------------------------------------
 
@@ -37,7 +31,11 @@ pub fn configure(config: &mut web::ServiceConfig) {
     delete,
     context_path = build_actor_context(ActorName::TenantManager, UrlGroup::Accounts),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
         ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
     responses(
@@ -67,17 +65,18 @@ pub fn configure(config: &mut web::ServiceConfig) {
         ),
     ),
 )]
-#[delete("/{tenant_id}/accounts/{account_id}")]
+#[delete("/accounts/{account_id}")]
 pub async fn delete_subscription_account_url(
-    path: web::Path<(Uuid, Uuid)>,
+    tenant: TenantData,
+    path: web::Path<Uuid>,
     profile: MyceliumProfileData,
     account_deletion_repo: Inject<AccountDeletionModule, dyn AccountDeletion>,
 ) -> impl Responder {
-    let (tenant_id, account_id) = path.into_inner();
+    let account_id = path.into_inner();
 
     match delete_subscription_account(
         profile.to_profile(),
-        tenant_id,
+        tenant.tenant_id().to_owned(),
         account_id,
         Box::new(&*account_deletion_repo),
     )

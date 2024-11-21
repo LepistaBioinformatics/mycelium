@@ -1,5 +1,5 @@
 use crate::{
-    dtos::MyceliumProfileData,
+    dtos::{MyceliumProfileData, TenantData},
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{AccountRegistrationModule, TenantFetchingModule},
 };
@@ -16,7 +16,6 @@ use myc_http_tools::wrappers::default_response_to_http_response::{
     create_response_kind, handle_mapped_error,
 };
 use shaku_actix::Inject;
-use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -40,7 +39,11 @@ pub fn configure(config: &mut web::ServiceConfig) {
     post,
     context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Accounts),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
     ),
     request_body = CreateSubscriptionAccountBody,
     responses(
@@ -71,9 +74,9 @@ pub fn configure(config: &mut web::ServiceConfig) {
         ),
     ),
 )]
-#[post("/{tenant_id}")]
+#[post("/")]
 pub async fn create_management_account_url(
-    path: web::Path<Uuid>,
+    tenant: TenantData,
     profile: MyceliumProfileData,
     tenant_fetching_repo: Inject<TenantFetchingModule, dyn TenantFetching>,
     account_registration_repo: Inject<
@@ -83,7 +86,7 @@ pub async fn create_management_account_url(
 ) -> impl Responder {
     match create_management_account(
         profile.to_profile(),
-        path.into_inner(),
+        tenant.tenant_id().to_owned(),
         Box::new(&*tenant_fetching_repo),
         Box::new(&*account_registration_repo),
     )

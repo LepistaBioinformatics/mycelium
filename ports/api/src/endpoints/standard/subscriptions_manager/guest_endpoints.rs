@@ -1,30 +1,29 @@
 use crate::{
-    dtos::MyceliumProfileData,
+    dtos::{MyceliumProfileData, TenantData},
     endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
     modules::{
         AccountFetchingModule, GuestRoleFetchingModule,
         GuestUserDeletionModule, GuestUserFetchingModule,
-        GuestUserOnAccountUpdatingModule, GuestUserRegistrationModule,
-        LicensedResourcesFetchingModule, MessageSendingQueueModule,
+        GuestUserRegistrationModule, LicensedResourcesFetchingModule,
+        MessageSendingQueueModule,
     },
 };
 
-use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
+use actix_web::{delete, get, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
         dtos::{email::Email, route_type::PermissionedRoles},
         entities::{
             AccountFetching, GuestRoleFetching, GuestUserDeletion,
-            GuestUserFetching, GuestUserOnAccountUpdating,
-            GuestUserRegistration, LicensedResourcesFetching, MessageSending,
+            GuestUserFetching, GuestUserRegistration,
+            LicensedResourcesFetching, MessageSending,
         },
     },
     models::AccountLifeCycle,
     use_cases::roles::standard::subscriptions_manager::guest::{
         guest_user, list_guest_on_subscription_account,
         list_licensed_accounts_of_email, uninvite_guest,
-        update_user_guest_role,
     },
 };
 use myc_http_tools::{
@@ -32,7 +31,6 @@ use myc_http_tools::{
     wrappers::default_response_to_http_response::{
         delete_response_kind, fetch_many_response_kind,
         get_or_create_response_kind, handle_mapped_error,
-        updating_response_kind,
     },
 };
 use serde::Deserialize;
@@ -49,7 +47,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
         .service(list_licensed_accounts_of_email_url)
         .service(guest_user_url)
         .service(uninvite_guest_url)
-        .service(update_user_guest_role_url)
         .service(list_guest_on_subscription_account_url);
 }
 
@@ -71,12 +68,6 @@ pub struct ListLicensedAccountsOfEmailBody {
     permissioned_roles: Option<PermissionedRoles>,
 }
 
-#[derive(Deserialize, IntoParams)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateUserGuestRoleParams {
-    new_guest_role_id: Uuid,
-}
-
 // ? ---------------------------------------------------------------------------
 // ? Define API paths
 //
@@ -89,7 +80,11 @@ pub struct UpdateUserGuestRoleParams {
     get,
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
     ),
     request_body = ListLicensedAccountsOfEmailBody,
     responses(
@@ -119,9 +114,9 @@ pub struct UpdateUserGuestRoleParams {
         ),
     ),
 )]
-#[get("/{tenant_id}")]
+#[get("/")]
 pub async fn list_licensed_accounts_of_email_url(
-    path: web::Path<Uuid>,
+    tenant: TenantData,
     body: web::Json<ListLicensedAccountsOfEmailBody>,
     profile: MyceliumProfileData,
     licensed_resources_fetching_repo: Inject<
@@ -140,7 +135,7 @@ pub async fn list_licensed_accounts_of_email_url(
 
     match list_licensed_accounts_of_email(
         profile.to_profile(),
-        *path,
+        tenant.tenant_id().to_owned(),
         email.to_owned(),
         body.roles.to_owned(),
         body.permissioned_roles.to_owned(),
@@ -162,7 +157,11 @@ pub async fn list_licensed_accounts_of_email_url(
     post,
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
         ("account_id" = Uuid, Path, description = "The account primary key."),
         ("role_id" = Uuid, Path, description = "The guest-role unique id."),
     ),
@@ -200,9 +199,10 @@ pub async fn list_licensed_accounts_of_email_url(
         ),
     ),
 )]
-#[post("/{tenant_id}/accounts/{account_id}/roles/{role_id}")]
+#[post("/accounts/{account_id}/roles/{role_id}")]
 pub async fn guest_user_url(
-    path: web::Path<(Uuid, Uuid, Uuid)>,
+    tenant: TenantData,
+    path: web::Path<(Uuid, Uuid)>,
     body: web::Json<GuestUserBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
@@ -217,7 +217,7 @@ pub async fn guest_user_url(
     >,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
-    let (tenant_id, account_id, role_id) = path.to_owned();
+    let (account_id, role_id) = path.to_owned();
 
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
@@ -229,7 +229,7 @@ pub async fn guest_user_url(
 
     match guest_user(
         profile.to_profile(),
-        tenant_id,
+        tenant.tenant_id().to_owned(),
         email,
         role_id,
         account_id,
@@ -246,81 +246,16 @@ pub async fn guest_user_url(
     }
 }
 
-/// Update guest-role of a single user.
-///
-/// This action gives the ability of the target account (specified through
-/// the `account` argument) to replace the current specified `role` by the
-/// new role.
-#[utoipa::path(
-    patch,
-    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
-    params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
-        ("account_id" = Uuid, Path, description = "The account primary key."),
-        ("role_id" = Uuid, Path, description = "The guest-role unique id."),
-        UpdateUserGuestRoleParams,
-    ),
-    responses(
-        (
-            status = 500,
-            description = "Unknown internal server error.",
-            body = HttpJsonResponse,
-        ),
-        (
-            status = 403,
-            description = "Forbidden.",
-            body = HttpJsonResponse,
-        ),
-        (
-            status = 401,
-            description = "Unauthorized.",
-            body = HttpJsonResponse,
-        ),
-        (
-            status = 400,
-            description = "Bad request.",
-            body = HttpJsonResponse,
-        ),
-        (
-            status = 201,
-            description = "Guesting done.",
-            body = GuestUser,
-        ),
-    ),
-)]
-#[patch("/{tenant_id}/accounts/{account_id}/roles/{role_id}")]
-pub async fn update_user_guest_role_url(
-    path: web::Path<(Uuid, Uuid, Uuid)>,
-    info: web::Query<UpdateUserGuestRoleParams>,
-    profile: MyceliumProfileData,
-    guest_user_on_account_updating_repo: Inject<
-        GuestUserOnAccountUpdatingModule,
-        dyn GuestUserOnAccountUpdating,
-    >,
-) -> impl Responder {
-    let (tenant_id, account_id, role_id) = path.to_owned();
-
-    match update_user_guest_role(
-        profile.to_profile(),
-        tenant_id,
-        account_id,
-        role_id,
-        info.new_guest_role_id.to_owned(),
-        Box::new(&*guest_user_on_account_updating_repo),
-    )
-    .await
-    {
-        Ok(res) => updating_response_kind(res),
-        Err(err) => handle_mapped_error(err),
-    }
-}
-
 /// Uninvite user to perform a role to account
 #[utoipa::path(
     delete,
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
         ("account_id" = Uuid, Path, description = "The account primary key."),
         ("role_id" = Uuid, Path, description = "The guest-role unique id."),
         GuestUserBody,
@@ -352,9 +287,10 @@ pub async fn update_user_guest_role_url(
         ),
     ),
 )]
-#[delete("/{tenant_id}/accounts/{account_id}/roles/{role_id}")]
+#[delete("/accounts/{account_id}/roles/{role_id}")]
 pub async fn uninvite_guest_url(
-    path: web::Path<(Uuid, Uuid, Uuid)>,
+    tenant: TenantData,
+    path: web::Path<(Uuid, Uuid)>,
     info: web::Query<GuestUserBody>,
     profile: MyceliumProfileData,
     guest_user_deletion_repo: Inject<
@@ -362,11 +298,11 @@ pub async fn uninvite_guest_url(
         dyn GuestUserDeletion,
     >,
 ) -> impl Responder {
-    let (tenant_id, account_id, role_id) = path.to_owned();
+    let (account_id, role_id) = path.to_owned();
 
     match uninvite_guest(
         profile.to_profile(),
-        tenant_id,
+        tenant.tenant_id().to_owned(),
         account_id,
         role_id,
         info.email.to_owned(),
@@ -387,7 +323,11 @@ pub async fn uninvite_guest_url(
     get,
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
-        ("tenant_id" = Uuid, Path, description = "The tenant primary key."),
+        (
+            "x-mycelium-tenant-id" = TenantData,
+            Header,
+            description = "The tenant unique id."
+        ),
         ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
     responses(
@@ -417,9 +357,10 @@ pub async fn uninvite_guest_url(
         ),
     ),
 )]
-#[get("/{tenant_id}/accounts/{account_id}")]
+#[get("/accounts/{account_id}")]
 pub async fn list_guest_on_subscription_account_url(
-    path: web::Path<(Uuid, Uuid)>,
+    tenant: TenantData,
+    path: web::Path<Uuid>,
     profile: MyceliumProfileData,
     account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
     guest_user_fetching_repo: Inject<
@@ -427,12 +368,10 @@ pub async fn list_guest_on_subscription_account_url(
         dyn GuestUserFetching,
     >,
 ) -> impl Responder {
-    let (tenant_id, account_id) = path.to_owned();
-
     match list_guest_on_subscription_account(
         profile.to_profile(),
-        tenant_id,
-        account_id,
+        tenant.tenant_id().to_owned(),
+        path.to_owned(),
         Box::new(&*account_fetching_repo),
         Box::new(&*guest_user_fetching_repo),
     )
