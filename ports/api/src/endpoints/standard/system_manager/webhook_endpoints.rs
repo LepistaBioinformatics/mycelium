@@ -189,7 +189,7 @@ pub async fn list_webhooks_url(
     put,
     context_path = build_actor_context(ActorName::SystemManager, UrlGroup::Webhooks),
     params(
-        ("id" = Uuid, Path, description = "The webhook primary key."),
+        ("webhook_id" = Uuid, Path, description = "The webhook primary key."),
     ),
     request_body = UpdateWebHookBody,
     responses(
@@ -215,7 +215,7 @@ pub async fn list_webhooks_url(
         ),
     ),
 )]
-#[put("/{id}")]
+#[put("/{webhook_id}")]
 pub async fn update_webhook_url(
     body: web::Json<UpdateWebHookBody>,
     path: web::Path<Uuid>,
@@ -239,7 +239,7 @@ pub async fn update_webhook_url(
     delete,
     context_path = build_actor_context(ActorName::SystemManager, UrlGroup::Webhooks),
     params(
-        ("id" = Uuid, Path, description = "The webhook primary key."),
+        ("webhook_id" = Uuid, Path, description = "The webhook primary key."),
     ),
     responses(
         (
@@ -268,7 +268,7 @@ pub async fn update_webhook_url(
         ),
     ),
 )]
-#[delete("/{id}")]
+#[delete("/{webhook_id}")]
 pub async fn delete_webhook_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,

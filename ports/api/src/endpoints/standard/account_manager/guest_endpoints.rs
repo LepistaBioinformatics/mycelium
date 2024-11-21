@@ -67,7 +67,7 @@ pub struct GuestUserBody {
     context_path = build_actor_context(ActorName::AccountManager, UrlGroup::Guests),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),

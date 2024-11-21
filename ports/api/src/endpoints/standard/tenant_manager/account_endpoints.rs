@@ -32,7 +32,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
     context_path = build_actor_context(ActorName::TenantManager, UrlGroup::Accounts),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
@@ -65,7 +65,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
         ),
     ),
 )]
-#[delete("/accounts/{account_id}")]
+#[delete("/{account_id}")]
 pub async fn delete_subscription_account_url(
     tenant: TenantData,
     path: web::Path<Uuid>,

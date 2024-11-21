@@ -145,7 +145,7 @@ pub async fn create_default_account_url(
     context_path = build_actor_context(ActorName::NoRole, UrlGroup::Accounts),
     request_body = UpdateOwnAccountNameAccountBody,
     params(
-        ("id" = Uuid, Path, description = "The account primary key."),
+        ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
     responses(
         (
@@ -175,7 +175,7 @@ pub async fn create_default_account_url(
         ),
     ),
 )]
-#[patch("/{id}/update-account-name")]
+#[patch("/{account_id}/update-account-name")]
 pub async fn update_own_account_name_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateOwnAccountNameAccountBody>,

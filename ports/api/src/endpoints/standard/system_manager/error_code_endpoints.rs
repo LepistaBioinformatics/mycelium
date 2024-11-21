@@ -201,6 +201,10 @@ pub async fn list_error_codes_url(
     }
 }
 
+/// Get an error code.
+///
+/// Get error code by prefix and code.
+///
 #[utoipa::path(
     get,
     context_path = build_actor_context(ActorName::SystemManager, UrlGroup::ErrorCodes),
@@ -235,7 +239,7 @@ pub async fn list_error_codes_url(
         ),
     ),
 )]
-#[get("/prefix/{account}/code/{code}")]
+#[get("/prefixes/{prefix}/codes/{code}")]
 pub async fn get_error_code_url(
     path: web::Path<(String, i32)>,
     profile: MyceliumProfileData,
@@ -266,6 +270,10 @@ pub async fn get_error_code_url(
     }
 }
 
+/// Update an error code.
+///
+/// Update error code message and details.
+///
 #[utoipa::path(
     patch,
     context_path = build_actor_context(ActorName::SystemManager, UrlGroup::ErrorCodes),
@@ -302,7 +310,7 @@ pub async fn get_error_code_url(
         ),
     ),
 )]
-#[patch("/prefix/{account}/code/{code}")]
+#[patch("/prefixes/{prefix}/codes/{code}")]
 pub async fn update_error_code_message_and_details_url(
     path: web::Path<(String, i32)>,
     body: web::Json<UpdateErrorCodeMessageAndDetailsBody>,
@@ -334,6 +342,10 @@ pub async fn update_error_code_message_and_details_url(
     }
 }
 
+/// Delete an error code.
+///
+/// Delete error code by prefix and code.
+///
 #[utoipa::path(
     delete,
     context_path = build_actor_context(ActorName::SystemManager, UrlGroup::ErrorCodes),
@@ -368,7 +380,7 @@ pub async fn update_error_code_message_and_details_url(
         ),
     ),
 )]
-#[delete("/prefix/{account}/code/{code}")]
+#[delete("/prefixes/{prefix}/codes/{code}")]
 pub async fn delete_error_code_url(
     path: web::Path<(String, i32)>,
     profile: MyceliumProfileData,

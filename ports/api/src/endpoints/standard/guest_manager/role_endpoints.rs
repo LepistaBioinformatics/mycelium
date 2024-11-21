@@ -175,7 +175,7 @@ pub async fn list_roles_url(
     delete,
     context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Roles),
     params(
-        ("role" = Uuid, Path, description = "The role primary key."),
+        ("role_id" = Uuid, Path, description = "The role primary key."),
     ),
     responses(
         (
@@ -204,7 +204,7 @@ pub async fn list_roles_url(
         ),
     ),
 )]
-#[delete("/{role}")]
+#[delete("/{role_id}")]
 pub async fn delete_role_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
@@ -229,7 +229,7 @@ pub async fn delete_role_url(
     patch,
     context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Roles),
     params(
-        ("role" = Uuid, Path, description = "The role primary key."),
+        ("role_id" = Uuid, Path, description = "The role primary key."),
     ),
     request_body = CreateRoleBody,
     responses(
@@ -260,7 +260,7 @@ pub async fn delete_role_url(
         ),
     ),
 )]
-#[patch("/{role}")]
+#[patch("/{role_id}")]
 pub async fn update_role_name_and_description_url(
     path: web::Path<Uuid>,
     body: web::Json<CreateRoleBody>,

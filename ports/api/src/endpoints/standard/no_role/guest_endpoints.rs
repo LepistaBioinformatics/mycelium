@@ -68,7 +68,7 @@ pub struct GuestUserBody {
             description = "The connection string to the role-scoped database."
         ),
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),

@@ -40,12 +40,11 @@ pub fn configure(config: &mut web::ServiceConfig) {
     context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Accounts),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
     ),
-    request_body = CreateSubscriptionAccountBody,
     responses(
         (
             status = 500,
@@ -70,7 +69,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
         (
             status = 201,
             description = "Account created.",
-            body = CreateSubscriptionResponse,
+            body = Account,
         ),
     ),
 )]
