@@ -64,7 +64,7 @@ pub struct CreateTagBody {
     context_path = build_actor_context(ActorName::TenantManager, UrlGroup::Tags),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
@@ -98,7 +98,7 @@ pub struct CreateTagBody {
         ),
     ),
 )]
-#[post("/tags/")]
+#[post("/")]
 pub async fn register_tag_url(
     _: TenantData,
     profile: MyceliumProfileData,
@@ -128,7 +128,7 @@ pub async fn register_tag_url(
     context_path = build_actor_context(ActorName::TenantManager, UrlGroup::Tags),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
@@ -163,7 +163,7 @@ pub async fn register_tag_url(
         ),
     ),
 )]
-#[put("/tags/{tag_id}")]
+#[put("/{tag_id}")]
 pub async fn update_tag_url(
     _: TenantData,
     profile: MyceliumProfileData,
@@ -192,7 +192,7 @@ pub async fn update_tag_url(
     context_path = build_actor_context(ActorName::TenantManager, UrlGroup::Tags),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
@@ -226,7 +226,7 @@ pub async fn update_tag_url(
         ),
     ),
 )]
-#[delete("/tags/{tag_id}")]
+#[delete("/{tag_id}")]
 pub async fn delete_tag_url(
     _: TenantData,
     profile: MyceliumProfileData,

@@ -56,14 +56,14 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub struct CreateGuestRoleBody {
     pub name: String,
     pub description: String,
-    pub role_id: Uuid,
+    pub guest_role_id: Uuid,
 }
 
 #[derive(Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct ListGuestRolesParams {
     pub name: Option<String>,
-    pub role_id: Option<Uuid>,
+    pub guest_role_id: Option<Uuid>,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -127,7 +127,7 @@ pub async fn crate_guest_role_url(
         profile.to_profile(),
         json.name.to_owned(),
         json.description.to_owned(),
-        json.role_id.to_owned(),
+        json.guest_role_id.to_owned(),
         None,
         Box::new(&*guest_role_registration_repo),
     )
@@ -184,7 +184,7 @@ pub async fn list_guest_roles_url(
     match list_guest_roles(
         profile.to_profile(),
         info.name.to_owned(),
-        info.role_id.to_owned(),
+        info.guest_role_id.to_owned(),
         Box::new(&*guest_role_fetching_repo),
     )
     .await
@@ -201,7 +201,7 @@ pub async fn list_guest_roles_url(
     delete,
     context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
-        ("role_id" = Uuid, Path, description = "The guest-role primary key."),
+        ("guest_role_id" = Uuid, Path, description = "The guest-role primary key."),
     ),
     responses(
         (
@@ -230,7 +230,7 @@ pub async fn list_guest_roles_url(
         ),
     ),
 )]
-#[delete("/{role_id}")]
+#[delete("/{guest_role_id}")]
 pub async fn delete_guest_role_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
@@ -255,7 +255,7 @@ pub async fn delete_guest_role_url(
     patch,
     context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
-        ("role_id" = Uuid, Path, description = "The guest-role primary key."),
+        ("guest_role_id" = Uuid, Path, description = "The guest-role primary key."),
     ),
     request_body = UpdateGuestRoleNameAndDescriptionBody,
     responses(
@@ -286,7 +286,7 @@ pub async fn delete_guest_role_url(
         ),
     ),
 )]
-#[patch("/{role_id}")]
+#[patch("/{guest_role_id}")]
 pub async fn update_guest_role_name_and_description_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateGuestRoleNameAndDescriptionBody>,
@@ -347,7 +347,7 @@ pub async fn update_guest_role_name_and_description_url(
         ),
     ),
 )]
-#[patch("/{role_id}/permissions")]
+#[patch("/{guest_role_id}/permissions")]
 pub async fn update_guest_role_permissions_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateGuestRolePermissionsBody>,
@@ -376,7 +376,7 @@ pub async fn update_guest_role_permissions_url(
     post,
     context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
-        ("role_id" = Uuid, Path, description = "The guest-role primary key."),
+        ("guest_role_id" = Uuid, Path, description = "The guest-role primary key."),
         ("child_id" = Uuid, Path, description = "The child guest-role primary key."),
     ),
     request_body = UpdateGuestRolePermissionsBody,
@@ -408,7 +408,7 @@ pub async fn update_guest_role_permissions_url(
         ),
     ),
 )]
-#[post("/{role_id}/children/{child_id}")]
+#[post("/{guest_role_id}/children/{child_id}")]
 pub async fn insert_role_child_url(
     path: web::Path<(Uuid, Uuid)>,
     profile: MyceliumProfileData,
@@ -421,11 +421,11 @@ pub async fn insert_role_child_url(
         dyn GuestRoleUpdating,
     >,
 ) -> impl Responder {
-    let (role_id, child_id) = path.into_inner();
+    let (guest_role_id, child_id) = path.into_inner();
 
     match insert_role_child(
         profile.to_profile(),
-        role_id,
+        guest_role_id,
         child_id,
         Box::new(&*guest_role_fetching_repo),
         Box::new(&*guest_role_updating_repo),
@@ -444,7 +444,7 @@ pub async fn insert_role_child_url(
     delete,
     context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
-        ("role_id" = Uuid, Path, description = "The guest-role primary key."),
+        ("guest_role_id" = Uuid, Path, description = "The guest-role primary key."),
         ("child_id" = Uuid, Path, description = "The child guest-role primary key."),
     ),
     request_body = UpdateGuestRolePermissionsBody,
@@ -476,7 +476,7 @@ pub async fn insert_role_child_url(
         ),
     ),
 )]
-#[delete("/{role_id}/children/{child_id}")]
+#[delete("/{guest_role_id}/children/{child_id}")]
 pub async fn remove_role_child_url(
     path: web::Path<(Uuid, Uuid)>,
     profile: MyceliumProfileData,
@@ -485,11 +485,11 @@ pub async fn remove_role_child_url(
         dyn GuestRoleUpdating,
     >,
 ) -> impl Responder {
-    let (role_id, child_id) = path.into_inner();
+    let (guest_role_id, child_id) = path.into_inner();
 
     match remove_role_child(
         profile.to_profile(),
-        role_id,
+        guest_role_id,
         child_id,
         Box::new(&*guest_role_updating_repo),
     )

@@ -191,7 +191,7 @@ pub struct CheckUserCredentialsBody {
         ),
     ),
 )]
-#[post("/status/")]
+#[post("/status")]
 pub async fn check_email_registration_status_url(
     info: web::Json<CheckEmailStatusBody>,
     user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
@@ -324,7 +324,7 @@ pub async fn create_default_user_url(
         ),
     ),
 )]
-#[post("/validate-activation-token/")]
+#[post("/validate-activation-token")]
 pub async fn check_user_token_url(
     body: web::Json<CheckTokenBody>,
     user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
@@ -387,7 +387,7 @@ pub async fn check_user_token_url(
         ),
     ),
 )]
-#[post("/start-password-reset/")]
+#[post("/start-password-reset")]
 pub async fn start_password_redefinition_url(
     body: web::Json<StartPasswordResetBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
@@ -451,7 +451,7 @@ pub async fn start_password_redefinition_url(
         ),
     ),
 )]
-#[post("/reset-password/")]
+#[post("/reset-password")]
 pub async fn check_token_and_reset_password_url(
     body: web::Json<ResetPasswordBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
@@ -519,7 +519,7 @@ pub async fn check_token_and_reset_password_url(
         ),
     ),
 )]
-#[post("/login/")]
+#[post("/login")]
 pub async fn check_email_password_validity_url(
     body: web::Json<CheckUserCredentialsBody>,
     user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
@@ -650,7 +650,7 @@ pub async fn check_email_password_validity_url(
         ),
     ),
 )]
-#[post("/totp/enable/")]
+#[post("/totp/enable")]
 pub async fn totp_start_activation_url(
     req: HttpRequest,
     life_cycle_settings: web::Data<AccountLifeCycle>,
@@ -725,7 +725,7 @@ pub async fn totp_start_activation_url(
         ),
     ),
 )]
-#[post("/totp/validate-app/")]
+#[post("/totp/validate-app")]
 pub async fn totp_finish_activation_url(
     req: HttpRequest,
     body: web::Json<TotpUpdatingValidationBody>,
@@ -803,7 +803,7 @@ pub async fn totp_finish_activation_url(
         ),
     ),
 )]
-#[post("/totp/check-token/")]
+#[post("/totp/check-token")]
 pub async fn totp_check_token_url(
     req: HttpRequest,
     body: web::Json<TotpUpdatingValidationBody>,
@@ -892,7 +892,7 @@ pub async fn totp_check_token_url(
         ),
     ),
 )]
-#[post("/totp/disable/")]
+#[post("/totp/disable")]
 pub async fn totp_disable_url(
     req: HttpRequest,
     body: web::Json<TotpUpdatingValidationBody>,

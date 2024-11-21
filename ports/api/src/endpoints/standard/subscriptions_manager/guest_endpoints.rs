@@ -81,7 +81,7 @@ pub struct ListLicensedAccountsOfEmailBody {
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
@@ -158,7 +158,7 @@ pub async fn list_licensed_accounts_of_email_url(
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
@@ -252,7 +252,7 @@ pub async fn guest_user_url(
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
@@ -324,7 +324,7 @@ pub async fn uninvite_guest_url(
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),

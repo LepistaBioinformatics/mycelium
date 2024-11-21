@@ -6,7 +6,7 @@ use crate::{
     },
 };
 
-use actix_web::{delete, patch, post, web, Responder};
+use actix_web::{delete, post, put, web, Responder};
 use myc_core::{
     domain::{
         actors::ActorName,
@@ -32,8 +32,8 @@ use utoipa::ToSchema;
 pub fn configure(config: &mut web::ServiceConfig) {
     config
         .service(create_tenant_meta_url)
-        .service(delete_tenant_meta_url)
-        .service(update_tenant_meta_url);
+        .service(update_tenant_meta_url)
+        .service(delete_tenant_meta_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -62,7 +62,7 @@ pub struct DeleteTenantMetaBody {
     context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Meta),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
@@ -121,11 +121,70 @@ pub async fn create_tenant_meta_url(
 }
 
 #[utoipa::path(
+    put,
+    context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Meta),
+    params(
+        (
+            "x-mycelium-tenant-id" = Uuid,
+            Header,
+            description = "The tenant unique id."
+        ),
+    ),
+    request_body = CreateTenantMetaBody,
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 400,
+            description = "Meta not updated.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 202,
+            description = "Meta updated.",
+        ),
+    ),
+)]
+#[put("/")]
+pub async fn update_tenant_meta_url(
+    tenant: TenantData,
+    body: web::Json<CreateTenantMetaBody>,
+    profile: MyceliumProfileData,
+    tenant_updating_repo: Inject<TenantUpdatingModule, dyn TenantUpdating>,
+) -> impl Responder {
+    match update_tenant_meta(
+        profile.to_profile(),
+        tenant.tenant_id().to_owned(),
+        body.key.to_owned(),
+        body.value.to_owned(),
+        Box::new(&*tenant_updating_repo),
+    )
+    .await
+    {
+        Ok(res) => updating_response_kind(res),
+        Err(err) => handle_mapped_error(err),
+    }
+}
+
+#[utoipa::path(
     delete,
     context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Meta),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
@@ -174,65 +233,6 @@ pub async fn delete_tenant_meta_url(
     .await
     {
         Ok(res) => delete_response_kind(res),
-        Err(err) => handle_mapped_error(err),
-    }
-}
-
-#[utoipa::path(
-    patch,
-    context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Meta),
-    params(
-        (
-            "x-mycelium-tenant-id" = TenantData,
-            Header,
-            description = "The tenant unique id."
-        ),
-    ),
-    request_body = CreateTenantMetaBody,
-    responses(
-        (
-            status = 500,
-            description = "Unknown internal server error.",
-            body = HttpJsonResponse,
-        ),
-        (
-            status = 403,
-            description = "Forbidden.",
-            body = HttpJsonResponse,
-        ),
-        (
-            status = 401,
-            description = "Unauthorized.",
-            body = HttpJsonResponse,
-        ),
-        (
-            status = 400,
-            description = "Meta not updated.",
-            body = HttpJsonResponse,
-        ),
-        (
-            status = 202,
-            description = "Meta updated.",
-        ),
-    ),
-)]
-#[patch("/")]
-pub async fn update_tenant_meta_url(
-    tenant: TenantData,
-    body: web::Json<CreateTenantMetaBody>,
-    profile: MyceliumProfileData,
-    tenant_updating_repo: Inject<TenantUpdatingModule, dyn TenantUpdating>,
-) -> impl Responder {
-    match update_tenant_meta(
-        profile.to_profile(),
-        tenant.tenant_id().to_owned(),
-        body.key.to_owned(),
-        body.value.to_owned(),
-        Box::new(&*tenant_updating_repo),
-    )
-    .await
-    {
-        Ok(res) => updating_response_kind(res),
         Err(err) => handle_mapped_error(err),
     }
 }

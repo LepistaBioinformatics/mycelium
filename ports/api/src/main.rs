@@ -9,7 +9,10 @@ mod router;
 mod settings;
 
 use actix_cors::Cors;
-use actix_web::{middleware::Logger, web, App, HttpServer};
+use actix_web::{
+    middleware::{Logger, NormalizePath, TrailingSlash},
+    web, App, HttpServer,
+};
 use actix_web_opentelemetry::RequestTracing;
 use awc::Client;
 use config::injectors::configure as configure_injection_modules;
@@ -439,6 +442,10 @@ pub async fn main() -> std::io::Result<()> {
         // ? Fire the server
         // ? -------------------------------------------------------------------
         app
+            // ? ---------------------------------------------------------------
+            // ? Normalize path
+            // ? ---------------------------------------------------------------
+            .wrap(NormalizePath::new(TrailingSlash::MergeOnly))
             // ? ---------------------------------------------------------------
             // ? Configure CORS policies
             // ? ---------------------------------------------------------------

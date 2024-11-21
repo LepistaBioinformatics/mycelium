@@ -146,7 +146,7 @@ pub struct ListSubscriptionAccountParams {
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
@@ -176,7 +176,7 @@ pub struct ListSubscriptionAccountParams {
         (
             status = 201,
             description = "Account created.",
-            body = CreateSubscriptionResponse,
+            body = Account,
         ),
     ),
 )]
@@ -217,7 +217,7 @@ pub async fn create_subscription_account_url(
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
@@ -323,7 +323,7 @@ pub async fn list_accounts_by_type_url(
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
@@ -387,7 +387,7 @@ pub async fn get_account_details_url(
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
@@ -418,7 +418,7 @@ pub async fn get_account_details_url(
         (
             status = 201,
             description = "Account created.",
-            body = CreateSubscriptionResponse,
+            body = Account,
         ),
     ),
 )]
@@ -460,7 +460,7 @@ pub async fn update_account_name_and_flags_url(
     context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),

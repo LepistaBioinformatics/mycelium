@@ -59,7 +59,7 @@ pub struct GuestTenantOwnerBody {
     context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Owners),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
@@ -128,7 +128,7 @@ pub async fn guest_tenant_owner_url(
     context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Owners),
     params(
         (
-            "x-mycelium-tenant-id" = TenantData,
+            "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
