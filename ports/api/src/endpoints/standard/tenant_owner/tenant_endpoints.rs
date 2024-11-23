@@ -1,6 +1,6 @@
 use crate::{
     dtos::MyceliumProfileData,
-    endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
+    endpoints::shared::{build_actor_context, UrlGroup},
     modules::TenantUpdatingModule,
 };
 

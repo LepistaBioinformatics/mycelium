@@ -1,18 +1,17 @@
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
-use myc_core::{
-    domain::dtos::tenant::TenantId, settings::DEFAULT_TENANT_ID_KEY,
-};
+use myc_core::settings::DEFAULT_TENANT_ID_KEY;
 use myc_http_tools::responses::GatewayError;
 use serde::Deserialize;
 use std::{pin::Pin, str::FromStr};
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct TenantData(TenantId);
+pub(crate) struct TenantData(Uuid);
 
 impl TenantData {
-    pub fn tenant_id(&self) -> &TenantId {
+    pub fn tenant_id(&self) -> &Uuid {
         &self.0
     }
 }
@@ -43,7 +42,7 @@ impl FromRequest for TenantData {
                     )
                 })?;
 
-            Ok(TenantData(TenantId::from_str(tenant_id).map_err(|_| {
+            Ok(TenantData(Uuid::from_str(tenant_id).map_err(|_| {
                 GatewayError::BadRequest(
                     "Invalid tenant id in request".to_string(),
                 )

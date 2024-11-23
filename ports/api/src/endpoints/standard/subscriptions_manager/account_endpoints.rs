@@ -1,9 +1,6 @@
 use crate::{
     dtos::{MyceliumProfileData, TenantData},
-    endpoints::{
-        shared::{PaginationParams, UrlGroup},
-        standard::shared::build_actor_context,
-    },
+    endpoints::shared::{build_actor_context, PaginationParams, UrlGroup},
     modules::{
         AccountFetchingModule, AccountRegistrationModule,
         AccountUpdatingModule, WebHookFetchingModule,

@@ -18,12 +18,10 @@ use uuid::Uuid;
 
 pub type TenantMeta = HashMap<TenantMetaKey, String>;
 
-pub type TenantId = Uuid;
-
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Tenant {
-    pub id: Option<TenantId>,
+    pub id: Option<Uuid>,
     pub name: String,
     pub description: Option<String>,
 

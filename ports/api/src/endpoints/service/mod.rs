@@ -1,6 +1,13 @@
-pub mod account_endpoints;
+pub(crate) mod guest_endpoints;
 
-use myc_core::domain::dtos::{account::Account, account_type::AccountTypeV2};
+use myc_core::domain::{
+    actors::ActorName,
+    dtos::{
+        account::{Account, VerboseStatus},
+        account_type::AccountTypeV2,
+        tag::Tag,
+    },
+};
 use myc_http_tools::utils::HttpJsonResponse;
 use mycelium_base::dtos::{Children, Parent};
 use utoipa::OpenApi;
@@ -12,8 +19,7 @@ use utoipa::OpenApi;
 #[derive(OpenApi)]
 #[openapi(
     paths(
-        account_endpoints::upgrade_account_privileges_url,
-        account_endpoints::downgrade_account_privileges_url,
+        guest_endpoints::guest_to_default_account_url,
     ),
     components(
         schemas(
@@ -23,14 +29,18 @@ use utoipa::OpenApi;
 
             // Schema models.
             Account,
+            ActorName,
             AccountTypeV2,
             HttpJsonResponse,
+            Tag,
+            VerboseStatus,
+            guest_endpoints::GuestUserBody,
         ),
     ),
     tags(
         (
-            name = "staff",
-            description = "Staff management endpoints."
+            name = "service",
+            description = "Service management endpoints."
         )
     ),
 )]

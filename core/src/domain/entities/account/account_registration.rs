@@ -1,4 +1,4 @@
-use crate::domain::dtos::{account::Account, tenant::TenantId};
+use crate::domain::dtos::account::Account;
 
 use async_trait::async_trait;
 use mycelium_base::{
@@ -6,6 +6,7 @@ use mycelium_base::{
     utils::errors::MappedErrors,
 };
 use shaku::Interface;
+use uuid::Uuid;
 
 #[async_trait]
 pub trait AccountRegistration: Interface + Send + Sync {
@@ -19,7 +20,7 @@ pub trait AccountRegistration: Interface + Send + Sync {
     async fn create_subscription_account(
         &self,
         account: Account,
-        tenant_id: TenantId,
+        tenant_id: Uuid,
     ) -> Result<CreateResponseKind<Account>, MappedErrors>;
 
     async fn get_or_create_role_related_account(

@@ -5,6 +5,10 @@ use serde::Deserialize;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use utoipa::IntoParams;
 
+pub fn build_actor_context(actor: ActorName, group: UrlGroup) -> String {
+    group.with_scoped_actor(UrlScope::Standards, actor)
+}
+
 #[derive(Deserialize, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct PaginationParams {
@@ -17,6 +21,7 @@ pub enum UrlScope {
     Standards,
     Managers,
     Staffs,
+    Service,
 }
 
 impl Display for UrlScope {
@@ -26,6 +31,7 @@ impl Display for UrlScope {
             UrlScope::Standards => write!(f, "std"),
             UrlScope::Managers => write!(f, "managers"),
             UrlScope::Staffs => write!(f, "staffs"),
+            UrlScope::Service => write!(f, "service"),
         }
     }
 }

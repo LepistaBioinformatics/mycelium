@@ -1,9 +1,6 @@
 use crate::{
     dtos::MyceliumProfileData,
-    endpoints::{
-        shared::{PaginationParams, UrlGroup},
-        standard::shared::build_actor_context,
-    },
+    endpoints::shared::{build_actor_context, PaginationParams, UrlGroup},
     modules::{
         ErrorCodeDeletionModule, ErrorCodeFetchingModule,
         ErrorCodeRegistrationModule, ErrorCodeUpdatingModule,
