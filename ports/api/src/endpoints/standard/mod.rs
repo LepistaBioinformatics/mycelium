@@ -1,7 +1,6 @@
 mod account_manager;
 mod guest_manager;
 mod no_role;
-mod shared;
 mod subscriptions_manager;
 mod system_manager;
 mod tenant_manager;
@@ -9,7 +8,7 @@ mod tenant_owner;
 mod users_manager;
 
 use super::shared::UrlGroup;
-pub(crate) use crate::endpoints::standard::shared::build_actor_context;
+pub(crate) use crate::endpoints::shared::build_actor_context;
 
 use account_manager::guest_endpoints as account_manager_guest_endpoints;
 use actix_web::{get, web, HttpResponse, Responder};
@@ -45,7 +44,6 @@ use mycelium_base::dtos::{Children, PaginatedRecord, Parent};
 use no_role::{
     account_endpoints as no_role_account_endpoints,
     auxiliary_endpoints as no_role_auxiliary_endpoints,
-    guest_endpoints as no_role_guest_endpoints,
     profile_endpoints as no_role_profile_endpoints,
     user_endpoints as no_role_user_endpoints,
 };
@@ -124,10 +122,6 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                 .service(
                     web::scope(&format!("/{}", UrlGroup::Accounts))
                         .configure(no_role_account_endpoints::configure),
-                )
-                .service(
-                    web::scope(&format!("/{}", UrlGroup::Guests))
-                        .configure(no_role_guest_endpoints::configure),
                 )
                 .service(
                     web::scope(&format!("/{}", UrlGroup::Profile))
@@ -282,7 +276,6 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         no_role_auxiliary_endpoints::list_actors_url,
         no_role_account_endpoints::create_default_account_url,
         no_role_account_endpoints::update_own_account_name_url,
-        no_role_guest_endpoints::guest_to_default_account_url,
         no_role_profile_endpoints::fetch_profile,
         no_role_user_endpoints::check_email_registration_status_url,
         no_role_user_endpoints::create_default_user_url,
@@ -394,7 +387,6 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             account_manager_guest_endpoints::GuestUserBody,
             no_role_account_endpoints::CreateDefaultAccountBody,
             no_role_account_endpoints::UpdateOwnAccountNameAccountBody,
-            no_role_guest_endpoints::GuestUserBody,
             no_role_user_endpoints::CheckEmailStatusBody,
             no_role_user_endpoints::CreateDefaultUserBody,
             no_role_user_endpoints::CheckTokenBody,

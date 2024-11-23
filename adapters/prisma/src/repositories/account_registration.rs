@@ -12,7 +12,6 @@ use myc_core::domain::{
         email::Email,
         native_error_codes::NativeErrorCodes,
         tag::Tag,
-        tenant::TenantId,
         user::User,
     },
     entities::AccountRegistration,
@@ -38,7 +37,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
     async fn create_subscription_account(
         &self,
         account: Account,
-        tenant_id: TenantId,
+        tenant_id: Uuid,
     ) -> Result<CreateResponseKind<Account>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client

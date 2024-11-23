@@ -1,6 +1,4 @@
-use crate::domain::dtos::tenant::{
-    Tenant, TenantId, TenantMeta, TenantMetaKey,
-};
+use crate::domain::dtos::tenant::{Tenant, TenantMeta, TenantMetaKey};
 
 use async_trait::async_trait;
 use chrono::{DateTime, Local};
@@ -17,7 +15,7 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct TenantOwnerConnection {
-    pub tenant_id: TenantId,
+    pub tenant_id: Uuid,
     pub owner_id: Uuid,
     pub guest_by: String,
     pub created: DateTime<Local>,

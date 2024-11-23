@@ -1,5 +1,5 @@
 use crate::{
-    endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
+    endpoints::shared::{build_actor_context, UrlGroup},
     middleware::{
         check_credentials_with_multi_identity_provider,
         parse_issuer_from_request,

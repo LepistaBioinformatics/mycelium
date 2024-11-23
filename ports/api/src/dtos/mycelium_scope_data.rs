@@ -6,6 +6,7 @@ use myc_core::domain::dtos::token::RoleScopedConnectionString;
 use myc_http_tools::responses::GatewayError;
 use serde::Deserialize;
 use std::pin::Pin;
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -20,6 +21,10 @@ impl MyceliumRoleScopedConnectionStringData {
 
     pub fn connection_string(&self) -> &RoleScopedConnectionString {
         &self.0
+    }
+
+    pub fn tenant_id(&self) -> Option<Uuid> {
+        self.0.get_tenant_id()
     }
 }
 

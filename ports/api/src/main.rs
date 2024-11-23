@@ -20,6 +20,9 @@ use core::panic;
 use endpoints::{
     index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
     manager::{tenant_endpoints, ApiDoc as ManagerApiDoc},
+    service::{
+        guest_endpoints as service_guest_endpoints, ApiDoc as ServiceApiDoc,
+    },
     staff::{
         account_endpoints as staff_account_endpoints, ApiDoc as StaffApiDoc,
     },
@@ -357,6 +360,16 @@ pub async fn main() -> std::io::Result<()> {
                 .configure(tenant_endpoints::configure),
             )
             //
+            // Service accounts
+            //
+            .service(
+                web::scope(
+                    format!("/{}", endpoints::shared::UrlScope::Service)
+                        .as_str(),
+                )
+                .configure(service_guest_endpoints::configure),
+            )
+            //
             // Standard Users
             //
             .service(
@@ -489,6 +502,14 @@ pub async fn main() -> std::io::Result<()> {
                                 true,
                             ),
                             HealthCheckApiDoc::openapi(),
+                        ),
+                        (
+                            Url::with_primary(
+                                "Service Users Endpoints",
+                                "/doc/service-openapi.json",
+                                true,
+                            ),
+                            ServiceApiDoc::openapi(),
                         ),
                         (
                             Url::with_primary(

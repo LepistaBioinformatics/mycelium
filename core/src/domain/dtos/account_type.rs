@@ -1,4 +1,3 @@
-use super::tenant::TenantId;
 use crate::domain::actors::ActorName;
 
 use serde::{Deserialize, Serialize};
@@ -30,7 +29,7 @@ pub enum AccountTypeV2 {
     /// A subscription account is a special account type that is used to
     /// represent legal entities that have a subscription to the service.
     #[serde(rename_all = "camelCase")]
-    Subscription { tenant_id: TenantId },
+    Subscription { tenant_id: Uuid },
 
     /// Role associated account type
     ///
@@ -38,13 +37,13 @@ pub enum AccountTypeV2 {
     /// connect users to a specific standard role in the application.
     #[serde(rename_all = "camelCase")]
     StandardRoleAssociated {
-        tenant_id: TenantId,
+        tenant_id: Uuid,
         role_name: ActorName,
         role_id: Uuid,
     },
 
     #[serde(rename_all = "camelCase")]
-    TenantManager { tenant_id: TenantId },
+    TenantManager { tenant_id: Uuid },
 }
 
 #[cfg(test)]
@@ -57,7 +56,7 @@ mod tests {
         // Type AccountTypeV2::Subscription
         //
         let account_type = AccountTypeV2::Subscription {
-            tenant_id: TenantId::from_u128(0),
+            tenant_id: Uuid::from_u128(0),
         };
 
         let json = serde_json::to_string(&account_type).unwrap();
@@ -72,7 +71,7 @@ mod tests {
         assert_eq!(
             account_type,
             AccountTypeV2::Subscription {
-                tenant_id: TenantId::from_u128(0)
+                tenant_id: Uuid::from_u128(0)
             }
         );
 
@@ -80,7 +79,7 @@ mod tests {
         // Type AccountTypeV2::StandardRoleAssociated
         //
         let account_type = AccountTypeV2::StandardRoleAssociated {
-            tenant_id: TenantId::from_u128(0),
+            tenant_id: Uuid::from_u128(0),
             role_name: ActorName::CustomRole("test".to_string()),
             role_id: Uuid::from_u128(0),
         };
@@ -97,7 +96,7 @@ mod tests {
         assert_eq!(
             account_type,
             AccountTypeV2::StandardRoleAssociated {
-                tenant_id: TenantId::from_u128(0),
+                tenant_id: Uuid::from_u128(0),
                 role_name: ActorName::CustomRole("test".to_string()),
                 role_id: Uuid::from_u128(0),
             }
@@ -107,7 +106,7 @@ mod tests {
         // Type AccountTypeV2::TenantManager
         //
         let account_type = AccountTypeV2::TenantManager {
-            tenant_id: TenantId::from_u128(0),
+            tenant_id: Uuid::from_u128(0),
         };
 
         let json = serde_json::to_string(&account_type).unwrap();
@@ -122,7 +121,7 @@ mod tests {
         assert_eq!(
             account_type,
             AccountTypeV2::TenantManager {
-                tenant_id: TenantId::from_u128(0)
+                tenant_id: Uuid::from_u128(0)
             }
         );
 

@@ -1,6 +1,6 @@
 use crate::{
-    dtos::{MyceliumRoleScopedConnectionStringData, TenantData},
-    endpoints::{shared::UrlGroup, standard::shared::build_actor_context},
+    dtos::MyceliumRoleScopedConnectionStringData,
+    endpoints::shared::{build_actor_context, UrlGroup},
     modules::{
         AccountRegistrationModule, GuestRoleFetchingModule,
         GuestUserRegistrationModule, MessageSendingQueueModule,
@@ -18,7 +18,7 @@ use myc_core::{
         },
     },
     models::AccountLifeCycle,
-    use_cases::roles::standard::no_role::guest::guest_to_default_account,
+    use_cases::roles::service::guest::guest_to_default_account,
 };
 use myc_http_tools::wrappers::default_response_to_http_response::handle_mapped_error;
 use serde::Deserialize;
@@ -63,14 +63,9 @@ pub struct GuestUserBody {
     params(
         ("role_id" = Uuid, Path, description = "The guest-role unique id."),
         (
-            "x-mycelium-connection-string" = MyceliumRoleScopedConnectionStringData,
+            "x-mycelium-connection-string" = String,
             Header,
             description = "The connection string to the role-scoped database."
-        ),
-        (
-            "x-mycelium-tenant-id" = Uuid,
-            Header,
-            description = "The tenant unique id."
         ),
     ),
     request_body = GuestUserBody,
@@ -110,7 +105,6 @@ pub struct GuestUserBody {
 #[post("/roles/{role_id}")]
 pub async fn guest_to_default_account_url(
     path: web::Path<Uuid>,
-    tenant: TenantData,
     connection_string: MyceliumRoleScopedConnectionStringData,
     body: web::Json<GuestUserBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
@@ -131,11 +125,19 @@ pub async fn guest_to_default_account_url(
     let role_id = path.to_owned();
     let account = body.account.to_owned();
 
+    let tenant_id = match connection_string.tenant_id() {
+        Some(tenant_id) => tenant_id,
+        None => {
+            return HttpResponse::BadRequest()
+                .json("Tenant id not found in the connection string.");
+        }
+    };
+
     match guest_to_default_account(
         connection_string.connection_string().clone(),
         role_id,
         account.to_owned(),
-        tenant.tenant_id().to_owned(),
+        tenant_id,
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*account_registration_repo),
         Box::new(&*guest_role_fetching_repo),

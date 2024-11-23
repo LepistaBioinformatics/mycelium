@@ -76,6 +76,17 @@ impl RoleWithPermissionsScope {
         })
     }
 
+    #[tracing::instrument(name = "get_tenant_id", skip(self))]
+    pub fn get_tenant_id(&self) -> Option<Uuid> {
+        self.0.iter().find_map(|bean| {
+            if let ConnectionStringBean::TID(id) = bean {
+                return Some(*id);
+            }
+
+            None
+        })
+    }
+
     #[tracing::instrument(name = "get_permissioned_roles", skip(self))]
     fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
         self.0.iter().find_map(|bean| {
@@ -178,6 +189,11 @@ pub type RoleScopedConnectionString =
     ServiceAccountRelatedMeta<String, RoleWithPermissionsScope>;
 
 impl RoleScopedConnectionString {
+    #[tracing::instrument(name = "get_tenant_id", skip(self))]
+    pub fn get_tenant_id(&self) -> Option<Uuid> {
+        self.scope.get_tenant_id()
+    }
+
     #[tracing::instrument(name = "get_signature", skip(self))]
     pub fn get_signature(&self) -> Option<String> {
         self.scope.get_signature()
