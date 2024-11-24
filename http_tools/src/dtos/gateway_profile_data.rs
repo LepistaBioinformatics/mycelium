@@ -1,16 +1,14 @@
 use crate::{
-    middleware::fetch_profile_from_token, responses::GatewayError, Profile,
+    middleware::fetch_profile_from_token, responses::GatewayError,
+    settings::DEFAULT_PROFILE_KEY, Profile,
 };
 
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
 use log::warn;
-use myc_core::{
-    domain::dtos::{
-        account::VerboseStatus,
-        profile::{LicensedResources, Owner},
-    },
-    settings::DEFAULT_PROFILE_KEY,
+use myc_core::domain::dtos::{
+    account::VerboseStatus,
+    profile::{LicensedResources, Owner},
 };
 use serde::Deserialize;
 use std::{pin::Pin, str};

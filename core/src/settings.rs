@@ -9,61 +9,14 @@ use std::env::var_os;
 use tera::Tera;
 
 // ? ---------------------------------------------------------------------------
-// ? Configure routes and profile
-//
-// Here default system constants are configured.
+// ? Configure default system constants
 // ? ---------------------------------------------------------------------------
-
-/// Default profile key
-///
-/// This is the default key used to store the profile in the request headers and
-/// send it to the gateway downstream services.
-///
-pub const DEFAULT_PROFILE_KEY: &str = "x-mycelium-profile";
-
-/// Default connection string key
-///
-/// This is the default key used to store the connection string in the request
-/// headers and send it to the gateway downstream services.
-///
-pub const DEFAULT_CONNECTION_STRING_KEY: &str = "x-mycelium-connection-string";
-
-/// Default tenant id key
-///
-/// This is the default key used to store the tenant id in the request headers
-/// and send it to the gateway downstream services.
-///
-pub const DEFAULT_TENANT_ID_KEY: &str = "x-mycelium-tenant-id";
 
 /// Default TOTP domain
 ///
 /// This is the default domain used to generate the TOTP token.
 ///
 pub const DEFAULT_TOTP_DOMAIN: &str = "Mycelium";
-
-/// Default forward header key
-///
-/// This is the default key used to store the forward header in the request
-/// headers and send it to the gateway downstream services.
-///
-pub const FORWARD_FOR_KEY: &str = "x-forwarded-for";
-
-/// Default forwarding keys
-///
-/// Such keys are used to map the headers that should be removed from the
-/// downstream response before stream it back to the client.
-///
-pub const FORWARDING_KEYS: [&str; 9] = [
-    "Host",
-    "Connection",
-    "Keep-Alive",
-    "Proxy-Authenticate",
-    "Proxy-Authorization",
-    "Te",
-    "Trailers",
-    "Transfer-Encoding",
-    "Upgrade",
-];
 
 // ? ---------------------------------------------------------------------------
 // ? Configure routes and profile

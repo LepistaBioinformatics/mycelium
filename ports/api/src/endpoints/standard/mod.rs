@@ -7,11 +7,11 @@ mod tenant_manager;
 mod tenant_owner;
 mod users_manager;
 
-use super::shared::UrlGroup;
+use super::shared::{insert_role_header, UrlGroup};
 pub(crate) use crate::endpoints::shared::build_actor_context;
 
 use account_manager::guest_endpoints as account_manager_guest_endpoints;
-use actix_web::{get, web, HttpResponse, Responder};
+use actix_web::{dev::Service, get, web, HttpResponse, Responder};
 use guest_manager::{
     guest_role_endpoints as guest_manager_guest_role_endpoints,
     role_endpoints as guest_manager_role_endpoints,
@@ -86,13 +86,18 @@ pub async fn list_role_controlled_main_routes_url() -> impl Responder {
         .flat_map(|actor| {
             [
                 UrlGroup::Accounts,
+                UrlGroup::ErrorCodes,
                 UrlGroup::GuestRoles,
                 UrlGroup::Guests,
+                UrlGroup::Meta,
+                UrlGroup::Owners,
+                UrlGroup::Profile,
                 UrlGroup::Roles,
+                UrlGroup::Tags,
+                UrlGroup::Tenants,
+                UrlGroup::Tokens,
                 UrlGroup::Users,
                 UrlGroup::Webhooks,
-                UrlGroup::ErrorCodes,
-                UrlGroup::Profile,
             ]
             .into_iter()
             .map(|group| build_actor_context(actor.to_owned(), group))
@@ -119,6 +124,9 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         //
         .service(
             web::scope(&format!("/{}", ActorName::NoRole.to_string().as_str()))
+                //
+                // Configure the standard role endpoints
+                //
                 .service(
                     web::scope(&format!("/{}", UrlGroup::Accounts))
                         .configure(no_role_account_endpoints::configure),
@@ -140,6 +148,18 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                 "/{}",
                 ActorName::GuestManager.to_string().as_str()
             ))
+            //
+            // Inject a header to be collected by the MyceliumProfileData
+            // extractor.
+            //
+            .wrap_fn(|req, srv| {
+                let req =
+                    insert_role_header(req, vec![ActorName::GuestManager]);
+                srv.call(req)
+            })
+            //
+            // Configure the standard role endpoints
+            //
             .service(
                 web::scope(&format!("/{}", UrlGroup::Roles))
                     .configure(guest_manager_role_endpoints::configure),
@@ -161,6 +181,24 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                 "/{}",
                 ActorName::SubscriptionsManager.to_string().as_str()
             ))
+            //
+            // Inject a header to be collected by the MyceliumProfileData
+            // extractor.
+            //
+            .wrap_fn(|req, srv| {
+                let req = insert_role_header(
+                    req,
+                    vec![
+                        ActorName::TenantOwner,
+                        ActorName::TenantManager,
+                        ActorName::SubscriptionsManager,
+                    ],
+                );
+                srv.call(req)
+            })
+            //
+            // Configure the standard role endpoints
+            //
             .service(
                 web::scope(&format!("/{}", UrlGroup::Accounts)).configure(
                     subscription_manager_account_endpoints::configure,
@@ -183,6 +221,18 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                 "/{}",
                 ActorName::AccountManager.to_string().as_str()
             ))
+            //
+            // Inject a header to be collected by the MyceliumProfileData
+            // extractor.
+            //
+            .wrap_fn(|req, srv| {
+                let req =
+                    insert_role_header(req, vec![ActorName::AccountManager]);
+                srv.call(req)
+            })
+            //
+            // Configure the standard role endpoints
+            //
             .service(
                 web::scope(&format!("/{}", UrlGroup::Guests))
                     .configure(account_manager_guest_endpoints::configure),
@@ -196,6 +246,18 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                 "/{}",
                 ActorName::SystemManager.to_string().as_str()
             ))
+            //
+            // Inject a header to be collected by the MyceliumProfileData
+            // extractor.
+            //
+            .wrap_fn(|req, srv| {
+                let req =
+                    insert_role_header(req, vec![ActorName::SystemManager]);
+                srv.call(req)
+            })
+            //
+            // Configure the standard role endpoints
+            //
             .service(
                 web::scope(&format!("/{}", UrlGroup::ErrorCodes))
                     .configure(system_manager_error_code_endpoints::configure),
@@ -213,6 +275,20 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                 "/{}",
                 ActorName::TenantManager.to_string().as_str()
             ))
+            //
+            // Inject a header to be collected by the MyceliumProfileData
+            // extractor.
+            //
+            .wrap_fn(|req, srv| {
+                let req = insert_role_header(
+                    req,
+                    vec![ActorName::TenantOwner, ActorName::TenantManager],
+                );
+                srv.call(req)
+            })
+            //
+            // Configure the standard role endpoints
+            //
             .service(
                 web::scope(&format!("/{}", UrlGroup::Accounts))
                     .configure(tenant_manager_account_endpoints::configure),
@@ -230,6 +306,9 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                 "/{}",
                 ActorName::TenantOwner.to_string().as_str()
             ))
+            //
+            // Configure the standard role endpoints
+            //
             .service(
                 web::scope(&format!("/{}", UrlGroup::Accounts))
                     .configure(tenant_owner_account_endpoints::configure),
@@ -255,6 +334,18 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                 "/{}",
                 ActorName::UsersManager.to_string().as_str()
             ))
+            //
+            // Inject a header to be collected by the MyceliumProfileData
+            // extractor.
+            //
+            .wrap_fn(|req, srv| {
+                let req =
+                    insert_role_header(req, vec![ActorName::UsersManager]);
+                srv.call(req)
+            })
+            //
+            // Configure the standard role endpoints
+            //
             .service(
                 web::scope(&format!("/{}", UrlGroup::Accounts))
                     .configure(user_manager_account_endpoints::configure),

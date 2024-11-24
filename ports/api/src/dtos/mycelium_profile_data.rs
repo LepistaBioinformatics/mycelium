@@ -6,9 +6,12 @@ use myc_core::domain::dtos::{
     account::VerboseStatus,
     profile::{LicensedResources, Owner},
 };
-use myc_http_tools::{responses::GatewayError, Profile};
+use myc_http_tools::{
+    responses::GatewayError, settings::DEFAULT_MYCELIUM_ROLE_KEY, Profile,
+};
 use serde::Deserialize;
 use std::pin::Pin;
+use tracing::error;
 use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -68,8 +71,26 @@ impl FromRequest for MyceliumProfileData {
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
         let req_clone = req.clone();
 
+        //
+        // Get the roles from the request
+        //
+        let roles: Option<Vec<String>> =
+            match req_clone.headers().get(DEFAULT_MYCELIUM_ROLE_KEY) {
+                Some(roles) => {
+                    match serde_json::from_str(roles.to_str().unwrap()) {
+                        Ok(roles) => roles,
+                        Err(err) => {
+                            error!("Failed to parse roles: {err}");
+
+                            None
+                        }
+                    }
+                }
+                None => None,
+            };
+
         Box::pin(async move {
-            fetch_profile_from_request(req_clone, None, None).await
+            fetch_profile_from_request(req_clone, roles, None).await
         })
     }
 }

@@ -1,11 +1,68 @@
 use crate::settings::MYCELIUM_API_SCOPE;
 
-use myc_http_tools::ActorName;
+use actix_web::dev::ServiceRequest;
+use myc_http_tools::{settings::DEFAULT_MYCELIUM_ROLE_KEY, ActorName};
+use oauth2::http::HeaderName;
 use serde::Deserialize;
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::{
+    fmt::{Display, Formatter, Result as FmtResult},
+    str::FromStr,
+};
+use tracing::error;
 use utoipa::IntoParams;
 
-pub fn build_actor_context(actor: ActorName, group: UrlGroup) -> String {
+/// Insert the role header into the request
+///
+/// This function is useful to insert the role header into the request before
+/// sending it to the downstream services. It is used to propagate the role
+/// of the actor to the downstream services as a middleware.
+///
+pub(crate) fn insert_role_header(
+    mut req: ServiceRequest,
+    actors: Vec<ActorName>,
+) -> ServiceRequest {
+    let header_name = match HeaderName::from_str(DEFAULT_MYCELIUM_ROLE_KEY) {
+        Ok(header_name) => header_name,
+        Err(err) => {
+            error!("Failed to parse header name: {err}");
+
+            return req;
+        }
+    };
+
+    let header_value = match (match serde_json::to_string(
+        &actors
+            .iter()
+            .map(|actor| actor.to_string())
+            .collect::<Vec<String>>(),
+    ) {
+        Ok(header_value_) => header_value_,
+        Err(err) => {
+            error!("Failed to serialize header value: {err}");
+
+            return req;
+        }
+    })
+    .parse()
+    {
+        Ok(header_value) => header_value,
+        Err(err) => {
+            error!("Failed to parse header value: {err}");
+
+            return req;
+        }
+    };
+
+    req.headers_mut().insert(header_name, header_value);
+
+    req
+}
+
+/// Build the actor context
+///
+/// This function is useful to build the actor in OpenAPI documentation.
+///
+pub(crate) fn build_actor_context(actor: ActorName, group: UrlGroup) -> String {
     group.with_scoped_actor(UrlScope::Standards, actor)
 }
 

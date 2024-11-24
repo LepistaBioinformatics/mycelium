@@ -3,7 +3,7 @@ use super::fetch_profile_from_request;
 use actix_web::HttpRequest;
 use awc::ClientRequest;
 use myc_core::domain::dtos::route_type::PermissionedRoles;
-use myc_http_tools::{responses::GatewayError, DEFAULT_PROFILE_KEY};
+use myc_http_tools::{responses::GatewayError, settings::DEFAULT_PROFILE_KEY};
 use reqwest::header::{HeaderName, HeaderValue};
 use std::str::FromStr;
 use tracing::warn;
