@@ -33,6 +33,7 @@ pub async fn create_default_account_associated_connection_string(
     profile: Profile,
     tenant_id: Uuid,
     account_id: Uuid,
+    expiration: i64,
     permissioned_roles: PermissionedRoles,
     life_cycle_settings: AccountLifeCycle,
     token_registration_repo: Box<&dyn TokenRegistration>,
@@ -60,8 +61,7 @@ pub async fn create_default_account_associated_connection_string(
         .as_error(),
     };
 
-    let expires_at =
-        Local::now() + Duration::seconds(life_cycle_settings.token_expiration);
+    let expires_at = Local::now() + Duration::seconds(expiration);
 
     let mut account_scope = AccountWithPermissionedRolesScope::new(
         tenant_id,
