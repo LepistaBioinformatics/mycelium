@@ -42,6 +42,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub struct CreateTokenBody {
     tenant_id: Uuid,
     permissioned_roles: PermissionedRoles,
+    expiration: i64,
 }
 
 #[derive(Serialize, ToSchema)]
@@ -102,6 +103,7 @@ pub async fn create_default_account_associated_connection_string_url(
         profile.to_profile(),
         body.tenant_id.to_owned(),
         path.to_owned(),
+        body.expiration.to_owned(),
         body.permissioned_roles.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*token_registration_repo),
@@ -168,6 +170,7 @@ pub async fn create_role_associated_connection_string_url(
         profile.to_profile(),
         body.tenant_id.to_owned(),
         path.to_owned(),
+        body.expiration.to_owned(),
         body.permissioned_roles.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*token_registration_repo),
