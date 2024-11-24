@@ -1,14 +1,13 @@
 use crate::dtos::MyceliumRoleScopedConnectionStringData;
 
 use actix_web::HttpRequest;
-use myc_core::{
-    domain::{
-        dtos::token::{MultiTypeMeta, RoleWithPermissionsScope},
-        entities::TokenFetching,
-    },
-    settings::DEFAULT_CONNECTION_STRING_KEY,
+use myc_core::domain::{
+    dtos::token::{MultiTypeMeta, RoleWithPermissionsScope},
+    entities::TokenFetching,
 };
-use myc_http_tools::responses::GatewayError;
+use myc_http_tools::{
+    responses::GatewayError, settings::DEFAULT_CONNECTION_STRING_KEY,
+};
 use mycelium_base::entities::FetchResponseKind;
 
 #[tracing::instrument(

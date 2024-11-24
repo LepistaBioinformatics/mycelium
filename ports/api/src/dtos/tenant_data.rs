@@ -1,7 +1,8 @@
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
-use myc_core::settings::DEFAULT_TENANT_ID_KEY;
-use myc_http_tools::responses::GatewayError;
+use myc_http_tools::{
+    responses::GatewayError, settings::DEFAULT_TENANT_ID_KEY,
+};
 use serde::Deserialize;
 use std::{pin::Pin, str::FromStr};
 use uuid::Uuid;

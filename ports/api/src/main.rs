@@ -10,6 +10,7 @@ mod settings;
 
 use actix_cors::Cors;
 use actix_web::{
+    dev::Service,
     middleware::{Logger, NormalizePath, TrailingSlash},
     web, App, HttpServer,
 };
@@ -23,6 +24,7 @@ use endpoints::{
     service::{
         guest_endpoints as service_guest_endpoints, ApiDoc as ServiceApiDoc,
     },
+    shared::insert_role_header,
     staff::{
         account_endpoints as staff_account_endpoints, ApiDoc as StaffApiDoc,
     },
@@ -350,6 +352,28 @@ pub async fn main() -> std::io::Result<()> {
                 .configure(heath_check_endpoints::configure),
             )
             //
+            // Staff
+            //
+            .service(
+                web::scope(
+                    format!("/{}", endpoints::shared::UrlScope::Staffs)
+                        .as_str(),
+                )
+                //
+                // Inject a header to be collected by the MyceliumProfileData
+                // extractor.
+                //
+                .wrap_fn(|req, srv| {
+                    let req = insert_role_header(req, vec![]);
+
+                    srv.call(req)
+                })
+                //
+                // Configure endpoints
+                //
+                .configure(staff_account_endpoints::configure),
+            )
+            //
             // Manager Users
             //
             .service(
@@ -357,6 +381,18 @@ pub async fn main() -> std::io::Result<()> {
                     format!("/{}", endpoints::shared::UrlScope::Managers)
                         .as_str(),
                 )
+                //
+                // Inject a header to be collected by the MyceliumProfileData
+                // extractor.
+                //
+                .wrap_fn(|req, srv| {
+                    let req = insert_role_header(req, vec![]);
+
+                    srv.call(req)
+                })
+                //
+                // Configure endpoints
+                //
                 .configure(tenant_endpoints::configure),
             )
             //
@@ -378,16 +414,6 @@ pub async fn main() -> std::io::Result<()> {
                         .as_str(),
                 )
                 .configure(configure_standard_endpoints),
-            )
-            //
-            // Staff
-            //
-            .service(
-                web::scope(
-                    format!("/{}", endpoints::shared::UrlScope::Staffs)
-                        .as_str(),
-                )
-                .configure(staff_account_endpoints::configure),
             );
 
         // ? -------------------------------------------------------------------
