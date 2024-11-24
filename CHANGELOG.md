@@ -1,3 +1,26 @@
+## v6.1.0 (2024-11-24)
+
+### Feat
+
+- implements the fetching the connection string from the request header
+- upgrade the profile management to inject licensed resources as a url instead of a json object
+
+### Fix
+
+- fix the service endpoints to collect the tenant id from the connection string itself
+
+### Refactor
+
+- refactor the no-role guest endpoint to the new service route group
+- refactor all routes to be more consistent
+- replace the tenant id from the api route to use a x-mycelium-tenant-id header
+- implements basic locale to the email template
+- centralize the platform name and the platform url as the domain config instead to inject from the request url
+
+### Perf
+
+- improve the profile injection on internal roles to filter roles before send by downstream requests
+
 ## v6.0.0 (2024-11-13)
 
 ### BREAKING CHANGE
