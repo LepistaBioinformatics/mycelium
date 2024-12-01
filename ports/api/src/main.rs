@@ -529,7 +529,20 @@ pub async fn main() -> std::io::Result<()> {
             .service(Redoc::with_url_and_config(
                 "/redoc",
                 ApiDoc::openapi(),
-                || json!({ "theme.openapi.theme.components.panels.backgroundColor": "#ffffff00" }),
+                || {
+                    json!({
+                        "sortTagsAlphabetically": true,
+                        "theme": {
+                            "openapi": {
+                                "theme": {
+                                    "layout": {
+                                        "showDarkRightPanel": true,
+                                    },
+                                }
+                            }
+                        },
+                    })
+                },
             ))
             .service(
                 SwaggerUi::new("/swagger/{_:.*}")
