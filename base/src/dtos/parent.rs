@@ -11,7 +11,9 @@ use utoipa::ToSchema;
 )]
 #[serde(rename_all = "camelCase")]
 pub enum Parent<T, U> {
+    #[schema(no_recursion)]
     Record(T),
+    #[schema(no_recursion)]
     Id(U),
 }
 

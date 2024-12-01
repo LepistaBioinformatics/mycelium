@@ -1,6 +1,5 @@
 use crate::{
     dtos::MyceliumProfileData,
-    endpoints::shared::{build_actor_context, UrlGroup},
     modules::{
         WebHookDeletionModule, WebHookFetchingModule,
         WebHookRegistrationModule, WebHookUpdatingModule,
@@ -10,7 +9,6 @@ use crate::{
 use actix_web::{delete, get, post, put, web, Responder};
 use myc_core::{
     domain::{
-        actors::ActorName,
         dtos::webhook::{WebHook, WebHookSecret, WebHookTrigger},
         entities::{
             WebHookDeletion, WebHookFetching, WebHookRegistration,
@@ -22,9 +20,12 @@ use myc_core::{
         delete_webhook, list_webhooks, register_webhook, update_webhook,
     },
 };
-use myc_http_tools::wrappers::default_response_to_http_response::{
-    create_response_kind, delete_response_kind, fetch_many_response_kind,
-    handle_mapped_error, updating_response_kind,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        create_response_kind, delete_response_kind, fetch_many_response_kind,
+        handle_mapped_error, updating_response_kind,
+    },
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -63,7 +64,7 @@ pub struct UpdateWebHookBody {
     webhook: WebHook,
 }
 
-#[derive(Deserialize, IntoParams)]
+#[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct ListWebHooksParams {
     name: Option<String>,
@@ -76,7 +77,6 @@ pub struct ListWebHooksParams {
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::Webhooks),
     request_body = CreateWebHookBody,
     responses(
         (
@@ -135,7 +135,6 @@ pub async fn crate_webhook_url(
 
 #[utoipa::path(
     get,
-    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::Webhooks),
     params(
         ListWebHooksParams,
     ),
@@ -162,7 +161,7 @@ pub async fn crate_webhook_url(
         (
             status = 200,
             description = "Fetching success.",
-            body = Webhook,
+            body = WebHook,
         ),
     ),
 )]
@@ -187,7 +186,6 @@ pub async fn list_webhooks_url(
 
 #[utoipa::path(
     put,
-    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::Webhooks),
     params(
         ("webhook_id" = Uuid, Path, description = "The webhook primary key."),
     ),
@@ -237,7 +235,6 @@ pub async fn update_webhook_url(
 
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::Webhooks),
     params(
         ("webhook_id" = Uuid, Path, description = "The webhook primary key."),
     ),

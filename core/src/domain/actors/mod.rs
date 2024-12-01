@@ -10,10 +10,10 @@ use utoipa::ToSchema;
 pub enum ActorName {
     CustomRole(String),
 
-    /// No role
+    /// Beginner
     ///
     /// This actor is used when no role is assigned to the user.
-    NoRole,
+    Beginner,
 
     /// Subscriptions manager
     ///
@@ -51,13 +51,18 @@ pub enum ActorName {
     ///
     /// This actor is responsible for managing tenants.
     TenantManager,
+
+    /// Service
+    ///
+    /// This is a service entity.
+    Service,
 }
 
 impl Display for ActorName {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
             ActorName::CustomRole(role) => write!(f, "custom-role:{}", role),
-            ActorName::NoRole => write!(f, "no-role"),
+            ActorName::Beginner => write!(f, "begin"),
             ActorName::SubscriptionsManager => {
                 write!(f, "subscriptions-manager")
             }
@@ -65,14 +70,15 @@ impl Display for ActorName {
                 write!(f, "users-manager")
             }
             ActorName::AccountManager => {
-                write!(f, "account-manager")
+                write!(f, "accounts-manager")
             }
             ActorName::GuestManager => {
-                write!(f, "guest-manager")
+                write!(f, "guests-manager")
             }
             ActorName::SystemManager => write!(f, "system-manager"),
             ActorName::TenantOwner => write!(f, "tenant-owner"),
             ActorName::TenantManager => write!(f, "tenant-manager"),
+            ActorName::Service => write!(f, "service"),
         }
     }
 }
@@ -82,7 +88,7 @@ impl FromStr for ActorName {
 
     fn from_str(s: &str) -> Result<ActorName, ()> {
         match s {
-            "no-role" => Ok(ActorName::NoRole),
+            "beginner" | "no-role" => Ok(ActorName::Beginner),
             "subscriptions-account-manager" => {
                 Ok(ActorName::SubscriptionsManager)
             }
@@ -94,6 +100,7 @@ impl FromStr for ActorName {
             "system-manager" => Ok(ActorName::SystemManager),
             "tenant-manager" => Ok(ActorName::TenantManager),
             "tenant-owner" => Ok(ActorName::TenantOwner),
+            "service" => Ok(ActorName::Service),
 
             _ => Err(()),
         }

@@ -1,10 +1,8 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    endpoints::shared::{build_actor_context, UrlGroup},
-};
+use crate::dtos::MyceliumProfileData;
 
 use actix_web::{get, web, HttpResponse, Responder};
-use myc_core::domain::{actors::ActorName, dtos::profile::LicensedResources};
+use myc_core::domain::dtos::profile::LicensedResources;
+use myc_http_tools::{utils::HttpJsonResponse, Profile};
 use serde::Deserialize;
 use utoipa::IntoParams;
 
@@ -13,7 +11,7 @@ use utoipa::IntoParams;
 // ? ---------------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
-    config.service(fetch_profile);
+    config.service(fetch_profile_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -31,7 +29,6 @@ pub struct ProfileParams {
 
 #[utoipa::path(
     get,
-    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Profile),
     params(ProfileParams),
     responses(
         (
@@ -66,7 +63,7 @@ pub struct ProfileParams {
     ),
 )]
 #[get("/")]
-pub async fn fetch_profile(
+pub async fn fetch_profile_url(
     query: web::Query<ProfileParams>,
     mut profile: MyceliumProfileData,
 ) -> impl Responder {

@@ -1,8 +1,4 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    endpoints::shared::{UrlGroup, UrlScope},
-    modules::AccountUpdatingModule,
-};
+use crate::{dtos::MyceliumProfileData, modules::AccountUpdatingModule};
 
 use actix_web::{patch, web, Responder};
 use myc_core::{
@@ -11,8 +7,12 @@ use myc_core::{
         downgrade_account_privileges, upgrade_account_privileges,
     },
 };
-use myc_http_tools::wrappers::default_response_to_http_response::{
-    handle_mapped_error, updating_response_kind,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        handle_mapped_error, updating_response_kind,
+    },
+    Account,
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -73,7 +73,6 @@ pub struct DowngradeAccountPrivilegesBody {
 /// Increase permissions of the refereed account.
 #[utoipa::path(
     patch,
-    context_path = UrlGroup::Accounts.with_scope(UrlScope::Staffs),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
@@ -134,7 +133,6 @@ pub async fn upgrade_account_privileges_url(
 /// Decrease permissions of the refereed account.
 #[utoipa::path(
     patch,
-    context_path = UrlGroup::Accounts.with_scope(UrlScope::Staffs),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),

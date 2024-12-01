@@ -1,6 +1,6 @@
 use crate::{
     dtos::MyceliumProfileData,
-    endpoints::shared::{PaginationParams, UrlGroup, UrlScope},
+    endpoints::shared::PaginationParams,
     modules::{
         TenantDeletionModule, TenantFetchingModule, TenantRegistrationModule,
         TenantUpdatingModule, UserFetchingModule,
@@ -10,10 +10,10 @@ use crate::{
 use actix_web::{delete, get, patch, post, web, Responder};
 use myc_core::{
     domain::{
-        dtos::tenant::TenantMetaKey,
+        dtos::tenant::{Tenant, TenantMetaKey},
         entities::{
-            TenantDeletion, TenantFetching, TenantRegistration, TenantUpdating,
-            UserFetching,
+            TenantDeletion, TenantFetching, TenantOwnerConnection,
+            TenantRegistration, TenantUpdating, UserFetching,
         },
     },
     use_cases::roles::managers::{
@@ -21,9 +21,12 @@ use myc_core::{
         include_tenant_owner, list_tenant,
     },
 };
-use myc_http_tools::wrappers::default_response_to_http_response::{
-    create_response_kind, delete_response_kind, fetch_many_response_kind,
-    handle_mapped_error,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        create_response_kind, delete_response_kind, fetch_many_response_kind,
+        handle_mapped_error,
+    },
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -62,7 +65,7 @@ pub struct CreateTenantBody {
     owner_id: Uuid,
 }
 
-#[derive(Deserialize, IntoParams)]
+#[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct ListTenantParams {
     name: Option<String>,
@@ -81,7 +84,6 @@ pub struct ListTenantParams {
 
 #[utoipa::path(
     post,
-    context_path = UrlGroup::Tenants.with_scope(UrlScope::Managers),
     request_body = CreateTenantBody,
     responses(
         (
@@ -138,7 +140,6 @@ pub async fn create_tenant_url(
 
 #[utoipa::path(
     get,
-    context_path = UrlGroup::Tenants.with_scope(UrlScope::Managers),
     params(
         ListTenantParams,
         PaginationParams,
@@ -166,7 +167,7 @@ pub async fn create_tenant_url(
         (
             status = 200,
             description = "Fetching success.",
-            body = [Account],
+            body = [Tenant],
         ),
     ),
 )]
@@ -200,7 +201,6 @@ pub async fn list_tenant_url(
 
 #[utoipa::path(
     delete,
-    context_path = UrlGroup::Tenants.with_scope(UrlScope::Managers),
     params(
         ("id" = Uuid, Path, description = "The tenant primary key."),
     ),
@@ -228,7 +228,7 @@ pub async fn list_tenant_url(
         (
             status = 201,
             description = "Tenant successfully registered.",
-            body = AnalysisTag,
+            body = Uuid,
         ),
     ),
 )]
@@ -252,7 +252,6 @@ pub async fn delete_tenant_url(
 
 #[utoipa::path(
     patch,
-    context_path = UrlGroup::Tenants.with_scope(UrlScope::Managers),
     params(
         ("id" = Uuid, Path, description = "The tenant primary key."),
     ),
@@ -302,7 +301,6 @@ pub async fn include_tenant_owner_url(
 
 #[utoipa::path(
     patch,
-    context_path = UrlGroup::Tenants.with_scope(UrlScope::Managers),
     params(
         ("id" = Uuid, Path, description = "The tenant primary key."),
     ),

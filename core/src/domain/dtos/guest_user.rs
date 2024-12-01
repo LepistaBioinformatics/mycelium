@@ -3,10 +3,12 @@ use super::{account::Account, email::Email, guest_role::GuestRole};
 use chrono::{DateTime, Local};
 use mycelium_base::dtos::{Children, Parent};
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
+use utoipa::{ToResponse, ToSchema};
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
+#[derive(
+    Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq, ToResponse,
+)]
 #[serde(rename_all = "camelCase")]
 pub struct GuestUser {
     pub id: Option<Uuid>,

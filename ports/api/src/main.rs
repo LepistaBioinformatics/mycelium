@@ -1,3 +1,4 @@
+mod api_docs;
 mod config;
 mod dtos;
 mod endpoints;
@@ -15,23 +16,21 @@ use actix_web::{
     web, App, HttpServer,
 };
 use actix_web_opentelemetry::RequestTracing;
+use api_docs::ApiDoc;
 use awc::Client;
 use config::injectors::configure as configure_injection_modules;
 use core::panic;
 use endpoints::{
-    index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
-    manager::{tenant_endpoints, ApiDoc as ManagerApiDoc},
+    index::heath_check_endpoints,
+    manager::tenant_endpoints,
     service::{
-        guest_endpoints as service_guest_endpoints, ApiDoc as ServiceApiDoc,
+        account_endpoints as service_account_endpoints,
+        auxiliary_endpoints as service_auxiliary_endpoints,
+        guest_endpoints as service_guest_endpoints,
     },
     shared::insert_role_header,
-    staff::{
-        account_endpoints as staff_account_endpoints, ApiDoc as StaffApiDoc,
-    },
-    standard::{
-        configure as configure_standard_endpoints,
-        ApiDoc as StandardUsersApiDoc,
-    },
+    staff::account_endpoints as staff_account_endpoints,
+    standard::configure as configure_standard_endpoints,
 };
 use models::{
     api_config::{LogFormat, LoggingTarget},
@@ -55,16 +54,18 @@ use reqwest::header::{
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use router::route_request;
-use settings::{GATEWAY_API_SCOPE, MYCELIUM_API_SCOPE};
+use serde_json::json;
+use settings::{ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE};
 use std::{
     path::PathBuf, process::id as process_id, str::FromStr, time::Duration,
 };
-use tracing::{debug, info, trace};
+use tracing::{info, trace};
 use tracing_actix_web::TracingLogger;
 use tracing_subscriber::prelude::*;
 use tracing_subscriber::{fmt, EnvFilter};
 use utoipa::OpenApi;
-use utoipa_swagger_ui::{Config, SwaggerUi, Url};
+use utoipa_redoc::{Redoc, Servable};
+use utoipa_swagger_ui::{Config, SwaggerUi};
 
 // ? ---------------------------------------------------------------------------
 // ? API fire elements
@@ -325,7 +326,7 @@ pub async fn main() -> std::io::Result<()> {
             .allow_any_method()
             .max_age(3600);
 
-        debug!("Configured Cors: {:?}", cors);
+        trace!("Configured Cors: {:?}", cors);
 
         // ? -------------------------------------------------------------------
         // ? Configure base application
@@ -340,9 +341,11 @@ pub async fn main() -> std::io::Result<()> {
         // ? -------------------------------------------------------------------
         // ? Configure base mycelium scope
         // ? -------------------------------------------------------------------
-        let mycelium_scope = web::scope(&format!("/{}", MYCELIUM_API_SCOPE))
+        let mycelium_scope = web::scope(&format!("/{}", ADMIN_API_SCOPE))
             //
             // Index
+            //
+            // Index endpoints allow to check fht status of the service.
             //
             .service(
                 web::scope(
@@ -352,68 +355,80 @@ pub async fn main() -> std::io::Result<()> {
                 .configure(heath_check_endpoints::configure),
             )
             //
-            // Staff
+            // Super Users
+            //
+            // Super user endpoints allow to perform manage the staff and
+            // manager users actions, including determine new staffs and
+            // managers.
+            //
+            .service(
+                web::scope(format!("/{}", SUPER_USER_API_SCOPE).as_str())
+                    .service(
+                        web::scope(
+                            format!("/{}", endpoints::shared::UrlScope::Staffs)
+                                .as_str(),
+                        )
+                        //
+                        // Inject a header to be collected by the
+                        // MyceliumProfileData extractor.
+                        //
+                        .wrap_fn(|req, srv| {
+                            let req = insert_role_header(req, vec![]);
+
+                            srv.call(req)
+                        })
+                        //
+                        // Configure endpoints
+                        //
+                        .configure(staff_account_endpoints::configure),
+                    )
+                    //
+                    // Manager Users
+                    //
+                    .service(
+                        web::scope(
+                            format!(
+                                "/{}",
+                                endpoints::shared::UrlScope::Managers
+                            )
+                            .as_str(),
+                        )
+                        //
+                        // Inject a header to be collected by the
+                        // MyceliumProfileData extractor.
+                        //
+                        .wrap_fn(|req, srv| {
+                            let req = insert_role_header(req, vec![]);
+
+                            srv.call(req)
+                        })
+                        //
+                        // Configure endpoints
+                        //
+                        .configure(tenant_endpoints::configure),
+                    ),
+            )
+            //
+            // Role Scoped Endpoints
             //
             .service(
                 web::scope(
-                    format!("/{}", endpoints::shared::UrlScope::Staffs)
+                    format!("/{}", endpoints::shared::UrlScope::RoleScoped)
                         .as_str(),
                 )
-                //
-                // Inject a header to be collected by the MyceliumProfileData
-                // extractor.
-                //
-                .wrap_fn(|req, srv| {
-                    let req = insert_role_header(req, vec![]);
-
-                    srv.call(req)
-                })
-                //
-                // Configure endpoints
-                //
-                .configure(staff_account_endpoints::configure),
+                .configure(configure_standard_endpoints),
             )
             //
-            // Manager Users
-            //
-            .service(
-                web::scope(
-                    format!("/{}", endpoints::shared::UrlScope::Managers)
-                        .as_str(),
-                )
-                //
-                // Inject a header to be collected by the MyceliumProfileData
-                // extractor.
-                //
-                .wrap_fn(|req, srv| {
-                    let req = insert_role_header(req, vec![]);
-
-                    srv.call(req)
-                })
-                //
-                // Configure endpoints
-                //
-                .configure(tenant_endpoints::configure),
-            )
-            //
-            // Service accounts
+            // Service Scoped Endpoints
             //
             .service(
                 web::scope(
                     format!("/{}", endpoints::shared::UrlScope::Service)
                         .as_str(),
                 )
-                .configure(service_guest_endpoints::configure),
-            )
-            //
-            // Standard Users
-            //
-            .service(
-                web::scope(
-                    format!("/{}", endpoints::shared::UrlScope::Standards)
-                        .as_str(),
-                )
-                .configure(configure_standard_endpoints),
+                .configure(service_guest_endpoints::configure)
+                .configure(service_account_endpoints::configure)
+                .configure(service_auxiliary_endpoints::configure),
             );
 
         // ? -------------------------------------------------------------------
@@ -497,7 +512,8 @@ pub async fn main() -> std::io::Result<()> {
             .wrap(
                 Logger::default()
                     .exclude_regex("/health/*")
-                    .exclude_regex("/swagger-ui/*"),
+                    .exclude_regex("/swagger/*")
+                    .exclude_regex("/redoc/*"),
             )
             // ? ---------------------------------------------------------------
             // ? Configure Injection modules
@@ -510,56 +526,21 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             // ? Configure API documentation
             // ? ---------------------------------------------------------------
+            .service(Redoc::with_url_and_config(
+                "/redoc",
+                ApiDoc::openapi(),
+                || json!({ "theme.openapi.theme.components.panels.backgroundColor": "#ffffff00" }),
+            ))
             .service(
-                SwaggerUi::new("/swagger-ui/{_:.*}")
+                SwaggerUi::new("/swagger/{_:.*}")
+                    .url("/doc/openapi.json", ApiDoc::openapi())
                     .config(
                         Config::default()
                             .filter(true)
                             .show_extensions(true)
                             .show_common_extensions(true)
-                            .with_credentials(true)
                             .request_snippets_enabled(true),
-                    )
-                    .urls(vec![
-                        (
-                            Url::with_primary(
-                                "System monitoring",
-                                "/doc/monitoring-openapi.json",
-                                true,
-                            ),
-                            HealthCheckApiDoc::openapi(),
-                        ),
-                        (
-                            Url::with_primary(
-                                "Service Users Endpoints",
-                                "/doc/service-openapi.json",
-                                true,
-                            ),
-                            ServiceApiDoc::openapi(),
-                        ),
-                        (
-                            Url::with_primary(
-                                "Manager Users Endpoints",
-                                "/doc/manager-openapi.json",
-                                true,
-                            ),
-                            ManagerApiDoc::openapi(),
-                        ),
-                        (
-                            Url::new(
-                                "Standard Users Endpoints",
-                                "/doc/default-users-openapi.json",
-                            ),
-                            StandardUsersApiDoc::openapi(),
-                        ),
-                        (
-                            Url::new(
-                                "Staff Users Endpoints",
-                                "/doc/staff-openapi.json",
-                            ),
-                            StaffApiDoc::openapi(),
-                        ),
-                    ]),
+                    ),
             )
             // ? ---------------------------------------------------------------
             // ? Configure gateway routes

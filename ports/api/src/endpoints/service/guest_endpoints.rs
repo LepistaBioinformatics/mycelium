@@ -1,6 +1,5 @@
 use crate::{
     dtos::MyceliumRoleScopedConnectionStringData,
-    endpoints::shared::{build_actor_context, UrlGroup},
     modules::{
         AccountRegistrationModule, GuestRoleFetchingModule,
         GuestUserRegistrationModule, MessageSendingQueueModule,
@@ -10,7 +9,6 @@ use crate::{
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
-        actors::ActorName,
         dtos::account::Account,
         entities::{
             AccountRegistration, GuestRoleFetching, GuestUserRegistration,
@@ -20,7 +18,10 @@ use myc_core::{
     models::AccountLifeCycle,
     use_cases::roles::service::guest::guest_to_default_account,
 };
-use myc_http_tools::wrappers::default_response_to_http_response::handle_mapped_error;
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::handle_mapped_error,
+};
 use serde::Deserialize;
 use shaku_actix::Inject;
 use utoipa::{IntoParams, ToSchema};
@@ -31,7 +32,7 @@ use uuid::Uuid;
 // ? ---------------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
-    config.service(guest_to_default_account_url);
+    config.service(web::scope("/guests").service(guest_to_default_account_url));
 }
 
 // ? ---------------------------------------------------------------------------
@@ -59,7 +60,6 @@ pub struct GuestUserBody {
 /// path argument.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Guests),
     params(
         ("role_id" = Uuid, Path, description = "The guest-role unique id."),
         (

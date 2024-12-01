@@ -1,6 +1,5 @@
 use crate::{
     dtos::{MyceliumProfileData, TenantData},
-    endpoints::shared::{build_actor_context, UrlGroup},
     modules::{
         TenantDeletionModule, TenantRegistrationModule, TenantUpdatingModule,
     },
@@ -9,17 +8,19 @@ use crate::{
 use actix_web::{delete, post, put, web, Responder};
 use myc_core::{
     domain::{
-        actors::ActorName,
-        dtos::tenant::TenantMetaKey,
+        dtos::tenant::{TenantMeta, TenantMetaKey},
         entities::{TenantDeletion, TenantRegistration, TenantUpdating},
     },
     use_cases::roles::standard::tenant_owner::{
         create_tenant_meta, delete_tenant_meta, update_tenant_meta,
     },
 };
-use myc_http_tools::wrappers::default_response_to_http_response::{
-    create_response_kind, delete_response_kind, handle_mapped_error,
-    updating_response_kind,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        create_response_kind, delete_response_kind, handle_mapped_error,
+        updating_response_kind,
+    },
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -59,7 +60,6 @@ pub struct DeleteTenantMetaBody {
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Meta),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -122,7 +122,6 @@ pub async fn create_tenant_meta_url(
 
 #[utoipa::path(
     put,
-    context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Meta),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -181,7 +180,6 @@ pub async fn update_tenant_meta_url(
 
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Meta),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

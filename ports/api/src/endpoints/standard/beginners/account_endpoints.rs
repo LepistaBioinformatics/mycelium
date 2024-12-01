@@ -1,6 +1,5 @@
 use crate::{
     dtos::MyceliumProfileData,
-    endpoints::shared::{build_actor_context, UrlGroup},
     middleware::check_credentials_with_multi_identity_provider,
     modules::{
         AccountRegistrationModule, AccountUpdatingModule, UserFetchingModule,
@@ -10,11 +9,8 @@ use crate::{
 
 use actix_web::{patch, post, web, HttpRequest, HttpResponse, Responder};
 use myc_core::{
-    domain::{
-        actors::ActorName,
-        entities::{
-            AccountRegistration, AccountUpdating, UserFetching, WebHookFetching,
-        },
+    domain::entities::{
+        AccountRegistration, AccountUpdating, UserFetching, WebHookFetching,
     },
     use_cases::roles::standard::no_role::account::{
         create_default_account, update_own_account_name,
@@ -25,6 +21,7 @@ use myc_http_tools::{
     wrappers::default_response_to_http_response::{
         handle_mapped_error, updating_response_kind,
     },
+    Account,
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -67,7 +64,6 @@ pub struct UpdateOwnAccountNameAccountBody {
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Accounts),
     request_body = CreateDefaultAccountBody,
     responses(
         (
@@ -142,7 +138,6 @@ pub async fn create_default_account_url(
 
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Accounts),
     request_body = UpdateOwnAccountNameAccountBody,
     params(
         ("account_id" = Uuid, Path, description = "The account primary key."),

@@ -1,6 +1,5 @@
 use crate::{
     dtos::MyceliumProfileData,
-    endpoints::shared::{build_actor_context, UrlGroup},
     modules::{
         GuestRoleDeletionModule, GuestRoleFetchingModule,
         GuestRoleRegistrationModule, GuestRoleUpdatingModule,
@@ -10,8 +9,7 @@ use crate::{
 use actix_web::{delete, get, patch, post, web, Responder};
 use myc_core::{
     domain::{
-        actors::ActorName,
-        dtos::guest_role::Permission,
+        dtos::guest_role::{GuestRole, Permission},
         entities::{
             GuestRoleDeletion, GuestRoleFetching, GuestRoleRegistration,
             GuestRoleUpdating,
@@ -23,9 +21,13 @@ use myc_core::{
         update_guest_role_name_and_description, update_guest_role_permission,
     },
 };
-use myc_http_tools::wrappers::default_response_to_http_response::{
-    delete_response_kind, fetch_many_response_kind,
-    get_or_create_response_kind, handle_mapped_error, updating_response_kind,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        delete_response_kind, fetch_many_response_kind,
+        get_or_create_response_kind, handle_mapped_error,
+        updating_response_kind,
+    },
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -59,7 +61,7 @@ pub struct CreateGuestRoleBody {
     pub guest_role_id: Uuid,
 }
 
-#[derive(Deserialize, IntoParams)]
+#[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct ListGuestRolesParams {
     pub name: Option<String>,
@@ -84,7 +86,6 @@ pub struct UpdateGuestRolePermissionsBody {
 /// Guest Roles provide permissions to simple Roles.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     request_body = CreateGuestRoleBody,
     responses(
         (
@@ -141,7 +142,6 @@ pub async fn crate_guest_role_url(
 /// List Roles
 #[utoipa::path(
     get,
-    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
         ListGuestRolesParams,
     ),
@@ -168,7 +168,7 @@ pub async fn crate_guest_role_url(
         (
             status = 200,
             description = "Success.",
-            body = [Role],
+            body = [GuestRole],
         ),
     ),
 )]
@@ -199,7 +199,6 @@ pub async fn list_guest_roles_url(
 /// Delete a single guest role.
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
         ("guest_role_id" = Uuid, Path, description = "The guest-role primary key."),
     ),
@@ -253,7 +252,6 @@ pub async fn delete_guest_role_url(
 /// Update name and description of a single Guest Role.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
         ("guest_role_id" = Uuid, Path, description = "The guest-role primary key."),
     ),
@@ -314,7 +312,6 @@ pub async fn update_guest_role_name_and_description_url(
 /// Upgrade or Downgrade permissions of Guest Role.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
         ("role" = Uuid, Path, description = "The guest-role primary key."),
     ),
@@ -374,7 +371,6 @@ pub async fn update_guest_role_permissions_url(
 /// Insert a child role to a parent role.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
         ("guest_role_id" = Uuid, Path, description = "The guest-role primary key."),
         ("child_id" = Uuid, Path, description = "The child guest-role primary key."),
@@ -442,7 +438,6 @@ pub async fn insert_role_child_url(
 /// Delete a child role to a parent role.
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::GuestRoles),
     params(
         ("guest_role_id" = Uuid, Path, description = "The guest-role primary key."),
         ("child_id" = Uuid, Path, description = "The child guest-role primary key."),

@@ -1,9 +1,9 @@
 use actix_web::HttpResponse;
 use serde::Serialize;
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use utoipa::ToSchema;
+use utoipa::{ToResponse, ToSchema};
 
-#[derive(Debug, Serialize, ToSchema)]
+#[derive(Debug, Serialize, ToResponse, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct HttpJsonResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
