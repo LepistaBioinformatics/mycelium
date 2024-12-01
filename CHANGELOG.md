@@ -1,3 +1,13 @@
+## v6.2.0 (2024-12-01)
+
+### Feat
+
+- review the full api documentation and endpoints locations to improve the development experience and usability
+
+### Fix
+
+- replace the myc path url by adm
+
 ## v6.1.0 (2024-11-24)
 
 ### Feat
