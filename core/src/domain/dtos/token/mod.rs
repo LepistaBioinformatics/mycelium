@@ -30,6 +30,9 @@ pub enum MultiTypeMeta {
 
     /// This is the role token
     RoleScopedConnectionString(RoleScopedConnectionString),
+
+    /// This is the token scoped connection string
+    TenantScopedConnectionString(TenantScopedConnectionString),
 }
 
 // ? ---------------------------------------------------------------------------

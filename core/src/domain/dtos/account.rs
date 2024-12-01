@@ -14,7 +14,7 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     str::FromStr,
 };
-use utoipa::ToSchema;
+use utoipa::{ToResponse, ToSchema};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
@@ -115,7 +115,9 @@ impl VerboseStatus {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
+#[derive(
+    Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema, ToResponse,
+)]
 #[serde(rename_all = "camelCase")]
 pub struct Account {
     pub id: Option<Uuid>,

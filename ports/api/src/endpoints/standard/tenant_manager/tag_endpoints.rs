@@ -1,6 +1,5 @@
 use crate::{
     dtos::{MyceliumProfileData, TenantData},
-    endpoints::shared::{build_actor_context, UrlGroup},
     modules::{
         TenantTagDeletionModule, TenantTagRegistrationModule,
         TenantTagUpdatingModule,
@@ -10,7 +9,6 @@ use crate::{
 use actix_web::{delete, post, put, web, Responder};
 use myc_core::{
     domain::{
-        actors::ActorName,
         dtos::tag::Tag,
         entities::{
             TenantTagDeletion, TenantTagRegistration, TenantTagUpdating,
@@ -20,9 +18,12 @@ use myc_core::{
         delete_tag, register_tag, update_tag,
     },
 };
-use myc_http_tools::wrappers::default_response_to_http_response::{
-    delete_response_kind, get_or_create_response_kind, handle_mapped_error,
-    updating_response_kind,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        delete_response_kind, get_or_create_response_kind, handle_mapped_error,
+        updating_response_kind,
+    },
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -61,7 +62,6 @@ pub struct CreateTagBody {
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::TenantManager, UrlGroup::Tags),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -125,7 +125,6 @@ pub async fn register_tag_url(
 
 #[utoipa::path(
     put,
-    context_path = build_actor_context(ActorName::TenantManager, UrlGroup::Tags),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -189,7 +188,6 @@ pub async fn update_tag_url(
 
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(ActorName::TenantManager, UrlGroup::Tags),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

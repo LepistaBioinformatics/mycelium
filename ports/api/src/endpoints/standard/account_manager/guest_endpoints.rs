@@ -1,6 +1,5 @@
 use crate::{
     dtos::{MyceliumProfileData, TenantData},
-    endpoints::shared::{build_actor_context, UrlGroup},
     modules::{
         AccountFetchingModule, GuestRoleFetchingModule,
         GuestUserRegistrationModule, MessageSendingQueueModule,
@@ -10,7 +9,7 @@ use crate::{
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
-        actors::ActorName,
+        dtos::guest_user::GuestUser,
         entities::{
             AccountFetching, GuestRoleFetching, GuestUserRegistration,
             MessageSending,
@@ -64,7 +63,6 @@ pub struct GuestUserBody {
 /// path argument.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::AccountManager, UrlGroup::Guests),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

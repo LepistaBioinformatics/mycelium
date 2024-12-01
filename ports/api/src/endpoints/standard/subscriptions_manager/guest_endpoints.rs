@@ -1,6 +1,5 @@
 use crate::{
     dtos::{MyceliumProfileData, TenantData},
-    endpoints::shared::{build_actor_context, UrlGroup},
     modules::{
         AccountFetchingModule, GuestRoleFetchingModule,
         GuestUserDeletionModule, GuestUserFetchingModule,
@@ -12,8 +11,9 @@ use crate::{
 use actix_web::{delete, get, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
-        actors::ActorName,
-        dtos::{email::Email, route_type::PermissionedRoles},
+        dtos::{
+            email::Email, guest_user::GuestUser, profile::LicensedResources,
+        },
         entities::{
             AccountFetching, GuestRoleFetching, GuestUserDeletion,
             GuestUserFetching, GuestUserRegistration,
@@ -32,6 +32,7 @@ use myc_http_tools::{
         delete_response_kind, fetch_many_response_kind,
         get_or_create_response_kind, handle_mapped_error,
     },
+    Permission,
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -62,10 +63,10 @@ pub struct GuestUserBody {
 
 #[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct ListLicensedAccountsOfEmailBody {
+pub struct ListLicensedAccountsOfEmailParams {
     email: String,
     roles: Option<Vec<String>>,
-    permissioned_roles: Option<PermissionedRoles>,
+    permissioned_roles: Option<Vec<(String, Permission)>>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -78,15 +79,14 @@ pub struct ListLicensedAccountsOfEmailBody {
 /// List subscription accounts which email was guest
 #[utoipa::path(
     get,
-    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
+        ListLicensedAccountsOfEmailParams,
     ),
-    request_body = ListLicensedAccountsOfEmailBody,
     responses(
         (
             status = 500,
@@ -117,14 +117,14 @@ pub struct ListLicensedAccountsOfEmailBody {
 #[get("/")]
 pub async fn list_licensed_accounts_of_email_url(
     tenant: TenantData,
-    body: web::Json<ListLicensedAccountsOfEmailBody>,
+    query: web::Query<ListLicensedAccountsOfEmailParams>,
     profile: MyceliumProfileData,
     licensed_resources_fetching_repo: Inject<
         LicensedResourcesFetchingModule,
         dyn LicensedResourcesFetching,
     >,
 ) -> impl Responder {
-    let email = match Email::from_string(body.email.to_owned()) {
+    let email = match Email::from_string(query.email.to_owned()) {
         Err(err) => {
             return HttpResponse::BadRequest().json(
                 HttpJsonResponse::new_message(format!("Invalid email: {err}")),
@@ -137,8 +137,8 @@ pub async fn list_licensed_accounts_of_email_url(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         email.to_owned(),
-        body.roles.to_owned(),
-        body.permissioned_roles.to_owned(),
+        query.roles.to_owned(),
+        query.permissioned_roles.to_owned(),
         Box::new(&*licensed_resources_fetching_repo),
     )
     .await
@@ -155,7 +155,6 @@ pub async fn list_licensed_accounts_of_email_url(
 /// path argument.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -249,7 +248,6 @@ pub async fn guest_user_url(
 /// Uninvite user to perform a role to account
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -321,7 +319,6 @@ pub async fn uninvite_guest_url(
 /// informed subscription account.
 #[utoipa::path(
     get,
-    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Guests),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

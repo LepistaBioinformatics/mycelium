@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use super::{
     account::VerboseStatus, guest_role::Permission,
     native_error_codes::NativeErrorCodes, related_accounts::RelatedAccounts,
@@ -10,10 +8,13 @@ use base64::{engine::general_purpose, Engine};
 use mycelium_base::utils::errors::{dto_err, execution_err, MappedErrors};
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
-use utoipa::ToSchema;
+use std::str::FromStr;
+use utoipa::{ToResponse, ToSchema};
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
+#[derive(
+    Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq, ToResponse,
+)]
 #[serde(rename_all = "camelCase")]
 pub struct LicensedResource {
     /// The guest account unique id
@@ -226,14 +227,18 @@ impl FromStr for LicensedResource {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
+#[derive(
+    Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq, ToResponse,
+)]
 #[serde(rename_all = "camelCase")]
 pub enum LicensedResources {
     Records(Vec<LicensedResource>),
     Urls(Vec<String>),
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
+#[derive(
+    Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq, ToResponse,
+)]
 #[serde(rename_all = "camelCase")]
 pub struct Owner {
     pub id: Uuid,

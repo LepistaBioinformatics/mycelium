@@ -19,7 +19,7 @@ use ring::{
 };
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use tracing::error;
-use utoipa::ToSchema;
+use utoipa::{ToResponse, ToSchema};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema)]
@@ -362,7 +362,7 @@ impl MultiFactorAuthentication {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, ToSchema)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, ToSchema, ToResponse)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
     pub id: Option<Uuid>,

@@ -88,7 +88,8 @@ tracing-subscriber = { version = "0.3", features = [
     "tracing-serde",
     "registry",
 ] }
-utoipa-swagger-ui = { version = "5", features = ["actix-web"] }
+utoipa-redoc = { version = "5", features = ["actix-web"] }
+utoipa-swagger-ui = { version = "8", features = ["actix-web"] }
 
 # ? ----------------------------------------------------------------------------
 # ? BINARIES

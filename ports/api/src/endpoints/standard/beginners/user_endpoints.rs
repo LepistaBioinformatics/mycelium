@@ -28,6 +28,7 @@ use myc_core::{
         check_token_and_activate_user, check_token_and_reset_password,
         create_default_user, start_password_redefinition, totp_check_token,
         totp_disable, totp_finish_activation, totp_start_activation,
+        EmailRegistrationStatus,
     },
 };
 use myc_http_tools::{
@@ -39,7 +40,7 @@ use serde::{Deserialize, Serialize, Serializer};
 use serde_json::json;
 use shaku_actix::Inject;
 use tracing::warn;
-use utoipa::ToSchema;
+use utoipa::{ToResponse, ToSchema};
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -79,7 +80,7 @@ where
     serializer.serialize_u64(duration.num_seconds() as u64)
 }
 
-#[derive(Serialize, ToSchema)]
+#[derive(Serialize, ToResponse, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct LoginResponse {
     token: String,
@@ -91,13 +92,13 @@ pub struct LoginResponse {
     user: User,
 }
 
-#[derive(Serialize, ToSchema)]
+#[derive(Serialize, ToResponse, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct TotpActivationStartedResponse {
     totp_url: String,
 }
 
-#[derive(Serialize, ToSchema)]
+#[derive(Serialize, ToResponse, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct TotpActivationFinishedResponse {
     finished: bool,
@@ -157,7 +158,6 @@ pub struct CheckUserCredentialsBody {
 ///
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
     request_body = CheckEmailStatusBody,
     responses(
         (
@@ -221,7 +221,6 @@ pub async fn check_email_registration_status_url(
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
     request_body = CreateDefaultUserBody,
     responses(
         (
@@ -299,7 +298,6 @@ pub async fn create_default_user_url(
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
     request_body = CheckTokenBody,
     responses(
         (
@@ -362,7 +360,6 @@ pub async fn check_user_token_url(
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
     request_body = CheckTokenBody,
     responses(
         (
@@ -426,7 +423,6 @@ pub async fn start_password_redefinition_url(
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
     request_body = CheckTokenBody,
     responses(
         (
@@ -494,7 +490,6 @@ pub async fn check_token_and_reset_password_url(
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
     request_body = CheckUserCredentialsBody,
     responses(
         (
@@ -588,7 +583,7 @@ pub async fn check_email_password_validity_url(
                                     format!(
                                         "{}/totp/enable/",
                                         build_actor_context(
-                                            ActorName::NoRole,
+                                            ActorName::Beginner,
                                             UrlGroup::Users
                                         )
                                     ),
@@ -626,7 +621,6 @@ pub async fn check_email_password_validity_url(
 ///
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
     responses(
         (
             status = 500,
@@ -700,8 +694,7 @@ pub async fn totp_start_activation_url(
 ///
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
-    request_body = TotpActivationValidationBody,
+    request_body = TotpUpdatingValidationBody,
     responses(
         (
             status = 500,
@@ -778,8 +771,7 @@ pub async fn totp_finish_activation_url(
 ///
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
-    request_body = TotpActivationValidationBody,
+    request_body = TotpUpdatingValidationBody,
     responses(
         (
             status = 500,
@@ -867,8 +859,7 @@ pub async fn totp_check_token_url(
 ///
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::NoRole, UrlGroup::Users),
-    request_body = TotpActivationValidationBody,
+    request_body = TotpUpdatingValidationBody,
     responses(
         (
             status = 500,

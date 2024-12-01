@@ -1,26 +1,25 @@
 use crate::{
     dtos::MyceliumProfileData,
-    endpoints::shared::{build_actor_context, UrlGroup},
     modules::{MessageSendingQueueModule, TokenRegistrationModule},
 };
 
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
-    domain::{
-        actors::ActorName,
-        dtos::route_type::PermissionedRoles,
-        entities::{MessageSending, TokenRegistration},
-    },
+    domain::entities::{MessageSending, TokenRegistration},
     models::AccountLifeCycle,
     use_cases::roles::standard::guest_manager::token::{
         create_default_account_associated_connection_string,
         create_role_associated_connection_string,
     },
 };
-use myc_http_tools::wrappers::default_response_to_http_response::handle_mapped_error;
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::handle_mapped_error,
+    Permission,
+};
 use serde::{Deserialize, Serialize};
 use shaku_actix::Inject;
-use utoipa::ToSchema;
+use utoipa::{ToResponse, ToSchema};
 use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
@@ -41,11 +40,11 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[serde(rename_all = "camelCase")]
 pub struct CreateTokenBody {
     tenant_id: Uuid,
-    permissioned_roles: PermissionedRoles,
+    permissioned_roles: Vec<(String, Permission)>,
     expiration: i64,
 }
 
-#[derive(Serialize, ToSchema)]
+#[derive(Serialize, ToSchema, ToResponse)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateTokenResponse {
     connection_string: String,
@@ -59,7 +58,6 @@ pub struct CreateTokenResponse {
 ///
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Tokens),
     params(
         ("account_id" = Uuid, Path, description = "The account unique id."),
     ),
@@ -83,7 +81,7 @@ pub struct CreateTokenResponse {
         (
             status = 201,
             description = "Token created.",
-            body = CreateDefaultAccountAssociatedTokenResponse,
+            body = CreateTokenResponse,
         ),
     ),
 )]
@@ -126,7 +124,6 @@ pub async fn create_default_account_associated_connection_string_url(
 ///
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Tokens),
     params(
         ("role_id" = Uuid, Path, description = "The role unique id."),
     ),
@@ -150,7 +147,7 @@ pub async fn create_default_account_associated_connection_string_url(
         (
             status = 201,
             description = "Token created.",
-            body = CreateDefaultAccountAssociatedTokenResponse,
+            body = CreateTokenResponse,
         ),
     ),
 )]

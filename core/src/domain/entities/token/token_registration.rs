@@ -1,6 +1,7 @@
 use crate::domain::dtos::token::{
     AccountScopedConnectionString, EmailConfirmationTokenMeta,
-    PasswordChangeTokenMeta, RoleScopedConnectionString, Token,
+    PasswordChangeTokenMeta, RoleScopedConnectionString,
+    TenantScopedConnectionString, Token,
 };
 
 use async_trait::async_trait;
@@ -33,6 +34,12 @@ pub trait TokenRegistration: Interface + Send + Sync {
     async fn create_role_scoped_connection_string(
         &self,
         meta: RoleScopedConnectionString,
+        expires: DateTime<Local>,
+    ) -> Result<CreateResponseKind<Token>, MappedErrors>;
+
+    async fn create_tenant_scoped_connection_string(
+        &self,
+        meta: TenantScopedConnectionString,
         expires: DateTime<Local>,
     ) -> Result<CreateResponseKind<Token>, MappedErrors>;
 }

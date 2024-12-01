@@ -1,4 +1,4 @@
-use crate::settings::MYCELIUM_API_SCOPE;
+use crate::settings::{ADMIN_API_SCOPE, ROLE_SCOPED_API_SCOPE};
 
 use actix_web::dev::ServiceRequest;
 use myc_http_tools::{settings::DEFAULT_MYCELIUM_ROLE_KEY, ActorName};
@@ -63,7 +63,7 @@ pub(crate) fn insert_role_header(
 /// This function is useful to build the actor in OpenAPI documentation.
 ///
 pub(crate) fn build_actor_context(actor: ActorName, group: UrlGroup) -> String {
-    group.with_scoped_actor(UrlScope::Standards, actor)
+    group.with_scoped_actor(UrlScope::RoleScoped, actor)
 }
 
 #[derive(Deserialize, IntoParams)]
@@ -75,7 +75,7 @@ pub struct PaginationParams {
 
 pub enum UrlScope {
     Health,
-    Standards,
+    RoleScoped,
     Managers,
     Staffs,
     Service,
@@ -85,17 +85,17 @@ impl Display for UrlScope {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
             UrlScope::Health => write!(f, "health"),
-            UrlScope::Standards => write!(f, "std"),
+            UrlScope::RoleScoped => write!(f, "{}", ROLE_SCOPED_API_SCOPE),
             UrlScope::Managers => write!(f, "managers"),
             UrlScope::Staffs => write!(f, "staffs"),
-            UrlScope::Service => write!(f, "service"),
+            UrlScope::Service => write!(f, "svc"),
         }
     }
 }
 
 impl UrlScope {
     pub fn build_myc_path(&self) -> String {
-        format!("/{}/{}", MYCELIUM_API_SCOPE, self.to_owned())
+        format!("/{}/{}", ADMIN_API_SCOPE, self.to_owned())
     }
 }
 
@@ -136,10 +136,6 @@ impl Display for UrlGroup {
 }
 
 impl UrlGroup {
-    pub fn with_scope(&self, scope: UrlScope) -> String {
-        format!("{}/{}", scope.build_myc_path(), self.to_owned())
-    }
-
     pub fn with_scoped_actor(
         &self,
         scope: UrlScope,

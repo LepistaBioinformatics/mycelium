@@ -1,16 +1,18 @@
 use crate::{
     dtos::{MyceliumProfileData, TenantData},
-    endpoints::shared::{build_actor_context, UrlGroup},
     modules::AccountDeletionModule,
 };
 
 use actix_web::{delete, web, Responder};
 use myc_core::{
-    domain::{actors::ActorName, entities::AccountDeletion},
+    domain::entities::AccountDeletion,
     use_cases::roles::standard::tenant_manager::delete_subscription_account,
 };
-use myc_http_tools::wrappers::default_response_to_http_response::{
-    delete_response_kind, handle_mapped_error,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        delete_response_kind, handle_mapped_error,
+    },
 };
 use shaku_actix::Inject;
 use uuid::Uuid;
@@ -29,7 +31,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
 
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(ActorName::TenantManager, UrlGroup::Accounts),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

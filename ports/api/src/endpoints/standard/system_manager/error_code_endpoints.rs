@@ -1,6 +1,6 @@
 use crate::{
     dtos::MyceliumProfileData,
-    endpoints::shared::{build_actor_context, PaginationParams, UrlGroup},
+    endpoints::shared::PaginationParams,
     modules::{
         ErrorCodeDeletionModule, ErrorCodeFetchingModule,
         ErrorCodeRegistrationModule, ErrorCodeUpdatingModule,
@@ -10,7 +10,7 @@ use crate::{
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
-        actors::ActorName,
+        dtos::error_code::ErrorCode,
         entities::{
             ErrorCodeDeletion, ErrorCodeFetching, ErrorCodeRegistration,
             ErrorCodeUpdating,
@@ -21,8 +21,11 @@ use myc_core::{
         register_error_code, update_error_code_message_and_details,
     },
 };
-use myc_http_tools::wrappers::default_response_to_http_response::{
-    fetch_many_response_kind, handle_mapped_error,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        fetch_many_response_kind, handle_mapped_error,
+    },
 };
 use mycelium_base::entities::FetchResponseKind;
 use serde::Deserialize;
@@ -55,7 +58,7 @@ pub struct CreateErrorCodeBody {
     is_internal: bool,
 }
 
-#[derive(Deserialize, IntoParams)]
+#[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct ListErrorCodesParams {
     prefix: Option<String>,
@@ -79,7 +82,6 @@ pub struct UpdateErrorCodeMessageAndDetailsBody {
 /// This action is restricted to manager users.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::ErrorCodes),
     request_body = CreateErrorCodeBody,
     responses(
         (
@@ -140,7 +142,6 @@ pub async fn register_error_code_url(
 ///
 #[utoipa::path(
     get,
-    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::ErrorCodes),
     params(
         ListErrorCodesParams,
         PaginationParams,
@@ -204,7 +205,6 @@ pub async fn list_error_codes_url(
 ///
 #[utoipa::path(
     get,
-    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::ErrorCodes),
     params(
         ("prefix" = String, Path, description = "The error prefix."),
         ("code" = i32, Path, description = "The error code."),
@@ -232,7 +232,7 @@ pub async fn list_error_codes_url(
         (
             status = 200,
             description = "Fetching success.",
-            body = Account,
+            body = ErrorCode,
         ),
     ),
 )]
@@ -273,7 +273,6 @@ pub async fn get_error_code_url(
 ///
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::ErrorCodes),
     params(
         ("prefix" = String, Path, description = "The error prefix."),
         ("code" = i32, Path, description = "The error code."),
@@ -303,7 +302,7 @@ pub async fn get_error_code_url(
         (
             status = 202,
             description = "Error code updated.",
-            body = Account,
+            body = ErrorCode,
         ),
     ),
 )]
@@ -345,7 +344,6 @@ pub async fn update_error_code_message_and_details_url(
 ///
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(ActorName::SystemManager, UrlGroup::ErrorCodes),
     params(
         ("prefix" = String, Path, description = "The error prefix."),
         ("code" = i32, Path, description = "The error code."),

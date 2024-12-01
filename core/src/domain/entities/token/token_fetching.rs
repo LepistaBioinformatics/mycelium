@@ -1,5 +1,6 @@
 use crate::domain::dtos::token::{
-    AccountWithPermissionedRolesScope, RoleWithPermissionsScope, Token,
+    AccountWithPermissionedRolesScope, RoleWithPermissionsScope,
+    TenantWithPermissionsScope, Token,
 };
 
 use async_trait::async_trait;
@@ -12,6 +13,7 @@ pub trait TokenFetching: Interface + Send + Sync {
     ///
     /// This should be used to get connection strings filtering by scope
     /// containing account with permissioned roles.
+    ///
     async fn get_connection_string_by_account_with_permissioned_roles_scope(
         &self,
         scope: AccountWithPermissionedRolesScope,
@@ -21,8 +23,19 @@ pub trait TokenFetching: Interface + Send + Sync {
     ///
     /// This should be used to get connection strings filtering by scope
     /// containing role with permissions.
+    ///
     async fn get_connection_string_by_role_with_permissioned_roles_scope(
         &self,
         scope: RoleWithPermissionsScope,
+    ) -> Result<FetchResponseKind<Token, String>, MappedErrors>;
+
+    /// Get token by TenantWithPermissionsScope scope
+    ///
+    /// This should be used to get connection strings filtering by scope
+    /// containing tenant with permissions.
+    ///
+    async fn get_connection_string_by_tenant_with_permissioned_roles_scope(
+        &self,
+        scope: TenantWithPermissionsScope,
     ) -> Result<FetchResponseKind<Token, String>, MappedErrors>;
 }

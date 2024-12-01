@@ -1,6 +1,5 @@
 use crate::{
     dtos::{MyceliumProfileData, TenantData},
-    endpoints::shared::{build_actor_context, UrlGroup},
     modules::{
         TenantDeletionModule, TenantFetchingModule, TenantUpdatingModule,
         UserFetchingModule,
@@ -9,11 +8,9 @@ use crate::{
 
 use actix_web::{delete, post, web, HttpResponse, Responder};
 use myc_core::{
-    domain::{
-        actors::ActorName,
-        entities::{
-            TenantDeletion, TenantFetching, TenantUpdating, UserFetching,
-        },
+    domain::entities::{
+        TenantDeletion, TenantFetching, TenantOwnerConnection, TenantUpdating,
+        UserFetching,
     },
     use_cases::roles::standard::tenant_owner::{
         guest_tenant_owner, revoke_tenant_owner,
@@ -56,7 +53,6 @@ pub struct GuestTenantOwnerBody {
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Owners),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -125,7 +121,6 @@ pub async fn guest_tenant_owner_url(
 
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Owners),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

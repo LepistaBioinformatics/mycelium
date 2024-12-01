@@ -1,19 +1,19 @@
 use crate::{
     dtos::{MyceliumProfileData, TenantData},
-    endpoints::shared::{build_actor_context, UrlGroup},
     modules::{AccountRegistrationModule, TenantFetchingModule},
 };
 
 use actix_web::{post, web, Responder};
 use myc_core::{
-    domain::{
-        actors::ActorName,
-        entities::{AccountRegistration, TenantFetching},
-    },
+    domain::entities::{AccountRegistration, TenantFetching},
     use_cases::roles::standard::tenant_owner::create_management_account,
 };
-use myc_http_tools::wrappers::default_response_to_http_response::{
-    create_response_kind, handle_mapped_error,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        create_response_kind, handle_mapped_error,
+    },
+    Account,
 };
 use shaku_actix::Inject;
 
@@ -26,18 +26,11 @@ pub fn configure(config: &mut web::ServiceConfig) {
 }
 
 // ? ---------------------------------------------------------------------------
-// ? Define API structs
-// ? ---------------------------------------------------------------------------
-
-// TODO
-
-// ? ---------------------------------------------------------------------------
 // ? Define API paths
 // ? ---------------------------------------------------------------------------
 
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::TenantOwner, UrlGroup::Accounts),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

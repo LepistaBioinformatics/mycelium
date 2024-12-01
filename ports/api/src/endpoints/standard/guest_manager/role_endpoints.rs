@@ -1,6 +1,5 @@
 use crate::{
     dtos::MyceliumProfileData,
-    endpoints::shared::{build_actor_context, UrlGroup},
     modules::{
         RoleDeletionModule, RoleFetchingModule, RoleRegistrationModule,
         RoleUpdatingModule,
@@ -10,7 +9,7 @@ use crate::{
 use actix_web::{delete, get, patch, post, web, Responder};
 use myc_core::{
     domain::{
-        actors::ActorName,
+        dtos::role::Role,
         entities::{
             RoleDeletion, RoleFetching, RoleRegistration, RoleUpdating,
         },
@@ -19,9 +18,13 @@ use myc_core::{
         create_role, delete_role, list_roles, update_role_name_and_description,
     },
 };
-use myc_http_tools::wrappers::default_response_to_http_response::{
-    delete_response_kind, fetch_many_response_kind,
-    get_or_create_response_kind, handle_mapped_error, updating_response_kind,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        delete_response_kind, fetch_many_response_kind,
+        get_or_create_response_kind, handle_mapped_error,
+        updating_response_kind,
+    },
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -51,7 +54,7 @@ pub struct CreateRoleBody {
     pub description: String,
 }
 
-#[derive(Deserialize, IntoParams)]
+#[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct ListRolesParams {
     pub name: Option<String>,
@@ -62,7 +65,6 @@ pub struct ListRolesParams {
 /// Roles are used to build Guest Role elements.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Roles),
     request_body = CreateRoleBody,
     responses(
         (
@@ -117,7 +119,6 @@ pub async fn crate_role_url(
 /// List Roles
 #[utoipa::path(
     get,
-    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Roles),
     params(
         ListRolesParams,
     ),
@@ -173,7 +174,6 @@ pub async fn list_roles_url(
 /// Delete a single role.
 #[utoipa::path(
     delete,
-    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Roles),
     params(
         ("role_id" = Uuid, Path, description = "The role primary key."),
     ),
@@ -227,7 +227,6 @@ pub async fn delete_role_url(
 /// Update name and description of a single Role.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(ActorName::GuestManager, UrlGroup::Roles),
     params(
         ("role_id" = Uuid, Path, description = "The role primary key."),
     ),

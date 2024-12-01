@@ -1,22 +1,22 @@
 use crate::{
     dtos::MyceliumProfileData,
-    endpoints::shared::{build_actor_context, UrlGroup},
     modules::{AccountFetchingModule, AccountUpdatingModule},
 };
 
 use actix_web::{patch, web, Responder};
 use myc_core::{
-    domain::{
-        actors::ActorName,
-        entities::{AccountFetching, AccountUpdating},
-    },
+    domain::entities::{AccountFetching, AccountUpdating},
     use_cases::roles::standard::users_manager::account::{
         change_account_activation_status, change_account_approval_status,
         change_account_archival_status,
     },
 };
-use myc_http_tools::wrappers::default_response_to_http_response::{
-    handle_mapped_error, updating_response_kind,
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        handle_mapped_error, updating_response_kind,
+    },
+    Account,
 };
 use shaku_actix::Inject;
 use uuid::Uuid;
@@ -48,7 +48,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
 /// operation on the system. These endpoint should approve such account.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(ActorName::UsersManager, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
@@ -107,7 +106,6 @@ pub async fn approve_account_url(
 /// work for this.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(ActorName::UsersManager, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
@@ -166,7 +164,6 @@ pub async fn disapprove_account_url(
 /// account active.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(ActorName::UsersManager, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
@@ -225,7 +222,6 @@ pub async fn activate_account_url(
 /// account deactivated.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(ActorName::UsersManager, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
@@ -283,7 +279,6 @@ pub async fn deactivate_account_url(
 /// Set target account as archived.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(ActorName::UsersManager, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),
@@ -341,7 +336,6 @@ pub async fn archive_account_url(
 /// Set target account as un-archived.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(ActorName::UsersManager, UrlGroup::Accounts),
     params(
         ("account" = Uuid, Path, description = "The account primary key."),
     ),

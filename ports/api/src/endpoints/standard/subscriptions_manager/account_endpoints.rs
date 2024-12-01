@@ -1,6 +1,6 @@
 use crate::{
     dtos::{MyceliumProfileData, TenantData},
-    endpoints::shared::{build_actor_context, PaginationParams, UrlGroup},
+    endpoints::shared::PaginationParams,
     modules::{
         AccountFetchingModule, AccountRegistrationModule,
         AccountUpdatingModule, WebHookFetchingModule,
@@ -29,6 +29,7 @@ use myc_http_tools::{
         fetch_many_response_kind, fetch_response_kind, handle_mapped_error,
         updating_response_kind,
     },
+    Account,
 };
 use serde::Deserialize;
 use shaku_actix::Inject;
@@ -70,7 +71,7 @@ pub struct UpdateSubscriptionAccountNameAndFlagsBody {
 
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-enum APIAccountType {
+pub(crate) enum APIAccountType {
     Staff,
     Manager,
     User,
@@ -115,7 +116,7 @@ impl APIAccountType {
     }
 }
 
-#[derive(Deserialize, IntoParams)]
+#[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct ListSubscriptionAccountParams {
     term: Option<String>,
@@ -140,7 +141,6 @@ pub struct ListSubscriptionAccountParams {
 /// groups, but not real persons.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -211,7 +211,6 @@ pub async fn create_subscription_account_url(
 ///
 #[utoipa::path(
     get,
-    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -317,7 +316,6 @@ pub async fn list_accounts_by_type_url(
 /// Get a single subscription account.
 #[utoipa::path(
     get,
-    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -381,7 +379,6 @@ pub async fn get_account_details_url(
 /// groups, but not real persons.
 #[utoipa::path(
     patch,
-    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -454,7 +451,6 @@ pub async fn update_account_name_and_flags_url(
 /// Propagate a single subscription account.
 #[utoipa::path(
     post,
-    context_path = build_actor_context(ActorName::SubscriptionsManager, UrlGroup::Accounts),
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
