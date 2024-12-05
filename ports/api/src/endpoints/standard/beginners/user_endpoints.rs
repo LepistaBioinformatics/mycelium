@@ -23,7 +23,7 @@ use myc_core::{
         },
     },
     models::AccountLifeCycle,
-    use_cases::roles::standard::no_role::user::{
+    use_cases::roles::role_scoped::beginner::user::{
         check_email_password_validity, check_email_registration_status,
         check_token_and_activate_user, check_token_and_reset_password,
         create_default_user, start_password_redefinition, totp_check_token,

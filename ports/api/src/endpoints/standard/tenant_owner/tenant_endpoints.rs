@@ -3,7 +3,7 @@ use crate::{dtos::MyceliumProfileData, modules::TenantUpdatingModule};
 use actix_web::{patch, web, Responder};
 use myc_core::{
     domain::entities::TenantUpdating,
-    use_cases::roles::standard::tenant_owner::{
+    use_cases::roles::role_scoped::tenant_owner::{
         update_tenant_archiving_status, update_tenant_name_and_description,
         update_tenant_trashing_status, update_tenant_verifying_status,
     },

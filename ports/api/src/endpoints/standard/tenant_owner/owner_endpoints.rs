@@ -12,7 +12,7 @@ use myc_core::{
         TenantDeletion, TenantFetching, TenantOwnerConnection, TenantUpdating,
         UserFetching,
     },
-    use_cases::roles::standard::tenant_owner::{
+    use_cases::roles::role_scoped::tenant_owner::{
         guest_tenant_owner, revoke_tenant_owner,
     },
 };

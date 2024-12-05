@@ -14,7 +14,7 @@ use myc_core::{
             AccountTagDeletion, AccountTagRegistration, AccountTagUpdating,
         },
     },
-    use_cases::roles::standard::subscriptions_manager::tag::{
+    use_cases::roles::role_scoped::subscriptions_manager::tag::{
         delete_tag, register_tag, update_tag,
     },
 };

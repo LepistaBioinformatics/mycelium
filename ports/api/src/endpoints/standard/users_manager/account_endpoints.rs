@@ -6,7 +6,7 @@ use crate::{
 use actix_web::{patch, web, Responder};
 use myc_core::{
     domain::entities::{AccountFetching, AccountUpdating},
-    use_cases::roles::standard::users_manager::account::{
+    use_cases::roles::role_scoped::users_manager::account::{
         change_account_activation_status, change_account_approval_status,
         change_account_archival_status,
     },

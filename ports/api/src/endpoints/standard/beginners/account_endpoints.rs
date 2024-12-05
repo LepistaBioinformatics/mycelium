@@ -12,7 +12,7 @@ use myc_core::{
     domain::entities::{
         AccountRegistration, AccountUpdating, UserFetching, WebHookFetching,
     },
-    use_cases::roles::standard::no_role::account::{
+    use_cases::roles::role_scoped::beginner::account::{
         create_default_account, update_own_account_name,
     },
 };
