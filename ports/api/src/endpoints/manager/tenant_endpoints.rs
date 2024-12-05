@@ -82,6 +82,7 @@ pub struct ListTenantParams {
 // ? Define API paths
 // ? ---------------------------------------------------------------------------
 
+/// Create a new tenant
 #[utoipa::path(
     post,
     request_body = CreateTenantBody,
@@ -138,6 +139,7 @@ pub async fn create_tenant_url(
     }
 }
 
+/// List tenants
 #[utoipa::path(
     get,
     params(
@@ -199,6 +201,7 @@ pub async fn list_tenant_url(
     }
 }
 
+/// Delete a tenant
 #[utoipa::path(
     delete,
     params(
@@ -250,6 +253,11 @@ pub async fn delete_tenant_url(
     }
 }
 
+/// Include a tenant owner
+///
+/// A single tenant can have multiple owners. This endpoint allows to include a
+/// new owner to the tenant.
+///
 #[utoipa::path(
     patch,
     params(
@@ -299,6 +307,11 @@ pub async fn include_tenant_owner_url(
     }
 }
 
+/// Exclude a tenant owner
+///
+/// A single tenant can have multiple owners. This endpoint allows to exclude an
+/// owner from the tenant.
+///
 #[utoipa::path(
     patch,
     params(

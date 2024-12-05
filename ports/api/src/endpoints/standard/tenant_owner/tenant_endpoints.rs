@@ -64,6 +64,7 @@ pub struct UpdateTenantVerifyingBody {
 // ? Define API paths
 // ? ---------------------------------------------------------------------------
 
+/// Update the name and description of a tenant
 #[utoipa::path(
     patch,
     params(
@@ -118,6 +119,7 @@ pub async fn update_tenant_name_and_description_url(
     }
 }
 
+/// Include an archive status to a tenant
 #[utoipa::path(
     patch,
     params(
@@ -171,6 +173,7 @@ pub async fn update_tenant_archiving_status_url(
     }
 }
 
+/// Include a trash status to a tenant
 #[utoipa::path(
     patch,
     params(
@@ -224,6 +227,7 @@ pub async fn update_tenant_trashing_status_url(
     }
 }
 
+/// Include a verified status to a tenant
 #[utoipa::path(
     patch,
     params(

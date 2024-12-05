@@ -62,6 +62,10 @@ pub struct UpdateOwnAccountNameAccountBody {
 //
 // ? ---------------------------------------------------------------------------
 
+/// Create a user related account
+///
+/// A user related account is an account that is created for a physical person.
+///
 #[utoipa::path(
     post,
     request_body = CreateDefaultAccountBody,
@@ -136,6 +140,10 @@ pub async fn create_default_account_url(
     }
 }
 
+/// Update account name
+///
+/// Update the account name of the account owner.
+///
 #[utoipa::path(
     patch,
     request_body = UpdateOwnAccountNameAccountBody,

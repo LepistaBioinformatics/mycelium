@@ -68,6 +68,7 @@ pub struct UpdateTagBody {
 //
 // ? ---------------------------------------------------------------------------
 
+/// Register a tag
 #[utoipa::path(
     post,
     request_body = CreateTagBody,
@@ -122,6 +123,7 @@ pub async fn register_tag_url(
     }
 }
 
+/// Update a tag
 #[utoipa::path(
     put,
     params(
@@ -179,6 +181,7 @@ pub async fn update_tag_url(
     }
 }
 
+/// Delete a tag
 #[utoipa::path(
     delete,
     params(

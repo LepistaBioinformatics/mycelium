@@ -1,0 +1,9 @@
+{
+    "sortTagsAlphabetically": true,
+    "theme": {
+        "sidebar": {
+            "backgroundColor": "#263238",
+            "textColor": "#ffffff"
+        }
+    }
+}

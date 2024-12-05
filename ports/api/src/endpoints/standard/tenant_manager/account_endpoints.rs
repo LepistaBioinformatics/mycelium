@@ -29,6 +29,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 // ? Define API paths
 // ? ---------------------------------------------------------------------------
 
+/// Delete a subscription account.
 #[utoipa::path(
     delete,
     params(

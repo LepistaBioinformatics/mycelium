@@ -29,6 +29,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 // ? Define API paths
 // ? ---------------------------------------------------------------------------
 
+/// Create a management account.
 #[utoipa::path(
     post,
     params(

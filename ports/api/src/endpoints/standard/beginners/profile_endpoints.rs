@@ -27,6 +27,7 @@ pub struct ProfileParams {
     with_url: Option<bool>,
 }
 
+/// Fetch a user's profile.
 #[utoipa::path(
     get,
     params(ProfileParams),

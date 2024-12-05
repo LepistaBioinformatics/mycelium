@@ -60,6 +60,7 @@ pub struct CreateTagBody {
 //
 // ? ---------------------------------------------------------------------------
 
+/// Create a user related account
 #[utoipa::path(
     post,
     params(
@@ -123,6 +124,7 @@ pub async fn register_tag_url(
     }
 }
 
+/// Update a tag
 #[utoipa::path(
     put,
     params(
@@ -186,6 +188,7 @@ pub async fn update_tag_url(
     }
 }
 
+/// Delete a tag
 #[utoipa::path(
     delete,
     params(

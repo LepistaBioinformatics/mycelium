@@ -51,6 +51,7 @@ pub struct GuestTenantOwnerBody {
 // ? Define API paths
 // ? ---------------------------------------------------------------------------
 
+/// Guest a user to work as a tenant owner
 #[utoipa::path(
     post,
     params(
@@ -119,6 +120,7 @@ pub async fn guest_tenant_owner_url(
     }
 }
 
+/// Revoke a user from working as a tenant owner
 #[utoipa::path(
     delete,
     params(
