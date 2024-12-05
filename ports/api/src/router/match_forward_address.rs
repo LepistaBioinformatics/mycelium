@@ -1,4 +1,4 @@
-use crate::domain::{dtos::route::Route, entities::RoutesFetching};
+use myc_core::domain::{dtos::route::Route, entities::RoutesFetching};
 
 use actix_web::http::uri::PathAndQuery;
 use mycelium_base::{
@@ -9,7 +9,7 @@ use tracing::debug;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub enum RoutesMatchResponseEnum {
+pub(super) enum RoutesMatchResponseEnum {
     PathNotFound(String),
     MultipleAssociatedPaths(String),
     Found(Route),
@@ -23,7 +23,7 @@ pub enum RoutesMatchResponseEnum {
     name = "match_forward_address",
     skip(routes_fetching_repo)
 )]
-pub async fn match_forward_address(
+pub(super) async fn match_forward_address(
     path: PathAndQuery,
     routes_fetching_repo: Box<&dyn RoutesFetching>,
 ) -> Result<RoutesMatchResponseEnum, MappedErrors> {
