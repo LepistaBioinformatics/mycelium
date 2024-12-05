@@ -1,3 +1,5 @@
+mod match_forward_address;
+
 use super::middleware::fetch_and_inject_profile_to_forward;
 use crate::{modules::RoutesFetchingModule, settings::GATEWAY_API_SCOPE};
 
@@ -5,14 +7,10 @@ use actix_web::{
     error, http::uri::PathAndQuery, web, HttpRequest, HttpResponse,
 };
 use awc::Client;
-use myc_core::{
-    domain::{
-        dtos::{http::HttpMethod, route_type::RouteType},
-        entities::RoutesFetching,
-    },
-    use_cases::gateway::routes::{
-        match_forward_address, RoutesMatchResponseEnum,
-    },
+use match_forward_address::{match_forward_address, RoutesMatchResponseEnum};
+use myc_core::domain::{
+    dtos::{http::HttpMethod, route_type::RouteType},
+    entities::RoutesFetching,
 };
 use myc_http_tools::{
     responses::GatewayError,
