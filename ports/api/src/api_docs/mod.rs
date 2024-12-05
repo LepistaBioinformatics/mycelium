@@ -1,6 +1,4 @@
-use crate::endpoints::{
-    index, manager, service, staff, standard as role_scoped,
-};
+use crate::endpoints::{index, manager, role_scoped, service, staff};
 
 use myc_core::domain::dtos::{
     account, account_type, email, error_code, guest_role, guest_user, profile,

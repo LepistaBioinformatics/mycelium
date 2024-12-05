@@ -23,6 +23,7 @@ use core::panic;
 use endpoints::{
     index::heath_check_endpoints,
     manager::tenant_endpoints,
+    role_scoped::configure as configure_standard_endpoints,
     service::{
         account_endpoints as service_account_endpoints,
         auxiliary_endpoints as service_auxiliary_endpoints,
@@ -30,7 +31,6 @@ use endpoints::{
     },
     shared::insert_role_header,
     staff::account_endpoints as staff_account_endpoints,
-    standard::configure as configure_standard_endpoints,
 };
 use models::{
     api_config::{LogFormat, LoggingTarget},
