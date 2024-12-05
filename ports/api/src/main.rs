@@ -54,7 +54,6 @@ use reqwest::header::{
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use router::route_request;
-use serde_json::json;
 use settings::{ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE};
 use std::{
     path::PathBuf, process::id as process_id, str::FromStr, time::Duration,
@@ -64,7 +63,7 @@ use tracing_actix_web::TracingLogger;
 use tracing_subscriber::prelude::*;
 use tracing_subscriber::{fmt, EnvFilter};
 use utoipa::OpenApi;
-use utoipa_redoc::{Redoc, Servable};
+use utoipa_redoc::{FileConfig, Redoc, Servable};
 use utoipa_swagger_ui::{Config, SwaggerUi};
 
 // ? ---------------------------------------------------------------------------
@@ -527,25 +526,12 @@ pub async fn main() -> std::io::Result<()> {
             // ? Configure API documentation
             // ? ---------------------------------------------------------------
             .service(Redoc::with_url_and_config(
-                "/redoc",
+                "/doc/redoc",
                 ApiDoc::openapi(),
-                || {
-                    json!({
-                        "sortTagsAlphabetically": true,
-                        "theme": {
-                            "openapi": {
-                                "theme": {
-                                    "layout": {
-                                        "showDarkRightPanel": true,
-                                    },
-                                }
-                            }
-                        },
-                    })
-                },
+                FileConfig,
             ))
             .service(
-                SwaggerUi::new("/swagger/{_:.*}")
+                SwaggerUi::new("/doc/swagger/{_:.*}")
                     .url("/doc/openapi.json", ApiDoc::openapi())
                     .config(
                         Config::default()

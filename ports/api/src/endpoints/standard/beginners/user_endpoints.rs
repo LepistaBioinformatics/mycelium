@@ -154,7 +154,9 @@ pub struct CheckUserCredentialsBody {
 //
 // ? ---------------------------------------------------------------------------
 
-/// Check email registration status
+/// Check email status
+///
+/// Check if the email is already registered.
 ///
 #[utoipa::path(
     post,
@@ -219,8 +221,21 @@ pub async fn check_email_registration_status_url(
     }
 }
 
+/// Register user
+///
+/// This route should be used to register a new user. If the Bearer token is
+/// included in the request, the user will be registered with the provider
+/// informed in the token. Otherwise, the password is required.
+///
 #[utoipa::path(
     post,
+    params(
+        (
+            "Authorization" = Option<String>,
+            Header,
+            description = "Bearer token",
+        )
+    ),
     request_body = CreateDefaultUserBody,
     responses(
         (
@@ -296,6 +311,10 @@ pub async fn create_default_user_url(
     }
 }
 
+/// Check token and activate user
+///
+/// This route should be used to check the token and activate the user.
+///
 #[utoipa::path(
     post,
     request_body = CheckTokenBody,
@@ -358,6 +377,10 @@ pub async fn check_user_token_url(
     }
 }
 
+/// Start password redefinition
+///
+/// This route should be used to start the password redefinition process.
+///
 #[utoipa::path(
     post,
     request_body = CheckTokenBody,
@@ -421,6 +444,10 @@ pub async fn start_password_redefinition_url(
     }
 }
 
+/// Check token and reset password
+///
+/// This route should be used to check the token and reset the password.
+///
 #[utoipa::path(
     post,
     request_body = CheckTokenBody,
@@ -488,6 +515,12 @@ pub async fn check_token_and_reset_password_url(
     }
 }
 
+/// Login with email and password
+///
+/// This route should be used to login with email and password. If the user has
+/// enabled the TOTP app, the user will be redirected to the TOTP activation
+/// route.
+///
 #[utoipa::path(
     post,
     request_body = CheckUserCredentialsBody,
@@ -688,7 +721,7 @@ pub async fn totp_start_activation_url(
     }
 }
 
-/// Validation of the TOTP app
+/// Validate TOTP app
 ///
 /// This route should be used to validate the TOTP app after enabling it.
 ///

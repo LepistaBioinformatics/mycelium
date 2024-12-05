@@ -75,6 +75,7 @@ pub struct ListWebHooksParams {
 // ? Define endpoints
 // ? ---------------------------------------------------------------------------
 
+/// Create a webhook
 #[utoipa::path(
     post,
     request_body = CreateWebHookBody,
@@ -133,6 +134,7 @@ pub async fn crate_webhook_url(
     }
 }
 
+/// List webhooks
 #[utoipa::path(
     get,
     params(
@@ -184,6 +186,7 @@ pub async fn list_webhooks_url(
     }
 }
 
+/// Update a webhook
 #[utoipa::path(
     put,
     params(
@@ -233,6 +236,7 @@ pub async fn update_webhook_url(
     }
 }
 
+/// Delete a webhook
 #[utoipa::path(
     delete,
     params(

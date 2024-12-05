@@ -58,6 +58,7 @@ pub struct DeleteTenantMetaBody {
 // ? Define API paths
 // ? ---------------------------------------------------------------------------
 
+// Register a tenant metadata
 #[utoipa::path(
     post,
     params(
@@ -120,6 +121,7 @@ pub async fn create_tenant_meta_url(
     }
 }
 
+/// Update a tenant metadata
 #[utoipa::path(
     put,
     params(
@@ -178,6 +180,7 @@ pub async fn update_tenant_meta_url(
     }
 }
 
+/// Delete a tenant metadata
 #[utoipa::path(
     delete,
     params(
