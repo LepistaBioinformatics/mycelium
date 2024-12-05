@@ -79,14 +79,25 @@ other roles.
 - **Staff's**: Has the exclusive ability to upgrade and downgrade new users to
   the manager's and staff's roles.
 
-- Manager's
+- **Manager's**: Has the exclusive ability to manage tenants and their
+  resources.
 
 ### **Application Level Roles (not SU)**
 
+- TODO
+
 ### **Tenant Level Roles**
+
+- TODO
 
 ### **Account Level Roles**
 
+- TODO
+
 ### **Beginners**
 
+- TODO
+
 ### **Service**
+
+- TODO
