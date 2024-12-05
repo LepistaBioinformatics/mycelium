@@ -15,7 +15,7 @@ use myc_core::{
             GuestRoleUpdating,
         },
     },
-    use_cases::roles::standard::guest_manager::guest_role::{
+    use_cases::roles::role_scoped::guest_manager::guest_role::{
         create_guest_role, delete_guest_role, insert_role_child,
         list_guest_roles, remove_role_child,
         update_guest_role_name_and_description, update_guest_role_permission,

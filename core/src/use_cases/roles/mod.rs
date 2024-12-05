@@ -1,4 +1,3 @@
-pub mod managers;
+pub mod role_scoped;
 pub mod service;
-pub mod staff;
-pub mod standard;
+pub mod super_users;

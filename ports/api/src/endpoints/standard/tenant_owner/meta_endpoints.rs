@@ -11,7 +11,7 @@ use myc_core::{
         dtos::tenant::{TenantMeta, TenantMetaKey},
         entities::{TenantDeletion, TenantRegistration, TenantUpdating},
     },
-    use_cases::roles::standard::tenant_owner::{
+    use_cases::roles::role_scoped::tenant_owner::{
         create_tenant_meta, delete_tenant_meta, update_tenant_meta,
     },
 };
