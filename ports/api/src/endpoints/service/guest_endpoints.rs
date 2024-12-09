@@ -101,6 +101,7 @@ pub struct GuestUserBody {
             body = Account,
         ),
     ),
+    security(("ConnectionString" = [])),
 )]
 #[post("/roles/{role_id}")]
 pub async fn guest_to_default_account_url(

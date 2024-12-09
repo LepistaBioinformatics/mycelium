@@ -25,6 +25,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
             body = String,
         ),
     ),
+    security(())
 )]
 #[get("/actors")]
 pub async fn list_actors_url() -> impl Responder {

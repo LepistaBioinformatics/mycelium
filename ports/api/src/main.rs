@@ -4,6 +4,7 @@ mod dtos;
 mod endpoints;
 mod middleware;
 mod models;
+mod modifiers;
 mod modules;
 mod otel;
 mod router;
@@ -64,7 +65,7 @@ use tracing_subscriber::prelude::*;
 use tracing_subscriber::{fmt, EnvFilter};
 use utoipa::OpenApi;
 use utoipa_redoc::{FileConfig, Redoc, Servable};
-use utoipa_swagger_ui::{Config, SwaggerUi};
+use utoipa_swagger_ui::{oauth, Config, SwaggerUi};
 
 // ? ---------------------------------------------------------------------------
 // ? API fire elements
@@ -511,8 +512,8 @@ pub async fn main() -> std::io::Result<()> {
             .wrap(
                 Logger::default()
                     .exclude_regex("/health/*")
-                    .exclude_regex("/swagger/*")
-                    .exclude_regex("/redoc/*"),
+                    .exclude_regex("/doc/swagger/*")
+                    .exclude_regex("/doc/redoc/*"),
             )
             // ? ---------------------------------------------------------------
             // ? Configure Injection modules
@@ -533,10 +534,17 @@ pub async fn main() -> std::io::Result<()> {
             .service(
                 SwaggerUi::new("/doc/swagger/{_:.*}")
                     .url("/doc/openapi.json", ApiDoc::openapi())
+                    .oauth(
+                        oauth::Config::new()
+                            .client_id("client-id")
+                            .scopes(vec![String::from("openid")])
+                            .use_pkce_with_authorization_code_grant(true),
+                    )
                     .config(
                         Config::default()
                             .filter(true)
                             .show_extensions(true)
+                            .persist_authorization(true)
                             .show_common_extensions(true)
                             .request_snippets_enabled(true),
                     ),
