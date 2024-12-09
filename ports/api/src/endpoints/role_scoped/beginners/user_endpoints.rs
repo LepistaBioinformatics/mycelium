@@ -192,6 +192,7 @@ pub struct CheckUserCredentialsBody {
             body = EmailRegistrationStatus,
         ),
     ),
+    security(()),
 )]
 #[post("/status")]
 pub async fn check_email_registration_status_url(
@@ -233,7 +234,8 @@ pub async fn check_email_registration_status_url(
         (
             "Authorization" = Option<String>,
             Header,
-            description = "Bearer token",
+            description = "An optional Bearer token. When included, the user \
+            will be registered with the provider informed in the token.",
         )
     ),
     request_body = CreateDefaultUserBody,
@@ -340,6 +342,7 @@ pub async fn create_default_user_url(
             body = bool,
         ),
     ),
+    security(()),
 )]
 #[post("/validate-activation-token")]
 pub async fn check_user_token_url(
@@ -406,6 +409,7 @@ pub async fn check_user_token_url(
             body = bool,
         ),
     ),
+    security(()),
 )]
 #[post("/start-password-reset")]
 pub async fn start_password_redefinition_url(
@@ -473,6 +477,7 @@ pub async fn start_password_redefinition_url(
             body = bool,
         ),
     ),
+    security(()),
 )]
 #[post("/reset-password")]
 pub async fn check_token_and_reset_password_url(
@@ -546,6 +551,7 @@ pub async fn check_token_and_reset_password_url(
             body = LoginResponse,
         ),
     ),
+    security(()),
 )]
 #[post("/login")]
 pub async fn check_email_password_validity_url(

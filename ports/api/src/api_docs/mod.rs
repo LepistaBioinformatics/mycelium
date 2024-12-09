@@ -1,4 +1,5 @@
 use crate::endpoints::{index, manager, role_scoped, service, staff};
+use crate::modifiers::security::MyceliumSecurity;
 
 use myc_core::domain::dtos::{
     account, account_type, email, error_code, guest_role, guest_user, profile,
@@ -104,7 +105,7 @@ struct ServiceGuestApiDoc;
         title = "Service | Auxiliary Endpoints",
         description = "Endpoints reserved for the application service to view developers' auxiliary data",
     ),
-    paths(Service__Auxiliary::list_actors_url,)
+    paths(Service__Auxiliary::list_actors_url)
 )]
 struct ServiceAuxiliaryApiDoc;
 
@@ -166,7 +167,11 @@ struct BeginnersProfileApiDoc;
         Beginners__User::totp_finish_activation_url,
         Beginners__User::totp_check_token_url,
         Beginners__User::totp_disable_url,
-    )
+    ),
+    security(
+        (),
+        ("Bearer" = []),
+    ),
 )]
 struct BeginnersUserApiDoc;
 
@@ -218,7 +223,7 @@ struct GuestManagerRoleApiDoc;
     paths(
         Guest_Manager__Token::create_default_account_associated_connection_string_url,
         Guest_Manager__Token::create_role_associated_connection_string_url,
-    )
+    ),
 )]
 struct GuestManagerTokenApiDoc;
 
@@ -236,7 +241,7 @@ struct GuestManagerTokenApiDoc;
         Subscriptions_Manager__Account::list_accounts_by_type_url,
         Subscriptions_Manager__Account::get_account_details_url,
         Subscriptions_Manager__Account::propagate_existing_subscription_account_url,
-    )
+    ),
 )]
 struct SubscriptionsManagerAccountApiDoc;
 
@@ -316,7 +321,7 @@ struct SystemManagerWebhookApiDoc;
         title = "Tenant Owner | Account Endpoints",
         description = "Endpoints reserved for the application tenant owners to manage accounts",
     ),
-    paths(Tenant_Owner__Account::create_management_account_url,)
+    paths(Tenant_Owner__Account::create_management_account_url)
 )]
 struct TenantOwnerAccountApiDoc;
 
@@ -376,7 +381,7 @@ struct TenantOwnerTenantApiDoc;
         title = "Tenant Manager | Account Endpoints",
         description = "Endpoints reserved for the application tenant managers to manage accounts",
     ),
-    paths(Tenant_Manager__Account::delete_subscription_account_url,)
+    paths(Tenant_Manager__Account::delete_subscription_account_url)
 )]
 struct TenantManagerAccountApiDoc;
 
@@ -438,62 +443,63 @@ struct UsersManagerAccountApiDoc;
         title = "Mycelium API",
         description = include_str!("redoc-intro.md"),
     ),
+    modifiers(&MyceliumSecurity),
     nest(
         //
         // Super User endpoints
         //
-        (path = "/adm/su/staffs/accounts", api = StaffsAccountsApiDoc, tags = ["_ACCOUNTS", "_SU"]),
-        (path = "/adm/su/managers/tenants", api = ManagersTenantsApiDoc, tags = ["_TENANTS", "_SU"]),
+        (path = "/adm/su/staffs/accounts", api = StaffsAccountsApiDoc),
+        (path = "/adm/su/managers/tenants", api = ManagersTenantsApiDoc),
         //
         // Service endpoints
         //
-        (path = "/adm/svc/accounts", api = ServiceAccountApiDoc, tags = ["_ACCOUNTS", "_SVC"]),
-        (path = "/adm/svc/guests", api = ServiceGuestApiDoc, tags = ["_GUESTS", "_SVC"]),
-        (path = "/adm/svc/auxiliary", api = ServiceAuxiliaryApiDoc, tags = ["_AUXILIARY", "_SVC"]),
+        (path = "/adm/svc/accounts", api = ServiceAccountApiDoc),
+        (path = "/adm/svc/guests", api = ServiceGuestApiDoc),
+        (path = "/adm/svc/auxiliary", api = ServiceAuxiliaryApiDoc),
         //
         // Beginner endpoints
         //
-        (path = "/adm/rs/begin/accounts", api = BeginnersAccountApiDoc, tags = ["_ACCOUNTS", "_RS", "_BEGINNER"]),
-        (path = "/adm/rs/begin/profile", api = BeginnersProfileApiDoc, tags = ["_PROFILE", "_RS", "_BEGINNER"]),
-        (path = "/adm/rs/begin/users", api = BeginnersUserApiDoc, tags = ["_USERS", "_RS", "_BEGINNER"]),
+        (path = "/adm/rs/beginners/accounts", api = BeginnersAccountApiDoc),
+        (path = "/adm/rs/beginners/profile", api = BeginnersProfileApiDoc),
+        (path = "/adm/rs/beginners/users", api = BeginnersUserApiDoc),
         //
         // Account Manager endpoints
         //
-        (path = "/adm/rs/accounts-manager/guests", api = AccountManagerGuestApiDoc, tags = ["_GUESTS", "_RS", "_ACCOUNTS-MANAGER"]),
+        (path = "/adm/rs/accounts-manager/guests", api = AccountManagerGuestApiDoc),
         //
         // Guest Manager Endpoints
         //
-        (path = "/adm/rs/guests-manager/guest-roles", api = GuestManagerGuestRoleApiDoc, tags = ["_GUEST-ROLES", "_RS", "_GUESTS-MANAGER"]),
-        (path = "/adm/rs/guests-manager/roles", api = GuestManagerRoleApiDoc, tags = ["_ROLES", "_RS", "_GUESTS-MANAGER"]),
-        (path = "/adm/rs/guests-manager/tokens", api = GuestManagerTokenApiDoc, tags = ["_TOKENS", "_RS", "_GUESTS-MANAGER"]),
+        (path = "/adm/rs/guests-manager/guest-roles", api = GuestManagerGuestRoleApiDoc),
+        (path = "/adm/rs/guests-manager/roles", api = GuestManagerRoleApiDoc),
+        (path = "/adm/rs/guests-manager/tokens", api = GuestManagerTokenApiDoc),
         //
         // Subscriptions Manager Endpoints
         //
-        (path = "/adm/rs/subscriptions-manager/accounts", api = SubscriptionsManagerAccountApiDoc, tags = ["_ACCOUNTS", "_RS", "_SUBSCRIPTIONS-MANAGER"]),
-        (path = "/adm/rs/subscriptions-manager/tags", api = SubscriptionsManagerTagApiDoc, tags = ["_TAGS", "_RS", "_SUBSCRIPTIONS-MANAGER"]),
-        (path = "/adm/rs/subscriptions-manager/guests", api = SubscriptionsManagerGuestApiDoc, tags = ["_GUESTS", "_RS", "_SUBSCRIPTIONS-MANAGER"]),
+        (path = "/adm/rs/subscriptions-manager/accounts", api = SubscriptionsManagerAccountApiDoc),
+        (path = "/adm/rs/subscriptions-manager/tags", api = SubscriptionsManagerTagApiDoc),
+        (path = "/adm/rs/subscriptions-manager/guests", api = SubscriptionsManagerGuestApiDoc),
         //
         // System Manager Endpoints
         //
-        (path = "/adm/rs/system-manager/error-codes", api = SystemManagerErrorCodeApiDoc, tags = ["_ERROR-CODE", "_RS", "_SYSTEM-MANAGER"]),
-        (path = "/adm/rs/system-manager/webhooks", api = SystemManagerWebhookApiDoc, tags = ["_WEBHOOKS", "_RS", "_SYSTEM-MANAGER"]),
+        (path = "/adm/rs/system-manager/error-codes", api = SystemManagerErrorCodeApiDoc),
+        (path = "/adm/rs/system-manager/webhooks", api = SystemManagerWebhookApiDoc),
         //
         // Tenant Owner Endpoints
         //
-        (path = "/adm/rs/tenant-owner/accounts", api = TenantOwnerAccountApiDoc, tags = ["_ACCOUNTS", "_RS", "_TENANT-OWNER"]),
-        (path = "/adm/rs/tenant-owner/meta", api = TenantOwnerMetaApiDoc, tags = ["_META", "_RS", "_TENANT-OWNER"]),
-        (path = "/adm/rs/tenant-owner/owners", api = TenantOwnerOwnerApiDoc, tags = ["_OWNERS", "_RS", "_TENANT-OWNER"]),
-        (path = "/adm/rs/tenant-owner/tenants", api = TenantOwnerTenantApiDoc, tags = ["_TENANTS", "_RS", "_TENANT-OWNER"]),
+        (path = "/adm/rs/tenant-owner/accounts", api = TenantOwnerAccountApiDoc),
+        (path = "/adm/rs/tenant-owner/meta", api = TenantOwnerMetaApiDoc),
+        (path = "/adm/rs/tenant-owner/owners", api = TenantOwnerOwnerApiDoc),
+        (path = "/adm/rs/tenant-owner/tenants", api = TenantOwnerTenantApiDoc),
         //
         // Tenant Manager Endpoints
         //
-        (path = "/adm/rs/tenant-manager/accounts", api = TenantManagerAccountApiDoc, tags = ["_ACCOUNTS", "_RS", "_TENANT-MANAGER"]),
-        (path = "/adm/rs/tenant-manager/tags", api = TenantManagerTagApiDoc, tags = ["_TAGS", "_RS", "_TENANT-MANAGER"]),
-        (path = "/adm/rs/tenant-manager/tokens", api = TenantManagerTokenApiDoc, tags = ["_TOKENS", "_RS", "_TENANT-MANAGER"]),
+        (path = "/adm/rs/tenant-manager/accounts", api = TenantManagerAccountApiDoc),
+        (path = "/adm/rs/tenant-manager/tags", api = TenantManagerTagApiDoc),
+        (path = "/adm/rs/tenant-manager/tokens", api = TenantManagerTokenApiDoc),
         //
         // Users Manager Endpoints
         //
-        (path = "/adm/rs/users-manager/accounts", api = UsersManagerAccountApiDoc, tags = ["_ACCOUNTS", "_RS", "_USERS-MANAGER"]),
+        (path = "/adm/rs/users-manager/accounts", api = UsersManagerAccountApiDoc),
     ),
     paths(
         //

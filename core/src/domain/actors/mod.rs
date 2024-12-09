@@ -62,7 +62,7 @@ impl Display for ActorName {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
             ActorName::CustomRole(role) => write!(f, "custom-role:{}", role),
-            ActorName::Beginner => write!(f, "begin"),
+            ActorName::Beginner => write!(f, "beginners"),
             ActorName::SubscriptionsManager => {
                 write!(f, "subscriptions-manager")
             }

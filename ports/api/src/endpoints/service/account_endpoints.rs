@@ -81,6 +81,7 @@ pub struct CreateSubscriptionAccountBody {
             body = Account,
         ),
     ),
+    security(("ConnectionString" = [])),
 )]
 #[post("/")]
 pub async fn create_subscription_account_url(
