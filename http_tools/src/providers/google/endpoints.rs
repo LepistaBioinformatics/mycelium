@@ -15,11 +15,21 @@ use myc_config::optional_config::OptionalConfig;
 use reqwest::header::LOCATION;
 
 pub fn configure(conf: &mut web::ServiceConfig) {
-    conf.service(google_oauth_handler);
+    conf.service(callback_url);
 }
 
+#[utoipa::path(
+    get,
+    responses(
+        (
+            status = 200,
+            description = "Redirect user to auth url",
+        )
+    ),
+    security(())
+)]
 #[get("/callback")]
-async fn google_oauth_handler(
+pub async fn callback_url(
     query: web::Query<QueryCode>,
     data: web::Data<AuthConfig>,
 ) -> impl Responder {

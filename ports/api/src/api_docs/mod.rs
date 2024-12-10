@@ -5,6 +5,7 @@ use myc_core::domain::dtos::{
     account, account_type, email, error_code, guest_role, guest_user, profile,
     role, tag, tenant, user, webhook,
 };
+use myc_http_tools::providers::{azure_endpoints, google_endpoints};
 use myc_http_tools::{utils::HttpJsonResponse, ActorName};
 use mycelium_base::dtos::{Children, Parent};
 use utoipa::OpenApi;
@@ -13,6 +14,8 @@ use utoipa::OpenApi;
 // ? DEFINE ENDPOINT GROUPS
 // ? ---------------------------------------------------------------------------
 
+use azure_endpoints as Auth__Azure;
+use google_endpoints as Auth__Google;
 use index::heath_check_endpoints as Index__Heath_Check;
 use manager::tenant_endpoints as Managers__Tenants;
 use role_scoped::account_manager::guest_endpoints as Account_Manager__Guest;
@@ -39,6 +42,30 @@ use service::account_endpoints as Service__Account;
 use service::auxiliary_endpoints as Service__Auxiliary;
 use service::guest_endpoints as Service__Guest;
 use staff::account_endpoints as Staffs__Accounts;
+
+/// Azure Auth Endpoints
+///
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Auth | Azure Endpoints",
+        description = "Endpoints reserved for the application authentication using Azure",
+    ),
+    paths(Auth__Azure::login_url, Auth__Azure::callback_url)
+)]
+struct AuthAzureApiDoc;
+
+/// Google Auth Endpoints
+///
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Auth | Google Endpoints",
+        description = "Endpoints reserved for the application authentication using Google",
+    ),
+    paths(Auth__Google::callback_url)
+)]
+struct AuthGoogleApiDoc;
 
 /// Manager Endpoints for Tenant Management
 ///
@@ -445,6 +472,11 @@ struct UsersManagerAccountApiDoc;
     ),
     modifiers(&MyceliumSecurity),
     nest(
+        //
+        // Auth Path
+        //
+        (path = "/adm/auth/azure", api = AuthAzureApiDoc),
+        (path = "/adm/auth/google", api = AuthGoogleApiDoc),
         //
         // Super User endpoints
         //

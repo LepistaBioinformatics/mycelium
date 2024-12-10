@@ -18,15 +18,46 @@ use oauth2::{
     PkceCodeChallenge, PkceCodeVerifier, Scope, TokenResponse,
 };
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use serde::Serialize;
 use serde_json::json;
 use tracing::error;
+use utoipa::{ToResponse, ToSchema};
 
 pub fn configure(conf: &mut web::ServiceConfig) {
-    conf.service(login).service(callback);
+    conf.service(login_url).service(callback_url);
 }
 
+#[derive(Serialize, ToResponse, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct LoginResponse {
+    authorize_url: String,
+}
+
+#[derive(Serialize, ToResponse, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct CallbackResponse {
+    access_token: String,
+    token_type: String,
+}
+
+#[utoipa::path(
+    get,
+    responses(
+        (
+            status = 500,
+            description = "Azure OAuth is disabled.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 200,
+            description = "Returns the Azure OAuth authorize URL.",
+            body = LoginResponse,
+        )
+    ),
+    security(())
+)]
 #[get("/login")]
-pub async fn login(config: web::Data<AuthConfig>) -> HttpResponse {
+pub async fn login_url(config: web::Data<AuthConfig>) -> HttpResponse {
     let config = if let OptionalConfig::Enabled(config) =
         config.get_ref().azure.to_owned()
     {
@@ -73,8 +104,9 @@ pub async fn login(config: web::Data<AuthConfig>) -> HttpResponse {
     ) {
         Ok(token) => token,
         Err(_) => {
-            return HttpResponse::InternalServerError()
-                .body("Error on CSRF token generation");
+            return HttpResponse::InternalServerError().json(
+                HttpJsonResponse::new_message("Error on CSRF token generation"),
+            );
         }
     };
 
@@ -91,8 +123,44 @@ pub async fn login(config: web::Data<AuthConfig>) -> HttpResponse {
     }))
 }
 
+#[utoipa::path(
+    get,
+    responses(
+        (
+            status = 500,
+            description = "Azure OAuth is disabled.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 400,
+            description = "Code not found.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Invalid CSRF Token.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "CSRF Token expired.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 500,
+            description = "Error on token exchange.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 200,
+            description = "Returns the Azure OAuth authorize URL.",
+            body = CallbackResponse,
+        )
+    ),
+    security(())
+)]
 #[get("/callback")]
-pub async fn callback(
+pub async fn callback_url(
     query: web::Query<QueryCode>,
     config: web::Data<AuthConfig>,
 ) -> HttpResponse {
