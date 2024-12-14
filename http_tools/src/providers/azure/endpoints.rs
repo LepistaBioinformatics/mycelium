@@ -18,18 +18,18 @@ use oauth2::{
     PkceCodeChallenge, PkceCodeVerifier, Scope, TokenResponse,
 };
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tracing::error;
-use utoipa::{ToResponse, ToSchema};
+use utoipa::{IntoParams, ToResponse, ToSchema};
 
 pub fn configure(conf: &mut web::ServiceConfig) {
-    conf.service(login_url).service(callback_url);
+    conf.service(login_url).service(token_url);
 }
 
 #[derive(Serialize, ToResponse, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct LoginResponse {
+pub struct AzureLoginResponse {
     authorize_url: String,
 }
 
@@ -40,8 +40,19 @@ pub struct CallbackResponse {
     token_type: String,
 }
 
+#[derive(Deserialize, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct LoginParams {
+    json_return: Option<bool>,
+}
+
+/// Generate the Azure OAuth authorize URL
+///
+/// Users should access this URL to start the OAuth2 flow.
+///
 #[utoipa::path(
     get,
+    params(LoginParams),
     responses(
         (
             status = 500,
@@ -51,15 +62,18 @@ pub struct CallbackResponse {
         (
             status = 200,
             description = "Returns the Azure OAuth authorize URL.",
-            body = LoginResponse,
+            body = AzureLoginResponse,
         )
     ),
     security(())
 )]
 #[get("/login")]
-pub async fn login_url(config: web::Data<AuthConfig>) -> HttpResponse {
+pub async fn login_url(
+    auth_config: web::Data<AuthConfig>,
+    params: web::Query<LoginParams>,
+) -> HttpResponse {
     let config = if let OptionalConfig::Enabled(config) =
-        config.get_ref().azure.to_owned()
+        auth_config.get_ref().azure.to_owned()
     {
         config
     } else {
@@ -118,11 +132,26 @@ pub async fn login_url(config: web::Data<AuthConfig>) -> HttpResponse {
         .set_pkce_challenge(challenge)
         .url();
 
-    HttpResponse::Ok().json(json!({
-        "authorize_url": authorize_url.to_string()
-    }))
+    // Return the authorize URL
+    //
+    // If the `json_return` parameter is set, return the URL as JSON, otherwise
+    // redirect the user to the URL.
+    //
+    if let Some(true) = params.json_return {
+        return HttpResponse::Ok().json(AzureLoginResponse {
+            authorize_url: authorize_url.to_string(),
+        });
+    } else {
+        HttpResponse::TemporaryRedirect()
+            .append_header(("Location", authorize_url.to_string()))
+            .finish()
+    }
 }
 
+/// Callback URL for Azure OAuth
+///
+/// This endpoint is called by Azure after the user authorizes the application.
+///
 #[utoipa::path(
     get,
     responses(
@@ -159,10 +188,10 @@ pub async fn login_url(config: web::Data<AuthConfig>) -> HttpResponse {
     ),
     security(())
 )]
-#[get("/callback")]
-pub async fn callback_url(
+#[get("/token")]
+pub async fn token_url(
     query: web::Query<QueryCode>,
-    config: web::Data<AuthConfig>,
+    auth_config: web::Data<AuthConfig>,
 ) -> HttpResponse {
     if let Some(err) = query.error.to_owned() {
         let error_description =
@@ -187,7 +216,7 @@ pub async fn callback_url(
     };
 
     let config = if let OptionalConfig::Enabled(config) =
-        config.get_ref().azure.to_owned()
+        auth_config.get_ref().azure.to_owned()
     {
         config
     } else {
@@ -198,6 +227,8 @@ pub async fn callback_url(
     let client = match oauth_client(config.to_owned()) {
         Ok(client) => client,
         Err(err) => {
+            error!("Error on OAuth client: {err}");
+
             return HttpResponse::InternalServerError()
                 .json(HttpJsonResponse::new_message(err.msg()));
         }
@@ -206,6 +237,8 @@ pub async fn callback_url(
     let jwt_secret = match config.jwt_secret.get_or_error() {
         Ok(secret) => secret,
         Err(err) => {
+            error!("Error on JWT secret: {err}");
+
             return HttpResponse::InternalServerError()
                 .json(HttpJsonResponse::new_message(err));
         }

@@ -11,5 +11,5 @@ pub struct AzureOauthConfig {
     pub client_id: String,
     pub client_secret: EnvOrValue<String>,
     pub redirect_url: String,
-    pub callback_path: Option<String>,
+    pub callback_path: String,
 }

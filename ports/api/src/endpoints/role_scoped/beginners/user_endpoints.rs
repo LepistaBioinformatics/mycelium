@@ -82,7 +82,7 @@ where
 
 #[derive(Serialize, ToResponse, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct LoginResponse {
+pub struct MyceliumLoginResponse {
     token: String,
     #[serde(serialize_with = "serialize_duration")]
     duration: Duration,
@@ -548,7 +548,7 @@ pub async fn check_token_and_reset_password_url(
         (
             status = 200,
             description = "Credentials are valid.",
-            body = LoginResponse,
+            body = MyceliumLoginResponse,
         ),
     ),
     security(()),
@@ -599,12 +599,14 @@ pub async fn check_email_password_validity_url(
                     ) {
                         Err(err) => return err,
                         Ok((token, duration)) => {
-                            return HttpResponse::Ok().json(LoginResponse {
-                                token,
-                                duration,
-                                totp_required: false,
-                                user: _user,
-                            })
+                            return HttpResponse::Ok().json(
+                                MyceliumLoginResponse {
+                                    token,
+                                    duration,
+                                    totp_required: false,
+                                    user: _user,
+                                },
+                            )
                         }
                     },
                     //
@@ -637,12 +639,14 @@ pub async fn check_email_password_validity_url(
                         ) {
                             Err(err) => return err,
                             Ok((token, duration)) => {
-                                return HttpResponse::Ok().json(LoginResponse {
-                                    token,
-                                    duration,
-                                    totp_required: true,
-                                    user: _user,
-                                })
+                                return HttpResponse::Ok().json(
+                                    MyceliumLoginResponse {
+                                        token,
+                                        duration,
+                                        totp_required: true,
+                                        user: _user,
+                                    },
+                                )
                             }
                         }
                     }
@@ -753,7 +757,7 @@ pub async fn totp_start_activation_url(
         (
             status = 200,
             description = "Credentials are valid.",
-            body = LoginResponse,
+            body = MyceliumLoginResponse,
         ),
     ),
 )]
@@ -830,7 +834,7 @@ pub async fn totp_finish_activation_url(
         (
             status = 200,
             description = "Credentials are valid.",
-            body = LoginResponse,
+            body = MyceliumLoginResponse,
         ),
     ),
 )]
@@ -879,7 +883,7 @@ pub async fn totp_check_token_url(
             ) {
                 Err(err) => return err,
                 Ok((token, duration)) => {
-                    return HttpResponse::Ok().json(LoginResponse {
+                    return HttpResponse::Ok().json(MyceliumLoginResponse {
                         token,
                         duration,
                         totp_required: false,
@@ -918,7 +922,7 @@ pub async fn totp_check_token_url(
         (
             status = 200,
             description = "Credentials are valid.",
-            body = LoginResponse,
+            body = MyceliumLoginResponse,
         ),
     ),
 )]
