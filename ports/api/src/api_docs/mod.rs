@@ -51,7 +51,7 @@ use staff::account_endpoints as Staffs__Accounts;
         title = "Auth | Azure Endpoints",
         description = "Endpoints reserved for the application authentication using Azure",
     ),
-    paths(Auth__Azure::login_url, Auth__Azure::callback_url)
+    paths(Auth__Azure::login_url, Auth__Azure::token_url)
 )]
 struct AuthAzureApiDoc;
 
@@ -653,11 +653,17 @@ struct UsersManagerAccountApiDoc;
             // APPLICATION SCHEMAS
             //
             HttpJsonResponse,
+            
+            //
+            // IDENTITY PROVIDERS
+            //
+            azure_endpoints::AzureLoginResponse,
+            azure_endpoints::CallbackResponse,
 
             //
             // BEGINNERS
             //
-            role_scoped::beginners::user_endpoints::LoginResponse,
+            role_scoped::beginners::user_endpoints::MyceliumLoginResponse,
             role_scoped::beginners::user_endpoints::TotpActivationStartedResponse,
             role_scoped::beginners::user_endpoints::TotpActivationFinishedResponse,
 

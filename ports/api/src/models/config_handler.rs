@@ -1,5 +1,4 @@
-use crate::models::api_config::ApiConfig;
-
+use super::api_config::ApiConfig;
 use myc_config::optional_config::OptionalConfig;
 use myc_core::models::CoreConfig;
 use myc_http_tools::models::auth_config::AuthConfig;
