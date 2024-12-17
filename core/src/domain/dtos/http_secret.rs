@@ -12,7 +12,7 @@ use utoipa::ToSchema;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
-pub enum WebHookSecret {
+pub enum HttpSecret {
     /// Authentication header
     ///
     /// The secret is passed as an authentication header.
@@ -25,7 +25,7 @@ pub enum WebHookSecret {
         /// the header will be `Authorization Bear: <token value>`. The default
         /// value is `Authorization`.
         ///
-        #[serde(default = "default_authorization_value")]
+        #[serde(default = "default_authorization_key")]
         name: Option<String>,
 
         /// The header prefix
@@ -62,11 +62,11 @@ pub enum WebHookSecret {
     },
 }
 
-fn default_authorization_value() -> Option<String> {
+fn default_authorization_key() -> Option<String> {
     Some("Authorization".to_string())
 }
 
-impl WebHookSecret {
+impl HttpSecret {
     #[tracing::instrument(name = "encrypt_secret", skip_all)]
     pub(crate) fn encrypt_me(
         &self,

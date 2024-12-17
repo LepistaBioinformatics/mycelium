@@ -12,12 +12,25 @@ use uuid::Uuid;
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Route {
-    pub service: ClientService,
+    /// The route id
     pub id: Option<Uuid>,
+
+    /// The route service
+    pub service: ClientService,
+
+    /// The route name
     pub group: RouteType,
+
+    /// The route description
     pub methods: Vec<HttpMethod>,
+
+    /// The route url
     pub downstream_url: String,
+
+    /// The route protocol
     pub protocol: Protocol,
+
+    /// The route is active
     pub allowed_sources: Option<Vec<String>>,
 }
 

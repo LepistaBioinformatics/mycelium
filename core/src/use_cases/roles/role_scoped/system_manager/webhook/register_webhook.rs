@@ -2,7 +2,8 @@ use crate::{domain::{
     actors::ActorName,
     dtos::{
         profile::Profile,
-        webhook::{WebHook, WebHookSecret, WebHookTrigger},
+        http_secret::HttpSecret,
+        webhook::{WebHook, WebHookTrigger},
     },
     entities::WebHookRegistration,
 }, models::AccountLifeCycle};
@@ -22,7 +23,7 @@ pub async fn register_webhook(
     description: Option<String>,
     url: String,
     trigger: WebHookTrigger,
-    secret: Option<WebHookSecret>,
+    secret: Option<HttpSecret>,
     config: AccountLifeCycle,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
 ) -> Result<CreateResponseKind<WebHook>, MappedErrors> {

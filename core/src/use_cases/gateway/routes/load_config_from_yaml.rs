@@ -98,11 +98,11 @@ pub async fn load_config_from_yaml(
                     .routes
                     .into_iter()
                     .map(|r| Route {
-                        service: service.to_owned(),
                         id: match r.id {
                             None => Some(Uuid::new_v4()),
                             Some(id) => Some(id),
                         },
+                        service: service.to_owned(),
                         group: r.group,
                         methods: r.methods,
                         downstream_url: r.downstream_url,

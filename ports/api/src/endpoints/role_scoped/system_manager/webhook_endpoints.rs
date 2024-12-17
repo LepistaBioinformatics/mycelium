@@ -9,7 +9,10 @@ use crate::{
 use actix_web::{delete, get, post, put, web, Responder};
 use myc_core::{
     domain::{
-        dtos::webhook::{WebHook, WebHookSecret, WebHookTrigger},
+        dtos::{
+            http_secret::HttpSecret,
+            webhook::{WebHook, WebHookTrigger},
+        },
         entities::{
             WebHookDeletion, WebHookFetching, WebHookRegistration,
             WebHookUpdating,
@@ -55,7 +58,7 @@ pub struct CreateWebHookBody {
     description: Option<String>,
     url: String,
     trigger: WebHookTrigger,
-    secret: Option<WebHookSecret>,
+    secret: Option<HttpSecret>,
 }
 
 #[derive(Deserialize, ToSchema)]
