@@ -1,11 +1,10 @@
 mod responses;
-mod secret;
 mod trigger;
 
 pub use responses::*;
-pub use secret::*;
 pub use trigger::*;
 
+use super::http_secret::HttpSecret;
 use crate::models::AccountLifeCycle;
 
 use chrono::{DateTime, Local};
@@ -17,17 +16,36 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct WebHook {
+    /// The webhook id
     pub id: Option<Uuid>,
 
+    /// The webhook name
     pub name: String,
+
+    /// The webhook description
     pub description: Option<String>,
+
+    /// The webhook url
     pub url: String,
+
+    /// The webhook trigger
     pub trigger: WebHookTrigger,
+
+    /// The webhook is active
     pub is_active: bool,
+
+    /// The webhook created date
     pub created: DateTime<Local>,
+
+    /// The webhook updated date
     pub updated: Option<DateTime<Local>>,
 
-    secret: Option<WebHookSecret>,
+    /// The webhook secret
+    ///
+    /// Its important to note that the secret should be encrypted in the
+    /// database and redacted on the response.
+    ///
+    secret: Option<HttpSecret>,
 }
 
 impl WebHook {
@@ -36,7 +54,7 @@ impl WebHook {
         description: Option<String>,
         url: String,
         trigger: WebHookTrigger,
-        secret: Option<WebHookSecret>,
+        secret: Option<HttpSecret>,
     ) -> Self {
         Self {
             id: None,
@@ -56,7 +74,7 @@ impl WebHook {
         description: Option<String>,
         url: String,
         trigger: WebHookTrigger,
-        secret: Option<WebHookSecret>,
+        secret: Option<HttpSecret>,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
         let encrypted_secret = match secret {
@@ -83,7 +101,7 @@ impl WebHook {
         }
     }
 
-    pub fn get_secret(&self) -> Option<WebHookSecret> {
+    pub fn get_secret(&self) -> Option<HttpSecret> {
         self.secret.clone()
     }
 }

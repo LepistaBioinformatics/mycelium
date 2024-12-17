@@ -1,7 +1,9 @@
 use crate::domain::{
-    dtos::webhook::{
-        HookResponse, WebHook, WebHookPropagationResponse, WebHookSecret,
-        WebHookTrigger,
+    dtos::{
+        http_secret::HttpSecret,
+        webhook::{
+            HookResponse, WebHook, WebHookPropagationResponse, WebHookTrigger,
+        },
     },
     entities::WebHookFetching,
 };
@@ -103,7 +105,7 @@ pub(crate) async fn dispatch_webhooks<
             //
             (match &hook.get_secret() {
                 Some(secret) => match secret {
-                    WebHookSecret::AuthorizationHeader {
+                    HttpSecret::AuthorizationHeader {
                         name,
                         prefix,
                         token,
@@ -120,10 +122,8 @@ pub(crate) async fn dispatch_webhooks<
 
                         base_request.header(credential_key, credential_value)
                     }
-                    WebHookSecret::QueryParameter { name, token } => {
-                        base_request
-                            .query(&[(name.to_owned(), token.to_owned())])
-                    }
+                    HttpSecret::QueryParameter { name, token } => base_request
+                        .query(&[(name.to_owned(), token.to_owned())]),
                 },
                 None => base_request,
             })

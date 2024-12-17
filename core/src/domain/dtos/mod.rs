@@ -6,6 +6,7 @@ pub mod guest_role;
 pub mod guest_user;
 pub mod health_check;
 pub mod http;
+pub mod http_secret;
 pub mod message;
 pub mod native_error_codes;
 pub mod profile;
