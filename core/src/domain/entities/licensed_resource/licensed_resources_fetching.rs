@@ -17,5 +17,6 @@ pub trait LicensedResourcesFetching: Interface + Send + Sync {
         roles: Option<Vec<String>>,
         permissioned_roles: Option<PermissionedRoles>,
         related_accounts: Option<RelatedAccounts>,
+        was_verified: Option<bool>,
     ) -> Result<FetchManyResponseKind<LicensedResource>, MappedErrors>;
 }

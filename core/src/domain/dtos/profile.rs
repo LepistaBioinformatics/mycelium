@@ -67,6 +67,13 @@ pub struct LicensedResource {
     /// This is the list of permissions that the guest role has.
     #[serde(alias = "permission")]
     pub perm: Permission,
+
+    /// If the guest account was verified
+    ///
+    /// If the user accepted the invitation to join the account, the account
+    /// should be verified.
+    ///
+    pub was_verified: bool,
 }
 
 impl LicensedResource {
@@ -111,13 +118,14 @@ impl ToString for LicensedResource {
             general_purpose::STANDARD.encode(self.acc_name.as_bytes());
 
         format!(
-            "tid/{tenant_id}/aid/{acc_id}/gid/{guest_role_id}?pr={role}:{perm}&std={is_acc_std}&name={acc_name}",
+            "tid/{tenant_id}/aid/{acc_id}/gid/{guest_role_id}?pr={role}:{perm}&std={is_acc_std}&v={was_verified}&name={acc_name}",
             tenant_id = self.tenant_id.to_string().replace("-", ""),
             acc_id = self.acc_id.to_string().replace("-", ""),
             guest_role_id = self.guest_role_id.to_string().replace("-", ""),
             role = self.role,
             perm = self.perm.to_owned().to_i32(),
             is_acc_std = self.is_acc_std as i8,
+            was_verified = self.was_verified as i8,
             acc_name = encoded_account_name,
         )
     }
@@ -200,6 +208,25 @@ impl FromStr for LicensedResource {
             }
         };
 
+        let was_verified = match url
+            .query_pairs()
+            .find(|(key, _)| key == "v")
+            .map(|(_, value)| value)
+            .ok_or("Parameter v not found")?
+            .parse::<i8>()
+        {
+            Ok(was_verified) => match was_verified {
+                0 => false,
+                1 => true,
+                _ => {
+                    return Err("Invalid account verification".to_string());
+                }
+            },
+            Err(_) => {
+                return Err("Failed to parse account verification".to_string());
+            }
+        };
+
         let name_encoded = url
             .query_pairs()
             .find(|(key, _)| key == "name")
@@ -223,6 +250,7 @@ impl FromStr for LicensedResource {
             acc_name: String::from_utf8(name_decoded).unwrap(),
             guest_role_id: guest_role_id.to_string().parse::<Uuid>().unwrap(),
             guest_role_name: "guest_role_name".to_string(),
+            was_verified,
         })
     }
 }
@@ -234,6 +262,18 @@ impl FromStr for LicensedResource {
 pub enum LicensedResources {
     Records(Vec<LicensedResource>),
     Urls(Vec<String>),
+}
+
+impl LicensedResources {
+    pub fn to_licenses_vector(&self) -> Vec<LicensedResource> {
+        match self {
+            Self::Records(records) => records.to_owned(),
+            Self::Urls(urls) => urls
+                .iter()
+                .map(|i| LicensedResource::from_str(i).unwrap())
+                .collect(),
+        }
+    }
 }
 
 #[derive(
@@ -715,13 +755,7 @@ impl Profile {
     ) -> Vec<Uuid> {
         let inner_licensed_resources =
             if let Some(resources) = &self.licensed_resources {
-                match resources {
-                    LicensedResources::Records(records) => records,
-                    LicensedResources::Urls(urls) => &urls
-                        .iter()
-                        .map(|i| LicensedResource::from_str(i).unwrap())
-                        .collect::<Vec<LicensedResource>>(),
-                }
+                resources.to_licenses_vector()
             } else {
                 return vec![self.acc_id];
             };
@@ -742,7 +776,17 @@ impl Profile {
         licensed_resources
             .into_iter()
             .filter_map(|i| {
+                //
+                // Check if the desired permission is the same as the license
+                //
                 match i.perm == permission
+                    //
+                    // Check if the license was already verified
+                    //
+                    && i.was_verified == true
+                    //
+                    // Check if the license contains the desired role
+                    //
                     && roles
                         .iter()
                         .map(|i| i.to_string())
@@ -872,6 +916,7 @@ mod tests {
                     guest_role_name: "guest_role_name".to_string(),
                     role: "service".to_string(),
                     perm: Permission::Write,
+                    was_verified: true,
                 },
             ])),
         };
@@ -924,6 +969,7 @@ mod tests {
                     guest_role_name: "guest_role_name".to_string(),
                     role: "service".to_string(),
                     perm: Permission::Write,
+                    was_verified: true,
                 },
             ])),
         };
@@ -982,6 +1028,7 @@ mod tests {
             guest_role_name: "guest_role_name".to_string(),
             role: "service".to_string(),
             perm: Permission::Write,
+            was_verified: true,
         };
 
         let licensed_resource_string = licensed_resource.to_string();

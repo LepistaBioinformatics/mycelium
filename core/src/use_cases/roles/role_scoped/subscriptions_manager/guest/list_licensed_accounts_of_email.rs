@@ -26,6 +26,7 @@ pub async fn list_licensed_accounts_of_email(
     tenant_id: Uuid,
     email: Email,
     roles: Option<Vec<String>>,
+    was_verified: Option<bool>,
     permissioned_roles: Option<PermissionedRoles>,
     licensed_resources_fetching_repo: Box<&dyn LicensedResourcesFetching>,
 ) -> Result<FetchManyResponseKind<LicensedResource>, MappedErrors> {
@@ -46,6 +47,12 @@ pub async fn list_licensed_accounts_of_email(
     // ? -----------------------------------------------------------------------
 
     licensed_resources_fetching_repo
-        .list(email, roles, permissioned_roles, Some(related_accounts))
+        .list(
+            email,
+            roles,
+            permissioned_roles,
+            Some(related_accounts),
+            was_verified,
+        )
         .await
 }

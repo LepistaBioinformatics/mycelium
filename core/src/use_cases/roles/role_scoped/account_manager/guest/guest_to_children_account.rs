@@ -15,7 +15,6 @@ use crate::{
     use_cases::support::send_email_notification,
 };
 
-use chrono::Local;
 use futures::future;
 use mycelium_base::{
     dtos::{Children, Parent},
@@ -166,14 +165,11 @@ pub async fn guest_to_children_account(
 
     let guest_user = match guest_user_registration_repo
         .get_or_create(
-            GuestUser {
-                id: None,
-                email: email.to_owned(),
-                guest_role: Parent::Id(target_role_id),
-                created: Local::now(),
-                updated: None,
-                accounts: None,
-            },
+            GuestUser::new_unverified(
+                email.to_owned(),
+                Parent::Id(target_role_id),
+                None,
+            ),
             target_account_id,
         )
         .await

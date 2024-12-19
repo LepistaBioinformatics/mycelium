@@ -372,6 +372,10 @@ pub async fn main() -> std::io::Result<()> {
                         // Inject a header to be collected by the
                         // MyceliumProfileData extractor.
                         //
+                        // An empty role header was injected to allow only the
+                        // super users with Staff status to access the staff
+                        // endpoints.
+                        //
                         .wrap_fn(|req, srv| {
                             let req = insert_role_header(req, vec![]);
 
@@ -396,6 +400,10 @@ pub async fn main() -> std::io::Result<()> {
                         //
                         // Inject a header to be collected by the
                         // MyceliumProfileData extractor.
+                        //
+                        // An empty role header was injected to allow only the
+                        // super users with Managers status to access the
+                        // managers endpoints.
                         //
                         .wrap_fn(|req, srv| {
                             let req = insert_role_header(req, vec![]);

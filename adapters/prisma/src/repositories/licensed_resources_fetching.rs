@@ -33,6 +33,7 @@ struct LicensedResourceRow {
     gr_name: String,
     gr_perm: i32,
     rl_name: String,
+    gu_verified: bool,
 }
 
 #[async_trait]
@@ -43,6 +44,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         roles: Option<Vec<String>>,
         permissioned_roles: Option<PermissionedRoles>,
         related_accounts: Option<RelatedAccounts>,
+        was_verified: Option<bool>,
     ) -> Result<FetchManyResponseKind<LicensedResource>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Build and execute the database query
@@ -67,9 +69,12 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         }
 
         let mut query =
-            vec!["SELECT * FROM licensed_resources WHERE gu_email = {}"];
+            vec!["SELECT * FROM licensed_resources WHERE gu_email = {} AND gu_verified = {}"];
 
-        let mut params = vec![PrismaValue::String(email.get_email())];
+        let mut params = vec![
+            PrismaValue::String(email.get_email()),
+            PrismaValue::Boolean(was_verified.unwrap_or(true)),
+        ];
 
         if let Some(related_accounts) = related_accounts {
             if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
@@ -148,6 +153,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 guest_role_name: record.gr_name,
                 role: record.rl_name,
                 perm: Permission::from_i32(record.gr_perm),
+                was_verified: record.gu_verified,
             })
             .collect::<Vec<LicensedResource>>();
 
