@@ -9,6 +9,7 @@ SELECT DISTINCT
 	gr.permission AS gr_perm,
 	rl.name AS rl_name,
     gu.email AS gu_email,
+	gu.was_verified AS gu_verified,
 	ac.tenant_id AS tenant_id
 FROM
 	guest_user_on_account AS ga

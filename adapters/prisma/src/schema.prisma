@@ -201,6 +201,7 @@ model GuestUser {
   guest_role_id String
   created       DateTime  @default(now()) @db.Timestamptz(6)
   updated       DateTime? @updatedAt @db.Timestamptz(6)
+  was_verified  Boolean   @default(false)
 
   // Backward relationship fields
   accounts GuestUserOnAccount[]

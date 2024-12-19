@@ -3,6 +3,7 @@ target
 docs/*
 !docs/draw.io
 !docs/insomnia
+!docs/openapi
 dist
 
 # Environment related

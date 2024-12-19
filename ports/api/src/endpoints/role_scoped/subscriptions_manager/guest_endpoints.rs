@@ -64,9 +64,17 @@ pub struct GuestUserBody {
 #[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct ListLicensedAccountsOfEmailParams {
+    /// The email which the guest user is connected to
     email: String,
+
+    /// The roles which the guest user was invited to
     roles: Option<Vec<String>>,
+
+    /// The permissioned roles which the guest user was invited to
     permissioned_roles: Option<Vec<(String, Permission)>>,
+
+    /// The guest user was verified
+    was_verified: Option<bool>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -138,6 +146,7 @@ pub async fn list_licensed_accounts_of_email_url(
         tenant.tenant_id().to_owned(),
         email.to_owned(),
         query.roles.to_owned(),
+        query.was_verified.to_owned(),
         query.permissioned_roles.to_owned(),
         Box::new(&*licensed_resources_fetching_repo),
     )

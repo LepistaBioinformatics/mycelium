@@ -13,6 +13,7 @@ use account_manager::guest_endpoints as account_manager_guest_endpoints;
 use actix_web::{dev::Service, web};
 use beginners::{
     account_endpoints as no_role_account_endpoints,
+    guest_user_endpoints as no_role_guest_user_endpoints,
     profile_endpoints as no_role_profile_endpoints,
     user_endpoints as no_role_user_endpoints,
 };
@@ -66,6 +67,10 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                     .configure(no_role_account_endpoints::configure),
             )
             .service(
+                web::scope(&format!("/{}", UrlGroup::Guests))
+                    .configure(no_role_guest_user_endpoints::configure),
+            )
+            .service(
                 web::scope(&format!("/{}", UrlGroup::Profile))
                     .configure(no_role_profile_endpoints::configure),
             )
@@ -85,6 +90,9 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             //
             // Inject a header to be collected by the MyceliumProfileData
             // extractor.
+            //
+            // Endpoints restricted to users with the role:
+            // - GuestManager
             //
             .wrap_fn(|req, srv| {
                 let req =
@@ -118,6 +126,11 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             //
             // Inject a header to be collected by the MyceliumProfileData
             // extractor.
+            //
+            // Endpoints restricted to users with the role:
+            // - TenantOwner
+            // - TenantManager
+            // - SubscriptionsManager
             //
             .wrap_fn(|req, srv| {
                 let req = insert_role_header(
@@ -159,6 +172,9 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             // Inject a header to be collected by the MyceliumProfileData
             // extractor.
             //
+            // Endpoints restricted to users with the role:
+            // - AccountManager
+            //
             .wrap_fn(|req, srv| {
                 let req =
                     insert_role_header(req, vec![ActorName::AccountManager]);
@@ -183,6 +199,9 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             //
             // Inject a header to be collected by the MyceliumProfileData
             // extractor.
+            //
+            // Endpoints restricted to users with the role:
+            // - SystemManager
             //
             .wrap_fn(|req, srv| {
                 let req =
@@ -212,6 +231,10 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             //
             // Inject a header to be collected by the MyceliumProfileData
             // extractor.
+            //
+            // Endpoints restricted to users with the role:
+            // - TenantOwner
+            // - TenantManager
             //
             .wrap_fn(|req, srv| {
                 let req = insert_role_header(
@@ -275,6 +298,9 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             //
             // Inject a header to be collected by the MyceliumProfileData
             // extractor.
+            //
+            // Endpoints restricted to users with the role:
+            // - UsersManager
             //
             .wrap_fn(|req, srv| {
                 let req =

@@ -17,7 +17,6 @@ use crate::{
     },
 };
 
-use chrono::Local;
 use futures::future;
 use mycelium_base::{
     dtos::{Children, Parent},
@@ -112,14 +111,11 @@ pub async fn guest_to_default_account(
 
     match guest_user_registration_repo
         .get_or_create(
-            GuestUser {
-                id: None,
-                email: guest_email.to_owned(),
-                guest_role: Parent::Id(role_id),
-                created: Local::now(),
-                updated: None,
-                accounts: None,
-            },
+            GuestUser::new_unverified(
+                guest_email.to_owned(),
+                Parent::Id(role_id),
+                None,
+            ),
             match default_subscription_account.id {
                 None => {
                     warn!(

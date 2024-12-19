@@ -46,6 +46,7 @@ pub(crate) async fn fetch_profile_from_request(
     let profile = match fetch_profile_from_email(
         email.to_owned().unwrap(),
         roles,
+        Some(true),
         permissioned_roles,
         Box::new(&ProfileFetchingSqlDbRepository {}),
         Box::new(&LicensedResourcesFetchingSqlDbRepository {}),

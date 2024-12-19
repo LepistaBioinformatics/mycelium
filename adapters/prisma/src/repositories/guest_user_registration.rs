@@ -8,10 +8,10 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::DateTime;
-use log::debug;
 use myc_core::domain::{
     dtos::{
-        email::Email, guest_user::GuestUser, native_error_codes::NativeErrorCodes,
+        email::Email, guest_user::GuestUser,
+        native_error_codes::NativeErrorCodes,
     },
     entities::GuestUserRegistration,
 };
@@ -55,8 +55,6 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
         };
 
         register_guest_user(client, guest_user, account_id).await
-
-        //Ok(GetOrCreateResponseKind::Created(_guest_user))
     }
 }
 
@@ -116,8 +114,6 @@ pub(super) async fn register_guest_user(
         Ok(res) => res,
     };
 
-    debug!("_guest_user (1): {:?}", _guest_user);
-
     // ? -----------------------------------------------------------------------
     // ? Check if the guest user already exists
     //
@@ -130,19 +126,18 @@ pub(super) async fn register_guest_user(
         // If the fetching operation find a object, try to parse the
         // response as a GuestUser.
         //
-        Some(record) => GuestUser {
-            id: Some(Uuid::from_str(&record.id).unwrap()),
-            email: Email::from_string(record.email)?,
-            guest_role: Parent::Id(
-                Uuid::parse_str(&record.guest_role.id).unwrap(),
-            ),
-            created: record.created.into(),
-            updated: match record.updated {
+        Some(record) => GuestUser::new_existing(
+            Uuid::from_str(&record.id).unwrap(),
+            Email::from_string(record.email)?,
+            Parent::Id(Uuid::parse_str(&record.guest_role.id).unwrap()),
+            record.created.into(),
+            match record.updated {
                 None => None,
                 Some(res) => Some(DateTime::from(res)),
             },
-            accounts: None,
-        },
+            None,
+            record.was_verified,
+        ),
         //
         // If not response were find, try to create a new record.
         //
@@ -183,23 +178,20 @@ pub(super) async fn register_guest_user(
                 ))
                 .as_error();
             }
-            Ok(record) => GuestUser {
-                id: Some(Uuid::from_str(&record.id).unwrap()),
-                email: Email::from_string(record.email.to_owned())?,
-                guest_role: Parent::Id(
-                    Uuid::parse_str(&record.guest_role.id).unwrap(),
-                ),
-                created: record.created.into(),
-                updated: match record.updated {
+            Ok(record) => GuestUser::new_existing(
+                Uuid::from_str(&record.id).unwrap(),
+                Email::from_string(record.email.to_owned())?,
+                Parent::Id(Uuid::parse_str(&record.guest_role.id).unwrap()),
+                record.created.into(),
+                match record.updated {
                     None => None,
                     Some(res) => Some(DateTime::from(res)),
                 },
-                accounts: None,
-            },
+                None,
+                record.was_verified,
+            ),
         },
     };
-
-    debug!("_guest_user (2): {:?}", _guest_user);
 
     // ? -----------------------------------------------------------------------
     // ? Create guest_user case not exists
