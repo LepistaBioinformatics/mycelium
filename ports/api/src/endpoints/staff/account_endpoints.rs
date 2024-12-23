@@ -74,7 +74,7 @@ pub struct DowngradeAccountPrivilegesBody {
 #[utoipa::path(
     patch,
     params(
-        ("account" = Uuid, Path, description = "The account primary key."),
+        ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
     request_body = UpgradeAccountPrivilegesBody,
     responses(
@@ -105,7 +105,7 @@ pub struct DowngradeAccountPrivilegesBody {
         ),
     ),
 )]
-#[patch("/{account}/upgrade")]
+#[patch("/{account_id}/upgrade")]
 pub async fn upgrade_account_privileges_url(
     path: web::Path<Uuid>,
     body: web::Json<UpgradeAccountPrivilegesBody>,
@@ -134,7 +134,7 @@ pub async fn upgrade_account_privileges_url(
 #[utoipa::path(
     patch,
     params(
-        ("account" = Uuid, Path, description = "The account primary key."),
+        ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
     request_body = DowngradeAccountPrivilegesBody,
     responses(
@@ -165,7 +165,7 @@ pub async fn upgrade_account_privileges_url(
         ),
     ),
 )]
-#[patch("/{account}/downgrade")]
+#[patch("/{account_id}/downgrade")]
 pub async fn downgrade_account_privileges_url(
     path: web::Path<Uuid>,
     body: web::Json<DowngradeAccountPrivilegesBody>,

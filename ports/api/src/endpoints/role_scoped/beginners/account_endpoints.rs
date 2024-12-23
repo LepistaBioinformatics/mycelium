@@ -97,7 +97,7 @@ pub struct UpdateOwnAccountNameAccountBody {
         ),
     ),
 )]
-#[post("/")]
+#[post("")]
 pub async fn create_default_account_url(
     req: HttpRequest,
     body: web::Json<CreateDefaultAccountBody>,

@@ -8,12 +8,20 @@ use mycelium_base::{
 use shaku::Interface;
 use std::fmt::Result as FmResult;
 use std::fmt::{Debug, Display, Formatter};
+use uuid::Uuid;
 
 #[async_trait]
 pub trait RoutesFetching: Interface + Send + Sync {
-    async fn list(
+    async fn get(
         &self,
         path: PathAndQuery,
+    ) -> Result<FetchManyResponseKind<Route>, MappedErrors>;
+
+    async fn list_by_service(
+        &self,
+        id: Option<Uuid>,
+        name: Option<String>,
+        include_service_details: Option<bool>,
     ) -> Result<FetchManyResponseKind<Route>, MappedErrors>;
 }
 

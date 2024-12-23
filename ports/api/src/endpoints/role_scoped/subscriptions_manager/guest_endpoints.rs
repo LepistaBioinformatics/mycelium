@@ -122,7 +122,7 @@ pub struct ListLicensedAccountsOfEmailParams {
         ),
     ),
 )]
-#[get("/")]
+#[get("")]
 pub async fn list_licensed_accounts_of_email_url(
     tenant: TenantData,
     query: web::Query<ListLicensedAccountsOfEmailParams>,

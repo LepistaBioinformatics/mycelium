@@ -1,7 +1,7 @@
 use crate::settings::{ADMIN_API_SCOPE, ROLE_SCOPED_API_SCOPE};
 
 use actix_web::dev::ServiceRequest;
-use myc_http_tools::{settings::DEFAULT_MYCELIUM_ROLE_KEY, ActorName};
+use myc_http_tools::{settings::DEFAULT_MYCELIUM_ROLE_KEY, SystemActor};
 use oauth2::http::HeaderName;
 use serde::Deserialize;
 use std::{
@@ -19,7 +19,7 @@ use utoipa::IntoParams;
 ///
 pub(crate) fn insert_role_header(
     mut req: ServiceRequest,
-    actors: Vec<ActorName>,
+    actors: Vec<SystemActor>,
 ) -> ServiceRequest {
     let header_name = match HeaderName::from_str(DEFAULT_MYCELIUM_ROLE_KEY) {
         Ok(header_name) => header_name,
@@ -62,7 +62,10 @@ pub(crate) fn insert_role_header(
 ///
 /// This function is useful to build the actor in OpenAPI documentation.
 ///
-pub(crate) fn build_actor_context(actor: ActorName, group: UrlGroup) -> String {
+pub(crate) fn build_actor_context(
+    actor: SystemActor,
+    group: UrlGroup,
+) -> String {
     group.with_scoped_actor(UrlScope::RoleScoped, actor)
 }
 
@@ -108,6 +111,7 @@ pub enum UrlGroup {
     Owners,
     Profile,
     Roles,
+    Routes,
     Tags,
     Tenants,
     Tokens,
@@ -126,6 +130,7 @@ impl Display for UrlGroup {
             UrlGroup::Owners => write!(f, "owners"),
             UrlGroup::Profile => write!(f, "profile"),
             UrlGroup::Roles => write!(f, "roles"),
+            UrlGroup::Routes => write!(f, "routes"),
             UrlGroup::Tags => write!(f, "tags"),
             UrlGroup::Tenants => write!(f, "tenants"),
             UrlGroup::Tokens => write!(f, "tokens"),
@@ -139,7 +144,7 @@ impl UrlGroup {
     pub fn with_scoped_actor(
         &self,
         scope: UrlScope,
-        actor: ActorName,
+        actor: SystemActor,
     ) -> String {
         format!("{}/{}/{}", scope.build_myc_path(), actor, self.to_owned())
     }

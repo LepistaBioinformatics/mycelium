@@ -4,6 +4,10 @@
         "sidebar": {
             "backgroundColor": "#263238",
             "textColor": "#ffffff"
+        },
+        "rightPanel": {
+            "backgroundColor": "#263238",
+            "textColor": "#ffffff"
         }
     }
 }

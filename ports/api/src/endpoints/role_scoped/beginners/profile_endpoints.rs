@@ -63,7 +63,7 @@ pub struct ProfileParams {
         ),
     ),
 )]
-#[get("/")]
+#[get("")]
 pub async fn fetch_profile_url(
     query: web::Query<ProfileParams>,
     mut profile: MyceliumProfileData,
@@ -83,7 +83,7 @@ pub async fn fetch_profile_url(
 
                 HttpResponse::Ok().json(profile.to_profile())
             } else {
-                HttpResponse::NoContent().finish()
+                HttpResponse::Ok().json(profile.to_profile())
             }
         }
         _ => HttpResponse::Ok().json(profile.to_profile()),

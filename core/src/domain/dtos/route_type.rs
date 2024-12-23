@@ -1,10 +1,13 @@
 use super::guest_role::Permission;
 
 use serde::{Deserialize, Serialize};
+use utoipa::{ToResponse, ToSchema};
 
 pub type PermissionedRoles = Vec<(String, Permission)>;
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(
+    Debug, Clone, Deserialize, Serialize, PartialEq, Eq, ToSchema, ToResponse,
+)]
 #[serde(rename_all = "camelCase")]
 pub enum RouteType {
     ///
@@ -26,7 +29,7 @@ pub enum RouteType {
     ///
     #[serde(rename_all = "camelCase")]
     ProtectedByPermissionedRoles {
-        permissioned_roles: PermissionedRoles,
+        permissioned_roles: Vec<(String, Permission)>,
     },
     ///
     /// Protect the route with service token associated to a specific role list
@@ -39,6 +42,6 @@ pub enum RouteType {
     ///
     #[serde(rename_all = "camelCase")]
     ProtectedByServiceTokenWithPermissionedRoles {
-        permissioned_roles: PermissionedRoles,
+        permissioned_roles: Vec<(String, Permission)>,
     },
 }

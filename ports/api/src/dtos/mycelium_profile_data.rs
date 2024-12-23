@@ -77,13 +77,24 @@ impl FromRequest for MyceliumProfileData {
         let roles: Option<Vec<String>> =
             match req_clone.headers().get(DEFAULT_MYCELIUM_ROLE_KEY) {
                 Some(roles) => {
-                    match serde_json::from_str(roles.to_str().unwrap()) {
-                        Ok(roles) => roles,
-                        Err(err) => {
-                            error!("Failed to parse roles: {err}");
+                    let roles: Option<Vec<String>> =
+                        match serde_json::from_str(roles.to_str().unwrap()) {
+                            Ok(roles) => roles,
+                            Err(err) => {
+                                error!("Failed to parse roles: {err}");
 
+                                None
+                            }
+                        };
+
+                    if let Some(roles) = roles {
+                        if roles.is_empty() {
                             None
+                        } else {
+                            Some(roles)
                         }
+                    } else {
+                        None
                     }
                 }
                 None => None,

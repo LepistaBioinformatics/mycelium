@@ -15,9 +15,13 @@ use myc_config::optional_config::OptionalConfig;
 use reqwest::header::LOCATION;
 
 pub fn configure(conf: &mut web::ServiceConfig) {
-    conf.service(callback_url);
+    conf.service(google_callback_url);
 }
 
+/// Callback URL for Google Oauth2
+///
+/// This endpoint is called by Google after the user authorizes the application.
+///
 #[utoipa::path(
     get,
     responses(
@@ -29,7 +33,7 @@ pub fn configure(conf: &mut web::ServiceConfig) {
     security(())
 )]
 #[get("/callback")]
-pub async fn callback_url(
+pub async fn google_callback_url(
     query: web::Query<QueryCode>,
     data: web::Data<AuthConfig>,
 ) -> impl Responder {

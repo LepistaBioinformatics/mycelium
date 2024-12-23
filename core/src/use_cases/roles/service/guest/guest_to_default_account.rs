@@ -1,6 +1,6 @@
 use crate::{
     domain::{
-        actors::ActorName::*,
+        actors::SystemActor::*,
         dtos::{
             account::Account, guest_role::Permission, guest_user::GuestUser,
             native_error_codes::NativeErrorCodes,

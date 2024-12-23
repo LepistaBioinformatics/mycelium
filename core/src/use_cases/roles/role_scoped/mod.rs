@@ -1,5 +1,6 @@
 pub mod account_manager;
 pub mod beginner;
+pub mod gateway_manager;
 pub mod guest_manager;
 pub mod subscriptions_manager;
 pub mod system_manager;

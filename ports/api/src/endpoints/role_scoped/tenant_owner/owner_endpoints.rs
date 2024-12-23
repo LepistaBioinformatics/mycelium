@@ -90,7 +90,7 @@ pub struct GuestTenantOwnerBody {
         ),
     ),
 )]
-#[post("/")]
+#[post("")]
 pub async fn guest_tenant_owner_url(
     tenant: TenantData,
     body: web::Json<GuestTenantOwnerBody>,
@@ -158,7 +158,7 @@ pub async fn guest_tenant_owner_url(
         ),
     ),
 )]
-#[delete("/")]
+#[delete("")]
 pub async fn revoke_tenant_owner_url(
     tenant: TenantData,
     body: web::Json<GuestTenantOwnerBody>,

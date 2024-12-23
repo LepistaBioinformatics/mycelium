@@ -115,7 +115,7 @@ pub struct UpdateGuestRolePermissionsBody {
         ),
     ),
 )]
-#[post("/")]
+#[post("")]
 pub async fn crate_guest_role_url(
     json: web::Json<CreateGuestRoleBody>,
     profile: MyceliumProfileData,
@@ -172,7 +172,7 @@ pub async fn crate_guest_role_url(
         ),
     ),
 )]
-#[get("/")]
+#[get("")]
 pub async fn list_guest_roles_url(
     info: web::Query<ListGuestRolesParams>,
     profile: MyceliumProfileData,
@@ -313,7 +313,7 @@ pub async fn update_guest_role_name_and_description_url(
 #[utoipa::path(
     patch,
     params(
-        ("role" = Uuid, Path, description = "The guest-role primary key."),
+        ("guest_role_id" = Uuid, Path, description = "The guest-role primary key."),
     ),
     request_body = UpdateGuestRolePermissionsBody,
     responses(

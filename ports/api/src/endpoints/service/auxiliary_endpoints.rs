@@ -1,5 +1,5 @@
 use actix_web::{get, web, HttpResponse, Responder};
-use myc_http_tools::ActorName;
+use myc_http_tools::SystemActor;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -31,15 +31,15 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub async fn list_actors_url() -> impl Responder {
     HttpResponse::Ok().json(
         vec![
-            ActorName::CustomRole("CustomRole".to_string()),
-            ActorName::Beginner,
-            ActorName::SubscriptionsManager,
-            ActorName::UsersManager,
-            ActorName::AccountManager,
-            ActorName::GuestManager,
-            ActorName::SystemManager,
-            ActorName::TenantOwner,
-            ActorName::TenantManager,
+            SystemActor::CustomRole("CustomRole".to_string()),
+            SystemActor::Beginner,
+            SystemActor::SubscriptionsManager,
+            SystemActor::UsersManager,
+            SystemActor::AccountManager,
+            SystemActor::GuestManager,
+            SystemActor::SystemManager,
+            SystemActor::TenantOwner,
+            SystemActor::TenantManager,
         ]
         .into_iter()
         .map(|x| x.to_string())

@@ -1,5 +1,6 @@
 pub(crate) mod account_manager;
 pub(crate) mod beginners;
+pub(crate) mod gateway_manager;
 pub(crate) mod guest_manager;
 pub(crate) mod subscriptions_manager;
 pub(crate) mod system_manager;
@@ -17,12 +18,16 @@ use beginners::{
     profile_endpoints as no_role_profile_endpoints,
     user_endpoints as no_role_user_endpoints,
 };
+use gateway_manager::{
+    route_endpoints as gateway_manager_route_endpoints,
+    //service_endpoints as gateway_manager_service_endpoints,
+};
 use guest_manager::{
     guest_role_endpoints as guest_manager_guest_role_endpoints,
     role_endpoints as guest_manager_role_endpoints,
     token_endpoints as guest_manager_token_endpoints,
 };
-use myc_core::domain::actors::ActorName;
+use myc_core::domain::actors::SystemActor;
 use subscriptions_manager::{
     account_endpoints as subscription_manager_account_endpoints,
     guest_endpoints as subscription_manager_guest_endpoints,
@@ -57,7 +62,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         .service(
             web::scope(&format!(
                 "/{}",
-                ActorName::Beginner.to_string().as_str()
+                SystemActor::Beginner.to_string().as_str()
             ))
             //
             // Configure the standard role endpoints
@@ -80,12 +85,40 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             ),
         )
         //
+        // Gateway Managers
+        //
+        .service(
+            web::scope(&format!(
+                "/{}",
+                SystemActor::GatewayManager.to_string().as_str()
+            ))
+            //
+            // Inject a header to be collected by the MyceliumProfileData
+            // extractor.
+            //
+            // Endpoints restricted to users with the role:
+            // - GatewayManager
+            //
+            .wrap_fn(|req, srv| {
+                let req =
+                    insert_role_header(req, vec![SystemActor::GatewayManager]);
+                srv.call(req)
+            })
+            //
+            // Configure the standard role endpoints
+            //
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Routes))
+                    .configure(gateway_manager_route_endpoints::configure),
+            ),
+        )
+        //
         // Guest Managers
         //
         .service(
             web::scope(&format!(
                 "/{}",
-                ActorName::GuestManager.to_string().as_str()
+                SystemActor::GuestManager.to_string().as_str()
             ))
             //
             // Inject a header to be collected by the MyceliumProfileData
@@ -96,7 +129,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             //
             .wrap_fn(|req, srv| {
                 let req =
-                    insert_role_header(req, vec![ActorName::GuestManager]);
+                    insert_role_header(req, vec![SystemActor::GuestManager]);
                 srv.call(req)
             })
             //
@@ -121,7 +154,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         .service(
             web::scope(&format!(
                 "/{}",
-                ActorName::SubscriptionsManager.to_string().as_str()
+                SystemActor::SubscriptionsManager.to_string().as_str()
             ))
             //
             // Inject a header to be collected by the MyceliumProfileData
@@ -136,9 +169,9 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                 let req = insert_role_header(
                     req,
                     vec![
-                        ActorName::TenantOwner,
-                        ActorName::TenantManager,
-                        ActorName::SubscriptionsManager,
+                        SystemActor::TenantOwner,
+                        SystemActor::TenantManager,
+                        SystemActor::SubscriptionsManager,
                     ],
                 );
                 srv.call(req)
@@ -166,7 +199,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         .service(
             web::scope(&format!(
                 "/{}",
-                ActorName::AccountManager.to_string().as_str()
+                SystemActor::AccountManager.to_string().as_str()
             ))
             //
             // Inject a header to be collected by the MyceliumProfileData
@@ -177,7 +210,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             //
             .wrap_fn(|req, srv| {
                 let req =
-                    insert_role_header(req, vec![ActorName::AccountManager]);
+                    insert_role_header(req, vec![SystemActor::AccountManager]);
                 srv.call(req)
             })
             //
@@ -194,7 +227,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         .service(
             web::scope(&format!(
                 "/{}",
-                ActorName::SystemManager.to_string().as_str()
+                SystemActor::SystemManager.to_string().as_str()
             ))
             //
             // Inject a header to be collected by the MyceliumProfileData
@@ -205,7 +238,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             //
             .wrap_fn(|req, srv| {
                 let req =
-                    insert_role_header(req, vec![ActorName::SystemManager]);
+                    insert_role_header(req, vec![SystemActor::SystemManager]);
                 srv.call(req)
             })
             //
@@ -226,7 +259,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         .service(
             web::scope(&format!(
                 "/{}",
-                ActorName::TenantManager.to_string().as_str()
+                SystemActor::TenantManager.to_string().as_str()
             ))
             //
             // Inject a header to be collected by the MyceliumProfileData
@@ -239,7 +272,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             .wrap_fn(|req, srv| {
                 let req = insert_role_header(
                     req,
-                    vec![ActorName::TenantOwner, ActorName::TenantManager],
+                    vec![SystemActor::TenantOwner, SystemActor::TenantManager],
                 );
                 srv.call(req)
             })
@@ -265,7 +298,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         .service(
             web::scope(&format!(
                 "/{}",
-                ActorName::TenantOwner.to_string().as_str()
+                SystemActor::TenantOwner.to_string().as_str()
             ))
             //
             // Configure the standard role endpoints
@@ -293,7 +326,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         .service(
             web::scope(&format!(
                 "/{}",
-                ActorName::UsersManager.to_string().as_str()
+                SystemActor::UsersManager.to_string().as_str()
             ))
             //
             // Inject a header to be collected by the MyceliumProfileData
@@ -304,7 +337,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             //
             .wrap_fn(|req, srv| {
                 let req =
-                    insert_role_header(req, vec![ActorName::UsersManager]);
+                    insert_role_header(req, vec![SystemActor::UsersManager]);
                 srv.call(req)
             })
             //

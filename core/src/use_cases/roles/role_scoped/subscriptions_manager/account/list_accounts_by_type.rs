@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{account::Account, account_type::AccountTypeV2, profile::Profile},
     entities::AccountFetching,
     utils::try_as_uuid,
@@ -39,9 +39,9 @@ pub async fn list_accounts_by_type(
     let related_accounts = profile
         .on_tenant(tenant_id)
         .get_related_account_with_default_read_or_error(vec![
-            ActorName::TenantOwner.to_string(),
-            ActorName::TenantManager.to_string(),
-            ActorName::SubscriptionsManager.to_string(),
+            SystemActor::TenantOwner.to_string(),
+            SystemActor::TenantManager.to_string(),
+            SystemActor::SubscriptionsManager.to_string(),
         ])?;
 
     // ? -----------------------------------------------------------------------

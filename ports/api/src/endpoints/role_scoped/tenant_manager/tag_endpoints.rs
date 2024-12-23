@@ -37,9 +37,9 @@ use uuid::Uuid;
 
 pub fn configure(config: &mut web::ServiceConfig) {
     config
-        .service(register_tag_url)
-        .service(update_tag_url)
-        .service(delete_tag_url);
+        .service(register_tenant_tag_url)
+        .service(update_tenant_tag_url)
+        .service(delete_tenant_tag_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -99,8 +99,8 @@ pub struct CreateTagBody {
         ),
     ),
 )]
-#[post("/")]
-pub async fn register_tag_url(
+#[post("")]
+pub async fn register_tenant_tag_url(
     _: TenantData,
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
@@ -165,7 +165,7 @@ pub async fn register_tag_url(
     ),
 )]
 #[put("/{tag_id}")]
-pub async fn update_tag_url(
+pub async fn update_tenant_tag_url(
     _: TenantData,
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
@@ -228,7 +228,7 @@ pub async fn update_tag_url(
     ),
 )]
 #[delete("/{tag_id}")]
-pub async fn delete_tag_url(
+pub async fn delete_tenant_tag_url(
     _: TenantData,
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,

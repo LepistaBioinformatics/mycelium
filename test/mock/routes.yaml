@@ -1,6 +1,7 @@
 # Here the downstream (client) services should be configured
 services:
-- name: cat
+- id: 70f2b105-e154-4e1b-bd1b-fded195123c4
+  name: cats
   host: catfact.ninja
   healthCheck:
     path: /health/
@@ -20,6 +21,10 @@ services:
     path: /health/
     healthResponseCodes:
     - 200
+
+  secrets:
+  - !name secret-01
+  - !id 70f2b105-e154-4e1b-bd1b-fded195123c5
 
   routes:
   - group: public

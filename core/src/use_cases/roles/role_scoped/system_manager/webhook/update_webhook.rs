@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{
         native_error_codes::NativeErrorCodes, profile::Profile,
         webhook::WebHook,
@@ -27,7 +27,7 @@ pub async fn update_webhook(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![ActorName::SystemManager])?;
+    profile.get_default_write_ids_or_error(vec![SystemActor::SystemManager])?;
 
     // ? -----------------------------------------------------------------------
     // ? Update webhook

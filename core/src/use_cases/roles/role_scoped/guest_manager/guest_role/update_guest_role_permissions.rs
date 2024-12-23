@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{
         guest_role::{GuestRole, Permission},
         profile::Profile,
@@ -30,7 +30,7 @@ pub async fn update_guest_role_permission(
     // ? ----------------------------------------------------------------------
 
     profile
-        .get_default_read_write_ids_or_error(vec![ActorName::GuestManager])?;
+        .get_default_read_write_ids_or_error(vec![SystemActor::GuestManager])?;
 
     // ? ----------------------------------------------------------------------
     // ? Fetch role from data persistence layer

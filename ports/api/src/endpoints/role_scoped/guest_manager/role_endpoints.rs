@@ -94,7 +94,7 @@ pub struct ListRolesParams {
         ),
     ),
 )]
-#[post("/")]
+#[post("")]
 pub async fn crate_role_url(
     body: web::Json<CreateRoleBody>,
     profile: MyceliumProfileData,
@@ -149,7 +149,7 @@ pub async fn crate_role_url(
         ),
     ),
 )]
-#[get("/")]
+#[get("")]
 pub async fn list_roles_url(
     info: web::Query<ListRolesParams>,
     profile: MyceliumProfileData,

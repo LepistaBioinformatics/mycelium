@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{profile::Profile, tag::Tag},
     entities::TenantTagRegistration,
 };
@@ -27,8 +27,8 @@ pub async fn register_tag(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_write_ids_or_error(vec![
-        ActorName::TenantOwner,
-        ActorName::TenantManager,
+        SystemActor::TenantOwner,
+        SystemActor::TenantManager,
     ])?;
 
     // ? -----------------------------------------------------------------------

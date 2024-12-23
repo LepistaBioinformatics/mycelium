@@ -110,7 +110,7 @@ pub struct ListWebHooksParams {
         ),
     ),
 )]
-#[post("/")]
+#[post("")]
 pub async fn crate_webhook_url(
     body: web::Json<CreateWebHookBody>,
     profile: MyceliumProfileData,
@@ -170,7 +170,7 @@ pub async fn crate_webhook_url(
         ),
     ),
 )]
-#[get("/")]
+#[get("")]
 pub async fn list_webhooks_url(
     info: web::Query<ListWebHooksParams>,
     profile: MyceliumProfileData,

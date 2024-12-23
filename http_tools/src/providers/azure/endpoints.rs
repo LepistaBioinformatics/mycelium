@@ -148,7 +148,7 @@ pub async fn login_url(
     }
 }
 
-/// Callback URL for Azure OAuth
+/// Callback URL for Azure OAuth2
 ///
 /// This endpoint is called by Azure after the user authorizes the application.
 ///

@@ -32,9 +32,9 @@ use serde::Deserialize;
 use shaku_actix::Inject;
 use utoipa::{IntoParams, ToSchema};
 
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 // ? Configure application
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
     config
@@ -45,9 +45,9 @@ pub fn configure(config: &mut web::ServiceConfig) {
         .service(delete_error_code_url);
 }
 
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 // ? Define API structs
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -73,9 +73,9 @@ pub struct UpdateErrorCodeMessageAndDetailsBody {
     details: Option<String>,
 }
 
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 // ? Define API paths
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 
 /// Register a new error code.
 ///
@@ -111,7 +111,7 @@ pub struct UpdateErrorCodeMessageAndDetailsBody {
         ),
     ),
 )]
-#[post("/")]
+#[post("")]
 pub async fn register_error_code_url(
     body: web::Json<CreateErrorCodeBody>,
     profile: MyceliumProfileData,
@@ -173,7 +173,7 @@ pub async fn register_error_code_url(
         ),
     ),
 )]
-#[get("/")]
+#[get("")]
 pub async fn list_error_codes_url(
     info: web::Query<ListErrorCodesParams>,
     page: web::Query<PaginationParams>,

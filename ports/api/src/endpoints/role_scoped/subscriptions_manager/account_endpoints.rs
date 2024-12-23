@@ -10,7 +10,7 @@ use crate::{
 use actix_web::{get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
-        actors::ActorName,
+        actors::SystemActor,
         dtos::{account::VerboseStatus, account_type::AccountTypeV2},
         entities::{
             AccountFetching, AccountRegistration, AccountUpdating,
@@ -108,7 +108,7 @@ impl APIAccountType {
 
                 Ok(AccountTypeV2::StandardRoleAssociated {
                     tenant_id: tenant_id.to_owned(),
-                    role_name: ActorName::CustomRole(role_name.unwrap()),
+                    role_name: SystemActor::CustomRole(role_name.unwrap()),
                     role_id: role_id.unwrap(),
                 })
             }
@@ -177,7 +177,7 @@ pub struct ListSubscriptionAccountParams {
         ),
     ),
 )]
-#[post("/")]
+#[post("")]
 pub async fn create_subscription_account_url(
     tenant: TenantData,
     body: web::Json<CreateSubscriptionAccountBody>,
@@ -247,7 +247,7 @@ pub async fn create_subscription_account_url(
         ),
     ),
 )]
-#[get("/")]
+#[get("")]
 pub async fn list_accounts_by_type_url(
     tenant: TenantData,
     info: web::Query<ListSubscriptionAccountParams>,
@@ -385,7 +385,7 @@ pub async fn get_account_details_url(
             Header,
             description = "The tenant unique id."
         ),
-        ("account" = Uuid, Path, description = "The account primary key."),
+        ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
     request_body = UpdateSubscriptionAccountNameAndFlagsBody,
     responses(
@@ -457,7 +457,7 @@ pub async fn update_account_name_and_flags_url(
             Header,
             description = "The tenant unique id."
         ),
-        ("account" = Uuid, Path, description = "The account primary key."),
+        ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
     responses(
         (

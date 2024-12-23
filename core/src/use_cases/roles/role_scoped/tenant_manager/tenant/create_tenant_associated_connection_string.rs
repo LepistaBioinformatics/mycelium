@@ -1,6 +1,6 @@
 use crate::{
     domain::{
-        actors::ActorName,
+        actors::SystemActor,
         dtos::{
             email::Email,
             native_error_codes::NativeErrorCodes,
@@ -39,7 +39,7 @@ pub async fn create_tenant_associated_connection_string(
     // ? Check if the current account has sufficient privileges to create role
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![ActorName::TenantManager])?;
+    profile.get_default_write_ids_or_error(vec![SystemActor::TenantManager])?;
 
     // ? -----------------------------------------------------------------------
     // ? Build the scoped account token

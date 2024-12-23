@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{profile::Profile, tenant::Tenant},
     entities::TenantUpdating,
 };
@@ -28,7 +28,7 @@ pub async fn update_tenant_name_and_description(
     profile
         .on_tenant(tenant_id)
         .get_related_account_with_default_write_or_error(vec![
-            ActorName::TenantOwner,
+            SystemActor::TenantOwner,
         ])?;
 
     // ? -----------------------------------------------------------------------

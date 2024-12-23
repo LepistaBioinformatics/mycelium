@@ -3,10 +3,11 @@ use crate::modifiers::security::MyceliumSecurity;
 
 use myc_core::domain::dtos::{
     account, account_type, email, error_code, guest_role, guest_user, profile,
-    role, tag, tenant, user, webhook,
+    role, tag, tenant, user, webhook, route, service as service_dtos, 
+    http_secret, service_secret
 };
 use myc_http_tools::providers::{azure_endpoints, google_endpoints};
-use myc_http_tools::{utils::HttpJsonResponse, ActorName};
+use myc_http_tools::{utils::HttpJsonResponse, SystemActor};
 use mycelium_base::dtos::{Children, Parent};
 use utoipa::OpenApi;
 
@@ -19,6 +20,7 @@ use google_endpoints as Auth__Google;
 use index::heath_check_endpoints as Index__Heath_Check;
 use manager::tenant_endpoints as Managers__Tenants;
 use role_scoped::account_manager::guest_endpoints as Account_Manager__Guest;
+use role_scoped::gateway_manager::route_endpoints as GatewayManager__Route;
 use role_scoped::beginners::account_endpoints as Beginners__Account;
 use role_scoped::beginners::profile_endpoints as Beginners__Profile;
 use role_scoped::beginners::user_endpoints as Beginners__User;
@@ -63,7 +65,7 @@ struct AuthAzureApiDoc;
         title = "Auth | Google Endpoints",
         description = "Endpoints reserved for the application authentication using Google",
     ),
-    paths(Auth__Google::callback_url)
+    paths(Auth__Google::google_callback_url)
 )]
 struct AuthGoogleApiDoc;
 
@@ -108,7 +110,7 @@ struct StaffsAccountsApiDoc;
         title = "Service | Account Endpoints",
         description = "Endpoints reserved for the application service to manage accounts",
     ),
-    paths(Service__Account::create_subscription_account_url)
+    paths(Service__Account::create_subscription_account_from_service_url)
 )]
 struct ServiceAccountApiDoc;
 
@@ -202,6 +204,20 @@ struct BeginnersProfileApiDoc;
 )]
 struct BeginnersUserApiDoc;
 
+/// Role Scoped Endpoints for Gateway Manager for Routes Management
+///
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Gateway Manager | Route Endpoints",
+        description = "Endpoints reserved for the application gateway managers to manage routes",
+    ),
+    paths(
+        GatewayManager__Route::list_routes_url,
+    )
+)]
+struct GatewayManagerRouteApiDoc;
+
 /// Role Scoped Endpoints for Guest Manager for Guest Roles Management
 ///
 #[derive(OpenApi)]
@@ -281,9 +297,9 @@ struct SubscriptionsManagerAccountApiDoc;
         description = "Endpoints reserved for the application subscriptions managers to manage tags",
     ),
     paths(
-        Subscriptions_Manager__Tag::register_tag_url,
-        Subscriptions_Manager__Tag::update_tag_url,
-        Subscriptions_Manager__Tag::delete_tag_url,
+        Subscriptions_Manager__Tag::register_account_tag_url,
+        Subscriptions_Manager__Tag::update_account_tag_url,
+        Subscriptions_Manager__Tag::delete_account_tag_url,
     )
 )]
 struct SubscriptionsManagerTagApiDoc;
@@ -421,9 +437,9 @@ struct TenantManagerAccountApiDoc;
         description = "Endpoints reserved for the application tenant managers to manage tags",
     ),
     paths(
-        Tenant_Manager__Tag::register_tag_url,
-        Tenant_Manager__Tag::update_tag_url,
-        Tenant_Manager__Tag::delete_tag_url,
+        Tenant_Manager__Tag::register_tenant_tag_url,
+        Tenant_Manager__Tag::update_tenant_tag_url,
+        Tenant_Manager__Tag::delete_tenant_tag_url,
     )
 )]
 struct TenantManagerTagApiDoc;
@@ -469,6 +485,10 @@ struct UsersManagerAccountApiDoc;
     info(
         title = "Mycelium API",
         description = include_str!("redoc-intro.md"),
+        license(
+            name = "Apache 2.0",
+            identifier = "Apache-2.0",
+        ),
     ),
     modifiers(&MyceliumSecurity),
     nest(
@@ -498,6 +518,10 @@ struct UsersManagerAccountApiDoc;
         // Account Manager endpoints
         //
         (path = "/adm/rs/accounts-manager/guests", api = AccountManagerGuestApiDoc),
+        //
+        // Gateway Manager endpoints
+        //
+        (path = "/adm/rs/gateway-manager/routes", api = GatewayManagerRouteApiDoc),
         //
         // Guest Manager Endpoints
         //
@@ -554,7 +578,7 @@ struct UsersManagerAccountApiDoc;
             //
             // APPLICATION SCHEMAS
             //
-            ActorName,
+            SystemActor,
             account::Account,
             account::VerboseStatus,
             account_type::AccountTypeV2,
@@ -562,10 +586,15 @@ struct UsersManagerAccountApiDoc;
             error_code::ErrorCode,
             guest_role::GuestRole,
             guest_role::Permission,
+            http_secret::HttpSecret, 
             profile::Owner,
             profile::LicensedResource,
             profile::Profile,
+            service_dtos::Service, 
+            service_secret::ServiceSecret,
+            service_secret::SecretReference,
             role::Role,
+            route::Route, 
             tag::Tag,
             tenant::Tenant,
             tenant::TenantMetaKey,
@@ -597,6 +626,11 @@ struct UsersManagerAccountApiDoc;
             role_scoped::beginners::user_endpoints::StartPasswordResetBody,
             role_scoped::beginners::user_endpoints::ResetPasswordBody,
             role_scoped::beginners::user_endpoints::CheckUserCredentialsBody,
+
+            //
+            // GATEWAY MANAGER
+            //
+            role_scoped::gateway_manager::route_endpoints::ListRoutesByServiceParams,
 
             //
             // GUEST MANAGER

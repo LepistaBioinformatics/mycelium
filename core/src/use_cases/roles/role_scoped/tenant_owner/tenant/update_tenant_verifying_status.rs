@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{
         profile::Profile,
         tenant::{Tenant, TenantStatus},
@@ -31,7 +31,7 @@ pub async fn update_tenant_verifying_status(
     profile
         .on_tenant(tenant_id)
         .get_related_account_with_default_write_or_error(vec![
-            ActorName::TenantOwner,
+            SystemActor::TenantOwner,
         ])?;
 
     // ? -----------------------------------------------------------------------

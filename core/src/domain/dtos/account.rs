@@ -1,7 +1,7 @@
 use super::{
     account_type::AccountTypeV2, guest_user::GuestUser, tag::Tag, user::User,
 };
-use crate::domain::actors::ActorName;
+use crate::domain::actors::SystemActor;
 
 use chrono::{DateTime, Local};
 use mycelium_base::{
@@ -194,7 +194,7 @@ impl Account {
         account_name: String,
         tenant_id: Uuid,
         role_id: Uuid,
-        role_name: ActorName,
+        role_name: SystemActor,
     ) -> Self {
         Self {
             id: None,

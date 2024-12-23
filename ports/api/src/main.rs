@@ -336,12 +336,7 @@ pub async fn main() -> std::io::Result<()> {
             .wrap(RequestTracing::new())
             .wrap(TracingLogger::default())
             .app_data(web::Data::new(token_config).clone())
-            .app_data(web::Data::new(auth_config.to_owned()).clone());
-
-        // ? -------------------------------------------------------------------
-        // ? Configure base mycelium scope
-        // ? -------------------------------------------------------------------
-        let mycelium_scope = web::scope(&format!("/{}", ADMIN_API_SCOPE))
+            .app_data(web::Data::new(auth_config.to_owned()).clone())
             //
             // Index
             //
@@ -353,7 +348,12 @@ pub async fn main() -> std::io::Result<()> {
                         .as_str(),
                 )
                 .configure(heath_check_endpoints::configure),
-            )
+            );
+
+        // ? -------------------------------------------------------------------
+        // ? Configure base mycelium scope
+        // ? -------------------------------------------------------------------
+        let mycelium_scope = web::scope(&format!("/{}", ADMIN_API_SCOPE))
             //
             // Super Users
             //

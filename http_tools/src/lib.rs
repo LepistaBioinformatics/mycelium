@@ -11,7 +11,7 @@ pub mod wrappers;
 /// This is a re-exportation from the myc core to allow users to import both
 /// from myc-api instead of the myc-core.
 pub use myc_core::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{
         account::Account,
         email::Email,

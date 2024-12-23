@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{
         profile::Profile,
         webhook::{WebHook, WebHookTrigger},
@@ -25,7 +25,7 @@ pub async fn list_webhooks(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_read_ids_or_error(vec![ActorName::SystemManager])?;
+    profile.get_default_read_ids_or_error(vec![SystemActor::SystemManager])?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch webhooks

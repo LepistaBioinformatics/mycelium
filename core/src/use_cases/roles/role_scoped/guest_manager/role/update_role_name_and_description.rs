@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{profile::Profile, role::Role},
     entities::{RoleFetching, RoleUpdating},
 };
@@ -29,7 +29,7 @@ pub async fn update_role_name_and_description(
     // ? ----------------------------------------------------------------------
 
     profile.get_default_write_ids_or_error(vec![
-        ActorName::GuestManager.to_string()
+        SystemActor::GuestManager.to_string()
     ])?;
 
     // ? ----------------------------------------------------------------------

@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName, dtos::profile::Profile, entities::AccountDeletion,
+    actors::SystemActor, dtos::profile::Profile, entities::AccountDeletion,
 };
 
 use mycelium_base::{
@@ -25,7 +25,7 @@ pub async fn delete_subscription_account(
     let related_accounts = profile
         .on_tenant(tenant_id)
         .get_related_account_with_default_write_or_error(vec![
-            ActorName::TenantManager.to_string(),
+            SystemActor::TenantManager.to_string(),
         ])?;
 
     // ? -----------------------------------------------------------------------

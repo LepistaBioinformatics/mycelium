@@ -1,22 +1,26 @@
 use super::{
     http::{HttpMethod, Protocol},
     route_type::RouteType,
-    service::ClientService,
+    service::Service,
 };
 
 use actix_web::http::{uri::PathAndQuery, Uri};
-use mycelium_base::utils::errors::{execution_err, MappedErrors};
+use mycelium_base::{
+    dtos::Parent,
+    utils::errors::{execution_err, MappedErrors},
+};
 use serde::{Deserialize, Serialize};
+use utoipa::{ToResponse, ToSchema};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema, ToResponse)]
 #[serde(rename_all = "camelCase")]
 pub struct Route {
     /// The route id
     pub id: Option<Uuid>,
 
     /// The route service
-    pub service: ClientService,
+    pub service: Parent<Service, Uuid>,
 
     /// The route name
     pub group: RouteType,
@@ -31,10 +35,48 @@ pub struct Route {
     pub protocol: Protocol,
 
     /// The route is active
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub allowed_sources: Option<Vec<String>>,
 }
 
 impl Route {
+    pub fn new(
+        id: Option<Uuid>,
+        service: Service,
+        group: RouteType,
+        methods: Vec<HttpMethod>,
+        downstream_url: String,
+        protocol: Protocol,
+        allowed_sources: Option<Vec<String>>,
+    ) -> Self {
+        Self {
+            id: match id {
+                Some(id) => Some(id),
+                None => Some(Uuid::new_v3(
+                    &Uuid::NAMESPACE_DNS,
+                    format!(
+                        "{service_name}-{protocol}-{downstream_url}-{methods}",
+                        service_name = service.name,
+                        protocol = protocol,
+                        downstream_url = downstream_url,
+                        methods = methods
+                            .iter()
+                            .map(|m| m.to_string())
+                            .collect::<Vec<String>>()
+                            .join("-")
+                    )
+                    .as_bytes(),
+                )),
+            },
+            service: Parent::Record(service),
+            group,
+            methods,
+            downstream_url,
+            protocol,
+            allowed_sources,
+        }
+    }
+
     /// Check if a method is allowed.
     pub async fn allow_method(&self, method: HttpMethod) -> Option<HttpMethod> {
         if self.methods.contains(&HttpMethod::None) {
@@ -53,7 +95,17 @@ impl Route {
 
     /// Build a actix_web::http::Uri from itself.
     pub async fn build_uri(&self) -> Result<Uri, MappedErrors> {
-        let host = self.service.to_owned().host;
+        let service = match self.service {
+            Parent::Record(ref service) => service,
+            Parent::Id(_) => {
+                return execution_err(
+                    "Unexpected error on build URI: service not found",
+                )
+                .as_error()
+            }
+        };
+
+        let host = service.to_owned().host;
         let path_parts = host.split("/").collect::<Vec<&str>>();
         let domain = path_parts[0];
 

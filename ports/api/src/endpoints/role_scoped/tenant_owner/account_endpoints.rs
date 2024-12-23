@@ -67,7 +67,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
         ),
     ),
 )]
-#[post("/")]
+#[post("")]
 pub async fn create_management_account_url(
     tenant: TenantData,
     profile: MyceliumProfileData,

@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName, dtos::account::Account, entities::AccountRegistration,
+    actors::SystemActor, dtos::account::Account, entities::AccountRegistration,
 };
 
 use mycelium_base::{
@@ -36,7 +36,7 @@ pub(crate) async fn get_or_create_role_related_account(
         ),
         tenant_id,
         role_id,
-        ActorName::CustomRole(role_id.to_string()),
+        SystemActor::CustomRole(role_id.to_string()),
     );
 
     unchecked_account.is_checked = true;

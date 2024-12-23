@@ -49,7 +49,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[utoipa::path(
     patch,
     params(
-        ("account" = Uuid, Path, description = "The account primary key."),
+        ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
     responses(
         (
@@ -79,7 +79,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
         ),
     ),
 )]
-#[patch("/{account}/approve")]
+#[patch("/{account_id}/approve")]
 pub async fn approve_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
@@ -107,7 +107,7 @@ pub async fn approve_account_url(
 #[utoipa::path(
     patch,
     params(
-        ("account" = Uuid, Path, description = "The account primary key."),
+        ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
     responses(
         (
@@ -137,7 +137,7 @@ pub async fn approve_account_url(
         ),
     ),
 )]
-#[patch("/{account}/disapprove")]
+#[patch("/{account_id}/disapprove")]
 pub async fn disapprove_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
@@ -165,7 +165,7 @@ pub async fn disapprove_account_url(
 #[utoipa::path(
     patch,
     params(
-        ("account" = Uuid, Path, description = "The account primary key."),
+        ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
     responses(
         (
@@ -195,7 +195,7 @@ pub async fn disapprove_account_url(
         ),
     ),
 )]
-#[patch("/{account}/activate")]
+#[patch("/{account_id}/activate")]
 pub async fn activate_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
@@ -223,7 +223,7 @@ pub async fn activate_account_url(
 #[utoipa::path(
     patch,
     params(
-        ("account" = Uuid, Path, description = "The account primary key."),
+        ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
     responses(
         (
@@ -253,7 +253,7 @@ pub async fn activate_account_url(
         ),
     ),
 )]
-#[patch("/{account}/deactivate")]
+#[patch("/{account_id}/deactivate")]
 pub async fn deactivate_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
@@ -280,7 +280,7 @@ pub async fn deactivate_account_url(
 #[utoipa::path(
     patch,
     params(
-        ("account" = Uuid, Path, description = "The account primary key."),
+        ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
     responses(
         (
@@ -310,7 +310,7 @@ pub async fn deactivate_account_url(
         ),
     ),
 )]
-#[patch("/{account}/archive")]
+#[patch("/{account_id}/archive")]
 pub async fn archive_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
@@ -337,7 +337,7 @@ pub async fn archive_account_url(
 #[utoipa::path(
     patch,
     params(
-        ("account" = Uuid, Path, description = "The account primary key."),
+        ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
     responses(
         (
@@ -367,7 +367,7 @@ pub async fn archive_account_url(
         ),
     ),
 )]
-#[patch("/{account}/unarchive")]
+#[patch("/{account_id}/unarchive")]
 pub async fn unarchive_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,

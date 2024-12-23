@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{
         guest_role::{GuestRole, Permission},
         profile::Profile,
@@ -34,7 +34,7 @@ pub async fn create_guest_role(
     // ? Check if the current account has sufficient privileges to create role
     // ? ----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![ActorName::GuestManager])?;
+    profile.get_default_write_ids_or_error(vec![SystemActor::GuestManager])?;
 
     // ? ----------------------------------------------------------------------
     // ? Persist UserRole

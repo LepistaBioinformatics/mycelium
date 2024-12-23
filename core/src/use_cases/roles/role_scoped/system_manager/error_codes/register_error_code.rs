@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{error_code::ErrorCode, profile::Profile},
     entities::ErrorCodeRegistration,
 };
@@ -29,7 +29,7 @@ pub async fn register_error_code(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_write_ids_or_error(vec![
-        ActorName::SystemManager.to_string()
+        SystemActor::SystemManager.to_string()
     ])?;
 
     // ? -----------------------------------------------------------------------
