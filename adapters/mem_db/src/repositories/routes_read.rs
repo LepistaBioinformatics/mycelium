@@ -6,7 +6,7 @@ use myc_core::{
 };
 use mycelium_base::{
     dtos::Parent,
-    entities::FetchManyResponseKind,
+    entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{fetching_err, MappedErrors},
 };
 use shaku::Component;
@@ -23,7 +23,7 @@ impl RoutesFetching for RoutesFetchingMemDbRepo {
     async fn get(
         &self,
         path: PathAndQuery,
-    ) -> Result<FetchManyResponseKind<Route>, MappedErrors> {
+    ) -> Result<FetchResponseKind<Route, String>, MappedErrors> {
         let db = ROUTES.lock().await.clone();
 
         if db.len() == 0 {
@@ -67,10 +67,19 @@ impl RoutesFetching for RoutesFetchingMemDbRepo {
             .collect::<Vec<Route>>();
 
         if response.len() == 0 {
-            return Ok(FetchManyResponseKind::NotFound);
+            return Ok(FetchResponseKind::NotFound(None));
         }
 
-        Ok(FetchManyResponseKind::Found(response))
+        if response.len() > 1 {
+            return fetching_err(
+                "Multiple routes found for the specified path.".to_string(),
+            )
+            .as_error();
+        }
+
+        Ok(FetchResponseKind::Found(
+            response.first().unwrap().to_owned(),
+        ))
     }
 
     async fn list_by_service(
