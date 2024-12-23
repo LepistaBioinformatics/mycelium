@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{guest_role::GuestRole, profile::Profile},
     entities::GuestRoleFetching,
 };
@@ -21,7 +21,7 @@ pub async fn list_guest_roles(
     // ? Check if the current account has sufficient privileges to create role
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_read_ids_or_error(vec![ActorName::GuestManager])?;
+    profile.get_default_read_ids_or_error(vec![SystemActor::GuestManager])?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch Roles

@@ -37,9 +37,9 @@ use uuid::Uuid;
 
 pub fn configure(config: &mut web::ServiceConfig) {
     config
-        .service(register_tag_url)
-        .service(update_tag_url)
-        .service(delete_tag_url);
+        .service(register_account_tag_url)
+        .service(update_account_tag_url)
+        .service(delete_account_tag_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -100,8 +100,8 @@ pub struct UpdateTagBody {
         ),
     ),
 )]
-#[post("/")]
-pub async fn register_tag_url(
+#[post("")]
+pub async fn register_account_tag_url(
     profile: MyceliumProfileData,
     body: web::Json<CreateTagBody>,
     tag_registration_repo: Inject<
@@ -159,7 +159,7 @@ pub async fn register_tag_url(
     ),
 )]
 #[put("/{tag_id}")]
-pub async fn update_tag_url(
+pub async fn update_account_tag_url(
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
     body: web::Json<UpdateTagBody>,
@@ -216,7 +216,7 @@ pub async fn update_tag_url(
     ),
 )]
 #[delete("/{tag_id}")]
-pub async fn delete_tag_url(
+pub async fn delete_account_tag_url(
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
     tag_deletion_repo: Inject<AccountTagDeletionModule, dyn AccountTagDeletion>,

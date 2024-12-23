@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{error_code::ErrorCode, profile::Profile},
     entities::ErrorCodeFetching,
 };
@@ -30,7 +30,7 @@ pub async fn list_error_codes(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_read_ids_or_error(vec![
-        ActorName::SystemManager.to_string()
+        SystemActor::SystemManager.to_string()
     ])?;
 
     // ? -----------------------------------------------------------------------

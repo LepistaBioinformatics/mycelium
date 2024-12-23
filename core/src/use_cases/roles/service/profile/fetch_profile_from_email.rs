@@ -26,8 +26,8 @@ pub enum ProfileResponse {
 #[tracing::instrument(name = "fetch_profile_from_email", skip_all)]
 pub async fn fetch_profile_from_email(
     email: Email,
-    roles: Option<Vec<String>>,
     was_verified: Option<bool>,
+    roles: Option<Vec<String>>,
     permissioned_roles: Option<PermissionedRoles>,
     profile_fetching_repo: Box<&dyn ProfileFetching>,
     licensed_resources_fetching_repo: Box<&dyn LicensedResourcesFetching>,

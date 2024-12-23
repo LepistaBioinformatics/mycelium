@@ -1,6 +1,6 @@
 use crate::{
     domain::{
-        actors::ActorName,
+        actors::SystemActor,
         dtos::{
             account::VerboseStatus, account_type::AccountTypeV2, email::Email,
             guest_user::GuestUser, native_error_codes::NativeErrorCodes,
@@ -48,9 +48,9 @@ pub async fn guest_user(
     let related_accounts = profile
         .on_tenant(tenant_id)
         .get_related_account_with_default_write_or_error(vec![
-            ActorName::TenantOwner.to_string(),
-            ActorName::TenantManager.to_string(),
-            ActorName::SubscriptionsManager.to_string(),
+            SystemActor::TenantOwner.to_string(),
+            SystemActor::TenantManager.to_string(),
+            SystemActor::SubscriptionsManager.to_string(),
         ])?;
 
     // ? -----------------------------------------------------------------------

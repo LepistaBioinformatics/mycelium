@@ -28,7 +28,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
             ),
         ),
     )]
-#[get("/")]
+#[get("")]
 pub async fn health_url() -> impl Responder {
     HttpResponse::Ok().body("success".to_string())
 }

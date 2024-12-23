@@ -1,5 +1,3 @@
-mod match_forward_address;
-
 use super::middleware::fetch_and_inject_profile_to_forward;
 use crate::{modules::RoutesFetchingModule, settings::GATEWAY_API_SCOPE};
 
@@ -7,18 +5,23 @@ use actix_web::{
     error, http::uri::PathAndQuery, web, HttpRequest, HttpResponse,
 };
 use awc::Client;
-use match_forward_address::{match_forward_address, RoutesMatchResponseEnum};
-use myc_core::domain::{
-    dtos::{http::HttpMethod, route_type::RouteType},
-    entities::RoutesFetching,
+use myc_core::{
+    domain::{
+        dtos::{http::HttpMethod, route_type::RouteType},
+        entities::RoutesFetching,
+    },
+    use_cases::roles::role_scoped::gateway_manager::route::{
+        match_forward_address, MatchRouteResponse,
+    },
 };
 use myc_http_tools::{
     responses::GatewayError,
     settings::{DEFAULT_PROFILE_KEY, FORWARDING_KEYS, FORWARD_FOR_KEY},
 };
+use mycelium_base::dtos::Parent;
 use shaku_actix::Inject;
 use std::{str::FromStr, time::Duration};
-use tracing::{debug, trace, warn};
+use tracing::{debug, error, trace, warn};
 use url::Url;
 
 /// Forward request to the client service.
@@ -90,7 +93,7 @@ pub(crate) async fn route_request(
             debug!("match routes res: {:?}", res);
 
             match res {
-                RoutesMatchResponseEnum::Found(route) => route,
+                MatchRouteResponse::Found(route) => route,
                 _ => {
                     return Err(GatewayError::BadRequest(String::from(
                         "Request path does not match any service",
@@ -147,7 +150,18 @@ pub(crate) async fn route_request(
                 )));
             }
             Ok(mut url) => {
-                let name = route.service.name.to_owned();
+                let service = match route.service {
+                    Parent::Record(ref service) => service,
+                    Parent::Id(_) => {
+                        error!("Service not found");
+
+                        return Err(GatewayError::InternalServerError(
+                            String::from("Service not found"),
+                        ));
+                    }
+                };
+
+                let name = service.name.to_owned();
 
                 url.set_path(
                     req.uri()

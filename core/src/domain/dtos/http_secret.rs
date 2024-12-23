@@ -60,6 +60,30 @@ pub enum HttpSecret {
         ///
         token: String,
     },
+    //
+    // TODO: Implement client certificate authentication
+    //
+    //#[serde(rename_all = "camelCase")]
+    //ClientCertificate {
+    //    /// The certificate
+    //    ///
+    //    /// The certificate is the client certificate in PEM format.
+    //    ///
+    //    cert_pem: String,
+    //
+    //    /// The private key
+    //    ///
+    //    /// The private key is the client private key in PEM format.
+    //    ///
+    //    key_pem: String,
+    //
+    //    /// The certificate version
+    //    ///
+    //    /// The certificate version is the version of the certificate.
+    //    ///
+    //    cert_version: Option<String>,
+    //},
+    //
 }
 
 fn default_authorization_key() -> Option<String> {
@@ -67,7 +91,7 @@ fn default_authorization_key() -> Option<String> {
 }
 
 impl HttpSecret {
-    #[tracing::instrument(name = "encrypt_secret", skip_all)]
+    #[tracing::instrument(name = "encrypt_me", skip_all)]
     pub(crate) fn encrypt_me(
         &self,
         config: AccountLifeCycle,
@@ -153,7 +177,7 @@ impl HttpSecret {
         Ok(self_encrypted)
     }
 
-    #[tracing::instrument(name = "decrypt_secret", skip_all)]
+    #[tracing::instrument(name = "decrypt_me", skip_all)]
     pub(crate) fn decrypt_me(
         &self,
         config: AccountLifeCycle,

@@ -1,5 +1,5 @@
-mod routes_fetching;
+mod routes_read;
 
-pub use routes_fetching::{
+pub use routes_read::{
     RoutesFetchingMemDbRepo, RoutesFetchingMemDbRepoParameters,
 };

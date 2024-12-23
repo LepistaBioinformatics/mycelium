@@ -15,7 +15,7 @@ use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
 use chrono::Duration;
 use myc_core::{
     domain::{
-        actors::ActorName,
+        actors::SystemActor,
         dtos::user::{Totp, User},
         entities::{
             MessageSending, TokenInvalidation, TokenRegistration, UserDeletion,
@@ -262,7 +262,7 @@ pub async fn check_email_registration_status_url(
         ),
     ),
 )]
-#[post("/")]
+#[post("")]
 pub async fn create_default_user_url(
     req: HttpRequest,
     body: web::Json<CreateDefaultUserBody>,
@@ -386,7 +386,7 @@ pub async fn check_user_token_url(
 ///
 #[utoipa::path(
     post,
-    request_body = CheckTokenBody,
+    request_body = StartPasswordResetBody,
     responses(
         (
             status = 500,
@@ -454,7 +454,7 @@ pub async fn start_password_redefinition_url(
 ///
 #[utoipa::path(
     post,
-    request_body = CheckTokenBody,
+    request_body = ResetPasswordBody,
     responses(
         (
             status = 500,
@@ -624,7 +624,7 @@ pub async fn check_email_password_validity_url(
                                     format!(
                                         "{}/totp/enable/",
                                         build_actor_context(
-                                            ActorName::Beginner,
+                                            SystemActor::Beginner,
                                             UrlGroup::Users
                                         )
                                     ),

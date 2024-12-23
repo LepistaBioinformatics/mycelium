@@ -1,6 +1,6 @@
 use super::try_to_reach_desired_status::try_to_reach_desired_status;
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{
         account::{Account, VerboseStatus},
         account_type::AccountTypeV2,
@@ -30,7 +30,7 @@ pub async fn change_account_activation_status(
 
     let related_accounts = profile
         .get_related_account_with_default_write_or_error(vec![
-            ActorName::UsersManager,
+            SystemActor::UsersManager,
         ])?;
 
     // ? -----------------------------------------------------------------------

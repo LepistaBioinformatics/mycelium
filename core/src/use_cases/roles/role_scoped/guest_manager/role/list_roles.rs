@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{profile::Profile, role::Role},
     entities::RoleFetching,
 };
@@ -20,7 +20,7 @@ pub async fn list_roles(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_read_ids_or_error(vec![
-        ActorName::GuestManager.to_string()
+        SystemActor::GuestManager.to_string()
     ])?;
 
     // ? -----------------------------------------------------------------------

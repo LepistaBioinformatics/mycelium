@@ -3,7 +3,8 @@ use crate::domain::dtos::{
     http::{HttpMethod, Protocol},
     route::Route,
     route_type::RouteType,
-    service::ClientService,
+    service::Service,
+    service_secret::SecretReference,
 };
 
 use mycelium_base::utils::errors::{use_case_err, MappedErrors};
@@ -21,12 +22,20 @@ struct TempMainConfigDTO {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub enum TmpSecretReference {
+    Id(Uuid),
+    Name(String),
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 struct TempServiceDTO {
     pub id: Option<Uuid>,
     pub name: String,
     pub host: String,
     pub health_check: Option<HealthCheckConfig>,
     pub routes: Vec<TempRouteDTO>,
+    pub secrets: Option<Vec<TmpSecretReference>>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -81,33 +90,58 @@ pub async fn load_config_from_yaml(
     let db = temp_services?.services.into_iter().fold(
         Vec::<Route>::new(),
         |mut init, tmp_service| {
-            let service = ClientService {
-                id: match tmp_service.id {
-                    None => Some(Uuid::new_v4()),
-                    Some(id) => Some(id),
-                },
-                name: tmp_service.name.to_owned(),
-                host: tmp_service.host.to_owned(),
-                health_check: tmp_service.health_check.to_owned(),
-                routes: vec![],
+            let secrets = if let Some(secrets) = tmp_service.to_owned().secrets
+            {
+                let secrets = secrets
+                    .into_iter()
+                    .map(|s| match s {
+                        TmpSecretReference::Id(id) => SecretReference::Id {
+                            id,
+                            exists: false,
+                            last_updated: None,
+                        },
+                        TmpSecretReference::Name(name) => {
+                            SecretReference::Name {
+                                name,
+                                exists: false,
+                                last_updated: None,
+                            }
+                        }
+                    })
+                    .collect::<Vec<SecretReference>>();
+
+                match secrets.is_empty() {
+                    true => None,
+                    false => Some(secrets),
+                }
+            } else {
+                None
             };
+
+            let service = Service::new(
+                tmp_service.id,
+                tmp_service.name.to_owned(),
+                tmp_service.host.to_owned(),
+                tmp_service.health_check.to_owned(),
+                vec![],
+                secrets,
+            );
 
             init.append(
                 &mut tmp_service
                     .to_owned()
                     .routes
                     .into_iter()
-                    .map(|r| Route {
-                        id: match r.id {
-                            None => Some(Uuid::new_v4()),
-                            Some(id) => Some(id),
-                        },
-                        service: service.to_owned(),
-                        group: r.group,
-                        methods: r.methods,
-                        downstream_url: r.downstream_url,
-                        protocol: r.protocol,
-                        allowed_sources: r.allowed_sources,
+                    .map(|r| {
+                        Route::new(
+                            r.id,
+                            service.to_owned(),
+                            r.group,
+                            r.methods,
+                            r.downstream_url,
+                            r.protocol,
+                            r.allowed_sources,
+                        )
                     })
                     .collect::<Vec<Route>>(),
             );

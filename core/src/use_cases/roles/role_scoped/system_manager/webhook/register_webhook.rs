@@ -1,5 +1,5 @@
 use crate::{domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{
         profile::Profile,
         http_secret::HttpSecret,
@@ -31,7 +31,7 @@ pub async fn register_webhook(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![ActorName::SystemManager])?;
+    profile.get_default_write_ids_or_error(vec![SystemActor::SystemManager])?;
 
     // ? -----------------------------------------------------------------------
     // ? Register webhook

@@ -114,7 +114,7 @@ pub struct ListTenantParams {
         ),
     ),
 )]
-#[post("/")]
+#[post("")]
 pub async fn create_tenant_url(
     body: web::Json<CreateTenantBody>,
     profile: MyceliumProfileData,
@@ -173,7 +173,7 @@ pub async fn create_tenant_url(
         ),
     ),
 )]
-#[get("/")]
+#[get("")]
 pub async fn list_tenant_url(
     info: web::Query<ListTenantParams>,
     page: web::Query<PaginationParams>,

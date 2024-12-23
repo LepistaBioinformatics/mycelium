@@ -7,7 +7,7 @@ use utoipa::ToSchema;
 
 #[derive(Debug, Clone, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
-pub enum ActorName {
+pub enum SystemActor {
     CustomRole(String),
 
     /// Beginner
@@ -36,6 +36,12 @@ pub enum ActorName {
     /// guest-users.
     GuestManager,
 
+    /// Gateway manager
+    ///
+    /// This actor is responsible for managing gateway endpoints and related
+    /// configurations.
+    GatewayManager,
+
     /// System manager
     ///
     /// This actor is responsible for managing system, including error messages,
@@ -58,49 +64,53 @@ pub enum ActorName {
     Service,
 }
 
-impl Display for ActorName {
+impl Display for SystemActor {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
-            ActorName::CustomRole(role) => write!(f, "custom-role:{}", role),
-            ActorName::Beginner => write!(f, "beginners"),
-            ActorName::SubscriptionsManager => {
+            SystemActor::CustomRole(role) => write!(f, "custom-role:{}", role),
+            SystemActor::Beginner => write!(f, "beginners"),
+            SystemActor::SubscriptionsManager => {
                 write!(f, "subscriptions-manager")
             }
-            ActorName::UsersManager => {
+            SystemActor::UsersManager => {
                 write!(f, "users-manager")
             }
-            ActorName::AccountManager => {
+            SystemActor::AccountManager => {
                 write!(f, "accounts-manager")
             }
-            ActorName::GuestManager => {
+            SystemActor::GuestManager => {
                 write!(f, "guests-manager")
             }
-            ActorName::SystemManager => write!(f, "system-manager"),
-            ActorName::TenantOwner => write!(f, "tenant-owner"),
-            ActorName::TenantManager => write!(f, "tenant-manager"),
-            ActorName::Service => write!(f, "service"),
+            SystemActor::GatewayManager => {
+                write!(f, "gateway-manager")
+            }
+            SystemActor::SystemManager => write!(f, "system-manager"),
+            SystemActor::TenantOwner => write!(f, "tenant-owner"),
+            SystemActor::TenantManager => write!(f, "tenant-manager"),
+            SystemActor::Service => write!(f, "service"),
         }
     }
 }
 
-impl FromStr for ActorName {
+impl FromStr for SystemActor {
     type Err = ();
 
-    fn from_str(s: &str) -> Result<ActorName, ()> {
+    fn from_str(s: &str) -> Result<SystemActor, ()> {
         match s {
-            "beginner" | "no-role" => Ok(ActorName::Beginner),
+            "beginner" | "no-role" => Ok(SystemActor::Beginner),
             "subscriptions-account-manager" => {
-                Ok(ActorName::SubscriptionsManager)
+                Ok(SystemActor::SubscriptionsManager)
             }
-            "subscriptions-manager" => Ok(ActorName::SubscriptionsManager),
-            "users-account-manager" => Ok(ActorName::UsersManager),
-            "users-manager" => Ok(ActorName::UsersManager),
-            "account-manager" => Ok(ActorName::AccountManager),
-            "guest-manager" => Ok(ActorName::GuestManager),
-            "system-manager" => Ok(ActorName::SystemManager),
-            "tenant-manager" => Ok(ActorName::TenantManager),
-            "tenant-owner" => Ok(ActorName::TenantOwner),
-            "service" => Ok(ActorName::Service),
+            "subscriptions-manager" => Ok(SystemActor::SubscriptionsManager),
+            "users-account-manager" => Ok(SystemActor::UsersManager),
+            "users-manager" => Ok(SystemActor::UsersManager),
+            "account-manager" => Ok(SystemActor::AccountManager),
+            "guest-manager" => Ok(SystemActor::GuestManager),
+            "gateway-manager" => Ok(SystemActor::GatewayManager),
+            "system-manager" => Ok(SystemActor::SystemManager),
+            "tenant-manager" => Ok(SystemActor::TenantManager),
+            "tenant-owner" => Ok(SystemActor::TenantOwner),
+            "service" => Ok(SystemActor::Service),
 
             _ => Err(()),
         }

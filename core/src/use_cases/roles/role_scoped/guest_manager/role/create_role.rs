@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{profile::Profile, role::Role},
     entities::RoleRegistration,
 };
@@ -27,7 +27,7 @@ pub async fn create_role(
     // ? ----------------------------------------------------------------------
 
     profile.get_default_write_ids_or_error(vec![
-        ActorName::GuestManager.to_string()
+        SystemActor::GuestManager.to_string()
     ])?;
 
     // ? ----------------------------------------------------------------------

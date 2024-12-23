@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName, dtos::profile::Profile, entities::ErrorCodeDeletion,
+    actors::SystemActor, dtos::profile::Profile, entities::ErrorCodeDeletion,
 };
 
 use mycelium_base::{
@@ -25,7 +25,7 @@ pub async fn delete_error_code(
     // ? -----------------------------------------------------------------------
 
     profile.get_default_write_ids_or_error(vec![
-        ActorName::SystemManager.to_string()
+        SystemActor::SystemManager.to_string()
     ])?;
 
     // ? -----------------------------------------------------------------------

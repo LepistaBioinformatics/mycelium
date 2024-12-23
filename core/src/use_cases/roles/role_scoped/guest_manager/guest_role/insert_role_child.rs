@@ -1,5 +1,5 @@
 use crate::domain::{
-    actors::ActorName,
+    actors::SystemActor,
     dtos::{
         guest_role::GuestRole, native_error_codes::NativeErrorCodes,
         profile::Profile,
@@ -27,7 +27,7 @@ pub async fn insert_role_child(
     // ? -----------------------------------------------------------------------
 
     profile
-        .get_default_read_write_ids_or_error(vec![ActorName::GuestManager])?;
+        .get_default_read_write_ids_or_error(vec![SystemActor::GuestManager])?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch target and child roles

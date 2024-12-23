@@ -4,8 +4,19 @@ use std::{
     fmt::{Display, Formatter, Result as FmtResult},
     str::FromStr,
 };
+use utoipa::{ToResponse, ToSchema};
 
-#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Deserialize,
+    Serialize,
+    PartialEq,
+    Eq,
+    ToSchema,
+    ToResponse,
+)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum HttpMethod {
     Get,
@@ -78,7 +89,7 @@ impl FromStr for HttpMethod {
     }
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, Serialize)]
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, ToSchema, ToResponse)]
 #[serde(rename_all = "camelCase")]
 pub enum Protocol {
     Http,

@@ -1,4 +1,4 @@
-use crate::domain::actors::ActorName;
+use crate::domain::actors::SystemActor;
 
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -38,7 +38,7 @@ pub enum AccountTypeV2 {
     #[serde(rename_all = "camelCase")]
     StandardRoleAssociated {
         tenant_id: Uuid,
-        role_name: ActorName,
+        role_name: SystemActor,
         role_id: Uuid,
     },
 
@@ -80,7 +80,7 @@ mod tests {
         //
         let account_type = AccountTypeV2::StandardRoleAssociated {
             tenant_id: Uuid::from_u128(0),
-            role_name: ActorName::CustomRole("test".to_string()),
+            role_name: SystemActor::CustomRole("test".to_string()),
             role_id: Uuid::from_u128(0),
         };
 
@@ -97,7 +97,7 @@ mod tests {
             account_type,
             AccountTypeV2::StandardRoleAssociated {
                 tenant_id: Uuid::from_u128(0),
-                role_name: ActorName::CustomRole("test".to_string()),
+                role_name: SystemActor::CustomRole("test".to_string()),
                 role_id: Uuid::from_u128(0),
             }
         );

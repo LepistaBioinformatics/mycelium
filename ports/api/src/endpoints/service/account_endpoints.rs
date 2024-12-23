@@ -22,7 +22,8 @@ use utoipa::ToSchema;
 
 pub fn configure(config: &mut web::ServiceConfig) {
     config.service(
-        web::scope("/accounts").service(create_subscription_account_url),
+        web::scope("/accounts")
+            .service(create_subscription_account_from_service_url),
     );
 }
 
@@ -83,8 +84,8 @@ pub struct CreateSubscriptionAccountBody {
     ),
     security(("ConnectionString" = [])),
 )]
-#[post("/")]
-pub async fn create_subscription_account_url(
+#[post("")]
+pub async fn create_subscription_account_from_service_url(
     body: web::Json<CreateSubscriptionAccountBody>,
     connection_string: MyceliumTenantScopedConnectionStringData,
     account_registration_repo: Inject<

@@ -2889,12 +2889,13 @@ version = "6.2.0"
 dependencies = [
  "actix-web",
  "async-trait",
- "env_logger 0.10.2",
  "log",
  "myc-core",
  "mycelium-base",
  "mycelium-config",
  "shaku",
+ "tracing",
+ "uuid",
  "wildmatch",
 ]
 
@@ -6012,6 +6013,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8c5f0a0af699448548ad1a2fbf920fb4bee257eae39953ba95cb84891a0446a"
 dependencies = [
  "getrandom 0.2.15",
+ "md-5",
  "rand 0.8.5",
  "serde",
 ]
