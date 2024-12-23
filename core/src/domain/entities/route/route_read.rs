@@ -2,6 +2,7 @@ use crate::domain::dtos::route::Route;
 
 use actix_web::http::uri::PathAndQuery;
 use async_trait::async_trait;
+use mycelium_base::entities::FetchResponseKind;
 use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
@@ -15,7 +16,7 @@ pub trait RoutesFetching: Interface + Send + Sync {
     async fn get(
         &self,
         path: PathAndQuery,
-    ) -> Result<FetchManyResponseKind<Route>, MappedErrors>;
+    ) -> Result<FetchResponseKind<Route, String>, MappedErrors>;
 
     async fn list_by_service(
         &self,

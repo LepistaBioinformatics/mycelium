@@ -10,18 +10,16 @@ use myc_core::{
         dtos::{http::HttpMethod, route_type::RouteType},
         entities::RoutesFetching,
     },
-    use_cases::roles::role_scoped::gateway_manager::route::{
-        match_forward_address, MatchRouteResponse,
-    },
+    use_cases::roles::role_scoped::gateway_manager::route::match_forward_address,
 };
 use myc_http_tools::{
     responses::GatewayError,
     settings::{DEFAULT_PROFILE_KEY, FORWARDING_KEYS, FORWARD_FOR_KEY},
 };
-use mycelium_base::dtos::Parent;
+use mycelium_base::{dtos::Parent, entities::FetchResponseKind};
 use shaku_actix::Inject;
 use std::{str::FromStr, time::Duration};
-use tracing::{debug, error, trace, warn};
+use tracing::{error, trace, warn};
 use url::Url;
 
 /// Forward request to the client service.
@@ -90,10 +88,10 @@ pub(crate) async fn route_request(
             )));
         }
         Ok(res) => {
-            debug!("match routes res: {:?}", res);
+            trace!("match routes res: {:?}", res);
 
             match res {
-                MatchRouteResponse::Found(route) => route,
+                FetchResponseKind::Found(route) => route,
                 _ => {
                     return Err(GatewayError::BadRequest(String::from(
                         "Request path does not match any service",
