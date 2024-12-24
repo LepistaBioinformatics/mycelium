@@ -1,2 +1,2 @@
-pub mod env_or_value;
+pub mod secret_resolver;
 pub mod optional_config;
