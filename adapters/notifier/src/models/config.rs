@@ -1,6 +1,6 @@
 use myc_config::{
-    env_or_value::EnvOrValue, load_config_from_file,
-    optional_config::OptionalConfig,
+    load_config_from_file, optional_config::OptionalConfig,
+    secret_resolver::SecretResolver,
 };
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
 use serde::Deserialize;
@@ -10,16 +10,16 @@ use std::path::PathBuf;
 #[serde(rename_all = "camelCase")]
 pub struct SmtpConfig {
     pub host: String,
-    pub username: EnvOrValue<String>,
-    pub password: EnvOrValue<String>,
+    pub username: SecretResolver<String>,
+    pub password: SecretResolver<String>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueueConfig {
     pub protocol: String,
-    pub hostname: EnvOrValue<String>,
-    pub password: EnvOrValue<String>,
+    pub hostname: SecretResolver<String>,
+    pub password: SecretResolver<String>,
     pub email_queue_name: String,
     pub consume_interval_in_secs: u64,
 }

@@ -1,4 +1,4 @@
-use myc_config::env_or_value::EnvOrValue;
+use myc_config::secret_resolver::SecretResolver;
 use mycelium_base::utils::errors::MappedErrors;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -30,18 +30,18 @@ pub struct AccountLifeCycle {
     pub noreply_name: Option<String>,
 
     /// General Purpose email
-    pub noreply_email: EnvOrValue<String>,
+    pub noreply_email: SecretResolver<String>,
 
     /// Support email name
     pub support_name: Option<String>,
 
     /// Support email
-    pub support_email: EnvOrValue<String>,
+    pub support_email: SecretResolver<String>,
 
     /// Token secret
     ///
     /// Toke secret is used to sign tokens
-    pub(crate) token_secret: EnvOrValue<Uuid>,
+    pub(crate) token_secret: SecretResolver<Uuid>,
 }
 
 impl AccountLifeCycle {
