@@ -20,6 +20,13 @@ pub const DEFAULT_PROFILE_KEY: &str = "x-mycelium-profile";
 ///
 pub const DEFAULT_MYCELIUM_ROLE_KEY: &str = "x-mycelium-role";
 
+/// Default request id key
+///
+/// This is the default key used to store the request id in the request headers
+/// and send it to the gateway downstream services.
+///
+pub const DEFAULT_REQUEST_ID_KEY: &str = "x-mycelium-request-id";
+
 /// Default connection string key
 ///
 /// This is the default key used to store the connection string in the request

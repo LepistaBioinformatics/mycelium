@@ -7,14 +7,19 @@ use actix_web::{
 use awc::Client;
 use myc_core::{
     domain::{
-        dtos::{http::HttpMethod, route_type::RouteType},
+        dtos::{
+            http::HttpMethod, http_secret::HttpSecret, route_type::RouteType,
+        },
         entities::RoutesFetching,
     },
     use_cases::roles::role_scoped::gateway_manager::route::match_forward_address,
 };
 use myc_http_tools::{
     responses::GatewayError,
-    settings::{DEFAULT_PROFILE_KEY, FORWARDING_KEYS, FORWARD_FOR_KEY},
+    settings::{
+        DEFAULT_PROFILE_KEY, DEFAULT_REQUEST_ID_KEY, FORWARDING_KEYS,
+        FORWARD_FOR_KEY,
+    },
 };
 use mycelium_base::{dtos::Parent, entities::FetchResponseKind};
 use shaku_actix::Inject;
@@ -35,9 +40,7 @@ use url::Url;
 #[tracing::instrument(
     name = "route_request", 
     skip_all,
-    fields(
-        routing_time = tracing::field::Empty,
-    )
+    fields(myc.requestId = tracing::field::Empty)
 )]
 pub(crate) async fn route_request(
     req: HttpRequest,
@@ -47,6 +50,15 @@ pub(crate) async fn route_request(
     routing_fetching_repo: Inject<RoutesFetchingModule, dyn RoutesFetching>,
 ) -> Result<HttpResponse, GatewayError> {
     let replace_path = &format!("/{}", GATEWAY_API_SCOPE);
+
+    // ? -----------------------------------------------------------------------
+    // ? Set the request id to the current span
+    // ? -----------------------------------------------------------------------
+
+    if let Some(request_id) = req.headers().get(DEFAULT_REQUEST_ID_KEY) {
+        tracing::Span::current()
+            .record("myc.requestId", &Some(request_id.to_str().unwrap()));
+    }
 
     // ? -----------------------------------------------------------------------
     // ? Try to match the forward address
@@ -75,7 +87,7 @@ pub(crate) async fn route_request(
     };
 
     let route = match match_forward_address(
-        request_path,
+        request_path.to_owned(),
         Box::new(&*routing_fetching_repo),
     )
     .await
@@ -87,18 +99,26 @@ pub(crate) async fn route_request(
                 "Invalid client service",
             )));
         }
-        Ok(res) => {
-            trace!("match routes res: {:?}", res);
+        Ok(res) => match res {
+            FetchResponseKind::Found(route) => {
+                trace!(
+                    "[ {request_path} ]: {service} -> {path}",
+                    request_path = request_path.path(),
+                    service = match route.service {
+                        Parent::Record(ref service) => service.name.to_owned(),
+                        Parent::Id(id) => id.to_string(),
+                    },
+                    path = route.path.to_owned()
+                );
 
-            match res {
-                FetchResponseKind::Found(route) => route,
-                _ => {
-                    return Err(GatewayError::BadRequest(String::from(
-                        "Request path does not match any service",
-                    )))
-                }
+                route
             }
-        }
+            _ => {
+                return Err(GatewayError::BadRequest(String::from(
+                    "Request path does not match any service",
+                )))
+            }
+        },
     };
 
     // ? -----------------------------------------------------------------------
@@ -291,6 +311,74 @@ pub(crate) async fn route_request(
     // Submit the request and stream the response to the requester.
     // ? -----------------------------------------------------------------------
 
+    trace!("Injecting downstream secret into request");
+
+    let route_secret = match route.solve_secret() {
+        Err(err) => {
+            warn!("{:?}", err);
+            return Err(GatewayError::InternalServerError(format!("{err}")));
+        }
+        Ok(res) => res,
+    };
+
+    if let Some(secret) = route_secret {
+        match secret {
+            //
+            // Insert the authorization key into the header
+            //
+            HttpSecret::AuthorizationHeader {
+                name,
+                prefix,
+                token,
+            } => {
+                //
+                // Build the bearer token
+                //
+                let mut bearer_token = prefix.unwrap_or("Bearer".to_string());
+                bearer_token.push_str(format!(" {}", token).as_str());
+                let bearer_name = name.unwrap_or("Authorization".to_string());
+
+                //
+                // Remove any previous Authorization header that may exist
+                //
+                forwarded_req.headers_mut().remove(bearer_name.to_owned());
+                forwarded_req
+                    .headers_mut()
+                    .remove(bearer_name.to_lowercase().to_owned());
+                forwarded_req
+                    .headers_mut()
+                    .remove(bearer_name.to_uppercase().to_owned());
+
+                //
+                // Insert the new Authorization header
+                //
+                forwarded_req =
+                    forwarded_req.insert_header((bearer_name, bearer_token));
+            }
+            //
+            // Insert the query parameter into the header
+            //
+            HttpSecret::QueryParameter { name, token } => {
+                forwarded_req =
+                    match forwarded_req.query(&[(name, token.to_owned())]) {
+                        Err(err) => {
+                            warn!("{:?}", err);
+                            return Err(GatewayError::InternalServerError(
+                                format!("{err}"),
+                            ));
+                        }
+                        Ok(res) => res,
+                    };
+            }
+        }
+    };
+
+    // ? -----------------------------------------------------------------------
+    // ? Build the downstream url if the address has match.
+    //
+    // Submit the request and stream the response to the requester.
+    // ? -----------------------------------------------------------------------
+
     trace!("Forwarding request to service");
 
     let binding_response = match forwarded_req
@@ -316,12 +404,13 @@ pub(crate) async fn route_request(
     //
     // Both headers contain sensitive information about the system internals.
     // Thus, be careful on edit this section.
+    let mut headers = FORWARDING_KEYS.to_vec();
+    headers.append(&mut vec![FORWARD_FOR_KEY, DEFAULT_PROFILE_KEY]);
+
     for (header_name, header_value) in
         binding_response.headers().iter().filter(|(h, _)| {
-            let mut headers = FORWARDING_KEYS.to_vec();
-            headers.append(&mut vec![FORWARD_FOR_KEY, DEFAULT_PROFILE_KEY]);
-
             headers
+                .to_owned()
                 .into_iter()
                 .map(|h| h.to_lowercase())
                 .collect::<Vec<String>>()

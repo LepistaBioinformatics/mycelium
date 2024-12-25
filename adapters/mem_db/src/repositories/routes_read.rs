@@ -53,7 +53,7 @@ impl RoutesFetching for RoutesFetchingMemDbRepo {
 
                 // Check the match between the registered route and the
                 // requested route.
-                let path_match = WildMatch::new(&route.downstream_url.as_str())
+                let path_match = WildMatch::new(&route.path.as_str())
                     .matches(rest.as_str());
 
                 // Check the match between the registered service name and the

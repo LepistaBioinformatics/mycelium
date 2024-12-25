@@ -1,26 +1,55 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{
+    get, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
+};
 use myc_http_tools::dtos::gateway_profile_data::GatewayProfileData;
 use serde::Deserialize;
 use std::env::var_os;
 
-#[get("/")]
-async fn default_public() -> impl Responder {
+// ? ---------------------------------------------------------------------------
+// ? Public Route
+// ? ---------------------------------------------------------------------------
+
+#[get("")]
+async fn public() -> impl Responder {
     HttpResponse::Ok().body("success")
 }
 
-#[get("/")]
+// ? ---------------------------------------------------------------------------
+// ? Protected Route
+// ? ---------------------------------------------------------------------------
+
+#[get("")]
 async fn protected(profile: GatewayProfileData) -> impl Responder {
     println!("{:?}", profile);
 
     HttpResponse::Ok().body("success")
 }
 
-#[get("/")]
+// ? ---------------------------------------------------------------------------
+// ? Role Protected Route
+// ? ---------------------------------------------------------------------------
+
+#[get("")]
 async fn role_protected(profile: GatewayProfileData) -> impl Responder {
     println!("{:?}", profile);
 
     HttpResponse::Ok().body("success")
 }
+
+// ? ---------------------------------------------------------------------------
+// ? Expects Header Route
+// ? ---------------------------------------------------------------------------
+
+#[get("")]
+async fn expects_header(req: HttpRequest) -> impl Responder {
+    println!("Headers: {:?}", req.headers());
+
+    HttpResponse::Ok().body("success")
+}
+
+// ? ---------------------------------------------------------------------------
+// ? Webhook Route
+// ? ---------------------------------------------------------------------------
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -30,7 +59,7 @@ pub struct WebHookBody {
     pub created: String,
 }
 
-#[post("/")]
+#[post("")]
 async fn webhook(body: web::Json<WebHookBody>) -> impl Responder {
     println!("{:?}", body);
 
@@ -49,10 +78,11 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
-            .service(web::scope("/public").service(default_public))
+            .service(web::scope("/public").service(public))
             .service(web::scope("/protected").service(protected))
             .service(web::scope("/role-protected").service(role_protected))
             .service(web::scope("/webhook").service(webhook))
+            .service(web::scope("/expects-header").service(expects_header))
     })
     .bind(address)?
     .run()
