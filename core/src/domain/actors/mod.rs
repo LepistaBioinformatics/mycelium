@@ -5,6 +5,11 @@ use std::{
 };
 use utoipa::ToSchema;
 
+/// The System Actors
+///
+/// Standard actors used to validate operations during the authorization process
+/// in system use-cases.
+///
 #[derive(Debug, Clone, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum SystemActor {

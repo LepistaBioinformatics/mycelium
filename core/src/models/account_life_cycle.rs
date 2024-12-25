@@ -1,7 +1,6 @@
 use myc_config::secret_resolver::SecretResolver;
 use mycelium_base::utils::errors::MappedErrors;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 /// This struct is used to manage the token secret and the token expiration
 /// times.
@@ -41,11 +40,11 @@ pub struct AccountLifeCycle {
     /// Token secret
     ///
     /// Toke secret is used to sign tokens
-    pub(crate) token_secret: SecretResolver<Uuid>,
+    pub(crate) token_secret: SecretResolver<String>,
 }
 
 impl AccountLifeCycle {
-    pub fn get_secret(&self) -> Result<Uuid, MappedErrors> {
+    pub fn get_secret(&self) -> Result<String, MappedErrors> {
         self.token_secret.get_or_error()
     }
 }

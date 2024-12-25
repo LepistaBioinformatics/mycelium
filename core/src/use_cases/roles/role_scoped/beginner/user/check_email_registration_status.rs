@@ -17,8 +17,8 @@ pub struct RegisteredWithProvider {
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum EmailRegistrationStatus {
-    RegisteredAndInternal(RegisteredWithProvider),
-    RegisteredButExternal(RegisteredWithProvider),
+    RegisteredWithInternalProvider(RegisteredWithProvider),
+    RegisteredWithExternalProvider(RegisteredWithProvider),
     WaitingActivation(String),
     NotRegistered(String),
 }
@@ -70,13 +70,13 @@ pub async fn check_email_registration_status(
     match user.has_provider_or_error() {
         Err(err) => return Err(err),
         Ok(res) => match res {
-            false => Ok(RegisteredButExternal(registered_user)),
+            false => Ok(RegisteredWithExternalProvider(registered_user)),
             true => {
                 if !user.is_active {
                     return Ok(WaitingActivation(email.get_email()));
                 }
 
-                Ok(RegisteredAndInternal(registered_user))
+                Ok(RegisteredWithInternalProvider(registered_user))
             }
         },
     }

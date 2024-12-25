@@ -4,7 +4,7 @@ use crate::modifiers::security::MyceliumSecurity;
 use myc_core::domain::dtos::{
     account, account_type, email, error_code, guest_role, guest_user, profile,
     role, tag, tenant, user, webhook, route, service as service_dtos, 
-    http_secret, service_secret
+    http_secret
 };
 use myc_http_tools::providers::{azure_endpoints, google_endpoints};
 use myc_http_tools::{utils::HttpJsonResponse, SystemActor};
@@ -591,8 +591,6 @@ struct UsersManagerAccountApiDoc;
             profile::LicensedResource,
             profile::Profile,
             service_dtos::Service, 
-            service_secret::ServiceSecret,
-            service_secret::SecretReference,
             role::Role,
             route::Route, 
             tag::Tag,

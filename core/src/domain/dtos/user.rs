@@ -150,7 +150,15 @@ impl Totp {
         // Create a key from the account's secret
         //
         let encryption_key = config.get_secret()?;
-        let key_bytes = derive_key_from_uuid(&encryption_key);
+        let encryption_key_uuid = match Uuid::parse_str(&encryption_key) {
+            Ok(uuid) => uuid,
+            Err(err) => {
+                error!("Failed to parse encryption key: {:?}", err);
+                return dto_err("Failed to parse encryption key").as_error();
+            }
+        };
+
+        let key_bytes = derive_key_from_uuid(&encryption_key_uuid);
 
         let unbound_key = match UnboundKey::new(&AES_256_GCM, &key_bytes) {
             Ok(key) => key,
@@ -235,7 +243,15 @@ impl Totp {
         // Create a key from the account's secret
         //
         let encryption_key = config.get_secret()?;
-        let key_bytes = derive_key_from_uuid(&encryption_key);
+        let encryption_key_uuid = match Uuid::parse_str(&encryption_key) {
+            Ok(uuid) => uuid,
+            Err(err) => {
+                error!("Failed to parse encryption key: {:?}", err);
+                return dto_err("Failed to parse encryption key").as_error();
+            }
+        };
+
+        let key_bytes = derive_key_from_uuid(&encryption_key_uuid);
 
         let unbound_key = match UnboundKey::new(&AES_256_GCM, &key_bytes) {
             Ok(key) => key,
@@ -579,7 +595,7 @@ mod tests {
     use super::*;
     use crate::models::AccountLifeCycle;
 
-    use myc_config::env_or_value::EnvOrValue;
+    use myc_config::secret_resolver::SecretResolver;
 
     #[test]
     fn test_encrypt_and_decrypt_totp_secret() {
@@ -597,10 +613,10 @@ mod tests {
             locale: None,
             token_expiration: 30,
             noreply_name: None,
-            noreply_email: EnvOrValue::Value("test".to_string()),
+            noreply_email: SecretResolver::Value("test".to_string()),
             support_name: None,
-            support_email: EnvOrValue::Value("test".to_string()),
-            token_secret: EnvOrValue::Value(Uuid::new_v4()),
+            support_email: SecretResolver::Value("test".to_string()),
+            token_secret: SecretResolver::Value("test".to_string()),
         };
 
         let encrypted = totp.encrypt_me(config.to_owned());
