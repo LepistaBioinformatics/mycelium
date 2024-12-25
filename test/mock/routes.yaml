@@ -87,12 +87,11 @@ services:
       name: Authorization
       prefix: Bearer
       token: "my-secret-01"
-
   #
   # Environment variable definition
   #
-  - name: test-service-01-query-token-02
-    env: MY_SECRET_02
+  #- name: test-service-01-query-token-02
+  #  env: MY_SECRET_02
   #
   # Vault secret definition
   #
