@@ -186,5 +186,6 @@ services:
     secretName: test-service-01-authorization-header-token
     path: /expects-header*
     protocol: http
+    acceptInsecureRouting: true
     methods:
     - GET

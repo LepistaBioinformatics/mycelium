@@ -309,13 +309,14 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     info!("Set the server configuration");
     let server = HttpServer::new(move || {
-        let api_config = config.api.clone();
+        let local_api_config = config.api.clone();
+        let forward_api_config = config.api.clone();
         let auth_config = config.auth.clone();
         let token_config = config.core.account_life_cycle.clone();
 
         let cors = Cors::default()
             .allowed_origin_fn(move |origin, _| {
-                api_config
+                local_api_config
                     .allowed_origins
                     .contains(&origin.to_str().unwrap_or("").to_string())
             })
@@ -566,7 +567,8 @@ pub async fn main() -> std::io::Result<()> {
             // ? Configure gateway routes
             // ? ---------------------------------------------------------------
             .app_data(web::Data::new(Client::default()))
-            .app_data(web::Data::new(api_config.gateway_timeout))
+            .app_data(web::Data::new(local_api_config.gateway_timeout))
+            .app_data(web::Data::new(forward_api_config.to_owned()).clone())
             .service(
                 web::scope(&format!("/{}", GATEWAY_API_SCOPE))
                     //

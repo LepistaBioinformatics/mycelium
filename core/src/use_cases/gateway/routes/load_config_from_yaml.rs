@@ -41,6 +41,7 @@ struct TempRouteDTO {
     pub protocol: Protocol,
     pub allowed_sources: Option<Vec<String>>,
     pub secret_name: Option<String>,
+    pub accept_insecure_routing: Option<bool>,
 }
 
 /// Load configuration from YAML file
@@ -156,6 +157,7 @@ pub async fn load_config_from_yaml(
                             r.protocol,
                             r.allowed_sources,
                             r.secret_name,
+                            r.accept_insecure_routing,
                         )
                     })
                     .collect::<Vec<Route>>(),

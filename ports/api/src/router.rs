@@ -1,14 +1,21 @@
 use super::middleware::fetch_and_inject_profile_to_forward;
-use crate::{modules::RoutesFetchingModule, settings::GATEWAY_API_SCOPE};
-
-use actix_web::{
-    error, http::uri::PathAndQuery, web, HttpRequest, HttpResponse,
+use crate::{
+    models::api_config::ApiConfig, modules::RoutesFetchingModule,
+    settings::GATEWAY_API_SCOPE,
 };
-use awc::Client;
+
+use actix_web::{http::uri::PathAndQuery, web, HttpRequest, HttpResponse};
+use awc::{
+    error::{ConnectError, SendRequestError},
+    Client,
+};
+use myc_config::optional_config::OptionalConfig;
 use myc_core::{
     domain::{
         dtos::{
-            http::HttpMethod, http_secret::HttpSecret, route_type::RouteType,
+            http::{HttpMethod, Protocol},
+            http_secret::HttpSecret,
+            route_type::RouteType,
         },
         entities::RoutesFetching,
     },
@@ -46,6 +53,7 @@ pub(crate) async fn route_request(
     req: HttpRequest,
     payload: web::Payload,
     client: web::Data<Client>,
+    api_config: web::Data<ApiConfig>,
     timeout: web::Data<u64>,
     routing_fetching_repo: Inject<RoutesFetchingModule, dyn RoutesFetching>,
 ) -> Result<HttpResponse, GatewayError> {
@@ -324,6 +332,38 @@ pub(crate) async fn route_request(
     let mut route_key = None;
 
     if let Some(secret) = route_secret {
+        let accept_insecure_routing =
+            route.accept_insecure_routing.unwrap_or(false);
+
+        //
+        // Check if the service supports TLS
+        //
+        if let OptionalConfig::Disabled = api_config.tls {
+            if !accept_insecure_routing {
+                error!("Secrets are only allowed for HTTPS routes");
+
+                return Err(GatewayError::InternalServerError(
+                    "Unexpected error on route request".to_string(),
+                ));
+            }
+        }
+
+        //
+        // Check if the route supports HTTPS
+        //
+        if ![Protocol::Https].contains(&route.protocol) {
+            if !accept_insecure_routing {
+                error!(
+                    "Secrets are only allowed for HTTPS routes: {path}",
+                    path = route.path
+                );
+
+                return Err(GatewayError::InternalServerError(
+                    "Unexpected error on route request".to_string(),
+                ));
+            }
+        }
+
         match secret {
             //
             // Insert the authorization key into the header
@@ -384,18 +424,48 @@ pub(crate) async fn route_request(
 
     trace!("Forwarding request to service");
 
-    let binding_response = match forwarded_req
-        .send_stream(payload)
-        .await
-        .map_err(error::ErrorInternalServerError)
-    {
-        Err(err) => {
-            warn!("Error on route/stream to service: {err}");
+    let binding_response = match forwarded_req.send_stream(payload).await {
+        Err(err) => match err {
+            SendRequestError::Connect(e) => {
+                match e {
+                    ConnectError::SslIsNotSupported => {
+                        warn!("SSL is not supported");
 
-            return Err(GatewayError::InternalServerError(String::from(
-                format!("{err}"),
-            )));
-        }
+                        return Err(GatewayError::InternalServerError(
+                            "SSL is not supported".to_string(),
+                        ));
+                    }
+                    ConnectError::SslError(e) => {
+                        warn!("SSL error: {e}");
+
+                        return Err(GatewayError::InternalServerError(
+                            "SSL error".to_string(),
+                        ));
+                    }
+                    _ => (),
+                }
+
+                warn!("Error on route/connect to service: {e}");
+
+                return Err(GatewayError::InternalServerError(String::from(
+                    "Unexpected error on route request",
+                )));
+            }
+            SendRequestError::Url(e) => {
+                warn!("Error on route/url to service: {e}");
+
+                return Err(GatewayError::InternalServerError(String::from(
+                    format!("{e}"),
+                )));
+            }
+            err => {
+                warn!("Error on route/stream to service: {err}");
+
+                return Err(GatewayError::InternalServerError(String::from(
+                    format!("{err}"),
+                )));
+            }
+        },
         Ok(res) => res,
     };
 

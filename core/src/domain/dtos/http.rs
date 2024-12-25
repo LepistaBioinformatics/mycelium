@@ -89,7 +89,17 @@ impl FromStr for HttpMethod {
     }
 }
 
-#[derive(Debug, Clone, Copy, Deserialize, Serialize, ToSchema, ToResponse)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Deserialize,
+    Serialize,
+    ToSchema,
+    ToResponse,
+    PartialEq,
+    Eq,
+)]
 #[serde(rename_all = "camelCase")]
 pub enum Protocol {
     Http,
