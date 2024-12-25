@@ -23,8 +23,12 @@ services:
     - 200
 
   secrets:
-  - !name secret-01
-  - !id 70f2b105-e154-4e1b-bd1b-fded195123c5
+  - name: test-service-01-query-token
+    queryParameter:
+      name: "token"
+      token: "my-secret-01"
+  - name: test-service-01-query-token-02
+    env: MY_SECRET_02
 
   routes:
   - group: public
@@ -32,6 +36,7 @@ services:
     - GET
     downstreamUrl: /public/*
     protocol: http
+    secretName: test-service-01-query-token-02
 
   - group: protected
     methods:

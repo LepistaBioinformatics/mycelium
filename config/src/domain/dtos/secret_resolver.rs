@@ -1,13 +1,14 @@
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, str::FromStr};
+use utoipa::ToSchema;
 
 /// A secret resolver
 ///
 /// The secret resolver is a way to resolve a secret value from different
 /// sources.
 ///
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum SecretResolver<T> {
     /// Retrieve the value from the environment variable

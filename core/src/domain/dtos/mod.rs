@@ -15,7 +15,6 @@ pub mod role;
 pub mod route;
 pub mod route_type;
 pub mod service;
-pub mod service_secret;
 pub mod tag;
 pub mod tenant;
 pub mod token;

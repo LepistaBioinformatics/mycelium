@@ -2852,6 +2852,7 @@ dependencies = [
  "serde",
  "serde_yaml",
  "tokio",
+ "utoipa",
 ]
 
 [[package]]

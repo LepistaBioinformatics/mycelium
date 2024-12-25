@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::{domain::utils::derive_key_from_uuid, models::AccountLifeCycle};
 
 use base64::{engine::general_purpose, Engine};
@@ -9,6 +11,7 @@ use ring::{
 use serde::{Deserialize, Serialize};
 use tracing::error;
 use utoipa::ToSchema;
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -100,7 +103,15 @@ impl HttpSecret {
         // Create a key from the account's secret
         //
         let encryption_key = config.get_secret()?;
-        let key_bytes = derive_key_from_uuid(&encryption_key);
+        let encryption_key_uuid = match Uuid::parse_str(&encryption_key) {
+            Ok(uuid) => uuid,
+            Err(err) => {
+                error!("Failed to parse encryption key: {:?}", err);
+                return dto_err("Failed to parse encryption key").as_error();
+            }
+        };
+
+        let key_bytes = derive_key_from_uuid(&encryption_key_uuid);
 
         let unbound_key = match UnboundKey::new(&AES_256_GCM, &key_bytes) {
             Ok(key) => key,
@@ -186,7 +197,15 @@ impl HttpSecret {
         // Create a key from the account's secret
         //
         let encryption_key = config.get_secret()?;
-        let key_bytes = derive_key_from_uuid(&encryption_key);
+        let encryption_key_uuid = match Uuid::parse_str(&encryption_key) {
+            Ok(uuid) => uuid,
+            Err(err) => {
+                error!("Failed to parse encryption key: {:?}", err);
+                return dto_err("Failed to parse encryption key").as_error();
+            }
+        };
+
+        let key_bytes = derive_key_from_uuid(&encryption_key_uuid);
 
         let unbound_key = match UnboundKey::new(&AES_256_GCM, &key_bytes) {
             Ok(key) => key,
@@ -292,5 +311,28 @@ impl HttpSecret {
                 *token = redacted_word;
             }
         }
+    }
+}
+
+impl FromStr for HttpSecret {
+    type Err = MappedErrors;
+
+    /// Parse the secret from a string
+    ///
+    /// Try to parse from JSON and YAML. If none of them work, return an error.
+    ///
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let json_try = serde_json::from_str::<HttpSecret>(s);
+        let yaml_try = serde_yaml::from_str::<HttpSecret>(s);
+
+        if let Ok(secret) = json_try {
+            return Ok(secret);
+        }
+
+        if let Ok(secret) = yaml_try {
+            return Ok(secret);
+        }
+
+        dto_err("Failed to parse secret").as_error()
     }
 }

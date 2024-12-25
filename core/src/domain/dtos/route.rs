@@ -37,6 +37,10 @@ pub struct Route {
     /// The route is active
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allowed_sources: Option<Vec<String>>,
+
+    /// The route secret name if it exists
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub secret_name: Option<String>,
 }
 
 impl Route {
@@ -48,6 +52,7 @@ impl Route {
         downstream_url: String,
         protocol: Protocol,
         allowed_sources: Option<Vec<String>>,
+        secret_name: Option<String>,
     ) -> Self {
         Self {
             id: match id {
@@ -74,6 +79,7 @@ impl Route {
             downstream_url,
             protocol,
             allowed_sources,
+            secret_name,
         }
     }
 

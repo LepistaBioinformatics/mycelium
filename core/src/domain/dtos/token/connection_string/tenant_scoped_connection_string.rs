@@ -241,7 +241,7 @@ mod tests {
     use super::*;
     use crate::domain::dtos::{email::Email, guest_role::Permission};
 
-    use myc_config::env_or_value::EnvOrValue;
+    use myc_config::secret_resolver::SecretResolver;
 
     /// Test new signed token
     ///
@@ -256,10 +256,10 @@ mod tests {
             locale: None,
             token_expiration: 30,
             noreply_name: None,
-            noreply_email: EnvOrValue::Value("test".to_string()),
+            noreply_email: SecretResolver::Value("test".to_string()),
             support_name: None,
-            support_email: EnvOrValue::Value("test".to_string()),
-            token_secret: EnvOrValue::Value(Uuid::new_v4()),
+            support_email: SecretResolver::Value("test".to_string()),
+            token_secret: SecretResolver::Value("test".to_string()),
         };
 
         let role_scope = TenantWithPermissionsScope::new(

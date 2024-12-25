@@ -22,6 +22,7 @@ mycelium-base = { version = "6.2.0", path = "../base" }
 
 serde.workspace = true
 serde_yaml.workspace = true
+utoipa.workspace = true
 
 [dev-dependencies]
 tokio.workspace = true
