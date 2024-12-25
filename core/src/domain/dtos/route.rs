@@ -42,6 +42,14 @@ pub struct Route {
     /// The route secret name if it exists
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret_name: Option<String>,
+
+    /// The route without tls
+    ///
+    /// This field should be evaluated if the route should request a secret to
+    /// be send to the downstream service, if the route is not secure.
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub accept_insecure_routing: Option<bool>,
 }
 
 impl Route {
@@ -54,6 +62,7 @@ impl Route {
         protocol: Protocol,
         allowed_sources: Option<Vec<String>>,
         secret_name: Option<String>,
+        route_without_tls: Option<bool>,
     ) -> Self {
         Self {
             id: match id {
@@ -81,6 +90,7 @@ impl Route {
             protocol,
             allowed_sources,
             secret_name,
+            accept_insecure_routing: route_without_tls,
         }
     }
 
