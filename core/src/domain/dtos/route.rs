@@ -1,5 +1,6 @@
 use super::{
     http::{HttpMethod, Protocol},
+    http_secret::HttpSecret,
     route_type::RouteType,
     service::Service,
 };
@@ -7,7 +8,7 @@ use super::{
 use actix_web::http::{uri::PathAndQuery, Uri};
 use mycelium_base::{
     dtos::Parent,
-    utils::errors::{execution_err, MappedErrors},
+    utils::errors::{dto_err, execution_err, MappedErrors},
 };
 use serde::{Deserialize, Serialize};
 use utoipa::{ToResponse, ToSchema};
@@ -29,7 +30,7 @@ pub struct Route {
     pub methods: Vec<HttpMethod>,
 
     /// The route url
-    pub downstream_url: String,
+    pub path: String,
 
     /// The route protocol
     pub protocol: Protocol,
@@ -76,7 +77,7 @@ impl Route {
             service: Parent::Record(service),
             group,
             methods,
-            downstream_url,
+            path: downstream_url,
             protocol,
             allowed_sources,
             secret_name,
@@ -118,7 +119,7 @@ impl Route {
         match Uri::builder()
             .scheme(self.protocol.to_string().as_str())
             .authority(domain)
-            .path_and_query(self.downstream_url.as_str())
+            .path_and_query(self.path.as_str())
             .build()
         {
             Err(err) => {
@@ -172,5 +173,47 @@ impl Route {
             }
             Ok(res) => Ok(res),
         }
+    }
+
+    pub fn solve_secret(&self) -> Result<Option<HttpSecret>, MappedErrors> {
+        if let Some(secret_name) = &self.secret_name {
+            match self.service.to_owned() {
+                Parent::Id(_) => {
+                    return dto_err(format!(
+                        "Unable to solve secret (invalid service object): {secret_name}",
+                        secret_name = secret_name
+                    ))
+                    .as_error();
+                }
+                Parent::Record(service) => match service.secrets {
+                    Some(secret) => {
+                        match secret.iter().find(|s| s.name == *secret_name) {
+                            Some(secret) => {
+                                let secret_resolver = &secret.secret;
+                                let secret = secret_resolver.get_or_error()?;
+
+                                return Ok(Some(secret));
+                            }
+                            None => {
+                                return dto_err(format!(
+                                    "Unable to solve secret (secret not available): {secret_name}",
+                                    secret_name = secret_name
+                                ))
+                                .as_error();
+                            }
+                        }
+                    }
+                    None => {
+                        return dto_err(format!(
+                            "Unable to solve secret (service secrets is empty): {secret_name}",
+                            secret_name = secret_name
+                        ))
+                        .as_error();
+                    }
+                },
+            };
+        }
+
+        Ok(None)
     }
 }

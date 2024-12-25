@@ -89,7 +89,7 @@ pub enum HttpSecret {
     //
 }
 
-fn default_authorization_key() -> Option<String> {
+pub fn default_authorization_key() -> Option<String> {
     Some("Authorization".to_string())
 }
 

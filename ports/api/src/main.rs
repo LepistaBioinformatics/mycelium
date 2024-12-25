@@ -18,7 +18,7 @@ use actix_web::{
 };
 use actix_web_opentelemetry::RequestTracing;
 use api_docs::ApiDoc;
-use awc::Client;
+use awc::{error::HeaderValue, Client};
 use config::injectors::configure as configure_injection_modules;
 use core::panic;
 use endpoints::{
@@ -39,13 +39,17 @@ use models::{
 };
 use myc_config::optional_config::OptionalConfig;
 use myc_core::{domain::dtos::http::Protocol, settings::init_in_memory_routes};
-use myc_http_tools::providers::{azure_endpoints, google_endpoints};
+use myc_http_tools::{
+    providers::{azure_endpoints, google_endpoints},
+    settings::DEFAULT_REQUEST_ID_KEY,
+};
 use myc_notifier::{
     executor::consume_messages,
     repositories::MessageSendingSmtpRepository,
     settings::{init_queue_config_from_file, init_smtp_config_from_file},
 };
 use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
+use oauth2::http::HeaderName;
 use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
 use opentelemetry::trace::TracerProvider;
 use opentelemetry_otlp::WithExportConfig;
@@ -66,6 +70,7 @@ use tracing_subscriber::{fmt, EnvFilter};
 use utoipa::OpenApi;
 use utoipa_redoc::{FileConfig, Redoc, Servable};
 use utoipa_swagger_ui::{oauth, Config, SwaggerUi};
+use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
 // ? API fire elements
@@ -564,6 +569,24 @@ pub async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(api_config.gateway_timeout))
             .service(
                 web::scope(&format!("/{}", GATEWAY_API_SCOPE))
+                    //
+                    // Inject a request ID to downstream services
+                    //
+                    .wrap_fn(|mut req, srv| {
+                        req.headers_mut().insert(
+                            HeaderName::from_str(DEFAULT_REQUEST_ID_KEY)
+                                .unwrap(),
+                            HeaderValue::from_str(
+                                Uuid::new_v4().to_string().as_str(),
+                            )
+                            .unwrap(),
+                        );
+
+                        srv.call(req)
+                    })
+                    //
+                    // Route to default route
+                    //
                     .default_service(web::to(route_request)),
             )
     });
