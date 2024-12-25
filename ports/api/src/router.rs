@@ -321,6 +321,8 @@ pub(crate) async fn route_request(
         Ok(res) => res,
     };
 
+    let mut route_key = None;
+
     if let Some(secret) = route_secret {
         match secret {
             //
@@ -337,6 +339,7 @@ pub(crate) async fn route_request(
                 let mut bearer_token = prefix.unwrap_or("Bearer".to_string());
                 bearer_token.push_str(format!(" {}", token).as_str());
                 let bearer_name = name.unwrap_or("Authorization".to_string());
+                route_key = Some(bearer_name.to_owned());
 
                 //
                 // Remove any previous Authorization header that may exist
@@ -404,9 +407,38 @@ pub(crate) async fn route_request(
     //
     // Both headers contain sensitive information about the system internals.
     // Thus, be careful on edit this section.
-    let mut headers = FORWARDING_KEYS.to_vec();
-    headers.append(&mut vec![FORWARD_FOR_KEY, DEFAULT_PROFILE_KEY]);
 
+    //
+    // Start the headers with the route key if exists
+    //
+    let mut headers = if let Some(key) = route_key {
+        [key].to_vec().into_iter().collect::<Vec<String>>()
+    } else {
+        vec![]
+    };
+
+    //
+    // Append the standard forwarding keys
+    //
+    headers.append(
+        &mut FORWARDING_KEYS
+            .to_vec()
+            .iter()
+            .map(|s| s.to_string())
+            .collect(),
+    );
+
+    //
+    // Append the default profile and forward for keys
+    //
+    headers.append(&mut vec![
+        FORWARD_FOR_KEY.to_string(),
+        DEFAULT_PROFILE_KEY.to_string(),
+    ]);
+
+    //
+    // Filter the headers of the response before send it to the client
+    //
     for (header_name, header_value) in
         binding_response.headers().iter().filter(|(h, _)| {
             headers
