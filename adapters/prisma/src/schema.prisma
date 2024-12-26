@@ -148,12 +148,15 @@ model Role {
 
   // Model fields
   name        String @db.VarChar(140)
+  slug        String @db.VarChar(140)
   description String @db.VarChar(255)
 
   // Backward relationship fields
   user_roles GuestRole[]
 
   // Db compatibility and extra maps
+  @@unique([name])
+  @@unique([slug])
   @@map("role")
 }
 
@@ -163,6 +166,7 @@ model GuestRole {
 
   // Model fields
   name        String  @db.VarChar(140)
+  slug        String  @db.VarChar(140)
   description String? @db.VarChar(255)
   role        Role    @relation(fields: [role_id], references: [id])
   role_id     String
@@ -175,6 +179,7 @@ model GuestRole {
 
   // Db compatibility and extra maps
   @@unique([name])
+  @@unique([slug])
   @@map("guest_role")
 }
 

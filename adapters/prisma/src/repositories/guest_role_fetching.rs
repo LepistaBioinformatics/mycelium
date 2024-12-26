@@ -97,6 +97,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
             Some(record) => Ok(FetchResponseKind::Found(GuestRole {
                 id: Some(Uuid::parse_str(&record.id).unwrap()),
                 name: record.name,
+                slug: record.slug,
                 description: record.description,
                 role: Parent::Id(Uuid::parse_str(&record.role_id).unwrap()),
                 children: match record.children.len() {
@@ -113,6 +114,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                                             .unwrap(),
                                     ),
                                     name: child_role.name,
+                                    slug: child_role.slug,
                                     description: child_role.description,
                                     role: Parent::Id(
                                         Uuid::parse_str(&child_role.role_id)
@@ -196,6 +198,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                     .map(|record| GuestRole {
                         id: Some(Uuid::parse_str(&record.id).unwrap()),
                         name: record.name,
+                        slug: record.slug,
                         description: record.description,
                         role: Parent::Id(
                             Uuid::parse_str(&record.role_id).unwrap(),

@@ -35,10 +35,6 @@ pub async fn create_role(
     // ? ----------------------------------------------------------------------
 
     role_registration_repo
-        .get_or_create(Role {
-            id: None,
-            name,
-            description,
-        })
+        .get_or_create(Role::new(None, name, description))
         .await
 }

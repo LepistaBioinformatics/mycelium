@@ -2,6 +2,7 @@ use super::role::Role;
 
 use mycelium_base::dtos::{Children, Parent};
 use serde::{Deserialize, Serialize};
+use slugify::slugify;
 use std::str::FromStr;
 use tracing::error;
 use utoipa::ToSchema;
@@ -66,6 +67,7 @@ pub struct GuestRole {
     pub id: Option<Uuid>,
 
     pub name: String,
+    pub slug: String,
     pub description: Option<String>,
     pub role: Parent<Role, Uuid>,
     pub permission: Permission,
@@ -77,6 +79,25 @@ pub struct GuestRole {
 }
 
 impl GuestRole {
+    pub fn new(
+        id: Option<Uuid>,
+        name: String,
+        description: Option<String>,
+        role: Parent<Role, Uuid>,
+        permission: Permission,
+        children: Option<Children<GuestRole, Uuid>>,
+    ) -> Self {
+        GuestRole {
+            id,
+            name: name.to_owned(),
+            slug: slugify!(&name),
+            description,
+            role,
+            permission,
+            children,
+        }
+    }
+
     pub fn build_role_url(&self, base_url: String) -> Result<String, ()> {
         match self.role.to_owned() {
             Parent::Id(id) => Ok(format!("{}/{}", base_url, id)),

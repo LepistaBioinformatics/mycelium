@@ -69,6 +69,7 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
                 guest_role: select {
                     id
                     name
+                    slug
                     description
                     role: select {
                         id
@@ -92,6 +93,7 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
                             Uuid::parse_str(&record.guest_role.id).unwrap(),
                         ),
                         name: record.guest_role.name.to_owned(),
+                        slug: record.guest_role.slug.to_owned(),
                         description: record.guest_role.description.to_owned(),
                         role: Parent::Id(
                             Uuid::parse_str(&record.guest_role.role.id)

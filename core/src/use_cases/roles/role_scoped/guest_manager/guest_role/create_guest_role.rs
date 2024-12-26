@@ -13,6 +13,8 @@ use mycelium_base::{
 };
 use uuid::Uuid;
 
+/// Create a new guest role
+///
 /// This function should be called only by manager users. Roles should be
 /// created after the application is registered by staff users why roles links
 /// guest, permissions, and applications.
@@ -41,13 +43,13 @@ pub async fn create_guest_role(
     // ? ----------------------------------------------------------------------
 
     guest_role_registration_repo
-        .get_or_create(GuestRole {
-            id: None,
+        .get_or_create(GuestRole::new(
+            None,
             name,
-            description: Some(description),
-            role: Parent::Id(role),
-            permission: permission.unwrap_or(Permission::Read),
-            children: None,
-        })
+            Some(description),
+            Parent::Id(role),
+            permission.unwrap_or(Permission::Read),
+            None,
+        ))
         .await
 }
