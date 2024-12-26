@@ -19,7 +19,7 @@ use myc_core::{
         },
         entities::RoutesFetching,
     },
-    use_cases::roles::role_scoped::gateway_manager::route::match_forward_address,
+    use_cases::gateway::routes::match_forward_address,
 };
 use myc_http_tools::{
     responses::GatewayError,
