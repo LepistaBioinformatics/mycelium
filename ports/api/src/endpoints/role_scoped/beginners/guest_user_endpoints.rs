@@ -37,7 +37,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
     post,
     params(
         ("account_id" = Uuid, Path, description = "The account primary key."),
-        ("guest_role_id" = Uuid, Path, description = "The guest role primary key."),
+        ("guest_role_name" = Uuid, Path, description = "The guest role unique name."),
         ("permission" = u8, Path, description = "The permission to be granted."),
     ),
     responses(
@@ -69,22 +69,22 @@ pub fn configure(config: &mut web::ServiceConfig) {
     ),
 )]
 #[post(
-    "/account/{account_id}/guest-role/{guest_role_id}/perm/{permission}/accept"
+    "/account/{account_id}/guest-role/{guest_role_name}/perm/{permission}/accept"
 )]
 pub async fn accept_invitation_url(
-    query: web::Query<(Uuid, Uuid, u8)>,
+    query: web::Query<(Uuid, String, u8)>,
     profile: MyceliumProfileData,
     guest_user_on_account_repo: Inject<
         GuestUserOnAccountUpdatingModule,
         dyn GuestUserOnAccountUpdating,
     >,
 ) -> impl Responder {
-    let (account_id, guest_role_id, permission) = query.into_inner();
+    let (account_id, guest_role_name, permission) = query.into_inner();
 
     match accept_invitation(
         profile.to_profile(),
         account_id,
-        guest_role_id,
+        guest_role_name,
         Permission::from_i32(permission.into()),
         Box::new(&*guest_user_on_account_repo),
     )

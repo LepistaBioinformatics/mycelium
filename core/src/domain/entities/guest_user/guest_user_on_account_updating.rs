@@ -11,7 +11,7 @@ use uuid::Uuid;
 pub trait GuestUserOnAccountUpdating: Interface + Send + Sync {
     async fn accept_invitation(
         &self,
-        guest_role_id: Uuid,
+        guest_role_name: String,
         account_id: Uuid,
         permission: Permission,
     ) -> Result<UpdatingResponseKind<GuestUser>, MappedErrors>;

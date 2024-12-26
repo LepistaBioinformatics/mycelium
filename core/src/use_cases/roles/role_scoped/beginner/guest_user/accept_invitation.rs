@@ -21,7 +21,7 @@ use uuid::Uuid;
 pub async fn accept_invitation(
     profile: Profile,
     account_id: Uuid,
-    guest_role_id: Uuid,
+    guest_role_name: String,
     permission: Permission,
     guest_user_on_account_repo: Box<&dyn GuestUserOnAccountUpdating>,
 ) -> Result<UpdatingResponseKind<GuestUser>, MappedErrors> {
@@ -41,7 +41,7 @@ pub async fn accept_invitation(
 
     let target_license = match licensed_resources
         .iter()
-        .find(|license| license.guest_role_id == guest_role_id)
+        .find(|license| license.guest_role_name == guest_role_name)
     {
         None => {
             return use_case_err("Profile does not have an account id")
@@ -54,7 +54,7 @@ pub async fn accept_invitation(
     if [
         target_license.acc_id == account_id,
         target_license.perm == permission,
-        target_license.guest_role_id == guest_role_id,
+        target_license.guest_role_name == guest_role_name,
         target_license.was_verified == false,
     ]
     .iter()
@@ -73,6 +73,6 @@ pub async fn accept_invitation(
     // ? -----------------------------------------------------------------------
 
     guest_user_on_account_repo
-        .accept_invitation(guest_role_id, account_id, permission)
+        .accept_invitation(guest_role_name, account_id, permission)
         .await
 }

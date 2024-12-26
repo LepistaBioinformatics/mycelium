@@ -33,7 +33,7 @@ pub struct GuestUserOnAccountUpdatingSqlDbRepository {}
 impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
     async fn accept_invitation(
         &self,
-        guest_role_id: Uuid,
+        guest_role_name: String,
         account_id: Uuid,
         permission: Permission,
     ) -> Result<UpdatingResponseKind<GuestUser>, MappedErrors> {
@@ -65,7 +65,7 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
                     .guest_user()
                     .find_many(vec![and![
                         guest_user_model::guest_role::is(vec![
-                            guest_role_model::id::equals(guest_role_id.to_string()),
+                            guest_role_model::name::equals(guest_role_name.to_owned()),
                         ]),
                         guest_user_model::guest_role::is(vec![
                             guest_role_model::permission::equals(permission.to_i32()),
@@ -86,13 +86,13 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
                 let guest_user = match guest_user_data.len() {
                     0 => {
                         return Err(QueryError::Execute(Error::new_non_panic_with_current_backtrace(
-                            format!("Guest user with role id {guest_role_id} not found"),
+                            format!("Guest user with role name {guest_role_name} not found"),
                         )));
                     }
                     1 => guest_user_data[0].clone(),
                     _ => {
                         return Err(QueryError::Execute(Error::new_non_panic_with_current_backtrace(
-                            format!("Multiple guest users with role id {guest_role_id} found"),
+                            format!("Multiple guest users with role name {guest_role_name} found"),
                         )));
                     }
                 };
