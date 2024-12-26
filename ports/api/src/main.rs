@@ -327,6 +327,7 @@ pub async fn main() -> std::io::Result<()> {
                 CONTENT_LENGTH,
                 CONTENT_TYPE,
                 ACCEPT,
+                HeaderName::from_str(DEFAULT_REQUEST_ID_KEY).unwrap(),
             ])
             .allow_any_header()
             .allow_any_method()
