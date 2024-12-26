@@ -86,6 +86,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
             Ok(record) => Ok(UpdatingResponseKind::Updated(GuestRole {
                 id: Some(Uuid::from_str(&record.id).unwrap()),
                 name: record.name,
+                slug: record.slug,
                 description: record.description,
                 role: Parent::Id(Uuid::from_str(&record.role_id).unwrap()),
                 children: match record.children.len() {
@@ -176,6 +177,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                         GuestRole {
                             id: Some(Uuid::from_str(&record.id).unwrap()),
                             name: record.name,
+                            slug: record.slug,
                             description: record.description,
                             role: Parent::Id(
                                 Uuid::from_str(&record.role_id).unwrap(),
@@ -277,6 +279,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                         GuestRole {
                             id: Some(Uuid::from_str(&record.id).unwrap()),
                             name: record.name,
+                            slug: record.slug,
                             description: record.description,
                             role: Parent::Id(
                                 Uuid::from_str(&record.role_id).unwrap(),

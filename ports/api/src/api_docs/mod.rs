@@ -18,6 +18,7 @@ use utoipa::OpenApi;
 use azure_endpoints as Auth__Azure;
 use google_endpoints as Auth__Google;
 use index::heath_check_endpoints as Index__Heath_Check;
+use manager::guest_role_endpoints as Managers__Guest_Role;
 use manager::tenant_endpoints as Managers__Tenants;
 use role_scoped::account_manager::guest_endpoints as Account_Manager__Guest;
 use role_scoped::gateway_manager::route_endpoints as GatewayManager__Route;
@@ -68,6 +69,20 @@ struct AuthAzureApiDoc;
     paths(Auth__Google::google_callback_url)
 )]
 struct AuthGoogleApiDoc;
+
+/// Manager Endpoints for Guest Roles Management
+/// 
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Manager | Guest Role Endpoints",
+        description = "Endpoints reserved for the application managers to manage guest roles",
+    ),
+    paths(
+        Managers__Guest_Role::create_system_roles_url,
+    )
+)]
+struct ManagersGuestRoleApiDoc;
 
 /// Manager Endpoints for Tenant Management
 ///
@@ -502,6 +517,7 @@ struct UsersManagerAccountApiDoc;
         //
         (path = "/adm/su/staffs/accounts", api = StaffsAccountsApiDoc),
         (path = "/adm/su/managers/tenants", api = ManagersTenantsApiDoc),
+        (path = "/adm/su/managers/guest-roles", api = ManagersGuestRoleApiDoc),
         //
         // Service endpoints
         //

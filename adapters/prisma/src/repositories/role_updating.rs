@@ -71,6 +71,7 @@ impl RoleUpdating for RoleUpdatingSqlDbRepository {
             Ok(record) => Ok(UpdatingResponseKind::Updated(Role {
                 id: Some(Uuid::parse_str(&record.id).unwrap()),
                 name: record.name,
+                slug: record.slug,
                 description: record.description.to_owned(),
             })),
             Err(err) => {

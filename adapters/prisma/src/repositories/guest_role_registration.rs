@@ -16,6 +16,7 @@ use mycelium_base::{
     entities::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
+use prisma_client_rust::and;
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -53,9 +54,10 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
 
         let response = client
             .guest_role()
-            .find_first(vec![guest_role_model::name::equals(
-                guest_role.name.to_owned(),
-            )])
+            .find_first(vec![and![
+                guest_role_model::name::equals(guest_role.name.to_owned()),
+                guest_role_model::slug::equals(guest_role.slug.to_owned()),
+            ]])
             .include(guest_role_model::include!({
                 role: select {
                     id
@@ -72,6 +74,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                     GuestRole {
                         id: Some(Uuid::parse_str(&record.id).unwrap()),
                         name: record.name,
+                        slug: record.slug,
                         description: record.description.to_owned(),
                         role: Parent::Id(
                             Uuid::parse_str(&record.role.id).unwrap(),
@@ -105,6 +108,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
             .guest_role()
             .create(
                 guest_role.name.to_owned(),
+                guest_role.slug.to_owned(),
                 role_model::id::equals(match guest_role.role {
                     Parent::Id(id) => id.to_string(),
                     Parent::Record(record) => match record.id {
@@ -137,6 +141,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                 Ok(GetOrCreateResponseKind::Created(GuestRole {
                     id: Some(Uuid::parse_str(&record.id).unwrap()),
                     name: record.name,
+                    slug: record.slug,
                     description: record.description,
                     role: Parent::Id(Uuid::parse_str(&record.role_id).unwrap()),
                     children: match record.children.len() {

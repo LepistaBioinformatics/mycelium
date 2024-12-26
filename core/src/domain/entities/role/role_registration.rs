@@ -2,8 +2,7 @@ use crate::domain::dtos::role::Role;
 
 use async_trait::async_trait;
 use mycelium_base::{
-    entities::{CreateResponseKind, GetOrCreateResponseKind},
-    utils::errors::MappedErrors,
+    entities::GetOrCreateResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Interface;
 
@@ -13,9 +12,4 @@ pub trait RoleRegistration: Interface + Send + Sync {
         &self,
         role: Role,
     ) -> Result<GetOrCreateResponseKind<Role>, MappedErrors>;
-
-    async fn create(
-        &self,
-        role: Role,
-    ) -> Result<CreateResponseKind<Role>, MappedErrors>;
 }

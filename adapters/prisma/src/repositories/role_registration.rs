@@ -6,7 +6,7 @@ use myc_core::domain::{
     entities::RoleRegistration,
 };
 use mycelium_base::{
-    entities::{CreateResponseKind, GetOrCreateResponseKind},
+    entities::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
 use shaku::Component;
@@ -57,6 +57,7 @@ impl RoleRegistration for RoleRegistrationSqlDbRepository {
                     Role {
                         id: Some(Uuid::parse_str(&record.id).unwrap()),
                         name: record.name,
+                        slug: record.slug,
                         description: record.description.to_owned(),
                     },
                     String::from("Account type already exists"),
@@ -71,7 +72,12 @@ impl RoleRegistration for RoleRegistrationSqlDbRepository {
 
         let response = client
             .role()
-            .create(role.name.to_owned(), role.description.to_owned(), vec![])
+            .create(
+                role.name.to_owned(),
+                role.slug.to_owned(),
+                role.description.to_owned(),
+                vec![],
+            )
             .exec()
             .await;
 
@@ -82,6 +88,7 @@ impl RoleRegistration for RoleRegistrationSqlDbRepository {
                 Ok(GetOrCreateResponseKind::Created(Role {
                     id: Some(Uuid::parse_str(&record.id).unwrap()),
                     name: record.name,
+                    slug: record.slug,
                     description: record.description.to_owned(),
                 }))
             }
@@ -93,18 +100,5 @@ impl RoleRegistration for RoleRegistrationSqlDbRepository {
                 .as_error();
             }
         }
-    }
-
-    // ? -----------------------------------------------------------------------
-    // ! NOT IMPLEMENTED METHOD
-    // ? -----------------------------------------------------------------------
-
-    async fn create(
-        &self,
-        _: Role,
-    ) -> Result<CreateResponseKind<Role>, MappedErrors> {
-        panic!(
-            "Not implemented method create of RoleRegistrationSqlDbRepository."
-        )
     }
 }

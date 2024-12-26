@@ -62,6 +62,7 @@ impl RoleFetching for RoleFetchingSqlDbRepository {
                 Some(record) => Ok(FetchResponseKind::Found(Role {
                     id: Some(Uuid::parse_str(&record.id).unwrap()),
                     name: record.name,
+                    slug: record.slug,
                     description: record.description.to_owned(),
                 })),
             },
@@ -117,6 +118,7 @@ impl RoleFetching for RoleFetchingSqlDbRepository {
                     .map(|record| Role {
                         id: Some(Uuid::parse_str(&record.id).unwrap()),
                         name: record.name,
+                        slug: record.slug,
                         description: record.description.to_owned(),
                     })
                     .collect::<Vec<Role>>();

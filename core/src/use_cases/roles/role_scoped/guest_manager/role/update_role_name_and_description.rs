@@ -7,6 +7,7 @@ use mycelium_base::{
     entities::{FetchResponseKind, UpdatingResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
+use slugify::slugify;
 use uuid::Uuid;
 
 /// Update the role name and description.
@@ -48,7 +49,8 @@ pub async fn update_role_name_and_description(
     // ? Update role and persist
     // ? ----------------------------------------------------------------------
 
-    role.name = name;
+    role.name = name.to_owned();
+    role.slug = slugify!(&name);
     role.description = description;
 
     role_updating_repo.update(role).await
