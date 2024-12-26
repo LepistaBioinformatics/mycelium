@@ -63,10 +63,15 @@ pub(crate) async fn route_request(
     // ? Set the request id to the current span
     // ? -----------------------------------------------------------------------
 
-    if let Some(request_id) = req.headers().get(DEFAULT_REQUEST_ID_KEY) {
-        tracing::Span::current()
-            .record("myc.requestId", &Some(request_id.to_str().unwrap()));
-    }
+    let request_id =
+        if let Some(request_id) = req.headers().get(DEFAULT_REQUEST_ID_KEY) {
+            tracing::Span::current()
+                .record("myc.requestId", &Some(request_id.to_str().unwrap()));
+
+            Some(request_id.to_owned())
+        } else {
+            None
+        };
 
     // ? -----------------------------------------------------------------------
     // ? Try to match the forward address
@@ -470,6 +475,11 @@ pub(crate) async fn route_request(
     };
 
     let mut client_response = HttpResponse::build(binding_response.status());
+
+    if let Some(request_id) = request_id {
+        client_response
+            .insert_header((DEFAULT_REQUEST_ID_KEY, request_id.to_owned()));
+    }
 
     // ! Remove `Connection` as peer and forward service name
     //
