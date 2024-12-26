@@ -29,7 +29,6 @@ struct LicensedResourceRow {
     acc_name: String,
     tenant_id: String,
     is_acc_std: bool,
-    gr_id: String,
     gr_name: String,
     gr_perm: i32,
     rl_name: String,
@@ -69,12 +68,13 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         }
 
         let mut query =
-            vec!["SELECT * FROM licensed_resources WHERE gu_email = {} AND gu_verified = {}"];
+            vec!["SELECT * FROM licensed_resources WHERE gu_email = {}"];
+        let mut params = vec![PrismaValue::String(email.get_email())];
 
-        let mut params = vec![
-            PrismaValue::String(email.get_email()),
-            PrismaValue::Boolean(was_verified.unwrap_or(true)),
-        ];
+        if let Some(was_verified) = was_verified {
+            query.push("AND gu_verified = {}");
+            params.push(PrismaValue::Boolean(was_verified));
+        }
 
         if let Some(related_accounts) = related_accounts {
             if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
@@ -149,7 +149,6 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                     .unwrap(),
                 acc_name: record.acc_name.to_owned(),
                 is_acc_std: record.is_acc_std,
-                guest_role_id: Uuid::parse_str(&record.gr_id).unwrap(),
                 guest_role_name: record.gr_name,
                 role: record.rl_name,
                 perm: Permission::from_i32(record.gr_perm),

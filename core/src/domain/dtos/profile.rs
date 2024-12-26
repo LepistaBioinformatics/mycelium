@@ -44,12 +44,6 @@ pub struct LicensedResource {
     #[serde(alias = "guest_account_name")]
     pub acc_name: String,
 
-    /// The guest account role unique id
-    ///
-    /// This is the unique identifier of the role that is own of the resource
-    /// to be managed.
-    pub guest_role_id: Uuid,
-
     /// The guest account role name
     ///
     /// This is the name of the role that is own of the resource to be
@@ -118,10 +112,10 @@ impl ToString for LicensedResource {
             general_purpose::STANDARD.encode(self.acc_name.as_bytes());
 
         format!(
-            "tid/{tenant_id}/aid/{acc_id}/gid/{guest_role_id}?pr={role}:{perm}&std={is_acc_std}&v={was_verified}&name={acc_name}",
+            "tid/{tenant_id}/aid/{acc_id}/grn/{guest_role_name}?pr={role}:{perm}&std={is_acc_std}&v={was_verified}&name={acc_name}",
             tenant_id = self.tenant_id.to_string().replace("-", ""),
             acc_id = self.acc_id.to_string().replace("-", ""),
-            guest_role_id = self.guest_role_id.to_string().replace("-", ""),
+            guest_role_name = self.guest_role_name,
             role = self.role,
             perm = self.perm.to_owned().to_i32(),
             is_acc_std = self.is_acc_std as i8,
@@ -150,14 +144,14 @@ impl FromStr for LicensedResource {
         if segments.len() != 6
             || segments[0] != "tid"
             || segments[2] != "aid"
-            || segments[4] != "gid"
+            || segments[4] != "grn"
         {
             return Err("Invalid path format".to_string());
         }
 
         let tenant_id = segments[1];
         let account_id = segments[3];
-        let guest_role_id = segments[5];
+        let guest_role_name = segments[5];
 
         if !Self::is_uuid(tenant_id) {
             return Err("Invalid tenant UUID".to_string());
@@ -165,10 +159,6 @@ impl FromStr for LicensedResource {
 
         if !Self::is_uuid(account_id) {
             return Err("Invalid account UUID".to_string());
-        }
-
-        if !Self::is_uuid(guest_role_id) {
-            return Err("Invalid guest role UUID".to_string());
         }
 
         //
@@ -248,8 +238,7 @@ impl FromStr for LicensedResource {
             perm: Permission::from_i32(permission_code.parse::<i32>().unwrap()),
             is_acc_std: std,
             acc_name: String::from_utf8(name_decoded).unwrap(),
-            guest_role_id: guest_role_id.to_string().parse::<Uuid>().unwrap(),
-            guest_role_name: "guest_role_name".to_string(),
+            guest_role_name: guest_role_name.to_string(),
             was_verified,
         })
     }
@@ -909,10 +898,6 @@ mod tests {
                     .unwrap(),
                     acc_name: "guest_account_name".to_string(),
                     is_acc_std: false,
-                    guest_role_id: Uuid::from_str(
-                        "e497848f-a0d4-49f4-8288-c3df11416ff2",
-                    )
-                    .unwrap(),
                     guest_role_name: "guest_role_name".to_string(),
                     role: "service".to_string(),
                     perm: Permission::Write,
@@ -962,10 +947,6 @@ mod tests {
                     .unwrap(),
                     acc_name: "guest_account_name".to_string(),
                     is_acc_std: false,
-                    guest_role_id: Uuid::from_str(
-                        "e497848f-a0d4-49f4-8288-c3df11416ff2",
-                    )
-                    .unwrap(),
                     guest_role_name: "guest_role_name".to_string(),
                     role: "service".to_string(),
                     perm: Permission::Write,
@@ -1024,7 +1005,6 @@ mod tests {
             tenant_id: Uuid::new_v4(),
             acc_name: "Guest Account Name".to_string(),
             is_acc_std: false,
-            guest_role_id: Uuid::new_v4(),
             guest_role_name: "guest_role_name".to_string(),
             role: "service".to_string(),
             perm: Permission::Write,
