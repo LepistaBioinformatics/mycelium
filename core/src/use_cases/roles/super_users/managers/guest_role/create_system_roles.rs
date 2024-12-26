@@ -143,14 +143,3 @@ pub async fn create_system_roles(
 
     Ok(guest_roles_parsed_responses)
 }
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[tokio::test]
-    async fn test_create_system_roles() {
-        let s = format!("{s}", s = SubscriptionsManager.to_string());
-        println!("{}", s);
-    }
-}
