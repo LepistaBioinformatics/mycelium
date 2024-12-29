@@ -46,7 +46,7 @@ pub async fn guest_to_default_account(
     // ? Check permissions
     // ? -----------------------------------------------------------------------
 
-    scope.contain_enough_permissions(
+    scope.contain_tenant_enough_permissions(
         tenant_id,
         role_id,
         vec![

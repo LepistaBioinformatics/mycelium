@@ -10,8 +10,9 @@ use myc_core::domain::{
         route_type::PermissionedRoles,
         token::{
             AccountScopedConnectionString, AccountWithPermissionedRolesScope,
-            ConnectionStringBean, MultiTypeMeta, RoleWithPermissionsScope,
-            TenantScopedConnectionString, TenantWithPermissionsScope, Token,
+            ConnectionStringBean, MultiTypeMeta, RoleScopedConnectionString,
+            RoleWithPermissionsScope, TenantScopedConnectionString,
+            TenantWithPermissionsScope, Token,
         },
     },
     entities::TokenFetching,
@@ -24,7 +25,7 @@ use prisma_client_rust::{PrismaValue, Raw};
 use serde_json::from_value;
 use shaku::Component;
 use std::process::id as process_id;
-use tracing::error;
+use tracing::{error, trace};
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -33,6 +34,10 @@ pub struct TokenFetchingSqlDbRepository {}
 
 #[async_trait]
 impl TokenFetching for TokenFetchingSqlDbRepository {
+    #[tracing::instrument(
+        name = "get_connection_string_by_account_with_permissioned_roles_scope",
+        skip_all
+    )]
     async fn get_connection_string_by_account_with_permissioned_roles_scope(
         &self,
         scope: AccountWithPermissionedRolesScope,
@@ -68,7 +73,11 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
             None
         }) {
             Some(tenant_id) => tenant_id,
-            _ => return Ok(FetchResponseKind::NotFound(None)),
+            _ => {
+                return Ok(FetchResponseKind::NotFound(Some(
+                    "Tenant ID not found".to_string(),
+                )))
+            }
         };
 
         let account_id: Uuid = match beans.iter().find_map(|bean| {
@@ -79,7 +88,11 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
             None
         }) {
             Some(account_id) => account_id,
-            _ => return Ok(FetchResponseKind::NotFound(None)),
+            _ => {
+                return Ok(FetchResponseKind::NotFound(Some(
+                    "Account ID not found".to_string(),
+                )))
+            }
         };
 
         let signature: String = match beans.iter().find_map(|bean| {
@@ -90,7 +103,11 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
             None
         }) {
             Some(signature) => signature.to_owned(),
-            _ => return Ok(FetchResponseKind::NotFound(None)),
+            _ => {
+                return Ok(FetchResponseKind::NotFound(Some(
+                    "Signature not found".to_string(),
+                )))
+            }
         };
 
         let permissioned_roles: PermissionedRoles =
@@ -101,27 +118,49 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
                 _ => None,
             }) {
                 Some(permissioned_roles) => permissioned_roles.to_owned(),
-                _ => return Ok(FetchResponseKind::NotFound(None)),
+                _ => {
+                    return Ok(FetchResponseKind::NotFound(Some(
+                        "Permissioned roles not found".to_string(),
+                    )))
+                }
             };
 
         let token_data: Vec<token_model::Data> = match client
             ._query_raw(Raw::new(
-                "SELECT id, expiration, meta FROM token WHERE EXISTS (SELECT 1 FROM jsonb_array_elements(meta->'scope') AS elem WHERE elem->>'tid' = {} AND elem->>'aid' = {} AND elem->>'sig' = {})",
+                "
+SELECT id, expiration, meta
+FROM token
+WHERE EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(meta->'scope') AS elem
+    WHERE elem->>'tid' = {}
+)
+AND EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(meta->'scope') AS elem
+    WHERE elem->>'aid' = {}
+)
+AND EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(meta->'scope') AS elem
+    WHERE elem->>'sig' = {}
+);
+                ",
                 vec![
-                    PrismaValue::String(tenant_id.to_string().to_owned()),
-                    PrismaValue::String(account_id.to_string().to_owned()),
+                    PrismaValue::Uuid(tenant_id.to_owned()),
+                    PrismaValue::Uuid(account_id.to_owned()),
                     PrismaValue::String(signature.to_owned()),
                 ],
             ))
             .exec()
-            .await {
-                Ok(token_option) => token_option,
-                Err(err) => {
-                    error!("Error fetching token: {err}", );
-
-                    return Ok(FetchResponseKind::NotFound(None))
-                }
-            };
+            .await
+        {
+            Ok(token_option) => token_option,
+            Err(err) => {
+                return fetching_err(format!("Error fetching token: {err}"))
+                    .as_error();
+            }
+        };
 
         if token_data.len() == 0 {
             return Ok(FetchResponseKind::NotFound(None));
@@ -170,7 +209,9 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
             .collect();
 
         if tokens.len() == 0 {
-            return Ok(FetchResponseKind::NotFound(None));
+            return Ok(FetchResponseKind::NotFound(Some(
+                "Token not found".to_string(),
+            )));
         }
 
         if tokens.len() > 1 {
@@ -182,6 +223,10 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
         Ok(FetchResponseKind::Found(tokens[0].to_owned()))
     }
 
+    #[tracing::instrument(
+        name = "get_connection_string_by_role_with_permissioned_roles_scope",
+        skip_all
+    )]
     async fn get_connection_string_by_role_with_permissioned_roles_scope(
         &self,
         scope: RoleWithPermissionsScope,
@@ -217,7 +262,11 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
             None
         }) {
             Some(tenant_id) => tenant_id,
-            _ => return Ok(FetchResponseKind::NotFound(None)),
+            _ => {
+                return Ok(FetchResponseKind::NotFound(Some(
+                    "Tenant ID not found".to_string(),
+                )))
+            }
         };
 
         let role_id: Uuid = match beans.iter().find_map(|bean| {
@@ -228,7 +277,11 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
             None
         }) {
             Some(role_id) => role_id,
-            _ => return Ok(FetchResponseKind::NotFound(None)),
+            _ => {
+                return Ok(FetchResponseKind::NotFound(Some(
+                    "Role ID not found".to_string(),
+                )))
+            }
         };
 
         let signature: String = match beans.iter().find_map(|bean| {
@@ -239,7 +292,11 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
             None
         }) {
             Some(signature) => signature.to_owned(),
-            _ => return Ok(FetchResponseKind::NotFound(None)),
+            _ => {
+                return Ok(FetchResponseKind::NotFound(Some(
+                    "Signature not found".to_string(),
+                )))
+            }
         };
 
         let permissioned_roles: PermissionedRoles =
@@ -250,25 +307,50 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
                 _ => None,
             }) {
                 Some(permissioned_roles) => permissioned_roles.to_owned(),
-                _ => return Ok(FetchResponseKind::NotFound(None)),
+                _ => {
+                    return Ok(FetchResponseKind::NotFound(Some(
+                        "Permissioned roles not found".to_string(),
+                    )))
+                }
             };
 
-        let token_data: Vec<token_model::Data> = match client
-            ._query_raw(Raw::new(
-                "SELECT id, expiration, meta FROM token WHERE EXISTS (SELECT 1 FROM jsonb_array_elements(meta->'scope') AS elem WHERE elem->>'tid' = {} AND elem->>'rid' = {} AND elem->>'sig' = {})",
-                vec![
-                    PrismaValue::String(tenant_id.to_string().to_owned()),
-                    PrismaValue::String(role_id.to_string().to_owned()),
-                    PrismaValue::String(signature.to_owned()),
-                ],
-            ))
-            .exec()
-            .await {
+        let query = Raw::new(
+            "
+SELECT id, expiration, meta
+FROM token
+WHERE EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(meta->'scope') AS elem
+    WHERE elem->>'tid' = {}
+)
+AND EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(meta->'scope') AS elem
+    WHERE elem->>'rid' = {}
+)
+AND EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(meta->'scope') AS elem
+    WHERE elem->>'sig' = {}
+);
+            ",
+            vec![
+                PrismaValue::Uuid(tenant_id.to_owned()),
+                PrismaValue::Uuid(role_id.to_owned()),
+                PrismaValue::String(signature.to_owned()),
+            ],
+        );
+
+        trace!("Query values: {:?}", query.values);
+
+        let token_data: Vec<token_model::Data> =
+            match client._query_raw(query).exec().await {
                 Ok(token_option) => token_option,
                 Err(err) => {
-                    error!("Error fetching token: {err}", );
-
-                    return Ok(FetchResponseKind::NotFound(None))
+                    return fetching_err(format!(
+                        "Error fetching token: {err}"
+                    ))
+                    .as_error();
                 }
             };
 
@@ -279,7 +361,7 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
         let tokens: Vec<Token> = token_data
             .iter()
             .filter_map(|data| {
-                let meta: AccountScopedConnectionString =
+                let meta: RoleScopedConnectionString =
                     match from_value(data.meta.to_owned()) {
                         Ok(meta) => meta,
                         Err(err) => {
@@ -313,13 +395,15 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
                 Some(Token::new(
                     data.id.try_into().unwrap(),
                     data.expiration.into(),
-                    MultiTypeMeta::AccountScopedConnectionString(meta),
+                    MultiTypeMeta::RoleScopedConnectionString(meta),
                 ))
             })
             .collect();
 
         if tokens.len() == 0 {
-            return Ok(FetchResponseKind::NotFound(None));
+            return Ok(FetchResponseKind::NotFound(Some(
+                "Token not found".to_string(),
+            )));
         }
 
         if tokens.len() > 1 {
@@ -331,6 +415,10 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
         Ok(FetchResponseKind::Found(tokens[0].to_owned()))
     }
 
+    #[tracing::instrument(
+        name = "get_connection_string_by_tenant_with_permissioned_roles_scope",
+        skip_all
+    )]
     async fn get_connection_string_by_tenant_with_permissioned_roles_scope(
         &self,
         scope: TenantWithPermissionsScope,
@@ -366,7 +454,11 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
             None
         }) {
             Some(tenant_id) => tenant_id,
-            _ => return Ok(FetchResponseKind::NotFound(None)),
+            _ => {
+                return Ok(FetchResponseKind::NotFound(Some(
+                    "Tenant ID not found".to_string(),
+                )))
+            }
         };
 
         let signature: String = match beans.iter().find_map(|bean| {
@@ -377,7 +469,11 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
             None
         }) {
             Some(signature) => signature.to_owned(),
-            _ => return Ok(FetchResponseKind::NotFound(None)),
+            _ => {
+                return Ok(FetchResponseKind::NotFound(Some(
+                    "Signature not found".to_string(),
+                )))
+            }
         };
 
         let permissioned_roles: PermissionedRoles =
@@ -388,26 +484,43 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
                 _ => None,
             }) {
                 Some(permissioned_roles) => permissioned_roles.to_owned(),
-                _ => return Ok(FetchResponseKind::NotFound(None)),
+                _ => {
+                    return Ok(FetchResponseKind::NotFound(Some(
+                        "Permissioned roles not found".to_string(),
+                    )))
+                }
             };
 
         let token_data: Vec<token_model::Data> = match client
             ._query_raw(Raw::new(
-                "SELECT id, expiration, meta FROM token WHERE EXISTS (SELECT 1 FROM jsonb_array_elements(meta->'scope') AS elem WHERE elem->>'tid' = {} AND elem->>'sig' = {})",
+                "
+SELECT id, expiration, meta
+FROM token
+WHERE EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(meta->'scope') AS elem
+    WHERE elem->>'tid' = {}
+)
+AND EXISTS (
+    SELECT 1
+    FROM jsonb_array_elements(meta->'scope') AS elem
+    WHERE elem->>'sig' = {}
+);
+                ",
                 vec![
-                    PrismaValue::String(tenant_id.to_string().to_owned()),
+                    PrismaValue::Uuid(tenant_id.to_owned()),
                     PrismaValue::String(signature.to_owned()),
                 ],
             ))
             .exec()
-            .await {
-                Ok(token_option) => token_option,
-                Err(err) => {
-                    error!("Error fetching token: {err}", );
-
-                    return Ok(FetchResponseKind::NotFound(None))
-                }
-            };
+            .await
+        {
+            Ok(token_option) => token_option,
+            Err(err) => {
+                return fetching_err(format!("Error fetching token: {err}"))
+                    .as_error();
+            }
+        };
 
         if token_data.len() == 0 {
             return Ok(FetchResponseKind::NotFound(None));
@@ -456,7 +569,9 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
             .collect();
 
         if tokens.len() == 0 {
-            return Ok(FetchResponseKind::NotFound(None));
+            return Ok(FetchResponseKind::NotFound(Some(
+                "Token not found".to_string(),
+            )));
         }
 
         if tokens.len() > 1 {

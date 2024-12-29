@@ -26,17 +26,6 @@ async fn protected(profile: GatewayProfileData) -> impl Responder {
 }
 
 // ? ---------------------------------------------------------------------------
-// ? Role Protected Route
-// ? ---------------------------------------------------------------------------
-
-#[get("")]
-async fn role_protected(profile: GatewayProfileData) -> impl Responder {
-    println!("{:?}", profile);
-
-    HttpResponse::Ok().body("success")
-}
-
-// ? ---------------------------------------------------------------------------
 // ? Expects Header Route
 // ? ---------------------------------------------------------------------------
 
@@ -80,7 +69,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .service(web::scope("/public").service(public))
             .service(web::scope("/protected").service(protected))
-            .service(web::scope("/role-protected").service(role_protected))
+            .service(web::scope("/role-protected").service(expects_header))
             .service(web::scope("/webhook").service(webhook))
             .service(web::scope("/expects-header").service(expects_header))
     })

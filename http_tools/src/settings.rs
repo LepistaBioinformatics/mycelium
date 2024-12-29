@@ -13,6 +13,14 @@ use std::env::var_os;
 ///
 pub const DEFAULT_PROFILE_KEY: &str = "x-mycelium-profile";
 
+/// Default scope key
+///
+/// The scope key should be used to inject the scope present on the connection
+/// string into the request headers and send it to the gateway downstream
+/// services.
+///
+pub const DEFAULT_SCOPE_KEY: &str = "x-mycelium-scope";
+
 /// Default mycelium role key
 ///
 /// This is the default key used to store the mycelium role in the request

@@ -15,6 +15,7 @@ use tracing::warn;
 /// forward request.
 ///
 /// These use-case is usual over middleware or routers parts of the application.
+#[tracing::instrument(name = "fetch_and_inject_profile_to_forward", skip_all)]
 pub async fn fetch_and_inject_profile_to_forward(
     req: HttpRequest,
     mut forwarded_req: ClientRequest,

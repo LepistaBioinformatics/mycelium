@@ -16,7 +16,7 @@ use uuid::Uuid;
 
 pub(crate) type HmacSha256 = Hmac<Sha512>;
 
-pub trait ScopedMixin {
+pub trait ScopedBehavior {
     fn sign_token(
         &mut self,
         config: AccountLifeCycle,
@@ -49,7 +49,7 @@ where
 impl<TokenType, Scope> ServiceAccountRelatedMeta<TokenType, Scope>
 where
     TokenType: Clone + ToString + TryFrom<String>,
-    Scope: Clone + ToString + TryFrom<String> + ScopedMixin,
+    Scope: Clone + ToString + TryFrom<String> + ScopedBehavior,
 {
     /// Create a new ServiceAccountRelatedMeta
     ///

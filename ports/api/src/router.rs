@@ -1,5 +1,6 @@
 use super::middleware::fetch_and_inject_profile_to_forward;
 use crate::{
+    middleware::fetch_and_inject_role_scoped_connection_string_to_forward,
     models::api_config::ApiConfig, modules::RoutesFetchingModule,
     settings::GATEWAY_API_SCOPE,
 };
@@ -237,12 +238,17 @@ pub(crate) async fn route_request(
         //
         // Public routes do not need any authentication or profile injection.
         //
-        RouteType::Public => (),
+        RouteType::Public => {
+            trace!("Route(Public): {path}", path = route.path);
+
+            ()
+        }
         //
         // Protected routes should include the full qualified user profile into
         // the header
         //
         RouteType::Protected => {
+            trace!("Route(Protected): {path}", path = route.path);
             //
             // Try to populate profile from the request
             //
@@ -259,6 +265,7 @@ pub(crate) async fn route_request(
         // into the header
         //
         RouteType::ProtectedByRoles { roles } => {
+            trace!("Route(ProtectedByRoles): {path}", path = route.path);
             //
             // Try to populate profile from the request filtering licensed
             // resources by roles
@@ -276,6 +283,10 @@ pub(crate) async fn route_request(
         // and permissions into the header
         //
         RouteType::ProtectedByPermissionedRoles { permissioned_roles } => {
+            trace!(
+                "Route(ProtectedByPermissionedRoles): {path}",
+                path = route.path
+            );
             //
             // Try to populate profile from the request filtering licensed
             // resources by roles and permissions
@@ -293,13 +304,22 @@ pub(crate) async fn route_request(
         // the service token is associated
         //
         RouteType::ProtectedByServiceTokenWithRole { roles } => {
+            trace!(
+                "Route(ProtectedByServiceTokenWithRole): {path}",
+                path = route.path
+            );
             //
             // Try to populate profile from the request filtering licensed
             // resources by roles and permissions
             //
-            println!("roles: {:?}", roles);
-
-            unimplemented!("ProtectedByServiceToken not implemented yet");
+            forwarded_req =
+                fetch_and_inject_role_scoped_connection_string_to_forward(
+                    req,
+                    forwarded_req,
+                    Some(roles),
+                    None,
+                )
+                .await?;
         }
         //
         // Protected routes by service token should include the users role which
@@ -308,13 +328,22 @@ pub(crate) async fn route_request(
         RouteType::ProtectedByServiceTokenWithPermissionedRoles {
             permissioned_roles,
         } => {
+            trace!(
+                "Route(ProtectedByServiceTokenWithPermissionedRoles): {path}",
+                path = route.path
+            );
             //
             // Try to populate profile from the request filtering licensed
             // resources by roles and permissions
             //
-            println!("permissioned_roles: {:?}", permissioned_roles);
-
-            unimplemented!("ProtectedByServiceToken not implemented yet");
+            forwarded_req =
+                fetch_and_inject_role_scoped_connection_string_to_forward(
+                    req,
+                    forwarded_req,
+                    None,
+                    Some(permissioned_roles),
+                )
+                .await?;
         }
     }
 

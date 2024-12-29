@@ -10,7 +10,7 @@ use crate::{
     domain::dtos::{
         native_error_codes::NativeErrorCodes,
         route_type::PermissionedRoles,
-        token::{HmacSha256, ScopedMixin, ServiceAccountRelatedMeta},
+        token::{HmacSha256, ScopedBehavior, ServiceAccountRelatedMeta},
     },
     models::AccountLifeCycle,
 };
@@ -108,7 +108,7 @@ impl TenantWithPermissionsScope {
     }
 }
 
-impl ScopedMixin for TenantWithPermissionsScope {
+impl ScopedBehavior for TenantWithPermissionsScope {
     /// Sign the token with secret and data
     ///
     /// Add or replace a signature to self with the HMAC of the data and the
