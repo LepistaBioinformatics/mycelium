@@ -8,6 +8,7 @@ use myc_core::domain::{
 use myc_http_tools::{
     responses::GatewayError, settings::DEFAULT_CONNECTION_STRING_KEY,
 };
+use myc_prisma::repositories::TokenFetchingSqlDbRepository;
 use mycelium_base::entities::FetchResponseKind;
 
 #[tracing::instrument(
@@ -63,15 +64,7 @@ pub async fn fetch_tenant_scoped_connection_string_from_request(
     // ? Fetch the connection string object from datastore
     // ? -----------------------------------------------------------------------
 
-    let repo = match req.app_data::<Box<&dyn TokenFetching>>() {
-        Some(repo) => repo,
-        None => {
-            return Err(GatewayError::InternalServerError(
-                "TokenFetchingSqlDbRepository not found in app data"
-                    .to_string(),
-            ))
-        }
-    };
+    let repo = Box::new(&TokenFetchingSqlDbRepository {});
 
     // ? -----------------------------------------------------------------------
     // ? Extract the connection string from the repo
@@ -85,7 +78,7 @@ pub async fn fetch_tenant_scoped_connection_string_from_request(
             FetchResponseKind::Found(token) => token,
             FetchResponseKind::NotFound(_) => {
                 return Err(GatewayError::Unauthorized(
-                    "Connection string not found in datastore".to_string(),
+                    "Invalid connection string".to_string(),
                 ))
             }
         },

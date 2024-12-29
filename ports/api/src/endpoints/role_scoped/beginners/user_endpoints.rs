@@ -261,6 +261,7 @@ pub async fn check_email_registration_status_url(
             body = User,
         ),
     ),
+    security(()),
 )]
 #[post("")]
 pub async fn create_default_user_url(

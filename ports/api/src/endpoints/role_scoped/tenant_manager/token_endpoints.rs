@@ -33,7 +33,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateTokenBody {
+pub struct CreateTenantScopedTokenBody {
     permissioned_roles: Vec<(String, Permission)>,
     expiration: i64,
 }
@@ -51,7 +51,7 @@ pub struct CreateTokenResponse {
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant unique id."),
     ),
-    request_body = CreateTokenBody,
+    request_body = CreateTenantScopedTokenBody,
     responses(
         (
             status = 500,
@@ -78,7 +78,7 @@ pub struct CreateTokenResponse {
 #[post("/tenants/{tenant_id}")]
 pub async fn create_tenant_associated_connection_string_url(
     path: web::Path<Uuid>,
-    body: web::Json<CreateTokenBody>,
+    body: web::Json<CreateTenantScopedTokenBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     token_registration_repo: Inject<

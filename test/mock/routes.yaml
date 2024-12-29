@@ -130,7 +130,7 @@ services:
   - group: !protectedByRoles
       roles:
       - new-users
-    path: /role-protected*
+    path: /protected*
     protocol: http
     methods:
     - GET
@@ -145,7 +145,7 @@ services:
   - group: !protectedByPermissionedRoles
       permissionedRoles:
       - [ admin, read ]
-    path: /role-protected*
+    path: /protected*
     protocol: http
     methods:
     - GET
@@ -160,7 +160,7 @@ services:
   #
   - group: !protectedByServiceTokenWithRole
       roles:
-      - new-users
+      - customer
     path: /role-protected*
     protocol: http
     methods:
@@ -176,16 +176,15 @@ services:
   #
   - group: !protectedByServiceTokenWithPermissionedRoles
       permissionedRoles:
-      - [ admin, read ]
-    path: /role-protected*
-    protocol: http
-    methods:
-    - GET
-
-  - group: protected
-    secretName: test-service-01-authorization-header-token
+      - [ customer, read ]
     path: /expects-header*
     protocol: http
-    acceptInsecureRouting: true
     methods:
     - GET
+  # - group: protected
+  #   secretName: test-service-01-authorization-header-token
+  #   path: /expects-header*
+  #   protocol: http
+  #   acceptInsecureRouting: true
+  #   methods:
+  #   - GET

@@ -8,7 +8,9 @@ use myc_core::domain::{
 use myc_http_tools::{
     responses::GatewayError, settings::DEFAULT_CONNECTION_STRING_KEY,
 };
+use myc_prisma::repositories::TokenFetchingSqlDbRepository;
 use mycelium_base::entities::FetchResponseKind;
+use tracing::error;
 
 #[tracing::instrument(
     name = "fetch_role_scoped_connection_string_from_request",
@@ -63,15 +65,7 @@ pub async fn fetch_role_scoped_connection_string_from_request(
     // ? Fetch the connection string object from datastore
     // ? -----------------------------------------------------------------------
 
-    let repo = match req.app_data::<Box<&dyn TokenFetching>>() {
-        Some(repo) => repo,
-        None => {
-            return Err(GatewayError::InternalServerError(
-                "TokenFetchingSqlDbRepository not found in app data"
-                    .to_string(),
-            ))
-        }
-    };
+    let repo = Box::new(&TokenFetchingSqlDbRepository {});
 
     // ? -----------------------------------------------------------------------
     // ? Extract the connection string from the repo
@@ -81,14 +75,22 @@ pub async fn fetch_role_scoped_connection_string_from_request(
         .get_connection_string_by_role_with_permissioned_roles_scope(scope)
         .await
     {
-        Ok(value) => match value {
-            FetchResponseKind::Found(token) => token,
-            FetchResponseKind::NotFound(_) => {
-                return Err(GatewayError::Unauthorized(
-                    "Connection string not found in datastore".to_string(),
-                ))
+        Ok(value) => {
+            match value {
+                FetchResponseKind::Found(token) => token,
+                FetchResponseKind::NotFound(msg) => {
+                    if let Some(msg) = msg {
+                        error!("Connection string not found in the database: {msg}");
+                    } else {
+                        error!("Connection string not found in the database");
+                    }
+
+                    return Err(GatewayError::Unauthorized(
+                        "Invalid connection string".to_string(),
+                    ));
+                }
             }
-        },
+        }
         Err(err) => {
             return Err(GatewayError::InternalServerError(format!(
                 "Unable to fetch connection string: {err}"
@@ -99,10 +101,11 @@ pub async fn fetch_role_scoped_connection_string_from_request(
     let meta = match token.meta {
         MultiTypeMeta::RoleScopedConnectionString(string) => string,
         _ => {
+            error!("Connection string is not a RoleScopedConnectionString");
+
             return Err(GatewayError::InternalServerError(
-                "Connection string is not a RoleScopedConnectionString"
-                    .to_string(),
-            ))
+                "Invalid connection string".to_string(),
+            ));
         }
     };
 

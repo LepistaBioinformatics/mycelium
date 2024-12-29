@@ -10,7 +10,7 @@ use crate::{
     domain::dtos::{
         native_error_codes::NativeErrorCodes,
         route_type::PermissionedRoles,
-        token::{HmacSha256, ScopedMixin, ServiceAccountRelatedMeta},
+        token::{HmacSha256, ScopedBehavior, ServiceAccountRelatedMeta},
     },
     models::AccountLifeCycle,
 };
@@ -35,7 +35,7 @@ impl RoleWithPermissionsScope {
     /// created with the HMAC of the data and the secret from the config.
     ///
     #[tracing::instrument(name = "new", skip(config))]
-    pub fn new(
+    pub(crate) fn new(
         tenant_id: Uuid,
         role_id: Uuid,
         permissioned_roles: PermissionedRoles,
@@ -76,8 +76,9 @@ impl RoleWithPermissionsScope {
         })
     }
 
+    /// Get the tenant id
     #[tracing::instrument(name = "get_tenant_id", skip(self))]
-    pub fn get_tenant_id(&self) -> Option<Uuid> {
+    pub(crate) fn get_tenant_id(&self) -> Option<Uuid> {
         self.0.iter().find_map(|bean| {
             if let ConnectionStringBean::TID(id) = bean {
                 return Some(*id);
@@ -87,6 +88,7 @@ impl RoleWithPermissionsScope {
         })
     }
 
+    /// Get the permissioned roles
     #[tracing::instrument(name = "get_permissioned_roles", skip(self))]
     fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
         self.0.iter().find_map(|bean| {
@@ -98,6 +100,7 @@ impl RoleWithPermissionsScope {
         })
     }
 
+    /// Check if the scope includes the tenant
     #[tracing::instrument(name = "include_tenant", skip(self))]
     fn include_tenant(&self, tenant_id: Uuid) -> bool {
         self.0.iter().any(|bean| {
@@ -110,7 +113,7 @@ impl RoleWithPermissionsScope {
     }
 }
 
-impl ScopedMixin for RoleWithPermissionsScope {
+impl ScopedBehavior for RoleWithPermissionsScope {
     /// Sign the token with secret and data
     ///
     /// Add or replace a signature to self with the HMAC of the data and the
@@ -204,8 +207,67 @@ impl RoleScopedConnectionString {
         self.scope.get_permissioned_roles()
     }
 
-    #[tracing::instrument(name = "contain_enough_permissions", skip(self))]
-    pub fn contain_enough_permissions(
+    #[tracing::instrument(name = "contain_enough_roles", skip(self))]
+    pub fn contain_enough_roles(
+        &self,
+        roles: Vec<String>,
+    ) -> Result<(), MappedErrors> {
+        if self.scope.0.iter().any(|bean| {
+            if let ConnectionStringBean::PR(permissions) = bean {
+                for (role, _) in permissions {
+                    println!("role: {}", role);
+                    if roles.contains(&role.clone()) {
+                        return true;
+                    }
+                }
+            }
+
+            false
+        }) {
+            return Ok(());
+        };
+
+        dto_err("Insufficient permissions to access resource")
+            .with_code(NativeErrorCodes::MYC00013)
+            .with_exp_true()
+            .as_error()
+    }
+
+    #[tracing::instrument(
+        name = "contain_enough_permissioned_roles",
+        skip(self)
+    )]
+    pub fn contain_enough_permissioned_roles(
+        &self,
+        permissioned_roles: PermissionedRoles,
+    ) -> Result<(), MappedErrors> {
+        if self.scope.0.iter().any(|bean| {
+            if let ConnectionStringBean::PR(permissions) = bean {
+                for (role, permission) in permissions {
+                    if permissioned_roles
+                        .contains(&(role.clone(), permission.clone()))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            false
+        }) {
+            return Ok(());
+        };
+
+        dto_err("Insufficient permissions to access resource")
+            .with_code(NativeErrorCodes::MYC00013)
+            .with_exp_true()
+            .as_error()
+    }
+
+    #[tracing::instrument(
+        name = "contain_tenant_enough_permissions",
+        skip(self)
+    )]
+    pub fn contain_tenant_enough_permissions(
         &self,
         tenant_id: Uuid,
         role_id: Uuid,
@@ -243,8 +305,9 @@ impl RoleScopedConnectionString {
             return Ok(());
         }
 
-        dto_err("Role not included in the scope")
+        dto_err("Insufficient permissions to access resource")
             .with_code(NativeErrorCodes::MYC00013)
+            .with_exp_true()
             .as_error()
     }
 }
