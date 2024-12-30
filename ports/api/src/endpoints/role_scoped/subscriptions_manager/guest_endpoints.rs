@@ -21,7 +21,7 @@ use myc_core::{
         },
     },
     models::AccountLifeCycle,
-    use_cases::roles::role_scoped::subscriptions_manager::guest::{
+    use_cases::role_scoped::subscriptions_manager::guest::{
         guest_user, list_guest_on_subscription_account,
         list_licensed_accounts_of_email, uninvite_guest,
     },

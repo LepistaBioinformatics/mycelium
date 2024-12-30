@@ -16,7 +16,7 @@ use myc_core::{
             TenantRegistration, TenantUpdating, UserFetching,
         },
     },
-    use_cases::roles::super_users::managers::{
+    use_cases::super_users::managers::{
         create_tenant, delete_tenant, exclude_tenant_owner,
         include_tenant_owner, list_tenant,
     },

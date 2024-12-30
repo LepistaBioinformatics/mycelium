@@ -22,7 +22,7 @@ readme.workspace = true
 # This section was introduced to fix build error on package 
 # `connection-string`
 [patch.crates-io]
-connection-string = "0.1.14"
+connection-string = "0.2"
 
 [dependencies]
 

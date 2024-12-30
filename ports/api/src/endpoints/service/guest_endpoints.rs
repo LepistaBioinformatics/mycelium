@@ -16,7 +16,7 @@ use myc_core::{
         },
     },
     models::AccountLifeCycle,
-    use_cases::roles::service::guest::guest_to_default_account,
+    use_cases::service::guest::guest_to_default_account,
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,

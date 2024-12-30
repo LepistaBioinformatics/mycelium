@@ -9,7 +9,7 @@ use crate::{
     },
     models::AccountLifeCycle,
     use_cases::{
-        roles::role_scoped::beginner::user::delete_default_user,
+        role_scoped::beginner::user::delete_default_user,
         support::send_email_notification,
     },
 };

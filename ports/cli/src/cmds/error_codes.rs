@@ -1,6 +1,6 @@
 use clap::Parser;
 use log::{error, info};
-use myc_core::use_cases::roles::role_scoped::system_manager::error_codes::batch_register_native_error_codes;
+use myc_core::use_cases::role_scoped::system_manager::error_codes::batch_register_native_error_codes;
 use myc_prisma::repositories::ErrorCodeRegistrationSqlDbRepository;
 
 #[derive(Parser, Debug)]

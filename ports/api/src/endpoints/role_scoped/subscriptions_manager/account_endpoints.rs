@@ -17,7 +17,7 @@ use myc_core::{
             WebHookFetching,
         },
     },
-    use_cases::roles::role_scoped::subscriptions_manager::account::{
+    use_cases::role_scoped::subscriptions_manager::account::{
         create_subscription_account, get_account_details,
         list_accounts_by_type, propagate_existing_subscription_account,
         update_account_name_and_flags,

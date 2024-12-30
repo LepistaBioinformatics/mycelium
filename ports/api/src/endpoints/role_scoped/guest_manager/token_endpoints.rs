@@ -7,7 +7,7 @@ use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
     domain::entities::{MessageSending, TokenRegistration},
     models::AccountLifeCycle,
-    use_cases::roles::role_scoped::guest_manager::token::{
+    use_cases::role_scoped::guest_manager::token::{
         create_default_account_associated_connection_string,
         create_role_associated_connection_string,
     },

@@ -9,7 +9,7 @@ use myc_core::{
         dtos::guest_role::GuestRole,
         entities::{GuestRoleRegistration, RoleRegistration},
     },
-    use_cases::roles::super_users::managers::create_system_roles,
+    use_cases::super_users::managers::create_system_roles,
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,

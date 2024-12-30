@@ -1,6 +1,6 @@
 use clap::Parser;
 use log::{debug, error, info};
-use myc_core::use_cases::roles::super_users::staff::account::create_seed_staff_account;
+use myc_core::use_cases::super_users::staff::account::create_seed_staff_account;
 use myc_prisma::repositories::{
     connector::generate_prisma_client_of_thread,
     AccountRegistrationSqlDbRepository, UserRegistrationSqlDbRepository,
