@@ -7,7 +7,7 @@ use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
     domain::entities::{MessageSending, TokenRegistration},
     models::AccountLifeCycle,
-    use_cases::roles::role_scoped::tenant_manager::create_tenant_associated_connection_string,
+    use_cases::role_scoped::tenant_manager::create_tenant_associated_connection_string,
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,

@@ -14,7 +14,7 @@ use myc_core::{
             RoleDeletion, RoleFetching, RoleRegistration, RoleUpdating,
         },
     },
-    use_cases::roles::role_scoped::guest_manager::role::{
+    use_cases::role_scoped::guest_manager::role::{
         create_role, delete_role, list_roles, update_role_name_and_description,
     },
 };

@@ -3,7 +3,7 @@ use crate::{dtos::MyceliumProfileData, modules::AccountUpdatingModule};
 use actix_web::{patch, web, Responder};
 use myc_core::{
     domain::{dtos::account_type::AccountTypeV2, entities::AccountUpdating},
-    use_cases::roles::super_users::staff::account::{
+    use_cases::super_users::staff::account::{
         downgrade_account_privileges, upgrade_account_privileges,
     },
 };

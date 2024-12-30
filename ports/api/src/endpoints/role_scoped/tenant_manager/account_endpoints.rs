@@ -6,7 +6,7 @@ use crate::{
 use actix_web::{delete, web, Responder};
 use myc_core::{
     domain::entities::AccountDeletion,
-    use_cases::roles::role_scoped::tenant_manager::delete_subscription_account,
+    use_cases::role_scoped::tenant_manager::delete_subscription_account,
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,

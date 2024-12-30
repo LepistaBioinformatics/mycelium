@@ -1,6 +1,6 @@
-/// Use-cases mapped to the application gateway goal.
 pub mod gateway;
-/// Use-cases mapped to the application roles.
-pub mod roles;
+pub mod role_scoped;
+pub mod service;
+pub mod super_users;
 
 pub(crate) mod support;

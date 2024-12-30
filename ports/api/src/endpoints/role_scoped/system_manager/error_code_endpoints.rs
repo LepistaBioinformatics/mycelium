@@ -16,7 +16,7 @@ use myc_core::{
             ErrorCodeUpdating,
         },
     },
-    use_cases::roles::role_scoped::system_manager::error_codes::{
+    use_cases::role_scoped::system_manager::error_codes::{
         delete_error_code, get_error_code, list_error_codes,
         register_error_code, update_error_code_message_and_details,
     },

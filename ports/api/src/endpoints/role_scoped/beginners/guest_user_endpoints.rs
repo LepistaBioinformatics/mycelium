@@ -5,7 +5,7 @@ use crate::{
 use actix_web::{post, web, Responder};
 use myc_core::{
     domain::entities::GuestUserOnAccountUpdating,
-    use_cases::roles::role_scoped::beginner::guest_user::accept_invitation,
+    use_cases::role_scoped::beginner::guest_user::accept_invitation,
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,

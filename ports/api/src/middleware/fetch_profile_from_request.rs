@@ -7,9 +7,7 @@ use jwt::{Header as JwtHeader, RegisteredClaims, Token};
 use myc_config::optional_config::OptionalConfig;
 use myc_core::{
     domain::dtos::{email::Email, route_type::PermissionedRoles},
-    use_cases::roles::service::profile::{
-        fetch_profile_from_email, ProfileResponse,
-    },
+    use_cases::service::profile::{fetch_profile_from_email, ProfileResponse},
 };
 use myc_http_tools::{
     functions::decode_jwt_hs512,

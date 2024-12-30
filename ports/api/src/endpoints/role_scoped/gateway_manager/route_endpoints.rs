@@ -3,7 +3,7 @@ use crate::{dtos::MyceliumProfileData, modules::RoutesFetchingModule};
 use actix_web::{get, web, Responder};
 use myc_core::{
     domain::{dtos::route::Route, entities::RoutesFetching},
-    use_cases::roles::role_scoped::gateway_manager::route::list_routes,
+    use_cases::role_scoped::gateway_manager::route::list_routes,
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,

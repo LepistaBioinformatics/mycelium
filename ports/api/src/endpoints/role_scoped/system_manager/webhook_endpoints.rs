@@ -19,7 +19,7 @@ use myc_core::{
         },
     },
     models::AccountLifeCycle,
-    use_cases::roles::role_scoped::system_manager::webhook::{
+    use_cases::role_scoped::system_manager::webhook::{
         delete_webhook, list_webhooks, register_webhook, update_webhook,
     },
 };

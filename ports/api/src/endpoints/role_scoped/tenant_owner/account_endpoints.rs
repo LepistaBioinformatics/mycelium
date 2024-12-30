@@ -6,7 +6,7 @@ use crate::{
 use actix_web::{post, web, Responder};
 use myc_core::{
     domain::entities::{AccountRegistration, TenantFetching},
-    use_cases::roles::role_scoped::tenant_owner::create_management_account,
+    use_cases::role_scoped::tenant_owner::create_management_account,
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,

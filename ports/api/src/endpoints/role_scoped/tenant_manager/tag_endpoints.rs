@@ -14,7 +14,7 @@ use myc_core::{
             TenantTagDeletion, TenantTagRegistration, TenantTagUpdating,
         },
     },
-    use_cases::roles::role_scoped::tenant_manager::{
+    use_cases::role_scoped::tenant_manager::{
         delete_tag, register_tag, update_tag,
     },
 };

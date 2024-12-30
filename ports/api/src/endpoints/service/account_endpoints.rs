@@ -6,7 +6,7 @@ use crate::{
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
     domain::entities::{AccountRegistration, WebHookFetching},
-    use_cases::roles::service::account::create_subscription_account,
+    use_cases::service::account::create_subscription_account,
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,

@@ -16,7 +16,7 @@ use myc_core::{
         },
     },
     models::AccountLifeCycle,
-    use_cases::roles::role_scoped::account_manager::guest::guest_to_children_account,
+    use_cases::role_scoped::account_manager::guest::guest_to_children_account,
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,
