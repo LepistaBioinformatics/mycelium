@@ -36,6 +36,6 @@ pub async fn list_routes(
     // ? ----------------------------------------------------------------------
 
     routes_fetching_repo
-        .list_by_service(id, name, include_service_details)
+        .list_routes(id, name, include_service_details)
         .await
 }

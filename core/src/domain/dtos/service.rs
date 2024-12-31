@@ -8,7 +8,7 @@ use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize, ToSchema, PartialEq, Eq)]
 pub struct ServiceSecret {
     pub(crate) name: String,
 
@@ -59,7 +59,7 @@ impl Serialize for ServiceSecret {
 ///
 /// The service is the upstream service that the route will proxy to.
 ///
-#[derive(Debug, Clone, Deserialize, Serialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Service {
     /// The service id

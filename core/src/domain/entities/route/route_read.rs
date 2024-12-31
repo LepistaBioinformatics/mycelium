@@ -1,4 +1,5 @@
 use crate::domain::dtos::route::Route;
+use crate::domain::dtos::service::Service;
 
 use actix_web::http::uri::PathAndQuery;
 use async_trait::async_trait;
@@ -18,12 +19,18 @@ pub trait RoutesFetching: Interface + Send + Sync {
         path: PathAndQuery,
     ) -> Result<FetchResponseKind<Route, String>, MappedErrors>;
 
-    async fn list_by_service(
+    async fn list_routes(
         &self,
         id: Option<Uuid>,
         name: Option<String>,
         include_service_details: Option<bool>,
     ) -> Result<FetchManyResponseKind<Route>, MappedErrors>;
+
+    async fn list_services(
+        &self,
+        id: Option<Uuid>,
+        name: Option<String>,
+    ) -> Result<FetchManyResponseKind<Service>, MappedErrors>;
 }
 
 impl Display for dyn RoutesFetching {
