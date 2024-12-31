@@ -31,7 +31,7 @@ pub(crate) async fn get_or_create_role_related_account(
 
     let mut unchecked_account = Account::new_role_related_account(
         format!(
-            "[role/{}] Default subscription account",
+            "Default subscription account for role/{}",
             role_id.to_string()
         ),
         tenant_id,

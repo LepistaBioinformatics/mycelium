@@ -17,6 +17,7 @@ use myc_core::{
             WebHookFetching,
         },
     },
+    models::AccountLifeCycle,
     use_cases::role_scoped::subscriptions_manager::account::{
         create_subscription_account, get_account_details,
         list_accounts_by_type, propagate_existing_subscription_account,
@@ -182,6 +183,7 @@ pub async fn create_subscription_account_url(
     tenant: TenantData,
     body: web::Json<CreateSubscriptionAccountBody>,
     profile: MyceliumProfileData,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
     account_registration_repo: Inject<
         AccountRegistrationModule,
         dyn AccountRegistration,
@@ -192,6 +194,7 @@ pub async fn create_subscription_account_url(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         body.name.to_owned(),
+        life_cycle_settings.get_ref().to_owned(),
         Box::new(&*account_registration_repo),
         Box::new(&*webhook_fetching_repo),
     )
@@ -491,6 +494,7 @@ pub async fn propagate_existing_subscription_account_url(
     tenant: TenantData,
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
     account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
     webhook_fetching_repo: Inject<WebHookFetchingModule, dyn WebHookFetching>,
 ) -> impl Responder {
@@ -500,6 +504,7 @@ pub async fn propagate_existing_subscription_account_url(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         account_id,
+        life_cycle_settings.get_ref().to_owned(),
         Box::new(&*account_fetching_repo),
         Box::new(&*webhook_fetching_repo),
     )

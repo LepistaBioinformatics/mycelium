@@ -9,7 +9,7 @@ use crate::{
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
-        dtos::account::Account,
+        dtos::{account::Account, user::User},
         entities::{
             AccountRegistration, GuestRoleFetching, GuestUserRegistration,
             MessageSending,
@@ -22,6 +22,7 @@ use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error,
 };
+use mycelium_base::dtos::Children;
 use serde::Deserialize;
 use shaku_actix::Inject;
 use utoipa::{IntoParams, ToSchema};
@@ -41,7 +42,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 
 #[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct GuestUserBody {
+pub struct ServiceGuestUserBody {
     #[serde(flatten)]
     account: Account,
 }
@@ -68,7 +69,7 @@ pub struct GuestUserBody {
             description = "The connection string to the role-scoped database."
         ),
     ),
-    request_body = GuestUserBody,
+    request_body = ServiceGuestUserBody,
     responses(
         (
             status = 500,
@@ -107,7 +108,7 @@ pub struct GuestUserBody {
 pub async fn guest_to_default_account_url(
     path: web::Path<Uuid>,
     connection_string: MyceliumRoleScopedConnectionStringData,
-    body: web::Json<GuestUserBody>,
+    body: web::Json<ServiceGuestUserBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     account_registration_repo: Inject<
         AccountRegistrationModule,
@@ -124,7 +125,21 @@ pub async fn guest_to_default_account_url(
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let role_id = path.to_owned();
-    let account = body.account.to_owned();
+
+    let email = match body.account.owners.to_owned() {
+        Children::Ids(_) => {
+            return HttpResponse::BadRequest()
+                .json("Invalid account owner".to_string())
+        }
+        Children::Records(owners) => owners
+            .into_iter()
+            .filter(|owner| owner.is_principal())
+            .collect::<Vec<User>>()
+            .first()
+            .unwrap()
+            .email
+            .to_owned(),
+    };
 
     let tenant_id = match connection_string.tenant_id() {
         Some(tenant_id) => tenant_id,
@@ -137,7 +152,7 @@ pub async fn guest_to_default_account_url(
     match guest_to_default_account(
         connection_string.connection_string().clone(),
         role_id,
-        account.to_owned(),
+        email.to_owned(),
         tenant_id,
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*account_registration_repo),
@@ -147,7 +162,7 @@ pub async fn guest_to_default_account_url(
     )
     .await
     {
-        Ok(_) => HttpResponse::Created().json(account),
+        Ok(_) => HttpResponse::Created().json(email),
         Err(err) => handle_mapped_error(err),
     }
 }

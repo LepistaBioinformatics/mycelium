@@ -2,9 +2,9 @@ use crate::{
     domain::{
         actors::SystemActor::*,
         dtos::{
-            account::Account, guest_role::Permission, guest_user::GuestUser,
+            email::Email, guest_role::Permission, guest_user::GuestUser,
             native_error_codes::NativeErrorCodes,
-            token::RoleScopedConnectionString, user::User,
+            token::RoleScopedConnectionString,
         },
         entities::{
             AccountRegistration, GuestRoleFetching, GuestUserRegistration,
@@ -19,7 +19,7 @@ use crate::{
 
 use futures::future;
 use mycelium_base::{
-    dtos::{Children, Parent},
+    dtos::Parent,
     entities::{FetchResponseKind, GetOrCreateResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
@@ -34,7 +34,7 @@ use uuid::Uuid;
 pub async fn guest_to_default_account(
     scope: RoleScopedConnectionString,
     role_id: Uuid,
-    account: Account,
+    email: Email,
     tenant_id: Uuid,
     life_cycle_settings: AccountLifeCycle,
     account_registration_repo: Box<&dyn AccountRegistration>,
@@ -95,24 +95,10 @@ pub async fn guest_to_default_account(
     // ? Persist changes
     // ? -----------------------------------------------------------------------
 
-    let guest_email = match account.owners {
-        Children::Ids(_) => {
-            return use_case_err("Invalid account owner".to_string()).as_error()
-        }
-        Children::Records(owners) => owners
-            .into_iter()
-            .filter(|owner| owner.is_principal())
-            .collect::<Vec<User>>()
-            .first()
-            .unwrap()
-            .email
-            .to_owned(),
-    };
-
     match guest_user_registration_repo
         .get_or_create(
             GuestUser::new_unverified(
-                guest_email.to_owned(),
+                email.to_owned(),
                 Parent::Id(role_id),
                 None,
             ),
@@ -162,7 +148,7 @@ pub async fn guest_to_default_account(
         parameters,
         "email/guest-to-subscription-account.jinja",
         life_cycle_settings,
-        guest_email,
+        email,
         None,
         String::from("[Guest to Account] You have been invited to collaborate"),
         message_sending_repo,
