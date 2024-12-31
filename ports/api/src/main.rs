@@ -79,6 +79,25 @@ use uuid::Uuid;
 #[actix_web::main]
 pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
+    // ? Export the UTOIPA_REDOC_CONFIG_FILE environment variable
+    //
+    // The UTOIPA_REDOC_CONFIG_FILE environment variable should be exported
+    // before the server starts. The variable should contain the path to the
+    // redoc configuration file.
+    //
+    // ? -----------------------------------------------------------------------
+
+    if let Err(err) = std::env::var("UTOIPA_REDOC_CONFIG_FILE") {
+        trace!("Error on get env `UTOIPA_REDOC_CONFIG_FILE`: {err}");
+        info!("Env variable `UTOIPA_REDOC_CONFIG_FILE` not set. Setting default value");
+
+        std::env::set_var(
+            "UTOIPA_REDOC_CONFIG_FILE",
+            "ports/api/src/api_docs/redoc.config.json",
+        );
+    }
+
+    // ? -----------------------------------------------------------------------
     // ? Initialize services configuration
     //
     // All configurations for the core, ports, and adapters layers should exists
