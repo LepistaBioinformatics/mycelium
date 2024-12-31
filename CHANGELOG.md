@@ -1,3 +1,40 @@
+## v6.3.0 (2024-12-30)
+
+### Feat
+
+- **user-account-creation**: include a email notification to the new account creation workflow
+- **gateway-manager/service**: implements the service listing for gateway managers
+- expose the x-mycelium-request-id to the gateway user
+- implements a new functionality to create all system roles by managers
+- implements the injection of secrets through the gateway router
+- implements the secrets service collection during the api gateway initialization
+- wip - implements an aditional option to collect secrets from environment vault
+- implements the gateway routes basic elements to check endpoints by api
+- implements the invitation acceptance use cases and api
+
+### Fix
+
+- fix the webhook dispatching to decrypt secrets befhre send request to the incoming route
+- set the utoipa redoc environment variable on the main file of the api port
+- fix the parsing and verification of connection strings not working
+- remove unused test
+- review the licensed resources filtering from database
+- include additional checks to allow routing to insecure downstream paths only if explicitly informed by users
+- ensure the downstream service secrets to be removed from the gateway request
+- fix the endpoints security definition
+
+### Refactor
+
+- remove the role submodule and move chindren modules to the root parent
+- move the match forward address use-case to the gateway use-cases group
+- rename the env-or-value functionality by secret-resolver
+- refactor the route match use-case to use a correct base response from mycelium
+- **secret-dto**: move the webhook secret dto to a independent dto named http-secret
+- refactor the azure provider model to include new functionalities
+- rename the standard folder to role-scoped in api prot
+- move the match-forward-address to the api-port-router functionality
+- rename the use-cases to mirror the application roles
+
 ## v6.2.0 (2024-12-01)
 
 ### Feat
