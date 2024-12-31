@@ -10,6 +10,7 @@ use crate::{
         },
         entities::{AccountRegistration, UserFetching, WebHookFetching},
     },
+    models::AccountLifeCycle,
     use_cases::support::dispatch_webhooks,
 };
 
@@ -30,6 +31,7 @@ use mycelium_base::{
 pub async fn create_default_account(
     email: Email,
     account_name: String,
+    config: AccountLifeCycle,
     user_fetching_repo: Box<&dyn UserFetching>,
     account_registration_repo: Box<&dyn AccountRegistration>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
@@ -80,6 +82,7 @@ pub async fn create_default_account(
     let responses = dispatch_webhooks(
         WebHookTrigger::CreateUserAccount,
         account.to_owned(),
+        config,
         webhook_fetching_repo,
     )
     .await;

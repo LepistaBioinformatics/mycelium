@@ -12,6 +12,7 @@ use myc_core::{
     domain::entities::{
         AccountRegistration, AccountUpdating, UserFetching, WebHookFetching,
     },
+    models::AccountLifeCycle,
     use_cases::role_scoped::beginner::account::{
         create_default_account, update_own_account_name,
     },
@@ -101,6 +102,7 @@ pub struct UpdateOwnAccountNameAccountBody {
 pub async fn create_default_account_url(
     req: HttpRequest,
     body: web::Json<CreateDefaultAccountBody>,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
     user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
     account_registration_repo: Inject<
         AccountRegistrationModule,
@@ -129,6 +131,7 @@ pub async fn create_default_account_url(
     match create_default_account(
         email,
         body.name.to_owned(),
+        life_cycle_settings.get_ref().to_owned(),
         Box::new(&*user_fetching_repo),
         Box::new(&*account_registration_repo),
         Box::new(&*webhook_fetching_repo),

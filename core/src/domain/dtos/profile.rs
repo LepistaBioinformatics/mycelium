@@ -111,11 +111,14 @@ impl ToString for LicensedResource {
         let encoded_account_name =
             general_purpose::STANDARD.encode(self.acc_name.as_bytes());
 
+        let encoded_guest_role_name =
+            general_purpose::STANDARD.encode(self.guest_role_name.as_bytes());
+
         format!(
             "tid/{tenant_id}/aid/{acc_id}/grn/{guest_role_name}?pr={role}:{perm}&std={is_acc_std}&v={was_verified}&name={acc_name}",
             tenant_id = self.tenant_id.to_string().replace("-", ""),
             acc_id = self.acc_id.to_string().replace("-", ""),
-            guest_role_name = self.guest_role_name,
+            guest_role_name = encoded_guest_role_name,
             role = self.role,
             perm = self.perm.to_owned().to_i32(),
             is_acc_std = self.is_acc_std as i8,
@@ -231,6 +234,15 @@ impl FromStr for LicensedResource {
                 }
             };
 
+        let guest_role_name_decoded = match general_purpose::STANDARD
+            .decode(guest_role_name.as_bytes())
+        {
+            Ok(name) => name,
+            Err(_) => {
+                return Err("Failed to decode guest role name".to_string());
+            }
+        };
+
         Ok(Self {
             tenant_id: Uuid::from_str(tenant_id).unwrap(),
             acc_id: Uuid::from_str(account_id).unwrap(),
@@ -238,7 +250,8 @@ impl FromStr for LicensedResource {
             perm: Permission::from_i32(permission_code.parse::<i32>().unwrap()),
             is_acc_std: std,
             acc_name: String::from_utf8(name_decoded).unwrap(),
-            guest_role_name: guest_role_name.to_string(),
+            guest_role_name: String::from_utf8(guest_role_name_decoded)
+                .unwrap(),
             was_verified,
         })
     }

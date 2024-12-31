@@ -1,11 +1,15 @@
-use crate::domain::{
-    dtos::{
-        http_secret::HttpSecret,
-        webhook::{
-            HookResponse, WebHook, WebHookPropagationResponse, WebHookTrigger,
+use crate::{
+    domain::{
+        dtos::{
+            http_secret::HttpSecret,
+            webhook::{
+                HookResponse, WebHook, WebHookPropagationResponse,
+                WebHookTrigger,
+            },
         },
+        entities::WebHookFetching,
     },
-    entities::WebHookFetching,
+    models::AccountLifeCycle,
 };
 
 use futures_util::future::join_all;
@@ -19,6 +23,7 @@ pub(crate) async fn dispatch_webhooks<
 >(
     trigger: WebHookTrigger,
     payload_body: PayloadBody,
+    config: AccountLifeCycle,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
 ) -> WebHookPropagationResponse<PayloadBody> {
     // ? -----------------------------------------------------------------------
@@ -104,27 +109,41 @@ pub(crate) async fn dispatch_webhooks<
             // Attach the secret to the request if it exists
             //
             (match &hook.get_secret() {
-                Some(secret) => match secret {
-                    HttpSecret::AuthorizationHeader {
-                        name,
-                        prefix,
-                        token,
-                    } => {
-                        let credential_key = name
-                            .to_owned()
-                            .unwrap_or("Authorization".to_string());
-
-                        let credential_value = if let Some(prefix) = prefix {
-                            format!("{} {}", prefix, token)
-                        } else {
-                            token.to_owned()
+                Some(secret) => {
+                    let decrypted_secret =
+                        match secret.decrypt_me(config.to_owned()) {
+                            Ok(secret) => secret,
+                            Err(err) => {
+                                panic!("Error on decrypting secret: {:?}", err);
+                            }
                         };
 
-                        base_request.header(credential_key, credential_value)
+                    match decrypted_secret {
+                        HttpSecret::AuthorizationHeader {
+                            name,
+                            prefix,
+                            token,
+                        } => {
+                            let credential_key = name
+                                .to_owned()
+                                .unwrap_or("Authorization".to_string());
+
+                            let credential_value = if let Some(prefix) = prefix
+                            {
+                                format!("{} {}", prefix, token)
+                            } else {
+                                token.to_owned()
+                            };
+
+                            base_request
+                                .header(credential_key, credential_value)
+                        }
+                        HttpSecret::QueryParameter { name, token } => {
+                            base_request
+                                .query(&[(name.to_owned(), token.to_owned())])
+                        }
                     }
-                    HttpSecret::QueryParameter { name, token } => base_request
-                        .query(&[(name.to_owned(), token.to_owned())]),
-                },
+                }
                 None => base_request,
             })
             .json(&payload_body)

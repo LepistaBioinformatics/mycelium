@@ -9,6 +9,7 @@ use crate::{
         },
         entities::{AccountRegistration, WebHookFetching},
     },
+    models::AccountLifeCycle,
     use_cases::support::dispatch_webhooks,
 };
 
@@ -30,6 +31,7 @@ pub async fn create_subscription_account(
     profile: Profile,
     tenant_id: Uuid,
     account_name: String,
+    config: AccountLifeCycle,
     account_registration_repo: Box<&dyn AccountRegistration>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
 ) -> Result<WebHookPropagationResponse<Account>, MappedErrors> {
@@ -75,6 +77,7 @@ pub async fn create_subscription_account(
     let responses = dispatch_webhooks(
         WebHookTrigger::CreateSubscriptionAccount,
         account.to_owned(),
+        config,
         webhook_fetching_repo,
     )
     .await;

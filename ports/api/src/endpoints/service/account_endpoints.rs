@@ -6,6 +6,7 @@ use crate::{
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
     domain::entities::{AccountRegistration, WebHookFetching},
+    models::AccountLifeCycle,
     use_cases::service::account::create_subscription_account,
 };
 use myc_http_tools::{
@@ -88,6 +89,7 @@ pub struct CreateSubscriptionAccountBody {
 pub async fn create_subscription_account_from_service_url(
     body: web::Json<CreateSubscriptionAccountBody>,
     connection_string: MyceliumTenantScopedConnectionStringData,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
     account_registration_repo: Inject<
         AccountRegistrationModule,
         dyn AccountRegistration,
@@ -106,6 +108,7 @@ pub async fn create_subscription_account_from_service_url(
         connection_string.connection_string().clone(),
         tenant_id,
         body.name.to_owned(),
+        life_cycle_settings.get_ref().clone(),
         Box::new(&*account_registration_repo),
         Box::new(&*webhook_fetching_repo),
     )
