@@ -117,7 +117,7 @@ pub async fn create_default_account_associated_connection_string(
         life_cycle_settings,
         Email::from_string(owner.email.to_owned())?,
         None,
-        String::from("[Connection String] New connection string created"),
+        String::from("New connection string created"),
         message_sending_repo,
     )
     .await

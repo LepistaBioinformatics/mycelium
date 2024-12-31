@@ -129,9 +129,7 @@ pub async fn totp_start_activation(
         life_cycle_settings.to_owned(),
         email.to_owned(),
         None,
-        String::from(
-            "[MFA Activation Started] Multiple Factor Authentication Activation",
-        ),
+        String::from("Multiple Factor Authentication Activation Started"),
         message_sending_repo,
     )
     .await

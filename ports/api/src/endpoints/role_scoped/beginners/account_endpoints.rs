@@ -2,15 +2,16 @@ use crate::{
     dtos::MyceliumProfileData,
     middleware::check_credentials_with_multi_identity_provider,
     modules::{
-        AccountRegistrationModule, AccountUpdatingModule, UserFetchingModule,
-        WebHookFetchingModule,
+        AccountRegistrationModule, AccountUpdatingModule,
+        MessageSendingQueueModule, UserFetchingModule, WebHookFetchingModule,
     },
 };
 
 use actix_web::{patch, post, web, HttpRequest, HttpResponse, Responder};
 use myc_core::{
     domain::entities::{
-        AccountRegistration, AccountUpdating, UserFetching, WebHookFetching,
+        AccountRegistration, AccountUpdating, MessageSending, UserFetching,
+        WebHookFetching,
     },
     models::AccountLifeCycle,
     use_cases::role_scoped::beginner::account::{
@@ -109,6 +110,7 @@ pub async fn create_default_account_url(
         dyn AccountRegistration,
     >,
     webhook_fetching_repo: Inject<WebHookFetchingModule, dyn WebHookFetching>,
+    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let opt_email =
         match check_credentials_with_multi_identity_provider(req).await {
@@ -135,6 +137,7 @@ pub async fn create_default_account_url(
         Box::new(&*user_fetching_repo),
         Box::new(&*account_registration_repo),
         Box::new(&*webhook_fetching_repo),
+        Box::new(&*message_sending_repo),
     )
     .await
     {

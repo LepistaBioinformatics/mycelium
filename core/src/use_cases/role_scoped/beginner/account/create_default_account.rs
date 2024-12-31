@@ -8,10 +8,12 @@ use crate::{
             user::Provider,
             webhook::{WebHookPropagationResponse, WebHookTrigger},
         },
-        entities::{AccountRegistration, UserFetching, WebHookFetching},
+        entities::{
+            AccountRegistration, MessageSending, UserFetching, WebHookFetching,
+        },
     },
     models::AccountLifeCycle,
-    use_cases::support::dispatch_webhooks,
+    use_cases::support::{dispatch_webhooks, send_email_notification},
 };
 
 use mycelium_base::{
@@ -35,12 +37,16 @@ pub async fn create_default_account(
     user_fetching_repo: Box<&dyn UserFetching>,
     account_registration_repo: Box<&dyn AccountRegistration>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
+    message_sending_repo: Box<&dyn MessageSending>,
 ) -> Result<WebHookPropagationResponse<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Try to fetch user from database
     // ? -----------------------------------------------------------------------
 
-    let user = match user_fetching_repo.get_user_by_email(email).await? {
+    let user = match user_fetching_repo
+        .get_user_by_email(email.to_owned())
+        .await?
+    {
         FetchResponseKind::NotFound(_) => {
             return use_case_err("User not found".to_string()).as_error();
         }
@@ -61,7 +67,7 @@ pub async fn create_default_account(
 
     let account = match account_registration_repo
         .get_or_create_user_account(
-            Account::new(account_name, user, AccountTypeV2::User),
+            Account::new(account_name.to_owned(), user, AccountTypeV2::User),
             true,
             false,
         )
@@ -76,16 +82,36 @@ pub async fn create_default_account(
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Dispatch associated webhooks
+    // ? Perform finishing operations
     // ? -----------------------------------------------------------------------
 
-    let responses = dispatch_webhooks(
-        WebHookTrigger::CreateUserAccount,
-        account.to_owned(),
-        config,
-        webhook_fetching_repo,
-    )
-    .await;
+    let (notification_response, webhook_responses) = futures::join!(
+        send_email_notification(
+            vec![("account_name", account_name)],
+            "email/create-user-account.jinja",
+            config.to_owned(),
+            email,
+            None,
+            String::from("New account created"),
+            message_sending_repo,
+        ),
+        dispatch_webhooks(
+            WebHookTrigger::CreateUserAccount,
+            account.to_owned(),
+            config,
+            webhook_fetching_repo,
+        )
+    );
 
-    Ok(responses)
+    if let Err(err) = notification_response {
+        return use_case_err(format!("Unable to send email: {err}"))
+            .with_code(NativeErrorCodes::MYC00010)
+            .as_error();
+    };
+
+    // ? -----------------------------------------------------------------------
+    // ? Return the webhook responses
+    // ? -----------------------------------------------------------------------
+
+    Ok(webhook_responses)
 }
