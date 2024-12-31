@@ -156,7 +156,7 @@ pub async fn totp_disable(
         life_cycle_settings.to_owned(),
         email.to_owned(),
         None,
-        String::from("[MFA Disabled] Multiple Factor Authentication Disabled"),
+        String::from("Multiple Factor Authentication Disabled"),
         message_sending_repo,
     )
     .await

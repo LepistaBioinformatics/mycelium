@@ -105,7 +105,7 @@ pub async fn start_password_redefinition(
         life_cycle_settings,
         token_metadata.email,
         None,
-        String::from("[Password Reset Request] Email address confirmation"),
+        String::from("Password Reset Request"),
         message_sending_repo,
     )
     .await

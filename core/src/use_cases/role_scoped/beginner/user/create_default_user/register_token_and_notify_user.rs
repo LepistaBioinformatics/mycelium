@@ -106,7 +106,7 @@ pub(super) async fn register_token_and_notify_user(
         life_cycle_settings,
         token_metadata.email,
         None,
-        String::from("[Email Validation] Please confirm your email address"),
+        String::from("Please confirm your email address"),
         message_sending_repo,
     )
     .await

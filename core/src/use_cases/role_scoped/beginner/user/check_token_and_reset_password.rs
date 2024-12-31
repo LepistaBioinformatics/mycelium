@@ -120,7 +120,7 @@ pub async fn check_token_and_reset_password(
         life_cycle_settings,
         email,
         None,
-        String::from("[Password Reset Success] Email address confirmation"),
+        String::from("Password Reset Success"),
         message_sending_repo,
     )
     .await

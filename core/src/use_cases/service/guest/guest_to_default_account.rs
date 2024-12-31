@@ -150,7 +150,7 @@ pub async fn guest_to_default_account(
         life_cycle_settings,
         email,
         None,
-        String::from("[Guest to Account] You have been invited to collaborate"),
+        String::from("You have been invited to collaborate"),
         message_sending_repo,
     )
     .await

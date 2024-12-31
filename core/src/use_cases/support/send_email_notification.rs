@@ -70,7 +70,7 @@ pub(crate) async fn send_email_notification<T: ToString>(
             from,
             to,
             cc,
-            subject,
+            subject: format!("[{}] {}", config.domain_name, subject),
             body: email_template,
         })
         .await
