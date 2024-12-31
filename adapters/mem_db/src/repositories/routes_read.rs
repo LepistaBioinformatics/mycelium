@@ -1,7 +1,10 @@
 use actix_web::http::uri::PathAndQuery;
 use async_trait::async_trait;
 use myc_core::{
-    domain::{dtos::route::Route, entities::RoutesFetching},
+    domain::{
+        dtos::{route::Route, service::Service},
+        entities::RoutesFetching,
+    },
     settings::ROUTES,
 };
 use mycelium_base::{
@@ -82,7 +85,7 @@ impl RoutesFetching for RoutesFetchingMemDbRepo {
         ))
     }
 
-    async fn list_by_service(
+    async fn list_routes(
         &self,
         id: Option<Uuid>,
         name: Option<String>,
@@ -168,6 +171,99 @@ impl RoutesFetching for RoutesFetchingMemDbRepo {
                 }
             })
             .collect::<Vec<Route>>();
+
+        if response.len() == 0 {
+            return Ok(FetchManyResponseKind::NotFound);
+        }
+
+        Ok(FetchManyResponseKind::Found(response))
+    }
+
+    async fn list_services(
+        &self,
+        id: Option<Uuid>,
+        name: Option<String>,
+    ) -> Result<FetchManyResponseKind<Service>, MappedErrors> {
+        let db = ROUTES.lock().await.clone();
+
+        if db.len() == 0 {
+            return fetching_err("Routes already not initialized.".to_string())
+                .as_error();
+        }
+
+        let response = db
+            .into_iter()
+            .filter(|route| {
+                let service = match &route.service {
+                    Parent::Record(service) => service,
+                    Parent::Id(_) => {
+                        error!(
+                            "Service not found when trying to match the route with the route: {:?}", 
+                            route.id.to_owned()
+                        );
+
+                        return false;
+                    }
+                };
+
+                // Check the match between the registered route and the
+                // requested route.
+                let id_match = match id {
+                    Some(id) => {
+                        let service_id =
+                            if let Some(id) = service.to_owned().id {
+                                id
+                            } else {
+                                warn!(
+                                    "Service id not found when trying to match the route with the service: {}", 
+                                    service.to_owned().name
+                                );
+
+                                return false;
+                            };
+
+                        service_id == id
+                    }
+                    None => true,
+                };
+
+                // Check the match between the registered service name and the
+                // requested service name.
+                let name_match = match &name {
+                    Some(name) => service.to_owned().name == *name,
+                    None => true,
+                };
+
+                // Check the match between the service and the route.
+                id_match && name_match
+            })
+            .collect::<Vec<Route>>()
+            .into_iter()
+            .filter_map(|route| {
+                match route.service {
+                    Parent::Record(service) => Some(service),
+                    Parent::Id(_) => {
+                        error!(
+                            "Service not found when trying to match the route with the route: {:?}", 
+                            route.id.to_owned()
+                        );
+
+                        None
+                    }
+                }
+            })
+            .collect::<Vec<Service>>()
+            //
+            // Filter unique services
+            //
+            .into_iter()
+            .fold(Vec::new(), |mut acc, service| {
+                if !acc.contains(&service) {
+                    acc.push(service);
+                }
+
+                acc
+            });
 
         if response.len() == 0 {
             return Ok(FetchManyResponseKind::NotFound);

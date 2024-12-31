@@ -8,7 +8,7 @@ use utoipa::ToSchema;
 /// The secret resolver is a way to resolve a secret value from different
 /// sources.
 ///
-#[derive(Debug, Clone, Deserialize, Serialize, ToSchema)]
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum SecretResolver<T> {
     /// Retrieve the value from the environment variable
