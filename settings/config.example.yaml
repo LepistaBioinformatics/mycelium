@@ -1,19 +1,54 @@
 # ? ----------------------------------------------------------------------------
+# ? VAULT CONFIGURATIONS
+# ? ----------------------------------------------------------------------------
+vault: !enabled
+  url: "http://localhost:8200"
+  versionWithNamespace: v1/kv
+
+  # The vault token is the unique variable restricted to direct setting or
+  # environment variable. It is used to authenticate the vault client.
+  token:
+    env: MYC_VAULT_TOKEN
+
+# ? ----------------------------------------------------------------------------
 # ? CORE CONFIGURATIONS
 # ? ----------------------------------------------------------------------------
 core:
+  # Config related to the account life cycle
   accountLifeCycle:
-    domainName: "Mycelium"
-    domainUrl: "http://localhost:8080"
-    tokenExpiration: 3600
-    tokenSecret:
-      env: MYC_TOKEN_SECRET
-    noreplyName: "Mycelium Keeper"
+    # Less important settings should be set directly in the config file
+    #
+    # The domain name is used to set the email domain. It is used to send the
+    # email notifications to the users.
+    #
+    domainName: Mycelium
+    domainUrl: http://localhost:8080
+
+    #
+    # The token expiration is used to configure the JWT token expiration time.
+    #
+    tokenExpiration: 3600 # 1 hour
+
+    #
+    # The locale sets the language to send the email notifications.
+    #
+    locale: "en-us"
+
+    # More important settings should be set from environment variables or vault
+    noreplyName:
+      env: MYC_NOREPLY_NAME
     noreplyEmail:
-      env: MYC_TOKEN_EMAIL_NOTIFIER
-    supportName: "Mycelium Keeper"
+      env: MYC_NOREPLY_EMAIL
+    supportName:
+      env: MYC_SUPPORT_NAME
     supportEmail:
-      env: MYC_TOKEN_SUPPORT_EMAIL
+      env: MYC_SUPPORT_EMAIL
+
+    # Token secret should be set from vault
+    tokenSecret:
+      vault:
+        path: myc/core/accountLifeCycle
+        key: tokenSecret
 
 # ? ----------------------------------------------------------------------------
 # ? SQL DATABASE ADAPTER SETTINGS
@@ -31,20 +66,29 @@ prisma:
 #
 # ? ----------------------------------------------------------------------------
 smtp: !enabled
-  host: "smtp.gmail.com"
+  host:
+    env: MYC_SMTP_HOST
+  # ! Should be collected from vault or environment variable in production
   username:
-    env: MYC_SMTP_USERNAME
+    vault:
+      path: myc/smtp
+      key: username
+  # ! Should be collected from vault or environment variable in production
   password:
-    env: MYC_SMTP_PASSWORD
+    vault:
+      path: myc/smtp
+      key: password
 
 queue: !enabled
   protocol: redis # should be rediss for secure connection
-  hostname:
-    env: MYC_REDIS_HOSTNAME
-  password:
-    env: MYC_REDIS_PASSWORD
+  hostname: localhost
   emailQueueName: emails
-  consumeIntervalInSecs: 120
+  consumeIntervalInSecs: 30
+
+  password:
+    vault:
+      path: myc/queue
+      key: password
 
 # ? ----------------------------------------------------------------------------
 # ? AUTHENTICATION SETTINGS
@@ -62,38 +106,71 @@ auth:
   # Internal authentication is the default authentication method. It uses the
   # database adapter plus the redis to flow along the users life cycle.
   internal: !enabled
-    jwtSecret:
-      env: MYC_INTERNAL_JWT_SECRET
     jwtExpiresIn: 43200 # 12 hours
     tmpExpiresIn: 300 # 5 minutes
+
+    jwtSecret:
+      vault:
+        path: myc/auth/internal
+        key: jwtSecret
 
   # Google third party authentication. It uses the google oauth2 to authenticate
   # the user. It requires a valid client id and secret.
   google: !enabled
     clientOrigin: http://localhost:3000
-    jwtSecret:
-      env: MYC_GOOGLE_JWT_SECRET
+    redirectUrl: http://localhost:3000
     jwtExpiresIn: 60m
     jwtMaxAge: 60
-    oauthClientId:
-      env: MYC_GOOGLE_OAUTH_CLIENT_ID
-    oauthClientSecret:
-      env: MYC_GOOGLE_OAUTH_CLIENT_SECRET
-    oauthRedirectUrl: http://localhost:3000
+
+    # ! Should be collected from vault or environment variable in production
+    jwtSecret:
+      vault:
+        path: myc/auth/google
+        key: jwtSecret
+
+    # ! Should be collected from vault or environment variable in production
+    clientId:
+      vault:
+        path: myc/auth/google
+        key: clientId
+
+    # ! Should be collected from vault or environment variable in production
+    clientSecret:
+      vault:
+        path: myc/auth/google
+        key: clientSecret
 
   # Azure third party authentication. It uses the azure oauth2 to authenticate
   # the user. It does not require a valid client id and secret. Working only
   # with the azure active directory.
   azure: !enabled
-    clientOrigin: http://localhost:3000
-    # ! Should be collected from environment variable in production
-    tenantId: "my_tenant_id"
-    # ! Should be collected from environment variable in production
-    clientId: "my_client_id"
-    # ! Should be collected from environment variable in production
-    clientSecret: "my_client_secret"
-    redirectUrl: http://localhost:3000
-    callbackPath: /auth/azure/callback
+    redirectUrl: http://localhost:8080
+    callbackPath: /adm/auth/azure/token
+    csrfTokenExpiration: 300 # 5 minutes
+    clientOrigin: http://localhost:8080
+
+    jwtSecret:
+      vault:
+        path: myc/auth/azure
+        key: jwtSecret
+
+    # ! Should be collected from vault or environment variable in production
+    tenantId:
+      vault:
+        path: myc/auth/azure
+        key: tenantId
+
+    # ! Should be collected from vault or environment variable in production
+    clientId:
+      vault:
+        path: myc/auth/azure
+        key: clientId
+
+    # ! Should be collected from vault or environment variable in production
+    clientSecret:
+      vault:
+        path: myc/auth/azure
+        key: clientSecret
 
 # ? ----------------------------------------------------------------------------
 # ? API PORT SETTINGS SETTINGS
@@ -112,30 +189,30 @@ api:
   logging:
     # Possible values: trace, debug, info, warn, error or specific level for
     # each module.
-    level: actix_web=debug,mycelium_base=debug,myc_api=debug
+    level: actix_web=info,mycelium_base=info,myc_api=trace,myc_prisma=trace,myc_core=trace
 
     # Possible values: jsonl, ansi
     format: ansi
 
     # Specify the log target. Possible values: stdout, file, or jaeger
-    #target: !jaeger
-    #  name: mycelium-api
-    #  # Hostname of the jaeger agent
-    #  host: localhost
-    #  # Allowed values:
-    #  # - http
-    #  # - https
-    #  # - grpc
-    #  protocol: grpc
-    #  # Use (for default ports for each protocol):
-    #  port: 4317
-
     # Example with file target
     #target: !file
     #  path: logs/api.log
 
     # Example with stdout target
-    target: stdout
+    #target: stdout
+
+    target: !jaeger
+      name: mycelium-api
+      # Hostname of the jaeger agent
+      host: localhost
+      # Allowed values:
+      # - http
+      # - https
+      # - grpc
+      protocol: grpc
+      # Use (for default ports for each protocol):
+      port: 4317
 
   # ? --------------------------------------------------------------------------
   # ? API GATEWAY TLS SETTINGS
@@ -146,9 +223,16 @@ api:
   # able to connect to secure forwarding routes.
   #
   # ? --------------------------------------------------------------------------
-  tls: disabled
-  #  tlsCertPath: "cert.pem"
-  #  tlsKeyPath: "key.pem"
+  tls: !enabled
+    tlsCert:
+      vault:
+        path: myc/api/tls
+        key: tlsCert
+
+    tlsKey:
+      vault:
+        path: myc/api/tls
+        key: tlsKey
 
   # ? --------------------------------------------------------------------------
   # ? API GATEWAY ROUTE CONFIGURATION
