@@ -1,3 +1,9 @@
+## v6.4.0 (2025-01-01)
+
+### Feat
+
+- implements the secrets collection from vault
+
 ## v6.3.0 (2024-12-30)
 
 ### Feat
