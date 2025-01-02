@@ -1,3 +1,13 @@
+## v6.5.0 (2025-01-02)
+
+### Feat
+
+- turn the cert and key pem loading to use secret-resolver
+
+### Fix
+
+- fix the env variable collectino and migrate all auth variables to dynamically collected ones
+
 ## v6.4.0 (2025-01-01)
 
 ### Feat
