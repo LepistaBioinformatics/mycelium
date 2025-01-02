@@ -630,7 +630,9 @@ pub async fn check_email_password_validity_url(
                         _user.to_owned(),
                         auth_config.get_ref().to_owned(),
                         false,
-                    ) {
+                    )
+                    .await
+                    {
                         Err(err) => return err,
                         Ok((token, duration)) => {
                             return HttpResponse::Ok().json(
@@ -670,7 +672,9 @@ pub async fn check_email_password_validity_url(
                             _user.to_owned(),
                             auth_config.get_ref().to_owned(),
                             true,
-                        ) {
+                        )
+                        .await
+                        {
                             Err(err) => return err,
                             Ok((token, duration)) => {
                                 return HttpResponse::Ok().json(
@@ -914,7 +918,9 @@ pub async fn totp_check_token_url(
                 res.to_owned(),
                 auth_config.get_ref().to_owned(),
                 false,
-            ) {
+            )
+            .await
+            {
                 Err(err) => return err,
                 Ok((token, duration)) => {
                     return HttpResponse::Ok().json(MyceliumLoginResponse {

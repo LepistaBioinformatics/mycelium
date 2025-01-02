@@ -5,6 +5,6 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct InternalOauthConfig {
     pub jwt_secret: SecretResolver<String>,
-    pub jwt_expires_in: i64,
-    pub tmp_expires_in: i64,
+    pub jwt_expires_in: SecretResolver<i64>,
+    pub tmp_expires_in: SecretResolver<i64>,
 }

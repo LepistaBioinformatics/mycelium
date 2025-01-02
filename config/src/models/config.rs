@@ -10,7 +10,13 @@ use std::path::PathBuf;
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VaultConfig {
+    /// The URL of the vault
     pub url: String,
+
+    /// The namespace of the vault
+    pub version_with_namespace: String,
+
+    /// The token to authenticate to the vault
     pub token: SecretResolver<String>,
 }
 

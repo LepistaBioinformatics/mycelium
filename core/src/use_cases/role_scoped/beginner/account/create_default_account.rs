@@ -85,8 +85,6 @@ pub async fn create_default_account(
     // ? Perform finishing operations
     // ? -----------------------------------------------------------------------
 
-    println!("Account created: {:?}", account);
-
     let (notification_response, webhook_responses) = futures::join!(
         send_email_notification(
             vec![("account_name", account_name)],
@@ -104,8 +102,6 @@ pub async fn create_default_account(
             webhook_fetching_repo,
         )
     );
-
-    println!("Notification response: {:?}", notification_response);
 
     if let Err(err) = notification_response {
         return use_case_err(format!("Unable to send email: {err}"))

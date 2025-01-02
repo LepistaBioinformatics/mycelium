@@ -81,7 +81,7 @@ pub async fn login_url(
         return HttpResponse::InternalServerError().finish();
     };
 
-    let client = match oauth_client(config.to_owned()) {
+    let client = match oauth_client(config.to_owned()).await {
         Ok(client) => client,
         Err(err) => {
             return HttpResponse::InternalServerError()
@@ -97,8 +97,17 @@ pub async fn login_url(
 
     let (challenge, verifier) = PkceCodeChallenge::new_random_sha256();
 
+    let csrf_token_expiration =
+        match config.csrf_token_expiration.async_get_or_error().await {
+            Ok(expiration) => expiration,
+            Err(err) => {
+                return HttpResponse::InternalServerError()
+                    .json(HttpJsonResponse::new_message(err));
+            }
+        };
+
     let claims = CsrfTokenClaims {
-        exp: (Utc::now().timestamp() + config.csrf_token_expiration) as usize,
+        exp: (Utc::now().timestamp() + csrf_token_expiration) as usize,
         csrf: csrf.to_owned(),
         code_verifier: verifier.secret().to_owned(),
     };
@@ -224,7 +233,7 @@ pub async fn token_url(
         return HttpResponse::InternalServerError().finish();
     };
 
-    let client = match oauth_client(config.to_owned()) {
+    let client = match oauth_client(config.to_owned()).await {
         Ok(client) => client,
         Err(err) => {
             error!("Error on OAuth client: {err}");

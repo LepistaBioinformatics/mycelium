@@ -103,7 +103,15 @@ pub(super) async fn request_token(
         OptionalConfig::Enabled(config) => config,
     };
 
-    let redirect_url = config.redirect_url.to_owned();
+    let redirect_url = match config.redirect_url.async_get_or_error().await {
+        Ok(res) => res,
+        Err(err) => {
+            return Err(From::from(format!(
+                "Could not retrieve redirect URL: {err}"
+            )));
+        }
+    };
+
     let root_url = "https://oauth2.googleapis.com/token";
     let client = Client::new();
 

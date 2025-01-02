@@ -76,7 +76,10 @@ pub async fn start_password_redefinition(
             meta.to_owned(),
             Local::now()
                 + chrono::Duration::seconds(
-                    life_cycle_settings.token_expiration,
+                    life_cycle_settings
+                        .token_expiration
+                        .async_get_or_error()
+                        .await?,
                 ),
         )
         .await

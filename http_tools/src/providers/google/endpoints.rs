@@ -82,11 +82,39 @@ pub async fn google_callback_url(
         OptionalConfig::Enabled(config) => config,
     };
 
-    let jwt_secret = config.jwt_secret.to_owned();
+    let jwt_max_age = match config.jwt_max_age.async_get_or_error().await {
+        Ok(age) => age,
+        Err(err) => {
+            return HttpResponse::BadGateway().json(serde_json::json!({
+                "status": "fail",
+                "message": err.to_string()
+            }));
+        }
+    };
+
+    let jwt_secret = match config.jwt_secret.async_get_or_error().await {
+        Ok(secret) => secret,
+        Err(err) => {
+            return HttpResponse::BadGateway().json(serde_json::json!({
+                "status": "fail",
+                "message": err.to_string()
+            }));
+        }
+    };
+
+    let client_origin = match config.client_origin.async_get_or_error().await {
+        Ok(origin) => origin,
+        Err(err) => {
+            return HttpResponse::BadGateway().json(serde_json::json!({
+                "status": "fail",
+                "message": err.to_string()
+            }));
+        }
+    };
+
     let now = Utc::now();
     let iat = now.timestamp() as usize;
-    let exp =
-        (now + Duration::minutes(config.jwt_max_age)).timestamp() as usize;
+    let exp = (now + Duration::minutes(jwt_max_age)).timestamp() as usize;
 
     let claims = TokenClaims {
         sub: google_user.id.to_owned(),
@@ -103,20 +131,10 @@ pub async fn google_callback_url(
         locale: google_user.locale.to_owned(),
     };
 
-    let secret = match jwt_secret.async_get_or_error().await {
-        Ok(secret) => secret,
-        Err(err) => {
-            return HttpResponse::BadGateway().json(serde_json::json!({
-                "status": "fail",
-                "message": err.to_string()
-            }));
-        }
-    };
-
     let token = match encode(
         &Header::default(),
         &claims,
-        &EncodingKey::from_secret(secret.as_ref()),
+        &EncodingKey::from_secret(jwt_secret.as_ref()),
     ) {
         Ok(token) => token,
         Err(err) => {
@@ -131,12 +149,12 @@ pub async fn google_callback_url(
     HttpResponse::Ok()
         .append_header((
             LOCATION,
-            format!("{}{}", config.client_origin.to_owned(), state),
+            format!("{}{}", client_origin.to_owned(), state),
         ))
         .cookie(
             Cookie::build("token", token.to_owned())
                 .path("/")
-                .max_age(ActixWebDuration::new(60 * config.jwt_max_age, 0))
+                .max_age(ActixWebDuration::new(60 * jwt_max_age, 0))
                 .http_only(true)
                 .finish(),
         )

@@ -140,12 +140,15 @@ impl<T: FromStr + Debug + Clone> SecretResolver<T> {
                 };
 
                 let token = match config.token {
-                    SecretResolver::Env(value) => value,
-                    SecretResolver::Value(value) => value,
-                    _ => {
-                        return execution_err("Vault config should not be used to initialize vault client")
+                    SecretResolver::Vault { path, key } => {
+                        return execution_err(format!(
+                            "Vault config should not be used to initialize vault client: trying {path}/{key}",
+                            path = path,
+                            key = key
+                        ))
                             .as_error()
-                    }
+                    },
+                    _ => config.token.get_or_error()?
                 };
 
                 //
@@ -153,8 +156,9 @@ impl<T: FromStr + Debug + Clone> SecretResolver<T> {
                 //
                 let response = match Client::new()
                     .get(format!(
-                        "{}/v1/secret/data/{}",
+                        "{}/{}/data/{}",
                         config.url,
+                        config.version_with_namespace,
                         path.to_owned()
                     ))
                     .header("X-Vault-Token", token)
