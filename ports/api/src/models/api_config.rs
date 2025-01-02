@@ -1,4 +1,7 @@
-use myc_config::{load_config_from_file, optional_config::OptionalConfig};
+use myc_config::{
+    load_config_from_file, optional_config::OptionalConfig,
+    secret_resolver::SecretResolver,
+};
 use myc_core::domain::dtos::http::Protocol;
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
 use serde::Deserialize;
@@ -7,8 +10,8 @@ use std::path::PathBuf;
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TlsConfig {
-    pub tls_cert_path: Option<String>,
-    pub tls_key_path: Option<String>,
+    pub tls_cert: SecretResolver<String>,
+    pub tls_key: SecretResolver<String>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
