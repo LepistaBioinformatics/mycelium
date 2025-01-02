@@ -79,8 +79,6 @@ impl GuestUserDeletion for GuestUserDeletionSqlDbRepository {
                     Ok(guest) => guest,
                 };
 
-                println!("Guest: {:?}", guest);
-
                 let guest = match guest {
                     None => {
                         return Ok(DeletionResponseKind::NotDeleted(

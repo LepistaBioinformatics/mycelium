@@ -44,15 +44,17 @@ async fn decode_bearer_token_on_ms_graph(
     Email::from_string(token_response.mail)
 }
 
-pub(super) fn oauth_client(
+pub(super) async fn oauth_client(
     auth_config: AzureOauthConfig,
 ) -> Result<BasicClient, MappedErrors> {
-    let tenant = auth_config.tenant_id;
+    let tenant = auth_config.tenant_id.async_get_or_error().await?;
 
-    let client_id = ClientId::new(auth_config.client_id);
+    let client_id =
+        ClientId::new(auth_config.client_id.async_get_or_error().await?);
 
-    let client_secret =
-        ClientSecret::new(auth_config.client_secret.get_or_error()?);
+    let client_secret = ClientSecret::new(
+        auth_config.client_secret.async_get_or_error().await?,
+    );
 
     let auth_url = match AuthUrl::new(
         format!(
@@ -82,8 +84,8 @@ pub(super) fn oauth_client(
 
     let redirect_url = match RedirectUrl::new(format!(
         "{redirect_url}{callback_path}",
-        redirect_url = auth_config.redirect_url,
-        callback_path = auth_config.callback_path
+        redirect_url = auth_config.redirect_url.async_get_or_error().await?,
+        callback_path = auth_config.callback_path.async_get_or_error().await?
     )) {
         Ok(url) => url,
         Err(err) => {

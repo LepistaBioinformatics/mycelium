@@ -45,8 +45,13 @@ pub(super) async fn register_token_and_notify_user(
         499_999,
     );
 
-    let expires_at =
-        Local::now() + Duration::seconds(life_cycle_settings.token_expiration);
+    let expires_at = Local::now()
+        + Duration::seconds(
+            life_cycle_settings
+                .token_expiration
+                .async_get_or_error()
+                .await?,
+        );
 
     let token = match token_registration_repo
         .create_email_confirmation_token(meta.to_owned(), expires_at)

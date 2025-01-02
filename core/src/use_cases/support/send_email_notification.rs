@@ -29,23 +29,34 @@ pub(crate) async fn send_email_notification<T: ToString>(
 ) -> Result<CreateResponseKind<Option<Uuid>>, MappedErrors> {
     let mut context = Context::new();
 
-    context.insert("domain_name", config.domain_name.as_str());
+    context.insert(
+        "domain_name",
+        config.domain_name.async_get_or_error().await?.as_str(),
+    );
     context.insert(
         "support_email",
         &config.support_email.async_get_or_error().await?,
     );
 
     if let Some(domain_url) = config.domain_url {
-        context.insert("domain_url", domain_url.as_str());
+        context.insert(
+            "domain_url",
+            domain_url.async_get_or_error().await?.as_str(),
+        );
     }
 
     for (key, value) in parameters {
         context.insert(key.to_string(), &value.to_string());
     }
 
+    let locale = match config.locale {
+        Some(locale) => locale.async_get_or_error().await?,
+        None => "en-us".to_string(),
+    };
+
     let locale_path = format!(
         "{locale}/{path}",
-        locale = config.locale.unwrap_or_else(|| "en-us".to_string()),
+        locale = locale,
         path = template_path.to_string()
     );
 
@@ -64,7 +75,11 @@ pub(crate) async fn send_email_notification<T: ToString>(
         Email::from_string(config.noreply_email.async_get_or_error().await?)?;
 
     let from = if let Some(name) = config.noreply_name {
-        FromEmail::NamedEmail(format!("{} <{}>", name, from_email.get_email()))
+        FromEmail::NamedEmail(format!(
+            "{} <{}>",
+            name.async_get_or_error().await?,
+            from_email.get_email()
+        ))
     } else {
         FromEmail::Email(from_email)
     };
@@ -74,7 +89,11 @@ pub(crate) async fn send_email_notification<T: ToString>(
             from,
             to,
             cc,
-            subject: format!("[{}] {}", config.domain_name, subject),
+            subject: format!(
+                "[{}] {}",
+                config.domain_name.async_get_or_error().await?,
+                subject
+            ),
             body: email_template,
         })
         .await

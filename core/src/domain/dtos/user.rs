@@ -609,10 +609,10 @@ mod tests {
         };
 
         let config = AccountLifeCycle {
-            domain_name: "test".to_string(),
+            domain_name: SecretResolver::Value("test".to_string()),
             domain_url: None,
             locale: None,
-            token_expiration: 30,
+            token_expiration: SecretResolver::Value(30),
             noreply_name: None,
             noreply_email: SecretResolver::Value("test".to_string()),
             support_name: None,

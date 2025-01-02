@@ -288,7 +288,6 @@ pub async fn main() -> std::io::Result<()> {
     info!("Start the database connectors");
 
     let database_url = config.prisma.database_url.async_get_or_error().await;
-    println!("DATABASE_URL: {:?}", database_url);
 
     std::env::set_var(
         "DATABASE_URL",
