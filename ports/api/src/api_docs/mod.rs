@@ -669,7 +669,7 @@ struct UsersManagerAccountApiDoc;
             //
             role_scoped::beginners::account_endpoints::CreateDefaultAccountBody,
             role_scoped::beginners::account_endpoints::UpdateOwnAccountNameAccountBody,
-            role_scoped::beginners::user_endpoints::CheckEmailStatusBody,
+            role_scoped::beginners::user_endpoints::CheckEmailStatusQuery,
             role_scoped::beginners::user_endpoints::TotpUpdatingValidationBody,
             role_scoped::beginners::user_endpoints::CreateDefaultUserBody,
             role_scoped::beginners::user_endpoints::CheckTokenBody,

@@ -9,7 +9,7 @@ use std::path::PathBuf;
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SmtpConfig {
-    pub host: String,
+    pub host: SecretResolver<String>,
     pub username: SecretResolver<String>,
     pub password: SecretResolver<String>,
 }
@@ -19,11 +19,11 @@ unsafe impl Send for SmtpConfig {}
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueueConfig {
-    pub protocol: String,
+    pub protocol: SecretResolver<String>,
     pub hostname: SecretResolver<String>,
     pub password: SecretResolver<String>,
-    pub email_queue_name: String,
-    pub consume_interval_in_secs: u64,
+    pub email_queue_name: SecretResolver<String>,
+    pub consume_interval_in_secs: SecretResolver<u64>,
 }
 
 #[derive(Clone, Debug, Deserialize)]

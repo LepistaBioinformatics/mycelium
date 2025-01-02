@@ -62,7 +62,7 @@ impl MessageSending for MessageSendingQueueRepository {
         };
 
         let res: Result<u32, RedisError> = redis::cmd("LPUSH")
-            .arg(config.email_queue_name)
+            .arg(config.email_queue_name.async_get_or_error().await?)
             .arg(message_string)
             .query(&mut connection);
 

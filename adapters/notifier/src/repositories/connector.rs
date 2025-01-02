@@ -19,7 +19,7 @@ pub async fn init_queue_client_from_url(
 ) -> Result<(), MappedErrors> {
     let url = format!(
         "{}://:{}@{}",
-        config.protocol,
+        config.protocol.async_get_or_error().await?,
         config.password.async_get_or_error().await?,
         config.hostname.async_get_or_error().await?
     );

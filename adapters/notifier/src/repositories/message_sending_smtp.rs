@@ -60,13 +60,13 @@ impl MessageSending for MessageSendingSmtpRepository {
         //
         let username = config.username.async_get_or_error().await;
         let password = config.password.async_get_or_error().await;
-
         let credentials = Credentials::new(username?, password?);
 
-        let mailer = SmtpTransport::relay(&config.host.to_owned())
-            .unwrap()
-            .credentials(credentials)
-            .build();
+        let mailer =
+            SmtpTransport::relay(&config.host.async_get_or_error().await?)
+                .unwrap()
+                .credentials(credentials)
+                .build();
 
         match mailer.send(&email) {
             Ok(_) => Ok(CreateResponseKind::Created(None)),

@@ -66,7 +66,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct CheckEmailStatusBody {
+pub struct CheckEmailStatusQuery {
     email: String,
 }
 
@@ -160,7 +160,13 @@ pub struct CheckUserCredentialsBody {
 ///
 #[utoipa::path(
     head,
-    request_body = CheckEmailStatusBody,
+    params(
+        (
+            "email" = String,
+            Query,
+            description = "The email to be checked.",
+        )
+    ),
     responses(
         (
             status = 500,
@@ -191,12 +197,12 @@ pub struct CheckUserCredentialsBody {
 )]
 #[head("/status")]
 pub async fn check_email_registration_status_url(
-    info: web::Json<CheckEmailStatusBody>,
+    query: web::Query<CheckEmailStatusQuery>,
     user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
 ) -> impl Responder {
-    let email_instance = match Email::from_string(info.email.to_owned()) {
+    let email_instance = match Email::from_string(query.email.to_owned()) {
         Err(err) => {
-            warn!("Invalid email: {}", err);
+            warn!("Invalid email: {err}");
             return HttpResponse::BadRequest().json(
                 HttpJsonResponse::new_message(
                     "Invalid email address.".to_string(),

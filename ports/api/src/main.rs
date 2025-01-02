@@ -52,7 +52,11 @@ use myc_notifier::{
 };
 use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
 use oauth2::http::HeaderName;
-use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
+use openssl::{
+    pkey::PKey,
+    ssl::{SslAcceptor, SslMethod},
+    x509::X509,
+};
 use opentelemetry::trace::TracerProvider;
 use opentelemetry_otlp::WithExportConfig;
 use otel::{metadata_from_headers, parse_otlp_headers_from_env};
@@ -311,12 +315,31 @@ pub async fn main() -> std::io::Result<()> {
 
     actix_rt::spawn(async move {
         let mut interval = actix_rt::time::interval(Duration::from_secs(
-            queue_config.consume_interval_in_secs,
+            match queue_config
+                .consume_interval_in_secs
+                .async_get_or_error()
+                .await
+            {
+                Ok(interval) => interval,
+                Err(err) => {
+                    panic!("Error on get consume interval: {err}");
+                }
+            },
         ));
 
         loop {
             interval.tick().await;
-            let queue_name = queue_config.clone().email_queue_name;
+            let queue_name = match queue_config
+                .clone()
+                .email_queue_name
+                .async_get_or_error()
+                .await
+            {
+                Ok(name) => name,
+                Err(err) => {
+                    panic!("Error on get queue name: {err}");
+                }
+            };
 
             match consume_messages(
                 queue_name.to_owned(),
@@ -659,16 +682,31 @@ pub async fn main() -> std::io::Result<()> {
         let mut builder =
             SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
 
-        builder
-            .set_private_key_file(
-                tls_config.tls_key_path.unwrap(),
-                SslFiletype::PEM,
-            )
-            .unwrap();
+        //
+        // Read the certificate content
+        //
+        let cert_pem = match tls_config.tls_cert.async_get_or_error().await {
+            Ok(path) => path,
+            Err(err) => panic!("Error on get TLS cert path: {err}"),
+        };
 
-        builder
-            .set_certificate_chain_file(tls_config.tls_cert_path.unwrap())
-            .unwrap();
+        let cert = X509::from_pem(cert_pem.as_bytes())?;
+
+        //
+        // Read the certificate key
+        //
+        let key_pem = match tls_config.tls_key.async_get_or_error().await {
+            Ok(path) => path,
+            Err(err) => panic!("Error on get TLS key path: {err}"),
+        };
+
+        let key = PKey::private_key_from_pem(key_pem.as_bytes())?;
+
+        //
+        // Set the certificate and key
+        //
+        builder.set_certificate(&cert).unwrap();
+        builder.set_private_key(&key).unwrap();
 
         info!("Fire the server with TLS");
         return server
