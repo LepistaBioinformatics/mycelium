@@ -53,7 +53,9 @@ async fn decode_bearer_token_on_google(
 
     match decode::<GoogleUserResult>(
         &token,
-        &DecodingKey::from_secret(config.jwt_secret.get_or_error()?.as_ref()),
+        &DecodingKey::from_secret(
+            config.jwt_secret.async_get_or_error().await?.as_ref(),
+        ),
         &Validation::default(),
     ) {
         Ok(token) => return Email::from_string(token.claims.email),
@@ -105,7 +107,7 @@ pub(super) async fn request_token(
     let root_url = "https://oauth2.googleapis.com/token";
     let client = Client::new();
 
-    let client_id = match config.client_id.get_or_error() {
+    let client_id = match config.client_id.async_get_or_error().await {
         Ok(res) => res,
         Err(err) => {
             return Err(From::from(format!(
@@ -114,7 +116,7 @@ pub(super) async fn request_token(
         }
     };
 
-    let client_secret = match config.client_secret.get_or_error() {
+    let client_secret = match config.client_secret.async_get_or_error().await {
         Ok(res) => res,
         Err(err) => {
             return Err(From::from(format!(

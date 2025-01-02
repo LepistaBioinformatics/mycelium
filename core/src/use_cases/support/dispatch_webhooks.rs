@@ -88,7 +88,7 @@ pub(crate) async fn dispatch_webhooks<
 
     let bodies: Vec<_> = hooks
         .iter()
-        .map(|hook| {
+        .map(|hook| async {
             //
             // Create a base request to the webhook url
             //
@@ -111,7 +111,7 @@ pub(crate) async fn dispatch_webhooks<
             (match &hook.get_secret() {
                 Some(secret) => {
                     let decrypted_secret =
-                        match secret.decrypt_me(config.to_owned()) {
+                        match secret.decrypt_me(config.to_owned()).await {
                             Ok(secret) => secret,
                             Err(err) => {
                                 panic!("Error on decrypting secret: {:?}", err);
@@ -161,7 +161,7 @@ pub(crate) async fn dispatch_webhooks<
 
     let mut responses = Vec::<HookResponse>::new();
     for hook_res in join_all(bodies).await {
-        let hook_res = match hook_res {
+        let hook_res = match hook_res.await {
             Ok(res) => res,
             Err(err) => {
                 error!("Error on connect to webhook: {:?}", err);

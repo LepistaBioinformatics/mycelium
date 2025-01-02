@@ -20,6 +20,8 @@ readme.workspace = true
 
 mycelium-base = { version = "6.3.0", path = "../base" }
 
+lazy_static.workspace = true
+reqwest.workspace = true
 serde.workspace = true
 serde_yaml.workspace = true
 utoipa.workspace = true

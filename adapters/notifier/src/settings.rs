@@ -80,6 +80,15 @@ pub async fn init_queue_config_from_file(
     );
 }
 
+pub(crate) async fn get_smtp_client_config() -> OptionalConfig<SmtpConfig> {
+    SMTP_CONFIG
+        .lock()
+        .expect("Could not connect to the smtp client")
+        .as_ref()
+        .expect("Smtp config not initialized")
+        .to_owned()
+}
+
 pub(crate) async fn get_queue_config() -> QueueConfig {
     QUEUE_CONFIG
         .lock()

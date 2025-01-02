@@ -9,6 +9,7 @@ use argon2::{
 };
 use base64::{engine::general_purpose, Engine};
 use chrono::{DateTime, Local};
+use futures::executor::block_on;
 use mycelium_base::{
     dtos::Parent,
     utils::errors::{dto_err, use_case_err, MappedErrors},
@@ -149,8 +150,8 @@ impl Totp {
         //
         // Create a key from the account's secret
         //
-        let encryption_key = config.get_secret()?;
-        let encryption_key_uuid = match Uuid::parse_str(&encryption_key) {
+        let encryption_key = block_on(config.token_secret.async_get_or_error());
+        let encryption_key_uuid = match Uuid::parse_str(&encryption_key?) {
             Ok(uuid) => uuid,
             Err(err) => {
                 error!("Failed to parse encryption key: {:?}", err);
@@ -242,8 +243,8 @@ impl Totp {
         //
         // Create a key from the account's secret
         //
-        let encryption_key = config.get_secret()?;
-        let encryption_key_uuid = match Uuid::parse_str(&encryption_key) {
+        let encryption_key = block_on(config.token_secret.async_get_or_error());
+        let encryption_key_uuid = match Uuid::parse_str(&encryption_key?) {
             Ok(uuid) => uuid,
             Err(err) => {
                 error!("Failed to parse encryption key: {:?}", err);

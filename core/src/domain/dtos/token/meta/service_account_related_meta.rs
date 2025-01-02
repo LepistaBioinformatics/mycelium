@@ -21,7 +21,7 @@ pub trait ScopedBehavior {
         &mut self,
         config: AccountLifeCycle,
         extra_data: Option<String>,
-    ) -> Result<String, MappedErrors>;
+    ) -> impl std::future::Future<Output = Result<String, MappedErrors>> + Send;
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -73,14 +73,14 @@ where
     /// This function creates a new signed token using the scope, the user_id
     /// and the email provided
     ///
-    pub(crate) fn new_signed_token(
+    pub(crate) async fn new_signed_token(
         scope: &mut Scope,
         user_id: Uuid,
         email: Email,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
         let extra_data = format!("{} <{}>", user_id, email.get_email());
-        let signature = scope.sign_token(config, Some(extra_data))?;
+        let signature = scope.sign_token(config, Some(extra_data)).await?;
 
         let token = match TokenType::try_from(signature) {
             Ok(token) => token,

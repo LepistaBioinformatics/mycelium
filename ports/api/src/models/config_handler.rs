@@ -1,5 +1,5 @@
 use super::api_config::ApiConfig;
-use myc_config::optional_config::OptionalConfig;
+use myc_config::{optional_config::OptionalConfig, VaultConfig};
 use myc_core::models::CoreConfig;
 use myc_http_tools::models::auth_config::AuthConfig;
 use myc_notifier::models::{QueueConfig, SmtpConfig};
@@ -14,6 +14,7 @@ pub struct ConfigHandler {
     pub auth: AuthConfig,
     pub smtp: OptionalConfig<SmtpConfig>,
     pub queue: OptionalConfig<QueueConfig>,
+    pub vault: OptionalConfig<VaultConfig>,
 }
 
 impl ConfigHandler {
@@ -38,6 +39,9 @@ impl ConfigHandler {
             // Queue configuration should be used by the queue repository
             // managements into the adapters layer.
             queue: QueueConfig::from_default_config_file(file.clone())?,
+            // Vault configuration should be used by the secret resolver into
+            // the domain layer.
+            vault: VaultConfig::from_default_config_file(file.clone())?,
         })
     }
 }

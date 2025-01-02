@@ -14,6 +14,8 @@ pub struct SmtpConfig {
     pub password: SecretResolver<String>,
 }
 
+unsafe impl Send for SmtpConfig {}
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueueConfig {

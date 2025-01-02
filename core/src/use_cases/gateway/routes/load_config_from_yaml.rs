@@ -6,6 +6,7 @@ use crate::domain::dtos::{
     service::{Service, ServiceSecret},
 };
 
+use futures::executor::block_on;
 use myc_config::secret_resolver::SecretResolver;
 use mycelium_base::utils::errors::{use_case_err, MappedErrors};
 use serde::{Deserialize, Serialize};
@@ -80,7 +81,7 @@ pub async fn load_config_from_yaml(
         })
         .unwrap();
 
-    let db = temp_services?.services.into_iter().fold(
+    let db = temp_services?.services.iter().fold(
         Vec::<Route>::new(),
         |mut init, tmp_service| {
             let secrets = if let Some(secrets) = tmp_service.to_owned().secrets
@@ -102,7 +103,10 @@ pub async fn load_config_from_yaml(
                     let mut parsed_secrets = vec![];
 
                     for secret in secrets {
-                        let parsed_value = match secret.secret.get_or_error() {
+                        let secret_value =
+                            block_on(secret.secret.async_get_or_error());
+
+                        let parsed_value = match secret_value {
                             Ok(res) => res,
                             Err(err) => {
                                 panic!("Error on check secrets: {err}");

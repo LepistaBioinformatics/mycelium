@@ -190,7 +190,7 @@ async fn discover_provider(
         // Extract the token from the request. If the token is not available
         // returns a InternalServerError response.
         //
-        let jwt_token = match req_auth_config.get_or_error() {
+        let jwt_token = match req_auth_config.async_get_or_error().await {
             Ok(token) => token,
             Err(err) => {
                 return Err(GatewayError::InternalServerError(format!(

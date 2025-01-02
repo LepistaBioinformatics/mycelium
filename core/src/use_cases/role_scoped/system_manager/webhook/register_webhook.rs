@@ -37,7 +37,7 @@ pub async fn register_webhook(
     // ? Register webhook
     // ? -----------------------------------------------------------------------
 
-    let webhook = WebHook::new_encrypted(name, description, url, trigger, secret, config)?;
+    let webhook = WebHook::new_encrypted(name, description, url, trigger, secret, config).await?;
 
     webhook_registration_repo
         .create(webhook)

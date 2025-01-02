@@ -1,5 +1,9 @@
 mod domain;
+mod models;
+mod settings;
 mod use_cases;
 
-pub use domain::dtos::{secret_resolver, optional_config};
-pub use use_cases::load_config_from_file;
+pub use domain::dtos::{optional_config, secret_resolver};
+pub use models::*;
+pub use settings::*;
+pub use use_cases::*;

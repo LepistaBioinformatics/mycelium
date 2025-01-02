@@ -11,12 +11,12 @@ use crate::{
     },
 };
 
-use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
+use actix_web::{head, post, web, HttpRequest, HttpResponse, Responder};
 use chrono::Duration;
 use myc_core::{
     domain::{
         actors::SystemActor,
-        dtos::user::{Totp, User},
+        dtos::user::{Provider, Totp, User},
         entities::{
             MessageSending, TokenInvalidation, TokenRegistration, UserDeletion,
             UserFetching, UserRegistration, UserUpdating,
@@ -159,7 +159,7 @@ pub struct CheckUserCredentialsBody {
 /// Check if the email is already registered.
 ///
 #[utoipa::path(
-    post,
+    head,
     request_body = CheckEmailStatusBody,
     responses(
         (
@@ -184,17 +184,12 @@ pub struct CheckUserCredentialsBody {
         ),
         (
             status = 204,
-            description = "Not found.",
-        ),
-        (
-            status = 200,
-            description = "Status fetching done.",
-            body = EmailRegistrationStatus,
+            description = "Success.",
         ),
     ),
     security(()),
 )]
-#[post("/status")]
+#[head("/status")]
 pub async fn check_email_registration_status_url(
     info: web::Json<CheckEmailStatusBody>,
     user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
@@ -217,7 +212,45 @@ pub async fn check_email_registration_status_url(
     )
     .await
     {
-        Ok(res) => HttpResponse::Ok().json(res),
+        Ok(res) => {
+            let mut response = HttpResponse::NoContent();
+            let status_header = "X-Email-Registration-Status";
+
+            match res {
+                EmailRegistrationStatus::NotRegistered(_) => {
+                    response.append_header((status_header, "NotRegistered"));
+                }
+                EmailRegistrationStatus::WaitingActivation(_) => {
+                    response
+                        .append_header((status_header, "WaitingActivation"));
+                }
+                EmailRegistrationStatus::RegisteredWithInternalProvider(
+                    provider,
+                )
+                | EmailRegistrationStatus::RegisteredWithExternalProvider(
+                    provider,
+                ) => {
+                    response.append_header((
+                        status_header,
+                        "RegisteredWithExternalProvider",
+                    ));
+
+                    if let Some(provider) = provider.provider {
+                        response.append_header((
+                            "X-Email-Provider",
+                            match provider {
+                                Provider::External(external) => {
+                                    external.to_string()
+                                }
+                                Provider::Internal(_) => "Internal".to_string(),
+                            },
+                        ));
+                    }
+                }
+            }
+
+            response.finish()
+        }
         Err(err) => handle_mapped_error(err),
     }
 }

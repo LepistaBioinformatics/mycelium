@@ -23,4 +23,5 @@ logs/*
 
 # Docker
 postgres/volume*
+vault
 redis

@@ -355,7 +355,7 @@ pub(crate) async fn route_request(
 
     trace!("Injecting downstream secret into request");
 
-    let route_secret = match route.solve_secret() {
+    let route_secret = match route.solve_secret().await {
         Err(err) => {
             warn!("{:?}", err);
             return Err(GatewayError::InternalServerError(format!("{err}")));

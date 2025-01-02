@@ -103,7 +103,7 @@ pub async fn google_callback_url(
         locale: google_user.locale.to_owned(),
     };
 
-    let secret = match jwt_secret.get_or_error() {
+    let secret = match jwt_secret.async_get_or_error().await {
         Ok(secret) => secret,
         Err(err) => {
             return HttpResponse::BadGateway().json(serde_json::json!({

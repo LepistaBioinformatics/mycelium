@@ -25,7 +25,7 @@ use prisma_client_rust::{PrismaValue, Raw};
 use serde_json::from_value;
 use shaku::Component;
 use std::process::id as process_id;
-use tracing::{error, trace};
+use tracing::error;
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -340,8 +340,6 @@ AND EXISTS (
                 PrismaValue::String(signature.to_owned()),
             ],
         );
-
-        trace!("Query values: {:?}", query.values);
 
         let token_data: Vec<token_model::Data> =
             match client._query_raw(query).exec().await {
