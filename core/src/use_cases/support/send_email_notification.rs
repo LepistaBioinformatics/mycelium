@@ -30,7 +30,10 @@ pub(crate) async fn send_email_notification<T: ToString>(
     let mut context = Context::new();
 
     context.insert("domain_name", config.domain_name.as_str());
-    context.insert("support_email", &config.support_email.get_or_error()?);
+    context.insert(
+        "support_email",
+        &config.support_email.async_get_or_error().await?,
+    );
 
     if let Some(domain_url) = config.domain_url {
         context.insert("domain_url", domain_url.as_str());
@@ -57,7 +60,8 @@ pub(crate) async fn send_email_notification<T: ToString>(
         }
     };
 
-    let from_email = Email::from_string(config.noreply_email.get_or_error()?)?;
+    let from_email =
+        Email::from_string(config.noreply_email.async_get_or_error().await?)?;
 
     let from = if let Some(name) = config.noreply_name {
         FromEmail::NamedEmail(format!("{} <{}>", name, from_email.get_email()))

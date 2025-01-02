@@ -9,7 +9,7 @@ networks:
 # ? SHARED CONFIGURATION
 # ? ----------------------------------------------------------------------------
 x-common-mycelium: &common-config
-  networks:
+  networks: &common-networks
     - mycelium_net
   env_file:
     - .env
@@ -68,3 +68,40 @@ services:
     command: redis-server --save 20 1 --loglevel warning --requirepass ${MYC_REDIS_PASS}
     volumes:
       - ./redis:/data
+
+  myc-vault:
+    # Inject network
+    networks: *common-networks
+
+    container_name: myc-vault
+    image: hashicorp/vault:latest
+    environment:
+      VAULT_ADDR: "http://0.0.0.0:8200"
+      VAULT_DEV_ROOT_TOKEN_ID: "vault-token"
+      VAULT_UI: true
+      VAULT_TOKEN: "root"
+    ports:
+      - "8200:8200"
+      - "8201:8201"
+    restart: on-failure
+    volumes:
+      - ./vault/logs:/vault/logs/:rw
+      - ./vault/data:/vault/data/:rw
+      #- ./vault/config:/vault/config/:rw
+      #- ./vault/certs:/certs/:rw
+      - ./vault/file:/vault/file/:rw
+    cap_add:
+      - IPC_LOCK
+
+  myc-vault-init:
+    # Inject network
+    networks: *common-networks
+
+    container_name: myc-vault-init
+    image: hashicorp/vault:latest
+    volumes:
+      - ./scripts/vault/vault-init.sh:/vault-init.sh
+    depends_on:
+      - myc-vault
+    restart: "no"
+    entrypoint: sh -c "/vault-init.sh"

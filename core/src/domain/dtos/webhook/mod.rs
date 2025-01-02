@@ -69,7 +69,7 @@ impl WebHook {
         }
     }
 
-    pub fn new_encrypted(
+    pub async fn new_encrypted(
         name: String,
         description: Option<String>,
         url: String,
@@ -79,7 +79,7 @@ impl WebHook {
     ) -> Result<Self, MappedErrors> {
         let encrypted_secret = match secret {
             None => None,
-            Some(secret) => Some(secret.encrypt_me(config)?),
+            Some(secret) => Some(secret.encrypt_me(config).await?),
         };
 
         Ok(Self {

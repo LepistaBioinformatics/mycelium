@@ -160,7 +160,7 @@ services:
   #
   - group: !protectedByServiceTokenWithRole
       roles:
-      - customer
+      - newbie
     path: /role-protected*
     protocol: http
     methods:
@@ -176,7 +176,7 @@ services:
   #
   - group: !protectedByServiceTokenWithPermissionedRoles
       permissionedRoles:
-      - [ customer, read ]
+      - [ newbie, read ]
     path: /expects-header*
     protocol: http
     methods:

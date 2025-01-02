@@ -187,7 +187,9 @@ impl Route {
         }
     }
 
-    pub fn solve_secret(&self) -> Result<Option<HttpSecret>, MappedErrors> {
+    pub async fn solve_secret(
+        &self,
+    ) -> Result<Option<HttpSecret>, MappedErrors> {
         if let Some(secret_name) = &self.secret_name {
             match self.service.to_owned() {
                 Parent::Id(_) => {
@@ -202,7 +204,9 @@ impl Route {
                         match secret.iter().find(|s| s.name == *secret_name) {
                             Some(secret) => {
                                 let secret_resolver = &secret.secret;
-                                let secret = secret_resolver.get_or_error()?;
+                                let secret = secret_resolver
+                                    .async_get_or_error()
+                                    .await?;
 
                                 return Ok(Some(secret));
                             }

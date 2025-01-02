@@ -37,7 +37,9 @@ use models::{
     api_config::{LogFormat, LoggingTarget},
     config_handler::ConfigHandler,
 };
-use myc_config::optional_config::OptionalConfig;
+use myc_config::{
+    init_vault_config_from_file, optional_config::OptionalConfig,
+};
 use myc_core::{domain::dtos::http::Protocol, settings::init_in_memory_routes};
 use myc_http_tools::{
     providers::{azure_endpoints, google_endpoints},
@@ -253,7 +255,22 @@ pub async fn main() -> std::io::Result<()> {
     init_in_memory_routes(Some(config.api.routes.clone())).await;
 
     // ? -----------------------------------------------------------------------
+    // ? Initialize vault configuration
+    //
+    // The vault configuration should be initialized before the server starts.
+    // Vault configurations should be used to store sensitive data.
+    //
+    // ? -----------------------------------------------------------------------
+    info!("Initializing Vault configs");
+    init_vault_config_from_file(None, Some(config.vault)).await;
+
+    // ? -----------------------------------------------------------------------
     // ? Initialize notifier elements
+    //
+    // SMTP and Queue configurations should be initialized before the server
+    // starts. TH QUEUE server should be started to allow queue messages to be
+    // consumed. The SMTP server should be started to allow emails to be sent.
+    //
     // ? -----------------------------------------------------------------------
     info!("Initializing SMTP configs");
     init_smtp_config_from_file(None, Some(config.smtp)).await;
@@ -270,9 +287,12 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     info!("Start the database connectors");
 
+    let database_url = config.prisma.database_url.async_get_or_error().await;
+    println!("DATABASE_URL: {:?}", database_url);
+
     std::env::set_var(
         "DATABASE_URL",
-        match config.prisma.database_url.get_or_error() {
+        match database_url {
             Ok(url) => url,
             Err(err) => panic!("Error on get database url: {err}"),
         },

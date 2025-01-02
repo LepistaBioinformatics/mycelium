@@ -1,4 +1,4 @@
-use crate::settings::SMTP_CONFIG;
+use crate::settings::get_smtp_client_config;
 
 use async_trait::async_trait;
 use lettre::{
@@ -28,16 +28,7 @@ impl MessageSending for MessageSendingSmtpRepository {
         &self,
         message: Message,
     ) -> Result<CreateResponseKind<Option<Uuid>>, MappedErrors> {
-        let binding = SMTP_CONFIG.lock().unwrap();
-        let config = match binding.as_ref() {
-            Some(config) => config,
-            None => {
-                return creation_err(
-                    "Could not send email: SMTP config not found".to_string(),
-                )
-                .as_error()
-            }
-        };
+        let config = get_smtp_client_config().await;
 
         let config = match config {
             OptionalConfig::Disabled => {
@@ -64,10 +55,13 @@ impl MessageSending for MessageSendingSmtpRepository {
             .body(message.to_owned().body)
             .unwrap();
 
-        let credentials = Credentials::new(
-            config.username.get_or_error()?.to_owned(),
-            config.password.get_or_error()?.to_owned(),
-        );
+        //
+        // Extract username and password into a boxed future
+        //
+        let username = config.username.async_get_or_error().await;
+        let password = config.password.async_get_or_error().await;
+
+        let credentials = Credentials::new(username?, password?);
 
         let mailer = SmtpTransport::relay(&config.host.to_owned())
             .unwrap()

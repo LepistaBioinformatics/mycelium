@@ -20,8 +20,8 @@ pub async fn init_queue_client_from_url(
     let url = format!(
         "{}://:{}@{}",
         config.protocol,
-        config.password.get_or_error()?,
-        config.hostname.get_or_error()?
+        config.password.async_get_or_error().await?,
+        config.hostname.async_get_or_error().await?
     );
 
     QUEUE_CLIENT

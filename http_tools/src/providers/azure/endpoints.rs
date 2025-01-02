@@ -103,7 +103,7 @@ pub async fn login_url(
         code_verifier: verifier.secret().to_owned(),
     };
 
-    let jwt_secret = match config.jwt_secret.get_or_error() {
+    let jwt_secret = match config.jwt_secret.async_get_or_error().await {
         Ok(secret) => secret,
         Err(err) => {
             return HttpResponse::InternalServerError()
@@ -234,7 +234,7 @@ pub async fn token_url(
         }
     };
 
-    let jwt_secret = match config.jwt_secret.get_or_error() {
+    let jwt_secret = match config.jwt_secret.async_get_or_error().await {
         Ok(secret) => secret,
         Err(err) => {
             error!("Error on JWT secret: {err}");

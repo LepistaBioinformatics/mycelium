@@ -2848,7 +2848,9 @@ dependencies = [
 name = "mycelium-config"
 version = "6.3.0"
 dependencies = [
+ "lazy_static",
  "mycelium-base",
+ "reqwest 0.11.27",
  "serde",
  "serde_yaml",
  "tokio",
@@ -2905,6 +2907,7 @@ name = "mycelium-notifier"
 version = "6.3.0"
 dependencies = [
  "async-trait",
+ "futures",
  "lazy_static",
  "lettre",
  "myc-core",

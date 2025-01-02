@@ -1,5 +1,4 @@
 use myc_config::secret_resolver::SecretResolver;
-use mycelium_base::utils::errors::MappedErrors;
 use serde::{Deserialize, Serialize};
 
 /// This struct is used to manage the token secret and the token expiration
@@ -41,10 +40,4 @@ pub struct AccountLifeCycle {
     ///
     /// Toke secret is used to sign tokens
     pub(crate) token_secret: SecretResolver<String>,
-}
-
-impl AccountLifeCycle {
-    pub fn get_secret(&self) -> Result<String, MappedErrors> {
-        self.token_secret.get_or_error()
-    }
 }

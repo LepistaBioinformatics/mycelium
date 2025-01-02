@@ -34,7 +34,7 @@ impl AccountWithPermissionedRolesScope {
     /// created with the HMAC of the data and the secret from the config.
     ///
     #[tracing::instrument(name = "new", skip(config))]
-    pub fn new(
+    pub async fn new(
         tenant_id: Uuid,
         account_id: Uuid,
         permissioned_roles: PermissionedRoles,
@@ -48,7 +48,7 @@ impl AccountWithPermissionedRolesScope {
             ConnectionStringBean::EDT(expires_at),
         ]);
 
-        self_signed_scope.sign_token(config, None)?;
+        self_signed_scope.sign_token(config, None).await?;
 
         Ok(self_signed_scope)
     }
@@ -105,14 +105,14 @@ impl ScopedBehavior for AccountWithPermissionedRolesScope {
     /// secret
     ///
     #[tracing::instrument(name = "sign_token", skip(self, config))]
-    fn sign_token(
+    async fn sign_token(
         &mut self,
         config: AccountLifeCycle,
         extra_data: Option<String>,
     ) -> Result<String, MappedErrors> {
-        let secret = config.get_secret()?;
+        let secret = config.token_secret.async_get_or_error().await;
 
-        let mut mac = match HmacSha256::new_from_slice(secret.as_bytes()) {
+        let mut mac = match HmacSha256::new_from_slice(secret?.as_bytes()) {
             Ok(mac) => mac,
             Err(err) => {
                 error!("Could not create HMAC: {}", err);
@@ -200,8 +200,8 @@ mod tests {
     /// Test the creation of a new signed token with the
     /// AccountScopedConnectionStringMeta struct and test if the signature and
     /// the further password check are correct
-    #[test]
-    fn test_new_signed_token() {
+    #[tokio::test]
+    async fn test_new_signed_token() {
         let config = AccountLifeCycle {
             domain_url: None,
             domain_name: "test".to_string(),
@@ -220,7 +220,8 @@ mod tests {
             vec![("role".to_string(), Permission::ReadWrite)],
             Local::now(),
             config.to_owned(),
-        );
+        )
+        .await;
 
         assert!(account_scope.is_ok());
 
@@ -238,7 +239,8 @@ mod tests {
                 user_id,
                 email,
                 config,
-            );
+            )
+            .await;
 
         assert!(account_scoped_connection_string.is_ok());
 

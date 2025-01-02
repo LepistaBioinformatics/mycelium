@@ -64,7 +64,8 @@ pub async fn create_tenant_associated_connection_string(
         permissioned_roles.to_owned(),
         expires_at,
         life_cycle_settings.to_owned(),
-    )?;
+    )
+    .await?;
 
     let tenant_scoped_connection_string =
         TenantScopedConnectionString::new_signed_token(
@@ -72,7 +73,8 @@ pub async fn create_tenant_associated_connection_string(
             owner.id,
             Email::from_string(owner.email.to_owned())?,
             life_cycle_settings.to_owned(),
-        )?;
+        )
+        .await?;
 
     // ? -----------------------------------------------------------------------
     // ? Register the token
