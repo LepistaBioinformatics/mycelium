@@ -20,11 +20,10 @@ use uuid::Uuid;
 #[tracing::instrument(name = "send_email_notification", skip_all)]
 pub(crate) async fn send_email_notification<T: ToString>(
     parameters: Vec<(T, String)>,
-    template_path: T,
+    template_path_prefix: T,
     config: AccountLifeCycle,
     to: Email,
     cc: Option<Email>,
-    subject: String,
     message_sending_repo: Box<&dyn MessageSending>,
 ) -> Result<CreateResponseKind<Option<Uuid>>, MappedErrors> {
     let mut context = Context::new();
@@ -54,14 +53,16 @@ pub(crate) async fn send_email_notification<T: ToString>(
         None => "en-us".to_string(),
     };
 
-    let locale_path = format!(
+    let body_path = format!(
         "{locale}/{path}",
         locale = locale,
-        path = template_path.to_string()
+        path = format!(
+            "{prefix}.jinja",
+            prefix = template_path_prefix.to_string()
+        )
     );
 
-    let email_template = match TEMPLATES.render(&locale_path.as_str(), &context)
-    {
+    let body = match TEMPLATES.render(&body_path.as_str(), &context) {
         Ok(res) => res,
         Err(err) => {
             return use_case_err(format!(
@@ -71,6 +72,26 @@ pub(crate) async fn send_email_notification<T: ToString>(
         }
     };
 
+    let subject_path = format!(
+        "{locale}/{path}",
+        locale = locale,
+        path = format!(
+            "{prefix}.subject",
+            prefix = template_path_prefix.to_string()
+        )
+    );
+
+    let subject_ =
+        match TEMPLATES.render(&subject_path.as_str(), &Context::new()) {
+            Ok(res) => res,
+            Err(err) => {
+                return use_case_err(format!(
+                    "Unable to render email subject: {err}"
+                ))
+                .as_error();
+            }
+        };
+
     let from_email =
         Email::from_string(config.noreply_email.async_get_or_error().await?)?;
 
@@ -78,7 +99,7 @@ pub(crate) async fn send_email_notification<T: ToString>(
         FromEmail::NamedEmail(format!(
             "{} <{}>",
             name.async_get_or_error().await?,
-            from_email.get_email()
+            from_email.email()
         ))
     } else {
         FromEmail::Email(from_email)
@@ -92,9 +113,9 @@ pub(crate) async fn send_email_notification<T: ToString>(
             subject: format!(
                 "[{}] {}",
                 config.domain_name.async_get_or_error().await?,
-                subject
+                subject_
             ),
-            body: email_template,
+            body,
         })
         .await
 }
