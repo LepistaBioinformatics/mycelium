@@ -17,7 +17,6 @@ use crate::{
     },
 };
 
-use futures::future;
 use mycelium_base::{
     dtos::Parent,
     entities::{FetchResponseKind, GetOrCreateResponseKind},
@@ -64,22 +63,7 @@ pub async fn guest_to_default_account(
     //
     // ? -----------------------------------------------------------------------
 
-    let (target_account_response, target_role_response) = future::join(
-        get_or_create_role_related_account(
-            tenant_id,
-            role_id,
-            account_registration_repo,
-        ),
-        guest_role_fetching_repo.get(role_id),
-    )
-    .await;
-
-    let default_subscription_account = match target_account_response? {
-        GetOrCreateResponseKind::NotCreated(account, _) => account,
-        GetOrCreateResponseKind::Created(account) => account,
-    };
-
-    let target_role = match target_role_response? {
+    let target_role = match guest_role_fetching_repo.get(role_id).await? {
         FetchResponseKind::NotFound(id) => {
             return use_case_err(format!(
                 "Guest role not found: {:?}",
@@ -89,6 +73,18 @@ pub async fn guest_to_default_account(
             .as_error()
         }
         FetchResponseKind::Found(role) => role,
+    };
+
+    let default_subscription_account = match get_or_create_role_related_account(
+        Some(target_role.name.to_owned()),
+        tenant_id,
+        role_id,
+        account_registration_repo,
+    )
+    .await?
+    {
+        GetOrCreateResponseKind::NotCreated(account, _) => account,
+        GetOrCreateResponseKind::Created(account) => account,
     };
 
     // ? -----------------------------------------------------------------------
@@ -118,7 +114,7 @@ pub async fn guest_to_default_account(
         .await?
     {
         GetOrCreateResponseKind::Created(guest_user) => {
-            info!("Guest user created: {}", guest_user.email.get_email());
+            info!("Guest user created: {}", guest_user.email.email());
         }
         GetOrCreateResponseKind::NotCreated(_, msg) => {
             return use_case_err(format!("Guest user not created: {msg}"))
@@ -146,11 +142,10 @@ pub async fn guest_to_default_account(
 
     if let Err(err) = send_email_notification(
         parameters,
-        "email/guest-to-subscription-account.jinja",
+        "email/guest-to-subscription-account",
         life_cycle_settings,
         email,
         None,
-        String::from("You have been invited to collaborate"),
         message_sending_repo,
     )
     .await
