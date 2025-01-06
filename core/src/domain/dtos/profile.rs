@@ -3,6 +3,7 @@ use super::{
     native_error_codes::NativeErrorCodes, related_accounts::RelatedAccounts,
     user::User,
 };
+use crate::domain::dtos::email::Email;
 
 use base64::{engine::general_purpose, Engine};
 use mycelium_base::utils::errors::{dto_err, execution_err, MappedErrors};
@@ -318,7 +319,7 @@ impl Owner {
 
         Ok(Self {
             id: user_id,
-            email: user.email.get_email(),
+            email: user.email.email(),
             first_name: user.to_owned().first_name,
             last_name: user.to_owned().last_name,
             username: Some(user.to_owned().username),
@@ -403,11 +404,119 @@ pub struct Profile {
     /// their respective permissions inside the host account. A single account
     /// should be several licenses into the same account.
     pub licensed_resources: Option<LicensedResources>,
+
+    /// This argument stores the licensed resources state
+    ///
+    /// The licensed_resources_state should store the current filtering state.
+    /// The filtering state should be populated when a filtering cascade is
+    /// performed. As example:
+    ///
+    /// If a profile with two licensed resources is filtered by the tenant_id
+    /// the state should store the tenant id used to filter licensed resources.
+    ///
+    /// State formatting:
+    ///
+    /// ```json
+    /// [
+    ///    "1:tenantId:123e4567-e89b-12d3-a456-426614174000",
+    /// ]
+    /// ```
+    ///
+    /// And then, if the used apply a secondary filter, by permission, the state
+    /// should be updated to:
+    ///
+    /// ```json
+    /// [
+    ///   "1:tenantId:123e4567-e89b-12d3-a456-426614174000",
+    ///   "2:permission:1",
+    /// ]
+    /// ```
+    ///
+    /// If a consecutive filter with more one tenant is applied, the state
+    /// should be updated to:
+    ///
+    /// ```json
+    /// [
+    ///  "1:tenantId:123e4567-e89b-12d3-a456-426614174000",
+    ///  "2:permission:1",
+    ///  "3:tenantId:123e4567-e89b-12d3-a456-426614174001",
+    /// ]
+    /// ```
+    ///
+    licensed_resources_state: Option<Vec<String>>,
 }
 
 impl Profile {
+    pub fn new(
+        owners: Vec<Owner>,
+        acc_id: Uuid,
+        is_subscription: bool,
+        is_manager: bool,
+        is_staff: bool,
+        owner_is_active: bool,
+        account_is_active: bool,
+        account_was_approved: bool,
+        account_was_archived: bool,
+        verbose_status: Option<VerboseStatus>,
+        licensed_resources: Option<LicensedResources>,
+    ) -> Self {
+        Self {
+            owners,
+            acc_id,
+            is_subscription,
+            is_manager,
+            is_staff,
+            owner_is_active,
+            account_is_active,
+            account_was_approved,
+            account_was_archived,
+            verbose_status,
+            licensed_resources,
+            licensed_resources_state: None,
+        }
+    }
+
+    fn update_state(&self, key: String, value: String) -> Self {
+        let mut state =
+            self.licensed_resources_state.clone().unwrap_or_default();
+
+        state.push(format!(
+            "{}:{}",
+            state.len() + 1,
+            format!("{}:{}", key, value)
+        ));
+
+        println!("{:?}", state);
+        println!("{:?}", self.licensed_resources_state);
+
+        Self {
+            licensed_resources_state: Some(state),
+            ..self.clone()
+        }
+    }
+
     pub fn profile_string(&self) -> String {
         format!("profile/{}", self.acc_id.to_string())
+    }
+
+    /// Redacted profile string
+    ///
+    /// Print the profile using the profile_string struct method and a list of
+    /// owners, using the `redacted_email` structural method of the email field
+    /// present in owners.
+    ///
+    pub fn profile_redacted(&self) -> String {
+        format!(
+            "profile/{} owners: [{}]",
+            self.acc_id.to_string(),
+            self.owners
+                .iter()
+                .map(|i| Email::from_string(i.email.to_owned())
+                    .unwrap()
+                    .redacted_email())
+                .collect::<Vec<String>>()
+                .join(", ")
+        )
     }
 
     pub fn get_owners_ids(&self) -> Vec<Uuid> {
@@ -440,19 +549,12 @@ impl Profile {
         //
         let licensed_resources =
             if let Some(resources) = self.licensed_resources.as_ref() {
-                let records: Vec<LicensedResource> = match resources {
-                    LicensedResources::Records(records) => records
-                        .iter()
-                        .filter(|i| i.tenant_id == tenant_id)
-                        .map(|i| i.to_owned())
-                        .collect(),
-                    LicensedResources::Urls(urls) => urls
-                        .iter()
-                        .map(|i| LicensedResource::from_str(i).unwrap())
-                        .filter(|i| i.tenant_id == tenant_id)
-                        .map(|i| i.to_owned())
-                        .collect(),
-                };
+                let records: Vec<LicensedResource> = resources
+                    .to_licenses_vector()
+                    .iter()
+                    .filter(|i| i.tenant_id == tenant_id)
+                    .map(|i| i.to_owned())
+                    .collect();
 
                 if records.is_empty() {
                     None
@@ -468,8 +570,226 @@ impl Profile {
         //
         Self {
             licensed_resources,
-            ..self.clone()
+            ..self
+                .update_state("tenantId".to_string(), tenant_id.to_string())
+                .clone()
         }
+    }
+
+    /// Filter the licensed resources to include only the standard system
+    /// accounts
+    pub fn with_standard_accounts_access(&self) -> Self {
+        //
+        // Filter the licensed resources to the default accounts
+        //
+        let licensed_resources =
+            if let Some(resources) = self.licensed_resources.as_ref() {
+                let records: Vec<LicensedResource> = resources
+                    .to_licenses_vector()
+                    .iter()
+                    .filter(|i| i.is_acc_std == true)
+                    .map(|i| i.to_owned())
+                    .collect();
+
+                if records.is_empty() {
+                    None
+                } else {
+                    Some(LicensedResources::Records(records))
+                }
+            } else {
+                None
+            };
+
+        //
+        // Return the new profile
+        //
+        Self {
+            licensed_resources,
+            ..self
+                .update_state("isAccStd".to_string(), "true".to_string())
+                .clone()
+        }
+    }
+
+    /// Filter the licensed resources to include only licenses with read access
+    pub fn with_read_access(&self) -> Self {
+        self.with_permission(Permission::Read)
+    }
+
+    /// Filter the licensed resources to include only licenses with write access
+    pub fn with_write_access(&self) -> Self {
+        self.with_permission(Permission::Write)
+    }
+
+    /// Filter the licensed resources to include only licenses with read/write
+    pub fn with_read_write_access(&self) -> Self {
+        self.with_permission(Permission::ReadWrite)
+    }
+
+    /// Filter licensed resources by permission
+    ///
+    /// This is an internal method that should be used to filter the licensed
+    /// resources by permission.
+    ///
+    fn with_permission(&self, permission: Permission) -> Self {
+        //
+        // Filter the licensed resources to the permission
+        //
+        let licensed_resources =
+            if let Some(resources) = self.licensed_resources.as_ref() {
+                let records: Vec<LicensedResource> = resources
+                    .to_licenses_vector()
+                    .iter()
+                    .filter(|i| i.perm == permission)
+                    .map(|i| i.to_owned())
+                    .collect();
+
+                if records.is_empty() {
+                    None
+                } else {
+                    Some(LicensedResources::Records(records))
+                }
+            } else {
+                None
+            };
+
+        //
+        // Return the new profile
+        //
+        Self {
+            licensed_resources,
+            ..self
+                .update_state(
+                    "permission".to_string(),
+                    permission.to_i32().to_string(),
+                )
+                .clone()
+        }
+    }
+
+    pub fn with_roles<T: ToString>(&self, roles: Vec<T>) -> Self {
+        //
+        // Filter the licensed resources to the roles
+        //
+        let licensed_resources =
+            if let Some(resources) = self.licensed_resources.as_ref() {
+                let records: Vec<LicensedResource> = resources
+                    .to_licenses_vector()
+                    .iter()
+                    .filter(|i| {
+                        roles
+                            .iter()
+                            .map(|i| i.to_string())
+                            .collect::<Vec<String>>()
+                            .contains(&i.role)
+                    })
+                    .map(|i| i.to_owned())
+                    .collect();
+
+                if records.is_empty() {
+                    None
+                } else {
+                    Some(LicensedResources::Records(records))
+                }
+            } else {
+                None
+            };
+
+        //
+        // Return the new profile
+        //
+        Self {
+            licensed_resources,
+            ..self
+                .update_state(
+                    "role".to_string(),
+                    roles
+                        .iter()
+                        .map(|i| i.to_string())
+                        .collect::<Vec<String>>()
+                        .join(","),
+                )
+                .clone()
+        }
+    }
+
+    pub fn get_related_account_or_error(
+        &self,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        if self.is_staff {
+            return Ok(RelatedAccounts::HasStaffPrivileges);
+        }
+
+        if self.is_manager {
+            return Ok(RelatedAccounts::HasManagerPrivileges);
+        }
+
+        if let Some(resources) = self.licensed_resources.as_ref() {
+            let records: Vec<LicensedResource> = resources.to_licenses_vector();
+
+            if records.is_empty() {
+                return execution_err(
+                    "Insufficient privileges to perform these action"
+                        .to_string(),
+                )
+                .with_code(NativeErrorCodes::MYC00019)
+                .with_exp_true()
+                .as_error();
+            }
+
+            return Ok(RelatedAccounts::AllowedAccounts(
+                records.iter().map(|i| i.acc_id).collect(),
+            ));
+        }
+
+        execution_err(
+            "Insufficient privileges to perform these action".to_string(),
+        )
+        .with_code(NativeErrorCodes::MYC00019)
+        .with_exp_true()
+        .as_error()
+    }
+
+    pub fn get_ids_or_error(&self) -> Result<Vec<Uuid>, MappedErrors> {
+        let ids: Vec<Uuid> = self
+            .licensed_resources
+            .to_owned()
+            .unwrap_or(LicensedResources::Records(vec![]))
+            .to_licenses_vector()
+            .iter()
+            .map(|i| i.acc_id)
+            .collect();
+
+        //
+        // If none of the conditions are true, return an error
+        //
+        if !vec![
+            //
+            // The profile has more than one licensed resource and the profile
+            // is not the owner of the account
+            //
+            ids.len() > 1 && ids.contains(&self.acc_id),
+            //
+            // The profile has no staff privileges
+            //
+            self.is_staff,
+            //
+            // The profile has no manager privileges
+            //
+            self.is_manager,
+        ]
+        .into_iter()
+        .any(|i| i == true)
+        {
+            return execution_err(
+                "Insufficient privileges to perform these action".to_string(),
+            )
+            .with_code(NativeErrorCodes::MYC00019)
+            .with_exp_true()
+            .as_error();
+        }
+
+        Ok(ids)
     }
 
     // ? -----------------------------------------------------------------------
@@ -759,6 +1079,10 @@ impl Profile {
             if let Some(resources) = &self.licensed_resources {
                 resources.to_licenses_vector()
             } else {
+                //
+                // WARNING: If the licensed resources are empty, the profile
+                // should be the owner of the account.
+                //
                 return vec![self.acc_id];
             };
 
@@ -810,9 +1134,26 @@ impl Profile {
     ) -> Result<Vec<Uuid>, MappedErrors> {
         let ids = self.get_licensed_ids(permission, roles, should_be_default);
 
-        if !vec![!ids.is_empty(), self.is_staff, self.is_manager]
-            .into_iter()
-            .any(|i| i == true)
+        //
+        // If none of the conditions are true, return an error
+        //
+        if !vec![
+            //
+            // The profile has more than one licensed resource and the profile
+            // is not the owner of the account
+            //
+            ids.len() > 1 && ids.contains(&self.acc_id),
+            //
+            // The profile has no staff privileges
+            //
+            self.is_staff,
+            //
+            // The profile has no manager privileges
+            //
+            self.is_manager,
+        ]
+        .into_iter()
+        .any(|i| i == true)
         {
             return execution_err(
                 "Insufficient privileges to perform these action".to_string(),
@@ -877,6 +1218,61 @@ mod tests {
     use test_log::test;
     use uuid::Uuid;
 
+    // Define the tenant_id to share between tests
+    fn tenant_id() -> Uuid {
+        Uuid::from_str("e497848f-a0d4-49f4-8288-c3df11416ff1").unwrap()
+    }
+
+    fn profile() -> Profile {
+        let tenant_id = tenant_id();
+
+        Profile {
+            owners: vec![],
+            acc_id: Uuid::new_v4(),
+            is_subscription: false,
+            is_manager: false,
+            is_staff: false,
+            owner_is_active: true,
+            account_is_active: true,
+            account_was_approved: true,
+            account_was_archived: false,
+            verbose_status: None,
+            licensed_resources: Some(LicensedResources::Records(vec![
+                LicensedResource {
+                    acc_id: Uuid::new_v4(),
+                    tenant_id,
+                    acc_name: "Guest Account Name".to_string(),
+                    is_acc_std: false,
+                    guest_role_name: "guest_role_name".to_string(),
+                    role: "service".to_string(),
+                    perm: Permission::Write,
+                    was_verified: true,
+                },
+                LicensedResource {
+                    acc_id: Uuid::new_v4(),
+                    tenant_id,
+                    acc_name: "Guest Account Name".to_string(),
+                    is_acc_std: true,
+                    guest_role_name: "guest_role_name".to_string(),
+                    role: "newbie".to_string(),
+                    perm: Permission::Read,
+                    was_verified: true,
+                },
+                LicensedResource {
+                    acc_id: Uuid::new_v4(),
+                    tenant_id: Uuid::new_v4(),
+                    acc_name: "Guest Account Name".to_string(),
+                    is_acc_std: true,
+                    guest_role_name: "guest_role_name".to_string(),
+                    role: "service".to_string(),
+                    perm: Permission::ReadWrite,
+                    was_verified: true,
+                },
+            ])),
+            licensed_resources_state: None,
+        }
+    }
+
     #[test]
     fn profile_get_ids_works() {
         let profile = Profile {
@@ -917,6 +1313,7 @@ mod tests {
                     was_verified: true,
                 },
             ])),
+            licensed_resources_state: None,
         };
 
         let ids = profile.get_write_ids(["service".to_string()].to_vec());
@@ -966,6 +1363,7 @@ mod tests {
                     was_verified: true,
                 },
             ])),
+            licensed_resources_state: None,
         };
 
         assert_eq!(
@@ -1004,7 +1402,7 @@ mod tests {
         profile.is_staff = false;
 
         assert_eq!(
-            true,
+            false,
             profile
                 .get_write_ids_or_error([desired_role].to_vec())
                 .is_ok(),
@@ -1043,6 +1441,161 @@ mod tests {
         assert_eq!(
             Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0").unwrap(),
             uuid.unwrap()
+        );
+    }
+
+    #[test]
+    fn test_filtering_permissions() {
+        let profile = profile();
+        let profile_with_read = profile.with_read_access();
+        let profile_with_write = profile.with_write_access();
+        let profile_with_read_write = profile.with_read_write_access();
+        let profile_with_standard = profile.with_standard_accounts_access();
+
+        assert_eq!(
+            1,
+            profile_with_read
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+
+        assert_eq!(
+            1,
+            profile_with_write
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+
+        assert_eq!(
+            1,
+            profile_with_read_write
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+
+        assert_eq!(
+            2,
+            profile_with_standard
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+    }
+
+    #[test]
+    fn test_filtering_on_tenant_cascade() {
+        let tenant_id = tenant_id();
+        let profile = profile();
+
+        let profile_on_tenant = profile.on_tenant(tenant_id);
+
+        assert_eq!(
+            2,
+            profile_on_tenant
+                .licensed_resources
+                .clone()
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+
+        let profile_on_tenant_with_read = profile_on_tenant.with_read_access();
+        let profile_on_tenant_with_write =
+            profile_on_tenant.with_write_access();
+        let profile_on_tenant_with_read_write =
+            profile_on_tenant.with_read_write_access();
+        assert_eq!(
+            1,
+            profile_on_tenant_with_read
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+
+        assert_eq!(
+            1,
+            profile_on_tenant_with_write
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+
+        assert!(profile_on_tenant_with_read_write
+            .licensed_resources
+            .is_none());
+    }
+
+    #[test]
+    fn test_filtering_by_role() {
+        let tenant_id = tenant_id();
+        let profile = profile();
+
+        let profile_on_tenant = profile.on_tenant(tenant_id);
+
+        let profile_on_tenant_with_roles =
+            profile_on_tenant.with_roles(["service".to_string()].to_vec());
+
+        assert_eq!(
+            1,
+            profile_on_tenant_with_roles
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+
+        let profile_on_tenant_with_roles =
+            profile_on_tenant.with_roles(["newbie".to_string()].to_vec());
+
+        assert_eq!(
+            1,
+            profile_on_tenant_with_roles
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+
+        let profile_on_tenant_with_roles =
+            profile_on_tenant.with_roles(["service", "newbie"].to_vec());
+
+        assert_eq!(
+            2,
+            profile_on_tenant_with_roles
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+    }
+
+    #[test]
+    fn test_filtering_as_default() {
+        let tenant_id = tenant_id();
+        let profile = profile();
+        let profile_on_tenant = profile.on_tenant(tenant_id);
+
+        let profile_on_tenant_with_standard =
+            profile_on_tenant.with_standard_accounts_access();
+
+        println!("{:?}", profile_on_tenant_with_standard);
+
+        assert_eq!(
+            1,
+            profile_on_tenant_with_standard
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
         );
     }
 }
