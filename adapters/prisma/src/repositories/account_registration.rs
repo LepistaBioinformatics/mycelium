@@ -194,7 +194,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         // ? -------------------------------------------------------------------
 
         let (tenant_id, role_name, role_id) = match account.account_type {
-            AccountTypeV2::StandardRoleAssociated {
+            AccountTypeV2::RoleAssociated {
                 tenant_id,
                 role_name,
                 role_id,
@@ -207,7 +207,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
             }
         };
 
-        let concrete_account_type = AccountTypeV2::StandardRoleAssociated {
+        let concrete_account_type = AccountTypeV2::RoleAssociated {
             tenant_id,
             role_name,
             role_id,
@@ -456,7 +456,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
             Children::Ids(_) => vec![],
             Children::Records(res) => res
                 .into_iter()
-                .map(|user| user.email.get_email())
+                .map(|user| user.email.email())
                 .collect::<Vec<String>>(),
         };
 
@@ -755,7 +755,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             .user()
                             .create(
                                 owner.to_owned().username,
-                                owner.to_owned().email.get_email(),
+                                owner.to_owned().email.email(),
                                 owner
                                     .to_owned()
                                     .first_name

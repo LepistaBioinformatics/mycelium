@@ -23,7 +23,11 @@ use config::injectors::configure as configure_injection_modules;
 use core::panic;
 use endpoints::{
     index::heath_check_endpoints,
-    manager::{guest_role_endpoints, tenant_endpoints},
+    manager::{
+        account_endpoints as manager_account_endpoints,
+        guest_role_endpoints as manager_guest_role_endpoints,
+        tenant_endpoints as manager_tenant_endpoints,
+    },
     role_scoped::configure as configure_standard_endpoints,
     service::{
         account_endpoints as service_account_endpoints,
@@ -231,10 +235,10 @@ pub async fn main() -> std::io::Result<()> {
             .event_format(
                 fmt::format()
                     .with_level(true)
-                    .with_target(false)
+                    .with_target(true)
                     .with_thread_ids(true)
-                    .with_file(false)
-                    .with_line_number(false),
+                    .with_file(true)
+                    .with_line_number(true),
             )
             .with_writer(non_blocking)
             .with_env_filter(
@@ -481,8 +485,9 @@ pub async fn main() -> std::io::Result<()> {
                         //
                         // Configure endpoints
                         //
-                        .configure(tenant_endpoints::configure)
-                        .configure(guest_role_endpoints::configure),
+                        .configure(manager_tenant_endpoints::configure)
+                        .configure(manager_guest_role_endpoints::configure)
+                        .configure(manager_account_endpoints::configure),
                     ),
             )
             //

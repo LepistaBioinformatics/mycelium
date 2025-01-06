@@ -68,7 +68,7 @@ pub async fn create_seed_staff_account(
         GetOrCreateResponseKind::NotCreated(user, _) => {
             return use_case_err(format!(
                 "User already registered: {}",
-                user.email.get_email()
+                user.email.email()
             ))
             .with_code(NativeErrorCodes::MYC00002)
             .as_error()

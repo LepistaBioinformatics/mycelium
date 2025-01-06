@@ -20,7 +20,7 @@ use myc_http_tools::{
 use myc_prisma::repositories::{
     LicensedResourcesFetchingSqlDbRepository, ProfileFetchingSqlDbRepository,
 };
-use tracing::{debug, warn};
+use tracing::{trace, warn};
 
 /// Try to populate profile to request header
 ///
@@ -40,6 +40,10 @@ pub(crate) async fn fetch_profile_from_request(
             "Unable o extract user identity from request."
         )));
     }
+
+    if let Some(email) = email.to_owned() {
+        trace!("Email: {:?}", email.redacted_email());
+    };
 
     let profile = match fetch_profile_from_email(
         email.to_owned().unwrap(),
@@ -69,6 +73,8 @@ pub(crate) async fn fetch_profile_from_request(
         },
     };
 
+    trace!("Profile: {:?}", profile.profile_redacted());
+
     Ok(MyceliumProfileData::from_profile(profile))
 }
 
@@ -83,6 +89,8 @@ pub async fn check_credentials_with_multi_identity_provider(
     req: HttpRequest,
 ) -> Result<Option<Email>, GatewayError> {
     let issuer = parse_issuer_from_request(req.clone()).await?;
+    trace!("Issuer: {:?}", issuer);
+
     discover_provider(issuer.to_owned().to_lowercase(), req).await
 }
 
@@ -136,8 +144,10 @@ async fn discover_provider(
     let provider = if auth_provider.contains("sts.windows.net")
         || auth_provider.contains("azure-ad")
     {
+        trace!("Checking credentials with Azure AD");
         az_check_credentials(req).await
     } else if auth_provider.contains("google") {
+        trace!("Checking credentials with Google OAuth2");
         //
         // Try to extract authentication configurations from HTTP request.
         //
@@ -171,6 +181,7 @@ async fn discover_provider(
         //
         gc_check_credentials(req, config).await
     } else if auth_provider.contains("mycelium") {
+        trace!("Checking credentials with Mycelium Auth");
         //
         // Extract the internal OAuth2 configuration from the HTTP request. If
         // the configuration is not available returns a InternalServerError
@@ -263,7 +274,7 @@ async fn discover_provider(
             Err(GatewayError::Forbidden(msg))
         }
         Ok(res) => {
-            debug!("Requesting Email: {:?}", res);
+            trace!("Requesting Email: {:?}", res);
             Ok(Some(res))
         }
     }

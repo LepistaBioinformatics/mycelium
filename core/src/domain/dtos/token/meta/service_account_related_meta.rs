@@ -79,7 +79,7 @@ where
         email: Email,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
-        let extra_data = format!("{} <{}>", user_id, email.get_email());
+        let extra_data = format!("{} <{}>", user_id, email.email());
         let signature = scope.sign_token(config, Some(extra_data)).await?;
 
         let token = match TokenType::try_from(signature) {

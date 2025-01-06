@@ -64,7 +64,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
         let query = client
             .account()
             .find_first(vec![account_model::owners::some(vec![
-                user_model::email::equals(email.get_email()),
+                user_model::email::equals(email.email()),
             ])])
             .include(account_model::include!({
                 owners: select {
@@ -102,7 +102,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                 let (is_subscription, is_manager, is_staff) = match account_type
                 {
                     AccountTypeV2::Subscription { .. }
-                    | AccountTypeV2::StandardRoleAssociated { .. } => {
+                    | AccountTypeV2::RoleAssociated { .. } => {
                         (true, false, false)
                     }
                     AccountTypeV2::Manager => (false, true, false),
@@ -110,41 +110,38 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                     _ => (false, false, false),
                 };
 
-                Ok(FetchResponseKind::Found(Profile {
-                    owners: record
+                Ok(FetchResponseKind::Found(Profile::new(
+                    record
                         .owners
                         .iter()
                         .map(|owner| Owner {
                             id: Uuid::parse_str(&owner.id).unwrap(),
                             email: Email::from_string(owner.email.to_owned())
                                 .unwrap()
-                                .get_email(),
+                                .email(),
                             first_name: Some(owner.first_name.to_owned()),
                             last_name: Some(owner.last_name.to_owned()),
                             username: Some(owner.username.to_owned()),
                             is_principal: owner.is_principal,
                         })
                         .collect::<Vec<Owner>>(),
-                    acc_id: Uuid::parse_str(&record.id).unwrap(),
+                    Uuid::parse_str(&record.id).unwrap(),
                     is_subscription,
                     is_manager,
                     is_staff,
-                    owner_is_active: record
-                        .owners
-                        .iter()
-                        .any(|i| i.is_active == true),
-                    account_is_active: record.is_active,
-                    account_was_approved: record.is_checked,
-                    account_was_archived: record.is_archived,
-                    verbose_status: Some(VerboseStatus::from_flags(
+                    record.owners.iter().any(|i| i.is_active == true),
+                    record.is_active,
+                    record.is_checked,
+                    record.is_archived,
+                    Some(VerboseStatus::from_flags(
                         record.is_active,
                         record.is_checked,
                         record.is_archived,
                     )),
-                    licensed_resources: None,
-                }))
+                    None,
+                )))
             }
-            None => Ok(FetchResponseKind::NotFound(Some(email.get_email()))),
+            None => Ok(FetchResponseKind::NotFound(Some(email.email()))),
         }
     }
 }

@@ -73,7 +73,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
 
         let response = client
             .user()
-            .find_first(vec![user_model::email::equals(user.email.get_email())])
+            .find_first(vec![user_model::email::equals(user.email.email())])
             .exec()
             .await;
 
@@ -118,7 +118,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                     .user()
                     .create(
                         user.to_owned().username,
-                        user.to_owned().email.get_email(),
+                        user.to_owned().email.email(),
                         user.to_owned().first_name.unwrap_or(String::from("")),
                         user.to_owned().last_name.unwrap_or(String::from("")),
                         vec![

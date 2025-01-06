@@ -79,6 +79,7 @@ pub async fn guest_to_default_account(
         Some(target_role.name.to_owned()),
         tenant_id,
         role_id,
+        None,
         account_registration_repo,
     )
     .await?

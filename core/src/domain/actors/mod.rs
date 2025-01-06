@@ -103,12 +103,12 @@ impl FromStr for SystemActor {
     fn from_str(s: &str) -> Result<SystemActor, ()> {
         match s {
             "beginner" | "no-role" => Ok(SystemActor::Beginner),
-            "subscriptions-account-manager" => {
+            "subscriptions-account-manager" | "subscriptions-manager" => {
                 Ok(SystemActor::SubscriptionsManager)
             }
-            "subscriptions-manager" => Ok(SystemActor::SubscriptionsManager),
-            "users-account-manager" => Ok(SystemActor::UsersManager),
-            "users-manager" => Ok(SystemActor::UsersManager),
+            "users-account-manager" | "users-manager" => {
+                Ok(SystemActor::UsersManager)
+            }
             "account-manager" => Ok(SystemActor::AccountManager),
             "guest-manager" => Ok(SystemActor::GuestManager),
             "gateway-manager" => Ok(SystemActor::GatewayManager),
@@ -117,7 +117,13 @@ impl FromStr for SystemActor {
             "tenant-owner" => Ok(SystemActor::TenantOwner),
             "service" => Ok(SystemActor::Service),
 
-            _ => Err(()),
+            other => {
+                if other.starts_with("custom-role:") {
+                    Ok(SystemActor::CustomRole(other[11..].to_string()))
+                } else {
+                    Err(())
+                }
+            }
         }
     }
 }

@@ -36,7 +36,7 @@ pub enum AccountTypeV2 {
     /// Role associated account type is an special type of account, created to
     /// connect users to a specific standard role in the application.
     #[serde(rename_all = "camelCase")]
-    StandardRoleAssociated {
+    RoleAssociated {
         tenant_id: Uuid,
         role_name: SystemActor,
         role_id: Uuid,
@@ -78,7 +78,7 @@ mod tests {
         //
         // Type AccountTypeV2::StandardRoleAssociated
         //
-        let account_type = AccountTypeV2::StandardRoleAssociated {
+        let account_type = AccountTypeV2::RoleAssociated {
             tenant_id: Uuid::from_u128(0),
             role_name: SystemActor::CustomRole("test".to_string()),
             role_id: Uuid::from_u128(0),
@@ -95,7 +95,7 @@ mod tests {
 
         assert_eq!(
             account_type,
-            AccountTypeV2::StandardRoleAssociated {
+            AccountTypeV2::RoleAssociated {
                 tenant_id: Uuid::from_u128(0),
                 role_name: SystemActor::CustomRole("test".to_string()),
                 role_id: Uuid::from_u128(0),

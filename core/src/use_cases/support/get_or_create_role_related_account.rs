@@ -23,7 +23,8 @@ use uuid::Uuid;
 pub(crate) async fn get_or_create_role_related_account(
     name: Option<String>,
     tenant_id: Uuid,
-    role_id: Uuid,
+    guest_role_id: Uuid,
+    system_actor: Option<SystemActor>,
     account_registration_repo: Box<&dyn AccountRegistration>,
 ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -31,15 +32,17 @@ pub(crate) async fn get_or_create_role_related_account(
     // ? -----------------------------------------------------------------------
 
     let mut unchecked_account = Account::new_role_related_account(
-        name.unwrap_or_else(|| {
-            format!(
-                "Default subscription account for role/{}",
-                role_id.to_string()
-            )
-        }),
+        format!(
+            "Default subscription account for guest-role/{}",
+            name.unwrap_or(match system_actor.to_owned() {
+                Some(actor) => actor.to_string(),
+                None => guest_role_id.to_string(),
+            })
+        ),
         tenant_id,
-        role_id,
-        SystemActor::CustomRole(role_id.to_string()),
+        guest_role_id,
+        system_actor
+            .unwrap_or(SystemActor::CustomRole(guest_role_id.to_string())),
     );
 
     unchecked_account.is_checked = true;
