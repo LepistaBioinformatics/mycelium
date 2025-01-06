@@ -207,7 +207,7 @@ impl Account {
             verbose_status: None,
             is_default: false,
             owners: Children::Ids([].to_vec()),
-            account_type: AccountTypeV2::StandardRoleAssociated {
+            account_type: AccountTypeV2::RoleAssociated {
                 tenant_id,
                 role_id,
                 role_name,

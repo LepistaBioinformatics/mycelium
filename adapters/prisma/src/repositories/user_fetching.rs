@@ -61,7 +61,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
             .user()
             .find_first(vec![and![
                 user_model::email::mode(QueryMode::Insensitive),
-                user_model::email::equals(email.get_email())
+                user_model::email::equals(email.email())
             ]])
             .include(user_model::include!({ provider }))
             .exec()
@@ -298,7 +298,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
             .user()
             .find_first(vec![and![
                 user_model::email::mode(QueryMode::Insensitive),
-                user_model::email::equals(email.get_email())
+                user_model::email::equals(email.email())
             ]])
             .include(user_model::include!({ provider }))
             .exec()

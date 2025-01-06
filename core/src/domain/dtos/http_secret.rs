@@ -196,6 +196,9 @@ impl HttpSecret {
         // Create a key from the account's secret
         //
         let encryption_key = config.token_secret.async_get_or_error().await;
+
+        println!("encryption_key: {:?}", encryption_key);
+
         let encryption_key_uuid = match Uuid::parse_str(&encryption_key?) {
             Ok(uuid) => uuid,
             Err(err) => {
@@ -203,6 +206,8 @@ impl HttpSecret {
                 return dto_err("Failed to parse encryption key").as_error();
             }
         };
+
+        println!("encryption_key_uuid: {:?}", encryption_key_uuid);
 
         let key_bytes = derive_key_from_uuid(&encryption_key_uuid);
 
@@ -253,6 +258,8 @@ impl HttpSecret {
 
         let mut in_out = ciphertext.to_vec();
 
+        println!("in_out 1: {:?}", in_out);
+
         match key.open_in_place(nonce, Aad::empty(), &mut in_out) {
             Ok(_) => {}
             Err(err) => {
@@ -260,6 +267,8 @@ impl HttpSecret {
                 return dto_err("Failed to decrypt data").as_error();
             }
         };
+
+        println!("in_out 2: {:?}", in_out);
 
         let in_out_slice = if in_out.len() > 16 {
             in_out.truncate(in_out.len() - 16);

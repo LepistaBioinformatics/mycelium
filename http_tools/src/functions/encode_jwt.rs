@@ -52,14 +52,14 @@ pub async fn encode_jwt(
             Some(id) => id.to_string(),
             None => "".to_string(),
         },
-        email: user.email.get_email(),
+        email: user.email.email(),
         exp: expiration,
         iss: "mycelium".to_string(),
     };
 
     let header = Header::new(Algorithm::HS512);
 
-    let secret = match token.jwt_secret.get_or_error() {
+    let secret = match token.jwt_secret.async_get_or_error().await {
         Ok(key) => key,
         Err(_) => {
             return Err(HttpResponse::InternalServerError().json(

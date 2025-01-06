@@ -20,6 +20,7 @@ use google_endpoints as Auth__Google;
 use index::heath_check_endpoints as Index__Heath_Check;
 use manager::guest_role_endpoints as Managers__Guest_Role;
 use manager::tenant_endpoints as Managers__Tenants;
+use manager::account_endpoints as Managers__Accounts;
 use role_scoped::account_manager::guest_endpoints as Account_Manager__Guest;
 use role_scoped::gateway_manager::route_endpoints as GatewayManager__Route;
 use role_scoped::gateway_manager::service_endpoints as GatewayManager__Service;
@@ -70,6 +71,21 @@ struct AuthAzureApiDoc;
     paths(Auth__Google::google_callback_url)
 )]
 struct AuthGoogleApiDoc;
+
+/// Manager Endpoints for Account Management
+/// 
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Manager | Account Endpoints",
+        description = "Endpoints reserved for the application managers to manage accounts",
+    ),
+    paths(
+        Managers__Accounts::create_system_account_url,
+    ),
+    security(("Bearer" = []))
+)]
+struct ManagersAccountsApiDoc;
 
 /// Manager Endpoints for Guest Roles Management
 /// 
@@ -551,6 +567,7 @@ struct UsersManagerAccountApiDoc;
         // Super User endpoints
         //
         (path = "/adm/su/staffs/accounts", api = StaffsAccountsApiDoc),
+        (path = "/adm/su/managers/accounts", api = ManagersAccountsApiDoc),
         (path = "/adm/su/managers/tenants", api = ManagersTenantsApiDoc),
         (path = "/adm/su/managers/guest-roles", api = ManagersGuestRoleApiDoc),
         //
@@ -656,6 +673,7 @@ struct UsersManagerAccountApiDoc;
             //
             // MANAGER
             //
+            manager::account_endpoints::CreateSystemSubscriptionAccountBody,
             manager::tenant_endpoints::CreateTenantBody,
             manager::tenant_endpoints::ListTenantParams,
 

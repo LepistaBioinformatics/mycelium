@@ -11,7 +11,7 @@ use myc_http_tools::{
 };
 use serde::Deserialize;
 use std::pin::Pin;
-use tracing::error;
+use tracing::{error, trace};
 use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -48,19 +48,19 @@ impl MyceliumProfileData {
     }
 
     pub(crate) fn to_profile(&self) -> Profile {
-        Profile {
-            owners: self.owners.to_owned(),
-            acc_id: self.acc_id,
-            is_subscription: self.is_subscription,
-            is_manager: self.is_manager,
-            is_staff: self.is_staff,
-            owner_is_active: self.owner_is_active,
-            account_is_active: self.account_is_active,
-            account_was_approved: self.account_was_approved,
-            account_was_archived: self.account_was_archived,
-            verbose_status: self.verbose_status.to_owned(),
-            licensed_resources: self.licensed_resources.to_owned(),
-        }
+        Profile::new(
+            self.owners.to_owned(),
+            self.acc_id,
+            self.is_subscription,
+            self.is_manager,
+            self.is_staff,
+            self.owner_is_active,
+            self.account_is_active,
+            self.account_was_approved,
+            self.account_was_archived,
+            self.verbose_status.to_owned(),
+            self.licensed_resources.to_owned(),
+        )
     }
 }
 
@@ -99,6 +99,8 @@ impl FromRequest for MyceliumProfileData {
                 }
                 None => None,
             };
+
+        trace!("Requested roles: {:?}", roles);
 
         Box::pin(async move {
             fetch_profile_from_request(req_clone, roles, None).await

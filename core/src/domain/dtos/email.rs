@@ -46,18 +46,38 @@ impl Email {
         Ok(Email { username, domain })
     }
 
-    pub fn get_email(&self) -> String {
+    pub fn email(&self) -> String {
         format!(
             "{}@{}",
             self.username.to_lowercase(),
             self.domain.to_lowercase()
         )
     }
+
+    /// Get redacted email
+    ///
+    /// Return only the first and last letters o the email.username and the
+    /// domain
+    ///
+    pub fn redacted_email(&self) -> String {
+        let binding = self.username.to_lowercase();
+        let username = binding.chars();
+        let domain = self.domain.to_lowercase();
+
+        let username_redacted = format!(
+            "{}{}{}",
+            username.to_owned().next().unwrap(),
+            "*".repeat(3),
+            username.last().unwrap()
+        );
+
+        format!("{}@{}", username_redacted, domain)
+    }
 }
 
 impl ToString for Email {
     fn to_string(&self) -> String {
-        self.get_email()
+        self.email()
     }
 }
 
@@ -93,10 +113,7 @@ mod tests {
             println!("{:?}", email);
 
             if is_valid {
-                assert_eq!(
-                    email.unwrap().get_email(),
-                    email_string.to_lowercase()
-                );
+                assert_eq!(email.unwrap().email(), email_string.to_lowercase());
             } else {
                 assert!(email.is_err());
             }

@@ -75,7 +75,7 @@ pub(super) async fn register_guest_user(
         .guest_user()
         .find_first(vec![
             guest_user_model::email::equals(
-                guest_user.email.to_owned().get_email(),
+                guest_user.email.to_owned().email(),
             ),
             guest_user_model::guest_role_id::equals(
                 match guest_user.guest_role.to_owned() {
@@ -144,7 +144,7 @@ pub(super) async fn register_guest_user(
         None => match client
             .guest_user()
             .create(
-                guest_user.email.get_email(),
+                guest_user.email.email(),
                 guest_role_model::id::equals(
                     match guest_user.guest_role.to_owned() {
                         Parent::Id(id) => id.to_string(),

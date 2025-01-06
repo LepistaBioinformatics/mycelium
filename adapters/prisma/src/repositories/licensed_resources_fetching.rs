@@ -69,7 +69,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
 
         let mut query =
             vec!["SELECT * FROM licensed_resources WHERE gu_email = {}"];
-        let mut params = vec![PrismaValue::String(email.get_email())];
+        let mut params = vec![PrismaValue::String(email.email())];
 
         if let Some(was_verified) = was_verified {
             query.push("AND gu_verified = {}");

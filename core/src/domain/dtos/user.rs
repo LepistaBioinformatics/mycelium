@@ -137,7 +137,7 @@ impl Totp {
         Ok(format!(
             "otpauth://totp/{issuer}:{email}?secret={secret}&issuer={issuer}",
             issuer = issuer,
-            email = email.get_email(),
+            email = email.email(),
             secret = secret
         ))
     }
