@@ -112,11 +112,10 @@ pub async fn create_role_associated_connection_string(
 
     if let Err(err) = send_email_notification(
         parameters,
-        "email/create-connection-string.jinja",
+        "email/create-connection-string",
         life_cycle_settings,
         Email::from_string(owner.email.to_owned())?,
         None,
-        String::from("New connection string created"),
         message_sending_repo,
     )
     .await

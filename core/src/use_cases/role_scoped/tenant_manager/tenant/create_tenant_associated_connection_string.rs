@@ -39,7 +39,12 @@ pub async fn create_tenant_associated_connection_string(
     // ? Check if the current account has sufficient privileges to create role
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![SystemActor::TenantManager])?;
+    profile
+        .on_tenant(tenant_id)
+        .with_standard_accounts_access()
+        .with_write_access()
+        .with_roles(vec![SystemActor::TenantManager])
+        .get_ids_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Build the scoped account token
@@ -110,11 +115,10 @@ pub async fn create_tenant_associated_connection_string(
 
     if let Err(err) = send_email_notification(
         parameters,
-        "email/create-connection-string.jinja",
+        "email/create-connection-string",
         life_cycle_settings,
         Email::from_string(owner.email.to_owned())?,
         None,
-        String::from("New connection string created"),
         message_sending_repo,
     )
     .await

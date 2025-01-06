@@ -232,8 +232,23 @@ pub async fn check_email_registration_status_url(
                 }
                 EmailRegistrationStatus::RegisteredWithInternalProvider(
                     provider,
-                )
-                | EmailRegistrationStatus::RegisteredWithExternalProvider(
+                ) => {
+                    response.append_header((
+                        status_header,
+                        "RegisteredWithInternalProvider",
+                    ));
+
+                    if let Some(provider) = provider.provider {
+                        response.append_header((
+                            "X-Email-Provider",
+                            match provider {
+                                Provider::Internal(_) => "Internal".to_string(),
+                                _ => "Internal".to_string(),
+                            },
+                        ));
+                    }
+                }
+                EmailRegistrationStatus::RegisteredWithExternalProvider(
                     provider,
                 ) => {
                     response.append_header((
@@ -248,7 +263,7 @@ pub async fn check_email_registration_status_url(
                                 Provider::External(external) => {
                                     external.to_string()
                                 }
-                                Provider::Internal(_) => "Internal".to_string(),
+                                _ => "External".to_string(),
                             },
                         ));
                     }

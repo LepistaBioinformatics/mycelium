@@ -38,7 +38,7 @@ pub async fn totp_start_activation(
         FetchResponseKind::NotFound(_) => {
             return use_case_err(format!(
                 "User not already registered: {}",
-                email.get_email()
+                email.email()
             ))
             .with_code(NativeErrorCodes::MYC00009)
             .with_exp_true()
@@ -51,7 +51,7 @@ pub async fn totp_start_activation(
         if verified {
             return use_case_err(format!(
                 "User already has TOTP enabled: {}",
-                email.get_email()
+                email.email()
             ))
             .with_code(NativeErrorCodes::MYC00021)
             .with_exp_true()
@@ -63,7 +63,7 @@ pub async fn totp_start_activation(
     // ? Build totp configs
     // ? -----------------------------------------------------------------------
 
-    let account_email = email.get_email();
+    let account_email = email.email();
     let issuer = DEFAULT_TOTP_DOMAIN.to_string();
 
     let mut rng = rand::thread_rng();
@@ -111,7 +111,7 @@ pub async fn totp_start_activation(
         None => {
             return use_case_err(format!(
                 "Unexpected error: User with email {email} has no id",
-                email = email.get_email()
+                email = email.email()
             ))
             .as_error()
         }
@@ -125,11 +125,10 @@ pub async fn totp_start_activation(
 
     if let Err(err) = send_email_notification(
         vec![],
-        "email/mfa-activation-start.jinja",
+        "email/mfa-activation-start",
         life_cycle_settings.to_owned(),
         email.to_owned(),
         None,
-        String::from("Multiple Factor Authentication Activation Started"),
         message_sending_repo,
     )
     .await

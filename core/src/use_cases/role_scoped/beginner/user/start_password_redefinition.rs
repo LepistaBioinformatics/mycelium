@@ -36,7 +36,7 @@ pub async fn start_password_redefinition(
         FetchResponseKind::NotFound(_) => {
             return use_case_err(format!(
                 "User not found: {}",
-                email.get_email()
+                email.email()
             ))
             .with_code(NativeErrorCodes::MYC00009)
             .with_exp_true()
@@ -58,7 +58,7 @@ pub async fn start_password_redefinition(
         None => {
             return use_case_err(format!(
                 "Unexpected error: User with email {email} has no id",
-                email = email.get_email()
+                email = email.email()
             ))
             .as_error()
         }
@@ -104,11 +104,10 @@ pub async fn start_password_redefinition(
 
     if let Err(err) = send_email_notification(
         vec![("verification_code", meta.get_token())],
-        "email/password-reset-initiated.jinja",
+        "email/password-reset-initiated",
         life_cycle_settings,
         token_metadata.email,
         None,
-        String::from("Password Reset Request"),
         message_sending_repo,
     )
     .await

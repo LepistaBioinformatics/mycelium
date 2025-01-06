@@ -14,6 +14,7 @@ use uuid::Uuid;
 )]
 pub async fn delete_tag(
     profile: Profile,
+    tenant_id: Uuid,
     tag_id: Uuid,
     tag_deletion_repo: Box<&dyn AccountTagDeletion>,
 ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
@@ -25,11 +26,16 @@ pub async fn delete_tag(
     //
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![
-        SystemActor::TenantOwner.to_string(),
-        SystemActor::TenantManager.to_string(),
-        SystemActor::SubscriptionsManager.to_string(),
-    ])?;
+    profile
+        .on_tenant(tenant_id)
+        .with_standard_accounts_access()
+        .with_write_access()
+        .with_roles(vec![
+            SystemActor::TenantOwner,
+            SystemActor::TenantManager,
+            SystemActor::SubscriptionsManager,
+        ])
+        .get_ids_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Register tag

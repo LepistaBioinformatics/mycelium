@@ -38,7 +38,7 @@ pub async fn totp_disable(
         FetchResponseKind::NotFound(_) => {
             return use_case_err(format!(
                 "User not already registered: {}",
-                email.get_email()
+                email.email()
             ))
             .with_code(NativeErrorCodes::MYC00009)
             .with_exp_true()
@@ -50,7 +50,7 @@ pub async fn totp_disable(
     if let Totp::Disabled = user.mfa().totp {
         return use_case_err(format!(
             "User does not have TOTP enabled: {}",
-            email.get_email()
+            email.email()
         ))
         .with_code(NativeErrorCodes::MYC00022)
         .with_exp_true()
@@ -67,7 +67,7 @@ pub async fn totp_disable(
         _ => {
             return use_case_err(format!(
                 "User does not have TOTP enabled: {}",
-                email.get_email()
+                email.email()
             ))
             .with_code(NativeErrorCodes::MYC00022)
             .with_exp_true()
@@ -80,7 +80,7 @@ pub async fn totp_disable(
         None => {
             return use_case_err(format!(
                 "User does not have TOTP correctly configured: {}",
-                email.get_email()
+                email.email()
             ))
             .with_code(NativeErrorCodes::MYC00022)
             .with_exp_true()
@@ -88,7 +88,7 @@ pub async fn totp_disable(
         }
     };
 
-    let account_email = email.get_email();
+    let account_email = email.email();
     let issuer = DEFAULT_TOTP_DOMAIN.to_string();
 
     let totp = match TOTP::new(
@@ -116,13 +116,10 @@ pub async fn totp_disable(
     };
 
     if !is_valid {
-        return use_case_err(format!(
-            "Invalid TOTP token: {}",
-            email.get_email()
-        ))
-        .with_code(NativeErrorCodes::MYC00023)
-        .with_exp_true()
-        .as_error();
+        return use_case_err(format!("Invalid TOTP token: {}", email.email()))
+            .with_code(NativeErrorCodes::MYC00023)
+            .with_exp_true()
+            .as_error();
     }
 
     // ? -----------------------------------------------------------------------
@@ -138,7 +135,7 @@ pub async fn totp_disable(
         None => {
             return use_case_err(format!(
                 "Unexpected error: User with email {email} has no id",
-                email = email.get_email()
+                email = email.email()
             ))
             .as_error()
         }
@@ -152,11 +149,10 @@ pub async fn totp_disable(
 
     if let Err(err) = send_email_notification(
         vec![],
-        "email/mfa-disable.jinja",
+        "email/mfa-disable",
         life_cycle_settings.to_owned(),
         email.to_owned(),
         None,
-        String::from("Multiple Factor Authentication Disabled"),
         message_sending_repo,
     )
     .await

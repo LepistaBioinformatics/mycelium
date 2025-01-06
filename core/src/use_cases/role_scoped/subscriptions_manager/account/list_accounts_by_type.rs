@@ -38,11 +38,14 @@ pub async fn list_accounts_by_type(
 
     let related_accounts = profile
         .on_tenant(tenant_id)
-        .get_related_account_with_default_read_or_error(vec![
-            SystemActor::TenantOwner.to_string(),
-            SystemActor::TenantManager.to_string(),
-            SystemActor::SubscriptionsManager.to_string(),
-        ])?;
+        .with_standard_accounts_access()
+        .with_read_access()
+        .with_roles(vec![
+            SystemActor::TenantOwner,
+            SystemActor::TenantManager,
+            SystemActor::SubscriptionsManager,
+        ])
+        .get_related_account_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? List accounts

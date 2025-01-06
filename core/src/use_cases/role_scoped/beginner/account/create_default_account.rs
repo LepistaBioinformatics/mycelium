@@ -88,11 +88,10 @@ pub async fn create_default_account(
     let (notification_response, webhook_responses) = futures::join!(
         send_email_notification(
             vec![("account_name", account_name)],
-            "email/create-user-account.jinja",
+            "email/create-user-account",
             config.to_owned(),
             email,
             None,
-            String::from("New account created"),
             message_sending_repo,
         ),
         dispatch_webhooks(

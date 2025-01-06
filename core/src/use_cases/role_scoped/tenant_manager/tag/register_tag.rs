@@ -17,19 +17,21 @@ use uuid::Uuid;
 )]
 pub async fn register_tag(
     profile: Profile,
+    tenant_id: Uuid,
     tag: String,
     meta: HashMap<String, String>,
-    tenant_id: Uuid,
     tag_registration_repo: Box<&dyn TenantTagRegistration>,
 ) -> Result<GetOrCreateResponseKind<Tag>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check the user permissions
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![
-        SystemActor::TenantOwner,
-        SystemActor::TenantManager,
-    ])?;
+    profile
+        .on_tenant(tenant_id)
+        .with_standard_accounts_access()
+        .with_write_access()
+        .with_roles(vec![SystemActor::TenantManager])
+        .get_ids_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Register tag

@@ -35,7 +35,7 @@ pub async fn totp_check_token(
         FetchResponseKind::NotFound(_) => {
             return use_case_err(format!(
                 "User not already registered: {}",
-                email.get_email()
+                email.email()
             ))
             .with_code(NativeErrorCodes::MYC00009)
             .with_exp_true()
@@ -47,7 +47,7 @@ pub async fn totp_check_token(
     if let Totp::Disabled = user.mfa().totp {
         return use_case_err(format!(
             "User does not have TOTP enabled: {}",
-            email.get_email()
+            email.email()
         ))
         .with_code(NativeErrorCodes::MYC00022)
         .with_exp_true()
@@ -64,7 +64,7 @@ pub async fn totp_check_token(
         _ => {
             return use_case_err(format!(
                 "User does not have TOTP enabled: {}",
-                email.get_email()
+                email.email()
             ))
             .with_code(NativeErrorCodes::MYC00022)
             .with_exp_true()
@@ -77,7 +77,7 @@ pub async fn totp_check_token(
         None => {
             return use_case_err(format!(
                 "User does not have TOTP correctly configured: {}",
-                email.get_email()
+                email.email()
             ))
             .with_code(NativeErrorCodes::MYC00022)
             .with_exp_true()
@@ -85,7 +85,7 @@ pub async fn totp_check_token(
         }
     };
 
-    let account_email = email.get_email();
+    let account_email = email.email();
     let issuer = DEFAULT_TOTP_DOMAIN.to_string();
 
     let totp = match TOTP::new(
@@ -115,7 +115,7 @@ pub async fn totp_check_token(
     if !is_valid {
         return use_case_err(format!(
             "Invalid TOTP token: {}",
-            email.get_email()
+            email.email()
         ))
         .with_code(NativeErrorCodes::MYC00023)
         .with_exp_true()

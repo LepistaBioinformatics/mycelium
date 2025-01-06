@@ -38,11 +38,14 @@ pub async fn uninvite_guest(
 
     if let RelatedAccounts::AllowedAccounts(allowed_ids) = &profile
         .on_tenant(tenant_id)
-        .get_related_account_with_default_write_or_error(vec![
-            SystemActor::TenantOwner.to_string(),
-            SystemActor::TenantManager.to_string(),
-            SystemActor::SubscriptionsManager.to_string(),
-        ])?
+        .with_standard_accounts_access()
+        .with_write_access()
+        .with_roles(vec![
+            SystemActor::TenantOwner,
+            SystemActor::TenantManager,
+            SystemActor::SubscriptionsManager,
+        ])
+        .get_related_account_or_error()?
     {
         if !allowed_ids.contains(&account_id) {
             return use_case_err(
