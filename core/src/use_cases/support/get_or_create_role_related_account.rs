@@ -21,6 +21,7 @@ use uuid::Uuid;
     skip(account_registration_repo)
 )]
 pub(crate) async fn get_or_create_role_related_account(
+    name: Option<String>,
     tenant_id: Uuid,
     role_id: Uuid,
     account_registration_repo: Box<&dyn AccountRegistration>,
@@ -30,10 +31,12 @@ pub(crate) async fn get_or_create_role_related_account(
     // ? -----------------------------------------------------------------------
 
     let mut unchecked_account = Account::new_role_related_account(
-        format!(
-            "Default subscription account for role/{}",
-            role_id.to_string()
-        ),
+        name.unwrap_or_else(|| {
+            format!(
+                "Default subscription account for role/{}",
+                role_id.to_string()
+            )
+        }),
         tenant_id,
         role_id,
         SystemActor::CustomRole(role_id.to_string()),
