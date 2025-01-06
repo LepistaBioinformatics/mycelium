@@ -29,8 +29,8 @@ pub async fn update_role_name_and_description(
     // ? Check if the current account has sufficient privileges to create role
     // ? ----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![
-        SystemActor::GuestManager.to_string()
+    profile.get_default_read_write_ids_or_error(vec![
+        SystemActor::GuestManager.to_string(),
     ])?;
 
     // ? ----------------------------------------------------------------------

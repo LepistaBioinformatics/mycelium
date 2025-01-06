@@ -1,7 +1,8 @@
 use crate::domain::{
-    actors::SystemActor,
     dtos::{email::Email, profile::Profile, user::Provider},
-    entities::{TenantOwnerConnection, TenantUpdating, UserFetching},
+    entities::{
+        TenantFetching, TenantOwnerConnection, TenantUpdating, UserFetching,
+    },
 };
 
 use mycelium_base::{
@@ -13,24 +14,40 @@ use uuid::Uuid;
 #[tracing::instrument(
     name = "guest_tenant_owner", 
     fields(profile_id = %profile.acc_id),
-    skip(profile, owner_email, owner_fetching_repo, tenant_updating_repo)
+    skip(
+        profile, owner_email,
+        tenant_fetching_repo,
+        owner_fetching_repo,
+        tenant_updating_repo,
+    )
 )]
 pub async fn guest_tenant_owner(
     profile: Profile,
     owner_email: Email,
     tenant_id: Uuid,
+    tenant_fetching_repo: Box<&dyn TenantFetching>,
     owner_fetching_repo: Box<&dyn UserFetching>,
     tenant_updating_repo: Box<&dyn TenantUpdating>,
 ) -> Result<CreateResponseKind<TenantOwnerConnection>, MappedErrors> {
     // ? -----------------------------------------------------------------------
-    // ? Check the user permissions
+    // ? Fetch tenant
     // ? -----------------------------------------------------------------------
 
-    profile
-        .on_tenant(tenant_id)
-        .get_related_account_with_default_write_or_error(vec![
-            SystemActor::TenantOwner,
-        ])?;
+    match tenant_fetching_repo
+        .get_tenant_owned_by_me(tenant_id, profile.get_owners_ids())
+        .await?
+    {
+        FetchResponseKind::NotFound(msg) => {
+            return use_case_err(
+                msg.unwrap_or(
+                    "Tenant does not exist or inaccessible for the user"
+                        .to_string(),
+                ),
+            )
+            .as_error()
+        }
+        FetchResponseKind::Found(tenant) => tenant,
+    };
 
     // ? -----------------------------------------------------------------------
     // ? Collect user

@@ -18,9 +18,7 @@ pub async fn delete_role(
     // ? Check if the current account has sufficient privileges to create role
     // ? ----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![
-        SystemActor::GuestManager.to_string()
-    ])?;
+    profile.get_default_write_ids_or_error(vec![SystemActor::GuestManager])?;
 
     // ? ----------------------------------------------------------------------
     // ? Persist Role

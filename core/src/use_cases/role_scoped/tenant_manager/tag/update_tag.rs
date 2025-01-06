@@ -7,6 +7,7 @@ use crate::domain::{
 use mycelium_base::{
     entities::UpdatingResponseKind, utils::errors::MappedErrors,
 };
+use uuid::Uuid;
 
 #[tracing::instrument(
     name = "update_tag", 
@@ -15,6 +16,7 @@ use mycelium_base::{
 )]
 pub async fn update_tag(
     profile: Profile,
+    tenant_id: Uuid,
     tag: Tag,
     tag_updating_repo: Box<&dyn TenantTagUpdating>,
 ) -> Result<UpdatingResponseKind<Tag>, MappedErrors> {
@@ -22,10 +24,12 @@ pub async fn update_tag(
     // ? Check the user permissions
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![
-        SystemActor::TenantOwner.to_string(),
-        SystemActor::TenantManager.to_string(),
-    ])?;
+    profile
+        .on_tenant(tenant_id)
+        .with_standard_accounts_access()
+        .with_write_access()
+        .with_roles(vec![SystemActor::TenantManager])
+        .get_ids_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Register tag

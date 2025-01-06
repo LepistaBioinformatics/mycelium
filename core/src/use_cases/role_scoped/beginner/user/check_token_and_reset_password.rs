@@ -39,7 +39,7 @@ pub async fn check_token_and_reset_password(
         FetchResponseKind::NotFound(_) => {
             return use_case_err(format!(
                 "User not found: {}",
-                email.get_email()
+                email.email()
             ))
             .with_code(NativeErrorCodes::MYC00009)
             .with_exp_true()
@@ -58,7 +58,7 @@ pub async fn check_token_and_reset_password(
             None => {
                 return use_case_err(format!(
                     "Unexpected error: User with email {email} has no id",
-                    email = email.get_email()
+                    email = email.email()
                 ))
                 .as_error()
             }
@@ -74,7 +74,7 @@ pub async fn check_token_and_reset_password(
         FetchResponseKind::NotFound(_) => {
             return use_case_err(format!(
                 "Token not found or expired for user with email {}",
-                email.get_email()
+                email.email()
             ))
             .with_code(NativeErrorCodes::MYC00008)
             .with_exp_true()
@@ -116,11 +116,10 @@ pub async fn check_token_and_reset_password(
 
     if let Err(err) = send_email_notification(
         vec![("verification_code", meta.get_token())],
-        "email/password-reset-confirmation.jinja",
+        "email/password-reset-confirmation",
         life_cycle_settings,
         email,
         None,
-        String::from("Password Reset Success"),
         message_sending_repo,
     )
     .await

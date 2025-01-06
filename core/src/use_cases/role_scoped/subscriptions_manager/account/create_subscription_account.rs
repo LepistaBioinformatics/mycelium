@@ -41,11 +41,14 @@ pub async fn create_subscription_account(
 
     profile
         .on_tenant(tenant_id)
-        .get_default_write_ids_or_error(vec![
-            SystemActor::TenantOwner.to_string(),
-            SystemActor::TenantManager.to_string(),
-            SystemActor::SubscriptionsManager.to_string(),
-        ])?;
+        .with_standard_accounts_access()
+        .with_write_access()
+        .with_roles(vec![
+            SystemActor::TenantOwner,
+            SystemActor::TenantManager,
+            SystemActor::SubscriptionsManager,
+        ])
+        .get_ids_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Register the account

@@ -28,9 +28,11 @@ pub async fn register_error_code(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![
-        SystemActor::SystemManager.to_string()
-    ])?;
+    profile
+        .with_standard_accounts_access()
+        .with_write_access()
+        .with_roles(vec![SystemActor::SystemManager.to_string()])
+        .get_ids_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Build error code object
@@ -115,8 +117,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_register_error_code() {
-        let profile = Profile {
-            owners: vec![Owner {
+        let profile = Profile::new(
+            vec![Owner {
                 id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
                     .unwrap(),
                 email: "username@domain.com".to_string(),
@@ -125,18 +127,17 @@ mod tests {
                 username: Some("username".to_string()),
                 is_principal: true,
             }],
-            acc_id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
-                .unwrap(),
-            is_subscription: false,
-            is_manager: true,
-            is_staff: false,
-            owner_is_active: true,
-            account_is_active: true,
-            account_was_approved: true,
-            account_was_archived: false,
-            verbose_status: None,
-            licensed_resources: None,
-        };
+            Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0").unwrap(),
+            false,
+            true,
+            false,
+            true,
+            true,
+            true,
+            false,
+            None,
+            None,
+        );
 
         let details = Some("details".to_string());
 
@@ -162,8 +163,8 @@ mod tests {
 
     #[tokio::test]
     async fn test_register_error_code_with_invalid_prefix() {
-        let profile = Profile {
-            owners: vec![Owner {
+        let profile = Profile::new(
+            vec![Owner {
                 id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
                     .unwrap(),
                 email: "username@domain.com".to_string(),
@@ -172,18 +173,17 @@ mod tests {
                 username: Some("username".to_string()),
                 is_principal: true,
             }],
-            acc_id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
-                .unwrap(),
-            is_subscription: false,
-            is_manager: true,
-            is_staff: false,
-            owner_is_active: true,
-            account_is_active: true,
-            account_was_approved: true,
-            account_was_archived: false,
-            verbose_status: None,
-            licensed_resources: None,
-        };
+            Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0").unwrap(),
+            false,
+            true,
+            false,
+            true,
+            true,
+            true,
+            false,
+            None,
+            None,
+        );
 
         let error_code = register_error_code(
             profile,

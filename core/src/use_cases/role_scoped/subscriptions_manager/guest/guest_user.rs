@@ -47,11 +47,14 @@ pub async fn guest_user(
 
     let related_accounts = profile
         .on_tenant(tenant_id)
-        .get_related_account_with_default_write_or_error(vec![
-            SystemActor::TenantOwner.to_string(),
-            SystemActor::TenantManager.to_string(),
-            SystemActor::SubscriptionsManager.to_string(),
-        ])?;
+        .with_standard_accounts_access()
+        .with_read_write_access()
+        .with_roles(vec![
+            SystemActor::TenantOwner,
+            SystemActor::TenantManager,
+            SystemActor::SubscriptionsManager,
+        ])
+        .get_related_account_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Guarantee needed information to evaluate guesting
@@ -79,7 +82,7 @@ pub async fn guest_user(
         }
         FetchResponseKind::Found(account) => match account.account_type {
             AccountTypeV2::Subscription { .. }
-            | AccountTypeV2::StandardRoleAssociated { .. } => account,
+            | AccountTypeV2::RoleAssociated { .. } => account,
             _ => {
                 return use_case_err(
                     "Invalid account. Only subscription accounts should \
@@ -159,11 +162,10 @@ pub async fn guest_user(
 
     if let Err(err) = send_email_notification(
         parameters,
-        "email/guest-to-subscription-account.jinja",
+        "email/guest-to-subscription-account",
         life_cycle_settings,
         email,
         None,
-        String::from("You have been invited to collaborate"),
         message_sending_repo,
     )
     .await

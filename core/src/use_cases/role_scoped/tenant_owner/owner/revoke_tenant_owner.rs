@@ -55,7 +55,7 @@ pub async fn revoke_tenant_owner(
             let emails: Vec<String> =
                 records.iter().map(|i| i.email.to_owned()).collect();
 
-            if emails.len() == 1 && emails.contains(&owner_email.get_email()) {
+            if emails.len() == 1 && emails.contains(&owner_email.email()) {
                 return use_case_err(
                     "Tenant should contains at last one owner".to_string(),
                 )
@@ -64,7 +64,7 @@ pub async fn revoke_tenant_owner(
 
             if !records
                 .iter()
-                .any(|record| record.email == owner_email.get_email())
+                .any(|record| record.email == owner_email.email())
             {
                 return use_case_err(
                     "Informed Owner is not in the tenant".to_string(),

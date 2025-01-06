@@ -107,7 +107,7 @@ impl APIAccountType {
                     ));
                 }
 
-                Ok(AccountTypeV2::StandardRoleAssociated {
+                Ok(AccountTypeV2::RoleAssociated {
                     tenant_id: tenant_id.to_owned(),
                     role_name: SystemActor::CustomRole(role_name.unwrap()),
                     role_id: role_id.unwrap(),

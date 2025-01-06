@@ -101,9 +101,8 @@ pub struct CreateTagBody {
 )]
 #[post("")]
 pub async fn register_tenant_tag_url(
-    _: TenantData,
+    tenant: TenantData,
     profile: MyceliumProfileData,
-    path: web::Path<Uuid>,
     body: web::Json<CreateTagBody>,
     tag_registration_repo: Inject<
         TenantTagRegistrationModule,
@@ -112,9 +111,9 @@ pub async fn register_tenant_tag_url(
 ) -> impl Responder {
     match register_tag(
         profile.to_profile(),
+        tenant.tenant_id().to_owned(),
         body.value.to_owned(),
         body.meta.to_owned(),
-        path.into_inner(),
         Box::from(&*tag_registration_repo),
     )
     .await
@@ -166,7 +165,7 @@ pub async fn register_tenant_tag_url(
 )]
 #[put("/{tag_id}")]
 pub async fn update_tenant_tag_url(
-    _: TenantData,
+    tenant: TenantData,
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
     body: web::Json<CreateTagBody>,
@@ -174,6 +173,7 @@ pub async fn update_tenant_tag_url(
 ) -> impl Responder {
     match update_tag(
         profile.to_profile(),
+        tenant.tenant_id().to_owned(),
         Tag {
             id: path.into_inner(),
             value: body.value.to_owned(),
@@ -229,13 +229,14 @@ pub async fn update_tenant_tag_url(
 )]
 #[delete("/{tag_id}")]
 pub async fn delete_tenant_tag_url(
-    _: TenantData,
+    tenant: TenantData,
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
     tag_deletion_repo: Inject<TenantTagDeletionModule, dyn TenantTagDeletion>,
 ) -> impl Responder {
     match delete_tag(
         profile.to_profile(),
+        tenant.tenant_id().to_owned(),
         path.into_inner(),
         Box::from(&*tag_deletion_repo),
     )

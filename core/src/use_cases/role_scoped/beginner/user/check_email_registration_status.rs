@@ -54,7 +54,7 @@ pub async fn check_email_registration_status(
     {
         FetchResponseKind::Found(user) => user,
         FetchResponseKind::NotFound(_) => {
-            return Ok(NotRegistered(email.get_email()))
+            return Ok(NotRegistered(email.email()))
         }
     };
 
@@ -73,7 +73,7 @@ pub async fn check_email_registration_status(
             false => Ok(RegisteredWithExternalProvider(registered_user)),
             true => {
                 if !user.is_active {
-                    return Ok(WaitingActivation(email.get_email()));
+                    return Ok(WaitingActivation(email.email()));
                 }
 
                 Ok(RegisteredWithInternalProvider(registered_user))

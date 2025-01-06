@@ -1,11 +1,11 @@
 use crate::domain::{
-    actors::SystemActor,
     dtos::{profile::Profile, tenant::Tenant},
-    entities::TenantUpdating,
+    entities::{TenantFetching, TenantUpdating},
 };
 
 use mycelium_base::{
-    entities::UpdatingResponseKind, utils::errors::MappedErrors,
+    entities::{FetchResponseKind, UpdatingResponseKind},
+    utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
@@ -19,17 +19,25 @@ pub async fn update_tenant_name_and_description(
     tenant_id: Uuid,
     tenant_name: Option<String>,
     tenant_description: Option<String>,
+    tenant_fetching_repo: Box<&dyn TenantFetching>,
     tenant_updating_repo: Box<&dyn TenantUpdating>,
 ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors> {
     // ? -----------------------------------------------------------------------
-    // ? Check the user permissions
+    // ? Collect user
     // ? -----------------------------------------------------------------------
 
-    profile
-        .on_tenant(tenant_id)
-        .get_related_account_with_default_write_or_error(vec![
-            SystemActor::TenantOwner,
-        ])?;
+    match tenant_fetching_repo
+        .get_tenant_owned_by_me(
+            tenant_id,
+            profile.owners.iter().map(|o| o.id).collect(),
+        )
+        .await?
+    {
+        FetchResponseKind::NotFound(_) => {
+            return use_case_err("Tenant not found".to_string()).as_error();
+        }
+        FetchResponseKind::Found(tenant) => tenant,
+    };
 
     // ? -----------------------------------------------------------------------
     // ? Update tenant

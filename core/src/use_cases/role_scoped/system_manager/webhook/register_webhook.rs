@@ -31,7 +31,11 @@ pub async fn register_webhook(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![SystemActor::SystemManager])?;
+    profile
+        .with_standard_accounts_access()
+        .with_write_access()
+        .with_roles(vec![SystemActor::SystemManager.to_string()])
+        .get_ids_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Register webhook

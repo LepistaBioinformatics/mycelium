@@ -19,9 +19,7 @@ pub async fn list_roles(
     // ? Check if the current account has sufficient privileges to create role
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_read_ids_or_error(vec![
-        SystemActor::GuestManager.to_string()
-    ])?;
+    profile.get_default_read_ids_or_error(vec![SystemActor::GuestManager])?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch Roles

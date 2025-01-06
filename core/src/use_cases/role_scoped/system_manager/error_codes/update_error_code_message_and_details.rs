@@ -38,9 +38,11 @@ pub async fn update_error_code_message_and_details(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![
-        SystemActor::SystemManager.to_string()
-    ])?;
+    profile
+        .with_standard_accounts_access()
+        .with_read_write_access()
+        .with_roles(vec![SystemActor::SystemManager.to_string()])
+        .get_ids_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch error code
