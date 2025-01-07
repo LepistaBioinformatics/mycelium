@@ -1,3 +1,18 @@
+## v6.6.0 (2025-01-07)
+
+### Feat
+
+- wip - review the guest system
+- apply the new profile filtering validation
+- **dto-profile**: upgrade profile to include a filtration state after each filter operation
+
+### Fix
+
+- **profile**: inform about deprecation of direct filter methods of profile
+- fix the permissioning system
+- inject the role name on guest to default account using service accounts
+- **email-template**: move the email subject to the templates file allowing the internationalization by file
+
 ## v6.5.0 (2025-01-02)
 
 ### Feat
