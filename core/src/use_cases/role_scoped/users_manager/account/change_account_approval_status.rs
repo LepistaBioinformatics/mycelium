@@ -33,9 +33,10 @@ pub async fn change_account_approval_status(
     // ? -----------------------------------------------------------------------
 
     let related_accounts = profile
-        .get_related_account_with_default_write_or_error(vec![
-            SystemActor::UsersManager,
-        ])?;
+        .with_standard_accounts_access()
+        .with_write_access()
+        .with_roles(vec![SystemActor::UsersManager])
+        .get_related_account_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch target account
