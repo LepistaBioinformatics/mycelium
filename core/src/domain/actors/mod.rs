@@ -39,7 +39,7 @@ pub enum SystemActor {
     ///
     /// This actor is responsible for managing roles, guest-roles, and
     /// guest-users.
-    GuestManager,
+    GuestsManager,
 
     /// Gateway manager
     ///
@@ -83,7 +83,7 @@ impl Display for SystemActor {
             SystemActor::AccountManager => {
                 write!(f, "accounts-manager")
             }
-            SystemActor::GuestManager => {
+            SystemActor::GuestsManager => {
                 write!(f, "guests-manager")
             }
             SystemActor::GatewayManager => {
@@ -110,7 +110,7 @@ impl FromStr for SystemActor {
                 Ok(SystemActor::UsersManager)
             }
             "account-manager" => Ok(SystemActor::AccountManager),
-            "guest-manager" => Ok(SystemActor::GuestManager),
+            "guest-manager" => Ok(SystemActor::GuestsManager),
             "gateway-manager" => Ok(SystemActor::GatewayManager),
             "system-manager" => Ok(SystemActor::SystemManager),
             "tenant-manager" => Ok(SystemActor::TenantManager),

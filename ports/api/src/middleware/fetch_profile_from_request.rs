@@ -56,11 +56,11 @@ pub(crate) async fn fetch_profile_from_request(
     .await
     {
         Err(err) => {
-            let msg =
-                format!("Unexpected error on fetch profile from email: {err}");
+            warn!("Unexpected error on fetch profile from email: {err}");
 
-            warn!("{msg}");
-            return Err(GatewayError::InternalServerError(msg));
+            return Err(GatewayError::InternalServerError(
+                "Unexpected error on fetch profile from email.".to_string(),
+            ));
         }
         Ok(res) => match res {
             ProfileResponse::UnregisteredUser(email) => {

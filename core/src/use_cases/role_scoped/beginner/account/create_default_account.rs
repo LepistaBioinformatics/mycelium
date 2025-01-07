@@ -2,7 +2,7 @@ use crate::{
     domain::{
         dtos::{
             account::Account,
-            account_type::AccountTypeV2,
+            account_type::AccountType,
             email::Email,
             native_error_codes::NativeErrorCodes,
             user::Provider,
@@ -67,7 +67,7 @@ pub async fn create_default_account(
 
     let account = match account_registration_repo
         .get_or_create_user_account(
-            Account::new(account_name.to_owned(), user, AccountTypeV2::User),
+            Account::new(account_name.to_owned(), user, AccountType::User),
             true,
             false,
         )

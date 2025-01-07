@@ -238,7 +238,8 @@ pub async fn main() -> std::io::Result<()> {
                     .with_target(true)
                     .with_thread_ids(true)
                     .with_file(true)
-                    .with_line_number(true),
+                    .with_line_number(true)
+                    .with_source_location(true),
             )
             .with_writer(non_blocking)
             .with_env_filter(

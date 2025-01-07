@@ -142,23 +142,23 @@ model Token {
   @@map("token")
 }
 
-model Role {
-  // Primary key
-  id String @id @default(uuid())
-
-  // Model fields
-  name        String @db.VarChar(140)
-  slug        String @db.VarChar(140)
-  description String @db.VarChar(255)
-
-  // Backward relationship fields
-  user_roles GuestRole[]
-
-  // Db compatibility and extra maps
-  @@unique([name])
-  @@unique([slug])
-  @@map("role")
-}
+//model Role {
+//  // Primary key
+//  id String @id @default(uuid())
+//
+//  // Model fields
+//  name        String @db.VarChar(140)
+//  slug        String @db.VarChar(140)
+//  description String @db.VarChar(255)
+//
+//  // Backward relationship fields
+//  user_roles GuestRole[]
+//
+//  // Db compatibility and extra maps
+//  @@unique([name])
+//  @@unique([slug])
+//  @@map("role")
+//}
 
 model GuestRole {
   // Primary key
@@ -168,8 +168,8 @@ model GuestRole {
   name        String  @db.VarChar(140)
   slug        String  @db.VarChar(140)
   description String? @db.VarChar(255)
-  role        Role    @relation(fields: [role_id], references: [id])
-  role_id     String
+  //role        Role    @relation(fields: [role_id], references: [id])
+  //role_id     String
   permission  Int     @default(0)
 
   // Backward relationship fields
@@ -178,8 +178,8 @@ model GuestRole {
   parent      GuestRoleChildren[] @relation(name: "ChildGuestRole")
 
   // Db compatibility and extra maps
-  @@unique([name])
-  @@unique([slug])
+  @@unique([name, permission])
+  @@unique([slug, permission])
   @@map("guest_role")
 }
 

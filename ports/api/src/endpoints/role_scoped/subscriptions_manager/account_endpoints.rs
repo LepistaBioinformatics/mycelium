@@ -11,7 +11,7 @@ use actix_web::{get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         actors::SystemActor,
-        dtos::{account::VerboseStatus, account_type::AccountTypeV2},
+        dtos::{account::VerboseStatus, account_type::AccountType},
         entities::{
             AccountFetching, AccountRegistration, AccountUpdating,
             WebHookFetching,
@@ -77,28 +77,41 @@ pub(crate) enum APIAccountType {
     Manager,
     User,
     Subscription,
-    StandardRoleAssociated,
+    RoleAssociated,
+    ActorAssociated,
     TenantManager,
 }
 
 impl APIAccountType {
-    fn into_account_type_v2(
+    fn into_account_type(
         &self,
         tenant_id: Uuid,
         role_name: Option<String>,
         role_id: Option<Uuid>,
-    ) -> Result<AccountTypeV2, HttpResponse> {
+        actor: Option<SystemActor>,
+    ) -> Result<AccountType, HttpResponse> {
         match self {
-            APIAccountType::Staff => Ok(AccountTypeV2::Staff),
-            APIAccountType::Manager => Ok(AccountTypeV2::Manager),
-            APIAccountType::User => Ok(AccountTypeV2::User),
-            APIAccountType::TenantManager => Ok(AccountTypeV2::TenantManager {
+            APIAccountType::Staff => Ok(AccountType::Staff),
+            APIAccountType::Manager => Ok(AccountType::Manager),
+            APIAccountType::User => Ok(AccountType::User),
+            APIAccountType::TenantManager => Ok(AccountType::TenantManager {
                 tenant_id: tenant_id.to_owned(),
             }),
-            APIAccountType::Subscription => Ok(AccountTypeV2::Subscription {
+            APIAccountType::Subscription => Ok(AccountType::Subscription {
                 tenant_id: tenant_id.to_owned(),
             }),
-            APIAccountType::StandardRoleAssociated => {
+            APIAccountType::ActorAssociated => {
+                if actor.is_none() {
+                    return Err(HttpResponse::BadRequest().json(
+                        HttpJsonResponse::new_message("Actor is required."),
+                    ));
+                }
+
+                Ok(AccountType::ActorAssociated {
+                    actor: actor.unwrap(),
+                })
+            }
+            APIAccountType::RoleAssociated => {
                 if role_name.is_none() || role_id.is_none() {
                     return Err(HttpResponse::BadRequest().json(
                         HttpJsonResponse::new_message(
@@ -107,9 +120,10 @@ impl APIAccountType {
                     ));
                 }
 
-                Ok(AccountTypeV2::RoleAssociated {
+                Ok(AccountType::RoleAssociated {
                     tenant_id: tenant_id.to_owned(),
-                    role_name: SystemActor::CustomRole(role_name.unwrap()),
+                    role_name: SystemActor::CustomRole(role_name.unwrap())
+                        .to_string(),
                     role_id: role_id.unwrap(),
                 })
             }
@@ -127,6 +141,7 @@ pub struct ListSubscriptionAccountParams {
     status: Option<VerboseStatus>,
     role_name: Option<String>,
     role_id: Option<Uuid>,
+    actor: Option<SystemActor>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -253,7 +268,7 @@ pub async fn create_subscription_account_url(
 #[get("")]
 pub async fn list_accounts_by_type_url(
     tenant: TenantData,
-    info: web::Query<ListSubscriptionAccountParams>,
+    query: web::Query<ListSubscriptionAccountParams>,
     page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
     account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
@@ -262,7 +277,7 @@ pub async fn list_accounts_by_type_url(
     let mut is_account_checked: Option<bool> = None;
     let mut is_account_archived: Option<bool> = None;
 
-    match info.status.to_owned() {
+    match query.status.to_owned() {
         Some(res) => {
             let flags = match res.to_flags() {
                 Err(err) => {
@@ -281,12 +296,13 @@ pub async fn list_accounts_by_type_url(
 
     let tenant_id = tenant.tenant_id().to_owned();
 
-    let account_type = match &info.account_type {
+    let account_type = match &query.account_type {
         None => None,
-        Some(res) => match res.into_account_type_v2(
+        Some(res) => match res.into_account_type(
             tenant_id,
-            info.role_name.to_owned(),
-            info.role_id,
+            query.role_name.to_owned(),
+            query.role_id,
+            query.actor.to_owned(),
         ) {
             Ok(res) => Some(res),
             Err(err) => return err,
@@ -296,13 +312,13 @@ pub async fn list_accounts_by_type_url(
     match list_accounts_by_type(
         profile.to_profile(),
         tenant_id.to_owned(),
-        info.term.to_owned(),
-        info.is_owner_active.to_owned(),
+        query.term.to_owned(),
+        query.is_owner_active.to_owned(),
         is_account_active,
         is_account_checked,
         is_account_archived,
         account_type,
-        info.tag_value.to_owned(),
+        query.tag_value.to_owned(),
         page.page_size.to_owned(),
         page.skip.to_owned(),
         Box::new(&*account_fetching_repo),

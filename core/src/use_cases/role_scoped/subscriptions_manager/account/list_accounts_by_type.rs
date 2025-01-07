@@ -1,6 +1,6 @@
 use crate::domain::{
     actors::SystemActor,
-    dtos::{account::Account, account_type::AccountTypeV2, profile::Profile},
+    dtos::{account::Account, account_type::AccountType, profile::Profile},
     entities::AccountFetching,
     utils::try_as_uuid,
 };
@@ -26,7 +26,7 @@ pub async fn list_accounts_by_type(
     is_account_active: Option<bool>,
     is_account_checked: Option<bool>,
     is_account_archived: Option<bool>,
-    account_type: Option<AccountTypeV2>,
+    account_type: Option<AccountType>,
     tag_value: Option<String>,
     page_size: Option<i32>,
     skip: Option<i32>,

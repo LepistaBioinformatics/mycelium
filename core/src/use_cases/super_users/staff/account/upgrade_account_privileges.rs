@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::{account::Account, account_type::AccountTypeV2, profile::Profile},
+    dtos::{account::Account, account_type::AccountType, profile::Profile},
     entities::AccountUpdating,
 };
 
@@ -17,7 +17,7 @@ use uuid::Uuid;
 pub async fn upgrade_account_privileges(
     profile: Profile,
     account_id: Uuid,
-    target_account_type: AccountTypeV2,
+    target_account_type: AccountType,
     account_updating_repo: Box<&dyn AccountUpdating>,
 ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -39,7 +39,7 @@ pub async fn upgrade_account_privileges(
     // ? Check if the account type if allowed
     // ? -----------------------------------------------------------------------
 
-    if !vec![AccountTypeV2::Manager, AccountTypeV2::Staff]
+    if !vec![AccountType::Manager, AccountType::Staff]
         .contains(&target_account_type)
     {
         return use_case_err(String::from("Invalid upgrade target."))

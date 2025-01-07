@@ -43,7 +43,11 @@ pub async fn create_default_account_associated_connection_string(
     // ? Check if the current account has sufficient privileges to create role
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![SystemActor::GuestManager])?;
+    profile
+        .with_standard_accounts_access()
+        .with_write_access()
+        .with_roles(vec![SystemActor::GuestsManager])
+        .get_ids_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Build the scoped account token

@@ -43,10 +43,10 @@ pub(crate) async fn get_or_create_role_related_account(
         guest_role_id,
         system_actor
             .unwrap_or(SystemActor::CustomRole(guest_role_id.to_string())),
+        true,
     );
 
     unchecked_account.is_checked = true;
-    unchecked_account.is_default = true;
 
     // ? -----------------------------------------------------------------------
     // ? Register the account

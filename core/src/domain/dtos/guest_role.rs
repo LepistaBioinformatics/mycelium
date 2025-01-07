@@ -1,6 +1,4 @@
-use super::role::Role;
-
-use mycelium_base::dtos::{Children, Parent};
+use mycelium_base::dtos::Children;
 use serde::{Deserialize, Serialize};
 use slugify::slugify;
 use std::str::FromStr;
@@ -69,7 +67,6 @@ pub struct GuestRole {
     pub name: String,
     pub slug: String,
     pub description: Option<String>,
-    pub role: Parent<Role, Uuid>,
     pub permission: Permission,
 
     /// Children roles represents guest roles that are children of the current
@@ -83,7 +80,6 @@ impl GuestRole {
         id: Option<Uuid>,
         name: String,
         description: Option<String>,
-        role: Parent<Role, Uuid>,
         permission: Permission,
         children: Option<Children<GuestRole, Uuid>>,
     ) -> Self {
@@ -92,19 +88,8 @@ impl GuestRole {
             name: name.to_owned(),
             slug: slugify!(&name),
             description,
-            role,
             permission,
             children,
-        }
-    }
-
-    pub fn build_role_url(&self, base_url: String) -> Result<String, ()> {
-        match self.role.to_owned() {
-            Parent::Id(id) => Ok(format!("{}/{}", base_url, id)),
-            Parent::Record(record) => match record.id {
-                Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
-                None => Err(()),
-            },
         }
     }
 }

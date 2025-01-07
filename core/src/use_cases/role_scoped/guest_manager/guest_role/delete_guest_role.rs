@@ -12,7 +12,7 @@ use uuid::Uuid;
 #[tracing::instrument(name = "delete_guest_role", skip_all)]
 pub async fn delete_guest_role(
     profile: Profile,
-    role_id: Uuid,
+    guest_role_id: Uuid,
     role_deletion_repo: Box<&dyn GuestRoleDeletion>,
 ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
     // ? ----------------------------------------------------------------------
@@ -21,11 +21,15 @@ pub async fn delete_guest_role(
     // Check if the user has manager status. Return an error if not.
     // ? ----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![SystemActor::GuestManager])?;
+    profile
+        .with_standard_accounts_access()
+        .with_write_access()
+        .with_roles(vec![SystemActor::GuestsManager])
+        .get_ids_or_error()?;
 
     // ? ----------------------------------------------------------------------
     // ? Perform the deletion operation
     // ? ----------------------------------------------------------------------
 
-    role_deletion_repo.delete(role_id).await
+    role_deletion_repo.delete(guest_role_id).await
 }

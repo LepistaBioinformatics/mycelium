@@ -4,15 +4,13 @@ use crate::domain::{
         account::Account, native_error_codes::NativeErrorCodes,
         profile::Profile,
     },
-    entities::{AccountRegistration, GuestRoleFetching},
+    entities::AccountRegistration,
 };
 
 use mycelium_base::{
-    entities::{FetchResponseKind, GetOrCreateResponseKind},
+    entities::GetOrCreateResponseKind,
     utils::errors::{use_case_err, MappedErrors},
 };
-use tracing::error;
-use uuid::Uuid;
 
 /// Create a system account
 ///
@@ -30,15 +28,12 @@ use uuid::Uuid;
         profile_id = %profile.acc_id,
         owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
     ),
-    skip(profile, guest_role_fetching_repo, account_registration_repo)
+    skip(profile, account_registration_repo)
 )]
 pub async fn create_system_account(
     profile: Profile,
-    account_name: String,
-    tenant_id: Uuid,
-    role: SystemActor,
-    guest_role_id: Uuid,
-    guest_role_fetching_repo: Box<&dyn GuestRoleFetching>,
+    name: String,
+    actor: SystemActor,
     account_registration_repo: Box<&dyn AccountRegistration>,
 ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -48,40 +43,18 @@ pub async fn create_system_account(
     profile.has_admin_privileges_or_error()?;
 
     // ? -----------------------------------------------------------------------
-    // ? Fetch guest role
-    // ? -----------------------------------------------------------------------
-
-    let guest_role = match guest_role_fetching_repo.get(guest_role_id).await? {
-        FetchResponseKind::Found(role) => role,
-        FetchResponseKind::NotFound(msg) => {
-            error!(
-                "Guest role not found: {msg}",
-                msg = match msg {
-                    Some(msg) => msg.to_string(),
-                    None => "No message provided".to_string(),
-                }
-            );
-
-            return use_case_err("Guest role not found")
-                .with_code(NativeErrorCodes::MYC00018)
-                .with_exp_true()
-                .as_error();
-        }
-    };
-
-    // ? -----------------------------------------------------------------------
     // ? Check if the desired actor should be created here
     // ? -----------------------------------------------------------------------
 
     let allowed_actors = [
         SystemActor::GatewayManager,
-        SystemActor::GuestManager,
-        SystemActor::GatewayManager,
+        SystemActor::GuestsManager,
+        SystemActor::SystemManager,
     ];
 
-    if !allowed_actors.contains(&role) {
+    if !allowed_actors.contains(&actor) {
         return use_case_err(format!(
-            "Only system actors are allowed to be created here. Given: {}",
+            "Only system actors accounts should be created. Given: {}",
             allowed_actors
                 .iter()
                 .map(|a| a.to_string())
@@ -97,21 +70,16 @@ pub async fn create_system_account(
     // ? Create and register account
     // ? -----------------------------------------------------------------------
 
-    let mut unchecked_account = Account::new_role_related_account(
-        account_name,
-        tenant_id,
-        guest_role_id,
-        role,
-    );
+    let mut unchecked_account =
+        Account::new_actor_related_account(name, actor, true);
 
     unchecked_account.is_checked = true;
-    unchecked_account.is_default = true;
 
     // ? -----------------------------------------------------------------------
     // ? Register the account
     // ? -----------------------------------------------------------------------
 
     account_registration_repo
-        .get_or_create_role_related_account(unchecked_account)
+        .get_or_create_actor_related_account(unchecked_account)
         .await
 }

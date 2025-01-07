@@ -1,6 +1,5 @@
 use crate::{
-    prisma::{guest_role as guest_role_model, role as role_model},
-    repositories::connector::get_client,
+    prisma::guest_role as guest_role_model, repositories::connector::get_client,
 };
 
 use async_trait::async_trait;
@@ -12,7 +11,7 @@ use myc_core::domain::{
     entities::GuestRoleRegistration,
 };
 use mycelium_base::{
-    dtos::{Children, Parent},
+    dtos::Children,
     entities::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
@@ -57,13 +56,11 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
             .find_first(vec![and![
                 guest_role_model::name::equals(guest_role.name.to_owned()),
                 guest_role_model::slug::equals(guest_role.slug.to_owned()),
+                guest_role_model::permission::equals(
+                    guest_role.permission.to_i32()
+                ),
             ]])
-            .include(guest_role_model::include!({
-                role: select {
-                    id
-                }
-                children
-            }))
+            .include(guest_role_model::include!({ children }))
             .exec()
             .await;
 
@@ -76,9 +73,6 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                         name: record.name,
                         slug: record.slug,
                         description: record.description.to_owned(),
-                        role: Parent::Id(
-                            Uuid::parse_str(&record.role.id).unwrap(),
-                        ),
                         children: match record.children.len() {
                             0 => None,
                             _ => Some(Children::Ids(
@@ -94,7 +88,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                         },
                         permission: Permission::from_i32(record.permission),
                     },
-                    String::from("Account type already exists"),
+                    String::from("Guest Role already exists"),
                 ));
             }
             None => (),
@@ -109,20 +103,6 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
             .create(
                 guest_role.name.to_owned(),
                 guest_role.slug.to_owned(),
-                role_model::id::equals(match guest_role.role {
-                    Parent::Id(id) => id.to_string(),
-                    Parent::Record(record) => match record.id {
-                        None => {
-                            return creation_err(format!(
-                                "Role ID not available: {:?}",
-                                guest_role.id.to_owned(),
-                            ))
-                            .with_exp_true()
-                            .as_error()
-                        }
-                        Some(id) => id.to_string(),
-                    },
-                }),
                 vec![
                     guest_role_model::description::set(guest_role.description),
                     guest_role_model::permission::set(
@@ -143,7 +123,6 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
                     name: record.name,
                     slug: record.slug,
                     description: record.description,
-                    role: Parent::Id(Uuid::parse_str(&record.role_id).unwrap()),
                     children: match record.children.len() {
                         0 => None,
                         _ => Some(Children::Ids(

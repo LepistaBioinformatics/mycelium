@@ -86,7 +86,7 @@ mod tests {
     use super::{should_perform_state_transition, try_to_reach_desired_status};
     use crate::domain::dtos::{
         account::{Account, VerboseStatus},
-        account_type::AccountTypeV2,
+        account_type::AccountType,
         email::Email,
         user::User,
     };
@@ -121,7 +121,7 @@ mod tests {
             verbose_status: None,
             is_default: false,
             owners: Children::Records([user].to_vec()),
-            account_type: AccountTypeV2::User,
+            account_type: AccountType::User,
             guest_users: None,
             created: Local::now(),
             updated: Some(Local::now()),

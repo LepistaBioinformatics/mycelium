@@ -1,14 +1,8 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    modules::{GuestRoleRegistrationModule, RoleRegistrationModule},
-};
+use crate::{dtos::MyceliumProfileData, modules::GuestRoleRegistrationModule};
 
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
-    domain::{
-        dtos::guest_role::GuestRole,
-        entities::{GuestRoleRegistration, RoleRegistration},
-    },
+    domain::{dtos::guest_role::GuestRole, entities::GuestRoleRegistration},
     use_cases::super_users::managers::create_system_roles,
 };
 use myc_http_tools::{
@@ -35,7 +29,19 @@ pub fn configure(config: &mut web::ServiceConfig) {
 // ? Define API paths
 // ? ---------------------------------------------------------------------------
 
-/// Create all system roles
+/// Create system roles
+///
+/// System roles should be used to attribute permissions to actors who manage
+/// specific parts of the system. This function creates the following roles:
+///
+/// - Subscriptions Manager
+/// - Users Manager
+/// - Account Manager
+/// - Guest Manager
+/// - Gateway Manager
+/// - System Manager
+/// - Tenant Manager
+///
 #[utoipa::path(
     post,
     responses(
@@ -64,10 +70,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[post("")]
 pub async fn create_system_roles_url(
     profile: MyceliumProfileData,
-    role_registration_repo: Inject<
-        RoleRegistrationModule,
-        dyn RoleRegistration,
-    >,
     guest_role_registration_repo: Inject<
         GuestRoleRegistrationModule,
         dyn GuestRoleRegistration,
@@ -75,7 +77,6 @@ pub async fn create_system_roles_url(
 ) -> impl Responder {
     match create_system_roles(
         profile.to_profile(),
-        Box::new(&*role_registration_repo),
         Box::new(&*guest_role_registration_repo),
     )
     .await

@@ -11,7 +11,6 @@ pub mod message;
 pub mod native_error_codes;
 pub mod profile;
 pub mod related_accounts;
-pub mod role;
 pub mod route;
 pub mod route_type;
 pub mod service;

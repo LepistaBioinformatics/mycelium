@@ -27,4 +27,9 @@ pub trait AccountRegistration: Interface + Send + Sync {
         &self,
         account: Account,
     ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors>;
+
+    async fn get_or_create_actor_related_account(
+        &self,
+        account: Account,
+    ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors>;
 }

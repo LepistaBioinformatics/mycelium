@@ -5,10 +5,9 @@ SELECT DISTINCT
 	ac.name AS acc_name,
 	ac.is_default AS is_acc_std,
 	gr.id AS gr_id,
-	gr.name AS gr_name,
+	gr.slug AS gr_slug,
 	gr.permission AS gr_perm,
-	rl.name AS rl_name,
-    gu.email AS gu_email,
+	gu.email AS gu_email,
 	gu.was_verified AS gu_verified,
 	ac.tenant_id AS tenant_id
 FROM
@@ -25,9 +24,5 @@ JOIN
 	account AS ac
 ON
 	ac.id = ga.account_id
-JOIN
-	role AS rl
-ON
-	rl.id = gr.role_id
 ORDER BY
-    gu_email, rl_name, acc_id, gr_id;
+    gu_email, gr_slug, acc_id, gr_id;

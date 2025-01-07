@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub enum AccountTypeV2 {
+pub enum AccountType {
     /// Staff account type
     ///
     /// Staff account type is a special account type that is used to represent
@@ -38,10 +38,15 @@ pub enum AccountTypeV2 {
     #[serde(rename_all = "camelCase")]
     RoleAssociated {
         tenant_id: Uuid,
-        role_name: SystemActor,
+        role_name: String,
         role_id: Uuid,
     },
 
+    /// Actor associated account type
+    #[serde(rename_all = "camelCase")]
+    ActorAssociated { actor: SystemActor },
+
+    /// Tenant manager account type
     #[serde(rename_all = "camelCase")]
     TenantManager { tenant_id: Uuid },
 }
@@ -55,7 +60,7 @@ mod tests {
         //
         // Type AccountTypeV2::Subscription
         //
-        let account_type = AccountTypeV2::Subscription {
+        let account_type = AccountType::Subscription {
             tenant_id: Uuid::from_u128(0),
         };
 
@@ -66,11 +71,11 @@ mod tests {
             r#"{"subscription":{"tenantId":"00000000-0000-0000-0000-000000000000"}}"#
         );
 
-        let account_type: AccountTypeV2 = serde_json::from_str(&json).unwrap();
+        let account_type: AccountType = serde_json::from_str(&json).unwrap();
 
         assert_eq!(
             account_type,
-            AccountTypeV2::Subscription {
+            AccountType::Subscription {
                 tenant_id: Uuid::from_u128(0)
             }
         );
@@ -78,9 +83,9 @@ mod tests {
         //
         // Type AccountTypeV2::StandardRoleAssociated
         //
-        let account_type = AccountTypeV2::RoleAssociated {
+        let account_type = AccountType::RoleAssociated {
             tenant_id: Uuid::from_u128(0),
-            role_name: SystemActor::CustomRole("test".to_string()),
+            role_name: SystemActor::CustomRole("test".to_string()).to_string(),
             role_id: Uuid::from_u128(0),
         };
 
@@ -88,16 +93,17 @@ mod tests {
 
         assert_eq!(
             json,
-            r#"{"standardRoleAssociated":{"tenantId":"00000000-0000-0000-0000-000000000000","roleName":{"customRole":"test"},"roleId":"00000000-0000-0000-0000-000000000000"}}"#
+            r#"{"standardRoleAssociated":{"tenantId":"00000000-0000-0000-0000-000000000000","roleName":"test","roleId":"00000000-0000-0000-0000-000000000000"}}"#
         );
 
-        let account_type: AccountTypeV2 = serde_json::from_str(&json).unwrap();
+        let account_type: AccountType = serde_json::from_str(&json).unwrap();
 
         assert_eq!(
             account_type,
-            AccountTypeV2::RoleAssociated {
+            AccountType::RoleAssociated {
                 tenant_id: Uuid::from_u128(0),
-                role_name: SystemActor::CustomRole("test".to_string()),
+                role_name: SystemActor::CustomRole("test".to_string())
+                    .to_string(),
                 role_id: Uuid::from_u128(0),
             }
         );
@@ -105,7 +111,7 @@ mod tests {
         //
         // Type AccountTypeV2::TenantManager
         //
-        let account_type = AccountTypeV2::TenantManager {
+        let account_type = AccountType::TenantManager {
             tenant_id: Uuid::from_u128(0),
         };
 
@@ -116,11 +122,11 @@ mod tests {
             r#"{"tenantManager":{"tenantId":"00000000-0000-0000-0000-000000000000"}}"#
         );
 
-        let account_type: AccountTypeV2 = serde_json::from_str(&json).unwrap();
+        let account_type: AccountType = serde_json::from_str(&json).unwrap();
 
         assert_eq!(
             account_type,
-            AccountTypeV2::TenantManager {
+            AccountType::TenantManager {
                 tenant_id: Uuid::from_u128(0)
             }
         );
@@ -128,33 +134,33 @@ mod tests {
         //
         // Type AccountTypeV2::Manager
         //
-        let account_type = AccountTypeV2::Manager;
+        let account_type = AccountType::Manager;
 
         let json = serde_json::to_string(&account_type).unwrap();
 
         assert_eq!(json, r#""manager""#);
 
-        let account_type: AccountTypeV2 = serde_json::from_str(&json).unwrap();
+        let account_type: AccountType = serde_json::from_str(&json).unwrap();
 
-        assert_eq!(account_type, AccountTypeV2::Manager);
+        assert_eq!(account_type, AccountType::Manager);
 
         //
         // Type AccountTypeV2::Staff
         //
-        let account_type = AccountTypeV2::Staff;
+        let account_type = AccountType::Staff;
 
         let json = serde_json::to_string(&account_type).unwrap();
 
         assert_eq!(json, r#""staff""#);
 
-        let account_type: AccountTypeV2 = serde_json::from_str(&json).unwrap();
+        let account_type: AccountType = serde_json::from_str(&json).unwrap();
 
-        assert_eq!(account_type, AccountTypeV2::Staff);
+        assert_eq!(account_type, AccountType::Staff);
 
         //
         // Type AccountTypeV2::User
         //
-        let account_type = AccountTypeV2::User;
+        let account_type = AccountType::User;
 
         let json = serde_json::to_string(&account_type).unwrap();
 

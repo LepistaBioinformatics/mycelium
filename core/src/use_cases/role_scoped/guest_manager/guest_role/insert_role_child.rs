@@ -17,7 +17,7 @@ use uuid::Uuid;
 #[tracing::instrument(name = "insert_role_child", skip_all)]
 pub async fn insert_role_child(
     profile: Profile,
-    role_id: Uuid,
+    guest_role_id: Uuid,
     child_id: Uuid,
     guest_role_fetching_repo: Box<&dyn GuestRoleFetching>,
     guest_role_updating_repo: Box<&dyn GuestRoleUpdating>,
@@ -27,7 +27,10 @@ pub async fn insert_role_child(
     // ? -----------------------------------------------------------------------
 
     profile
-        .get_default_read_write_ids_or_error(vec![SystemActor::GuestManager])?;
+        .with_standard_accounts_access()
+        .with_read_write_access()
+        .with_roles(vec![SystemActor::GuestsManager])
+        .get_ids_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch target and child roles
@@ -37,7 +40,7 @@ pub async fn insert_role_child(
     //
     // ? -----------------------------------------------------------------------
 
-    if role_id == child_id {
+    if guest_role_id == child_id {
         return use_case_err(
             "The target role and the child role must be different",
         )
@@ -47,7 +50,7 @@ pub async fn insert_role_child(
     }
 
     let (target_role, children_role) = future::join(
-        guest_role_fetching_repo.get(role_id),
+        guest_role_fetching_repo.get(guest_role_id),
         guest_role_fetching_repo.get(child_id),
     )
     .await;
@@ -56,11 +59,11 @@ pub async fn insert_role_child(
         FetchResponseKind::NotFound(_) => {
             return use_case_err(format!(
                 "Unable to check target role: {}",
-                role_id,
+                guest_role_id,
             ))
             .as_error();
         }
-        FetchResponseKind::Found(role) => role.role,
+        FetchResponseKind::Found(role) => role.id,
     };
 
     let children_role = match children_role? {
@@ -71,7 +74,7 @@ pub async fn insert_role_child(
             ))
             .as_error();
         }
-        FetchResponseKind::Found(role) => role.role,
+        FetchResponseKind::Found(role) => role.id,
     };
 
     if target_role != children_role {
@@ -88,6 +91,6 @@ pub async fn insert_role_child(
     // ? -----------------------------------------------------------------------
 
     guest_role_updating_repo
-        .insert_role_child(role_id, child_id)
+        .insert_role_child(guest_role_id, child_id)
         .await
 }

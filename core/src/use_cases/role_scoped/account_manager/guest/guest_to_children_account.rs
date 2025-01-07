@@ -2,7 +2,7 @@ use crate::{
     domain::{
         actors::SystemActor,
         dtos::{
-            account::VerboseStatus, account_type::AccountTypeV2, email::Email,
+            account::VerboseStatus, account_type::AccountType, email::Email,
             guest_user::GuestUser, native_error_codes::NativeErrorCodes,
             profile::Profile,
         },
@@ -80,8 +80,8 @@ pub async fn guest_to_children_account(
             .as_error()
         }
         FetchResponseKind::Found(account) => match account.account_type {
-            AccountTypeV2::Subscription { .. }
-            | AccountTypeV2::RoleAssociated { .. } => account,
+            AccountType::Subscription { .. }
+            | AccountType::RoleAssociated { .. } => account,
             _ => return use_case_err(
                 "Invalid account. Only subscription accounts should receive \
                 guesting.",

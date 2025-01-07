@@ -29,7 +29,7 @@ use uuid::Uuid;
 pub async fn create_role_associated_connection_string(
     profile: Profile,
     tenant_id: Uuid,
-    role_id: Uuid,
+    guest_role_id: Uuid,
     expiration: i64,
     permissioned_roles: PermissionedRoles,
     life_cycle_settings: AccountLifeCycle,
@@ -40,7 +40,11 @@ pub async fn create_role_associated_connection_string(
     // ? Check if the current account has sufficient privileges to create role
     // ? -----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![SystemActor::GuestManager])?;
+    profile
+        .with_standard_accounts_access()
+        .with_write_access()
+        .with_roles(vec![SystemActor::GuestsManager])
+        .get_ids_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Build the scoped account token
@@ -62,7 +66,7 @@ pub async fn create_role_associated_connection_string(
 
     let mut role_scope = RoleWithPermissionsScope::new(
         tenant_id,
-        role_id,
+        guest_role_id,
         permissioned_roles.to_owned(),
         expires_at,
         life_cycle_settings.to_owned(),
@@ -98,7 +102,7 @@ pub async fn create_role_associated_connection_string(
 
     let parameters = vec![
         ("tenant_id", tenant_id.to_string().to_uppercase()),
-        ("target_id", role_id.to_string().to_uppercase()),
+        ("target_id", guest_role_id.to_string().to_uppercase()),
         (
             "permissioned_roles",
             permissioned_roles.iter().fold(

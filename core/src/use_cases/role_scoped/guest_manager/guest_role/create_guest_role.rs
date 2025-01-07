@@ -8,10 +8,8 @@ use crate::domain::{
 };
 
 use mycelium_base::{
-    dtos::Parent, entities::GetOrCreateResponseKind,
-    utils::errors::MappedErrors,
+    entities::GetOrCreateResponseKind, utils::errors::MappedErrors,
 };
-use uuid::Uuid;
 
 /// Create a new guest role
 ///
@@ -28,7 +26,6 @@ pub async fn create_guest_role(
     profile: Profile,
     name: String,
     description: String,
-    role: Uuid,
     permission: Option<Permission>,
     guest_role_registration_repo: Box<&dyn GuestRoleRegistration>,
 ) -> Result<GetOrCreateResponseKind<GuestRole>, MappedErrors> {
@@ -36,7 +33,11 @@ pub async fn create_guest_role(
     // ? Check if the current account has sufficient privileges to create role
     // ? ----------------------------------------------------------------------
 
-    profile.get_default_write_ids_or_error(vec![SystemActor::GuestManager])?;
+    profile
+        .with_standard_accounts_access()
+        .with_write_access()
+        .with_roles(vec![SystemActor::GuestsManager])
+        .get_ids_or_error()?;
 
     // ? ----------------------------------------------------------------------
     // ? Persist UserRole
@@ -47,7 +48,6 @@ pub async fn create_guest_role(
             None,
             name,
             Some(description),
-            Parent::Id(role),
             permission.unwrap_or(Permission::Read),
             None,
         ))

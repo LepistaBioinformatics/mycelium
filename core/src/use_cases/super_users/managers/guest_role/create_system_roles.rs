@@ -3,28 +3,38 @@ use crate::domain::{
     dtos::{
         guest_role::{GuestRole, Permission},
         profile::Profile,
-        role::Role,
     },
-    entities::{GuestRoleRegistration, RoleRegistration},
+    entities::GuestRoleRegistration,
 };
 
 use mycelium_base::{
-    dtos::Parent, entities::GetOrCreateResponseKind,
-    utils::errors::MappedErrors,
+    entities::GetOrCreateResponseKind, utils::errors::MappedErrors,
 };
-use tracing::error;
+use tracing::{error, info, trace, warn};
 
+/// Create system roles
+///
+/// System roles should be used to attribute permissions to actors who manage
+/// specific parts of the system. This function creates the following roles:
+///
+/// - Subscriptions Manager
+/// - Users Manager
+/// - Account Manager
+/// - Guest Manager
+/// - Gateway Manager
+/// - System Manager
+/// - Tenant Manager
+///
 #[tracing::instrument(
     name = "create_system_roles",
     fields(
         profile_id = %profile.acc_id,
         owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
     ),
-    skip(profile, role_registration_repo, guest_role_registration_repo)
+    skip(profile, guest_role_registration_repo)
 )]
 pub async fn create_system_roles(
     profile: Profile,
-    role_registration_repo: Box<&dyn RoleRegistration>,
     guest_role_registration_repo: Box<&dyn GuestRoleRegistration>,
 ) -> Result<Vec<GuestRole>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -34,11 +44,11 @@ pub async fn create_system_roles(
     profile.has_admin_privileges_or_error()?;
 
     // ? -----------------------------------------------------------------------
-    // ? Batch create roles
+    // ? Batch create guest-roles
     // ? -----------------------------------------------------------------------
 
-    let mut roles_creation_responses: Vec<(
-        GetOrCreateResponseKind<Role>,
+    let mut guest_roles_creation_responses: Vec<(
+        GetOrCreateResponseKind<GuestRole>,
         String,
     )> = vec![];
 
@@ -49,7 +59,7 @@ pub async fn create_system_roles(
         ),
         (UsersManager, "Actors who manage user accounts"),
         (AccountManager, "Actors who manage single account settings"),
-        (GuestManager, "Actors who perform guest actions"),
+        (GuestsManager, "Actors who perform guest actions"),
         (GatewayManager, "Actors who manage gateway settings"),
         (SystemManager, "Actors who manage system settings"),
         (TenantManager, "Actors who manage single tenant settings"),
@@ -67,77 +77,68 @@ pub async fn create_system_roles(
             .collect::<Vec<_>>()
             .join(" ");
 
-        //
-        // Create role
-        //
-        let response = role_registration_repo
-            .get_or_create(Role::new(None, _actor, description.to_string()))
-            .await?;
+        for permission in
+            [Permission::Read, Permission::Write, Permission::ReadWrite]
+        {
+            trace!(
+                "Creating role for {} with {} permissions",
+                _actor,
+                permission.to_string()
+            );
 
-        roles_creation_responses.push((response, description.to_string()));
-    }
-
-    let roles_parsed_responses = roles_creation_responses
-        .iter()
-        .map(|(response, description)| {
-            let role = match response {
-                GetOrCreateResponseKind::Created(role) => role,
-                GetOrCreateResponseKind::NotCreated(role, _) => role,
-            };
-
-            (role, description.to_owned())
-        })
-        .collect::<Vec<_>>();
-
-    // ? -----------------------------------------------------------------------
-    // ? Batch create guest-roles
-    // ? -----------------------------------------------------------------------
-
-    let mut guest_roles_creation_responses: Vec<(
-        GetOrCreateResponseKind<GuestRole>,
-        String,
-    )> = vec![];
-
-    for (role, description) in roles_parsed_responses {
-        let role_id = match role.id {
-            Some(id) => id,
-            None => {
-                error!("Role ID not found for role: {:?}", role);
-
-                continue;
-            }
-        };
-
-        for (permission, alias) in [
-            (Permission::Read, "Reader"),
-            (Permission::Write, "Writer"),
-            (Permission::ReadWrite, "Reader-Writer"),
-        ] {
-            let response = guest_role_registration_repo
+            let response = match guest_role_registration_repo
                 .get_or_create(GuestRole::new(
                     None,
-                    format!("{} {}", role.name, alias),
+                    _actor.to_owned(),
                     Some(format!(
                         "{} with {} permissions",
                         description,
                         permission.to_string()
                     )),
-                    Parent::Id(role_id),
-                    permission,
+                    permission.to_owned(),
                     None,
                 ))
-                .await?;
+                .await
+            {
+                Ok(response) => response,
+                Err(e) => {
+                    error!(
+                        "Failed to create role for {} with {} permissions",
+                        _actor,
+                        permission.to_string()
+                    );
+
+                    return Err(e);
+                }
+            };
 
             guest_roles_creation_responses
-                .push((response, description.clone()));
+                .push((response, description.to_string()));
         }
     }
 
     let guest_roles_parsed_responses = guest_roles_creation_responses
         .iter()
         .map(|(response, _)| match response {
-            GetOrCreateResponseKind::Created(role) => role.to_owned(),
-            GetOrCreateResponseKind::NotCreated(role, _) => role.to_owned(),
+            GetOrCreateResponseKind::Created(role) => {
+                info!(
+                    "Role {} with {} permissions created",
+                    role.name,
+                    role.permission.to_string()
+                );
+
+                role.to_owned()
+            }
+            GetOrCreateResponseKind::NotCreated(role, msg) => {
+                warn!(
+                    "Role {} with {} permissions not created due to: {}",
+                    role.name,
+                    role.permission.to_string(),
+                    msg
+                );
+
+                role.to_owned()
+            }
         })
         .collect::<Vec<_>>();
 

@@ -49,7 +49,7 @@ pub async fn guest_to_default_account(
         tenant_id,
         role_id,
         vec![
-            (GuestManager.to_string(), Permission::Write),
+            (GuestsManager.to_string(), Permission::Write),
             (SubscriptionsManager.to_string(), Permission::Write),
         ],
     )?;

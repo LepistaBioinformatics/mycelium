@@ -8,15 +8,13 @@ use crate::modules::{
     GuestUserDeletionModule, GuestUserFetchingModule,
     GuestUserOnAccountUpdatingModule, GuestUserRegistrationModule,
     LicensedResourcesFetchingModule, MessageSendingQueueModule,
-    ProfileFetchingModule, RoleDeletionModule, RoleFetchingModule,
-    RoleRegistrationModule, RoleUpdatingModule, RoutesFetchingModule,
-    TenantDeletionModule, TenantFetchingModule, TenantRegistrationModule,
-    TenantTagDeletionModule, TenantTagRegistrationModule,
-    TenantTagUpdatingModule, TenantUpdatingModule, TokenFetchingModule,
-    TokenInvalidationModule, TokenRegistrationModule, UserDeletionModule,
-    UserFetchingModule, UserRegistrationModule, UserUpdatingModule,
-    WebHookDeletionModule, WebHookFetchingModule, WebHookRegistrationModule,
-    WebHookUpdatingModule,
+    ProfileFetchingModule, RoutesFetchingModule, TenantDeletionModule,
+    TenantFetchingModule, TenantRegistrationModule, TenantTagDeletionModule,
+    TenantTagRegistrationModule, TenantTagUpdatingModule, TenantUpdatingModule,
+    TokenFetchingModule, TokenInvalidationModule, TokenRegistrationModule,
+    UserDeletionModule, UserFetchingModule, UserRegistrationModule,
+    UserUpdatingModule, WebHookDeletionModule, WebHookFetchingModule,
+    WebHookRegistrationModule, WebHookUpdatingModule,
 };
 
 use actix_web::web;
@@ -65,10 +63,6 @@ use myc_prisma::repositories::{
     LicensedResourcesFetchingSqlDbRepository,
     LicensedResourcesFetchingSqlDbRepositoryParameters,
     ProfileFetchingSqlDbRepository, ProfileFetchingSqlDbRepositoryParameters,
-    RoleDeletionSqlDbRepository, RoleDeletionSqlDbRepositoryParameters,
-    RoleFetchingSqlDbRepository, RoleFetchingSqlDbRepositoryParameters,
-    RoleRegistrationSqlDbRepository, RoleRegistrationSqlDbRepositoryParameters,
-    RoleUpdatingSqlDbRepository, RoleUpdatingSqlDbRepositoryParameters,
     TenantDeletionSqlDbRepository, TenantDeletionSqlDbRepositoryParameters,
     TenantFetchingSqlDbRepository, TenantFetchingSqlDbRepositoryParameters,
     TenantRegistrationSqlDbRepository,
@@ -208,33 +202,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
                     ProfileFetchingSqlDbRepositoryParameters {},
                 )
                 .build(),
-        ))
-        // ? -------------------------------------------------------------------
-        // ? Role
-        // ? -------------------------------------------------------------------
-        .app_data(Arc::new(
-            RoleRegistrationModule::builder()
-                .with_component_parameters::<RoleRegistrationSqlDbRepository>(
-                    RoleRegistrationSqlDbRepositoryParameters {}
-                ).build()
-        ))
-        .app_data(Arc::new(
-            RoleFetchingModule::builder()
-                .with_component_parameters::<RoleFetchingSqlDbRepository>(
-                    RoleFetchingSqlDbRepositoryParameters {}
-                ).build()
-        ))
-        .app_data(Arc::new(
-            RoleUpdatingModule::builder()
-                .with_component_parameters::<RoleUpdatingSqlDbRepository>(
-                    RoleUpdatingSqlDbRepositoryParameters {}
-                ).build()
-        ))
-        .app_data(Arc::new(
-            RoleDeletionModule::builder()
-                .with_component_parameters::<RoleDeletionSqlDbRepository>(
-                    RoleDeletionSqlDbRepositoryParameters {}
-                ).build()
         ))
         // ? -------------------------------------------------------------------
         // ? User

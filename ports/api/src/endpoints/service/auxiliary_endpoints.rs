@@ -36,7 +36,7 @@ pub async fn list_actors_url() -> impl Responder {
             SystemActor::SubscriptionsManager,
             SystemActor::UsersManager,
             SystemActor::AccountManager,
-            SystemActor::GuestManager,
+            SystemActor::GuestsManager,
             SystemActor::SystemManager,
             SystemActor::TenantOwner,
             SystemActor::TenantManager,

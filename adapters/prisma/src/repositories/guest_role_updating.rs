@@ -15,7 +15,7 @@ use myc_core::domain::{
     entities::GuestRoleUpdating,
 };
 use mycelium_base::{
-    dtos::{Children, Parent},
+    dtos::Children,
     entities::UpdatingResponseKind,
     utils::errors::{updating_err, MappedErrors},
 };
@@ -88,7 +88,6 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                 name: record.name,
                 slug: record.slug,
                 description: record.description,
-                role: Parent::Id(Uuid::from_str(&record.role_id).unwrap()),
                 children: match record.children.len() {
                     0 => None,
                     _ => Some(Children::Ids(
@@ -179,9 +178,6 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                             name: record.name,
                             slug: record.slug,
                             description: record.description,
-                            role: Parent::Id(
-                                Uuid::from_str(&record.role_id).unwrap(),
-                            ),
                             children: match record.children.len() {
                                 0 => None,
                                 _ => Some(Children::Ids(
@@ -281,9 +277,6 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                             name: record.name,
                             slug: record.slug,
                             description: record.description,
-                            role: Parent::Id(
-                                Uuid::from_str(&record.role_id).unwrap(),
-                            ),
                             children: match record.children.len() {
                                 0 => None,
                                 _ => Some(Children::Ids(
