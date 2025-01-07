@@ -1,7 +1,7 @@
 use crate::domain::{
     dtos::{
         account::Account,
-        account_type::AccountTypeV2,
+        account_type::AccountType,
         email::Email,
         native_error_codes::NativeErrorCodes,
         user::{PasswordHash, Provider, User},
@@ -84,7 +84,7 @@ pub async fn create_seed_staff_account(
 
     account_registration_repo
         .get_or_create_user_account(
-            Account::new(account_name, new_user, AccountTypeV2::Staff),
+            Account::new(account_name, new_user, AccountType::Staff),
             true,
             false,
         )

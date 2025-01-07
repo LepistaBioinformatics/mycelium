@@ -7978,804 +7978,6 @@ pub mod token {
         }
     }
 }
-pub mod role {
-    use super::_prisma::*;
-    use super::*;
-    pub const NAME: &str = "Role";
-    pub mod id {
-        use super::super::*;
-        use super::_prisma::*;
-        use super::{
-            OrderByParam, SetParam, UncheckedSetParam, UniqueWhereParam,
-            WhereParam, WithParam,
-        };
-        pub const NAME: &str = "id";
-        pub struct Set(pub String);
-        impl From<Set> for SetParam {
-            fn from(Set(v): Set) -> Self {
-                Self::SetId(v)
-            }
-        }
-        impl From<Set> for UncheckedSetParam {
-            fn from(Set(v): Set) -> Self {
-                Self::Id(v)
-            }
-        }
-        pub fn set<T: From<Set>>(value: String) -> T {
-            Set(value).into()
-        }
-        pub fn order(
-            direction: ::prisma_client_rust::Direction,
-        ) -> OrderByParam {
-            OrderByParam::Id(direction)
-        }
-        pub fn equals<T: From<UniqueWhereParam>>(value: String) -> T {
-            UniqueWhereParam::IdEquals(value).into()
-        }
-        ::prisma_client_rust::scalar_where_param_fns!(
-            _prisma::read_filters::StringFilter,
-            Id,
-            {
-                fn in_vec(_: Vec<String>) -> InVec;
-                fn not_in_vec(_: Vec<String>) -> NotInVec;
-                fn lt(_: String) -> Lt;
-                fn lte(_: String) -> Lte;
-                fn gt(_: String) -> Gt;
-                fn gte(_: String) -> Gte;
-                fn contains(_: String) -> Contains;
-                fn starts_with(_: String) -> StartsWith;
-                fn ends_with(_: String) -> EndsWith;
-                fn mode(_: super::super::QueryMode) -> Mode;
-                fn not(_: String) -> Not;
-            }
-        );
-        pub struct Include;
-        impl Into<super::IncludeParam> for Include {
-            fn into(self) -> super::IncludeParam {
-                super::IncludeParam::Id(self)
-            }
-        }
-        impl Include {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                ::prisma_client_rust::sel(NAME)
-            }
-        }
-        pub struct Select;
-        impl Into<super::SelectParam> for Select {
-            fn into(self) -> super::SelectParam {
-                super::SelectParam::Id(self)
-            }
-        }
-        impl Select {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                ::prisma_client_rust::sel(NAME)
-            }
-        }
-    }
-    pub mod name {
-        use super::super::*;
-        use super::_prisma::*;
-        use super::{
-            OrderByParam, SetParam, UncheckedSetParam, UniqueWhereParam,
-            WhereParam, WithParam,
-        };
-        pub const NAME: &str = "name";
-        pub struct Set(pub String);
-        impl From<Set> for SetParam {
-            fn from(Set(v): Set) -> Self {
-                Self::SetName(v)
-            }
-        }
-        impl From<Set> for UncheckedSetParam {
-            fn from(Set(v): Set) -> Self {
-                Self::Name(v)
-            }
-        }
-        pub fn set<T: From<Set>>(value: String) -> T {
-            Set(value).into()
-        }
-        pub fn order(
-            direction: ::prisma_client_rust::Direction,
-        ) -> OrderByParam {
-            OrderByParam::Name(direction)
-        }
-        pub fn equals<T: From<UniqueWhereParam>>(value: String) -> T {
-            UniqueWhereParam::NameEquals(value).into()
-        }
-        ::prisma_client_rust::scalar_where_param_fns!(
-            _prisma::read_filters::StringFilter,
-            Name,
-            {
-                fn in_vec(_: Vec<String>) -> InVec;
-                fn not_in_vec(_: Vec<String>) -> NotInVec;
-                fn lt(_: String) -> Lt;
-                fn lte(_: String) -> Lte;
-                fn gt(_: String) -> Gt;
-                fn gte(_: String) -> Gte;
-                fn contains(_: String) -> Contains;
-                fn starts_with(_: String) -> StartsWith;
-                fn ends_with(_: String) -> EndsWith;
-                fn mode(_: super::super::QueryMode) -> Mode;
-                fn not(_: String) -> Not;
-            }
-        );
-        pub struct Include;
-        impl Into<super::IncludeParam> for Include {
-            fn into(self) -> super::IncludeParam {
-                super::IncludeParam::Name(self)
-            }
-        }
-        impl Include {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                ::prisma_client_rust::sel(NAME)
-            }
-        }
-        pub struct Select;
-        impl Into<super::SelectParam> for Select {
-            fn into(self) -> super::SelectParam {
-                super::SelectParam::Name(self)
-            }
-        }
-        impl Select {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                ::prisma_client_rust::sel(NAME)
-            }
-        }
-    }
-    pub mod slug {
-        use super::super::*;
-        use super::_prisma::*;
-        use super::{
-            OrderByParam, SetParam, UncheckedSetParam, UniqueWhereParam,
-            WhereParam, WithParam,
-        };
-        pub const NAME: &str = "slug";
-        pub struct Set(pub String);
-        impl From<Set> for SetParam {
-            fn from(Set(v): Set) -> Self {
-                Self::SetSlug(v)
-            }
-        }
-        impl From<Set> for UncheckedSetParam {
-            fn from(Set(v): Set) -> Self {
-                Self::Slug(v)
-            }
-        }
-        pub fn set<T: From<Set>>(value: String) -> T {
-            Set(value).into()
-        }
-        pub fn order(
-            direction: ::prisma_client_rust::Direction,
-        ) -> OrderByParam {
-            OrderByParam::Slug(direction)
-        }
-        pub fn equals<T: From<UniqueWhereParam>>(value: String) -> T {
-            UniqueWhereParam::SlugEquals(value).into()
-        }
-        ::prisma_client_rust::scalar_where_param_fns!(
-            _prisma::read_filters::StringFilter,
-            Slug,
-            {
-                fn in_vec(_: Vec<String>) -> InVec;
-                fn not_in_vec(_: Vec<String>) -> NotInVec;
-                fn lt(_: String) -> Lt;
-                fn lte(_: String) -> Lte;
-                fn gt(_: String) -> Gt;
-                fn gte(_: String) -> Gte;
-                fn contains(_: String) -> Contains;
-                fn starts_with(_: String) -> StartsWith;
-                fn ends_with(_: String) -> EndsWith;
-                fn mode(_: super::super::QueryMode) -> Mode;
-                fn not(_: String) -> Not;
-            }
-        );
-        pub struct Include;
-        impl Into<super::IncludeParam> for Include {
-            fn into(self) -> super::IncludeParam {
-                super::IncludeParam::Slug(self)
-            }
-        }
-        impl Include {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                ::prisma_client_rust::sel(NAME)
-            }
-        }
-        pub struct Select;
-        impl Into<super::SelectParam> for Select {
-            fn into(self) -> super::SelectParam {
-                super::SelectParam::Slug(self)
-            }
-        }
-        impl Select {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                ::prisma_client_rust::sel(NAME)
-            }
-        }
-    }
-    pub mod description {
-        use super::super::*;
-        use super::_prisma::*;
-        use super::{
-            OrderByParam, SetParam, UncheckedSetParam, UniqueWhereParam,
-            WhereParam, WithParam,
-        };
-        pub const NAME: &str = "description";
-        pub struct Set(pub String);
-        impl From<Set> for SetParam {
-            fn from(Set(v): Set) -> Self {
-                Self::SetDescription(v)
-            }
-        }
-        impl From<Set> for UncheckedSetParam {
-            fn from(Set(v): Set) -> Self {
-                Self::Description(v)
-            }
-        }
-        pub fn set<T: From<Set>>(value: String) -> T {
-            Set(value).into()
-        }
-        pub fn order(
-            direction: ::prisma_client_rust::Direction,
-        ) -> OrderByParam {
-            OrderByParam::Description(direction)
-        }
-        pub fn equals(value: String) -> WhereParam {
-            WhereParam::Description(
-                _prisma::read_filters::StringFilter::Equals(value),
-            )
-        }
-        ::prisma_client_rust::scalar_where_param_fns!(
-            _prisma::read_filters::StringFilter,
-            Description,
-            {
-                fn in_vec(_: Vec<String>) -> InVec;
-                fn not_in_vec(_: Vec<String>) -> NotInVec;
-                fn lt(_: String) -> Lt;
-                fn lte(_: String) -> Lte;
-                fn gt(_: String) -> Gt;
-                fn gte(_: String) -> Gte;
-                fn contains(_: String) -> Contains;
-                fn starts_with(_: String) -> StartsWith;
-                fn ends_with(_: String) -> EndsWith;
-                fn mode(_: super::super::QueryMode) -> Mode;
-                fn not(_: String) -> Not;
-            }
-        );
-        pub struct Include;
-        impl Into<super::IncludeParam> for Include {
-            fn into(self) -> super::IncludeParam {
-                super::IncludeParam::Description(self)
-            }
-        }
-        impl Include {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                ::prisma_client_rust::sel(NAME)
-            }
-        }
-        pub struct Select;
-        impl Into<super::SelectParam> for Select {
-            fn into(self) -> super::SelectParam {
-                super::SelectParam::Description(self)
-            }
-        }
-        impl Select {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                ::prisma_client_rust::sel(NAME)
-            }
-        }
-    }
-    pub mod user_roles {
-        use super::super::*;
-        use super::_prisma::*;
-        use super::{
-            OrderByParam, SetParam, UncheckedSetParam, UniqueWhereParam,
-            WhereParam, WithParam,
-        };
-        pub const NAME: &str = "user_roles";
-        pub struct Fetch(pub guest_role::ManyArgs);
-        impl Fetch {
-            pub fn with(
-                mut self,
-                params: impl Into<guest_role::WithParam>,
-            ) -> Self {
-                self.0 = self.0.with(params.into());
-                self
-            }
-            pub fn order_by(mut self, param: guest_role::OrderByParam) -> Self {
-                self.0 = self.0.order_by(param);
-                self
-            }
-            pub fn skip(mut self, value: i64) -> Self {
-                self.0 = self.0.skip(value);
-                self
-            }
-            pub fn take(mut self, value: i64) -> Self {
-                self.0 = self.0.take(value);
-                self
-            }
-            pub fn cursor(
-                mut self,
-                value: guest_role::UniqueWhereParam,
-            ) -> Self {
-                self.0 = self.0.cursor(value.into());
-                self
-            }
-        }
-        impl From<Fetch> for WithParam {
-            fn from(Fetch(v): Fetch) -> Self {
-                WithParam::UserRoles(v)
-            }
-        }
-        pub fn fetch(params: Vec<guest_role::WhereParam>) -> Fetch {
-            Fetch(guest_role::ManyArgs::new(params))
-        }
-        pub struct Connect(pub Vec<guest_role::UniqueWhereParam>);
-        impl From<Connect> for SetParam {
-            fn from(Connect(v): Connect) -> Self {
-                Self::ConnectUserRoles(v)
-            }
-        }
-        pub fn connect<T: From<Connect>>(
-            params: Vec<guest_role::UniqueWhereParam>,
-        ) -> T {
-            Connect(params).into()
-        }
-        pub fn disconnect(
-            params: Vec<guest_role::UniqueWhereParam>,
-        ) -> SetParam {
-            SetParam::DisconnectUserRoles(params)
-        }
-        pub fn set(params: Vec<guest_role::UniqueWhereParam>) -> SetParam {
-            SetParam::SetUserRoles(params)
-        }
-        pub fn some(value: Vec<guest_role::WhereParam>) -> WhereParam {
-            WhereParam::UserRolesSome(value)
-        }
-        pub fn every(value: Vec<guest_role::WhereParam>) -> WhereParam {
-            WhereParam::UserRolesEvery(value)
-        }
-        pub fn none(value: Vec<guest_role::WhereParam>) -> WhereParam {
-            WhereParam::UserRolesNone(value)
-        }
-        pub enum Include {
-            Select(guest_role::ManyArgs, Vec<guest_role::SelectParam>),
-            Include(guest_role::ManyArgs, Vec<guest_role::IncludeParam>),
-            Fetch(guest_role::ManyArgs),
-        }
-        impl Into<super::IncludeParam> for Include {
-            fn into(self) -> super::IncludeParam {
-                super::IncludeParam::UserRoles(self)
-            }
-        }
-        impl Include {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                let (args , selections) = match self { Self :: Select (args , selections) => (args . to_graphql () . 0 , selections . into_iter () . map (| s | s . to_selection ()) . collect ()) , Self :: Include (args , selections) => (args . to_graphql () . 0 , { let mut nested_selections = < guest_role :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections () ; nested_selections . extend (selections . into_iter () . map (| s | s . to_selection ())) ; nested_selections }) , Self :: Fetch (args) => (args . to_graphql () . 0 , < guest_role :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections ()) } ;
-                ::prisma_client_rust::Selection::new(
-                    NAME, None, args, selections,
-                )
-            }
-            pub fn select(
-                args: guest_role::ManyArgs,
-                nested_selections: Vec<guest_role::SelectParam>,
-            ) -> Self {
-                Self::Select(args, nested_selections)
-            }
-            pub fn include(
-                args: guest_role::ManyArgs,
-                nested_selections: Vec<guest_role::IncludeParam>,
-            ) -> Self {
-                Self::Include(args, nested_selections)
-            }
-        }
-        pub enum Select {
-            Select(guest_role::ManyArgs, Vec<guest_role::SelectParam>),
-            Include(guest_role::ManyArgs, Vec<guest_role::IncludeParam>),
-            Fetch(guest_role::ManyArgs),
-        }
-        impl Into<super::SelectParam> for Select {
-            fn into(self) -> super::SelectParam {
-                super::SelectParam::UserRoles(self)
-            }
-        }
-        impl Select {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                let (args , selections) = match self { Self :: Select (args , selections) => (args . to_graphql () . 0 , selections . into_iter () . map (| s | s . to_selection ()) . collect ()) , Self :: Include (args , selections) => (args . to_graphql () . 0 , { let mut nested_selections = vec ! [] ; nested_selections . extend (selections . into_iter () . map (| s | s . to_selection ())) ; nested_selections }) , Self :: Fetch (args) => (args . to_graphql () . 0 , < guest_role :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections ()) } ;
-                ::prisma_client_rust::Selection::new(
-                    NAME, None, args, selections,
-                )
-            }
-            pub fn select(
-                args: guest_role::ManyArgs,
-                nested_selections: Vec<guest_role::SelectParam>,
-            ) -> Self {
-                Self::Select(args, nested_selections)
-            }
-            pub fn include(
-                args: guest_role::ManyArgs,
-                nested_selections: Vec<guest_role::IncludeParam>,
-            ) -> Self {
-                Self::Include(args, nested_selections)
-            }
-        }
-    }
-    pub fn create(
-        name: String,
-        slug: String,
-        description: String,
-        _params: Vec<SetParam>,
-    ) -> (String, String, String, Vec<SetParam>) {
-        (name, slug, description, _params)
-    }
-    pub fn create_unchecked(
-        name: String,
-        slug: String,
-        description: String,
-        _params: Vec<SetParam>,
-    ) -> (String, String, String, Vec<SetParam>) {
-        (name, slug, description, _params)
-    }
-    #[macro_export]
-    macro_rules ! _select_role { ($ (($ ($ func_arg : ident : $ func_arg_ty : ty) , +) =>) ? $ module_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { # [allow (warnings)] pub mod $ module_name { crate :: prisma :: role :: select ! (@ definitions ; $ module_name ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; use super :: * ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: SelectType for Selection { type Data = Data ; type ModelData = crate :: prisma :: role :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } pub fn select ($ ($ ($ func_arg : $ func_arg_ty) , +) ?) -> Selection { Selection ([crate :: prisma :: role :: select ! (@ selections_to_params ; : select { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () ,] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } } ; ({ $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { { crate :: prisma :: role :: select ! (@ definitions ; ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: SelectType for Selection { type Data = Data ; type ModelData = crate :: prisma :: role :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } Selection ([crate :: prisma :: role :: select ! (@ selections_to_params ; : select { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () ,] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } ; (@ definitions ; $ ($ module_name : ident) ? ; $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) +) => { # [allow (warnings)] enum Fields { id , name , slug , description , user_roles } # [allow (warnings)] impl Fields { fn selections () { $ (let _ = Fields :: $ field ;) + } } # [allow (warnings)] # [derive (std :: fmt :: Debug , Clone)] pub struct Data { $ (pub $ field : crate :: prisma :: role :: select ! (@ field_type ; $ field $ (: $ selection_mode { $ ($ selections) + }) ?) ,) + } impl :: serde :: Serialize for Data { fn serialize < S > (& self , serializer : S) -> Result < S :: Ok , S :: Error > where S : :: serde :: Serializer , { use :: serde :: ser :: SerializeStruct ; let mut state = serializer . serialize_struct ("Data" , [$ (stringify ! ($ field) ,) +] . len ()) ? ; $ (state . serialize_field (crate :: prisma :: role :: $ field :: NAME , & self . $ field) ? ;) * state . end () } } impl < 'de > :: serde :: Deserialize < 'de > for Data { fn deserialize < D > (deserializer : D) -> Result < Self , D :: Error > where D : :: serde :: Deserializer < 'de > , { # [allow (warnings)] enum Field { $ ($ field) , + , } impl < 'de > :: serde :: Deserialize < 'de > for Field { fn deserialize < D > (deserializer : D) -> Result < Field , D :: Error > where D : :: serde :: Deserializer < 'de > , { struct FieldVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for FieldVisitor { type Value = Field ; fn expecting (& self , formatter : & mut :: std :: fmt :: Formatter) -> :: std :: fmt :: Result { formatter . write_str (& [$ (crate :: prisma :: role :: $ field :: NAME) , + ,] . into_iter () . collect :: < Vec < _ >> () . join (", ")) } fn visit_str < E > (self , value : & str) -> Result < Field , E > where E : :: serde :: de :: Error , { match value { $ (crate :: prisma :: role :: $ field :: NAME => Ok (Field :: $ field)) , * , _ => Err (:: serde :: de :: Error :: unknown_field (value , FIELDS)) , } } } deserializer . deserialize_identifier (FieldVisitor) } } struct DataVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for DataVisitor { type Value = Data ; fn expecting (& self , formatter : & mut std :: fmt :: Formatter) -> std :: fmt :: Result { formatter . write_str ("struct Data") } fn visit_map < V > (self , mut map : V) -> Result < Data , V :: Error > where V : :: serde :: de :: MapAccess < 'de > , { $ (let mut $ field = None ;) * while let Some (key) = map . next_key () ? { match key { $ (Field :: $ field => { if $ field . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: role :: $ field :: NAME)) ; } $ field = Some (map . next_value () ?) ; }) * } } $ (let $ field = $ field . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: role :: $ field :: NAME)) ? ;) * Ok (Data { $ ($ field) , * }) } } const FIELDS : & 'static [& 'static str] = & ["id" , "name" , "slug" , "description" , "user_roles"] ; deserializer . deserialize_struct ("Data" , FIELDS , DataVisitor) } } $ ($ (pub mod $ field { crate :: prisma :: role :: $ selection_mode ! (@ field_module ; $ field : $ selection_mode { $ ($ selections) + }) ; }) ?) + } ; (@ field_type ; id) => { String } ; (@ field_type ; name) => { String } ; (@ field_type ; slug) => { String } ; (@ field_type ; description) => { String } ; (@ field_type ; user_roles : $ selection_mode : ident { $ ($ selections : tt) + }) => { Vec < user_roles :: Data > } ; (@ field_type ; user_roles) => { Vec < crate :: prisma :: guest_role :: Data > } ; (@ field_type ; $ field : ident $ ($ tokens : tt) *) => { compile_error ! (stringify ! (Cannot include nonexistent relation $ field on model "Role" , available relations are "id, name, slug, description, user_roles")) } ; (@ field_module ; user_roles : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: guest_role :: select ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; $ ($ tokens : tt) *) => { } ; (@ selection_field_to_selection_param ; id) => { Into :: < crate :: prisma :: role :: SelectParam > :: into (crate :: prisma :: role :: id :: Select) } ; (@ selection_field_to_selection_param ; name) => { Into :: < crate :: prisma :: role :: SelectParam > :: into (crate :: prisma :: role :: name :: Select) } ; (@ selection_field_to_selection_param ; slug) => { Into :: < crate :: prisma :: role :: SelectParam > :: into (crate :: prisma :: role :: slug :: Select) } ; (@ selection_field_to_selection_param ; description) => { Into :: < crate :: prisma :: role :: SelectParam > :: into (crate :: prisma :: role :: description :: Select) } ; (@ selection_field_to_selection_param ; user_roles $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: role :: SelectParam > :: into (crate :: prisma :: role :: user_roles :: Select :: $ selection_mode (crate :: prisma :: guest_role :: ManyArgs :: new (crate :: prisma :: guest_role :: select ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ? , crate :: prisma :: guest_role :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; user_roles $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: role :: SelectParam > :: into (crate :: prisma :: role :: user_roles :: Select :: Fetch (crate :: prisma :: guest_role :: ManyArgs :: new (crate :: prisma :: guest_role :: select ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ?) ,) } } ; (@ selection_field_to_selection_param ; $ ($ tokens : tt) *) => { compile_error ! (stringify ! ($ ($ tokens) *)) } ; (@ selections_to_params ; : $ macro_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { [$ (crate :: prisma :: role :: $ macro_name ! (@ selection_field_to_selection_param ; $ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) ,) +] } ; (@ filters_to_args ;) => { vec ! [] } ; (@ filters_to_args ; $ ($ t : tt) *) => { $ ($ t) * } ; (@ field_serde_name ; id) => { "id" } ; (@ field_serde_name ; name) => { "name" } ; (@ field_serde_name ; slug) => { "slug" } ; (@ field_serde_name ; description) => { "description" } ; (@ field_serde_name ; user_roles) => { "user_roles" } ; }
-    pub use _select_role as select;
-    pub enum SelectParam {
-        Id(id::Select),
-        Name(name::Select),
-        Slug(slug::Select),
-        Description(description::Select),
-        UserRoles(user_roles::Select),
-    }
-    impl SelectParam {
-        pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-            match self {
-                Self::Id(data) => data.to_selection(),
-                Self::Name(data) => data.to_selection(),
-                Self::Slug(data) => data.to_selection(),
-                Self::Description(data) => data.to_selection(),
-                Self::UserRoles(data) => data.to_selection(),
-            }
-        }
-    }
-    #[macro_export]
-    macro_rules ! _include_role { ($ (($ ($ func_arg : ident : $ func_arg_ty : ty) , +) =>) ? $ module_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { # [allow (warnings)] pub mod $ module_name { crate :: prisma :: role :: include ! (@ definitions ; $ module_name ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; use super :: * ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: IncludeType for Selection { type Data = Data ; type ModelData = crate :: prisma :: role :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } pub fn include ($ ($ ($ func_arg : $ func_arg_ty) , +) ?) -> Selection { Selection ([crate :: prisma :: role :: include ! (@ selections_to_params ; : include { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () , < crate :: prisma :: role :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections ()] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } } ; ({ $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { { crate :: prisma :: role :: include ! (@ definitions ; ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: IncludeType for Selection { type Data = Data ; type ModelData = crate :: prisma :: role :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } Selection ([crate :: prisma :: role :: include ! (@ selections_to_params ; : include { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () , < crate :: prisma :: role :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections ()] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } ; (@ definitions ; $ ($ module_name : ident) ? ; $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) +) => { # [allow (warnings)] enum Fields { user_roles } # [allow (warnings)] impl Fields { fn selections () { $ (let _ = Fields :: $ field ;) + } } # [allow (warnings)] # [derive (std :: fmt :: Debug , Clone)] pub struct Data { pub id : String , pub name : String , pub slug : String , pub description : String , $ (pub $ field : crate :: prisma :: role :: include ! (@ field_type ; $ field $ (: $ selection_mode { $ ($ selections) + }) ?) ,) + } impl :: serde :: Serialize for Data { fn serialize < S > (& self , serializer : S) -> Result < S :: Ok , S :: Error > where S : :: serde :: Serializer , { use :: serde :: ser :: SerializeStruct ; let mut state = serializer . serialize_struct ("Data" , [$ (stringify ! ($ field) ,) + stringify ! (id) , stringify ! (name) , stringify ! (slug) , stringify ! (description)] . len ()) ? ; $ (state . serialize_field (crate :: prisma :: role :: $ field :: NAME , & self . $ field) ? ;) * state . serialize_field (crate :: prisma :: role :: id :: NAME , & self . id) ? ; state . serialize_field (crate :: prisma :: role :: name :: NAME , & self . name) ? ; state . serialize_field (crate :: prisma :: role :: slug :: NAME , & self . slug) ? ; state . serialize_field (crate :: prisma :: role :: description :: NAME , & self . description) ? ; state . end () } } impl < 'de > :: serde :: Deserialize < 'de > for Data { fn deserialize < D > (deserializer : D) -> Result < Self , D :: Error > where D : :: serde :: Deserializer < 'de > , { # [allow (warnings)] enum Field { $ ($ field) , + , id , name , slug , description } impl < 'de > :: serde :: Deserialize < 'de > for Field { fn deserialize < D > (deserializer : D) -> Result < Field , D :: Error > where D : :: serde :: Deserializer < 'de > , { struct FieldVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for FieldVisitor { type Value = Field ; fn expecting (& self , formatter : & mut :: std :: fmt :: Formatter) -> :: std :: fmt :: Result { formatter . write_str (& [$ (crate :: prisma :: role :: $ field :: NAME) , + , crate :: prisma :: role :: id :: NAME , crate :: prisma :: role :: name :: NAME , crate :: prisma :: role :: slug :: NAME , crate :: prisma :: role :: description :: NAME] . into_iter () . collect :: < Vec < _ >> () . join (", ")) } fn visit_str < E > (self , value : & str) -> Result < Field , E > where E : :: serde :: de :: Error , { match value { $ (crate :: prisma :: role :: $ field :: NAME => Ok (Field :: $ field)) , * , crate :: prisma :: role :: id :: NAME => Ok (Field :: id) , crate :: prisma :: role :: name :: NAME => Ok (Field :: name) , crate :: prisma :: role :: slug :: NAME => Ok (Field :: slug) , crate :: prisma :: role :: description :: NAME => Ok (Field :: description) , _ => Err (:: serde :: de :: Error :: unknown_field (value , FIELDS)) , } } } deserializer . deserialize_identifier (FieldVisitor) } } struct DataVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for DataVisitor { type Value = Data ; fn expecting (& self , formatter : & mut std :: fmt :: Formatter) -> std :: fmt :: Result { formatter . write_str ("struct Data") } fn visit_map < V > (self , mut map : V) -> Result < Data , V :: Error > where V : :: serde :: de :: MapAccess < 'de > , { $ (let mut $ field = None ;) * let mut id = None ; let mut name = None ; let mut slug = None ; let mut description = None ; while let Some (key) = map . next_key () ? { match key { Field :: id => { if id . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: role :: id :: NAME)) ; } id = Some (map . next_value () ?) ; } Field :: name => { if name . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: role :: name :: NAME)) ; } name = Some (map . next_value () ?) ; } Field :: slug => { if slug . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: role :: slug :: NAME)) ; } slug = Some (map . next_value () ?) ; } Field :: description => { if description . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: role :: description :: NAME)) ; } description = Some (map . next_value () ?) ; } $ (Field :: $ field => { if $ field . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: role :: $ field :: NAME)) ; } $ field = Some (map . next_value () ?) ; }) * } } $ (let $ field = $ field . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: role :: $ field :: NAME)) ? ;) * let id = id . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: role :: id :: NAME)) ? ; let name = name . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: role :: name :: NAME)) ? ; let slug = slug . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: role :: slug :: NAME)) ? ; let description = description . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: role :: description :: NAME)) ? ; Ok (Data { id , name , slug , description , $ ($ field) , * }) } } const FIELDS : & 'static [& 'static str] = & ["id" , "name" , "slug" , "description" , "user_roles"] ; deserializer . deserialize_struct ("Data" , FIELDS , DataVisitor) } } $ ($ (pub mod $ field { crate :: prisma :: role :: $ selection_mode ! (@ field_module ; $ field : $ selection_mode { $ ($ selections) + }) ; }) ?) + } ; (@ field_type ; user_roles : $ selection_mode : ident { $ ($ selections : tt) + }) => { Vec < user_roles :: Data > } ; (@ field_type ; user_roles) => { Vec < crate :: prisma :: guest_role :: Data > } ; (@ field_type ; $ field : ident $ ($ tokens : tt) *) => { compile_error ! (stringify ! (Cannot include nonexistent relation $ field on model "Role" , available relations are "user_roles")) } ; (@ field_module ; user_roles : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: guest_role :: include ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; $ ($ tokens : tt) *) => { } ; (@ selection_field_to_selection_param ; user_roles $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: role :: IncludeParam > :: into (crate :: prisma :: role :: user_roles :: Include :: $ selection_mode (crate :: prisma :: guest_role :: ManyArgs :: new (crate :: prisma :: guest_role :: include ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ? , crate :: prisma :: guest_role :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; user_roles $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: role :: IncludeParam > :: into (crate :: prisma :: role :: user_roles :: Include :: Fetch (crate :: prisma :: guest_role :: ManyArgs :: new (crate :: prisma :: guest_role :: include ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ?) ,) } } ; (@ selection_field_to_selection_param ; $ ($ tokens : tt) *) => { compile_error ! (stringify ! ($ ($ tokens) *)) } ; (@ selections_to_params ; : $ macro_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { [$ (crate :: prisma :: role :: $ macro_name ! (@ selection_field_to_selection_param ; $ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) ,) +] } ; (@ filters_to_args ;) => { vec ! [] } ; (@ filters_to_args ; $ ($ t : tt) *) => { $ ($ t) * } ; (@ field_serde_name ; id) => { "id" } ; (@ field_serde_name ; name) => { "name" } ; (@ field_serde_name ; slug) => { "slug" } ; (@ field_serde_name ; description) => { "description" } ; (@ field_serde_name ; user_roles) => { "user_roles" } ; }
-    pub use _include_role as include;
-    pub enum IncludeParam {
-        Id(id::Include),
-        Name(name::Include),
-        Slug(slug::Include),
-        Description(description::Include),
-        UserRoles(user_roles::Include),
-    }
-    impl IncludeParam {
-        pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-            match self {
-                Self::Id(data) => data.to_selection(),
-                Self::Name(data) => data.to_selection(),
-                Self::Slug(data) => data.to_selection(),
-                Self::Description(data) => data.to_selection(),
-                Self::UserRoles(data) => data.to_selection(),
-            }
-        }
-    }
-    #[macro_export]
-    macro_rules ! _partial_unchecked_role { ($ struct_name : ident { $ ($ scalar_field : ident) + }) => { :: prisma_client_rust :: macros :: partial_unchecked ! { crate :: prisma :: role struct $ struct_name { # [serde (rename = "id")] pub id : String , # [serde (rename = "name")] pub name : String , # [serde (rename = "slug")] pub slug : String , # [serde (rename = "description")] pub description : String } [$ ($ scalar_field) , +] } } ; }
-    pub use _partial_unchecked_role as partial_unchecked;
-    #[derive(Debug, Clone, :: serde :: Serialize, :: serde :: Deserialize)]
-    pub struct Data {
-        #[serde(rename = "id")]
-        pub id: String,
-        #[serde(rename = "name")]
-        pub name: String,
-        #[serde(rename = "slug")]
-        pub slug: String,
-        #[serde(rename = "description")]
-        pub description: String,
-        #[serde(rename = "user_roles")]
-        pub user_roles: Option<Vec<super::guest_role::Data>>,
-    }
-    impl Data {
-        pub fn user_roles(
-            &self,
-        ) -> Result<
-            &Vec<super::guest_role::Data>,
-            ::prisma_client_rust::RelationNotFetchedError,
-        > {
-            self.user_roles.as_ref().ok_or(
-                ::prisma_client_rust::RelationNotFetchedError::new(stringify!(
-                    user_roles
-                )),
-            )
-        }
-    }
-    #[derive(Clone)]
-    pub enum WithParam {
-        UserRoles(super::guest_role::ManyArgs),
-    }
-    impl Into<::prisma_client_rust::Selection> for WithParam {
-        fn into(self) -> ::prisma_client_rust::Selection {
-            match self {
-                Self::UserRoles(args) => {
-                    let (arguments, mut nested_selections) = args.to_graphql();
-                    nested_selections . extend (< super :: guest_role :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections ()) ;
-                    ::prisma_client_rust::Selection::new(
-                        user_roles::NAME,
-                        None,
-                        arguments,
-                        nested_selections,
-                    )
-                }
-            }
-        }
-    }
-    #[derive(Clone)]
-    pub enum SetParam {
-        SetId(String),
-        SetName(String),
-        SetSlug(String),
-        SetDescription(String),
-        ConnectUserRoles(Vec<super::guest_role::UniqueWhereParam>),
-        DisconnectUserRoles(Vec<super::guest_role::UniqueWhereParam>),
-        SetUserRoles(Vec<super::guest_role::UniqueWhereParam>),
-    }
-    impl From<SetParam> for (String, ::prisma_client_rust::PrismaValue) {
-        fn from(param: SetParam) -> Self {
-            match param { SetParam :: SetId (value) => (id :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: String (value)) , SetParam :: SetName (value) => (name :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: String (value)) , SetParam :: SetSlug (value) => (slug :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: String (value)) , SetParam :: SetDescription (value) => (description :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: String (value)) , SetParam :: ConnectUserRoles (where_params) => (user_roles :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("connect" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_role :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: DisconnectUserRoles (where_params) => (user_roles :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("disconnect" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_role :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: SetUserRoles (where_params) => (user_roles :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("set" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_role :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) }
-        }
-    }
-    #[derive(Clone)]
-    pub enum UncheckedSetParam {
-        Id(String),
-        Name(String),
-        Slug(String),
-        Description(String),
-    }
-    impl From<UncheckedSetParam> for SetParam {
-        fn from(param: UncheckedSetParam) -> Self {
-            match param {
-                UncheckedSetParam::Id(value) => Self::SetId(value),
-                UncheckedSetParam::Name(value) => Self::SetName(value),
-                UncheckedSetParam::Slug(value) => Self::SetSlug(value),
-                UncheckedSetParam::Description(value) => {
-                    Self::SetDescription(value)
-                }
-            }
-        }
-    }
-    #[derive(Clone)]
-    pub enum OrderByParam {
-        Id(::prisma_client_rust::Direction),
-        Name(::prisma_client_rust::Direction),
-        Slug(::prisma_client_rust::Direction),
-        Description(::prisma_client_rust::Direction),
-    }
-    impl Into<(String, ::prisma_client_rust::PrismaValue)> for OrderByParam {
-        fn into(self) -> (String, ::prisma_client_rust::PrismaValue) {
-            match self {
-                Self::Id(direction) => (
-                    id::NAME.to_string(),
-                    ::prisma_client_rust::PrismaValue::String(
-                        direction.to_string(),
-                    ),
-                ),
-                Self::Name(direction) => (
-                    name::NAME.to_string(),
-                    ::prisma_client_rust::PrismaValue::String(
-                        direction.to_string(),
-                    ),
-                ),
-                Self::Slug(direction) => (
-                    slug::NAME.to_string(),
-                    ::prisma_client_rust::PrismaValue::String(
-                        direction.to_string(),
-                    ),
-                ),
-                Self::Description(direction) => (
-                    description::NAME.to_string(),
-                    ::prisma_client_rust::PrismaValue::String(
-                        direction.to_string(),
-                    ),
-                ),
-            }
-        }
-    }
-    #[derive(Clone)]
-    pub enum WhereParam {
-        Not(Vec<WhereParam>),
-        Or(Vec<WhereParam>),
-        And(Vec<WhereParam>),
-        Id(_prisma::read_filters::StringFilter),
-        Name(_prisma::read_filters::StringFilter),
-        Slug(_prisma::read_filters::StringFilter),
-        Description(_prisma::read_filters::StringFilter),
-        UserRolesSome(Vec<super::guest_role::WhereParam>),
-        UserRolesEvery(Vec<super::guest_role::WhereParam>),
-        UserRolesNone(Vec<super::guest_role::WhereParam>),
-    }
-    impl ::prisma_client_rust::WhereInput for WhereParam {
-        fn serialize(self) -> ::prisma_client_rust::SerializedWhereInput {
-            let (name , value) = match self { Self :: Not (value) => ("NOT" , :: prisma_client_rust :: SerializedWhereValue :: Object (:: prisma_client_rust :: merge_fields (value . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (Into :: into) . collect ())) ,) , Self :: Or (value) => ("OR" , :: prisma_client_rust :: SerializedWhereValue :: List (value . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (Into :: into) . map (| v | vec ! [v]) . map (:: prisma_client_rust :: PrismaValue :: Object) . collect ()) ,) , Self :: And (value) => ("AND" , :: prisma_client_rust :: SerializedWhereValue :: Object (:: prisma_client_rust :: merge_fields (value . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (Into :: into) . collect ())) ,) , Self :: Id (value) => (id :: NAME , value . into ()) , Self :: Name (value) => (name :: NAME , value . into ()) , Self :: Slug (value) => (slug :: NAME , value . into ()) , Self :: Description (value) => (description :: NAME , value . into ()) , Self :: UserRolesSome (where_params) => (user_roles :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("some" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: UserRolesEvery (where_params) => (user_roles :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("every" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: UserRolesNone (where_params) => (user_roles :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("none" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) } ;
-            ::prisma_client_rust::SerializedWhereInput::new(name, value.into())
-        }
-    }
-    #[derive(Clone)]
-    pub enum UniqueWhereParam {
-        NameEquals(String),
-        SlugEquals(String),
-        IdEquals(String),
-    }
-    impl From<UniqueWhereParam> for WhereParam {
-        fn from(value: UniqueWhereParam) -> Self {
-            match value {
-                UniqueWhereParam::NameEquals(value) => Self::Name(
-                    _prisma::read_filters::StringFilter::Equals(value),
-                ),
-                UniqueWhereParam::SlugEquals(value) => Self::Slug(
-                    _prisma::read_filters::StringFilter::Equals(value),
-                ),
-                UniqueWhereParam::IdEquals(value) => {
-                    Self::Id(_prisma::read_filters::StringFilter::Equals(value))
-                }
-            }
-        }
-    }
-    impl From<::prisma_client_rust::Operator<Self>> for WhereParam {
-        fn from(op: ::prisma_client_rust::Operator<Self>) -> Self {
-            match op {
-                ::prisma_client_rust::Operator::Not(value) => Self::Not(value),
-                ::prisma_client_rust::Operator::And(value) => Self::And(value),
-                ::prisma_client_rust::Operator::Or(value) => Self::Or(value),
-            }
-        }
-    }
-    #[derive(Clone)]
-    pub struct Types;
-    impl ::prisma_client_rust::ModelTypes for Types {
-        type Data = Data;
-        type Where = WhereParam;
-        type UncheckedSet = UncheckedSetParam;
-        type Set = SetParam;
-        type With = WithParam;
-        type OrderBy = OrderByParam;
-        type Cursor = UniqueWhereParam;
-        const MODEL: &'static str = NAME;
-        fn scalar_selections() -> Vec<::prisma_client_rust::Selection> {
-            vec![
-                ::prisma_client_rust::sel(id::NAME),
-                ::prisma_client_rust::sel(name::NAME),
-                ::prisma_client_rust::sel(slug::NAME),
-                ::prisma_client_rust::sel(description::NAME),
-            ]
-        }
-    }
-    pub type UniqueArgs = ::prisma_client_rust::UniqueArgs<Types>;
-    pub type ManyArgs = ::prisma_client_rust::ManyArgs<Types>;
-    pub type Count<'a> = ::prisma_client_rust::Count<'a, Types>;
-    pub type Create<'a> = ::prisma_client_rust::Create<'a, Types>;
-    pub type CreateMany<'a> = ::prisma_client_rust::CreateMany<'a, Types>;
-    pub type FindUnique<'a> = ::prisma_client_rust::FindUnique<'a, Types>;
-    pub type FindMany<'a> = ::prisma_client_rust::FindMany<'a, Types>;
-    pub type FindFirst<'a> = ::prisma_client_rust::FindFirst<'a, Types>;
-    pub type Update<'a> = ::prisma_client_rust::Update<'a, Types>;
-    pub type UpdateMany<'a> = ::prisma_client_rust::UpdateMany<'a, Types>;
-    pub type Upsert<'a> = ::prisma_client_rust::Upsert<'a, Types>;
-    pub type Delete<'a> = ::prisma_client_rust::Delete<'a, Types>;
-    pub type DeleteMany<'a> = ::prisma_client_rust::DeleteMany<'a, Types>;
-    #[derive(Clone)]
-    pub struct Actions<'a> {
-        pub client: &'a ::prisma_client_rust::PrismaClientInternals,
-    }
-    impl<'a> Actions<'a> {
-        pub fn find_unique(self, _where: UniqueWhereParam) -> FindUnique<'a> {
-            FindUnique::new(self.client, _where.into())
-        }
-        pub fn find_first(self, _where: Vec<WhereParam>) -> FindFirst<'a> {
-            FindFirst::new(self.client, _where)
-        }
-        pub fn find_many(self, _where: Vec<WhereParam>) -> FindMany<'a> {
-            FindMany::new(self.client, _where)
-        }
-        pub fn create(
-            self,
-            name: String,
-            slug: String,
-            description: String,
-            mut _params: Vec<SetParam>,
-        ) -> Create<'a> {
-            _params.extend([
-                name::set(name),
-                slug::set(slug),
-                description::set(description),
-            ]);
-            Create::new(self.client, _params)
-        }
-        pub fn create_unchecked(
-            self,
-            name: String,
-            slug: String,
-            description: String,
-            mut _params: Vec<UncheckedSetParam>,
-        ) -> Create<'a> {
-            _params.extend([
-                name::set(name),
-                slug::set(slug),
-                description::set(description),
-            ]);
-            Create::new(
-                self.client,
-                _params.into_iter().map(Into::into).collect(),
-            )
-        }
-        pub fn create_many(
-            self,
-            data: Vec<(String, String, String, Vec<SetParam>)>,
-        ) -> CreateMany<'a> {
-            let data = data
-                .into_iter()
-                .map(|(name, slug, description, mut _params)| {
-                    _params.extend([
-                        name::set(name),
-                        slug::set(slug),
-                        description::set(description),
-                    ]);
-                    _params
-                })
-                .collect();
-            CreateMany::new(self.client, data)
-        }
-        pub fn update(
-            self,
-            _where: UniqueWhereParam,
-            _params: Vec<SetParam>,
-        ) -> Update<'a> {
-            Update::new(self.client, _where.into(), _params, vec![])
-        }
-        pub fn update_unchecked(
-            self,
-            _where: UniqueWhereParam,
-            _params: Vec<UncheckedSetParam>,
-        ) -> Update<'a> {
-            Update::new(
-                self.client,
-                _where.into(),
-                _params.into_iter().map(Into::into).collect(),
-                vec![],
-            )
-        }
-        pub fn update_many(
-            self,
-            _where: Vec<WhereParam>,
-            _params: Vec<SetParam>,
-        ) -> UpdateMany<'a> {
-            UpdateMany::new(self.client, _where, _params)
-        }
-        pub fn upsert(
-            self,
-            _where: UniqueWhereParam,
-            (name, slug, description, mut _params): (
-                String,
-                String,
-                String,
-                Vec<SetParam>,
-            ),
-            _update: Vec<SetParam>,
-        ) -> Upsert<'a> {
-            _params.extend([
-                name::set(name),
-                slug::set(slug),
-                description::set(description),
-            ]);
-            Upsert::new(self.client, _where.into(), _params, _update)
-        }
-        pub fn delete(self, _where: UniqueWhereParam) -> Delete<'a> {
-            Delete::new(self.client, _where.into(), vec![])
-        }
-        pub fn delete_many(self, _where: Vec<WhereParam>) -> DeleteMany<'a> {
-            DeleteMany::new(self.client, _where)
-        }
-        pub fn count(self, _where: Vec<WhereParam>) -> Count<'a> {
-            Count::new(self.client, _where)
-        }
-    }
-}
 pub mod guest_role {
     use super::_prisma::*;
     use super::*;
@@ -8877,8 +8079,8 @@ pub mod guest_role {
         ) -> OrderByParam {
             OrderByParam::Name(direction)
         }
-        pub fn equals<T: From<UniqueWhereParam>>(value: String) -> T {
-            UniqueWhereParam::NameEquals(value).into()
+        pub fn equals(value: String) -> WhereParam {
+            WhereParam::Name(_prisma::read_filters::StringFilter::Equals(value))
         }
         ::prisma_client_rust::scalar_where_param_fns!(
             _prisma::read_filters::StringFilter,
@@ -8947,8 +8149,8 @@ pub mod guest_role {
         ) -> OrderByParam {
             OrderByParam::Slug(direction)
         }
-        pub fn equals<T: From<UniqueWhereParam>>(value: String) -> T {
-            UniqueWhereParam::SlugEquals(value).into()
+        pub fn equals(value: String) -> WhereParam {
+            WhereParam::Slug(_prisma::read_filters::StringFilter::Equals(value))
         }
         ::prisma_client_rust::scalar_where_param_fns!(
             _prisma::read_filters::StringFilter,
@@ -9054,171 +8256,6 @@ pub mod guest_role {
         impl Into<super::SelectParam> for Select {
             fn into(self) -> super::SelectParam {
                 super::SelectParam::Description(self)
-            }
-        }
-        impl Select {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                ::prisma_client_rust::sel(NAME)
-            }
-        }
-    }
-    pub mod role {
-        use super::super::*;
-        use super::_prisma::*;
-        use super::{
-            OrderByParam, SetParam, UncheckedSetParam, UniqueWhereParam,
-            WhereParam, WithParam,
-        };
-        pub const NAME: &str = "role";
-        pub struct Fetch(pub role::UniqueArgs);
-        impl Fetch {
-            pub fn with(mut self, params: impl Into<role::WithParam>) -> Self {
-                self.0 = self.0.with(params.into());
-                self
-            }
-        }
-        impl From<Fetch> for WithParam {
-            fn from(Fetch(v): Fetch) -> Self {
-                WithParam::Role(v)
-            }
-        }
-        pub fn fetch() -> Fetch {
-            Fetch(role::UniqueArgs::new())
-        }
-        pub struct Connect(role::UniqueWhereParam);
-        impl From<Connect> for SetParam {
-            fn from(Connect(v): Connect) -> Self {
-                Self::ConnectRole(v)
-            }
-        }
-        pub fn connect<T: From<Connect>>(value: role::UniqueWhereParam) -> T {
-            Connect(value).into()
-        }
-        pub fn is(value: Vec<role::WhereParam>) -> WhereParam {
-            WhereParam::RoleIs(value)
-        }
-        pub fn is_not(value: Vec<role::WhereParam>) -> WhereParam {
-            WhereParam::RoleIsNot(value)
-        }
-        pub enum Include {
-            Select(Vec<role::SelectParam>),
-            Include(Vec<role::IncludeParam>),
-            Fetch,
-        }
-        impl Into<super::IncludeParam> for Include {
-            fn into(self) -> super::IncludeParam {
-                super::IncludeParam::Role(self)
-            }
-        }
-        impl Include {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                let selections = match self { Self :: Select (selections) => { selections . into_iter () . map (| s | s . to_selection ()) . collect () } , Self :: Include (selections) => { let mut nested_selections = < role :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections () ; nested_selections . extend (selections . into_iter () . map (| s | s . to_selection ())) ; nested_selections } , Self :: Fetch => { < role :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections () } } ;
-                ::prisma_client_rust::Selection::new(
-                    "role",
-                    None,
-                    [],
-                    selections,
-                )
-            }
-            pub fn select(nested_selections: Vec<role::SelectParam>) -> Self {
-                Self::Select(nested_selections)
-            }
-            pub fn include(nested_selections: Vec<role::IncludeParam>) -> Self {
-                Self::Include(nested_selections)
-            }
-        }
-        pub enum Select {
-            Select(Vec<role::SelectParam>),
-            Include(Vec<role::IncludeParam>),
-            Fetch,
-        }
-        impl Into<super::SelectParam> for Select {
-            fn into(self) -> super::SelectParam {
-                super::SelectParam::Role(self)
-            }
-        }
-        impl Select {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                let selections = match self { Self :: Select (selections) => { selections . into_iter () . map (| s | s . to_selection ()) . collect () } , Self :: Include (selections) => { let mut nested_selections = vec ! [] ; nested_selections . extend (selections . into_iter () . map (| s | s . to_selection ())) ; nested_selections } , Self :: Fetch => { < role :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections () } } ;
-                ::prisma_client_rust::Selection::new(
-                    "role",
-                    None,
-                    [],
-                    selections,
-                )
-            }
-            pub fn select(nested_selections: Vec<role::SelectParam>) -> Self {
-                Self::Select(nested_selections)
-            }
-            pub fn include(nested_selections: Vec<role::IncludeParam>) -> Self {
-                Self::Include(nested_selections)
-            }
-        }
-    }
-    pub mod role_id {
-        use super::super::*;
-        use super::_prisma::*;
-        use super::{
-            OrderByParam, SetParam, UncheckedSetParam, UniqueWhereParam,
-            WhereParam, WithParam,
-        };
-        pub const NAME: &str = "role_id";
-        pub struct Set(pub String);
-        impl From<Set> for SetParam {
-            fn from(Set(v): Set) -> Self {
-                Self::SetRoleId(v)
-            }
-        }
-        impl From<Set> for UncheckedSetParam {
-            fn from(Set(v): Set) -> Self {
-                Self::RoleId(v)
-            }
-        }
-        pub fn set<T: From<Set>>(value: String) -> T {
-            Set(value).into()
-        }
-        pub fn order(
-            direction: ::prisma_client_rust::Direction,
-        ) -> OrderByParam {
-            OrderByParam::RoleId(direction)
-        }
-        pub fn equals(value: String) -> WhereParam {
-            WhereParam::RoleId(_prisma::read_filters::StringFilter::Equals(
-                value,
-            ))
-        }
-        ::prisma_client_rust::scalar_where_param_fns!(
-            _prisma::read_filters::StringFilter,
-            RoleId,
-            {
-                fn in_vec(_: Vec<String>) -> InVec;
-                fn not_in_vec(_: Vec<String>) -> NotInVec;
-                fn lt(_: String) -> Lt;
-                fn lte(_: String) -> Lte;
-                fn gt(_: String) -> Gt;
-                fn gte(_: String) -> Gte;
-                fn contains(_: String) -> Contains;
-                fn starts_with(_: String) -> StartsWith;
-                fn ends_with(_: String) -> EndsWith;
-                fn mode(_: super::super::QueryMode) -> Mode;
-                fn not(_: String) -> Not;
-            }
-        );
-        pub struct Include;
-        impl Into<super::IncludeParam> for Include {
-            fn into(self) -> super::IncludeParam {
-                super::IncludeParam::RoleId(self)
-            }
-        }
-        impl Include {
-            pub fn to_selection(self) -> ::prisma_client_rust::Selection {
-                ::prisma_client_rust::sel(NAME)
-            }
-        }
-        pub struct Select;
-        impl Into<super::SelectParam> for Select {
-            fn into(self) -> super::SelectParam {
-                super::SelectParam::RoleId(self)
             }
         }
         impl Select {
@@ -9747,32 +8784,40 @@ pub mod guest_role {
             }
         }
     }
+    pub fn name_permission<T: From<UniqueWhereParam>>(
+        name: String,
+        permission: i32,
+    ) -> T {
+        UniqueWhereParam::NamePermissionEquals(name, permission).into()
+    }
+    pub fn slug_permission<T: From<UniqueWhereParam>>(
+        slug: String,
+        permission: i32,
+    ) -> T {
+        UniqueWhereParam::SlugPermissionEquals(slug, permission).into()
+    }
     pub fn create(
         name: String,
         slug: String,
-        role: super::role::UniqueWhereParam,
         _params: Vec<SetParam>,
-    ) -> (String, String, super::role::UniqueWhereParam, Vec<SetParam>) {
-        (name, slug, role, _params)
+    ) -> (String, String, Vec<SetParam>) {
+        (name, slug, _params)
     }
     pub fn create_unchecked(
         name: String,
         slug: String,
-        role_id: String,
         _params: Vec<SetParam>,
-    ) -> (String, String, String, Vec<SetParam>) {
-        (name, slug, role_id, _params)
+    ) -> (String, String, Vec<SetParam>) {
+        (name, slug, _params)
     }
     #[macro_export]
-    macro_rules ! _select_guest_role { ($ (($ ($ func_arg : ident : $ func_arg_ty : ty) , +) =>) ? $ module_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { # [allow (warnings)] pub mod $ module_name { crate :: prisma :: guest_role :: select ! (@ definitions ; $ module_name ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; use super :: * ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: SelectType for Selection { type Data = Data ; type ModelData = crate :: prisma :: guest_role :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } pub fn select ($ ($ ($ func_arg : $ func_arg_ty) , +) ?) -> Selection { Selection ([crate :: prisma :: guest_role :: select ! (@ selections_to_params ; : select { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () ,] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } } ; ({ $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { { crate :: prisma :: guest_role :: select ! (@ definitions ; ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: SelectType for Selection { type Data = Data ; type ModelData = crate :: prisma :: guest_role :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } Selection ([crate :: prisma :: guest_role :: select ! (@ selections_to_params ; : select { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () ,] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } ; (@ definitions ; $ ($ module_name : ident) ? ; $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) +) => { # [allow (warnings)] enum Fields { id , name , slug , description , role , role_id , permission , guest_users , children , parent } # [allow (warnings)] impl Fields { fn selections () { $ (let _ = Fields :: $ field ;) + } } # [allow (warnings)] # [derive (std :: fmt :: Debug , Clone)] pub struct Data { $ (pub $ field : crate :: prisma :: guest_role :: select ! (@ field_type ; $ field $ (: $ selection_mode { $ ($ selections) + }) ?) ,) + } impl :: serde :: Serialize for Data { fn serialize < S > (& self , serializer : S) -> Result < S :: Ok , S :: Error > where S : :: serde :: Serializer , { use :: serde :: ser :: SerializeStruct ; let mut state = serializer . serialize_struct ("Data" , [$ (stringify ! ($ field) ,) +] . len ()) ? ; $ (state . serialize_field (crate :: prisma :: guest_role :: $ field :: NAME , & self . $ field) ? ;) * state . end () } } impl < 'de > :: serde :: Deserialize < 'de > for Data { fn deserialize < D > (deserializer : D) -> Result < Self , D :: Error > where D : :: serde :: Deserializer < 'de > , { # [allow (warnings)] enum Field { $ ($ field) , + , } impl < 'de > :: serde :: Deserialize < 'de > for Field { fn deserialize < D > (deserializer : D) -> Result < Field , D :: Error > where D : :: serde :: Deserializer < 'de > , { struct FieldVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for FieldVisitor { type Value = Field ; fn expecting (& self , formatter : & mut :: std :: fmt :: Formatter) -> :: std :: fmt :: Result { formatter . write_str (& [$ (crate :: prisma :: guest_role :: $ field :: NAME) , + ,] . into_iter () . collect :: < Vec < _ >> () . join (", ")) } fn visit_str < E > (self , value : & str) -> Result < Field , E > where E : :: serde :: de :: Error , { match value { $ (crate :: prisma :: guest_role :: $ field :: NAME => Ok (Field :: $ field)) , * , _ => Err (:: serde :: de :: Error :: unknown_field (value , FIELDS)) , } } } deserializer . deserialize_identifier (FieldVisitor) } } struct DataVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for DataVisitor { type Value = Data ; fn expecting (& self , formatter : & mut std :: fmt :: Formatter) -> std :: fmt :: Result { formatter . write_str ("struct Data") } fn visit_map < V > (self , mut map : V) -> Result < Data , V :: Error > where V : :: serde :: de :: MapAccess < 'de > , { $ (let mut $ field = None ;) * while let Some (key) = map . next_key () ? { match key { $ (Field :: $ field => { if $ field . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: guest_role :: $ field :: NAME)) ; } $ field = Some (map . next_value () ?) ; }) * } } $ (let $ field = $ field . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: guest_role :: $ field :: NAME)) ? ;) * Ok (Data { $ ($ field) , * }) } } const FIELDS : & 'static [& 'static str] = & ["id" , "name" , "slug" , "description" , "role" , "role_id" , "permission" , "guest_users" , "children" , "parent"] ; deserializer . deserialize_struct ("Data" , FIELDS , DataVisitor) } } $ ($ (pub mod $ field { crate :: prisma :: guest_role :: $ selection_mode ! (@ field_module ; $ field : $ selection_mode { $ ($ selections) + }) ; }) ?) + } ; (@ field_type ; id) => { String } ; (@ field_type ; name) => { String } ; (@ field_type ; slug) => { String } ; (@ field_type ; description) => { Option < String > } ; (@ field_type ; role : $ selection_mode : ident { $ ($ selections : tt) + }) => { role :: Data } ; (@ field_type ; role) => { crate :: prisma :: role :: Data } ; (@ field_type ; role_id) => { String } ; (@ field_type ; permission) => { i32 } ; (@ field_type ; guest_users : $ selection_mode : ident { $ ($ selections : tt) + }) => { Vec < guest_users :: Data > } ; (@ field_type ; guest_users) => { Vec < crate :: prisma :: guest_user :: Data > } ; (@ field_type ; children : $ selection_mode : ident { $ ($ selections : tt) + }) => { Vec < children :: Data > } ; (@ field_type ; children) => { Vec < crate :: prisma :: guest_role_children :: Data > } ; (@ field_type ; parent : $ selection_mode : ident { $ ($ selections : tt) + }) => { Vec < parent :: Data > } ; (@ field_type ; parent) => { Vec < crate :: prisma :: guest_role_children :: Data > } ; (@ field_type ; $ field : ident $ ($ tokens : tt) *) => { compile_error ! (stringify ! (Cannot include nonexistent relation $ field on model "GuestRole" , available relations are "id, name, slug, description, role, role_id, permission, guest_users, children, parent")) } ; (@ field_module ; role : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: role :: select ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; guest_users : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: guest_user :: select ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; children : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: guest_role_children :: select ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; parent : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: guest_role_children :: select ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; $ ($ tokens : tt) *) => { } ; (@ selection_field_to_selection_param ; id) => { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: id :: Select) } ; (@ selection_field_to_selection_param ; name) => { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: name :: Select) } ; (@ selection_field_to_selection_param ; slug) => { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: slug :: Select) } ; (@ selection_field_to_selection_param ; description) => { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: description :: Select) } ; (@ selection_field_to_selection_param ; role $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: role :: Select :: $ selection_mode (crate :: prisma :: role :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; role $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: role :: Select :: Fetch) } } ; (@ selection_field_to_selection_param ; role_id) => { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: role_id :: Select) } ; (@ selection_field_to_selection_param ; permission) => { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: permission :: Select) } ; (@ selection_field_to_selection_param ; guest_users $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: guest_users :: Select :: $ selection_mode (crate :: prisma :: guest_user :: ManyArgs :: new (crate :: prisma :: guest_user :: select ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ? , crate :: prisma :: guest_user :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; guest_users $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: guest_users :: Select :: Fetch (crate :: prisma :: guest_user :: ManyArgs :: new (crate :: prisma :: guest_user :: select ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ?) ,) } } ; (@ selection_field_to_selection_param ; children $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: children :: Select :: $ selection_mode (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: select ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ? , crate :: prisma :: guest_role_children :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; children $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: children :: Select :: Fetch (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: select ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ?) ,) } } ; (@ selection_field_to_selection_param ; parent $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: parent :: Select :: $ selection_mode (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: select ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ? , crate :: prisma :: guest_role_children :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; parent $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: parent :: Select :: Fetch (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: select ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ?) ,) } } ; (@ selection_field_to_selection_param ; $ ($ tokens : tt) *) => { compile_error ! (stringify ! ($ ($ tokens) *)) } ; (@ selections_to_params ; : $ macro_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { [$ (crate :: prisma :: guest_role :: $ macro_name ! (@ selection_field_to_selection_param ; $ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) ,) +] } ; (@ filters_to_args ;) => { vec ! [] } ; (@ filters_to_args ; $ ($ t : tt) *) => { $ ($ t) * } ; (@ field_serde_name ; id) => { "id" } ; (@ field_serde_name ; name) => { "name" } ; (@ field_serde_name ; slug) => { "slug" } ; (@ field_serde_name ; description) => { "description" } ; (@ field_serde_name ; role) => { "role" } ; (@ field_serde_name ; role_id) => { "role_id" } ; (@ field_serde_name ; permission) => { "permission" } ; (@ field_serde_name ; guest_users) => { "guest_users" } ; (@ field_serde_name ; children) => { "children" } ; (@ field_serde_name ; parent) => { "parent" } ; }
+    macro_rules ! _select_guest_role { ($ (($ ($ func_arg : ident : $ func_arg_ty : ty) , +) =>) ? $ module_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { # [allow (warnings)] pub mod $ module_name { crate :: prisma :: guest_role :: select ! (@ definitions ; $ module_name ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; use super :: * ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: SelectType for Selection { type Data = Data ; type ModelData = crate :: prisma :: guest_role :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } pub fn select ($ ($ ($ func_arg : $ func_arg_ty) , +) ?) -> Selection { Selection ([crate :: prisma :: guest_role :: select ! (@ selections_to_params ; : select { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () ,] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } } ; ({ $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { { crate :: prisma :: guest_role :: select ! (@ definitions ; ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: SelectType for Selection { type Data = Data ; type ModelData = crate :: prisma :: guest_role :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } Selection ([crate :: prisma :: guest_role :: select ! (@ selections_to_params ; : select { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () ,] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } ; (@ definitions ; $ ($ module_name : ident) ? ; $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) +) => { # [allow (warnings)] enum Fields { id , name , slug , description , permission , guest_users , children , parent } # [allow (warnings)] impl Fields { fn selections () { $ (let _ = Fields :: $ field ;) + } } # [allow (warnings)] # [derive (std :: fmt :: Debug , Clone)] pub struct Data { $ (pub $ field : crate :: prisma :: guest_role :: select ! (@ field_type ; $ field $ (: $ selection_mode { $ ($ selections) + }) ?) ,) + } impl :: serde :: Serialize for Data { fn serialize < S > (& self , serializer : S) -> Result < S :: Ok , S :: Error > where S : :: serde :: Serializer , { use :: serde :: ser :: SerializeStruct ; let mut state = serializer . serialize_struct ("Data" , [$ (stringify ! ($ field) ,) +] . len ()) ? ; $ (state . serialize_field (crate :: prisma :: guest_role :: $ field :: NAME , & self . $ field) ? ;) * state . end () } } impl < 'de > :: serde :: Deserialize < 'de > for Data { fn deserialize < D > (deserializer : D) -> Result < Self , D :: Error > where D : :: serde :: Deserializer < 'de > , { # [allow (warnings)] enum Field { $ ($ field) , + , } impl < 'de > :: serde :: Deserialize < 'de > for Field { fn deserialize < D > (deserializer : D) -> Result < Field , D :: Error > where D : :: serde :: Deserializer < 'de > , { struct FieldVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for FieldVisitor { type Value = Field ; fn expecting (& self , formatter : & mut :: std :: fmt :: Formatter) -> :: std :: fmt :: Result { formatter . write_str (& [$ (crate :: prisma :: guest_role :: $ field :: NAME) , + ,] . into_iter () . collect :: < Vec < _ >> () . join (", ")) } fn visit_str < E > (self , value : & str) -> Result < Field , E > where E : :: serde :: de :: Error , { match value { $ (crate :: prisma :: guest_role :: $ field :: NAME => Ok (Field :: $ field)) , * , _ => Err (:: serde :: de :: Error :: unknown_field (value , FIELDS)) , } } } deserializer . deserialize_identifier (FieldVisitor) } } struct DataVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for DataVisitor { type Value = Data ; fn expecting (& self , formatter : & mut std :: fmt :: Formatter) -> std :: fmt :: Result { formatter . write_str ("struct Data") } fn visit_map < V > (self , mut map : V) -> Result < Data , V :: Error > where V : :: serde :: de :: MapAccess < 'de > , { $ (let mut $ field = None ;) * while let Some (key) = map . next_key () ? { match key { $ (Field :: $ field => { if $ field . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: guest_role :: $ field :: NAME)) ; } $ field = Some (map . next_value () ?) ; }) * } } $ (let $ field = $ field . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: guest_role :: $ field :: NAME)) ? ;) * Ok (Data { $ ($ field) , * }) } } const FIELDS : & 'static [& 'static str] = & ["id" , "name" , "slug" , "description" , "permission" , "guest_users" , "children" , "parent"] ; deserializer . deserialize_struct ("Data" , FIELDS , DataVisitor) } } $ ($ (pub mod $ field { crate :: prisma :: guest_role :: $ selection_mode ! (@ field_module ; $ field : $ selection_mode { $ ($ selections) + }) ; }) ?) + } ; (@ field_type ; id) => { String } ; (@ field_type ; name) => { String } ; (@ field_type ; slug) => { String } ; (@ field_type ; description) => { Option < String > } ; (@ field_type ; permission) => { i32 } ; (@ field_type ; guest_users : $ selection_mode : ident { $ ($ selections : tt) + }) => { Vec < guest_users :: Data > } ; (@ field_type ; guest_users) => { Vec < crate :: prisma :: guest_user :: Data > } ; (@ field_type ; children : $ selection_mode : ident { $ ($ selections : tt) + }) => { Vec < children :: Data > } ; (@ field_type ; children) => { Vec < crate :: prisma :: guest_role_children :: Data > } ; (@ field_type ; parent : $ selection_mode : ident { $ ($ selections : tt) + }) => { Vec < parent :: Data > } ; (@ field_type ; parent) => { Vec < crate :: prisma :: guest_role_children :: Data > } ; (@ field_type ; $ field : ident $ ($ tokens : tt) *) => { compile_error ! (stringify ! (Cannot include nonexistent relation $ field on model "GuestRole" , available relations are "id, name, slug, description, permission, guest_users, children, parent")) } ; (@ field_module ; guest_users : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: guest_user :: select ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; children : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: guest_role_children :: select ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; parent : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: guest_role_children :: select ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; $ ($ tokens : tt) *) => { } ; (@ selection_field_to_selection_param ; id) => { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: id :: Select) } ; (@ selection_field_to_selection_param ; name) => { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: name :: Select) } ; (@ selection_field_to_selection_param ; slug) => { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: slug :: Select) } ; (@ selection_field_to_selection_param ; description) => { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: description :: Select) } ; (@ selection_field_to_selection_param ; permission) => { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: permission :: Select) } ; (@ selection_field_to_selection_param ; guest_users $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: guest_users :: Select :: $ selection_mode (crate :: prisma :: guest_user :: ManyArgs :: new (crate :: prisma :: guest_user :: select ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ? , crate :: prisma :: guest_user :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; guest_users $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: guest_users :: Select :: Fetch (crate :: prisma :: guest_user :: ManyArgs :: new (crate :: prisma :: guest_user :: select ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ?) ,) } } ; (@ selection_field_to_selection_param ; children $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: children :: Select :: $ selection_mode (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: select ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ? , crate :: prisma :: guest_role_children :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; children $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: children :: Select :: Fetch (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: select ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ?) ,) } } ; (@ selection_field_to_selection_param ; parent $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: parent :: Select :: $ selection_mode (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: select ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ? , crate :: prisma :: guest_role_children :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; parent $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: guest_role :: SelectParam > :: into (crate :: prisma :: guest_role :: parent :: Select :: Fetch (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: select ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ?) ,) } } ; (@ selection_field_to_selection_param ; $ ($ tokens : tt) *) => { compile_error ! (stringify ! ($ ($ tokens) *)) } ; (@ selections_to_params ; : $ macro_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { [$ (crate :: prisma :: guest_role :: $ macro_name ! (@ selection_field_to_selection_param ; $ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) ,) +] } ; (@ filters_to_args ;) => { vec ! [] } ; (@ filters_to_args ; $ ($ t : tt) *) => { $ ($ t) * } ; (@ field_serde_name ; id) => { "id" } ; (@ field_serde_name ; name) => { "name" } ; (@ field_serde_name ; slug) => { "slug" } ; (@ field_serde_name ; description) => { "description" } ; (@ field_serde_name ; permission) => { "permission" } ; (@ field_serde_name ; guest_users) => { "guest_users" } ; (@ field_serde_name ; children) => { "children" } ; (@ field_serde_name ; parent) => { "parent" } ; }
     pub use _select_guest_role as select;
     pub enum SelectParam {
         Id(id::Select),
         Name(name::Select),
         Slug(slug::Select),
         Description(description::Select),
-        Role(role::Select),
-        RoleId(role_id::Select),
         Permission(permission::Select),
         GuestUsers(guest_users::Select),
         Children(children::Select),
@@ -9785,8 +8830,6 @@ pub mod guest_role {
                 Self::Name(data) => data.to_selection(),
                 Self::Slug(data) => data.to_selection(),
                 Self::Description(data) => data.to_selection(),
-                Self::Role(data) => data.to_selection(),
-                Self::RoleId(data) => data.to_selection(),
                 Self::Permission(data) => data.to_selection(),
                 Self::GuestUsers(data) => data.to_selection(),
                 Self::Children(data) => data.to_selection(),
@@ -9795,15 +8838,13 @@ pub mod guest_role {
         }
     }
     #[macro_export]
-    macro_rules ! _include_guest_role { ($ (($ ($ func_arg : ident : $ func_arg_ty : ty) , +) =>) ? $ module_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { # [allow (warnings)] pub mod $ module_name { crate :: prisma :: guest_role :: include ! (@ definitions ; $ module_name ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; use super :: * ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: IncludeType for Selection { type Data = Data ; type ModelData = crate :: prisma :: guest_role :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } pub fn include ($ ($ ($ func_arg : $ func_arg_ty) , +) ?) -> Selection { Selection ([crate :: prisma :: guest_role :: include ! (@ selections_to_params ; : include { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () , < crate :: prisma :: guest_role :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections ()] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } } ; ({ $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { { crate :: prisma :: guest_role :: include ! (@ definitions ; ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: IncludeType for Selection { type Data = Data ; type ModelData = crate :: prisma :: guest_role :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } Selection ([crate :: prisma :: guest_role :: include ! (@ selections_to_params ; : include { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () , < crate :: prisma :: guest_role :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections ()] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } ; (@ definitions ; $ ($ module_name : ident) ? ; $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) +) => { # [allow (warnings)] enum Fields { role , guest_users , children , parent } # [allow (warnings)] impl Fields { fn selections () { $ (let _ = Fields :: $ field ;) + } } # [allow (warnings)] # [derive (std :: fmt :: Debug , Clone)] pub struct Data { pub id : String , pub name : String , pub slug : String , pub description : Option < String > , pub role_id : String , pub permission : i32 , $ (pub $ field : crate :: prisma :: guest_role :: include ! (@ field_type ; $ field $ (: $ selection_mode { $ ($ selections) + }) ?) ,) + } impl :: serde :: Serialize for Data { fn serialize < S > (& self , serializer : S) -> Result < S :: Ok , S :: Error > where S : :: serde :: Serializer , { use :: serde :: ser :: SerializeStruct ; let mut state = serializer . serialize_struct ("Data" , [$ (stringify ! ($ field) ,) + stringify ! (id) , stringify ! (name) , stringify ! (slug) , stringify ! (description) , stringify ! (role_id) , stringify ! (permission)] . len ()) ? ; $ (state . serialize_field (crate :: prisma :: guest_role :: $ field :: NAME , & self . $ field) ? ;) * state . serialize_field (crate :: prisma :: guest_role :: id :: NAME , & self . id) ? ; state . serialize_field (crate :: prisma :: guest_role :: name :: NAME , & self . name) ? ; state . serialize_field (crate :: prisma :: guest_role :: slug :: NAME , & self . slug) ? ; state . serialize_field (crate :: prisma :: guest_role :: description :: NAME , & self . description) ? ; state . serialize_field (crate :: prisma :: guest_role :: role_id :: NAME , & self . role_id) ? ; state . serialize_field (crate :: prisma :: guest_role :: permission :: NAME , & self . permission) ? ; state . end () } } impl < 'de > :: serde :: Deserialize < 'de > for Data { fn deserialize < D > (deserializer : D) -> Result < Self , D :: Error > where D : :: serde :: Deserializer < 'de > , { # [allow (warnings)] enum Field { $ ($ field) , + , id , name , slug , description , role_id , permission } impl < 'de > :: serde :: Deserialize < 'de > for Field { fn deserialize < D > (deserializer : D) -> Result < Field , D :: Error > where D : :: serde :: Deserializer < 'de > , { struct FieldVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for FieldVisitor { type Value = Field ; fn expecting (& self , formatter : & mut :: std :: fmt :: Formatter) -> :: std :: fmt :: Result { formatter . write_str (& [$ (crate :: prisma :: guest_role :: $ field :: NAME) , + , crate :: prisma :: guest_role :: id :: NAME , crate :: prisma :: guest_role :: name :: NAME , crate :: prisma :: guest_role :: slug :: NAME , crate :: prisma :: guest_role :: description :: NAME , crate :: prisma :: guest_role :: role_id :: NAME , crate :: prisma :: guest_role :: permission :: NAME] . into_iter () . collect :: < Vec < _ >> () . join (", ")) } fn visit_str < E > (self , value : & str) -> Result < Field , E > where E : :: serde :: de :: Error , { match value { $ (crate :: prisma :: guest_role :: $ field :: NAME => Ok (Field :: $ field)) , * , crate :: prisma :: guest_role :: id :: NAME => Ok (Field :: id) , crate :: prisma :: guest_role :: name :: NAME => Ok (Field :: name) , crate :: prisma :: guest_role :: slug :: NAME => Ok (Field :: slug) , crate :: prisma :: guest_role :: description :: NAME => Ok (Field :: description) , crate :: prisma :: guest_role :: role_id :: NAME => Ok (Field :: role_id) , crate :: prisma :: guest_role :: permission :: NAME => Ok (Field :: permission) , _ => Err (:: serde :: de :: Error :: unknown_field (value , FIELDS)) , } } } deserializer . deserialize_identifier (FieldVisitor) } } struct DataVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for DataVisitor { type Value = Data ; fn expecting (& self , formatter : & mut std :: fmt :: Formatter) -> std :: fmt :: Result { formatter . write_str ("struct Data") } fn visit_map < V > (self , mut map : V) -> Result < Data , V :: Error > where V : :: serde :: de :: MapAccess < 'de > , { $ (let mut $ field = None ;) * let mut id = None ; let mut name = None ; let mut slug = None ; let mut description = None ; let mut role_id = None ; let mut permission = None ; while let Some (key) = map . next_key () ? { match key { Field :: id => { if id . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: guest_role :: id :: NAME)) ; } id = Some (map . next_value () ?) ; } Field :: name => { if name . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: guest_role :: name :: NAME)) ; } name = Some (map . next_value () ?) ; } Field :: slug => { if slug . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: guest_role :: slug :: NAME)) ; } slug = Some (map . next_value () ?) ; } Field :: description => { if description . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: guest_role :: description :: NAME)) ; } description = Some (map . next_value () ?) ; } Field :: role_id => { if role_id . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: guest_role :: role_id :: NAME)) ; } role_id = Some (map . next_value () ?) ; } Field :: permission => { if permission . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: guest_role :: permission :: NAME)) ; } permission = Some (map . next_value () ?) ; } $ (Field :: $ field => { if $ field . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: guest_role :: $ field :: NAME)) ; } $ field = Some (map . next_value () ?) ; }) * } } $ (let $ field = $ field . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: guest_role :: $ field :: NAME)) ? ;) * let id = id . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: guest_role :: id :: NAME)) ? ; let name = name . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: guest_role :: name :: NAME)) ? ; let slug = slug . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: guest_role :: slug :: NAME)) ? ; let description = description . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: guest_role :: description :: NAME)) ? ; let role_id = role_id . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: guest_role :: role_id :: NAME)) ? ; let permission = permission . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: guest_role :: permission :: NAME)) ? ; Ok (Data { id , name , slug , description , role_id , permission , $ ($ field) , * }) } } const FIELDS : & 'static [& 'static str] = & ["id" , "name" , "slug" , "description" , "role" , "role_id" , "permission" , "guest_users" , "children" , "parent"] ; deserializer . deserialize_struct ("Data" , FIELDS , DataVisitor) } } $ ($ (pub mod $ field { crate :: prisma :: guest_role :: $ selection_mode ! (@ field_module ; $ field : $ selection_mode { $ ($ selections) + }) ; }) ?) + } ; (@ field_type ; role : $ selection_mode : ident { $ ($ selections : tt) + }) => { role :: Data } ; (@ field_type ; role) => { crate :: prisma :: role :: Data } ; (@ field_type ; guest_users : $ selection_mode : ident { $ ($ selections : tt) + }) => { Vec < guest_users :: Data > } ; (@ field_type ; guest_users) => { Vec < crate :: prisma :: guest_user :: Data > } ; (@ field_type ; children : $ selection_mode : ident { $ ($ selections : tt) + }) => { Vec < children :: Data > } ; (@ field_type ; children) => { Vec < crate :: prisma :: guest_role_children :: Data > } ; (@ field_type ; parent : $ selection_mode : ident { $ ($ selections : tt) + }) => { Vec < parent :: Data > } ; (@ field_type ; parent) => { Vec < crate :: prisma :: guest_role_children :: Data > } ; (@ field_type ; $ field : ident $ ($ tokens : tt) *) => { compile_error ! (stringify ! (Cannot include nonexistent relation $ field on model "GuestRole" , available relations are "role, guest_users, children, parent")) } ; (@ field_module ; role : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: role :: include ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; guest_users : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: guest_user :: include ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; children : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: guest_role_children :: include ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; parent : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: guest_role_children :: include ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; $ ($ tokens : tt) *) => { } ; (@ selection_field_to_selection_param ; role $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: guest_role :: IncludeParam > :: into (crate :: prisma :: guest_role :: role :: Include :: $ selection_mode (crate :: prisma :: role :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; role $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: guest_role :: IncludeParam > :: into (crate :: prisma :: guest_role :: role :: Include :: Fetch) } } ; (@ selection_field_to_selection_param ; guest_users $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: guest_role :: IncludeParam > :: into (crate :: prisma :: guest_role :: guest_users :: Include :: $ selection_mode (crate :: prisma :: guest_user :: ManyArgs :: new (crate :: prisma :: guest_user :: include ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ? , crate :: prisma :: guest_user :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; guest_users $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: guest_role :: IncludeParam > :: into (crate :: prisma :: guest_role :: guest_users :: Include :: Fetch (crate :: prisma :: guest_user :: ManyArgs :: new (crate :: prisma :: guest_user :: include ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ?) ,) } } ; (@ selection_field_to_selection_param ; children $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: guest_role :: IncludeParam > :: into (crate :: prisma :: guest_role :: children :: Include :: $ selection_mode (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: include ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ? , crate :: prisma :: guest_role_children :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; children $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: guest_role :: IncludeParam > :: into (crate :: prisma :: guest_role :: children :: Include :: Fetch (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: include ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ?) ,) } } ; (@ selection_field_to_selection_param ; parent $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: guest_role :: IncludeParam > :: into (crate :: prisma :: guest_role :: parent :: Include :: $ selection_mode (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: include ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ? , crate :: prisma :: guest_role_children :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; parent $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: guest_role :: IncludeParam > :: into (crate :: prisma :: guest_role :: parent :: Include :: Fetch (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: include ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ?) ,) } } ; (@ selection_field_to_selection_param ; $ ($ tokens : tt) *) => { compile_error ! (stringify ! ($ ($ tokens) *)) } ; (@ selections_to_params ; : $ macro_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { [$ (crate :: prisma :: guest_role :: $ macro_name ! (@ selection_field_to_selection_param ; $ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) ,) +] } ; (@ filters_to_args ;) => { vec ! [] } ; (@ filters_to_args ; $ ($ t : tt) *) => { $ ($ t) * } ; (@ field_serde_name ; id) => { "id" } ; (@ field_serde_name ; name) => { "name" } ; (@ field_serde_name ; slug) => { "slug" } ; (@ field_serde_name ; description) => { "description" } ; (@ field_serde_name ; role) => { "role" } ; (@ field_serde_name ; role_id) => { "role_id" } ; (@ field_serde_name ; permission) => { "permission" } ; (@ field_serde_name ; guest_users) => { "guest_users" } ; (@ field_serde_name ; children) => { "children" } ; (@ field_serde_name ; parent) => { "parent" } ; }
+    macro_rules ! _include_guest_role { ($ (($ ($ func_arg : ident : $ func_arg_ty : ty) , +) =>) ? $ module_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { # [allow (warnings)] pub mod $ module_name { crate :: prisma :: guest_role :: include ! (@ definitions ; $ module_name ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; use super :: * ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: IncludeType for Selection { type Data = Data ; type ModelData = crate :: prisma :: guest_role :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } pub fn include ($ ($ ($ func_arg : $ func_arg_ty) , +) ?) -> Selection { Selection ([crate :: prisma :: guest_role :: include ! (@ selections_to_params ; : include { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () , < crate :: prisma :: guest_role :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections ()] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } } ; ({ $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { { crate :: prisma :: guest_role :: include ! (@ definitions ; ; $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) +) ; pub struct Selection (Vec < :: prisma_client_rust :: Selection >) ; impl :: prisma_client_rust :: IncludeType for Selection { type Data = Data ; type ModelData = crate :: prisma :: guest_role :: Data ; fn to_selections (self) -> Vec < :: prisma_client_rust :: Selection > { self . 0 } } Selection ([crate :: prisma :: guest_role :: include ! (@ selections_to_params ; : include { $ ($ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) + }) . into_iter () . map (| p | p . to_selection ()) . collect :: < Vec < _ >> () , < crate :: prisma :: guest_role :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections ()] . into_iter () . flatten () . collect :: < Vec < _ >> ()) } } ; (@ definitions ; $ ($ module_name : ident) ? ; $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) +) => { # [allow (warnings)] enum Fields { guest_users , children , parent } # [allow (warnings)] impl Fields { fn selections () { $ (let _ = Fields :: $ field ;) + } } # [allow (warnings)] # [derive (std :: fmt :: Debug , Clone)] pub struct Data { pub id : String , pub name : String , pub slug : String , pub description : Option < String > , pub permission : i32 , $ (pub $ field : crate :: prisma :: guest_role :: include ! (@ field_type ; $ field $ (: $ selection_mode { $ ($ selections) + }) ?) ,) + } impl :: serde :: Serialize for Data { fn serialize < S > (& self , serializer : S) -> Result < S :: Ok , S :: Error > where S : :: serde :: Serializer , { use :: serde :: ser :: SerializeStruct ; let mut state = serializer . serialize_struct ("Data" , [$ (stringify ! ($ field) ,) + stringify ! (id) , stringify ! (name) , stringify ! (slug) , stringify ! (description) , stringify ! (permission)] . len ()) ? ; $ (state . serialize_field (crate :: prisma :: guest_role :: $ field :: NAME , & self . $ field) ? ;) * state . serialize_field (crate :: prisma :: guest_role :: id :: NAME , & self . id) ? ; state . serialize_field (crate :: prisma :: guest_role :: name :: NAME , & self . name) ? ; state . serialize_field (crate :: prisma :: guest_role :: slug :: NAME , & self . slug) ? ; state . serialize_field (crate :: prisma :: guest_role :: description :: NAME , & self . description) ? ; state . serialize_field (crate :: prisma :: guest_role :: permission :: NAME , & self . permission) ? ; state . end () } } impl < 'de > :: serde :: Deserialize < 'de > for Data { fn deserialize < D > (deserializer : D) -> Result < Self , D :: Error > where D : :: serde :: Deserializer < 'de > , { # [allow (warnings)] enum Field { $ ($ field) , + , id , name , slug , description , permission } impl < 'de > :: serde :: Deserialize < 'de > for Field { fn deserialize < D > (deserializer : D) -> Result < Field , D :: Error > where D : :: serde :: Deserializer < 'de > , { struct FieldVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for FieldVisitor { type Value = Field ; fn expecting (& self , formatter : & mut :: std :: fmt :: Formatter) -> :: std :: fmt :: Result { formatter . write_str (& [$ (crate :: prisma :: guest_role :: $ field :: NAME) , + , crate :: prisma :: guest_role :: id :: NAME , crate :: prisma :: guest_role :: name :: NAME , crate :: prisma :: guest_role :: slug :: NAME , crate :: prisma :: guest_role :: description :: NAME , crate :: prisma :: guest_role :: permission :: NAME] . into_iter () . collect :: < Vec < _ >> () . join (", ")) } fn visit_str < E > (self , value : & str) -> Result < Field , E > where E : :: serde :: de :: Error , { match value { $ (crate :: prisma :: guest_role :: $ field :: NAME => Ok (Field :: $ field)) , * , crate :: prisma :: guest_role :: id :: NAME => Ok (Field :: id) , crate :: prisma :: guest_role :: name :: NAME => Ok (Field :: name) , crate :: prisma :: guest_role :: slug :: NAME => Ok (Field :: slug) , crate :: prisma :: guest_role :: description :: NAME => Ok (Field :: description) , crate :: prisma :: guest_role :: permission :: NAME => Ok (Field :: permission) , _ => Err (:: serde :: de :: Error :: unknown_field (value , FIELDS)) , } } } deserializer . deserialize_identifier (FieldVisitor) } } struct DataVisitor ; impl < 'de > :: serde :: de :: Visitor < 'de > for DataVisitor { type Value = Data ; fn expecting (& self , formatter : & mut std :: fmt :: Formatter) -> std :: fmt :: Result { formatter . write_str ("struct Data") } fn visit_map < V > (self , mut map : V) -> Result < Data , V :: Error > where V : :: serde :: de :: MapAccess < 'de > , { $ (let mut $ field = None ;) * let mut id = None ; let mut name = None ; let mut slug = None ; let mut description = None ; let mut permission = None ; while let Some (key) = map . next_key () ? { match key { Field :: id => { if id . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: guest_role :: id :: NAME)) ; } id = Some (map . next_value () ?) ; } Field :: name => { if name . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: guest_role :: name :: NAME)) ; } name = Some (map . next_value () ?) ; } Field :: slug => { if slug . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: guest_role :: slug :: NAME)) ; } slug = Some (map . next_value () ?) ; } Field :: description => { if description . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: guest_role :: description :: NAME)) ; } description = Some (map . next_value () ?) ; } Field :: permission => { if permission . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: guest_role :: permission :: NAME)) ; } permission = Some (map . next_value () ?) ; } $ (Field :: $ field => { if $ field . is_some () { return Err (:: serde :: de :: Error :: duplicate_field (crate :: prisma :: guest_role :: $ field :: NAME)) ; } $ field = Some (map . next_value () ?) ; }) * } } $ (let $ field = $ field . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: guest_role :: $ field :: NAME)) ? ;) * let id = id . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: guest_role :: id :: NAME)) ? ; let name = name . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: guest_role :: name :: NAME)) ? ; let slug = slug . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: guest_role :: slug :: NAME)) ? ; let description = description . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: guest_role :: description :: NAME)) ? ; let permission = permission . ok_or_else (|| serde :: de :: Error :: missing_field (crate :: prisma :: guest_role :: permission :: NAME)) ? ; Ok (Data { id , name , slug , description , permission , $ ($ field) , * }) } } const FIELDS : & 'static [& 'static str] = & ["id" , "name" , "slug" , "description" , "permission" , "guest_users" , "children" , "parent"] ; deserializer . deserialize_struct ("Data" , FIELDS , DataVisitor) } } $ ($ (pub mod $ field { crate :: prisma :: guest_role :: $ selection_mode ! (@ field_module ; $ field : $ selection_mode { $ ($ selections) + }) ; }) ?) + } ; (@ field_type ; guest_users : $ selection_mode : ident { $ ($ selections : tt) + }) => { Vec < guest_users :: Data > } ; (@ field_type ; guest_users) => { Vec < crate :: prisma :: guest_user :: Data > } ; (@ field_type ; children : $ selection_mode : ident { $ ($ selections : tt) + }) => { Vec < children :: Data > } ; (@ field_type ; children) => { Vec < crate :: prisma :: guest_role_children :: Data > } ; (@ field_type ; parent : $ selection_mode : ident { $ ($ selections : tt) + }) => { Vec < parent :: Data > } ; (@ field_type ; parent) => { Vec < crate :: prisma :: guest_role_children :: Data > } ; (@ field_type ; $ field : ident $ ($ tokens : tt) *) => { compile_error ! (stringify ! (Cannot include nonexistent relation $ field on model "GuestRole" , available relations are "guest_users, children, parent")) } ; (@ field_module ; guest_users : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: guest_user :: include ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; children : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: guest_role_children :: include ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; parent : $ selection_mode : ident { $ ($ selections : tt) + }) => { crate :: prisma :: guest_role_children :: include ! (@ definitions ; ; $ ($ selections) +) ; } ; (@ field_module ; $ ($ tokens : tt) *) => { } ; (@ selection_field_to_selection_param ; guest_users $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: guest_role :: IncludeParam > :: into (crate :: prisma :: guest_role :: guest_users :: Include :: $ selection_mode (crate :: prisma :: guest_user :: ManyArgs :: new (crate :: prisma :: guest_user :: include ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ? , crate :: prisma :: guest_user :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; guest_users $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: guest_role :: IncludeParam > :: into (crate :: prisma :: guest_role :: guest_users :: Include :: Fetch (crate :: prisma :: guest_user :: ManyArgs :: new (crate :: prisma :: guest_user :: include ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ?) ,) } } ; (@ selection_field_to_selection_param ; children $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: guest_role :: IncludeParam > :: into (crate :: prisma :: guest_role :: children :: Include :: $ selection_mode (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: include ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ? , crate :: prisma :: guest_role_children :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; children $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: guest_role :: IncludeParam > :: into (crate :: prisma :: guest_role :: children :: Include :: Fetch (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: include ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ?) ,) } } ; (@ selection_field_to_selection_param ; parent $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? : $ selection_mode : ident { $ ($ selections : tt) + }) => { { Into :: < crate :: prisma :: guest_role :: IncludeParam > :: into (crate :: prisma :: guest_role :: parent :: Include :: $ selection_mode (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: include ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ? , crate :: prisma :: guest_role_children :: select ! (@ selections_to_params ; : $ selection_mode { $ ($ selections) + }) . into_iter () . collect ())) } } ; (@ selection_field_to_selection_param ; parent $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ?) => { { Into :: < crate :: prisma :: guest_role :: IncludeParam > :: into (crate :: prisma :: guest_role :: parent :: Include :: Fetch (crate :: prisma :: guest_role_children :: ManyArgs :: new (crate :: prisma :: guest_role_children :: include ! (@ filters_to_args ; $ ($ ($ filters) +) ?)) $ ($ (. $ arg ($ ($ arg_params) *)) *) ?) ,) } } ; (@ selection_field_to_selection_param ; $ ($ tokens : tt) *) => { compile_error ! (stringify ! ($ ($ tokens) *)) } ; (@ selections_to_params ; : $ macro_name : ident { $ ($ field : ident $ (($ ($ filters : tt) +) $ (. $ arg : ident ($ ($ arg_params : tt) *)) *) ? $ (: $ selection_mode : ident { $ ($ selections : tt) + }) ?) + }) => { [$ (crate :: prisma :: guest_role :: $ macro_name ! (@ selection_field_to_selection_param ; $ field $ (($ ($ filters) +) $ (. $ arg ($ ($ arg_params) *)) *) ? $ (: $ selection_mode { $ ($ selections) + }) ?) ,) +] } ; (@ filters_to_args ;) => { vec ! [] } ; (@ filters_to_args ; $ ($ t : tt) *) => { $ ($ t) * } ; (@ field_serde_name ; id) => { "id" } ; (@ field_serde_name ; name) => { "name" } ; (@ field_serde_name ; slug) => { "slug" } ; (@ field_serde_name ; description) => { "description" } ; (@ field_serde_name ; permission) => { "permission" } ; (@ field_serde_name ; guest_users) => { "guest_users" } ; (@ field_serde_name ; children) => { "children" } ; (@ field_serde_name ; parent) => { "parent" } ; }
     pub use _include_guest_role as include;
     pub enum IncludeParam {
         Id(id::Include),
         Name(name::Include),
         Slug(slug::Include),
         Description(description::Include),
-        Role(role::Include),
-        RoleId(role_id::Include),
         Permission(permission::Include),
         GuestUsers(guest_users::Include),
         Children(children::Include),
@@ -9816,8 +8857,6 @@ pub mod guest_role {
                 Self::Name(data) => data.to_selection(),
                 Self::Slug(data) => data.to_selection(),
                 Self::Description(data) => data.to_selection(),
-                Self::Role(data) => data.to_selection(),
-                Self::RoleId(data) => data.to_selection(),
                 Self::Permission(data) => data.to_selection(),
                 Self::GuestUsers(data) => data.to_selection(),
                 Self::Children(data) => data.to_selection(),
@@ -9826,7 +8865,7 @@ pub mod guest_role {
         }
     }
     #[macro_export]
-    macro_rules ! _partial_unchecked_guest_role { ($ struct_name : ident { $ ($ scalar_field : ident) + }) => { :: prisma_client_rust :: macros :: partial_unchecked ! { crate :: prisma :: guest_role struct $ struct_name { # [serde (rename = "id")] pub id : String , # [serde (rename = "name")] pub name : String , # [serde (rename = "slug")] pub slug : String , # [serde (rename = "description")] # [serde (default , with = "::prisma_client_rust::serde::double_option")] pub description : Option < String > , # [serde (rename = "role_id")] pub role_id : String , # [serde (rename = "permission")] pub permission : i32 } [$ ($ scalar_field) , +] } } ; }
+    macro_rules ! _partial_unchecked_guest_role { ($ struct_name : ident { $ ($ scalar_field : ident) + }) => { :: prisma_client_rust :: macros :: partial_unchecked ! { crate :: prisma :: guest_role struct $ struct_name { # [serde (rename = "id")] pub id : String , # [serde (rename = "name")] pub name : String , # [serde (rename = "slug")] pub slug : String , # [serde (rename = "description")] # [serde (default , with = "::prisma_client_rust::serde::double_option")] pub description : Option < String > , # [serde (rename = "permission")] pub permission : i32 } [$ ($ scalar_field) , +] } } ; }
     pub use _partial_unchecked_guest_role as partial_unchecked;
     #[derive(Debug, Clone, :: serde :: Serialize, :: serde :: Deserialize)]
     pub struct Data {
@@ -9838,10 +8877,6 @@ pub mod guest_role {
         pub slug: String,
         #[serde(rename = "description")]
         pub description: Option<String>,
-        #[serde(rename = "role")]
-        pub role: Option<Box<super::role::Data>>,
-        #[serde(rename = "role_id")]
-        pub role_id: String,
         #[serde(rename = "permission")]
         pub permission: i32,
         #[serde(rename = "guest_users")]
@@ -9852,19 +8887,6 @@ pub mod guest_role {
         pub parent: Option<Vec<super::guest_role_children::Data>>,
     }
     impl Data {
-        pub fn role(
-            &self,
-        ) -> Result<
-            &super::role::Data,
-            ::prisma_client_rust::RelationNotFetchedError,
-        > {
-            self.role
-                .as_ref()
-                .ok_or(::prisma_client_rust::RelationNotFetchedError::new(
-                    stringify!(role),
-                ))
-                .map(|v| v.as_ref())
-        }
         pub fn guest_users(
             &self,
         ) -> Result<
@@ -9904,7 +8926,6 @@ pub mod guest_role {
     }
     #[derive(Clone)]
     pub enum WithParam {
-        Role(super::role::UniqueArgs),
         GuestUsers(super::guest_user::ManyArgs),
         Children(super::guest_role_children::ManyArgs),
         Parent(super::guest_role_children::ManyArgs),
@@ -9912,20 +8933,6 @@ pub mod guest_role {
     impl Into<::prisma_client_rust::Selection> for WithParam {
         fn into(self) -> ::prisma_client_rust::Selection {
             match self {
-                Self::Role(args) => {
-                    let mut selections = < super :: role :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections () ;
-                    selections.extend(
-                        args.with_params
-                            .into_iter()
-                            .map(Into::<::prisma_client_rust::Selection>::into),
-                    );
-                    ::prisma_client_rust::Selection::new(
-                        role::NAME,
-                        None,
-                        [],
-                        selections,
-                    )
-                }
                 Self::GuestUsers(args) => {
                     let (arguments, mut nested_selections) = args.to_graphql();
                     nested_selections . extend (< super :: guest_user :: Types as :: prisma_client_rust :: ModelTypes > :: scalar_selections ()) ;
@@ -9965,8 +8972,6 @@ pub mod guest_role {
         SetName(String),
         SetSlug(String),
         SetDescription(Option<String>),
-        ConnectRole(super::role::UniqueWhereParam),
-        SetRoleId(String),
         SetPermission(i32),
         IncrementPermission(i32),
         DecrementPermission(i32),
@@ -9984,7 +8989,7 @@ pub mod guest_role {
     }
     impl From<SetParam> for (String, ::prisma_client_rust::PrismaValue) {
         fn from(param: SetParam) -> Self {
-            match param { SetParam :: SetId (value) => (id :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: String (value)) , SetParam :: SetName (value) => (name :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: String (value)) , SetParam :: SetSlug (value) => (slug :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: String (value)) , SetParam :: SetDescription (value) => (description :: NAME . to_string () , value . map (| value | :: prisma_client_rust :: PrismaValue :: String (value)) . unwrap_or_else (|| :: prisma_client_rust :: PrismaValue :: Null)) , SetParam :: ConnectRole (where_param) => (role :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("connect" . to_string () , :: prisma_client_rust :: PrismaValue :: Object ([where_param] . into_iter () . map (Into :: < super :: role :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()))])) , SetParam :: SetRoleId (value) => (role_id :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: String (value)) , SetParam :: SetPermission (value) => (permission :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Int (value as i64)) , SetParam :: IncrementPermission (value) => (permission :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("increment" . to_string () , :: prisma_client_rust :: PrismaValue :: Int (value as i64))])) , SetParam :: DecrementPermission (value) => (permission :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("decrement" . to_string () , :: prisma_client_rust :: PrismaValue :: Int (value as i64))])) , SetParam :: MultiplyPermission (value) => (permission :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("multiply" . to_string () , :: prisma_client_rust :: PrismaValue :: Int (value as i64))])) , SetParam :: DividePermission (value) => (permission :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("divide" . to_string () , :: prisma_client_rust :: PrismaValue :: Int (value as i64))])) , SetParam :: ConnectGuestUsers (where_params) => (guest_users :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("connect" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_user :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: DisconnectGuestUsers (where_params) => (guest_users :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("disconnect" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_user :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: SetGuestUsers (where_params) => (guest_users :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("set" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_user :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: ConnectChildren (where_params) => (children :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("connect" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_role_children :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: DisconnectChildren (where_params) => (children :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("disconnect" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_role_children :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: SetChildren (where_params) => (children :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("set" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_role_children :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: ConnectParent (where_params) => (parent :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("connect" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_role_children :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: DisconnectParent (where_params) => (parent :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("disconnect" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_role_children :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: SetParent (where_params) => (parent :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("set" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_role_children :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) }
+            match param { SetParam :: SetId (value) => (id :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: String (value)) , SetParam :: SetName (value) => (name :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: String (value)) , SetParam :: SetSlug (value) => (slug :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: String (value)) , SetParam :: SetDescription (value) => (description :: NAME . to_string () , value . map (| value | :: prisma_client_rust :: PrismaValue :: String (value)) . unwrap_or_else (|| :: prisma_client_rust :: PrismaValue :: Null)) , SetParam :: SetPermission (value) => (permission :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Int (value as i64)) , SetParam :: IncrementPermission (value) => (permission :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("increment" . to_string () , :: prisma_client_rust :: PrismaValue :: Int (value as i64))])) , SetParam :: DecrementPermission (value) => (permission :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("decrement" . to_string () , :: prisma_client_rust :: PrismaValue :: Int (value as i64))])) , SetParam :: MultiplyPermission (value) => (permission :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("multiply" . to_string () , :: prisma_client_rust :: PrismaValue :: Int (value as i64))])) , SetParam :: DividePermission (value) => (permission :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("divide" . to_string () , :: prisma_client_rust :: PrismaValue :: Int (value as i64))])) , SetParam :: ConnectGuestUsers (where_params) => (guest_users :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("connect" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_user :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: DisconnectGuestUsers (where_params) => (guest_users :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("disconnect" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_user :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: SetGuestUsers (where_params) => (guest_users :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("set" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_user :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: ConnectChildren (where_params) => (children :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("connect" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_role_children :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: DisconnectChildren (where_params) => (children :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("disconnect" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_role_children :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: SetChildren (where_params) => (children :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("set" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_role_children :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: ConnectParent (where_params) => (parent :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("connect" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_role_children :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: DisconnectParent (where_params) => (parent :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("disconnect" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_role_children :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) , SetParam :: SetParent (where_params) => (parent :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Object (vec ! [("set" . to_string () , :: prisma_client_rust :: PrismaValue :: List (where_params . into_iter () . map (Into :: < super :: guest_role_children :: WhereParam > :: into) . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . map (| v | :: prisma_client_rust :: PrismaValue :: Object (vec ! [v])) . collect ()))])) }
         }
     }
     #[derive(Clone)]
@@ -9993,7 +8998,6 @@ pub mod guest_role {
         Name(String),
         Slug(String),
         Description(Option<String>),
-        RoleId(String),
         Permission(i32),
     }
     impl From<UncheckedSetParam> for SetParam {
@@ -10005,7 +9009,6 @@ pub mod guest_role {
                 UncheckedSetParam::Description(value) => {
                     Self::SetDescription(value)
                 }
-                UncheckedSetParam::RoleId(value) => Self::SetRoleId(value),
                 UncheckedSetParam::Permission(value) => {
                     Self::SetPermission(value)
                 }
@@ -10018,7 +9021,6 @@ pub mod guest_role {
         Name(::prisma_client_rust::Direction),
         Slug(::prisma_client_rust::Direction),
         Description(::prisma_client_rust::Direction),
-        RoleId(::prisma_client_rust::Direction),
         Permission(::prisma_client_rust::Direction),
     }
     impl Into<(String, ::prisma_client_rust::PrismaValue)> for OrderByParam {
@@ -10048,12 +9050,6 @@ pub mod guest_role {
                         direction.to_string(),
                     ),
                 ),
-                Self::RoleId(direction) => (
-                    role_id::NAME.to_string(),
-                    ::prisma_client_rust::PrismaValue::String(
-                        direction.to_string(),
-                    ),
-                ),
                 Self::Permission(direction) => (
                     permission::NAME.to_string(),
                     ::prisma_client_rust::PrismaValue::String(
@@ -10068,13 +9064,12 @@ pub mod guest_role {
         Not(Vec<WhereParam>),
         Or(Vec<WhereParam>),
         And(Vec<WhereParam>),
+        NamePermissionEquals(String, i32),
+        SlugPermissionEquals(String, i32),
         Id(_prisma::read_filters::StringFilter),
         Name(_prisma::read_filters::StringFilter),
         Slug(_prisma::read_filters::StringFilter),
         Description(_prisma::read_filters::StringNullableFilter),
-        RoleIs(Vec<super::role::WhereParam>),
-        RoleIsNot(Vec<super::role::WhereParam>),
-        RoleId(_prisma::read_filters::StringFilter),
         Permission(_prisma::read_filters::IntFilter),
         GuestUsersSome(Vec<super::guest_user::WhereParam>),
         GuestUsersEvery(Vec<super::guest_user::WhereParam>),
@@ -10088,25 +9083,25 @@ pub mod guest_role {
     }
     impl ::prisma_client_rust::WhereInput for WhereParam {
         fn serialize(self) -> ::prisma_client_rust::SerializedWhereInput {
-            let (name , value) = match self { Self :: Not (value) => ("NOT" , :: prisma_client_rust :: SerializedWhereValue :: Object (:: prisma_client_rust :: merge_fields (value . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (Into :: into) . collect ())) ,) , Self :: Or (value) => ("OR" , :: prisma_client_rust :: SerializedWhereValue :: List (value . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (Into :: into) . map (| v | vec ! [v]) . map (:: prisma_client_rust :: PrismaValue :: Object) . collect ()) ,) , Self :: And (value) => ("AND" , :: prisma_client_rust :: SerializedWhereValue :: Object (:: prisma_client_rust :: merge_fields (value . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (Into :: into) . collect ())) ,) , Self :: Id (value) => (id :: NAME , value . into ()) , Self :: Name (value) => (name :: NAME , value . into ()) , Self :: Slug (value) => (slug :: NAME , value . into ()) , Self :: Description (value) => (description :: NAME , value . into ()) , Self :: RoleIs (where_params) => (role :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("is" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: RoleIsNot (where_params) => (role :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("isNot" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: RoleId (value) => (role_id :: NAME , value . into ()) , Self :: Permission (value) => (permission :: NAME , value . into ()) , Self :: GuestUsersSome (where_params) => (guest_users :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("some" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: GuestUsersEvery (where_params) => (guest_users :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("every" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: GuestUsersNone (where_params) => (guest_users :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("none" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: ChildrenSome (where_params) => (children :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("some" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: ChildrenEvery (where_params) => (children :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("every" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: ChildrenNone (where_params) => (children :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("none" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: ParentSome (where_params) => (parent :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("some" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: ParentEvery (where_params) => (parent :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("every" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: ParentNone (where_params) => (parent :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("none" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) } ;
+            let (name , value) = match self { Self :: Not (value) => ("NOT" , :: prisma_client_rust :: SerializedWhereValue :: Object (:: prisma_client_rust :: merge_fields (value . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (Into :: into) . collect ())) ,) , Self :: Or (value) => ("OR" , :: prisma_client_rust :: SerializedWhereValue :: List (value . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (Into :: into) . map (| v | vec ! [v]) . map (:: prisma_client_rust :: PrismaValue :: Object) . collect ()) ,) , Self :: And (value) => ("AND" , :: prisma_client_rust :: SerializedWhereValue :: Object (:: prisma_client_rust :: merge_fields (value . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (Into :: into) . collect ())) ,) , Self :: NamePermissionEquals (name , permission) => ("name_permission" , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [(name :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: String (name)) , (permission :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Int (permission as i64))])) , Self :: SlugPermissionEquals (slug , permission) => ("slug_permission" , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [(slug :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: String (slug)) , (permission :: NAME . to_string () , :: prisma_client_rust :: PrismaValue :: Int (permission as i64))])) , Self :: Id (value) => (id :: NAME , value . into ()) , Self :: Name (value) => (name :: NAME , value . into ()) , Self :: Slug (value) => (slug :: NAME , value . into ()) , Self :: Description (value) => (description :: NAME , value . into ()) , Self :: Permission (value) => (permission :: NAME , value . into ()) , Self :: GuestUsersSome (where_params) => (guest_users :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("some" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: GuestUsersEvery (where_params) => (guest_users :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("every" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: GuestUsersNone (where_params) => (guest_users :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("none" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: ChildrenSome (where_params) => (children :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("some" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: ChildrenEvery (where_params) => (children :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("every" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: ChildrenNone (where_params) => (children :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("none" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: ParentSome (where_params) => (parent :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("some" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: ParentEvery (where_params) => (parent :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("every" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) , Self :: ParentNone (where_params) => (parent :: NAME , :: prisma_client_rust :: SerializedWhereValue :: Object (vec ! [("none" . to_string () , :: prisma_client_rust :: PrismaValue :: Object (where_params . into_iter () . map (:: prisma_client_rust :: WhereInput :: serialize) . map (:: prisma_client_rust :: SerializedWhereInput :: transform_equals) . collect ()) ,)])) } ;
             ::prisma_client_rust::SerializedWhereInput::new(name, value.into())
         }
     }
     #[derive(Clone)]
     pub enum UniqueWhereParam {
-        NameEquals(String),
-        SlugEquals(String),
+        NamePermissionEquals(String, i32),
+        SlugPermissionEquals(String, i32),
         IdEquals(String),
     }
     impl From<UniqueWhereParam> for WhereParam {
         fn from(value: UniqueWhereParam) -> Self {
             match value {
-                UniqueWhereParam::NameEquals(value) => Self::Name(
-                    _prisma::read_filters::StringFilter::Equals(value),
-                ),
-                UniqueWhereParam::SlugEquals(value) => Self::Slug(
-                    _prisma::read_filters::StringFilter::Equals(value),
-                ),
+                UniqueWhereParam::NamePermissionEquals(name, permission) => {
+                    Self::NamePermissionEquals(name, permission)
+                }
+                UniqueWhereParam::SlugPermissionEquals(slug, permission) => {
+                    Self::SlugPermissionEquals(slug, permission)
+                }
                 UniqueWhereParam::IdEquals(value) => {
                     Self::Id(_prisma::read_filters::StringFilter::Equals(value))
                 }
@@ -10139,7 +9134,6 @@ pub mod guest_role {
                 ::prisma_client_rust::sel(name::NAME),
                 ::prisma_client_rust::sel(slug::NAME),
                 ::prisma_client_rust::sel(description::NAME),
-                ::prisma_client_rust::sel(role_id::NAME),
                 ::prisma_client_rust::sel(permission::NAME),
             ]
         }
@@ -10175,28 +9169,18 @@ pub mod guest_role {
             self,
             name: String,
             slug: String,
-            role: super::role::UniqueWhereParam,
             mut _params: Vec<SetParam>,
         ) -> Create<'a> {
-            _params.extend([
-                name::set(name),
-                slug::set(slug),
-                role::connect(role),
-            ]);
+            _params.extend([name::set(name), slug::set(slug)]);
             Create::new(self.client, _params)
         }
         pub fn create_unchecked(
             self,
             name: String,
             slug: String,
-            role_id: String,
             mut _params: Vec<UncheckedSetParam>,
         ) -> Create<'a> {
-            _params.extend([
-                name::set(name),
-                slug::set(slug),
-                role_id::set(role_id),
-            ]);
+            _params.extend([name::set(name), slug::set(slug)]);
             Create::new(
                 self.client,
                 _params.into_iter().map(Into::into).collect(),
@@ -10204,16 +9188,12 @@ pub mod guest_role {
         }
         pub fn create_many(
             self,
-            data: Vec<(String, String, String, Vec<SetParam>)>,
+            data: Vec<(String, String, Vec<SetParam>)>,
         ) -> CreateMany<'a> {
             let data = data
                 .into_iter()
-                .map(|(name, slug, role_id, mut _params)| {
-                    _params.extend([
-                        name::set(name),
-                        slug::set(slug),
-                        role_id::set(role_id),
-                    ]);
+                .map(|(name, slug, mut _params)| {
+                    _params.extend([name::set(name), slug::set(slug)]);
                     _params
                 })
                 .collect();
@@ -10248,19 +9228,10 @@ pub mod guest_role {
         pub fn upsert(
             self,
             _where: UniqueWhereParam,
-            (name, slug, role, mut _params): (
-                String,
-                String,
-                super::role::UniqueWhereParam,
-                Vec<SetParam>,
-            ),
+            (name, slug, mut _params): (String, String, Vec<SetParam>),
             _update: Vec<SetParam>,
         ) -> Upsert<'a> {
-            _params.extend([
-                name::set(name),
-                slug::set(slug),
-                role::connect(role),
-            ]);
+            _params.extend([name::set(name), slug::set(slug)]);
             Upsert::new(self.client, _where.into(), _params, _update)
         }
         pub fn delete(self, _where: UniqueWhereParam) -> Delete<'a> {
@@ -18387,9 +17358,6 @@ pub mod _prisma {
         pub fn token(&self) -> super::token::Actions {
             super::token::Actions { client: &self.0 }
         }
-        pub fn role(&self) -> super::role::Actions {
-            super::role::Actions { client: &self.0 }
-        }
         pub fn guest_role(&self) -> super::guest_role::Actions {
             super::guest_role::Actions { client: &self.0 }
         }
@@ -18590,8 +17558,6 @@ pub mod _prisma {
         Slug,
         #[serde(rename = "description")]
         Description,
-        #[serde(rename = "role_id")]
-        RoleId,
         #[serde(rename = "permission")]
         Permission,
     }
@@ -18602,7 +17568,6 @@ pub mod _prisma {
                 Self::Name => "name".to_string(),
                 Self::Slug => "slug".to_string(),
                 Self::Description => "description".to_string(),
-                Self::RoleId => "role_id".to_string(),
                 Self::Permission => "permission".to_string(),
             }
         }
@@ -18850,35 +17815,6 @@ pub mod _prisma {
             match self {
                 Self::Default => "default".to_string(),
                 Self::Insensitive => "insensitive".to_string(),
-            }
-        }
-    }
-    #[derive(
-        Debug,
-        Clone,
-        Copy,
-        :: serde :: Serialize,
-        :: serde :: Deserialize,
-        PartialEq,
-        Eq,
-    )]
-    pub enum RoleScalarFieldEnum {
-        #[serde(rename = "id")]
-        Id,
-        #[serde(rename = "name")]
-        Name,
-        #[serde(rename = "slug")]
-        Slug,
-        #[serde(rename = "description")]
-        Description,
-    }
-    impl ToString for RoleScalarFieldEnum {
-        fn to_string(&self) -> String {
-            match self {
-                Self::Id => "id".to_string(),
-                Self::Name => "name".to_string(),
-                Self::Slug => "slug".to_string(),
-                Self::Description => "description".to_string(),
             }
         }
     }

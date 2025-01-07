@@ -1,7 +1,8 @@
-use super::{
-    account_type::AccountTypeV2, guest_user::GuestUser, tag::Tag, user::User,
-};
 use crate::domain::actors::SystemActor;
+
+use super::{
+    account_type::AccountType, guest_user::GuestUser, tag::Tag, user::User,
+};
 
 use chrono::{DateTime, Local};
 use mycelium_base::{
@@ -153,7 +154,7 @@ pub struct Account {
     ///
     /// Account type is the type of the account. The account type is used to
     /// categorize the account.
-    pub account_type: AccountTypeV2,
+    pub account_type: AccountType,
 
     /// The Account Guest Users
     ///
@@ -183,18 +184,19 @@ impl Account {
             verbose_status: None,
             is_default: false,
             owners: Children::Ids([].to_vec()),
-            account_type: AccountTypeV2::Subscription { tenant_id },
+            account_type: AccountType::Subscription { tenant_id },
             guest_users: None,
             created: Local::now(),
             updated: None,
         }
     }
 
-    pub fn new_role_related_account(
+    pub fn new_role_related_account<T: ToString>(
         account_name: String,
         tenant_id: Uuid,
         role_id: Uuid,
-        role_name: SystemActor,
+        role_name: T,
+        is_default: bool,
     ) -> Self {
         Self {
             id: None,
@@ -205,13 +207,36 @@ impl Account {
             is_checked: false,
             is_archived: false,
             verbose_status: None,
-            is_default: false,
+            is_default,
             owners: Children::Ids([].to_vec()),
-            account_type: AccountTypeV2::RoleAssociated {
+            account_type: AccountType::RoleAssociated {
                 tenant_id,
                 role_id,
-                role_name,
+                role_name: role_name.to_string(),
             },
+            guest_users: None,
+            created: Local::now(),
+            updated: None,
+        }
+    }
+
+    pub fn new_actor_related_account(
+        name: String,
+        actor: SystemActor,
+        is_default: bool,
+    ) -> Self {
+        Self {
+            id: None,
+            name: name.to_owned(),
+            slug: slugify!(name.as_str()),
+            tags: None,
+            is_active: true,
+            is_checked: false,
+            is_archived: false,
+            verbose_status: None,
+            is_default,
+            owners: Children::Ids([].to_vec()),
+            account_type: AccountType::ActorAssociated { actor },
             guest_users: None,
             created: Local::now(),
             updated: None,
@@ -233,7 +258,7 @@ impl Account {
             verbose_status: None,
             is_default: false,
             owners: Children::Ids([].to_vec()),
-            account_type: AccountTypeV2::TenantManager { tenant_id },
+            account_type: AccountType::TenantManager { tenant_id },
             guest_users: None,
             created: Local::now(),
             updated: None,
@@ -248,7 +273,7 @@ impl Account {
     pub fn new(
         account_name: String,
         principal_owner: User,
-        account_type: AccountTypeV2,
+        account_type: AccountType,
     ) -> Self {
         Self {
             id: None,
@@ -294,7 +319,7 @@ mod tests {
             verbose_status: None,
             is_default: false,
             owners: Children::Records([].to_vec()),
-            account_type: AccountTypeV2::User,
+            account_type: AccountType::User,
             guest_users: None,
             created: Local::now(),
             updated: Some(Local::now()),

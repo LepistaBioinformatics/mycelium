@@ -1,5 +1,5 @@
 use crate::domain::dtos::{
-    account::Account, account_type::AccountTypeV2,
+    account::Account, account_type::AccountType,
     related_accounts::RelatedAccounts,
 };
 
@@ -30,7 +30,7 @@ pub trait AccountFetching: Interface + Send + Sync {
         tag_id: Option<Uuid>,
         tag_value: Option<String>,
         account_id: Option<Uuid>,
-        account_type: Option<AccountTypeV2>,
+        account_type: Option<AccountType>,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Account>, MappedErrors>;

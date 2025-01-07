@@ -11,7 +11,7 @@ use chrono::{DateTime, Local};
 use myc_core::domain::{
     dtos::{
         account::{Account, VerboseStatus},
-        account_type::AccountTypeV2,
+        account_type::AccountType,
         email::Email,
         native_error_codes::NativeErrorCodes,
         related_accounts::RelatedAccounts,
@@ -183,7 +183,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         tag_id: Option<Uuid>,
         tag_value: Option<String>,
         account_id: Option<Uuid>,
-        account_type: Option<AccountTypeV2>,
+        account_type: Option<AccountType>,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Account>, MappedErrors> {

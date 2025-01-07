@@ -3,7 +3,7 @@ use crate::modifiers::security::MyceliumSecurity;
 
 use myc_core::domain::dtos::{
     account, account_type, email, error_code, guest_role, guest_user, profile,
-    role, tag, tenant, user, webhook, route, service as service_dtos, 
+    tag, tenant, user, webhook, route, service as service_dtos, 
     http_secret
 };
 use myc_http_tools::providers::{azure_endpoints, google_endpoints};
@@ -28,7 +28,6 @@ use role_scoped::beginners::account_endpoints as Beginners__Account;
 use role_scoped::beginners::profile_endpoints as Beginners__Profile;
 use role_scoped::beginners::user_endpoints as Beginners__User;
 use role_scoped::guest_manager::guest_role_endpoints as Guest_Manager__Guest_Role;
-use role_scoped::guest_manager::role_endpoints as Guest_Manager__Role;
 use role_scoped::guest_manager::token_endpoints as Guest_Manager__Token;
 use role_scoped::subscriptions_manager::account_endpoints as Subscriptions_Manager__Account;
 use role_scoped::subscriptions_manager::guest_endpoints as Subscriptions_Manager__Guest;
@@ -288,24 +287,6 @@ struct GatewayManagerServiceApiDoc;
     security(("Bearer" = []))
 )]
 struct GuestManagerGuestRoleApiDoc;
-
-/// Role Scoped Endpoints for Guest Manager for Roles Management
-///
-#[derive(OpenApi)]
-#[openapi(
-    info(
-        title = "Guest Manager | Role Endpoints",
-        description = "Endpoints reserved for the application guest managers to manage roles",
-    ),
-    paths(
-        Guest_Manager__Role::crate_role_url,
-        Guest_Manager__Role::list_roles_url,
-        Guest_Manager__Role::delete_role_url,
-        Guest_Manager__Role::update_role_name_and_description_url,
-    ),
-    security(("Bearer" = []))
-)]
-struct GuestManagerRoleApiDoc;
 
 /// Role Scoped Endpoints for Guest Manager for Tokens Management
 ///
@@ -595,7 +576,6 @@ struct UsersManagerAccountApiDoc;
         // Guest Manager Endpoints
         //
         (path = "/adm/rs/guests-manager/guest-roles", api = GuestManagerGuestRoleApiDoc),
-        (path = "/adm/rs/guests-manager/roles", api = GuestManagerRoleApiDoc),
         (path = "/adm/rs/guests-manager/tokens", api = GuestManagerTokenApiDoc),
         //
         // Subscriptions Manager Endpoints
@@ -641,7 +621,6 @@ struct UsersManagerAccountApiDoc;
             Children<user::User, String>,
             Children<guest_user::GuestUser, String>,
             Children<profile::Owner, String>,
-            Parent<role::Role, String>,
             Parent<account::Account, String>,
 
             //
@@ -650,7 +629,7 @@ struct UsersManagerAccountApiDoc;
             SystemActor,
             account::Account,
             account::VerboseStatus,
-            account_type::AccountTypeV2,
+            account_type::AccountType,
             email::Email,
             error_code::ErrorCode,
             guest_role::GuestRole,
@@ -660,7 +639,6 @@ struct UsersManagerAccountApiDoc;
             profile::LicensedResource,
             profile::Profile,
             service_dtos::Service, 
-            role::Role,
             route::Route, 
             tag::Tag,
             tenant::Tenant,
@@ -674,6 +652,7 @@ struct UsersManagerAccountApiDoc;
             // MANAGER
             //
             manager::account_endpoints::CreateSystemSubscriptionAccountBody,
+            manager::account_endpoints::ApiSystemActor,
             manager::tenant_endpoints::CreateTenantBody,
             manager::tenant_endpoints::ListTenantParams,
 
@@ -708,8 +687,6 @@ struct UsersManagerAccountApiDoc;
             role_scoped::guest_manager::guest_role_endpoints::UpdateGuestRoleNameAndDescriptionBody,
             role_scoped::guest_manager::guest_role_endpoints::UpdateGuestRolePermissionsBody,
             role_scoped::guest_manager::guest_role_endpoints::ListGuestRolesParams,
-            role_scoped::guest_manager::role_endpoints::CreateRoleBody,
-            role_scoped::guest_manager::role_endpoints::ListRolesParams,
             role_scoped::guest_manager::token_endpoints::CreateTokenBody,
 
             //

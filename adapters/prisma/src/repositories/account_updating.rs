@@ -7,7 +7,7 @@ use chrono::{DateTime, Local};
 use myc_core::domain::{
     dtos::{
         account::{Account, VerboseStatus},
-        account_type::AccountTypeV2,
+        account_type::AccountType,
         email::Email,
         native_error_codes::NativeErrorCodes,
         tag::Tag,
@@ -322,7 +322,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
     async fn update_account_type(
         &self,
         account_id: Uuid,
-        account_type: AccountTypeV2,
+        account_type: AccountType,
     ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client

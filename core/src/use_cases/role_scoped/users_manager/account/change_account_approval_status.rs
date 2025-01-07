@@ -3,7 +3,7 @@ use crate::domain::{
     actors::SystemActor,
     dtos::{
         account::{Account, VerboseStatus},
-        account_type::AccountTypeV2,
+        account_type::AccountType,
         profile::Profile,
     },
     entities::{AccountFetching, AccountUpdating},
@@ -57,7 +57,7 @@ pub async fn change_account_approval_status(
     // ? -----------------------------------------------------------------------
 
     match account.to_owned().account_type {
-        AccountTypeV2::Staff => {
+        AccountType::Staff => {
             if profile.is_manager && !profile.is_staff {
                 return use_case_err(String::from(
                     "Prohibited operation. Managers could not perform editions 

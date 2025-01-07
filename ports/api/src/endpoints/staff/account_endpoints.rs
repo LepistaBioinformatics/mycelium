@@ -2,7 +2,7 @@ use crate::{dtos::MyceliumProfileData, modules::AccountUpdatingModule};
 
 use actix_web::{patch, web, Responder};
 use myc_core::{
-    domain::{dtos::account_type::AccountTypeV2, entities::AccountUpdating},
+    domain::{dtos::account_type::AccountType, entities::AccountUpdating},
     use_cases::super_users::staff::account::{
         downgrade_account_privileges, upgrade_account_privileges,
     },
@@ -116,8 +116,8 @@ pub async fn upgrade_account_privileges_url(
         profile.to_profile(),
         path.to_owned(),
         match body.to {
-            UpgradeTargetAccountType::Manager => AccountTypeV2::Manager,
-            UpgradeTargetAccountType::Staff => AccountTypeV2::Staff,
+            UpgradeTargetAccountType::Manager => AccountType::Manager,
+            UpgradeTargetAccountType::Staff => AccountType::Staff,
         },
         Box::new(&*account_updating_repo),
     )
@@ -176,8 +176,8 @@ pub async fn downgrade_account_privileges_url(
         profile.to_profile(),
         path.to_owned(),
         match body.to {
-            DowngradeTargetAccountType::Manager => AccountTypeV2::Manager,
-            DowngradeTargetAccountType::User => AccountTypeV2::User,
+            DowngradeTargetAccountType::Manager => AccountType::Manager,
+            DowngradeTargetAccountType::User => AccountType::User,
         },
         Box::new(&*account_updating_repo),
     )

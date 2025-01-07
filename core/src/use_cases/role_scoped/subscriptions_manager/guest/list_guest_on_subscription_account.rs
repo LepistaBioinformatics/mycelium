@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::domain::{
     actors::SystemActor,
     dtos::{
-        account_type::AccountTypeV2, guest_user::GuestUser,
+        account_type::AccountType, guest_user::GuestUser,
         native_error_codes::NativeErrorCodes, profile::Profile,
     },
     entities::{AccountFetching, GuestUserFetching},
@@ -65,7 +65,7 @@ pub async fn list_guest_on_subscription_account(
     // ? -----------------------------------------------------------------------
 
     match account.account_type {
-        AccountTypeV2::Subscription { .. } => (),
+        AccountType::Subscription { .. } => (),
         _ => {
             return use_case_err(
                 "Operation restricted to subscription accounts.",

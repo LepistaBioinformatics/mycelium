@@ -17,6 +17,7 @@ use prisma_client_rust::{PrismaValue, Raw};
 use serde::Deserialize;
 use shaku::Component;
 use std::process::id as process_id;
+use tracing::trace;
 use uuid::Uuid;
 
 #[derive(Component, Debug)]
@@ -27,11 +28,10 @@ pub struct LicensedResourcesFetchingSqlDbRepository {}
 struct LicensedResourceRow {
     acc_id: String,
     acc_name: String,
-    tenant_id: String,
+    tenant_id: Option<String>,
     is_acc_std: bool,
-    gr_name: String,
+    gr_slug: String,
     gr_perm: i32,
-    rl_name: String,
     gu_verified: bool,
 }
 
@@ -88,7 +88,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         };
 
         if let Some(roles) = _role {
-            query.push("AND rl_name = ANY({})");
+            query.push("AND gr_slug = ANY({})");
             params.push(PrismaValue::List(
                 roles
                     .into_iter()
@@ -105,7 +105,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 String::new(),
                 |acc, (role, permission)| {
                     format!(
-                        "{}(rl_name = '{}' AND gr_perm = {}) OR ",
+                        "{}(gr_slug = '{}' AND gr_perm = {}) OR ",
                         acc,
                         role,
                         permission.to_owned() as i64
@@ -124,17 +124,15 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
 
         let join_query = query.join(" ");
 
+        trace!("Query ({:?}) with params {:?}", join_query, params);
+
         let response: Vec<LicensedResourceRow> = match client
             ._query_raw(Raw::new(join_query.as_str(), params))
             .exec()
             .await
         {
             Ok(res) => res,
-            Err(e) => {
-                return fetching_err(e.to_string())
-                    .with_code(NativeErrorCodes::MYC00001)
-                    .as_error()
-            }
+            Err(e) => return fetching_err(e.to_string()).as_error(),
         };
 
         // ? -------------------------------------------------------------------
@@ -145,12 +143,16 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             .into_iter()
             .map(|record| LicensedResource {
                 acc_id: Uuid::parse_str(&record.acc_id.to_owned()).unwrap(),
-                tenant_id: Uuid::parse_str(&&record.tenant_id.to_owned())
-                    .unwrap(),
+                tenant_id: match record.tenant_id {
+                    Some(val) => Uuid::parse_str(val.as_str()).unwrap(),
+                    None => {
+                        Uuid::parse_str("00000000-0000-0000-0000-000000000000")
+                            .unwrap()
+                    }
+                },
                 acc_name: record.acc_name.to_owned(),
                 is_acc_std: record.is_acc_std,
-                guest_role_name: record.gr_name,
-                role: record.rl_name,
+                role: record.gr_slug,
                 perm: Permission::from_i32(record.gr_perm),
                 was_verified: record.gu_verified,
             })

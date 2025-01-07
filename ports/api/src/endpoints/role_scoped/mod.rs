@@ -24,7 +24,7 @@ use gateway_manager::{
 };
 use guest_manager::{
     guest_role_endpoints as guest_manager_guest_role_endpoints,
-    role_endpoints as guest_manager_role_endpoints,
+    //role_endpoints as guest_manager_role_endpoints,
     token_endpoints as guest_manager_token_endpoints,
 };
 use myc_core::domain::actors::SystemActor;
@@ -122,7 +122,7 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         .service(
             web::scope(&format!(
                 "/{}",
-                SystemActor::GuestManager.to_string().as_str()
+                SystemActor::GuestsManager.to_string().as_str()
             ))
             //
             // Inject a header to be collected by the MyceliumProfileData
@@ -133,16 +133,12 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             //
             .wrap_fn(|req, srv| {
                 let req =
-                    insert_role_header(req, vec![SystemActor::GuestManager]);
+                    insert_role_header(req, vec![SystemActor::GuestsManager]);
                 srv.call(req)
             })
             //
             // Configure the standard role endpoints
             //
-            .service(
-                web::scope(&format!("/{}", UrlGroup::Roles))
-                    .configure(guest_manager_role_endpoints::configure),
-            )
             .service(
                 web::scope(&format!("/{}", UrlGroup::GuestRoles))
                     .configure(guest_manager_guest_role_endpoints::configure),

@@ -1,14 +1,8 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    modules::{AccountRegistrationModule, GuestRoleFetchingModule},
-};
+use crate::{dtos::MyceliumProfileData, modules::AccountRegistrationModule};
 
 use actix_web::{post, web, Responder};
 use myc_core::{
-    domain::{
-        dtos::guest_role::GuestRole,
-        entities::{AccountRegistration, GuestRoleFetching},
-    },
+    domain::{dtos::guest_role::GuestRole, entities::AccountRegistration},
     use_cases::super_users::managers::create_system_account,
 };
 use myc_http_tools::{
@@ -21,7 +15,6 @@ use myc_http_tools::{
 use serde::Deserialize;
 use shaku_actix::Inject;
 use utoipa::ToSchema;
-use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -37,18 +30,30 @@ pub fn configure(config: &mut web::ServiceConfig) {
 
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
+pub(crate) enum ApiSystemActor {
+    GatewayManager,
+    GuestManager,
+    SystemManager,
+}
+
+impl ApiSystemActor {
+    fn to_system_actor(&self) -> SystemActor {
+        match self {
+            ApiSystemActor::GatewayManager => SystemActor::GatewayManager,
+            ApiSystemActor::GuestManager => SystemActor::GuestsManager,
+            ApiSystemActor::SystemManager => SystemActor::SystemManager,
+        }
+    }
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateSystemSubscriptionAccountBody {
     /// The account name
     name: String,
 
-    /// The tenant ID
-    tenant_id: Uuid,
-
-    /// The role name
-    role: SystemActor,
-
     /// The role ID
-    role_id: Uuid,
+    actor: ApiSystemActor,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -86,10 +91,6 @@ pub struct CreateSystemSubscriptionAccountBody {
 pub async fn create_system_account_url(
     body: web::Json<CreateSystemSubscriptionAccountBody>,
     profile: MyceliumProfileData,
-    guest_role_fetching_repo: Inject<
-        GuestRoleFetchingModule,
-        dyn GuestRoleFetching,
-    >,
     account_registration_repo: Inject<
         AccountRegistrationModule,
         dyn AccountRegistration,
@@ -98,10 +99,7 @@ pub async fn create_system_account_url(
     match create_system_account(
         profile.to_profile(),
         body.name.to_owned(),
-        body.tenant_id.to_owned(),
-        body.role.to_owned(),
-        body.role_id.to_owned(),
-        Box::new(&*guest_role_fetching_repo),
+        body.actor.to_system_actor(),
         Box::new(&*account_registration_repo),
     )
     .await

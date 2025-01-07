@@ -71,9 +71,9 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
                     name
                     slug
                     description
-                    role: select {
-                        id
-                    }
+                    //role: select {
+                    //    id
+                    //}
                     children
                     permission
                 }
@@ -95,10 +95,10 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
                         name: record.guest_role.name.to_owned(),
                         slug: record.guest_role.slug.to_owned(),
                         description: record.guest_role.description.to_owned(),
-                        role: Parent::Id(
-                            Uuid::parse_str(&record.guest_role.role.id)
-                                .unwrap(),
-                        ),
+                        //role: Parent::Id(
+                        //    Uuid::parse_str(&record.guest_role.role.id)
+                        //        .unwrap(),
+                        //),
                         children: match record.guest_role.children.len() {
                             0 => None,
                             _ => Some(Children::Ids(

@@ -58,14 +58,12 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub struct CreateGuestRoleBody {
     pub name: String,
     pub description: String,
-    pub guest_role_id: Uuid,
 }
 
 #[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct ListGuestRolesParams {
     pub name: Option<String>,
-    pub guest_role_id: Option<Uuid>,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -128,7 +126,6 @@ pub async fn crate_guest_role_url(
         profile.to_profile(),
         json.name.to_owned(),
         json.description.to_owned(),
-        json.guest_role_id.to_owned(),
         None,
         Box::new(&*guest_role_registration_repo),
     )
@@ -184,7 +181,6 @@ pub async fn list_guest_roles_url(
     match list_guest_roles(
         profile.to_profile(),
         info.name.to_owned(),
-        info.guest_role_id.to_owned(),
         Box::new(&*guest_role_fetching_repo),
     )
     .await

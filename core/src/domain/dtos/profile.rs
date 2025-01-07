@@ -49,7 +49,7 @@ pub struct LicensedResource {
     ///
     /// This is the name of the role that is own of the resource to be
     /// managed.
-    pub guest_role_name: String,
+    //pub guest_role_name: String,
 
     /// The guest account role verbose name
     ///
@@ -112,14 +112,10 @@ impl ToString for LicensedResource {
         let encoded_account_name =
             general_purpose::STANDARD.encode(self.acc_name.as_bytes());
 
-        let encoded_guest_role_name =
-            general_purpose::STANDARD.encode(self.guest_role_name.as_bytes());
-
         format!(
-            "tid/{tenant_id}/aid/{acc_id}/grn/{guest_role_name}?pr={role}:{perm}&std={is_acc_std}&v={was_verified}&name={acc_name}",
+            "tid/{tenant_id}/aid/{acc_id}?pr={role}:{perm}&std={is_acc_std}&v={was_verified}&name={acc_name}",
             tenant_id = self.tenant_id.to_string().replace("-", ""),
             acc_id = self.acc_id.to_string().replace("-", ""),
-            guest_role_name = encoded_guest_role_name,
             role = self.role,
             perm = self.perm.to_owned().to_i32(),
             is_acc_std = self.is_acc_std as i8,
@@ -145,17 +141,12 @@ impl FromStr for LicensedResource {
         let segments: Vec<_> =
             url.path_segments().ok_or("Path not found")?.collect();
 
-        if segments.len() != 6
-            || segments[0] != "tid"
-            || segments[2] != "aid"
-            || segments[4] != "grn"
-        {
+        if segments.len() != 4 || segments[0] != "tid" || segments[2] != "aid" {
             return Err("Invalid path format".to_string());
         }
 
         let tenant_id = segments[1];
         let account_id = segments[3];
-        let guest_role_name = segments[5];
 
         if !Self::is_uuid(tenant_id) {
             return Err("Invalid tenant UUID".to_string());
@@ -235,15 +226,6 @@ impl FromStr for LicensedResource {
                 }
             };
 
-        let guest_role_name_decoded = match general_purpose::STANDARD
-            .decode(guest_role_name.as_bytes())
-        {
-            Ok(name) => name,
-            Err(_) => {
-                return Err("Failed to decode guest role name".to_string());
-            }
-        };
-
         Ok(Self {
             tenant_id: Uuid::from_str(tenant_id).unwrap(),
             acc_id: Uuid::from_str(account_id).unwrap(),
@@ -251,8 +233,6 @@ impl FromStr for LicensedResource {
             perm: Permission::from_i32(permission_code.parse::<i32>().unwrap()),
             is_acc_std: std,
             acc_name: String::from_utf8(name_decoded).unwrap(),
-            guest_role_name: String::from_utf8(guest_role_name_decoded)
-                .unwrap(),
             was_verified,
         })
     }
@@ -485,9 +465,6 @@ impl Profile {
             state.len() + 1,
             format!("{}:{}", key, value)
         ));
-
-        println!("{:?}", state);
-        println!("{:?}", self.licensed_resources_state);
 
         Self {
             licensed_resources_state: Some(state),
@@ -729,8 +706,7 @@ impl Profile {
 
             if records.is_empty() {
                 return execution_err(
-                    "Insufficient privileges to perform these action"
-                        .to_string(),
+                    "Insufficient licenses to perform these action".to_string(),
                 )
                 .with_code(NativeErrorCodes::MYC00019)
                 .with_exp_true()
@@ -742,9 +718,13 @@ impl Profile {
             ));
         }
 
-        execution_err(
-            "Insufficient privileges to perform these action".to_string(),
-        )
+        execution_err(format!(
+            "Insufficient privileges to perform these action (no accounts): {}",
+            self.licensed_resources_state
+                .to_owned()
+                .unwrap_or(vec![])
+                .join(", ")
+        ))
         .with_code(NativeErrorCodes::MYC00019)
         .with_exp_true()
         .as_error()
@@ -768,7 +748,7 @@ impl Profile {
             // The profile has more than one licensed resource and the profile
             // is not the owner of the account
             //
-            ids.len() > 1 && ids.contains(&self.acc_id),
+            ids.len() > 0,
             //
             // The profile has no staff privileges
             //
@@ -781,9 +761,13 @@ impl Profile {
         .into_iter()
         .any(|i| i == true)
         {
-            return execution_err(
-                "Insufficient privileges to perform these action".to_string(),
-            )
+            return execution_err(format!(
+                "Insufficient privileges to perform these action (no ids): {}",
+                self.licensed_resources_state
+                    .to_owned()
+                    .unwrap_or(vec![])
+                    .join(", ")
+            ))
             .with_code(NativeErrorCodes::MYC00019)
             .with_exp_true()
             .as_error();
@@ -1142,7 +1126,7 @@ impl Profile {
             // The profile has more than one licensed resource and the profile
             // is not the owner of the account
             //
-            ids.len() > 1 && ids.contains(&self.acc_id),
+            ids.len() > 0,
             //
             // The profile has no staff privileges
             //
@@ -1156,7 +1140,13 @@ impl Profile {
         .any(|i| i == true)
         {
             return execution_err(
-                "Insufficient privileges to perform these action".to_string(),
+                format!(
+                "Insufficient privileges to perform these action (no licenses): {}",
+                self.licensed_resources_state
+                    .to_owned()
+                    .unwrap_or(vec![])
+                    .join(", ")
+            ),
             )
             .with_code(NativeErrorCodes::MYC00019)
             .with_exp_true()
@@ -1195,7 +1185,13 @@ impl Profile {
 
         if ids.is_empty() {
             return execution_err(
-                "Insufficient privileges to perform these action".to_string(),
+                format!(
+                "Insufficient privileges to perform these action (no guesting): {}",
+                self.licensed_resources_state
+                    .to_owned()
+                    .unwrap_or(vec![])
+                    .join(", ")
+                ),
             )
             .with_code(NativeErrorCodes::MYC00019)
             .with_exp_true()
@@ -1243,7 +1239,6 @@ mod tests {
                     tenant_id,
                     acc_name: "Guest Account Name".to_string(),
                     is_acc_std: false,
-                    guest_role_name: "guest_role_name".to_string(),
                     role: "service".to_string(),
                     perm: Permission::Write,
                     was_verified: true,
@@ -1253,7 +1248,6 @@ mod tests {
                     tenant_id,
                     acc_name: "Guest Account Name".to_string(),
                     is_acc_std: true,
-                    guest_role_name: "guest_role_name".to_string(),
                     role: "newbie".to_string(),
                     perm: Permission::Read,
                     was_verified: true,
@@ -1263,7 +1257,6 @@ mod tests {
                     tenant_id: Uuid::new_v4(),
                     acc_name: "Guest Account Name".to_string(),
                     is_acc_std: true,
-                    guest_role_name: "guest_role_name".to_string(),
                     role: "service".to_string(),
                     perm: Permission::ReadWrite,
                     was_verified: true,
@@ -1307,7 +1300,6 @@ mod tests {
                     .unwrap(),
                     acc_name: "guest_account_name".to_string(),
                     is_acc_std: false,
-                    guest_role_name: "guest_role_name".to_string(),
                     role: "service".to_string(),
                     perm: Permission::Write,
                     was_verified: true,
@@ -1357,7 +1349,6 @@ mod tests {
                     .unwrap(),
                     acc_name: "guest_account_name".to_string(),
                     is_acc_std: false,
-                    guest_role_name: "guest_role_name".to_string(),
                     role: "service".to_string(),
                     perm: Permission::Write,
                     was_verified: true,
@@ -1416,7 +1407,6 @@ mod tests {
             tenant_id: Uuid::new_v4(),
             acc_name: "Guest Account Name".to_string(),
             is_acc_std: false,
-            guest_role_name: "guest_role_name".to_string(),
             role: "service".to_string(),
             perm: Permission::Write,
             was_verified: true,

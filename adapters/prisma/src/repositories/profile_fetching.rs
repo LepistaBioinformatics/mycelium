@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use myc_core::domain::{
     dtos::{
         account::VerboseStatus,
-        account_type::AccountTypeV2,
+        account_type::AccountType,
         email::Email,
         native_error_codes::NativeErrorCodes,
         profile::{Owner, Profile},
@@ -86,7 +86,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
 
         match response {
             Some(record) => {
-                let account_type: AccountTypeV2 =
+                let account_type: AccountType =
                     match from_value(record.account_type) {
                         Ok(res) => res,
                         Err(err) => {
@@ -101,12 +101,12 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
 
                 let (is_subscription, is_manager, is_staff) = match account_type
                 {
-                    AccountTypeV2::Subscription { .. }
-                    | AccountTypeV2::RoleAssociated { .. } => {
+                    AccountType::Subscription { .. }
+                    | AccountType::RoleAssociated { .. } => {
                         (true, false, false)
                     }
-                    AccountTypeV2::Manager => (false, true, false),
-                    AccountTypeV2::Staff => (false, true, true),
+                    AccountType::Manager => (false, true, false),
+                    AccountType::Staff => (false, true, true),
                     _ => (false, false, false),
                 };
 

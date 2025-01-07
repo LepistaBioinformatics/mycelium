@@ -15,7 +15,7 @@ use myc_core::domain::{
     entities::GuestRoleFetching,
 };
 use mycelium_base::{
-    dtos::{Children, Parent},
+    dtos::Children,
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{fetching_err, MappedErrors},
 };
@@ -99,7 +99,6 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                 name: record.name,
                 slug: record.slug,
                 description: record.description,
-                role: Parent::Id(Uuid::parse_str(&record.role_id).unwrap()),
                 children: match record.children.len() {
                     0 => None,
                     _ => Some(Children::Records(
@@ -116,10 +115,10 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                                     name: child_role.name,
                                     slug: child_role.slug,
                                     description: child_role.description,
-                                    role: Parent::Id(
-                                        Uuid::parse_str(&child_role.role_id)
-                                            .unwrap(),
-                                    ),
+                                    //role: Parent::Id(
+                                    //    Uuid::parse_str(&child_role.role_id)
+                                    //        .unwrap(),
+                                    //),
                                     children: None,
                                     permission: Permission::from_i32(
                                         child_role.permission,
@@ -138,7 +137,6 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
     async fn list(
         &self,
         name: Option<String>,
-        role_id: Option<Uuid>,
     ) -> Result<FetchManyResponseKind<GuestRole>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
@@ -165,12 +163,6 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
 
         if name.is_some() {
             query_stmt.push(guest_role_model::name::contains(name.unwrap()))
-        }
-
-        if role_id.is_some() {
-            query_stmt.push(guest_role_model::role_id::equals(
-                role_id.unwrap().to_string(),
-            ))
         }
 
         // ? -------------------------------------------------------------------
@@ -200,9 +192,6 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                         name: record.name,
                         slug: record.slug,
                         description: record.description,
-                        role: Parent::Id(
-                            Uuid::parse_str(&record.role_id).unwrap(),
-                        ),
                         children: match record.children.len() {
                             0 => None,
                             _ => Some(Children::Ids(

@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::{account::Account, account_type::AccountTypeV2, profile::Profile},
+    dtos::{account::Account, account_type::AccountType, profile::Profile},
     entities::AccountUpdating,
 };
 
@@ -17,7 +17,7 @@ use uuid::Uuid;
 pub async fn downgrade_account_privileges(
     profile: Profile,
     account_id: Uuid,
-    target_account_type: AccountTypeV2,
+    target_account_type: AccountType,
     account_updating_repo: Box<&dyn AccountUpdating>,
 ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -38,7 +38,7 @@ pub async fn downgrade_account_privileges(
     // ? Check if the account type if allowed
     // ? -----------------------------------------------------------------------
 
-    if !vec![AccountTypeV2::User, AccountTypeV2::Manager]
+    if !vec![AccountType::User, AccountType::Manager]
         .contains(&target_account_type)
     {
         return use_case_err("Invalid upgrade target.").as_error();
