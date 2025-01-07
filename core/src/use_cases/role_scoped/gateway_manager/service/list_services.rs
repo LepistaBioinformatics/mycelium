@@ -24,7 +24,11 @@ pub async fn list_services(
     // ? Check if the current account has sufficient privileges to create role
     // ? ----------------------------------------------------------------------
 
-    profile.get_default_read_ids_or_error(vec![SystemActor::GatewayManager])?;
+    profile
+        .with_standard_accounts_access()
+        .with_read_access()
+        .with_roles(vec![SystemActor::GatewayManager])
+        .get_ids_or_error()?;
 
     // ? ----------------------------------------------------------------------
     // ? Match upstream routes

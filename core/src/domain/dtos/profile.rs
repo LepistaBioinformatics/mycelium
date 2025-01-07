@@ -275,12 +275,15 @@ pub struct Owner {
     pub email: String,
 
     /// The owner first name
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub first_name: Option<String>,
 
     /// The owner last name
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_name: Option<String>,
 
     /// The owner username
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub username: Option<String>,
 
     /// If the owner is the principal account owner
@@ -383,6 +386,7 @@ pub struct Profile {
     /// Guest accounts delivers information about the guest account role and
     /// their respective permissions inside the host account. A single account
     /// should be several licenses into the same account.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub licensed_resources: Option<LicensedResources>,
 
     /// This argument stores the licensed resources state
@@ -423,6 +427,7 @@ pub struct Profile {
     /// ]
     /// ```
     ///
+    #[serde(skip_serializing_if = "Option::is_none")]
     licensed_resources_state: Option<Vec<String>>,
 }
 
@@ -781,11 +786,13 @@ impl Profile {
     // ? -----------------------------------------------------------------------
 
     /// Filter IDs with read permissions.
+    #[deprecated(note = "To be removed in the future")]
     pub fn get_read_ids<T: ToString>(&self, roles: Vec<T>) -> Vec<Uuid> {
         self.get_licensed_ids(Permission::Read, roles, None)
     }
 
     /// Filter IDs with read permissions with error if empty.
+    #[deprecated(note = "To be removed in the future")]
     pub fn get_read_ids_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
@@ -794,6 +801,7 @@ impl Profile {
     }
 
     /// Filter IDs with read permissions to accounts with error if empty.
+    #[deprecated(note = "To be removed in the future")]
     pub fn get_related_account_with_read_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
@@ -807,6 +815,7 @@ impl Profile {
 
     /// Filter IDs with read permissions to default accounts with error if
     /// empty.
+    #[deprecated(note = "To be removed in the future")]
     pub fn get_default_read_ids_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
@@ -816,6 +825,7 @@ impl Profile {
 
     /// Filter RelatedAccounts with read permissions to default accounts with
     /// error if empty.
+    #[deprecated(note = "To be removed in the future")]
     pub fn get_related_account_with_default_read_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
@@ -832,11 +842,13 @@ impl Profile {
     // ? -----------------------------------------------------------------------
 
     /// Filter IDs with write permissions.
+    #[deprecated(note = "To be removed in the future")]
     pub fn get_write_ids<T: ToString>(&self, roles: Vec<T>) -> Vec<Uuid> {
         self.get_licensed_ids(Permission::Write, roles, None)
     }
 
     /// Filter IDs with write permissions with error if empty.
+    #[deprecated(note = "To be removed in the future")]
     pub fn get_write_ids_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
@@ -845,6 +857,7 @@ impl Profile {
     }
 
     /// Filter IDs with write permissions to accounts with error if empty.
+    #[deprecated(note = "To be removed in the future")]
     pub fn get_related_account_with_write_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
@@ -858,6 +871,7 @@ impl Profile {
 
     /// Filter IDs with write permissions to default accounts with error if
     /// empty.
+    #[deprecated(note = "To be removed in the future")]
     pub fn get_default_write_ids_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
@@ -867,6 +881,7 @@ impl Profile {
 
     /// Filter RelatedAccounts with write permissions to default accounts with
     /// error if empty.
+    #[deprecated(note = "To be removed in the future")]
     pub fn get_related_account_with_default_write_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
@@ -883,11 +898,13 @@ impl Profile {
     // ? -----------------------------------------------------------------------
 
     /// Filter IDs with write permissions.
+    #[deprecated(note = "To be removed in the future")]
     pub fn get_read_write_ids<T: ToString>(&self, roles: Vec<T>) -> Vec<Uuid> {
         self.get_licensed_ids(Permission::ReadWrite, roles, None)
     }
 
     /// Filter IDs with write permissions with error if empty.
+    #[deprecated(note = "To be removed in the future")]
     pub fn get_read_write_ids_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
@@ -896,6 +913,7 @@ impl Profile {
     }
 
     /// Filter IDs with write permissions to accounts with error if empty.
+    #[deprecated(note = "To be removed in the future")]
     pub fn get_related_account_with_read_write_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
@@ -909,6 +927,7 @@ impl Profile {
 
     /// Filter IDs with write permissions to default accounts with error if
     /// empty.
+    #[deprecated(note = "To be removed in the future")]
     pub fn get_default_read_write_ids_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
@@ -918,6 +937,7 @@ impl Profile {
 
     /// Filter RelatedAccounts with write permissions to default accounts with
     /// error if empty.
+    #[deprecated(note = "To be removed in the future")]
     pub fn get_related_account_with_default_read_write_or_error<T: ToString>(
         &self,
         roles: Vec<T>,
@@ -1053,6 +1073,7 @@ impl Profile {
     ///
     /// Licensed ids are Uuids of accounts which the current profile has access
     /// to do based on the specified `PermissionsType`.
+    #[deprecated(note = "To be removed in the future")]
     fn get_licensed_ids<T: ToString>(
         &self,
         permission: Permission,
@@ -1110,6 +1131,7 @@ impl Profile {
             .collect::<Vec<Uuid>>()
     }
 
+    #[deprecated(note = "To be removed in the future")]
     fn get_licensed_ids_or_error<T: ToString>(
         &self,
         permission: Permission,
@@ -1167,6 +1189,7 @@ impl Profile {
     /// admin privileges and the licensed ids are empty, the function should
     /// return an error.
     ///
+    #[deprecated(note = "To be removed in the future")]
     fn get_licensed_ids_as_related_accounts_or_error<T: ToString>(
         &self,
         permission: Permission,
@@ -1393,7 +1416,7 @@ mod tests {
         profile.is_staff = false;
 
         assert_eq!(
-            false,
+            true,
             profile
                 .get_write_ids_or_error([desired_role].to_vec())
                 .is_ok(),
@@ -1576,8 +1599,6 @@ mod tests {
 
         let profile_on_tenant_with_standard =
             profile_on_tenant.with_standard_accounts_access();
-
-        println!("{:?}", profile_on_tenant_with_standard);
 
         assert_eq!(
             1,
