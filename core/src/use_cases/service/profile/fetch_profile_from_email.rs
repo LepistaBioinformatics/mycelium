@@ -1,7 +1,7 @@
 use crate::domain::{
     dtos::{
         email::Email,
-        profile::{LicensedResources, Profile},
+        profile::{LicensedResources, Profile, TenantsOwnership},
         route_type::PermissionedRoles,
     },
     entities::{LicensedResourcesFetching, ProfileFetching},
@@ -84,7 +84,9 @@ pub async fn fetch_profile_from_email(
 
     profile.tenants_ownership = match ownership? {
         FetchManyResponseKind::NotFound => None,
-        FetchManyResponseKind::Found(records) => Some(records),
+        FetchManyResponseKind::Found(records) => {
+            Some(TenantsOwnership::Records(records))
+        }
         _ => panic!(
             "Paginated ownership not implemented when fetch profile from email"
         ),

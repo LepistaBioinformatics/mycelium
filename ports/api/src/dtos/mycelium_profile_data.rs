@@ -4,7 +4,7 @@ use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
 use myc_core::domain::dtos::{
     account::VerboseStatus,
-    profile::{LicensedResources, Owner, TenantOwnership},
+    profile::{LicensedResources, Owner, TenantsOwnership},
 };
 use myc_http_tools::{
     responses::GatewayError,
@@ -30,7 +30,7 @@ pub(crate) struct MyceliumProfileData {
     pub account_was_archived: bool,
     pub verbose_status: Option<VerboseStatus>,
     pub licensed_resources: Option<LicensedResources>,
-    pub tenants_ownership: Option<Vec<TenantOwnership>>,
+    pub tenants_ownership: Option<TenantsOwnership>,
 }
 
 impl MyceliumProfileData {

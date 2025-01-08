@@ -1,7 +1,7 @@
 use crate::dtos::MyceliumProfileData;
 
 use actix_web::{get, web, HttpResponse, Responder};
-use myc_core::domain::dtos::profile::LicensedResources;
+use myc_core::domain::dtos::profile::{LicensedResources, TenantsOwnership};
 use myc_http_tools::{utils::HttpJsonResponse, Profile};
 use serde::Deserialize;
 use utoipa::IntoParams;
@@ -70,21 +70,43 @@ pub async fn fetch_profile_url(
 ) -> impl Responder {
     match query.with_url.unwrap_or(true) {
         true => {
+            //
+            // Try to set the licensed resources as a string list
+            //
             if let Some(licensed_resources) = profile.licensed_resources {
                 let resources = match licensed_resources {
-                    LicensedResources::Records(records) => {
-                        records.iter().map(|r| r.to_string()).collect()
-                    }
                     LicensedResources::Urls(urls) => urls,
+                    LicensedResources::Records(records) => records
+                        .iter()
+                        .map(|r| r.to_string())
+                        .collect::<Vec<String>>(),
                 };
 
-                profile.licensed_resources =
-                    Some(LicensedResources::Urls(resources));
+                profile.licensed_resources = match resources.is_empty() {
+                    true => None,
+                    false => Some(LicensedResources::Urls(resources)),
+                }
+            };
 
-                HttpResponse::Ok().json(profile.to_profile())
-            } else {
-                HttpResponse::Ok().json(profile.to_profile())
-            }
+            //
+            // Try to set the tenant ownership as a string list
+            //
+            if let Some(tenants_ownership) = profile.tenants_ownership {
+                let ownerships = match tenants_ownership {
+                    TenantsOwnership::Urls(urls) => urls,
+                    TenantsOwnership::Records(records) => records
+                        .iter()
+                        .map(|r| r.to_string())
+                        .collect::<Vec<String>>(),
+                };
+
+                profile.tenants_ownership = match ownerships.is_empty() {
+                    true => None,
+                    false => Some(TenantsOwnership::Urls(ownerships)),
+                };
+            };
+
+            HttpResponse::Ok().json(profile.to_profile())
         }
         _ => HttpResponse::Ok().json(profile.to_profile()),
     }
