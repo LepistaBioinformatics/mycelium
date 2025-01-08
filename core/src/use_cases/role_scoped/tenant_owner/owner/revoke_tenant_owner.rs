@@ -23,6 +23,12 @@ pub async fn revoke_tenant_owner(
     tenant_deletion_repo: Box<&dyn TenantDeletion>,
 ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
     // ? -----------------------------------------------------------------------
+    // ? Check if the profile is the owner of the tenant
+    // ? -----------------------------------------------------------------------
+
+    profile.with_tenant_ownership_or_error(tenant_id)?;
+
+    // ? -----------------------------------------------------------------------
     // ? Collect user
     // ? -----------------------------------------------------------------------
 

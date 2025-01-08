@@ -1,11 +1,11 @@
 use crate::{
     dtos::{MyceliumProfileData, TenantData},
-    modules::{AccountRegistrationModule, TenantFetchingModule},
+    modules::AccountRegistrationModule,
 };
 
 use actix_web::{post, web, Responder};
 use myc_core::{
-    domain::entities::{AccountRegistration, TenantFetching},
+    domain::entities::AccountRegistration,
     use_cases::role_scoped::tenant_owner::create_management_account,
 };
 use myc_http_tools::{
@@ -71,7 +71,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub async fn create_management_account_url(
     tenant: TenantData,
     profile: MyceliumProfileData,
-    tenant_fetching_repo: Inject<TenantFetchingModule, dyn TenantFetching>,
     account_registration_repo: Inject<
         AccountRegistrationModule,
         dyn AccountRegistration,
@@ -80,7 +79,6 @@ pub async fn create_management_account_url(
     match create_management_account(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
-        Box::new(&*tenant_fetching_repo),
         Box::new(&*account_registration_repo),
     )
     .await
