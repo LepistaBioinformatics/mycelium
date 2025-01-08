@@ -1,8 +1,7 @@
-use crate::domain::actors::SystemActor;
-
 use super::{
     account_type::AccountType, guest_user::GuestUser, tag::Tag, user::User,
 };
+use crate::domain::actors::SystemActor;
 
 use chrono::{DateTime, Local};
 use mycelium_base::{
@@ -121,20 +120,52 @@ impl VerboseStatus {
 )]
 #[serde(rename_all = "camelCase")]
 pub struct Account {
+    /// The Account ID
     pub id: Option<Uuid>,
 
+    /// The Account Name
     pub name: String,
+
+    /// The Account Slug
+    ///
+    /// This is generated from the account name. This is used for programmatic
+    /// access and verification of the account.
+    ///
     pub slug: String,
 
+    /// Account Tags
+    ///
+    /// Information about the account. This is used for categorizing and filter
+    /// account.
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tags: Option<Vec<Tag>>,
 
-    // Account statuses and verbose status
-    //
-    // Account statuses are used to determine the real (verbose) state of the
-    // account.
+    /// Account is active
+    ///
+    /// If the account is active. This is used for logic trash and restore
+    /// account.
+    ///
     pub is_active: bool,
+
+    /// Account is checked
+    ///
+    /// If the account was verified by a human. This is used for account
+    /// verification.
+    ///
     pub is_checked: bool,
+
+    /// Account is archived
+    ///
+    /// If the account is archived. This is used for account archiving.
+    ///
     pub is_archived: bool,
+
+    /// Verbose status
+    ///
+    /// Is the human readable status of the account.
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub verbose_status: Option<VerboseStatus>,
 
     // If current account is the default one
@@ -159,9 +190,14 @@ pub struct Account {
     /// The Account Guest Users
     ///
     /// This is the list of guest users of the account.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub guest_users: Option<Children<GuestUser, Uuid>>,
 
+    /// The Account Created Date
     pub created: DateTime<Local>,
+
+    /// The Account Updated Date
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub updated: Option<DateTime<Local>>,
 }
 
