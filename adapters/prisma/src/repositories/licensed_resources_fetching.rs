@@ -17,7 +17,6 @@ use prisma_client_rust::{PrismaValue, Raw};
 use serde::Deserialize;
 use shaku::Component;
 use std::process::id as process_id;
-use tracing::trace;
 use uuid::Uuid;
 
 #[derive(Component, Debug)]
@@ -40,6 +39,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
     async fn list(
         &self,
         email: Email,
+        tenant: Option<Uuid>,
         roles: Option<Vec<String>>,
         permissioned_roles: Option<PermissionedRoles>,
         related_accounts: Option<RelatedAccounts>,
@@ -74,6 +74,11 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         if let Some(was_verified) = was_verified {
             query.push("AND gu_verified = {}");
             params.push(PrismaValue::Boolean(was_verified));
+        }
+
+        if let Some(tenant) = tenant {
+            query.push("AND (tenant_id = {} OR tenant_id IS NULL)");
+            params.push(PrismaValue::Uuid(tenant));
         }
 
         if let Some(related_accounts) = related_accounts {
@@ -123,8 +128,6 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         };
 
         let join_query = query.join(" ");
-
-        trace!("Query ({:?}) with params {:?}", join_query, params);
 
         let response: Vec<LicensedResourceRow> = match client
             ._query_raw(Raw::new(join_query.as_str(), params))

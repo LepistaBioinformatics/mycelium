@@ -8,12 +8,14 @@ use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Interface;
+use uuid::Uuid;
 
 #[async_trait]
 pub trait LicensedResourcesFetching: Interface + Send + Sync {
     async fn list(
         &self,
         email: Email,
+        tenant: Option<Uuid>,
         roles: Option<Vec<String>>,
         permissioned_roles: Option<PermissionedRoles>,
         related_accounts: Option<RelatedAccounts>,

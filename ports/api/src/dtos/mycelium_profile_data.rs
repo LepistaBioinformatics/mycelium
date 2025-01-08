@@ -4,10 +4,12 @@ use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
 use myc_core::domain::dtos::{
     account::VerboseStatus,
-    profile::{LicensedResources, Owner},
+    profile::{LicensedResources, Owner, TenantAdmDetails},
 };
 use myc_http_tools::{
-    responses::GatewayError, settings::DEFAULT_MYCELIUM_ROLE_KEY, Profile,
+    responses::GatewayError,
+    settings::{DEFAULT_MYCELIUM_ROLE_KEY, DEFAULT_TENANT_ID_KEY},
+    Profile,
 };
 use serde::Deserialize;
 use std::pin::Pin;
@@ -28,6 +30,7 @@ pub(crate) struct MyceliumProfileData {
     pub account_was_archived: bool,
     pub verbose_status: Option<VerboseStatus>,
     pub licensed_resources: Option<LicensedResources>,
+    pub tenants_with_adm: Option<Vec<TenantAdmDetails>>,
 }
 
 impl MyceliumProfileData {
@@ -44,6 +47,7 @@ impl MyceliumProfileData {
             account_was_archived: profile.account_was_archived,
             verbose_status: profile.verbose_status,
             licensed_resources: profile.licensed_resources,
+            tenants_with_adm: profile.tenants_with_adm,
         }
     }
 
@@ -60,6 +64,7 @@ impl MyceliumProfileData {
             self.account_was_archived,
             self.verbose_status.to_owned(),
             self.licensed_resources.to_owned(),
+            self.tenants_with_adm.to_owned(),
         )
     }
 }
@@ -70,6 +75,27 @@ impl FromRequest for MyceliumProfileData {
 
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
         let req_clone = req.clone();
+
+        //
+        // Get the tenant from the request
+        //
+        let tenant = match req.headers().get(DEFAULT_TENANT_ID_KEY) {
+            Some(tenant) => match tenant.to_str() {
+                Ok(tenant) => match Uuid::parse_str(tenant) {
+                    Ok(tenant_uuid) => Some(tenant_uuid),
+                    Err(err) => {
+                        error!("Failed to parse tenant: {err}");
+                        None
+                    }
+                },
+                Err(err) => {
+                    error!("Failed to parse tenant: {err}");
+
+                    None
+                }
+            },
+            None => None,
+        };
 
         //
         // Get the roles from the request
@@ -103,7 +129,7 @@ impl FromRequest for MyceliumProfileData {
         trace!("Requested roles: {:?}", roles);
 
         Box::pin(async move {
-            fetch_profile_from_request(req_clone, roles, None).await
+            fetch_profile_from_request(req_clone, tenant, roles, None).await
         })
     }
 }

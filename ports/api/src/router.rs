@@ -257,6 +257,7 @@ pub(crate) async fn route_request(
                 forwarded_req,
                 None,
                 None,
+                None,
             )
             .await?;
         }
@@ -273,6 +274,7 @@ pub(crate) async fn route_request(
             forwarded_req = fetch_and_inject_profile_to_forward(
                 req,
                 forwarded_req,
+                None,
                 Some(roles),
                 None,
             )
@@ -294,6 +296,7 @@ pub(crate) async fn route_request(
             forwarded_req = fetch_and_inject_profile_to_forward(
                 req,
                 forwarded_req,
+                None,
                 None,
                 Some(permissioned_roles),
             )

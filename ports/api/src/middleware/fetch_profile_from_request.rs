@@ -21,6 +21,7 @@ use myc_prisma::repositories::{
     LicensedResourcesFetchingSqlDbRepository, ProfileFetchingSqlDbRepository,
 };
 use tracing::{trace, warn};
+use uuid::Uuid;
 
 /// Try to populate profile to request header
 ///
@@ -29,6 +30,7 @@ use tracing::{trace, warn};
 #[tracing::instrument(name = "fetch_profile_from_request", skip_all)]
 pub(crate) async fn fetch_profile_from_request(
     req: HttpRequest,
+    tenant: Option<Uuid>,
     roles: Option<Vec<String>>,
     permissioned_roles: Option<PermissionedRoles>,
 ) -> Result<MyceliumProfileData, GatewayError> {
@@ -48,6 +50,7 @@ pub(crate) async fn fetch_profile_from_request(
     let profile = match fetch_profile_from_email(
         email.to_owned().unwrap(),
         None,
+        tenant,
         roles,
         permissioned_roles,
         Box::new(&ProfileFetchingSqlDbRepository {}),

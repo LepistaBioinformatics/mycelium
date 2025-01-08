@@ -14,6 +14,7 @@ use mycelium_base::{
 };
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -27,6 +28,7 @@ pub enum ProfileResponse {
 pub async fn fetch_profile_from_email(
     email: Email,
     was_verified: Option<bool>,
+    tenant: Option<Uuid>,
     roles: Option<Vec<String>>,
     permissioned_roles: Option<PermissionedRoles>,
     profile_fetching_repo: Box<&dyn ProfileFetching>,
@@ -40,6 +42,7 @@ pub async fn fetch_profile_from_email(
         profile_fetching_repo.get(Some(email.to_owned()), None),
         licensed_resources_fetching_repo.list(
             email.to_owned(),
+            tenant,
             roles,
             permissioned_roles,
             None,
