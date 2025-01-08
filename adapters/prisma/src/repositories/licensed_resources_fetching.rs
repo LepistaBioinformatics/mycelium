@@ -151,10 +151,10 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                     }
                 },
                 acc_name: record.acc_name.to_owned(),
-                is_acc_std: record.is_acc_std,
+                sys_acc: record.is_acc_std,
                 role: record.gr_slug,
                 perm: Permission::from_i32(record.gr_perm),
-                was_verified: record.gu_verified,
+                verified: record.gu_verified,
             })
             .collect::<Vec<LicensedResource>>();
 

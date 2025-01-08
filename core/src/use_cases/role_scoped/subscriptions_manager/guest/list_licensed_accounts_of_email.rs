@@ -36,7 +36,7 @@ pub async fn list_licensed_accounts_of_email(
 
     let related_accounts = profile
         .on_tenant(tenant_id)
-        .with_standard_accounts_access()
+        .with_system_accounts_access()
         .with_read_access()
         .with_roles(vec![
             SystemActor::TenantOwner,

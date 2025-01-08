@@ -41,7 +41,7 @@ pub async fn create_role_associated_connection_string(
     // ? -----------------------------------------------------------------------
 
     profile
-        .with_standard_accounts_access()
+        .with_system_accounts_access()
         .with_write_access()
         .with_roles(vec![SystemActor::GuestsManager])
         .get_ids_or_error()?;

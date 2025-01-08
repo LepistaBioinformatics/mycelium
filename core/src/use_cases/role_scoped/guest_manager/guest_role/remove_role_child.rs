@@ -21,7 +21,7 @@ pub async fn remove_role_child(
     // ? ----------------------------------------------------------------------
 
     profile
-        .with_standard_accounts_access()
+        .with_system_accounts_access()
         .with_write_access()
         .with_roles(vec![SystemActor::GuestsManager])
         .get_ids_or_error()?;

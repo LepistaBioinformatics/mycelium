@@ -55,7 +55,7 @@ pub async fn accept_invitation(
         target_license.acc_id == account_id,
         target_license.perm == permission,
         target_license.role == role_name,
-        target_license.was_verified == false,
+        target_license.verified == false,
     ]
     .iter()
     .any(|&x| x == false)

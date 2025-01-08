@@ -30,7 +30,7 @@ pub async fn list_error_codes(
     // ? -----------------------------------------------------------------------
 
     profile
-        .with_standard_accounts_access()
+        .with_system_accounts_access()
         .with_read_access()
         .with_roles(vec![SystemActor::SystemManager.to_string()])
         .get_ids_or_error()?;

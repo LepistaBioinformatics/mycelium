@@ -26,7 +26,7 @@ pub async fn update_tag(
 
     profile
         .on_tenant(tenant_id)
-        .with_standard_accounts_access()
+        .with_system_accounts_access()
         .with_write_access()
         .with_roles(vec![
             SystemActor::TenantOwner,
