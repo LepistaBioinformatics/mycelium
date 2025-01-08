@@ -23,6 +23,12 @@ pub trait AccountRegistration: Interface + Send + Sync {
         tenant_id: Uuid,
     ) -> Result<CreateResponseKind<Account>, MappedErrors>;
 
+    async fn get_or_create_tenant_management_account(
+        &self,
+        account: Account,
+        tenant_id: Uuid,
+    ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors>;
+
     async fn get_or_create_role_related_account(
         &self,
         account: Account,

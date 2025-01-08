@@ -1,11 +1,17 @@
-use crate::repositories::connector::get_client;
+use crate::{
+    prisma::{owner_on_tenant as owner_on_tenant_model, user as user_model},
+    repositories::connector::get_client,
+};
 
 use async_trait::async_trait;
 use myc_core::domain::{
     dtos::{
-        email::Email, guest_role::Permission,
-        native_error_codes::NativeErrorCodes, profile::LicensedResource,
-        related_accounts::RelatedAccounts, route_type::PermissionedRoles,
+        email::Email,
+        guest_role::Permission,
+        native_error_codes::NativeErrorCodes,
+        profile::{LicensedResource, TenantOwnership},
+        related_accounts::RelatedAccounts,
+        route_type::PermissionedRoles,
     },
     entities::LicensedResourcesFetching,
 };
@@ -13,7 +19,7 @@ use mycelium_base::{
     entities::FetchManyResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
-use prisma_client_rust::{PrismaValue, Raw};
+use prisma_client_rust::{operator::and as and_o, PrismaValue, Raw};
 use serde::Deserialize;
 use shaku::Component;
 use std::process::id as process_id;
@@ -36,7 +42,7 @@ struct LicensedResourceRow {
 
 #[async_trait]
 impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
-    async fn list(
+    async fn list_licensed_resources(
         &self,
         email: Email,
         tenant: Option<Uuid>,
@@ -166,5 +172,71 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         }
 
         Ok(FetchManyResponseKind::Found(licenses))
+    }
+
+    async fn list_tenants_ownership(
+        &self,
+        email: Email,
+        tenant: Option<Uuid>,
+    ) -> Result<FetchManyResponseKind<TenantOwnership>, MappedErrors> {
+        // ? -------------------------------------------------------------------
+        // ? Build and execute the database query
+        // ? -------------------------------------------------------------------
+
+        let tmp_client = get_client().await;
+
+        let client = match tmp_client.get(&process_id()) {
+            None => {
+                return fetching_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .with_code(NativeErrorCodes::MYC00001)
+                .as_error()
+            }
+            Some(res) => res,
+        };
+
+        let mut and_query_stmt = vec![owner_on_tenant_model::owner::is(vec![
+            user_model::email::equals(email.email()),
+        ])];
+
+        if let Some(tenant) = tenant {
+            and_query_stmt.push(owner_on_tenant_model::tenant_id::equals(
+                tenant.to_string(),
+            ));
+        }
+
+        let response = match client
+            .owner_on_tenant()
+            .find_many(vec![and_o(and_query_stmt)])
+            .select(owner_on_tenant_model::select!({
+                tenant_id
+                created
+            }))
+            .exec()
+            .await
+        {
+            Err(err) => {
+                return fetching_err(format!(
+                    "Unexpected error on fetch accounts: {err}",
+                ))
+                .as_error()
+            }
+            Ok(res) => res,
+        };
+
+        if response.len() == 0 {
+            return Ok(FetchManyResponseKind::NotFound);
+        }
+
+        Ok(FetchManyResponseKind::Found(
+            response
+                .into_iter()
+                .map(|record| TenantOwnership {
+                    tenant: Uuid::parse_str(&record.tenant_id).unwrap(),
+                    since: record.created.into(),
+                })
+                .collect::<Vec<TenantOwnership>>(),
+        ))
     }
 }

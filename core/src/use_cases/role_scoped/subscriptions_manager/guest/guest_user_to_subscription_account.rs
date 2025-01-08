@@ -83,7 +83,8 @@ pub async fn guest_user_to_subscription_account(
         FetchResponseKind::Found(account) => match account.account_type {
             AccountType::Subscription { .. }
             | AccountType::RoleAssociated { .. }
-            | AccountType::ActorAssociated { .. } => account,
+            | AccountType::ActorAssociated { .. }
+            | AccountType::TenantManager { .. } => account,
             _ => {
                 return use_case_err(
                     "Invalid account. Only subscription accounts should \

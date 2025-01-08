@@ -257,20 +257,9 @@ impl LicensedResources {
 #[derive(
     Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq, ToResponse,
 )]
-pub enum TenantAdmRole {
-    Owner,
-    Manager,
-}
-
-#[derive(
-    Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq, ToResponse,
-)]
-pub struct TenantAdmDetails {
+pub struct TenantOwnership {
     /// The tenant ID that the profile has administration privileges
     pub tenant: Uuid,
-
-    /// The tenant administration role
-    pub role: TenantAdmRole,
 
     /// The date and time the tenant was granted to the profile
     pub since: DateTime<Local>,
@@ -413,7 +402,7 @@ pub struct Profile {
     /// during system validations.
     ///
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub tenants_with_adm: Option<Vec<TenantAdmDetails>>,
+    pub tenants_ownership: Option<Vec<TenantOwnership>>,
 
     /// This argument stores the licensed resources state
     ///
@@ -454,7 +443,7 @@ pub struct Profile {
     /// ```
     ///
     #[serde(skip_serializing_if = "Option::is_none")]
-    licensed_resources_state: Option<Vec<String>>,
+    filtering_state: Option<Vec<String>>,
 }
 
 impl Profile {
@@ -470,7 +459,7 @@ impl Profile {
         account_was_archived: bool,
         verbose_status: Option<VerboseStatus>,
         licensed_resources: Option<LicensedResources>,
-        tenants_with_adm: Option<Vec<TenantAdmDetails>>,
+        tenants_ownership: Option<Vec<TenantOwnership>>,
     ) -> Self {
         Self {
             owners,
@@ -484,14 +473,13 @@ impl Profile {
             account_was_archived,
             verbose_status,
             licensed_resources,
-            tenants_with_adm,
-            licensed_resources_state: None,
+            tenants_ownership,
+            filtering_state: None,
         }
     }
 
     fn update_state(&self, key: String, value: String) -> Self {
-        let mut state =
-            self.licensed_resources_state.clone().unwrap_or_default();
+        let mut state = self.filtering_state.clone().unwrap_or_default();
 
         state.push(format!(
             "{}:{}",
@@ -500,7 +488,7 @@ impl Profile {
         ));
 
         Self {
-            licensed_resources_state: Some(state),
+            filtering_state: Some(state),
             ..self.clone()
         }
     }
@@ -753,10 +741,7 @@ impl Profile {
 
         execution_err(format!(
             "Insufficient privileges to perform these action (no accounts): {}",
-            self.licensed_resources_state
-                .to_owned()
-                .unwrap_or(vec![])
-                .join(", ")
+            self.filtering_state.to_owned().unwrap_or(vec![]).join(", ")
         ))
         .with_code(NativeErrorCodes::MYC00019)
         .with_exp_true()
@@ -796,10 +781,7 @@ impl Profile {
         {
             return execution_err(format!(
                 "Insufficient privileges to perform these action (no ids): {}",
-                self.licensed_resources_state
-                    .to_owned()
-                    .unwrap_or(vec![])
-                    .join(", ")
+                self.filtering_state.to_owned().unwrap_or(vec![]).join(", ")
             ))
             .with_code(NativeErrorCodes::MYC00019)
             .with_exp_true()
@@ -1192,7 +1174,7 @@ impl Profile {
             return execution_err(
                 format!(
                 "Insufficient privileges to perform these action (no licenses): {}",
-                self.licensed_resources_state
+                self.filtering_state
                     .to_owned()
                     .unwrap_or(vec![])
                     .join(", ")
@@ -1238,7 +1220,7 @@ impl Profile {
             return execution_err(
                 format!(
                 "Insufficient privileges to perform these action (no guesting): {}",
-                self.licensed_resources_state
+                self.filtering_state
                     .to_owned()
                     .unwrap_or(vec![])
                     .join(", ")
@@ -1313,8 +1295,8 @@ mod tests {
                     verified: true,
                 },
             ])),
-            tenants_with_adm: None,
-            licensed_resources_state: None,
+            tenants_ownership: None,
+            filtering_state: None,
         }
     }
 
@@ -1357,8 +1339,8 @@ mod tests {
                     verified: true,
                 },
             ])),
-            tenants_with_adm: None,
-            licensed_resources_state: None,
+            tenants_ownership: None,
+            filtering_state: None,
         };
 
         let ids = profile.get_write_ids(["service".to_string()].to_vec());
@@ -1407,8 +1389,8 @@ mod tests {
                     verified: true,
                 },
             ])),
-            tenants_with_adm: None,
-            licensed_resources_state: None,
+            tenants_ownership: None,
+            filtering_state: None,
         };
 
         assert_eq!(

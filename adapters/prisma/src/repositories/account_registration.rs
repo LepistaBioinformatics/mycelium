@@ -168,6 +168,251 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         }
     }
 
+    async fn get_or_create_tenant_management_account(
+        &self,
+        account: Account,
+        tenant_id: Uuid,
+    ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
+        // ? -------------------------------------------------------------------
+        // ? Try to build the prisma client
+        // ? -------------------------------------------------------------------
+
+        let tmp_client = get_client().await;
+
+        let client = match tmp_client.get(&process_id()) {
+            None => {
+                return creation_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .with_code(NativeErrorCodes::MYC00001)
+                .as_error()
+            }
+            Some(res) => res,
+        };
+
+        // ? -------------------------------------------------------------------
+        // ? Try to build the prisma client
+        // ? -------------------------------------------------------------------
+
+        let account_type = AccountType::TenantManager { tenant_id };
+
+        match client
+            .account()
+            .find_first(vec![
+                account_model::slug::equals(account.slug.to_owned()),
+                account_model::account_type::equals(
+                    to_value(account_type.to_owned()).unwrap(),
+                ),
+                account_model::tenant_id::equals(Some(tenant_id.to_string())),
+            ])
+            .include(account_model::include!({
+                owners
+                tags: select {
+                    id
+                    value
+                    meta
+                }
+            }))
+            .exec()
+            .await
+        {
+            Ok(res) => match res {
+                Some(account) => {
+                    let id = Uuid::parse_str(&account.id).unwrap();
+
+                    return Ok(GetOrCreateResponseKind::NotCreated(
+                        Account {
+                            id: Some(id),
+                            name: account.name,
+                            slug: account.slug,
+                            tags: match account.tags.len() {
+                                0 => None,
+                                _ => Some(
+                                    account
+                                        .tags
+                                        .to_owned()
+                                        .into_iter()
+                                        .map(|i| Tag {
+                                            id: Uuid::parse_str(&i.id).unwrap(),
+                                            value: i.value,
+                                            meta: match i.meta {
+                                                None => None,
+                                                Some(meta) => Some(
+                                                    from_value(meta).unwrap(),
+                                                ),
+                                            },
+                                        })
+                                        .collect::<Vec<Tag>>(),
+                                ),
+                            },
+                            is_active: account.is_active,
+                            is_checked: account.is_checked,
+                            is_archived: account.is_archived,
+                            verbose_status: Some(VerboseStatus::from_flags(
+                                account.is_active,
+                                account.is_checked,
+                                account.is_archived,
+                            )),
+                            is_default: account.is_default,
+                            owners: Children::Records(
+                                account
+                                    .owners
+                                    .into_iter()
+                                    .map(|owner| {
+                                        User::new(
+                                            Some(
+                                                Uuid::parse_str(&owner.id)
+                                                    .unwrap(),
+                                            ),
+                                            owner.username,
+                                            Email::from_string(owner.email)
+                                                .unwrap(),
+                                            Some(owner.first_name),
+                                            Some(owner.last_name),
+                                            owner.is_active,
+                                            owner.created.into(),
+                                            match owner.updated {
+                                                None => None,
+                                                Some(date) => Some(
+                                                    date.with_timezone(&Local),
+                                                ),
+                                            },
+                                            Some(Parent::Id(id)),
+                                            None,
+                                        )
+                                        .with_principal(owner.is_principal)
+                                    })
+                                    .collect::<Vec<User>>(),
+                            ),
+                            account_type: from_value(account.account_type)
+                                .unwrap(),
+                            guest_users: None,
+                            created: account.created.into(),
+                            updated: match account.updated {
+                                None => None,
+                                Some(date) => Some(date.with_timezone(&Local)),
+                            },
+                        },
+                        "Account already exists".to_string(),
+                    ));
+                }
+                None => (),
+            },
+            Err(err) => {
+                return creation_err(format!(
+                    "Unexpected error detected on check record: {err}"
+                ))
+                .as_error();
+            }
+        };
+
+        match client
+            .account()
+            .create(
+                account.name,
+                account.slug,
+                vec![
+                    account_model::tenant_id::set(Some(tenant_id.to_string())),
+                    account_model::account_type::set(
+                        to_value(account_type).unwrap(),
+                    ),
+                    account_model::is_active::set(account.is_active),
+                    account_model::is_checked::set(account.is_checked),
+                    account_model::is_archived::set(account.is_archived),
+                    account_model::is_default::set(account.is_default),
+                ],
+            )
+            .include(account_model::include!({
+                owners
+                tags: select {
+                    id
+                    value
+                    meta
+                }
+            }))
+            .exec()
+            .await
+        {
+            Err(err) => {
+                return creation_err(format!(
+                    "Unexpected error detected on update record: {err}"
+                ))
+                .as_error();
+            }
+            Ok(account) => {
+                let id = Uuid::parse_str(&account.id).unwrap();
+
+                return Ok(GetOrCreateResponseKind::Created(Account {
+                    id: Some(id),
+                    name: account.name,
+                    slug: account.slug,
+                    tags: match account.tags.len() {
+                        0 => None,
+                        _ => Some(
+                            account
+                                .tags
+                                .to_owned()
+                                .into_iter()
+                                .map(|i| Tag {
+                                    id: Uuid::parse_str(&i.id).unwrap(),
+                                    value: i.value,
+                                    meta: match i.meta {
+                                        None => None,
+                                        Some(meta) => {
+                                            Some(from_value(meta).unwrap())
+                                        }
+                                    },
+                                })
+                                .collect::<Vec<Tag>>(),
+                        ),
+                    },
+                    is_active: account.is_active,
+                    is_checked: account.is_checked,
+                    is_archived: account.is_archived,
+                    verbose_status: Some(VerboseStatus::from_flags(
+                        account.is_active,
+                        account.is_checked,
+                        account.is_archived,
+                    )),
+                    is_default: account.is_default,
+                    owners: Children::Records(
+                        account
+                            .owners
+                            .into_iter()
+                            .map(|owner| {
+                                User::new(
+                                    Some(Uuid::parse_str(&owner.id).unwrap()),
+                                    owner.username,
+                                    Email::from_string(owner.email).unwrap(),
+                                    Some(owner.first_name),
+                                    Some(owner.last_name),
+                                    owner.is_active,
+                                    owner.created.into(),
+                                    match owner.updated {
+                                        None => None,
+                                        Some(date) => {
+                                            Some(date.with_timezone(&Local))
+                                        }
+                                    },
+                                    Some(Parent::Id(id)),
+                                    None,
+                                )
+                                .with_principal(owner.is_principal)
+                            })
+                            .collect::<Vec<User>>(),
+                    ),
+                    account_type: from_value(account.account_type).unwrap(),
+                    guest_users: None,
+                    created: account.created.into(),
+                    updated: match account.updated {
+                        None => None,
+                        Some(date) => Some(date.with_timezone(&Local)),
+                    },
+                }));
+            }
+        }
+    }
+
     async fn get_or_create_role_related_account(
         &self,
         account: Account,
