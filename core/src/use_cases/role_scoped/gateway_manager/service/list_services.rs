@@ -25,7 +25,7 @@ pub async fn list_services(
     // ? ----------------------------------------------------------------------
 
     profile
-        .with_standard_accounts_access()
+        .with_system_accounts_access()
         .with_read_access()
         .with_roles(vec![SystemActor::GatewayManager])
         .get_ids_or_error()?;

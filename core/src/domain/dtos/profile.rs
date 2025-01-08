@@ -25,12 +25,12 @@ pub struct LicensedResource {
     #[serde(alias = "guest_account_id")]
     pub acc_id: Uuid,
 
-    /// If the guest account is the standard account
+    /// If the guest account is a system account
     ///
-    /// Standard accounts has permissions to act as special users into the
+    /// System accounts has permissions to act as special users into the
     /// Mycelium system.
     #[serde(alias = "guest_account_is_default")]
-    pub is_acc_std: bool,
+    pub sys_acc: bool,
 
     /// The guest account tenant unique id
     ///
@@ -62,7 +62,7 @@ pub struct LicensedResource {
     /// If the user accepted the invitation to join the account, the account
     /// should be verified.
     ///
-    pub was_verified: bool,
+    pub verified: bool,
 }
 
 impl LicensedResource {
@@ -107,13 +107,13 @@ impl ToString for LicensedResource {
             general_purpose::STANDARD.encode(self.acc_name.as_bytes());
 
         format!(
-            "tid/{tenant_id}/aid/{acc_id}?pr={role}:{perm}&std={is_acc_std}&v={was_verified}&name={acc_name}",
+            "tid/{tenant_id}/aid/{acc_id}?pr={role}:{perm}&sys={is_acc_std}&v={verified}&name={acc_name}",
             tenant_id = self.tenant_id.to_string().replace("-", ""),
             acc_id = self.acc_id.to_string().replace("-", ""),
             role = self.role,
             perm = self.perm.to_owned().to_i32(),
-            is_acc_std = self.is_acc_std as i8,
-            was_verified = self.was_verified as i8,
+            is_acc_std = self.sys_acc as i8,
+            verified = self.verified as i8,
             acc_name = encoded_account_name,
         )
     }
@@ -168,14 +168,14 @@ impl FromStr for LicensedResource {
         let role_name = permissioned_role[0];
         let permission_code = permissioned_role[1];
 
-        let std = match url
+        let sys = match url
             .query_pairs()
-            .find(|(key, _)| key == "std")
+            .find(|(key, _)| key == "sys")
             .map(|(_, value)| value)
-            .ok_or("Parameter std not found")?
+            .ok_or("Parameter sys not found")?
             .parse::<i8>()
         {
-            Ok(std) => match std {
+            Ok(sys) => match sys {
                 0 => false,
                 1 => true,
                 _ => {
@@ -187,14 +187,14 @@ impl FromStr for LicensedResource {
             }
         };
 
-        let was_verified = match url
+        let verified = match url
             .query_pairs()
             .find(|(key, _)| key == "v")
             .map(|(_, value)| value)
             .ok_or("Parameter v not found")?
             .parse::<i8>()
         {
-            Ok(was_verified) => match was_verified {
+            Ok(verified) => match verified {
                 0 => false,
                 1 => true,
                 _ => {
@@ -225,9 +225,9 @@ impl FromStr for LicensedResource {
             acc_id: Uuid::from_str(account_id).unwrap(),
             role: role_name.to_string(),
             perm: Permission::from_i32(permission_code.parse::<i32>().unwrap()),
-            is_acc_std: std,
+            sys_acc: sys,
             acc_name: String::from_utf8(name_decoded).unwrap(),
-            was_verified,
+            verified: verified,
         })
     }
 }
@@ -554,7 +554,7 @@ impl Profile {
 
     /// Filter the licensed resources to include only the standard system
     /// accounts
-    pub fn with_standard_accounts_access(&self) -> Self {
+    pub fn with_system_accounts_access(&self) -> Self {
         //
         // Filter the licensed resources to the default accounts
         //
@@ -563,7 +563,7 @@ impl Profile {
                 let records: Vec<LicensedResource> = resources
                     .to_licenses_vector()
                     .iter()
-                    .filter(|i| i.is_acc_std == true)
+                    .filter(|i| i.sys_acc == true)
                     .map(|i| i.to_owned())
                     .collect();
 
@@ -1089,7 +1089,7 @@ impl Profile {
             inner_licensed_resources
                 .to_owned()
                 .into_iter()
-                .filter_map(|license| match license.is_acc_std {
+                .filter_map(|license| match license.sys_acc {
                     true => Some(license.to_owned()),
                     false => None,
                 })
@@ -1108,7 +1108,7 @@ impl Profile {
                     //
                     // Check if the license was already verified
                     //
-                    && i.was_verified == true
+                    && i.verified == true
                     //
                     // Check if the license contains the desired role
                     //
@@ -1255,28 +1255,28 @@ mod tests {
                     acc_id: Uuid::new_v4(),
                     tenant_id,
                     acc_name: "Guest Account Name".to_string(),
-                    is_acc_std: false,
+                    sys_acc: false,
                     role: "service".to_string(),
                     perm: Permission::Write,
-                    was_verified: true,
+                    verified: true,
                 },
                 LicensedResource {
                     acc_id: Uuid::new_v4(),
                     tenant_id,
                     acc_name: "Guest Account Name".to_string(),
-                    is_acc_std: true,
+                    sys_acc: true,
                     role: "newbie".to_string(),
                     perm: Permission::Read,
-                    was_verified: true,
+                    verified: true,
                 },
                 LicensedResource {
                     acc_id: Uuid::new_v4(),
                     tenant_id: Uuid::new_v4(),
                     acc_name: "Guest Account Name".to_string(),
-                    is_acc_std: true,
+                    sys_acc: true,
                     role: "service".to_string(),
                     perm: Permission::ReadWrite,
-                    was_verified: true,
+                    verified: true,
                 },
             ])),
             licensed_resources_state: None,
@@ -1316,10 +1316,10 @@ mod tests {
                     )
                     .unwrap(),
                     acc_name: "guest_account_name".to_string(),
-                    is_acc_std: false,
+                    sys_acc: false,
                     role: "service".to_string(),
                     perm: Permission::Write,
-                    was_verified: true,
+                    verified: true,
                 },
             ])),
             licensed_resources_state: None,
@@ -1365,10 +1365,10 @@ mod tests {
                     )
                     .unwrap(),
                     acc_name: "guest_account_name".to_string(),
-                    is_acc_std: false,
+                    sys_acc: false,
                     role: "service".to_string(),
                     perm: Permission::Write,
-                    was_verified: true,
+                    verified: true,
                 },
             ])),
             licensed_resources_state: None,
@@ -1423,10 +1423,10 @@ mod tests {
             acc_id: Uuid::new_v4(),
             tenant_id: Uuid::new_v4(),
             acc_name: "Guest Account Name".to_string(),
-            is_acc_std: false,
+            sys_acc: false,
             role: "service".to_string(),
             perm: Permission::Write,
-            was_verified: true,
+            verified: true,
         };
 
         let licensed_resource_string = licensed_resource.to_string();
@@ -1457,7 +1457,7 @@ mod tests {
         let profile_with_read = profile.with_read_access();
         let profile_with_write = profile.with_write_access();
         let profile_with_read_write = profile.with_read_write_access();
-        let profile_with_standard = profile.with_standard_accounts_access();
+        let profile_with_standard = profile.with_system_accounts_access();
 
         assert_eq!(
             1,
@@ -1592,7 +1592,7 @@ mod tests {
         let profile_on_tenant = profile.on_tenant(tenant_id);
 
         let profile_on_tenant_with_standard =
-            profile_on_tenant.with_standard_accounts_access();
+            profile_on_tenant.with_system_accounts_access();
 
         assert_eq!(
             1,

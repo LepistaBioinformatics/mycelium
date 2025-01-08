@@ -24,7 +24,7 @@ pub async fn delete_subscription_account(
 
     let related_accounts = profile
         .on_tenant(tenant_id)
-        .with_standard_accounts_access()
+        .with_system_accounts_access()
         .with_write_access()
         .with_roles(vec![SystemActor::TenantManager])
         .get_related_account_or_error()?;
