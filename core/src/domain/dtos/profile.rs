@@ -6,6 +6,7 @@ use super::{
 use crate::domain::dtos::email::Email;
 
 use base64::{engine::general_purpose, Engine};
+use chrono::{DateTime, Local};
 use mycelium_base::utils::errors::{dto_err, execution_err, MappedErrors};
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
@@ -227,7 +228,7 @@ impl FromStr for LicensedResource {
             perm: Permission::from_i32(permission_code.parse::<i32>().unwrap()),
             sys_acc: sys,
             acc_name: String::from_utf8(name_decoded).unwrap(),
-            verified: verified,
+            verified,
         })
     }
 }
@@ -251,6 +252,28 @@ impl LicensedResources {
                 .collect(),
         }
     }
+}
+
+#[derive(
+    Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq, ToResponse,
+)]
+pub enum TenantAdmRole {
+    Owner,
+    Manager,
+}
+
+#[derive(
+    Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq, ToResponse,
+)]
+pub struct TenantAdmDetails {
+    /// The tenant ID that the profile has administration privileges
+    pub tenant: Uuid,
+
+    /// The tenant administration role
+    pub role: TenantAdmRole,
+
+    /// The date and time the tenant was granted to the profile
+    pub since: DateTime<Local>,
 }
 
 #[derive(
@@ -383,6 +406,15 @@ pub struct Profile {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub licensed_resources: Option<LicensedResources>,
 
+    /// Tenants which the profile has ownership
+    ///
+    /// This field should be used to store the tenants that the profile has
+    /// ownership. The ownership should be used to filter the licensed resources
+    /// during system validations.
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tenants_with_adm: Option<Vec<TenantAdmDetails>>,
+
     /// This argument stores the licensed resources state
     ///
     /// The licensed_resources_state should store the current filtering state.
@@ -438,6 +470,7 @@ impl Profile {
         account_was_archived: bool,
         verbose_status: Option<VerboseStatus>,
         licensed_resources: Option<LicensedResources>,
+        tenants_with_adm: Option<Vec<TenantAdmDetails>>,
     ) -> Self {
         Self {
             owners,
@@ -451,6 +484,7 @@ impl Profile {
             account_was_archived,
             verbose_status,
             licensed_resources,
+            tenants_with_adm,
             licensed_resources_state: None,
         }
     }
@@ -1279,6 +1313,7 @@ mod tests {
                     verified: true,
                 },
             ])),
+            tenants_with_adm: None,
             licensed_resources_state: None,
         }
     }
@@ -1322,6 +1357,7 @@ mod tests {
                     verified: true,
                 },
             ])),
+            tenants_with_adm: None,
             licensed_resources_state: None,
         };
 
@@ -1371,6 +1407,7 @@ mod tests {
                     verified: true,
                 },
             ])),
+            tenants_with_adm: None,
             licensed_resources_state: None,
         };
 

@@ -7,6 +7,7 @@ use myc_http_tools::{responses::GatewayError, settings::DEFAULT_PROFILE_KEY};
 use reqwest::header::{HeaderName, HeaderValue};
 use std::str::FromStr;
 use tracing::warn;
+use uuid::Uuid;
 
 /// Fetch profile from email and inject on client request
 ///
@@ -19,11 +20,13 @@ use tracing::warn;
 pub async fn fetch_and_inject_profile_to_forward(
     req: HttpRequest,
     mut forwarded_req: ClientRequest,
+    tenant: Option<Uuid>,
     roles: Option<Vec<String>>,
     permissioned_roles: Option<PermissionedRoles>,
 ) -> Result<ClientRequest, GatewayError> {
     let profile = fetch_profile_from_request(
         req,
+        tenant,
         roles.to_owned(),
         permissioned_roles.to_owned(),
     )

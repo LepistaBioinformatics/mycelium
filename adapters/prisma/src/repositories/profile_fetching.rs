@@ -139,6 +139,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                         record.is_archived,
                     )),
                     None,
+                    None,
                 )))
             }
             None => Ok(FetchResponseKind::NotFound(Some(email.email()))),

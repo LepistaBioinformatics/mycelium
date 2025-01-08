@@ -137,6 +137,7 @@ mod tests {
             false,
             None,
             None,
+            None,
         );
 
         let details = Some("details".to_string());
@@ -181,6 +182,7 @@ mod tests {
             true,
             true,
             false,
+            None,
             None,
             None,
         );
