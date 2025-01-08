@@ -1,45 +1,29 @@
 use crate::domain::{
     dtos::{profile::Profile, tenant::TenantMetaKey},
-    entities::{TenantDeletion, TenantFetching},
+    entities::TenantDeletion,
 };
 
 use mycelium_base::{
-    entities::{DeletionResponseKind, FetchResponseKind},
-    utils::errors::{use_case_err, MappedErrors},
+    entities::DeletionResponseKind, utils::errors::MappedErrors,
 };
 use uuid::Uuid;
 
 #[tracing::instrument(
     name = "delete_tenant_meta",
     fields(profile_id = %profile.acc_id),
-    skip(key, tenant_fetching_repo, tenant_deletion_repo)
+    skip(key, tenant_deletion_repo)
 )]
 pub async fn delete_tenant_meta(
     profile: Profile,
     tenant_id: Uuid,
     key: TenantMetaKey,
-    tenant_fetching_repo: Box<&dyn TenantFetching>,
     tenant_deletion_repo: Box<&dyn TenantDeletion>,
 ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
     // ? -----------------------------------------------------------------------
-    // ? Fetch tenant
+    // ? Check if the profile is the owner of the tenant
     // ? -----------------------------------------------------------------------
 
-    match tenant_fetching_repo
-        .get_tenant_owned_by_me(tenant_id, profile.get_owners_ids())
-        .await?
-    {
-        FetchResponseKind::NotFound(msg) => {
-            return use_case_err(
-                msg.unwrap_or(
-                    "Tenant does not exist or inaccessible for the user"
-                        .to_string(),
-                ),
-            )
-            .as_error()
-        }
-        FetchResponseKind::Found(tenant) => tenant,
-    };
+    profile.with_tenant_ownership_or_error(tenant_id)?;
 
     // ? -----------------------------------------------------------------------
     // ? Register the account

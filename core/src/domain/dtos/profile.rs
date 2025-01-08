@@ -574,6 +574,26 @@ impl Profile {
         }
     }
 
+    /// Filter the tenant ownership by the tenant
+    pub fn with_tenant_ownership_or_error(
+        &self,
+        tenant_id: Uuid,
+    ) -> Result<(), MappedErrors> {
+        if let Some(tenants) = self.tenants_ownership.as_ref() {
+            if tenants.iter().any(|i| i.tenant == tenant_id) {
+                return Ok(());
+            }
+        }
+
+        execution_err(format!(
+            "Insufficient privileges to perform these action (no tenant ownership): {}",
+            self.filtering_state.to_owned().unwrap_or(vec![]).join(", ")
+        ))
+        .with_code(NativeErrorCodes::MYC00019)
+        .with_exp_true()
+        .as_error()
+    }
+
     /// Filter the licensed resources to include only the standard system
     /// accounts
     pub fn with_system_accounts_access(&self) -> Self {
@@ -790,449 +810,6 @@ impl Profile {
 
         Ok(ids)
     }
-
-    // ? -----------------------------------------------------------------------
-    // ? Read filters
-    // ? -----------------------------------------------------------------------
-
-    /// Filter IDs with read permissions.
-    #[deprecated(note = "To be removed in the future")]
-    pub fn get_read_ids<T: ToString>(&self, roles: Vec<T>) -> Vec<Uuid> {
-        self.get_licensed_ids(Permission::Read, roles, None)
-    }
-
-    /// Filter IDs with read permissions with error if empty.
-    #[deprecated(note = "To be removed in the future")]
-    pub fn get_read_ids_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permission::Read, roles, None)
-    }
-
-    /// Filter IDs with read permissions to accounts with error if empty.
-    #[deprecated(note = "To be removed in the future")]
-    pub fn get_related_account_with_read_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<RelatedAccounts, MappedErrors> {
-        self.get_licensed_ids_as_related_accounts_or_error(
-            Permission::Read,
-            roles,
-            None,
-        )
-    }
-
-    /// Filter IDs with read permissions to default accounts with error if
-    /// empty.
-    #[deprecated(note = "To be removed in the future")]
-    pub fn get_default_read_ids_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permission::Read, roles, Some(true))
-    }
-
-    /// Filter RelatedAccounts with read permissions to default accounts with
-    /// error if empty.
-    #[deprecated(note = "To be removed in the future")]
-    pub fn get_related_account_with_default_read_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<RelatedAccounts, MappedErrors> {
-        self.get_licensed_ids_as_related_accounts_or_error(
-            Permission::Read,
-            roles,
-            Some(true),
-        )
-    }
-
-    // ? -----------------------------------------------------------------------
-    // ? Write filters
-    // ? -----------------------------------------------------------------------
-
-    /// Filter IDs with write permissions.
-    #[deprecated(note = "To be removed in the future")]
-    pub fn get_write_ids<T: ToString>(&self, roles: Vec<T>) -> Vec<Uuid> {
-        self.get_licensed_ids(Permission::Write, roles, None)
-    }
-
-    /// Filter IDs with write permissions with error if empty.
-    #[deprecated(note = "To be removed in the future")]
-    pub fn get_write_ids_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permission::Write, roles, None)
-    }
-
-    /// Filter IDs with write permissions to accounts with error if empty.
-    #[deprecated(note = "To be removed in the future")]
-    pub fn get_related_account_with_write_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<RelatedAccounts, MappedErrors> {
-        self.get_licensed_ids_as_related_accounts_or_error(
-            Permission::Write,
-            roles,
-            None,
-        )
-    }
-
-    /// Filter IDs with write permissions to default accounts with error if
-    /// empty.
-    #[deprecated(note = "To be removed in the future")]
-    pub fn get_default_write_ids_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permission::Write, roles, Some(true))
-    }
-
-    /// Filter RelatedAccounts with write permissions to default accounts with
-    /// error if empty.
-    #[deprecated(note = "To be removed in the future")]
-    pub fn get_related_account_with_default_write_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<RelatedAccounts, MappedErrors> {
-        self.get_licensed_ids_as_related_accounts_or_error(
-            Permission::Write,
-            roles,
-            Some(true),
-        )
-    }
-
-    // ? -----------------------------------------------------------------------
-    // ? Read/Write filters
-    // ? -----------------------------------------------------------------------
-
-    /// Filter IDs with write permissions.
-    #[deprecated(note = "To be removed in the future")]
-    pub fn get_read_write_ids<T: ToString>(&self, roles: Vec<T>) -> Vec<Uuid> {
-        self.get_licensed_ids(Permission::ReadWrite, roles, None)
-    }
-
-    /// Filter IDs with write permissions with error if empty.
-    #[deprecated(note = "To be removed in the future")]
-    pub fn get_read_write_ids_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permission::ReadWrite, roles, None)
-    }
-
-    /// Filter IDs with write permissions to accounts with error if empty.
-    #[deprecated(note = "To be removed in the future")]
-    pub fn get_related_account_with_read_write_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<RelatedAccounts, MappedErrors> {
-        self.get_licensed_ids_as_related_accounts_or_error(
-            Permission::ReadWrite,
-            roles,
-            None,
-        )
-    }
-
-    /// Filter IDs with write permissions to default accounts with error if
-    /// empty.
-    #[deprecated(note = "To be removed in the future")]
-    pub fn get_default_read_write_ids_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permission::ReadWrite, roles, Some(true))
-    }
-
-    /// Filter RelatedAccounts with write permissions to default accounts with
-    /// error if empty.
-    #[deprecated(note = "To be removed in the future")]
-    pub fn get_related_account_with_default_read_write_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<RelatedAccounts, MappedErrors> {
-        self.get_licensed_ids_as_related_accounts_or_error(
-            Permission::ReadWrite,
-            roles,
-            Some(true),
-        )
-    }
-
-    // ? -----------------------------------------------------------------------
-    // ? Update filters
-    // ? -----------------------------------------------------------------------
-
-    /// Filter IDs with update permissions.
-    #[deprecated(note = "Use get_write_ids instead")]
-    pub fn get_update_ids<T: ToString>(&self, roles: Vec<T>) -> Vec<Uuid> {
-        self.get_licensed_ids(Permission::Write, roles, None)
-    }
-
-    /// Filter IDs with update permissions with error if empty.
-    #[deprecated(note = "Use get_write_ids_or_error instead")]
-    pub fn get_update_ids_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permission::Write, roles, None)
-    }
-
-    /// Filter IDs with update permissions to accounts with error if empty.
-    #[deprecated(note = "Use get_related_account_with_write_or_error instead")]
-    pub fn get_related_account_with_update_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<RelatedAccounts, MappedErrors> {
-        self.get_licensed_ids_as_related_accounts_or_error(
-            Permission::Write,
-            roles,
-            None,
-        )
-    }
-
-    /// Filter IDs with update permissions to default accounts with error if
-    /// empty.
-    #[deprecated(note = "Use get_default_write_ids_or_error instead")]
-    pub fn get_default_update_ids_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permission::Write, roles, Some(true))
-    }
-
-    /// Filter RelatedAccounts with update permissions to default accounts with
-    /// error if empty.
-    #[deprecated(
-        note = "Use get_related_account_with_default_write_or_error instead"
-    )]
-    pub fn get_related_account_with_default_update_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<RelatedAccounts, MappedErrors> {
-        self.get_licensed_ids_as_related_accounts_or_error(
-            Permission::Write,
-            roles,
-            Some(true),
-        )
-    }
-
-    // ? -----------------------------------------------------------------------
-    // ? Delete filters
-    // ? -----------------------------------------------------------------------
-
-    /// Filter IDs with delete permissions.
-    #[deprecated(note = "Use get_write_ids instead")]
-    pub fn get_delete_ids<T: ToString>(&self, roles: Vec<T>) -> Vec<Uuid> {
-        self.get_licensed_ids(Permission::Write, roles, None)
-    }
-
-    /// Filter IDs with delete permissions with error if empty.
-    #[deprecated(note = "Use get_write_ids_or_error instead")]
-    pub fn get_delete_ids_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permission::Write, roles, None)
-    }
-
-    /// Filter IDs with delete permissions to accounts with error if empty.
-    #[deprecated(note = "Use get_related_account_with_write_or_error instead")]
-    pub fn get_related_account_with_delete_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<RelatedAccounts, MappedErrors> {
-        self.get_licensed_ids_as_related_accounts_or_error(
-            Permission::Write,
-            roles,
-            None,
-        )
-    }
-
-    /// Filter IDs with delete permissions to default accounts with error if
-    /// empty.
-    #[deprecated(note = "Use get_default_write_ids_or_error instead")]
-    pub fn get_default_delete_ids_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<Vec<Uuid>, MappedErrors> {
-        self.get_licensed_ids_or_error(Permission::Write, roles, Some(true))
-    }
-
-    /// Filter RelatedAccounts with delete permissions to default accounts with
-    /// error if empty.
-    #[deprecated(
-        note = "Use get_related_account_with_default_write_or_error instead"
-    )]
-    pub fn get_related_account_with_default_delete_or_error<T: ToString>(
-        &self,
-        roles: Vec<T>,
-    ) -> Result<RelatedAccounts, MappedErrors> {
-        self.get_licensed_ids_as_related_accounts_or_error(
-            Permission::Write,
-            roles,
-            Some(true),
-        )
-    }
-
-    // ? -----------------------------------------------------------------------
-    // ? Basic filter functions
-    // ? -----------------------------------------------------------------------
-
-    /// Create a list of licensed ids.
-    ///
-    /// Licensed ids are Uuids of accounts which the current profile has access
-    /// to do based on the specified `PermissionsType`.
-    #[deprecated(note = "To be removed in the future")]
-    fn get_licensed_ids<T: ToString>(
-        &self,
-        permission: Permission,
-        roles: Vec<T>,
-        should_be_default: Option<bool>,
-    ) -> Vec<Uuid> {
-        let inner_licensed_resources =
-            if let Some(resources) = &self.licensed_resources {
-                resources.to_licenses_vector()
-            } else {
-                //
-                // WARNING: If the licensed resources are empty, the profile
-                // should be the owner of the account.
-                //
-                return vec![self.acc_id];
-            };
-
-        let licensed_resources = if let Some(true) = should_be_default {
-            inner_licensed_resources
-                .to_owned()
-                .into_iter()
-                .filter_map(|license| match license.sys_acc {
-                    true => Some(license.to_owned()),
-                    false => None,
-                })
-                .collect::<Vec<LicensedResource>>()
-        } else {
-            inner_licensed_resources.to_vec()
-        };
-
-        licensed_resources
-            .into_iter()
-            .filter_map(|i| {
-                //
-                // Check if the desired permission is the same as the license
-                //
-                match i.perm == permission
-                    //
-                    // Check if the license was already verified
-                    //
-                    && i.verified == true
-                    //
-                    // Check if the license contains the desired role
-                    //
-                    && roles
-                        .iter()
-                        .map(|i| i.to_string())
-                        .collect::<Vec<String>>()
-                        .contains(&i.role)
-                {
-                    false => None,
-                    true => Some(i.acc_id),
-                }
-            })
-            .collect::<Vec<Uuid>>()
-    }
-
-    #[deprecated(note = "To be removed in the future")]
-    fn get_licensed_ids_or_error<T: ToString>(
-        &self,
-        permission: Permission,
-        roles: Vec<T>,
-        should_be_default: Option<bool>,
-    ) -> Result<Vec<Uuid>, MappedErrors> {
-        let ids = self.get_licensed_ids(permission, roles, should_be_default);
-
-        //
-        // If none of the conditions are true, return an error
-        //
-        if !vec![
-            //
-            // The profile has more than one licensed resource and the profile
-            // is not the owner of the account
-            //
-            ids.len() > 0,
-            //
-            // The profile has no staff privileges
-            //
-            self.is_staff,
-            //
-            // The profile has no manager privileges
-            //
-            self.is_manager,
-        ]
-        .into_iter()
-        .any(|i| i == true)
-        {
-            return execution_err(
-                format!(
-                "Insufficient privileges to perform these action (no licenses): {}",
-                self.filtering_state
-                    .to_owned()
-                    .unwrap_or(vec![])
-                    .join(", ")
-            ),
-            )
-            .with_code(NativeErrorCodes::MYC00019)
-            .with_exp_true()
-            .as_error();
-        }
-
-        Ok(ids)
-    }
-
-    /// Check if the current profile has admin privileges or the licensed ids
-    /// are not empty. If so, return the licensed ids. Otherwise, return an
-    /// error.
-    ///
-    /// The Staff related account has high priority over the manager related
-    /// account. If the current profile is a staff, the function should return
-    /// `HasStaffPrivileges`. If the current profile is a manager, the function
-    /// should return `HasManagerPrivileges`. If the current profile has no
-    /// admin privileges and the licensed ids are empty, the function should
-    /// return an error.
-    ///
-    #[deprecated(note = "To be removed in the future")]
-    fn get_licensed_ids_as_related_accounts_or_error<T: ToString>(
-        &self,
-        permission: Permission,
-        roles: Vec<T>,
-        should_be_default: Option<bool>,
-    ) -> Result<RelatedAccounts, MappedErrors> {
-        if self.is_staff {
-            return Ok(RelatedAccounts::HasStaffPrivileges);
-        }
-
-        if self.is_manager {
-            return Ok(RelatedAccounts::HasManagerPrivileges);
-        }
-
-        let ids = self.get_licensed_ids(permission, roles, should_be_default);
-
-        if ids.is_empty() {
-            return execution_err(
-                format!(
-                "Insufficient privileges to perform these action (no guesting): {}",
-                self.filtering_state
-                    .to_owned()
-                    .unwrap_or(vec![])
-                    .join(", ")
-                ),
-            )
-            .with_code(NativeErrorCodes::MYC00019)
-            .with_exp_true()
-            .as_error();
-        }
-
-        Ok(RelatedAccounts::AllowedAccounts(ids))
-    }
 }
 
 // * ---------------------------------------------------------------------------
@@ -1241,8 +818,11 @@ impl Profile {
 
 #[cfg(test)]
 mod tests {
-    use super::{LicensedResource, LicensedResources, Owner, Profile};
+    use super::{
+        LicensedResource, LicensedResources, Profile, TenantOwnership,
+    };
     use crate::domain::dtos::guest_role::Permission;
+    use chrono::Local;
     use std::str::FromStr;
     use test_log::test;
     use uuid::Uuid;
@@ -1295,145 +875,12 @@ mod tests {
                     verified: true,
                 },
             ])),
-            tenants_ownership: None,
+            tenants_ownership: Some(vec![TenantOwnership {
+                tenant: tenant_id,
+                since: Local::now(),
+            }]),
             filtering_state: None,
         }
-    }
-
-    #[test]
-    fn profile_get_ids_works() {
-        let profile = Profile {
-            owners: vec![Owner {
-                id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
-                    .unwrap(),
-                email: "username@domain.com".to_string(),
-                first_name: Some("first_name".to_string()),
-                last_name: Some("last_name".to_string()),
-                username: Some("username".to_string()),
-                is_principal: true,
-            }],
-            acc_id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
-                .unwrap(),
-            is_subscription: false,
-            is_manager: false,
-            is_staff: false,
-            owner_is_active: true,
-            account_is_active: true,
-            account_was_approved: true,
-            account_was_archived: false,
-            verbose_status: None,
-            licensed_resources: Some(LicensedResources::Records(vec![
-                LicensedResource {
-                    acc_id: Uuid::from_str(
-                        "e497848f-a0d4-49f4-8288-c3df11416ff1",
-                    )
-                    .unwrap(),
-                    tenant_id: Uuid::from_str(
-                        "e497848f-a0d4-49f4-8288-c3df11416ff1",
-                    )
-                    .unwrap(),
-                    acc_name: "guest_account_name".to_string(),
-                    sys_acc: false,
-                    role: "service".to_string(),
-                    perm: Permission::Write,
-                    verified: true,
-                },
-            ])),
-            tenants_ownership: None,
-            filtering_state: None,
-        };
-
-        let ids = profile.get_write_ids(["service".to_string()].to_vec());
-
-        assert!(ids.len() == 1);
-    }
-
-    #[test]
-    fn get_licensed_ids_or_error_works() {
-        let desired_role = "service".to_string();
-
-        let mut profile = Profile {
-            owners: vec![Owner {
-                id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
-                    .unwrap(),
-                email: "username@domain.com".to_string(),
-                first_name: Some("first_name".to_string()),
-                last_name: Some("last_name".to_string()),
-                username: Some("username".to_string()),
-                is_principal: true,
-            }],
-            acc_id: Uuid::from_str("d776e96f-9417-4520-b2a9-9298136031b0")
-                .unwrap(),
-            is_subscription: false,
-            is_manager: false,
-            is_staff: false,
-            owner_is_active: true,
-            account_is_active: true,
-            account_was_approved: true,
-            account_was_archived: false,
-            verbose_status: None,
-            licensed_resources: Some(LicensedResources::Records(vec![
-                LicensedResource {
-                    acc_id: Uuid::from_str(
-                        "e497848f-a0d4-49f4-8288-c3df11416ff1",
-                    )
-                    .unwrap(),
-                    tenant_id: Uuid::from_str(
-                        "e497848f-a0d4-49f4-8288-c3df11416ff1",
-                    )
-                    .unwrap(),
-                    acc_name: "guest_account_name".to_string(),
-                    sys_acc: false,
-                    role: "service".to_string(),
-                    perm: Permission::Write,
-                    verified: true,
-                },
-            ])),
-            tenants_ownership: None,
-            filtering_state: None,
-        };
-
-        assert_eq!(
-            false,
-            profile
-                .get_read_ids_or_error([desired_role.to_owned()].to_vec())
-                .is_ok(),
-        );
-
-        assert_eq!(
-            false,
-            profile
-                .get_read_write_ids_or_error([desired_role.to_owned()].to_vec())
-                .is_ok(),
-        );
-
-        profile.is_manager = true;
-
-        assert_eq!(
-            true,
-            profile
-                .get_write_ids_or_error([desired_role.to_owned()].to_vec())
-                .is_ok(),
-        );
-
-        profile.is_manager = false;
-        profile.is_staff = true;
-
-        assert_eq!(
-            true,
-            profile
-                .get_write_ids_or_error([desired_role.to_owned()].to_vec())
-                .is_ok(),
-        );
-
-        profile.is_staff = false;
-
-        assert_eq!(
-            true,
-            profile
-                .get_write_ids_or_error([desired_role].to_vec())
-                .is_ok(),
-        );
     }
 
     #[test]
@@ -1621,5 +1068,21 @@ mod tests {
                 .to_licenses_vector()
                 .len()
         );
+    }
+
+    #[test]
+    fn test_with_tenant_ownership_or_error() {
+        let tenant_id = tenant_id();
+        let profile = profile();
+
+        let profile_on_tenant = profile.on_tenant(tenant_id);
+
+        assert!(profile_on_tenant
+            .with_tenant_ownership_or_error(tenant_id)
+            .is_ok());
+
+        assert!(profile_on_tenant
+            .with_tenant_ownership_or_error(Uuid::new_v4())
+            .is_err());
     }
 }

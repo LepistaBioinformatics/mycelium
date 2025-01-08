@@ -96,7 +96,6 @@ pub async fn guest_tenant_owner_url(
     body: web::Json<GuestTenantOwnerBody>,
     profile: MyceliumProfileData,
     owner_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
-    tenant_fetching_repo: Inject<TenantFetchingModule, dyn TenantFetching>,
     tenant_updating_repo: Inject<TenantUpdatingModule, dyn TenantUpdating>,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
@@ -111,7 +110,6 @@ pub async fn guest_tenant_owner_url(
         profile.to_profile(),
         email,
         tenant.tenant_id().to_owned(),
-        Box::new(&*tenant_fetching_repo),
         Box::new(&*owner_fetching_repo),
         Box::new(&*tenant_updating_repo),
     )

@@ -1,8 +1,6 @@
 use crate::domain::{
     dtos::{email::Email, profile::Profile, user::Provider},
-    entities::{
-        TenantFetching, TenantOwnerConnection, TenantUpdating, UserFetching,
-    },
+    entities::{TenantOwnerConnection, TenantUpdating, UserFetching},
 };
 
 use mycelium_base::{
@@ -16,7 +14,6 @@ use uuid::Uuid;
     fields(profile_id = %profile.acc_id),
     skip(
         profile, owner_email,
-        tenant_fetching_repo,
         owner_fetching_repo,
         tenant_updating_repo,
     )
@@ -25,29 +22,14 @@ pub async fn guest_tenant_owner(
     profile: Profile,
     owner_email: Email,
     tenant_id: Uuid,
-    tenant_fetching_repo: Box<&dyn TenantFetching>,
     owner_fetching_repo: Box<&dyn UserFetching>,
     tenant_updating_repo: Box<&dyn TenantUpdating>,
 ) -> Result<CreateResponseKind<TenantOwnerConnection>, MappedErrors> {
     // ? -----------------------------------------------------------------------
-    // ? Fetch tenant
+    // ? Check if the profile is the owner of the tenant
     // ? -----------------------------------------------------------------------
 
-    match tenant_fetching_repo
-        .get_tenant_owned_by_me(tenant_id, profile.get_owners_ids())
-        .await?
-    {
-        FetchResponseKind::NotFound(msg) => {
-            return use_case_err(
-                msg.unwrap_or(
-                    "Tenant does not exist or inaccessible for the user"
-                        .to_string(),
-                ),
-            )
-            .as_error()
-        }
-        FetchResponseKind::Found(tenant) => tenant,
-    };
+    profile.with_tenant_ownership_or_error(tenant_id)?;
 
     // ? -----------------------------------------------------------------------
     // ? Collect user
