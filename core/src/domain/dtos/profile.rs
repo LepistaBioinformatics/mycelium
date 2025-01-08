@@ -45,12 +45,6 @@ pub struct LicensedResource {
     #[serde(alias = "guest_account_name")]
     pub acc_name: String,
 
-    /// The guest account role name
-    ///
-    /// This is the name of the role that is own of the resource to be
-    /// managed.
-    //pub guest_role_name: String,
-
     /// The guest account role verbose name
     ///
     /// This is the verbose name of the role that is own of the resource to be
