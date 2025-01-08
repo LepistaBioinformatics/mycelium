@@ -166,6 +166,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                             None => None,
                             Some(res) => Some(DateTime::from(res)),
                         },
+                        meta: None,
                     }))
                 }
             },
@@ -390,6 +391,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                         None => None,
                         Some(res) => Some(DateTime::from(res)),
                     },
+                    meta: None,
                 }
             })
             .collect::<Vec<Account>>();

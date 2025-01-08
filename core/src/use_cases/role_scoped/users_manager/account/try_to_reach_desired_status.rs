@@ -125,6 +125,7 @@ mod tests {
             guest_users: None,
             created: Local::now(),
             updated: Some(Local::now()),
+            meta: None,
         };
 
         account.verbose_status = Some(VerboseStatus::from_flags(

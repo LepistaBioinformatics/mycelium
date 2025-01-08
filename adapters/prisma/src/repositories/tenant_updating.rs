@@ -13,7 +13,7 @@ use myc_core::domain::{
 use mycelium_base::{
     dtos::Children,
     entities::{CreateResponseKind, UpdatingResponseKind},
-    utils::errors::{creation_err, MappedErrors},
+    utils::errors::{updating_err, MappedErrors},
 };
 use prisma_client_rust::{
     prisma_errors::query_engine::UniqueKeyViolation, QueryError,
@@ -39,7 +39,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return creation_err(String::from(
+                return updating_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
                 .with_code(NativeErrorCodes::MYC00001)
@@ -113,7 +113,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
                 meta: None,
                 status: None,
             })),
-            Err(err) => creation_err(format!("Could not create tenant: {err}"))
+            Err(err) => updating_err(format!("Could not create tenant: {err}"))
                 .as_error(),
         }
     }
@@ -127,7 +127,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return creation_err(String::from(
+                return updating_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
                 .with_code(NativeErrorCodes::MYC00001)
@@ -226,7 +226,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
                     .map(|status| from_value(status.to_owned()).unwrap())
                     .collect(),
             })),
-            Err(err) => creation_err(format!("Could not create tenant: {err}"))
+            Err(err) => updating_err(format!("Could not create tenant: {err}"))
                 .as_error(),
         }
     }
@@ -241,7 +241,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return creation_err(String::from(
+                return updating_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
                 .with_code(NativeErrorCodes::MYC00001)
@@ -275,7 +275,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
             }
             Err(err) => {
                 if err.is_prisma_error::<UniqueKeyViolation>() {
-                    return creation_err(
+                    return updating_err(
                         "The specified owner is already registered on the tenant.",
                     )
                     .with_code(NativeErrorCodes::MYC00015)
@@ -283,7 +283,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
                     .as_error();
                 };
 
-                creation_err(format!("Could not create tenant owner: {err}"))
+                updating_err(format!("Could not create tenant owner: {err}"))
                     .as_error()
             }
         }
@@ -299,7 +299,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
 
         let client = match tmp_client.get(&process_id()) {
             None => {
-                return creation_err(String::from(
+                return updating_err(String::from(
                     "Prisma Client error. Could not fetch client.",
                 ))
                 .with_code(NativeErrorCodes::MYC00001)
@@ -348,7 +348,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
             .await
         {
             Ok(record) => Ok(UpdatingResponseKind::Updated(record)),
-            Err(err) => creation_err(format!("Could not create tenant: {err}"))
+            Err(err) => updating_err(format!("Could not create tenant: {err}"))
                 .as_error(),
         }
     }

@@ -1,4 +1,7 @@
-use crate::domain::dtos::{account::Account, account_type::AccountType};
+use crate::domain::dtos::{
+    account::{Account, AccountMeta, AccountMetaKey},
+    account_type::AccountType,
+};
 
 use async_trait::async_trait;
 use mycelium_base::{
@@ -25,4 +28,11 @@ pub trait AccountUpdating: Interface + Send + Sync {
         account_id: Uuid,
         account_type: AccountType,
     ) -> Result<UpdatingResponseKind<Account>, MappedErrors>;
+
+    async fn update_account_meta(
+        &self,
+        account_id: Uuid,
+        key: AccountMetaKey,
+        value: String,
+    ) -> Result<UpdatingResponseKind<AccountMeta>, MappedErrors>;
 }
