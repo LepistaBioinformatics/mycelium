@@ -8,7 +8,7 @@ use futures::Future;
 use log::warn;
 use myc_core::domain::dtos::{
     account::VerboseStatus,
-    profile::{LicensedResources, Owner, TenantOwnership},
+    profile::{LicensedResources, Owner, TenantsOwnership},
 };
 use serde::Deserialize;
 use std::{pin::Pin, str};
@@ -33,7 +33,7 @@ pub struct GatewayProfileData {
     pub account_was_archived: bool,
     pub verbose_status: Option<VerboseStatus>,
     pub licensed_resources: Option<LicensedResources>,
-    pub tenants_ownership: Option<Vec<TenantOwnership>>,
+    pub tenants_ownership: Option<TenantsOwnership>,
 }
 
 impl GatewayProfileData {
