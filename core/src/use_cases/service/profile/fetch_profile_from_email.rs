@@ -38,9 +38,9 @@ pub async fn fetch_profile_from_email(
     // ? Fetch the profile and guest from database
     // ? -----------------------------------------------------------------------
 
-    let (profile, licenses) = future::join(
+    let (profile, licenses, ownership) = future::join3(
         profile_fetching_repo.get(Some(email.to_owned()), None),
-        licensed_resources_fetching_repo.list(
+        licensed_resources_fetching_repo.list_licensed_resources(
             email.to_owned(),
             tenant,
             roles,
@@ -48,6 +48,8 @@ pub async fn fetch_profile_from_email(
             None,
             was_verified,
         ),
+        licensed_resources_fetching_repo
+            .list_tenants_ownership(email.to_owned(), tenant),
     )
     .await;
 
@@ -66,19 +68,27 @@ pub async fn fetch_profile_from_email(
     // ? Validate guests response
     // ? -----------------------------------------------------------------------
 
-    let licenses = match licenses? {
+    profile.licensed_resources = match licenses? {
         FetchManyResponseKind::NotFound => None,
-        FetchManyResponseKind::Found(records) => Some(LicensedResources::Records(records)),
+        FetchManyResponseKind::Found(records) => {
+            Some(LicensedResources::Records(records))
+        }
         _ => panic!(
-            "Paginated results parsing not implemented in `fetch_profile_from_email` use-case."
+            "Paginated licenses not implemented when fetch profile from email"
         ),
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Update profile response to include guests
+    // ? Validate ownership response
     // ? -----------------------------------------------------------------------
 
-    profile.licensed_resources = licenses;
+    profile.tenants_ownership = match ownership? {
+        FetchManyResponseKind::NotFound => None,
+        FetchManyResponseKind::Found(records) => Some(records),
+        _ => panic!(
+            "Paginated ownership not implemented when fetch profile from email"
+        ),
+    };
 
     // ? -----------------------------------------------------------------------
     // ? Return a positive response

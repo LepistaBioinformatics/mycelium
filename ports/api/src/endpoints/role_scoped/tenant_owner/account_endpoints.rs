@@ -11,7 +11,7 @@ use myc_core::{
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
-        create_response_kind, handle_mapped_error,
+        get_or_create_response_kind, handle_mapped_error,
     },
     Account,
 };
@@ -85,7 +85,7 @@ pub async fn create_management_account_url(
     )
     .await
     {
-        Ok(res) => create_response_kind(res),
+        Ok(res) => get_or_create_response_kind(res),
         Err(err) => handle_mapped_error(err),
     }
 }

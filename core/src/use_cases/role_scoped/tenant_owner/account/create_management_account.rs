@@ -4,9 +4,10 @@ use crate::domain::{
 };
 
 use mycelium_base::{
-    entities::{CreateResponseKind, FetchResponseKind},
+    entities::{FetchResponseKind, GetOrCreateResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
+use slugify::slugify;
 use uuid::Uuid;
 
 #[tracing::instrument(
@@ -22,7 +23,7 @@ pub async fn create_management_account(
     tenant_id: Uuid,
     tenant_fetching_repo: Box<&dyn TenantFetching>,
     account_registration_repo: Box<&dyn AccountRegistration>,
-) -> Result<CreateResponseKind<Account>, MappedErrors> {
+) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch tenant
     // ? -----------------------------------------------------------------------
@@ -55,17 +56,11 @@ pub async fn create_management_account(
 
     unchecked_account.is_checked = true;
 
-    unchecked_account.name = if let Some(id) = unchecked_account.id {
-        format!(
-            "{}/manager/{}",
-            tenant.tenant_string_or_error()?,
-            id.to_string()
-        )
-    } else {
-        return use_case_err("Unable to predict account name").as_error();
-    };
+    let name = format!("{}/manager", tenant.tenant_string_or_error()?);
+    unchecked_account.name = name.to_owned();
+    unchecked_account.slug = slugify!(&name.as_str());
 
     account_registration_repo
-        .create_subscription_account(unchecked_account, tenant_id)
+        .get_or_create_tenant_management_account(unchecked_account, tenant_id)
         .await
 }

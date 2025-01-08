@@ -1,5 +1,7 @@
 use crate::domain::dtos::{
-    email::Email, profile::LicensedResource, related_accounts::RelatedAccounts,
+    email::Email,
+    profile::{LicensedResource, TenantOwnership},
+    related_accounts::RelatedAccounts,
     route_type::PermissionedRoles,
 };
 
@@ -12,7 +14,7 @@ use uuid::Uuid;
 
 #[async_trait]
 pub trait LicensedResourcesFetching: Interface + Send + Sync {
-    async fn list(
+    async fn list_licensed_resources(
         &self,
         email: Email,
         tenant: Option<Uuid>,
@@ -21,4 +23,10 @@ pub trait LicensedResourcesFetching: Interface + Send + Sync {
         related_accounts: Option<RelatedAccounts>,
         was_verified: Option<bool>,
     ) -> Result<FetchManyResponseKind<LicensedResource>, MappedErrors>;
+
+    async fn list_tenants_ownership(
+        &self,
+        email: Email,
+        tenant: Option<Uuid>,
+    ) -> Result<FetchManyResponseKind<TenantOwnership>, MappedErrors>;
 }

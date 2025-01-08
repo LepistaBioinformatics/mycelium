@@ -22,8 +22,9 @@ use myc_core::{
     },
     models::AccountLifeCycle,
     use_cases::role_scoped::subscriptions_manager::guest::{
-        guest_user, list_guest_on_subscription_account,
-        list_licensed_accounts_of_email, uninvite_guest,
+        guest_user_to_subscription_account, list_guest_on_subscription_account,
+        list_licensed_accounts_of_email,
+        revoke_user_guest_to_subscription_account,
     },
 };
 use myc_http_tools::{
@@ -235,7 +236,7 @@ pub async fn guest_user_url(
         Ok(res) => res,
     };
 
-    match guest_user(
+    match guest_user_to_subscription_account(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         email,
@@ -307,7 +308,7 @@ pub async fn uninvite_guest_url(
 ) -> impl Responder {
     let (account_id, role_id) = path.to_owned();
 
-    match uninvite_guest(
+    match revoke_user_guest_to_subscription_account(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         account_id,

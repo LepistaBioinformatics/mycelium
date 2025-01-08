@@ -247,6 +247,7 @@ model Account {
 
   // Db compatibility and extra maps
   @@unique([name, tenant_id])
+  @@unique([slug, tenant_id])
   @@map("account")
 }
 

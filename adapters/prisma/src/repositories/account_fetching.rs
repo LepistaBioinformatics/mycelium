@@ -27,7 +27,7 @@ use mycelium_base::{
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{creation_err, fetching_err, MappedErrors},
 };
-use prisma_client_rust::{and, operator::and, or, Direction};
+use prisma_client_rust::{and, operator::and as and_o, or, Direction};
 use serde_json::{from_value, to_value};
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
@@ -279,7 +279,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         }
 
         if !and_query_stmt.is_empty() {
-            query_stmt.push(and(and_query_stmt));
+            query_stmt.push(and_o(and_query_stmt));
         }
 
         // ? -------------------------------------------------------------------
