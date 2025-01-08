@@ -50,7 +50,7 @@ pub async fn list_licensed_accounts_of_email(
     // ? -----------------------------------------------------------------------
 
     licensed_resources_fetching_repo
-        .list(
+        .list_licensed_resources(
             email,
             Some(tenant_id),
             roles,

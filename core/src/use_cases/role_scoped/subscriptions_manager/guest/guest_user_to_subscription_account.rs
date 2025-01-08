@@ -25,11 +25,11 @@ use uuid::Uuid;
 
 /// Guest a user to perform actions into an account.
 #[tracing::instrument(
-    name = "guest_user",
+    name = "guest_user_to_subscription_account",
     fields(profile_id = %profile.acc_id),
     skip_all
 )]
-pub async fn guest_user(
+pub async fn guest_user_to_subscription_account(
     profile: Profile,
     tenant_id: Uuid,
     email: Email,

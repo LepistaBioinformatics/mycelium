@@ -16,11 +16,11 @@ use uuid::Uuid;
 /// Uninvite user to perform a role actions from account
 ///
 #[tracing::instrument(
-    name = "uninvite_guest",
+    name = "revoke_user_guest_to_subscription_account",
     fields(profile_id = %profile.acc_id),
     skip_all
 )]
-pub async fn uninvite_guest(
+pub async fn revoke_user_guest_to_subscription_account(
     profile: Profile,
     tenant_id: Uuid,
     account_id: Uuid,
