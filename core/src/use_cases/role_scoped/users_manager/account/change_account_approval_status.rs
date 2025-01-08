@@ -34,7 +34,7 @@ pub async fn change_account_approval_status(
 
     let related_accounts = profile
         .with_standard_accounts_access()
-        .with_write_access()
+        .with_read_write_access()
         .with_roles(vec![SystemActor::UsersManager])
         .get_related_account_or_error()?;
 

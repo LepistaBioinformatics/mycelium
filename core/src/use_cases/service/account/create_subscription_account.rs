@@ -43,7 +43,6 @@ pub async fn create_subscription_account(
     scope.contain_enough_permissions(
         tenant_id,
         vec![
-            (TenantOwner.to_string(), Permission::Write),
             (TenantManager.to_string(), Permission::Write),
             (SubscriptionsManager.to_string(), Permission::Write),
         ],
