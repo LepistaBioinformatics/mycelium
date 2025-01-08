@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use chrono::Local;
 use myc_core::domain::{
     dtos::{
-        account::{Account, VerboseStatus},
+        account::{Account, AccountMeta, AccountMetaKey, VerboseStatus},
         account_type::AccountType,
         email::Email,
         native_error_codes::NativeErrorCodes,
@@ -24,7 +24,7 @@ use mycelium_base::{
 use prisma_client_rust::{and, or};
 use serde_json::{from_value, to_value};
 use shaku::Component;
-use std::process::id as process_id;
+use std::{collections::HashMap, process::id as process_id, str::FromStr};
 use tracing::error;
 use uuid::Uuid;
 
@@ -163,6 +163,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         None => None,
                         Some(date) => Some(date.with_timezone(&Local)),
                     },
+                    meta: None,
                 }));
             }
         }
@@ -292,6 +293,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 None => None,
                                 Some(date) => Some(date.with_timezone(&Local)),
                             },
+                            meta: None,
                         },
                         "Account already exists".to_string(),
                     ));
@@ -408,6 +410,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         None => None,
                         Some(date) => Some(date.with_timezone(&Local)),
                     },
+                    meta: None,
                 }));
             }
         }
@@ -558,6 +561,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             None => None,
                             Some(date) => Some(date.with_timezone(&Local)),
                         },
+                        meta: None,
                     }));
                 }
             }
@@ -665,6 +669,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         None => None,
                         Some(date) => Some(date.with_timezone(&Local)),
                     },
+                    meta: None,
                 }));
             }
         }
@@ -807,6 +812,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             None => None,
                             Some(date) => Some(date.with_timezone(&Local)),
                         },
+                        meta: None,
                     }));
                 }
             }
@@ -913,6 +919,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         None => None,
                         Some(date) => Some(date.with_timezone(&Local)),
                     },
+                    meta: None,
                 }));
             }
         }
@@ -1047,6 +1054,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             None => None,
                             Some(date) => Some(date.with_timezone(&Local)),
                         },
+                        meta: None,
                     },
                     "Account already exists".to_string(),
                 ));
@@ -1168,6 +1176,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             None => None,
                             Some(date) => Some(date.with_timezone(&Local)),
                         },
+                        meta: None,
                     }));
                 }
             }
@@ -1340,8 +1349,101 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             None => None,
                             Some(date) => Some(date.with_timezone(&Local)),
                         },
+                        meta: None,
                     }))
                 }
+            }
+        }
+    }
+
+    async fn register_account_meta(
+        &self,
+        account_id: Uuid,
+        key: AccountMetaKey,
+        value: String,
+    ) -> Result<CreateResponseKind<AccountMeta>, MappedErrors> {
+        let tmp_client = get_client().await;
+
+        let client = match tmp_client.get(&process_id()) {
+            None => {
+                return creation_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .with_code(NativeErrorCodes::MYC00001)
+                .as_error()
+            }
+            Some(res) => res,
+        };
+
+        match client
+            ._transaction()
+            .run(|client| async move {
+                let account = client
+                    .account()
+                    .find_unique(account_model::id::equals(
+                        account_id.to_string(),
+                    ))
+                    .select(account_model::select!({ meta }))
+                    .exec()
+                    .await?;
+
+                let new_meta = if let Some(data) = account {
+                    match data.meta {
+                        Some(meta) => {
+                            let mut map: HashMap<String, String> =
+                                from_value(meta).unwrap();
+
+                            map.insert(key.to_string(), value);
+                            map
+                        }
+                        None => {
+                            let mut map: HashMap<String, String> =
+                                std::collections::HashMap::new();
+
+                            map.insert(key.to_string(), value);
+                            map
+                        }
+                    }
+                } else {
+                    let mut map: HashMap<String, String> =
+                        std::collections::HashMap::new();
+
+                    map.insert(key.to_string(), value);
+                    map
+                };
+
+                client
+                    .account()
+                    .update(
+                        account_model::id::equals(account_id.to_string()),
+                        vec![account_model::meta::set(Some(
+                            to_value(&new_meta).unwrap(),
+                        ))],
+                    )
+                    .select(account_model::select!({ meta }))
+                    .exec()
+                    .await
+            })
+            .await
+        {
+            Ok(record) => {
+                if let Some(meta) = record.meta {
+                    Ok(CreateResponseKind::Created(AccountMeta::from_iter(
+                        meta.as_object().unwrap().iter().map(|(k, v)| {
+                            (
+                                AccountMetaKey::from_str(k).unwrap(),
+                                v.to_string(),
+                            )
+                        }),
+                    )))
+                } else {
+                    creation_err(String::from("Could not create tenant meta"))
+                        .as_error()
+                }
+            }
+            Err(err) => {
+                creation_err(format!("Could not create tenant meta: {err}"))
+                    .as_error()
             }
         }
     }

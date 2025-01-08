@@ -15,6 +15,7 @@ use actix_web::{dev::Service, web};
 use beginners::{
     account_endpoints as no_role_account_endpoints,
     guest_user_endpoints as no_role_guest_user_endpoints,
+    meta_endpoints as no_role_meta_endpoints,
     profile_endpoints as no_role_profile_endpoints,
     user_endpoints as no_role_user_endpoints,
 };
@@ -24,7 +25,6 @@ use gateway_manager::{
 };
 use guest_manager::{
     guest_role_endpoints as guest_manager_guest_role_endpoints,
-    //role_endpoints as guest_manager_role_endpoints,
     token_endpoints as guest_manager_token_endpoints,
 };
 use myc_core::domain::actors::SystemActor;
@@ -74,6 +74,10 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             .service(
                 web::scope(&format!("/{}", UrlGroup::Guests))
                     .configure(no_role_guest_user_endpoints::configure),
+            )
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Meta))
+                    .configure(no_role_meta_endpoints::configure),
             )
             .service(
                 web::scope(&format!("/{}", UrlGroup::Profile))

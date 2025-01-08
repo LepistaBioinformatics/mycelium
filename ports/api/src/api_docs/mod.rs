@@ -25,6 +25,7 @@ use role_scoped::account_manager::guest_endpoints as Account_Manager__Guest;
 use role_scoped::gateway_manager::route_endpoints as GatewayManager__Route;
 use role_scoped::gateway_manager::service_endpoints as GatewayManager__Service;
 use role_scoped::beginners::account_endpoints as Beginners__Account;
+use role_scoped::beginners::meta_endpoints as Beginners__Meta;
 use role_scoped::beginners::profile_endpoints as Beginners__Profile;
 use role_scoped::beginners::user_endpoints as Beginners__User;
 use role_scoped::guest_manager::guest_role_endpoints as Guest_Manager__Guest_Role;
@@ -200,6 +201,23 @@ struct AccountManagerGuestApiDoc;
     security(("Bearer" = []))
 )]
 struct BeginnersAccountApiDoc;
+
+/// Role Scoped Endpoints for Beginner Users for Meta Management
+/// 
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Beginners | Meta Endpoints",
+        description = "Endpoints reserved for the beginner users to manage their meta data",
+    ),
+    paths(
+        Beginners__Meta::create_account_meta_url,
+        Beginners__Meta::update_account_meta_url,
+        Beginners__Meta::delete_account_meta_url,
+    ),
+    security(("Bearer" = []))
+)]
+struct BeginnersMetaApiDoc;
 
 /// Role Scoped Endpoints for Beginner Users for Profile Management
 ///
@@ -561,6 +579,7 @@ struct UsersManagerAccountApiDoc;
         // Beginner endpoints
         //
         (path = "/adm/rs/beginners/accounts", api = BeginnersAccountApiDoc),
+        (path = "/adm/rs/beginners/meta", api = BeginnersMetaApiDoc),
         (path = "/adm/rs/beginners/profile", api = BeginnersProfileApiDoc),
         (path = "/adm/rs/beginners/users", api = BeginnersUserApiDoc),
         //
@@ -666,6 +685,8 @@ struct UsersManagerAccountApiDoc;
             //
             role_scoped::beginners::account_endpoints::CreateDefaultAccountBody,
             role_scoped::beginners::account_endpoints::UpdateOwnAccountNameAccountBody,
+            role_scoped::beginners::meta_endpoints::CreateAccountMetaBody,
+            role_scoped::beginners::meta_endpoints::DeleteAccountMetaBody,
             role_scoped::beginners::user_endpoints::CheckEmailStatusQuery,
             role_scoped::beginners::user_endpoints::TotpUpdatingValidationBody,
             role_scoped::beginners::user_endpoints::CreateDefaultUserBody,

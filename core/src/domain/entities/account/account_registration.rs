@@ -1,4 +1,4 @@
-use crate::domain::dtos::account::Account;
+use crate::domain::dtos::account::{Account, AccountMeta, AccountMetaKey};
 
 use async_trait::async_trait;
 use mycelium_base::{
@@ -38,4 +38,11 @@ pub trait AccountRegistration: Interface + Send + Sync {
         &self,
         account: Account,
     ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors>;
+
+    async fn register_account_meta(
+        &self,
+        account_id: Uuid,
+        key: AccountMetaKey,
+        value: String,
+    ) -> Result<CreateResponseKind<AccountMeta>, MappedErrors>;
 }
