@@ -8,17 +8,17 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::DateTime;
-use log::debug;
 use myc_core::domain::{
     dtos::{
         email::Email,
-        guest::{GuestRole, GuestUser, Permissions},
+        guest_role::{GuestRole, Permission},
+        guest_user::GuestUser,
         native_error_codes::NativeErrorCodes,
     },
     entities::GuestUserFetching,
 };
 use mycelium_base::{
-    dtos::Parent,
+    dtos::{Children, Parent},
     entities::FetchManyResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
@@ -65,39 +65,66 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
                     account_id.to_string(),
                 ),
             ])])
-            .include(guest_user_model::include!({ guest_role }))
+            .include(guest_user_model::include!({
+                guest_role: select {
+                    id
+                    name
+                    slug
+                    description
+                    //role: select {
+                    //    id
+                    //}
+                    children
+                    permission
+                }
+            }))
             .exec()
             .await
             .unwrap();
 
-        debug!("Guest Record from Account ID: {:?}", response);
-
         let records: Vec<GuestUser> = response
             .iter()
-            .map(|record| GuestUser {
-                id: Some(Uuid::parse_str(&record.id).unwrap()),
-                email: Email::from_string(record.email.to_owned()).unwrap(),
-                guest_role: Parent::Record(GuestRole {
-                    id: Some(Uuid::parse_str(&record.guest_role.id).unwrap()),
-                    name: record.guest_role.name.to_owned(),
-                    description: record.guest_role.description.to_owned(),
-                    role: Parent::Id(
-                        Uuid::parse_str(&record.guest_role.role_id).unwrap(),
-                    ),
-                    permissions: record
-                        .guest_role
-                        .permissions
-                        .to_owned()
-                        .into_iter()
-                        .map(|i| Permissions::from_i32(i))
-                        .collect(),
-                }),
-                created: record.created.into(),
-                updated: match record.updated {
-                    None => None,
-                    Some(res) => Some(DateTime::from(res)),
-                },
-                accounts: None,
+            .map(|record| {
+                GuestUser::new_existing(
+                    Uuid::parse_str(&record.id).unwrap(),
+                    Email::from_string(record.email.to_owned()).unwrap(),
+                    Parent::Record(GuestRole {
+                        id: Some(
+                            Uuid::parse_str(&record.guest_role.id).unwrap(),
+                        ),
+                        name: record.guest_role.name.to_owned(),
+                        slug: record.guest_role.slug.to_owned(),
+                        description: record.guest_role.description.to_owned(),
+                        //role: Parent::Id(
+                        //    Uuid::parse_str(&record.guest_role.role.id)
+                        //        .unwrap(),
+                        //),
+                        children: match record.guest_role.children.len() {
+                            0 => None,
+                            _ => Some(Children::Ids(
+                                record
+                                    .guest_role
+                                    .children
+                                    .iter()
+                                    .map(|i| {
+                                        Uuid::parse_str(&i.child_role_id)
+                                            .unwrap()
+                                    })
+                                    .collect(),
+                            )),
+                        },
+                        permission: Permission::from_i32(
+                            record.guest_role.permission,
+                        ),
+                    }),
+                    record.created.into(),
+                    match record.updated {
+                        None => None,
+                        Some(res) => Some(DateTime::from(res)),
+                    },
+                    None,
+                    record.was_verified,
+                )
             })
             .collect::<Vec<GuestUser>>();
 

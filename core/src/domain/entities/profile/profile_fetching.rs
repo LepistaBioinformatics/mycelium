@@ -6,9 +6,13 @@ use shaku::Interface;
 
 #[async_trait]
 pub trait ProfileFetching: Interface + Send + Sync {
-    async fn get(
+    async fn get_from_email(
         &self,
-        email: Option<Email>,
-        token: Option<String>,
+        email: Email,
+    ) -> Result<FetchResponseKind<Profile, String>, MappedErrors>;
+
+    async fn get_from_token(
+        &self,
+        token: String,
     ) -> Result<FetchResponseKind<Profile, String>, MappedErrors>;
 }

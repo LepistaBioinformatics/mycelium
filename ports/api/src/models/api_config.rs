@@ -1,4 +1,7 @@
-use myc_config::{load_config_from_file, optional_config::OptionalConfig};
+use myc_config::{
+    load_config_from_file, optional_config::OptionalConfig,
+    secret_resolver::SecretResolver,
+};
 use myc_core::domain::dtos::http::Protocol;
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
 use serde::Deserialize;
@@ -6,14 +9,14 @@ use std::path::PathBuf;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct TlsConfig {
-    pub tls_cert_path: Option<String>,
-    pub tls_key_path: Option<String>,
+pub struct TlsConfig {
+    pub tls_cert: SecretResolver<String>,
+    pub tls_key: SecretResolver<String>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) enum LogFormat {
+pub enum LogFormat {
     /// ANSI format
     ///
     /// This format is human-readable and colorful.
@@ -27,7 +30,7 @@ pub(crate) enum LogFormat {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) enum LoggingTarget {
+pub enum LoggingTarget {
     Stdout,
     File {
         path: String,
@@ -42,7 +45,7 @@ pub(crate) enum LoggingTarget {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct LoggingConfig {
+pub struct LoggingConfig {
     pub level: String,
     pub format: LogFormat,
     pub target: Option<LoggingTarget>,
@@ -50,7 +53,7 @@ pub(crate) struct LoggingConfig {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct ApiConfig {
+pub struct ApiConfig {
     pub service_ip: String,
     pub service_port: u16,
     pub allowed_origins: Vec<String>,

@@ -153,6 +153,7 @@ pub enum NativeErrorCodes {
     /// is_native: true
     ///
     MYC00015,
+
     ///
     /// code: "MYC00016",
     /// message: "Tenant owner not found",
@@ -161,6 +162,69 @@ pub enum NativeErrorCodes {
     /// is_native: true
     ///
     MYC00016,
+
+    ///
+    /// code: "MYC00017",
+    /// message: "Guest already exists",
+    /// details: "Indicates that the guest already exists.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00017,
+
+    ///
+    /// code: "MYC00018",
+    /// message: "Invalid user operation",
+    /// details: "Indicates that the user operation is invalid.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00018,
+
+    ///
+    /// code: "MYC00019",
+    /// message: "Insufficient privileges",
+    /// details: "Indicates that the user has insufficient privileges.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00019,
+
+    ///
+    /// code: "MYC00020",
+    /// message: "Possible security issue",
+    /// details: "The informed scope is not valid.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00020,
+
+    ///
+    /// code: "MYC00021",
+    /// message: "Totp Already Enabled",
+    /// details: "Indicates that the user already has TOTP enabled.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00021,
+
+    ///
+    /// code: "MYC00022",
+    /// message: "Totp Disabled",
+    /// details: "Indicates that the user does not have TOTP enabled.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00022,
+
+    ///
+    /// code: "MYC00023",
+    /// message: "Totp Token invalid",
+    /// details: "Indicates that the TOTP token is invalid.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00023,
 }
 
 impl NativeErrorCodes {
@@ -204,6 +268,13 @@ impl NativeErrorCodes {
             Self::MYC00014 => "MYC00014",
             Self::MYC00015 => "MYC00015",
             Self::MYC00016 => "MYC00016",
+            Self::MYC00017 => "MYC00017",
+            Self::MYC00018 => "MYC00018",
+            Self::MYC00019 => "MYC00019",
+            Self::MYC00020 => "MYC00020",
+            Self::MYC00021 => "MYC00021",
+            Self::MYC00022 => "MYC00022",
+            Self::MYC00023 => "MYC00023",
         }
     }
 

@@ -91,7 +91,7 @@ impl TenantDeletion for TenantDeletionSqlDbRepository {
 
         if let Some(owner_email) = owner_email {
             and_statement.push(owner_on_tenant_model::owner::is(vec![
-                user_model::email::equals(owner_email.get_email()),
+                user_model::email::equals(owner_email.email()),
             ]));
         }
 

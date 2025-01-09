@@ -6,10 +6,8 @@ use jsonwebtoken::errors::ErrorKind;
 use jwt::{Header as JwtHeader, RegisteredClaims, Token};
 use myc_config::optional_config::OptionalConfig;
 use myc_core::{
-    domain::dtos::email::Email,
-    use_cases::roles::service::profile::{
-        fetch_profile_from_email, ProfileResponse,
-    },
+    domain::dtos::{email::Email, route_type::PermissionedRoles},
+    use_cases::service::profile::{fetch_profile_from_email, ProfileResponse},
 };
 use myc_http_tools::{
     functions::decode_jwt_hs512,
@@ -22,7 +20,8 @@ use myc_http_tools::{
 use myc_prisma::repositories::{
     LicensedResourcesFetchingSqlDbRepository, ProfileFetchingSqlDbRepository,
 };
-use tracing::{debug, warn};
+use tracing::{trace, warn};
+use uuid::Uuid;
 
 /// Try to populate profile to request header
 ///
@@ -31,29 +30,40 @@ use tracing::{debug, warn};
 #[tracing::instrument(name = "fetch_profile_from_request", skip_all)]
 pub(crate) async fn fetch_profile_from_request(
     req: HttpRequest,
+    tenant: Option<Uuid>,
+    roles: Option<Vec<String>>,
+    permissioned_roles: Option<PermissionedRoles>,
 ) -> Result<MyceliumProfileData, GatewayError> {
     let email =
         check_credentials_with_multi_identity_provider(req.clone()).await?;
 
     if email.is_none() {
-        return Err(GatewayError::Forbidden(format!(
+        return Err(GatewayError::Unauthorized(format!(
             "Unable o extract user identity from request."
         )));
     }
 
+    if let Some(email) = email.to_owned() {
+        trace!("Email: {:?}", email.redacted_email());
+    };
+
     let profile = match fetch_profile_from_email(
         email.to_owned().unwrap(),
+        None,
+        tenant,
+        roles,
+        permissioned_roles,
         Box::new(&ProfileFetchingSqlDbRepository {}),
         Box::new(&LicensedResourcesFetchingSqlDbRepository {}),
     )
     .await
     {
         Err(err) => {
-            let msg =
-                format!("Unexpected error on fetch profile from email: {err}");
+            warn!("Unexpected error on fetch profile from email: {err}");
 
-            warn!("{msg}");
-            return Err(GatewayError::InternalServerError(msg));
+            return Err(GatewayError::InternalServerError(
+                "Unexpected error on fetch profile from email.".to_string(),
+            ));
         }
         Ok(res) => match res {
             ProfileResponse::UnregisteredUser(email) => {
@@ -65,6 +75,8 @@ pub(crate) async fn fetch_profile_from_request(
             ProfileResponse::RegisteredUser(res) => res,
         },
     };
+
+    trace!("Profile: {:?}", profile.profile_redacted());
 
     Ok(MyceliumProfileData::from_profile(profile))
 }
@@ -80,6 +92,8 @@ pub async fn check_credentials_with_multi_identity_provider(
     req: HttpRequest,
 ) -> Result<Option<Email>, GatewayError> {
     let issuer = parse_issuer_from_request(req.clone()).await?;
+    trace!("Issuer: {:?}", issuer);
+
     discover_provider(issuer.to_owned().to_lowercase(), req).await
 }
 
@@ -92,7 +106,7 @@ pub async fn parse_issuer_from_request(
 ) -> Result<String, GatewayError> {
     let auth = match Authorization::<Bearer>::parse(&req) {
         Err(err) => {
-            return Err(GatewayError::Forbidden(format!(
+            return Err(GatewayError::Unauthorized(format!(
                 "Unexpected error on get bearer from request: {err}"
             )));
         }
@@ -110,19 +124,14 @@ pub async fn parse_issuer_from_request(
                 );
 
                 warn!("{msg}");
-                return Err(GatewayError::Forbidden(msg));
+                return Err(GatewayError::Unauthorized(msg));
             }
             Ok(res) => res,
         };
 
-    let issuer =
-        unverified
-            .claims()
-            .issuer
-            .as_ref()
-            .ok_or(GatewayError::Forbidden(
-                "Could not check issuer.".to_string(),
-            ))?;
+    let issuer = unverified.claims().issuer.as_ref().ok_or(
+        GatewayError::Unauthorized("Could not check issuer.".to_string()),
+    )?;
 
     Ok(issuer.to_owned().to_lowercase())
 }
@@ -138,22 +147,24 @@ async fn discover_provider(
     let provider = if auth_provider.contains("sts.windows.net")
         || auth_provider.contains("azure-ad")
     {
+        trace!("Checking credentials with Azure AD");
         az_check_credentials(req).await
     } else if auth_provider.contains("google") {
+        trace!("Checking credentials with Google OAuth2");
         //
         // Try to extract authentication configurations from HTTP request.
         //
         let req_auth_config = req.app_data::<web::Data<AuthConfig>>();
         //
-        // If Google OAuth2 config if not available the returns a Forbidden.
+        // If Google OAuth2 config if not available the returns a Unauthorized.
         //
         if let None = req_auth_config {
-            return Err(GatewayError::Forbidden(format!(
+            return Err(GatewayError::Unauthorized(format!(
                 "Unable to extract Google auth config from request."
             )));
         }
         //
-        // If Google OAuth2 config if not available the returns a Forbidden
+        // If Google OAuth2 config if not available the returns a Unauthorized
         // response.
         //
         let config = match req_auth_config.unwrap().google.clone() {
@@ -162,7 +173,7 @@ async fn discover_provider(
                     "Users trying to request and the Google OAuth2 is disabled."
                 );
 
-                return Err(GatewayError::Forbidden(format!(
+                return Err(GatewayError::Unauthorized(format!(
                     "Unable to extract auth config from request."
                 )));
             }
@@ -173,9 +184,11 @@ async fn discover_provider(
         //
         gc_check_credentials(req, config).await
     } else if auth_provider.contains("mycelium") {
+        trace!("Checking credentials with Mycelium Auth");
         //
         // Extract the internal OAuth2 configuration from the HTTP request. If
-        // the configuration is not available returns a Forbidden response.
+        // the configuration is not available returns a InternalServerError
+        // response.
         //
         let req_auth_config = match req
             .app_data::<web::Data<InternalOauthConfig>>()
@@ -189,9 +202,9 @@ async fn discover_provider(
         };
         //
         // Extract the token from the request. If the token is not available
-        // returns a Forbidden response.
+        // returns a InternalServerError response.
         //
-        let jwt_token = match req_auth_config.get_or_error() {
+        let jwt_token = match req_auth_config.async_get_or_error().await {
             Ok(token) => token,
             Err(err) => {
                 return Err(GatewayError::InternalServerError(format!(
@@ -201,7 +214,7 @@ async fn discover_provider(
         };
         //
         // Extract the bearer from the request. If the bearer is not available
-        // returns a Forbidden response.
+        // returns a Unauthorized response.
         //
         let auth = match Authorization::<Bearer>::parse(&req) {
             Err(err) => match err {
@@ -211,7 +224,7 @@ async fn discover_provider(
                     )));
                 }
                 _ => {
-                    return Err(GatewayError::Forbidden(format!(
+                    return Err(GatewayError::Unauthorized(format!(
                         "Invalid Bearer token: {err}"
                     )));
                 }
@@ -219,18 +232,18 @@ async fn discover_provider(
             Ok(res) => res,
         };
         //
-        // Decode the JWT token. If the token is not valid returns a Forbidden
-        // response.
+        // Decode the JWT token. If the token is not valid returns a
+        // Unauthorized response.
         //
         match decode_jwt_hs512(auth, jwt_token) {
             Err(err) => match err.kind() {
                 ErrorKind::ExpiredSignature => {
-                    return Err(GatewayError::Forbidden(format!(
+                    return Err(GatewayError::Unauthorized(format!(
                         "Expired token: {err}"
                     )));
                 }
                 _ => {
-                    return Err(GatewayError::Forbidden(format!(
+                    return Err(GatewayError::Unauthorized(format!(
                         "Unexpected error on decode jwt token: {err}"
                     )))
                 }
@@ -241,7 +254,7 @@ async fn discover_provider(
 
                 match Email::from_string(email) {
                     Err(err) => {
-                        return Err(GatewayError::Forbidden(format!(
+                        return Err(GatewayError::Unauthorized(format!(
                             "Invalid email: {err}"
                         )));
                     }
@@ -264,7 +277,7 @@ async fn discover_provider(
             Err(GatewayError::Forbidden(msg))
         }
         Ok(res) => {
-            debug!("Requesting Email: {:?}", res);
+            trace!("Requesting Email: {:?}", res);
             Ok(Some(res))
         }
     }

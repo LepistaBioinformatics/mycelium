@@ -6,8 +6,8 @@ use async_trait::async_trait;
 use chrono::{DateTime, Local};
 use myc_core::domain::{
     dtos::{
-        account::{Account, VerboseStatus},
-        account_type::AccountTypeV2,
+        account::{Account, AccountMeta, AccountMetaKey, VerboseStatus},
+        account_type::AccountType,
         email::Email,
         native_error_codes::NativeErrorCodes,
         tag::Tag,
@@ -20,10 +20,12 @@ use mycelium_base::{
     entities::UpdatingResponseKind,
     utils::errors::{updating_err, MappedErrors},
 };
-use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
+use prisma_client_rust::{
+    prisma_errors::query_engine::RecordNotFound, QueryError,
+};
 use serde_json::{from_value, to_value};
 use shaku::Component;
-use std::process::id as process_id;
+use std::{collections::HashMap, process::id as process_id};
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -165,6 +167,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                         None => None,
                         Some(res) => Some(DateTime::from(res)),
                     },
+                    meta: None,
                 }))
             }
             Err(err) => {
@@ -298,6 +301,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                         None => None,
                         Some(res) => Some(DateTime::from(res)),
                     },
+                    meta: None,
                 }))
             }
             Err(err) => {
@@ -322,7 +326,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
     async fn update_account_type(
         &self,
         account_id: Uuid,
-        account_type: AccountTypeV2,
+        account_type: AccountType,
     ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
@@ -433,6 +437,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                         None => None,
                         Some(res) => Some(DateTime::from(res)),
                     },
+                    meta: None,
                 }))
             }
             Err(err) => {
@@ -451,6 +456,70 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                 ))
                 .as_error();
             }
+        }
+    }
+
+    async fn update_account_meta(
+        &self,
+        account_id: Uuid,
+        key: AccountMetaKey,
+        value: String,
+    ) -> Result<UpdatingResponseKind<AccountMeta>, MappedErrors> {
+        let tmp_client = get_client().await;
+
+        let client = match tmp_client.get(&process_id()) {
+            None => {
+                return updating_err(String::from(
+                    "Prisma Client error. Could not fetch client.",
+                ))
+                .with_code(NativeErrorCodes::MYC00001)
+                .as_error()
+            }
+            Some(res) => res,
+        };
+
+        match client
+            ._transaction()
+            .run(|client| async move {
+                let tenant = client
+                    .account()
+                    .find_unique(account_model::id::equals(
+                        account_id.to_string(),
+                    ))
+                    .select(account_model::select!({ meta }))
+                    .exec()
+                    .await?;
+
+                let empty_map = AccountMeta::new();
+                let mut updated_meta: AccountMeta = if let Some(data) = tenant {
+                    match data.meta.to_owned() {
+                        Some(meta) => from_value(meta).unwrap(),
+                        None => empty_map,
+                    }
+                } else {
+                    empty_map
+                };
+
+                updated_meta.insert(key, value);
+
+                client
+                    .account()
+                    .update(
+                        account_model::id::equals(account_id.to_string()),
+                        vec![account_model::meta::set(Some(
+                            to_value(updated_meta.to_owned()).unwrap(),
+                        ))],
+                    )
+                    .exec()
+                    .await?;
+
+                Ok::<HashMap<AccountMetaKey, String>, QueryError>(updated_meta)
+            })
+            .await
+        {
+            Ok(record) => Ok(UpdatingResponseKind::Updated(record)),
+            Err(err) => updating_err(format!("Could not create tenant: {err}"))
+                .as_error(),
         }
     }
 }

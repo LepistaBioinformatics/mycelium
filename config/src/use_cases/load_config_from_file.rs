@@ -10,10 +10,10 @@ where
     for<'a> T: Deserialize<'a>,
 {
     let f = std::fs::File::open(file_path.as_path().to_str().unwrap())
-        .expect("Could not open config file.");
+        .expect("Could not open config file");
 
     let config: T =
-        serde_yaml::from_reader(f).expect("Could not read config file.");
+        serde_yaml::from_reader(f).expect("Could not read config file");
 
     Ok(config)
 }
@@ -24,7 +24,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::env_or_value::EnvOrValue;
+    use crate::secret_resolver::SecretResolver;
 
     use super::*;
     use mycelium_base::utils::errors::MappedErrors;
@@ -34,7 +34,7 @@ mod tests {
     struct Config {
         name: String,
         age: u8,
-        var_with_env: EnvOrValue<String>,
+        var_with_env: SecretResolver<String>,
         var_without_env: String,
     }
 

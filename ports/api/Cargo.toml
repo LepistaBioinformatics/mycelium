@@ -19,21 +19,21 @@ readme.workspace = true
 # ! This is a workaround for a bug in cargo that prevents it from building
 # ! workspaces with path dependencies.
 #
-# This sesction was introduced to fix build error on package 
+# This section was introduced to fix build error on package 
 # `connection-string`
 [patch.crates-io]
-connection-string = "0.1.14"
+connection-string = "0.2"
 
 [dependencies]
 
-myc-core = { version = "5.0.8", path = "../../core" }
-mycelium-base = { version = "5.0.8", path = "../../base" }
-mycelium-config = { version = "5.0.8", path = "../../config" }
-mycelium-http-tools = { version = "5.0.8", path = "../../http_tools" }
-mycelium-memory-db = { version = "5.0.8", path = "../../adapters/mem_db" }
-mycelium-service = { version = "5.0.8", path = "../../adapters/service" }
-mycelium-prisma = { version = "5.0.8", path = "../../adapters/prisma" }
-mycelium-smtp = { version = "5.0.8", path = "../../adapters/smtp" }
+myc-core = { version = "6.6.0", path = "../../core" }
+mycelium-base = { version = "6.6.0", path = "../../base" }
+mycelium-config = { version = "6.6.0", path = "../../config" }
+mycelium-http-tools = { version = "6.6.0", path = "../../http_tools" }
+mycelium-memory-db = { version = "6.6.0", path = "../../adapters/mem_db" }
+mycelium-service = { version = "6.6.0", path = "../../adapters/service" }
+mycelium-prisma = { version = "6.6.0", path = "../../adapters/prisma" }
+mycelium-notifier = { version = "6.6.0", path = "../../adapters/notifier" }
 
 actix-web.workspace = true
 actix-web-httpauth.workspace = true
@@ -47,6 +47,7 @@ jsonwebtoken.workspace = true
 jwt.workspace = true
 lazy_static.workspace = true
 oauth2.workspace = true
+rand.workspace = true
 reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
@@ -60,7 +61,7 @@ url.workspace = true
 
 actix = "0.13"
 actix-cors = { version = "0.6.2" }
-actix-session = { version = "0.7.2", features = ["cookie-session"] }
+actix-rt = "2.10"
 actix-web-error = { version = "0.2" }
 actix-web-error-derive = { version = "0.2" }
 actix-web-opentelemetry = "0.18.0"
@@ -87,7 +88,8 @@ tracing-subscriber = { version = "0.3", features = [
     "tracing-serde",
     "registry",
 ] }
-utoipa-swagger-ui = { version = "5", features = ["actix-web"] }
+utoipa-redoc = { version = "5", features = ["actix-web"] }
+utoipa-swagger-ui = { version = "8", features = ["actix-web"] }
 
 # ? ----------------------------------------------------------------------------
 # ? BINARIES

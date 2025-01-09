@@ -69,6 +69,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                         first_name
                         last_name
                         username
+                        is_principal
                     }
                 }
             }))
@@ -100,6 +101,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                                             .clone()
                                             .into(),
                                         username: owner.username.clone().into(),
+                                        is_principal: owner.is_principal,
                                     }
                                 })
                                 .collect(),
@@ -160,6 +162,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                         first_name
                         last_name
                         username
+                        is_principal
                     }
                 }
             }))
@@ -191,6 +194,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                                             .clone()
                                             .into(),
                                         username: owner.username.clone().into(),
+                                        is_principal: owner.is_principal,
                                     }
                                 })
                                 .collect(),
@@ -323,6 +327,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                                 first_name
                                 last_name
                                 username
+                                is_principal
                             }
                         }
                     })),
@@ -361,6 +366,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                                 first_name: owner.first_name.clone().into(),
                                 last_name: owner.last_name.clone().into(),
                                 username: owner.username.clone().into(),
+                                is_principal: owner.is_principal,
                             }
                         })
                         .collect(),

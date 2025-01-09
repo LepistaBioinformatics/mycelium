@@ -105,6 +105,7 @@ model User {
   is_principal Boolean   @default(false)
   created      DateTime  @default(now()) @db.Timestamptz(6)
   updated      DateTime? @updatedAt @db.Timestamptz(6)
+  mfa          Json?
 
   // Backward relationship fields
   account         Account?          @relation(fields: [account_id], references: [id])
@@ -141,38 +142,40 @@ model Token {
   @@map("token")
 }
 
-model Role {
-  // Primary key
-  id String @id @default(uuid())
-
-  // Model fields
-  name        String @db.VarChar(140)
-  description String @db.VarChar(255)
-
-  // Backward relationship fields
-  user_roles GuestRole[]
-
-  // Db compatibility and extra maps
-  @@map("role")
-}
-
 model GuestRole {
   // Primary key
   id String @id @default(uuid())
 
   // Model fields
   name        String  @db.VarChar(140)
+  slug        String  @db.VarChar(140)
   description String? @db.VarChar(255)
-  role        Role    @relation(fields: [role_id], references: [id])
-  role_id     String
-  permissions Int[]
+  //role        Role    @relation(fields: [role_id], references: [id])
+  //role_id     String
+  permission  Int     @default(0)
 
   // Backward relationship fields
   guest_users GuestUser[]
+  children    GuestRoleChildren[] @relation(name: "ParentGuestRole")
+  parent      GuestRoleChildren[] @relation(name: "ChildGuestRole")
 
   // Db compatibility and extra maps
-  @@unique([name])
+  @@unique([name, permission])
+  @@unique([slug, permission])
   @@map("guest_role")
+}
+
+model GuestRoleChildren {
+  // Model fields
+  parent    GuestRole @relation(name: "ParentGuestRole", fields: [parent_id], references: [id])
+  parent_id String
+
+  child_role    GuestRole @relation(name: "ChildGuestRole", fields: [child_role_id], references: [id])
+  child_role_id String
+
+  // Db compatibility and extra maps
+  @@id([parent_id, child_role_id])
+  @@map("guest_role_children")
 }
 
 model GuestUser {
@@ -185,6 +188,7 @@ model GuestUser {
   guest_role_id String
   created       DateTime  @default(now()) @db.Timestamptz(6)
   updated       DateTime? @updatedAt @db.Timestamptz(6)
+  was_verified  Boolean   @default(false)
 
   // Backward relationship fields
   accounts GuestUserOnAccount[]
@@ -216,6 +220,7 @@ model Account {
   // Backward relationship fields
   owners      User[]
   guest_users GuestUserOnAccount[]
+  meta        Json?
   tags        AccountTags[]
 
   // Related models
@@ -225,22 +230,9 @@ model Account {
 
   // Db compatibility and extra maps
   @@unique([name, tenant_id])
+  @@unique([slug, tenant_id])
   @@map("account")
 }
-
-//view LicensedResources {
-//  acc_id     String  @db.VarChar(36)
-//  acc_name   String  @db.VarChar(256)
-//  is_acc_std Boolean
-//  gr_id      String  @db.VarChar(36)
-//  gr_name    String  @db.VarChar(140)
-//  gr_perms   Int[]
-//  rl_name    String  @db.VarChar(140)
-//  gu_email   String
-//
-//  @@unique([acc_id, gr_id, gu_email])
-//  @@map("licensed_resources")
-//}
 
 model AccountTags {
   // Primary key
@@ -303,13 +295,14 @@ model Webhook {
   // Model fields
   name        String    @db.VarChar(140)
   description String?   @db.VarChar(255)
-  target      String    @db.VarChar(15)
-  url         String    @db.VarChar(255)
+  url         String
+  trigger     String    @db.VarChar(255)
   is_active   Boolean   @default(true)
   created     DateTime  @default(now()) @db.Timestamptz(6)
   updated     DateTime? @updatedAt @db.Timestamptz(6)
+  secret      Json?
 
   // Db compatibility and extra maps
-  @@unique([name, url, target])
+  @@unique([name, url, trigger])
   @@map("webhook")
 }

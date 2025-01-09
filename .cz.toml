@@ -1,5 +1,5 @@
 [tool.commitizen]
-version = "5.0.8"
+version = "6.6.0"
 version_files = [
     "Cargo.toml",
     "base/Cargo.toml",
@@ -9,10 +9,16 @@ version_files = [
     "adapters/mem_db/Cargo.toml",
     "adapters/prisma/Cargo.toml",
     "adapters/service/Cargo.toml",
-    "adapters/smtp/Cargo.toml",
+    "adapters/notifier/Cargo.toml",
     "ports/api/Cargo.toml",
     "ports/cli/Cargo.toml",
 ]
 name = "cz_conventional_commits"
 tag_format = "v$version"
 bump_message = "bump: $current_version → $new_version [skip-ci]"
+
+
+[tool.commitizen.customize]
+types = [
+    { value = "chore", description = "Other changes that don't modify src or test files" },
+]

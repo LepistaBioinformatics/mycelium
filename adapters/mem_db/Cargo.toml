@@ -14,13 +14,14 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "5.0.8", path = "../../core" }
-mycelium-base = { version = "5.0.8", path = "../../base" }
-mycelium-config = { version = "5.0.8", path = "../../config" }
+myc-core = { version = "6.6.0", path = "../../core" }
+mycelium-base = { version = "6.6.0", path = "../../base" }
+mycelium-config = { version = "6.6.0", path = "../../config" }
 
-env_logger.workspace = true
 log.workspace = true
 shaku.workspace = true
+tracing.workspace = true
+uuid.workspace = true
 
 actix-web = { version = "4", features = ["openssl"] }
 async-trait = "0.1"

@@ -1,10 +1,13 @@
 use crate::domain::dtos::{
     health_check::HealthCheckConfig,
-    http::{HttpMethod, Protocol, RouteType},
+    http::{HttpMethod, Protocol},
     route::Route,
-    service::ClientService,
+    route_type::RouteType,
+    service::{Service, ServiceSecret},
 };
 
+use futures::executor::block_on;
+use myc_config::secret_resolver::SecretResolver;
 use mycelium_base::utils::errors::{use_case_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use std::{mem::size_of_val, str::from_utf8};
@@ -26,6 +29,7 @@ struct TempServiceDTO {
     pub host: String,
     pub health_check: Option<HealthCheckConfig>,
     pub routes: Vec<TempRouteDTO>,
+    pub secrets: Option<Vec<ServiceSecret>>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -34,11 +38,11 @@ struct TempRouteDTO {
     pub id: Option<Uuid>,
     pub group: RouteType,
     pub methods: Vec<HttpMethod>,
-    pub downstream_url: String,
+    pub path: String,
     pub protocol: Protocol,
-
-    // Self optional fields
     pub allowed_sources: Option<Vec<String>>,
+    pub secret_name: Option<String>,
+    pub accept_insecure_routing: Option<bool>,
 }
 
 /// Load configuration from YAML file
@@ -77,36 +81,88 @@ pub async fn load_config_from_yaml(
         })
         .unwrap();
 
-    let db = temp_services?.services.into_iter().fold(
+    let db = temp_services?.services.iter().fold(
         Vec::<Route>::new(),
         |mut init, tmp_service| {
-            let service = ClientService {
-                id: match tmp_service.id {
-                    None => Some(Uuid::new_v4()),
-                    Some(id) => Some(id),
-                },
-                name: tmp_service.name.to_owned(),
-                host: tmp_service.host.to_owned(),
-                health_check: tmp_service.health_check.to_owned(),
-                routes: vec![],
+            let secrets = if let Some(secrets) = tmp_service.to_owned().secrets
+            {
+                let secrets =
+                    secrets.into_iter().collect::<Vec<ServiceSecret>>();
+
+                match secrets.is_empty() {
+                    true => None,
+                    false => Some(secrets),
+                }
+            } else {
+                None
             };
+
+            // Check if secrets is valid
+            let parsed_secrets: Option<Vec<ServiceSecret>> = match secrets {
+                Some(secrets) => {
+                    let mut parsed_secrets = vec![];
+
+                    for secret in secrets {
+                        let secret_value =
+                            block_on(secret.secret.async_get_or_error());
+
+                        let parsed_value = match secret_value {
+                            Ok(res) => res,
+                            Err(err) => {
+                                panic!("Error on check secrets: {err}");
+                            }
+                        };
+
+                        parsed_secrets.push(ServiceSecret::new(
+                            secret.name,
+                            SecretResolver::Value(parsed_value),
+                        ));
+                    }
+
+                    Some(parsed_secrets)
+                }
+                None => None,
+            };
+
+            let service = Service::new(
+                tmp_service.id,
+                tmp_service.name.to_owned(),
+                tmp_service.host.to_owned(),
+                tmp_service.health_check.to_owned(),
+                vec![],
+                parsed_secrets.to_owned(),
+            );
 
             init.append(
                 &mut tmp_service
                     .to_owned()
                     .routes
                     .into_iter()
-                    .map(|r| Route {
-                        service: service.to_owned(),
-                        id: match r.id {
-                            None => Some(Uuid::new_v4()),
-                            Some(id) => Some(id),
-                        },
-                        group: r.group,
-                        methods: r.methods,
-                        downstream_url: r.downstream_url,
-                        protocol: r.protocol,
-                        allowed_sources: r.allowed_sources,
+                    .map(|r| {
+                        if let Some(secret_name) = r.secret_name.to_owned() {
+                            if let Some(secrets) = parsed_secrets.to_owned() {
+                                if !secrets
+                                    .iter()
+                                    .map(|i| i.name.to_owned())
+                                    .collect::<Vec<String>>()
+                                    .contains(&secret_name)
+                                {
+                                    panic!("Secret not found: {secret_name}");
+                                }
+                            }
+                        }
+
+                        Route::new(
+                            r.id,
+                            service.to_owned(),
+                            r.group,
+                            r.methods,
+                            r.path,
+                            r.protocol,
+                            r.allowed_sources,
+                            r.secret_name,
+                            r.accept_insecure_routing,
+                        )
                     })
                     .collect::<Vec<Route>>(),
             );

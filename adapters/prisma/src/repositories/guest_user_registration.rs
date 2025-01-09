@@ -8,10 +8,10 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::DateTime;
-use log::debug;
 use myc_core::domain::{
     dtos::{
-        email::Email, guest::GuestUser, native_error_codes::NativeErrorCodes,
+        email::Email, guest_user::GuestUser,
+        native_error_codes::NativeErrorCodes,
     },
     entities::GuestUserRegistration,
 };
@@ -20,8 +20,10 @@ use mycelium_base::{
     entities::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
+use prisma_client_rust::prisma_errors::query_engine::UniqueKeyViolation;
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
+use tracing::warn;
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -52,10 +54,7 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
             Some(res) => res,
         };
 
-        let _guest_user =
-            register_guest_user(client, guest_user, account_id).await?;
-
-        Ok(GetOrCreateResponseKind::Created(_guest_user))
+        register_guest_user(client, guest_user, account_id).await
     }
 }
 
@@ -63,7 +62,7 @@ pub(super) async fn register_guest_user(
     client: &PrismaClient,
     guest_user: GuestUser,
     account_id: Uuid,
-) -> Result<GuestUser, MappedErrors> {
+) -> Result<GetOrCreateResponseKind<GuestUser>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Try to get the guest user
     //
@@ -76,7 +75,7 @@ pub(super) async fn register_guest_user(
         .guest_user()
         .find_first(vec![
             guest_user_model::email::equals(
-                guest_user.email.to_owned().get_email(),
+                guest_user.email.to_owned().email(),
             ),
             guest_user_model::guest_role_id::equals(
                 match guest_user.guest_role.to_owned() {
@@ -115,8 +114,6 @@ pub(super) async fn register_guest_user(
         Ok(res) => res,
     };
 
-    debug!("_guest_user (1): {:?}", _guest_user);
-
     // ? -----------------------------------------------------------------------
     // ? Check if the guest user already exists
     //
@@ -129,26 +126,25 @@ pub(super) async fn register_guest_user(
         // If the fetching operation find a object, try to parse the
         // response as a GuestUser.
         //
-        Some(record) => GuestUser {
-            id: Some(Uuid::from_str(&record.id).unwrap()),
-            email: Email::from_string(record.email)?,
-            guest_role: Parent::Id(
-                Uuid::parse_str(&record.guest_role.id).unwrap(),
-            ),
-            created: record.created.into(),
-            updated: match record.updated {
+        Some(record) => GuestUser::new_existing(
+            Uuid::from_str(&record.id).unwrap(),
+            Email::from_string(record.email)?,
+            Parent::Id(Uuid::parse_str(&record.guest_role.id).unwrap()),
+            record.created.into(),
+            match record.updated {
                 None => None,
                 Some(res) => Some(DateTime::from(res)),
             },
-            accounts: None,
-        },
+            None,
+            record.was_verified,
+        ),
         //
         // If not response were find, try to create a new record.
         //
         None => match client
             .guest_user()
             .create(
-                guest_user.email.get_email(),
+                guest_user.email.email(),
                 guest_role_model::id::equals(
                     match guest_user.guest_role.to_owned() {
                         Parent::Id(id) => id.to_string(),
@@ -182,23 +178,20 @@ pub(super) async fn register_guest_user(
                 ))
                 .as_error();
             }
-            Ok(record) => GuestUser {
-                id: Some(Uuid::from_str(&record.id).unwrap()),
-                email: Email::from_string(record.email.to_owned())?,
-                guest_role: Parent::Id(
-                    Uuid::parse_str(&record.guest_role.id).unwrap(),
-                ),
-                created: record.created.into(),
-                updated: match record.updated {
+            Ok(record) => GuestUser::new_existing(
+                Uuid::from_str(&record.id).unwrap(),
+                Email::from_string(record.email.to_owned())?,
+                Parent::Id(Uuid::parse_str(&record.guest_role.id).unwrap()),
+                record.created.into(),
+                match record.updated {
                     None => None,
                     Some(res) => Some(DateTime::from(res)),
                 },
-                accounts: None,
-            },
+                None,
+                record.was_verified,
+            ),
         },
     };
-
-    debug!("_guest_user (2): {:?}", _guest_user);
 
     // ? -----------------------------------------------------------------------
     // ? Create guest_user case not exists
@@ -228,14 +221,18 @@ pub(super) async fn register_guest_user(
         .await
     {
         Err(err) => {
-            return creation_err(format!(
-                "Unexpected error on create guest: {:?}",
-                err
-            ))
-            .as_error()
-        }
-        Ok(res) => res,
-    };
+            if err.is_prisma_error::<UniqueKeyViolation>() {
+                warn!("Guest user already exists: {err}");
 
-    Ok(_guest_user)
+                return creation_err("Guest user already exists")
+                    .with_code(NativeErrorCodes::MYC00017)
+                    .with_exp_true()
+                    .as_error();
+            };
+
+            creation_err(format!("Unexpected error on create guest: {err}"))
+                .as_error()
+        }
+        Ok(_) => Ok(GetOrCreateResponseKind::Created(_guest_user)),
+    }
 }

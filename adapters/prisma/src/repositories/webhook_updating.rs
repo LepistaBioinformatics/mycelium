@@ -13,6 +13,7 @@ use mycelium_base::{
     utils::errors::{updating_err, MappedErrors},
 };
 use prisma_client_rust::prisma_errors::query_engine::RecordNotFound;
+use serde_json::from_value;
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
 use uuid::Uuid;
@@ -68,8 +69,8 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
                         webhook.description.to_owned(),
                     ),
                     webhook_model::url::set(webhook.url.to_owned()),
-                    webhook_model::target::set(
-                        webhook.target.to_owned().to_string(),
+                    webhook_model::trigger::set(
+                        webhook.trigger.to_owned().to_string(),
                     ),
                     webhook_model::is_active::set(webhook.is_active),
                 ],
@@ -77,19 +78,27 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
             .exec()
             .await
         {
-            Ok(record) => Ok(UpdatingResponseKind::Updated(WebHook {
-                id: Some(Uuid::from_str(&record.id).unwrap()),
-                name: record.name,
-                description: record.description,
-                target: record.target.parse().unwrap(),
-                url: record.url,
-                is_active: record.is_active,
-                created: record.created.into(),
-                updated: match record.updated {
+            Ok(record) => {
+                let mut webhook = WebHook::new(
+                    record.name,
+                    record.description.into(),
+                    record.url,
+                    record.trigger.parse().unwrap(),
+                    record.secret.map(|secret| from_value(secret).unwrap()),
+                );
+
+                webhook.id = Some(Uuid::from_str(&record.id).unwrap());
+                webhook.is_active = record.is_active;
+                webhook.created = record.created.into();
+                webhook.updated = match record.updated {
                     None => None,
                     Some(date) => Some(date.with_timezone(&Local)),
-                },
-            })),
+                };
+
+                webhook.redact_secret_token();
+
+                Ok(UpdatingResponseKind::Updated(webhook))
+            }
             Err(err) => {
                 if err.is_prisma_error::<RecordNotFound>() {
                     return updating_err(format!(

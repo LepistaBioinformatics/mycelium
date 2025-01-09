@@ -1,4 +1,4 @@
-use crate::domain::dtos::guest::GuestRole;
+use crate::domain::dtos::guest_role::GuestRole;
 
 use async_trait::async_trait;
 use mycelium_base::{
@@ -17,6 +17,5 @@ pub trait GuestRoleFetching: Interface + Send + Sync {
     async fn list(
         &self,
         name: Option<String>,
-        role_id: Option<Uuid>,
     ) -> Result<FetchManyResponseKind<GuestRole>, MappedErrors>;
 }

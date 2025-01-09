@@ -9,26 +9,14 @@ use std::env::var_os;
 use tera::Tera;
 
 // ? ---------------------------------------------------------------------------
-// ? Configure routes and profile
-//
-// Here default system constants are configured.
+// ? Configure default system constants
 // ? ---------------------------------------------------------------------------
 
-pub const DEFAULT_PROFILE_KEY: &str = "x-mycelium-profile";
-
-pub const FORWARD_FOR_KEY: &str = "x-forwarded-for";
-
-pub const FORWARDING_KEYS: [&str; 9] = [
-    "Host",
-    "Connection",
-    "Keep-Alive",
-    "Proxy-Authenticate",
-    "Proxy-Authorization",
-    "Te",
-    "Trailers",
-    "Transfer-Encoding",
-    "Upgrade",
-];
+/// Default TOTP domain
+///
+/// This is the default domain used to generate the TOTP token.
+///
+pub const DEFAULT_TOTP_DOMAIN: &str = "Mycelium";
 
 // ? ---------------------------------------------------------------------------
 // ? Configure routes and profile

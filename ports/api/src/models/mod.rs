@@ -1,2 +1,2 @@
-pub mod api_config;
-pub mod config_handler;
+pub(crate) mod api_config;
+pub(crate) mod config_handler;

@@ -10,15 +10,21 @@ use utoipa::ToSchema;
     Clone, Debug, Deserialize, Serialize, Eq, Hash, PartialEq, ToSchema,
 )]
 #[serde(rename_all = "camelCase")]
-pub enum Children<T, U> {
+pub enum Children<T, U>
+where
+    T: Serialize + ToSchema,
+    U: Serialize,
+{
+    #[schema(no_recursion)]
     Records(Vec<T>),
+    #[schema(no_recursion)]
     Ids(Vec<U>),
 }
 
 impl<T, U> Display for Children<T, U>
 where
-    T: Display,
-    U: Display,
+    T: Display + Serialize + ToSchema,
+    U: Display + Serialize,
 {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {

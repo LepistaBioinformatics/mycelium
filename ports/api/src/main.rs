@@ -1,77 +1,86 @@
+mod api_docs;
 mod config;
 mod dtos;
 mod endpoints;
 mod middleware;
 mod models;
+mod modifiers;
 mod modules;
+mod otel;
 mod router;
 mod settings;
 
 use actix_cors::Cors;
-use actix_session::{
-    config::{BrowserSession, CookieContentSecurity},
-    storage::CookieSessionStore,
-    SessionMiddleware,
-};
 use actix_web::{
-    cookie::{Key, SameSite},
-    middleware::Logger,
+    dev::Service,
+    middleware::{Logger, NormalizePath, TrailingSlash},
     web, App, HttpServer,
 };
 use actix_web_opentelemetry::RequestTracing;
-use awc::Client;
+use api_docs::ApiDoc;
+use awc::{error::HeaderValue, Client};
 use config::injectors::configure as configure_injection_modules;
+use core::panic;
 use endpoints::{
-    index::{heath_check_endpoints, ApiDoc as HealthCheckApiDoc},
-    manager::{tenant_endpoints, ApiDoc as ManagerApiDoc},
-    //staff::{
-    //    account_endpoints as staff_account_endpoints, ApiDoc as StaffApiDoc,
-    //},
-    standard::{
-        configure as configure_standard_endpoints,
-        ApiDoc as StandardUsersApiDoc,
+    index::heath_check_endpoints,
+    manager::{
+        account_endpoints as manager_account_endpoints,
+        guest_role_endpoints as manager_guest_role_endpoints,
+        tenant_endpoints as manager_tenant_endpoints,
     },
+    role_scoped::configure as configure_standard_endpoints,
+    service::{
+        account_endpoints as service_account_endpoints,
+        auxiliary_endpoints as service_auxiliary_endpoints,
+        guest_endpoints as service_guest_endpoints,
+    },
+    shared::insert_role_header,
+    staff::account_endpoints as staff_account_endpoints,
 };
 use models::{
     api_config::{LogFormat, LoggingTarget},
     config_handler::ConfigHandler,
 };
-use myc_config::optional_config::OptionalConfig;
+use myc_config::{
+    init_vault_config_from_file, optional_config::OptionalConfig,
+};
 use myc_core::{domain::dtos::http::Protocol, settings::init_in_memory_routes};
-use myc_http_tools::providers::google_handlers;
+use myc_http_tools::{
+    providers::{azure_endpoints, google_endpoints},
+    settings::DEFAULT_REQUEST_ID_KEY,
+};
+use myc_notifier::{
+    executor::consume_messages,
+    repositories::MessageSendingSmtpRepository,
+    settings::{init_queue_config_from_file, init_smtp_config_from_file},
+};
 use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
-use myc_smtp::settings::init_smtp_config_from_file;
-use openssl::ssl::{SslAcceptor, SslFiletype, SslMethod};
+use oauth2::http::HeaderName;
+use openssl::{
+    pkey::PKey,
+    ssl::{SslAcceptor, SslMethod},
+    x509::X509,
+};
 use opentelemetry::trace::TracerProvider;
 use opentelemetry_otlp::WithExportConfig;
+use otel::{metadata_from_headers, parse_otlp_headers_from_env};
 use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use router::route_request;
-use settings::{GATEWAY_API_SCOPE, MYCELIUM_API_SCOPE};
-use std::{path::PathBuf, process::id as process_id, str::FromStr};
-use tonic::metadata::{Ascii, MetadataKey, MetadataMap, MetadataValue};
-use tracing::{debug, info};
+use settings::{ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE};
+use std::{
+    path::PathBuf, process::id as process_id, str::FromStr, time::Duration,
+};
+use tracing::{info, trace};
 use tracing_actix_web::TracingLogger;
 use tracing_subscriber::prelude::*;
 use tracing_subscriber::{fmt, EnvFilter};
 use utoipa::OpenApi;
-use utoipa_swagger_ui::{Config, SwaggerUi, Url};
-
-fn session_middleware() -> SessionMiddleware<CookieSessionStore> {
-    SessionMiddleware::builder(
-        CookieSessionStore::default(),
-        Key::from(&[0; 64]),
-    )
-    .cookie_name(String::from("myc-gw-cookie")) // arbitrary name
-    .cookie_secure(true) // https only
-    .session_lifecycle(BrowserSession::default()) // expire at end of session
-    .cookie_same_site(SameSite::Lax)
-    .cookie_content_security(CookieContentSecurity::Private) // encrypt
-    .cookie_http_only(true) // disallow scripts from reading
-    .build()
-}
+use utoipa_redoc::{FileConfig, Redoc, Servable};
+use utoipa_swagger_ui::{oauth, Config, SwaggerUi};
+use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
 // ? API fire elements
@@ -79,6 +88,25 @@ fn session_middleware() -> SessionMiddleware<CookieSessionStore> {
 
 #[actix_web::main]
 pub async fn main() -> std::io::Result<()> {
+    // ? -----------------------------------------------------------------------
+    // ? Export the UTOIPA_REDOC_CONFIG_FILE environment variable
+    //
+    // The UTOIPA_REDOC_CONFIG_FILE environment variable should be exported
+    // before the server starts. The variable should contain the path to the
+    // redoc configuration file.
+    //
+    // ? -----------------------------------------------------------------------
+
+    if let Err(err) = std::env::var("UTOIPA_REDOC_CONFIG_FILE") {
+        trace!("Error on get env `UTOIPA_REDOC_CONFIG_FILE`: {err}");
+        info!("Env variable `UTOIPA_REDOC_CONFIG_FILE` not set. Setting default value");
+
+        std::env::set_var(
+            "UTOIPA_REDOC_CONFIG_FILE",
+            "ports/api/src/api_docs/redoc.config.json",
+        );
+    }
+
     // ? -----------------------------------------------------------------------
     // ? Initialize services configuration
     //
@@ -207,10 +235,11 @@ pub async fn main() -> std::io::Result<()> {
             .event_format(
                 fmt::format()
                     .with_level(true)
-                    .with_target(false)
+                    .with_target(true)
                     .with_thread_ids(true)
-                    .with_file(false)
-                    .with_line_number(false),
+                    .with_file(true)
+                    .with_line_number(true)
+                    .with_source_location(true),
             )
             .with_writer(non_blocking)
             .with_env_filter(
@@ -235,15 +264,28 @@ pub async fn main() -> std::io::Result<()> {
     init_in_memory_routes(Some(config.api.routes.clone())).await;
 
     // ? -----------------------------------------------------------------------
-    // ? Routes should be used on API gateway
+    // ? Initialize vault configuration
     //
-    // When users perform queries to the API gateway, the gateway should
-    // redirect the request to the correct service. Services are loaded into
-    // memory and the gateway should know the routes during their execution.
+    // The vault configuration should be initialized before the server starts.
+    // Vault configurations should be used to store sensitive data.
+    //
+    // ? -----------------------------------------------------------------------
+    info!("Initializing Vault configs");
+    init_vault_config_from_file(None, Some(config.vault)).await;
+
+    // ? -----------------------------------------------------------------------
+    // ? Initialize notifier elements
+    //
+    // SMTP and Queue configurations should be initialized before the server
+    // starts. TH QUEUE server should be started to allow queue messages to be
+    // consumed. The SMTP server should be started to allow emails to be sent.
     //
     // ? -----------------------------------------------------------------------
     info!("Initializing SMTP configs");
     init_smtp_config_from_file(None, Some(config.smtp)).await;
+
+    info!("Initializing QUEUE configs");
+    init_queue_config_from_file(None, Some(config.queue.to_owned())).await;
 
     // ? -----------------------------------------------------------------------
     // ? Here the current thread receives an instance of the prisma client.
@@ -254,9 +296,11 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     info!("Start the database connectors");
 
+    let database_url = config.prisma.database_url.async_get_or_error().await;
+
     std::env::set_var(
         "DATABASE_URL",
-        match config.prisma.database_url.get_or_error() {
+        match database_url {
             Ok(url) => url,
             Err(err) => panic!("Error on get database url: {err}"),
         },
@@ -265,29 +309,83 @@ pub async fn main() -> std::io::Result<()> {
     generate_prisma_client_of_thread(process_id()).await;
 
     // ? -----------------------------------------------------------------------
+    // ? Fire the scheduler
+    // ? -----------------------------------------------------------------------
+    info!("Fire mycelium scheduler");
+
+    let queue_config = match config.queue.to_owned() {
+        OptionalConfig::Enabled(queue) => queue,
+        _ => panic!("Queue config not found"),
+    };
+
+    actix_rt::spawn(async move {
+        let mut interval = actix_rt::time::interval(Duration::from_secs(
+            match queue_config
+                .consume_interval_in_secs
+                .async_get_or_error()
+                .await
+            {
+                Ok(interval) => interval,
+                Err(err) => {
+                    panic!("Error on get consume interval: {err}");
+                }
+            },
+        ));
+
+        loop {
+            interval.tick().await;
+            let queue_name = match queue_config
+                .clone()
+                .email_queue_name
+                .async_get_or_error()
+                .await
+            {
+                Ok(name) => name,
+                Err(err) => {
+                    panic!("Error on get queue name: {err}");
+                }
+            };
+
+            match consume_messages(
+                queue_name.to_owned(),
+                Box::new(&MessageSendingSmtpRepository {}),
+            )
+            .await
+            {
+                Ok(messages) => {
+                    if messages > 0 {
+                        trace!(
+                            "'{}' messages consumed from the queue '{}'",
+                            messages,
+                            queue_name.to_owned()
+                        )
+                    }
+                }
+                Err(err) => {
+                    if !err.expected() {
+                        panic!("Error on consume messages: {err}");
+                    }
+                }
+            };
+        }
+    });
+
+    // ? -----------------------------------------------------------------------
     // ? Configure the server
     // ? -----------------------------------------------------------------------
     info!("Set the server configuration");
     let server = HttpServer::new(move || {
-        let api_config = config.api.clone();
+        let local_api_config = config.api.clone();
+        let forward_api_config = config.api.clone();
         let auth_config = config.auth.clone();
         let token_config = config.core.account_life_cycle.clone();
 
         let cors = Cors::default()
             .allowed_origin_fn(move |origin, _| {
-                api_config
+                local_api_config
                     .allowed_origins
                     .contains(&origin.to_str().unwrap_or("").to_string())
             })
-            //.allowed_headers(vec![
-            //    ACCESS_CONTROL_ALLOW_CREDENTIALS,
-            //    ACCESS_CONTROL_ALLOW_METHODS,
-            //    ACCESS_CONTROL_ALLOW_ORIGIN,
-            //    CONTENT_LENGTH,
-            //    AUTHORIZATION,
-            //    ACCEPT,
-            //    CONTENT_TYPE,
-            //])
             .expose_headers(vec![
                 ACCESS_CONTROL_ALLOW_CREDENTIALS,
                 ACCESS_CONTROL_ALLOW_METHODS,
@@ -295,12 +393,13 @@ pub async fn main() -> std::io::Result<()> {
                 CONTENT_LENGTH,
                 CONTENT_TYPE,
                 ACCEPT,
+                HeaderName::from_str(DEFAULT_REQUEST_ID_KEY).unwrap(),
             ])
             .allow_any_header()
             .allow_any_method()
             .max_age(3600);
 
-        debug!("Configured Cors: {:?}", cors);
+        trace!("Configured Cors: {:?}", cors);
 
         // ? -------------------------------------------------------------------
         // ? Configure base application
@@ -310,14 +409,11 @@ pub async fn main() -> std::io::Result<()> {
             .wrap(RequestTracing::new())
             .wrap(TracingLogger::default())
             .app_data(web::Data::new(token_config).clone())
-            .app_data(web::Data::new(auth_config.to_owned()).clone());
-
-        // ? -------------------------------------------------------------------
-        // ? Configure base mycelium scope
-        // ? -------------------------------------------------------------------
-        let mycelium_scope = web::scope(&format!("/{}", MYCELIUM_API_SCOPE))
+            .app_data(web::Data::new(auth_config.to_owned()).clone())
             //
             // Index
+            //
+            // Index endpoints allow to check fht status of the service.
             //
             .service(
                 web::scope(
@@ -325,36 +421,98 @@ pub async fn main() -> std::io::Result<()> {
                         .as_str(),
                 )
                 .configure(heath_check_endpoints::configure),
+            );
+
+        // ? -------------------------------------------------------------------
+        // ? Configure base mycelium scope
+        // ? -------------------------------------------------------------------
+        let mycelium_scope = web::scope(&format!("/{}", ADMIN_API_SCOPE))
+            //
+            // Super Users
+            //
+            // Super user endpoints allow to perform manage the staff and
+            // manager users actions, including determine new staffs and
+            // managers.
+            //
+            .service(
+                web::scope(format!("/{}", SUPER_USER_API_SCOPE).as_str())
+                    .service(
+                        web::scope(
+                            format!("/{}", endpoints::shared::UrlScope::Staffs)
+                                .as_str(),
+                        )
+                        //
+                        // Inject a header to be collected by the
+                        // MyceliumProfileData extractor.
+                        //
+                        // An empty role header was injected to allow only the
+                        // super users with Staff status to access the staff
+                        // endpoints.
+                        //
+                        .wrap_fn(|req, srv| {
+                            let req = insert_role_header(req, vec![]);
+
+                            srv.call(req)
+                        })
+                        //
+                        // Configure endpoints
+                        //
+                        .configure(staff_account_endpoints::configure),
+                    )
+                    //
+                    // Manager Users
+                    //
+                    .service(
+                        web::scope(
+                            format!(
+                                "/{}",
+                                endpoints::shared::UrlScope::Managers
+                            )
+                            .as_str(),
+                        )
+                        //
+                        // Inject a header to be collected by the
+                        // MyceliumProfileData extractor.
+                        //
+                        // An empty role header was injected to allow only the
+                        // super users with Managers status to access the
+                        // managers endpoints.
+                        //
+                        .wrap_fn(|req, srv| {
+                            let req = insert_role_header(req, vec![]);
+
+                            srv.call(req)
+                        })
+                        //
+                        // Configure endpoints
+                        //
+                        .configure(manager_tenant_endpoints::configure)
+                        .configure(manager_guest_role_endpoints::configure)
+                        .configure(manager_account_endpoints::configure),
+                    ),
             )
             //
-            // Manager Users
+            // Role Scoped Endpoints
             //
             .service(
                 web::scope(
-                    format!("/{}", endpoints::shared::UrlScope::Managers)
-                        .as_str(),
-                )
-                .configure(tenant_endpoints::configure),
-            )
-            //
-            // Standard Users
-            //
-            .service(
-                web::scope(
-                    format!("/{}", endpoints::shared::UrlScope::Standards)
+                    format!("/{}", endpoints::shared::UrlScope::RoleScoped)
                         .as_str(),
                 )
                 .configure(configure_standard_endpoints),
+            )
+            //
+            // Service Scoped Endpoints
+            //
+            .service(
+                web::scope(
+                    format!("/{}", endpoints::shared::UrlScope::Service)
+                        .as_str(),
+                )
+                .configure(service_guest_endpoints::configure)
+                .configure(service_account_endpoints::configure)
+                .configure(service_auxiliary_endpoints::configure),
             );
-        //
-        // Staff
-        //
-        //.service(
-        //    web::scope(
-        //        format!("/{}", endpoints::shared::UrlScope::Staffs)
-        //            .as_str(),
-        //    ), //.configure(staff_account_endpoints::configure),
-        //);
 
         // ? -------------------------------------------------------------------
         // ? Configure authentication elements
@@ -367,7 +525,7 @@ pub async fn main() -> std::io::Result<()> {
                 //
                 // Configure OAuth2 Scope
                 //
-                debug!("Configuring Mycelium Internal authentication");
+                info!("Configuring Mycelium Internal authentication");
                 app.app_data(web::Data::new(config.clone()))
             }
             _ => app,
@@ -384,49 +542,47 @@ pub async fn main() -> std::io::Result<()> {
                 //
                 // Configure OAuth2 Scope
                 //
-                debug!("Configuring Google authentication");
+                info!("Configuring Google authentication");
                 let scope = mycelium_scope.service(
                     web::scope("/auth/google")
-                        .configure(google_handlers::configure),
+                        .configure(google_endpoints::configure),
                 );
-                debug!("Google OAuth2 configuration done");
+
                 scope
             }
             _ => mycelium_scope,
         };
 
         // ? -------------------------------------------------------------------
-        // TODO: Do implement the Azure AD authentication
-        //
         // ? Configure authentication elements
         //
         // Azure AD OAuth2
         //
         // ? -------------------------------------------------------------------
-        // let mycelium_scope = match auth_config.azure {
-        //     OptionalConfig::Enabled(_) => {
-        //         //
-        //         // Configure OAuth2 Scope
-        //         //
-        //         debug!("Configuring Azure AD authentication");
-        //         let scope = mycelium_scope.service(
-        //             web::scope("/auth/azure")
-        //                 .configure(azure_handlers::configure),
-        //         );
-        //         debug!("Azure AD OAuth2 configuration done");
-        //         scope
-        //     }
-        //     _ => mycelium_scope,
-        // };
+        let mycelium_scope = match auth_config.azure {
+            OptionalConfig::Enabled(_) => {
+                //
+                // Configure OAuth2 Scope
+                //
+                info!("Configuring Azure AD authentication");
+                let scope = mycelium_scope.service(
+                    web::scope("/auth/azure")
+                        .configure(azure_endpoints::configure),
+                );
 
+                scope
+            }
+            _ => mycelium_scope,
+        };
+
+        // ? -------------------------------------------------------------------
+        // ? Fire the server
+        // ? -------------------------------------------------------------------
         app
             // ? ---------------------------------------------------------------
-            // ? Configure Session
-            //
-            // https://docs.rs/actix-session/latest/actix_session/storage/struct.CookieSessionStore.html
-            //
+            // ? Normalize path
             // ? ---------------------------------------------------------------
-            .wrap(session_middleware())
+            .wrap(NormalizePath::new(TrailingSlash::MergeOnly))
             // ? ---------------------------------------------------------------
             // ? Configure CORS policies
             // ? ---------------------------------------------------------------
@@ -437,12 +593,10 @@ pub async fn main() -> std::io::Result<()> {
             // These wrap create the basic log elements and exclude the health
             // check route.
             .wrap(
-                //Logger::default("%a %r %s %b %{Referer}i %{User-Agent}i %T")
                 Logger::default()
                     .exclude_regex("/health/*")
-                    .exclude_regex("/swagger-ui/*"),
-                //.exclude_regex("/auth/google/*")
-                //.exclude_regex("/auth/azure/*"),
+                    .exclude_regex("/doc/swagger/*")
+                    .exclude_regex("/doc/redoc/*"),
             )
             // ? ---------------------------------------------------------------
             // ? Configure Injection modules
@@ -455,56 +609,55 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             // ? Configure API documentation
             // ? ---------------------------------------------------------------
+            .service(Redoc::with_url_and_config(
+                "/doc/redoc",
+                ApiDoc::openapi(),
+                FileConfig,
+            ))
             .service(
-                SwaggerUi::new("/swagger-ui/{_:.*}")
+                SwaggerUi::new("/doc/swagger/{_:.*}")
+                    .url("/doc/openapi.json", ApiDoc::openapi())
+                    .oauth(
+                        oauth::Config::new()
+                            .client_id("client-id")
+                            .scopes(vec![String::from("openid")])
+                            .use_pkce_with_authorization_code_grant(true),
+                    )
                     .config(
                         Config::default()
                             .filter(true)
                             .show_extensions(true)
+                            .persist_authorization(true)
                             .show_common_extensions(true)
-                            .with_credentials(true)
                             .request_snippets_enabled(true),
-                    )
-                    .urls(vec![
-                        (
-                            Url::with_primary(
-                                "System monitoring",
-                                "/doc/monitoring-openapi.json",
-                                true,
-                            ),
-                            HealthCheckApiDoc::openapi(),
-                        ),
-                        (
-                            Url::with_primary(
-                                "Manager Users Endpoints",
-                                "/doc/manager-openapi.json",
-                                true,
-                            ),
-                            ManagerApiDoc::openapi(),
-                        ),
-                        (
-                            Url::new(
-                                "Standard Users Endpoints",
-                                "/doc/default-users-openapi.json",
-                            ),
-                            StandardUsersApiDoc::openapi(),
-                        ),
-                        //(
-                        //    Url::new(
-                        //        "Staff Users Endpoints",
-                        //        "/doc/staff-openapi.json",
-                        //    ),
-                        //    StaffApiDoc::openapi(),
-                        //),
-                    ]),
+                    ),
             )
             // ? ---------------------------------------------------------------
             // ? Configure gateway routes
             // ? ---------------------------------------------------------------
             .app_data(web::Data::new(Client::default()))
-            .app_data(web::Data::new(api_config.gateway_timeout))
+            .app_data(web::Data::new(local_api_config.gateway_timeout))
+            .app_data(web::Data::new(forward_api_config.to_owned()).clone())
             .service(
                 web::scope(&format!("/{}", GATEWAY_API_SCOPE))
+                    //
+                    // Inject a request ID to downstream services
+                    //
+                    .wrap_fn(|mut req, srv| {
+                        req.headers_mut().insert(
+                            HeaderName::from_str(DEFAULT_REQUEST_ID_KEY)
+                                .unwrap(),
+                            HeaderValue::from_str(
+                                Uuid::new_v4().to_string().as_str(),
+                            )
+                            .unwrap(),
+                        );
+
+                        srv.call(req)
+                    })
+                    //
+                    // Route to default route
+                    //
                     .default_service(web::to(route_request)),
             )
     });
@@ -535,16 +688,31 @@ pub async fn main() -> std::io::Result<()> {
         let mut builder =
             SslAcceptor::mozilla_intermediate(SslMethod::tls()).unwrap();
 
-        builder
-            .set_private_key_file(
-                tls_config.tls_key_path.unwrap(),
-                SslFiletype::PEM,
-            )
-            .unwrap();
+        //
+        // Read the certificate content
+        //
+        let cert_pem = match tls_config.tls_cert.async_get_or_error().await {
+            Ok(path) => path,
+            Err(err) => panic!("Error on get TLS cert path: {err}"),
+        };
 
-        builder
-            .set_certificate_chain_file(tls_config.tls_cert_path.unwrap())
-            .unwrap();
+        let cert = X509::from_pem(cert_pem.as_bytes())?;
+
+        //
+        // Read the certificate key
+        //
+        let key_pem = match tls_config.tls_key.async_get_or_error().await {
+            Ok(path) => path,
+            Err(err) => panic!("Error on get TLS key path: {err}"),
+        };
+
+        let key = PKey::private_key_from_pem(key_pem.as_bytes())?;
+
+        //
+        // Set the certificate and key
+        //
+        builder.set_certificate(&cert).unwrap();
+        builder.set_private_key(&key).unwrap();
 
         info!("Fire the server with TLS");
         return server
@@ -560,46 +728,4 @@ pub async fn main() -> std::io::Result<()> {
         .workers(api_config.service_workers as usize)
         .run()
         .await
-}
-
-/// Parse headers from environment variable into MetadataMap
-///
-/// This function is used to parse headers from environment variable
-/// `OTEL_EXPORTER_OTLP_HEADERS` into MetadataMap. The headers are expected to
-/// be in the format `name1=value1,name2=value2,...`. The function will return a
-/// MetadataMap containing the headers.
-fn metadata_from_headers(headers: Vec<(String, String)>) -> MetadataMap {
-    let mut metadata = MetadataMap::new();
-
-    headers.into_iter().for_each(|(name, value)| {
-        let value = value
-            .parse::<MetadataValue<Ascii>>()
-            .expect("Header value invalid");
-        metadata.insert(MetadataKey::from_str(&name).unwrap(), value);
-    });
-
-    metadata
-}
-
-/// Parse OTLP headers from environment variable
-///
-/// This function is used to parse headers from environment variable
-/// `OTEL_EXPORTER_OTLP_HEADERS` into a vector of tuples. The headers are
-/// expected to be in the format `name1=value1,name2=value2,...`. The function
-/// will return a vector of tuples containing the headers.
-fn parse_otlp_headers_from_env() -> Vec<(String, String)> {
-    let mut headers = Vec::new();
-
-    if let Ok(hdrs) = std::env::var("OTEL_EXPORTER_OTLP_HEADERS") {
-        hdrs.split(',')
-            .map(|header| {
-                header
-                    .split_once('=')
-                    .expect("Header should contain '=' character")
-            })
-            .for_each(|(name, value)| {
-                headers.push((name.to_owned(), value.to_owned()))
-            });
-    }
-    headers
 }
