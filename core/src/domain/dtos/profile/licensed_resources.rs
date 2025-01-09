@@ -1,3 +1,7 @@
+use crate::domain::dtos::{
+    guest_role::Permission, native_error_codes::NativeErrorCodes,
+};
+
 use base64::{engine::general_purpose, Engine};
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use reqwest::Url;
@@ -5,10 +9,6 @@ use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use utoipa::{ToResponse, ToSchema};
 use uuid::Uuid;
-
-use crate::domain::dtos::{
-    guest_role::Permission, native_error_codes::NativeErrorCodes,
-};
 
 #[derive(
     Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq, ToResponse,

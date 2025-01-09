@@ -24,20 +24,10 @@ pub struct ProfileFetchingSvcRepo {
 
 #[async_trait]
 impl ProfileFetching for ProfileFetchingSvcRepo {
-    async fn get(
+    async fn get_from_token(
         &self,
-        _: Option<Email>,
-        token: Option<String>,
+        token: String,
     ) -> Result<FetchResponseKind<Profile, String>, MappedErrors> {
-        let token = if let None = token {
-            return fetching_err(String::from(
-                "Token could not be empty during profile checking.",
-            ))
-            .as_error();
-        } else {
-            token.unwrap()
-        };
-
         // ? -------------------------------------------------------------------
         // ? Built HTTP client
         // ? -------------------------------------------------------------------
@@ -92,5 +82,12 @@ impl ProfileFetching for ProfileFetchingSvcRepo {
                     .as_error()
             }
         }
+    }
+
+    async fn get_from_email(
+        &self,
+        _: Email,
+    ) -> Result<FetchResponseKind<Profile, String>, MappedErrors> {
+        unimplemented!("Not implemented yet: Fetch profile from email")
     }
 }

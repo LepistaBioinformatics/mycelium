@@ -1,11 +1,11 @@
+use super::LicensedResource;
+
 use chrono::{DateTime, Local};
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 use utoipa::{ToResponse, ToSchema};
 use uuid::Uuid;
-
-use super::LicensedResource;
 
 #[derive(
     Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq, ToResponse,

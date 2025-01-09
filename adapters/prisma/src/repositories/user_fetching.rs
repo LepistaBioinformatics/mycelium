@@ -79,7 +79,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
                 Some(record) => {
                     if record.provider.is_none() {
                         return fetching_err(String::from(
-                            "Unexpected error on parse user: {:?}",
+                            "User has not a email provider",
                         ))
                         .as_error();
                     }

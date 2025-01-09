@@ -30,20 +30,10 @@ pub struct ProfileFetchingSqlDbRepository {}
 
 #[async_trait]
 impl ProfileFetching for ProfileFetchingSqlDbRepository {
-    async fn get(
+    async fn get_from_email(
         &self,
-        email: Option<Email>,
-        _: Option<String>,
+        email: Email,
     ) -> Result<FetchResponseKind<Profile, String>, MappedErrors> {
-        let email = if let None = email {
-            return fetching_err(String::from(
-                "Email could not be empty during profile checking.",
-            ))
-            .as_error();
-        } else {
-            email.unwrap()
-        };
-
         // ? -------------------------------------------------------------------
         // ? Build and execute the database query
         // ? -------------------------------------------------------------------
@@ -144,5 +134,12 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
             }
             None => Ok(FetchResponseKind::NotFound(Some(email.email()))),
         }
+    }
+
+    async fn get_from_token(
+        &self,
+        _: String,
+    ) -> Result<FetchResponseKind<Profile, String>, MappedErrors> {
+        unimplemented!("Not implemented yet: Fetch profile from token")
     }
 }
