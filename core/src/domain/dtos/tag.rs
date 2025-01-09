@@ -3,14 +3,12 @@ use std::collections::HashMap;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-pub type TagMeta = HashMap<String, String>;
-
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub struct Tag {
     pub id: Uuid,
     pub value: String,
-    pub meta: Option<TagMeta>,
+    pub meta: Option<HashMap<String, String>>,
 }
 
 #[cfg(test)]

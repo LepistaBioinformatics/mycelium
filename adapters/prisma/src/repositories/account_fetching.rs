@@ -11,7 +11,7 @@ use chrono::{DateTime, Local};
 use myc_core::domain::{
     dtos::{
         account::{Account, VerboseStatus},
-        account_type::AccountTypeV2,
+        account_type::AccountType,
         email::Email,
         native_error_codes::NativeErrorCodes,
         related_accounts::RelatedAccounts,
@@ -27,7 +27,7 @@ use mycelium_base::{
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{creation_err, fetching_err, MappedErrors},
 };
-use prisma_client_rust::{and, operator::and, or, Direction};
+use prisma_client_rust::{and, operator::and as and_o, or, Direction};
 use serde_json::{from_value, to_value};
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
@@ -166,6 +166,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                             None => None,
                             Some(res) => Some(DateTime::from(res)),
                         },
+                        meta: None,
                     }))
                 }
             },
@@ -183,7 +184,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         tag_id: Option<Uuid>,
         tag_value: Option<String>,
         account_id: Option<Uuid>,
-        account_type: Option<AccountTypeV2>,
+        account_type: Option<AccountType>,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Account>, MappedErrors> {
@@ -279,7 +280,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         }
 
         if !and_query_stmt.is_empty() {
-            query_stmt.push(and(and_query_stmt));
+            query_stmt.push(and_o(and_query_stmt));
         }
 
         // ? -------------------------------------------------------------------
@@ -390,6 +391,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                         None => None,
                         Some(res) => Some(DateTime::from(res)),
                     },
+                    meta: None,
                 }
             })
             .collect::<Vec<Account>>();

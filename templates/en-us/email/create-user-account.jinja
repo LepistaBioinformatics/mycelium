@@ -1,0 +1,31 @@
+{% extends "en-us/email/base.jinja" %}
+
+{% block title %}
+New Account
+{% endblock title %}
+
+{% block head %}
+{{ super() }}
+{% endblock head %}
+
+{% block contenttitle %}
+Welcome to the team!
+{% endblock contenttitle %}
+
+{% block contenttable %}
+<tbody>
+  <tr>
+    <td align="left">
+      <p>
+        A new account has been created for you. If you did not request this
+        account, please contact the system administrator.
+      </p>
+
+      <p>
+        Username:<br />
+        {{ account_name }}
+      </p>
+    </td>
+  </tr>
+</tbody>
+{% endblock contenttable %}

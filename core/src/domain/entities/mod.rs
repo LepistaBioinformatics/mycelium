@@ -1,13 +1,11 @@
 mod account;
 mod account_tag;
-//mod account_type;
 mod error_code;
 mod guest_role;
 mod guest_user;
 mod licensed_resource;
 mod message;
 mod profile;
-mod role;
 mod route;
 mod tenant;
 mod tenant_tag;
@@ -17,14 +15,12 @@ mod webhook;
 
 pub use account::*;
 pub use account_tag::*;
-//pub use account_type::*;
 pub use error_code::*;
 pub use guest_role::*;
 pub use guest_user::*;
 pub use licensed_resource::*;
 pub use message::*;
 pub use profile::*;
-pub use role::*;
 pub use route::*;
 pub use tenant::*;
 pub use tenant_tag::*;

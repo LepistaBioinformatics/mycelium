@@ -1,55 +1,190 @@
 # Here the downstream (client) services should be configured
 services:
-  - name: cat
-    host: catfact.ninja
-    healthCheck:
-      path: /health/
-      healthResponseCodes:
-        - 200
+# ------------------------------------------------------------------------------
+# The main service definition
+#
+# If must include the following fields:
+# - name: The name of the service. The name should be unique and is used to
+#         identify the service and call it from the gateway url path.
+#
+# - host: The host of the service. The host should include the port number.
+#
+# -----------------------------------------------------------------------------
 
-    routes:
-      - group: public
-        methods:
-          - GET
-        downstreamUrl: /fact
-        protocol: https
+- name: test-service-01
+  host: localhost:8083
 
-  - name: test-service-01
-    host: localhost:8081
-    healthCheck:
-      path: /health/
-      healthResponseCodes:
-        - 200
+  # ----------------------------------------------------------------------------
+  # Define health check
+  # ----------------------------------------------------------------------------
 
-    routes:
-      - group: public
-        methods:
-          - GET
-        downstreamUrl: /public/*
-        protocol: http
+  healthCheck:
+    path: /health/
+    healthResponseCodes:
+    - 200
 
-      - group: protected
-        methods:
-          - GET
-        downstreamUrl: /protected/*
-        protocol: http
+  # ----------------------------------------------------------------------------
+  # Define secrets
+  #
+  # The secrets are used to authenticate the api gateway at the downstream
+  # service. Secrets should be defined in the following format:
+  #
+  # # Direct definition:
+  #
+  # ```yaml
+  # secrets:
+  # - name: test-service-01-query-token
+  #   queryParameter:
+  #     name: "token"
+  #     token: "my-secret-token"
+  #
+  # - name: test-service-01-authorization-header-token
+  #   authorizationHeader:
+  #     name: token
+  #     prefix: Bearer
+  #     token: "my-secret-token"
+  # ```
+  #
+  # Direct definition should be used only for testing purposes. In production
+  # the secrets should be stored in as environment variables or vault secrets.
+  #
+  # # Environment variable definition:
+  #
+  # ```bash
+  # export MY_SECRET_01='{"queryParameter": {"name": "token","token": "my-secret-01"}}'
+  # export MY_SECRET_02='{"authorizationHeader": {"name": "token","prefix": "Bearer","token": "my-secret-02"}}'
+  # ```
+  #
+  # ```yaml
+  # secrets:
+  # - name: test-service-01-query-token
+  #   env: MY_SECRET_01
+  #
+  # - name: test-service-01-authorization-header-token
+  #   env: MY_SECRET_02
+  # ```
+  #
+  # The environment variable should be defined in the system where the api
+  # gateway is running and should use the JSON format or YAML formats.
+  #
+  # # Vault secret definition:
+  #
+  # Not already implemented.
+  #
+  # ----------------------------------------------------------------------------
 
-  - name: test-service-02
-    host: localhost:8082
-    healthCheck:
-      path: /health/
-      healthResponseCodes:
-        - 200
+  secrets:
+  #
+  # Direct definition
+  #
+  - name: test-service-01-query-token
+    queryParameter:
+      name: "token"
+      token: "my-secret-01"
 
-    routes:
-      - group: public
-        methods:
-          - GET
-        downstreamUrl: /public/*
-        protocol: http
+  - name: test-service-01-authorization-header-token
+    authorizationHeader:
+      name: Authorization
+      prefix: Bearer
+      token: "my-secret-01"
+  #
+  # Environment variable definition
+  #
+  #- name: test-service-01-query-token-02
+  #  env: MY_SECRET_02
+  #
+  # Vault secret definition
+  #
+  #- name: test-service-01-query-token-03
+  #  vault: my-vault-path
+  # ----------------------------------------------------------------------------
+  # Define routes
+  # ----------------------------------------------------------------------------
 
-      - group: protected
-        methods:
-          - GET
-        downstreamUrl: /protected/*
-        protocol: http
+  routes:
+  #
+  # Example of public route
+  #
+  - group: public
+    path: /public*
+    protocol: http
+    methods:
+    - GET
+
+  #
+  # Example of protected route
+  #
+  - group: protected
+    path: /protected*
+    protocol: http
+    methods:
+    - GET
+
+  #
+  # Example of role protected route
+  #
+  # This route should receive only requests from users with the role new-users.
+  # Them the profile object injected as the request header should include only
+  # the role new-users.
+  #
+  - group: !protectedByRoles
+      roles:
+      - new-users
+    path: /protected*
+    protocol: http
+    methods:
+    - GET
+
+  #
+  # Example of permissioned role protected route
+  #
+  # This route should receive only requests from users with the role admin and
+  # read. Them the profile object injected as the request header should include
+  # the roles admin and read.
+  #
+  - group: !protectedByPermissionedRoles
+      permissionedRoles:
+      - [ admin, read ]
+    path: /protected*
+    protocol: http
+    methods:
+    - GET
+
+  #
+  # Example of role protected route with service token
+  #
+  # This route should receive only requests from users with the role new-users.
+  # Them the profile object injected as the request header should include only
+  # the role new-users. In addition, the request should include a service token
+  # with the role new-users.
+  #
+  - group: !protectedByServiceTokenWithRole
+      roles:
+      - newbie
+    path: /role-protected*
+    protocol: http
+    methods:
+    - GET
+
+  #
+  # Example of permissioned role protected route with service token
+  #
+  # This route should receive only requests from users with the role admin and
+  # read. Them the profile object injected as the request header should include
+  # the roles admin and read. In addition, the request should include a service
+  # token with the roles admin and read.
+  #
+  - group: !protectedByServiceTokenWithPermissionedRoles
+      permissionedRoles:
+      - [ newbie, read ]
+    path: /expects-header*
+    protocol: http
+    methods:
+    - GET
+  # - group: protected
+  #   secretName: test-service-01-authorization-header-token
+  #   path: /expects-header*
+  #   protocol: http
+  #   acceptInsecureRouting: true
+  #   methods:
+  #   - GET

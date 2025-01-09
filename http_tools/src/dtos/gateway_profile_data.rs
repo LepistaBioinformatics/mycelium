@@ -1,14 +1,14 @@
 use crate::{
     middleware::fetch_profile_from_token, responses::GatewayError,
-    LicensedResources, Profile,
+    settings::DEFAULT_PROFILE_KEY, Profile,
 };
 
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
 use log::warn;
-use myc_core::{
-    domain::dtos::{account::VerboseStatus, profile::Owner},
-    settings::DEFAULT_PROFILE_KEY,
+use myc_core::domain::dtos::{
+    account::VerboseStatus,
+    profile::{LicensedResources, Owner, TenantsOwnership},
 };
 use serde::Deserialize;
 use std::{pin::Pin, str};
@@ -32,7 +32,8 @@ pub struct GatewayProfileData {
     pub account_was_approved: bool,
     pub account_was_archived: bool,
     pub verbose_status: Option<VerboseStatus>,
-    pub licensed_resources: Option<Vec<LicensedResources>>,
+    pub licensed_resources: Option<LicensedResources>,
+    pub tenants_ownership: Option<TenantsOwnership>,
 }
 
 impl GatewayProfileData {
@@ -49,23 +50,25 @@ impl GatewayProfileData {
             account_was_archived: profile.account_was_archived,
             verbose_status: profile.verbose_status,
             licensed_resources: profile.licensed_resources,
+            tenants_ownership: profile.tenants_ownership,
         }
     }
 
     pub fn to_profile(&self) -> Profile {
-        Profile {
-            owners: self.owners.to_owned(),
-            acc_id: self.acc_id,
-            is_subscription: self.is_subscription,
-            is_manager: self.is_manager,
-            is_staff: self.is_staff,
-            owner_is_active: self.owner_is_active,
-            account_is_active: self.account_is_active,
-            account_was_approved: self.account_was_approved,
-            account_was_archived: self.account_was_archived,
-            verbose_status: self.verbose_status.to_owned(),
-            licensed_resources: self.licensed_resources.to_owned(),
-        }
+        Profile::new(
+            self.owners.to_owned(),
+            self.acc_id,
+            self.is_subscription,
+            self.is_manager,
+            self.is_staff,
+            self.owner_is_active,
+            self.account_is_active,
+            self.account_was_approved,
+            self.account_was_archived,
+            self.verbose_status.to_owned(),
+            self.licensed_resources.to_owned(),
+            self.tenants_ownership.to_owned(),
+        )
     }
 }
 

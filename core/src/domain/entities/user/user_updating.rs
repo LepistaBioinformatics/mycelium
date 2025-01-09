@@ -1,6 +1,6 @@
 use crate::domain::dtos::{
     native_error_codes::NativeErrorCodes,
-    user::{PasswordHash, User},
+    user::{MultiFactorAuthentication, PasswordHash, User},
 };
 
 use async_trait::async_trait;
@@ -25,4 +25,10 @@ pub trait UserUpdating: Interface + Send + Sync {
         UpdatingResponseKind<(Option<NativeErrorCodes>, bool)>,
         MappedErrors,
     >;
+
+    async fn update_mfa(
+        &self,
+        user_id: Uuid,
+        mfa: MultiFactorAuthentication,
+    ) -> Result<UpdatingResponseKind<bool>, MappedErrors>;
 }

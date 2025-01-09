@@ -11,7 +11,7 @@ use std::fmt::Debug;
 ///
 /// Use it in replacement of the simple html body.
 #[derive(Debug, Serialize)]
-pub(crate) struct JsonError {
+pub(crate) struct HttpJsonResponse {
     msg: String,
     status: u16,
     message: String,
@@ -48,7 +48,7 @@ impl error::ResponseError for GatewayError {
     fn error_response(&self) -> HttpResponse {
         HttpResponse::build(self.status_code())
             .insert_header(ContentType::json())
-            .json(JsonError {
+            .json(HttpJsonResponse {
                 msg: self.to_string(),
                 status: self.status_code().as_u16(),
                 message: match self {

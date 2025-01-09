@@ -2,6 +2,8 @@
 target
 docs/*
 !docs/draw.io
+!docs/insomnia
+!docs/openapi
 dist
 
 # Environment related
@@ -21,3 +23,6 @@ logs/*
 
 # Docker
 postgres/volume*
+vault/*
+!vault/docker
+redis

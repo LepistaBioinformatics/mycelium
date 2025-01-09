@@ -5,15 +5,20 @@ use utoipa::ToSchema;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
+pub enum FromEmail {
+    Email(Email),
+    NamedEmail(String),
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct Message {
     // Addresses
-    pub from: Email,
+    pub from: FromEmail,
     pub to: Email,
     pub cc: Option<Email>,
 
     // Message
     pub subject: String,
-    pub message_head: Option<String>,
-    pub message_body: String,
-    pub message_footer: Option<String>,
+    pub body: String,
 }

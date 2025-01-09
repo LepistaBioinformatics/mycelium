@@ -12,6 +12,7 @@ use mycelium_base::{
     entities::CreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
+use serde_json::{from_value, to_value};
 use shaku::Component;
 use std::{process::id as process_id, str::FromStr};
 use uuid::Uuid;
@@ -51,28 +52,44 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
             .webhook()
             .create(
                 webhook.name.to_owned(),
-                webhook.target.to_owned().to_string(),
                 webhook.url.to_owned(),
-                vec![webhook_model::description::set(
-                    webhook.description.to_owned(),
-                )],
+                webhook.trigger.to_owned().to_string(),
+                vec![
+                    webhook_model::description::set(
+                        webhook.description.to_owned(),
+                    ),
+                    webhook_model::is_active::set(webhook.is_active),
+                    webhook_model::secret::set(
+                        webhook
+                            .get_secret()
+                            .map(|secret| to_value(secret).unwrap()),
+                    ),
+                ],
             )
             .exec()
             .await
         {
-            Ok(record) => Ok(CreateResponseKind::Created(WebHook {
-                id: Some(Uuid::from_str(&record.id).unwrap()),
-                name: record.name,
-                description: record.description,
-                target: record.target.parse().unwrap(),
-                url: record.url,
-                is_active: record.is_active,
-                created: record.created.into(),
-                updated: match record.updated {
+            Ok(record) => {
+                let mut webhook = WebHook::new(
+                    record.name,
+                    record.description.into(),
+                    record.url,
+                    record.trigger.parse().unwrap(),
+                    record.secret.map(|secret| from_value(secret).unwrap()),
+                );
+
+                webhook.id = Some(Uuid::from_str(&record.id).unwrap());
+                webhook.is_active = record.is_active;
+                webhook.created = record.created.into();
+                webhook.updated = match record.updated {
                     None => None,
                     Some(date) => Some(date.with_timezone(&Local)),
-                },
-            })),
+                };
+
+                webhook.redact_secret_token();
+
+                Ok(CreateResponseKind::Created(webhook))
+            }
             Err(err) => {
                 return creation_err(format!(
                     "Unexpected error detected on create record: {err}"

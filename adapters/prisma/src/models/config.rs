@@ -1,4 +1,4 @@
-use myc_config::{env_or_value::EnvOrValue, load_config_from_file};
+use myc_config::{secret_resolver::SecretResolver, load_config_from_file};
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
 use serde::Deserialize;
 use std::path::PathBuf;
@@ -6,7 +6,7 @@ use std::path::PathBuf;
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PrismaConfig {
-    pub database_url: EnvOrValue<String>,
+    pub database_url: SecretResolver<String>,
 }
 
 #[derive(Clone, Debug, Deserialize)]

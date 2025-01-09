@@ -13,10 +13,10 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "5.0.8", path = "../core" }
-mycelium-base = { version = "5.0.8", path = "../base" }
-mycelium-config = { version = "5.0.8", path = "../config" }
-mycelium-service = { version = "5.0.8", path = "../adapters/service" }
+myc-core = { version = "6.6.0", path = "../core" }
+mycelium-base = { version = "6.6.0", path = "../base" }
+mycelium-config = { version = "6.6.0", path = "../config" }
+mycelium-service = { version = "6.6.0", path = "../adapters/service" }
 
 actix-web.workspace = true
 actix-web-httpauth.workspace = true
@@ -28,6 +28,7 @@ jsonwebtoken.workspace = true
 jwt.workspace = true
 log.workspace = true
 oauth2.workspace = true
+rand.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 utoipa.workspace = true
@@ -35,6 +36,7 @@ lazy_static.workspace = true
 reqwest.workspace = true
 url.workspace = true
 uuid.workspace = true
+tracing.workspace = true
 
 
 # ? ----------------------------------------------------------------------------

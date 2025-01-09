@@ -17,9 +17,10 @@ use myc_core::domain::{
 };
 use mycelium_base::{
     dtos::Parent,
-    entities::{CreateResponseKind, GetOrCreateResponseKind},
+    entities::GetOrCreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
+use serde_json::to_value;
 use shaku::Component;
 use std::process::id as process_id;
 use uuid::Uuid;
@@ -72,7 +73,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
 
         let response = client
             .user()
-            .find_first(vec![user_model::email::equals(user.email.get_email())])
+            .find_first(vec![user_model::email::equals(user.email.email())])
             .exec()
             .await;
 
@@ -117,15 +118,17 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                     .user()
                     .create(
                         user.to_owned().username,
-                        user.to_owned().email.get_email(),
+                        user.to_owned().email.email(),
                         user.to_owned().first_name.unwrap_or(String::from("")),
                         user.to_owned().last_name.unwrap_or(String::from("")),
                         vec![
                             user_model::is_active::set(user.is_active),
                             user_model::is_principal::set(user.is_principal()),
+                            user_model::mfa::set(Some(
+                                to_value(user.mfa().to_owned()).unwrap(),
+                            )),
                         ],
                     )
-                    //.include(user_model::include!({ account }))
                     .exec()
                     .await?;
 
@@ -186,16 +189,5 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                 .as_error();
             }
         }
-    }
-
-    // ? -----------------------------------------------------------------------
-    // ! NOT IMPLEMENTED METHODS
-    // ? -----------------------------------------------------------------------
-
-    async fn create(
-        &self,
-        user: User,
-    ) -> Result<CreateResponseKind<User>, MappedErrors> {
-        self.create(user).await
     }
 }

@@ -16,7 +16,7 @@ pub struct AuthConfig {
     pub azure: OptionalConfig<AzureOauthConfig>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TmpConfig {
     auth: AuthConfig,

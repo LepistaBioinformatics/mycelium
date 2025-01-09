@@ -1,26 +1,27 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    endpoints::shared::{UrlGroup, UrlScope},
-    modules::AccountUpdatingModule,
-};
+use crate::{dtos::MyceliumProfileData, modules::AccountUpdatingModule};
 
-use actix_web::{patch, web, HttpResponse, Responder};
+use actix_web::{patch, web, Responder};
 use myc_core::{
-    domain::{dtos::account_type::AccountTypeV2, entities::AccountUpdating},
-    use_cases::roles::staff::account::{
+    domain::{dtos::account_type::AccountType, entities::AccountUpdating},
+    use_cases::super_users::staff::account::{
         downgrade_account_privileges, upgrade_account_privileges,
     },
 };
-use myc_http_tools::utils::JsonError;
-use mycelium_base::entities::UpdatingResponseKind;
+use myc_http_tools::{
+    utils::HttpJsonResponse,
+    wrappers::default_response_to_http_response::{
+        handle_mapped_error, updating_response_kind,
+    },
+    Account,
+};
 use serde::Deserialize;
 use shaku_actix::Inject;
-use utoipa::IntoParams;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 // ? Configure application
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
     config.service(
@@ -30,53 +31,72 @@ pub fn configure(config: &mut web::ServiceConfig) {
     );
 }
 
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 // ? Define API structs
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 
-#[derive(Deserialize, IntoParams)]
+#[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct UpgradeAccountPrivilegesParams {
-    pub target_account_type: AccountTypeV2,
+enum UpgradeTargetAccountType {
+    Staff,
+    Manager,
 }
 
-// ? -----------------------------------------------------------------------
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+enum DowngradeTargetAccountType {
+    Manager,
+    User,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct UpgradeAccountPrivilegesBody {
+    to: UpgradeTargetAccountType,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DowngradeAccountPrivilegesBody {
+    to: DowngradeTargetAccountType,
+}
+
+// ? ---------------------------------------------------------------------------
 // ? Define API paths
 //
 // Account
 //
-// ? -----------------------------------------------------------------------
+// ? ---------------------------------------------------------------------------
 
 /// Upgrade account privileges
 ///
 /// Increase permissions of the refereed account.
 #[utoipa::path(
     patch,
-    context_path = UrlGroup::Accounts.with_scope(UrlScope::Staffs),
     params(
-        ("account" = Uuid, Path, description = "The account primary key."),
-        UpgradeAccountPrivilegesParams,
+        ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
+    request_body = UpgradeAccountPrivilegesBody,
     responses(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Account not upgraded.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 202,
@@ -85,31 +105,26 @@ pub struct UpgradeAccountPrivilegesParams {
         ),
     ),
 )]
-#[patch("/{account}/upgrade")]
+#[patch("/{account_id}/upgrade")]
 pub async fn upgrade_account_privileges_url(
     path: web::Path<Uuid>,
-    info: web::Query<UpgradeAccountPrivilegesParams>,
+    body: web::Json<UpgradeAccountPrivilegesBody>,
     profile: MyceliumProfileData,
     account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
 ) -> impl Responder {
     match upgrade_account_privileges(
         profile.to_profile(),
         path.to_owned(),
-        info.target_account_type.to_owned(),
+        match body.to {
+            UpgradeTargetAccountType::Manager => AccountType::Manager,
+            UpgradeTargetAccountType::Staff => AccountType::Staff,
+        },
         Box::new(&*account_updating_repo),
     )
     .await
     {
-        Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            UpdatingResponseKind::NotUpdated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            UpdatingResponseKind::Updated(record) => {
-                HttpResponse::Accepted().json(record)
-            }
-        },
+        Ok(res) => updating_response_kind(res),
+        Err(err) => handle_mapped_error(err),
     }
 }
 
@@ -118,31 +133,30 @@ pub async fn upgrade_account_privileges_url(
 /// Decrease permissions of the refereed account.
 #[utoipa::path(
     patch,
-    context_path = UrlGroup::Accounts.with_scope(UrlScope::Staffs),
     params(
-        ("account" = Uuid, Path, description = "The account primary key."),
-        UpgradeAccountPrivilegesParams,
+        ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
+    request_body = DowngradeAccountPrivilegesBody,
     responses(
         (
             status = 500,
             description = "Unknown internal server error.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 403,
             description = "Forbidden.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 401,
             description = "Unauthorized.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 400,
             description = "Account not downgraded.",
-            body = JsonError,
+            body = HttpJsonResponse,
         ),
         (
             status = 202,
@@ -151,30 +165,25 @@ pub async fn upgrade_account_privileges_url(
         ),
     ),
 )]
-#[patch("/{account}/downgrade")]
+#[patch("/{account_id}/downgrade")]
 pub async fn downgrade_account_privileges_url(
     path: web::Path<Uuid>,
-    info: web::Query<UpgradeAccountPrivilegesParams>,
+    body: web::Json<DowngradeAccountPrivilegesBody>,
     profile: MyceliumProfileData,
     account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
 ) -> impl Responder {
     match downgrade_account_privileges(
         profile.to_profile(),
         path.to_owned(),
-        info.target_account_type.to_owned(),
+        match body.to {
+            DowngradeTargetAccountType::Manager => AccountType::Manager,
+            DowngradeTargetAccountType::User => AccountType::User,
+        },
         Box::new(&*account_updating_repo),
     )
     .await
     {
-        Err(err) => HttpResponse::InternalServerError()
-            .json(JsonError::new(err.to_string())),
-        Ok(res) => match res {
-            UpdatingResponseKind::NotUpdated(_, msg) => {
-                HttpResponse::BadRequest().json(JsonError::new(msg))
-            }
-            UpdatingResponseKind::Updated(record) => {
-                HttpResponse::Accepted().json(record)
-            }
-        },
+        Ok(res) => updating_response_kind(res),
+        Err(err) => handle_mapped_error(err),
     }
 }

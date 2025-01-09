@@ -4,7 +4,5 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub enum OptionalConfig<T> {
     Disabled,
-
-    #[serde(untagged)]
     Enabled(T),
 }

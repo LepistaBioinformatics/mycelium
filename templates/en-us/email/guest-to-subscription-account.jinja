@@ -1,0 +1,38 @@
+{% extends "en-us/email/base.jinja" %}
+
+{% block title %}
+Collaboration Invite
+{% endblock title %}
+
+{% block head %}
+{{ super() }}
+{% endblock head %}
+
+{% block contenttitle %}
+Collaboration Invite
+{% endblock contenttitle %}
+
+{% block contenttable %}
+<tbody>
+  <tr>
+    <td align="left">
+      <p>
+        You were invited to collaborate with <strong>{{ account_name }}</strong>
+        as a <strong>{{ role_name }}</strong>.
+      </p>
+
+      {% if role_description %}
+      <p>
+        Role description:<br />
+        {{ role_description }}
+      </p>
+      {% endif %}
+
+      <p>
+        Role permissions:<br />
+        - {{ role_permissions }}
+      </p>
+    </td>
+  </tr>
+</tbody>
+{% endblock contenttable %}

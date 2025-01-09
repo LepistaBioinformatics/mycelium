@@ -7,7 +7,7 @@ use async_trait::async_trait;
 use myc_core::domain::{
     dtos::{
         account::VerboseStatus,
-        account_type::AccountTypeV2,
+        account_type::AccountType,
         email::Email,
         native_error_codes::NativeErrorCodes,
         profile::{Owner, Profile},
@@ -30,20 +30,10 @@ pub struct ProfileFetchingSqlDbRepository {}
 
 #[async_trait]
 impl ProfileFetching for ProfileFetchingSqlDbRepository {
-    async fn get(
+    async fn get_from_email(
         &self,
-        email: Option<Email>,
-        _: Option<String>,
+        email: Email,
     ) -> Result<FetchResponseKind<Profile, String>, MappedErrors> {
-        let email = if let None = email {
-            return fetching_err(String::from(
-                "Email could not be empty during profile checking.",
-            ))
-            .as_error();
-        } else {
-            email.unwrap()
-        };
-
         // ? -------------------------------------------------------------------
         // ? Build and execute the database query
         // ? -------------------------------------------------------------------
@@ -64,7 +54,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
         let query = client
             .account()
             .find_first(vec![account_model::owners::some(vec![
-                user_model::email::equals(email.get_email()),
+                user_model::email::equals(email.email()),
             ])])
             .include(account_model::include!({
                 owners: select {
@@ -74,6 +64,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                     last_name
                     username
                     is_active
+                    is_principal
                 }
             }));
 
@@ -85,7 +76,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
 
         match response {
             Some(record) => {
-                let account_type: AccountTypeV2 =
+                let account_type: AccountType =
                     match from_value(record.account_type) {
                         Ok(res) => res,
                         Err(err) => {
@@ -100,49 +91,55 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
 
                 let (is_subscription, is_manager, is_staff) = match account_type
                 {
-                    AccountTypeV2::Subscription { .. }
-                    | AccountTypeV2::StandardRoleAssociated { .. } => {
+                    AccountType::Subscription { .. }
+                    | AccountType::RoleAssociated { .. } => {
                         (true, false, false)
                     }
-                    AccountTypeV2::Manager => (false, true, false),
-                    AccountTypeV2::Staff => (false, true, true),
+                    AccountType::Manager => (false, true, false),
+                    AccountType::Staff => (false, true, true),
                     _ => (false, false, false),
                 };
 
-                Ok(FetchResponseKind::Found(Profile {
-                    owners: record
+                Ok(FetchResponseKind::Found(Profile::new(
+                    record
                         .owners
                         .iter()
                         .map(|owner| Owner {
                             id: Uuid::parse_str(&owner.id).unwrap(),
                             email: Email::from_string(owner.email.to_owned())
                                 .unwrap()
-                                .get_email(),
+                                .email(),
                             first_name: Some(owner.first_name.to_owned()),
                             last_name: Some(owner.last_name.to_owned()),
                             username: Some(owner.username.to_owned()),
+                            is_principal: owner.is_principal,
                         })
                         .collect::<Vec<Owner>>(),
-                    acc_id: Uuid::parse_str(&record.id).unwrap(),
+                    Uuid::parse_str(&record.id).unwrap(),
                     is_subscription,
                     is_manager,
                     is_staff,
-                    owner_is_active: record
-                        .owners
-                        .iter()
-                        .any(|i| i.is_active == true),
-                    account_is_active: record.is_active,
-                    account_was_approved: record.is_checked,
-                    account_was_archived: record.is_archived,
-                    verbose_status: Some(VerboseStatus::from_flags(
+                    record.owners.iter().any(|i| i.is_active == true),
+                    record.is_active,
+                    record.is_checked,
+                    record.is_archived,
+                    Some(VerboseStatus::from_flags(
                         record.is_active,
                         record.is_checked,
                         record.is_archived,
                     )),
-                    licensed_resources: None,
-                }))
+                    None,
+                    None,
+                )))
             }
-            None => Ok(FetchResponseKind::NotFound(Some(email.get_email()))),
+            None => Ok(FetchResponseKind::NotFound(Some(email.email()))),
         }
+    }
+
+    async fn get_from_token(
+        &self,
+        _: String,
+    ) -> Result<FetchResponseKind<Profile, String>, MappedErrors> {
+        unimplemented!("Not implemented yet: Fetch profile from token")
     }
 }

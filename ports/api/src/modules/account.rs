@@ -1,6 +1,6 @@
 use myc_prisma::repositories::{
-    AccountFetchingSqlDbRepository, AccountRegistrationSqlDbRepository,
-    AccountUpdatingSqlDbRepository,
+    AccountDeletionSqlDbRepository, AccountFetchingSqlDbRepository,
+    AccountRegistrationSqlDbRepository, AccountUpdatingSqlDbRepository,
 };
 use shaku::module;
 
@@ -21,6 +21,13 @@ module! {
 module! {
     pub AccountUpdatingModule {
         components = [AccountUpdatingSqlDbRepository],
+        providers = []
+    }
+}
+
+module! {
+    pub AccountDeletionModule {
+        components = [AccountDeletionSqlDbRepository],
         providers = []
     }
 }
