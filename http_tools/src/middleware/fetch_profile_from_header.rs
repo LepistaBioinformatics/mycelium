@@ -14,7 +14,7 @@ pub(crate) async fn fetch_profile_from_token(
         url: PROFILE_FETCHING_URL.to_string(),
     };
 
-    match repo.get(None, Some(token.to_string())).await {
+    match repo.get_from_token(token.to_string()).await {
         Err(err) => Err(GatewayError::InternalServerError(err.to_string())),
         Ok(res) => match res {
             FetchResponseKind::NotFound(email) => {

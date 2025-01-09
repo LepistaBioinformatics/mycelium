@@ -238,6 +238,11 @@ pub async fn check_email_registration_status_url(
                         "RegisteredWithInternalProvider",
                     ));
 
+                    response.append_header((
+                        "X-Account-Created",
+                        provider.account_created.to_string(),
+                    ));
+
                     if let Some(provider) = provider.provider {
                         response.append_header((
                             "X-Email-Provider",
@@ -254,6 +259,11 @@ pub async fn check_email_registration_status_url(
                     response.append_header((
                         status_header,
                         "RegisteredWithExternalProvider",
+                    ));
+
+                    response.append_header((
+                        "X-Account-Created",
+                        provider.account_created.to_string(),
                     ));
 
                     if let Some(provider) = provider.provider {

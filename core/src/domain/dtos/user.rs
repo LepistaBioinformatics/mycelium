@@ -574,11 +574,11 @@ impl User {
         self.mfa.to_owned()
     }
 
-    /// Check if the user has a provider or not.
+    /// Try to get the provider kind or return an error
     ///
     /// This method should be used to check if the user is registered in
     /// Mycelium with an internal provider or not.
-    pub fn has_provider_or_error(&self) -> Result<bool, MappedErrors> {
+    pub fn with_internal_provider(&self) -> Result<bool, MappedErrors> {
         match self.provider {
             Some(Provider::Internal(_)) => Ok(true),
             Some(Provider::External(_)) => Ok(false),

@@ -12,15 +12,16 @@ use utoipa::ToSchema;
 pub struct RegisteredWithProvider {
     pub email: Email,
     pub provider: Option<Provider>,
+    pub account_created: bool,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum EmailRegistrationStatus {
+    NotRegistered(String),
+    WaitingActivation(String),
     RegisteredWithInternalProvider(RegisteredWithProvider),
     RegisteredWithExternalProvider(RegisteredWithProvider),
-    WaitingActivation(String),
-    NotRegistered(String),
 }
 
 /// Check if the user was already registered in Mycelium or not.
@@ -59,25 +60,25 @@ pub async fn check_email_registration_status(
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Check if user is internal
+    // ? Check for user activation
+    // ? -----------------------------------------------------------------------
+
+    if !user.is_active {
+        return Ok(WaitingActivation(email.email()));
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? Initialize the response user
     // ? -----------------------------------------------------------------------
 
     let registered_user = RegisteredWithProvider {
         email: email.to_owned(),
         provider: user.provider(),
+        account_created: user.account.is_some(),
     };
 
-    match user.has_provider_or_error() {
-        Err(err) => return Err(err),
-        Ok(res) => match res {
-            false => Ok(RegisteredWithExternalProvider(registered_user)),
-            true => {
-                if !user.is_active {
-                    return Ok(WaitingActivation(email.email()));
-                }
-
-                Ok(RegisteredWithInternalProvider(registered_user))
-            }
-        },
+    match user.with_internal_provider()? {
+        true => Ok(RegisteredWithInternalProvider(registered_user)),
+        false => Ok(RegisteredWithExternalProvider(registered_user)),
     }
 }

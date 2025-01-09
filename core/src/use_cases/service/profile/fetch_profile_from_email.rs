@@ -39,7 +39,7 @@ pub async fn fetch_profile_from_email(
     // ? -----------------------------------------------------------------------
 
     let (profile, licenses, ownership) = future::join3(
-        profile_fetching_repo.get(Some(email.to_owned()), None),
+        profile_fetching_repo.get_from_email(email.to_owned()),
         licensed_resources_fetching_repo.list_licensed_resources(
             email.to_owned(),
             tenant,

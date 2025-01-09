@@ -142,24 +142,6 @@ model Token {
   @@map("token")
 }
 
-//model Role {
-//  // Primary key
-//  id String @id @default(uuid())
-//
-//  // Model fields
-//  name        String @db.VarChar(140)
-//  slug        String @db.VarChar(140)
-//  description String @db.VarChar(255)
-//
-//  // Backward relationship fields
-//  user_roles GuestRole[]
-//
-//  // Db compatibility and extra maps
-//  @@unique([name])
-//  @@unique([slug])
-//  @@map("role")
-//}
-
 model GuestRole {
   // Primary key
   id String @id @default(uuid())
