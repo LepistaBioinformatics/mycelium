@@ -221,6 +221,8 @@ pub async fn check_email_registration_status_url(
         Ok(res) => {
             let mut response = HttpResponse::NoContent();
             let status_header = "X-Email-Registration-Status";
+            let account_creation_header = "X-Account-Created";
+            let provider_header = "X-Email-Provider";
 
             match res {
                 EmailRegistrationStatus::NotRegistered(_) => {
@@ -239,13 +241,13 @@ pub async fn check_email_registration_status_url(
                     ));
 
                     response.append_header((
-                        "X-Account-Created",
+                        account_creation_header,
                         provider.account_created.to_string(),
                     ));
 
                     if let Some(provider) = provider.provider {
                         response.append_header((
-                            "X-Email-Provider",
+                            provider_header,
                             match provider {
                                 Provider::Internal(_) => "Internal".to_string(),
                                 _ => "Internal".to_string(),
@@ -262,17 +264,15 @@ pub async fn check_email_registration_status_url(
                     ));
 
                     response.append_header((
-                        "X-Account-Created",
+                        account_creation_header,
                         provider.account_created.to_string(),
                     ));
 
                     if let Some(provider) = provider.provider {
                         response.append_header((
-                            "X-Email-Provider",
+                            provider_header,
                             match provider {
-                                Provider::External(external) => {
-                                    external.to_string()
-                                }
+                                Provider::External(res) => res.to_string(),
                                 _ => "External".to_string(),
                             },
                         ));
