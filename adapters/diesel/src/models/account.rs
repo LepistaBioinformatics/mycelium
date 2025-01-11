@@ -3,7 +3,7 @@ use diesel::prelude::*;
 use serde_json::Value as JsonValue;
 use uuid::Uuid;
 
-#[derive(Queryable, Insertable, Selectable)]
+#[derive(Queryable, Insertable, Selectable, Clone)]
 #[diesel(table_name = crate::schema::account)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub(crate) struct Account {
@@ -11,6 +11,7 @@ pub(crate) struct Account {
     pub name: String,
     pub slug: String,
     pub meta: Option<JsonValue>,
+    pub tags: Option<JsonValue>,
     pub account_type: JsonValue,
     pub created: NaiveDateTime,
     pub updated: Option<NaiveDateTime>,
