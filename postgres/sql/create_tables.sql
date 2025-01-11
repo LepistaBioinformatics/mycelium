@@ -124,6 +124,7 @@ CREATE TABLE account (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(256) NOT NULL,
     slug VARCHAR(256) NOT NULL,
+    meta JSONB,
     account_type JSONB DEFAULT '{}'::JSONB,
     created TIMESTAMPTZ DEFAULT now(),
     updated TIMESTAMPTZ DEFAULT NULL,

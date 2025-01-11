@@ -10,6 +10,7 @@ pub(crate) struct Account {
     pub id: Uuid,
     pub name: String,
     pub slug: String,
+    pub meta: Option<JsonValue>,
     pub account_type: JsonValue,
     pub created: NaiveDateTime,
     pub updated: Option<NaiveDateTime>,

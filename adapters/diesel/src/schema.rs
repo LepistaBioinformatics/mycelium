@@ -105,6 +105,7 @@ diesel::table! {
         id -> Uuid,
         name -> Varchar,
         slug -> Varchar,
+        meta -> Nullable<Jsonb>,
         account_type -> Jsonb,
         created -> Timestamptz,
         updated -> Nullable<Timestamptz>,
@@ -169,6 +170,7 @@ diesel::joinable!(account_tag -> account (account_id));
 diesel::joinable!(guest_user_on_account -> account (account_id));
 diesel::joinable!(guest_user_on_account -> guest_user (guest_user_id));
 diesel::joinable!(identity_provider -> user (user_id));
+diesel::joinable!(user -> account (account_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     tenant,
