@@ -10,4 +10,4 @@ pub(crate) struct GuestRole {
     pub slug: String,
     pub description: Option<String>,
     pub permission: i32,
-} 
+}
