@@ -7,22 +7,17 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use chrono::DateTime;
 use myc_core::domain::{
-    dtos::{
-        email::Email, guest_role::Permission, guest_user::GuestUser,
-        native_error_codes::NativeErrorCodes,
-    },
+    dtos::{guest_role::Permission, native_error_codes::NativeErrorCodes},
     entities::GuestUserOnAccountUpdating,
 };
 use mycelium_base::{
-    dtos::Parent,
     entities::UpdatingResponseKind,
     utils::errors::{deletion_err, updating_err, MappedErrors},
 };
 use prisma_client_rust::{and, prisma_errors::Error, QueryError};
 use shaku::Component;
-use std::{process::id as process_id, str::FromStr};
+use std::process::id as process_id;
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -36,7 +31,8 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
         guest_role_name: String,
         account_id: Uuid,
         permission: Permission,
-    ) -> Result<UpdatingResponseKind<GuestUser>, MappedErrors> {
+    ) -> Result<UpdatingResponseKind<(String, Uuid, Permission)>, MappedErrors>
+    {
         // ? -------------------------------------------------------------------
         // ? Try to build the prisma client
         // ? -------------------------------------------------------------------
@@ -68,7 +64,7 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
                             guest_role_model::name::equals(guest_role_name.to_owned()),
                         ]),
                         guest_user_model::guest_role::is(vec![
-                            guest_role_model::permission::equals(permission.to_i32()),
+                            guest_role_model::permission::equals(permission.to_owned().to_i32()),
                         ]),
                         guest_user_model::accounts::some(vec![
                             guest_user_on_account_model::account_id::equals(account_id.to_string()),
@@ -104,7 +100,7 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
                         vec![guest_user_model::was_verified::set(true)],
                     )
                     .include(guest_user_model::include!({
-                        guest_role: select { id }
+                        guest_role: select { id name permission }
                     }))
                     .exec()
                     .await
@@ -119,17 +115,10 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
                 .as_error()
             }
             Ok(record) => {
-                Ok(UpdatingResponseKind::Updated(GuestUser::new_existing(
-                    Uuid::from_str(&record.id).unwrap(),
-                    Email::from_string(record.email.to_owned())?,
-                    Parent::Id(Uuid::parse_str(&record.guest_role.id).unwrap()),
-                    record.created.into(),
-                    match record.updated {
-                        None => None,
-                        Some(res) => Some(DateTime::from(res)),
-                    },
-                    None,
-                    record.was_verified,
+                Ok(UpdatingResponseKind::Updated((
+                    record.guest_role.name,
+                    account_id,
+                    Permission::from_i32(record.guest_role.permission),
                 )))
             }
         }
