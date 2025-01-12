@@ -1,31 +1,24 @@
+use super::shared::map_account_model_to_dto;
 use crate::{
-    models::{
-        account::Account as AccountModel, config::DbConfig,
-        user::User as UserModel,
-    },
+    models::{account::Account as AccountModel, config::DbConfig},
     schema::{account as account_model, user as user_model},
 };
 
 use async_trait::async_trait;
-use chrono::Local;
 use diesel::prelude::*;
 use myc_core::domain::{
     dtos::{
-        account::{Account, VerboseStatus},
-        account_type::AccountType,
-        email::Email,
+        account::Account, account_type::AccountType,
         native_error_codes::NativeErrorCodes,
         related_accounts::RelatedAccounts,
-        user::User,
     },
     entities::AccountFetching,
 };
 use mycelium_base::{
-    dtos::{Children, PaginatedRecord, Parent},
+    dtos::PaginatedRecord,
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{creation_err, fetching_err, MappedErrors},
 };
-use serde_json::from_value;
 use shaku::Component;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -69,51 +62,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
 
         match account {
             Some(record) => {
-                let record_id = record.id;
-                // Fetch account owners
-                let owners = user_model::table
-                    .filter(user_model::account_id.eq(record_id))
-                    .select(UserModel::as_select())
-                    .load::<UserModel>(conn)
-                    .map_err(|e| {
-                        fetching_err(format!(
-                            "Failed to fetch account owners: {}",
-                            e
-                        ))
-                    })?;
-
-                // Convert model to DTO
-                let mut account_dto =
-                    self.map_account_model_to_dto(record.to_owned());
-
-                // Add owners to DTO
-                account_dto.owners = Children::Records(
-                    owners
-                        .into_iter()
-                        .map(|owner| {
-                            User::new(
-                                Some(owner.id),
-                                owner.username,
-                                Email::from_string(owner.email).unwrap(),
-                                Some(owner.first_name),
-                                Some(owner.last_name),
-                                owner.is_active,
-                                owner
-                                    .created
-                                    .and_local_timezone(Local)
-                                    .unwrap(),
-                                owner.updated.map(|dt| {
-                                    dt.and_local_timezone(Local).unwrap()
-                                }),
-                                Some(Parent::Id(record.id)),
-                                None,
-                            )
-                            .with_principal(owner.is_principal)
-                        })
-                        .collect(),
-                );
-
-                Ok(FetchResponseKind::Found(account_dto))
+                Ok(FetchResponseKind::Found(map_account_model_to_dto(record)))
             }
             None => Ok(FetchResponseKind::NotFound(Some(id))),
         }
@@ -221,7 +170,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         // Convert models to DTOs
         let accounts = records
             .into_iter()
-            .map(|record| self.map_account_model_to_dto(record))
+            .map(|record| map_account_model_to_dto(record))
             .collect();
 
         Ok(FetchManyResponseKind::FoundPaginated(PaginatedRecord {
@@ -230,33 +179,5 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             size: Some(page_size as i64),
             records: accounts,
         }))
-    }
-}
-
-impl AccountFetchingSqlDbRepository {
-    fn map_account_model_to_dto(&self, model: AccountModel) -> Account {
-        Account {
-            id: Some(model.id),
-            name: model.name,
-            slug: model.slug,
-            tags: None,
-            is_active: model.is_active,
-            is_checked: model.is_checked,
-            is_archived: model.is_archived,
-            verbose_status: Some(VerboseStatus::from_flags(
-                model.is_active,
-                model.is_checked,
-                model.is_archived,
-            )),
-            is_default: model.is_default,
-            owners: Children::Records(vec![]),
-            account_type: from_value(model.account_type).unwrap(),
-            guest_users: None,
-            created: model.created.and_local_timezone(Local).unwrap(),
-            updated: model
-                .updated
-                .map(|dt| dt.and_local_timezone(Local).unwrap()),
-            meta: None,
-        }
     }
 }
