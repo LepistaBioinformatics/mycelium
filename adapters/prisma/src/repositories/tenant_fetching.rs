@@ -125,7 +125,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         }
     }
 
-    async fn get_for_tenants_by_manager_account(
+    async fn get_tenants_by_manager_account(
         &self,
         id: Uuid,
         manager_ids: Vec<Uuid>,

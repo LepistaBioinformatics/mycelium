@@ -18,8 +18,7 @@ pub trait TenantUpdating: Interface + Send + Sync {
     async fn update_name_and_description(
         &self,
         tenant_id: Uuid,
-        name: Option<String>,
-        description: Option<String>,
+        tenant: Tenant,
     ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors>;
 
     async fn update_tenant_status(

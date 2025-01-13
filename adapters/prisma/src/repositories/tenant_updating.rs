@@ -32,8 +32,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
     async fn update_name_and_description(
         &self,
         tenant_id: Uuid,
-        name: Option<String>,
-        description: Option<String>,
+        tenant: Tenant,
     ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors> {
         let tmp_client = get_client().await;
 
@@ -48,22 +47,14 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
             Some(res) => res,
         };
 
-        let mut updating_params = vec![];
-
-        if let Some(name) = name {
-            updating_params.push(tenant_model::name::set(name));
-        }
-
-        if let Some(description) = description {
-            updating_params
-                .push(tenant_model::description::set(Some(description)));
-        }
-
         match client
             .tenant()
             .update(
                 tenant_model::id::equals(tenant_id.to_string()),
-                updating_params,
+                vec![
+                    tenant_model::name::set(tenant.name),
+                    tenant_model::description::set(tenant.description),
+                ],
             )
             .include(tenant_model::include!({
                 owners: select {

@@ -22,7 +22,7 @@ pub trait TenantFetching: Interface + Send + Sync {
     /// Get tenants with we are tenant manager
     ///
     /// This use-case should ve used by tenant-managers only
-    async fn get_for_tenants_by_manager_account(
+    async fn get_tenants_by_manager_account(
         &self,
         id: Uuid,
         manager_ids: Vec<Uuid>,
