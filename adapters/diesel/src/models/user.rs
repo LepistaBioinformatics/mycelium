@@ -1,5 +1,6 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use serde_json::Value as JsonValue;
 use uuid::Uuid;
 
 #[derive(Queryable, Insertable, Selectable)]
@@ -16,4 +17,5 @@ pub(crate) struct User {
     pub is_principal: bool,
     pub created: NaiveDateTime,
     pub updated: Option<NaiveDateTime>,
+    pub mfa: Option<JsonValue>,
 }

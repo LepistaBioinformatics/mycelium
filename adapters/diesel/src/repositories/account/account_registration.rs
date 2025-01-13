@@ -263,11 +263,12 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                                 .last_name
                                 .clone()
                                 .unwrap_or_default(),
-                            account_id: Some(new_account.id),
+                            account_id: None,
                             is_active: owner.is_active,
                             is_principal: owner.is_principal(),
                             created: Local::now().naive_utc(),
                             updated: None,
+                            mfa: None,
                         };
 
                         diesel::insert_into(user::table)
