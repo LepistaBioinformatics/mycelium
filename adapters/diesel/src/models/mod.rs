@@ -9,6 +9,7 @@ pub(crate) mod tenant;
 pub(crate) mod tenant_tag;
 pub(crate) mod token;
 pub(crate) mod user;
+pub(crate) mod webhook;
 
 pub mod config;
 pub mod module;
