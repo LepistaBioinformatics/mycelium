@@ -1,8 +1,11 @@
-use crate::{dtos::MyceliumProfileData, modules::TenantUpdatingModule};
+use crate::{
+    dtos::MyceliumProfileData,
+    modules::{TenantFetchingModule, TenantUpdatingModule},
+};
 
 use actix_web::{patch, web, Responder};
 use myc_core::{
-    domain::entities::TenantUpdating,
+    domain::entities::{TenantFetching, TenantUpdating},
     use_cases::role_scoped::tenant_owner::{
         update_tenant_archiving_status, update_tenant_name_and_description,
         update_tenant_trashing_status, update_tenant_verifying_status,
@@ -103,6 +106,7 @@ pub async fn update_tenant_name_and_description_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateTenantNameAndDescriptionBody>,
     profile: MyceliumProfileData,
+    tenant_fetching_repo: Inject<TenantFetchingModule, dyn TenantFetching>,
     tenant_updating_repo: Inject<TenantUpdatingModule, dyn TenantUpdating>,
 ) -> impl Responder {
     match update_tenant_name_and_description(
@@ -110,6 +114,7 @@ pub async fn update_tenant_name_and_description_url(
         path.into_inner(),
         body.name.to_owned(),
         body.description.to_owned(),
+        Box::new(&*tenant_fetching_repo),
         Box::new(&*tenant_updating_repo),
     )
     .await
