@@ -1,12 +1,16 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use diesel::sql_types::{Integer, Jsonb, Timestamptz};
 use serde_json::Value as JsonValue;
 
-#[derive(Queryable, Insertable, Selectable)]
+#[derive(QueryableByName, Queryable, Selectable)]
 #[diesel(table_name = crate::schema::token)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub(crate) struct Token {
+pub struct Token {
+    #[diesel(sql_type = Integer)]
     pub id: i32,
-    pub meta: JsonValue,
+    #[diesel(sql_type = Timestamptz)]
     pub expiration: NaiveDateTime,
-} 
+    #[diesel(sql_type = Jsonb)]
+    pub meta: JsonValue,
+}
