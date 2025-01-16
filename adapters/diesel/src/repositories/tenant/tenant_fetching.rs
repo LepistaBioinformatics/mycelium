@@ -155,37 +155,47 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         let sql = format!(
             r#"
             WITH paginaged AS (
-                select p.id, p.name, p.is_active, p.is_archived, p.is_trashed, p.meta
+                SELECT 
+                    p.id, 
+                    p.name, 
+                    p.tags,
+                    p.meta,
+                    p.status,
+                    p.is_active,
+                    p.is_archived,
+                    p.is_trashed
                 FROM tenant p
                 LEFT JOIN owner_on_tenant ot ON p.id = ot.tenant_id
                 WHERE (
-                    {0} IS NULL OR p.name ILIKE {0}
-                    AND {1} IS NULL OR ot.owner_id = {1}
-                    AND {2} IS NULL OR p.meta->>{2} = {2}
-                    AND {3} IS NULL OR p.status->>'verified' = {3}
-                    AND {4} IS NULL OR p.status->>'archived' = {4}
-                    AND {5} IS NULL OR p.status->>'trashed' = {5}
-                    AND {6} IS NULL OR p.tags->>'{6}' = {7}
+                    {name} IS NULL OR p.name ILIKE {name}
+                    AND {owner} IS NULL OR ot.owner_id = {owner}
+                    AND {metadata_key} IS NULL OR p.meta->>{metadata_key} = {metadata_key}
+                    AND {status_verified} IS NULL OR p.status->>'verified' = {status_verified}
+                    AND {status_archived} IS NULL OR p.status->>'archived' = {status_archived}
+                    AND {status_trashed} IS NULL OR p.status->>'trashed' = {status_trashed}
+                    AND {tag_meta} IS NULL OR p.tags->>'{tag_meta}' = {tag_value}
                 )
                 ORDER BY p.created DESC
-                LIMIT {8}
-                OFFSET {9}
+                LIMIT {page_size}
+                OFFSET {offset}
             )
             SELECT
                 (SELECT COUNT(*) FROM paginaged) as total,
                 ARRAY(SELECT * FROM paginaged) as records
             "#,
-            option_to_null(name),
-            option_to_null(owner),
-            option_to_null(metadata_key),
-            option_to_null(status_verified),
-            option_to_null(status_archived),
-            option_to_null(status_trashed),
-            option_to_null(tag_value),
-            option_to_null(tag_meta),
-            page_size.unwrap_or(10),
-            offset,
+            name = option_to_null(name),
+            owner = option_to_null(owner),
+            metadata_key = option_to_null(metadata_key),
+            status_verified = option_to_null(status_verified),
+            status_archived = option_to_null(status_archived),
+            status_trashed = option_to_null(status_trashed),
+            tag_value = option_to_null(tag_value),
+            tag_meta = option_to_null(tag_meta),
+            page_size = page_size.unwrap_or(10),
+            offset = offset,
         );
+
+        println!("{}", sql);
 
         let results: Vec<TenantWithCount> =
             diesel::sql_query(&sql)
