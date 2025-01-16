@@ -6,9 +6,7 @@ use diesel::{
     pg::Pg,
     prelude::*,
     serialize::ToSql,
-    sql_types::{
-         Bool, Integer, Nullable, Text, Timestamptz,
-    },
+    sql_types::{Bool, Integer, Nullable, Text, Timestamptz},
     RunQueryDsl,
 };
 use myc_core::domain::{

@@ -1,20 +1,13 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    modules::{
-        AccountDeletionModule, AccountRegistrationModule, AccountUpdatingModule,
-    },
-};
+use crate::dtos::MyceliumProfileData;
 
 use actix_web::{delete, post, put, web, Responder};
 use myc_core::{
-    domain::{
-        dtos::account::{AccountMeta, AccountMetaKey},
-        entities::{AccountDeletion, AccountRegistration, AccountUpdating},
-    },
+    domain::dtos::account::{AccountMeta, AccountMetaKey},
     use_cases::role_scoped::beginner::meta::{
         create_account_meta, delete_account_meta, update_account_meta,
     },
 };
+use myc_diesel::repositories::AppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -23,7 +16,7 @@ use myc_http_tools::{
     },
 };
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::ToSchema;
 
 // ? ---------------------------------------------------------------------------
@@ -94,16 +87,13 @@ pub struct DeleteAccountMetaBody {
 pub async fn create_account_meta_url(
     body: web::Json<CreateAccountMetaBody>,
     profile: MyceliumProfileData,
-    account_registration_repo: Inject<
-        AccountRegistrationModule,
-        dyn AccountRegistration,
-    >,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match create_account_meta(
         profile.to_profile(),
         body.key.to_owned(),
         body.value.to_owned(),
-        Box::new(&*account_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -147,13 +137,13 @@ pub async fn create_account_meta_url(
 pub async fn update_account_meta_url(
     body: web::Json<CreateAccountMetaBody>,
     profile: MyceliumProfileData,
-    account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match update_account_meta(
         profile.to_profile(),
         body.key.to_owned(),
         body.value.to_owned(),
-        Box::new(&*account_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -197,12 +187,12 @@ pub async fn update_account_meta_url(
 pub async fn delete_account_meta_url(
     body: web::Json<DeleteAccountMetaBody>,
     profile: MyceliumProfileData,
-    account_deletion_repo: Inject<AccountDeletionModule, dyn AccountDeletion>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match delete_account_meta(
         profile.to_profile(),
         body.key.to_owned(),
-        Box::new(&*account_deletion_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

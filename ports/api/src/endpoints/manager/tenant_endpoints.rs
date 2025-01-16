@@ -1,26 +1,17 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    endpoints::shared::PaginationParams,
-    modules::{
-        TenantDeletionModule, TenantFetchingModule, TenantRegistrationModule,
-        TenantUpdatingModule, UserFetchingModule,
-    },
-};
+use crate::{dtos::MyceliumProfileData, endpoints::shared::PaginationParams};
 
 use actix_web::{delete, get, patch, post, web, Responder};
 use myc_core::{
     domain::{
         dtos::tenant::{Tenant, TenantMetaKey},
-        entities::{
-            TenantDeletion, TenantFetching, TenantOwnerConnection,
-            TenantRegistration, TenantUpdating, UserFetching,
-        },
+        entities::TenantOwnerConnection,
     },
     use_cases::super_users::managers::{
         create_tenant, delete_tenant, exclude_tenant_owner,
         include_tenant_owner, list_tenant,
     },
 };
+use myc_diesel::repositories::AppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -29,7 +20,7 @@ use myc_http_tools::{
     },
 };
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
@@ -118,19 +109,15 @@ pub struct ListTenantParams {
 pub async fn create_tenant_url(
     body: web::Json<CreateTenantBody>,
     profile: MyceliumProfileData,
-    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
-    tenant_registration_repo: Inject<
-        TenantRegistrationModule,
-        dyn TenantRegistration,
-    >,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match create_tenant(
         profile.to_profile(),
         body.name.clone(),
         body.description.clone(),
         body.owner_id,
-        Box::new(&*user_fetching_repo),
-        Box::new(&*tenant_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -178,7 +165,7 @@ pub async fn list_tenant_url(
     info: web::Query<ListTenantParams>,
     page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
-    tenant_fetching_repo: Inject<TenantFetchingModule, dyn TenantFetching>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match list_tenant(
         profile.to_profile(),
@@ -192,7 +179,7 @@ pub async fn list_tenant_url(
         info.tag_meta.to_owned(),
         page.page_size.to_owned(),
         page.skip.to_owned(),
-        Box::new(&*tenant_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -239,12 +226,12 @@ pub async fn list_tenant_url(
 pub async fn delete_tenant_url(
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
-    tenant_deletion_repo: Inject<TenantDeletionModule, dyn TenantDeletion>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match delete_tenant(
         profile.to_profile(),
         path.into_inner(),
-        Box::from(&*tenant_deletion_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -290,7 +277,7 @@ pub async fn delete_tenant_url(
 pub async fn include_tenant_owner_url(
     path: web::Path<(Uuid, Uuid)>,
     profile: MyceliumProfileData,
-    tenant_updating_repo: Inject<TenantUpdatingModule, dyn TenantUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     let (tenant_id, owner_id) = path.into_inner();
 
@@ -298,7 +285,7 @@ pub async fn include_tenant_owner_url(
         profile.to_profile(),
         tenant_id,
         owner_id,
-        Box::new(&*tenant_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -343,7 +330,7 @@ pub async fn include_tenant_owner_url(
 pub async fn exclude_tenant_owner_url(
     path: web::Path<(Uuid, Uuid)>,
     profile: MyceliumProfileData,
-    tenant_deletion_repo: Inject<TenantDeletionModule, dyn TenantDeletion>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     let (tenant_id, owner_id) = path.into_inner();
 
@@ -351,7 +338,7 @@ pub async fn exclude_tenant_owner_url(
         profile.to_profile(),
         tenant_id,
         owner_id,
-        Box::new(&*tenant_deletion_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

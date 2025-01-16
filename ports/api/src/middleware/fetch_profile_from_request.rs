@@ -6,10 +6,7 @@ use jsonwebtoken::errors::ErrorKind;
 use jwt::{Header as JwtHeader, RegisteredClaims, Token};
 use myc_config::optional_config::OptionalConfig;
 use myc_core::{
-    domain::{
-        dtos::{email::Email, route_type::PermissionedRoles},
-        entities::{LicensedResourcesFetching, ProfileFetching},
-    },
+    domain::dtos::{email::Email, route_type::PermissionedRoles},
     use_cases::service::profile::{fetch_profile_from_email, ProfileResponse},
 };
 use myc_diesel::repositories::AppModule;
@@ -51,10 +48,6 @@ pub(crate) async fn fetch_profile_from_request(
         }
     };
 
-    let profile_fetching_repo: &dyn ProfileFetching = app_module.resolve_ref();
-    let licensed_resources_fetching_repo: &dyn LicensedResourcesFetching =
-        app_module.resolve_ref();
-
     // ? -----------------------------------------------------------------------
     // ? Profile Fetching
     // ? -----------------------------------------------------------------------
@@ -78,8 +71,8 @@ pub(crate) async fn fetch_profile_from_request(
         tenant,
         roles,
         permissioned_roles,
-        Box::new(profile_fetching_repo),
-        Box::new(licensed_resources_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

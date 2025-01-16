@@ -1,10 +1,11 @@
-use crate::{dtos::MyceliumProfileData, modules::AccountRegistrationModule};
+use crate::dtos::MyceliumProfileData;
 
 use actix_web::{post, web, Responder};
 use myc_core::{
-    domain::{dtos::guest_role::GuestRole, entities::AccountRegistration},
+    domain::dtos::guest_role::GuestRole,
     use_cases::super_users::managers::create_system_account,
 };
+use myc_diesel::repositories::AppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -13,7 +14,7 @@ use myc_http_tools::{
     SystemActor,
 };
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::ToSchema;
 
 // ? ---------------------------------------------------------------------------
@@ -91,16 +92,13 @@ pub struct CreateSystemSubscriptionAccountBody {
 pub async fn create_system_account_url(
     body: web::Json<CreateSystemSubscriptionAccountBody>,
     profile: MyceliumProfileData,
-    account_registration_repo: Inject<
-        AccountRegistrationModule,
-        dyn AccountRegistration,
-    >,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match create_system_account(
         profile.to_profile(),
         body.name.to_owned(),
         body.actor.to_system_actor(),
-        Box::new(&*account_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

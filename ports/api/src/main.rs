@@ -45,6 +45,9 @@ use myc_config::{
     init_vault_config_from_file, optional_config::OptionalConfig,
 };
 use myc_core::{domain::dtos::http::Protocol, settings::init_in_memory_routes};
+use myc_diesel::repositories::{
+    AppModule, DieselDbPoolProvider, DieselDbPoolProviderParameters,
+};
 use myc_http_tools::{
     providers::{azure_endpoints, google_endpoints},
     settings::DEFAULT_REQUEST_ID_KEY,
@@ -71,7 +74,8 @@ use reqwest::header::{
 use router::route_request;
 use settings::{ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE};
 use std::{
-    path::PathBuf, process::id as process_id, str::FromStr, time::Duration,
+    path::PathBuf, process::id as process_id, str::FromStr, sync::Arc,
+    time::Duration,
 };
 use tracing::{info, trace};
 use tracing_actix_web::TracingLogger;
@@ -296,15 +300,11 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     info!("Start the database connectors");
 
-    let database_url = config.prisma.database_url.async_get_or_error().await;
-
-    std::env::set_var(
-        "DATABASE_URL",
-        match database_url {
+    let database_url =
+        match config.prisma.database_url.async_get_or_error().await {
             Ok(url) => url,
             Err(err) => panic!("Error on get database url: {err}"),
-        },
-    );
+        };
 
     generate_prisma_client_of_thread(process_id()).await;
 
@@ -371,6 +371,20 @@ pub async fn main() -> std::io::Result<()> {
     });
 
     // ? -----------------------------------------------------------------------
+    // ? Configure App Module
+    // ? -----------------------------------------------------------------------
+
+    let module = Arc::new(
+        AppModule::builder()
+            .with_component_parameters::<DieselDbPoolProvider>(
+                DieselDbPoolProviderParameters {
+                    pool: DieselDbPoolProvider::new(&database_url.as_str()),
+                },
+            )
+            .build(),
+    );
+
+    // ? -----------------------------------------------------------------------
     // ? Configure the server
     // ? -----------------------------------------------------------------------
     info!("Set the server configuration");
@@ -402,12 +416,13 @@ pub async fn main() -> std::io::Result<()> {
         trace!("Configured Cors: {:?}", cors);
 
         // ? -------------------------------------------------------------------
-        // ? Configure base application
+        // ? Configure Base Application
         // ? -------------------------------------------------------------------
 
         let app = App::new()
             .wrap(RequestTracing::new())
             .wrap(TracingLogger::default())
+            .app_data(web::Data::from(module.clone()))
             .app_data(web::Data::new(token_config).clone())
             .app_data(web::Data::new(auth_config.to_owned()).clone())
             //
@@ -602,6 +617,7 @@ pub async fn main() -> std::io::Result<()> {
             // ? Configure Injection modules
             // ? ---------------------------------------------------------------
             .configure(configure_injection_modules)
+            //.configure(configure_diesel_injectors)
             // ? ---------------------------------------------------------------
             // ? Configure mycelium routes
             // ? ---------------------------------------------------------------

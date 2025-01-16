@@ -1,28 +1,17 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    modules::{
-        WebHookDeletionModule, WebHookFetchingModule,
-        WebHookRegistrationModule, WebHookUpdatingModule,
-    },
-};
+use crate::dtos::MyceliumProfileData;
 
 use actix_web::{delete, get, post, put, web, Responder};
 use myc_core::{
-    domain::{
-        dtos::{
-            http_secret::HttpSecret,
-            webhook::{WebHook, WebHookTrigger},
-        },
-        entities::{
-            WebHookDeletion, WebHookFetching, WebHookRegistration,
-            WebHookUpdating,
-        },
+    domain::dtos::{
+        http_secret::HttpSecret,
+        webhook::{WebHook, WebHookTrigger},
     },
     models::AccountLifeCycle,
     use_cases::role_scoped::system_manager::webhook::{
         delete_webhook, list_webhooks, register_webhook, update_webhook,
     },
 };
+use myc_diesel::repositories::AppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -31,7 +20,7 @@ use myc_http_tools::{
     },
 };
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
@@ -115,10 +104,7 @@ pub async fn crate_webhook_url(
     body: web::Json<CreateWebHookBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    webhook_registration_repo: Inject<
-        WebHookRegistrationModule,
-        dyn WebHookRegistration,
-    >,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match register_webhook(
         profile.to_profile(),
@@ -128,7 +114,7 @@ pub async fn crate_webhook_url(
         body.trigger.to_owned(),
         body.secret.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*webhook_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -174,13 +160,13 @@ pub async fn crate_webhook_url(
 pub async fn list_webhooks_url(
     info: web::Query<ListWebHooksParams>,
     profile: MyceliumProfileData,
-    webhook_fetching_repo: Inject<WebHookFetchingModule, dyn WebHookFetching>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match list_webhooks(
         profile.to_profile(),
         info.name.to_owned(),
         info.trigger.to_owned(),
-        Box::new(&*webhook_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -224,13 +210,13 @@ pub async fn update_webhook_url(
     body: web::Json<UpdateWebHookBody>,
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    webhook_updating_repo: Inject<WebHookUpdatingModule, dyn WebHookUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match update_webhook(
         profile.to_profile(),
         body.webhook.to_owned(),
         path.to_owned(),
-        Box::new(&*webhook_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -276,12 +262,12 @@ pub async fn update_webhook_url(
 pub async fn delete_webhook_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    webhook_deletion_repo: Inject<WebHookDeletionModule, dyn WebHookDeletion>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match delete_webhook(
         profile.to_profile(),
         path.to_owned(),
-        Box::new(&*webhook_deletion_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

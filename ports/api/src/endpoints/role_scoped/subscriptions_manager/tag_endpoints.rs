@@ -1,23 +1,13 @@
-use crate::{
-    dtos::{MyceliumProfileData, TenantData},
-    modules::{
-        AccountTagDeletionModule, AccountTagRegistrationModule,
-        AccountTagUpdatingModule,
-    },
-};
+use crate::dtos::{MyceliumProfileData, TenantData};
 
 use actix_web::{delete, post, put, web, Responder};
 use myc_core::{
-    domain::{
-        dtos::tag::Tag,
-        entities::{
-            AccountTagDeletion, AccountTagRegistration, AccountTagUpdating,
-        },
-    },
+    domain::dtos::tag::Tag,
     use_cases::role_scoped::subscriptions_manager::tag::{
         delete_tag, register_tag, update_tag,
     },
 };
+use myc_diesel::repositories::AppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -26,7 +16,7 @@ use myc_http_tools::{
     },
 };
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use std::collections::HashMap;
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -112,10 +102,7 @@ pub async fn register_account_tag_url(
     tenant: TenantData,
     profile: MyceliumProfileData,
     body: web::Json<CreateTagBody>,
-    tag_registration_repo: Inject<
-        AccountTagRegistrationModule,
-        dyn AccountTagRegistration,
-    >,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match register_tag(
         profile.to_profile(),
@@ -123,7 +110,7 @@ pub async fn register_account_tag_url(
         body.value.to_owned(),
         body.meta.to_owned(),
         body.account_id.to_owned(),
-        Box::from(&*tag_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -178,7 +165,7 @@ pub async fn update_account_tag_url(
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
     body: web::Json<UpdateTagBody>,
-    tag_updating_repo: Inject<AccountTagUpdatingModule, dyn AccountTagUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match update_tag(
         profile.to_profile(),
@@ -188,7 +175,7 @@ pub async fn update_account_tag_url(
             value: body.value.to_owned(),
             meta: Some(body.meta.to_owned()),
         },
-        Box::from(&*tag_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -241,13 +228,13 @@ pub async fn delete_account_tag_url(
     tenant: TenantData,
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
-    tag_deletion_repo: Inject<AccountTagDeletionModule, dyn AccountTagDeletion>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match delete_tag(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         path.into_inner(),
-        Box::from(&*tag_deletion_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

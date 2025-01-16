@@ -2880,6 +2880,7 @@ dependencies = [
  "myc-core",
  "mycelium-base",
  "mycelium-config",
+ "mycelium-diesel",
  "mycelium-http-tools",
  "mycelium-memory-db",
  "mycelium-notifier",
