@@ -1,4 +1,4 @@
-use crate::{models::config::DbConfig, schema::guest_role as guest_role_model};
+use crate::{models::config::DbPoolProvider, schema::guest_role as guest_role_model};
 
 use async_trait::async_trait;
 use diesel::prelude::*;
@@ -17,7 +17,7 @@ use uuid::Uuid;
 #[shaku(interface = GuestRoleDeletion)]
 pub struct GuestRoleDeletionSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

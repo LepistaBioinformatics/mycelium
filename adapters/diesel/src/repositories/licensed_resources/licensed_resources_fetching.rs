@@ -1,4 +1,4 @@
-use crate::models::config::DbConfig;
+use crate::models::config::DbPoolProvider;
 
 use async_trait::async_trait;
 use chrono::{Local, NaiveDateTime};
@@ -34,7 +34,7 @@ use uuid::Uuid;
 #[shaku(interface = LicensedResourcesFetching)]
 pub struct LicensedResourcesFetchingSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

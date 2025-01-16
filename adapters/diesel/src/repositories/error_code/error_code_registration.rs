@@ -1,5 +1,5 @@
 use crate::{
-    models::{config::DbConfig, error_code::ErrorCode as ErrorCodeModel},
+    models::{config::DbPoolProvider, error_code::ErrorCode as ErrorCodeModel},
     schema::error_code as error_code_model,
 };
 
@@ -20,7 +20,7 @@ use std::sync::Arc;
 #[shaku(interface = ErrorCodeRegistration)]
 pub struct ErrorCodeRegistrationSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

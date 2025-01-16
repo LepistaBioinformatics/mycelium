@@ -1,6 +1,4 @@
-use crate::{
-    models::config::DbConfig, schema::account_tag as account_tag_model,
-};
+use crate::{models::config::DbPoolProvider, schema::account_tag as account_tag_model};
 
 use async_trait::async_trait;
 use diesel::prelude::*;
@@ -19,7 +17,7 @@ use uuid::Uuid;
 #[shaku(interface = AccountTagDeletion)]
 pub struct AccountTagDeletionSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

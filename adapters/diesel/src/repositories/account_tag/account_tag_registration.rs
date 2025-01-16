@@ -1,5 +1,5 @@
 use crate::{
-    models::{account_tag::AccountTag as AccountTagModel, config::DbConfig},
+    models::{account_tag::AccountTag as AccountTagModel, config::DbPoolProvider},
     schema::account_tag as account_tag_model,
 };
 
@@ -19,7 +19,7 @@ use uuid::Uuid;
 #[shaku(interface = AccountTagRegistration)]
 pub struct AccountTagRegistrationSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

@@ -1,4 +1,4 @@
-use crate::{models::config::DbConfig, schema::webhook as webhook_model};
+use crate::{models::config::DbPoolProvider, schema::webhook as webhook_model};
 
 use async_trait::async_trait;
 use diesel::prelude::*;
@@ -17,7 +17,7 @@ use uuid::Uuid;
 #[shaku(interface = WebHookDeletion)]
 pub struct WebHookDeletionSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

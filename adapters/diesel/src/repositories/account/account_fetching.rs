@@ -1,6 +1,6 @@
 use super::shared::map_account_model_to_dto;
 use crate::{
-    models::{account::Account as AccountModel, config::DbConfig},
+    models::{account::Account as AccountModel, config::DbPoolProvider},
     schema::{account as account_model, user as user_model},
 };
 
@@ -36,7 +36,7 @@ fn option_to_null<T: ToString>(opt: Option<T>) -> String {
 #[shaku(interface = AccountFetching)]
 pub struct AccountFetchingSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

@@ -1,5 +1,5 @@
 use crate::{
-    models::{config::DbConfig, webhook::WebHook as WebHookModel},
+    models::{config::DbPoolProvider, webhook::WebHook as WebHookModel},
     schema::webhook as webhook_model,
 };
 
@@ -22,7 +22,7 @@ use std::sync::Arc;
 #[shaku(interface = WebHookUpdating)]
 pub struct WebHookUpdatingSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]
