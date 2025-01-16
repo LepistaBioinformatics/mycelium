@@ -8,4 +8,4 @@ pub(crate) struct IdentityProvider {
     pub user_id: Uuid,
     pub name: Option<String>,
     pub password_hash: Option<String>,
-} 
+}
