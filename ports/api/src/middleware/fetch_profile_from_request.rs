@@ -6,9 +6,13 @@ use jsonwebtoken::errors::ErrorKind;
 use jwt::{Header as JwtHeader, RegisteredClaims, Token};
 use myc_config::optional_config::OptionalConfig;
 use myc_core::{
-    domain::dtos::{email::Email, route_type::PermissionedRoles},
+    domain::{
+        dtos::{email::Email, route_type::PermissionedRoles},
+        entities::{LicensedResourcesFetching, ProfileFetching},
+    },
     use_cases::service::profile::{fetch_profile_from_email, ProfileResponse},
 };
+use myc_diesel::repositories::AppModule;
 use myc_http_tools::{
     functions::decode_jwt_hs512,
     models::{
@@ -17,10 +21,8 @@ use myc_http_tools::{
     providers::{az_check_credentials, gc_check_credentials},
     responses::GatewayError,
 };
-use myc_prisma::repositories::{
-    LicensedResourcesFetchingSqlDbRepository, ProfileFetchingSqlDbRepository,
-};
-use tracing::{trace, warn};
+use shaku::HasComponent;
+use tracing::{error, trace, warn};
 use uuid::Uuid;
 
 /// Try to populate profile to request header
@@ -34,6 +36,29 @@ pub(crate) async fn fetch_profile_from_request(
     roles: Option<Vec<String>>,
     permissioned_roles: Option<PermissionedRoles>,
 ) -> Result<MyceliumProfileData, GatewayError> {
+    // ? -----------------------------------------------------------------------
+    // ? Build dependencies
+    // ? -----------------------------------------------------------------------
+
+    let app_module = match req.app_data::<web::Data<AppModule>>() {
+        Some(module) => module,
+        None => {
+            error!("Unable to extract profile fetching module from request");
+
+            return Err(GatewayError::InternalServerError(
+                "Unexpected error on get profile".to_string(),
+            ));
+        }
+    };
+
+    let profile_fetching_repo: &dyn ProfileFetching = app_module.resolve_ref();
+    let licensed_resources_fetching_repo: &dyn LicensedResourcesFetching =
+        app_module.resolve_ref();
+
+    // ? -----------------------------------------------------------------------
+    // ? Profile Fetching
+    // ? -----------------------------------------------------------------------
+
     let email =
         check_credentials_with_multi_identity_provider(req.clone()).await?;
 
@@ -53,8 +78,8 @@ pub(crate) async fn fetch_profile_from_request(
         tenant,
         roles,
         permissioned_roles,
-        Box::new(&ProfileFetchingSqlDbRepository {}),
-        Box::new(&LicensedResourcesFetchingSqlDbRepository {}),
+        Box::new(profile_fetching_repo),
+        Box::new(licensed_resources_fetching_repo),
     )
     .await
     {
