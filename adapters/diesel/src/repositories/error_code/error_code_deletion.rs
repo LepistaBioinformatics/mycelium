@@ -1,4 +1,4 @@
-use crate::{models::config::DbConfig, schema::error_code as error_code_model};
+use crate::{models::config::DbPoolProvider, schema::error_code as error_code_model};
 
 use async_trait::async_trait;
 use diesel::prelude::*;
@@ -16,7 +16,7 @@ use std::sync::Arc;
 #[shaku(interface = ErrorCodeDeletion)]
 pub struct ErrorCodeDeletionSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

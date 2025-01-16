@@ -1,7 +1,7 @@
-pub mod tag_deletion;
-pub mod tag_registration;
-pub mod tag_updating;
+mod tag_deletion;
+mod tag_registration;
+mod tag_updating;
 
-pub use tag_deletion::*;
-pub use tag_registration::*;
-pub use tag_updating::*;
+pub(super) use tag_deletion::*;
+pub(super) use tag_registration::*;
+pub(super) use tag_updating::*;

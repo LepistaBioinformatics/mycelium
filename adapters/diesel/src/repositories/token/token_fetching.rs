@@ -1,4 +1,4 @@
-use crate::models::{config::DbConfig, token::Token as TokenModel};
+use crate::models::{config::DbPoolProvider, token::Token as TokenModel};
 
 use async_trait::async_trait;
 use chrono::Local;
@@ -28,7 +28,7 @@ use tracing::error;
 #[shaku(interface = TokenFetching)]
 pub struct TokenFetchingSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

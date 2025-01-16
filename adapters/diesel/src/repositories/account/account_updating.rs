@@ -1,5 +1,5 @@
 use crate::{
-    models::{account::Account as AccountModel, config::DbConfig},
+    models::{account::Account as AccountModel, config::DbPoolProvider},
     schema::account as account_model,
 };
 
@@ -28,7 +28,7 @@ use uuid::Uuid;
 #[shaku(interface = AccountUpdating)]
 pub struct AccountUpdatingSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

@@ -1,6 +1,6 @@
 use super::shared::map_model_to_dto;
 use crate::{
-    models::{config::DbConfig, guest_user::GuestUser as GuestUserModel},
+    models::{config::DbPoolProvider, guest_user::GuestUser as GuestUserModel},
     schema::{guest_user as guest_user_model, guest_user_on_account},
 };
 
@@ -24,7 +24,7 @@ use uuid::Uuid;
 #[shaku(interface = GuestUserRegistration)]
 pub struct GuestUserRegistrationSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

@@ -1,4 +1,4 @@
-use crate::{models::config::DbConfig, schema::account as account_model};
+use crate::{models::config::DbPoolProvider, schema::account as account_model};
 
 use async_trait::async_trait;
 use diesel::prelude::*;
@@ -23,7 +23,7 @@ use uuid::Uuid;
 #[shaku(interface = AccountDeletion)]
 pub struct AccountDeletionSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

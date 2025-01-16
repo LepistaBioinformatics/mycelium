@@ -12,4 +12,3 @@ pub(crate) mod user;
 pub(crate) mod webhook;
 
 pub mod config;
-pub mod module;

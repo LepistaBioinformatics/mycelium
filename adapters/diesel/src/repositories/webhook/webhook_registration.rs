@@ -1,5 +1,5 @@
 use crate::{
-    models::{config::DbConfig, webhook::WebHook as WebHookModel},
+    models::{config::DbPoolProvider, webhook::WebHook as WebHookModel},
     schema::webhook as webhook_model,
 };
 
@@ -23,7 +23,7 @@ use uuid::Uuid;
 #[shaku(interface = WebHookRegistration)]
 pub struct WebHookRegistrationSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

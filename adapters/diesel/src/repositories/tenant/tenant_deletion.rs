@@ -1,5 +1,5 @@
 use crate::{
-    models::{config::DbConfig, tenant::Tenant as TenantModel},
+    models::{config::DbPoolProvider, tenant::Tenant as TenantModel},
     schema::{
         owner_on_tenant as owner_on_tenant_model, tenant as tenant_model,
         user as users_model,
@@ -28,7 +28,7 @@ use uuid::Uuid;
 #[shaku(interface = TenantDeletion)]
 pub struct TenantDeletionSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

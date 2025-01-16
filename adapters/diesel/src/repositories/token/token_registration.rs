@@ -1,5 +1,5 @@
 use crate::{
-    models::{config::DbConfig, token::Token as TokenModel},
+    models::{config::DbPoolProvider, token::Token as TokenModel},
     schema::token as token_model,
 };
 use diesel::prelude::*;
@@ -29,7 +29,7 @@ use std::sync::Arc;
 #[shaku(interface = TokenRegistration)]
 pub struct TokenRegistrationSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

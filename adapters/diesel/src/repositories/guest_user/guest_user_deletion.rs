@@ -1,5 +1,5 @@
 use crate::{
-    models::{config::DbConfig, guest_user::GuestUser as GuestUserModel},
+    models::{config::DbPoolProvider, guest_user::GuestUser as GuestUserModel},
     schema::guest_user as guest_user_model,
 };
 
@@ -20,7 +20,7 @@ use uuid::Uuid;
 #[shaku(interface = GuestUserDeletion)]
 pub struct GuestUserDeletionSqlDbRepository {
     #[shaku(inject)]
-    pub db_config: Arc<dyn DbConfig>,
+    pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]

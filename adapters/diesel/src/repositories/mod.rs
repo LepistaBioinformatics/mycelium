@@ -1,5 +1,8 @@
+use shaku::module;
+
 mod account;
 mod account_tag;
+mod config;
 mod error_code;
 mod guest_role;
 mod guest_user;
@@ -11,15 +14,71 @@ mod token;
 mod user;
 mod webhook;
 
-pub use account::*;
-pub use account_tag::*;
-pub use error_code::*;
-pub use guest_role::*;
-pub use guest_user::*;
-pub use licensed_resources::*;
-pub use profile::*;
-pub use tenant::*;
-pub use tenant_tag::*;
-pub use token::*;
-pub use user::*;
-pub use webhook::*;
+use account::*;
+use account_tag::*;
+use error_code::*;
+use guest_role::*;
+use guest_user::*;
+use licensed_resources::*;
+use profile::*;
+use tenant::*;
+use tenant_tag::*;
+use token::*;
+use user::*;
+use webhook::*;
+
+pub use config::*;
+
+module! {
+    pub AppModule {
+        components = [
+            //
+            // Provide the database pool
+            //
+            DieselDbPoolProvider,
+            //
+            // Provide repositories
+            //
+            AccountDeletionSqlDbRepository,
+            AccountFetchingSqlDbRepository,
+            AccountRegistrationSqlDbRepository,
+            AccountUpdatingSqlDbRepository,
+            AccountTagDeletionSqlDbRepository,
+            AccountTagRegistrationSqlDbRepository,
+            AccountTagUpdatingSqlDbRepository,
+            ErrorCodeDeletionSqlDbRepository,
+            ErrorCodeFetchingSqlDbRepository,
+            ErrorCodeRegistrationSqlDbRepository,
+            ErrorCodeUpdatingSqlDbRepository,
+            GuestRoleDeletionSqlDbRepository,
+            GuestRoleFetchingSqlDbRepository,
+            GuestRoleRegistrationSqlDbRepository,
+            GuestRoleUpdatingSqlDbRepository,
+            GuestUserDeletionSqlDbRepository,
+            GuestUserFetchingSqlDbRepository,
+            GuestUserOnAccountUpdatingSqlDbRepository,
+            GuestUserRegistrationSqlDbRepository,
+            ProfileFetchingSqlDbRepository,
+            LicensedResourcesFetchingSqlDbRepository,
+            TenantDeletionSqlDbRepository,
+            TenantFetchingSqlDbRepository,
+            TenantRegistrationSqlDbRepository,
+            TenantUpdatingSqlDbRepository,
+            TenantTagDeletionSqlDbRepository,
+            TenantTagRegistrationSqlDbRepository,
+            TenantTagUpdatingSqlDbRepository,
+            TokenFetchingSqlDbRepository,
+            TokenInvalidationSqlDbRepository,
+            TokenRegistrationSqlDbRepository,
+            UserDeletionSqlDbRepository,
+            UserFetchingSqlDbRepository,
+            UserRegistrationSqlDbRepository,
+            UserUpdatingSqlDbRepository,
+            WebHookDeletionSqlDbRepository,
+            WebHookFetchingSqlDbRepository,
+            WebHookRegistrationSqlDbRepository,
+            WebHookUpdatingSqlDbRepository,
+        ],
+        providers = []
+    }
+}
