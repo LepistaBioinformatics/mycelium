@@ -1,16 +1,11 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    modules::{AccountFetchingModule, AccountUpdatingModule},
-};
+use crate::dtos::MyceliumProfileData;
 
 use actix_web::{patch, web, Responder};
-use myc_core::{
-    domain::entities::{AccountFetching, AccountUpdating},
-    use_cases::role_scoped::users_manager::account::{
-        change_account_activation_status, change_account_approval_status,
-        change_account_archival_status,
-    },
+use myc_core::use_cases::role_scoped::users_manager::account::{
+    change_account_activation_status, change_account_approval_status,
+    change_account_archival_status,
 };
+use myc_diesel::repositories::AppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -18,7 +13,7 @@ use myc_http_tools::{
     },
     Account,
 };
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
@@ -83,15 +78,14 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub async fn approve_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
-    account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match change_account_approval_status(
         profile.to_profile(),
         path.to_owned(),
         true,
-        Box::new(&*account_fetching_repo),
-        Box::new(&*account_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -141,15 +135,14 @@ pub async fn approve_account_url(
 pub async fn disapprove_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
-    account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match change_account_approval_status(
         profile.to_profile(),
         path.to_owned(),
         false,
-        Box::new(&*account_fetching_repo),
-        Box::new(&*account_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -199,15 +192,14 @@ pub async fn disapprove_account_url(
 pub async fn activate_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
-    account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match change_account_activation_status(
         profile.to_profile(),
         path.to_owned(),
         true,
-        Box::new(&*account_fetching_repo),
-        Box::new(&*account_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -257,15 +249,14 @@ pub async fn activate_account_url(
 pub async fn deactivate_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
-    account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match change_account_activation_status(
         profile.to_profile(),
         path.to_owned(),
         false,
-        Box::new(&*account_fetching_repo),
-        Box::new(&*account_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -314,15 +305,14 @@ pub async fn deactivate_account_url(
 pub async fn archive_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
-    account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match change_account_archival_status(
         profile.to_profile(),
         path.to_owned(),
         true,
-        Box::new(&*account_fetching_repo),
-        Box::new(&*account_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -371,15 +361,14 @@ pub async fn archive_account_url(
 pub async fn unarchive_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
-    account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match change_account_archival_status(
         profile.to_profile(),
         path.to_owned(),
         false,
-        Box::new(&*account_fetching_repo),
-        Box::new(&*account_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

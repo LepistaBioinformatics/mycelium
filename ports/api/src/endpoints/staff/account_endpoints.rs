@@ -1,12 +1,13 @@
-use crate::{dtos::MyceliumProfileData, modules::AccountUpdatingModule};
+use crate::dtos::MyceliumProfileData;
 
 use actix_web::{patch, web, Responder};
 use myc_core::{
-    domain::{dtos::account_type::AccountType, entities::AccountUpdating},
+    domain::dtos::account_type::AccountType,
     use_cases::super_users::staff::account::{
         downgrade_account_privileges, upgrade_account_privileges,
     },
 };
+use myc_diesel::repositories::AppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -15,7 +16,7 @@ use myc_http_tools::{
     Account,
 };
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -110,7 +111,7 @@ pub async fn upgrade_account_privileges_url(
     path: web::Path<Uuid>,
     body: web::Json<UpgradeAccountPrivilegesBody>,
     profile: MyceliumProfileData,
-    account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match upgrade_account_privileges(
         profile.to_profile(),
@@ -119,7 +120,7 @@ pub async fn upgrade_account_privileges_url(
             UpgradeTargetAccountType::Manager => AccountType::Manager,
             UpgradeTargetAccountType::Staff => AccountType::Staff,
         },
-        Box::new(&*account_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -170,7 +171,7 @@ pub async fn downgrade_account_privileges_url(
     path: web::Path<Uuid>,
     body: web::Json<DowngradeAccountPrivilegesBody>,
     profile: MyceliumProfileData,
-    account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match downgrade_account_privileges(
         profile.to_profile(),
@@ -179,7 +180,7 @@ pub async fn downgrade_account_privileges_url(
             DowngradeTargetAccountType::Manager => AccountType::Manager,
             DowngradeTargetAccountType::User => AccountType::User,
         },
-        Box::new(&*account_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

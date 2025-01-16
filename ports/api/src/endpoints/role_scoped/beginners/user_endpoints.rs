@@ -4,11 +4,7 @@ use crate::{
         check_credentials_with_multi_identity_provider,
         parse_issuer_from_request,
     },
-    modules::{
-        MessageSendingQueueModule, TokenInvalidationModule,
-        TokenRegistrationModule, UserDeletionModule, UserFetchingModule,
-        UserRegistrationModule, UserUpdatingModule,
-    },
+    modules::MessageSendingQueueModule,
 };
 
 use actix_web::{head, post, web, HttpRequest, HttpResponse, Responder};
@@ -17,10 +13,7 @@ use myc_core::{
     domain::{
         actors::SystemActor,
         dtos::user::{Provider, Totp, User},
-        entities::{
-            MessageSending, TokenInvalidation, TokenRegistration, UserDeletion,
-            UserFetching, UserRegistration, UserUpdating,
-        },
+        entities::MessageSending,
     },
     models::AccountLifeCycle,
     use_cases::role_scoped::beginner::user::{
@@ -31,6 +24,7 @@ use myc_core::{
         EmailRegistrationStatus,
     },
 };
+use myc_diesel::repositories::AppModule;
 use myc_http_tools::{
     functions::encode_jwt, models::internal_auth_config::InternalOauthConfig,
     responses::GatewayError, utils::HttpJsonResponse,
@@ -38,6 +32,7 @@ use myc_http_tools::{
 };
 use serde::{Deserialize, Serialize, Serializer};
 use serde_json::json;
+use shaku::HasComponent;
 use shaku_actix::Inject;
 use tracing::warn;
 use utoipa::{ToResponse, ToSchema};
@@ -198,7 +193,7 @@ pub struct CheckUserCredentialsBody {
 #[head("/status")]
 pub async fn check_email_registration_status_url(
     query: web::Query<CheckEmailStatusQuery>,
-    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     let email_instance = match Email::from_string(query.email.to_owned()) {
         Err(err) => {
@@ -214,7 +209,7 @@ pub async fn check_email_registration_status_url(
 
     match check_email_registration_status(
         email_instance,
-        Box::new(&*user_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -332,15 +327,7 @@ pub async fn create_default_user_url(
     req: HttpRequest,
     body: web::Json<CreateDefaultUserBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    user_registration_repo: Inject<
-        UserRegistrationModule,
-        dyn UserRegistration,
-    >,
-    user_deletion_repo: Inject<UserDeletionModule, dyn UserDeletion>,
-    token_registration_repo: Inject<
-        TokenRegistrationModule,
-        dyn TokenRegistration,
-    >,
+    app_module: web::Data<AppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let provider = match parse_issuer_from_request(req.clone()).await {
@@ -366,10 +353,10 @@ pub async fn create_default_user_url(
         body.password.to_owned(),
         provider,
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*user_registration_repo),
-        Box::new(&*token_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*message_sending_repo),
-        Box::new(&*user_deletion_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -412,12 +399,7 @@ pub async fn create_default_user_url(
 #[post("/validate-activation-token")]
 pub async fn check_user_token_url(
     body: web::Json<CheckTokenBody>,
-    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
-    user_updating_repo: Inject<UserUpdatingModule, dyn UserUpdating>,
-    token_invalidation_repo: Inject<
-        TokenInvalidationModule,
-        dyn TokenInvalidation,
-    >,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
@@ -434,9 +416,9 @@ pub async fn check_user_token_url(
     match check_token_and_activate_user(
         body.token.to_owned(),
         email,
-        Box::new(&*user_fetching_repo),
-        Box::new(&*user_updating_repo),
-        Box::new(&*token_invalidation_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -480,11 +462,7 @@ pub async fn check_user_token_url(
 pub async fn start_password_redefinition_url(
     body: web::Json<StartPasswordResetBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
-    token_registration_repo: Inject<
-        TokenRegistrationModule,
-        dyn TokenRegistration,
-    >,
+    app_module: web::Data<AppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
@@ -502,8 +480,8 @@ pub async fn start_password_redefinition_url(
     match start_password_redefinition(
         email,
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*user_fetching_repo),
-        Box::new(&*token_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*message_sending_repo),
     )
     .await
@@ -548,12 +526,7 @@ pub async fn start_password_redefinition_url(
 pub async fn check_token_and_reset_password_url(
     body: web::Json<ResetPasswordBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
-    user_updating_repo: Inject<UserUpdatingModule, dyn UserUpdating>,
-    token_registration_repo: Inject<
-        TokenInvalidationModule,
-        dyn TokenInvalidation,
-    >,
+    app_module: web::Data<AppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
@@ -573,9 +546,9 @@ pub async fn check_token_and_reset_password_url(
         email,
         body.new_password.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*user_fetching_repo),
-        Box::new(&*user_updating_repo),
-        Box::new(&*token_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*message_sending_repo),
     )
     .await
@@ -621,7 +594,7 @@ pub async fn check_token_and_reset_password_url(
 #[post("/login")]
 pub async fn check_email_password_validity_url(
     body: web::Json<CheckUserCredentialsBody>,
-    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
+    app_module: web::Data<AppModule>,
     auth_config: web::Data<InternalOauthConfig>,
 ) -> impl Responder {
     let email_instance = match Email::from_string(body.email.to_owned()) {
@@ -639,7 +612,7 @@ pub async fn check_email_password_validity_url(
     match check_email_password_validity(
         email_instance,
         body.password.to_owned(),
-        Box::new(&*user_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -760,8 +733,7 @@ pub async fn check_email_password_validity_url(
 pub async fn totp_start_activation_url(
     req: HttpRequest,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
-    user_updating_repo: Inject<UserUpdatingModule, dyn UserUpdating>,
+    app_module: web::Data<AppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let opt_email =
@@ -788,8 +760,8 @@ pub async fn totp_start_activation_url(
     match totp_start_activation(
         email,
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*user_fetching_repo),
-        Box::new(&*user_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*message_sending_repo),
     )
     .await
@@ -835,8 +807,7 @@ pub async fn totp_finish_activation_url(
     req: HttpRequest,
     body: web::Json<TotpUpdatingValidationBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
-    user_updating_repo: Inject<UserUpdatingModule, dyn UserUpdating>,
+    app_module: web::Data<AppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let opt_email =
@@ -864,8 +835,8 @@ pub async fn totp_finish_activation_url(
         email,
         body.token.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*user_fetching_repo),
-        Box::new(&*user_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*message_sending_repo),
     )
     .await
@@ -913,7 +884,7 @@ pub async fn totp_check_token_url(
     body: web::Json<TotpUpdatingValidationBody>,
     auth_config: web::Data<InternalOauthConfig>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     let opt_email =
         match check_credentials_with_multi_identity_provider(req).await {
@@ -940,7 +911,7 @@ pub async fn totp_check_token_url(
         email,
         body.token.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*user_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -1002,8 +973,7 @@ pub async fn totp_disable_url(
     req: HttpRequest,
     body: web::Json<TotpUpdatingValidationBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
-    user_updating_repo: Inject<UserUpdatingModule, dyn UserUpdating>,
+    app_module: web::Data<AppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let opt_email =
@@ -1031,8 +1001,8 @@ pub async fn totp_disable_url(
         email,
         body.token.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*user_fetching_repo),
-        Box::new(&*user_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*message_sending_repo),
     )
     .await

@@ -507,7 +507,6 @@ impl AccountRegistrationSqlDbRepository {
             name: account.name,
             slug: account.slug,
             meta: None,
-            tags: None,
             tenant_id,
             account_type: to_value(account_type).unwrap(),
             is_active: account.is_active,

@@ -1,16 +1,11 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    modules::{TenantFetchingModule, TenantUpdatingModule},
-};
+use crate::dtos::MyceliumProfileData;
 
 use actix_web::{patch, web, Responder};
-use myc_core::{
-    domain::entities::{TenantFetching, TenantUpdating},
-    use_cases::role_scoped::tenant_owner::{
-        update_tenant_archiving_status, update_tenant_name_and_description,
-        update_tenant_trashing_status, update_tenant_verifying_status,
-    },
+use myc_core::use_cases::role_scoped::tenant_owner::{
+    update_tenant_archiving_status, update_tenant_name_and_description,
+    update_tenant_trashing_status, update_tenant_verifying_status,
 };
+use myc_diesel::repositories::AppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -18,7 +13,7 @@ use myc_http_tools::{
     },
 };
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -106,16 +101,15 @@ pub async fn update_tenant_name_and_description_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateTenantNameAndDescriptionBody>,
     profile: MyceliumProfileData,
-    tenant_fetching_repo: Inject<TenantFetchingModule, dyn TenantFetching>,
-    tenant_updating_repo: Inject<TenantUpdatingModule, dyn TenantUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match update_tenant_name_and_description(
         profile.to_profile(),
         path.into_inner(),
         body.name.to_owned(),
         body.description.to_owned(),
-        Box::new(&*tenant_fetching_repo),
-        Box::new(&*tenant_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -163,13 +157,13 @@ pub async fn update_tenant_archiving_status_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateTenantArchivingBody>,
     profile: MyceliumProfileData,
-    tenant_updating_repo: Inject<TenantUpdatingModule, dyn TenantUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match update_tenant_archiving_status(
         profile.to_profile(),
         path.into_inner(),
         body.archived.to_owned(),
-        Box::new(&*tenant_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -217,13 +211,13 @@ pub async fn update_tenant_trashing_status_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateTenantTrashingBody>,
     profile: MyceliumProfileData,
-    tenant_updating_repo: Inject<TenantUpdatingModule, dyn TenantUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match update_tenant_trashing_status(
         profile.to_profile(),
         path.into_inner(),
         body.trashed.to_owned(),
-        Box::new(&*tenant_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -271,13 +265,13 @@ pub async fn update_tenant_verifying_status_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateTenantVerifyingBody>,
     profile: MyceliumProfileData,
-    tenant_updating_repo: Inject<TenantUpdatingModule, dyn TenantUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match update_tenant_verifying_status(
         profile.to_profile(),
         path.into_inner(),
         body.verified.to_owned(),
-        Box::new(&*tenant_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

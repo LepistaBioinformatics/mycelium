@@ -1,23 +1,15 @@
 use crate::{
     dtos::{MyceliumProfileData, TenantData},
-    modules::{
-        AccountFetchingModule, GuestRoleFetchingModule,
-        GuestUserRegistrationModule, MessageSendingQueueModule,
-    },
+    modules::MessageSendingQueueModule,
 };
 
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
-    domain::{
-        dtos::guest_user::GuestUser,
-        entities::{
-            AccountFetching, GuestRoleFetching, GuestUserRegistration,
-            MessageSending,
-        },
-    },
+    domain::{dtos::guest_user::GuestUser, entities::MessageSending},
     models::AccountLifeCycle,
     use_cases::role_scoped::account_manager::guest::guest_to_children_account,
 };
+use myc_diesel::repositories::AppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -26,6 +18,7 @@ use myc_http_tools::{
     Email,
 };
 use serde::Deserialize;
+use shaku::HasComponent;
 use shaku_actix::Inject;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
@@ -113,15 +106,7 @@ pub async fn guest_to_children_account_url(
     body: web::Json<GuestUserBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
-    guest_role_fetching_repo: Inject<
-        GuestRoleFetchingModule,
-        dyn GuestRoleFetching,
-    >,
-    guest_user_registration_repo: Inject<
-        GuestUserRegistrationModule,
-        dyn GuestUserRegistration,
-    >,
+    app_module: web::Data<AppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let (account_id, role_id) = path.to_owned();
@@ -142,9 +127,9 @@ pub async fn guest_to_children_account_url(
         role_id,
         account_id,
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*account_fetching_repo),
-        Box::new(&*guest_role_fetching_repo),
-        Box::new(&*guest_user_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*message_sending_repo),
     )
     .await

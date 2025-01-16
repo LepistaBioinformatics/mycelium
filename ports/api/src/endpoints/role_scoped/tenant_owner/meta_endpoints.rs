@@ -1,20 +1,13 @@
-use crate::{
-    dtos::{MyceliumProfileData, TenantData},
-    modules::{
-        TenantDeletionModule, TenantRegistrationModule, TenantUpdatingModule,
-    },
-};
+use crate::dtos::{MyceliumProfileData, TenantData};
 
 use actix_web::{delete, post, put, web, Responder};
 use myc_core::{
-    domain::{
-        dtos::tenant::{TenantMeta, TenantMetaKey},
-        entities::{TenantDeletion, TenantRegistration, TenantUpdating},
-    },
+    domain::dtos::tenant::{TenantMeta, TenantMetaKey},
     use_cases::role_scoped::tenant_owner::{
         create_tenant_meta, delete_tenant_meta, update_tenant_meta,
     },
 };
+use myc_diesel::repositories::AppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -23,7 +16,7 @@ use myc_http_tools::{
     },
 };
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::ToSchema;
 
 // ? ---------------------------------------------------------------------------
@@ -102,17 +95,14 @@ pub async fn create_tenant_meta_url(
     tenant: TenantData,
     body: web::Json<CreateTenantMetaBody>,
     profile: MyceliumProfileData,
-    tenant_registration_repo: Inject<
-        TenantRegistrationModule,
-        dyn TenantRegistration,
-    >,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match create_tenant_meta(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         body.key.to_owned(),
         body.value.to_owned(),
-        Box::new(&*tenant_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -164,14 +154,14 @@ pub async fn update_tenant_meta_url(
     tenant: TenantData,
     body: web::Json<CreateTenantMetaBody>,
     profile: MyceliumProfileData,
-    tenant_updating_repo: Inject<TenantUpdatingModule, dyn TenantUpdating>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match update_tenant_meta(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         body.key.to_owned(),
         body.value.to_owned(),
-        Box::new(&*tenant_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -223,13 +213,13 @@ pub async fn delete_tenant_meta_url(
     tenant: TenantData,
     body: web::Json<DeleteTenantMetaBody>,
     profile: MyceliumProfileData,
-    tenant_deletion_repo: Inject<TenantDeletionModule, dyn TenantDeletion>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match delete_tenant_meta(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         body.key.to_owned(),
-        Box::new(&*tenant_deletion_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

@@ -1,20 +1,17 @@
-use crate::{
-    dtos::MyceliumTenantScopedConnectionStringData,
-    modules::{AccountRegistrationModule, WebHookFetchingModule},
-};
+use crate::dtos::MyceliumTenantScopedConnectionStringData;
 
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
-    domain::entities::{AccountRegistration, WebHookFetching},
     models::AccountLifeCycle,
     use_cases::service::account::create_subscription_account,
 };
+use myc_diesel::repositories::AppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error, Account,
 };
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::ToSchema;
 
 // ? ---------------------------------------------------------------------------
@@ -90,11 +87,7 @@ pub async fn create_subscription_account_from_service_url(
     body: web::Json<CreateSubscriptionAccountBody>,
     connection_string: MyceliumTenantScopedConnectionStringData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    account_registration_repo: Inject<
-        AccountRegistrationModule,
-        dyn AccountRegistration,
-    >,
-    webhook_fetching_repo: Inject<WebHookFetchingModule, dyn WebHookFetching>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     let tenant_id = match connection_string.tenant_id() {
         Some(tenant_id) => tenant_id,
@@ -109,8 +102,8 @@ pub async fn create_subscription_account_from_service_url(
         tenant_id,
         body.name.to_owned(),
         life_cycle_settings.get_ref().clone(),
-        Box::new(&*account_registration_repo),
-        Box::new(&*webhook_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

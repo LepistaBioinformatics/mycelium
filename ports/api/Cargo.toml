@@ -33,6 +33,7 @@ mycelium-http-tools = { version = "6.6.0", path = "../../http_tools" }
 mycelium-memory-db = { version = "6.6.0", path = "../../adapters/mem_db" }
 mycelium-service = { version = "6.6.0", path = "../../adapters/service" }
 mycelium-prisma = { version = "6.6.0", path = "../../adapters/prisma" }
+mycelium-diesel = { version = "6.6.0", path = "../../adapters/diesel" }
 mycelium-notifier = { version = "6.6.0", path = "../../adapters/notifier" }
 
 actix-web.workspace = true

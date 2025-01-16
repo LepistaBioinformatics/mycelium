@@ -1,20 +1,15 @@
-use crate::{
-    dtos::{MyceliumProfileData, TenantData},
-    modules::AccountDeletionModule,
-};
+use crate::dtos::{MyceliumProfileData, TenantData};
 
 use actix_web::{delete, web, Responder};
-use myc_core::{
-    domain::entities::AccountDeletion,
-    use_cases::role_scoped::tenant_manager::delete_subscription_account,
-};
+use myc_core::use_cases::role_scoped::tenant_manager::delete_subscription_account;
+use myc_diesel::repositories::AppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
         delete_response_kind, handle_mapped_error,
     },
 };
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
@@ -72,7 +67,7 @@ pub async fn delete_subscription_account_url(
     tenant: TenantData,
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    account_deletion_repo: Inject<AccountDeletionModule, dyn AccountDeletion>,
+    app_module: web::Data<AppModule>,
 ) -> impl Responder {
     let account_id = path.into_inner();
 
@@ -80,7 +75,7 @@ pub async fn delete_subscription_account_url(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         account_id,
-        Box::new(&*account_deletion_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

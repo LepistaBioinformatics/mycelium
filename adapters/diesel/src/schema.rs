@@ -106,7 +106,6 @@ diesel::table! {
         name -> Varchar,
         slug -> Varchar,
         meta -> Nullable<Jsonb>,
-        tags -> Nullable<Jsonb>,
         account_type -> Jsonb,
         created -> Timestamptz,
         updated -> Nullable<Timestamptz>,

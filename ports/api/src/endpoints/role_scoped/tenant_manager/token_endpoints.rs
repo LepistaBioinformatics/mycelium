@@ -1,12 +1,9 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    modules::{MessageSendingQueueModule, TokenRegistrationModule},
-};
+use crate::{dtos::MyceliumProfileData, modules::MessageSendingQueueModule};
+use myc_diesel::repositories::AppModule;
 
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
-    domain::entities::{MessageSending, TokenRegistration},
-    models::AccountLifeCycle,
+    domain::entities::MessageSending, models::AccountLifeCycle,
     use_cases::role_scoped::tenant_manager::create_tenant_associated_connection_string,
 };
 use myc_http_tools::{
@@ -15,6 +12,7 @@ use myc_http_tools::{
     Permission,
 };
 use serde::{Deserialize, Serialize};
+use shaku::HasComponent;
 use shaku_actix::Inject;
 use utoipa::{ToResponse, ToSchema};
 use uuid::Uuid;
@@ -81,10 +79,7 @@ pub async fn create_tenant_associated_connection_string_url(
     body: web::Json<CreateTenantScopedTokenBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    token_registration_repo: Inject<
-        TokenRegistrationModule,
-        dyn TokenRegistration,
-    >,
+    app_module: web::Data<AppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     match create_tenant_associated_connection_string(
@@ -93,7 +88,7 @@ pub async fn create_tenant_associated_connection_string_url(
         body.expiration.to_owned(),
         body.permissioned_roles.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*token_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*message_sending_repo),
     )
     .await
