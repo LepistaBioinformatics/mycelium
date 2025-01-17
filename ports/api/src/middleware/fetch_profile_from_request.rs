@@ -86,8 +86,8 @@ pub(crate) async fn fetch_profile_from_request(
         Ok(res) => match res {
             ProfileResponse::UnregisteredUser(email) => {
                 return Err(GatewayError::Forbidden(format!(
-                    "Unauthorized access: {:?}",
-                    email,
+                    "Unauthorized access: {email}",
+                    email = email.email(),
                 )))
             }
             ProfileResponse::RegisteredUser(res) => res,
