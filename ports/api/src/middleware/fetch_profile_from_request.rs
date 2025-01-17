@@ -26,7 +26,7 @@ use uuid::Uuid;
 ///
 /// This function is auxiliary of the MyceliumProfileData struct used to extract
 /// the Mycelium Profile from the request on mycelium native APIs.
-#[tracing::instrument(name = "fetch_profile_from_request", skip_all)]
+#[tracing::instrument(name = "fetch_profile_from_request", skip(req))]
 pub(crate) async fn fetch_profile_from_request(
     req: HttpRequest,
     tenant: Option<Uuid>,

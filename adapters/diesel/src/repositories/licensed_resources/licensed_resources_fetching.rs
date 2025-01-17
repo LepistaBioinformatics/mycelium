@@ -112,7 +112,10 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             }
         }
 
-        trace!("sql: {:?}", sql);
+        trace!(
+            "sql: {s}",
+            s = sql.replace(&email.email(), &email.redacted_email())
+        );
 
         let rows = diesel::sql_query(sql)
             .load::<LicensedResourceRow>(conn)
