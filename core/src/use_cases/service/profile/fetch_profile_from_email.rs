@@ -24,7 +24,13 @@ pub enum ProfileResponse {
 }
 
 /// Fetch the user profile from email address.
-#[tracing::instrument(name = "fetch_profile_from_email", skip_all)]
+#[tracing::instrument(
+    name = "fetch_profile_from_email", 
+    fields(
+        email = %email.redacted_email(),
+    ),
+    skip(email, profile_fetching_repo, licensed_resources_fetching_repo)
+)]
 pub async fn fetch_profile_from_email(
     email: Email,
     was_verified: Option<bool>,
