@@ -1,4 +1,6 @@
-use crate::{models::config::DbPoolProvider, schema::error_code as error_code_model};
+use crate::{
+    models::config::DbPoolProvider, schema::error_code as error_code_model,
+};
 
 use async_trait::async_trait;
 use diesel::prelude::*;
@@ -21,6 +23,7 @@ pub struct ErrorCodeDeletionSqlDbRepository {
 
 #[async_trait]
 impl ErrorCodeDeletion for ErrorCodeDeletionSqlDbRepository {
+    #[tracing::instrument(name = "delete_error_code", skip_all)]
     async fn delete(
         &self,
         prefix: String,

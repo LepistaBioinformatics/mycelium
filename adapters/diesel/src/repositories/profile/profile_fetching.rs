@@ -27,8 +27,9 @@ use mycelium_base::{
 };
 use serde_json::from_value;
 use shaku::Component;
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 use tracing::error;
+use uuid::Uuid;
 
 #[derive(Component)]
 #[shaku(interface = ProfileFetching)]
@@ -39,6 +40,7 @@ pub struct ProfileFetchingSqlDbRepository {
 
 #[async_trait]
 impl ProfileFetching for ProfileFetchingSqlDbRepository {
+    #[tracing::instrument(name = "get_profile_from_email", skip_all)]
     async fn get_from_email(
         &self,
         email: Email,
@@ -88,7 +90,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
 
                 let is_active = owner.is_principal;
                 let owner = Owner {
-                    id: owner.id,
+                    id: Uuid::from_str(&owner.id).unwrap(),
                     email: Email::from_string(owner.email)?.email(),
                     first_name: Some(owner.first_name),
                     last_name: Some(owner.last_name),
@@ -98,7 +100,7 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
 
                 Ok(FetchResponseKind::Found(Profile::new(
                     vec![owner],
-                    account.id,
+                    Uuid::from_str(&account.id).unwrap(),
                     is_subscription,
                     is_manager,
                     is_staff,

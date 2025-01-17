@@ -34,6 +34,7 @@ pub struct TokenRegistrationSqlDbRepository {
 
 #[async_trait]
 impl TokenRegistration for TokenRegistrationSqlDbRepository {
+    #[tracing::instrument(name = "create_email_confirmation_token", skip_all)]
     async fn create_email_confirmation_token(
         &self,
         meta: EmailConfirmationTokenMeta,
@@ -84,6 +85,7 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
         )))
     }
 
+    #[tracing::instrument(name = "create_password_change_token", skip_all)]
     async fn create_password_change_token(
         &self,
         meta: PasswordChangeTokenMeta,
@@ -134,6 +136,10 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
         )))
     }
 
+    #[tracing::instrument(
+        name = "create_account_scoped_connection_string",
+        skip_all
+    )]
     async fn create_account_scoped_connection_string(
         &self,
         meta: AccountScopedConnectionString,
@@ -185,6 +191,10 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
         )))
     }
 
+    #[tracing::instrument(
+        name = "create_role_scoped_connection_string",
+        skip_all
+    )]
     async fn create_role_scoped_connection_string(
         &self,
         meta: RoleScopedConnectionString,

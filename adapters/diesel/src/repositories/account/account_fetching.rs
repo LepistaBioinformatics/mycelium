@@ -41,6 +41,7 @@ pub struct AccountFetchingSqlDbRepository {
 
 #[async_trait]
 impl AccountFetching for AccountFetchingSqlDbRepository {
+    #[tracing::instrument(name = "get_account", skip_all)]
     async fn get(
         &self,
         id: Uuid,
@@ -55,12 +56,14 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
 
         // Apply related accounts filter if provided
         if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
-            query = query.filter(account_model::id.eq_any(ids));
+            query = query.filter(account_model::id.eq_any(
+                ids.iter().map(|id| id.to_string()).collect::<Vec<String>>(),
+            ));
         }
 
         // Fetch account and its relationships
         let account = query
-            .filter(account_model::id.eq(id))
+            .filter(account_model::id.eq(id.to_string()))
             .left_join(user_model::table)
             .select(AccountModel::as_select())
             .first::<AccountModel>(conn)
@@ -77,6 +80,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "list_accounts", skip_all)]
     async fn list(
         &self,
         related_accounts: RelatedAccounts,

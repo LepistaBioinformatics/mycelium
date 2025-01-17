@@ -22,6 +22,7 @@ pub struct UserDeletionSqlDbRepository {
 
 #[async_trait]
 impl UserDeletion for UserDeletionSqlDbRepository {
+    #[tracing::instrument(name = "delete_user", skip_all)]
     async fn delete(
         &self,
         user_id: Uuid,
@@ -31,7 +32,9 @@ impl UserDeletion for UserDeletionSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        match diesel::delete(user_model::table.find(user_id)).execute(conn) {
+        match diesel::delete(user_model::table.find(user_id.to_string()))
+            .execute(conn)
+        {
             Ok(_) => Ok(DeletionResponseKind::Deleted),
             Err(e) => {
                 Ok(DeletionResponseKind::NotDeleted(user_id, e.to_string()))

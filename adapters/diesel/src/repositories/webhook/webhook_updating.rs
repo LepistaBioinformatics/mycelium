@@ -16,7 +16,8 @@ use mycelium_base::{
 };
 use serde_json::from_value;
 use shaku::Component;
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
+use uuid::Uuid;
 
 #[derive(Component)]
 #[shaku(interface = WebHookUpdating)]
@@ -27,6 +28,7 @@ pub struct WebHookUpdatingSqlDbRepository {
 
 #[async_trait]
 impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
+    #[tracing::instrument(name = "update_webhook", skip_all)]
     async fn update(
         &self,
         webhook: WebHook,
@@ -40,27 +42,28 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
             updating_err("Unable to update webhook. Invalid record ID")
         })?;
 
-        let updated = diesel::update(webhook_model::table.find(webhook_id))
-            .set((
-                webhook_model::name.eq(webhook.name),
-                webhook_model::description.eq(webhook.description),
-                webhook_model::url.eq(webhook.url),
-                webhook_model::trigger.eq(webhook.trigger.to_string()),
-                webhook_model::is_active.eq(webhook.is_active),
-                webhook_model::updated.eq(Some(Local::now().naive_utc())),
-            ))
-            .returning(WebHookModel::as_returning())
-            .get_result::<WebHookModel>(conn)
-            .map_err(|e| {
-                if e == diesel::result::Error::NotFound {
-                    updating_err(format!(
-                        "Invalid primary key: {:?}",
-                        webhook_id
-                    ))
-                } else {
-                    updating_err(format!("Failed to update webhook: {}", e))
-                }
-            })?;
+        let updated =
+            diesel::update(webhook_model::table.find(webhook_id.to_string()))
+                .set((
+                    webhook_model::name.eq(webhook.name),
+                    webhook_model::description.eq(webhook.description),
+                    webhook_model::url.eq(webhook.url),
+                    webhook_model::trigger.eq(webhook.trigger.to_string()),
+                    webhook_model::is_active.eq(webhook.is_active),
+                    webhook_model::updated.eq(Some(Local::now().naive_utc())),
+                ))
+                .returning(WebHookModel::as_returning())
+                .get_result::<WebHookModel>(conn)
+                .map_err(|e| {
+                    if e == diesel::result::Error::NotFound {
+                        updating_err(format!(
+                            "Invalid primary key: {:?}",
+                            webhook_id
+                        ))
+                    } else {
+                        updating_err(format!("Failed to update webhook: {}", e))
+                    }
+                })?;
 
         let mut webhook = WebHook::new(
             updated.name,
@@ -70,7 +73,7 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
             updated.secret.map(|s| from_value(s).unwrap()),
         );
 
-        webhook.id = Some(updated.id);
+        webhook.id = Some(Uuid::from_str(&updated.id).unwrap());
         webhook.is_active = updated.is_active;
         webhook.created = updated.created.and_local_timezone(Local).unwrap();
         webhook.updated = updated

@@ -40,6 +40,7 @@ pub struct UserFetchingSqlDbRepository {
 
 #[async_trait]
 impl UserFetching for UserFetchingSqlDbRepository {
+    #[tracing::instrument(name = "get_user_by_email", skip_all)]
     async fn get_user_by_email(
         &self,
         email: Email,
@@ -81,7 +82,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
                 };
 
                 let mut user = User::new(
-                    Some(user_record.id),
+                    Some(Uuid::parse_str(&user_record.id).unwrap()),
                     user_record.username,
                     Email::from_string(user_record.email)?,
                     Some(user_record.first_name),
@@ -91,7 +92,9 @@ impl UserFetching for UserFetchingSqlDbRepository {
                     user_record
                         .updated
                         .map(|dt| dt.and_local_timezone(Local).unwrap()),
-                    user_record.account_id.map(Parent::Id),
+                    user_record
+                        .account_id
+                        .map(|id| Parent::Id(Uuid::parse_str(&id).unwrap())),
                     Some(provider),
                 )
                 .with_principal(user_record.is_principal);
@@ -115,6 +118,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "get_user_by_id", skip_all)]
     async fn get_user_by_id(
         &self,
         id: Uuid,
@@ -125,7 +129,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
         })?;
 
         let result = user_model::table
-            .find(id)
+            .find(id.to_string())
             .inner_join(identity_provider_model::table)
             .select((
                 UserModel::as_select(),
@@ -156,7 +160,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
                 };
 
                 let mut user = User::new(
-                    Some(user_record.id),
+                    Some(Uuid::parse_str(&user_record.id).unwrap()),
                     user_record.username,
                     Email::from_string(user_record.email)?,
                     Some(user_record.first_name),
@@ -166,7 +170,9 @@ impl UserFetching for UserFetchingSqlDbRepository {
                     user_record
                         .updated
                         .map(|dt| dt.and_local_timezone(Local).unwrap()),
-                    user_record.account_id.map(Parent::Id),
+                    user_record
+                        .account_id
+                        .map(|id| Parent::Id(Uuid::parse_str(&id).unwrap())),
                     Some(provider),
                 )
                 .with_principal(user_record.is_principal);
@@ -190,6 +196,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "get_not_redacted_user_by_email", skip_all)]
     async fn get_not_redacted_user_by_email(
         &self,
         email: Email,
@@ -209,12 +216,19 @@ impl UserFetching for UserFetchingSqlDbRepository {
             .first::<(UserModel, IdentityProviderModel)>(conn)
             .optional()
             .map_err(|e| {
-                fetching_err(format!("Failed to fetch user: {}", e))
-            })?;
+                error!("Eror: {}", e);
+                fetching_err(format!("Failed to fetch user: {}", e)).as_error()
+            });
 
         match result {
-            None => Ok(FetchResponseKind::NotFound(None)),
-            Some((user_record, provider_record)) => {
+            Err(err) => err?,
+            Ok(res) => {
+                let (user_record, provider_record) = if let Some(res) = res {
+                    res
+                } else {
+                    return Ok(FetchResponseKind::NotFound(None));
+                };
+
                 let provider = if let Some(password_hash) =
                     provider_record.password_hash
                 {
@@ -231,7 +245,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
                 };
 
                 let mut user = User::new(
-                    Some(user_record.id),
+                    Some(Uuid::parse_str(&user_record.id).unwrap()),
                     user_record.username,
                     Email::from_string(user_record.email)?,
                     Some(user_record.first_name),
@@ -241,7 +255,9 @@ impl UserFetching for UserFetchingSqlDbRepository {
                     user_record
                         .updated
                         .map(|dt| dt.and_local_timezone(Local).unwrap()),
-                    user_record.account_id.map(Parent::Id),
+                    user_record
+                        .account_id
+                        .map(|id| Parent::Id(Uuid::parse_str(&id).unwrap())),
                     Some(provider),
                 )
                 .with_principal(user_record.is_principal);

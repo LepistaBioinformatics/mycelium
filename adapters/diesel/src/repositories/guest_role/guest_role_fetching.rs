@@ -27,6 +27,7 @@ pub struct GuestRoleFetchingSqlDbRepository {
 
 #[async_trait]
 impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
+    #[tracing::instrument(name = "get_guest_role", skip_all)]
     async fn get(
         &self,
         id: Uuid,
@@ -37,7 +38,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
         })?;
 
         let role = guest_role_model::table
-            .find(id)
+            .find(id.to_string())
             .select(GuestRoleModel::as_select())
             .first::<GuestRoleModel>(conn)
             .optional()
@@ -53,6 +54,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "list_guest_roles", skip_all)]
     async fn list(
         &self,
         name: Option<String>,

@@ -28,6 +28,7 @@ pub struct GuestUserFetchingSqlDbRepository {
 
 #[async_trait]
 impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
+    #[tracing::instrument(name = "list_guest_users", skip_all)]
     async fn list(
         &self,
         account_id: Uuid,
@@ -39,7 +40,10 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
 
         let records = guest_user_model::table
             .inner_join(guest_user_on_account_model::table)
-            .filter(guest_user_on_account_model::account_id.eq(account_id))
+            .filter(
+                guest_user_on_account_model::account_id
+                    .eq(account_id.to_string()),
+            )
             .select(GuestUserModel::as_select())
             .load::<GuestUserModel>(conn)
             .map_err(|e| {

@@ -33,6 +33,7 @@ pub struct AccountUpdatingSqlDbRepository {
 
 #[async_trait]
 impl AccountUpdating for AccountUpdatingSqlDbRepository {
+    #[tracing::instrument(name = "update_account", skip_all)]
     async fn update(
         &self,
         account: Account,
@@ -51,25 +52,28 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
             }
         };
 
-        let updated = diesel::update(account_model::table.find(account_id))
-            .set((
-                account_model::name.eq(account.name),
-                account_model::slug.eq(account.slug),
-                account_model::is_active.eq(account.is_active),
-                account_model::is_checked.eq(account.is_checked),
-                account_model::is_archived.eq(account.is_archived),
-                account_model::updated.eq(Some(Local::now().naive_utc())),
-            ))
-            .get_result::<AccountModel>(conn)
-            .map_err(|e| {
-                updating_err(format!("Failed to update account: {}", e))
-            })?;
+        let updated =
+            diesel::update(account_model::table.find(account_id.to_string()))
+                .set((
+                    account_model::name.eq(account.name),
+                    account_model::slug.eq(account.slug),
+                    account_model::is_active.eq(account.is_active),
+                    account_model::is_checked.eq(account.is_checked),
+                    account_model::is_archived.eq(account.is_archived),
+                    account_model::updated.eq(Some(Local::now().naive_utc())),
+                ))
+                .returning(AccountModel::as_returning())
+                .get_result(conn)
+                .map_err(|e| {
+                    updating_err(format!("Failed to update account: {}", e))
+                })?;
 
         Ok(UpdatingResponseKind::Updated(
             self.map_account_model_to_dto(updated),
         ))
     }
 
+    #[tracing::instrument(name = "update_own_account_name", skip_all)]
     async fn update_own_account_name(
         &self,
         account_id: Uuid,
@@ -80,21 +84,27 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let updated = diesel::update(account_model::table.find(account_id))
-            .set((
-                account_model::name.eq(name),
-                account_model::updated.eq(Some(Local::now().naive_utc())),
-            ))
-            .get_result::<AccountModel>(conn)
-            .map_err(|e| {
-                updating_err(format!("Failed to update account name: {}", e))
-            })?;
+        let updated =
+            diesel::update(account_model::table.find(account_id.to_string()))
+                .set((
+                    account_model::name.eq(name),
+                    account_model::updated.eq(Some(Local::now().naive_utc())),
+                ))
+                .returning(AccountModel::as_returning())
+                .get_result(conn)
+                .map_err(|e| {
+                    updating_err(format!(
+                        "Failed to update account name: {}",
+                        e
+                    ))
+                })?;
 
         Ok(UpdatingResponseKind::Updated(
             self.map_account_model_to_dto(updated),
         ))
     }
 
+    #[tracing::instrument(name = "update_account_type", skip_all)]
     async fn update_account_type(
         &self,
         account_id: Uuid,
@@ -105,21 +115,28 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let updated = diesel::update(account_model::table.find(account_id))
-            .set((
-                account_model::account_type.eq(to_value(account_type).unwrap()),
-                account_model::updated.eq(Some(Local::now().naive_utc())),
-            ))
-            .get_result::<AccountModel>(conn)
-            .map_err(|e| {
-                updating_err(format!("Failed to update account type: {}", e))
-            })?;
+        let updated =
+            diesel::update(account_model::table.find(account_id.to_string()))
+                .set((
+                    account_model::account_type
+                        .eq(to_value(account_type).unwrap()),
+                    account_model::updated.eq(Some(Local::now().naive_utc())),
+                ))
+                .returning(AccountModel::as_returning())
+                .get_result(conn)
+                .map_err(|e| {
+                    updating_err(format!(
+                        "Failed to update account type: {}",
+                        e
+                    ))
+                })?;
 
         Ok(UpdatingResponseKind::Updated(
             self.map_account_model_to_dto(updated),
         ))
     }
 
+    #[tracing::instrument(name = "update_account_meta", skip_all)]
     async fn update_account_meta(
         &self,
         account_id: Uuid,
@@ -134,7 +151,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
         let transaction_result = conn.transaction(|conn| {
             // Get current account and its meta
             let account = account_model::table
-                .find(account_id)
+                .find(account_id.to_string())
                 .select(account_model::meta)
                 .first::<Option<JsonValue>>(conn)?;
 
@@ -148,7 +165,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
 
             // Update account meta
             diesel::update(account_model::table)
-                .filter(account_model::id.eq(account_id))
+                .filter(account_model::id.eq(account_id.to_string()))
                 .set(account_model::meta.eq(to_value(&meta_map).unwrap()))
                 .execute(conn)?;
 
@@ -172,7 +189,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
 impl AccountUpdatingSqlDbRepository {
     fn map_account_model_to_dto(&self, model: AccountModel) -> Account {
         Account {
-            id: Some(model.id),
+            id: Some(Uuid::from_str(&model.id).unwrap()),
             name: model.name,
             slug: model.slug,
             tags: None,

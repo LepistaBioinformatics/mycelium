@@ -617,7 +617,6 @@ pub async fn main() -> std::io::Result<()> {
             // ? Configure Injection modules
             // ? ---------------------------------------------------------------
             .configure(configure_injection_modules)
-            //.configure(configure_diesel_injectors)
             // ? ---------------------------------------------------------------
             // ? Configure mycelium routes
             // ? ---------------------------------------------------------------

@@ -28,6 +28,7 @@ pub struct AccountDeletionSqlDbRepository {
 
 #[async_trait]
 impl AccountDeletion for AccountDeletionSqlDbRepository {
+    #[tracing::instrument(name = "delete_account", skip_all)]
     async fn delete(
         &self,
         account_id: Uuid,
@@ -42,14 +43,16 @@ impl AccountDeletion for AccountDeletionSqlDbRepository {
 
         // Apply related accounts filter if provided
         if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
-            query = query.filter(account_model::id.eq_any(ids));
+            query = query.filter(account_model::id.eq_any(
+                ids.iter().map(|id| id.to_string()).collect::<Vec<String>>(),
+            ));
         }
 
         // Check if account exists and is allowed
         let account_exists = query
-            .filter(account_model::id.eq(account_id))
+            .filter(account_model::id.eq(account_id.to_string()))
             .select(account_model::id)
-            .first::<Uuid>(conn)
+            .first::<String>(conn)
             .optional()
             .map_err(|e| {
                 deletion_err(format!("Failed to check account: {}", e))
@@ -58,11 +61,13 @@ impl AccountDeletion for AccountDeletionSqlDbRepository {
         match account_exists {
             Some(_) => {
                 // Delete account
-                diesel::delete(account_model::table.find(account_id))
-                    .execute(conn)
-                    .map_err(|e| {
-                        deletion_err(format!("Failed to delete account: {}", e))
-                    })?;
+                diesel::delete(
+                    account_model::table.find(account_id.to_string()),
+                )
+                .execute(conn)
+                .map_err(|e| {
+                    deletion_err(format!("Failed to delete account: {}", e))
+                })?;
 
                 Ok(DeletionResponseKind::Deleted)
             }
@@ -73,6 +78,7 @@ impl AccountDeletion for AccountDeletionSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "delete_account_meta", skip_all)]
     async fn delete_account_meta(
         &self,
         account_id: Uuid,
@@ -86,7 +92,7 @@ impl AccountDeletion for AccountDeletionSqlDbRepository {
         let transaction_result = conn.transaction(|conn| {
             // Get current account and its meta
             let account = account_model::table
-                .find(account_id)
+                .find(account_id.to_string())
                 .select(account_model::meta)
                 .first::<Option<JsonValue>>(conn)?;
 
@@ -100,7 +106,7 @@ impl AccountDeletion for AccountDeletionSqlDbRepository {
 
             // Update account meta
             diesel::update(account_model::table)
-                .filter(account_model::id.eq(account_id))
+                .filter(account_model::id.eq(account_id.to_string()))
                 .set(
                     account_model::meta
                         .eq(serde_json::to_value(meta_map).unwrap()),

@@ -16,7 +16,7 @@ use mycelium_base::{
 };
 use serde_json::{from_value, to_value};
 use shaku::Component;
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -28,6 +28,7 @@ pub struct WebHookRegistrationSqlDbRepository {
 
 #[async_trait]
 impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
+    #[tracing::instrument(name = "create_webhook", skip_all)]
     async fn create(
         &self,
         webhook: WebHook,
@@ -38,7 +39,7 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
         })?;
 
         let new_webhook = WebHookModel {
-            id: Uuid::new_v4(),
+            id: Uuid::new_v4().to_string(),
             name: webhook.name.clone(),
             description: webhook.description.clone(),
             url: webhook.url.clone(),
@@ -65,7 +66,7 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
             created.secret.map(|s| from_value(s).unwrap()),
         );
 
-        webhook.id = Some(created.id);
+        webhook.id = Some(Uuid::from_str(&created.id).unwrap());
         webhook.is_active = created.is_active;
         webhook.created = created.created.and_local_timezone(Local).unwrap();
         webhook.updated = created

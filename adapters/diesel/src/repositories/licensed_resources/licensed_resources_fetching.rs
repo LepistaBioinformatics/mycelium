@@ -37,6 +37,7 @@ pub struct LicensedResourcesFetchingSqlDbRepository {
 
 #[async_trait]
 impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
+    #[tracing::instrument(name = "list_licensed_resources", skip_all)]
     async fn list_licensed_resources(
         &self,
         email: Email,
@@ -47,7 +48,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         was_verified: Option<bool>,
     ) -> Result<FetchManyResponseKind<LicensedResource>, MappedErrors> {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
-            fetching_err(format!("Failed to get DB connection: {}", e))
+            fetching_err(format!("Failed to get DB connection: {e}"))
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
@@ -64,7 +65,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
 
         if let Some(roles) = roles {
             sql.push_str(
-                format!(" AND gr_slug ANY({})", roles.join(",")).as_str(),
+                format!(" AND gr_slug = ANY({})", roles.join(",")).as_str(),
             );
         }
 
@@ -108,10 +109,9 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         let rows = diesel::sql_query(sql)
             .load::<LicensedResourceRow>(conn)
             .map_err(|e| {
-                fetching_err(format!(
-                    "Failed to fetch licensed resources: {}",
-                    e
-                ))
+                fetching_err(
+                    format!("Failed to fetch licensed resources: {e}",),
+                )
             })?;
 
         if rows.is_empty() {
@@ -140,6 +140,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         Ok(FetchManyResponseKind::Found(licenses))
     }
 
+    #[tracing::instrument(name = "list_tenants_ownership", skip_all)]
     async fn list_tenants_ownership(
         &self,
         email: Email,

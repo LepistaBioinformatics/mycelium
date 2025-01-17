@@ -22,6 +22,7 @@ pub struct WebHookDeletionSqlDbRepository {
 
 #[async_trait]
 impl WebHookDeletion for WebHookDeletionSqlDbRepository {
+    #[tracing::instrument(name = "delete_webhook", skip_all)]
     async fn delete(
         &self,
         hook_id: Uuid,
@@ -33,9 +34,9 @@ impl WebHookDeletion for WebHookDeletionSqlDbRepository {
 
         // Check if webhook exists
         let exists = webhook_model::table
-            .find(hook_id)
+            .find(hook_id.to_string())
             .select(webhook_model::id)
-            .first::<Uuid>(conn)
+            .first::<String>(conn)
             .optional()
             .map_err(|e| {
                 deletion_err(format!("Failed to check webhook: {}", e))
@@ -44,7 +45,7 @@ impl WebHookDeletion for WebHookDeletionSqlDbRepository {
         match exists {
             Some(_) => {
                 // Delete webhook
-                diesel::delete(webhook_model::table.find(hook_id))
+                diesel::delete(webhook_model::table.find(hook_id.to_string()))
                     .execute(conn)
                     .map_err(|e| {
                         deletion_err(format!("Failed to delete webhook: {}", e))

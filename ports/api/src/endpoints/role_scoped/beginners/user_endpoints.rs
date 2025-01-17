@@ -34,7 +34,7 @@ use serde::{Deserialize, Serialize, Serializer};
 use serde_json::json;
 use shaku::HasComponent;
 use shaku_actix::Inject;
-use tracing::warn;
+use tracing::{error, warn};
 use utoipa::{ToResponse, ToSchema};
 
 // ? ---------------------------------------------------------------------------
@@ -277,7 +277,11 @@ pub async fn check_email_registration_status_url(
 
             response.finish()
         }
-        Err(err) => handle_mapped_error(err),
+        Err(err) => {
+            error!("Error checking email registration status: {err}");
+
+            handle_mapped_error(err)
+        }
     }
 }
 

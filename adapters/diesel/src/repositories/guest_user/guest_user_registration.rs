@@ -29,6 +29,7 @@ pub struct GuestUserRegistrationSqlDbRepository {
 
 #[async_trait]
 impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
+    #[tracing::instrument(name = "get_or_create_guest_user", skip_all)]
     async fn get_or_create(
         &self,
         guest_user: GuestUser,
@@ -42,8 +43,10 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
         // Check if guest user exists
         let existing = guest_user_model::table
             .inner_join(guest_user_on_account::table)
-            .filter(guest_user_model::email.eq(guest_user.email.to_string()))
-            .filter(guest_user_on_account::account_id.eq(account_id))
+            .filter(guest_user_model::email.eq(guest_user.email.email()))
+            .filter(
+                guest_user_on_account::account_id.eq(account_id.to_string()),
+            )
             .select(GuestUserModel::as_select())
             .first::<GuestUserModel>(conn)
             .optional()
@@ -63,10 +66,10 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
 
         // Create new guest user
         let new_user = GuestUserModel {
-            id: Uuid::new_v4(),
+            id: Uuid::new_v4().to_string(),
             email: guest_user.email.to_string(),
             guest_role_id: match guest_user.guest_role {
-                Parent::Id(id) => id,
+                Parent::Id(id) => id.to_string(),
                 _ => {
                     return creation_err(
                         "Guest role ID is required".to_string(),
@@ -89,8 +92,9 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
         // Create guest user on account relationship
         diesel::insert_into(guest_user_on_account::table)
             .values((
-                guest_user_on_account::guest_user_id.eq(created_user.id),
-                guest_user_on_account::account_id.eq(account_id),
+                guest_user_on_account::guest_user_id
+                    .eq(created_user.id.clone()),
+                guest_user_on_account::account_id.eq(account_id.to_string()),
             ))
             .execute(conn)
             .map_err(|e| {

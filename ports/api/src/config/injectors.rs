@@ -7,7 +7,6 @@ use myc_mem_db::repositories::{
 use myc_notifier::repositories::{
     MessageSendingQueueRepository, MessageSendingQueueRepositoryParameters,
 };
-
 use std::sync::Arc;
 
 /// Configure injection modules.

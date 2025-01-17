@@ -33,6 +33,10 @@ pub struct TokenFetchingSqlDbRepository {
 
 #[async_trait]
 impl TokenFetching for TokenFetchingSqlDbRepository {
+    #[tracing::instrument(
+        name = "get_connection_string_by_account_with_permissioned_roles_scope",
+        skip_all
+    )]
     async fn get_connection_string_by_account_with_permissioned_roles_scope(
         &self,
         scope: AccountWithPermissionedRolesScope,
@@ -186,6 +190,10 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(
+        name = "get_connection_string_by_role_with_permissioned_roles_scope",
+        skip_all
+    )]
     async fn get_connection_string_by_role_with_permissioned_roles_scope(
         &self,
         scope: RoleWithPermissionsScope,
@@ -339,6 +347,10 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(
+        name = "get_connection_string_by_tenant_with_permissioned_roles_scope",
+        skip_all
+    )]
     async fn get_connection_string_by_tenant_with_permissioned_roles_scope(
         &self,
         scope: TenantWithPermissionsScope,

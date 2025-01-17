@@ -38,6 +38,7 @@ pub struct UserRegistrationSqlDbRepository {
 
 #[async_trait]
 impl UserRegistration for UserRegistrationSqlDbRepository {
+    #[tracing::instrument(name = "get_or_create_user", skip_all)]
     async fn get_or_create(
         &self,
         user: User,
@@ -65,7 +66,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
         if let Some(record) = existing_user {
             return Ok(GetOrCreateResponseKind::NotCreated(
                 User::new(
-                    Some(record.id),
+                    Some(Uuid::parse_str(&record.id).unwrap()),
                     record.username,
                     Email::from_string(record.email)?,
                     Some(record.first_name),
@@ -75,7 +76,9 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                     record
                         .updated
                         .map(|dt| dt.and_local_timezone(Local).unwrap()),
-                    record.account_id.map(Parent::Id),
+                    record
+                        .account_id
+                        .map(|id| Parent::Id(Uuid::parse_str(&id).unwrap())),
                     None,
                 )
                 .with_principal(record.is_principal),
@@ -87,7 +90,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
         let result = conn.transaction(|conn| {
             // Create user
             let new_user = UserModel {
-                id: Uuid::new_v4(),
+                id: Uuid::new_v4().to_string(),
                 username: user.username.clone(),
                 email: user.email.email(),
                 first_name: user.first_name.clone().unwrap_or_default(),
@@ -101,26 +104,26 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
             };
 
             let created_user = diesel::insert_into(user_model::table)
-                .values(&new_user)
+                .values(new_user)
                 .returning(UserModel::as_returning())
                 .get_result::<UserModel>(conn)?;
 
             // Create identity provider
             let provider_params = match provider {
                 Provider::External(name) => IdentityProviderModel {
-                    user_id: created_user.id,
+                    user_id: created_user.id.clone(),
                     name: Some(name),
                     password_hash: None,
                 },
                 Provider::Internal(pass) => IdentityProviderModel {
-                    user_id: created_user.id,
+                    user_id: created_user.id.clone(),
                     name: None,
                     password_hash: Some(pass.hash),
                 },
             };
 
             diesel::insert_into(identity_provider_model::table)
-                .values(&provider_params)
+                .values(provider_params)
                 .execute(conn)?;
 
             Ok::<UserModel, diesel::result::Error>(created_user)
@@ -129,7 +132,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
         match result {
             Ok(record) => Ok(GetOrCreateResponseKind::Created(
                 User::new(
-                    Some(record.id),
+                    Some(Uuid::parse_str(&record.id).unwrap()),
                     record.username,
                     Email::from_string(record.email)?,
                     Some(record.first_name),
@@ -139,7 +142,9 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                     record
                         .updated
                         .map(|dt| dt.and_local_timezone(Local).unwrap()),
-                    record.account_id.map(Parent::Id),
+                    record
+                        .account_id
+                        .map(|id| Parent::Id(Uuid::parse_str(&id).unwrap())),
                     None,
                 )
                 .with_principal(record.is_principal),

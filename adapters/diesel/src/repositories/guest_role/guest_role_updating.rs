@@ -27,6 +27,7 @@ pub struct GuestRoleUpdatingSqlDbRepository {
 
 #[async_trait]
 impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
+    #[tracing::instrument(name = "update_guest_role", skip_all)]
     async fn update(
         &self,
         user_role: GuestRole,
@@ -40,18 +41,21 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
             updating_err("Role ID is required for update".to_string())
         })?;
 
-        let updated = diesel::update(guest_role_model::table.find(role_id))
-            .set((
-                guest_role_model::name.eq(&user_role.name),
-                guest_role_model::slug.eq(&user_role.slug),
-                guest_role_model::description.eq(user_role.description.clone()),
-                guest_role_model::permission.eq(user_role.permission.to_i32()),
-            ))
-            .get_result::<GuestRoleModel>(conn)
-            .optional()
-            .map_err(|e| {
-                updating_err(format!("Failed to update role: {}", e))
-            })?;
+        let updated =
+            diesel::update(guest_role_model::table.find(role_id.to_string()))
+                .set((
+                    guest_role_model::name.eq(&user_role.name),
+                    guest_role_model::slug.eq(&user_role.slug),
+                    guest_role_model::description
+                        .eq(user_role.description.clone()),
+                    guest_role_model::permission
+                        .eq(user_role.permission.to_i32()),
+                ))
+                .get_result::<GuestRoleModel>(conn)
+                .optional()
+                .map_err(|e| {
+                    updating_err(format!("Failed to update role: {}", e))
+                })?;
 
         match updated {
             Some(record) => {
@@ -64,6 +68,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "insert_role_child", skip_all)]
     async fn insert_role_child(
         &self,
         role_id: Uuid,
@@ -76,7 +81,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
 
         // Check if both roles exist
         let parent_role = guest_role_model::table
-            .find(role_id)
+            .find(role_id.to_string())
             .select(GuestRoleModel::as_select())
             .first::<GuestRoleModel>(conn)
             .optional()
@@ -85,7 +90,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
             })?;
 
         let child_role = guest_role_model::table
-            .find(child_id)
+            .find(child_id.to_string())
             .select(GuestRoleModel::as_select())
             .first::<GuestRoleModel>(conn)
             .optional()
@@ -98,8 +103,9 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                 // Insert into guest_role_children table
                 diesel::insert_into(guest_role_children::table)
                     .values((
-                        guest_role_children::parent_id.eq(role_id),
-                        guest_role_children::child_role_id.eq(child_id),
+                        guest_role_children::parent_id.eq(role_id.to_string()),
+                        guest_role_children::child_role_id
+                            .eq(child_id.to_string()),
                     ))
                     .execute(conn)
                     .map_err(|e| {
@@ -124,6 +130,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "remove_role_child", skip_all)]
     async fn remove_role_child(
         &self,
         role_id: Uuid,
@@ -136,7 +143,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
 
         // Check if parent role exists
         let parent_role = guest_role_model::table
-            .find(role_id)
+            .find(role_id.to_string())
             .select(GuestRoleModel::as_select())
             .first::<GuestRoleModel>(conn)
             .optional()
@@ -149,9 +156,13 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                 // Remove from guest_role_children table
                 let deleted = diesel::delete(
                     guest_role_children::table
-                        .filter(guest_role_children::parent_id.eq(role_id))
                         .filter(
-                            guest_role_children::child_role_id.eq(child_id),
+                            guest_role_children::parent_id
+                                .eq(role_id.to_string()),
+                        )
+                        .filter(
+                            guest_role_children::child_role_id
+                                .eq(child_id.to_string()),
                         ),
                 )
                 .execute(conn)
