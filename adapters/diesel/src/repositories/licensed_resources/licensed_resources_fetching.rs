@@ -1,12 +1,13 @@
-use crate::models::config::DbPoolProvider;
+use crate::{
+    models::config::DbPoolProvider,
+    schema::{owner_on_tenant::dsl as owner_dsl, user::dsl as user_dsl},
+};
 
 use async_trait::async_trait;
 use chrono::{Local, NaiveDateTime};
 use diesel::{
-    pg::Pg,
     prelude::*,
-    serialize::ToSql,
-    sql_types::{Bool, Integer, Nullable, Text, Timestamptz},
+    sql_types::{Bool, Integer, Nullable, Text},
     RunQueryDsl,
 };
 use myc_core::domain::{
@@ -26,6 +27,7 @@ use mycelium_base::{
 };
 use shaku::Component;
 use std::sync::Arc;
+use tracing::trace;
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -52,14 +54,18 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let mut sql = format!(
-            "SELECT * FROM licensed_resources WHERE gu_email = {}",
+        let mut sql: String = format!(
+            "SELECT * FROM licensed_resources WHERE gu_email = '{}'",
             email.email(),
         );
 
         if let Some(tenant_id) = tenant {
             sql.push_str(
-                format!(" AND tenant_id = {}", tenant_id.to_string()).as_str(),
+                format!(
+                    " AND (tenant_id = '{}' OR tenant_id IS NULL)",
+                    tenant_id.to_string()
+                )
+                .as_str(),
             );
         }
 
@@ -106,6 +112,8 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             }
         }
 
+        trace!("sql: {:?}", sql);
+
         let rows = diesel::sql_query(sql)
             .load::<LicensedResourceRow>(conn)
             .map_err(|e| {
@@ -151,42 +159,34 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let mut query = String::from(
-            "SELECT tenant_id, created FROM owner_on_tenant 
-             INNER JOIN \"user\" ON owner_on_tenant.owner_id = \"user\".id 
-             WHERE \"user\".email = $1",
-        );
-
-        let mut params: Vec<Box<dyn ToSql<Text, Pg> + Send + Sync>> =
-            vec![Box::new(email.email())];
+        let mut query = user_dsl::user
+            .into_boxed()
+            .inner_join(owner_dsl::owner_on_tenant)
+            .filter(user_dsl::email.eq(email.email()))
+            .select((owner_dsl::tenant_id, owner_dsl::created));
 
         if let Some(tenant_id) = tenant {
-            query.push_str(" AND tenant_id = $2");
-            params.push(Box::new(tenant_id.to_string()));
+            query =
+                query.filter(owner_dsl::tenant_id.eq(tenant_id.to_string()));
         }
 
-        let rows = diesel::sql_query(query)
-            .load::<TenantOwnershipRow>(conn)
-            .map_err(|e| {
-                fetching_err(format!(
-                    "Failed to fetch tenant ownerships: {}",
-                    e
-                ))
+        let rows =
+            query.load::<(String, NaiveDateTime)>(conn).map_err(|e| {
+                fetching_err(format!("Failed to fetch tenant ownerships: {e}"))
             })?;
 
         if rows.is_empty() {
             return Ok(FetchManyResponseKind::NotFound);
         }
 
-        let ownerships = rows
-            .into_iter()
-            .map(|record| TenantOwnership {
-                tenant: Uuid::parse_str(&record.tenant_id).unwrap(),
-                since: record.created.and_local_timezone(Local).unwrap(),
-            })
-            .collect::<Vec<TenantOwnership>>();
-
-        Ok(FetchManyResponseKind::Found(ownerships))
+        Ok(FetchManyResponseKind::Found(
+            rows.into_iter()
+                .map(|(tenant_id, created)| TenantOwnership {
+                    tenant: Uuid::parse_str(&tenant_id).unwrap(),
+                    since: created.and_local_timezone(Local).unwrap(),
+                })
+                .collect(),
+        ))
     }
 }
 
@@ -206,12 +206,4 @@ struct LicensedResourceRow {
     gr_perm: i32,
     #[diesel(sql_type = Bool)]
     gu_verified: bool,
-}
-
-#[derive(QueryableByName)]
-struct TenantOwnershipRow {
-    #[diesel(sql_type = Text)]
-    tenant_id: String,
-    #[diesel(sql_type = Timestamptz)]
-    created: NaiveDateTime,
 }

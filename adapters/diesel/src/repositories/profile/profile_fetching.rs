@@ -3,10 +3,7 @@ use crate::{
         account::Account as AccountModel, config::DbPoolProvider,
         user::User as UserModel,
     },
-    schema::{
-        account as account_model, owner_on_tenant as owner_on_tenant_model,
-        user as user_model,
-    },
+    schema::{account as account_model, user as user_model},
 };
 use diesel::prelude::*;
 use myc_core::domain::dtos::account_type::AccountType;
@@ -50,24 +47,21 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let result = user_model::table
-            .inner_join(
-                owner_on_tenant_model::table
-                    .on(owner_on_tenant_model::owner_id.eq(user_model::id)),
-            )
-            .inner_join(
-                account_model::table
-                    .on(account_model::id.eq(owner_on_tenant_model::tenant_id)),
-            )
-            .filter(user_model::email.eq(email.email()))
-            .select((AccountModel::as_select(), UserModel::as_select()))
-            .first::<(AccountModel, UserModel)>(conn)
-            .optional()
-            .map_err(|e| {
-                fetching_err(format!("Failed to fetch profile: {}", e))
-            })?;
+        let result =
+            user_model::table
+                .inner_join(account_model::table.on(
+                    account_model::id.nullable().eq(user_model::account_id),
+                ))
+                .filter(user_model::email.eq(email.email()))
+                .select((AccountModel::as_select(), UserModel::as_select()))
+                .first::<(AccountModel, UserModel)>(conn)
+                .optional()
+                .map_err(|e| {
+                    fetching_err(format!("Failed to fetch profile: {}", e))
+                })?;
 
         match result {
+            None => Ok(FetchResponseKind::NotFound(Some(email.email()))),
             Some((account, owner)) => {
                 let account_type: AccountType =
                     from_value(account.account_type).map_err(|err| {
@@ -117,7 +111,6 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                     None,
                 )))
             }
-            None => Ok(FetchResponseKind::NotFound(Some(email.email()))),
         }
     }
 
