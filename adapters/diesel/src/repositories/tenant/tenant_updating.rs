@@ -1,6 +1,7 @@
 use crate::{
     models::{
-        config::DbPoolProvider, owner_on_tenant::OwnerOnTenant as OwnerOnTenantModel,
+        config::DbPoolProvider,
+        owner_on_tenant::OwnerOnTenant as OwnerOnTenantModel,
         tenant::Tenant as TenantModel,
     },
     schema::{
@@ -37,6 +38,7 @@ pub struct TenantUpdatingSqlDbRepository {
 
 #[async_trait]
 impl TenantUpdating for TenantUpdatingSqlDbRepository {
+    #[tracing::instrument(name = "update_name_and_description", skip_all)]
     async fn update_name_and_description(
         &self,
         tenant_id: Uuid,
@@ -47,22 +49,24 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let updated = diesel::update(tenant_model::table.find(tenant_id))
-            .set((
-                tenant_model::name.eq(tenant.name),
-                tenant_model::description.eq(tenant.description),
-                tenant_model::updated.eq(Some(Local::now().naive_utc())),
-            ))
-            .get_result::<TenantModel>(conn)
-            .map_err(|e| {
-                updating_err(format!("Failed to update tenant: {}", e))
-            })?;
+        let updated =
+            diesel::update(tenant_model::table.find(tenant_id.to_string()))
+                .set((
+                    tenant_model::name.eq(tenant.name),
+                    tenant_model::description.eq(tenant.description),
+                    tenant_model::updated.eq(Some(Local::now().naive_utc())),
+                ))
+                .get_result::<TenantModel>(conn)
+                .map_err(|e| {
+                    updating_err(format!("Failed to update tenant: {}", e))
+                })?;
 
         Ok(UpdatingResponseKind::Updated(
             self.map_tenant_model_to_dto(updated),
         ))
     }
 
+    #[tracing::instrument(name = "update_tenant_status", skip_all)]
     async fn update_tenant_status(
         &self,
         tenant_id: Uuid,
@@ -74,38 +78,44 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
         })?;
 
         let tenant = tenant_model::table
-            .find(tenant_id)
+            .find(tenant_id.to_string())
             .select(tenant_model::status)
-            .first::<Vec<JsonValue>>(conn)
+            .first::<Option<Vec<Option<JsonValue>>>>(conn)
             .map_err(|e| {
                 updating_err(format!("Failed to fetch tenant: {}", e))
             })?;
 
         let mut statuses: Vec<TenantStatus> = tenant
+            .unwrap_or_default()
             .into_iter()
+            .filter_map(|s| s)
             .map(|s| serde_json::from_value(s).unwrap())
             .collect();
 
         statuses.push(status);
 
-        let updated = diesel::update(tenant_model::table.find(tenant_id))
-            .set((
-                tenant_model::status.eq(statuses
-                    .iter()
-                    .map(|s| serde_json::to_value(s).unwrap())
-                    .collect::<Vec<_>>()),
-                tenant_model::updated.eq(Some(Local::now().naive_utc())),
-            ))
-            .get_result::<TenantModel>(conn)
-            .map_err(|e| {
-                updating_err(format!("Failed to update tenant: {}", e))
-            })?;
+        let updated =
+            diesel::update(tenant_model::table.find(tenant_id.to_string()))
+                .set((
+                    tenant_model::status.eq(Some(
+                        statuses
+                            .iter()
+                            .map(|s| Some(serde_json::to_value(s).unwrap()))
+                            .collect::<Vec<_>>(),
+                    )),
+                    tenant_model::updated.eq(Some(Local::now().naive_utc())),
+                ))
+                .get_result::<TenantModel>(conn)
+                .map_err(|e| {
+                    updating_err(format!("Failed to update tenant: {}", e))
+                })?;
 
         Ok(UpdatingResponseKind::Updated(
             self.map_tenant_model_to_dto(updated),
         ))
     }
 
+    #[tracing::instrument(name = "register_owner", skip_all)]
     async fn register_owner(
         &self,
         tenant_id: Uuid,
@@ -119,8 +129,8 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
 
         // Check if relation already exists
         let exists = owner_on_tenant_model::table
-            .filter(owner_on_tenant_model::tenant_id.eq(tenant_id))
-            .filter(owner_on_tenant_model::owner_id.eq(owner_id))
+            .filter(owner_on_tenant_model::tenant_id.eq(tenant_id.to_string()))
+            .filter(owner_on_tenant_model::owner_id.eq(owner_id.to_string()))
             .count()
             .get_result::<i64>(conn)
             .map_err(|e| {
@@ -145,9 +155,9 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
 
         // Create new relation
         let new_connection = OwnerOnTenantModel {
-            id: Uuid::new_v4(),
-            tenant_id,
-            owner_id,
+            id: Uuid::new_v4().to_string(),
+            tenant_id: tenant_id.to_string(),
+            owner_id: owner_id.to_string(),
             guest_by,
             created: Local::now().naive_utc(),
             updated: None,
@@ -155,7 +165,8 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
 
         let created = diesel::insert_into(owner_on_tenant_model::table)
             .values(&new_connection)
-            .get_result::<OwnerOnTenantModel>(conn)
+            .returning(OwnerOnTenantModel::as_returning())
+            .get_result(conn)
             .map_err(|e| {
                 updating_err(format!(
                     "Failed to create owner connection: {}",
@@ -164,8 +175,8 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
             })?;
 
         Ok(CreateResponseKind::Created(TenantOwnerConnection {
-            tenant_id: created.tenant_id,
-            owner_id: created.owner_id,
+            tenant_id: Uuid::from_str(&created.tenant_id).unwrap(),
+            owner_id: Uuid::from_str(&created.owner_id).unwrap(),
             guest_by: created.guest_by,
             created: created.created.and_local_timezone(Local).unwrap(),
             updated: created
@@ -174,6 +185,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
         }))
     }
 
+    #[tracing::instrument(name = "update_tenant_meta", skip_all)]
     async fn update_tenant_meta(
         &self,
         tenant_id: Uuid,
@@ -187,7 +199,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
 
         // Get current tenant meta
         let tenant = tenant_model::table
-            .find(tenant_id)
+            .find(tenant_id.to_string())
             .select(tenant_model::meta)
             .first::<Option<JsonValue>>(conn)
             .map_err(|e| {
@@ -201,7 +213,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
         meta_map.insert(key.to_string(), value);
 
         // Update tenant meta
-        diesel::update(tenant_model::table.find(tenant_id))
+        diesel::update(tenant_model::table.find(tenant_id.to_string()))
             .set((
                 tenant_model::meta.eq(to_value(&meta_map).unwrap()),
                 tenant_model::updated.eq(Some(Local::now().naive_utc())),
@@ -223,13 +235,15 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
 impl TenantUpdatingSqlDbRepository {
     fn map_tenant_model_to_dto(&self, model: TenantModel) -> Tenant {
         Tenant {
-            id: Some(model.id),
+            id: Some(Uuid::from_str(&model.id).unwrap()),
             name: model.name,
             description: model.description,
             meta: model.meta.map(|m| serde_json::from_value(m).unwrap()),
             status: model
                 .status
+                .unwrap_or_default()
                 .into_iter()
+                .filter_map(|s| s)
                 .map(|s| serde_json::from_value(s).unwrap())
                 .collect(),
             created: model.created.and_local_timezone(Local).unwrap(),

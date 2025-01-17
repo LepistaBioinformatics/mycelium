@@ -1,4 +1,6 @@
-use crate::{models::config::DbPoolProvider, schema::tenant_tag as tenant_tag_model};
+use crate::{
+    models::config::DbPoolProvider, schema::tenant_tag as tenant_tag_model,
+};
 
 use async_trait::async_trait;
 use diesel::prelude::*;
@@ -22,6 +24,7 @@ pub struct TenantTagDeletionSqlDbRepository {
 
 #[async_trait]
 impl TenantTagDeletion for TenantTagDeletionSqlDbRepository {
+    #[tracing::instrument(name = "delete_tenant_tag", skip_all)]
     async fn delete(
         &self,
         id: Uuid,
@@ -33,16 +36,16 @@ impl TenantTagDeletion for TenantTagDeletionSqlDbRepository {
 
         // Check if tag exists
         let exists = tenant_tag_model::table
-            .find(id)
+            .find(id.to_string())
             .select(tenant_tag_model::id)
-            .first::<Uuid>(conn)
+            .first::<String>(conn)
             .optional()
             .map_err(|e| deletion_err(format!("Failed to check tag: {}", e)))?;
 
         match exists {
             Some(_) => {
                 // Delete tag
-                diesel::delete(tenant_tag_model::table.find(id))
+                diesel::delete(tenant_tag_model::table.find(id.to_string()))
                     .execute(conn)
                     .map_err(|e| {
                         deletion_err(format!("Failed to delete tag: {}", e))

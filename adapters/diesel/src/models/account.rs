@@ -1,13 +1,12 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde_json::Value as JsonValue;
-use uuid::Uuid;
 
-#[derive(Queryable, Insertable, Selectable, Clone)]
+#[derive(Debug, Queryable, Selectable, Insertable)]
 #[diesel(table_name = crate::schema::account)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub(crate) struct Account {
-    pub id: Uuid,
+    pub id: String,
     pub name: String,
     pub slug: String,
     pub meta: Option<JsonValue>,
@@ -18,5 +17,5 @@ pub(crate) struct Account {
     pub is_checked: bool,
     pub is_archived: bool,
     pub is_default: bool,
-    pub tenant_id: Option<Uuid>,
+    pub tenant_id: Option<String>,
 }

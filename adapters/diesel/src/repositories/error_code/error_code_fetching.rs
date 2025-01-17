@@ -26,6 +26,7 @@ pub struct ErrorCodeFetchingSqlDbRepository {
 
 #[async_trait]
 impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
+    #[tracing::instrument(name = "get_error_code", skip_all)]
     async fn get(
         &self,
         prefix: String,
@@ -54,6 +55,7 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "list_error_codes", skip_all)]
     async fn list(
         &self,
         prefix: Option<String>,

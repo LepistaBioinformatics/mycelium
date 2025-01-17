@@ -25,6 +25,7 @@ pub struct ErrorCodeRegistrationSqlDbRepository {
 
 #[async_trait]
 impl ErrorCodeRegistration for ErrorCodeRegistrationSqlDbRepository {
+    #[tracing::instrument(name = "create_error_code", skip_all)]
     async fn create(
         &self,
         error_code: ErrorCode,

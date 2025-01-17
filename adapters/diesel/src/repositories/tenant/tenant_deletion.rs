@@ -33,6 +33,7 @@ pub struct TenantDeletionSqlDbRepository {
 
 #[async_trait]
 impl TenantDeletion for TenantDeletionSqlDbRepository {
+    #[tracing::instrument(name = "delete_tenant", skip_all)]
     async fn delete(
         &self,
         id: Uuid,
@@ -44,7 +45,7 @@ impl TenantDeletion for TenantDeletionSqlDbRepository {
 
         // Check if tenant exists
         let tenant = tenant_model::table
-            .find(id)
+            .find(id.to_string())
             .select(TenantModel::as_select())
             .first::<TenantModel>(conn)
             .optional()
@@ -55,7 +56,7 @@ impl TenantDeletion for TenantDeletionSqlDbRepository {
         match tenant {
             Some(_) => {
                 // Delete tenant
-                diesel::delete(tenant_model::table.find(id))
+                diesel::delete(tenant_model::table.find(id.to_string()))
                     .execute(conn)
                     .map_err(|e| {
                         deletion_err(format!("Failed to delete tenant: {}", e))
@@ -70,6 +71,7 @@ impl TenantDeletion for TenantDeletionSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "delete_tenant_owner", skip_all)]
     async fn delete_owner(
         &self,
         tenant_id: Uuid,
@@ -82,12 +84,14 @@ impl TenantDeletion for TenantDeletionSqlDbRepository {
         })?;
 
         let delete_statement = diesel::delete(owner_on_tenant_model::table)
-            .filter(owner_on_tenant_model::tenant_id.eq(tenant_id))
+            .filter(owner_on_tenant_model::tenant_id.eq(tenant_id.to_string()))
             .filter(match (owner_id, owner_email) {
                 //
                 // Delete by owner id
                 //
-                (Some(id), None) => owner_on_tenant_model::owner_id.eq(id),
+                (Some(id), None) => {
+                    owner_on_tenant_model::owner_id.eq(id.to_string())
+                }
                 //
                 // Delete by owner email
                 //
@@ -95,18 +99,21 @@ impl TenantDeletion for TenantDeletionSqlDbRepository {
                     let user_id = users_model::table
                         .filter(users_model::email.eq(email.email()))
                         .select(users_model::id)
-                        .first::<Uuid>(conn)
+                        .first::<String>(conn)
                         .optional()
                         .map_err(|e| {
                             deletion_err(format!("Failed to fetch user: {}", e))
                         })?;
 
                     match user_id {
-                        Some(id) => owner_on_tenant_model::owner_id.eq(id),
+                        Some(id) => {
+                            owner_on_tenant_model::owner_id.eq(id.to_string())
+                        }
                         //
                         // Never will be matched with nill uuid
                         //
-                        None => owner_on_tenant_model::owner_id.eq(Uuid::nil()),
+                        None => owner_on_tenant_model::owner_id
+                            .eq(Uuid::nil().to_string()),
                     }
                 }
                 //
@@ -133,6 +140,7 @@ impl TenantDeletion for TenantDeletionSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "delete_tenant_meta", skip_all)]
     async fn delete_tenant_meta(
         &self,
         tenant_id: Uuid,
@@ -144,7 +152,7 @@ impl TenantDeletion for TenantDeletionSqlDbRepository {
         })?;
 
         let tenant = tenant_model::table
-            .find(tenant_id)
+            .find(tenant_id.to_string())
             .select(TenantModel::as_select())
             .first::<TenantModel>(conn)
             .optional()
@@ -160,19 +168,20 @@ impl TenantDeletion for TenantDeletionSqlDbRepository {
                             .unwrap_or_default();
 
                     if meta_map.remove(&key.to_string()).is_some() {
-                        diesel::update(tenant_model::table.find(tenant_id))
-                            .set(
-                                tenant_model::meta
-                                    .eq(serde_json::to_value(&meta_map)
-                                        .unwrap()),
-                            )
-                            .execute(conn)
-                            .map_err(|e| {
-                                deletion_err(format!(
-                                    "Failed to update tenant meta: {}",
-                                    e
-                                ))
-                            })?;
+                        diesel::update(
+                            tenant_model::table.find(tenant_id.to_string()),
+                        )
+                        .set(
+                            tenant_model::meta
+                                .eq(serde_json::to_value(&meta_map).unwrap()),
+                        )
+                        .execute(conn)
+                        .map_err(|e| {
+                            deletion_err(format!(
+                                "Failed to update tenant meta: {}",
+                                e
+                            ))
+                        })?;
 
                         Ok(DeletionResponseKind::Deleted)
                     } else {

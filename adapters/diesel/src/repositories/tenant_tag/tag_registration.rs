@@ -15,7 +15,7 @@ use mycelium_base::{
 };
 use serde_json::{from_value, to_value};
 use shaku::Component;
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, str::FromStr, sync::Arc};
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -27,6 +27,7 @@ pub struct TenantTagRegistrationSqlDbRepository {
 
 #[async_trait]
 impl TenantTagRegistration for TenantTagRegistrationSqlDbRepository {
+    #[tracing::instrument(name = "get_or_create_tenant_tag", skip_all)]
     async fn get_or_create(
         &self,
         tenant_id: Uuid,
@@ -41,7 +42,7 @@ impl TenantTagRegistration for TenantTagRegistrationSqlDbRepository {
         // Check if tag already exists
         let existing = tenant_tag_model::table
             .filter(tenant_tag_model::value.eq(&tag))
-            .filter(tenant_tag_model::tenant_id.eq(tenant_id))
+            .filter(tenant_tag_model::tenant_id.eq(tenant_id.to_string()))
             .select(TenantTagModel::as_select())
             .first::<TenantTagModel>(conn)
             .optional()
@@ -50,7 +51,7 @@ impl TenantTagRegistration for TenantTagRegistrationSqlDbRepository {
         if let Some(record) = existing {
             return Ok(GetOrCreateResponseKind::NotCreated(
                 Tag {
-                    id: record.id,
+                    id: Uuid::from_str(&record.id).unwrap(),
                     value: record.value,
                     meta: record.meta.map(|m| from_value(m).unwrap()),
                 },
@@ -60,10 +61,10 @@ impl TenantTagRegistration for TenantTagRegistrationSqlDbRepository {
 
         // Create new tag
         let new_tag = TenantTagModel {
-            id: Uuid::new_v4(),
+            id: Uuid::new_v4().to_string(),
             value: tag,
             meta: Some(to_value(&meta).unwrap()),
-            tenant_id,
+            tenant_id: tenant_id.to_string(),
         };
 
         let created = diesel::insert_into(tenant_tag_model::table)
@@ -75,7 +76,7 @@ impl TenantTagRegistration for TenantTagRegistrationSqlDbRepository {
             })?;
 
         Ok(GetOrCreateResponseKind::Created(Tag {
-            id: created.id,
+            id: Uuid::from_str(&created.id).unwrap(),
             value: created.value,
             meta: created.meta.map(|m| from_value(m).unwrap()),
         }))

@@ -1,14 +1,13 @@
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use uuid::Uuid;
 
-#[derive(Queryable, Insertable, Selectable)]
+#[derive(Debug, Queryable, Selectable, Insertable)]
 #[diesel(table_name = crate::schema::owner_on_tenant)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub(crate) struct OwnerOnTenant {
-    pub id: Uuid,
-    pub tenant_id: Uuid,
-    pub owner_id: Uuid,
+pub struct OwnerOnTenant {
+    pub id: String,
+    pub tenant_id: String,
+    pub owner_id: String,
     pub guest_by: String,
     pub created: NaiveDateTime,
     pub updated: Option<NaiveDateTime>,

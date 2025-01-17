@@ -36,6 +36,7 @@ pub struct AccountRegistrationSqlDbRepository {
 
 #[async_trait]
 impl AccountRegistration for AccountRegistrationSqlDbRepository {
+    #[tracing::instrument(name = "create_subscription_account", skip_all)]
     async fn create_subscription_account(
         &self,
         account: Account,
@@ -82,6 +83,10 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(
+        name = "get_or_create_tenant_management_account",
+        skip_all
+    )]
     async fn get_or_create_tenant_management_account(
         &self,
         account: Account,
@@ -101,7 +106,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 account::account_type
                     .eq(to_value(account_type.clone()).unwrap()),
             )
-            .filter(account::tenant_id.eq(Some(tenant_id)))
+            .filter(account::tenant_id.eq(Some(tenant_id.to_string())))
             .select(AccountModel::as_select())
             .first::<AccountModel>(conn)
             .optional()
@@ -152,6 +157,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "get_or_create_user_account", skip_all)]
     async fn get_or_create_user_account(
         &self,
         account: Account,
@@ -244,15 +250,16 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
 
                     if user_exists && owner.id.is_some() {
                         diesel::update(user::table)
-                            .filter(user::id.eq(owner.id.unwrap()))
+                            .filter(user::id.eq(owner.id.unwrap().to_string()))
                             .set((
-                                user::account_id.eq(Some(new_account.id)),
+                                user::account_id
+                                    .eq(Some(new_account.id.clone())),
                                 user::is_active.eq(owner.is_active),
                             ))
                             .execute(conn)?;
                     } else {
                         let new_user = UserModel {
-                            id: Uuid::new_v4(),
+                            id: Uuid::new_v4().to_string(),
                             username: owner.username.clone(),
                             email: owner.email.email(),
                             first_name: owner
@@ -272,7 +279,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         };
 
                         diesel::insert_into(user::table)
-                            .values(&new_user)
+                            .values(new_user)
                             .execute(conn)?;
                     }
 
@@ -297,6 +304,10 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(
+        name = "get_or_create_role_related_account",
+        skip_all
+    )]
     async fn get_or_create_role_related_account(
         &self,
         account: Account,
@@ -329,7 +340,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
 
         // Check if account already exists
         let existing_account = account::table
-            .filter(account::tenant_id.eq(Some(tenant_id)))
+            .filter(account::tenant_id.eq(Some(tenant_id.to_string())))
             .filter(
                 account::account_type
                     .eq(to_value(&concrete_account_type).unwrap()),
@@ -385,6 +396,10 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(
+        name = "get_or_create_actor_related_account",
+        skip_all
+    )]
     async fn get_or_create_actor_related_account(
         &self,
         account: Account,
@@ -459,6 +474,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "register_account_meta", skip_all)]
     async fn register_account_meta(
         &self,
         account_id: Uuid,
@@ -476,7 +492,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 meta_map.insert(key.to_string(), value);
 
                 diesel::update(account::table)
-                    .filter(account::id.eq(account_id))
+                    .filter(account::id.eq(account_id.to_string()))
                     .set(account::meta.eq(Some(to_value(&meta_map).unwrap())))
                     .execute(conn)?;
 
@@ -503,11 +519,11 @@ impl AccountRegistrationSqlDbRepository {
         account_type: AccountType,
     ) -> Result<AccountModel, MappedErrors> {
         Ok(AccountModel {
-            id: Uuid::new_v4(),
+            id: Uuid::new_v4().to_string(),
             name: account.name,
             slug: account.slug,
             meta: None,
-            tenant_id,
+            tenant_id: tenant_id.map(|id| id.to_string()),
             account_type: to_value(account_type).unwrap(),
             is_active: account.is_active,
             is_checked: account.is_checked,
@@ -520,7 +536,7 @@ impl AccountRegistrationSqlDbRepository {
 
     fn map_account_model_to_dto(&self, model: AccountModel) -> Account {
         Account {
-            id: Some(model.id),
+            id: Some(Uuid::from_str(&model.id).unwrap()),
             name: model.name,
             slug: model.slug,
             tags: None,

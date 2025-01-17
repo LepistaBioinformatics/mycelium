@@ -1,12 +1,15 @@
 use crate::models::account::Account as AccountModel;
+
 use chrono::Local;
 use myc_core::domain::dtos::account::{Account, VerboseStatus};
 use mycelium_base::dtos::Children;
 use serde_json::from_value;
+use std::str::FromStr;
+use uuid::Uuid;
 
 pub(super) fn map_account_model_to_dto(model: AccountModel) -> Account {
     Account {
-        id: Some(model.id),
+        id: Some(Uuid::from_str(&model.id).unwrap()),
         name: model.name,
         slug: model.slug,
         tags: None,

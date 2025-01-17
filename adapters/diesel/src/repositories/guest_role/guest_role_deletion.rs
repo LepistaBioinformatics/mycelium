@@ -1,4 +1,6 @@
-use crate::{models::config::DbPoolProvider, schema::guest_role as guest_role_model};
+use crate::{
+    models::config::DbPoolProvider, schema::guest_role as guest_role_model,
+};
 
 use async_trait::async_trait;
 use diesel::prelude::*;
@@ -22,6 +24,7 @@ pub struct GuestRoleDeletionSqlDbRepository {
 
 #[async_trait]
 impl GuestRoleDeletion for GuestRoleDeletionSqlDbRepository {
+    #[tracing::instrument(name = "delete_guest_role", skip_all)]
     async fn delete(
         &self,
         id: Uuid,
@@ -33,9 +36,9 @@ impl GuestRoleDeletion for GuestRoleDeletionSqlDbRepository {
 
         // Check if role exists
         let role_exists = guest_role_model::table
-            .find(id)
+            .find(id.to_string())
             .select(guest_role_model::id)
-            .first::<Uuid>(conn)
+            .first::<String>(conn)
             .optional()
             .map_err(|e| {
                 deletion_err(format!("Failed to check role: {}", e))
@@ -44,7 +47,7 @@ impl GuestRoleDeletion for GuestRoleDeletionSqlDbRepository {
         match role_exists {
             Some(_) => {
                 // Delete role
-                diesel::delete(guest_role_model::table.find(id))
+                diesel::delete(guest_role_model::table.find(id.to_string()))
                     .execute(conn)
                     .map_err(|e| {
                         deletion_err(format!("Failed to delete role: {}", e))

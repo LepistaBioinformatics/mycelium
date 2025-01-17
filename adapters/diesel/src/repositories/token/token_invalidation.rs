@@ -30,6 +30,10 @@ pub struct TokenInvalidationSqlDbRepository {
 
 #[async_trait]
 impl TokenInvalidation for TokenInvalidationSqlDbRepository {
+    #[tracing::instrument(
+        name = "get_and_invalidate_email_confirmation_token",
+        skip_all
+    )]
     async fn get_and_invalidate_email_confirmation_token(
         &self,
         meta: EmailConfirmationTokenMeta,
@@ -105,6 +109,10 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(
+        name = "get_and_invalidate_password_change_token",
+        skip_all
+    )]
     async fn get_and_invalidate_password_change_token(
         &self,
         meta: EmailConfirmationTokenMeta,

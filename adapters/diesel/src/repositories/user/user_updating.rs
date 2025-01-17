@@ -47,6 +47,7 @@ pub struct UserUpdatingSqlDbRepository {
 
 #[async_trait]
 impl UserUpdating for UserUpdatingSqlDbRepository {
+    #[tracing::instrument(name = "update_user", skip_all)]
     async fn update(
         &self,
         user: User,
@@ -60,27 +61,31 @@ impl UserUpdating for UserUpdatingSqlDbRepository {
             updating_err("Unable to update user. Invalid record ID")
         })?;
 
-        let updated = diesel::update(user_model::table.find(user_id))
-            .set((
-                user_model::username.eq(user.username),
-                user_model::first_name.eq(user.first_name.unwrap()),
-                user_model::last_name.eq(user.last_name.unwrap()),
-                user_model::is_active.eq(user.is_active),
-                user_model::updated.eq(Some(Local::now().naive_utc())),
-            ))
-            .returning(UserModel::as_returning())
-            .get_result::<UserModel>(conn)
-            .map_err(|e| {
-                if e == diesel::result::Error::NotFound {
-                    updating_err(format!("Invalid primary key: {:?}", user_id))
-                } else {
-                    updating_err(format!("Failed to update user: {}", e))
-                }
-            })?;
+        let updated =
+            diesel::update(user_model::table.find(user_id.to_string()))
+                .set((
+                    user_model::username.eq(user.username),
+                    user_model::first_name.eq(user.first_name.unwrap()),
+                    user_model::last_name.eq(user.last_name.unwrap()),
+                    user_model::is_active.eq(user.is_active),
+                    user_model::updated.eq(Some(Local::now().naive_utc())),
+                ))
+                .returning(UserModel::as_returning())
+                .get_result::<UserModel>(conn)
+                .map_err(|e| {
+                    if e == diesel::result::Error::NotFound {
+                        updating_err(format!(
+                            "Invalid primary key: {:?}",
+                            user_id
+                        ))
+                    } else {
+                        updating_err(format!("Failed to update user: {}", e))
+                    }
+                })?;
 
         Ok(UpdatingResponseKind::Updated(
             User::new(
-                Some(updated.id),
+                Some(Uuid::parse_str(&updated.id).unwrap()),
                 updated.username,
                 Email::from_string(updated.email)?,
                 Some(updated.first_name),
@@ -90,13 +95,16 @@ impl UserUpdating for UserUpdatingSqlDbRepository {
                 updated
                     .updated
                     .map(|dt| dt.and_local_timezone(Local).unwrap()),
-                updated.account_id.map(Parent::Id),
+                updated
+                    .account_id
+                    .map(|id| Parent::Id(Uuid::parse_str(&id).unwrap())),
                 None,
             )
             .with_principal(updated.is_principal),
         ))
     }
 
+    #[tracing::instrument(name = "update_password", skip_all)]
     async fn update_password(
         &self,
         user_id: Uuid,
@@ -115,7 +123,10 @@ impl UserUpdating for UserUpdatingSqlDbRepository {
                 |conn| {
                     // Get current password
                     let provider = identity_provider_model::table
-                        .filter(identity_provider_model::user_id.eq(user_id))
+                        .filter(
+                            identity_provider_model::user_id
+                                .eq(user_id.to_string()),
+                        )
                         .select(IdentityProviderModel::as_select())
                         .first::<IdentityProviderModel>(conn)
                         .optional()?;
@@ -148,7 +159,10 @@ impl UserUpdating for UserUpdatingSqlDbRepository {
 
                     // Update password
                     diesel::update(identity_provider_model::table)
-                        .filter(identity_provider_model::user_id.eq(user_id))
+                        .filter(
+                            identity_provider_model::user_id
+                                .eq(user_id.to_string()),
+                        )
                         .set(
                             identity_provider_model::password_hash
                                 .eq(Some(new_password.hash)),
@@ -188,6 +202,7 @@ impl UserUpdating for UserUpdatingSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "update_mfa", skip_all)]
     async fn update_mfa(
         &self,
         user_id: Uuid,
@@ -198,7 +213,7 @@ impl UserUpdating for UserUpdatingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        match diesel::update(user_model::table.find(user_id))
+        match diesel::update(user_model::table.find(user_id.to_string()))
             .set(user_model::mfa.eq(Some(to_value(&mfa).unwrap())))
             .execute(conn)
         {

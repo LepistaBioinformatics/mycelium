@@ -1,4 +1,6 @@
-use crate::{models::config::DbPoolProvider, schema::account_tag as account_tag_model};
+use crate::{
+    models::config::DbPoolProvider, schema::account_tag as account_tag_model,
+};
 
 use async_trait::async_trait;
 use diesel::prelude::*;
@@ -22,6 +24,7 @@ pub struct AccountTagDeletionSqlDbRepository {
 
 #[async_trait]
 impl AccountTagDeletion for AccountTagDeletionSqlDbRepository {
+    #[tracing::instrument(name = "delete_account_tag", skip_all)]
     async fn delete(
         &self,
         tag_id: Uuid,
@@ -33,20 +36,22 @@ impl AccountTagDeletion for AccountTagDeletionSqlDbRepository {
 
         // Check if tag exists
         let tag_exists = account_tag_model::table
-            .find(tag_id)
+            .find(tag_id.to_string())
             .select(account_tag_model::id)
-            .first::<Uuid>(conn)
+            .first::<String>(conn)
             .optional()
             .map_err(|e| deletion_err(format!("Failed to check tag: {}", e)))?;
 
         match tag_exists {
             Some(_) => {
                 // Delete tag
-                diesel::delete(account_tag_model::table.find(tag_id))
-                    .execute(conn)
-                    .map_err(|e| {
-                        deletion_err(format!("Failed to delete tag: {}", e))
-                    })?;
+                diesel::delete(
+                    account_tag_model::table.find(tag_id.to_string()),
+                )
+                .execute(conn)
+                .map_err(|e| {
+                    deletion_err(format!("Failed to delete tag: {}", e))
+                })?;
 
                 Ok(DeletionResponseKind::Deleted)
             }

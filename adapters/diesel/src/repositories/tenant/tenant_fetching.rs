@@ -28,7 +28,7 @@ use mycelium_base::{
 };
 use serde_json::Value as JsonValue;
 use shaku::Component;
-use std::{fmt::Display, sync::Arc};
+use std::{fmt::Display, str::FromStr, sync::Arc};
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -40,6 +40,7 @@ pub struct TenantFetchingSqlDbRepository {
 
 #[async_trait]
 impl TenantFetching for TenantFetchingSqlDbRepository {
+    #[tracing::instrument(name = "get_tenant_owned_by_me", skip_all)]
     async fn get_tenant_owned_by_me(
         &self,
         id: Uuid,
@@ -52,8 +53,15 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
 
         let tenant = tenant_model::table
             .inner_join(owner_on_tenant_model::table)
-            .filter(tenant_model::id.eq(id))
-            .filter(owner_on_tenant_model::owner_id.eq_any(owners_ids))
+            .filter(tenant_model::id.eq(id.to_string()))
+            .filter(
+                owner_on_tenant_model::owner_id.eq_any(
+                    owners_ids
+                        .iter()
+                        .map(|id| id.to_string())
+                        .collect::<Vec<String>>(),
+                ),
+            )
             .select(TenantModel::as_select())
             .first::<TenantModel>(conn)
             .optional()
@@ -63,13 +71,15 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
 
         match tenant {
             Some(record) => Ok(FetchResponseKind::Found(Tenant {
-                id: Some(record.id),
+                id: Some(Uuid::from_str(&record.id).unwrap()),
                 name: record.name,
                 description: record.description,
                 meta: record.meta.map(|m| serde_json::from_value(m).unwrap()),
                 status: record
                     .status
+                    .unwrap_or_default()
                     .into_iter()
+                    .filter_map(|s| s)
                     .map(|s| serde_json::from_value(s).unwrap())
                     .collect(),
                 created: record.created.and_local_timezone(Local).unwrap(),
@@ -84,6 +94,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "get_tenants_by_manager_account", skip_all)]
     async fn get_tenants_by_manager_account(
         &self,
         id: Uuid,
@@ -96,9 +107,14 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
 
         let tenant = tenant_model::table
             .inner_join(manager_account_on_tenant_model::table)
-            .filter(tenant_model::id.eq(id))
+            .filter(tenant_model::id.eq(id.to_string()))
             .filter(
-                manager_account_on_tenant_model::account_id.eq_any(manager_ids),
+                manager_account_on_tenant_model::account_id.eq_any(
+                    manager_ids
+                        .iter()
+                        .map(|id| id.to_string())
+                        .collect::<Vec<String>>(),
+                ),
             )
             .select(TenantModel::as_select())
             .first::<TenantModel>(conn)
@@ -109,13 +125,15 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
 
         match tenant {
             Some(record) => Ok(FetchResponseKind::Found(Tenant {
-                id: Some(record.id),
+                id: Some(Uuid::from_str(&record.id).unwrap()),
                 name: record.name,
                 description: record.description,
                 meta: record.meta.map(|m| serde_json::from_value(m).unwrap()),
                 status: record
                     .status
+                    .unwrap_or_default()
                     .into_iter()
+                    .filter_map(|s| s)
                     .map(|s| serde_json::from_value(s).unwrap())
                     .collect(),
                 created: record.created.and_local_timezone(Local).unwrap(),
@@ -130,6 +148,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "filter_tenants_as_manager", skip_all)]
     async fn filter_tenants_as_manager(
         &self,
         name: Option<String>,

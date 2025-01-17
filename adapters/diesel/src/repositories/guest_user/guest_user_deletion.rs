@@ -25,6 +25,7 @@ pub struct GuestUserDeletionSqlDbRepository {
 
 #[async_trait]
 impl GuestUserDeletion for GuestUserDeletionSqlDbRepository {
+    #[tracing::instrument(name = "delete_guest_user", skip_all)]
     async fn delete(
         &self,
         guest_role_id: Uuid,
@@ -38,7 +39,9 @@ impl GuestUserDeletion for GuestUserDeletionSqlDbRepository {
 
         // Check if guest user exists
         let guest_user = guest_user_model::table
-            .filter(guest_user_model::guest_role_id.eq(guest_role_id))
+            .filter(
+                guest_user_model::guest_role_id.eq(guest_role_id.to_string()),
+            )
             .filter(guest_user_model::email.eq(&email))
             .select(GuestUserModel::as_select())
             .first::<GuestUserModel>(conn)
@@ -53,7 +56,8 @@ impl GuestUserDeletion for GuestUserDeletionSqlDbRepository {
                 diesel::delete(
                     guest_user_model::table
                         .filter(
-                            guest_user_model::guest_role_id.eq(guest_role_id),
+                            guest_user_model::guest_role_id
+                                .eq(guest_role_id.to_string()),
                         )
                         .filter(guest_user_model::email.eq(&email)),
                 )

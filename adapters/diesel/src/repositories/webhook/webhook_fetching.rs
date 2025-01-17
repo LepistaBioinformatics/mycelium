@@ -19,7 +19,7 @@ use mycelium_base::{
 };
 use serde_json::from_value;
 use shaku::Component;
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -31,6 +31,7 @@ pub struct WebHookFetchingSqlDbRepository {
 
 #[async_trait]
 impl WebHookFetching for WebHookFetchingSqlDbRepository {
+    #[tracing::instrument(name = "get_webhook", skip_all)]
     async fn get(
         &self,
         id: Uuid,
@@ -41,7 +42,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
         })?;
 
         let webhook = webhook_model::table
-            .find(id)
+            .find(id.to_string())
             .select(WebHookModel::as_select())
             .first::<WebHookModel>(conn)
             .optional()
@@ -59,7 +60,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                     record.secret.map(|s| from_value(s).unwrap()),
                 );
 
-                webhook.id = Some(record.id);
+                webhook.id = Some(Uuid::from_str(&record.id).unwrap());
                 webhook.is_active = record.is_active;
                 webhook.created =
                     record.created.and_local_timezone(Local).unwrap();
@@ -75,6 +76,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "list_webhooks", skip_all)]
     async fn list(
         &self,
         name: Option<String>,
@@ -119,7 +121,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                     record.secret.map(|s| from_value(s).unwrap()),
                 );
 
-                webhook.id = Some(record.id);
+                webhook.id = Some(Uuid::from_str(&record.id).unwrap());
                 webhook.is_active = record.is_active;
                 webhook.created =
                     record.created.and_local_timezone(Local).unwrap();
@@ -135,6 +137,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
         Ok(FetchManyResponseKind::Found(webhooks))
     }
 
+    #[tracing::instrument(name = "list_webhooks_by_trigger", skip_all)]
     async fn list_by_trigger(
         &self,
         trigger: WebHookTrigger,
@@ -168,7 +171,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                     record.secret.map(|s| from_value(s).unwrap()),
                 );
 
-                webhook.id = Some(record.id);
+                webhook.id = Some(Uuid::from_str(&record.id).unwrap());
                 webhook.is_active = record.is_active;
                 webhook.created =
                     record.created.and_local_timezone(Local).unwrap();

@@ -26,6 +26,7 @@ pub struct ErrorCodeUpdatingSqlDbRepository {
 
 #[async_trait]
 impl ErrorCodeUpdating for ErrorCodeUpdatingSqlDbRepository {
+    #[tracing::instrument(name = "update_error_code", skip_all)]
     async fn update(
         &self,
         error_code: ErrorCode,

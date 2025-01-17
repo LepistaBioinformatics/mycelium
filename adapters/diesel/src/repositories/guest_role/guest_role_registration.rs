@@ -16,6 +16,7 @@ use mycelium_base::{
 };
 use shaku::Component;
 use std::sync::Arc;
+use uuid::Uuid;
 
 #[derive(Component)]
 #[shaku(interface = GuestRoleRegistration)]
@@ -26,6 +27,7 @@ pub struct GuestRoleRegistrationSqlDbRepository {
 
 #[async_trait]
 impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
+    #[tracing::instrument(name = "get_or_create_guest_role", skip_all)]
     async fn get_or_create(
         &self,
         guest_role: GuestRole,
@@ -54,7 +56,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
 
         // Create new role
         let new_role = GuestRoleModel {
-            id: uuid::Uuid::new_v4(),
+            id: Uuid::new_v4().to_string(),
             name: guest_role.name,
             slug: guest_role.slug,
             description: guest_role.description,
@@ -63,7 +65,8 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
 
         let created = diesel::insert_into(guest_role_model::table)
             .values(&new_role)
-            .get_result::<GuestRoleModel>(conn)
+            .returning(GuestRoleModel::as_returning())
+            .get_result(conn)
             .map_err(|e| {
                 creation_err(format!("Failed to create role: {}", e))
             })?;

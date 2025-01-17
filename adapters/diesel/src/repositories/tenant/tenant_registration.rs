@@ -38,6 +38,7 @@ pub struct TenantRegistrationSqlDbRepository {
 
 #[async_trait]
 impl TenantRegistration for TenantRegistrationSqlDbRepository {
+    #[tracing::instrument(name = "create_tenant", skip_all)]
     async fn create(
         &self,
         tenant: Tenant,
@@ -61,7 +62,7 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
         if let Some(record) = existing {
             return Ok(CreateResponseKind::NotCreated(
                 Tenant {
-                    id: Some(record.id),
+                    id: Some(Uuid::from_str(&record.id).unwrap()),
                     name: record.name,
                     description: record.description,
                     meta: record
@@ -69,7 +70,9 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
                         .map(|m| serde_json::from_value(m).unwrap()),
                     status: record
                         .status
+                        .unwrap_or_default()
                         .into_iter()
+                        .filter_map(|s| s)
                         .map(|s| serde_json::from_value(s).unwrap())
                         .collect(),
                     created: record.created.and_local_timezone(Local).unwrap(),
@@ -87,15 +90,17 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
         // Criar novo tenant
         let tenant_id = Uuid::new_v4();
         let new_tenant = TenantModel {
-            id: tenant_id,
+            id: tenant_id.to_string(),
             name: tenant.name,
             description: tenant.description,
             meta: tenant.meta.map(|m| to_value(&m).unwrap()),
-            status: tenant
-                .status
-                .into_iter()
-                .map(|s| to_value(&s).unwrap())
-                .collect(),
+            status: Some(
+                tenant
+                    .status
+                    .into_iter()
+                    .map(|s| Some(to_value(&s).unwrap()))
+                    .collect(),
+            ),
             created: Local::now().naive_utc(),
             updated: None,
         };
@@ -108,23 +113,31 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
                     .get_result::<TenantModel>(conn)?;
 
                 // Criar as relações owner_on_tenant para todos os owners
-                let owner_records: Vec<OwnerOnTenantModel> =
-                    (match tenant.owners {
-                        Children::Records(owners) => {
-                            owners.iter().map(|owner| owner.id).collect()
-                        }
-                        Children::Ids(ids) => ids,
-                    })
-                    .iter()
-                    .map(|owner_id| OwnerOnTenantModel {
-                        id: Uuid::new_v4(),
-                        tenant_id: tenant_record.id,
-                        owner_id: owner_id.to_owned(),
-                        guest_by: guest_by.clone(),
-                        created: Local::now().naive_utc(),
-                        updated: None,
-                    })
-                    .collect();
+                let owner_records: Vec<OwnerOnTenantModel> = match tenant.owners
+                {
+                    Children::Records(owners) => owners
+                        .iter()
+                        .map(|owner| OwnerOnTenantModel {
+                            id: Uuid::new_v4().to_string(),
+                            tenant_id: tenant_record.id.clone(),
+                            owner_id: owner.id.to_string(),
+                            guest_by: guest_by.clone(),
+                            created: Local::now().naive_utc(),
+                            updated: None,
+                        })
+                        .collect(),
+                    Children::Ids(ids) => ids
+                        .iter()
+                        .map(|id| OwnerOnTenantModel {
+                            id: Uuid::new_v4().to_string(),
+                            tenant_id: tenant_record.id.clone(),
+                            owner_id: id.to_string(),
+                            guest_by: guest_by.clone(),
+                            created: Local::now().naive_utc(),
+                            updated: None,
+                        })
+                        .collect(),
+                };
 
                 diesel::insert_into(owner_on_tenant_model::table)
                     .values(&owner_records)
@@ -137,13 +150,15 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
             })?;
 
         Ok(CreateResponseKind::Created(Tenant {
-            id: Some(created.id),
+            id: Some(Uuid::from_str(&created.id).unwrap()),
             name: created.name,
             description: created.description,
             meta: created.meta.map(|m| serde_json::from_value(m).unwrap()),
             status: created
                 .status
+                .unwrap_or_default()
                 .into_iter()
+                .filter_map(|s| s)
                 .map(|s| serde_json::from_value(s).unwrap())
                 .collect(),
             created: created.created.and_local_timezone(Local).unwrap(),
@@ -156,6 +171,7 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
         }))
     }
 
+    #[tracing::instrument(name = "register_tenant_meta", skip_all)]
     async fn register_tenant_meta(
         &self,
         owners_ids: Vec<Uuid>,
@@ -171,8 +187,15 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
         // Verify if the tenant exists and if the user has permission
         let tenant = tenant_model::table
             .inner_join(owner_on_tenant_model::table)
-            .filter(tenant_model::id.eq(tenant_id))
-            .filter(owner_on_tenant_model::owner_id.eq_any(owners_ids))
+            .filter(tenant_model::id.eq(tenant_id.to_string()))
+            .filter(
+                owner_on_tenant_model::owner_id.eq_any(
+                    owners_ids
+                        .iter()
+                        .map(|id| id.to_string())
+                        .collect::<Vec<String>>(),
+                ),
+            )
             .select(TenantModel::as_select())
             .first::<TenantModel>(conn)
             .optional()
@@ -198,7 +221,7 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
 
         meta_map.insert(key.to_string(), value.clone());
 
-        diesel::update(tenant_model::table.find(tenant_id))
+        diesel::update(tenant_model::table.find(tenant_id.to_string()))
             .set(tenant_model::meta.eq(to_value(&meta_map).unwrap()))
             .execute(conn)
             .map_err(|e| {
