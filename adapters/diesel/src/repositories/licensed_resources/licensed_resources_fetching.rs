@@ -71,7 +71,15 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
 
         if let Some(roles) = roles {
             sql.push_str(
-                format!(" AND gr_slug = ANY({})", roles.join(",")).as_str(),
+                format!(
+                    " AND gr_slug IN ({})",
+                    roles
+                        .iter()
+                        .map(|r| format!("'{}'", r))
+                        .collect::<Vec<String>>()
+                        .join(",")
+                )
+                .as_str(),
             );
         }
 

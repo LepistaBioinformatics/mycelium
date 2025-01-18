@@ -7,7 +7,8 @@ use async_trait::async_trait;
 use diesel::{Connection, QueryDsl, RunQueryDsl};
 use myc_core::domain::{
     dtos::{
-        native_error_codes::NativeErrorCodes, token::EmailConfirmationTokenMeta,
+        native_error_codes::NativeErrorCodes,
+        token::{EmailConfirmationTokenMeta, UserRelatedMeta},
     },
     entities::TokenInvalidation,
 };
@@ -49,11 +50,13 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
                     r#"
                 SELECT id, expiration, meta 
                 FROM token 
-                WHERE meta->'email'->>'username' = '{}' 
-                AND meta->'email'->>'domain' = '{}' 
-                AND meta->>'userId' = '{}'
+                WHERE meta->'email'->>'username' = '{username}' 
+                AND meta->'email'->>'domain' = '{domain}' 
+                AND meta->>'userId' = '{user_id}'
                 "#,
-                    meta.email.username, meta.email.domain, meta.user_id
+                    username = meta.email.username,
+                    domain = meta.email.domain,
+                    user_id = meta.user_id
                 );
 
                 let tokens = diesel::sql_query(sql)
@@ -72,22 +75,40 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
                 let mut tokens = tokens;
                 tokens.sort_by(|a, b| a.expiration.cmp(&b.expiration));
 
-                let token = &tokens[0];
-                if token.expiration < chrono::Utc::now().naive_utc() {
-                    return Ok((None, false));
-                }
+                if let Some(token) = tokens.first() {
+                    if token.expiration < chrono::Utc::now().naive_utc() {
+                        return Ok((None, false));
+                    }
 
-                // Delete token
-                let deleted = diesel::delete(token_model::table.find(token.id))
-                    .execute(conn)
-                    .map_err(|_| diesel::result::Error::RollbackTransaction)?;
-
-                if deleted > 0 {
-                    let token_meta: EmailConfirmationTokenMeta =
+                    let token_meta: UserRelatedMeta<String> =
                         from_value(token.meta.clone()).map_err(|_| {
                             diesel::result::Error::RollbackTransaction
                         })?;
-                    Ok((Some(token_meta.user_id), true))
+
+                    if let Err(e) =
+                        token_meta.check_token(&meta.get_token().as_bytes())
+                    {
+                        error!("Invalid token: {}", e);
+                        return Ok((None, false));
+                    };
+
+                    // Delete token
+                    let deleted =
+                        diesel::delete(token_model::table.find(token.id))
+                            .execute(conn)
+                            .map_err(|_| {
+                                diesel::result::Error::RollbackTransaction
+                            })?;
+
+                    if deleted > 0 {
+                        let token_meta: EmailConfirmationTokenMeta =
+                            from_value(token.meta.clone()).map_err(|_| {
+                                diesel::result::Error::RollbackTransaction
+                            })?;
+                        Ok((Some(token_meta.user_id), true))
+                    } else {
+                        Ok((None, false))
+                    }
                 } else {
                     Ok((None, false))
                 }

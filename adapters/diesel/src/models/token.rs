@@ -3,7 +3,7 @@ use diesel::prelude::*;
 use diesel::sql_types::{Integer, Jsonb, Timestamptz};
 use serde_json::Value as JsonValue;
 
-#[derive(QueryableByName, Queryable, Selectable)]
+#[derive(Clone, Debug, QueryableByName, Queryable, Selectable)]
 #[diesel(table_name = crate::schema::token)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Token {

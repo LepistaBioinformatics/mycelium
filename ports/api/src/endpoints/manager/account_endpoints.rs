@@ -33,7 +33,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[serde(rename_all = "camelCase")]
 pub(crate) enum ApiSystemActor {
     GatewayManager,
-    GuestManager,
+    GuestsManager,
     SystemManager,
 }
 
@@ -41,7 +41,7 @@ impl ApiSystemActor {
     fn to_system_actor(&self) -> SystemActor {
         match self {
             ApiSystemActor::GatewayManager => SystemActor::GatewayManager,
-            ApiSystemActor::GuestManager => SystemActor::GuestsManager,
+            ApiSystemActor::GuestsManager => SystemActor::GuestsManager,
             ApiSystemActor::SystemManager => SystemActor::SystemManager,
         }
     }
