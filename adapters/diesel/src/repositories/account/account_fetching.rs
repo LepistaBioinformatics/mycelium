@@ -1,13 +1,15 @@
 use super::shared::map_account_model_to_dto;
 use crate::{
     models::{account::Account as AccountModel, config::DbPoolProvider},
-    schema::{account as account_model, user as user_model},
+    schema::{
+        account::{self as account_model, dsl as account_dsl},
+        account_tag::dsl as account_tag_dsl,
+        user::{self as user_model, dsl as user_dsl},
+    },
 };
 
 use async_trait::async_trait;
-use diesel::pg::Pg;
 use diesel::prelude::*;
-use diesel::sql_types::{BigInt, Json};
 use myc_core::domain::{
     dtos::{
         account::Account, account_type::AccountType,
@@ -24,13 +26,6 @@ use mycelium_base::{
 use shaku::Component;
 use std::sync::Arc;
 use uuid::Uuid;
-
-fn option_to_null<T: ToString>(opt: Option<T>) -> String {
-    match opt {
-        Some(val) => val.to_string(),
-        None => "NULL".to_string(),
-    }
-}
 
 #[derive(Component)]
 #[shaku(interface = AccountFetching)]
@@ -101,116 +96,89 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let mut sql = "".to_string();
+        let mut query = account_dsl::account
+            .into_boxed()
+            .left_join(user_dsl::user)
+            .left_join(
+                account_tag_dsl::account_tag
+                    .on(account_dsl::id.eq(account_tag_dsl::account_id)),
+            );
+
+        if let Some(term_value) = term {
+            query = query
+                .filter(account_dsl::name.ilike(format!("%{}%", term_value)));
+        }
+
+        if let Some(account_id_value) = account_id {
+            query =
+                query.filter(account_dsl::id.eq(account_id_value.to_string()));
+        }
+
+        if let Some(is_active) = is_account_active {
+            query = query.filter(account_dsl::is_active.eq(is_active));
+        }
+
+        if let Some(is_checked) = is_account_checked {
+            query = query.filter(account_dsl::is_checked.eq(is_checked));
+        }
+
+        if let Some(is_archived) = is_account_archived {
+            query = query.filter(account_dsl::is_archived.eq(is_archived));
+        }
+
+        if let Some(tag_id_value) = tag_id {
+            query =
+                query.filter(account_tag_dsl::id.eq(tag_id_value.to_string()));
+        }
+
+        if let Some(tag_value_str) = tag_value {
+            query = query.filter(account_tag_dsl::value.eq(tag_value_str));
+        }
+
+        if let Some(is_active) = is_owner_active {
+            query = query.filter(user_dsl::is_active.eq(is_active));
+        }
+
+        if let Some(acc_type) = account_type {
+            query = query.filter(
+                account_dsl::account_type
+                    .eq(serde_json::to_value(acc_type).unwrap()),
+            );
+        }
 
         if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
-            //
-            // Related accounts filter the account id to check if the operation is permitted
-            //
-            sql.push_str(&format!(
-                " AND a.id IN ({})",
-                ids.iter()
-                    .map(|id| id.to_string())
-                    .collect::<Vec<String>>()
-                    .join(",")
+            query = query.filter(account_dsl::id.eq_any(
+                ids.iter().map(|id| id.to_string()).collect::<Vec<String>>(),
             ));
         }
 
-        // Calculating the offset
-        let offset = (skip.unwrap_or(0) * page_size.unwrap_or(10)) as i64;
+        let page_size = page_size.unwrap_or(10) as i64;
 
-        // Build the SQL query with WITH
-        sql.push_str(&format!(
-            r#"
-            WITH paginaged AS (
-                SELECT 
-                    a.id,
-                    a.name,
-                    a.is_active,
-                    a.is_checked,
-                    a.is_archived,
-                    a.tags,
-                    oa.owner_id,
-                    oa.is_active,
-                    at.tag_id,
-                    at.value
-                FROM account a
-                LEFT JOIN owner_on_account oa ON a.id = oa.account_id
-                LEFT JOIN account_tag at ON a.id = at.account_id
-                WHERE (
-                    {term} IS NULL OR a.name ILIKE {term}
-                    AND {account_id} IS NULL OR a.id = {account_id}
-                    AND {is_account_active} IS NULL OR a.is_active = {is_account_active}
-                    AND {is_account_checked} IS NULL OR a.is_checked = {is_account_checked}
-                    AND {is_account_archived} IS NULL OR a.is_archived = {is_account_archived}
-                    AND {tag_id} IS NULL OR at.tag_id = {tag_id}
-                    AND {tag_value} IS NULL OR at.value = {tag_value}
-                    AND {is_owner_active} IS NULL OR oa.is_active = {is_owner_active}
-                    AND {account_type} IS NULL OR a.account_type = {account_type}
-                )
-                ORDER BY a.created DESC
-                LIMIT {page_size} OFFSET {offset}
-            )
-            SELECT
-                (SELECT COUNT(*) FROM paginaged) as total,
-                ARRAY(SELECT * FROM paginaged) as records
-            "#,
-            term = option_to_null(term),
-            account_id = option_to_null(account_id),
-            is_account_active = option_to_null(is_account_active),
-            is_account_checked = option_to_null(is_account_checked),
-            is_account_archived = option_to_null(is_account_archived),
-            tag_id = option_to_null(tag_id),
-            tag_value = option_to_null(tag_value),
-            is_owner_active = option_to_null(is_owner_active),
-            account_type = match account_type {
-                Some(account_type) => account_type.to_string(),
-                None => "NULL".to_string(),
-            },
-            page_size = page_size.unwrap_or(10),
-            offset = offset,
-        ));
-
-        println!("{}", sql);
-
-        let results: Vec<AccountWithCount> = diesel::sql_query(&sql)
-            .bind::<BigInt, _>(page_size.unwrap_or(10) as i64)
-            .bind::<BigInt, _>(offset)
-            .get_results(conn)
+        let records = query
+            .select(AccountModel::as_select())
+            .order_by(account_dsl::created.desc())
+            .limit(page_size)
+            .offset(skip.unwrap_or(0) as i64)
+            .load::<AccountModel>(conn)
             .map_err(|e| {
-                fetching_err(format!("Failed to execute query: {}", e))
+                fetching_err(format!("Failed to fetch accounts: {}", e))
             })?;
 
-        let total = if results.is_empty() {
-            0
-        } else {
-            results[0].total
-        };
+        let total = account_dsl::account
+            .count()
+            .get_result::<i64>(conn)
+            .map_err(|e| {
+                fetching_err(format!("Failed to get total count: {}", e))
+            })?;
 
-        let records = if let serde_json::Value::Array(arr) = &results[0].records
-        {
-            arr.iter()
-                .map(|r| serde_json::from_value(r.clone()).unwrap())
-                .collect::<Vec<_>>()
-        } else {
-            vec![]
-        };
+        let records =
+            records.into_iter().map(map_account_model_to_dto).collect();
 
         Ok(FetchManyResponseKind::FoundPaginated(PaginatedRecord {
             count: total,
             skip: Some(skip.unwrap_or(0) as i64),
-            size: Some(page_size.unwrap_or(10) as i64),
+            size: Some(page_size),
             records,
         }))
     }
-}
-
-#[derive(QueryableByName, Debug)]
-#[diesel(table_name = account_model)]
-#[diesel(check_for_backend(Pg))]
-struct AccountWithCount {
-    #[diesel(sql_type = BigInt)]
-    total: i64,
-    #[diesel(sql_type = Json)]
-    records: serde_json::Value,
 }

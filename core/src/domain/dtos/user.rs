@@ -64,11 +64,9 @@ impl PasswordHash {
 
         match Argon2::default().verify_password(password, &parsed_hash) {
             Ok(_) => Ok(()),
-            Err(err) => {
-                use_case_err(format!("Unable to verify password: {err}"))
-                    .with_exp_true()
-                    .as_error()
-            }
+            Err(err) => use_case_err(format!("Unable to verify secret: {err}"))
+                .with_exp_true()
+                .as_error(),
         }
     }
 

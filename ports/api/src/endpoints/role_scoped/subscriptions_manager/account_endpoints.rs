@@ -63,7 +63,7 @@ pub struct UpdateSubscriptionAccountNameAndFlagsBody {
     is_default: Option<bool>,
 }
 
-#[derive(Deserialize, ToSchema)]
+#[derive(Debug, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub(crate) enum APIAccountType {
     Staff,
@@ -262,6 +262,8 @@ pub async fn list_accounts_by_type_url(
     profile: MyceliumProfileData,
     app_module: web::Data<AppModule>,
 ) -> impl Responder {
+    println!("query: {:?}", query.account_type);
+
     let mut is_account_active: Option<bool> = None;
     let mut is_account_checked: Option<bool> = None;
     let mut is_account_archived: Option<bool> = None;
