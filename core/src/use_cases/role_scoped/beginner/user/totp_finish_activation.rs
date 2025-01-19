@@ -71,8 +71,9 @@ pub async fn totp_finish_activation(
 
     let encrypted_user_totp = user.mfa().totp.clone();
 
-    let decrypted_user_totp =
-        encrypted_user_totp.decrypt_me(life_cycle_settings.to_owned())?;
+    let decrypted_user_totp = encrypted_user_totp
+        .decrypt_me(life_cycle_settings.to_owned())
+        .await?;
 
     let user_secret_option = match decrypted_user_totp {
         Totp::Enabled { secret, .. } => secret,

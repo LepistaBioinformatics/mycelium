@@ -30,12 +30,13 @@ use myc_http_tools::{
     responses::GatewayError, utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error, Email,
 };
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize, Serializer};
 use serde_json::json;
 use shaku::HasComponent;
 use shaku_actix::Inject;
 use tracing::{error, warn};
-use utoipa::{ToResponse, ToSchema};
+use utoipa::{IntoParams, ToResponse, ToSchema};
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -87,10 +88,16 @@ pub struct MyceliumLoginResponse {
     user: User,
 }
 
+#[derive(Deserialize, ToSchema, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct TotpActivationStartedParams {
+    qr_code: Option<bool>,
+}
+
 #[derive(Serialize, ToResponse, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct TotpActivationStartedResponse {
-    totp_url: String,
+    totp_url: Option<String>,
 }
 
 #[derive(Serialize, ToResponse, ToSchema)]
@@ -710,6 +717,7 @@ pub async fn check_email_password_validity_url(
 ///
 #[utoipa::path(
     post,
+    params(TotpActivationStartedParams),
     responses(
         (
             status = 500,
@@ -731,11 +739,17 @@ pub async fn check_email_password_validity_url(
             description = "Totp Activation Started.",
             body = TotpActivationStartedResponse,
         ),
+        (
+            status = 200,
+            description = "Totp Activation Started.",
+            body = String,
+        ),
     ),
 )]
 #[post("/totp/enable")]
 pub async fn totp_start_activation_url(
     req: HttpRequest,
+    query: web::Query<TotpActivationStartedParams>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     app_module: web::Data<AppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
@@ -761,8 +775,11 @@ pub async fn totp_start_activation_url(
         Some(email) => email,
     };
 
+    let as_qr_code = query.qr_code.to_owned().unwrap_or(false);
+
     match totp_start_activation(
         email,
+        query.qr_code,
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
@@ -770,8 +787,15 @@ pub async fn totp_start_activation_url(
     )
     .await
     {
-        Ok(res) => HttpResponse::Ok()
-            .json(TotpActivationStartedResponse { totp_url: res }),
+        Ok((totp_url, qr_code)) => {
+            if as_qr_code && qr_code.is_some() {
+                return HttpResponse::build(StatusCode::OK)
+                    .content_type("image/jpeg")
+                    .body(qr_code.unwrap());
+            };
+
+            HttpResponse::Ok().json(TotpActivationStartedResponse { totp_url })
+        }
         Err(err) => handle_mapped_error(err),
     }
 }
