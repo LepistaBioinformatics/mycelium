@@ -9,7 +9,6 @@ use argon2::{
 };
 use base64::{engine::general_purpose, Engine};
 use chrono::{DateTime, Local};
-use futures::executor::block_on;
 use mycelium_base::{
     dtos::Parent,
     utils::errors::{dto_err, use_case_err, MappedErrors},
@@ -108,13 +107,13 @@ pub enum Totp {
 
 impl Totp {
     #[tracing::instrument(name = "build_auth_url", skip_all)]
-    pub(crate) fn build_auth_url(
+    pub(crate) async fn build_auth_url(
         &self,
         email: Email,
         config: AccountLifeCycle,
     ) -> Result<String, MappedErrors> {
         let mut self_copy = self.clone();
-        self_copy = self_copy.decrypt_me(config)?;
+        self_copy = self_copy.decrypt_me(config).await?;
 
         let (secret, issuer) = match self_copy {
             Self::Enabled { issuer, secret, .. } => match secret {
@@ -141,14 +140,14 @@ impl Totp {
     }
 
     #[tracing::instrument(name = "encrypt_secret", skip_all)]
-    pub(crate) fn encrypt_me(
+    pub(crate) async fn encrypt_me(
         &self,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
         //
         // Create a key from the account's secret
         //
-        let encryption_key = block_on(config.token_secret.async_get_or_error());
+        let encryption_key = config.token_secret.async_get_or_error().await;
         let encryption_key_uuid = match Uuid::parse_str(&encryption_key?) {
             Ok(uuid) => uuid,
             Err(err) => {
@@ -234,14 +233,14 @@ impl Totp {
     }
 
     #[tracing::instrument(name = "decrypt_secret", skip_all)]
-    pub(crate) fn decrypt_me(
+    pub(crate) async fn decrypt_me(
         &self,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
         //
         // Create a key from the account's secret
         //
-        let encryption_key = block_on(config.token_secret.async_get_or_error());
+        let encryption_key = config.token_secret.async_get_or_error().await;
         let encryption_key_uuid = match Uuid::parse_str(&encryption_key?) {
             Ok(uuid) => uuid,
             Err(err) => {
@@ -596,8 +595,8 @@ mod tests {
 
     use myc_config::secret_resolver::SecretResolver;
 
-    #[test]
-    fn test_encrypt_and_decrypt_totp_secret() {
+    #[tokio::test]
+    async fn test_encrypt_and_decrypt_totp_secret() {
         let secret = "secret";
         let issuer = "issuer";
         let totp = Totp::Enabled {
@@ -618,11 +617,12 @@ mod tests {
             token_secret: SecretResolver::Value("test".to_string()),
         };
 
-        let encrypted = totp.encrypt_me(config.to_owned());
+        let encrypted = totp.encrypt_me(config.to_owned()).await;
+        println!("encrypted: {:?}", encrypted);
 
         assert!(encrypted.is_ok());
 
-        let decrypted = encrypted.unwrap().decrypt_me(config);
+        let decrypted = encrypted.unwrap().decrypt_me(config).await;
 
         assert!(decrypted.is_ok());
 

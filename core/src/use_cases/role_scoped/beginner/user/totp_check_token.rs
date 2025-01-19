@@ -56,8 +56,9 @@ pub async fn totp_check_token(
 
     let encrypted_user_totp = user.mfa().totp.clone();
 
-    let decrypted_user_totp =
-        encrypted_user_totp.decrypt_me(life_cycle_settings.to_owned())?;
+    let decrypted_user_totp = encrypted_user_totp
+        .decrypt_me(life_cycle_settings.to_owned())
+        .await?;
 
     let user_secret_option = match decrypted_user_totp {
         Totp::Enabled { secret, .. } => secret,
@@ -113,13 +114,10 @@ pub async fn totp_check_token(
     };
 
     if !is_valid {
-        return use_case_err(format!(
-            "Invalid TOTP token: {}",
-            email.email()
-        ))
-        .with_code(NativeErrorCodes::MYC00023)
-        .with_exp_true()
-        .as_error();
+        return use_case_err(format!("Invalid TOTP token: {}", email.email()))
+            .with_code(NativeErrorCodes::MYC00023)
+            .with_exp_true()
+            .as_error();
     }
 
     Ok(user)
