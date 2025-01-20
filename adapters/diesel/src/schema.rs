@@ -139,7 +139,7 @@ diesel::table! {
         name -> Varchar,
         description -> Nullable<Text>,
         meta -> Nullable<Jsonb>,
-        status -> Nullable<Array<Nullable<Jsonb>>>,
+        status -> Nullable<Array<Jsonb>>,
         created -> Timestamptz,
         updated -> Nullable<Timestamptz>,
     }

@@ -20,9 +20,8 @@ use mycelium_base::{
     utils::errors::{fetching_err, MappedErrors},
 };
 use prisma_client_rust::{and, operator::and as and_o, Direction};
-use serde_json::to_value;
 use shaku::Component;
-use std::{collections::HashMap, process::id as process_id};
+use std::process::id as process_id;
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -223,11 +222,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         name: Option<String>,
         owner: Option<Uuid>,
         metadata_key: Option<TenantMetaKey>,
-        status_verified: Option<bool>,
-        status_archived: Option<bool>,
-        status_trashed: Option<bool>,
-        tag_value: Option<String>,
-        tag_meta: Option<String>,
+        tag: Option<(String, String)>,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Tenant>, MappedErrors> {
@@ -267,44 +262,15 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
             ));
         }
 
-        if let Some(status_verified) = status_verified {
-            let mut map = HashMap::new();
-            map.insert("verified".to_string(), status_verified.to_string());
+        if let Some((tag_meta, tag_value)) = tag {
+            and_statement.push(tenant_model::tags::some(vec![
+                tenant_tag_model::meta::string_contains(tag_meta),
+            ]));
 
-            and_statement.push(tenant_model::status::has(Some(
-                to_value(serde_json::to_string(&map).unwrap()).unwrap(),
-            )));
-        }
-
-        if let Some(status_archived) = status_archived {
-            let mut map = HashMap::new();
-            map.insert("archived".to_string(), status_archived.to_string());
-
-            and_statement.push(tenant_model::status::has(Some(
-                to_value(serde_json::to_string(&map).unwrap()).unwrap(),
-            )));
-        }
-
-        if let Some(status_trashed) = status_trashed {
-            let mut map = HashMap::new();
-            map.insert("trashed".to_string(), status_trashed.to_string());
-
-            and_statement.push(tenant_model::status::has(Some(
-                to_value(serde_json::to_string(&map).unwrap()).unwrap(),
-            )));
-        }
-
-        if let Some(tag_value) = tag_value {
             and_statement.push(tenant_model::tags::some(vec![and![
                 tenant_tag_model::value::mode(QueryMode::Insensitive),
                 tenant_tag_model::value::contains(tag_value),
             ]]));
-        }
-
-        if let Some(tag_meta) = tag_meta {
-            and_statement.push(tenant_model::tags::some(vec![
-                tenant_tag_model::meta::string_contains(tag_meta),
-            ]));
         }
 
         let query_stmt = vec![and_o(and_statement)];

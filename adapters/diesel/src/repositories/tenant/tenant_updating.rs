@@ -80,7 +80,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
         let tenant = tenant_model::table
             .find(tenant_id.to_string())
             .select(tenant_model::status)
-            .first::<Option<Vec<Option<JsonValue>>>>(conn)
+            .first::<Option<Vec<JsonValue>>>(conn)
             .map_err(|e| {
                 updating_err(format!("Failed to fetch tenant: {}", e))
             })?;
@@ -88,7 +88,6 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
         let mut statuses: Vec<TenantStatus> = tenant
             .unwrap_or_default()
             .into_iter()
-            .filter_map(|s| s)
             .map(|s| serde_json::from_value(s).unwrap())
             .collect();
 
@@ -100,7 +99,7 @@ impl TenantUpdating for TenantUpdatingSqlDbRepository {
                     tenant_model::status.eq(Some(
                         statuses
                             .iter()
-                            .map(|s| Some(serde_json::to_value(s).unwrap()))
+                            .map(|s| serde_json::to_value(s).unwrap())
                             .collect::<Vec<_>>(),
                     )),
                     tenant_model::updated.eq(Some(Local::now().naive_utc())),
@@ -243,7 +242,6 @@ impl TenantUpdatingSqlDbRepository {
                 .status
                 .unwrap_or_default()
                 .into_iter()
-                .filter_map(|s| s)
                 .map(|s| serde_json::from_value(s).unwrap())
                 .collect(),
             created: model.created.and_local_timezone(Local).unwrap(),

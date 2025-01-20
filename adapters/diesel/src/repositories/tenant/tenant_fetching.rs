@@ -1,19 +1,18 @@
 use crate::{
     models::{config::DbPoolProvider, tenant::Tenant as TenantModel},
     schema::{
-        manager_account_on_tenant as manager_account_on_tenant_model,
-        owner_on_tenant as owner_on_tenant_model, tenant as tenant_model,
+        manager_account_on_tenant::{self as manager_account_on_tenant_model},
+        owner_on_tenant::{
+            self as owner_on_tenant_model, dsl as owner_on_tenant_dsl,
+        },
+        tenant::{self as tenant_model, dsl as tenant_dsl},
+        tenant_tag::dsl as tenant_tag_dsl,
     },
 };
 
 use async_trait::async_trait;
 use chrono::Local;
-use diesel::{
-    deserialize::QueryableByName,
-    prelude::*,
-    sql_types::{Array, BigInt, Jsonb},
-    QueryDsl,
-};
+use diesel::{prelude::*, QueryDsl};
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
@@ -26,9 +25,9 @@ use mycelium_base::{
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{fetching_err, MappedErrors},
 };
-use serde_json::Value as JsonValue;
+use serde_json::to_value;
 use shaku::Component;
-use std::{fmt::Display, str::FromStr, sync::Arc};
+use std::{str::FromStr, sync::Arc};
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -79,7 +78,6 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                     .status
                     .unwrap_or_default()
                     .into_iter()
-                    .filter_map(|s| s)
                     .map(|s| serde_json::from_value(s).unwrap())
                     .collect(),
                 created: record.created.and_local_timezone(Local).unwrap(),
@@ -133,7 +131,6 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                     .status
                     .unwrap_or_default()
                     .into_iter()
-                    .filter_map(|s| s)
                     .map(|s| serde_json::from_value(s).unwrap())
                     .collect(),
                 created: record.created.and_local_timezone(Local).unwrap(),
@@ -154,11 +151,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         name: Option<String>,
         owner: Option<Uuid>,
         metadata_key: Option<TenantMetaKey>,
-        status_verified: Option<bool>,
-        status_archived: Option<bool>,
-        status_trashed: Option<bool>,
-        tag_value: Option<String>,
-        tag_meta: Option<String>,
+        tag: Option<(String, String)>,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Tenant>, MappedErrors> {
@@ -167,109 +160,85 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        // Calculating the offset
-        let offset = (skip.unwrap_or(0) * page_size.unwrap_or(10)) as i64;
+        let mut query = tenant_dsl::tenant
+            .into_boxed()
+            .left_join(tenant_tag_dsl::tenant_tag)
+            .left_join(owner_on_tenant_dsl::owner_on_tenant);
 
-        // Build the SQL query with WITH
-        let sql = format!(
-            r#"
-            WITH paginaged AS (
-                SELECT 
-                    p.id, 
-                    p.name, 
-                    p.tags,
-                    p.meta,
-                    p.status,
-                    p.is_active,
-                    p.is_archived,
-                    p.is_trashed
-                FROM tenant p
-                LEFT JOIN owner_on_tenant ot ON p.id = ot.tenant_id
-                WHERE (
-                    {name} IS NULL OR p.name ILIKE {name}
-                    AND {owner} IS NULL OR ot.owner_id = {owner}
-                    AND {metadata_key} IS NULL OR p.meta->>{metadata_key} = {metadata_key}
-                    AND {status_verified} IS NULL OR p.status->>'verified' = {status_verified}
-                    AND {status_archived} IS NULL OR p.status->>'archived' = {status_archived}
-                    AND {status_trashed} IS NULL OR p.status->>'trashed' = {status_trashed}
-                    AND {tag_meta} IS NULL OR p.tags->>'{tag_meta}' = {tag_value}
-                )
-                ORDER BY p.created DESC
-                LIMIT {page_size}
-                OFFSET {offset}
-            )
-            SELECT
-                (SELECT COUNT(*) FROM paginaged) as total,
-                ARRAY(SELECT * FROM paginaged) as records
-            "#,
-            name = option_to_null(name),
-            owner = option_to_null(owner),
-            metadata_key = option_to_null(metadata_key),
-            status_verified = option_to_null(status_verified),
-            status_archived = option_to_null(status_archived),
-            status_trashed = option_to_null(status_trashed),
-            tag_value = option_to_null(tag_value),
-            tag_meta = option_to_null(tag_meta),
-            page_size = page_size.unwrap_or(10),
-            offset = offset,
-        );
-
-        println!("{}", sql);
-
-        let results: Vec<TenantWithCount> =
-            diesel::sql_query(&sql)
-                .bind::<diesel::sql_types::BigInt, _>(
-                    page_size.unwrap_or(10) as i64
-                )
-                .bind::<diesel::sql_types::BigInt, _>(offset)
-                .load(conn)
-                .map_err(|e| {
-                    fetching_err(format!("Failed to execute query: {}", e))
-                })?;
-
-        if results.is_empty() {
-            return Ok(FetchManyResponseKind::FoundPaginated(
-                PaginatedRecord {
-                    count: 0,
-                    skip: Some(skip.unwrap_or(0) as i64),
-                    size: Some(page_size.unwrap_or(10) as i64),
-                    records: vec![],
-                },
-            ));
+        if let Some(term) = name {
+            query = query.filter(tenant_dsl::name.ilike(format!("%{}%", term)));
         }
 
-        let total = if results.is_empty() {
-            0
-        } else {
-            results[0].total
-        };
+        if let Some(owner_id) = owner {
+            query = query
+                .filter(owner_on_tenant_dsl::owner_id.eq(owner_id.to_string()));
+        }
 
-        let records = results[0]
-            .records
-            .iter()
-            .map(|r| serde_json::from_value(r.clone()).unwrap())
-            .collect::<Vec<_>>();
+        if let Some((meta, value)) = tag {
+            // Filter by meta
+            //
+            // Meta is a JSONB column, so we need to filter this field as a string that contains the key
+            query = query
+                .filter(tenant_tag_dsl::meta.contains(to_value(meta).unwrap()));
+
+            // Filter by value
+            query = query.filter(tenant_tag_dsl::value.eq(value));
+        }
+
+        if let Some(meta_key) = metadata_key {
+            query = query
+                .filter(tenant_dsl::meta.contains(to_value(meta_key).unwrap()));
+        }
+
+        let page_size = page_size.unwrap_or(10) as i64;
+        let offset = skip.unwrap_or(0) as i64;
+
+        let records = query
+            .select(TenantModel::as_select())
+            .order_by(tenant_dsl::created.desc())
+            .limit(page_size)
+            .offset(offset)
+            .load::<TenantModel>(conn)
+            .map_err(|e| {
+                fetching_err(format!("Failed to fetch tenants: {}", e))
+            })?;
+
+        let total =
+            tenant_dsl::tenant.count().get_result::<i64>(conn).map_err(
+                |e| fetching_err(format!("Failed to get total count: {}", e)),
+            )?;
+
+        if records.is_empty() {
+            return Ok(FetchManyResponseKind::NotFound);
+        }
 
         Ok(FetchManyResponseKind::FoundPaginated(PaginatedRecord {
             count: total,
-            skip: Some(skip.unwrap_or(0) as i64),
-            size: Some(page_size.unwrap_or(10) as i64),
-            records,
+            skip: Some(offset),
+            size: Some(page_size),
+            records: records.into_iter().map(map_tenant_model_to_dto).collect(),
         }))
     }
 }
 
-fn option_to_null<T: Display>(value: Option<T>) -> String {
-    match value {
-        Some(v) => format!("'{}'", v),
-        None => "NULL".to_string(),
+fn map_tenant_model_to_dto(record: TenantModel) -> Tenant {
+    Tenant {
+        id: Some(Uuid::from_str(&record.id).unwrap()),
+        name: record.name,
+        description: record.description,
+        meta: record.meta.map(|m| serde_json::from_value(m).unwrap()),
+        status: record
+            .status
+            .unwrap_or_default()
+            .into_iter()
+            .map(|s| serde_json::from_value(s).unwrap())
+            .collect(),
+        created: record.created.and_local_timezone(Local).unwrap(),
+        updated: record
+            .updated
+            .map(|dt| dt.and_local_timezone(Local).unwrap()),
+        owners: Children::Records(vec![]),
+        manager: None,
+        tags: None,
     }
-}
-
-#[derive(QueryableByName)]
-struct TenantWithCount {
-    #[diesel(sql_type = BigInt)]
-    total: i64,
-    #[diesel(sql_type = Array<Jsonb>)]
-    records: Vec<JsonValue>,
 }
