@@ -62,11 +62,9 @@ pub struct ListTenantParams {
     name: Option<String>,
     owner: Option<Uuid>,
     metadata_key: Option<TenantMetaKey>,
-    status_verified: Option<bool>,
-    status_archived: Option<bool>,
-    status_trashed: Option<bool>,
-    tag_value: Option<String>,
-    tag_meta: Option<String>,
+
+    /// Example: `key=value`
+    tag: Option<String>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -162,21 +160,22 @@ pub async fn create_tenant_url(
 )]
 #[get("")]
 pub async fn list_tenant_url(
-    info: web::Query<ListTenantParams>,
+    query: web::Query<ListTenantParams>,
     page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
     app_module: web::Data<AppModule>,
 ) -> impl Responder {
+    let tag = query.tag.as_ref().map(|tag| {
+        let (key, value) = tag.split_once('=').unwrap();
+        (key.to_string(), value.to_string())
+    });
+
     match list_tenant(
         profile.to_profile(),
-        info.name.to_owned(),
-        info.owner.to_owned(),
-        info.metadata_key.to_owned(),
-        info.status_verified.to_owned(),
-        info.status_archived.to_owned(),
-        info.status_trashed.to_owned(),
-        info.tag_value.to_owned(),
-        info.tag_meta.to_owned(),
+        query.name.to_owned(),
+        query.owner.to_owned(),
+        query.metadata_key.to_owned(),
+        tag.to_owned(),
         page.page_size.to_owned(),
         page.skip.to_owned(),
         Box::new(&*app_module.resolve_ref()),

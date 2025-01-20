@@ -72,7 +72,6 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
                         .status
                         .unwrap_or_default()
                         .into_iter()
-                        .filter_map(|s| s)
                         .map(|s| serde_json::from_value(s).unwrap())
                         .collect(),
                     created: record.created.and_local_timezone(Local).unwrap(),
@@ -98,7 +97,7 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
                 tenant
                     .status
                     .into_iter()
-                    .map(|s| Some(to_value(&s).unwrap()))
+                    .map(|s| to_value(&s).unwrap())
                     .collect(),
             ),
             created: Local::now().naive_utc(),
@@ -158,7 +157,6 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
                 .status
                 .unwrap_or_default()
                 .into_iter()
-                .filter_map(|s| s)
                 .map(|s| serde_json::from_value(s).unwrap())
                 .collect(),
             created: created.created.and_local_timezone(Local).unwrap(),

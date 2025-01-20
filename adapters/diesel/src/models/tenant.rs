@@ -10,7 +10,7 @@ pub(crate) struct Tenant {
     pub name: String,
     pub description: Option<String>,
     pub meta: Option<JsonValue>,
-    pub status: Option<Vec<Option<JsonValue>>>,
+    pub status: Option<Vec<JsonValue>>,
     pub created: NaiveDateTime,
     pub updated: Option<NaiveDateTime>,
 }
