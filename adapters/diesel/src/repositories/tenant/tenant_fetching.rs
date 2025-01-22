@@ -27,7 +27,7 @@ use mycelium_base::{
 };
 use serde_json::{json, to_value};
 use shaku::Component;
-use std::{str::FromStr, sync::Arc};
+use std::{collections::HashMap, str::FromStr, sync::Arc};
 use tracing::error;
 use uuid::Uuid;
 
@@ -74,7 +74,15 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                 id: Some(Uuid::from_str(&record.id).unwrap()),
                 name: record.name,
                 description: record.description,
-                meta: record.meta.map(|m| serde_json::from_value(m).unwrap()),
+                meta: record.meta.map(|m| {
+                    serde_json::from_value::<HashMap<String, String>>(m)
+                        .unwrap()
+                        .iter()
+                        .map(|(k, v)| {
+                            (TenantMetaKey::from_str(k).unwrap(), v.to_string())
+                        })
+                        .collect()
+                }),
                 status: record
                     .status
                     .unwrap_or_default()
@@ -127,7 +135,15 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                 id: Some(Uuid::from_str(&record.id).unwrap()),
                 name: record.name,
                 description: record.description,
-                meta: record.meta.map(|m| serde_json::from_value(m).unwrap()),
+                meta: record.meta.map(|m| {
+                    serde_json::from_value::<HashMap<String, String>>(m)
+                        .unwrap()
+                        .iter()
+                        .map(|(k, v)| {
+                            (TenantMetaKey::from_str(k).unwrap(), v.to_string())
+                        })
+                        .collect()
+                }),
                 status: record
                     .status
                     .unwrap_or_default()
@@ -164,7 +180,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         let mut query = tenant_dsl::tenant
             .into_boxed()
             .left_join(tenant_tag_dsl::tenant_tag)
-            .left_join(owner_on_tenant_dsl::owner_on_tenant);
+            .inner_join(owner_on_tenant_dsl::owner_on_tenant);
 
         if let Some(term) = name {
             query = query.filter(tenant_dsl::name.ilike(format!("%{}%", term)));
@@ -223,17 +239,42 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                 fetching_err(format!("Failed to fetch tenants: {}", e))
             })?;
 
+        let owner_by_tenant_id: HashMap<String, Vec<String>> = records
+            .to_owned()
+            .into_iter()
+            .filter_map(|(tenant, owner_id)| {
+                owner_id.map(|owner_id| (tenant.id, owner_id))
+            })
+            .fold(HashMap::new(), |mut acc, (tenant_id, owner_id)| {
+                acc.entry(tenant_id).or_insert(vec![]).push(owner_id);
+                acc
+            });
+
         let tenants: Vec<Tenant> = records
             .into_iter()
-            .map(|(tenant, owner_id)| {
-                let mut dto = map_tenant_model_to_dto(tenant);
-                if let Some(owner_id) = owner_id {
-                    dto.owners =
-                        Children::Ids(vec![Uuid::from_str(&owner_id).unwrap()]);
+            .map(|(tenant, _)| {
+                let mut dto = map_tenant_model_to_dto(tenant.to_owned());
+                if let Some(owner_ids) = owner_by_tenant_id.get(&tenant.id) {
+                    dto.owners = Children::Ids(
+                        owner_ids
+                            .iter()
+                            .map(|id| Uuid::from_str(id).unwrap())
+                            .collect(),
+                    );
                 }
                 dto
             })
-            .collect();
+            //
+            // Remove duplicate tenants by tenant id
+            //
+            .collect::<Vec<_>>()
+            .into_iter()
+            .fold(Vec::new(), |mut acc, tenant| {
+                if !acc.iter().any(|t: &Tenant| t.id == tenant.id) {
+                    acc.push(tenant);
+                }
+                acc
+            });
 
         let total =
             tenant_dsl::tenant.count().get_result::<i64>(conn).map_err(
@@ -258,7 +299,15 @@ fn map_tenant_model_to_dto(record: TenantModel) -> Tenant {
         id: Some(Uuid::from_str(&record.id).unwrap()),
         name: record.name,
         description: record.description,
-        meta: record.meta.map(|m| serde_json::from_value(m).unwrap()),
+        meta: record.meta.map(|m| {
+            serde_json::from_value::<HashMap<String, String>>(m)
+                .unwrap()
+                .iter()
+                .map(|(k, v)| {
+                    (TenantMetaKey::from_str(k).unwrap(), v.to_string())
+                })
+                .collect()
+        }),
         status: record
             .status
             .unwrap_or_default()

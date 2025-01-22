@@ -1,14 +1,12 @@
 use crate::domain::{
-    dtos::{
-        profile::Profile,
-        tenant::{TenantMeta, TenantMetaKey},
-    },
+    dtos::{profile::Profile, tenant::TenantMetaKey},
     entities::TenantRegistration,
 };
 
 use mycelium_base::{
     entities::CreateResponseKind, utils::errors::MappedErrors,
 };
+use std::collections::HashMap;
 use uuid::Uuid;
 
 #[tracing::instrument(
@@ -22,7 +20,7 @@ pub async fn create_tenant_meta(
     key: TenantMetaKey,
     value: String,
     tenant_registration_repo: Box<&dyn TenantRegistration>,
-) -> Result<CreateResponseKind<TenantMeta>, MappedErrors> {
+) -> Result<CreateResponseKind<HashMap<String, String>>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the profile is the owner of the tenant
     // ? -----------------------------------------------------------------------
