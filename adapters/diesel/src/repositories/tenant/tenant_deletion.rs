@@ -167,7 +167,7 @@ impl TenantDeletion for TenantDeletionSqlDbRepository {
                         serde_json::from_value(meta.clone())
                             .unwrap_or_default();
 
-                    if meta_map.remove(&key.to_string()).is_some() {
+                    if meta_map.remove(&format!("{key}", key = key)).is_some() {
                         diesel::update(
                             tenant_model::table.find(tenant_id.to_string()),
                         )

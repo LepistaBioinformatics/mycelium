@@ -102,10 +102,19 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         // Check if account already exists
         let existing_account = account::table
             .filter(account::slug.eq(&account.slug))
-            .filter(
-                account::account_type
-                    .eq(to_value(account_type.clone()).unwrap()),
-            )
+            .filter(sql::<diesel::sql_types::Bool>(&format!(
+                "account_type::jsonb @> '{}'",
+                match serde_json::to_string(&account_type) {
+                    Ok(json) => json,
+                    Err(e) => {
+                        return creation_err(format!(
+                            "Failed to serialize account type: {}",
+                            e
+                        ))
+                        .as_error();
+                    }
+                }
+            )))
             .filter(account::tenant_id.eq(Some(tenant_id.to_string())))
             .select(AccountModel::as_select())
             .first::<AccountModel>(conn)
@@ -341,10 +350,19 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         // Check if account already exists
         let existing_account = account::table
             .filter(account::tenant_id.eq(Some(tenant_id.to_string())))
-            .filter(
-                account::account_type
-                    .eq(to_value(&concrete_account_type).unwrap()),
-            )
+            .filter(sql::<diesel::sql_types::Bool>(&format!(
+                "account_type::jsonb @> '{}'",
+                match serde_json::to_string(&concrete_account_type) {
+                    Ok(json) => json,
+                    Err(e) => {
+                        return creation_err(format!(
+                            "Failed to serialize account type: {}",
+                            e
+                        ))
+                        .as_error();
+                    }
+                }
+            )))
             .select(AccountModel::as_select())
             .first::<AccountModel>(conn)
             .optional()
@@ -421,15 +439,21 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
 
         let concrete_account_type = AccountType::ActorAssociated { actor };
 
-        let json_filter =
-            serde_json::to_string(&concrete_account_type).unwrap();
-
         // Check if account already exists
         let existing_account = account::table
             .filter(account::slug.eq(&account.slug))
             .filter(sql::<diesel::sql_types::Bool>(&format!(
                 "account_type::jsonb @> '{}'",
-                json_filter
+                match serde_json::to_string(&concrete_account_type) {
+                    Ok(json) => json,
+                    Err(e) => {
+                        return creation_err(format!(
+                            "Failed to serialize account type: {}",
+                            e
+                        ))
+                        .as_error();
+                    }
+                }
             )))
             .select(AccountModel::as_select())
             .first::<AccountModel>(conn)

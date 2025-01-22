@@ -237,7 +237,15 @@ impl TenantUpdatingSqlDbRepository {
             id: Some(Uuid::from_str(&model.id).unwrap()),
             name: model.name,
             description: model.description,
-            meta: model.meta.map(|m| serde_json::from_value(m).unwrap()),
+            meta: model.meta.map(|m| {
+                serde_json::from_value::<HashMap<String, String>>(m)
+                    .unwrap()
+                    .iter()
+                    .map(|(k, v)| {
+                        (TenantMetaKey::from_str(k).unwrap(), v.to_string())
+                    })
+                    .collect()
+            }),
             status: model
                 .status
                 .unwrap_or_default()

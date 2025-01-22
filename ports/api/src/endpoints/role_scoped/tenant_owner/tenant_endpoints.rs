@@ -40,24 +40,6 @@ pub struct UpdateTenantNameAndDescriptionBody {
     description: Option<String>,
 }
 
-#[derive(Deserialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateTenantArchivingBody {
-    archived: bool,
-}
-
-#[derive(Deserialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateTenantTrashingBody {
-    trashed: bool,
-}
-
-#[derive(Deserialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct UpdateTenantVerifyingBody {
-    verified: bool,
-}
-
 // ? ---------------------------------------------------------------------------
 // ? Define API paths
 // ? ---------------------------------------------------------------------------
@@ -124,7 +106,6 @@ pub async fn update_tenant_name_and_description_url(
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant unique id."),
     ),
-    request_body = UpdateTenantArchivingBody,
     responses(
         (
             status = 500,
@@ -155,14 +136,13 @@ pub async fn update_tenant_name_and_description_url(
 #[patch("/{tenant_id}/archive")]
 pub async fn update_tenant_archiving_status_url(
     path: web::Path<Uuid>,
-    body: web::Json<UpdateTenantArchivingBody>,
     profile: MyceliumProfileData,
     app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match update_tenant_archiving_status(
         profile.to_profile(),
         path.into_inner(),
-        body.archived.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await
@@ -178,7 +158,6 @@ pub async fn update_tenant_archiving_status_url(
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant unique id."),
     ),
-    request_body = UpdateTenantTrashingBody,
     responses(
         (
             status = 500,
@@ -209,14 +188,13 @@ pub async fn update_tenant_archiving_status_url(
 #[patch("/{tenant_id}/trash")]
 pub async fn update_tenant_trashing_status_url(
     path: web::Path<Uuid>,
-    body: web::Json<UpdateTenantTrashingBody>,
     profile: MyceliumProfileData,
     app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match update_tenant_trashing_status(
         profile.to_profile(),
         path.into_inner(),
-        body.trashed.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await
@@ -232,7 +210,6 @@ pub async fn update_tenant_trashing_status_url(
     params(
         ("tenant_id" = Uuid, Path, description = "The tenant unique id."),
     ),
-    request_body = UpdateTenantVerifyingBody,
     responses(
         (
             status = 500,
@@ -263,14 +240,13 @@ pub async fn update_tenant_trashing_status_url(
 #[patch("/{tenant_id}/verify")]
 pub async fn update_tenant_verifying_status_url(
     path: web::Path<Uuid>,
-    body: web::Json<UpdateTenantVerifyingBody>,
     profile: MyceliumProfileData,
     app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match update_tenant_verifying_status(
         profile.to_profile(),
         path.into_inner(),
-        body.verified.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

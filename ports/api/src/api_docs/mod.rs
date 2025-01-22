@@ -437,7 +437,6 @@ struct TenantOwnerAccountApiDoc;
     paths(
         Tenant_Owner__Meta::create_tenant_meta_url,
         Tenant_Owner__Meta::delete_tenant_meta_url,
-        Tenant_Owner__Meta::update_tenant_meta_url,
     ),
     security(("Bearer" = [])),
 )]
@@ -745,9 +744,6 @@ struct UsersManagerAccountApiDoc;
             role_scoped::tenant_owner::meta_endpoints::DeleteTenantMetaBody,
             role_scoped::tenant_owner::owner_endpoints::GuestTenantOwnerBody,
             role_scoped::tenant_owner::tenant_endpoints::UpdateTenantNameAndDescriptionBody,
-            role_scoped::tenant_owner::tenant_endpoints::UpdateTenantArchivingBody,
-            role_scoped::tenant_owner::tenant_endpoints::UpdateTenantTrashingBody,
-            role_scoped::tenant_owner::tenant_endpoints::UpdateTenantVerifyingBody,
         ),
         responses(
             //

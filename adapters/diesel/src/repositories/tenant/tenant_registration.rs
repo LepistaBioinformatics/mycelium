@@ -15,7 +15,7 @@ use diesel::prelude::*;
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
-        tenant::{Tenant, TenantMeta, TenantMetaKey},
+        tenant::{Tenant, TenantMetaKey},
     },
     entities::TenantRegistration,
 };
@@ -26,7 +26,7 @@ use mycelium_base::{
 };
 use serde_json::to_value;
 use shaku::Component;
-use std::{str::FromStr, sync::Arc};
+use std::{collections::HashMap, str::FromStr, sync::Arc};
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -176,7 +176,7 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
         tenant_id: Uuid,
         key: TenantMetaKey,
         value: String,
-    ) -> Result<CreateResponseKind<TenantMeta>, MappedErrors> {
+    ) -> Result<CreateResponseKind<HashMap<String, String>>, MappedErrors> {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
             creation_err(format!("Failed to get DB connection: {}", e))
                 .with_code(NativeErrorCodes::MYC00001)
@@ -205,7 +205,7 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
             Some(t) => t,
             None => {
                 return Ok(CreateResponseKind::NotCreated(
-                    TenantMeta::default(),
+                    HashMap::new(),
                     "Tenant not found or user not authorized".to_string(),
                 ))
             }
@@ -217,7 +217,7 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
             .map(|m| serde_json::from_value(m).unwrap())
             .unwrap_or_default();
 
-        meta_map.insert(key.to_string(), value.clone());
+        meta_map.insert(format!("{key}", key = key), value.clone());
 
         diesel::update(tenant_model::table.find(tenant_id.to_string()))
             .set(tenant_model::meta.eq(to_value(&meta_map).unwrap()))
@@ -226,13 +226,6 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
                 creation_err(format!("Failed to update tenant meta: {}", e))
             })?;
 
-        Ok(CreateResponseKind::Created(
-            meta_map
-                .into_iter()
-                .map(|(key, value)| {
-                    (TenantMetaKey::from_str(&key).unwrap(), value)
-                })
-                .collect(),
-        ))
+        Ok(CreateResponseKind::Created(meta_map))
     }
 }
