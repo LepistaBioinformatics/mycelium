@@ -1,6 +1,8 @@
+use std::str::FromStr;
+
 use crate::{dtos::MyceliumProfileData, endpoints::shared::PaginationParams};
 
-use actix_web::{delete, get, patch, post, web, Responder};
+use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         dtos::tenant::{Tenant, TenantMetaKey},
@@ -59,10 +61,17 @@ pub struct CreateTenantBody {
 #[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct ListTenantParams {
+    /// Filter tenants by name
     name: Option<String>,
-    owner: Option<Uuid>,
-    metadata_key: Option<TenantMetaKey>,
 
+    /// Filter tenants by owner
+    owner: Option<Uuid>,
+
+    /// Filter tenants by metadata key
+    metadata: Option<String>,
+
+    /// Filter tenants by tag
+    ///
     /// Example: `key=value`
     tag: Option<String>,
 }
@@ -165,16 +174,41 @@ pub async fn list_tenant_url(
     profile: MyceliumProfileData,
     app_module: web::Data<AppModule>,
 ) -> impl Responder {
-    let tag = query.tag.as_ref().map(|tag| {
-        let (key, value) = tag.split_once('=').unwrap();
-        (key.to_string(), value.to_string())
-    });
+    let tag = match query.tag.as_ref() {
+        Some(tag) => match tag.split_once('=') {
+            Some((key, value)) => Some((key.to_string(), value.to_string())),
+            None => {
+                return HttpResponse::BadRequest().body("Invalid tag format")
+            }
+        },
+        None => None,
+    };
+
+    let metadata = match query.metadata.as_ref() {
+        Some(metadata) => match metadata.split_once('=') {
+            Some((key, value)) => Some((
+                match TenantMetaKey::from_str(key) {
+                    Ok(key) => key,
+                    Err(_) => {
+                        return HttpResponse::BadRequest()
+                            .body("Invalid metadata key")
+                    }
+                },
+                value.to_string(),
+            )),
+            None => {
+                return HttpResponse::BadRequest()
+                    .body("Invalid metadata format")
+            }
+        },
+        None => None,
+    };
 
     match list_tenant(
         profile.to_profile(),
         query.name.to_owned(),
         query.owner.to_owned(),
-        query.metadata_key.to_owned(),
+        metadata.to_owned(),
         tag.to_owned(),
         page.page_size.to_owned(),
         page.skip.to_owned(),
@@ -299,7 +333,7 @@ pub async fn include_tenant_owner_url(
 /// owner from the tenant.
 ///
 #[utoipa::path(
-    patch,
+    delete,
     params(
         ("id" = Uuid, Path, description = "The tenant primary key."),
     ),

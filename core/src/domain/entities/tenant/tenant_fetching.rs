@@ -35,7 +35,7 @@ pub trait TenantFetching: Interface + Send + Sync {
         &self,
         name: Option<String>,
         owner: Option<Uuid>,
-        metadata_key: Option<TenantMetaKey>,
+        metadata: Option<(TenantMetaKey, String)>,
         tag: Option<(String, String)>,
         page_size: Option<i32>,
         skip: Option<i32>,
