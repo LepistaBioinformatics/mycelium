@@ -12,7 +12,7 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::Local;
-use diesel::{prelude::*, QueryDsl};
+use diesel::{dsl::sql, prelude::*, QueryDsl};
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
@@ -25,9 +25,10 @@ use mycelium_base::{
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{fetching_err, MappedErrors},
 };
-use serde_json::to_value;
+use serde_json::{json, to_value};
 use shaku::Component;
 use std::{str::FromStr, sync::Arc};
+use tracing::error;
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -150,7 +151,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         &self,
         name: Option<String>,
         owner: Option<Uuid>,
-        metadata_key: Option<TenantMetaKey>,
+        metadata: Option<(TenantMetaKey, String)>,
         tag: Option<(String, String)>,
         page_size: Option<i32>,
         skip: Option<i32>,
@@ -185,30 +186,61 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
             query = query.filter(tenant_tag_dsl::value.eq(value));
         }
 
-        if let Some(meta_key) = metadata_key {
-            query = query
-                .filter(tenant_dsl::meta.contains(to_value(meta_key).unwrap()));
+        if let Some((meta_key, value)) = metadata {
+            let json_filter = match serde_json::to_string(&json!({
+                meta_key.to_string().to_lowercase(): value.to_owned()
+            })) {
+                Ok(json_filter) => json_filter,
+                Err(err) => {
+                    error!(
+                        "Failed to convert metadata to JSON ({:?}={}): {}",
+                        meta_key, value, err,
+                    );
+                    return fetching_err("Failed to convert metadata to JSON")
+                        .as_error();
+                }
+            };
+
+            query = query.filter(sql::<diesel::sql_types::Bool>(&format!(
+                "LOWER(tenant.meta::text)::jsonb @> LOWER('{}'::text)::jsonb",
+                json_filter
+            )));
         }
 
         let page_size = page_size.unwrap_or(10) as i64;
         let offset = skip.unwrap_or(0) as i64;
 
         let records = query
-            .select(TenantModel::as_select())
+            .select((
+                TenantModel::as_select(),
+                owner_on_tenant_dsl::owner_id.nullable(),
+            ))
             .order_by(tenant_dsl::created.desc())
             .limit(page_size)
             .offset(offset)
-            .load::<TenantModel>(conn)
+            .load::<(TenantModel, Option<String>)>(conn)
             .map_err(|e| {
                 fetching_err(format!("Failed to fetch tenants: {}", e))
             })?;
+
+        let tenants: Vec<Tenant> = records
+            .into_iter()
+            .map(|(tenant, owner_id)| {
+                let mut dto = map_tenant_model_to_dto(tenant);
+                if let Some(owner_id) = owner_id {
+                    dto.owners =
+                        Children::Ids(vec![Uuid::from_str(&owner_id).unwrap()]);
+                }
+                dto
+            })
+            .collect();
 
         let total =
             tenant_dsl::tenant.count().get_result::<i64>(conn).map_err(
                 |e| fetching_err(format!("Failed to get total count: {}", e)),
             )?;
 
-        if records.is_empty() {
+        if tenants.is_empty() {
             return Ok(FetchManyResponseKind::NotFound);
         }
 
@@ -216,7 +248,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
             count: total,
             skip: Some(offset),
             size: Some(page_size),
-            records: records.into_iter().map(map_tenant_model_to_dto).collect(),
+            records: tenants,
         }))
     }
 }

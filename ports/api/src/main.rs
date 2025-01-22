@@ -57,7 +57,6 @@ use myc_notifier::{
     repositories::MessageSendingSmtpRepository,
     settings::{init_queue_config_from_file, init_smtp_config_from_file},
 };
-use myc_prisma::repositories::connector::generate_prisma_client_of_thread;
 use oauth2::http::HeaderName;
 use openssl::{
     pkey::PKey,
@@ -73,10 +72,7 @@ use reqwest::header::{
 };
 use router::route_request;
 use settings::{ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE};
-use std::{
-    path::PathBuf, process::id as process_id, str::FromStr, sync::Arc,
-    time::Duration,
-};
+use std::{path::PathBuf, str::FromStr, sync::Arc, time::Duration};
 use tracing::{info, trace};
 use tracing_actix_web::TracingLogger;
 use tracing_subscriber::prelude::*;
@@ -292,23 +288,6 @@ pub async fn main() -> std::io::Result<()> {
     init_queue_config_from_file(None, Some(config.queue.to_owned())).await;
 
     // ? -----------------------------------------------------------------------
-    // ? Here the current thread receives an instance of the prisma client.
-    //
-    // Each thread should contains a prisma instance. Otherwise the application
-    // should raise an adapter error on try to perform the first database query.
-    //
-    // ? -----------------------------------------------------------------------
-    info!("Start the database connectors");
-
-    let database_url =
-        match config.prisma.database_url.async_get_or_error().await {
-            Ok(url) => url,
-            Err(err) => panic!("Error on get database url: {err}"),
-        };
-
-    generate_prisma_client_of_thread(process_id()).await;
-
-    // ? -----------------------------------------------------------------------
     // ? Fire the scheduler
     // ? -----------------------------------------------------------------------
     info!("Fire mycelium scheduler");
@@ -373,6 +352,14 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     // ? Configure App Module
     // ? -----------------------------------------------------------------------
+
+    info!("Start the database connectors");
+
+    let database_url =
+        match config.diesel.database_url.async_get_or_error().await {
+            Ok(url) => url,
+            Err(err) => panic!("Error on get database url: {err}"),
+        };
 
     let module = Arc::new(
         AppModule::builder()

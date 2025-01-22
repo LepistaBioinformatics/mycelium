@@ -8,7 +8,7 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::Local;
-use diesel::prelude::*;
+use diesel::{dsl::sql, prelude::*};
 use myc_core::domain::{
     dtos::{
         account::{Account, AccountMeta, AccountMetaKey, VerboseStatus},
@@ -421,13 +421,16 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
 
         let concrete_account_type = AccountType::ActorAssociated { actor };
 
+        let json_filter =
+            serde_json::to_string(&concrete_account_type).unwrap();
+
         // Check if account already exists
         let existing_account = account::table
             .filter(account::slug.eq(&account.slug))
-            .filter(
-                account::account_type
-                    .eq(to_value(&concrete_account_type).unwrap()),
-            )
+            .filter(sql::<diesel::sql_types::Bool>(&format!(
+                "account_type::jsonb @> '{}'",
+                json_filter
+            )))
             .select(AccountModel::as_select())
             .first::<AccountModel>(conn)
             .optional()
