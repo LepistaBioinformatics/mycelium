@@ -120,11 +120,11 @@ pub(crate) async fn dispatch_webhooks<
 
                     match decrypted_secret {
                         HttpSecret::AuthorizationHeader {
-                            name,
+                            header_name,
                             prefix,
                             token,
                         } => {
-                            let credential_key = name
+                            let credential_key = header_name
                                 .to_owned()
                                 .unwrap_or("Authorization".to_string());
 

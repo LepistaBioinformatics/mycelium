@@ -1,26 +1,30 @@
 use crate::domain::{
     actors::SystemActor,
     dtos::{
-        native_error_codes::NativeErrorCodes, profile::Profile,
-        webhook::WebHook,
+        http_secret::HttpSecret, native_error_codes::NativeErrorCodes,
+        profile::Profile, webhook::WebHook,
     },
-    entities::WebHookUpdating,
+    entities::{WebHookFetching, WebHookUpdating},
 };
 
 use mycelium_base::{
-    entities::UpdatingResponseKind,
+    entities::{FetchResponseKind, UpdatingResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
 use uuid::Uuid;
 
 #[tracing::instrument(
     name = "update_webhook",
-    skip(profile, webhook_updating_repo)
+    fields(profile_id = %profile.acc_id),
+    skip_all,
 )]
 pub async fn update_webhook(
     profile: Profile,
-    webhook: WebHook,
     webhook_id: Uuid,
+    name: Option<String>,
+    description: Option<String>,
+    secret: Option<HttpSecret>,
+    webhook_fetching_repo: Box<&dyn WebHookFetching>,
     webhook_updating_repo: Box<&dyn WebHookUpdating>,
 ) -> Result<UpdatingResponseKind<WebHook>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -34,27 +38,36 @@ pub async fn update_webhook(
         .get_ids_or_error()?;
 
     // ? -----------------------------------------------------------------------
-    // ? Update webhook
+    // ? Fetch webhook
     // ? -----------------------------------------------------------------------
 
-    let target_webhook_id = match webhook.id.to_owned() {
-        Some(id) => id,
-        None => {
-            return use_case_err(
-                "WebHook id is required to update a WebHook.".to_string(),
-            )
+    let mut webhook = match webhook_fetching_repo.get(webhook_id).await? {
+        FetchResponseKind::Found(webhook) => webhook,
+        FetchResponseKind::NotFound(_) => {
+            return use_case_err(format!(
+                "WebHook with id {} not found.",
+                webhook_id
+            ))
             .with_code(NativeErrorCodes::MYC00018)
             .as_error()
         }
     };
 
-    if webhook_id != target_webhook_id {
-        return use_case_err(
-            "WebHook id does not match the path id.".to_string(),
-        )
-        .with_code(NativeErrorCodes::MYC00018)
-        .as_error();
-    };
+    // ? -----------------------------------------------------------------------
+    // ? Update webhook
+    // ? -----------------------------------------------------------------------
+
+    if let Some(name) = name {
+        webhook.name = name;
+    }
+
+    if let Some(description) = description {
+        webhook.description = Some(description);
+    }
+
+    if let Some(secret) = secret {
+        webhook.set_secret(secret);
+    }
 
     webhook_updating_repo.update(webhook).await
 }

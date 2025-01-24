@@ -104,4 +104,8 @@ impl WebHook {
     pub fn get_secret(&self) -> Option<HttpSecret> {
         self.secret.clone()
     }
+
+    pub fn set_secret(&mut self, secret: HttpSecret) {
+        self.secret = Some(secret);
+    }
 }

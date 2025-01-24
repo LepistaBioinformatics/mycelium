@@ -1,6 +1,6 @@
 use crate::dtos::MyceliumProfileData;
 
-use actix_web::{delete, get, post, put, web, Responder};
+use actix_web::{delete, get, patch, post, web, Responder};
 use myc_core::{
     domain::dtos::{
         http_secret::HttpSecret,
@@ -53,7 +53,9 @@ pub struct CreateWebHookBody {
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateWebHookBody {
-    webhook: WebHook,
+    name: Option<String>,
+    description: Option<String>,
+    secret: Option<HttpSecret>,
 }
 
 #[derive(Deserialize, ToSchema, IntoParams)]
@@ -177,7 +179,7 @@ pub async fn list_webhooks_url(
 
 /// Update a webhook
 #[utoipa::path(
-    put,
+    patch,
     params(
         ("webhook_id" = Uuid, Path, description = "The webhook primary key."),
     ),
@@ -205,7 +207,7 @@ pub async fn list_webhooks_url(
         ),
     ),
 )]
-#[put("/{webhook_id}")]
+#[patch("/{webhook_id}")]
 pub async fn update_webhook_url(
     body: web::Json<UpdateWebHookBody>,
     path: web::Path<Uuid>,
@@ -214,8 +216,11 @@ pub async fn update_webhook_url(
 ) -> impl Responder {
     match update_webhook(
         profile.to_profile(),
-        body.webhook.to_owned(),
         path.to_owned(),
+        body.name.to_owned(),
+        body.description.to_owned(),
+        body.secret.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await
