@@ -40,6 +40,7 @@ impl AccountTagRegistration for AccountTagRegistrationSqlDbRepository {
         // Check if tag already exists
         let existing_tag = account_tag_model::table
             .filter(account_tag_model::value.eq(&tag))
+            .filter(account_tag_model::meta.eq(to_value(&meta).unwrap()))
             .filter(account_tag_model::account_id.eq(analysis_id.to_string()))
             .select(AccountTagModel::as_select())
             .first::<AccountTagModel>(conn)

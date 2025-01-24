@@ -1,5 +1,9 @@
 use crate::{
-    models::{config::DbPoolProvider, tenant::Tenant as TenantModel},
+    models::{
+        config::DbPoolProvider,
+        owner_on_tenant::OwnerOnTenant as OwnerOnTenantModel,
+        tenant::Tenant as TenantModel, tenant_tag::TenantTag as TenantTagModel,
+    },
     schema::{
         manager_account_on_tenant::{self as manager_account_on_tenant_model},
         owner_on_tenant::{
@@ -12,10 +16,11 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::Local;
-use diesel::{dsl::sql, prelude::*, QueryDsl};
+use diesel::{dsl::sql, prelude::*, BelongingToDsl, QueryDsl};
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
+        tag::Tag,
         tenant::{Tenant, TenantMetaKey},
     },
     entities::TenantFetching,
@@ -28,7 +33,6 @@ use mycelium_base::{
 use serde_json::{json, to_value};
 use shaku::Component;
 use std::{collections::HashMap, str::FromStr, sync::Arc};
-use tracing::error;
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -177,109 +181,116 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let mut query = tenant_dsl::tenant
-            .into_boxed()
-            .left_join(tenant_tag_dsl::tenant_tag)
-            .inner_join(owner_on_tenant_dsl::owner_on_tenant);
+        let base_query = tenant_dsl::tenant
+            .inner_join(owner_on_tenant_dsl::owner_on_tenant)
+            .left_join(tenant_tag_dsl::tenant_tag);
+        let mut count_query = base_query.into_boxed();
+        let mut records_query = base_query.into_boxed();
 
         if let Some(term) = name {
-            query = query.filter(tenant_dsl::name.ilike(format!("%{}%", term)));
+            let dsl = tenant_dsl::name.ilike(format!("%{}%", term));
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
         if let Some(owner_id) = owner {
-            query = query
-                .filter(owner_on_tenant_dsl::owner_id.eq(owner_id.to_string()));
+            let dsl = owner_on_tenant_dsl::owner_id.eq(owner_id.to_string());
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
         if let Some((meta, value)) = tag {
-            // Filter by meta
-            //
-            // Meta is a JSONB column, so we need to filter this field as a string that contains the key
-            query = query
-                .filter(tenant_tag_dsl::meta.contains(to_value(meta).unwrap()));
+            let dsl = tenant_tag_dsl::meta.contains(to_value(meta).unwrap());
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
 
-            // Filter by value
-            query = query.filter(tenant_tag_dsl::value.eq(value));
+            let dsl = tenant_tag_dsl::value.eq(value);
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
         if let Some((meta_key, value)) = metadata {
-            let json_filter = match serde_json::to_string(&json!({
-                meta_key.to_string().to_lowercase(): value.to_owned()
-            })) {
-                Ok(json_filter) => json_filter,
-                Err(err) => {
-                    error!(
-                        "Failed to convert metadata to JSON ({:?}={}): {}",
-                        meta_key, value, err,
-                    );
-                    return fetching_err("Failed to convert metadata to JSON")
-                        .as_error();
-                }
-            };
-
-            query = query.filter(sql::<diesel::sql_types::Bool>(&format!(
+            let json_filter = format!(
                 "LOWER(tenant.meta::text)::jsonb @> LOWER('{}'::text)::jsonb",
-                json_filter
-            )));
+                serde_json::to_string(&json!({
+                    meta_key.to_string().to_lowercase(): value.to_owned()
+                }))
+                .unwrap()
+            );
+
+            let dsl = sql::<diesel::sql_types::Bool>(&json_filter);
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
-        let page_size = page_size.unwrap_or(10) as i64;
-        let offset = skip.unwrap_or(0) as i64;
+        // Get total of records
+        let total = count_query
+            .select(diesel::dsl::count_star())
+            .first::<i64>(conn)
+            .map_err(|e| {
+                fetching_err(format!("Failed to count tenants: {}", e))
+            })?;
 
-        let records = query
-            .select((
-                TenantModel::as_select(),
-                owner_on_tenant_dsl::owner_id.nullable(),
-            ))
+        // Get paginated records
+        let records = records_query
+            .select(TenantModel::as_select())
+            .distinct()
             .order_by(tenant_dsl::created.desc())
-            .limit(page_size)
-            .offset(offset)
-            .load::<(TenantModel, Option<String>)>(conn)
+            .limit(page_size.unwrap_or(10) as i64)
+            .offset(skip.unwrap_or(0) as i64)
+            .load::<TenantModel>(conn)
             .map_err(|e| {
                 fetching_err(format!("Failed to fetch tenants: {}", e))
             })?;
 
-        let owner_by_tenant_id: HashMap<String, Vec<String>> = records
-            .to_owned()
-            .into_iter()
-            .filter_map(|(tenant, owner_id)| {
-                owner_id.map(|owner_id| (tenant.id, owner_id))
-            })
-            .fold(HashMap::new(), |mut acc, (tenant_id, owner_id)| {
-                acc.entry(tenant_id).or_insert(vec![]).push(owner_id);
-                acc
-            });
+        let owners = OwnerOnTenantModel::belonging_to(&records)
+            .select(OwnerOnTenantModel::as_select())
+            .load::<OwnerOnTenantModel>(conn)
+            .map_err(|e| {
+                fetching_err(format!("Failed to fetch owners: {}", e))
+            })?
+            .grouped_by(&records);
+
+        let tags = TenantTagModel::belonging_to(&records)
+            .select(TenantTagModel::as_select())
+            .load::<TenantTagModel>(conn)
+            .map_err(|e| fetching_err(format!("Failed to fetch tags: {}", e)))?
+            .grouped_by(&records);
 
         let tenants: Vec<Tenant> = records
             .into_iter()
-            .map(|(tenant, _)| {
-                let mut dto = map_tenant_model_to_dto(tenant.to_owned());
-                if let Some(owner_ids) = owner_by_tenant_id.get(&tenant.id) {
-                    dto.owners = Children::Ids(
-                        owner_ids
-                            .iter()
-                            .map(|id| Uuid::from_str(id).unwrap())
-                            .collect(),
-                    );
-                }
-                dto
-            })
-            //
-            // Remove duplicate tenants by tenant id
-            //
-            .collect::<Vec<_>>()
-            .into_iter()
-            .fold(Vec::new(), |mut acc, tenant| {
-                if !acc.iter().any(|t: &Tenant| t.id == tenant.id) {
-                    acc.push(tenant);
-                }
-                acc
-            });
+            .zip(owners)
+            .zip(tags)
+            .map(|((tenant, owners), tags)| {
+                let mut tenant = map_tenant_model_to_dto(tenant);
 
-        let total =
-            tenant_dsl::tenant.count().get_result::<i64>(conn).map_err(
-                |e| fetching_err(format!("Failed to get total count: {}", e)),
-            )?;
+                let owners = owners
+                    .into_iter()
+                    .map(|o| Uuid::from_str(&o.owner_id).unwrap())
+                    .collect::<Vec<Uuid>>();
+
+                let tags = if tags.is_empty() {
+                    None
+                } else {
+                    Some(
+                        tags.into_iter()
+                            .map(|t| Tag {
+                                id: Uuid::from_str(&t.id).unwrap(),
+                                value: t.value,
+                                meta: t.meta.map(|m| {
+                                    serde_json::from_value(m).unwrap()
+                                }),
+                            })
+                            .collect::<Vec<Tag>>(),
+                    )
+                };
+
+                tenant.owners = Children::Ids(owners);
+                tenant.tags = tags;
+
+                tenant
+            })
+            .collect();
 
         if tenants.is_empty() {
             return Ok(FetchManyResponseKind::NotFound);
@@ -287,8 +298,8 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
 
         Ok(FetchManyResponseKind::FoundPaginated(PaginatedRecord {
             count: total,
-            skip: Some(offset),
-            size: Some(page_size),
+            skip: Some(skip.unwrap_or(0) as i64),
+            size: Some(page_size.unwrap_or(10) as i64),
             records: tenants,
         }))
     }

@@ -15,7 +15,7 @@ pub struct DieselConfig {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TmpConfig {
-    prisma: DieselConfig,
+    diesel: DieselConfig,
 }
 
 impl DieselConfig {
@@ -31,7 +31,7 @@ impl DieselConfig {
         }
 
         match load_config_from_file::<TmpConfig>(file) {
-            Ok(config) => Ok(config.prisma),
+            Ok(config) => Ok(config.diesel),
             Err(err) => Err(err),
         }
     }

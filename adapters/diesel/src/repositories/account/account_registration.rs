@@ -1,3 +1,4 @@
+use crate::models::internal_error::InternalError;
 use crate::{
     models::{
         account::Account as AccountModel, config::DbPoolProvider,
@@ -306,7 +307,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 Err(InternalError::Database(e)) => {
                     creation_err(format!("Database error: {}", e)).as_error()
                 }
-                Err(InternalError::NoOwner) => {
+                Err(InternalError::Unknown) => {
                     creation_err("No owner provided").as_error()
                 }
             }
@@ -585,19 +586,5 @@ impl AccountRegistrationSqlDbRepository {
                 .map(|dt| dt.and_local_timezone(Local).unwrap()),
             meta: None,
         }
-    }
-}
-
-#[derive(Debug)]
-enum InternalError {
-    Database(diesel::result::Error),
-
-    #[allow(unused)]
-    NoOwner,
-}
-
-impl From<diesel::result::Error> for InternalError {
-    fn from(err: diesel::result::Error) -> Self {
-        InternalError::Database(err)
     }
 }
