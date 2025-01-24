@@ -43,7 +43,7 @@ CREATE TABLE tenant_tag (
     meta JSONB,
     tenant_id UUID NOT NULL,
 
-    CONSTRAINT unique_tenant_tag UNIQUE (value, tenant_id),
+    CONSTRAINT unique_tenant_tag UNIQUE (value, tenant_id, meta),
     CONSTRAINT fk_tenant_tag FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE
 );
 
@@ -145,7 +145,7 @@ CREATE TABLE account_tag (
     meta JSONB,
     account_id UUID NOT NULL,
 
-    CONSTRAINT unique_account_tag UNIQUE (value, account_id),
+    CONSTRAINT unique_account_tag UNIQUE (value, account_id, meta),
     CONSTRAINT fk_account_tag FOREIGN KEY (account_id) REFERENCES account(id) ON DELETE CASCADE
 );
 

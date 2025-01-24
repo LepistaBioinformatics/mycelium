@@ -42,6 +42,7 @@ impl TenantTagRegistration for TenantTagRegistrationSqlDbRepository {
         // Check if tag already exists
         let existing = tenant_tag_model::table
             .filter(tenant_tag_model::value.eq(&tag))
+            .filter(tenant_tag_model::meta.eq(to_value(&meta).unwrap()))
             .filter(tenant_tag_model::tenant_id.eq(tenant_id.to_string()))
             .select(TenantTagModel::as_select())
             .first::<TenantTagModel>(conn)

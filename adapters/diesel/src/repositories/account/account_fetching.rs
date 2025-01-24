@@ -96,65 +96,81 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let mut query = account_dsl::account
-            .into_boxed()
-            .left_join(user_dsl::user)
-            .left_join(
+        let base_query =
+            account_dsl::account.left_join(user_dsl::user).left_join(
                 account_tag_dsl::account_tag
                     .on(account_dsl::id.eq(account_tag_dsl::account_id)),
             );
 
+        let mut count_query = base_query.into_boxed();
+        let mut records_query = base_query.into_boxed();
+
         if let Some(term_value) = term {
-            query = query
-                .filter(account_dsl::name.ilike(format!("%{}%", term_value)));
+            let dsl = account_dsl::name.ilike(format!("%{}%", term_value));
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
         if let Some(account_id_value) = account_id {
-            query =
-                query.filter(account_dsl::id.eq(account_id_value.to_string()));
+            let dsl = account_dsl::id.eq(account_id_value.to_string());
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
         if let Some(is_active) = is_account_active {
-            query = query.filter(account_dsl::is_active.eq(is_active));
+            let dsl = account_dsl::is_active.eq(is_active);
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
         if let Some(is_checked) = is_account_checked {
-            query = query.filter(account_dsl::is_checked.eq(is_checked));
+            let dsl = account_dsl::is_checked.eq(is_checked);
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
         if let Some(is_archived) = is_account_archived {
-            query = query.filter(account_dsl::is_archived.eq(is_archived));
+            let dsl = account_dsl::is_archived.eq(is_archived);
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
         if let Some(tag_id_value) = tag_id {
-            query =
-                query.filter(account_tag_dsl::id.eq(tag_id_value.to_string()));
+            let dsl = account_tag_dsl::id.eq(tag_id_value.to_string());
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
         if let Some(tag_value_str) = tag_value {
-            query = query.filter(account_tag_dsl::value.eq(tag_value_str));
+            let dsl = account_tag_dsl::value.eq(tag_value_str);
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
         if let Some(is_active) = is_owner_active {
-            query = query.filter(user_dsl::is_active.eq(is_active));
+            let dsl = user_dsl::is_active.eq(is_active);
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
         if let Some(acc_type) = account_type {
-            query = query.filter(
-                account_dsl::account_type
-                    .eq(serde_json::to_value(acc_type).unwrap()),
-            );
+            let dsl = account_dsl::account_type
+                .eq(serde_json::to_value(acc_type).unwrap());
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
         if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
-            query = query.filter(account_dsl::id.eq_any(
+            let dsl = account_dsl::id.eq_any(
                 ids.iter().map(|id| id.to_string()).collect::<Vec<String>>(),
-            ));
+            );
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
         let page_size = page_size.unwrap_or(10) as i64;
 
-        let records = query
+        let records = records_query
             .select(AccountModel::as_select())
             .order_by(account_dsl::created.desc())
             .limit(page_size)
@@ -164,11 +180,11 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                 fetching_err(format!("Failed to fetch accounts: {}", e))
             })?;
 
-        let total = account_dsl::account
-            .count()
-            .get_result::<i64>(conn)
+        let total = count_query
+            .select(diesel::dsl::count_star())
+            .first::<i64>(conn)
             .map_err(|e| {
-                fetching_err(format!("Failed to get total count: {}", e))
+                fetching_err(format!("Failed to count accounts: {}", e))
             })?;
 
         let records =

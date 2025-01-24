@@ -12,3 +12,5 @@ pub(crate) mod user;
 pub(crate) mod webhook;
 
 pub mod config;
+
+pub(crate) mod internal_error;
