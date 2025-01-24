@@ -200,11 +200,10 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         }
 
         if let Some((meta, value)) = tag {
-            let dsl = tenant_tag_dsl::meta.contains(to_value(meta).unwrap());
-            records_query = records_query.filter(dsl.clone());
-            count_query = count_query.filter(dsl);
+            let dsl = tenant_tag_dsl::meta
+                .contains(to_value(meta).unwrap())
+                .and(tenant_tag_dsl::value.eq(value));
 
-            let dsl = tenant_tag_dsl::value.eq(value);
             records_query = records_query.filter(dsl.clone());
             count_query = count_query.filter(dsl);
         }

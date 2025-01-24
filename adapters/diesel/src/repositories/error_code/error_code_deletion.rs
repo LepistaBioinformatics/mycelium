@@ -36,8 +36,11 @@ impl ErrorCodeDeletion for ErrorCodeDeletionSqlDbRepository {
 
         // Check if error code exists
         let error_exists = error_code_model::table
-            .filter(error_code_model::prefix.eq(&prefix))
-            .filter(error_code_model::code.eq(code))
+            .filter(
+                error_code_model::prefix
+                    .eq(prefix.clone())
+                    .and(error_code_model::code.eq(code)),
+            )
             .select(error_code_model::code)
             .first::<i32>(conn)
             .optional()
@@ -49,9 +52,11 @@ impl ErrorCodeDeletion for ErrorCodeDeletionSqlDbRepository {
             Some(_) => {
                 // Delete error code
                 diesel::delete(
-                    error_code_model::table
-                        .filter(error_code_model::prefix.eq(&prefix))
-                        .filter(error_code_model::code.eq(code)),
+                    error_code_model::table.filter(
+                        error_code_model::prefix
+                            .eq(prefix.clone())
+                            .and(error_code_model::code.eq(code)),
+                    ),
                 )
                 .execute(conn)
                 .map_err(|e| {
