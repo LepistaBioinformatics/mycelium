@@ -37,9 +37,11 @@ impl ErrorCodeUpdating for ErrorCodeUpdatingSqlDbRepository {
         })?;
 
         let updated = diesel::update(
-            error_code_model::table
-                .filter(error_code_model::prefix.eq(&error_code.prefix))
-                .filter(error_code_model::code.eq(error_code.error_number)),
+            error_code_model::table.filter(
+                error_code_model::prefix
+                    .eq(error_code.prefix.clone())
+                    .and(error_code_model::code.eq(error_code.error_number)),
+            ),
         )
         .set((
             error_code_model::message.eq(&error_code.message),

@@ -38,8 +38,11 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
         })?;
 
         let error_code = error_code_model::table
-            .filter(error_code_model::prefix.eq(&prefix))
-            .filter(error_code_model::code.eq(code))
+            .filter(
+                error_code_model::prefix
+                    .eq(&prefix)
+                    .and(error_code_model::code.eq(code)),
+            )
             .select(ErrorCodeModel::as_select())
             .first::<ErrorCodeModel>(conn)
             .optional()
@@ -69,24 +72,30 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let mut query = error_code_model::table.into_boxed();
+        let mut records_query = error_code_model::table.into_boxed();
+        let mut total_query = error_code_model::table.into_boxed();
 
-        // Apply filters
         if let Some(prefix) = prefix {
-            query = query.filter(error_code_model::prefix.eq(prefix));
+            let stm = error_code_model::prefix.ilike(format!("%{}%", prefix));
+            records_query = records_query.filter(stm.to_owned());
+            total_query = total_query.filter(stm);
         }
+
         if let Some(code) = code {
-            query = query.filter(error_code_model::code.eq(code));
+            let stm = error_code_model::code.eq(code);
+            records_query = records_query.filter(stm);
+            total_query = total_query.filter(stm);
         }
+
         if let Some(is_internal) = is_internal {
-            query = query.filter(error_code_model::is_internal.eq(is_internal));
+            let stm = error_code_model::is_internal.eq(is_internal);
+            records_query = records_query.filter(stm);
+            total_query = total_query.filter(stm);
         }
 
         // Get total count
-        let total = error_code_model::table
-            .count()
-            .get_result::<i64>(conn)
-            .map_err(|e| {
+        let total =
+            total_query.count().get_result::<i64>(conn).map_err(|e| {
                 fetching_err(format!("Failed to get total count: {}", e))
             })?;
 
@@ -94,10 +103,12 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
         let page_size = i64::from(page_size.unwrap_or(10));
         let skip = i64::from(skip.unwrap_or(0));
 
-        let records = query
+        let records = records_query
             .offset(skip)
             .limit(page_size)
             .select(ErrorCodeModel::as_select())
+            .order(error_code_model::code.asc())
+            .order(error_code_model::prefix.asc())
             .load::<ErrorCodeModel>(conn)
             .map_err(|e| {
                 fetching_err(format!("Failed to fetch error codes: {}", e))

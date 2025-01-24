@@ -1,6 +1,3 @@
-mod native_error_options;
-
-use self::native_error_options::get_error_code_maps;
 use crate::domain::dtos::error_code::ErrorCode;
 
 use enum_iterator::{all, Sequence};
@@ -228,10 +225,6 @@ pub enum NativeErrorCodes {
 }
 
 impl NativeErrorCodes {
-    // ? -----------------------------------------------------------------------
-    // ? PUBLIC INSTANCE METHODS
-    // ? -----------------------------------------------------------------------
-
     /// Get parts of a single error code enumerator element
     ///
     /// This method will return a tuple with the prefix and the code of the
@@ -278,9 +271,152 @@ impl NativeErrorCodes {
         }
     }
 
-    // ? -----------------------------------------------------------------------
-    // ? PUBLIC STATIC METHODS
-    // ? -----------------------------------------------------------------------
+    pub fn iter() -> impl Iterator<Item = NativeErrorCodes> {
+        all::<NativeErrorCodes>()
+    }
+
+    pub fn as_doc(&self) -> Result<ErrorCode, MappedErrors> {
+        match self {
+            Self::MYC00001 => Ok(ErrorCode::new_internal_error(
+                "MYC".to_string(),
+                1,
+                "Prisma Client Unavailable error".to_string(),
+                true,
+            )?.with_details("Prisma Client error. Could not fetch client.".to_string())),
+            Self::MYC00002 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                2,
+                "User already registered in Mycelium".to_string(),
+                true,
+            )?.with_details("When a manager account try to register a new account and the account owner already exists this error should be returned.".to_string())),
+            Self::MYC00003 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                3,
+                "Account already registered in Mycelium".to_string(),
+                true,
+            )?.with_details("When a manager account try to register a new account and the account already exists this error should be returned.".to_string())),
+            Self::MYC00004 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                4,
+                "Could not check profile verbose status".to_string(),
+                true,
+            )?.with_details("This error should be dispatched when use-cases could not access the account verbose-status during validations.".to_string())),
+            Self::MYC00005 => Ok(ErrorCode::new_internal_error(
+                "MYC".to_string(),
+                5,
+                "Action restricted to active users".to_string(),
+                true,
+            )?.with_details("Indicates that the desired action should only be performed by active users.".to_string())),
+            Self::MYC00006 => Ok(ErrorCode::new_internal_error(
+                "MYC".to_string(),
+                6,
+                "Action restricted to manager users".to_string(),
+                true,
+            )?.with_details("Indicates that the action requires manager privileges.".to_string())),
+            Self::MYC00007 => Ok(ErrorCode::new_internal_error(
+                "MYC".to_string(),
+                7,
+                "Updating action failed".to_string(),
+                true,
+            )?.with_details("Action dispatched when an update action was preceded by unknown error.".to_string())),
+            Self::MYC00008 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                8,
+                "Token not found or expired".to_string(),
+                true,
+            )?.with_details("Indicates that the token was not found or has expired.".to_string())),
+            Self::MYC00009 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                9,
+                "User not found".to_string(),
+                true,
+            )?.with_details("Indicates that the user was not found.".to_string())),
+            Self::MYC00010 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                10,
+                "Unable to notify user".to_string(),
+                true,
+            )?.with_details("Indicates that the system was unable to notify the user, but the action was successful.".to_string())),
+            Self::MYC00011 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                11,
+                "New Password is the same as the old one".to_string(),
+                true,
+            )?.with_details("Indicates that the new password is the same as the old one.".to_string())),
+            Self::MYC00012 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                12,
+                "Unable to validate password".to_string(),
+                true,
+            )?.with_details("Indicates that the system was unable to validate the password.".to_string())),
+            Self::MYC00013 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                13,
+                "Unauthorized action".to_string(),
+                true,
+            )?.with_details("Indicates that the action is unauthorized.".to_string())),
+            Self::MYC00014 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                14,
+                "Tenant name already exists".to_string(),
+                true,
+            )?.with_details("Indicates that the tenant name already exists.".to_string())),
+            Self::MYC00015 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                15,
+                "Tenant owner already exists".to_string(),
+                true,
+            )?.with_details("Indicates that the tenant owner already exists.".to_string())),
+            Self::MYC00016 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                16,
+                "Tenant owner not found".to_string(),
+                true,
+            )?.with_details("Indicates that the tenant owner was not found.".to_string())),
+            Self::MYC00017 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                17,
+                "Guest already exists".to_string(),
+                true,
+            )?.with_details("Indicates that the guest already exists.".to_string())),
+            Self::MYC00018 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                18,
+                "Invalid user operation".to_string(),
+                true,
+            )?.with_details("Indicates that the user operation is invalid.".to_string())),
+            Self::MYC00019 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                19,
+                "Insufficient privileges".to_string(),
+                true,
+            )?.with_details("Indicates that the user has insufficient privileges.".to_string())),
+            Self::MYC00020 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                20,
+                "Possible security issue".to_string(),
+                true,
+            )?.with_details("The informed scope is not valid.".to_string())),
+            Self::MYC00021 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                21,
+                "Totp Already Enabled".to_string(),
+                true,
+            )?.with_details("Indicates that the user already has TOTP enabled.".to_string())),
+            Self::MYC00022 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                22,
+                "Totp Disabled".to_string(),
+                true,
+            )?.with_details("Indicates that the user does not have TOTP enabled.".to_string())),
+            Self::MYC00023 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                23,
+                "Totp Token invalid".to_string(),
+                true,
+            )?.with_details("Indicates that the TOTP token is invalid.".to_string())),
+        }
+    }
 
     /// Get the error code options.
     ///
@@ -292,41 +428,23 @@ impl NativeErrorCodes {
     ///
     pub fn to_error_codes(
     ) -> Result<HashMap<NativeErrorCodes, ErrorCode>, MappedErrors> {
-        // Check if enum entries are in the correct format.
         Self::self_validate()?;
-
-        // Get the expected length of the error code options. Should be
-        // equivalent to NativeErrorCodes enum length (number of enum entries).
-        let expected_length = Self::to_vec().len();
 
         let mut error_code_sources =
             HashMap::<NativeErrorCodes, ErrorCode>::new();
 
-        for source in get_error_code_maps(Some(expected_length)).iter() {
-            let (prefix, code) = source.code.parts();
+        for item in Self::iter() {
+            let mut error_code = item.as_doc()?;
 
-            let mut error_code = ErrorCode::new(
-                prefix,
-                code,
-                source.message.to_string(),
-                source.is_internal,
-                source.is_native,
-            )?;
-
-            if let Some(details) = source.details.to_owned() {
+            if let Some(details) = error_code.details.to_owned() {
                 error_code = error_code.with_details(details.to_string());
             }
 
-            error_code_sources
-                .insert(source.code.to_owned(), error_code.to_owned());
+            error_code_sources.insert(item.to_owned(), error_code.to_owned());
         }
 
         Ok(error_code_sources)
     }
-
-    // ? -----------------------------------------------------------------------
-    // ? PRIVATE STATIC METHODS
-    // ? -----------------------------------------------------------------------
 
     /// Create a vector with all the error code options.
     fn to_vec() -> Vec<Self> {
