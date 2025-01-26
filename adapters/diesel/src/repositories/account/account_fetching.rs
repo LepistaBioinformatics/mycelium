@@ -1,6 +1,10 @@
 use super::shared::map_account_model_to_dto;
 use crate::{
-    models::{account::Account as AccountModel, config::DbPoolProvider},
+    models::{
+        account::Account as AccountModel,
+        account_tag::AccountTag as AccountTagModel, config::DbPoolProvider,
+        user::User as UserModel,
+    },
     schema::{
         account::{self as account_model, dsl as account_dsl},
         account_tag::dsl as account_tag_dsl,
@@ -9,22 +13,23 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use diesel::{prelude::*, dsl::sql};
+use chrono::Local;
+use diesel::{dsl::sql, prelude::*};
 use myc_core::domain::{
     dtos::{
-        account::Account, account_type::AccountType,
+        account::Account, account_type::AccountType, email::Email,
         native_error_codes::NativeErrorCodes,
-        related_accounts::RelatedAccounts,
+        related_accounts::RelatedAccounts, tag::Tag, user::User,
     },
     entities::AccountFetching,
 };
 use mycelium_base::{
-    dtos::PaginatedRecord,
+    dtos::{Children, PaginatedRecord},
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{creation_err, fetching_err, MappedErrors},
 };
 use shaku::Component;
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -67,12 +72,55 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                 fetching_err(format!("Failed to fetch account: {}", e))
             })?;
 
-        match account {
-            Some(record) => {
-                Ok(FetchResponseKind::Found(map_account_model_to_dto(record)))
+        if let Some(account) = account {
+            let tags = AccountTagModel::belonging_to(&account)
+                .select(AccountTagModel::as_select())
+                .load::<AccountTagModel>(conn)
+                .map_err(|e| {
+                    fetching_err(format!("Failed to fetch tags: {}", e))
+                })?
+                .into_iter()
+                .map(|t| Tag {
+                    id: Uuid::from_str(&t.id).unwrap(),
+                    value: t.value,
+                    meta: t.meta.map(|m| serde_json::from_value(m).unwrap()),
+                })
+                .collect::<Vec<Tag>>();
+
+            let owners = UserModel::belonging_to(&account)
+                .select(UserModel::as_select())
+                .load::<UserModel>(conn)
+                .map_err(|e| {
+                    fetching_err(format!("Failed to fetch users: {}", e))
+                })?
+                .into_iter()
+                .map(|o| {
+                    User::new_public_redacted(
+                        Uuid::from_str(&o.id).unwrap(),
+                        Email::from_string(o.email).unwrap(),
+                        o.username,
+                        o.created.and_local_timezone(Local).unwrap(),
+                        o.is_active,
+                        o.is_principal,
+                    )
+                })
+                .collect::<Vec<User>>();
+
+            let mut account = map_account_model_to_dto(account);
+
+            account.tags = match tags.len() {
+                0 => None,
+                _ => Some(tags),
+            };
+
+            if owners.len() > 0 {
+                account.owners = Children::Records(owners);
             }
-            None => Ok(FetchResponseKind::NotFound(Some(id))),
+
+            return Ok(FetchResponseKind::Found(account));
         }
+
+        Ok(FetchResponseKind::NotFound(Some(id)))
     }
 
     #[tracing::instrument(name = "list_accounts", skip_all)]
@@ -181,16 +229,33 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         }
 
         let page_size = page_size.unwrap_or(10) as i64;
+        let skip = skip.unwrap_or(0) as i64;
 
         let records = records_query
             .select(AccountModel::as_select())
             .order_by(account_dsl::created.desc())
             .limit(page_size)
-            .offset(skip.unwrap_or(0) as i64)
+            .offset(skip)
             .load::<AccountModel>(conn)
             .map_err(|e| {
                 fetching_err(format!("Failed to fetch accounts: {}", e))
             })?;
+
+        if records.len() == 0 {
+            return Ok(FetchManyResponseKind::NotFound);
+        }
+
+        let tags = AccountTagModel::belonging_to(&records)
+            .select(AccountTagModel::as_select())
+            .load::<AccountTagModel>(conn)
+            .map_err(|e| fetching_err(format!("Failed to fetch tags: {}", e)))?
+            .grouped_by(&records);
+
+        let owners = UserModel::belonging_to(&records)
+            .select(UserModel::as_select())
+            .load::<UserModel>(conn)
+            .map_err(|e| fetching_err(format!("Failed to fetch users: {}", e)))?
+            .grouped_by(&records);
 
         let total = count_query
             .select(diesel::dsl::count_star())
@@ -199,14 +264,56 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                 fetching_err(format!("Failed to count accounts: {}", e))
             })?;
 
-        let records =
-            records.into_iter().map(map_account_model_to_dto).collect();
+        let accounts = records
+            .into_iter()
+            .zip(tags)
+            .zip(owners)
+            .map(|((account, tags), users)| {
+                let mut account = map_account_model_to_dto(account);
+
+                let tags = tags
+                    .into_iter()
+                    .map(|t| Tag {
+                        id: Uuid::from_str(&t.id).unwrap(),
+                        value: t.value,
+                        meta: t
+                            .meta
+                            .map(|m| serde_json::from_value(m).unwrap()),
+                    })
+                    .collect::<Vec<Tag>>();
+
+                let owners = users
+                    .into_iter()
+                    .map(|o| {
+                        User::new_public_redacted(
+                            Uuid::from_str(&o.id).unwrap(),
+                            Email::from_string(o.email).unwrap(),
+                            o.username,
+                            o.created.and_local_timezone(Local).unwrap(),
+                            o.is_active,
+                            o.is_principal,
+                        )
+                    })
+                    .collect::<Vec<User>>();
+
+                account.tags = match tags.len() {
+                    0 => None,
+                    _ => Some(tags),
+                };
+
+                if owners.len() > 0 {
+                    account.owners = Children::Records(owners);
+                }
+
+                account
+            })
+            .collect();
 
         Ok(FetchManyResponseKind::FoundPaginated(PaginatedRecord {
             count: total,
-            skip: Some(skip.unwrap_or(0) as i64),
+            skip: Some(skip),
             size: Some(page_size),
-            records,
+            records: accounts,
         }))
     }
 }

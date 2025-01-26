@@ -17,6 +17,7 @@ use uuid::Uuid;
 pub async fn update_tag(
     profile: Profile,
     tenant_id: Uuid,
+    account_id: Uuid,
     tag: Tag,
     tag_updating_repo: Box<&dyn AccountTagUpdating>,
 ) -> Result<UpdatingResponseKind<Tag>, MappedErrors> {
@@ -26,6 +27,7 @@ pub async fn update_tag(
 
     profile
         .on_tenant(tenant_id)
+        .on_account(account_id)
         .with_system_accounts_access()
         .with_write_access()
         .with_roles(vec![

@@ -89,6 +89,8 @@ pub enum Provider {
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum Totp {
+    Unknown,
+
     Disabled,
 
     /// The TOTP when enabled
@@ -379,15 +381,27 @@ impl MultiFactorAuthentication {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, ToSchema, ToResponse)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<Uuid>,
 
     pub username: String,
+
     pub email: Email,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub first_name: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_name: Option<String>,
+
     pub is_active: bool,
+
     pub created: DateTime<Local>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub updated: Option<DateTime<Local>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub account: Option<Parent<Account, Uuid>>,
 
     /// If the user is the principal user of the account.
@@ -441,18 +455,43 @@ impl Serialize for User {
         user.mfa = user.mfa.redact_secrets();
 
         let mut state = serializer.serialize_struct("User", 12)?;
-        state.serialize_field("id", &user.id)?;
+
+        if user.id.is_some() {
+            state.serialize_field("id", &user.id)?;
+        }
+
+        if user.first_name.is_some() {
+            state.serialize_field("firstName", &user.first_name)?;
+        }
+
+        if user.last_name.is_some() {
+            state.serialize_field("lastName", &user.last_name)?;
+        }
+
         state.serialize_field("username", &user.username)?;
+
         state.serialize_field("email", &user.email)?;
-        state.serialize_field("firstName", &user.first_name)?;
-        state.serialize_field("lastName", &user.last_name)?;
+
         state.serialize_field("isActive", &user.is_active)?;
+
         state.serialize_field("isPrincipal", &user.is_principal)?;
+
         state.serialize_field("created", &user.created)?;
-        state.serialize_field("updated", &user.updated)?;
-        state.serialize_field("account", &user.account)?;
-        state.serialize_field("provider", &user.provider)?;
+
+        if user.updated.is_some() {
+            state.serialize_field("updated", &user.updated)?;
+        }
+
+        if user.account.is_some() {
+            state.serialize_field("account", &user.account)?;
+        }
+
+        if user.provider.is_some() {
+            state.serialize_field("provider", &user.provider)?;
+        }
+
         state.serialize_field("mfa", &user.mfa)?;
+
         state.end()
     }
 }
@@ -541,6 +580,32 @@ impl User {
             is_principal: false,
             mfa: MultiFactorAuthentication {
                 totp: Totp::Disabled,
+            },
+        }
+    }
+
+    pub fn new_public_redacted(
+        id: Uuid,
+        email: Email,
+        username: String,
+        created: DateTime<Local>,
+        is_active: bool,
+        is_principal: bool,
+    ) -> Self {
+        Self {
+            id: Some(id),
+            username,
+            email,
+            first_name: None,
+            last_name: None,
+            is_active,
+            created,
+            updated: None,
+            account: None,
+            is_principal,
+            provider: None,
+            mfa: MultiFactorAuthentication {
+                totp: Totp::Unknown,
             },
         }
     }

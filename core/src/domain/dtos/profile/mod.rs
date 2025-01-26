@@ -274,6 +274,37 @@ impl Profile {
         }
     }
 
+    /// Filter the licensed resources to the account
+    ///
+    /// This method should be used to filter licensed resources to the account
+    /// that the profile is currently working on.
+    pub fn on_account(&self, account_id: Uuid) -> Self {
+        let licensed_resources =
+            if let Some(resources) = self.licensed_resources.as_ref() {
+                let records: Vec<LicensedResource> = resources
+                    .to_licenses_vector()
+                    .iter()
+                    .filter(|i| i.acc_id == account_id)
+                    .map(|i| i.to_owned())
+                    .collect();
+
+                if records.is_empty() {
+                    None
+                } else {
+                    Some(LicensedResources::Records(records))
+                }
+            } else {
+                None
+            };
+
+        Self {
+            licensed_resources,
+            ..self
+                .update_state("accountId".to_string(), account_id.to_string())
+                .clone()
+        }
+    }
+
     /// Filter the tenant ownership by the tenant
     pub fn with_tenant_ownership_or_error(
         &self,

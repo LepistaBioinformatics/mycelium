@@ -1,9 +1,14 @@
+use super::account::Account;
+
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde_json::Value as JsonValue;
 
-#[derive(Debug, Queryable, Selectable, Insertable)]
+#[derive(
+    Identifiable, Associations, Debug, Queryable, Selectable, Insertable,
+)]
 #[diesel(table_name = crate::schema::user)]
+#[diesel(belongs_to(Account))]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct User {
     #[diesel(serialize_as = String)]

@@ -718,8 +718,9 @@ struct UsersManagerAccountApiDoc;
             role_scoped::subscriptions_manager::account_endpoints::ListSubscriptionAccountParams,
             role_scoped::subscriptions_manager::guest_endpoints::GuestUserBody,
             role_scoped::subscriptions_manager::guest_endpoints::ListLicensedAccountsOfEmailParams,
-            role_scoped::subscriptions_manager::tag_endpoints::CreateTagBody,
-            role_scoped::subscriptions_manager::tag_endpoints::UpdateTagBody,
+            role_scoped::subscriptions_manager::tag_endpoints::CreateAccountTagBody,
+            role_scoped::subscriptions_manager::tag_endpoints::UpdateAccountTagBody,
+            role_scoped::subscriptions_manager::tag_endpoints::DeleteAccountTagParams,
 
             //
             // SYSTEM MANAGER

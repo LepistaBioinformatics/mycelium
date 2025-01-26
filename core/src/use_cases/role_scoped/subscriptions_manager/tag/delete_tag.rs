@@ -15,6 +15,7 @@ use uuid::Uuid;
 pub async fn delete_tag(
     profile: Profile,
     tenant_id: Uuid,
+    account_id: Uuid,
     tag_id: Uuid,
     tag_deletion_repo: Box<&dyn AccountTagDeletion>,
 ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
@@ -28,6 +29,7 @@ pub async fn delete_tag(
 
     profile
         .on_tenant(tenant_id)
+        .on_account(account_id)
         .with_system_accounts_access()
         .with_write_access()
         .with_roles(vec![
