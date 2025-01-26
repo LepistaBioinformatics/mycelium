@@ -39,7 +39,12 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
 
         // Check if role already exists
         let existing = guest_role_model::table
-            .filter(guest_role_model::name.eq(&guest_role.name))
+            .filter(
+                guest_role_model::slug.eq(&guest_role.slug).and(
+                    guest_role_model::permission
+                        .eq(&guest_role.permission.to_i32()),
+                ),
+            )
             .select(GuestRoleModel::as_select())
             .first::<GuestRoleModel>(conn)
             .optional()

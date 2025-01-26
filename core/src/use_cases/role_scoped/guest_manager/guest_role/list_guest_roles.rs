@@ -13,6 +13,8 @@ use mycelium_base::{
 pub async fn list_guest_roles(
     profile: Profile,
     name: Option<String>,
+    page_size: Option<i32>,
+    skip: Option<i32>,
     guest_role_fetching_repo: Box<&dyn GuestRoleFetching>,
 ) -> Result<FetchManyResponseKind<GuestRole>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -29,5 +31,5 @@ pub async fn list_guest_roles(
     // ? Fetch Roles
     // ? -----------------------------------------------------------------------
 
-    guest_role_fetching_repo.list(name).await
+    guest_role_fetching_repo.list(name, page_size, skip).await
 }

@@ -210,6 +210,7 @@ diesel::joinable!(account_tag -> account (account_id));
 diesel::joinable!(guest_user -> guest_role (guest_role_id));
 diesel::joinable!(guest_user_on_account -> account (account_id));
 diesel::joinable!(guest_user_on_account -> guest_user (guest_user_id));
+diesel::joinable!(guest_role_children -> guest_role (child_role_id));
 diesel::joinable!(identity_provider -> user (user_id));
 diesel::joinable!(manager_account_on_tenant -> account (account_id));
 diesel::joinable!(manager_account_on_tenant -> tenant (tenant_id));
