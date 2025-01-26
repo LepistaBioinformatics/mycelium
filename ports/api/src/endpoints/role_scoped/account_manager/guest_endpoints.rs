@@ -37,8 +37,17 @@ pub fn configure(config: &mut web::ServiceConfig) {
 
 #[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct GuestUserBody {
+pub struct GuestUserToChildrenBody {
+    /// The email of the guest user
     email: String,
+
+    /// The parent role id
+    ///
+    /// The parent related to the guest role to be created. Example, if the
+    /// guest role is a child of the account manager role, the parent role id
+    /// should be this role id.
+    ///
+    /// The child role id should be passed as the `role_id` path argument.
     parent_role_id: Uuid,
 }
 
@@ -65,7 +74,7 @@ pub struct GuestUserBody {
         ("account_id" = Uuid, Path, description = "The account primary key."),
         ("role_id" = Uuid, Path, description = "The guest-role unique id."),
     ),
-    request_body = GuestUserBody,
+    request_body = GuestUserToChildrenBody,
     responses(
         (
             status = 500,
@@ -103,7 +112,7 @@ pub struct GuestUserBody {
 pub async fn guest_to_children_account_url(
     tenant: TenantData,
     path: web::Path<(Uuid, Uuid)>,
-    body: web::Json<GuestUserBody>,
+    body: web::Json<GuestUserToChildrenBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     app_module: web::Data<AppModule>,
