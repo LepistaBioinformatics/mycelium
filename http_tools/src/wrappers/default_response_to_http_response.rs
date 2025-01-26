@@ -117,14 +117,7 @@ pub fn fetch_response_kind<T: Serialize, U: ToString + Serialize>(
 ) -> HttpResponse {
     match response {
         FetchResponseKind::Found(res) => HttpResponse::Ok().json(res),
-        FetchResponseKind::NotFound(res) => {
-            if let Some(res) = res {
-                return HttpResponse::NotFound()
-                    .json(HttpJsonResponse::new_message(res));
-            }
-
-            HttpResponse::NoContent().finish()
-        }
+        FetchResponseKind::NotFound(_) => HttpResponse::NoContent().finish(),
     }
 }
 
