@@ -9,7 +9,7 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use diesel::prelude::*;
+use diesel::{prelude::*, dsl::sql};
 use myc_core::domain::{
     dtos::{
         account::Account, account_type::AccountType,
@@ -154,8 +154,20 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         }
 
         if let Some(acc_type) = account_type {
-            let dsl = account_dsl::account_type
-                .eq(serde_json::to_value(acc_type).unwrap());
+            let dsl = sql::<diesel::sql_types::Bool>(&format!(
+                "account_type::jsonb @> '{}'",
+                match serde_json::to_string(&acc_type) {
+                    Ok(json) => json,
+                    Err(e) => {
+                        return creation_err(format!(
+                            "Failed to serialize account type: {}",
+                            e
+                        ))
+                        .as_error();
+                    }
+                }
+            ));
+
             records_query = records_query.filter(dsl.clone());
             count_query = count_query.filter(dsl);
         }

@@ -281,7 +281,7 @@ pub async fn guest_user_url(
 pub async fn uninvite_guest_url(
     tenant: TenantData,
     path: web::Path<(Uuid, Uuid)>,
-    info: web::Query<GuestUserBody>,
+    query: web::Query<GuestUserBody>,
     profile: MyceliumProfileData,
     app_module: web::Data<AppModule>,
 ) -> impl Responder {
@@ -292,7 +292,7 @@ pub async fn uninvite_guest_url(
         tenant.tenant_id().to_owned(),
         account_id,
         role_id,
-        info.email.to_owned(),
+        query.email.to_owned(),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

@@ -6,7 +6,10 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::Local;
-use diesel::prelude::*;
+use diesel::{
+    prelude::*,
+    result::{DatabaseErrorKind, Error},
+};
 use myc_core::domain::{
     dtos::{guest_user::GuestUser, native_error_codes::NativeErrorCodes},
     entities::GuestUserRegistration,
@@ -42,11 +45,7 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
 
         // Check if guest user exists
         let existing = guest_user_model::table
-            .inner_join(guest_user_on_account::table)
             .filter(guest_user_model::email.eq(guest_user.email.email()))
-            .filter(
-                guest_user_on_account::account_id.eq(account_id.to_string()),
-            )
             .select(GuestUserModel::as_select())
             .first::<GuestUserModel>(conn)
             .optional()
@@ -57,55 +56,56 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
                 ))
             })?;
 
-        if let Some(record) = existing {
-            return Ok(GetOrCreateResponseKind::NotCreated(
-                map_model_to_dto(record),
-                "Guest user already exists".to_string(),
-            ));
-        }
+        let guest_user = if let Some(record) = existing {
+            record
+        } else {
+            // Create new guest user
+            let new_user = GuestUserModel {
+                id: Uuid::new_v4().to_string(),
+                email: guest_user.email.to_string(),
+                guest_role_id: match guest_user.guest_role {
+                    Parent::Id(id) => id.to_string(),
+                    _ => {
+                        return creation_err(
+                            "Guest role ID is required".to_string(),
+                        )
+                        .as_error()
+                    }
+                },
+                created: Local::now(),
+                updated: None,
+                was_verified: false,
+            };
 
-        // Create new guest user
-        let new_user = GuestUserModel {
-            id: Uuid::new_v4().to_string(),
-            email: guest_user.email.to_string(),
-            guest_role_id: match guest_user.guest_role {
-                Parent::Id(id) => id.to_string(),
-                _ => {
-                    return creation_err(
-                        "Guest role ID is required".to_string(),
-                    )
-                    .as_error()
-                }
-            },
-            created: Local::now(),
-            updated: None,
-            was_verified: false,
+            diesel::insert_into(guest_user_model::table)
+                .values(&new_user)
+                .get_result::<GuestUserModel>(conn)
+                .map_err(|e| {
+                    creation_err(format!("Failed to create guest user: {}", e))
+                })?
         };
-
-        let created_user = diesel::insert_into(guest_user_model::table)
-            .values(&new_user)
-            .get_result::<GuestUserModel>(conn)
-            .map_err(|e| {
-                creation_err(format!("Failed to create guest user: {}", e))
-            })?;
 
         // Create guest user on account relationship
         diesel::insert_into(guest_user_on_account::table)
             .values((
-                guest_user_on_account::guest_user_id
-                    .eq(created_user.id.clone()),
+                guest_user_on_account::guest_user_id.eq(guest_user.id.clone()),
                 guest_user_on_account::account_id.eq(account_id.to_string()),
             ))
             .execute(conn)
-            .map_err(|e| {
-                creation_err(format!(
+            .map_err(|e| match e {
+                Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _) => {
+                    creation_err("Guest user already exists".to_string())
+                        .with_code(NativeErrorCodes::MYC00017)
+                        .with_exp_true()
+                }
+                _ => creation_err(format!(
                     "Failed to create guest user relationship: {}",
                     e
-                ))
+                )),
             })?;
 
         Ok(GetOrCreateResponseKind::Created(map_model_to_dto(
-            created_user,
+            guest_user,
         )))
     }
 }
