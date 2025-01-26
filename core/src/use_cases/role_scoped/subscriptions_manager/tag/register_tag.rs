@@ -18,9 +18,9 @@ use uuid::Uuid;
 pub async fn register_tag(
     profile: Profile,
     tenant_id: Uuid,
+    account_id: Uuid,
     tag: String,
     meta: HashMap<String, String>,
-    account_id: Uuid,
     tag_registration_repo: Box<&dyn AccountTagRegistration>,
 ) -> Result<GetOrCreateResponseKind<Tag>, MappedErrors> {
     // ? -----------------------------------------------------------------------

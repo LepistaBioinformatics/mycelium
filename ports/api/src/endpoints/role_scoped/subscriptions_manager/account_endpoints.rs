@@ -262,8 +262,6 @@ pub async fn list_accounts_by_type_url(
     profile: MyceliumProfileData,
     app_module: web::Data<AppModule>,
 ) -> impl Responder {
-    println!("query: {:?}", query.account_type);
-
     let mut is_account_active: Option<bool> = None;
     let mut is_account_checked: Option<bool> = None;
     let mut is_account_archived: Option<bool> = None;

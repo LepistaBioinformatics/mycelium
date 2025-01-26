@@ -641,7 +641,7 @@ pub async fn check_email_password_validity_url(
                     // If TOTP is disabled, we can proceed with the login
                     // process without any further checks.
                     //
-                    Totp::Disabled => match encode_jwt(
+                    Totp::Disabled | Totp::Unknown => match encode_jwt(
                         _user.to_owned(),
                         auth_config.get_ref().to_owned(),
                         false,

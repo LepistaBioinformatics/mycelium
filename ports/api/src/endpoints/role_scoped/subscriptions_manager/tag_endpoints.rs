@@ -18,7 +18,7 @@ use myc_http_tools::{
 use serde::Deserialize;
 use shaku::HasComponent;
 use std::collections::HashMap;
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
@@ -38,7 +38,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateTagBody {
+pub struct CreateAccountTagBody {
     account_id: Uuid,
     value: String,
     meta: HashMap<String, String>,
@@ -46,9 +46,16 @@ pub struct CreateTagBody {
 
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateTagBody {
+pub struct UpdateAccountTagBody {
+    account_id: Uuid,
     value: String,
     meta: HashMap<String, String>,
+}
+
+#[derive(Deserialize, IntoParams, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DeleteAccountTagParams {
+    account_id: Uuid,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -63,12 +70,17 @@ pub struct UpdateTagBody {
     post,
     params(
         (
+            "account_id" = Uuid,
+            Path,
+            description = "The account unique id."
+        ),
+        (
             "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
     ),
-    request_body = CreateTagBody,
+    request_body = CreateAccountTagBody,
     responses(
         (
             status = 500,
@@ -101,15 +113,15 @@ pub struct UpdateTagBody {
 pub async fn register_account_tag_url(
     tenant: TenantData,
     profile: MyceliumProfileData,
-    body: web::Json<CreateTagBody>,
+    body: web::Json<CreateAccountTagBody>,
     app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match register_tag(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
+        body.account_id,
         body.value.to_owned(),
         body.meta.to_owned(),
-        body.account_id.to_owned(),
         Box::new(&*app_module.resolve_ref()),
     )
     .await
@@ -123,14 +135,18 @@ pub async fn register_account_tag_url(
 #[utoipa::path(
     put,
     params(
-        ("tag_id" = Uuid, Path, description = "The tag primary key."),
+        (
+            "tag_id" = Uuid,
+            Path,
+            description = "The tag primary key."
+        ),
         (
             "x-mycelium-tenant-id" = Uuid,
             Header,
             description = "The tenant unique id."
         ),
     ),
-    request_body = UpdateTagBody,
+    request_body = UpdateAccountTagBody,
     responses(
         (
             status = 500,
@@ -164,12 +180,13 @@ pub async fn update_account_tag_url(
     tenant: TenantData,
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
-    body: web::Json<UpdateTagBody>,
+    body: web::Json<UpdateAccountTagBody>,
     app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match update_tag(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
+        body.account_id,
         Tag {
             id: path.into_inner(),
             value: body.value.to_owned(),
@@ -188,7 +205,11 @@ pub async fn update_account_tag_url(
 #[utoipa::path(
     delete,
     params(
-        ("tag_id" = Uuid, Path, description = "The tag primary key."),
+        (
+            "tag_id" = Uuid,
+            Path,
+            description = "The tag primary key."
+        ),
         (
             "x-mycelium-tenant-id" = Uuid,
             Header,
@@ -228,11 +249,13 @@ pub async fn delete_account_tag_url(
     tenant: TenantData,
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
+    query: web::Query<DeleteAccountTagParams>,
     app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match delete_tag(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
+        query.account_id,
         path.into_inner(),
         Box::new(&*app_module.resolve_ref()),
     )

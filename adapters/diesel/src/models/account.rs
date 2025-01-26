@@ -2,7 +2,7 @@ use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde_json::Value as JsonValue;
 
-#[derive(Debug, Queryable, Selectable, Insertable)]
+#[derive(Identifiable, Debug, Queryable, Selectable, Insertable)]
 #[diesel(table_name = crate::schema::account)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub(crate) struct Account {

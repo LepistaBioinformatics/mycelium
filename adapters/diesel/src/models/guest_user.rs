@@ -1,7 +1,7 @@
 use chrono::{DateTime, Local};
 use diesel::prelude::*;
 
-#[derive(Queryable, Insertable, Selectable)]
+#[derive(Identifiable, Debug, Queryable, Insertable, Selectable)]
 #[diesel(table_name = crate::schema::guest_user)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub(crate) struct GuestUser {

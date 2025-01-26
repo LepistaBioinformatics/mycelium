@@ -1,10 +1,10 @@
 use crate::models::account::Account as AccountModel;
 
 use chrono::Local;
-use myc_core::domain::dtos::account::{Account, VerboseStatus};
+use myc_core::domain::dtos::account::{Account, AccountMetaKey, VerboseStatus};
 use mycelium_base::dtos::Children;
 use serde_json::from_value;
-use std::str::FromStr;
+use std::{collections::HashMap, str::FromStr};
 use uuid::Uuid;
 
 pub(super) fn map_account_model_to_dto(model: AccountModel) -> Account {
@@ -29,6 +29,14 @@ pub(super) fn map_account_model_to_dto(model: AccountModel) -> Account {
         updated: model
             .updated
             .map(|dt| dt.and_local_timezone(Local).unwrap()),
-        meta: None,
+        meta: model.meta.map(|m| {
+            serde_json::from_value::<HashMap<String, String>>(m)
+                .unwrap()
+                .iter()
+                .map(|(k, v)| {
+                    (AccountMetaKey::from_str(k).unwrap(), v.to_string())
+                })
+                .collect()
+        }),
     }
 }
