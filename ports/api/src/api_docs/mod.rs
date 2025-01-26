@@ -677,7 +677,7 @@ struct UsersManagerAccountApiDoc;
             //
             // ACCOUNT MANAGER
             //
-            role_scoped::account_manager::guest_endpoints::GuestUserBody,
+            role_scoped::account_manager::guest_endpoints::GuestUserToChildrenBody,
 
             //
             // BEGINNERS

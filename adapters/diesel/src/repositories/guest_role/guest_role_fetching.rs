@@ -50,12 +50,31 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                 fetching_err(format!("Failed to fetch role: {}", e))
             })?;
 
-        match role {
-            Some(record) => {
-                Ok(FetchResponseKind::Found(map_model_to_dto(record)))
-            }
-            None => Ok(FetchResponseKind::NotFound(Some(id))),
+        if let Some(role) = role {
+            let children = GuestRoleChildrenModel::belonging_to(&role)
+                .select(GuestRoleChildrenModel::as_select())
+                .load::<GuestRoleChildrenModel>(conn)
+                .map_err(|e| {
+                    fetching_err(format!("Failed to fetch children: {}", e))
+                })?;
+
+            let mut role = map_model_to_dto(role);
+
+            role.children = if children.is_empty() {
+                None
+            } else {
+                Some(Children::Ids(
+                    children
+                        .into_iter()
+                        .map(|c| Uuid::from_str(&c.child_role_id).unwrap())
+                        .collect(),
+                ))
+            };
+
+            return Ok(FetchResponseKind::Found(role));
         }
+
+        Ok(FetchResponseKind::NotFound(Some(id)))
     }
 
     #[tracing::instrument(name = "list_guest_roles", skip_all)]
