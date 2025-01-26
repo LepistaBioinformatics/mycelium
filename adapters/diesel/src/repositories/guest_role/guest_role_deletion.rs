@@ -3,7 +3,10 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use diesel::prelude::*;
+use diesel::{
+    prelude::*,
+    result::{DatabaseErrorKind, Error},
+};
 use myc_core::domain::{
     dtos::native_error_codes::NativeErrorCodes, entities::GuestRoleDeletion,
 };
@@ -13,6 +16,7 @@ use mycelium_base::{
 };
 use shaku::Component;
 use std::sync::Arc;
+use tracing::error;
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -49,8 +53,20 @@ impl GuestRoleDeletion for GuestRoleDeletionSqlDbRepository {
                 // Delete role
                 diesel::delete(guest_role_model::table.find(id.to_string()))
                     .execute(conn)
-                    .map_err(|e| {
-                        deletion_err(format!("Failed to delete role: {}", e))
+                    .map_err(|e| match e {
+                        Error::DatabaseError(
+                            DatabaseErrorKind::ForeignKeyViolation,
+                            _,
+                        ) => {
+                            deletion_err("Invalid hierarchy updation operation")
+                                .with_code(NativeErrorCodes::MYC00018)
+                                .with_exp_true()
+                        }
+                        _ => {
+                            error!("Failed to remove role: {}", e);
+
+                            deletion_err("Unable to delete role")
+                        }
                     })?;
 
                 Ok(DeletionResponseKind::Deleted)

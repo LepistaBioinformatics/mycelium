@@ -5,7 +5,10 @@ use crate::{
 
 use super::shared::map_model_to_dto;
 use async_trait::async_trait;
-use diesel::prelude::*;
+use diesel::{
+    prelude::*,
+    result::{DatabaseErrorKind, Error},
+};
 use myc_core::domain::{
     dtos::{guest_role::GuestRole, native_error_codes::NativeErrorCodes},
     entities::GuestRoleUpdating,
@@ -16,6 +19,7 @@ use mycelium_base::{
 };
 use shaku::Component;
 use std::sync::Arc;
+use tracing::error;
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -108,11 +112,18 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                             .eq(child_id.to_string()),
                     ))
                     .execute(conn)
-                    .map_err(|e| {
-                        updating_err(format!(
-                            "Failed to insert role hierarchy: {}",
-                            e
-                        ))
+                    .map_err(|e| match e {
+                        Error::DatabaseError(
+                            DatabaseErrorKind::UniqueViolation,
+                            _,
+                        ) => updating_err("Role hierarchy already exists")
+                            .with_code(NativeErrorCodes::MYC00018)
+                            .with_exp_true(),
+                        _ => {
+                            error!("Failed to insert role hierarchy: {}", e);
+
+                            updating_err("Failed to insert role child")
+                        }
                     })?;
 
                 Ok(UpdatingResponseKind::Updated(Some(map_model_to_dto(
@@ -167,10 +178,9 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                 )
                 .execute(conn)
                 .map_err(|e| {
-                    updating_err(format!(
-                        "Failed to remove role hierarchy: {}",
-                        e
-                    ))
+                    error!("Failed to remove role child: {}", e);
+
+                    updating_err("Failed to remove role child")
                 })?;
 
                 if deleted > 0 {

@@ -1,4 +1,4 @@
-use crate::dtos::MyceliumProfileData;
+use crate::{dtos::MyceliumProfileData, endpoints::shared::PaginationParams};
 
 use actix_web::{delete, get, patch, post, web, Responder};
 use myc_core::{
@@ -47,6 +47,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub struct CreateGuestRoleBody {
     pub name: String,
     pub description: String,
+    pub permission: Option<Permission>,
 }
 
 #[derive(Deserialize, ToSchema, IntoParams)]
@@ -112,7 +113,7 @@ pub async fn crate_guest_role_url(
         profile.to_profile(),
         json.name.to_owned(),
         json.description.to_owned(),
-        None,
+        json.permission.to_owned(),
         Box::new(&*app_module.resolve_ref()),
     )
     .await
@@ -158,12 +159,15 @@ pub async fn crate_guest_role_url(
 #[get("")]
 pub async fn list_guest_roles_url(
     info: web::Query<ListGuestRolesParams>,
+    page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
     app_module: web::Data<AppModule>,
 ) -> impl Responder {
     match list_guest_roles(
         profile.to_profile(),
         info.name.to_owned(),
+        page.page_size,
+        page.skip,
         Box::new(&*app_module.resolve_ref()),
     )
     .await

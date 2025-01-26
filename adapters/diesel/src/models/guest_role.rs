@@ -1,6 +1,6 @@
 use diesel::prelude::*;
 
-#[derive(Debug, Queryable, Selectable, Insertable)]
+#[derive(Identifiable, Debug, Queryable, Selectable, Insertable)]
 #[diesel(table_name = crate::schema::guest_role)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct GuestRole {
