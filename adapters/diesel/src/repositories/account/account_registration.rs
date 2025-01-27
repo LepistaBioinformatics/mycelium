@@ -12,7 +12,7 @@ use chrono::Local;
 use diesel::{dsl::sql, prelude::*};
 use myc_core::domain::{
     dtos::{
-        account::{Account, AccountMeta, AccountMetaKey, VerboseStatus},
+        account::{Account, AccountMetaKey, VerboseStatus},
         account_type::AccountType,
         native_error_codes::NativeErrorCodes,
     },
@@ -508,33 +508,41 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         account_id: Uuid,
         key: AccountMetaKey,
         value: String,
-    ) -> Result<CreateResponseKind<AccountMeta>, MappedErrors> {
+    ) -> Result<CreateResponseKind<HashMap<String, String>>, MappedErrors> {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
             creation_err(format!("Failed to get DB connection: {}", e))
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let transaction_result: Result<AccountMeta, InternalError> = conn
-            .transaction(|conn| {
-                let mut meta_map = HashMap::new();
-                meta_map.insert(key.to_string(), value);
+        let account = account::table
+            .find(account_id.to_string())
+            .select(AccountModel::as_select())
+            .first::<AccountModel>(conn)
+            .optional()
+            .map_err(|e| {
+                creation_err(format!("Failed to check existing account: {}", e))
+            })?;
 
-                diesel::update(account::table)
-                    .filter(account::id.eq(account_id.to_string()))
-                    .set(account::meta.eq(Some(to_value(&meta_map).unwrap())))
-                    .execute(conn)?;
+        if let Some(account) = account {
+            let mut meta_map: std::collections::HashMap<String, String> =
+                account
+                    .meta
+                    .map(|m| serde_json::from_value(m).unwrap())
+                    .unwrap_or_default();
 
-                Ok(AccountMeta::from_iter(meta_map.iter().map(|(k, v)| {
-                    (AccountMetaKey::from_str(k).unwrap(), v.to_string())
-                })))
-            });
+            meta_map.insert(format!("{key}", key = key), value);
 
-        match transaction_result {
-            Ok(meta) => Ok(CreateResponseKind::Created(meta)),
-            Err(InternalError::Database(e)) => {
-                creation_err(format!("Database error: {}", e)).as_error()
-            }
-            _ => creation_err("Failed to update account meta").as_error(),
+            diesel::update(account::table)
+                .filter(account::id.eq(account_id.to_string()))
+                .set(account::meta.eq(Some(to_value(&meta_map).unwrap())))
+                .execute(conn)
+                .map_err(|e| {
+                    creation_err(format!("Failed to update tenant meta: {}", e))
+                })?;
+
+            Ok(CreateResponseKind::Created(meta_map))
+        } else {
+            creation_err("Account not found").as_error()
         }
     }
 }
