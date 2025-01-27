@@ -5,7 +5,10 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::Local;
-use diesel::prelude::*;
+use diesel::{
+    prelude::*,
+    result::{DatabaseErrorKind, Error},
+};
 use myc_core::domain::{
     dtos::{native_error_codes::NativeErrorCodes, webhook::WebHook},
     entities::WebHookRegistration,
@@ -54,8 +57,13 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
             .values(&new_webhook)
             .returning(WebHookModel::as_returning())
             .get_result::<WebHookModel>(conn)
-            .map_err(|e| {
-                creation_err(format!("Failed to create webhook: {}", e))
+            .map_err(|e| match e {
+                Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _) => {
+                    creation_err("Webhook already exists".to_string())
+                        .with_code(NativeErrorCodes::MYC00018)
+                        .with_exp_true()
+                }
+                _ => creation_err(format!("Failed to create webhook: {}", e)),
             })?;
 
         let mut webhook = WebHook::new(
