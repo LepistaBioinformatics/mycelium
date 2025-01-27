@@ -95,7 +95,7 @@ pub async fn create_default_account(
             message_sending_repo,
         ),
         dispatch_webhooks(
-            WebHookTrigger::CreateUserAccount,
+            WebHookTrigger::UserAccountCreated,
             account.to_owned(),
             config,
             webhook_fetching_repo,

@@ -66,14 +66,14 @@ pub(crate) async fn dispatch_webhooks<
     // ? -----------------------------------------------------------------------
 
     let method = match trigger {
-        WebHookTrigger::CreateSubscriptionAccount
-        | WebHookTrigger::CreateUserAccount
-        | WebHookTrigger::InviteGuestAccount => "POST",
-        WebHookTrigger::UpdateSubscriptionAccount
-        | WebHookTrigger::UpdateUserAccount => "PUT",
-        WebHookTrigger::DeleteSubscriptionAccount
-        | WebHookTrigger::DeleteUserAccount
-        | WebHookTrigger::UninviteGuestAccount => "DELETE",
+        WebHookTrigger::SubscriptionAccountCreated
+        | WebHookTrigger::UserAccountCreated
+        | WebHookTrigger::GuestAccountInvited => "POST",
+        WebHookTrigger::SubscriptionAccountUpdated
+        | WebHookTrigger::UserAccountUpdated => "PUT",
+        WebHookTrigger::SubscriptionAccountDeleted
+        | WebHookTrigger::UserAccountDeleted
+        | WebHookTrigger::GuestAccountRevoked => "DELETE",
     };
 
     // ? -----------------------------------------------------------------------
