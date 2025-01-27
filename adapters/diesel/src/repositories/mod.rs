@@ -30,7 +30,7 @@ use webhook::*;
 pub use config::*;
 
 module! {
-    pub AppModule {
+    pub SqlAppModule {
         components = [
             //
             // Provide the database pool

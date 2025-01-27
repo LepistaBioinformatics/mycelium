@@ -7,7 +7,7 @@ use myc_core::{
         downgrade_account_privileges, upgrade_account_privileges,
     },
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -111,7 +111,7 @@ pub async fn upgrade_account_privileges_url(
     path: web::Path<Uuid>,
     body: web::Json<UpgradeAccountPrivilegesBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match upgrade_account_privileges(
         profile.to_profile(),
@@ -171,7 +171,7 @@ pub async fn downgrade_account_privileges_url(
     path: web::Path<Uuid>,
     body: web::Json<DowngradeAccountPrivilegesBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match downgrade_account_privileges(
         profile.to_profile(),

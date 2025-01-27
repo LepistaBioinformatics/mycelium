@@ -7,7 +7,6 @@ version_files = [
     "http_tools/Cargo.toml",
     "core/Cargo.toml",
     "adapters/mem_db/Cargo.toml",
-    "adapters/prisma/Cargo.toml",
     "adapters/service/Cargo.toml",
     "adapters/notifier/Cargo.toml",
     "ports/api/Cargo.toml",

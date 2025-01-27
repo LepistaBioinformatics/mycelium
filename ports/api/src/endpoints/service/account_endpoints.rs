@@ -5,7 +5,7 @@ use myc_core::{
     models::AccountLifeCycle,
     use_cases::service::account::create_subscription_account,
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error, Account,
@@ -87,7 +87,7 @@ pub async fn create_subscription_account_from_service_url(
     body: web::Json<CreateSubscriptionAccountBody>,
     connection_string: MyceliumTenantScopedConnectionStringData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let tenant_id = match connection_string.tenant_id() {
         Some(tenant_id) => tenant_id,

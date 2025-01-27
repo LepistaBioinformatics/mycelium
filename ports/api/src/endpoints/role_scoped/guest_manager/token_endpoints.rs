@@ -9,15 +9,15 @@ use myc_core::{
         create_role_associated_connection_string,
     },
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error,
     Permission,
 };
 use serde::{Deserialize, Serialize};
-use shaku_actix::Inject;
 use shaku::HasComponent;
+use shaku_actix::Inject;
 use utoipa::{ToResponse, ToSchema};
 use uuid::Uuid;
 
@@ -90,7 +90,7 @@ pub async fn create_default_account_associated_connection_string_url(
     body: web::Json<CreateTokenBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     match create_default_account_associated_connection_string(
@@ -153,7 +153,7 @@ pub async fn create_role_associated_connection_string_url(
     body: web::Json<CreateTokenBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     match create_role_associated_connection_string(

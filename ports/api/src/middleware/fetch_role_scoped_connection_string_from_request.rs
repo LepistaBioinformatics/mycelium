@@ -5,7 +5,7 @@ use myc_core::domain::{
     dtos::token::{MultiTypeMeta, RoleWithPermissionsScope},
     entities::TokenFetching,
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     responses::GatewayError, settings::DEFAULT_CONNECTION_STRING_KEY,
 };
@@ -66,7 +66,7 @@ pub async fn fetch_role_scoped_connection_string_from_request(
     // ? Build dependencies
     // ? -----------------------------------------------------------------------
 
-    let repo: &dyn TokenFetching = match req.app_data::<web::Data<AppModule>>()
+    let repo: &dyn TokenFetching = match req.app_data::<web::Data<SqlAppModule>>()
     {
         Some(module) => module.resolve_ref(),
         None => {

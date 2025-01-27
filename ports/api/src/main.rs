@@ -46,7 +46,7 @@ use myc_config::{
 };
 use myc_core::{domain::dtos::http::Protocol, settings::init_in_memory_routes};
 use myc_diesel::repositories::{
-    AppModule, DieselDbPoolProvider, DieselDbPoolProviderParameters,
+    SqlAppModule, DieselDbPoolProvider, DieselDbPoolProviderParameters,
 };
 use myc_http_tools::{
     providers::{azure_endpoints, google_endpoints},
@@ -362,7 +362,7 @@ pub async fn main() -> std::io::Result<()> {
         };
 
     let module = Arc::new(
-        AppModule::builder()
+        SqlAppModule::builder()
             .with_component_parameters::<DieselDbPoolProvider>(
                 DieselDbPoolProviderParameters {
                     pool: DieselDbPoolProvider::new(&database_url.as_str()),

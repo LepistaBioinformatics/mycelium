@@ -7,7 +7,7 @@ use myc_core::{
         delete_tag, register_tag, update_tag,
     },
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -94,7 +94,7 @@ pub async fn register_tenant_tag_url(
     tenant: TenantData,
     profile: MyceliumProfileData,
     body: web::Json<CreateTagBody>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match register_tag(
         profile.to_profile(),
@@ -156,7 +156,7 @@ pub async fn update_tenant_tag_url(
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
     body: web::Json<CreateTagBody>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match update_tag(
         profile.to_profile(),
@@ -219,7 +219,7 @@ pub async fn delete_tenant_tag_url(
     tenant: TenantData,
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match delete_tag(
         profile.to_profile(),

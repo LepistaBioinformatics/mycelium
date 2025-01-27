@@ -5,7 +5,7 @@ use myc_core::{
     use_cases::role_scoped::system_manager::error_codes::batch_register_native_error_codes,
 };
 use myc_diesel::repositories::{
-    AppModule, DieselDbPoolProvider, DieselDbPoolProviderParameters,
+    SqlAppModule, DieselDbPoolProvider, DieselDbPoolProviderParameters,
 };
 use shaku::HasComponent;
 use std::sync::Arc;
@@ -33,7 +33,7 @@ pub(crate) async fn batch_register_native_error_codes_cmd() {
     // Initialize the dependency
     //
     let module = Arc::new(
-        AppModule::builder()
+        SqlAppModule::builder()
             .with_component_parameters::<DieselDbPoolProvider>(
                 DieselDbPoolProviderParameters {
                     pool: DieselDbPoolProvider::new(&database_url.as_str()),

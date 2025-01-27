@@ -13,7 +13,7 @@ use myc_core::{
         include_tenant_owner, list_tenant,
     },
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -116,7 +116,7 @@ pub struct ListTenantParams {
 pub async fn create_tenant_url(
     body: web::Json<CreateTenantBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match create_tenant(
         profile.to_profile(),
@@ -172,7 +172,7 @@ pub async fn list_tenant_url(
     query: web::Query<ListTenantParams>,
     page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let tag = match query.tag.as_ref() {
         Some(tag) => match tag.split_once('=') {
@@ -259,7 +259,7 @@ pub async fn list_tenant_url(
 pub async fn delete_tenant_url(
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match delete_tenant(
         profile.to_profile(),
@@ -310,7 +310,7 @@ pub async fn delete_tenant_url(
 pub async fn include_tenant_owner_url(
     path: web::Path<(Uuid, Uuid)>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (tenant_id, owner_id) = path.into_inner();
 
@@ -363,7 +363,7 @@ pub async fn include_tenant_owner_url(
 pub async fn exclude_tenant_owner_url(
     path: web::Path<(Uuid, Uuid)>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (tenant_id, owner_id) = path.into_inner();
 

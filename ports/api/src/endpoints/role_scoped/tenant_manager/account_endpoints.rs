@@ -2,7 +2,7 @@ use crate::dtos::{MyceliumProfileData, TenantData};
 
 use actix_web::{delete, web, Responder};
 use myc_core::use_cases::role_scoped::tenant_manager::delete_subscription_account;
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -67,7 +67,7 @@ pub async fn delete_subscription_account_url(
     tenant: TenantData,
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let account_id = path.into_inner();
 

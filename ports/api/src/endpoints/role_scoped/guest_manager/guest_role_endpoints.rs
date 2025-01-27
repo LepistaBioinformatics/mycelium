@@ -9,7 +9,7 @@ use myc_core::{
         update_guest_role_name_and_description, update_guest_role_permission,
     },
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -107,7 +107,7 @@ pub struct UpdateGuestRolePermissionsBody {
 pub async fn crate_guest_role_url(
     json: web::Json<CreateGuestRoleBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match create_guest_role(
         profile.to_profile(),
@@ -161,7 +161,7 @@ pub async fn list_guest_roles_url(
     info: web::Query<ListGuestRolesParams>,
     page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match list_guest_roles(
         profile.to_profile(),
@@ -216,7 +216,7 @@ pub async fn list_guest_roles_url(
 pub async fn delete_guest_role_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match delete_guest_role(
         profile.to_profile(),
@@ -272,7 +272,7 @@ pub async fn update_guest_role_name_and_description_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateGuestRoleNameAndDescriptionBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match update_guest_role_name_and_description(
         profile.to_profile(),
@@ -331,7 +331,7 @@ pub async fn update_guest_role_permissions_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateGuestRolePermissionsBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match update_guest_role_permission(
         profile.to_profile(),
@@ -389,7 +389,7 @@ pub async fn update_guest_role_permissions_url(
 pub async fn insert_role_child_url(
     path: web::Path<(Uuid, Uuid)>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (guest_role_id, child_id) = path.into_inner();
 
@@ -449,7 +449,7 @@ pub async fn insert_role_child_url(
 pub async fn remove_role_child_url(
     path: web::Path<(Uuid, Uuid)>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (guest_role_id, child_id) = path.into_inner();
 

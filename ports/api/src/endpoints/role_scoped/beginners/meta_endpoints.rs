@@ -9,7 +9,7 @@ use myc_core::{
         create_account_meta, delete_account_meta, update_account_meta,
     },
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -89,7 +89,7 @@ pub struct DeleteAccountMetaParams {
 pub async fn create_account_meta_url(
     body: web::Json<CreateAccountMetaBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let key = match AccountMetaKey::from_str(&body.key) {
         Ok(key) => key,
@@ -148,7 +148,7 @@ pub async fn create_account_meta_url(
 pub async fn update_account_meta_url(
     body: web::Json<CreateAccountMetaBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let key = match AccountMetaKey::from_str(&body.key) {
         Ok(key) => key,
@@ -207,7 +207,7 @@ pub async fn update_account_meta_url(
 pub async fn delete_account_meta_url(
     query: web::Query<DeleteAccountMetaParams>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let key = match AccountMetaKey::from_str(&query.key) {
         Ok(key) => key,

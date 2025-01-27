@@ -18,7 +18,7 @@ use myc_core::{
         revoke_user_guest_to_subscription_account,
     },
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -121,7 +121,7 @@ pub async fn list_licensed_accounts_of_email_url(
     tenant: TenantData,
     query: web::Query<ListLicensedAccountsOfEmailParams>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let email = match Email::from_string(query.email.to_owned()) {
         Err(err) => {
@@ -205,7 +205,7 @@ pub async fn guest_user_url(
     body: web::Json<GuestUserBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let (account_id, role_id) = path.to_owned();
@@ -283,7 +283,7 @@ pub async fn uninvite_guest_url(
     path: web::Path<(Uuid, Uuid)>,
     query: web::Query<GuestUserBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (account_id, role_id) = path.to_owned();
 
@@ -348,7 +348,7 @@ pub async fn list_guest_on_subscription_account_url(
     tenant: TenantData,
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match list_guest_on_subscription_account(
         profile.to_profile(),

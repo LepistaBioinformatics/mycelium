@@ -5,7 +5,7 @@ use myc_core::use_cases::role_scoped::users_manager::account::{
     change_account_activation_status, change_account_approval_status,
     change_account_archival_status,
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -78,7 +78,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub async fn approve_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match change_account_approval_status(
         profile.to_profile(),
@@ -135,7 +135,7 @@ pub async fn approve_account_url(
 pub async fn disapprove_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match change_account_approval_status(
         profile.to_profile(),
@@ -192,7 +192,7 @@ pub async fn disapprove_account_url(
 pub async fn activate_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match change_account_activation_status(
         profile.to_profile(),
@@ -249,7 +249,7 @@ pub async fn activate_account_url(
 pub async fn deactivate_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match change_account_activation_status(
         profile.to_profile(),
@@ -305,7 +305,7 @@ pub async fn deactivate_account_url(
 pub async fn archive_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match change_account_archival_status(
         profile.to_profile(),
@@ -361,7 +361,7 @@ pub async fn archive_account_url(
 pub async fn unarchive_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match change_account_archival_status(
         profile.to_profile(),

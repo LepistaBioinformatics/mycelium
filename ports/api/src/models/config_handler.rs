@@ -24,7 +24,7 @@ impl ConfigHandler {
             // Core configurations are used during the execution of the Mycelium
             // core functionalities, overall defined into use-cases layer.
             core: CoreConfig::from_default_config_file(file.clone())?,
-            // Prisma configurations serves the prisma connector, which is
+            // Database configurations serves the database connector, which is
             // responsible for the communication with the database into the
             // adapters layer.
             diesel: DieselConfig::from_default_config_file(file.clone())?,

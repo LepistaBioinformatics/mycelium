@@ -9,7 +9,7 @@ use myc_core::{
     domain::dtos::{email::Email, route_type::PermissionedRoles},
     use_cases::service::profile::{fetch_profile_from_email, ProfileResponse},
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     functions::decode_jwt_hs512,
     models::{
@@ -37,7 +37,7 @@ pub(crate) async fn fetch_profile_from_request(
     // ? Build dependencies
     // ? -----------------------------------------------------------------------
 
-    let app_module = match req.app_data::<web::Data<AppModule>>() {
+    let app_module = match req.app_data::<web::Data<SqlAppModule>>() {
         Some(module) => module,
         None => {
             error!("Unable to extract profile fetching module from request");
