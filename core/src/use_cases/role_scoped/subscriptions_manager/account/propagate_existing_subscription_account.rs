@@ -71,7 +71,7 @@ pub async fn propagate_existing_subscription_account(
     // ? -----------------------------------------------------------------------
 
     let responses = dispatch_webhooks(
-        WebHookTrigger::CreateSubscriptionAccount,
+        WebHookTrigger::SubscriptionAccountCreated,
         account.to_owned(),
         config,
         webhook_fetching_repo,
