@@ -1,3 +1,73 @@
+## v7.0.0 (2025-01-26)
+
+### BREAKING CHANGE
+
+- feature/gh29
+
+### Feat
+
+- migrate all prisma dependencies to diesel
+- implements the licensed-resources diesel adapter
+- implements the profile adapter for diesel
+- implements the token adapter for diesel
+- implements the users adapter for prisma
+- implements methods for tenant tag for diesel adapter
+- implements the webhook diesel adapters
+- implements the tenant adapters for diesel
+- implements the guest_user diesel adapter
+- implemente diesel adapter to guest_role
+- implements the error code diesel repository and initialize modules for other entities
+- implements the account repository for diesel
+- create the basis for the diesel adapter
+- implements diesel models to mirror the sql implementation for the prisma adapter
+- formalize the sql model as a sql manifest
+- implements the account metadata crud
+- improve the profile owner filtration and apply the improvement to the tenant owner endpoints
+- implements the tenant ownership information into the profile
+
+### Fix
+
+- fix the meta endpoints for account meta management
+- fix the guest to children account
+- review the guest roles related operations
+- **subscription-accounts**: fix the subscription accounts related operations
+- wip - fix the guest roles diesel orm functionalities
+- review the error code life cycle
+- fix the webhook updating options to avoid updation of the url and triggers
+- improve the tenant fetching and account fetching to adequate to the expected behaviour already validated with prisma
+- fix the tenant operations related to the diesel database engnie
+- fix the tenant fetching process
+- fix the tenant fetching to migrato to native orm diesel query
+- fix the totp lifecycle
+- fix the user token invalidation on create a new one
+- fix the profile fetching diesel query
+- replace diesel uuid in models and repositories by string
+- migrate the raw sql implementations injection of the fetch-profile-from-request to a native shaku module injection
+- fix the diesel injection module to avoid modules implementation expositions
+- fix the accout fetching adapter for prisma
+- include the tenant-fetching repo to the tenant endpoints for tenant-owners
+- include the meta field at the account model
+- improve information about the account creation status on email checking response
+- include the url option to the tenants-ownership field of the profile dto
+- include tenant at the profile filtering
+- **use-cases**: remove unused roles from profile filtering operation
+
+### Refactor
+
+- remove prisma client adapter
+- move the account-tag to a dedicated module
+- allow dead code for the profile fetching using telegram user use-case
+- standardize the headers used to check an email status
+- **profile**: split profile elements into independent modules
+- rename use-cases to better inform users about functionality
+- rename the standard account flag on licensed resources to a system account
+
+### Perf
+
+- include a slug to tenant-id index on tenant management model
+- **account**: remove from serialization none fields of account dto
+- **tenant**: remove from serialization none fields of tenant dto
+
 ## v6.6.0 (2025-01-07)
 
 ### Feat
