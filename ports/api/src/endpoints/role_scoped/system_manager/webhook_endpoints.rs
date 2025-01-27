@@ -11,7 +11,7 @@ use myc_core::{
         delete_webhook, list_webhooks, register_webhook, update_webhook,
     },
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -106,7 +106,7 @@ pub async fn crate_webhook_url(
     body: web::Json<CreateWebHookBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match register_webhook(
         profile.to_profile(),
@@ -162,7 +162,7 @@ pub async fn crate_webhook_url(
 pub async fn list_webhooks_url(
     info: web::Query<ListWebHooksParams>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match list_webhooks(
         profile.to_profile(),
@@ -212,7 +212,7 @@ pub async fn update_webhook_url(
     body: web::Json<UpdateWebHookBody>,
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match update_webhook(
         profile.to_profile(),
@@ -267,7 +267,7 @@ pub async fn update_webhook_url(
 pub async fn delete_webhook_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match delete_webhook(
         profile.to_profile(),

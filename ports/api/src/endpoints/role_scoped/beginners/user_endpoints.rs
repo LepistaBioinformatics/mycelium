@@ -24,7 +24,7 @@ use myc_core::{
         EmailRegistrationStatus,
     },
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     functions::encode_jwt, models::internal_auth_config::InternalOauthConfig,
     responses::GatewayError, utils::HttpJsonResponse,
@@ -200,7 +200,7 @@ pub struct CheckUserCredentialsBody {
 #[head("/status")]
 pub async fn check_email_registration_status_url(
     query: web::Query<CheckEmailStatusQuery>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let email_instance = match Email::from_string(query.email.to_owned()) {
         Err(err) => {
@@ -338,7 +338,7 @@ pub async fn create_default_user_url(
     req: HttpRequest,
     body: web::Json<CreateDefaultUserBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let provider = match parse_issuer_from_request(req.clone()).await {
@@ -410,7 +410,7 @@ pub async fn create_default_user_url(
 #[post("/validate-activation-token")]
 pub async fn check_user_token_url(
     body: web::Json<CheckTokenBody>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
@@ -473,7 +473,7 @@ pub async fn check_user_token_url(
 pub async fn start_password_redefinition_url(
     body: web::Json<StartPasswordResetBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
@@ -537,7 +537,7 @@ pub async fn start_password_redefinition_url(
 pub async fn check_token_and_reset_password_url(
     body: web::Json<ResetPasswordBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
@@ -605,7 +605,7 @@ pub async fn check_token_and_reset_password_url(
 #[post("/login")]
 pub async fn check_email_password_validity_url(
     body: web::Json<CheckUserCredentialsBody>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
     auth_config: web::Data<InternalOauthConfig>,
 ) -> impl Responder {
     let email_instance = match Email::from_string(body.email.to_owned()) {
@@ -751,7 +751,7 @@ pub async fn totp_start_activation_url(
     req: HttpRequest,
     query: web::Query<TotpActivationStartedParams>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let opt_email =
@@ -835,7 +835,7 @@ pub async fn totp_finish_activation_url(
     req: HttpRequest,
     body: web::Json<TotpUpdatingValidationBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let opt_email =
@@ -912,7 +912,7 @@ pub async fn totp_check_token_url(
     body: web::Json<TotpUpdatingValidationBody>,
     auth_config: web::Data<InternalOauthConfig>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let opt_email =
         match check_credentials_with_multi_identity_provider(req).await {
@@ -1001,7 +1001,7 @@ pub async fn totp_disable_url(
     req: HttpRequest,
     body: web::Json<TotpUpdatingValidationBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let opt_email =

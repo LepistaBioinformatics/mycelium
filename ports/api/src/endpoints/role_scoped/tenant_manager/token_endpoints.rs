@@ -1,5 +1,5 @@
 use crate::{dtos::MyceliumProfileData, modules::MessageSendingQueueModule};
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
@@ -79,7 +79,7 @@ pub async fn create_tenant_associated_connection_string_url(
     body: web::Json<CreateTenantScopedTokenBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     match create_tenant_associated_connection_string(

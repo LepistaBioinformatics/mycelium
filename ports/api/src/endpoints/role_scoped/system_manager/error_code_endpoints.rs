@@ -8,7 +8,7 @@ use myc_core::{
         register_error_code, update_error_code_message_and_details,
     },
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -103,7 +103,7 @@ pub struct UpdateErrorCodeMessageAndDetailsBody {
 pub async fn register_error_code_url(
     body: web::Json<CreateErrorCodeBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match register_error_code(
         profile.to_profile(),
@@ -163,7 +163,7 @@ pub async fn list_error_codes_url(
     info: web::Query<ListErrorCodesParams>,
     page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match list_error_codes(
         profile.to_profile(),
@@ -222,7 +222,7 @@ pub async fn list_error_codes_url(
 pub async fn get_error_code_url(
     path: web::Path<(String, i32)>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (prefix, code) = path.into_inner();
 
@@ -290,7 +290,7 @@ pub async fn update_error_code_message_and_details_url(
     path: web::Path<(String, i32)>,
     body: web::Json<UpdateErrorCodeMessageAndDetailsBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (prefix, code) = path.into_inner();
 
@@ -351,7 +351,7 @@ pub async fn update_error_code_message_and_details_url(
 pub async fn delete_error_code_url(
     path: web::Path<(String, i32)>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (prefix, code) = path.into_inner();
 

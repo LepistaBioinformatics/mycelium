@@ -12,13 +12,10 @@ cert.pem
 key.pem
 config.dev.yaml
 
-# Prisma related
-#adapters/prisma/src/migrations
-
 # Other
 *.drawio.bkp
 
-# Logging 
+# Logging
 logs/*
 
 # Docker

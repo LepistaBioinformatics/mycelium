@@ -23,11 +23,6 @@ default-members = [
     "adapters/*",
 ]
 
-exclude = [
-    "adapters/prisma",
-    #"ports/cli"
-]
-
 resolver = "2"
 
 

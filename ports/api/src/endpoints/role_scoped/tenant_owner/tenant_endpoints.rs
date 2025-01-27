@@ -5,7 +5,7 @@ use myc_core::use_cases::role_scoped::tenant_owner::{
     update_tenant_archiving_status, update_tenant_name_and_description,
     update_tenant_trashing_status, update_tenant_verifying_status,
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -83,7 +83,7 @@ pub async fn update_tenant_name_and_description_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateTenantNameAndDescriptionBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match update_tenant_name_and_description(
         profile.to_profile(),
@@ -137,7 +137,7 @@ pub async fn update_tenant_name_and_description_url(
 pub async fn update_tenant_archiving_status_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match update_tenant_archiving_status(
         profile.to_profile(),
@@ -189,7 +189,7 @@ pub async fn update_tenant_archiving_status_url(
 pub async fn update_tenant_trashing_status_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match update_tenant_trashing_status(
         profile.to_profile(),
@@ -241,7 +241,7 @@ pub async fn update_tenant_trashing_status_url(
 pub async fn update_tenant_verifying_status_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match update_tenant_verifying_status(
         profile.to_profile(),

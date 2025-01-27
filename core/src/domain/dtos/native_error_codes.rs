@@ -18,8 +18,8 @@ use std::{
 pub enum NativeErrorCodes {
     ///
     /// code: "MYC00001",
-    /// message: "Prisma Client Unavailable error",
-    /// details: "Prisma Client error. Could not fetch client.",
+    /// message: "Database Client Unavailable error",
+    /// details: "Database Client error. Could not fetch client.",
     /// is_internal: true,
     /// is_native: true
     ///
@@ -280,9 +280,9 @@ impl NativeErrorCodes {
             Self::MYC00001 => Ok(ErrorCode::new_internal_error(
                 "MYC".to_string(),
                 1,
-                "Prisma Client Unavailable error".to_string(),
+                "Database Client Unavailable error".to_string(),
                 true,
-            )?.with_details("Prisma Client error. Could not fetch client.".to_string())),
+            )?.with_details("Database Client error. Could not fetch client.".to_string())),
             Self::MYC00002 => Ok(ErrorCode::new_external_error(
                 "MYC".to_string(),
                 2,

@@ -16,7 +16,7 @@ use myc_core::{
         update_account_name_and_flags,
     },
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -192,7 +192,7 @@ pub async fn create_subscription_account_url(
     body: web::Json<CreateSubscriptionAccountBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match create_subscription_account(
         profile.to_profile(),
@@ -260,7 +260,7 @@ pub async fn list_accounts_by_type_url(
     query: web::Query<ListSubscriptionAccountParams>,
     page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let mut is_account_active: Option<bool> = None;
     let mut is_account_checked: Option<bool> = None;
@@ -364,7 +364,7 @@ pub async fn get_account_details_url(
     tenant: TenantData,
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let account_id = path.into_inner();
 
@@ -430,7 +430,7 @@ pub async fn update_account_name_and_flags_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateSubscriptionAccountNameAndFlagsBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let account_id = path.into_inner();
 
@@ -499,7 +499,7 @@ pub async fn propagate_existing_subscription_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let account_id = path.into_inner();
 

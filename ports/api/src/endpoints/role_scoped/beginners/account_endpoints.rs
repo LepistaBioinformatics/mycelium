@@ -12,7 +12,7 @@ use myc_core::{
         create_default_account, update_own_account_name,
     },
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -100,7 +100,7 @@ pub async fn create_default_account_url(
     req: HttpRequest,
     body: web::Json<CreateDefaultAccountBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let opt_email =
@@ -180,7 +180,7 @@ pub async fn update_own_account_name_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateOwnAccountNameAccountBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let profile = profile.to_profile();
 

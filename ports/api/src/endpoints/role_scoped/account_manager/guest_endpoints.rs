@@ -9,7 +9,7 @@ use myc_core::{
     models::AccountLifeCycle,
     use_cases::role_scoped::account_manager::guest::guest_to_children_account,
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -115,7 +115,7 @@ pub async fn guest_to_children_account_url(
     body: web::Json<GuestUserToChildrenBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let (account_id, role_id) = path.to_owned();

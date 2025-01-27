@@ -9,7 +9,7 @@ use myc_core::{
         create_tenant_meta, delete_tenant_meta,
     },
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -95,7 +95,7 @@ pub async fn create_tenant_meta_url(
     tenant: TenantData,
     body: web::Json<CreateTenantMetaBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let key = match TenantMetaKey::from_str(&body.key) {
         Ok(key) => key,
@@ -163,7 +163,7 @@ pub async fn delete_tenant_meta_url(
     tenant: TenantData,
     body: web::Json<DeleteTenantMetaBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let key = match TenantMetaKey::from_str(&body.key) {
         Ok(key) => key,

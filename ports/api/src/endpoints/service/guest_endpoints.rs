@@ -12,7 +12,7 @@ use myc_core::{
     models::AccountLifeCycle,
     use_cases::service::guest::guest_to_default_account,
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error,
@@ -106,7 +106,7 @@ pub async fn guest_to_default_account_url(
     connection_string: MyceliumRoleScopedConnectionStringData,
     body: web::Json<ServiceGuestUserBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let role_id = path.to_owned();

@@ -7,7 +7,7 @@ use myc_core::{
         guest_tenant_owner, revoke_tenant_owner,
     },
 };
-use myc_diesel::repositories::AppModule;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -87,7 +87,7 @@ pub async fn guest_tenant_owner_url(
     tenant: TenantData,
     body: web::Json<GuestTenantOwnerBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
         Ok(email) => email,
@@ -154,7 +154,7 @@ pub async fn revoke_tenant_owner_url(
     tenant: TenantData,
     body: web::Json<GuestTenantOwnerBody>,
     profile: MyceliumProfileData,
-    app_module: web::Data<AppModule>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
         Ok(email) => email,

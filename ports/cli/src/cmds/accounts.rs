@@ -7,7 +7,7 @@ use myc_core::{
     use_cases::super_users::staff::account::create_seed_staff_account,
 };
 use myc_diesel::repositories::{
-    AppModule, DieselDbPoolProvider, DieselDbPoolProviderParameters,
+    SqlAppModule, DieselDbPoolProvider, DieselDbPoolProviderParameters,
 };
 use mycelium_base::entities::GetOrCreateResponseKind;
 use shaku::HasComponent;
@@ -50,7 +50,7 @@ pub(crate) async fn create_seed_staff_account_cmd(
     // Initialize the dependency
     //
     let module = Arc::new(
-        AppModule::builder()
+        SqlAppModule::builder()
             .with_component_parameters::<DieselDbPoolProvider>(
                 DieselDbPoolProviderParameters {
                     pool: DieselDbPoolProvider::new(&database_url.as_str()),
