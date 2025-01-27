@@ -1,6 +1,8 @@
+use std::str::FromStr;
+
 use crate::dtos::MyceliumProfileData;
 
-use actix_web::{delete, post, put, web, Responder};
+use actix_web::{delete, post, put, web, HttpResponse, Responder};
 use myc_core::{
     domain::dtos::account::{AccountMeta, AccountMetaKey},
     use_cases::role_scoped::beginner::meta::{
@@ -17,7 +19,7 @@ use myc_http_tools::{
 };
 use serde::Deserialize;
 use shaku::HasComponent;
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -37,14 +39,14 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateAccountMetaBody {
-    key: AccountMetaKey,
+    key: String,
     value: String,
 }
 
-#[derive(Deserialize, ToSchema)]
+#[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct DeleteAccountMetaBody {
-    key: AccountMetaKey,
+pub struct DeleteAccountMetaParams {
+    key: String,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -89,9 +91,18 @@ pub async fn create_account_meta_url(
     profile: MyceliumProfileData,
     app_module: web::Data<AppModule>,
 ) -> impl Responder {
+    let key = match AccountMetaKey::from_str(&body.key) {
+        Ok(key) => key,
+        Err(_) => {
+            return HttpResponse::BadRequest().json(
+                HttpJsonResponse::new_message("The key is invalid".to_string()),
+            );
+        }
+    };
+
     match create_account_meta(
         profile.to_profile(),
-        body.key.to_owned(),
+        key.to_owned(),
         body.value.to_owned(),
         Box::new(&*app_module.resolve_ref()),
     )
@@ -139,9 +150,18 @@ pub async fn update_account_meta_url(
     profile: MyceliumProfileData,
     app_module: web::Data<AppModule>,
 ) -> impl Responder {
+    let key = match AccountMetaKey::from_str(&body.key) {
+        Ok(key) => key,
+        Err(_) => {
+            return HttpResponse::BadRequest().json(
+                HttpJsonResponse::new_message("The key is invalid".to_string()),
+            );
+        }
+    };
+
     match update_account_meta(
         profile.to_profile(),
-        body.key.to_owned(),
+        key.to_owned(),
         body.value.to_owned(),
         Box::new(&*app_module.resolve_ref()),
     )
@@ -155,7 +175,7 @@ pub async fn update_account_meta_url(
 /// Delete a account metadata
 #[utoipa::path(
     delete,
-    request_body = DeleteAccountMetaBody,
+    request_body = DeleteAccountMetaParams,
     responses(
         (
             status = 500,
@@ -185,13 +205,22 @@ pub async fn update_account_meta_url(
 )]
 #[delete("")]
 pub async fn delete_account_meta_url(
-    body: web::Json<DeleteAccountMetaBody>,
+    query: web::Query<DeleteAccountMetaParams>,
     profile: MyceliumProfileData,
     app_module: web::Data<AppModule>,
 ) -> impl Responder {
+    let key = match AccountMetaKey::from_str(&query.key) {
+        Ok(key) => key,
+        Err(_) => {
+            return HttpResponse::BadRequest().json(
+                HttpJsonResponse::new_message("The key is invalid".to_string()),
+            );
+        }
+    };
+
     match delete_account_meta(
         profile.to_profile(),
-        body.key.to_owned(),
+        key.to_owned(),
         Box::new(&*app_module.resolve_ref()),
     )
     .await
