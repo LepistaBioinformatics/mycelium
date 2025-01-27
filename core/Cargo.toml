@@ -18,8 +18,8 @@ readme.workspace = true
 
 [dependencies]
 
-mycelium-base = { version = "6.6.0", path = "../base" }
-mycelium-config = { version = "6.6.0", path = "../config" }
+mycelium-base = { version = "7.0.0", path = "../base" }
+mycelium-config = { version = "7.0.0", path = "../config" }
 
 async-trait.workspace = true
 chrono.workspace = true
@@ -54,7 +54,7 @@ tera = "1"
 pasetors = "0.6"
 ring = "0.17"
 slugify = "0.1.0"
-totp-rs = { version = "^5.0", features = ["otpauth"] }
+totp-rs = { version = "^5.0", features = ["otpauth", "qr"] }
 
 [dev-dependencies]
 test-log = "0.2.8"

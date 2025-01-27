@@ -74,7 +74,16 @@ where
         Ok(())
     }
 
-    pub(crate) fn get_token(&self) -> TokenType {
+    pub fn get_token(&self) -> TokenType {
         self.token.to_owned()
+    }
+
+    /// Check the token
+    ///
+    /// This function checks the token against the token provided
+    ///
+    pub fn check_token(&self, token: &[u8]) -> Result<(), MappedErrors> {
+        PasswordHash::new_from_hash(self.token.to_string())
+            .check_password(token)
     }
 }

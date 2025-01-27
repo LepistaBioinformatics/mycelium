@@ -1,26 +1,19 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    endpoints::shared::PaginationParams,
-    modules::{
-        TenantDeletionModule, TenantFetchingModule, TenantRegistrationModule,
-        TenantUpdatingModule, UserFetchingModule,
-    },
-};
+use std::str::FromStr;
 
-use actix_web::{delete, get, patch, post, web, Responder};
+use crate::{dtos::MyceliumProfileData, endpoints::shared::PaginationParams};
+
+use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
         dtos::tenant::{Tenant, TenantMetaKey},
-        entities::{
-            TenantDeletion, TenantFetching, TenantOwnerConnection,
-            TenantRegistration, TenantUpdating, UserFetching,
-        },
+        entities::TenantOwnerConnection,
     },
     use_cases::super_users::managers::{
         create_tenant, delete_tenant, exclude_tenant_owner,
         include_tenant_owner, list_tenant,
     },
 };
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -29,7 +22,7 @@ use myc_http_tools::{
     },
 };
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
@@ -68,14 +61,19 @@ pub struct CreateTenantBody {
 #[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct ListTenantParams {
+    /// Filter tenants by name
     name: Option<String>,
+
+    /// Filter tenants by owner
     owner: Option<Uuid>,
-    metadata_key: Option<TenantMetaKey>,
-    status_verified: Option<bool>,
-    status_archived: Option<bool>,
-    status_trashed: Option<bool>,
-    tag_value: Option<String>,
-    tag_meta: Option<String>,
+
+    /// Filter tenants by metadata key
+    metadata: Option<String>,
+
+    /// Filter tenants by tag
+    ///
+    /// Example: `key=value`
+    tag: Option<String>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -118,19 +116,15 @@ pub struct ListTenantParams {
 pub async fn create_tenant_url(
     body: web::Json<CreateTenantBody>,
     profile: MyceliumProfileData,
-    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
-    tenant_registration_repo: Inject<
-        TenantRegistrationModule,
-        dyn TenantRegistration,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match create_tenant(
         profile.to_profile(),
         body.name.clone(),
         body.description.clone(),
         body.owner_id,
-        Box::new(&*user_fetching_repo),
-        Box::new(&*tenant_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -175,24 +169,50 @@ pub async fn create_tenant_url(
 )]
 #[get("")]
 pub async fn list_tenant_url(
-    info: web::Query<ListTenantParams>,
+    query: web::Query<ListTenantParams>,
     page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
-    tenant_fetching_repo: Inject<TenantFetchingModule, dyn TenantFetching>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
+    let tag = match query.tag.as_ref() {
+        Some(tag) => match tag.split_once('=') {
+            Some((key, value)) => Some((key.to_string(), value.to_string())),
+            None => {
+                return HttpResponse::BadRequest().body("Invalid tag format")
+            }
+        },
+        None => None,
+    };
+
+    let metadata = match query.metadata.as_ref() {
+        Some(metadata) => match metadata.split_once('=') {
+            Some((key, value)) => Some((
+                match TenantMetaKey::from_str(key) {
+                    Ok(key) => key,
+                    Err(_) => {
+                        return HttpResponse::BadRequest()
+                            .body("Invalid metadata key")
+                    }
+                },
+                value.to_string(),
+            )),
+            None => {
+                return HttpResponse::BadRequest()
+                    .body("Invalid metadata format")
+            }
+        },
+        None => None,
+    };
+
     match list_tenant(
         profile.to_profile(),
-        info.name.to_owned(),
-        info.owner.to_owned(),
-        info.metadata_key.to_owned(),
-        info.status_verified.to_owned(),
-        info.status_archived.to_owned(),
-        info.status_trashed.to_owned(),
-        info.tag_value.to_owned(),
-        info.tag_meta.to_owned(),
+        query.name.to_owned(),
+        query.owner.to_owned(),
+        metadata.to_owned(),
+        tag.to_owned(),
         page.page_size.to_owned(),
         page.skip.to_owned(),
-        Box::new(&*tenant_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -239,12 +259,12 @@ pub async fn list_tenant_url(
 pub async fn delete_tenant_url(
     profile: MyceliumProfileData,
     path: web::Path<Uuid>,
-    tenant_deletion_repo: Inject<TenantDeletionModule, dyn TenantDeletion>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match delete_tenant(
         profile.to_profile(),
         path.into_inner(),
-        Box::from(&*tenant_deletion_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -290,7 +310,7 @@ pub async fn delete_tenant_url(
 pub async fn include_tenant_owner_url(
     path: web::Path<(Uuid, Uuid)>,
     profile: MyceliumProfileData,
-    tenant_updating_repo: Inject<TenantUpdatingModule, dyn TenantUpdating>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (tenant_id, owner_id) = path.into_inner();
 
@@ -298,7 +318,7 @@ pub async fn include_tenant_owner_url(
         profile.to_profile(),
         tenant_id,
         owner_id,
-        Box::new(&*tenant_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -313,7 +333,7 @@ pub async fn include_tenant_owner_url(
 /// owner from the tenant.
 ///
 #[utoipa::path(
-    patch,
+    delete,
     params(
         ("id" = Uuid, Path, description = "The tenant primary key."),
     ),
@@ -343,7 +363,7 @@ pub async fn include_tenant_owner_url(
 pub async fn exclude_tenant_owner_url(
     path: web::Path<(Uuid, Uuid)>,
     profile: MyceliumProfileData,
-    tenant_deletion_repo: Inject<TenantDeletionModule, dyn TenantDeletion>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (tenant_id, owner_id) = path.into_inner();
 
@@ -351,7 +371,7 @@ pub async fn exclude_tenant_owner_url(
         profile.to_profile(),
         tenant_id,
         owner_id,
-        Box::new(&*tenant_deletion_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

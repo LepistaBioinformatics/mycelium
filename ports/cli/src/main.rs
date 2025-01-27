@@ -1,6 +1,5 @@
-extern crate myc_core;
-
 mod cmds;
+mod functions;
 
 use clap::Parser;
 use cmds::{accounts, check, error_codes};
@@ -8,8 +7,13 @@ use std::env::set_var;
 
 #[derive(Parser, Debug)]
 enum Cli {
+    /// Check the configuration file
     Check(check::Arguments),
+
+    /// Create a seed staff account
     Accounts(accounts::Arguments),
+
+    /// Register native error codes
     NativeErrors(error_codes::Arguments),
 }
 

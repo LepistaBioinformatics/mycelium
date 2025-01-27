@@ -63,7 +63,7 @@ pub async fn insert_role_child(
             ))
             .as_error();
         }
-        FetchResponseKind::Found(role) => role.id,
+        FetchResponseKind::Found(role) => role.permission,
     };
 
     let children_role = match children_role? {
@@ -74,12 +74,12 @@ pub async fn insert_role_child(
             ))
             .as_error();
         }
-        FetchResponseKind::Found(role) => role.id,
+        FetchResponseKind::Found(role) => role.permission,
     };
 
-    if target_role != children_role {
+    if target_role.to_i32() < children_role.to_i32() {
         return use_case_err(
-            "The child role must have the same role as the target role",
+            "Only roles with higher permission level can be children of a role",
         )
         .with_exp_true()
         .with_code(NativeErrorCodes::MYC00018)

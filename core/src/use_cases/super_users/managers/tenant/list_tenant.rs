@@ -23,12 +23,8 @@ pub async fn list_tenant(
     profile: Profile,
     name: Option<String>,
     owner: Option<Uuid>,
-    metadata_key: Option<TenantMetaKey>,
-    status_verified: Option<bool>,
-    status_archived: Option<bool>,
-    status_trashed: Option<bool>,
-    tag_value: Option<String>,
-    tag_meta: Option<String>,
+    metadata: Option<(TenantMetaKey, String)>,
+    tag: Option<(String, String)>,
     page_size: Option<i32>,
     skip: Option<i32>,
     tenant_fetching_repo: Box<&dyn TenantFetching>,
@@ -44,17 +40,6 @@ pub async fn list_tenant(
     // ? -----------------------------------------------------------------------
 
     tenant_fetching_repo
-        .filter_tenants_as_manager(
-            name,
-            owner,
-            metadata_key,
-            status_verified,
-            status_archived,
-            status_trashed,
-            tag_value,
-            tag_meta,
-            page_size,
-            skip,
-        )
+        .filter_tenants_as_manager(name, owner, metadata, tag, page_size, skip)
         .await
 }

@@ -7,21 +7,21 @@ use utoipa::ToSchema;
 )]
 #[serde(rename_all = "camelCase")]
 pub enum TenantStatus {
-    Verified {
-        verified: bool,
-        at: DateTime<Local>,
-        by: String,
-    },
+    Verified { at: DateTime<Local>, by: String },
+    Trashed { at: DateTime<Local>, by: String },
+    Archived { at: DateTime<Local>, by: String },
+}
 
-    Trashed {
-        trashed: bool,
-        at: DateTime<Local>,
-        by: String,
-    },
+impl TenantStatus {
+    pub fn is_archived(&self) -> bool {
+        matches!(self, TenantStatus::Archived { .. })
+    }
 
-    Archived {
-        archived: bool,
-        at: DateTime<Local>,
-        by: String,
-    },
+    pub fn is_trashed(&self) -> bool {
+        matches!(self, TenantStatus::Trashed { .. })
+    }
+
+    pub fn is_verified(&self) -> bool {
+        matches!(self, TenantStatus::Verified { .. })
+    }
 }

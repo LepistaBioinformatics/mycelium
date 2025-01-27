@@ -1,23 +1,22 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    modules::{MessageSendingQueueModule, TokenRegistrationModule},
-};
+use crate::{dtos::MyceliumProfileData, modules::MessageSendingQueueModule};
 
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
-    domain::entities::{MessageSending, TokenRegistration},
+    domain::entities::MessageSending,
     models::AccountLifeCycle,
     use_cases::role_scoped::guest_manager::token::{
         create_default_account_associated_connection_string,
         create_role_associated_connection_string,
     },
 };
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error,
     Permission,
 };
 use serde::{Deserialize, Serialize};
+use shaku::HasComponent;
 use shaku_actix::Inject;
 use utoipa::{ToResponse, ToSchema};
 use uuid::Uuid;
@@ -91,10 +90,7 @@ pub async fn create_default_account_associated_connection_string_url(
     body: web::Json<CreateTokenBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    token_registration_repo: Inject<
-        TokenRegistrationModule,
-        dyn TokenRegistration,
-    >,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     match create_default_account_associated_connection_string(
@@ -104,7 +100,7 @@ pub async fn create_default_account_associated_connection_string_url(
         body.expiration.to_owned(),
         body.permissioned_roles.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*token_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*message_sending_repo),
     )
     .await
@@ -157,10 +153,7 @@ pub async fn create_role_associated_connection_string_url(
     body: web::Json<CreateTokenBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    token_registration_repo: Inject<
-        TokenRegistrationModule,
-        dyn TokenRegistration,
-    >,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     match create_role_associated_connection_string(
@@ -170,7 +163,7 @@ pub async fn create_role_associated_connection_string_url(
         body.expiration.to_owned(),
         body.permissioned_roles.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*token_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*message_sending_repo),
     )
     .await

@@ -1,7 +1,16 @@
 use clap::Parser;
 use log::{error, info};
-use myc_core::use_cases::role_scoped::system_manager::error_codes::batch_register_native_error_codes;
-use myc_prisma::repositories::ErrorCodeRegistrationSqlDbRepository;
+use myc_core::{
+    domain::entities::ErrorCodeRegistration,
+    use_cases::role_scoped::system_manager::error_codes::batch_register_native_error_codes,
+};
+use myc_diesel::repositories::{
+    SqlAppModule, DieselDbPoolProvider, DieselDbPoolProviderParameters,
+};
+use shaku::HasComponent;
+use std::sync::Arc;
+
+use crate::functions::try_to_resolve_database_url;
 
 #[derive(Parser, Debug)]
 pub(crate) struct Arguments {
@@ -15,11 +24,30 @@ pub(crate) enum Commands {
 }
 
 pub(crate) async fn batch_register_native_error_codes_cmd() {
-    match batch_register_native_error_codes(Box::new(
-        &ErrorCodeRegistrationSqlDbRepository {},
-    ))
-    .await
-    {
+    //
+    // Ask for the database url
+    //
+    let database_url = try_to_resolve_database_url();
+
+    //
+    // Initialize the dependency
+    //
+    let module = Arc::new(
+        SqlAppModule::builder()
+            .with_component_parameters::<DieselDbPoolProvider>(
+                DieselDbPoolProviderParameters {
+                    pool: DieselDbPoolProvider::new(&database_url.as_str()),
+                },
+            )
+            .build(),
+    );
+
+    let repo: &dyn ErrorCodeRegistration = module.resolve_ref();
+
+    //
+    // Batch register the native error codes
+    //
+    match batch_register_native_error_codes(Box::new(repo)).await {
         Err(err) => error!("{err}"),
         Ok(res) => {
             if res.unpersisted_errors.len() > 0 {

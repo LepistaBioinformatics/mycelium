@@ -32,7 +32,7 @@ resolver = "2"
 
 [workspace.package]
 
-version = "6.6.0"
+version = "7.0.0"
 edition = "2021"
 authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
 license = "Apache-2.0"
@@ -70,7 +70,6 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_yaml = "0.9"
 shaku = "0.6"
-shaku_actix = "0.2"
 tokio = { version = "1", features = ["full"] }
 url = "2.2"
 utoipa = { version = "5", features = [
@@ -83,3 +82,10 @@ utoipa = { version = "5", features = [
 ] }
 tracing = "0.1"
 uuid = { version = "1.1", features = ["v3", "v4", "serde", "fast-rng"] }
+
+#
+# TODO: REMOVE AFTER MIGRATE FROM PRISMA TO DIESEL
+#
+# TODO: WAIT FOR THE FIX OF THE NOTIFIERS PACKATE MIGRATION BEFORE REMOVE
+#
+shaku_actix = "0.2"

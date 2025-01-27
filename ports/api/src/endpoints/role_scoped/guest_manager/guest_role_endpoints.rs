@@ -1,26 +1,15 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    modules::{
-        GuestRoleDeletionModule, GuestRoleFetchingModule,
-        GuestRoleRegistrationModule, GuestRoleUpdatingModule,
-    },
-};
+use crate::{dtos::MyceliumProfileData, endpoints::shared::PaginationParams};
 
 use actix_web::{delete, get, patch, post, web, Responder};
 use myc_core::{
-    domain::{
-        dtos::guest_role::{GuestRole, Permission},
-        entities::{
-            GuestRoleDeletion, GuestRoleFetching, GuestRoleRegistration,
-            GuestRoleUpdating,
-        },
-    },
+    domain::dtos::guest_role::{GuestRole, Permission},
     use_cases::role_scoped::guest_manager::guest_role::{
         create_guest_role, delete_guest_role, insert_role_child,
         list_guest_roles, remove_role_child,
         update_guest_role_name_and_description, update_guest_role_permission,
     },
 };
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -30,7 +19,7 @@ use myc_http_tools::{
     },
 };
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
@@ -58,6 +47,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub struct CreateGuestRoleBody {
     pub name: String,
     pub description: String,
+    pub permission: Option<Permission>,
 }
 
 #[derive(Deserialize, ToSchema, IntoParams)]
@@ -117,17 +107,14 @@ pub struct UpdateGuestRolePermissionsBody {
 pub async fn crate_guest_role_url(
     json: web::Json<CreateGuestRoleBody>,
     profile: MyceliumProfileData,
-    guest_role_registration_repo: Inject<
-        GuestRoleRegistrationModule,
-        dyn GuestRoleRegistration,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match create_guest_role(
         profile.to_profile(),
         json.name.to_owned(),
         json.description.to_owned(),
-        None,
-        Box::new(&*guest_role_registration_repo),
+        json.permission.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -172,16 +159,16 @@ pub async fn crate_guest_role_url(
 #[get("")]
 pub async fn list_guest_roles_url(
     info: web::Query<ListGuestRolesParams>,
+    page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
-    guest_role_fetching_repo: Inject<
-        GuestRoleFetchingModule,
-        dyn GuestRoleFetching,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match list_guest_roles(
         profile.to_profile(),
         info.name.to_owned(),
-        Box::new(&*guest_role_fetching_repo),
+        page.page_size,
+        page.skip,
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -229,12 +216,12 @@ pub async fn list_guest_roles_url(
 pub async fn delete_guest_role_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    role_deletion_repo: Inject<GuestRoleDeletionModule, dyn GuestRoleDeletion>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match delete_guest_role(
         profile.to_profile(),
         path.to_owned(),
-        Box::new(&*role_deletion_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -285,16 +272,15 @@ pub async fn update_guest_role_name_and_description_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateGuestRoleNameAndDescriptionBody>,
     profile: MyceliumProfileData,
-    role_fetching_repo: Inject<GuestRoleFetchingModule, dyn GuestRoleFetching>,
-    role_updating_repo: Inject<GuestRoleUpdatingModule, dyn GuestRoleUpdating>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match update_guest_role_name_and_description(
         profile.to_profile(),
         body.name.to_owned(),
         body.description.to_owned(),
         path.to_owned(),
-        Box::new(&*role_fetching_repo),
-        Box::new(&*role_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -345,15 +331,14 @@ pub async fn update_guest_role_permissions_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateGuestRolePermissionsBody>,
     profile: MyceliumProfileData,
-    role_fetching_repo: Inject<GuestRoleFetchingModule, dyn GuestRoleFetching>,
-    role_updating_repo: Inject<GuestRoleUpdatingModule, dyn GuestRoleUpdating>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match update_guest_role_permission(
         profile.to_profile(),
         path.to_owned(),
         body.permission.to_owned(),
-        Box::new(&*role_fetching_repo),
-        Box::new(&*role_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -404,14 +389,7 @@ pub async fn update_guest_role_permissions_url(
 pub async fn insert_role_child_url(
     path: web::Path<(Uuid, Uuid)>,
     profile: MyceliumProfileData,
-    guest_role_fetching_repo: Inject<
-        GuestRoleFetchingModule,
-        dyn GuestRoleFetching,
-    >,
-    guest_role_updating_repo: Inject<
-        GuestRoleUpdatingModule,
-        dyn GuestRoleUpdating,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (guest_role_id, child_id) = path.into_inner();
 
@@ -419,8 +397,8 @@ pub async fn insert_role_child_url(
         profile.to_profile(),
         guest_role_id,
         child_id,
-        Box::new(&*guest_role_fetching_repo),
-        Box::new(&*guest_role_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -471,10 +449,7 @@ pub async fn insert_role_child_url(
 pub async fn remove_role_child_url(
     path: web::Path<(Uuid, Uuid)>,
     profile: MyceliumProfileData,
-    guest_role_updating_repo: Inject<
-        GuestRoleUpdatingModule,
-        dyn GuestRoleUpdating,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (guest_role_id, child_id) = path.into_inner();
 
@@ -482,7 +457,7 @@ pub async fn remove_role_child_url(
         profile.to_profile(),
         guest_role_id,
         child_id,
-        Box::new(&*guest_role_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

@@ -406,7 +406,7 @@ pub(crate) async fn route_request(
             // Insert the authorization key into the header
             //
             HttpSecret::AuthorizationHeader {
-                name,
+                header_name,
                 prefix,
                 token,
             } => {
@@ -415,7 +415,8 @@ pub(crate) async fn route_request(
                 //
                 let mut bearer_token = prefix.unwrap_or("Bearer".to_string());
                 bearer_token.push_str(format!(" {}", token).as_str());
-                let bearer_name = name.unwrap_or("Authorization".to_string());
+                let bearer_name =
+                    header_name.unwrap_or("Authorization".to_string());
                 route_key = Some(bearer_name.to_owned());
 
                 //

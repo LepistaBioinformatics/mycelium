@@ -1,13 +1,8 @@
-use crate::{
-    dtos::{MyceliumProfileData, TenantData},
-    modules::AccountRegistrationModule,
-};
+use crate::dtos::{MyceliumProfileData, TenantData};
 
 use actix_web::{post, web, Responder};
-use myc_core::{
-    domain::entities::AccountRegistration,
-    use_cases::role_scoped::tenant_owner::create_management_account,
-};
+use myc_core::use_cases::role_scoped::tenant_owner::create_management_account;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -15,7 +10,7 @@ use myc_http_tools::{
     },
     Account,
 };
-use shaku_actix::Inject;
+use shaku::HasComponent;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -71,15 +66,12 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub async fn create_management_account_url(
     tenant: TenantData,
     profile: MyceliumProfileData,
-    account_registration_repo: Inject<
-        AccountRegistrationModule,
-        dyn AccountRegistration,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match create_management_account(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
-        Box::new(&*account_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

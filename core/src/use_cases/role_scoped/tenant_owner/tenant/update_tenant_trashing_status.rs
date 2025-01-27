@@ -1,9 +1,10 @@
+use super::update_tenant_status::update_tenant_status;
 use crate::domain::{
     dtos::{
         profile::Profile,
         tenant::{Tenant, TenantStatus},
     },
-    entities::TenantUpdating,
+    entities::{TenantFetching, TenantUpdating},
 };
 
 use chrono::Local;
@@ -20,27 +21,18 @@ use uuid::Uuid;
 pub async fn update_tenant_trashing_status(
     profile: Profile,
     tenant_id: Uuid,
-    trashed: bool,
     tenant_updating_repo: Box<&dyn TenantUpdating>,
+    tenant_fetching_repo: Box<&dyn TenantFetching>,
 ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors> {
-    // ? -----------------------------------------------------------------------
-    // ? Check if the profile is the owner of the tenant
-    // ? -----------------------------------------------------------------------
-
-    profile.with_tenant_ownership_or_error(tenant_id)?;
-
-    // ? -----------------------------------------------------------------------
-    // ? Update tenant
-    // ? -----------------------------------------------------------------------
-
-    tenant_updating_repo
-        .update_tenant_status(
-            tenant_id,
-            TenantStatus::Trashed {
-                trashed,
-                at: Local::now(),
-                by: profile.profile_string(),
-            },
-        )
-        .await
+    update_tenant_status(
+        profile.to_owned(),
+        TenantStatus::Trashed {
+            at: Local::now(),
+            by: profile.profile_string(),
+        },
+        tenant_id,
+        tenant_updating_repo,
+        tenant_fetching_repo,
+    )
+    .await
 }

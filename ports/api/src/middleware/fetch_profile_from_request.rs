@@ -9,6 +9,7 @@ use myc_core::{
     domain::dtos::{email::Email, route_type::PermissionedRoles},
     use_cases::service::profile::{fetch_profile_from_email, ProfileResponse},
 };
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     functions::decode_jwt_hs512,
     models::{
@@ -17,23 +18,40 @@ use myc_http_tools::{
     providers::{az_check_credentials, gc_check_credentials},
     responses::GatewayError,
 };
-use myc_prisma::repositories::{
-    LicensedResourcesFetchingSqlDbRepository, ProfileFetchingSqlDbRepository,
-};
-use tracing::{trace, warn};
+use shaku::HasComponent;
+use tracing::{error, trace, warn};
 use uuid::Uuid;
 
 /// Try to populate profile to request header
 ///
 /// This function is auxiliary of the MyceliumProfileData struct used to extract
 /// the Mycelium Profile from the request on mycelium native APIs.
-#[tracing::instrument(name = "fetch_profile_from_request", skip_all)]
+#[tracing::instrument(name = "fetch_profile_from_request", skip(req))]
 pub(crate) async fn fetch_profile_from_request(
     req: HttpRequest,
     tenant: Option<Uuid>,
     roles: Option<Vec<String>>,
     permissioned_roles: Option<PermissionedRoles>,
 ) -> Result<MyceliumProfileData, GatewayError> {
+    // ? -----------------------------------------------------------------------
+    // ? Build dependencies
+    // ? -----------------------------------------------------------------------
+
+    let app_module = match req.app_data::<web::Data<SqlAppModule>>() {
+        Some(module) => module,
+        None => {
+            error!("Unable to extract profile fetching module from request");
+
+            return Err(GatewayError::InternalServerError(
+                "Unexpected error on get profile".to_string(),
+            ));
+        }
+    };
+
+    // ? -----------------------------------------------------------------------
+    // ? Profile Fetching
+    // ? -----------------------------------------------------------------------
+
     let email =
         check_credentials_with_multi_identity_provider(req.clone()).await?;
 
@@ -53,8 +71,8 @@ pub(crate) async fn fetch_profile_from_request(
         tenant,
         roles,
         permissioned_roles,
-        Box::new(&ProfileFetchingSqlDbRepository {}),
-        Box::new(&LicensedResourcesFetchingSqlDbRepository {}),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -68,8 +86,8 @@ pub(crate) async fn fetch_profile_from_request(
         Ok(res) => match res {
             ProfileResponse::UnregisteredUser(email) => {
                 return Err(GatewayError::Forbidden(format!(
-                    "Unauthorized access: {:?}",
-                    email,
+                    "Unauthorized access: {email}",
+                    email = email.email(),
                 )))
             }
             ProfileResponse::RegisteredUser(res) => res,

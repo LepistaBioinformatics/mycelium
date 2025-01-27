@@ -1,20 +1,15 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    modules::{
-        AccountDeletionModule, AccountRegistrationModule, AccountUpdatingModule,
-    },
-};
+use std::str::FromStr;
 
-use actix_web::{delete, post, put, web, Responder};
+use crate::dtos::MyceliumProfileData;
+
+use actix_web::{delete, post, put, web, HttpResponse, Responder};
 use myc_core::{
-    domain::{
-        dtos::account::{AccountMeta, AccountMetaKey},
-        entities::{AccountDeletion, AccountRegistration, AccountUpdating},
-    },
+    domain::dtos::account::{AccountMeta, AccountMetaKey},
     use_cases::role_scoped::beginner::meta::{
         create_account_meta, delete_account_meta, update_account_meta,
     },
 };
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -23,8 +18,8 @@ use myc_http_tools::{
     },
 };
 use serde::Deserialize;
-use shaku_actix::Inject;
-use utoipa::ToSchema;
+use shaku::HasComponent;
+use utoipa::{IntoParams, ToSchema};
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -44,14 +39,14 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateAccountMetaBody {
-    key: AccountMetaKey,
+    key: String,
     value: String,
 }
 
-#[derive(Deserialize, ToSchema)]
+#[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct DeleteAccountMetaBody {
-    key: AccountMetaKey,
+pub struct DeleteAccountMetaParams {
+    key: String,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -94,16 +89,22 @@ pub struct DeleteAccountMetaBody {
 pub async fn create_account_meta_url(
     body: web::Json<CreateAccountMetaBody>,
     profile: MyceliumProfileData,
-    account_registration_repo: Inject<
-        AccountRegistrationModule,
-        dyn AccountRegistration,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
+    let key = match AccountMetaKey::from_str(&body.key) {
+        Ok(key) => key,
+        Err(_) => {
+            return HttpResponse::BadRequest().json(
+                HttpJsonResponse::new_message("The key is invalid".to_string()),
+            );
+        }
+    };
+
     match create_account_meta(
         profile.to_profile(),
-        body.key.to_owned(),
+        key.to_owned(),
         body.value.to_owned(),
-        Box::new(&*account_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -147,13 +148,22 @@ pub async fn create_account_meta_url(
 pub async fn update_account_meta_url(
     body: web::Json<CreateAccountMetaBody>,
     profile: MyceliumProfileData,
-    account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
+    let key = match AccountMetaKey::from_str(&body.key) {
+        Ok(key) => key,
+        Err(_) => {
+            return HttpResponse::BadRequest().json(
+                HttpJsonResponse::new_message("The key is invalid".to_string()),
+            );
+        }
+    };
+
     match update_account_meta(
         profile.to_profile(),
-        body.key.to_owned(),
+        key.to_owned(),
         body.value.to_owned(),
-        Box::new(&*account_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -165,7 +175,7 @@ pub async fn update_account_meta_url(
 /// Delete a account metadata
 #[utoipa::path(
     delete,
-    request_body = DeleteAccountMetaBody,
+    request_body = DeleteAccountMetaParams,
     responses(
         (
             status = 500,
@@ -195,14 +205,23 @@ pub async fn update_account_meta_url(
 )]
 #[delete("")]
 pub async fn delete_account_meta_url(
-    body: web::Json<DeleteAccountMetaBody>,
+    query: web::Query<DeleteAccountMetaParams>,
     profile: MyceliumProfileData,
-    account_deletion_repo: Inject<AccountDeletionModule, dyn AccountDeletion>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
+    let key = match AccountMetaKey::from_str(&query.key) {
+        Ok(key) => key,
+        Err(_) => {
+            return HttpResponse::BadRequest().json(
+                HttpJsonResponse::new_message("The key is invalid".to_string()),
+            );
+        }
+    };
+
     match delete_account_meta(
         profile.to_profile(),
-        body.key.to_owned(),
-        Box::new(&*account_deletion_repo),
+        key.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

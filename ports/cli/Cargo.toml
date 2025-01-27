@@ -18,14 +18,15 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "6.6.0", path = "../../core" }
-mycelium-base = { version = "6.6.0", path = "../../base" }
-mycelium-prisma = { version = "6.6.0", path = "../../adapters/prisma" }
-mycelium-notifier = { version = "6.6.0", path = "../../adapters/notifier" }
+myc-core = { version = "7.0.0", path = "../../core" }
+mycelium-base = { version = "7.0.0", path = "../../base" }
+mycelium-diesel = { version = "7.0.0", path = "../../adapters/diesel" }
+mycelium-notifier = { version = "7.0.0", path = "../../adapters/notifier" }
 
 env_logger.workspace = true
 log.workspace = true
 serde_json.workspace = true
+shaku.workspace = true
 tokio.workspace = true
 
 clap = { version = "4", features = ["derive"] }

@@ -51,6 +51,12 @@ pub enum AccountType {
     TenantManager { tenant_id: Uuid },
 }
 
+impl ToString for AccountType {
+    fn to_string(&self) -> String {
+        serde_json::to_string(self).unwrap()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

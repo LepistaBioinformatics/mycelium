@@ -1,7 +1,7 @@
 use crate::domain::{
     dtos::{
-        guest_role::Permission, guest_user::GuestUser,
-        native_error_codes::NativeErrorCodes, profile::Profile,
+        guest_role::Permission, native_error_codes::NativeErrorCodes,
+        profile::Profile,
     },
     entities::GuestUserOnAccountUpdating,
 };
@@ -24,7 +24,7 @@ pub async fn accept_invitation(
     role_name: String,
     permission: Permission,
     guest_user_on_account_repo: Box<&dyn GuestUserOnAccountUpdating>,
-) -> Result<UpdatingResponseKind<GuestUser>, MappedErrors> {
+) -> Result<UpdatingResponseKind<(String, Uuid, Permission)>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the profile licenses has the guest_user_id
     // ? -----------------------------------------------------------------------

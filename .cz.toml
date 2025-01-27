@@ -1,13 +1,13 @@
 [tool.commitizen]
-version = "6.6.0"
+version = "7.0.0"
 version_files = [
     "Cargo.toml",
     "base/Cargo.toml",
     "config/Cargo.toml",
     "http_tools/Cargo.toml",
     "core/Cargo.toml",
+    "adapters/diesel/Cargo.toml",
     "adapters/mem_db/Cargo.toml",
-    "adapters/prisma/Cargo.toml",
     "adapters/service/Cargo.toml",
     "adapters/notifier/Cargo.toml",
     "ports/api/Cargo.toml",

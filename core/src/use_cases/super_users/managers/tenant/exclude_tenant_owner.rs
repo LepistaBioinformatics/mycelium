@@ -11,7 +11,8 @@ use uuid::Uuid;
         profile_id = %profile.acc_id,
         owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
     ),
-    skip(profile, tenant_deletion_repo))]
+    skip(profile, tenant_deletion_repo))
+]
 pub async fn exclude_tenant_owner(
     profile: Profile,
     tenant_id: Uuid,

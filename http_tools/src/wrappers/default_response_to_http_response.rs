@@ -1,5 +1,3 @@
-use std::vec;
-
 use crate::utils::HttpJsonResponse;
 
 use actix_web::HttpResponse;
@@ -13,6 +11,8 @@ use mycelium_base::{
     utils::errors::MappedErrors,
 };
 use serde::Serialize;
+use std::vec;
+use tracing::error;
 
 /// Wraps a `CreateResponseKind` into a `HttpResponse`
 pub fn create_response_kind<T: Serialize>(
@@ -117,14 +117,7 @@ pub fn fetch_response_kind<T: Serialize, U: ToString + Serialize>(
 ) -> HttpResponse {
     match response {
         FetchResponseKind::Found(res) => HttpResponse::Ok().json(res),
-        FetchResponseKind::NotFound(res) => {
-            if let Some(res) = res {
-                return HttpResponse::NotFound()
-                    .json(HttpJsonResponse::new_message(res));
-            }
-
-            HttpResponse::NoContent().finish()
-        }
+        FetchResponseKind::NotFound(_) => HttpResponse::NoContent().finish(),
     }
 }
 
@@ -196,6 +189,8 @@ pub fn handle_mapped_error(err: MappedErrors) -> HttpResponse {
 
     for (code, mut response) in error_maps {
         if err.is_in(vec![code]) {
+            error!("Error: {err}");
+
             return response.json(
                 HttpJsonResponse::new_message(err.to_string())
                     .with_code(code_string),
@@ -203,7 +198,10 @@ pub fn handle_mapped_error(err: MappedErrors) -> HttpResponse {
         }
     }
 
+    error!("Unhandled error: {err}");
+
     HttpResponse::InternalServerError().json(
-        HttpJsonResponse::new_message(err.to_string()).with_code(code_string),
+        HttpJsonResponse::new_message("Unexpcted internal error")
+            .with_code(code_string),
     )
 }

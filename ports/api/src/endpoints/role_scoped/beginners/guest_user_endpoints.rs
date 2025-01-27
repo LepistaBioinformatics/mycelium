@@ -1,12 +1,8 @@
-use crate::{
-    dtos::MyceliumProfileData, modules::GuestUserOnAccountUpdatingModule,
-};
+use crate::dtos::MyceliumProfileData;
 
 use actix_web::{post, web, Responder};
-use myc_core::{
-    domain::entities::GuestUserOnAccountUpdating,
-    use_cases::role_scoped::beginner::guest_user::accept_invitation,
-};
+use myc_core::use_cases::role_scoped::beginner::guest_user::accept_invitation;
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -14,7 +10,7 @@ use myc_http_tools::{
     },
     Permission, Profile,
 };
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
@@ -74,10 +70,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub async fn accept_invitation_url(
     query: web::Query<(Uuid, String, u8)>,
     profile: MyceliumProfileData,
-    guest_user_on_account_repo: Inject<
-        GuestUserOnAccountUpdatingModule,
-        dyn GuestUserOnAccountUpdating,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (account_id, guest_role_name, permission) = query.into_inner();
 
@@ -86,7 +79,7 @@ pub async fn accept_invitation_url(
         account_id,
         guest_role_name,
         Permission::from_i32(permission.into()),
-        Box::new(&*guest_user_on_account_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

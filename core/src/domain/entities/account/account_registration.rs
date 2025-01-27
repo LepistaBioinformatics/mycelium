@@ -1,4 +1,6 @@
-use crate::domain::dtos::account::{Account, AccountMeta, AccountMetaKey};
+use std::collections::HashMap;
+
+use crate::domain::dtos::account::{Account, AccountMetaKey};
 
 use async_trait::async_trait;
 use mycelium_base::{
@@ -44,5 +46,5 @@ pub trait AccountRegistration: Interface + Send + Sync {
         account_id: Uuid,
         key: AccountMetaKey,
         value: String,
-    ) -> Result<CreateResponseKind<AccountMeta>, MappedErrors>;
+    ) -> Result<CreateResponseKind<HashMap<String, String>>, MappedErrors>;
 }

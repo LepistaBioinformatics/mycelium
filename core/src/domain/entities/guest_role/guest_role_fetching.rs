@@ -14,8 +14,11 @@ pub trait GuestRoleFetching: Interface + Send + Sync {
         &self,
         id: Uuid,
     ) -> Result<FetchResponseKind<GuestRole, Uuid>, MappedErrors>;
+
     async fn list(
         &self,
         name: Option<String>,
+        page_size: Option<i32>,
+        skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<GuestRole>, MappedErrors>;
 }

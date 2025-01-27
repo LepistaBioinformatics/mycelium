@@ -1,23 +1,15 @@
 use crate::{
     dtos::{MyceliumProfileData, TenantData},
-    modules::{
-        AccountFetchingModule, GuestRoleFetchingModule,
-        GuestUserRegistrationModule, MessageSendingQueueModule,
-    },
+    modules::MessageSendingQueueModule,
 };
 
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
-    domain::{
-        dtos::guest_user::GuestUser,
-        entities::{
-            AccountFetching, GuestRoleFetching, GuestUserRegistration,
-            MessageSending,
-        },
-    },
+    domain::{dtos::guest_user::GuestUser, entities::MessageSending},
     models::AccountLifeCycle,
     use_cases::role_scoped::account_manager::guest::guest_to_children_account,
 };
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -26,6 +18,7 @@ use myc_http_tools::{
     Email,
 };
 use serde::Deserialize;
+use shaku::HasComponent;
 use shaku_actix::Inject;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
@@ -44,8 +37,17 @@ pub fn configure(config: &mut web::ServiceConfig) {
 
 #[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
-pub struct GuestUserBody {
+pub struct GuestUserToChildrenBody {
+    /// The email of the guest user
     email: String,
+
+    /// The parent role id
+    ///
+    /// The parent related to the guest role to be created. Example, if the
+    /// guest role is a child of the account manager role, the parent role id
+    /// should be this role id.
+    ///
+    /// The child role id should be passed as the `role_id` path argument.
     parent_role_id: Uuid,
 }
 
@@ -72,7 +74,7 @@ pub struct GuestUserBody {
         ("account_id" = Uuid, Path, description = "The account primary key."),
         ("role_id" = Uuid, Path, description = "The guest-role unique id."),
     ),
-    request_body = GuestUserBody,
+    request_body = GuestUserToChildrenBody,
     responses(
         (
             status = 500,
@@ -110,18 +112,10 @@ pub struct GuestUserBody {
 pub async fn guest_to_children_account_url(
     tenant: TenantData,
     path: web::Path<(Uuid, Uuid)>,
-    body: web::Json<GuestUserBody>,
+    body: web::Json<GuestUserToChildrenBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
-    guest_role_fetching_repo: Inject<
-        GuestRoleFetchingModule,
-        dyn GuestRoleFetching,
-    >,
-    guest_user_registration_repo: Inject<
-        GuestUserRegistrationModule,
-        dyn GuestUserRegistration,
-    >,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let (account_id, role_id) = path.to_owned();
@@ -142,9 +136,9 @@ pub async fn guest_to_children_account_url(
         role_id,
         account_id,
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*account_fetching_repo),
-        Box::new(&*guest_role_fetching_repo),
-        Box::new(&*guest_user_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*message_sending_repo),
     )
     .await

@@ -14,6 +14,7 @@
 
 mod update_tenant_archiving_status;
 mod update_tenant_name_and_description;
+mod update_tenant_status;
 mod update_tenant_trashing_status;
 mod update_tenant_verifying_status;
 

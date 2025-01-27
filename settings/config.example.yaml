@@ -53,7 +53,7 @@ core:
 # ? ----------------------------------------------------------------------------
 # ? SQL DATABASE ADAPTER SETTINGS
 # ? ----------------------------------------------------------------------------
-prisma:
+diesel:
   databaseUrl:
     env: MYC_DATABASE_URL
 
@@ -189,7 +189,7 @@ api:
   logging:
     # Possible values: trace, debug, info, warn, error or specific level for
     # each module.
-    level: actix_web=info,mycelium_base=info,myc_api=trace,myc_prisma=trace,myc_core=trace
+    level: actix_web=info,mycelium_base=info,myc_api=trace,myc_diesel=trace,myc_core=trace
 
     # Possible values: jsonl, ansi
     format: ansi
