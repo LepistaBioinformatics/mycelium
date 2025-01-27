@@ -6,6 +6,7 @@ version_files = [
     "config/Cargo.toml",
     "http_tools/Cargo.toml",
     "core/Cargo.toml",
+    "adapters/diesel/Cargo.toml",
     "adapters/mem_db/Cargo.toml",
     "adapters/service/Cargo.toml",
     "adapters/notifier/Cargo.toml",
