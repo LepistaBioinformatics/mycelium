@@ -1,15 +1,16 @@
-use crate::{dtos::MyceliumProfileData, modules::GuestRoleRegistrationModule};
+use crate::dtos::MyceliumProfileData;
 
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
-    domain::{dtos::guest_role::GuestRole, entities::GuestRoleRegistration},
+    domain::dtos::guest_role::GuestRole,
     use_cases::super_users::managers::create_system_roles,
 };
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error,
 };
-use shaku_actix::Inject;
+use shaku::HasComponent;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -70,14 +71,11 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[post("")]
 pub async fn create_system_roles_url(
     profile: MyceliumProfileData,
-    guest_role_registration_repo: Inject<
-        GuestRoleRegistrationModule,
-        dyn GuestRoleRegistration,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match create_system_roles(
         profile.to_profile(),
-        Box::new(&*guest_role_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

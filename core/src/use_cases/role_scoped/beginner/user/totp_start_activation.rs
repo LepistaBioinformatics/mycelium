@@ -18,15 +18,17 @@ use mycelium_base::{
 };
 use rand::Rng;
 use totp_rs::{Algorithm, Secret, TOTP};
+use tracing::error;
 
 #[tracing::instrument(name = "totp_start_activation", skip_all)]
 pub async fn totp_start_activation(
     email: Email,
+    with_qr_code: Option<bool>,
     life_cycle_settings: AccountLifeCycle,
     user_fetching_repo: Box<&dyn UserFetching>,
     user_updating_repo: Box<&dyn UserUpdating>,
     message_sending_repo: Box<&dyn MessageSending>,
-) -> Result<String, MappedErrors> {
+) -> Result<(Option<String>, Option<String>), MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch user from email
     // ? -----------------------------------------------------------------------
@@ -73,7 +75,7 @@ pub async fn totp_start_activation(
         &data_byte,
     );
 
-    let totp = match TOTP::new(
+    let totp_gen = match TOTP::new(
         Algorithm::SHA1,
         6,
         1,
@@ -89,7 +91,7 @@ pub async fn totp_start_activation(
         }
     };
 
-    let otp_base32 = totp.get_secret_base32();
+    let otp_base32 = totp_gen.get_secret_base32();
 
     // ? -----------------------------------------------------------------------
     // ? Update user and persist changes in datastore
@@ -100,7 +102,8 @@ pub async fn totp_start_activation(
         issuer: issuer.to_owned(),
         secret: Some(otp_base32),
     }
-    .encrypt_me(life_cycle_settings.to_owned())?;
+    .encrypt_me(life_cycle_settings.to_owned())
+    .await?;
 
     user.with_mfa(MultiFactorAuthentication {
         totp: totp.to_owned(),
@@ -138,5 +141,23 @@ pub async fn totp_start_activation(
             .as_error();
     };
 
-    Ok(totp.build_auth_url(email, life_cycle_settings)?)
+    let qr_code = if let Some(true) = with_qr_code {
+        let qr_code = match totp_gen.get_qr_base64() {
+            Ok(qr_code) => qr_code,
+            Err(err) => {
+                error!("Error during TOTP activation: {err}");
+
+                "Error during TOTP activation".to_string()
+            }
+        };
+
+        Some(qr_code)
+    } else {
+        None
+    };
+
+    Ok((
+        Some(totp.build_auth_url(email, life_cycle_settings).await?),
+        qr_code,
+    ))
 }

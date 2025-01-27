@@ -73,6 +73,7 @@ impl FromRequest for MyceliumProfileData {
     type Error = GatewayError;
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
+    #[tracing::instrument(name = "mycelium_profile_from_request", skip_all)]
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
         let req_clone = req.clone();
 

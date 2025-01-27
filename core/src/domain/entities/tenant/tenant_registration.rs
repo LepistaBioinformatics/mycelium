@@ -1,4 +1,4 @@
-use crate::domain::dtos::tenant::{Tenant, TenantMeta, TenantMetaKey};
+use crate::domain::dtos::tenant::{Tenant, TenantMetaKey};
 
 use async_trait::async_trait;
 use chrono::{DateTime, Local};
@@ -7,6 +7,7 @@ use mycelium_base::{
 };
 use serde::{Deserialize, Serialize};
 use shaku::Interface;
+use std::collections::HashMap;
 use std::fmt::Result as FmResult;
 use std::fmt::{Debug, Display, Formatter};
 use utoipa::ToSchema;
@@ -36,7 +37,7 @@ pub trait TenantRegistration: Interface + Send + Sync {
         tenant_id: Uuid,
         key: TenantMetaKey,
         value: String,
-    ) -> Result<CreateResponseKind<TenantMeta>, MappedErrors>;
+    ) -> Result<CreateResponseKind<HashMap<String, String>>, MappedErrors>;
 }
 
 impl Display for dyn TenantRegistration {

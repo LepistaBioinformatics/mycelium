@@ -1,23 +1,18 @@
 use crate::{
     dtos::MyceliumProfileData,
     middleware::check_credentials_with_multi_identity_provider,
-    modules::{
-        AccountRegistrationModule, AccountUpdatingModule,
-        MessageSendingQueueModule, UserFetchingModule, WebHookFetchingModule,
-    },
+    modules::MessageSendingQueueModule,
 };
 
 use actix_web::{patch, post, web, HttpRequest, HttpResponse, Responder};
 use myc_core::{
-    domain::entities::{
-        AccountRegistration, AccountUpdating, MessageSending, UserFetching,
-        WebHookFetching,
-    },
+    domain::entities::MessageSending,
     models::AccountLifeCycle,
     use_cases::role_scoped::beginner::account::{
         create_default_account, update_own_account_name,
     },
 };
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -26,6 +21,7 @@ use myc_http_tools::{
     Account,
 };
 use serde::Deserialize;
+use shaku::HasComponent;
 use shaku_actix::Inject;
 use tracing::warn;
 use utoipa::ToSchema;
@@ -104,12 +100,7 @@ pub async fn create_default_account_url(
     req: HttpRequest,
     body: web::Json<CreateDefaultAccountBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    user_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
-    account_registration_repo: Inject<
-        AccountRegistrationModule,
-        dyn AccountRegistration,
-    >,
-    webhook_fetching_repo: Inject<WebHookFetchingModule, dyn WebHookFetching>,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let opt_email =
@@ -134,9 +125,9 @@ pub async fn create_default_account_url(
         email,
         body.name.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*user_fetching_repo),
-        Box::new(&*account_registration_repo),
-        Box::new(&*webhook_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*message_sending_repo),
     )
     .await
@@ -189,7 +180,7 @@ pub async fn update_own_account_name_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateOwnAccountNameAccountBody>,
     profile: MyceliumProfileData,
-    account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let profile = profile.to_profile();
 
@@ -211,7 +202,7 @@ pub async fn update_own_account_name_url(
     match update_own_account_name(
         profile,
         body.name.to_owned(),
-        Box::new(&*account_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

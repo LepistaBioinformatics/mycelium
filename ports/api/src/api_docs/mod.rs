@@ -437,7 +437,6 @@ struct TenantOwnerAccountApiDoc;
     paths(
         Tenant_Owner__Meta::create_tenant_meta_url,
         Tenant_Owner__Meta::delete_tenant_meta_url,
-        Tenant_Owner__Meta::update_tenant_meta_url,
     ),
     security(("Bearer" = [])),
 )]
@@ -678,7 +677,7 @@ struct UsersManagerAccountApiDoc;
             //
             // ACCOUNT MANAGER
             //
-            role_scoped::account_manager::guest_endpoints::GuestUserBody,
+            role_scoped::account_manager::guest_endpoints::GuestUserToChildrenBody,
 
             //
             // BEGINNERS
@@ -686,7 +685,7 @@ struct UsersManagerAccountApiDoc;
             role_scoped::beginners::account_endpoints::CreateDefaultAccountBody,
             role_scoped::beginners::account_endpoints::UpdateOwnAccountNameAccountBody,
             role_scoped::beginners::meta_endpoints::CreateAccountMetaBody,
-            role_scoped::beginners::meta_endpoints::DeleteAccountMetaBody,
+            role_scoped::beginners::meta_endpoints::DeleteAccountMetaParams,
             role_scoped::beginners::user_endpoints::CheckEmailStatusQuery,
             role_scoped::beginners::user_endpoints::TotpUpdatingValidationBody,
             role_scoped::beginners::user_endpoints::CreateDefaultUserBody,
@@ -719,8 +718,9 @@ struct UsersManagerAccountApiDoc;
             role_scoped::subscriptions_manager::account_endpoints::ListSubscriptionAccountParams,
             role_scoped::subscriptions_manager::guest_endpoints::GuestUserBody,
             role_scoped::subscriptions_manager::guest_endpoints::ListLicensedAccountsOfEmailParams,
-            role_scoped::subscriptions_manager::tag_endpoints::CreateTagBody,
-            role_scoped::subscriptions_manager::tag_endpoints::UpdateTagBody,
+            role_scoped::subscriptions_manager::tag_endpoints::CreateAccountTagBody,
+            role_scoped::subscriptions_manager::tag_endpoints::UpdateAccountTagBody,
+            role_scoped::subscriptions_manager::tag_endpoints::DeleteAccountTagParams,
 
             //
             // SYSTEM MANAGER
@@ -745,9 +745,6 @@ struct UsersManagerAccountApiDoc;
             role_scoped::tenant_owner::meta_endpoints::DeleteTenantMetaBody,
             role_scoped::tenant_owner::owner_endpoints::GuestTenantOwnerBody,
             role_scoped::tenant_owner::tenant_endpoints::UpdateTenantNameAndDescriptionBody,
-            role_scoped::tenant_owner::tenant_endpoints::UpdateTenantArchivingBody,
-            role_scoped::tenant_owner::tenant_endpoints::UpdateTenantTrashingBody,
-            role_scoped::tenant_owner::tenant_endpoints::UpdateTenantVerifyingBody,
         ),
         responses(
             //

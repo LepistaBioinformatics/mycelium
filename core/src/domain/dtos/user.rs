@@ -9,7 +9,6 @@ use argon2::{
 };
 use base64::{engine::general_purpose, Engine};
 use chrono::{DateTime, Local};
-use futures::executor::block_on;
 use mycelium_base::{
     dtos::Parent,
     utils::errors::{dto_err, use_case_err, MappedErrors},
@@ -64,11 +63,9 @@ impl PasswordHash {
 
         match Argon2::default().verify_password(password, &parsed_hash) {
             Ok(_) => Ok(()),
-            Err(err) => {
-                use_case_err(format!("Unable to verify password: {err}"))
-                    .with_exp_true()
-                    .as_error()
-            }
+            Err(err) => use_case_err(format!("Unable to verify secret: {err}"))
+                .with_exp_true()
+                .as_error(),
         }
     }
 
@@ -92,6 +89,8 @@ pub enum Provider {
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum Totp {
+    Unknown,
+
     Disabled,
 
     /// The TOTP when enabled
@@ -110,13 +109,13 @@ pub enum Totp {
 
 impl Totp {
     #[tracing::instrument(name = "build_auth_url", skip_all)]
-    pub(crate) fn build_auth_url(
+    pub(crate) async fn build_auth_url(
         &self,
         email: Email,
         config: AccountLifeCycle,
     ) -> Result<String, MappedErrors> {
         let mut self_copy = self.clone();
-        self_copy = self_copy.decrypt_me(config)?;
+        self_copy = self_copy.decrypt_me(config).await?;
 
         let (secret, issuer) = match self_copy {
             Self::Enabled { issuer, secret, .. } => match secret {
@@ -143,14 +142,14 @@ impl Totp {
     }
 
     #[tracing::instrument(name = "encrypt_secret", skip_all)]
-    pub(crate) fn encrypt_me(
+    pub(crate) async fn encrypt_me(
         &self,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
         //
         // Create a key from the account's secret
         //
-        let encryption_key = block_on(config.token_secret.async_get_or_error());
+        let encryption_key = config.token_secret.async_get_or_error().await;
         let encryption_key_uuid = match Uuid::parse_str(&encryption_key?) {
             Ok(uuid) => uuid,
             Err(err) => {
@@ -236,14 +235,14 @@ impl Totp {
     }
 
     #[tracing::instrument(name = "decrypt_secret", skip_all)]
-    pub(crate) fn decrypt_me(
+    pub(crate) async fn decrypt_me(
         &self,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
         //
         // Create a key from the account's secret
         //
-        let encryption_key = block_on(config.token_secret.async_get_or_error());
+        let encryption_key = config.token_secret.async_get_or_error().await;
         let encryption_key_uuid = match Uuid::parse_str(&encryption_key?) {
             Ok(uuid) => uuid,
             Err(err) => {
@@ -382,15 +381,27 @@ impl MultiFactorAuthentication {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, ToSchema, ToResponse)]
 #[serde(rename_all = "camelCase")]
 pub struct User {
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub id: Option<Uuid>,
 
     pub username: String,
+
     pub email: Email,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub first_name: Option<String>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub last_name: Option<String>,
+
     pub is_active: bool,
+
     pub created: DateTime<Local>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub updated: Option<DateTime<Local>>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub account: Option<Parent<Account, Uuid>>,
 
     /// If the user is the principal user of the account.
@@ -444,18 +455,43 @@ impl Serialize for User {
         user.mfa = user.mfa.redact_secrets();
 
         let mut state = serializer.serialize_struct("User", 12)?;
-        state.serialize_field("id", &user.id)?;
+
+        if user.id.is_some() {
+            state.serialize_field("id", &user.id)?;
+        }
+
+        if user.first_name.is_some() {
+            state.serialize_field("firstName", &user.first_name)?;
+        }
+
+        if user.last_name.is_some() {
+            state.serialize_field("lastName", &user.last_name)?;
+        }
+
         state.serialize_field("username", &user.username)?;
+
         state.serialize_field("email", &user.email)?;
-        state.serialize_field("firstName", &user.first_name)?;
-        state.serialize_field("lastName", &user.last_name)?;
+
         state.serialize_field("isActive", &user.is_active)?;
+
         state.serialize_field("isPrincipal", &user.is_principal)?;
+
         state.serialize_field("created", &user.created)?;
-        state.serialize_field("updated", &user.updated)?;
-        state.serialize_field("account", &user.account)?;
-        state.serialize_field("provider", &user.provider)?;
+
+        if user.updated.is_some() {
+            state.serialize_field("updated", &user.updated)?;
+        }
+
+        if user.account.is_some() {
+            state.serialize_field("account", &user.account)?;
+        }
+
+        if user.provider.is_some() {
+            state.serialize_field("provider", &user.provider)?;
+        }
+
         state.serialize_field("mfa", &user.mfa)?;
+
         state.end()
     }
 }
@@ -548,6 +584,32 @@ impl User {
         }
     }
 
+    pub fn new_public_redacted(
+        id: Uuid,
+        email: Email,
+        username: String,
+        created: DateTime<Local>,
+        is_active: bool,
+        is_principal: bool,
+    ) -> Self {
+        Self {
+            id: Some(id),
+            username,
+            email,
+            first_name: None,
+            last_name: None,
+            is_active,
+            created,
+            updated: None,
+            account: None,
+            is_principal,
+            provider: None,
+            mfa: MultiFactorAuthentication {
+                totp: Totp::Unknown,
+            },
+        }
+    }
+
     // ? -----------------------------------------------------------------------
     // ? Instance methods
     // ? -----------------------------------------------------------------------
@@ -598,8 +660,8 @@ mod tests {
 
     use myc_config::secret_resolver::SecretResolver;
 
-    #[test]
-    fn test_encrypt_and_decrypt_totp_secret() {
+    #[tokio::test]
+    async fn test_encrypt_and_decrypt_totp_secret() {
         let secret = "secret";
         let issuer = "issuer";
         let totp = Totp::Enabled {
@@ -620,11 +682,12 @@ mod tests {
             token_secret: SecretResolver::Value("test".to_string()),
         };
 
-        let encrypted = totp.encrypt_me(config.to_owned());
+        let encrypted = totp.encrypt_me(config.to_owned()).await;
+        println!("encrypted: {:?}", encrypted);
 
         assert!(encrypted.is_ok());
 
-        let decrypted = encrypted.unwrap().decrypt_me(config);
+        let decrypted = encrypted.unwrap().decrypt_me(config).await;
 
         assert!(decrypted.is_ok());
 

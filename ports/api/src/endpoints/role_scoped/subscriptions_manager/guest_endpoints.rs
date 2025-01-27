@@ -1,11 +1,6 @@
 use crate::{
     dtos::{MyceliumProfileData, TenantData},
-    modules::{
-        AccountFetchingModule, GuestRoleFetchingModule,
-        GuestUserDeletionModule, GuestUserFetchingModule,
-        GuestUserRegistrationModule, LicensedResourcesFetchingModule,
-        MessageSendingQueueModule,
-    },
+    modules::MessageSendingQueueModule,
 };
 
 use actix_web::{delete, get, post, web, HttpResponse, Responder};
@@ -14,11 +9,7 @@ use myc_core::{
         dtos::{
             email::Email, guest_user::GuestUser, profile::LicensedResources,
         },
-        entities::{
-            AccountFetching, GuestRoleFetching, GuestUserDeletion,
-            GuestUserFetching, GuestUserRegistration,
-            LicensedResourcesFetching, MessageSending,
-        },
+        entities::MessageSending,
     },
     models::AccountLifeCycle,
     use_cases::role_scoped::subscriptions_manager::guest::{
@@ -27,6 +18,7 @@ use myc_core::{
         revoke_user_guest_to_subscription_account,
     },
 };
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -36,6 +28,7 @@ use myc_http_tools::{
     Permission,
 };
 use serde::Deserialize;
+use shaku::HasComponent;
 use shaku_actix::Inject;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
@@ -128,10 +121,7 @@ pub async fn list_licensed_accounts_of_email_url(
     tenant: TenantData,
     query: web::Query<ListLicensedAccountsOfEmailParams>,
     profile: MyceliumProfileData,
-    licensed_resources_fetching_repo: Inject<
-        LicensedResourcesFetchingModule,
-        dyn LicensedResourcesFetching,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let email = match Email::from_string(query.email.to_owned()) {
         Err(err) => {
@@ -149,7 +139,7 @@ pub async fn list_licensed_accounts_of_email_url(
         query.roles.to_owned(),
         query.was_verified.to_owned(),
         query.permissioned_roles.to_owned(),
-        Box::new(&*licensed_resources_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -215,15 +205,7 @@ pub async fn guest_user_url(
     body: web::Json<GuestUserBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
-    guest_role_fetching_repo: Inject<
-        GuestRoleFetchingModule,
-        dyn GuestRoleFetching,
-    >,
-    guest_registration_repo: Inject<
-        GuestUserRegistrationModule,
-        dyn GuestUserRegistration,
-    >,
+    app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
     let (account_id, role_id) = path.to_owned();
@@ -243,9 +225,9 @@ pub async fn guest_user_url(
         role_id,
         account_id,
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*account_fetching_repo),
-        Box::new(&*guest_role_fetching_repo),
-        Box::new(&*guest_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*message_sending_repo),
     )
     .await
@@ -299,12 +281,9 @@ pub async fn guest_user_url(
 pub async fn uninvite_guest_url(
     tenant: TenantData,
     path: web::Path<(Uuid, Uuid)>,
-    info: web::Query<GuestUserBody>,
+    query: web::Query<GuestUserBody>,
     profile: MyceliumProfileData,
-    guest_user_deletion_repo: Inject<
-        GuestUserDeletionModule,
-        dyn GuestUserDeletion,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (account_id, role_id) = path.to_owned();
 
@@ -313,8 +292,8 @@ pub async fn uninvite_guest_url(
         tenant.tenant_id().to_owned(),
         account_id,
         role_id,
-        info.email.to_owned(),
-        Box::new(&*guest_user_deletion_repo),
+        query.email.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -369,18 +348,14 @@ pub async fn list_guest_on_subscription_account_url(
     tenant: TenantData,
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
-    guest_user_fetching_repo: Inject<
-        GuestUserFetchingModule,
-        dyn GuestUserFetching,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match list_guest_on_subscription_account(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         path.to_owned(),
-        Box::new(&*account_fetching_repo),
-        Box::new(&*guest_user_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

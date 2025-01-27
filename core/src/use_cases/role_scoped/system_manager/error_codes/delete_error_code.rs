@@ -1,5 +1,7 @@
 use crate::domain::{
-    actors::SystemActor, dtos::profile::Profile, entities::ErrorCodeDeletion,
+    actors::SystemActor,
+    dtos::{native_error_codes::NativeErrorCodes, profile::Profile},
+    entities::ErrorCodeDeletion,
 };
 
 use mycelium_base::{
@@ -40,7 +42,10 @@ pub async fn delete_error_code(
     {
         DeletionResponseKind::Deleted => Ok((prefix, code)),
         DeletionResponseKind::NotDeleted(_, msg) => {
-            return use_case_err(msg).as_error()
+            return use_case_err(msg)
+                .with_code(NativeErrorCodes::MYC00018)
+                .with_exp_true()
+                .as_error()
         }
     }
 }

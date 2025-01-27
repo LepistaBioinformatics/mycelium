@@ -1,12 +1,17 @@
+use crate::functions::try_to_resolve_database_url;
+
 use clap::Parser;
-use log::{debug, error, info};
-use myc_core::use_cases::super_users::staff::account::create_seed_staff_account;
-use myc_prisma::repositories::{
-    connector::generate_prisma_client_of_thread,
-    AccountRegistrationSqlDbRepository, UserRegistrationSqlDbRepository,
+use log::{error, info};
+use myc_core::{
+    domain::entities::{AccountRegistration, UserRegistration},
+    use_cases::super_users::staff::account::create_seed_staff_account,
+};
+use myc_diesel::repositories::{
+    SqlAppModule, DieselDbPoolProvider, DieselDbPoolProviderParameters,
 };
 use mycelium_base::entities::GetOrCreateResponseKind;
-use std::process::id as process_id;
+use shaku::HasComponent;
+use std::sync::Arc;
 
 #[derive(Parser, Debug)]
 pub(crate) struct Arguments {
@@ -30,20 +35,44 @@ pub(crate) struct CreateSeedAccountArguments {
 pub(crate) async fn create_seed_staff_account_cmd(
     args: CreateSeedAccountArguments,
 ) {
-    debug!("Start the database connectors");
-    generate_prisma_client_of_thread(process_id()).await;
+    //
+    // Ask for the database url
+    //
+    let database_url = try_to_resolve_database_url();
 
+    //
+    // Ask for the password
+    //
     let password =
         rpassword::prompt_password("Your password: ".to_string()).unwrap();
 
+    //
+    // Initialize the dependency
+    //
+    let module = Arc::new(
+        SqlAppModule::builder()
+            .with_component_parameters::<DieselDbPoolProvider>(
+                DieselDbPoolProviderParameters {
+                    pool: DieselDbPoolProvider::new(&database_url.as_str()),
+                },
+            )
+            .build(),
+    );
+
+    let user_repo: &dyn UserRegistration = module.resolve_ref();
+    let account_repo: &dyn AccountRegistration = module.resolve_ref();
+
+    //
+    // Create the seed staff account
+    //
     match create_seed_staff_account(
         args.email.to_owned(),
         args.account_name.to_owned(),
         args.first_name.to_owned(),
         args.last_name.to_owned(),
         password,
-        Box::new(&UserRegistrationSqlDbRepository {}),
-        Box::new(&AccountRegistrationSqlDbRepository {}),
+        Box::new(user_repo),
+        Box::new(account_repo),
     )
     .await
     {

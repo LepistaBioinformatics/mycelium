@@ -26,14 +26,14 @@ connection-string = "0.2"
 
 [dependencies]
 
-myc-core = { version = "6.6.0", path = "../../core" }
-mycelium-base = { version = "6.6.0", path = "../../base" }
-mycelium-config = { version = "6.6.0", path = "../../config" }
-mycelium-http-tools = { version = "6.6.0", path = "../../http_tools" }
-mycelium-memory-db = { version = "6.6.0", path = "../../adapters/mem_db" }
-mycelium-service = { version = "6.6.0", path = "../../adapters/service" }
-mycelium-prisma = { version = "6.6.0", path = "../../adapters/prisma" }
-mycelium-notifier = { version = "6.6.0", path = "../../adapters/notifier" }
+myc-core = { version = "7.0.0", path = "../../core" }
+mycelium-base = { version = "7.0.0", path = "../../base" }
+mycelium-config = { version = "7.0.0", path = "../../config" }
+mycelium-http-tools = { version = "7.0.0", path = "../../http_tools" }
+mycelium-memory-db = { version = "7.0.0", path = "../../adapters/mem_db" }
+mycelium-service = { version = "7.0.0", path = "../../adapters/service" }
+mycelium-diesel = { version = "7.0.0", path = "../../adapters/diesel" }
+mycelium-notifier = { version = "7.0.0", path = "../../adapters/notifier" }
 
 actix-web.workspace = true
 actix-web-httpauth.workspace = true

@@ -1,26 +1,14 @@
-use crate::{
-    dtos::MyceliumProfileData,
-    endpoints::shared::PaginationParams,
-    modules::{
-        ErrorCodeDeletionModule, ErrorCodeFetchingModule,
-        ErrorCodeRegistrationModule, ErrorCodeUpdatingModule,
-    },
-};
+use crate::{dtos::MyceliumProfileData, endpoints::shared::PaginationParams};
 
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
-    domain::{
-        dtos::error_code::ErrorCode,
-        entities::{
-            ErrorCodeDeletion, ErrorCodeFetching, ErrorCodeRegistration,
-            ErrorCodeUpdating,
-        },
-    },
+    domain::dtos::error_code::ErrorCode,
     use_cases::role_scoped::system_manager::error_codes::{
         delete_error_code, get_error_code, list_error_codes,
         register_error_code, update_error_code_message_and_details,
     },
 };
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -29,7 +17,7 @@ use myc_http_tools::{
 };
 use mycelium_base::entities::FetchResponseKind;
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::{IntoParams, ToSchema};
 
 // ? ---------------------------------------------------------------------------
@@ -115,10 +103,7 @@ pub struct UpdateErrorCodeMessageAndDetailsBody {
 pub async fn register_error_code_url(
     body: web::Json<CreateErrorCodeBody>,
     profile: MyceliumProfileData,
-    error_code_registration_repo: Inject<
-        ErrorCodeRegistrationModule,
-        dyn ErrorCodeRegistration,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match register_error_code(
         profile.to_profile(),
@@ -126,7 +111,7 @@ pub async fn register_error_code_url(
         body.message.to_owned(),
         body.details.to_owned(),
         body.is_internal.to_owned(),
-        Box::new(&*error_code_registration_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -178,10 +163,7 @@ pub async fn list_error_codes_url(
     info: web::Query<ListErrorCodesParams>,
     page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
-    error_code_fetching_repo: Inject<
-        ErrorCodeFetchingModule,
-        dyn ErrorCodeFetching,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match list_error_codes(
         profile.to_profile(),
@@ -190,7 +172,7 @@ pub async fn list_error_codes_url(
         info.is_internal.to_owned(),
         page.page_size.to_owned(),
         page.skip.to_owned(),
-        Box::new(&*error_code_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -240,10 +222,7 @@ pub async fn list_error_codes_url(
 pub async fn get_error_code_url(
     path: web::Path<(String, i32)>,
     profile: MyceliumProfileData,
-    error_code_fetching_repo: Inject<
-        ErrorCodeFetchingModule,
-        dyn ErrorCodeFetching,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (prefix, code) = path.into_inner();
 
@@ -251,7 +230,7 @@ pub async fn get_error_code_url(
         profile.to_profile(),
         prefix.to_owned(),
         code.to_owned(),
-        Box::new(&*error_code_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -311,14 +290,7 @@ pub async fn update_error_code_message_and_details_url(
     path: web::Path<(String, i32)>,
     body: web::Json<UpdateErrorCodeMessageAndDetailsBody>,
     profile: MyceliumProfileData,
-    error_code_fetching_repo: Inject<
-        ErrorCodeFetchingModule,
-        dyn ErrorCodeFetching,
-    >,
-    error_code_updating_repo: Inject<
-        ErrorCodeUpdatingModule,
-        dyn ErrorCodeUpdating,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (prefix, code) = path.into_inner();
 
@@ -328,8 +300,8 @@ pub async fn update_error_code_message_and_details_url(
         code,
         body.message.to_owned(),
         body.details.to_owned(),
-        Box::new(&*error_code_fetching_repo),
-        Box::new(&*error_code_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -379,10 +351,7 @@ pub async fn update_error_code_message_and_details_url(
 pub async fn delete_error_code_url(
     path: web::Path<(String, i32)>,
     profile: MyceliumProfileData,
-    error_code_deletion_repo: Inject<
-        ErrorCodeDeletionModule,
-        dyn ErrorCodeDeletion,
-    >,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let (prefix, code) = path.into_inner();
 
@@ -390,7 +359,7 @@ pub async fn delete_error_code_url(
         profile.to_profile(),
         prefix,
         code,
-        Box::new(&*error_code_deletion_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

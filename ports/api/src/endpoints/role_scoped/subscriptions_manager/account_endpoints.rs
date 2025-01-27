@@ -1,10 +1,6 @@
 use crate::{
     dtos::{MyceliumProfileData, TenantData},
     endpoints::shared::PaginationParams,
-    modules::{
-        AccountFetchingModule, AccountRegistrationModule,
-        AccountUpdatingModule, WebHookFetchingModule,
-    },
 };
 
 use actix_web::{get, patch, post, web, HttpResponse, Responder};
@@ -12,10 +8,6 @@ use myc_core::{
     domain::{
         actors::SystemActor,
         dtos::{account::VerboseStatus, account_type::AccountType},
-        entities::{
-            AccountFetching, AccountRegistration, AccountUpdating,
-            WebHookFetching,
-        },
     },
     models::AccountLifeCycle,
     use_cases::role_scoped::subscriptions_manager::account::{
@@ -24,6 +16,7 @@ use myc_core::{
         update_account_name_and_flags,
     },
 };
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -33,7 +26,7 @@ use myc_http_tools::{
     Account,
 };
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
@@ -70,7 +63,7 @@ pub struct UpdateSubscriptionAccountNameAndFlagsBody {
     is_default: Option<bool>,
 }
 
-#[derive(Deserialize, ToSchema)]
+#[derive(Debug, Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub(crate) enum APIAccountType {
     Staff,
@@ -199,19 +192,15 @@ pub async fn create_subscription_account_url(
     body: web::Json<CreateSubscriptionAccountBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    account_registration_repo: Inject<
-        AccountRegistrationModule,
-        dyn AccountRegistration,
-    >,
-    webhook_fetching_repo: Inject<WebHookFetchingModule, dyn WebHookFetching>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match create_subscription_account(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         body.name.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*account_registration_repo),
-        Box::new(&*webhook_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -271,7 +260,7 @@ pub async fn list_accounts_by_type_url(
     query: web::Query<ListSubscriptionAccountParams>,
     page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let mut is_account_active: Option<bool> = None;
     let mut is_account_checked: Option<bool> = None;
@@ -321,7 +310,7 @@ pub async fn list_accounts_by_type_url(
         query.tag_value.to_owned(),
         page.page_size.to_owned(),
         page.skip.to_owned(),
-        Box::new(&*account_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -375,7 +364,7 @@ pub async fn get_account_details_url(
     tenant: TenantData,
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let account_id = path.into_inner();
 
@@ -383,7 +372,7 @@ pub async fn get_account_details_url(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         account_id,
-        Box::new(&*account_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -441,8 +430,7 @@ pub async fn update_account_name_and_flags_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateSubscriptionAccountNameAndFlagsBody>,
     profile: MyceliumProfileData,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
-    account_updating_repo: Inject<AccountUpdatingModule, dyn AccountUpdating>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let account_id = path.into_inner();
 
@@ -455,8 +443,8 @@ pub async fn update_account_name_and_flags_url(
         body.is_checked.to_owned(),
         body.is_archived.to_owned(),
         body.is_default.to_owned(),
-        Box::new(&*account_fetching_repo),
-        Box::new(&*account_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -511,8 +499,7 @@ pub async fn propagate_existing_subscription_account_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    account_fetching_repo: Inject<AccountFetchingModule, dyn AccountFetching>,
-    webhook_fetching_repo: Inject<WebHookFetchingModule, dyn WebHookFetching>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let account_id = path.into_inner();
 
@@ -521,8 +508,8 @@ pub async fn propagate_existing_subscription_account_url(
         tenant.tenant_id().to_owned(),
         account_id,
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*account_fetching_repo),
-        Box::new(&*webhook_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

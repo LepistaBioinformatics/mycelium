@@ -26,6 +26,8 @@ RUN cargo build --bin myc-api --release
 
 FROM rust:latest
 
+RUN apt-get update && apt-get install -y libpq-dev
+
 COPY --from=builder /rust/target/release/myc-api /usr/local/bin/myc-api
 
 ARG SERVICE_PORT=8080

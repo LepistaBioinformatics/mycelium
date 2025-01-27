@@ -1,21 +1,13 @@
-use crate::{
-    dtos::{MyceliumProfileData, TenantData},
-    modules::{
-        TenantDeletionModule, TenantFetchingModule, TenantUpdatingModule,
-        UserFetchingModule,
-    },
-};
+use crate::dtos::{MyceliumProfileData, TenantData};
 
 use actix_web::{delete, post, web, HttpResponse, Responder};
 use myc_core::{
-    domain::entities::{
-        TenantDeletion, TenantFetching, TenantOwnerConnection, TenantUpdating,
-        UserFetching,
-    },
+    domain::entities::TenantOwnerConnection,
     use_cases::role_scoped::tenant_owner::{
         guest_tenant_owner, revoke_tenant_owner,
     },
 };
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -24,7 +16,7 @@ use myc_http_tools::{
     Email,
 };
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::ToSchema;
 
 // ? ---------------------------------------------------------------------------
@@ -95,8 +87,7 @@ pub async fn guest_tenant_owner_url(
     tenant: TenantData,
     body: web::Json<GuestTenantOwnerBody>,
     profile: MyceliumProfileData,
-    owner_fetching_repo: Inject<UserFetchingModule, dyn UserFetching>,
-    tenant_updating_repo: Inject<TenantUpdatingModule, dyn TenantUpdating>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
         Ok(email) => email,
@@ -110,8 +101,8 @@ pub async fn guest_tenant_owner_url(
         profile.to_profile(),
         email,
         tenant.tenant_id().to_owned(),
-        Box::new(&*owner_fetching_repo),
-        Box::new(&*tenant_updating_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -163,8 +154,7 @@ pub async fn revoke_tenant_owner_url(
     tenant: TenantData,
     body: web::Json<GuestTenantOwnerBody>,
     profile: MyceliumProfileData,
-    tenant_fetching_repo: Inject<TenantFetchingModule, dyn TenantFetching>,
-    tenant_deletion_repo: Inject<TenantDeletionModule, dyn TenantDeletion>,
+    app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
         Ok(email) => email,
@@ -178,8 +168,8 @@ pub async fn revoke_tenant_owner_url(
         profile.to_profile(),
         email,
         tenant.tenant_id().to_owned(),
-        Box::new(&*tenant_fetching_repo),
-        Box::new(&*tenant_deletion_repo),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

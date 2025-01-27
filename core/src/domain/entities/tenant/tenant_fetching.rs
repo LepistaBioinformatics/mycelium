@@ -22,7 +22,7 @@ pub trait TenantFetching: Interface + Send + Sync {
     /// Get tenants with we are tenant manager
     ///
     /// This use-case should ve used by tenant-managers only
-    async fn get_for_tenants_by_manager_account(
+    async fn get_tenants_by_manager_account(
         &self,
         id: Uuid,
         manager_ids: Vec<Uuid>,
@@ -35,12 +35,8 @@ pub trait TenantFetching: Interface + Send + Sync {
         &self,
         name: Option<String>,
         owner: Option<Uuid>,
-        metadata_key: Option<TenantMetaKey>,
-        status_verified: Option<bool>,
-        status_archived: Option<bool>,
-        status_trashed: Option<bool>,
-        tag_value: Option<String>,
-        tag_meta: Option<String>,
+        metadata: Option<(TenantMetaKey, String)>,
+        tag: Option<(String, String)>,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Tenant>, MappedErrors>;

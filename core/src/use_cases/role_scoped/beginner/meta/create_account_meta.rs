@@ -1,8 +1,7 @@
+use std::collections::HashMap;
+
 use crate::domain::{
-    dtos::{
-        account::{AccountMeta, AccountMetaKey},
-        profile::Profile,
-    },
+    dtos::{account::AccountMetaKey, profile::Profile},
     entities::AccountRegistration,
 };
 
@@ -20,7 +19,7 @@ pub async fn create_account_meta(
     key: AccountMetaKey,
     value: String,
     account_registration_repo: Box<&dyn AccountRegistration>,
-) -> Result<CreateResponseKind<AccountMeta>, MappedErrors> {
+) -> Result<CreateResponseKind<HashMap<String, String>>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Register the account
     // ? -----------------------------------------------------------------------
