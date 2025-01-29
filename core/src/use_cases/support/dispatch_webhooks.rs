@@ -3,7 +3,7 @@ use crate::{
         dtos::{
             http_secret::HttpSecret,
             webhook::{
-                HookResponse, WebHook, WebHookPropagationResponse,
+                HookResponse, WebHook, WebHookPropagationArtifact,
                 WebHookTrigger,
             },
         },
@@ -13,27 +13,21 @@ use crate::{
 };
 
 use futures_util::future::join_all;
-use mycelium_base::entities::FetchManyResponseKind;
+use mycelium_base::{
+    entities::FetchManyResponseKind,
+    utils::errors::{use_case_err, MappedErrors},
+};
 use reqwest::Client;
 use tracing::error;
 
 #[tracing::instrument(name = "dispatch_webhooks", skip_all)]
-pub(crate) async fn dispatch_webhooks<
-    PayloadBody: serde::ser::Serialize + Clone,
->(
+pub async fn dispatch_webhooks<PayloadBody: serde::ser::Serialize + Clone>(
     trigger: WebHookTrigger,
-    payload_body: PayloadBody,
+    mut artifact: WebHookPropagationArtifact,
     config: AccountLifeCycle,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
-) -> WebHookPropagationResponse<PayloadBody> {
-    // ? -----------------------------------------------------------------------
-    // ? Initialize webhook response
-    // ? -----------------------------------------------------------------------
-
-    let mut webhook_response = WebHookPropagationResponse {
-        payload: payload_body.to_owned(),
-        propagations: None,
-    };
+) -> Result<WebHookPropagationArtifact, MappedErrors> {
+    artifact = artifact.encode_payload()?;
 
     // ? -----------------------------------------------------------------------
     // ? Find for webhooks that are triggered by the event
@@ -45,19 +39,19 @@ pub(crate) async fn dispatch_webhooks<
     {
         Ok(response) => response,
         Err(err) => {
-            error!("Error on fetching webhooks: {:?}", err);
-            return webhook_response;
+            return use_case_err(format!("Error on fetching webhooks: {err}"))
+                .as_error();
         }
     };
 
     let hooks: Vec<WebHook> = match hooks_fetching_response {
         FetchManyResponseKind::Found(records) => records,
         FetchManyResponseKind::NotFound => {
-            return webhook_response;
+            return Ok(artifact);
         }
         _ => {
-            error!("Webhook response should not be paginated");
-            return webhook_response;
+            return use_case_err("Webhook response should not be paginated")
+                .as_error();
         }
     };
 
@@ -146,7 +140,7 @@ pub(crate) async fn dispatch_webhooks<
                 }
                 None => base_request,
             })
-            .json(&payload_body)
+            .json(&artifact)
             .send()
         })
         .collect();
@@ -193,10 +187,10 @@ pub(crate) async fn dispatch_webhooks<
     // ? Update the response and return
     // ? -----------------------------------------------------------------------
 
-    webhook_response.propagations = match responses.is_empty() {
+    artifact.propagations = match responses.is_empty() {
         true => None,
         false => Some(responses),
     };
 
-    webhook_response
+    Ok(artifact)
 }

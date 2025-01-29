@@ -2,16 +2,14 @@ use crate::{
     domain::{
         actors::SystemActor::*,
         dtos::{
-            account::Account,
-            guest_role::Permission,
+            account::Account, guest_role::Permission,
             native_error_codes::NativeErrorCodes,
-            token::TenantScopedConnectionString,
-            webhook::{WebHookPropagationResponse, WebHookTrigger},
+            token::TenantScopedConnectionString, webhook::WebHookTrigger,
         },
-        entities::{AccountRegistration, WebHookFetching},
+        entities::{AccountRegistration, WebHookRegistration},
     },
     models::AccountLifeCycle,
-    use_cases::support::dispatch_webhooks,
+    use_cases::support::register_webhook_dispatching_event,
 };
 
 use mycelium_base::{
@@ -25,8 +23,8 @@ use uuid::Uuid;
 /// Subscription accounts represents results centering accounts.
 #[tracing::instrument(
     name = "create_subscription_account",
-    fields(user_id = %scope.user_id),
-    skip(scope, account_registration_repo, webhook_fetching_repo)
+    fields(user_id = %scope.user_id, correspondence_id = tracing::field::Empty),
+    skip(scope, account_registration_repo, webhook_registration_repo)
 )]
 pub async fn create_subscription_account(
     scope: TenantScopedConnectionString,
@@ -34,8 +32,19 @@ pub async fn create_subscription_account(
     account_name: String,
     config: AccountLifeCycle,
     account_registration_repo: Box<&dyn AccountRegistration>,
-    webhook_fetching_repo: Box<&dyn WebHookFetching>,
-) -> Result<WebHookPropagationResponse<Account>, MappedErrors> {
+    webhook_registration_repo: Box<&dyn WebHookRegistration>,
+) -> Result<Account, MappedErrors> {
+    // ? -----------------------------------------------------------------------
+    // ? Initialize tracing span
+    // ? -----------------------------------------------------------------------
+
+    let correspondence_id = Uuid::new_v4();
+
+    tracing::Span::current()
+        .record("correspondence_id", &Some(correspondence_id.to_string()));
+
+    tracing::trace!("Starting to create a subscription account");
+
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
@@ -72,16 +81,20 @@ pub async fn create_subscription_account(
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Propagate account
+    // ? Register the webhook
     // ? -----------------------------------------------------------------------
 
-    let responses = dispatch_webhooks(
+    tracing::trace!("Dispatching side effects");
+
+    register_webhook_dispatching_event(
+        correspondence_id,
         WebHookTrigger::SubscriptionAccountCreated,
         account.to_owned(),
-        config,
-        webhook_fetching_repo,
+        webhook_registration_repo,
     )
-    .await;
+    .await?;
 
-    Ok(responses)
+    tracing::trace!("Side effects dispatched");
+
+    Ok(account)
 }

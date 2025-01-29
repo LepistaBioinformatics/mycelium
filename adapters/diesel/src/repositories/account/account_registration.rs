@@ -9,7 +9,8 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::Local;
-use diesel::{dsl::sql, prelude::*};
+use diesel::result::DatabaseErrorKind;
+use diesel::{dsl::sql, prelude::*, result::Error};
 use myc_core::domain::{
     dtos::{
         account::{Account, AccountMetaKey, VerboseStatus},
@@ -58,30 +59,33 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 creation_err(format!("Failed to create account: {}", e))
             })?;
 
-        let transaction_result: Result<AccountModel, InternalError> = conn
-            .transaction(|conn| {
-                diesel::insert_into(account::table)
-                    .values(&new_account)
-                    .execute(conn)?;
+        // Create account
+        diesel::insert_into(account::table)
+            .values(&new_account)
+            .execute(conn)
+            .map_err(|e| match e {
+                Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _) => {
+                    creation_err("Account already exists")
+                        .with_exp_true()
+                        .with_code(NativeErrorCodes::MYC00018)
+                }
+                _ => {
+                    tracing::error!("Failed to create account: {}", e);
 
-                account::table
-                    .find(new_account.id)
-                    .select(AccountModel::as_select())
-                    .first(conn)
-                    .map_err(InternalError::from)
-            });
+                    creation_err("Failed to create account")
+                }
+            })?;
 
-        match transaction_result {
-            Ok(created_account) => Ok(CreateResponseKind::Created(
-                self.map_account_model_to_dto(created_account),
-            )),
-            Err(InternalError::Database(e)) => {
-                creation_err(format!("Database error: {}", e)).as_error()
-            }
-            _ => {
-                creation_err("Failed to create subscription account").as_error()
-            }
-        }
+        let record = account::table
+            .find(new_account.id)
+            .select(AccountModel::as_select())
+            .first::<AccountModel>(conn)
+            .map(|account| self.map_account_model_to_dto(account))
+            .map_err(|e| {
+                creation_err(format!("Failed to check existing account: {}", e))
+            })?;
+
+        Ok(CreateResponseKind::Created(record))
     }
 
     #[tracing::instrument(

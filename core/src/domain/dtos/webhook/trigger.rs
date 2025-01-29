@@ -1,9 +1,9 @@
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display, Formatter};
 use std::str::FromStr;
 use utoipa::ToSchema;
 
-#[derive(Clone, Debug, Deserialize, ToSchema)]
+#[derive(Clone, Debug, Serialize, Deserialize, ToSchema)]
 pub enum WebHookTrigger {
     // ? -----------------------------------------------------------------------
     // ? Subscription account related actions
@@ -76,14 +76,5 @@ impl FromStr for WebHookTrigger {
             "guestAccount.revoked" => Ok(Self::GuestAccountRevoked),
             _ => Err(format!("Unknown webhook trigger: {}", s)),
         }
-    }
-}
-
-impl Serialize for WebHookTrigger {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&format!("{}", self))
     }
 }
