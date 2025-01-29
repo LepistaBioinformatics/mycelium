@@ -14,7 +14,7 @@ use diesel::{
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
-        webhook::{WebHook, WebHookPropagationArtifact, WebHookTrigger},
+        webhook::{WebHook, WebHookPayloadArtifact, WebHookTrigger},
     },
     entities::WebHookRegistration,
 };
@@ -96,7 +96,7 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
         &self,
         correspondence_id: Uuid,
         trigger: WebHookTrigger,
-        artifact: WebHookPropagationArtifact,
+        artifact: WebHookPayloadArtifact,
     ) -> Result<CreateResponseKind<Uuid>, MappedErrors> {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
             creation_err(format!("Failed to get DB connection: {}", e))

@@ -1,5 +1,5 @@
 use crate::domain::dtos::webhook::{
-    WebHook, WebHookPropagationArtifact, WebHookTrigger,
+    WebHook, WebHookPayloadArtifact, WebHookTrigger,
 };
 
 use async_trait::async_trait;
@@ -20,6 +20,6 @@ pub trait WebHookRegistration: Interface + Send + Sync {
         &self,
         correspondence_id: Uuid,
         trigger: WebHookTrigger,
-        artifact: WebHookPropagationArtifact,
+        artifact: WebHookPayloadArtifact,
     ) -> Result<CreateResponseKind<Uuid>, MappedErrors>;
 }

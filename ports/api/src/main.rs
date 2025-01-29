@@ -7,6 +7,7 @@ mod models;
 mod modifiers;
 mod modules;
 mod otel;
+mod queue_dispatchers;
 mod router;
 mod settings;
 
@@ -20,7 +21,6 @@ use actix_web_opentelemetry::RequestTracing;
 use api_docs::ApiDoc;
 use awc::{error::HeaderValue, Client};
 use config::injectors::configure as configure_injection_modules;
-use core::panic;
 use endpoints::{
     index::heath_check_endpoints,
     manager::{
@@ -44,18 +44,16 @@ use models::{
 use myc_config::{
     init_vault_config_from_file, optional_config::OptionalConfig,
 };
-use myc_core::{domain::dtos::http::Protocol, settings::init_in_memory_routes};
+use myc_core::settings::init_in_memory_routes;
 use myc_diesel::repositories::{
-    SqlAppModule, DieselDbPoolProvider, DieselDbPoolProviderParameters,
+    DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
 };
 use myc_http_tools::{
     providers::{azure_endpoints, google_endpoints},
     settings::DEFAULT_REQUEST_ID_KEY,
 };
-use myc_notifier::{
-    executor::consume_messages,
-    repositories::MessageSendingSmtpRepository,
-    settings::{init_queue_config_from_file, init_smtp_config_from_file},
+use myc_notifier::settings::{
+    init_queue_config_from_file, init_smtp_config_from_file,
 };
 use oauth2::http::HeaderName;
 use openssl::{
@@ -63,20 +61,17 @@ use openssl::{
     ssl::{SslAcceptor, SslMethod},
     x509::X509,
 };
-use opentelemetry::trace::TracerProvider;
-use opentelemetry_otlp::WithExportConfig;
-use otel::{metadata_from_headers, parse_otlp_headers_from_env};
+use otel::initialize_otel;
+use queue_dispatchers::{email_dispatcher, webhook_dispatcher};
 use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use router::route_request;
 use settings::{ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE};
-use std::{path::PathBuf, str::FromStr, sync::Arc, time::Duration};
+use std::{path::PathBuf, str::FromStr, sync::Arc};
 use tracing::{info, trace};
 use tracing_actix_web::TracingLogger;
-use tracing_subscriber::prelude::*;
-use tracing_subscriber::{fmt, EnvFilter};
 use utoipa::OpenApi;
 use utoipa_redoc::{FileConfig, Redoc, Servable};
 use utoipa_swagger_ui::{oauth, Config, SwaggerUi};
@@ -180,77 +175,7 @@ pub async fn main() -> std::io::Result<()> {
         _ => tracing_appender::non_blocking(std::io::stderr()),
     };
 
-    if let Some(LoggingTarget::Jaeger {
-        name,
-        protocol,
-        host,
-        port,
-    }) = logging_config.target
-    {
-        //
-        // Jaeger logging configurations
-        //
-
-        std::env::set_var("OTEL_SERVICE_NAME", name.to_owned());
-        let headers = parse_otlp_headers_from_env();
-        let tracer = opentelemetry_otlp::new_pipeline().tracing();
-
-        let tracer = (match protocol {
-            Protocol::Grpc => {
-                let exporter = opentelemetry_otlp::new_exporter()
-                    .tonic()
-                    .with_endpoint(format!("{}://{}:{}", protocol, host, port))
-                    .with_metadata(metadata_from_headers(headers));
-
-                tracer.with_exporter(exporter)
-            }
-            _ => {
-                let exporter = opentelemetry_otlp::new_exporter()
-                    .http()
-                    .with_endpoint(format!(
-                        "{}://{}:{}/v1/logs",
-                        protocol, host, port
-                    ))
-                    .with_headers(headers.into_iter().collect());
-
-                tracer.with_exporter(exporter)
-            }
-        })
-        .install_batch(opentelemetry_sdk::runtime::Tokio)
-        .expect("Failed to install OpenTelemetry tracer")
-        .tracer(name);
-
-        let telemetry_layer =
-            tracing_opentelemetry::layer().with_tracer(tracer);
-
-        tracing_subscriber::Registry::default()
-            .with(telemetry_layer)
-            .init();
-    } else {
-        //
-        // Default logging configurations
-        //
-
-        let tracing_formatting_layer = tracing_subscriber::fmt()
-            .event_format(
-                fmt::format()
-                    .with_level(true)
-                    .with_target(true)
-                    .with_thread_ids(true)
-                    .with_file(true)
-                    .with_line_number(true)
-                    .with_source_location(true),
-            )
-            .with_writer(non_blocking)
-            .with_env_filter(
-                EnvFilter::from_str(logging_config.level.as_str()).unwrap(),
-            );
-
-        match logging_config.format {
-            LogFormat::Ansi => tracing_formatting_layer.pretty().init(),
-            LogFormat::Jsonl => tracing_formatting_layer.json().init(),
-        };
-    };
+    initialize_otel(logging_config, non_blocking)?;
 
     // ? -----------------------------------------------------------------------
     // ? Routes should be used on API gateway
@@ -290,82 +215,38 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     // ? Fire the scheduler
     // ? -----------------------------------------------------------------------
-    info!("Fire mycelium scheduler");
-
-    let queue_config = match config.queue.to_owned() {
-        OptionalConfig::Enabled(queue) => queue,
-        _ => panic!("Queue config not found"),
-    };
-
-    actix_rt::spawn(async move {
-        let mut interval = actix_rt::time::interval(Duration::from_secs(
-            match queue_config
-                .consume_interval_in_secs
-                .async_get_or_error()
-                .await
-            {
-                Ok(interval) => interval,
-                Err(err) => {
-                    panic!("Error on get consume interval: {err}");
-                }
-            },
-        ));
-
-        loop {
-            interval.tick().await;
-            let queue_name = match queue_config
-                .clone()
-                .email_queue_name
-                .async_get_or_error()
-                .await
-            {
-                Ok(name) => name,
-                Err(err) => {
-                    panic!("Error on get queue name: {err}");
-                }
-            };
-
-            match consume_messages(
-                queue_name.to_owned(),
-                Box::new(&MessageSendingSmtpRepository {}),
-            )
-            .await
-            {
-                Ok(messages) => {
-                    if messages > 0 {
-                        trace!(
-                            "'{}' messages consumed from the queue '{}'",
-                            messages,
-                            queue_name.to_owned()
-                        )
-                    }
-                }
-                Err(err) => {
-                    if !err.expected() {
-                        panic!("Error on consume messages: {err}");
-                    }
-                }
-            };
-        }
-    });
+    info!("Fire email dispatcher");
+    email_dispatcher(config.queue.to_owned());
 
     // ? -----------------------------------------------------------------------
-    // ? Configure App Module
+    // ? Fire the scheduler
+    // ? -----------------------------------------------------------------------
+    info!("Fire webhook dispatcher");
+    webhook_dispatcher();
+
+    // ? -----------------------------------------------------------------------
+    // ? Configure SQL App Module
     // ? -----------------------------------------------------------------------
 
-    info!("Start the database connectors");
-
-    let database_url =
-        match config.diesel.database_url.async_get_or_error().await {
-            Ok(url) => url,
-            Err(err) => panic!("Error on get database url: {err}"),
-        };
-
-    let module = Arc::new(
+    info!("Initialize SQL dependencies");
+    let sql_module = Arc::new(
         SqlAppModule::builder()
             .with_component_parameters::<DieselDbPoolProvider>(
                 DieselDbPoolProviderParameters {
-                    pool: DieselDbPoolProvider::new(&database_url.as_str()),
+                    pool: DieselDbPoolProvider::new(
+                        &match config
+                            .diesel
+                            .database_url
+                            .async_get_or_error()
+                            .await
+                        {
+                            Ok(url) => url,
+                            Err(err) => {
+                                panic!("Error on get database url: {err}")
+                            }
+                        }
+                        .as_str(),
+                    ),
                 },
             )
             .build(),
@@ -407,9 +288,17 @@ pub async fn main() -> std::io::Result<()> {
         // ? -------------------------------------------------------------------
 
         let app = App::new()
+            //
+            // Include the tracing request to trace the request to the tracing
+            // system
+            //
             .wrap(RequestTracing::new())
+            //
+            // Include the tracing logger to log routes request to the tracing
+            // system
+            //
             .wrap(TracingLogger::default())
-            .app_data(web::Data::from(module.clone()))
+            .app_data(web::Data::from(sql_module.clone()))
             .app_data(web::Data::new(token_config).clone())
             .app_data(web::Data::new(auth_config.to_owned()).clone())
             //

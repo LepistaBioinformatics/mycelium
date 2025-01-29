@@ -13,7 +13,7 @@ pub struct HookResponse {
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct WebHookPropagationArtifact {
+pub struct WebHookPayloadArtifact {
     /// The propagated payload
     ///
     /// This is the payload that is sent to the webhook. It should be a
@@ -30,12 +30,20 @@ pub struct WebHookPropagationArtifact {
     ///
     #[serde(skip_serializing_if = "Option::is_none")]
     pub propagations: Option<Vec<HookResponse>>,
+
+    /// Encrypted payload
+    ///
+    /// If the payload is encrypted, this should be set to true. Otherwise,
+    /// it should be set to false or None.
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub encrypted: Option<bool>,
 }
 
-impl WebHookPropagationArtifact {
-    /// Enccode payload as base64
+impl WebHookPayloadArtifact {
+    /// Encode payload as base64
     ///
-    /// Stringify with serde and envode the payload as base64.
+    /// Stringify with serde and encode the payload as base64.
     ///
     pub fn encode_payload(&self) -> Result<Self, MappedErrors> {
         let serialized_payload =
@@ -46,9 +54,10 @@ impl WebHookPropagationArtifact {
         let encoded_payload =
             general_purpose::STANDARD.encode(serialized_payload.as_bytes());
 
-        Ok(WebHookPropagationArtifact {
+        Ok(WebHookPayloadArtifact {
             payload: encoded_payload,
             propagations: self.propagations.clone(),
+            encrypted: None,
         })
     }
 
@@ -57,8 +66,8 @@ impl WebHookPropagationArtifact {
     /// Decode the payload from base64 and return the original payload.
     ///
     pub fn decode_payload(
-        payload: WebHookPropagationArtifact,
-    ) -> Result<WebHookPropagationArtifact, MappedErrors> {
+        payload: WebHookPayloadArtifact,
+    ) -> Result<WebHookPayloadArtifact, MappedErrors> {
         let decoded_payload =
             match general_purpose::STANDARD.decode(&payload.payload) {
                 Err(_) => return dto_err("Failed to decode base64").as_error(),
@@ -70,9 +79,10 @@ impl WebHookPropagationArtifact {
             dto_err(format!("Failed to deserialize payload: {}", e))
         })?;
 
-        Ok(WebHookPropagationArtifact {
+        Ok(WebHookPayloadArtifact {
             payload,
             propagations: None,
+            encrypted: None,
         })
     }
 }
