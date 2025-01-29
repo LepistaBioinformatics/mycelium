@@ -3,8 +3,7 @@ use crate::{
         dtos::{
             http_secret::HttpSecret,
             webhook::{
-                HookResponse, WebHook, WebHookPropagationArtifact,
-                WebHookTrigger,
+                HookResponse, WebHook, WebHookPayloadArtifact, WebHookTrigger,
             },
         },
         entities::WebHookFetching,
@@ -23,10 +22,10 @@ use tracing::error;
 #[tracing::instrument(name = "dispatch_webhooks", skip_all)]
 pub async fn dispatch_webhooks<PayloadBody: serde::ser::Serialize + Clone>(
     trigger: WebHookTrigger,
-    mut artifact: WebHookPropagationArtifact,
+    mut artifact: WebHookPayloadArtifact,
     config: AccountLifeCycle,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
-) -> Result<WebHookPropagationArtifact, MappedErrors> {
+) -> Result<WebHookPayloadArtifact, MappedErrors> {
     artifact = artifact.encode_payload()?;
 
     // ? -----------------------------------------------------------------------

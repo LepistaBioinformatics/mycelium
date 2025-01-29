@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::webhook::{WebHookPropagationArtifact, WebHookTrigger},
+    dtos::webhook::{WebHookPayloadArtifact, WebHookTrigger},
     entities::WebHookRegistration,
 };
 
@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 /// Register a webhook dispatching event
 ///
-/// Webhooks should be dispatched assynchronously. Thus, webhooks should be
+/// Webhooks should be dispatched asynchronously. Thus, webhooks should be
 /// registered after their effective execution.
 ///
 #[tracing::instrument(name = "register_webhook_dispatching_event", skip_all)]
@@ -29,7 +29,7 @@ pub(crate) async fn register_webhook_dispatching_event<
     // ? Initialize webhook response
     // ? -----------------------------------------------------------------------
 
-    let artifact = WebHookPropagationArtifact {
+    let artifact = WebHookPayloadArtifact {
         payload: match serde_json::to_string(&payload) {
             Ok(payload) => payload,
             Err(err) => {
@@ -39,6 +39,7 @@ pub(crate) async fn register_webhook_dispatching_event<
             }
         },
         propagations: None,
+        encrypted: None,
     }
     .encode_payload()?;
 
