@@ -205,6 +205,20 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    webhook_execution (id) {
+        #[max_length = 36]
+        id -> Text,
+        #[max_length = 36]
+        correspondence_id -> Text,
+        #[max_length = 255]
+        trigger -> Varchar,
+        artifact -> Text,
+        created -> Timestamptz,
+        execution_details -> Nullable<Jsonb>,
+    }
+}
+
 diesel::joinable!(account -> tenant (tenant_id));
 diesel::joinable!(account_tag -> account (account_id));
 diesel::joinable!(guest_user -> guest_role (guest_role_id));
