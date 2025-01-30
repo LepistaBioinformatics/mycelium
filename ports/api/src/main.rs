@@ -37,10 +37,7 @@ use endpoints::{
     shared::insert_role_header,
     staff::account_endpoints as staff_account_endpoints,
 };
-use models::{
-    api_config::{LogFormat, LoggingTarget},
-    config_handler::ConfigHandler,
-};
+use models::config_handler::ConfigHandler;
 use myc_config::{
     init_vault_config_from_file, optional_config::OptionalConfig,
 };
@@ -131,51 +128,12 @@ pub async fn main() -> std::io::Result<()> {
     // server starts. The configuration should be set to the server and the
     // server should be started.
     //
+    // IMPORTANT: Does not remove the _guard variable from this context, because
+    // it is used to keep the telemetry alive.
+    //
     // ? -----------------------------------------------------------------------
     info!("Initializing Logging and Telemetry configuration");
-
-    let logging_config = api_config.to_owned().logging;
-
-    let (non_blocking, _guard) = match logging_config.target.to_owned() {
-        //
-        // If a log file is provided, log to the file
-        //
-        Some(LoggingTarget::File { path }) => {
-            let mut log_file = PathBuf::from(path);
-
-            let binding = log_file.to_owned();
-            let parent_dir = binding
-                .parent()
-                .expect("Log file parent directory not found");
-
-            match logging_config.format {
-                LogFormat::Jsonl => {
-                    log_file.set_extension("jsonl");
-                }
-                LogFormat::Ansi => {
-                    log_file.set_extension("log");
-                }
-            };
-
-            if log_file.exists() {
-                std::fs::remove_file(&log_file)?;
-            }
-
-            let file_name =
-                log_file.file_name().expect("Log file name not found");
-
-            let file_appender =
-                tracing_appender::rolling::never(parent_dir, file_name);
-
-            tracing_appender::non_blocking(file_appender)
-        }
-        //
-        // If no log file is provided, log to stderr
-        //
-        _ => tracing_appender::non_blocking(std::io::stderr()),
-    };
-
-    initialize_otel(logging_config, non_blocking)?;
+    let _guard = initialize_otel(api_config.to_owned().logging)?;
 
     // ? -----------------------------------------------------------------------
     // ? Routes should be used on API gateway
@@ -213,18 +171,6 @@ pub async fn main() -> std::io::Result<()> {
     init_queue_config_from_file(None, Some(config.queue.to_owned())).await;
 
     // ? -----------------------------------------------------------------------
-    // ? Fire the scheduler
-    // ? -----------------------------------------------------------------------
-    info!("Fire email dispatcher");
-    email_dispatcher(config.queue.to_owned());
-
-    // ? -----------------------------------------------------------------------
-    // ? Fire the scheduler
-    // ? -----------------------------------------------------------------------
-    info!("Fire webhook dispatcher");
-    webhook_dispatcher();
-
-    // ? -----------------------------------------------------------------------
     // ? Configure SQL App Module
     // ? -----------------------------------------------------------------------
 
@@ -251,6 +197,18 @@ pub async fn main() -> std::io::Result<()> {
             )
             .build(),
     );
+
+    // ? -----------------------------------------------------------------------
+    // ? Fire the scheduler
+    // ? -----------------------------------------------------------------------
+    info!("Fire email dispatcher");
+    email_dispatcher(config.queue.to_owned());
+
+    // ? -----------------------------------------------------------------------
+    // ? Fire the scheduler
+    // ? -----------------------------------------------------------------------
+    info!("Fire webhook dispatcher");
+    webhook_dispatcher(config.core.to_owned(), sql_module.clone());
 
     // ? -----------------------------------------------------------------------
     // ? Configure the server

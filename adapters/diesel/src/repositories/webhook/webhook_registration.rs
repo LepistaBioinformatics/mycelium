@@ -14,7 +14,7 @@ use diesel::{
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
-        webhook::{WebHook, WebHookPayloadArtifact, WebHookTrigger},
+        webhook::{WebHook, WebHookPayloadArtifact},
     },
     entities::WebHookRegistration,
 };
@@ -95,7 +95,6 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
     async fn register_execution_event(
         &self,
         correspondence_id: Uuid,
-        trigger: WebHookTrigger,
         artifact: WebHookPayloadArtifact,
     ) -> Result<CreateResponseKind<Uuid>, MappedErrors> {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
@@ -106,13 +105,11 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
         let new_webhook_execution = WebHookExecutionModel {
             id: Uuid::new_v4().to_string(),
             correspondence_id: correspondence_id.to_string(),
-            trigger: trigger.to_string(),
+            trigger: artifact.trigger.to_string(),
             artifact: serde_json::to_string(&artifact).unwrap(),
             created: Local::now().naive_utc(),
             execution_details: None,
         };
-
-        println!("new_webhook_execution: {new_webhook_execution:?}");
 
         let created = diesel::insert_into(webhook_execution_model::table)
             .values(&new_webhook_execution)

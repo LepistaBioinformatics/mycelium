@@ -9,7 +9,7 @@ use diesel::prelude::*;
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
-        webhook::{WebHook, WebHookTrigger},
+        webhook::{WebHook, WebHookPayloadArtifact, WebHookTrigger},
     },
     entities::WebHookFetching,
 };
@@ -184,5 +184,14 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
             .collect();
 
         Ok(FetchManyResponseKind::Found(webhooks))
+    }
+
+    #[tracing::instrument(name = "fetch_execution_event", skip_all)]
+    async fn fetch_execution_event(
+        &self,
+        max_events: u32,
+    ) -> Result<FetchManyResponseKind<WebHookPayloadArtifact>, MappedErrors>
+    {
+        unimplemented!()
     }
 }

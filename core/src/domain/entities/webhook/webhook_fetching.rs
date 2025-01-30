@@ -1,4 +1,6 @@
-use crate::domain::dtos::webhook::{WebHook, WebHookTrigger};
+use crate::domain::dtos::webhook::{
+    WebHook, WebHookPayloadArtifact, WebHookTrigger,
+};
 
 use async_trait::async_trait;
 use mycelium_base::{
@@ -29,4 +31,9 @@ pub trait WebHookFetching: Interface + Send + Sync {
         &self,
         trigger: WebHookTrigger,
     ) -> Result<FetchManyResponseKind<WebHook>, MappedErrors>;
+
+    async fn fetch_execution_event(
+        &self,
+        max_events: u32,
+    ) -> Result<FetchManyResponseKind<WebHookPayloadArtifact>, MappedErrors>;
 }

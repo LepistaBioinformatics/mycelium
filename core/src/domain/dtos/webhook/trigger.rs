@@ -3,7 +3,9 @@ use std::fmt::{self, Display, Formatter};
 use std::str::FromStr;
 use utoipa::ToSchema;
 
-#[derive(Clone, Debug, Serialize, Deserialize, ToSchema)]
+#[derive(
+    Clone, Debug, Serialize, Deserialize, ToSchema, PartialEq, Eq, Hash,
+)]
 pub enum WebHookTrigger {
     // ? -----------------------------------------------------------------------
     // ? Subscription account related actions

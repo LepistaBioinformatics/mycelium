@@ -30,6 +30,7 @@ pub(crate) async fn register_webhook_dispatching_event<
     // ? -----------------------------------------------------------------------
 
     let artifact = WebHookPayloadArtifact {
+        id: None,
         payload: match serde_json::to_string(&payload) {
             Ok(payload) => payload,
             Err(err) => {
@@ -38,8 +39,10 @@ pub(crate) async fn register_webhook_dispatching_event<
                 return creation_err("Failed to serialize payload").as_error();
             }
         },
+        trigger,
         propagations: None,
         encrypted: None,
+        attempts: None,
     }
     .encode_payload()?;
 
@@ -48,7 +51,7 @@ pub(crate) async fn register_webhook_dispatching_event<
     // ? -----------------------------------------------------------------------
 
     match webhook_registration_repo
-        .register_execution_event(correspondence_id, trigger, artifact)
+        .register_execution_event(correspondence_id, artifact)
         .await?
     {
         CreateResponseKind::Created(id) => {

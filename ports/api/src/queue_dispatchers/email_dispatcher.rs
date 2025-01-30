@@ -46,6 +46,8 @@ pub(crate) fn email_dispatcher(queue: OptionalConfig<QueueConfig>) {
 
             match consume_messages(
                 queue_name.to_owned(),
+                // TODO: Remove this once the repository is implemented as a
+                // shaku module
                 Box::new(&MessageSendingSmtpRepository {}),
             )
             .await

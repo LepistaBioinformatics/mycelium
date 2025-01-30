@@ -673,7 +673,7 @@ pub async fn check_email_password_validity_url(
                                 .append_header((
                                     "Location",
                                     format!(
-                                        "{}/totp/enable/",
+                                        "{}/totp/enable",
                                         build_actor_context(
                                             SystemActor::Beginner,
                                             UrlGroup::Users

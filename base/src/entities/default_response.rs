@@ -1,5 +1,3 @@
-use crate::dtos::PaginatedRecord;
-
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -35,7 +33,12 @@ where
     T: Serialize,
 {
     Found(Vec<T>),
-    FoundPaginated(PaginatedRecord<T>),
+    FoundPaginated {
+        count: i64,
+        skip: Option<i64>,
+        size: Option<i64>,
+        records: Vec<T>,
+    },
     NotFound,
 }
 
