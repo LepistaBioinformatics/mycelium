@@ -2,6 +2,9 @@ use base64::{engine::general_purpose, Engine};
 use mycelium_base::utils::errors::{dto_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
+use uuid::Uuid;
+
+use super::WebHookTrigger;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -14,6 +17,13 @@ pub struct HookResponse {
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct WebHookPayloadArtifact {
+    /// The id of the webhook payload artifact
+    ///
+    /// This is the id of the webhook payload artifact. It is the id that is
+    /// used to identify the webhook payload artifact.
+    ///
+    pub id: Option<Uuid>,
+
     /// The propagated payload
     ///
     /// This is the payload that is sent to the webhook. It should be a
@@ -21,6 +31,13 @@ pub struct WebHookPayloadArtifact {
     /// then the value is serialized as the value of the key.
     ///
     pub payload: String,
+
+    /// The trigger of the webhook
+    ///
+    /// This is the trigger of the webhook. It is the trigger that is used to
+    /// determine if the webhook should be executed.
+    ///
+    pub trigger: WebHookTrigger,
 
     /// Propagation responses from the webhooks
     ///
@@ -38,6 +55,14 @@ pub struct WebHookPayloadArtifact {
     ///
     #[serde(skip_serializing_if = "Option::is_none")]
     pub encrypted: Option<bool>,
+
+    /// The number of attempts to dispatch the webhook
+    ///
+    /// This is the number of attempts to dispatch the webhook. It is the number
+    /// of attempts that have been made to dispatch the webhook.
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attempts: Option<u8>,
 }
 
 impl WebHookPayloadArtifact {
@@ -55,9 +80,12 @@ impl WebHookPayloadArtifact {
             general_purpose::STANDARD.encode(serialized_payload.as_bytes());
 
         Ok(WebHookPayloadArtifact {
+            id: self.id,
             payload: encoded_payload,
+            trigger: self.trigger.clone(),
             propagations: self.propagations.clone(),
             encrypted: None,
+            attempts: None,
         })
     }
 
@@ -66,10 +94,10 @@ impl WebHookPayloadArtifact {
     /// Decode the payload from base64 and return the original payload.
     ///
     pub fn decode_payload(
-        payload: WebHookPayloadArtifact,
+        artifact: WebHookPayloadArtifact,
     ) -> Result<WebHookPayloadArtifact, MappedErrors> {
         let decoded_payload =
-            match general_purpose::STANDARD.decode(&payload.payload) {
+            match general_purpose::STANDARD.decode(&artifact.payload) {
                 Err(_) => return dto_err("Failed to decode base64").as_error(),
                 Ok(decoded) => String::from_utf8(decoded)
                     .map_err(|_| dto_err("Failed to decode payload"))?,
@@ -80,9 +108,12 @@ impl WebHookPayloadArtifact {
         })?;
 
         Ok(WebHookPayloadArtifact {
+            id: artifact.id,
             payload,
+            trigger: artifact.trigger,
             propagations: None,
             encrypted: None,
+            attempts: None,
         })
     }
 }

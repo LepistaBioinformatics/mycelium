@@ -6,27 +6,28 @@ use crate::{
                 HookResponse, WebHook, WebHookPayloadArtifact, WebHookTrigger,
             },
         },
-        entities::WebHookFetching,
+        entities::{WebHookFetching, WebHookUpdating},
     },
     models::AccountLifeCycle,
 };
 
 use futures_util::future::join_all;
 use mycelium_base::{
-    entities::FetchManyResponseKind,
+    entities::{FetchManyResponseKind, UpdatingResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
 use reqwest::Client;
 use tracing::error;
 
 #[tracing::instrument(name = "dispatch_webhooks", skip_all)]
-pub async fn dispatch_webhooks<PayloadBody: serde::ser::Serialize + Clone>(
+pub async fn dispatch_webhooks(
     trigger: WebHookTrigger,
-    mut artifact: WebHookPayloadArtifact,
+    artifact: WebHookPayloadArtifact,
     config: AccountLifeCycle,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
+    webhook_updating_repo: Box<&dyn WebHookUpdating>,
 ) -> Result<WebHookPayloadArtifact, MappedErrors> {
-    artifact = artifact.encode_payload()?;
+    let mut artifact = artifact.encode_payload()?;
 
     // ? -----------------------------------------------------------------------
     // ? Find for webhooks that are triggered by the event
@@ -183,7 +184,7 @@ pub async fn dispatch_webhooks<PayloadBody: serde::ser::Serialize + Clone>(
     }
 
     // ? -----------------------------------------------------------------------
-    // ? Update the response and return
+    // ? Update artifact with propagation responses
     // ? -----------------------------------------------------------------------
 
     artifact.propagations = match responses.is_empty() {
@@ -191,5 +192,19 @@ pub async fn dispatch_webhooks<PayloadBody: serde::ser::Serialize + Clone>(
         false => Some(responses),
     };
 
-    Ok(artifact)
+    // ? -----------------------------------------------------------------------
+    // ? Persist the artifact into data store
+    // ? -----------------------------------------------------------------------
+
+    match webhook_updating_repo
+        .update_execution_event(artifact.to_owned())
+        .await?
+    {
+        UpdatingResponseKind::NotUpdated(_, msg) => {
+            tracing::error!("Error on updating webhook: {msg}");
+
+            return use_case_err("Error on updating webhook").as_error();
+        }
+        UpdatingResponseKind::Updated(artifact) => Ok(artifact),
+    }
 }

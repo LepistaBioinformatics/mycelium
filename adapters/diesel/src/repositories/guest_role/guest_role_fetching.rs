@@ -14,7 +14,7 @@ use myc_core::domain::{
     entities::GuestRoleFetching,
 };
 use mycelium_base::{
-    dtos::{Children, PaginatedRecord},
+    dtos::Children,
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{fetching_err, MappedErrors},
 };
@@ -144,11 +144,11 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
             })
             .collect();
 
-        Ok(FetchManyResponseKind::FoundPaginated(PaginatedRecord {
+        Ok(FetchManyResponseKind::FoundPaginated {
             count: total,
             skip: Some(skip),
             size: Some(page_size),
             records: roles,
-        }))
+        })
     }
 }

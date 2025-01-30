@@ -3,9 +3,10 @@ use crate::models::api_config::{LogFormat, LoggingConfig, LoggingTarget};
 use myc_core::domain::dtos::http::Protocol;
 use opentelemetry::trace::TracerProvider;
 use opentelemetry_otlp::WithExportConfig;
+use std::path::PathBuf;
 use std::str::FromStr;
 use tonic::metadata::{Ascii, MetadataKey, MetadataMap, MetadataValue};
-use tracing_appender::non_blocking::NonBlocking;
+use tracing_appender::non_blocking::WorkerGuard;
 use tracing_subscriber::prelude::*;
 use tracing_subscriber::{fmt, EnvFilter};
 
@@ -53,8 +54,46 @@ fn parse_otlp_headers_from_env() -> Vec<(String, String)> {
 
 pub(super) fn initialize_otel(
     config: LoggingConfig,
-    non_blocking: NonBlocking,
-) -> std::io::Result<()> {
+) -> std::io::Result<WorkerGuard> {
+    let (non_blocking, guard) = match config.target.to_owned() {
+        //
+        // If a log file is provided, log to the file
+        //
+        Some(LoggingTarget::File { path }) => {
+            let mut log_file = PathBuf::from(path);
+
+            let binding = log_file.to_owned();
+            let parent_dir = binding
+                .parent()
+                .expect("Log file parent directory not found");
+
+            match config.format {
+                LogFormat::Jsonl => {
+                    log_file.set_extension("jsonl");
+                }
+                LogFormat::Ansi => {
+                    log_file.set_extension("log");
+                }
+            };
+
+            if log_file.exists() {
+                std::fs::remove_file(&log_file)?;
+            }
+
+            let file_name =
+                log_file.file_name().expect("Log file name not found");
+
+            let file_appender =
+                tracing_appender::rolling::never(parent_dir, file_name);
+
+            tracing_appender::non_blocking(file_appender)
+        }
+        //
+        // If no log file is provided, log to stderr
+        //
+        _ => tracing_appender::non_blocking(std::io::stderr()),
+    };
+
     if let Some(LoggingTarget::Jaeger {
         name,
         protocol,
@@ -125,5 +164,5 @@ pub(super) fn initialize_otel(
         };
     };
 
-    Ok(())
+    Ok(guard)
 }

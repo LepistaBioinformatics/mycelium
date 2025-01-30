@@ -1,4 +1,4 @@
-use crate::domain::dtos::webhook::WebHook;
+use crate::domain::dtos::webhook::{WebHook, WebHookPayloadArtifact};
 
 use async_trait::async_trait;
 use mycelium_base::{
@@ -12,4 +12,9 @@ pub trait WebHookUpdating: Interface + Send + Sync {
         &self,
         webhook: WebHook,
     ) -> Result<UpdatingResponseKind<WebHook>, MappedErrors>;
+
+    async fn update_execution_event(
+        &self,
+        artifact: WebHookPayloadArtifact,
+    ) -> Result<UpdatingResponseKind<WebHookPayloadArtifact>, MappedErrors>;
 }

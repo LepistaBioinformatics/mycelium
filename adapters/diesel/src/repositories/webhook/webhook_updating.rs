@@ -7,7 +7,10 @@ use async_trait::async_trait;
 use chrono::Local;
 use diesel::prelude::*;
 use myc_core::domain::{
-    dtos::{native_error_codes::NativeErrorCodes, webhook::WebHook},
+    dtos::{
+        native_error_codes::NativeErrorCodes,
+        webhook::{WebHook, WebHookPayloadArtifact},
+    },
     entities::WebHookUpdating,
 };
 use mycelium_base::{
@@ -83,5 +86,13 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
         webhook.redact_secret_token();
 
         Ok(UpdatingResponseKind::Updated(webhook))
+    }
+
+    async fn update_execution_event(
+        &self,
+        artifact: WebHookPayloadArtifact,
+    ) -> Result<UpdatingResponseKind<WebHookPayloadArtifact>, MappedErrors>
+    {
+        unimplemented!()
     }
 }

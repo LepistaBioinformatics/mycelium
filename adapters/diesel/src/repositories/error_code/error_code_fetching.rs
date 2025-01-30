@@ -10,7 +10,6 @@ use myc_core::domain::{
     entities::ErrorCodeFetching,
 };
 use mycelium_base::{
-    dtos::PaginatedRecord,
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{fetching_err, MappedErrors},
 };
@@ -114,7 +113,7 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
                 fetching_err(format!("Failed to fetch error codes: {}", e))
             })?;
 
-        Ok(FetchManyResponseKind::FoundPaginated(PaginatedRecord {
+        Ok(FetchManyResponseKind::FoundPaginated {
             count: total,
             skip: Some(skip),
             size: Some(page_size),
@@ -122,7 +121,7 @@ impl ErrorCodeFetching for ErrorCodeFetchingSqlDbRepository {
                 .into_iter()
                 .map(|r| self.map_model_to_dto(r))
                 .collect(),
-        }))
+        })
     }
 }
 
