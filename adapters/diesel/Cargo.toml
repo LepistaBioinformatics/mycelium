@@ -30,7 +30,6 @@ chrono.workspace = true
 env_logger.workspace = true
 futures.workspace = true
 lazy_static.workspace = true
-log.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 shaku.workspace = true
