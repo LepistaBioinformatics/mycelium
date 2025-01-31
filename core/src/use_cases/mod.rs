@@ -43,3 +43,4 @@ pub mod super_users;
 /// functionalities.
 ///
 pub(crate) mod support;
+pub use support::dispatch_webhooks;

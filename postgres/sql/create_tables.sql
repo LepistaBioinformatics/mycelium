@@ -177,3 +177,15 @@ CREATE TABLE webhook (
 
     CONSTRAINT unique_webhook UNIQUE (name, url, trigger)
 );
+
+CREATE TABLE webhook_execution (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    trigger VARCHAR(255) NOT NULL,
+    payload TEXT NOT NULL,
+    encrypted BOOLEAN DEFAULT FALSE,
+    attempts INT DEFAULT 0,
+    created TIMESTAMPTZ DEFAULT now(),
+    attempted TIMESTAMPTZ DEFAULT NULL,
+    status VARCHAR(100) DEFAULT NULL,
+    propagations JSONB
+);

@@ -1,8 +1,10 @@
 use crate::{
     models::{config::DbPoolProvider, webhook::WebHook as WebHookModel},
     schema::webhook as webhook_model,
+    schema::webhook_execution as webhook_execution_model,
 };
 
+use crate::models::webhook_execution::WebHookExecution as WebHookExecutionModel;
 use async_trait::async_trait;
 use chrono::Local;
 use diesel::{
@@ -10,7 +12,10 @@ use diesel::{
     result::{DatabaseErrorKind, Error},
 };
 use myc_core::domain::{
-    dtos::{native_error_codes::NativeErrorCodes, webhook::WebHook},
+    dtos::{
+        native_error_codes::NativeErrorCodes,
+        webhook::{WebHook, WebHookPayloadArtifact},
+    },
     entities::WebHookRegistration,
 };
 use mycelium_base::{
@@ -84,5 +89,51 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
         webhook.redact_secret_token();
 
         Ok(CreateResponseKind::Created(webhook))
+    }
+
+    #[tracing::instrument(name = "register_execution_event", skip_all)]
+    async fn register_execution_event(
+        &self,
+        artifact: WebHookPayloadArtifact,
+    ) -> Result<CreateResponseKind<Uuid>, MappedErrors> {
+        let conn = &mut self.db_config.get_pool().get().map_err(|e| {
+            creation_err(format!("Failed to get DB connection: {}", e))
+                .with_code(NativeErrorCodes::MYC00001)
+        })?;
+
+        let new_webhook_execution = WebHookExecutionModel {
+            id: artifact.id.unwrap_or(Uuid::new_v4()).to_string(),
+            payload: artifact.payload,
+            trigger: artifact.trigger.to_string(),
+            created: Local::now().naive_utc(),
+            status: match artifact.status {
+                Some(status) => Some(status.to_string()),
+                None => None,
+            },
+            attempts: 0,
+            attempted: None,
+            propagations: None,
+            encrypted: None,
+        };
+
+        let created = diesel::insert_into(webhook_execution_model::table)
+            .values(&new_webhook_execution)
+            .returning(WebHookExecutionModel::as_returning())
+            .get_result::<WebHookExecutionModel>(conn)
+            .map_err(|e| match e {
+                Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _) => {
+                    creation_err("Webhook already exists".to_string())
+                        .with_code(NativeErrorCodes::MYC00018)
+                        .with_exp_true()
+                }
+                _ => {
+                    tracing::error!("Failed to create webhook execution: {e}");
+                    creation_err("Failed to create webhook execution")
+                }
+            })?;
+
+        Ok(CreateResponseKind::Created(
+            Uuid::from_str(&created.id).unwrap(),
+        ))
     }
 }

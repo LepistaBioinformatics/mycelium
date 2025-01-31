@@ -2,6 +2,7 @@ use crate::utils::HttpJsonResponse;
 
 use actix_web::HttpResponse;
 use myc_core::domain::dtos::native_error_codes::NativeErrorCodes::*;
+use mycelium_base::dtos::PaginatedRecord;
 use mycelium_base::{
     entities::{
         CreateManyResponseKind, CreateResponseKind, DeletionManyResponseKind,
@@ -127,9 +128,17 @@ pub fn fetch_many_response_kind<T: Serialize>(
 ) -> HttpResponse {
     match response {
         FetchManyResponseKind::Found(res) => HttpResponse::Ok().json(res),
-        FetchManyResponseKind::FoundPaginated(res) => {
-            HttpResponse::Ok().json(res)
-        }
+        FetchManyResponseKind::FoundPaginated {
+            count,
+            skip,
+            size,
+            records,
+        } => HttpResponse::Ok().json(PaginatedRecord {
+            count,
+            skip,
+            size,
+            records,
+        }),
         FetchManyResponseKind::NotFound => HttpResponse::NoContent().finish(),
     }
 }

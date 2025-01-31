@@ -3,37 +3,32 @@ use crate::{
         dtos::{
             http_secret::HttpSecret,
             webhook::{
-                HookResponse, WebHook, WebHookPropagationResponse,
-                WebHookTrigger,
+                HookResponse, WebHook, WebHookExecutionStatus,
+                WebHookPayloadArtifact, WebHookTrigger,
             },
         },
-        entities::WebHookFetching,
+        entities::{WebHookFetching, WebHookUpdating},
     },
-    models::AccountLifeCycle,
+    models::CoreConfig,
 };
 
+use chrono::Local;
 use futures_util::future::join_all;
-use mycelium_base::entities::FetchManyResponseKind;
+use mycelium_base::{
+    entities::{FetchManyResponseKind, UpdatingResponseKind},
+    utils::errors::{use_case_err, MappedErrors},
+};
 use reqwest::Client;
-use tracing::error;
 
 #[tracing::instrument(name = "dispatch_webhooks", skip_all)]
-pub(crate) async fn dispatch_webhooks<
-    PayloadBody: serde::ser::Serialize + Clone,
->(
+pub async fn dispatch_webhooks(
     trigger: WebHookTrigger,
-    payload_body: PayloadBody,
-    config: AccountLifeCycle,
+    artifact: WebHookPayloadArtifact,
+    config: CoreConfig,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
-) -> WebHookPropagationResponse<PayloadBody> {
-    // ? -----------------------------------------------------------------------
-    // ? Initialize webhook response
-    // ? -----------------------------------------------------------------------
-
-    let mut webhook_response = WebHookPropagationResponse {
-        payload: payload_body.to_owned(),
-        propagations: None,
-    };
+    webhook_updating_repo: Box<&dyn WebHookUpdating>,
+) -> Result<WebHookPayloadArtifact, MappedErrors> {
+    let mut artifact = artifact.decode_payload()?;
 
     // ? -----------------------------------------------------------------------
     // ? Find for webhooks that are triggered by the event
@@ -45,19 +40,19 @@ pub(crate) async fn dispatch_webhooks<
     {
         Ok(response) => response,
         Err(err) => {
-            error!("Error on fetching webhooks: {:?}", err);
-            return webhook_response;
+            return use_case_err(format!("Error on fetching webhooks: {err}"))
+                .as_error();
         }
     };
 
     let hooks: Vec<WebHook> = match hooks_fetching_response {
         FetchManyResponseKind::Found(records) => records,
         FetchManyResponseKind::NotFound => {
-            return webhook_response;
+            return Ok(artifact);
         }
         _ => {
-            error!("Webhook response should not be paginated");
-            return webhook_response;
+            return use_case_err("Webhook response should not be paginated")
+                .as_error();
         }
     };
 
@@ -67,13 +62,11 @@ pub(crate) async fn dispatch_webhooks<
 
     let method = match trigger {
         WebHookTrigger::SubscriptionAccountCreated
-        | WebHookTrigger::UserAccountCreated
-        | WebHookTrigger::GuestAccountInvited => "POST",
-        WebHookTrigger::SubscriptionAccountUpdated
-        | WebHookTrigger::UserAccountUpdated => "PUT",
-        WebHookTrigger::SubscriptionAccountDeleted
-        | WebHookTrigger::UserAccountDeleted
-        | WebHookTrigger::GuestAccountRevoked => "DELETE",
+        | WebHookTrigger::UserAccountCreated => "POST",
+        //WebHookTrigger::SubscriptionAccountUpdated
+        //| WebHookTrigger::UserAccountUpdated => "PUT",
+        //WebHookTrigger::SubscriptionAccountDeleted
+        //| WebHookTrigger::UserAccountDeleted => "DELETE",
     };
 
     // ? -----------------------------------------------------------------------
@@ -84,7 +77,18 @@ pub(crate) async fn dispatch_webhooks<
     //
     // ? -----------------------------------------------------------------------
 
-    let client = Client::new();
+    let client = Client::builder()
+        .danger_accept_invalid_certs(
+            config
+                .webhook
+                .accept_invalid_certificates
+                .async_get_or_error()
+                .await?,
+        )
+        .build()
+        .map_err(|err| {
+            use_case_err(format!("Error on building client: {err}"))
+        })?;
 
     let bodies: Vec<_> = hooks
         .iter()
@@ -101,7 +105,7 @@ pub(crate) async fn dispatch_webhooks<
                 "PUT" => base_request.put(hook.url.to_owned()),
                 "DELETE" => base_request.delete(hook.url.to_owned()),
                 _ => {
-                    error!("Unknown method: {method}");
+                    tracing::error!("Unknown method: {method}");
                     base_request.post(hook.url.to_owned())
                 }
             };
@@ -110,13 +114,15 @@ pub(crate) async fn dispatch_webhooks<
             //
             (match &hook.get_secret() {
                 Some(secret) => {
-                    let decrypted_secret =
-                        match secret.decrypt_me(config.to_owned()).await {
-                            Ok(secret) => secret,
-                            Err(err) => {
-                                panic!("Error on decrypting secret: {:?}", err);
-                            }
-                        };
+                    let decrypted_secret = match secret
+                        .decrypt_me(config.account_life_cycle.to_owned())
+                        .await
+                    {
+                        Ok(secret) => secret,
+                        Err(err) => {
+                            panic!("Error on decrypting secret: {:?}", err);
+                        }
+                    };
 
                     match decrypted_secret {
                         HttpSecret::AuthorizationHeader {
@@ -146,7 +152,8 @@ pub(crate) async fn dispatch_webhooks<
                 }
                 None => base_request,
             })
-            .json(&payload_body)
+            .body(artifact.payload.to_owned())
+            .header("Content-Type", "application/json")
             .send()
         })
         .collect();
@@ -160,16 +167,22 @@ pub(crate) async fn dispatch_webhooks<
     // ? -----------------------------------------------------------------------
 
     let mut responses = Vec::<HookResponse>::new();
-    for hook_res in join_all(bodies).await {
-        let hook_res = match hook_res.await {
+    for hook_future in join_all(bodies).await {
+        let hook_res = match hook_future.await {
             Ok(res) => res,
             Err(err) => {
-                error!("Error on connect to webhook: {:?}", err);
+                let url = match err.url() {
+                    Some(url) => url.to_string(),
+                    None => "".to_string(),
+                };
+
+                tracing::error!("Error on connect to webhook: {:?}", err);
 
                 responses.push(HookResponse {
-                    url: "".to_string(),
+                    url,
                     status: 500,
                     body: Some("Error on connect to webhook".to_string()),
+                    datetime: Local::now(),
                 });
 
                 continue;
@@ -186,17 +199,50 @@ pub(crate) async fn dispatch_webhooks<
             url: format!("{}://{}{}{}", scheme, host, port, path),
             status: hook_res.status().as_u16(),
             body: hook_res.text().await.ok(),
+            datetime: Local::now(),
         });
     }
 
     // ? -----------------------------------------------------------------------
-    // ? Update the response and return
+    // ? Evaluate the status of the artifact
     // ? -----------------------------------------------------------------------
 
-    webhook_response.propagations = match responses.is_empty() {
-        true => None,
-        false => Some(responses),
+    let status = if responses.iter().any(|response| response.status >= 400) {
+        WebHookExecutionStatus::Failed
+    } else {
+        WebHookExecutionStatus::Success
     };
 
-    webhook_response
+    // ? -----------------------------------------------------------------------
+    // ? Update artifact with propagation responses
+    // ? -----------------------------------------------------------------------
+
+    artifact.attempts = Some(artifact.attempts.unwrap_or(0) + 1);
+    artifact.status = Some(status);
+
+    let mut propatations = artifact.propagations.clone().unwrap_or_default();
+
+    if !responses.is_empty() {
+        propatations.append(&mut responses);
+    }
+
+    if !propatations.is_empty() {
+        artifact.propagations = Some(propatations);
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? Persist the artifact into data store
+    // ? -----------------------------------------------------------------------
+
+    match webhook_updating_repo
+        .update_execution_event(artifact.to_owned())
+        .await?
+    {
+        UpdatingResponseKind::NotUpdated(_, msg) => {
+            tracing::error!("Error on updating webhook: {msg}");
+
+            return use_case_err("Error on updating webhook").as_error();
+        }
+        UpdatingResponseKind::Updated(artifact) => Ok(artifact),
+    }
 }
