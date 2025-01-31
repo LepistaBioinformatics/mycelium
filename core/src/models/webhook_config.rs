@@ -10,4 +10,10 @@ pub struct WebhookConfig {
 
     /// Batch consume size
     pub consume_batch_size: SecretResolver<u64>,
+
+    /// Max attempts
+    pub max_attempts: SecretResolver<u64>,
+
+    /// Accept invalid certificates
+    pub accept_invalid_certificates: SecretResolver<bool>,
 }

@@ -16,7 +16,6 @@ pub trait WebHookRegistration: Interface + Send + Sync {
 
     async fn register_execution_event(
         &self,
-        correspondence_id: Uuid,
         artifact: WebHookPayloadArtifact,
     ) -> Result<CreateResponseKind<Uuid>, MappedErrors>;
 }

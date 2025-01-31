@@ -1,11 +1,15 @@
 use crate::{
-    models::{config::DbPoolProvider, webhook::WebHook as WebHookModel},
+    models::{
+        config::DbPoolProvider, webhook::WebHook as WebHookModel,
+        webhook_execution::WebHookExecution as WebHookExecutionModel,
+    },
     schema::webhook as webhook_model,
+    schema::webhook_execution as webhook_execution_model,
 };
 
 use async_trait::async_trait;
 use chrono::Local;
-use diesel::prelude::*;
+use diesel::{prelude::*, result::DatabaseErrorKind, result::Error};
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
@@ -93,6 +97,52 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
         artifact: WebHookPayloadArtifact,
     ) -> Result<UpdatingResponseKind<WebHookPayloadArtifact>, MappedErrors>
     {
-        unimplemented!()
+        let conn = &mut self.db_config.get_pool().get().map_err(|e| {
+            updating_err(format!("Failed to get DB connection: {}", e))
+                .with_code(NativeErrorCodes::MYC00001)
+        })?;
+
+        let artifact_id = match artifact.id {
+            Some(id) => id,
+            None => {
+                return Err(updating_err(
+                    "Unable to update webhook execution. Invalid record ID",
+                )
+                .with_code(NativeErrorCodes::MYC00001));
+            }
+        };
+
+        let status = match artifact.status.to_owned() {
+            Some(status) => status.to_string(),
+            None => "unknown".to_string(),
+        };
+
+        diesel::update(
+            webhook_execution_model::table.find(artifact_id.to_string()),
+        )
+        .set((
+            webhook_execution_model::attempts
+                .eq(artifact.attempts.unwrap_or(0) as i32),
+            webhook_execution_model::attempted
+                .eq(Some(Local::now().naive_utc())),
+            webhook_execution_model::status.eq(status),
+            webhook_execution_model::propagations
+                .eq(serde_json::to_value(artifact.propagations.to_owned())
+                    .unwrap()),
+        ))
+        .returning(WebHookExecutionModel::as_returning())
+        .get_result::<WebHookExecutionModel>(conn)
+        .map_err(|e| match e {
+            Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _) => {
+                updating_err("Webhook execution already exists".to_string())
+                    .with_code(NativeErrorCodes::MYC00018)
+                    .with_exp_true()
+            }
+            _ => {
+                updating_err(format!("Failed to update webhook execution: {e}"))
+            }
+        })?;
+
+        Ok(UpdatingResponseKind::Updated(artifact))
     }
 }

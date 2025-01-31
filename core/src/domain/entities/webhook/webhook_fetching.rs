@@ -1,5 +1,5 @@
 use crate::domain::dtos::webhook::{
-    WebHook, WebHookPayloadArtifact, WebHookTrigger,
+    WebHook, WebHookExecutionStatus, WebHookPayloadArtifact, WebHookTrigger,
 };
 
 use async_trait::async_trait;
@@ -35,5 +35,7 @@ pub trait WebHookFetching: Interface + Send + Sync {
     async fn fetch_execution_event(
         &self,
         max_events: u32,
+        max_attempts: u32,
+        status: Option<Vec<WebHookExecutionStatus>>,
     ) -> Result<FetchManyResponseKind<WebHookPayloadArtifact>, MappedErrors>;
 }

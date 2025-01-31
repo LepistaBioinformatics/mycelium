@@ -209,13 +209,17 @@ diesel::table! {
     webhook_execution (id) {
         #[max_length = 36]
         id -> Text,
-        #[max_length = 36]
-        correspondence_id -> Text,
+        payload -> Text,
         #[max_length = 255]
         trigger -> Varchar,
-        artifact -> Text,
+        encrypted -> Nullable<Bool>,
+        attempts -> Int4,
+        #[max_length = 36]
         created -> Timestamptz,
-        execution_details -> Nullable<Jsonb>,
+        attempted -> Nullable<Timestamptz>,
+        #[max_length = 100]
+        status -> Nullable<Varchar>,
+        propagations -> Nullable<Jsonb>,
     }
 }
 

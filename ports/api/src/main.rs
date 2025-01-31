@@ -200,12 +200,20 @@ pub async fn main() -> std::io::Result<()> {
 
     // ? -----------------------------------------------------------------------
     // ? Fire the scheduler
+    //
+    // The email dispatcher should be fired to allow emails to be sent.
+    // Dispatching will occur in a separate thread.
+    //
     // ? -----------------------------------------------------------------------
     info!("Fire email dispatcher");
     email_dispatcher(config.queue.to_owned());
 
     // ? -----------------------------------------------------------------------
     // ? Fire the scheduler
+    //
+    // The webhook dispatcher should be fired to allow webhooks to be dispatched.
+    // Dispatching will occur in a separate thread.
+    //
     // ? -----------------------------------------------------------------------
     info!("Fire webhook dispatcher");
     webhook_dispatcher(config.core.to_owned(), sql_module.clone());

@@ -1,10 +1,46 @@
+use super::WebHookTrigger;
+
 use base64::{engine::general_purpose, Engine};
+use chrono::{DateTime, Local};
 use mycelium_base::utils::errors::{dto_err, MappedErrors};
 use serde::{Deserialize, Serialize};
+use std::{fmt::Display, str::FromStr};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use super::WebHookTrigger;
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub enum WebHookExecutionStatus {
+    Pending,
+    Success,
+    Failed,
+    Unknown,
+}
+
+impl Display for WebHookExecutionStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Pending => write!(f, "pending"),
+            Self::Success => write!(f, "success"),
+            Self::Failed => write!(f, "failed"),
+            Self::Unknown => write!(f, "unknown"),
+        }
+    }
+}
+
+impl FromStr for WebHookExecutionStatus {
+    type Err = MappedErrors;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "pending" => Ok(Self::Pending),
+            "success" => Ok(Self::Success),
+            "failed" => Ok(Self::Failed),
+            "unknown" => Ok(Self::Unknown),
+            _ => dto_err("Invalid webhook execution status").as_error(),
+        }
+    }
+}
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -12,6 +48,7 @@ pub struct HookResponse {
     pub url: String,
     pub status: u16,
     pub body: Option<String>,
+    pub datetime: DateTime<Local>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
@@ -63,14 +100,52 @@ pub struct WebHookPayloadArtifact {
     ///
     #[serde(skip_serializing_if = "Option::is_none")]
     pub attempts: Option<u8>,
+
+    /// The attempted at timestamp
+    ///
+    /// This is the timestamp when the webhook payload artifact was attempted.
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub attempted: Option<DateTime<Local>>,
+
+    /// The created at timestamp
+    ///
+    /// This is the timestamp when the webhook payload artifact was created.
+    ///
+    pub created: Option<DateTime<Local>>,
+
+    /// The status of the webhook execution
+    ///
+    /// This is the status of the webhook execution. It is the status that is
+    /// used to determine if the webhook should be executed.
+    ///
+    pub status: Option<WebHookExecutionStatus>,
 }
 
 impl WebHookPayloadArtifact {
+    pub fn new(
+        id: Option<Uuid>,
+        payload: String,
+        trigger: WebHookTrigger,
+    ) -> Self {
+        Self {
+            id,
+            payload,
+            trigger,
+            propagations: None,
+            encrypted: None,
+            attempts: None,
+            attempted: None,
+            created: None,
+            status: Some(WebHookExecutionStatus::Pending),
+        }
+    }
+
     /// Encode payload as base64
     ///
     /// Stringify with serde and encode the payload as base64.
     ///
-    pub fn encode_payload(&self) -> Result<Self, MappedErrors> {
+    pub fn encode_payload(&mut self) -> Result<Self, MappedErrors> {
         let serialized_payload =
             serde_json::to_string(&self.payload).map_err(|e| {
                 dto_err(format!("Failed to serialize payload: {}", e))
@@ -79,13 +154,9 @@ impl WebHookPayloadArtifact {
         let encoded_payload =
             general_purpose::STANDARD.encode(serialized_payload.as_bytes());
 
-        Ok(WebHookPayloadArtifact {
-            id: self.id,
+        Ok(Self {
             payload: encoded_payload,
-            trigger: self.trigger.clone(),
-            propagations: self.propagations.clone(),
-            encrypted: None,
-            attempts: None,
+            ..self.clone()
         })
     }
 
@@ -94,10 +165,10 @@ impl WebHookPayloadArtifact {
     /// Decode the payload from base64 and return the original payload.
     ///
     pub fn decode_payload(
-        artifact: WebHookPayloadArtifact,
+        &self,
     ) -> Result<WebHookPayloadArtifact, MappedErrors> {
         let decoded_payload =
-            match general_purpose::STANDARD.decode(&artifact.payload) {
+            match general_purpose::STANDARD.decode(&self.payload) {
                 Err(_) => return dto_err("Failed to decode base64").as_error(),
                 Ok(decoded) => String::from_utf8(decoded)
                     .map_err(|_| dto_err("Failed to decode payload"))?,
@@ -107,13 +178,9 @@ impl WebHookPayloadArtifact {
             dto_err(format!("Failed to deserialize payload: {}", e))
         })?;
 
-        Ok(WebHookPayloadArtifact {
-            id: artifact.id,
+        Ok(Self {
             payload,
-            trigger: artifact.trigger,
-            propagations: None,
-            encrypted: None,
-            attempts: None,
+            ..self.clone()
         })
     }
 }

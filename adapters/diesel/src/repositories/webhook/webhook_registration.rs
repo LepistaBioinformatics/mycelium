@@ -94,7 +94,6 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
     #[tracing::instrument(name = "register_execution_event", skip_all)]
     async fn register_execution_event(
         &self,
-        correspondence_id: Uuid,
         artifact: WebHookPayloadArtifact,
     ) -> Result<CreateResponseKind<Uuid>, MappedErrors> {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
@@ -103,12 +102,18 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
         })?;
 
         let new_webhook_execution = WebHookExecutionModel {
-            id: Uuid::new_v4().to_string(),
-            correspondence_id: correspondence_id.to_string(),
+            id: artifact.id.unwrap_or(Uuid::new_v4()).to_string(),
+            payload: artifact.payload,
             trigger: artifact.trigger.to_string(),
-            artifact: serde_json::to_string(&artifact).unwrap(),
             created: Local::now().naive_utc(),
-            execution_details: None,
+            status: match artifact.status {
+                Some(status) => Some(status.to_string()),
+                None => None,
+            },
+            attempts: 0,
+            attempted: None,
+            propagations: None,
+            encrypted: None,
         };
 
         let created = diesel::insert_into(webhook_execution_model::table)
