@@ -26,14 +26,6 @@ pub enum WebHookTrigger {
     UserAccountUpdated,
     #[serde(rename = "userAccount.deleted")]
     UserAccountDeleted,
-
-    // ? -----------------------------------------------------------------------
-    // ? Guesting related actions
-    // ? -----------------------------------------------------------------------
-    #[serde(rename = "guestAccount.invited")]
-    GuestAccountInvited,
-    #[serde(rename = "guestAccount.revoked")]
-    GuestAccountRevoked,
 }
 
 impl Display for WebHookTrigger {
@@ -51,8 +43,6 @@ impl Display for WebHookTrigger {
             Self::UserAccountCreated => write!(f, "userAccount.created"),
             Self::UserAccountUpdated => write!(f, "userAccount.updated"),
             Self::UserAccountDeleted => write!(f, "userAccount.deleted"),
-            Self::GuestAccountInvited => write!(f, "guestAccount.invited"),
-            Self::GuestAccountRevoked => write!(f, "guestAccount.revoked"),
         }
     }
 }
@@ -74,8 +64,6 @@ impl FromStr for WebHookTrigger {
             "userAccount.created" => Ok(Self::UserAccountCreated),
             "userAccount.updated" => Ok(Self::UserAccountUpdated),
             "userAccount.deleted" => Ok(Self::UserAccountDeleted),
-            "guestAccount.invited" => Ok(Self::GuestAccountInvited),
-            "guestAccount.revoked" => Ok(Self::GuestAccountRevoked),
             _ => Err(format!("Unknown webhook trigger: {}", s)),
         }
     }
