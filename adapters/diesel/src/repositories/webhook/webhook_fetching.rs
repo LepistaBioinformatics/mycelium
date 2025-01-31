@@ -1,6 +1,11 @@
 use crate::{
-    models::{config::DbPoolProvider, webhook::WebHook as WebHookModel},
-    schema::webhook as webhook_model,
+    models::{
+        config::DbPoolProvider, webhook::WebHook as WebHookModel,
+        webhook_execution::WebHookExecution as WebHookExecutionModel,
+    },
+    schema::{
+        webhook as webhook_model, webhook_execution as webhook_execution_model,
+    },
 };
 
 use async_trait::async_trait;
@@ -9,7 +14,10 @@ use diesel::prelude::*;
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
-        webhook::{WebHook, WebHookTrigger},
+        webhook::{
+            WebHook, WebHookExecutionStatus, WebHookPayloadArtifact,
+            WebHookTrigger,
+        },
     },
     entities::WebHookFetching,
 };
@@ -184,5 +192,68 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
             .collect();
 
         Ok(FetchManyResponseKind::Found(webhooks))
+    }
+
+    #[tracing::instrument(name = "fetch_execution_event", skip_all)]
+    async fn fetch_execution_event(
+        &self,
+        max_events: u32,
+        max_attempts: u32,
+        status: Option<Vec<WebHookExecutionStatus>>,
+    ) -> Result<FetchManyResponseKind<WebHookPayloadArtifact>, MappedErrors>
+    {
+        let conn = &mut self.db_config.get_pool().get().map_err(|e| {
+            fetching_err(format!("Failed to get DB connection: {}", e))
+                .with_code(NativeErrorCodes::MYC00001)
+        })?;
+
+        let statuses = status
+            .unwrap_or(vec![WebHookExecutionStatus::Pending])
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<String>>();
+
+        let execution_events =
+            webhook_execution_model::table
+                .filter(webhook_execution_model::status.eq_any(statuses).and(
+                    webhook_execution_model::attempts.lt(max_attempts as i32),
+                ))
+                .order(webhook_execution_model::created.desc())
+                .limit(max_events as i64)
+                .select(WebHookExecutionModel::as_select())
+                .load::<WebHookExecutionModel>(conn)
+                .map_err(|e| {
+                    fetching_err(format!(
+                        "Failed to fetch webhook execution events: {e}"
+                    ))
+                })?;
+
+        let execution_events = execution_events
+            .into_iter()
+            .map(|record| WebHookPayloadArtifact {
+                id: Some(Uuid::from_str(&record.id).unwrap()),
+                payload: record.payload.to_string(),
+                trigger: record.trigger.parse().unwrap(),
+                propagations: match record.propagations {
+                    Some(propagations) => {
+                        Some(from_value(propagations).unwrap())
+                    }
+                    None => None,
+                },
+                encrypted: record.encrypted,
+                attempts: Some(record.attempts as u8),
+                attempted: record
+                    .attempted
+                    .map(|a| a.and_local_timezone(Local).unwrap()),
+                created: Some(
+                    record.created.and_local_timezone(Local).unwrap(),
+                ),
+                status: record
+                    .status
+                    .map(|s| WebHookExecutionStatus::from_str(&s).unwrap()),
+            })
+            .collect();
+
+        Ok(FetchManyResponseKind::Found(execution_events))
     }
 }

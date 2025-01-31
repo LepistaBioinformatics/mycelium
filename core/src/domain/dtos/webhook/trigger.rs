@@ -1,37 +1,31 @@
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display, Formatter};
 use std::str::FromStr;
 use utoipa::ToSchema;
 
-#[derive(Clone, Debug, Deserialize, ToSchema)]
+#[derive(
+    Clone, Debug, Serialize, Deserialize, ToSchema, PartialEq, Eq, Hash,
+)]
 pub enum WebHookTrigger {
     // ? -----------------------------------------------------------------------
     // ? Subscription account related actions
     // ? -----------------------------------------------------------------------
     #[serde(rename = "subscriptionAccount.created")]
     SubscriptionAccountCreated,
-    #[serde(rename = "subscriptionAccount.updated")]
-    SubscriptionAccountUpdated,
-    #[serde(rename = "subscriptionAccount.deleted")]
-    SubscriptionAccountDeleted,
+    //#[serde(rename = "subscriptionAccount.updated")]
+    //SubscriptionAccountUpdated,
+    //#[serde(rename = "subscriptionAccount.deleted")]
+    //SubscriptionAccountDeleted,
 
     // ? -----------------------------------------------------------------------
     // ? Default user account related actions
     // ? -----------------------------------------------------------------------
     #[serde(rename = "userAccount.created")]
     UserAccountCreated,
-    #[serde(rename = "userAccount.updated")]
-    UserAccountUpdated,
-    #[serde(rename = "userAccount.deleted")]
-    UserAccountDeleted,
-
-    // ? -----------------------------------------------------------------------
-    // ? Guesting related actions
-    // ? -----------------------------------------------------------------------
-    #[serde(rename = "guestAccount.invited")]
-    GuestAccountInvited,
-    #[serde(rename = "guestAccount.revoked")]
-    GuestAccountRevoked,
+    //#[serde(rename = "userAccount.updated")]
+    //UserAccountUpdated,
+    //#[serde(rename = "userAccount.deleted")]
+    //UserAccountDeleted,
 }
 
 impl Display for WebHookTrigger {
@@ -40,17 +34,15 @@ impl Display for WebHookTrigger {
             Self::SubscriptionAccountCreated => {
                 write!(f, "subscriptionAccount.created")
             }
-            Self::SubscriptionAccountUpdated => {
-                write!(f, "subscriptionAccount.updated")
-            }
-            Self::SubscriptionAccountDeleted => {
-                write!(f, "subscriptionAccount.deleted")
-            }
+            //Self::SubscriptionAccountUpdated => {
+            //    write!(f, "subscriptionAccount.updated")
+            //}
+            //Self::SubscriptionAccountDeleted => {
+            //    write!(f, "subscriptionAccount.deleted")
+            //}
             Self::UserAccountCreated => write!(f, "userAccount.created"),
-            Self::UserAccountUpdated => write!(f, "userAccount.updated"),
-            Self::UserAccountDeleted => write!(f, "userAccount.deleted"),
-            Self::GuestAccountInvited => write!(f, "guestAccount.invited"),
-            Self::GuestAccountRevoked => write!(f, "guestAccount.revoked"),
+            //Self::UserAccountUpdated => write!(f, "userAccount.updated"),
+            //Self::UserAccountDeleted => write!(f, "userAccount.deleted"),
         }
     }
 }
@@ -63,27 +55,16 @@ impl FromStr for WebHookTrigger {
             "subscriptionAccount.created" => {
                 Ok(Self::SubscriptionAccountCreated)
             }
-            "subscriptionAccount.updated" => {
-                Ok(Self::SubscriptionAccountUpdated)
-            }
-            "subscriptionAccount.deleted" => {
-                Ok(Self::SubscriptionAccountDeleted)
-            }
+            //"subscriptionAccount.updated" => {
+            //    Ok(Self::SubscriptionAccountUpdated)
+            //}
+            //"subscriptionAccount.deleted" => {
+            //    Ok(Self::SubscriptionAccountDeleted)
+            //}
             "userAccount.created" => Ok(Self::UserAccountCreated),
-            "userAccount.updated" => Ok(Self::UserAccountUpdated),
-            "userAccount.deleted" => Ok(Self::UserAccountDeleted),
-            "guestAccount.invited" => Ok(Self::GuestAccountInvited),
-            "guestAccount.revoked" => Ok(Self::GuestAccountRevoked),
+            //"userAccount.updated" => Ok(Self::UserAccountUpdated),
+            //"userAccount.deleted" => Ok(Self::UserAccountDeleted),
             _ => Err(format!("Unknown webhook trigger: {}", s)),
         }
-    }
-}
-
-impl Serialize for WebHookTrigger {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&format!("{}", self))
     }
 }

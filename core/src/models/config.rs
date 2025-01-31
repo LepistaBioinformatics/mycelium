@@ -1,4 +1,4 @@
-use super::account_life_cycle::AccountLifeCycle;
+use super::{account_life_cycle_config::AccountLifeCycle, WebhookConfig};
 
 use myc_config::load_config_from_file;
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
@@ -9,6 +9,7 @@ use std::path::PathBuf;
 #[serde(rename_all = "camelCase")]
 pub struct CoreConfig {
     pub account_life_cycle: AccountLifeCycle,
+    pub webhook: WebhookConfig,
 }
 
 #[derive(Clone, Debug, Deserialize)]

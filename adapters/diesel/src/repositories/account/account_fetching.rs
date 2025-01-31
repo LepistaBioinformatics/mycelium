@@ -24,7 +24,7 @@ use myc_core::domain::{
     entities::AccountFetching,
 };
 use mycelium_base::{
-    dtos::{Children, PaginatedRecord},
+    dtos::Children,
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{creation_err, fetching_err, MappedErrors},
 };
@@ -309,11 +309,11 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             })
             .collect();
 
-        Ok(FetchManyResponseKind::FoundPaginated(PaginatedRecord {
+        Ok(FetchManyResponseKind::FoundPaginated {
             count: total,
             skip: Some(skip),
             size: Some(page_size),
             records: accounts,
-        }))
+        })
     }
 }

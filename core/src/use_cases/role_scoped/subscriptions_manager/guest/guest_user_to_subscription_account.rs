@@ -72,6 +72,7 @@ pub async fn guest_user_to_subscription_account(
     .await;
 
     let target_account = match target_account_response? {
+        FetchResponseKind::Found(account) => account,
         FetchResponseKind::NotFound(id) => {
             return use_case_err(format!(
                 "Target account not found: {:?}",
@@ -80,19 +81,71 @@ pub async fn guest_user_to_subscription_account(
             .with_code(NativeErrorCodes::MYC00013)
             .as_error()
         }
-        FetchResponseKind::Found(account) => match account.account_type {
-            AccountType::Subscription { .. }
-            | AccountType::RoleAssociated { .. }
-            | AccountType::ActorAssociated { .. }
-            | AccountType::TenantManager { .. } => account,
-            _ => {
+    };
+
+    let account_id = match target_account.id {
+        Some(id) => id,
+        None => {
+            return use_case_err(
+                "Unable to find account id. This should never happen.",
+            )
+            .as_error()
+        }
+    };
+
+    match target_account.account_type {
+        //
+        // If the targed account is an actor associated account, the user must
+        // have write access and system accounts access.
+        //
+        AccountType::ActorAssociated { .. } => {
+            profile
+                .with_write_access()
+                .with_system_accounts_access()
+                .get_related_account_or_error()?;
+        }
+        //
+        // If the target account is a tenant manager account, the user must be a
+        // tenant manager and must have the tenant ownership.
+        //
+        AccountType::TenantManager { .. } => {
+            let is_manager = profile
+                .with_write_access()
+                .with_roles(vec![SystemActor::TenantManager])
+                .get_related_account_or_error()
+                .is_ok();
+
+            let is_owner =
+                profile.with_tenant_ownership_or_error(tenant_id).is_ok();
+
+            if !is_manager || !is_owner {
                 return use_case_err(
-                    "Invalid account. Only subscription accounts should \
-                    receive guesting.",
+                    "Insufficient privileges to perform these action (no tenant ownership).",
                 )
-                .as_error()
+                .with_code(NativeErrorCodes::MYC00013)
+                .as_error();
             }
-        },
+        }
+        //
+        // If the target account is a subscription account or a role associated
+        // account, the user must have write access and the subscriptions
+        // manager role.
+        //
+        AccountType::RoleAssociated { .. }
+        | AccountType::Subscription { .. } => {
+            profile
+                .on_account(account_id)
+                .with_write_access()
+                .with_roles(vec![SystemActor::SubscriptionsManager])
+                .get_related_account_or_error()?;
+        }
+        _ => {
+            return use_case_err(
+                "Invalid account. Only subscription accounts should \
+                    receive guesting.",
+            )
+            .as_error()
+        }
     };
 
     if let Some(status) = target_account.verbose_status {

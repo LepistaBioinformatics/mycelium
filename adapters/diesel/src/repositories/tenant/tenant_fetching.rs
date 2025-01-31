@@ -26,7 +26,7 @@ use myc_core::domain::{
     entities::TenantFetching,
 };
 use mycelium_base::{
-    dtos::{Children, PaginatedRecord},
+    dtos::Children,
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{fetching_err, MappedErrors},
 };
@@ -295,12 +295,12 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
             return Ok(FetchManyResponseKind::NotFound);
         }
 
-        Ok(FetchManyResponseKind::FoundPaginated(PaginatedRecord {
+        Ok(FetchManyResponseKind::FoundPaginated {
             count: total,
             skip: Some(skip.unwrap_or(0) as i64),
             size: Some(page_size.unwrap_or(10) as i64),
             records: tenants,
-        }))
+        })
     }
 }
 
