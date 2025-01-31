@@ -1,3 +1,21 @@
+## v7.1.0 (2025-01-31)
+
+### Feat
+
+- wip - implements the async dispatcher functionality
+- wip - do implements the asynchronous dispatching of webhooks
+- review the weghook trigger names to improve the user understanding of their goal
+
+### Fix
+
+- remove guesting and revoke options from the webhook trigger
+- fix the webhook async dispatch to avoid updates of the payload package and mirror important changes to database
+
+### Refactor
+
+- comment not implemented triggers options for the webhook
+- move tracing and async dispatchers to dedicated modules
+
 ## v7.0.0 (2025-01-26)
 
 ### BREAKING CHANGE
