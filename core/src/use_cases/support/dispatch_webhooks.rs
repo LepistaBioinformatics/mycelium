@@ -62,13 +62,11 @@ pub async fn dispatch_webhooks(
 
     let method = match trigger {
         WebHookTrigger::SubscriptionAccountCreated
-        | WebHookTrigger::UserAccountCreated
-        | WebHookTrigger::GuestAccountInvited => "POST",
+        | WebHookTrigger::UserAccountCreated => "POST",
         WebHookTrigger::SubscriptionAccountUpdated
         | WebHookTrigger::UserAccountUpdated => "PUT",
         WebHookTrigger::SubscriptionAccountDeleted
-        | WebHookTrigger::UserAccountDeleted
-        | WebHookTrigger::GuestAccountRevoked => "DELETE",
+        | WebHookTrigger::UserAccountDeleted => "DELETE",
     };
 
     // ? -----------------------------------------------------------------------
