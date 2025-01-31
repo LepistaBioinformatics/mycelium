@@ -60,7 +60,6 @@ futures-util = "0.3"
 jsonwebtoken = "8.2"
 jwt = "0.16.0"
 lazy_static = "1.4"
-log = "0.4"
 oauth2 = "4.4"
 rand = "0.8"
 redis = { version = "0.27", features = ["tokio-comp"] }

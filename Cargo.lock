@@ -2318,7 +2318,6 @@ version = "7.1.0"
 dependencies = [
  "clap",
  "env_logger 0.10.2",
- "log",
  "myc-core",
  "mycelium-base",
  "mycelium-diesel",
@@ -2327,6 +2326,7 @@ dependencies = [
  "serde_json",
  "shaku",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -2352,7 +2352,6 @@ dependencies = [
  "env_logger 0.10.2",
  "futures",
  "lazy_static",
- "log",
  "myc-core",
  "mycelium-base",
  "mycelium-config",
@@ -2377,7 +2376,6 @@ dependencies = [
  "jsonwebtoken",
  "jwt",
  "lazy_static",
- "log",
  "myc-core",
  "mycelium-base",
  "mycelium-config",
@@ -2399,7 +2397,6 @@ version = "7.1.0"
 dependencies = [
  "actix-web",
  "async-trait",
- "log",
  "myc-core",
  "mycelium-base",
  "mycelium-config",
@@ -2436,13 +2433,13 @@ dependencies = [
  "async-trait",
  "env_logger 0.10.2",
  "lazy_static",
- "log",
  "myc-core",
  "mycelium-base",
  "reqwest 0.11.27",
  "serde",
  "serde_json",
  "shaku",
+ "tracing",
 ]
 
 [[package]]
