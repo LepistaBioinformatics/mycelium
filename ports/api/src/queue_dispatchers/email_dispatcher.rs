@@ -54,7 +54,7 @@ pub(crate) fn email_dispatcher(queue: OptionalConfig<QueueConfig>) {
             {
                 Ok(messages) => {
                     if messages > 0 {
-                        tracing::trace!(
+                        tracing::info!(
                             "'{}' messages consumed from the queue '{}'",
                             messages,
                             queue_name.to_owned()

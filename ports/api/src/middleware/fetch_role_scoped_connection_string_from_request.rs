@@ -66,7 +66,8 @@ pub async fn fetch_role_scoped_connection_string_from_request(
     // ? Build dependencies
     // ? -----------------------------------------------------------------------
 
-    let repo: &dyn TokenFetching = match req.app_data::<web::Data<SqlAppModule>>()
+    let repo: &dyn TokenFetching = match req
+        .app_data::<web::Data<SqlAppModule>>()
     {
         Some(module) => module.resolve_ref(),
         None => {

@@ -1,4 +1,5 @@
 use futures::future::join_all;
+use myc_core::domain::dtos::webhook::WebHookExecutionStatus;
 use myc_core::domain::entities::WebHookUpdating;
 use myc_core::models::CoreConfig;
 use myc_core::{
@@ -21,7 +22,6 @@ pub(crate) fn webhook_dispatcher(
     app_modules: Arc<SqlAppModule>,
 ) {
     tokio::spawn(async move {
-        let account_life_cycle = config.account_life_cycle.clone();
         let webhook_config = config.webhook.clone();
         let read_repo: &dyn WebHookFetching = app_modules.resolve_ref();
         let write_repo: &dyn WebHookUpdating = app_modules.resolve_ref();
@@ -39,10 +39,16 @@ pub(crate) fn webhook_dispatcher(
                 }
             }));
 
+        //
+        // Skip the first tick to avoid fetching events that were created in the
+        // same second as the dispatcher start.
+        //
+        interval.tick().await;
+
         loop {
             interval.tick().await;
 
-            tracing::debug!("Start webhook dispatch");
+            tracing::trace!("Start webhook dispatch");
 
             //
             // Fetch webhook dispatch events
@@ -54,6 +60,15 @@ pub(crate) fn webhook_dispatcher(
                         .async_get_or_error()
                         .await
                         .unwrap_or(10) as u32,
+                    webhook_config
+                        .max_attempts
+                        .async_get_or_error()
+                        .await
+                        .unwrap_or(3) as u32,
+                    Some(vec![
+                        WebHookExecutionStatus::Pending,
+                        WebHookExecutionStatus::Failed,
+                    ]),
                 )
                 .await
             {
@@ -66,7 +81,7 @@ pub(crate) fn webhook_dispatcher(
 
             let events = match events_response {
                 FetchManyResponseKind::NotFound => {
-                    tracing::debug!("No webhook dispatch events found");
+                    tracing::trace!("No webhook dispatch events found");
                     continue;
                 }
                 FetchManyResponseKind::Found(events) => events,
@@ -92,7 +107,7 @@ pub(crate) fn webhook_dispatcher(
                 });
 
             if events_by_trigger.is_empty() {
-                tracing::debug!("No webhook dispatch events found");
+                tracing::trace!("No webhook dispatch events found");
                 continue;
             }
 
@@ -100,7 +115,7 @@ pub(crate) fn webhook_dispatcher(
             // Dispatch webhooks
             //
             for ((trigger, id), artifacts) in events_by_trigger {
-                tracing::debug!(
+                tracing::info!(
                     "Dispatch webhooks for trigger: {trigger} and id: {id}"
                 );
 
@@ -109,7 +124,7 @@ pub(crate) fn webhook_dispatcher(
                         dispatch_webhooks(
                             trigger.to_owned(),
                             artifact,
-                            account_life_cycle.clone(),
+                            config.clone(),
                             child_read_repo.clone(),
                             child_write_repo.clone(),
                         )
@@ -123,7 +138,7 @@ pub(crate) fn webhook_dispatcher(
                 }
             }
 
-            tracing::debug!("End webhooks dispatch");
+            tracing::trace!("End webhooks dispatch");
         }
     });
 }
