@@ -25,24 +25,7 @@ pub(crate) async fn fetch_profile_from_request(
     permissioned_roles: Option<PermissionedRoles>,
 ) -> Result<MyceliumProfileData, GatewayError> {
     // ? -----------------------------------------------------------------------
-    // ? Build dependencies
-    // ? -----------------------------------------------------------------------
-
-    let app_module = match req.app_data::<web::Data<SqlAppModule>>() {
-        Some(module) => module,
-        None => {
-            tracing::error!(
-                "Unable to extract profile fetching module from request"
-            );
-
-            return Err(GatewayError::InternalServerError(
-                "Unexpected error on get profile".to_string(),
-            ));
-        }
-    };
-
-    // ? -----------------------------------------------------------------------
-    // ? Profile Fetching
+    // ? Fetch email from request
     // ? -----------------------------------------------------------------------
 
     let email =
@@ -56,6 +39,23 @@ pub(crate) async fn fetch_profile_from_request(
 
     if let Some(email) = email.to_owned() {
         tracing::trace!("Email: {:?}", email.redacted_email());
+    };
+
+    // ? -----------------------------------------------------------------------
+    // ? Fetch profile from email
+    // ? -----------------------------------------------------------------------
+
+    let app_module = match req.app_data::<web::Data<SqlAppModule>>() {
+        Some(module) => module,
+        None => {
+            tracing::error!(
+                "Unable to extract profile fetching module from request"
+            );
+
+            return Err(GatewayError::InternalServerError(
+                "Unexpected error on get profile".to_string(),
+            ));
+        }
     };
 
     let profile = match fetch_profile_from_email(
