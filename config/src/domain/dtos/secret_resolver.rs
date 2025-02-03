@@ -103,8 +103,9 @@ impl<T: FromStr + Debug + Clone> SecretResolver<T> {
         }
     }
 
+    #[tracing::instrument(name = "async_get_or_error", skip_all)]
     pub async fn async_get_or_error(&self) -> Result<T, MappedErrors> {
-        tracing::info!("Resolving secret: {:?}", self);
+        tracing::trace!("Resolving secret: {:?}", self);
 
         match self {
             //
