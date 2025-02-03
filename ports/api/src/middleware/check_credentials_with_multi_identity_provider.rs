@@ -1,10 +1,13 @@
-use crate::{dtos::JWKS, middleware::parse_issuer_from_request_v2};
+use crate::{dtos::JWKS, middleware::get_email_or_provider_from_request};
 
 use actix_web::HttpRequest;
 use base64::{engine::general_purpose, Engine};
 use jsonwebtoken::{decode, decode_header, DecodingKey, Validation};
 use myc_core::domain::dtos::email::Email;
-use myc_http_tools::responses::GatewayError;
+use myc_http_tools::{
+    models::external_providers_config::ExternalProviderConfig,
+    responses::GatewayError,
+};
 use openssl::{stack::Stack, x509::X509};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -51,7 +54,7 @@ struct Claims {
 )]
 pub(crate) async fn check_credentials_with_multi_identity_provider(
     req: HttpRequest,
-) -> Result<Option<Email>, GatewayError> {
+) -> Result<Email, GatewayError> {
     // ? -----------------------------------------------------------------------
     // ? Extract issuer and token from request
     //
@@ -62,8 +65,8 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
     //
     // ? -----------------------------------------------------------------------
 
-    let (email, issuer_v2, token) =
-        parse_issuer_from_request_v2(req.clone()).await?;
+    let (optional_email, optional_provider, token) =
+        get_email_or_provider_from_request(req.clone()).await?;
 
     // ? -----------------------------------------------------------------------
     // ? If email is found, return it
@@ -73,8 +76,8 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
     //
     // ? -----------------------------------------------------------------------
 
-    if let Some(email) = email {
-        return Ok(Some(email));
+    if let Some(email) = optional_email {
+        return Ok(email);
     }
 
     // ? -----------------------------------------------------------------------
@@ -85,15 +88,53 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
     //
     // ? -----------------------------------------------------------------------
 
-    let issuer_v2 = issuer_v2.ok_or(GatewayError::Unauthorized(
-        "Could not check issuer.".to_string(),
-    ))?;
+    if let Some(provider) = optional_provider {
+        return get_email_from_external_provider(&provider, &token).await;
+    }
 
+    // ? -----------------------------------------------------------------------
+    // ? If no provider is found, return an error
+    // ? -----------------------------------------------------------------------
+
+    Err(GatewayError::Unauthorized(
+        "Could not check issuer.".to_string(),
+    ))
+}
+
+/// Attempt to extract the `kid`-claim o
+///
+/// This function is used to fetch the JWKS from the given URI.
+#[tracing::instrument(name = "fetch_jwks", skip_all)]
+async fn fetch_jwks(uri: &str) -> Result<JWKS, GatewayError> {
+    let res = reqwest::get(uri).await.map_err(|e| {
+        tracing::error!("Error fetching JWKS: {}", e);
+
+        GatewayError::InternalServerError(
+            "Unexpected error on fetch JWKS".to_string(),
+        )
+    })?;
+
+    let val = res.json::<JWKS>().await.map_err(|e| {
+        tracing::error!("Error parsing JWKS: {}", e);
+
+        GatewayError::InternalServerError(
+            "Unexpected error on parse JWKS".to_string(),
+        )
+    })?;
+
+    return Ok(val);
+}
+
+#[tracing::instrument(name = "get_email_from_external_provider", skip_all)]
+async fn get_email_from_external_provider(
+    provider: &ExternalProviderConfig,
+    token: &str,
+) -> Result<Email, GatewayError> {
     //
     // Fetch JWKS url from issuer v2
     //
     let jwks_uri =
-        issuer_v2.jwks_uri.async_get_or_error().await.map_err(|e| {
+        provider.jwks_uri.async_get_or_error().await.map_err(|e| {
             GatewayError::InternalServerError(format!(
                 "Error fetching JWKS: {e}"
             ))
@@ -221,7 +262,7 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
     //
     // If the issuer is Microsoft Graph, disable signature validation
     //
-    let issuer = issuer_v2
+    let issuer = provider
         .issuer
         .async_get_or_error()
         .await
@@ -256,7 +297,7 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
     // Extract expected audience from issuer v2
     //
     let expected_audience =
-        issuer_v2.audience.async_get_or_error().await.map_err(|e| {
+        provider.audience.async_get_or_error().await.map_err(|e| {
             tracing::error!("Error getting audience: {e}");
 
             GatewayError::Unauthorized("JWT audience not found".to_string())
@@ -310,29 +351,5 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
         )
     })?;
 
-    Ok(Some(email))
-}
-
-/// Attempt to extract the `kid`-claim o
-///
-/// This function is used to fetch the JWKS from the given URI.
-#[tracing::instrument(name = "fetch_jwks", skip_all)]
-async fn fetch_jwks(uri: &str) -> Result<JWKS, GatewayError> {
-    let res = reqwest::get(uri).await.map_err(|e| {
-        tracing::error!("Error fetching JWKS: {}", e);
-
-        GatewayError::InternalServerError(
-            "Unexpected error on fetch JWKS".to_string(),
-        )
-    })?;
-
-    let val = res.json::<JWKS>().await.map_err(|e| {
-        tracing::error!("Error parsing JWKS: {}", e);
-
-        GatewayError::InternalServerError(
-            "Unexpected error on parse JWKS".to_string(),
-        )
-    })?;
-
-    return Ok(val);
+    Ok(email)
 }
