@@ -2250,6 +2250,7 @@ dependencies = [
  "actix-web-opentelemetry",
  "async-trait",
  "awc",
+ "base64 0.22.1",
  "chrono",
  "derive_more",
  "futures",
@@ -2339,6 +2340,7 @@ dependencies = [
  "serde",
  "serde_yaml",
  "tokio",
+ "tracing",
  "utoipa",
 ]
 
