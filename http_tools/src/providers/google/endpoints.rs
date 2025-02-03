@@ -10,7 +10,6 @@ use actix_web::{
 };
 use chrono::{prelude::*, Duration};
 use jsonwebtoken::{encode, EncodingKey, Header};
-use log::debug;
 use myc_config::optional_config::OptionalConfig;
 use reqwest::header::LOCATION;
 
@@ -138,7 +137,7 @@ pub async fn google_callback_url(
     ) {
         Ok(token) => token,
         Err(err) => {
-            debug!("Error encoding token: {:?}", err);
+            tracing::debug!("Error encoding token: {:?}", err);
             return HttpResponse::BadGateway().json(serde_json::json!({
                 "status": "fail",
                 "message": "Error encoding token"

@@ -1,11 +1,10 @@
 use clap::Parser;
-use log::{error, info};
 use myc_core::{
     domain::entities::ErrorCodeRegistration,
     use_cases::role_scoped::system_manager::error_codes::batch_register_native_error_codes,
 };
 use myc_diesel::repositories::{
-    SqlAppModule, DieselDbPoolProvider, DieselDbPoolProviderParameters,
+    DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
 };
 use shaku::HasComponent;
 use std::sync::Arc;
@@ -48,20 +47,24 @@ pub(crate) async fn batch_register_native_error_codes_cmd() {
     // Batch register the native error codes
     //
     match batch_register_native_error_codes(Box::new(repo)).await {
-        Err(err) => error!("{err}"),
+        Err(err) => tracing::error!("{err}"),
         Ok(res) => {
             if res.unpersisted_errors.len() > 0 {
-                info!("Native error codes not registered:");
+                tracing::info!("Native error codes not registered:");
 
                 for error_code in res.unpersisted_errors {
-                    info!(
+                    tracing::info!(
                         "{:?}: {:?}",
-                        error_code.error_number, error_code.message
+                        error_code.error_number,
+                        error_code.message
                     );
                 }
             }
 
-            info!("{} native error codes registered", res.persisted_errors);
+            tracing::info!(
+                "{} native error codes registered",
+                res.persisted_errors
+            );
         }
     };
 }

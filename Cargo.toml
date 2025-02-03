@@ -48,10 +48,19 @@ categories = ["development-tools", "web-programming::http-server"]
 
 [workspace.dependencies]
 
+#
+# Fixed dependency
+#
+# Vulnerability found from dependabot:
+# - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/3
+#
+hashbrown = "0.15.2"
+
 actix-web = { version = "4", features = ["openssl"] }
 actix-web-httpauth = "0.8.0"
 async-trait = "0.1"
 awc = { version = "3", features = ["openssl"] }
+base64 = "0.22"
 chrono = { version = "0.4", features = ["serde"] }
 derive_more = "0.99"
 env_logger = "0.10"
@@ -60,7 +69,6 @@ futures-util = "0.3"
 jsonwebtoken = "8.2"
 jwt = "0.16.0"
 lazy_static = "1.4"
-log = "0.4"
 oauth2 = "4.4"
 rand = "0.8"
 redis = { version = "0.27", features = ["tokio-comp"] }

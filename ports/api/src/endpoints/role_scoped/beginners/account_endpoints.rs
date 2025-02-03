@@ -103,22 +103,14 @@ pub async fn create_default_account_url(
     app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
-    let opt_email =
-        match check_credentials_with_multi_identity_provider(req).await {
-            Err(err) => {
-                warn!("err: {:?}", err);
-                return HttpResponse::InternalServerError()
-                    .json(HttpJsonResponse::new_message(err.to_string()));
-            }
-            Ok(res) => res,
-        };
-
-    let email = match opt_email {
-        None => return HttpResponse::Forbidden()
-            .json(HttpJsonResponse::new_message(String::from(
-            "Unable o extract user identity from request. Account not created.",
-        ))),
-        Some(email) => email,
+    let email = match check_credentials_with_multi_identity_provider(req).await
+    {
+        Err(err) => {
+            warn!("err: {:?}", err);
+            return HttpResponse::InternalServerError()
+                .json(HttpJsonResponse::new_message(err.to_string()));
+        }
+        Ok(res) => res,
     };
 
     match create_default_account(
