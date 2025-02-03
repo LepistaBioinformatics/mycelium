@@ -24,6 +24,7 @@ lazy_static.workspace = true
 reqwest.workspace = true
 serde.workspace = true
 serde_yaml.workspace = true
+tracing.workspace = true
 utoipa.workspace = true
 
 [dev-dependencies]

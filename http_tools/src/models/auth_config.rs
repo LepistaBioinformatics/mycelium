@@ -1,4 +1,7 @@
-use super::internal_auth_config::InternalOauthConfig;
+use super::{
+    external_providers_config::ExternalProviderConfig,
+    internal_auth_config::InternalOauthConfig,
+};
 use crate::providers::{
     azure_config::AzureOauthConfig, google_config::GoogleOauthConfig,
 };
@@ -12,6 +15,7 @@ use std::path::PathBuf;
 #[serde(rename_all = "camelCase")]
 pub struct AuthConfig {
     pub internal: OptionalConfig<InternalOauthConfig>,
+    pub external: OptionalConfig<Vec<ExternalProviderConfig>>,
     pub google: OptionalConfig<GoogleOauthConfig>,
     pub azure: OptionalConfig<AzureOauthConfig>,
 }

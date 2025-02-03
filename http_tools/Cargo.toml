@@ -26,7 +26,6 @@ derive_more.workspace = true
 futures.workspace = true
 jsonwebtoken.workspace = true
 jwt.workspace = true
-log.workspace = true
 oauth2.workspace = true
 rand.workspace = true
 serde.workspace = true

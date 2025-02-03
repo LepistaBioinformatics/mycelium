@@ -1,6 +1,6 @@
 use crate::{
     dtos::claims::Claims, models::internal_auth_config::InternalOauthConfig,
-    utils::HttpJsonResponse,
+    settings::MYCELIUM_PROVIDER_KEY, utils::HttpJsonResponse,
 };
 
 use actix_web::HttpResponse;
@@ -54,7 +54,7 @@ pub async fn encode_jwt(
         },
         email: user.email.email(),
         exp: expiration,
-        iss: "mycelium".to_string(),
+        iss: MYCELIUM_PROVIDER_KEY.to_string(),
     };
 
     let header = Header::new(Algorithm::HS512);

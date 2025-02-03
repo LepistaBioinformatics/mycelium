@@ -119,7 +119,7 @@ pub(crate) fn webhook_dispatcher(
                     "Dispatch webhooks for trigger: {trigger} and id: {id}"
                 );
 
-                let dispaching_evends =
+                let dispatching_events =
                     join_all(artifacts.into_iter().map(|artifact| {
                         dispatch_webhooks(
                             trigger.to_owned(),
@@ -131,7 +131,7 @@ pub(crate) fn webhook_dispatcher(
                     }))
                     .await;
 
-                for event in dispaching_evends {
+                for event in dispatching_events {
                     if let Err(err) = event {
                         tracing::error!("Error on dispatch webhook: {err}");
                     }
