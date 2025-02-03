@@ -31,16 +31,6 @@ pub(crate) async fn fetch_profile_from_request(
     let email =
         check_credentials_with_multi_identity_provider(req.clone()).await?;
 
-    if email.is_none() {
-        return Err(GatewayError::Unauthorized(format!(
-            "Unable o extract user identity from request."
-        )));
-    }
-
-    if let Some(email) = email.to_owned() {
-        tracing::trace!("Email: {:?}", email.redacted_email());
-    };
-
     // ? -----------------------------------------------------------------------
     // ? Fetch profile from email
     // ? -----------------------------------------------------------------------
@@ -59,7 +49,7 @@ pub(crate) async fn fetch_profile_from_request(
     };
 
     let profile = match fetch_profile_from_email(
-        email.to_owned().unwrap(),
+        email.to_owned(),
         None,
         tenant,
         roles,

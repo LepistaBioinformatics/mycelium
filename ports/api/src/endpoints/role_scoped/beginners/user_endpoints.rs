@@ -354,7 +354,7 @@ pub async fn create_default_user_url(
                 );
             }
         },
-        Ok(res) => Some(res),
+        Ok((issuer, _)) => Some(issuer),
     };
 
     match create_default_user(
@@ -754,25 +754,14 @@ pub async fn totp_start_activation_url(
     app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
-    let opt_email =
-        match check_credentials_with_multi_identity_provider(req).await {
-            Err(err) => {
-                warn!("err: {:?}", err);
-                return HttpResponse::InternalServerError()
-                    .json(HttpJsonResponse::new_message(err));
-            }
-            Ok(res) => res,
-        };
-
-    let email = match opt_email {
-        None => {
-            return HttpResponse::Forbidden().json(
-                HttpJsonResponse::new_message(
-                    "User not authenticated. Please login first.",
-                ),
-            )
+    let email = match check_credentials_with_multi_identity_provider(req).await
+    {
+        Err(err) => {
+            warn!("err: {:?}", err);
+            return HttpResponse::InternalServerError()
+                .json(HttpJsonResponse::new_message(err));
         }
-        Some(email) => email,
+        Ok(res) => res,
     };
 
     let as_qr_code = query.qr_code.to_owned().unwrap_or(false);
@@ -838,25 +827,14 @@ pub async fn totp_finish_activation_url(
     app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
-    let opt_email =
-        match check_credentials_with_multi_identity_provider(req).await {
-            Err(err) => {
-                warn!("err: {:?}", err);
-                return HttpResponse::InternalServerError()
-                    .json(HttpJsonResponse::new_message(err));
-            }
-            Ok(res) => res,
-        };
-
-    let email = match opt_email {
-        None => {
-            return HttpResponse::Forbidden().json(
-                HttpJsonResponse::new_message(
-                    "User not authenticated. Please login first.",
-                ),
-            )
+    let email = match check_credentials_with_multi_identity_provider(req).await
+    {
+        Err(err) => {
+            warn!("err: {:?}", err);
+            return HttpResponse::InternalServerError()
+                .json(HttpJsonResponse::new_message(err));
         }
-        Some(email) => email,
+        Ok(res) => res,
     };
 
     match totp_finish_activation(
@@ -914,25 +892,14 @@ pub async fn totp_check_token_url(
     life_cycle_settings: web::Data<AccountLifeCycle>,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
-    let opt_email =
-        match check_credentials_with_multi_identity_provider(req).await {
-            Err(err) => {
-                warn!("err: {:?}", err);
-                return HttpResponse::InternalServerError()
-                    .json(HttpJsonResponse::new_message(err));
-            }
-            Ok(res) => res,
-        };
-
-    let email = match opt_email {
-        None => {
-            return HttpResponse::Forbidden().json(
-                HttpJsonResponse::new_message(
-                    "User not authenticated. Please login first.",
-                ),
-            )
+    let email = match check_credentials_with_multi_identity_provider(req).await
+    {
+        Err(err) => {
+            warn!("err: {:?}", err);
+            return HttpResponse::InternalServerError()
+                .json(HttpJsonResponse::new_message(err));
         }
-        Some(email) => email,
+        Ok(res) => res,
     };
 
     match totp_check_token(
@@ -1004,25 +971,14 @@ pub async fn totp_disable_url(
     app_module: web::Data<SqlAppModule>,
     message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
 ) -> impl Responder {
-    let opt_email =
-        match check_credentials_with_multi_identity_provider(req).await {
-            Err(err) => {
-                warn!("err: {:?}", err);
-                return HttpResponse::InternalServerError()
-                    .json(HttpJsonResponse::new_message(err));
-            }
-            Ok(res) => res,
-        };
-
-    let email = match opt_email {
-        None => {
-            return HttpResponse::Forbidden().json(
-                HttpJsonResponse::new_message(
-                    "User not authenticated. Please login first.",
-                ),
-            )
+    let email = match check_credentials_with_multi_identity_provider(req).await
+    {
+        Err(err) => {
+            warn!("err: {:?}", err);
+            return HttpResponse::InternalServerError()
+                .json(HttpJsonResponse::new_message(err));
         }
-        Some(email) => email,
+        Ok(res) => res,
     };
 
     match totp_disable(
