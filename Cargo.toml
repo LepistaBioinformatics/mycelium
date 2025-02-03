@@ -48,6 +48,14 @@ categories = ["development-tools", "web-programming::http-server"]
 
 [workspace.dependencies]
 
+#
+# Fixed dependency
+#
+# Vulnerability found from dependabot:
+# - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/3
+#
+hashbrown = "0.15.2"
+
 actix-web = { version = "4", features = ["openssl"] }
 actix-web-httpauth = "0.8.0"
 async-trait = "0.1"
