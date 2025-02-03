@@ -1,26 +1,20 @@
 use crate::{dtos::JWKS, middleware::parse_issuer_from_request_v2};
 
-use actix_web::{error::ParseError, http::header::Header, web, HttpRequest};
-use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
+use actix_web::HttpRequest;
 use base64::{engine::general_purpose, Engine};
-use jsonwebtoken::{
-    decode, decode_header, errors::ErrorKind, DecodingKey, Validation,
-};
-use myc_config::optional_config::OptionalConfig;
+use jsonwebtoken::{decode, decode_header, DecodingKey, Validation};
 use myc_core::domain::dtos::email::Email;
-use myc_http_tools::{
-    functions::decode_jwt_hs512,
-    models::{
-        auth_config::AuthConfig, internal_auth_config::InternalOauthConfig,
-    },
-    providers::{az_check_credentials, gc_check_credentials},
-    responses::GatewayError,
-};
+use myc_http_tools::responses::GatewayError;
 use openssl::{stack::Stack, x509::X509};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 
+/// Generic claims
+///
+/// This struct is used to represent the generic claims of the token. It is
+/// needed to parse tokens from multiple identity providers.
+///
 #[derive(Debug, Serialize, Deserialize)]
 struct Claims {
     // ? -----------------------------------------------------------------------
@@ -41,10 +35,6 @@ struct Claims {
     #[serde(rename = "email")]
     email: Option<String>,
 
-    /// Google email verified
-    #[serde(rename = "email_verified")]
-    email_verified: Option<bool>,
-
     // ? -----------------------------------------------------------------------
     // ? Other providers claim fields
     // ? -----------------------------------------------------------------------
@@ -62,10 +52,42 @@ struct Claims {
 pub(crate) async fn check_credentials_with_multi_identity_provider(
     req: HttpRequest,
 ) -> Result<Option<Email>, GatewayError> {
+    // ? -----------------------------------------------------------------------
+    // ? Extract issuer and token from request
     //
-    // Extract issuer and token from request
+    // If the function parse_issuer_from_request_v2 found an valid email,
+    // indicate that this found a internal provider. Otherwise, the function
+    // will return a vector of external providers. If the internal and external
+    // providers are not found, the function will return an Unauthorized error.
     //
-    let (issuer_v2, token) = parse_issuer_from_request_v2(req.clone()).await?;
+    // ? -----------------------------------------------------------------------
+
+    let (email, issuer_v2, token) =
+        parse_issuer_from_request_v2(req.clone()).await?;
+
+    // ? -----------------------------------------------------------------------
+    // ? If email is found, return it
+    //
+    // An email response indicates that the request is coming from the internal
+    // provider. Then, the function will return the email.
+    //
+    // ? -----------------------------------------------------------------------
+
+    if let Some(email) = email {
+        return Ok(Some(email));
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? Proceed to the external providers
+    //
+    // If the email is not found, the function will proceed to the external
+    // providers.
+    //
+    // ? -----------------------------------------------------------------------
+
+    let issuer_v2 = issuer_v2.ok_or(GatewayError::Unauthorized(
+        "Could not check issuer.".to_string(),
+    ))?;
 
     //
     // Fetch JWKS url from issuer v2
@@ -155,8 +177,6 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
             GatewayError::Unauthorized("Error on parse token".to_string())
         })?;
 
-        tracing::trace!("public_key: {:?}", public_key);
-
         let leaf_cert =
             certs
                 .get(certs.len() - 1)
@@ -211,8 +231,6 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
         })?
         .to_string();
 
-    tracing::trace!("Issuer: {:?}", issuer);
-
     if ["sts.windows.net", "azure-ad", "microsoft"]
         .iter()
         .any(|i| issuer.contains(i))
@@ -224,8 +242,6 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
         validation.insecure_disable_signature_validation();
     }
 
-    tracing::trace!("Validation: {:?}", validation);
-
     //
     // Decode token
     //
@@ -236,8 +252,6 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
             GatewayError::Unauthorized("Error on parse token".to_string())
         })?;
 
-    tracing::trace!("Token data: {:?}", token_data);
-
     //
     // Extract expected audience from issuer v2
     //
@@ -247,8 +261,6 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
 
             GatewayError::Unauthorized("JWT audience not found".to_string())
         })?;
-
-    tracing::trace!("Expected audience: {:?}", expected_audience);
 
     //
     // Extract token audience
@@ -262,12 +274,13 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
             "Missing aud in token: {token}"
         )))?;
 
-    tracing::trace!("Token audience: {:?}", token_audience);
-
     //
     // Validate audience
     //
     if token_audience != expected_audience {
+        tracing::trace!("Expected audience: {:?}", expected_audience);
+        tracing::trace!("Token audience: {:?}", token_audience);
+
         return Err(GatewayError::Unauthorized(format!(
             "Invalid audience: {expected_audience}"
         )));
@@ -279,6 +292,8 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
     let email = Email::from_string({
         if let Some(upn) = token_data.claims.upn {
             upn
+        } else if let Some(unique_name) = token_data.claims.unique_name {
+            unique_name
         } else if let Some(email) = token_data.claims.email {
             email
         } else {
@@ -295,21 +310,13 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
         )
     })?;
 
-    tracing::trace!("Email: {:?}", email);
-
     Ok(Some(email))
-
-    //
-    // IMPORTANT:
-    //
-    // Remove this section after implement the new issuer parser
-    //
-    //let issuer = parse_issuer_from_request(req.clone()).await?;
-    //tracing::trace!("Issuer: {:?}", issuer);
-    //discover_provider(issuer.to_owned().to_lowercase(), req).await
 }
 
 /// Attempt to extract the `kid`-claim o
+///
+/// This function is used to fetch the JWKS from the given URI.
+#[tracing::instrument(name = "fetch_jwks", skip_all)]
 async fn fetch_jwks(uri: &str) -> Result<JWKS, GatewayError> {
     let res = reqwest::get(uri).await.map_err(|e| {
         tracing::error!("Error fetching JWKS: {}", e);
@@ -328,153 +335,4 @@ async fn fetch_jwks(uri: &str) -> Result<JWKS, GatewayError> {
     })?;
 
     return Ok(val);
-}
-
-/// Discover identity provider
-///
-/// This function is used to discover identity provider and check credentials.
-#[tracing::instrument(name = "discover_provider", skip_all)]
-async fn discover_provider(
-    issuer: String,
-    req: HttpRequest,
-) -> Result<Option<Email>, GatewayError> {
-    tracing::trace!("Issuer: {:?}", issuer);
-
-    let provider = if issuer.contains("sts.windows.net")
-        || issuer.contains("azure-ad")
-    {
-        tracing::trace!("Checking credentials with Azure AD");
-        az_check_credentials(req).await
-    } else if issuer.contains("google") {
-        tracing::trace!("Checking credentials with Google OAuth2");
-        //
-        // Try to extract authentication configurations from HTTP request.
-        //
-        let req_auth_config = req.app_data::<web::Data<AuthConfig>>();
-        //
-        // If Google OAuth2 config if not available the returns a Unauthorized.
-        //
-        if let None = req_auth_config {
-            return Err(GatewayError::Unauthorized(format!(
-                "Unable to extract Google auth config from request."
-            )));
-        }
-        //
-        // If Google OAuth2 config if not available the returns a Unauthorized
-        // response.
-        //
-        let config = match req_auth_config.unwrap().google.clone() {
-            OptionalConfig::Disabled => {
-                tracing::warn!(
-                    "Users trying to request and the Google OAuth2 is disabled."
-                );
-
-                return Err(GatewayError::Unauthorized(format!(
-                    "Unable to extract auth config from request."
-                )));
-            }
-            OptionalConfig::Enabled(config) => config,
-        };
-        //
-        // Check if credentials are valid.
-        //
-        gc_check_credentials(req, config).await
-    } else if issuer.contains("mycelium") {
-        tracing::trace!("Checking credentials with Mycelium Auth");
-        //
-        // Extract the internal OAuth2 configuration from the HTTP request. If
-        // the configuration is not available returns a InternalServerError
-        // response.
-        //
-        let req_auth_config = match req
-            .app_data::<web::Data<InternalOauthConfig>>()
-        {
-            Some(config) => config.jwt_secret.to_owned(),
-            None => {
-                return Err(GatewayError::InternalServerError(format!(
-                        "Unexpected error on validate internal auth config. Please contact the system administrator."
-                    )));
-            }
-        };
-        //
-        // Extract the token from the request. If the token is not available
-        // returns a InternalServerError response.
-        //
-        let jwt_token = match req_auth_config.async_get_or_error().await {
-            Ok(token) => token,
-            Err(err) => {
-                return Err(GatewayError::InternalServerError(format!(
-                    "Unexpected error on get jwt token: {err}"
-                )));
-            }
-        };
-        //
-        // Extract the bearer from the request. If the bearer is not available
-        // returns a Unauthorized response.
-        //
-        let auth = match Authorization::<Bearer>::parse(&req) {
-            Err(err) => match err {
-                ParseError::Header => {
-                    return Err(GatewayError::Unauthorized(format!(
-                        "Bearer token not found or invalid in request: {err}"
-                    )));
-                }
-                _ => {
-                    return Err(GatewayError::Unauthorized(format!(
-                        "Invalid Bearer token: {err}"
-                    )));
-                }
-            },
-            Ok(res) => res,
-        };
-        //
-        // Decode the JWT token. If the token is not valid returns a
-        // Unauthorized response.
-        //
-        match decode_jwt_hs512(auth, jwt_token) {
-            Err(err) => match err.kind() {
-                ErrorKind::ExpiredSignature => {
-                    return Err(GatewayError::Unauthorized(format!(
-                        "Expired token: {err}"
-                    )));
-                }
-                _ => {
-                    return Err(GatewayError::Unauthorized(format!(
-                        "Unexpected error on decode jwt token: {err}"
-                    )))
-                }
-            },
-            Ok(res) => {
-                let claims = res.claims;
-                let email = claims.email;
-
-                match Email::from_string(email) {
-                    Err(err) => {
-                        return Err(GatewayError::Unauthorized(format!(
-                            "Invalid email: {err}"
-                        )));
-                    }
-                    Ok(res) => return Ok(Some(res)),
-                }
-            }
-        }
-    } else {
-        return Err(GatewayError::Unauthorized(format!(
-            "Unknown identity provider: {issuer}",
-        )));
-    };
-
-    match provider {
-        Err(err) => {
-            let msg =
-                format!("Unexpected error on match Oauth2 provider: {err}");
-
-            tracing::warn!("Unexpected error on discovery provider: {msg}");
-            Err(GatewayError::Forbidden(msg))
-        }
-        Ok(res) => {
-            tracing::trace!("Requesting Email: {:?}", res);
-            Ok(Some(res))
-        }
-    }
 }

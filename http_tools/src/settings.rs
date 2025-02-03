@@ -73,6 +73,14 @@ pub const FORWARDING_KEYS: [&str; 9] = [
     "Upgrade",
 ];
 
+/// Mycelium provider key
+///
+/// This is the key used to indicate that the request is coming from the
+/// internal provider. This key should be used to validate the issuer of the
+/// request.
+///
+pub const MYCELIUM_PROVIDER_KEY: &str = "mycelium";
+
 // ? ---------------------------------------------------------------------------
 // ? Authentication and authorization
 // ? ---------------------------------------------------------------------------
