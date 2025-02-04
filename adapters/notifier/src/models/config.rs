@@ -1,10 +1,10 @@
-use myc_config::{
-    load_config_from_file, optional_config::OptionalConfig,
-    secret_resolver::SecretResolver,
-};
+use lettre::SmtpTransport;
+use myc_config::{load_config_from_file, secret_resolver::SecretResolver};
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
+use redis::Client;
 use serde::Deserialize;
-use std::path::PathBuf;
+use shaku::Interface;
+use std::{path::PathBuf, sync::Arc};
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -29,14 +29,14 @@ pub struct QueueConfig {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct TmpConfig {
-    smtp: OptionalConfig<SmtpConfig>,
-    queue: OptionalConfig<QueueConfig>,
+    smtp: SmtpConfig,
+    queue: QueueConfig,
 }
 
 impl SmtpConfig {
     pub fn from_default_config_file(
         file: PathBuf,
-    ) -> Result<OptionalConfig<Self>, MappedErrors> {
+    ) -> Result<Self, MappedErrors> {
         if !file.exists() {
             return creation_err(format!(
                 "Could not find config file: {}",
@@ -55,7 +55,7 @@ impl SmtpConfig {
 impl QueueConfig {
     pub fn from_default_config_file(
         file: PathBuf,
-    ) -> Result<OptionalConfig<Self>, MappedErrors> {
+    ) -> Result<Self, MappedErrors> {
         if !file.exists() {
             return creation_err(format!(
                 "Could not find config file: {}",
@@ -69,4 +69,10 @@ impl QueueConfig {
             Err(err) => Err(err),
         }
     }
+}
+
+pub trait ClientProvider: Interface + Send + Sync {
+    fn get_queue_client(&self) -> Arc<Client>;
+    fn get_smtp_client(&self) -> Arc<SmtpTransport>;
+    fn get_config(&self) -> Arc<QueueConfig>;
 }

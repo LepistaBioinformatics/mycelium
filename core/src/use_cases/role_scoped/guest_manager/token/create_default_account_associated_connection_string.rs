@@ -11,7 +11,7 @@ use crate::{
                 AccountWithPermissionedRolesScope,
             },
         },
-        entities::{MessageSending, TokenRegistration},
+        entities::{LocalMessageSending, TokenRegistration},
     },
     models::AccountLifeCycle,
     use_cases::support::send_email_notification,
@@ -37,7 +37,7 @@ pub async fn create_default_account_associated_connection_string(
     permissioned_roles: PermissionedRoles,
     life_cycle_settings: AccountLifeCycle,
     token_registration_repo: Box<&dyn TokenRegistration>,
-    message_sending_repo: Box<&dyn MessageSending>,
+    message_sending_repo: Box<&dyn LocalMessageSending>,
 ) -> Result<String, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges to create role

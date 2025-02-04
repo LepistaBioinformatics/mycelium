@@ -5,7 +5,7 @@ use crate::{
             native_error_codes::NativeErrorCodes,
             user::{MultiFactorAuthentication, Totp},
         },
-        entities::{MessageSending, UserFetching, UserUpdating},
+        entities::{LocalMessageSending, UserFetching, UserUpdating},
     },
     models::AccountLifeCycle,
     settings::DEFAULT_TOTP_DOMAIN,
@@ -25,7 +25,7 @@ pub async fn totp_finish_activation(
     life_cycle_settings: AccountLifeCycle,
     user_fetching_repo: Box<&dyn UserFetching>,
     user_updating_repo: Box<&dyn UserUpdating>,
-    message_sending_repo: Box<&dyn MessageSending>,
+    message_sending_repo: Box<&dyn LocalMessageSending>,
 ) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch user from email
