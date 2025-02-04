@@ -4,7 +4,6 @@ use crate::{
         check_credentials_with_multi_identity_provider,
         parse_issuer_from_request,
     },
-    modules::MessageSendingQueueModule,
 };
 
 use actix_web::{head, post, web, HttpRequest, HttpResponse, Responder};
@@ -13,7 +12,6 @@ use myc_core::{
     domain::{
         actors::SystemActor,
         dtos::user::{Provider, Totp, User},
-        entities::MessageSending,
     },
     models::AccountLifeCycle,
     use_cases::role_scoped::beginner::user::{
@@ -30,11 +28,11 @@ use myc_http_tools::{
     responses::GatewayError, utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error, Email,
 };
+use myc_notifier::repositories::NotifierAppModule;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize, Serializer};
 use serde_json::json;
 use shaku::HasComponent;
-use shaku_actix::Inject;
 use tracing::{error, warn};
 use utoipa::{IntoParams, ToResponse, ToSchema};
 
@@ -338,8 +336,8 @@ pub async fn create_default_user_url(
     req: HttpRequest,
     body: web::Json<CreateDefaultUserBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<SqlAppModule>,
-    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
+    sql_app_module: web::Data<SqlAppModule>,
+    notifier_module: web::Data<NotifierAppModule>,
 ) -> impl Responder {
     let provider = match parse_issuer_from_request(req.clone()).await {
         Err(err) => match err {
@@ -364,10 +362,10 @@ pub async fn create_default_user_url(
         body.password.to_owned(),
         provider,
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*message_sending_repo),
-        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*notifier_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
     )
     .await
     {
@@ -473,8 +471,8 @@ pub async fn check_user_token_url(
 pub async fn start_password_redefinition_url(
     body: web::Json<StartPasswordResetBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<SqlAppModule>,
-    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
+    sql_app_module: web::Data<SqlAppModule>,
+    notifier_module: web::Data<NotifierAppModule>,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
@@ -491,9 +489,9 @@ pub async fn start_password_redefinition_url(
     match start_password_redefinition(
         email,
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*message_sending_repo),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*notifier_module.resolve_ref()),
     )
     .await
     {
@@ -537,8 +535,8 @@ pub async fn start_password_redefinition_url(
 pub async fn check_token_and_reset_password_url(
     body: web::Json<ResetPasswordBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<SqlAppModule>,
-    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
+    sql_app_module: web::Data<SqlAppModule>,
+    notifier_module: web::Data<NotifierAppModule>,
 ) -> impl Responder {
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
@@ -557,10 +555,10 @@ pub async fn check_token_and_reset_password_url(
         email,
         body.new_password.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*message_sending_repo),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*notifier_module.resolve_ref()),
     )
     .await
     {
@@ -751,8 +749,8 @@ pub async fn totp_start_activation_url(
     req: HttpRequest,
     query: web::Query<TotpActivationStartedParams>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<SqlAppModule>,
-    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
+    sql_app_module: web::Data<SqlAppModule>,
+    notifier_module: web::Data<NotifierAppModule>,
 ) -> impl Responder {
     let email = match check_credentials_with_multi_identity_provider(req).await
     {
@@ -770,9 +768,9 @@ pub async fn totp_start_activation_url(
         email,
         query.qr_code,
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*message_sending_repo),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*notifier_module.resolve_ref()),
     )
     .await
     {
@@ -824,8 +822,8 @@ pub async fn totp_finish_activation_url(
     req: HttpRequest,
     body: web::Json<TotpUpdatingValidationBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<SqlAppModule>,
-    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
+    sql_app_module: web::Data<SqlAppModule>,
+    notifier_module: web::Data<NotifierAppModule>,
 ) -> impl Responder {
     let email = match check_credentials_with_multi_identity_provider(req).await
     {
@@ -841,9 +839,9 @@ pub async fn totp_finish_activation_url(
         email,
         body.token.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*message_sending_repo),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*notifier_module.resolve_ref()),
     )
     .await
     {
@@ -968,8 +966,8 @@ pub async fn totp_disable_url(
     req: HttpRequest,
     body: web::Json<TotpUpdatingValidationBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<SqlAppModule>,
-    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
+    sql_app_module: web::Data<SqlAppModule>,
+    notifier_module: web::Data<NotifierAppModule>,
 ) -> impl Responder {
     let email = match check_credentials_with_multi_identity_provider(req).await
     {
@@ -985,9 +983,9 @@ pub async fn totp_disable_url(
         email,
         body.token.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*message_sending_repo),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*notifier_module.resolve_ref()),
     )
     .await
     {

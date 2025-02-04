@@ -1,22 +1,23 @@
-use myc_config::optional_config::OptionalConfig;
+use myc_core::domain::entities::RemoteMessageSending;
 use myc_notifier::{
-    executor::consume_messages, models::QueueConfig,
-    repositories::MessageSendingSmtpRepository,
+    executor::consume_messages,
+    models::{ClientProvider, QueueConfig},
 };
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 /// Dispatch email messages
 ///
 /// Spawns a new thread to consume messages from the email queue.
 ///
 #[tracing::instrument(name = "email_dispatcher", skip_all)]
-pub(crate) fn email_dispatcher(queue: OptionalConfig<QueueConfig>) {
-    let queue_config = match queue.to_owned() {
-        OptionalConfig::Enabled(queue) => queue,
-        _ => panic!("Queue config not found"),
-    };
-
+pub(crate) fn email_dispatcher(
+    queue_config: QueueConfig,
+    client: Arc<dyn ClientProvider>,
+    message_sending_repo: Arc<dyn RemoteMessageSending>,
+) {
     tokio::spawn(async move {
+        tracing::trace!("Starting email dispatcher");
+
         let mut interval = actix_rt::time::interval(Duration::from_secs(
             match queue_config
                 .consume_interval_in_secs
@@ -30,8 +31,15 @@ pub(crate) fn email_dispatcher(queue: OptionalConfig<QueueConfig>) {
             },
         ));
 
+        //
+        // Skip the first tick to avoid fetching events that were created in the
+        // same second as the dispatcher start.
+        //
+        interval.tick().await;
+
         loop {
             interval.tick().await;
+
             let queue_name = match queue_config
                 .clone()
                 .email_queue_name
@@ -46,9 +54,8 @@ pub(crate) fn email_dispatcher(queue: OptionalConfig<QueueConfig>) {
 
             match consume_messages(
                 queue_name.to_owned(),
-                // TODO: Remove this once the repository is implemented as a
-                // shaku module
-                Box::new(&MessageSendingSmtpRepository {}),
+                client.clone(),
+                message_sending_repo.clone(),
             )
             .await
             {

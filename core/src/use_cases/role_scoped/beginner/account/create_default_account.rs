@@ -6,7 +6,7 @@ use crate::{
             webhook::WebHookTrigger,
         },
         entities::{
-            AccountRegistration, MessageSending, UserFetching,
+            AccountRegistration, LocalMessageSending, UserFetching,
             WebHookRegistration,
         },
     },
@@ -42,7 +42,7 @@ pub async fn create_default_account(
     user_fetching_repo: Box<&dyn UserFetching>,
     account_registration_repo: Box<&dyn AccountRegistration>,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
-    message_sending_repo: Box<&dyn MessageSending>,
+    message_sending_repo: Box<&dyn LocalMessageSending>,
 ) -> Result<Account, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Initialize tracing span

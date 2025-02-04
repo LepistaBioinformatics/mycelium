@@ -41,7 +41,9 @@ use models::config_handler::ConfigHandler;
 use myc_config::{
     init_vault_config_from_file, optional_config::OptionalConfig,
 };
-use myc_core::settings::init_in_memory_routes;
+use myc_core::{
+    domain::entities::RemoteMessageSending, settings::init_in_memory_routes,
+};
 use myc_diesel::repositories::{
     DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
 };
@@ -49,8 +51,11 @@ use myc_http_tools::{
     providers::{azure_endpoints, google_endpoints},
     settings::DEFAULT_REQUEST_ID_KEY,
 };
-use myc_notifier::settings::{
-    init_queue_config_from_file, init_smtp_config_from_file,
+use myc_notifier::{
+    models::ClientProvider,
+    repositories::{
+        NotifierAppModule, RedisClientProvider, RedisClientProviderParameters,
+    },
 };
 use oauth2::http::HeaderName;
 use openssl::{
@@ -66,6 +71,7 @@ use reqwest::header::{
 };
 use router::route_request;
 use settings::{ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE};
+use shaku::HasComponent;
 use std::{path::PathBuf, str::FromStr, sync::Arc};
 use tracing::{info, trace};
 use tracing_actix_web::TracingLogger;
@@ -165,16 +171,17 @@ pub async fn main() -> std::io::Result<()> {
     //
     // ? -----------------------------------------------------------------------
     info!("Initializing SMTP configs");
-    init_smtp_config_from_file(None, Some(config.smtp)).await;
+    //init_smtp_config_from_file(None, Some(config.smtp)).await;
 
     info!("Initializing QUEUE configs");
-    init_queue_config_from_file(None, Some(config.queue.to_owned())).await;
+    //init_queue_config_from_file(None, Some(config.queue.to_owned())).await;
 
     // ? -----------------------------------------------------------------------
     // ? Configure SQL App Module
     // ? -----------------------------------------------------------------------
 
-    info!("Initialize SQL dependencies");
+    info!("Initialize internal dependencies");
+
     let sql_module = Arc::new(
         SqlAppModule::builder()
             .with_component_parameters::<DieselDbPoolProvider>(
@@ -198,6 +205,26 @@ pub async fn main() -> std::io::Result<()> {
             .build(),
     );
 
+    let notifier_module = match RedisClientProvider::new(
+        config.queue.to_owned(),
+        config.smtp.to_owned(),
+    )
+    .await
+    {
+        Ok(provider) => Arc::new(
+            NotifierAppModule::builder()
+                .with_component_parameters::<RedisClientProvider>(
+                    RedisClientProviderParameters {
+                        config: provider.get_config(),
+                        queue_client: provider.get_queue_client(),
+                        smtp_client: provider.get_smtp_client(),
+                    },
+                )
+                .build(),
+        ),
+        Err(err) => panic!("Error on initialize notifier provider: {err}"),
+    };
+
     // ? -----------------------------------------------------------------------
     // ? Fire the scheduler
     //
@@ -206,7 +233,20 @@ pub async fn main() -> std::io::Result<()> {
     //
     // ? -----------------------------------------------------------------------
     info!("Fire email dispatcher");
-    email_dispatcher(config.queue.to_owned());
+
+    email_dispatcher(
+        config.queue.to_owned(),
+        unsafe {
+            Arc::from_raw(*Arc::new(
+                notifier_module.resolve_ref() as &dyn ClientProvider
+            ))
+        },
+        unsafe {
+            Arc::from_raw(*Arc::new(
+                notifier_module.resolve_ref() as &dyn RemoteMessageSending
+            ))
+        },
+    );
 
     // ? -----------------------------------------------------------------------
     // ? Fire the scheduler
@@ -265,6 +305,7 @@ pub async fn main() -> std::io::Result<()> {
             //
             .wrap(TracingLogger::default())
             .app_data(web::Data::from(sql_module.clone()))
+            .app_data(web::Data::from(notifier_module.clone()))
             .app_data(web::Data::new(token_config).clone())
             .app_data(web::Data::new(auth_config.to_owned()).clone())
             //

@@ -1,11 +1,8 @@
-use crate::modules::{MessageSendingQueueModule, RoutesFetchingModule};
+use crate::modules::RoutesFetchingModule;
 
 use actix_web::web;
 use myc_mem_db::repositories::{
     RoutesFetchingMemDbRepo, RoutesFetchingMemDbRepoParameters,
-};
-use myc_notifier::repositories::{
-    MessageSendingQueueRepository, MessageSendingQueueRepositoryParameters,
 };
 use std::sync::Arc;
 
@@ -105,13 +102,13 @@ pub fn configure(config: &mut web::ServiceConfig) {
         // ? -------------------------------------------------------------------
         // ? Message sending
         // ? -------------------------------------------------------------------
-        .app_data(Arc::new(
-            MessageSendingQueueModule::builder()
-                .with_component_parameters::<MessageSendingQueueRepository>(
-                    MessageSendingQueueRepositoryParameters {},
-                )
-                .build(),
-        ))
+        //.app_data(Arc::new(
+        //    MessageSendingQueueModule::builder()
+        //        .with_component_parameters::<MessageSendingQueueRepository>(
+        //            MessageSendingQueueRepositoryParameters {},
+        //        )
+        //        .build(),
+        //))
         // ? -------------------------------------------------------------------
         // ? Profile
         // ? -------------------------------------------------------------------

@@ -1,7 +1,20 @@
-mod connector;
+use shaku::module;
+
+mod config;
 mod message_sending_queue;
 mod message_sending_smtp;
 
-pub use connector::*;
-pub use message_sending_queue::*;
-pub use message_sending_smtp::*;
+pub use config::*;
+pub(crate) use message_sending_queue::*;
+pub(crate) use message_sending_smtp::*;
+
+module! {
+    pub NotifierAppModule {
+        components = [
+            RedisClientProvider,
+            LocalMessageSendingRepository,
+            RemoteMessageSendingRepository,
+        ],
+        providers = []
+    }
+}

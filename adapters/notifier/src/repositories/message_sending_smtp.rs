@@ -1,14 +1,14 @@
-use crate::settings::get_smtp_client_config;
+use std::sync::Arc;
+
+use crate::models::ClientProvider;
 
 use async_trait::async_trait;
 use lettre::{
-    message::header::ContentType, transport::smtp::authentication::Credentials,
-    Message as LettreMessage, SmtpTransport, Transport,
+    message::header::ContentType, Message as LettreMessage, Transport,
 };
-use myc_config::optional_config::OptionalConfig;
 use myc_core::domain::{
     dtos::message::{FromEmail, Message},
-    entities::MessageSending,
+    entities::RemoteMessageSending,
 };
 use mycelium_base::{
     entities::CreateResponseKind,
@@ -18,27 +18,20 @@ use shaku::Component;
 use uuid::Uuid;
 
 #[derive(Component)]
-#[shaku(interface = MessageSending)]
-pub struct MessageSendingSmtpRepository {}
+#[shaku(interface = RemoteMessageSending)]
+pub struct RemoteMessageSendingRepository {
+    #[shaku(inject)]
+    client: Arc<dyn ClientProvider>,
+}
 
 #[async_trait]
-impl MessageSending for MessageSendingSmtpRepository {
-    #[tracing::instrument(name = "MessageSendingSmtpRepository.send", skip_all)]
+impl RemoteMessageSending for RemoteMessageSendingRepository {
+    #[tracing::instrument(name = "send", skip_all)]
     async fn send(
         &self,
         message: Message,
     ) -> Result<CreateResponseKind<Option<Uuid>>, MappedErrors> {
-        let config = get_smtp_client_config().await;
-
-        let config = match config {
-            OptionalConfig::Disabled => {
-                return Ok(CreateResponseKind::NotCreated(
-                    None,
-                    "SMTP config is disabled".to_string(),
-                ))
-            }
-            OptionalConfig::Enabled(config) => config,
-        };
+        let connection = self.client.get_smtp_client().as_ref().clone();
 
         let email = LettreMessage::builder()
             .from(
@@ -55,20 +48,7 @@ impl MessageSending for MessageSendingSmtpRepository {
             .body(message.to_owned().body)
             .unwrap();
 
-        //
-        // Extract username and password into a boxed future
-        //
-        let username = config.username.async_get_or_error().await;
-        let password = config.password.async_get_or_error().await;
-        let credentials = Credentials::new(username?, password?);
-
-        let mailer =
-            SmtpTransport::relay(&config.host.async_get_or_error().await?)
-                .unwrap()
-                .credentials(credentials)
-                .build();
-
-        match mailer.send(&email) {
+        match connection.send(&email) {
             Ok(_) => Ok(CreateResponseKind::Created(None)),
             Err(err) => {
                 creation_err(format!("Could not send email: {err}")).as_error()

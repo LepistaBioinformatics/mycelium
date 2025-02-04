@@ -2255,6 +2255,7 @@ dependencies = [
  "derive_more",
  "futures",
  "futures-util",
+ "hex",
  "jsonwebtoken",
  "jwt",
  "lazy_static",

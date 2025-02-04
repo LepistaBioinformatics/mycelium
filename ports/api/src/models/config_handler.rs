@@ -13,8 +13,8 @@ pub struct ConfigHandler {
     pub diesel: DieselConfig,
     pub api: ApiConfig,
     pub auth: AuthConfig,
-    pub smtp: OptionalConfig<SmtpConfig>,
-    pub queue: OptionalConfig<QueueConfig>,
+    pub smtp: SmtpConfig,
+    pub queue: QueueConfig,
     pub vault: OptionalConfig<VaultConfig>,
 }
 
