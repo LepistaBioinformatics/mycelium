@@ -1,19 +1,18 @@
+use myc_adapters_shared_lib::models::SharedClientImpl;
 use shaku::module;
 
-mod config;
-mod message_sending_queue;
-mod message_sending_smtp;
+mod kv_artifact_read;
+mod kv_artifact_write;
 
-pub use config::*;
-pub(crate) use message_sending_queue::*;
-pub(crate) use message_sending_smtp::*;
+pub(crate) use kv_artifact_read::*;
+pub(crate) use kv_artifact_write::*;
 
 module! {
-    pub NotifierAppModule {
+    pub KVAppModule {
         components = [
-            RedisClientProvider,
-            LocalMessageSendingRepository,
-            RemoteMessageSendingRepository,
+            SharedClientImpl,
+            KVArtifactReadRepository,
+            KVArtifactWriteRepository,
         ],
         providers = []
     }
