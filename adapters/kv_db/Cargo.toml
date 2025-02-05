@@ -17,6 +17,7 @@ readme.workspace = true
 myc-core = { version = "7.1.0", path = "../../core" }
 mycelium-base = { version = "7.1.0", path = "../../base" }
 mycelium-config = { version = "7.1.0", path = "../../config" }
+mycelium-adapters-shared-lib = { version = "7.1.0", path = "../shared" }
 
 async-trait.workspace = true
 futures.workspace = true

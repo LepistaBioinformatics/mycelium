@@ -4,13 +4,19 @@ use crate::{
 };
 
 use actix_web::{web, HttpRequest};
+use base64::{engine::general_purpose, Engine};
 use hex;
 use myc_core::{
-    domain::dtos::route_type::PermissionedRoles,
+    domain::{
+        dtos::route_type::PermissionedRoles,
+        entities::{KVArtifactRead, KVArtifactWrite},
+    },
     use_cases::service::profile::{fetch_profile_from_email, ProfileResponse},
 };
 use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{responses::GatewayError, Email, Profile};
+use myc_kv::repositories::KVAppModule;
+use mycelium_base::entities::FetchResponseKind;
 use openssl::sha::Sha256;
 use shaku::HasComponent;
 use std::vec;
@@ -46,7 +52,7 @@ pub(crate) async fn fetch_profile_from_request(
     );
 
     if let Some(profile) =
-        fetch_profile_from_cache(search_key, req.clone()).await?
+        fetch_profile_from_cache(search_key.to_owned(), req.clone()).await?
     {
         tracing::trace!("Profile: {:?}", profile.profile_redacted());
 
@@ -57,42 +63,25 @@ pub(crate) async fn fetch_profile_from_request(
     // ? Fetch profile from datastore
     // ? -----------------------------------------------------------------------
 
-    let app_module =
-        req.app_data::<web::Data<SqlAppModule>>().ok_or_else(|| {
-            tracing::error!(
-                "Unable to extract profile fetching module from request"
-            );
-
-            GatewayError::InternalServerError(
-                "Unexpected error on get profile".to_string(),
-            )
-        })?;
-
-    let profile = match fetch_profile_from_email(
+    let profile = fetch_profile_from_datastore(
+        req.clone(),
         email.to_owned(),
-        None,
         tenant,
-        roles,
-        permissioned_roles,
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*app_module.resolve_ref()),
+        roles.to_owned(),
+        permissioned_roles.to_owned(),
     )
-    .await
-    .map_err(|err| {
-        tracing::warn!("Unexpected error on fetch profile from email: {err}");
+    .await?
+    .ok_or_else(|| {
+        tracing::warn!("Profile not found in datastore");
 
-        GatewayError::InternalServerError(
-            "Unexpected error on fetch profile from email.".to_string(),
-        )
-    })? {
-        ProfileResponse::RegisteredUser(res) => res,
-        ProfileResponse::UnregisteredUser(email) => {
-            return Err(GatewayError::Forbidden(format!(
-                "Unauthorized access: {email}",
-                email = email.email(),
-            )))
-        }
-    };
+        GatewayError::Forbidden("Profile not found in datastore".to_string())
+    })?;
+
+    // ? -----------------------------------------------------------------------
+    // ? Cache profile
+    // ? -----------------------------------------------------------------------
+
+    cache_profile(search_key, profile.clone(), req.clone()).await?;
 
     tracing::trace!("Profile: {:?}", profile.profile_redacted());
 
@@ -167,5 +156,156 @@ async fn fetch_profile_from_cache(
     search_key: String,
     req: HttpRequest,
 ) -> Result<Option<Profile>, GatewayError> {
-    unimplemented!("fetch_profile_from_cache")
+    let app_module =
+        req.app_data::<web::Data<KVAppModule>>().ok_or_else(|| {
+            tracing::error!(
+                "Unable to extract profile fetching module from request"
+            );
+
+            GatewayError::InternalServerError(
+                "Unexpected error on get profile".to_string(),
+            )
+        })?;
+
+    let kv_artifact_read: &dyn KVArtifactRead = app_module.resolve_ref();
+
+    let profile_base64 = match kv_artifact_read
+        .get_encoded_artifact(search_key)
+        .await
+        .map_err(|err| {
+            tracing::warn!(
+                "Unexpected error on fetch profile from cache: {err}"
+            );
+
+            GatewayError::InternalServerError(
+                "Unexpected error on fetch profile from cache.".to_string(),
+            )
+        })? {
+        FetchResponseKind::NotFound(_) => return Ok(None),
+        FetchResponseKind::Found(payload) => payload,
+    };
+
+    let profile_str = general_purpose::STANDARD
+        .decode(profile_base64)
+        .map_err(|err| {
+            tracing::warn!(
+                "Unexpected error on fetch profile from cache: {err}"
+            );
+
+            GatewayError::InternalServerError(
+                "Unexpected error on fetch profile from cache.".to_string(),
+            )
+        })?;
+
+    serde_json::from_slice(&profile_str)
+        .map(|profile| Some(profile))
+        .map_err(|err| {
+            tracing::warn!(
+                "Unexpected error on fetch profile from cache: {err}"
+            );
+
+            GatewayError::InternalServerError(
+                "Unexpected error on fetch profile from cache.".to_string(),
+            )
+        })
+}
+
+/// Fetch profile from datastore
+///
+/// This function is used to fetch the profile from the datastore. If the profile
+/// is not found, the function returns `None`.
+///
+#[tracing::instrument(name = "fetch_profile_from_datastore", skip_all)]
+async fn fetch_profile_from_datastore(
+    req: HttpRequest,
+    email: Email,
+    tenant: Option<Uuid>,
+    roles: Option<Vec<String>>,
+    permissioned_roles: Option<PermissionedRoles>,
+) -> Result<Option<Profile>, GatewayError> {
+    let app_module =
+        req.app_data::<web::Data<SqlAppModule>>().ok_or_else(|| {
+            tracing::error!(
+                "Unable to extract profile fetching module from request"
+            );
+
+            GatewayError::InternalServerError(
+                "Unexpected error on get profile".to_string(),
+            )
+        })?;
+
+    match fetch_profile_from_email(
+        email.to_owned(),
+        None,
+        tenant,
+        roles,
+        permissioned_roles,
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
+    )
+    .await
+    .map_err(|err| {
+        tracing::warn!("Unexpected error on fetch profile from email: {err}");
+
+        GatewayError::InternalServerError(
+            "Unexpected error on fetch profile from email.".to_string(),
+        )
+    })? {
+        ProfileResponse::RegisteredUser(res) => Ok(Some(res)),
+        ProfileResponse::UnregisteredUser(email) => {
+            return Err(GatewayError::Forbidden(format!(
+                "Unauthorized access: {email}",
+                email = email.email(),
+            )))
+        }
+    }
+}
+
+/// Cache profile
+///
+/// This function is used to cache the profile in the cache.
+///
+#[tracing::instrument(name = "cache_profile", skip_all)]
+async fn cache_profile(
+    search_key: String,
+    profile: Profile,
+    req: HttpRequest,
+) -> Result<(), GatewayError> {
+    let app_module =
+        req.app_data::<web::Data<KVAppModule>>().ok_or_else(|| {
+            tracing::error!(
+                "Unable to extract profile caching module from request"
+            );
+
+            GatewayError::InternalServerError(
+                "Unexpected error on cache profile".to_string(),
+            )
+        })?;
+
+    let kv_artifact_write: &dyn KVArtifactWrite = app_module.resolve_ref();
+
+    let serialized_profile =
+        serde_json::to_string(&profile).map_err(|err| {
+            tracing::warn!("Unexpected error on serialize profile: {err}");
+
+            GatewayError::InternalServerError(
+                "Unexpected error on serialize profile.".to_string(),
+            )
+        })?;
+
+    let encoded_profile =
+        general_purpose::STANDARD.encode(serialized_profile.as_bytes());
+
+    kv_artifact_write
+        .set_encoded_artifact(search_key, encoded_profile)
+        .await
+        .map_err(|err| {
+            tracing::warn!("Unexpected error on cache profile: {err}");
+
+            GatewayError::InternalServerError(
+                "Unexpected error on cache profile.".to_string(),
+            )
+        })?;
+
+    Ok(())
 }

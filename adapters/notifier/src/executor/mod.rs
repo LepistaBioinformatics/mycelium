@@ -1,5 +1,6 @@
-use crate::{models::ClientProvider, repositories::QueueMessage};
+use crate::repositories::QueueMessage;
 
+use myc_adapters_shared_lib::models::SharedClientProvider;
 use myc_core::domain::entities::RemoteMessageSending;
 use mycelium_base::{
     entities::CreateResponseKind,
@@ -17,7 +18,7 @@ use std::sync::Arc;
 )]
 pub async fn consume_messages(
     queue_name: String,
-    client: Arc<dyn ClientProvider>,
+    client: Arc<dyn SharedClientProvider>,
     message_sending_repo: Arc<dyn RemoteMessageSending>,
 ) -> Result<i32, MappedErrors> {
     let mut connection =

@@ -38,6 +38,7 @@ use endpoints::{
     staff::account_endpoints as staff_account_endpoints,
 };
 use models::config_handler::ConfigHandler;
+use myc_adapters_shared_lib::models::SharedClientProvider;
 use myc_config::{
     init_vault_config_from_file, optional_config::OptionalConfig,
 };
@@ -51,11 +52,11 @@ use myc_http_tools::{
     providers::{azure_endpoints, google_endpoints},
     settings::DEFAULT_REQUEST_ID_KEY,
 };
+use myc_kv::repositories::KVAppModule;
 use myc_notifier::{
     models::ClientProvider,
     repositories::{
-        NotifierAppModule, NotifierClientProvider,
-        NotifierClientProviderParameters,
+        NotifierAppModule, NotifierClientImpl, NotifierClientImplParameters,
     },
 };
 use oauth2::http::HeaderName;
@@ -206,7 +207,7 @@ pub async fn main() -> std::io::Result<()> {
             .build(),
     );
 
-    let notifier_module = match NotifierClientProvider::new(
+    let notifier_module = match NotifierClientImpl::new(
         config.queue.to_owned(),
         config.redis.to_owned(),
         config.smtp.to_owned(),
@@ -215,17 +216,18 @@ pub async fn main() -> std::io::Result<()> {
     {
         Ok(provider) => Arc::new(
             NotifierAppModule::builder()
-                .with_component_parameters::<NotifierClientProvider>(
-                    NotifierClientProviderParameters {
-                        queue_config: provider.get_queue_config(),
+                .with_component_parameters::<NotifierClientImpl>(
+                    NotifierClientImplParameters {
                         smtp_client: provider.get_smtp_client(),
-                        redis_client: provider.get_redis_client(),
+                        queue_config: provider.get_queue_config(),
                     },
                 )
                 .build(),
         ),
         Err(err) => panic!("Error on initialize notifier provider: {err}"),
     };
+
+    let kv_module = Arc::new(KVAppModule::builder().build());
 
     // ? -----------------------------------------------------------------------
     // ? Fire the scheduler
@@ -240,7 +242,7 @@ pub async fn main() -> std::io::Result<()> {
         config.queue.to_owned(),
         unsafe {
             Arc::from_raw(*Arc::new(
-                notifier_module.resolve_ref() as &dyn ClientProvider
+                notifier_module.resolve_ref() as &dyn SharedClientProvider
             ))
         },
         unsafe {
@@ -308,6 +310,7 @@ pub async fn main() -> std::io::Result<()> {
             .wrap(TracingLogger::default())
             .app_data(web::Data::from(sql_module.clone()))
             .app_data(web::Data::from(notifier_module.clone()))
+            .app_data(web::Data::from(kv_module.clone()))
             .app_data(web::Data::new(token_config).clone())
             .app_data(web::Data::new(auth_config.to_owned()).clone())
             //

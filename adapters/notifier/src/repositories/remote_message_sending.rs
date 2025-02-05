@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::models::ClientProvider;
 
 use async_trait::async_trait;
@@ -15,6 +13,7 @@ use mycelium_base::{
     utils::errors::{creation_err, MappedErrors},
 };
 use shaku::Component;
+use std::sync::Arc;
 use uuid::Uuid;
 
 #[derive(Component)]

@@ -1,8 +1,6 @@
+use myc_adapters_shared_lib::models::SharedClientProvider;
 use myc_core::domain::entities::RemoteMessageSending;
-use myc_notifier::{
-    executor::consume_messages,
-    models::{ClientProvider, QueueConfig},
-};
+use myc_notifier::{executor::consume_messages, models::QueueConfig};
 use std::{sync::Arc, time::Duration};
 
 /// Dispatch email messages
@@ -12,7 +10,7 @@ use std::{sync::Arc, time::Duration};
 #[tracing::instrument(name = "email_dispatcher", skip_all)]
 pub(crate) fn email_dispatcher(
     queue_config: QueueConfig,
-    client: Arc<dyn ClientProvider>,
+    client: Arc<dyn SharedClientProvider>,
     message_sending_repo: Arc<dyn RemoteMessageSending>,
 ) {
     tokio::spawn(async move {

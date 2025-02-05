@@ -1,17 +1,19 @@
+use myc_adapters_shared_lib::models::SharedClientImpl;
 use shaku::module;
 
 mod config;
-mod message_sending_queue;
-mod message_sending_smtp;
+mod local_message_sending;
+mod remote_message_sending;
 
 pub use config::*;
-pub(crate) use message_sending_queue::*;
-pub(crate) use message_sending_smtp::*;
+pub(crate) use local_message_sending::*;
+pub(crate) use remote_message_sending::*;
 
 module! {
     pub NotifierAppModule {
         components = [
-            NotifierClientProvider,
+            SharedClientImpl,
+            NotifierClientImpl,
             LocalMessageSendingRepository,
             RemoteMessageSendingRepository,
         ],
