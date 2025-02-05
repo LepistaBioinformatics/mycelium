@@ -1,7 +1,8 @@
 use async_trait::async_trait;
-use mycelium_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
+use mycelium_base::{
+    entities::CreateResponseKind, utils::errors::MappedErrors,
+};
 use shaku::Interface;
-use uuid::Uuid;
 
 #[async_trait]
 pub trait KVArtifactWrite: Interface + Send + Sync {
@@ -9,5 +10,6 @@ pub trait KVArtifactWrite: Interface + Send + Sync {
         &self,
         key: String,
         value: String,
-    ) -> Result<FetchResponseKind<String, Uuid>, MappedErrors>;
+        ttl: u64,
+    ) -> Result<CreateResponseKind<String>, MappedErrors>;
 }

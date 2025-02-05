@@ -115,7 +115,7 @@ pub async fn guest_to_default_account(
         .await?
     {
         GetOrCreateResponseKind::Created(guest_user) => {
-            info!("Guest user created: {}", guest_user.email.email());
+            info!("Guest user created: {}", guest_user.email.redacted_email());
         }
         GetOrCreateResponseKind::NotCreated(_, msg) => {
             return use_case_err(format!("Guest user not created: {msg}"))
