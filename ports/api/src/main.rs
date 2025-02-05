@@ -38,7 +38,10 @@ use endpoints::{
     staff::account_endpoints as staff_account_endpoints,
 };
 use models::config_handler::ConfigHandler;
-use myc_adapters_shared_lib::models::SharedClientProvider;
+use myc_adapters_shared_lib::models::{
+    SharedAppModule, SharedClientImpl, SharedClientImplParameters,
+    SharedClientProvider,
+};
 use myc_config::{
     init_vault_config_from_file, optional_config::OptionalConfig,
 };
@@ -207,27 +210,61 @@ pub async fn main() -> std::io::Result<()> {
             .build(),
     );
 
-    let notifier_module = match NotifierClientImpl::new(
+    let shared_provider =
+        match SharedClientImpl::new(config.redis.to_owned()).await {
+            Ok(provider) => provider,
+            Err(err) => panic!("Error on initialize shared provider: {err}"),
+        };
+
+    let shared_module = Arc::new(
+        SharedAppModule::builder()
+            .with_component_parameters::<SharedClientImpl>(
+                SharedClientImplParameters {
+                    redis_client: shared_provider.get_redis_client(),
+                    redis_config: shared_provider.get_redis_config(),
+                },
+            )
+            .build(),
+    );
+
+    let notifier_provider = match NotifierClientImpl::new(
         config.queue.to_owned(),
         config.redis.to_owned(),
         config.smtp.to_owned(),
     )
     .await
     {
-        Ok(provider) => Arc::new(
-            NotifierAppModule::builder()
-                .with_component_parameters::<NotifierClientImpl>(
-                    NotifierClientImplParameters {
-                        smtp_client: provider.get_smtp_client(),
-                        queue_config: provider.get_queue_config(),
-                    },
-                )
-                .build(),
-        ),
+        Ok(provider) => provider,
         Err(err) => panic!("Error on initialize notifier provider: {err}"),
     };
 
-    let kv_module = Arc::new(KVAppModule::builder().build());
+    let notifier_module = Arc::new(
+        NotifierAppModule::builder()
+            .with_component_parameters::<SharedClientImpl>(
+                SharedClientImplParameters {
+                    redis_client: shared_provider.get_redis_client(),
+                    redis_config: shared_provider.get_redis_config(),
+                },
+            )
+            .with_component_parameters::<NotifierClientImpl>(
+                NotifierClientImplParameters {
+                    smtp_client: notifier_provider.get_smtp_client(),
+                    queue_config: notifier_provider.get_queue_config(),
+                },
+            )
+            .build(),
+    );
+
+    let kv_module = Arc::new(
+        KVAppModule::builder()
+            .with_component_parameters::<SharedClientImpl>(
+                SharedClientImplParameters {
+                    redis_client: shared_provider.get_redis_client(),
+                    redis_config: shared_provider.get_redis_config(),
+                },
+            )
+            .build(),
+    );
 
     // ? -----------------------------------------------------------------------
     // ? Fire the scheduler
@@ -309,6 +346,7 @@ pub async fn main() -> std::io::Result<()> {
             //
             .wrap(TracingLogger::default())
             .app_data(web::Data::from(sql_module.clone()))
+            .app_data(web::Data::from(shared_module.clone()))
             .app_data(web::Data::from(notifier_module.clone()))
             .app_data(web::Data::from(kv_module.clone()))
             .app_data(web::Data::new(token_config).clone())

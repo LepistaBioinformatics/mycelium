@@ -62,6 +62,7 @@ pub struct ApiConfig {
     pub logging: LoggingConfig,
     pub routes: String,
     pub tls: OptionalConfig<TlsConfig>,
+    pub cache_ttl: Option<u64>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
