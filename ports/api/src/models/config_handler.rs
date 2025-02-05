@@ -1,5 +1,6 @@
 use super::api_config::ApiConfig;
 
+use myc_adapters_shared_lib::models::RedisConfig;
 use myc_config::{optional_config::OptionalConfig, VaultConfig};
 use myc_core::models::CoreConfig;
 use myc_diesel::models::config::DieselConfig;
@@ -15,6 +16,7 @@ pub struct ConfigHandler {
     pub auth: AuthConfig,
     pub smtp: SmtpConfig,
     pub queue: QueueConfig,
+    pub redis: RedisConfig,
     pub vault: OptionalConfig<VaultConfig>,
 }
 
@@ -40,6 +42,9 @@ impl ConfigHandler {
             // Queue configuration should be used by the queue repository
             // managements into the adapters layer.
             queue: QueueConfig::from_default_config_file(file.clone())?,
+            // Redis configuration should be used by the redis repository
+            // managements into the adapters layer.
+            redis: RedisConfig::from_default_config_file(file.clone())?,
             // Vault configuration should be used by the secret resolver into
             // the domain layer.
             vault: VaultConfig::from_default_config_file(file.clone())?,

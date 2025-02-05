@@ -11,7 +11,7 @@ pub(crate) use message_sending_smtp::*;
 module! {
     pub NotifierAppModule {
         components = [
-            RedisClientProvider,
+            NotifierClientProvider,
             LocalMessageSendingRepository,
             RemoteMessageSendingRepository,
         ],

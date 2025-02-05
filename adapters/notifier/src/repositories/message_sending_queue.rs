@@ -34,7 +34,7 @@ impl LocalMessageSending for LocalMessageSendingRepository {
         &self,
         message: Message,
     ) -> Result<CreateResponseKind<Option<Uuid>>, MappedErrors> {
-        let mut connection = self.client.get_queue_client().as_ref().clone();
+        let mut connection = self.client.get_redis_client().as_ref().clone();
         let correspondence_key = Uuid::new_v4();
 
         let message_string = match serde_json::to_string(&QueueMessage {
@@ -53,7 +53,7 @@ impl LocalMessageSending for LocalMessageSendingRepository {
         let res: Result<u32, RedisError> = redis::cmd("LPUSH")
             .arg(
                 self.client
-                    .get_config()
+                    .get_queue_config()
                     .email_queue_name
                     .async_get_or_error()
                     .await?,

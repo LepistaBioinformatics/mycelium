@@ -167,20 +167,5 @@ async fn fetch_profile_from_cache(
     search_key: String,
     req: HttpRequest,
 ) -> Result<Option<Profile>, GatewayError> {
-    // ? -----------------------------------------------------------------------
-    // ? Fetch profile from datastore
-    // ? -----------------------------------------------------------------------
-
-    let app_module =
-        req.app_data::<web::Data<SqlAppModule>>().ok_or_else(|| {
-            tracing::error!(
-                "Unable to extract profile fetching module from request"
-            );
-
-            GatewayError::InternalServerError(
-                "Unexpected error on get profile".to_string(),
-            )
-        })?;
-
-    todo!()
+    unimplemented!("fetch_profile_from_cache")
 }

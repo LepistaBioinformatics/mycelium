@@ -34,6 +34,7 @@ mycelium-memory-db = { version = "7.1.0", path = "../../adapters/mem_db" }
 mycelium-service = { version = "7.1.0", path = "../../adapters/service" }
 mycelium-diesel = { version = "7.1.0", path = "../../adapters/diesel" }
 mycelium-notifier = { version = "7.1.0", path = "../../adapters/notifier" }
+mycelium-adapters-shared-lib = { version = "7.1.0", path = "../../adapters/shared" }
 
 actix-web.workspace = true
 actix-web-httpauth.workspace = true

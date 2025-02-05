@@ -1,11 +1,10 @@
-use super::QueueConfig;
+use super::RedisConfig;
 
-use lettre::SmtpTransport;
 use redis::Client;
 use shaku::Interface;
 use std::sync::Arc;
 
 pub trait ClientProvider: Interface + Send + Sync {
     fn get_queue_client(&self) -> Arc<Client>;
-    fn get_config(&self) -> Arc<QueueConfig>;
+    fn get_config(&self) -> Arc<RedisConfig>;
 }
