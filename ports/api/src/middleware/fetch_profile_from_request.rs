@@ -45,7 +45,9 @@ pub(crate) async fn fetch_profile_from_request(
         permissioned_roles.to_owned(),
     );
 
-    if let Some(profile) = fetch_profile_from_cache(search_key).await? {
+    if let Some(profile) =
+        fetch_profile_from_cache(search_key, req.clone()).await?
+    {
         tracing::trace!("Profile: {:?}", profile.profile_redacted());
 
         return Ok(MyceliumProfileData::from_profile(profile));
@@ -163,6 +165,22 @@ fn hash_profile_request(
 #[tracing::instrument(name = "fetch_profile_from_cache", skip_all)]
 async fn fetch_profile_from_cache(
     search_key: String,
+    req: HttpRequest,
 ) -> Result<Option<Profile>, GatewayError> {
+    // ? -----------------------------------------------------------------------
+    // ? Fetch profile from datastore
+    // ? -----------------------------------------------------------------------
+
+    let app_module =
+        req.app_data::<web::Data<SqlAppModule>>().ok_or_else(|| {
+            tracing::error!(
+                "Unable to extract profile fetching module from request"
+            );
+
+            GatewayError::InternalServerError(
+                "Unexpected error on get profile".to_string(),
+            )
+        })?;
+
     todo!()
 }
