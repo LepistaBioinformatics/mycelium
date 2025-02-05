@@ -1,5 +1,5 @@
 [tool.commitizen]
-version = "7.1.0"
+version = "7.2.0"
 version_files = [
     "Cargo.toml",
     "base/Cargo.toml",
@@ -10,6 +10,8 @@ version_files = [
     "adapters/mem_db/Cargo.toml",
     "adapters/service/Cargo.toml",
     "adapters/notifier/Cargo.toml",
+    "adapters/kv_db/Cargo.toml",
+    "adapters/shared/Cargo.toml",
     "ports/api/Cargo.toml",
     "ports/cli/Cargo.toml",
 ]

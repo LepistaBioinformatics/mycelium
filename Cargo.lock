@@ -2195,7 +2195,7 @@ checksum = "e94e1e6445d314f972ff7395df2de295fe51b71821694f0b0e1e79c4f12c8577"
 
 [[package]]
 name = "myc-core"
-version = "7.1.0"
+version = "7.2.0"
 dependencies = [
  "actix-web",
  "actix-web-httpauth",
@@ -2237,8 +2237,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "mycelium-adapters-shared-lib"
+version = "7.2.0"
+dependencies = [
+ "myc-core",
+ "mycelium-base",
+ "mycelium-config",
+ "redis",
+ "serde",
+ "shaku",
+ "tracing",
+]
+
+[[package]]
 name = "mycelium-api"
-version = "7.1.0"
+version = "7.2.0"
 dependencies = [
  "actix",
  "actix-cors",
@@ -2250,18 +2263,22 @@ dependencies = [
  "actix-web-opentelemetry",
  "async-trait",
  "awc",
+ "base64 0.22.1",
  "chrono",
  "derive_more",
  "futures",
  "futures-util",
+ "hex",
  "jsonwebtoken",
  "jwt",
  "lazy_static",
  "myc-core",
+ "mycelium-adapters-shared-lib",
  "mycelium-base",
  "mycelium-config",
  "mycelium-diesel",
  "mycelium-http-tools",
+ "mycelium-key-value",
  "mycelium-memory-db",
  "mycelium-notifier",
  "mycelium-service",
@@ -2303,7 +2320,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-base"
-version = "7.1.0"
+version = "7.2.0"
 dependencies = [
  "regex",
  "serde",
@@ -2314,11 +2331,10 @@ dependencies = [
 
 [[package]]
 name = "mycelium-cli"
-version = "7.1.0"
+version = "7.2.0"
 dependencies = [
  "clap",
  "env_logger 0.10.2",
- "log",
  "myc-core",
  "mycelium-base",
  "mycelium-diesel",
@@ -2327,11 +2343,12 @@ dependencies = [
  "serde_json",
  "shaku",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
 name = "mycelium-config"
-version = "7.1.0"
+version = "7.2.0"
 dependencies = [
  "lazy_static",
  "mycelium-base",
@@ -2339,12 +2356,13 @@ dependencies = [
  "serde",
  "serde_yaml",
  "tokio",
+ "tracing",
  "utoipa",
 ]
 
 [[package]]
 name = "mycelium-diesel"
-version = "7.1.0"
+version = "7.2.0"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2352,7 +2370,6 @@ dependencies = [
  "env_logger 0.10.2",
  "futures",
  "lazy_static",
- "log",
  "myc-core",
  "mycelium-base",
  "mycelium-config",
@@ -2366,7 +2383,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-http-tools"
-version = "7.1.0"
+version = "7.2.0"
 dependencies = [
  "actix-web",
  "actix-web-httpauth",
@@ -2377,7 +2394,6 @@ dependencies = [
  "jsonwebtoken",
  "jwt",
  "lazy_static",
- "log",
  "myc-core",
  "mycelium-base",
  "mycelium-config",
@@ -2394,12 +2410,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "mycelium-key-value"
+version = "7.2.0"
+dependencies = [
+ "async-trait",
+ "futures",
+ "lazy_static",
+ "lettre",
+ "myc-core",
+ "mycelium-adapters-shared-lib",
+ "mycelium-base",
+ "mycelium-config",
+ "redis",
+ "serde",
+ "serde_json",
+ "shaku",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "mycelium-memory-db"
-version = "7.1.0"
+version = "7.2.0"
 dependencies = [
  "actix-web",
  "async-trait",
- "log",
  "myc-core",
  "mycelium-base",
  "mycelium-config",
@@ -2411,13 +2447,13 @@ dependencies = [
 
 [[package]]
 name = "mycelium-notifier"
-version = "7.1.0"
+version = "7.2.0"
 dependencies = [
  "async-trait",
- "futures",
  "lazy_static",
  "lettre",
  "myc-core",
+ "mycelium-adapters-shared-lib",
  "mycelium-base",
  "mycelium-config",
  "redis",
@@ -2431,18 +2467,18 @@ dependencies = [
 
 [[package]]
 name = "mycelium-service"
-version = "7.1.0"
+version = "7.2.0"
 dependencies = [
  "async-trait",
  "env_logger 0.10.2",
  "lazy_static",
- "log",
  "myc-core",
  "mycelium-base",
  "reqwest 0.11.27",
  "serde",
  "serde_json",
  "shaku",
+ "tracing",
 ]
 
 [[package]]

@@ -1,6 +1,5 @@
 use crate::settings::get_client;
 
-use log::warn;
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use reqwest::{IntoUrl, StatusCode};
 use serde::Deserialize;
@@ -74,7 +73,7 @@ where
         }
         // Other
         _ => {
-            warn!(
+            tracing::warn!(
                 "Unexpected error on fetch user info online (status {:?}): {:?}",
                 status,
                 response.text().await

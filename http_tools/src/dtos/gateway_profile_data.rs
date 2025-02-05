@@ -5,7 +5,6 @@ use crate::{
 
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
-use log::warn;
 use myc_core::domain::dtos::{
     account::VerboseStatus,
     profile::{LicensedResources, Owner, TenantsOwnership},
@@ -85,7 +84,10 @@ impl FromRequest for GatewayProfileData {
                 let unwrapped_response = match str::from_utf8(res.as_bytes()) {
                     Ok(res) => res,
                     Err(err) => {
-                        warn!("Unable to check user identity due: {}", err);
+                        tracing::warn!(
+                            "Unable to check user identity due: {}",
+                            err
+                        );
 
                         return Box::pin(async move {
                             Err(GatewayError::Unauthorized(

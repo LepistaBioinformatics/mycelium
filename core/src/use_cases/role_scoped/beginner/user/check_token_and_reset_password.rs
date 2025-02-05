@@ -5,7 +5,7 @@ use crate::{
             token::PasswordChangeTokenMeta, user::PasswordHash,
         },
         entities::{
-            MessageSending, TokenInvalidation, UserFetching, UserUpdating,
+            LocalMessageSending, TokenInvalidation, UserFetching, UserUpdating,
         },
     },
     models::AccountLifeCycle,
@@ -26,7 +26,7 @@ pub async fn check_token_and_reset_password(
     user_fetching_repo: Box<&dyn UserFetching>,
     user_updating_repo: Box<&dyn UserUpdating>,
     token_invalidation_repo: Box<&dyn TokenInvalidation>,
-    message_sending_repo: Box<&dyn MessageSending>,
+    message_sending_repo: Box<&dyn LocalMessageSending>,
 ) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch user from email

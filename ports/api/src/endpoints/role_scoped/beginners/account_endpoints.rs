@@ -1,12 +1,10 @@
 use crate::{
     dtos::MyceliumProfileData,
     middleware::check_credentials_with_multi_identity_provider,
-    modules::MessageSendingQueueModule,
 };
 
 use actix_web::{patch, post, web, HttpRequest, HttpResponse, Responder};
 use myc_core::{
-    domain::entities::MessageSending,
     models::AccountLifeCycle,
     use_cases::role_scoped::beginner::account::{
         create_default_account, update_own_account_name,
@@ -20,9 +18,9 @@ use myc_http_tools::{
     },
     Account,
 };
+use myc_notifier::repositories::NotifierAppModule;
 use serde::Deserialize;
 use shaku::HasComponent;
-use shaku_actix::Inject;
 use tracing::warn;
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -100,35 +98,27 @@ pub async fn create_default_account_url(
     req: HttpRequest,
     body: web::Json<CreateDefaultAccountBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<SqlAppModule>,
-    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
+    sql_app_module: web::Data<SqlAppModule>,
+    notifier_module: web::Data<NotifierAppModule>,
 ) -> impl Responder {
-    let opt_email =
-        match check_credentials_with_multi_identity_provider(req).await {
-            Err(err) => {
-                warn!("err: {:?}", err);
-                return HttpResponse::InternalServerError()
-                    .json(HttpJsonResponse::new_message(err.to_string()));
-            }
-            Ok(res) => res,
-        };
-
-    let email = match opt_email {
-        None => return HttpResponse::Forbidden()
-            .json(HttpJsonResponse::new_message(String::from(
-            "Unable o extract user identity from request. Account not created.",
-        ))),
-        Some(email) => email,
+    let email = match check_credentials_with_multi_identity_provider(req).await
+    {
+        Err(err) => {
+            warn!("err: {:?}", err);
+            return HttpResponse::InternalServerError()
+                .json(HttpJsonResponse::new_message(err.to_string()));
+        }
+        Ok(res) => res,
     };
 
     match create_default_account(
         email,
         body.name.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*message_sending_repo),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*notifier_module.resolve_ref()),
     )
     .await
     {

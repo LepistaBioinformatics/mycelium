@@ -14,18 +14,17 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "7.1.0", path = "../../core" }
-mycelium-base = { version = "7.1.0", path = "../../base" }
+myc-core = { version = "7.2.0", path = "../../core" }
+mycelium-base = { version = "7.2.0", path = "../../base" }
 
 async-trait.workspace = true
 env_logger.workspace = true
 lazy_static.workspace = true
-log.workspace = true
 reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 shaku.workspace = true
-
+tracing.workspace = true
 
 [lib]
 name = "myc_svc"
