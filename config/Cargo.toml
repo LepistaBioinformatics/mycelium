@@ -18,12 +18,13 @@ readme.workspace = true
 
 [dependencies]
 
-mycelium-base = { version = "7.1.0", path = "../base" }
+mycelium-base = { version = "7.2.0", path = "../base" }
 
 lazy_static.workspace = true
 reqwest.workspace = true
 serde.workspace = true
 serde_yaml.workspace = true
+tracing.workspace = true
 utoipa.workspace = true
 
 [dev-dependencies]

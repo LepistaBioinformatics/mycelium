@@ -8,7 +8,15 @@ use shaku::Interface;
 use uuid::Uuid;
 
 #[async_trait]
-pub trait MessageSending: Interface + Send + Sync {
+pub trait LocalMessageSending: Interface + Send + Sync {
+    async fn send(
+        &self,
+        message: Message,
+    ) -> Result<CreateResponseKind<Option<Uuid>>, MappedErrors>;
+}
+
+#[async_trait]
+pub trait RemoteMessageSending: Interface + Send + Sync {
     async fn send(
         &self,
         message: Message,

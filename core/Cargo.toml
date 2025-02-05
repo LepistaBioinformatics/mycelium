@@ -18,14 +18,16 @@ readme.workspace = true
 
 [dependencies]
 
-mycelium-base = { version = "7.1.0", path = "../base" }
-mycelium-config = { version = "7.1.0", path = "../config" }
+mycelium-base = { version = "7.2.0", path = "../base" }
+mycelium-config = { version = "7.2.0", path = "../config" }
 
 async-trait.workspace = true
 chrono.workspace = true
+base64.workspace = true
 env_logger.workspace = true
 futures.workspace = true
 futures-util.workspace = true
+hex.workspace = true
 jsonwebtoken.workspace = true
 lazy_static.workspace = true
 rand.workspace = true
@@ -45,9 +47,7 @@ actix-web = { version = "4", features = ["openssl"] }
 actix-web-httpauth = "0.8.0"
 argon2 = "0.5"
 base32 = "0.4"
-base64 = "0.22"
 enum-iterator = "1.4.0"
-hex = "0.4.3"
 hmac = "0.12"
 sha2 = "0.10"
 tera = "1"

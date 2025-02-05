@@ -10,7 +10,6 @@ use actix_web::web;
 use actix_web::{http::header::Header, HttpRequest};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use jsonwebtoken::{decode, DecodingKey, Validation};
-use log::debug;
 use myc_config::optional_config::OptionalConfig;
 use myc_core::domain::dtos::email::Email;
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
@@ -60,7 +59,7 @@ async fn decode_bearer_token_on_google(
     ) {
         Ok(token) => return Email::from_string(token.claims.email),
         Err(err) => {
-            debug!("Error decoding token with jwt: {err}");
+            tracing::debug!("Error decoding token with jwt: {err}");
         }
     };
 
@@ -82,7 +81,7 @@ async fn decode_bearer_token_on_google(
             .as_error();
         }
         Err(err) => {
-            debug!("Error decoding token with online check: {err}");
+            tracing::debug!("Error decoding token with online check: {err}");
         }
     };
 

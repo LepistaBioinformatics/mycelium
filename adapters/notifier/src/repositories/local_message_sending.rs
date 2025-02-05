@@ -1,8 +1,7 @@
-use super::get_client;
-use crate::settings::get_queue_config;
+use crate::models::ClientProvider;
 
 use async_trait::async_trait;
-use myc_core::domain::{dtos::message::Message, entities::MessageSending};
+use myc_core::domain::{dtos::message::Message, entities::LocalMessageSending};
 use mycelium_base::{
     entities::CreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
@@ -10,6 +9,7 @@ use mycelium_base::{
 use redis::RedisError;
 use serde::{Deserialize, Serialize};
 use shaku::Component;
+use std::sync::Arc;
 use tracing::{debug, error};
 use uuid::Uuid;
 
@@ -21,31 +21,21 @@ pub(crate) struct QueueMessage {
 }
 
 #[derive(Component)]
-#[shaku(interface = MessageSending)]
-pub struct MessageSendingQueueRepository {}
+#[shaku(interface = LocalMessageSending)]
+pub struct LocalMessageSendingRepository {
+    #[shaku(inject)]
+    notifier_provider: Arc<dyn ClientProvider>,
+}
 
 #[async_trait]
-impl MessageSending for MessageSendingQueueRepository {
-    #[tracing::instrument(
-        name = "MessageSendingQueueRepository.send",
-        skip_all
-    )]
+impl LocalMessageSending for LocalMessageSendingRepository {
+    #[tracing::instrument(name = "send", skip_all)]
     async fn send(
         &self,
         message: Message,
     ) -> Result<CreateResponseKind<Option<Uuid>>, MappedErrors> {
-        let client = get_client().await;
-        let mut connection = match client.get_connection() {
-            Ok(conn) => conn,
-            Err(err) => {
-                return creation_err(format!(
-                    "Failed to connect to the message queue: {err}"
-                ))
-                .as_error()
-            }
-        };
-
-        let config = get_queue_config().await;
+        let mut connection =
+            self.notifier_provider.get_redis_client().as_ref().clone();
         let correspondence_key = Uuid::new_v4();
 
         let message_string = match serde_json::to_string(&QueueMessage {
@@ -62,7 +52,13 @@ impl MessageSending for MessageSendingQueueRepository {
         };
 
         let res: Result<u32, RedisError> = redis::cmd("LPUSH")
-            .arg(config.email_queue_name.async_get_or_error().await?)
+            .arg(
+                self.notifier_provider
+                    .get_queue_config()
+                    .email_queue_name
+                    .async_get_or_error()
+                    .await?,
+            )
             .arg(message_string)
             .query(&mut connection);
 

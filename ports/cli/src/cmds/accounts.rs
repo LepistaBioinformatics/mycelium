@@ -1,13 +1,12 @@
 use crate::functions::try_to_resolve_database_url;
 
 use clap::Parser;
-use log::{error, info};
 use myc_core::{
     domain::entities::{AccountRegistration, UserRegistration},
     use_cases::super_users::staff::account::create_seed_staff_account,
 };
 use myc_diesel::repositories::{
-    SqlAppModule, DieselDbPoolProvider, DieselDbPoolProviderParameters,
+    DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
 };
 use mycelium_base::entities::GetOrCreateResponseKind;
 use shaku::HasComponent;
@@ -76,13 +75,16 @@ pub(crate) async fn create_seed_staff_account_cmd(
     )
     .await
     {
-        Err(err) => error!("{err}"),
+        Err(err) => tracing::error!("{err}"),
         Ok(res) => match res {
             GetOrCreateResponseKind::NotCreated(_, msg) => {
-                info!("Seed staff account already exists created: {:?}", msg)
+                tracing::info!(
+                    "Seed staff account already exists created: {:?}",
+                    msg
+                )
             }
             GetOrCreateResponseKind::Created(account) => {
-                info!(
+                tracing::info!(
                     "\n
     Seed staff account successfully created:
     - Email: {}
@@ -90,7 +92,10 @@ pub(crate) async fn create_seed_staff_account_cmd(
     - Last Name: {}
     - Account Name: {}
         ",
-                    args.email, args.first_name, args.last_name, account.name,
+                    args.email,
+                    args.first_name,
+                    args.last_name,
+                    account.name,
                 );
             }
         },
