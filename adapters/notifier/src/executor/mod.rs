@@ -21,7 +21,7 @@ pub async fn consume_messages(
     message_sending_repo: Arc<dyn RemoteMessageSending>,
 ) -> Result<i32, MappedErrors> {
     let mut connection =
-        client.get_queue_client().get_connection().map_err(|err| {
+        client.get_redis_client().get_connection().map_err(|err| {
             execution_err(format!(
                 "Failed to connect to the message queue: {err}"
             ))

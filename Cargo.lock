@@ -2237,6 +2237,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "mycelium-adapters-shared-lib"
+version = "7.1.0"
+dependencies = [
+ "myc-core",
+ "mycelium-base",
+ "mycelium-config",
+ "redis",
+ "serde",
+ "shaku",
+ "tracing",
+]
+
+[[package]]
 name = "mycelium-api"
 version = "7.1.0"
 dependencies = [
@@ -2260,6 +2273,7 @@ dependencies = [
  "jwt",
  "lazy_static",
  "myc-core",
+ "mycelium-adapters-shared-lib",
  "mycelium-base",
  "mycelium-config",
  "mycelium-diesel",
@@ -2434,10 +2448,10 @@ name = "mycelium-notifier"
 version = "7.1.0"
 dependencies = [
  "async-trait",
- "futures",
  "lazy_static",
  "lettre",
  "myc-core",
+ "mycelium-adapters-shared-lib",
  "mycelium-base",
  "mycelium-config",
  "redis",

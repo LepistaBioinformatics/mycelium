@@ -54,7 +54,8 @@ use myc_http_tools::{
 use myc_notifier::{
     models::ClientProvider,
     repositories::{
-        NotifierAppModule, RedisClientProvider, RedisClientProviderParameters,
+        NotifierAppModule, NotifierClientProvider,
+        NotifierClientProviderParameters,
     },
 };
 use oauth2::http::HeaderName;
@@ -205,19 +206,20 @@ pub async fn main() -> std::io::Result<()> {
             .build(),
     );
 
-    let notifier_module = match RedisClientProvider::new(
+    let notifier_module = match NotifierClientProvider::new(
         config.queue.to_owned(),
+        config.redis.to_owned(),
         config.smtp.to_owned(),
     )
     .await
     {
         Ok(provider) => Arc::new(
             NotifierAppModule::builder()
-                .with_component_parameters::<RedisClientProvider>(
-                    RedisClientProviderParameters {
-                        config: provider.get_config(),
-                        queue_client: provider.get_queue_client(),
+                .with_component_parameters::<NotifierClientProvider>(
+                    NotifierClientProviderParameters {
+                        queue_config: provider.get_queue_config(),
                         smtp_client: provider.get_smtp_client(),
+                        redis_client: provider.get_redis_client(),
                     },
                 )
                 .build(),

@@ -1,6 +1,6 @@
 [package]
-name = "mycelium-notifier"
-description = "Provide message adapters to the mycelium project."
+name = "mycelium-adapters-shared-lib"
+description = "Shared library for the mycelium adapters layer."
 
 edition.workspace = true
 authors.workspace = true
@@ -17,24 +17,14 @@ readme.workspace = true
 myc-core = { version = "7.1.0", path = "../../core" }
 mycelium-base = { version = "7.1.0", path = "../../base" }
 mycelium-config = { version = "7.1.0", path = "../../config" }
-mycelium-adapters-shared-lib = { version = "7.1.0", path = "../shared" }
 
-async-trait.workspace = true
-lazy_static.workspace = true
 redis.workspace = true
 serde.workspace = true
-serde_json.workspace = true
 shaku.workspace = true
 tracing.workspace = true
-uuid.workspace = true
 
-lettre = "0.10.4"
-
-
-[dev-dependencies]
-tokio.workspace = true
 
 [lib]
-name = "myc_notifier"
+name = "myc_adapters_shared_lib"
 path = "src/lib.rs"
 crate-type = ["staticlib", "lib"]
