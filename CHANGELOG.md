@@ -1,3 +1,13 @@
+## v7.3.0 (2025-02-09)
+
+### Feat
+
+- include an extractor to check already the userinfo from the audience list
+
+### Fix
+
+- fix the email discovery process to include the user info collection from remote server
+
 ## v7.2.0 (2025-02-05)
 
 ### Feat
