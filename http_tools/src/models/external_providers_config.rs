@@ -36,4 +36,16 @@ pub struct ExternalProviderConfig {
     ///  - Auth0: YOUR_CLIENT_ID
     ///
     pub audience: SecretResolver<String>,
+
+    /// The user info url of the token
+    ///
+    /// This is the user info url of the token that will be used to validate the
+    /// token.
+    ///
+    /// Example:
+    ///  - Google: https://www.googleapis.com/oauth2/v3/userinfo
+    ///  - Microsoft: https://login.microsoftonline.com/{tenant_id}/oidc/userinfo
+    ///  - Auth0: https://{your-auth0-domain}.auth0.com/userinfo
+    ///
+    pub user_info_url: Option<SecretResolver<String>>,
 }
