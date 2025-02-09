@@ -73,7 +73,9 @@ pub(crate) async fn fetch_profile_from_request(
     )
     .await
     .ok_or_else(|| {
-        GatewayError::Forbidden("Profile not found in datastore".to_string())
+        GatewayError::Forbidden(
+            "User was authenticated but has not an account".to_string(),
+        )
     })?;
 
     // ? -----------------------------------------------------------------------
