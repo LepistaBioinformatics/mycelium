@@ -264,7 +264,7 @@ async fn get_email_from_external_provider(
     //
     // Validate audience
     //
-    match token_data.claims.audience {
+    match token_data.claims.audience.to_owned() {
         Audience::Single(aud) => {
             if aud != expected_audience {
                 tracing::trace!("Expected audience: {:?}", expected_audience);
@@ -336,40 +336,27 @@ async fn get_email_from_external_provider(
                 ))
             })?;
 
-        let res = reqwest::Client::new()
-            .get(user_info_url)
-            .header("Authorization", format!("Bearer {}", token))
-            .send()
-            .await
-            .map_err(|e| {
-                tracing::error!("Error fetching user info url: {e}");
+        let email = get_user_info_from_url(&user_info_url, token).await?;
 
-                GatewayError::Unauthorized(
-                    "Error on fetch user info url".to_string(),
-                )
-            })?;
+        if let Some(email) = email {
+            return Ok(email);
+        }
+    }
 
-        let user_info = res.json::<UserInfo>().await.map_err(|e| {
-            tracing::error!("Error parsing user info url: {e}");
+    // ? -----------------------------------------------------------------------
+    // ? Try to extract user info url the authority
+    // ? -----------------------------------------------------------------------
 
-            GatewayError::Unauthorized(
-                "Error on parse user info url".to_string(),
-            )
-        })?;
+    if let Audience::Multiple(auds) = token_data.claims.audience {
+        if let Some(user_info_url) =
+            auds.iter().find(|aud| aud.ends_with("/userinfo"))
+        {
+            let email = get_user_info_from_url(&user_info_url, token).await?;
 
-        let email = user_info.email.ok_or(GatewayError::Unauthorized(
-            "Email not found in user info".to_string(),
-        ))?;
-
-        let parsed_email = Email::from_string(email).map_err(|err| {
-            tracing::error!("Error on extract email from token: {err}");
-
-            GatewayError::Unauthorized(
-                "Error on extract email from token".to_string(),
-            )
-        })?;
-
-        return Ok(parsed_email);
+            if let Some(email) = email {
+                return Ok(email);
+            }
+        }
     }
 
     // ? -----------------------------------------------------------------------
@@ -377,4 +364,43 @@ async fn get_email_from_external_provider(
     // ? -----------------------------------------------------------------------
 
     Err(GatewayError::Unauthorized("Email not found".to_string()))
+}
+
+#[tracing::instrument(name = "get_user_info_from_url", skip_all)]
+async fn get_user_info_from_url(
+    user_info_url: &str,
+    token: &str,
+) -> Result<Option<Email>, GatewayError> {
+    let res = reqwest::Client::new()
+        .get(user_info_url)
+        .header("Authorization", format!("Bearer {}", token))
+        .send()
+        .await
+        .map_err(|e| {
+            tracing::error!("Error fetching user info url: {e}");
+
+            GatewayError::Unauthorized(
+                "Error on fetch user info url".to_string(),
+            )
+        })?;
+
+    let user_info = res.json::<UserInfo>().await.map_err(|e| {
+        tracing::error!("Error parsing user info url: {e}");
+
+        GatewayError::Unauthorized("Error on parse user info url".to_string())
+    })?;
+
+    let email = user_info.email.ok_or(GatewayError::Unauthorized(
+        "Email not found in user info".to_string(),
+    ))?;
+
+    let parsed_email = Email::from_string(email).map_err(|err| {
+        tracing::error!("Error on extract email from token: {err}");
+
+        GatewayError::Unauthorized(
+            "Error on extract email from token".to_string(),
+        )
+    })?;
+
+    Ok(Some(parsed_email))
 }
