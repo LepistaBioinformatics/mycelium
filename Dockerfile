@@ -8,17 +8,7 @@ WORKDIR /rust
 
 # ? The copy operations are performed in sepparate steps to allow caching layers
 # ? over building operations
-COPY base /rust/base
-COPY core /rust/core
-COPY config /rust/config
-COPY http_tools /rust/http_tools
-COPY adapters /rust/adapters
-COPY ports /rust/ports
-COPY test /rust/test
-COPY Cargo.toml /rust/Cargo.toml
-COPY Cargo.lock /rust/Cargo.lock
-
-RUN cargo build --bin myc-api --release
+RUN cargo install mycelium-api
 
 # ? ----------------------------------------------------------------------------
 # ? Production stage
@@ -26,9 +16,9 @@ RUN cargo build --bin myc-api --release
 
 FROM rust:latest
 
-RUN apt-get update && apt-get install -y libpq-dev
+# RUN apt-get update && apt-get install -y libpq-dev
 
-COPY --from=builder /rust/target/release/myc-api /usr/local/bin/myc-api
+COPY --from=builder /usr/local/cargo/bin/myc-api /usr/local/bin/myc-api
 
 ARG SERVICE_PORT=8080
 ENV SERVICE_PORT=${SERVICE_PORT}
