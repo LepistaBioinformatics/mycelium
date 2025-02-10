@@ -18,6 +18,10 @@ FROM rust:latest
 
 COPY --from=builder /usr/local/cargo/bin/myc-api /usr/local/bin/myc-api
 
+COPY ports/api/src/api_docs/redoc.config.json /home/redoc.config.json
+
+ENV UTOIPA_REDOC_CONFIG_FILE=/home/redoc.config.json
+
 ARG SERVICE_PORT=8080
 ENV SERVICE_PORT=${SERVICE_PORT}
 
