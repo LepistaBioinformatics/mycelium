@@ -16,8 +16,6 @@ RUN cargo install mycelium-api
 
 FROM rust:latest
 
-# RUN apt-get update && apt-get install -y libpq-dev
-
 COPY --from=builder /usr/local/cargo/bin/myc-api /usr/local/bin/myc-api
 
 ARG SERVICE_PORT=8080

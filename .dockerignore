@@ -1,5 +1,21 @@
-.cargo
-.vscode
-postgres
+# Rust related
 target
-README.md
+dist
+
+# Environment related
+.env
+cert.pem
+key.pem
+config.dev.yaml
+
+# Other
+*.drawio.bkp
+
+# Logging
+logs/*
+
+# Docker
+postgres/volume*
+vault/*
+!vault/docker
+redis
