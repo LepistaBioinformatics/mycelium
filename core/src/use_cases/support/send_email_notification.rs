@@ -4,7 +4,7 @@ use crate::{
             email::Email,
             message::{FromEmail, Message},
         },
-        entities::MessageSending,
+        entities::LocalMessageSending,
     },
     models::AccountLifeCycle,
     settings::TEMPLATES,
@@ -24,7 +24,7 @@ pub(crate) async fn send_email_notification<T: ToString>(
     config: AccountLifeCycle,
     to: Email,
     cc: Option<Email>,
-    message_sending_repo: Box<&dyn MessageSending>,
+    message_sending_repo: Box<&dyn LocalMessageSending>,
 ) -> Result<CreateResponseKind<Option<Uuid>>, MappedErrors> {
     let mut context = Context::new();
 

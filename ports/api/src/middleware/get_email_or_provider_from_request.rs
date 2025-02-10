@@ -53,6 +53,8 @@ pub(super) async fn get_email_or_provider_from_request(
 
     let (issuer, token) = parse_issuer_from_request(req.clone()).await?;
 
+    tracing::trace!("Issuer: {}", issuer);
+
     // ? -----------------------------------------------------------------------
     // ? Try to fetch email using internal provider
     //
@@ -161,7 +163,7 @@ async fn extract_email_from_internal_provider(
     // Extract the bearer from the request. If the bearer is not available
     // returns a Unauthorized response.
     //
-    let auth = match Authorization::<Bearer>::parse(&req) {
+    let token = match Authorization::<Bearer>::parse(&req) {
         Err(err) => match err {
             ParseError::Header => {
                 return Err(GatewayError::Unauthorized(format!(
@@ -180,7 +182,7 @@ async fn extract_email_from_internal_provider(
     // Decode the JWT token. If the token is not valid returns a
     // Unauthorized response.
     //
-    match decode_jwt_hs512(auth, jwt_token) {
+    match decode_jwt_hs512(token, jwt_token) {
         Err(err) => match err.kind() {
             ErrorKind::ExpiredSignature => {
                 return Err(GatewayError::Unauthorized(format!(

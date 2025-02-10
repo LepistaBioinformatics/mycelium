@@ -1,0 +1,30 @@
+[package]
+name = "mycelium-adapters-shared-lib"
+description = "Shared library for the mycelium adapters layer."
+
+edition.workspace = true
+authors.workspace = true
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+readme.workspace = true
+
+
+[dependencies]
+
+myc-core = { version = "7.3.0", path = "../../core" }
+mycelium-base = { version = "7.3.0", path = "../../base" }
+mycelium-config = { version = "7.3.0", path = "../../config" }
+
+redis.workspace = true
+serde.workspace = true
+shaku.workspace = true
+tracing.workspace = true
+
+
+[lib]
+name = "myc_adapters_shared_lib"
+path = "src/lib.rs"
+crate-type = ["staticlib", "lib"]
