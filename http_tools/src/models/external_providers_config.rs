@@ -44,7 +44,7 @@ pub struct ExternalProviderConfig {
     ///
     /// Example:
     ///  - Google: https://www.googleapis.com/oauth2/v3/userinfo
-    ///  - Microsoft: https://login.microsoftonline.com/{tenant_id}/oidc/userinfo
+    ///  - Microsoft: https://graph.microsoft.com/oidc/userinfo
     ///  - Auth0: https://{your-auth0-domain}.auth0.com/userinfo
     ///
     pub user_info_url: Option<SecretResolver<String>>,
