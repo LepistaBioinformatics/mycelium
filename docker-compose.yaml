@@ -108,7 +108,7 @@ services:
     restart: on-failure
     environment:
       - SETTINGS_PATH=/home/config.dev.yaml
-      - MYC_VAULT_TOKEN=vault-token
+      - MYC_VAULT_TOKEN=${MYC_VAULT_TOKEN}
       - UTOIPA_REDOC_CONFIG_FILE=/home/redoc.config.json
     ports:
       - 8080:8080
