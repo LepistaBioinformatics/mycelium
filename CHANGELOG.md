@@ -1,3 +1,37 @@
+## v7.3.0 (2025-02-09)
+
+### Feat
+
+- include an extractor to check already the userinfo from the audience list
+
+### Fix
+
+- fix the email discovery process to include the user info collection from remote server
+
+## v7.2.0 (2025-02-05)
+
+### Feat
+
+- **cached-profile**: finish the implementation for the profile caching
+- wip - implements the key profile persistence to the redis database
+- refactor the mycelium notifier to move the redis config init to a shared module
+
+### Fix
+
+- include secret resolver from myc-config in tracing
+- **hashbrown**: hashbrown was identified as a high impact security issuer - upgrade version
+- re-introduce the internal provider to the issuer fetcher flow
+- upgrade the credencials checker to dinamically load identity providers
+- remove log crate from the project
+
+### Refactor
+
+- split notifier models to a dedicated submodules and initialize the kv lib
+- refactor project to inject notifier module instead instance along the api port
+- refactor email fetcher middleware to turn it more verbose and dev friendly
+- **fetch_profile_from_request**: split the fetch_profile_from_request to multiple submodules to turn the module arch as screamming
+- fix english words
+
 ## v7.1.0 (2025-01-31)
 
 ### Feat

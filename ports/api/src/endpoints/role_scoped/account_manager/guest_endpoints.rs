@@ -1,12 +1,8 @@
-use crate::{
-    dtos::{MyceliumProfileData, TenantData},
-    modules::MessageSendingQueueModule,
-};
+use crate::dtos::{MyceliumProfileData, TenantData};
 
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
-    domain::{dtos::guest_user::GuestUser, entities::MessageSending},
-    models::AccountLifeCycle,
+    domain::dtos::guest_user::GuestUser, models::AccountLifeCycle,
     use_cases::role_scoped::account_manager::guest::guest_to_children_account,
 };
 use myc_diesel::repositories::SqlAppModule;
@@ -17,9 +13,9 @@ use myc_http_tools::{
     },
     Email,
 };
+use myc_notifier::repositories::NotifierAppModule;
 use serde::Deserialize;
 use shaku::HasComponent;
-use shaku_actix::Inject;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
@@ -115,8 +111,9 @@ pub async fn guest_to_children_account_url(
     body: web::Json<GuestUserToChildrenBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
-    app_module: web::Data<SqlAppModule>,
-    message_sending_repo: Inject<MessageSendingQueueModule, dyn MessageSending>,
+    sql_app_module: web::Data<SqlAppModule>,
+    notifier_module: web::Data<NotifierAppModule>,
+    //message_sending_repo: Inject<MessageSendingQueueModule, dyn LocalMessageSending>,
 ) -> impl Responder {
     let (account_id, role_id) = path.to_owned();
 
@@ -136,10 +133,10 @@ pub async fn guest_to_children_account_url(
         role_id,
         account_id,
         life_cycle_settings.get_ref().to_owned(),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*app_module.resolve_ref()),
-        Box::new(&*message_sending_repo),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*notifier_module.resolve_ref()),
     )
     .await
     {

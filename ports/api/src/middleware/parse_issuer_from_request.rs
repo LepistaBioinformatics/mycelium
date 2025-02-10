@@ -1,7 +1,9 @@
+use crate::dtos::GenericAccessTokenClaims;
+
 use actix_web::HttpRequest;
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use awc::http::header::Header;
-use jwt::{Header as JwtHeader, RegisteredClaims, Token};
+use jwt::{Header as JwtHeader, Token};
 use myc_http_tools::responses::GatewayError;
 
 /// Parse issuer from request
@@ -11,38 +13,30 @@ use myc_http_tools::responses::GatewayError;
 pub(crate) async fn parse_issuer_from_request(
     req: HttpRequest,
 ) -> Result<(String, String), GatewayError> {
-    let auth = match Authorization::<Bearer>::parse(&req) {
-        Err(err) => {
-            let msg =
-                format!("Unexpected error on get bearer from request: {err}");
+    let token = Authorization::<Bearer>::parse(&req)
+        .map_err(|err| {
+            tracing::error!("Unable to parse Authorization header: {err}");
 
-            tracing::error!("{msg}");
+            GatewayError::Unauthorized(
+                "Unable to parse Authorization header".to_string(),
+            )
+        })?
+        .to_string()
+        .replace("Bearer ", "")
+        .replace("bearer ", "");
 
-            return Err(GatewayError::Unauthorized(msg));
-        }
-        Ok(res) => res,
-    }
-    .to_string()
-    .replace("Bearer ", "")
-    .replace("bearer ", "");
+    let unverified: Token<JwtHeader, GenericAccessTokenClaims, _> =
+        Token::parse_unverified(&token).map_err(|err| {
+            tracing::error!("Unable to parse unverified token: {err}");
 
-    let unverified: Token<JwtHeader, RegisteredClaims, _> =
-        match Token::parse_unverified(&auth) {
-            Err(err) => {
-                let msg = format!(
-                    "Unexpected error on parse unverified token: {err}"
-                );
-
-                tracing::error!("{msg}");
-
-                return Err(GatewayError::Unauthorized(msg));
-            }
-            Ok(res) => res,
-        };
+            GatewayError::Unauthorized(
+                "Unable to parse unverified token".to_string(),
+            )
+        })?;
 
     let issuer = unverified.claims().issuer.as_ref().ok_or(
         GatewayError::Unauthorized("Could not check issuer.".to_string()),
     )?;
 
-    Ok((issuer.to_owned().to_lowercase(), auth))
+    Ok((issuer.to_owned().to_lowercase(), token))
 }

@@ -8,7 +8,7 @@ use crate::{
         },
         entities::{
             AccountRegistration, GuestRoleFetching, GuestUserRegistration,
-            MessageSending,
+            LocalMessageSending,
         },
     },
     models::AccountLifeCycle,
@@ -38,7 +38,7 @@ pub async fn guest_to_default_account(
     life_cycle_settings: AccountLifeCycle,
     account_registration_repo: Box<&dyn AccountRegistration>,
     guest_role_fetching_repo: Box<&dyn GuestRoleFetching>,
-    message_sending_repo: Box<&dyn MessageSending>,
+    message_sending_repo: Box<&dyn LocalMessageSending>,
     guest_user_registration_repo: Box<&dyn GuestUserRegistration>,
 ) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -115,7 +115,7 @@ pub async fn guest_to_default_account(
         .await?
     {
         GetOrCreateResponseKind::Created(guest_user) => {
-            info!("Guest user created: {}", guest_user.email.email());
+            info!("Guest user created: {}", guest_user.email.redacted_email());
         }
         GetOrCreateResponseKind::NotCreated(_, msg) => {
             return use_case_err(format!("Guest user not created: {msg}"))

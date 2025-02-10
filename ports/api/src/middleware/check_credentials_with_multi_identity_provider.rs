@@ -1,12 +1,15 @@
-<<<<<<< Updated upstream
 use crate::{dtos::JWKS, middleware::get_email_or_provider_from_request};
-=======
+
 use crate::{
     dtos::{Audience, GenericAccessTokenClaims, JWKS},
     middleware::get_email_or_provider_from_request,
     models::api_config::ApiConfig,
 };
->>>>>>> Stashed changes
+
+use crate::{
+    dtos::{Audience, GenericIDTokenClaims, JWKS},
+    middleware::get_email_or_provider_from_request,
+};
 
 use actix_web::{web, HttpRequest};
 use base64::{engine::general_purpose, Engine};
@@ -23,45 +26,14 @@ use myc_http_tools::{
 use myc_kv::repositories::KVAppModule;
 use mycelium_base::entities::FetchResponseKind;
 use openssl::{stack::Stack, x509::X509};
-<<<<<<< Updated upstream
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
-=======
-use serde::Deserialize;
 use shaku::HasComponent;
->>>>>>> Stashed changes
 
-/// Generic claims
-///
-/// This struct is used to represent the generic claims of the token. It is
-/// needed to parse tokens from multiple identity providers.
-///
-#[derive(Debug, Serialize, Deserialize)]
-struct Claims {
-    // ? -----------------------------------------------------------------------
-    // ? Microsoft claim fields
-    // ? -----------------------------------------------------------------------
-    /// Field `upn` is the Microsoft email address
-    #[serde(rename = "upn")]
-    upn: Option<String>,
-
-    /// Field `unique_name` is the Microsoft name
-    #[serde(rename = "unique_name")]
-    unique_name: Option<String>,
-
-    // ? -----------------------------------------------------------------------
-    // ? Google claim fields
-    // ? -----------------------------------------------------------------------
-    /// Google email address
-    #[serde(rename = "email")]
+#[derive(Deserialize)]
+struct UserInfo {
     email: Option<String>,
-
-    // ? -----------------------------------------------------------------------
-    // ? Other providers claim fields
-    // ? -----------------------------------------------------------------------
-    #[serde(flatten)]
-    fields: HashMap<String, Value>,
 }
 
 /// Try to populate profile to request header
@@ -155,20 +127,21 @@ async fn get_email_from_external_provider(
     token: &str,
     req: &HttpRequest,
 ) -> Result<Email, GatewayError> {
+    // ? -----------------------------------------------------------------------
+    // ? Collect public keys from provider
     //
-    // Fetch JWKS url from issuer v2
+    // The public keys are collected from the provider. If the public keys are
+    // not found, return an error. Public keys should be used to verify the
+    // token signature.
     //
+    // ? -----------------------------------------------------------------------
+
     let jwks_uri =
         provider.jwks_uri.async_get_or_error().await.map_err(|e| {
             GatewayError::InternalServerError(format!(
                 "Error fetching JWKS: {e}"
             ))
         })?;
-
-    //
-    // Fetch JWKS from url collected from issuer v2
-    //
-    let jwks = fetch_jwks(&jwks_uri).await?;
 
     //
     // Extract kid from token
@@ -194,9 +167,18 @@ async fn get_email_from_external_provider(
     //
     // Find JWK in JWKS
     //
+    let jwks = fetch_jwks(&jwks_uri).await?;
     let jwk = jwks.find(&kid).ok_or(GatewayError::Unauthorized(format!(
         "JWT kid not found in JWKS: {kid}"
     )))?;
+
+    // ? -----------------------------------------------------------------------
+    // ? Start token verification
+    //
+    // The token verification is performed using the public key collected from
+    // the provider. If the public key is not found, return an error.
+    //
+    // ? -----------------------------------------------------------------------
 
     let decoded_key = if let Some(x5c) = &jwk.x5c {
         //
@@ -232,7 +214,6 @@ async fn get_email_from_external_provider(
             })?;
         }
 
-        // Verifying using the root certificate public key
         let root_cert = certs.get(0).ok_or(GatewayError::Unauthorized(
             "No certificates found".to_string(),
         ))?;
@@ -280,42 +261,8 @@ async fn get_email_from_external_provider(
     };
 
     //
-    // Create validation object
-    //
-    let mut validation = Validation::new(decoded_headers.alg);
-
-    //
-    // If the issuer is Microsoft Graph, disable signature validation
-    //
-    let issuer = provider
-        .issuer
-        .async_get_or_error()
-        .await
-        .map_err(|err| {
-            tracing::error!("Error getting issuer: {err}");
-            GatewayError::Unauthorized("JWT issuer not found".to_string())
-        })?
-        .to_string();
-
-    if ["sts.windows.net", "azure-ad", "microsoft"]
-        .iter()
-        .any(|i| issuer.contains(i))
-    {
-        //
-        // TODO: Remove this section after implement the signature validation
-        // for Microsoft Graph
-        //
-        validation.insecure_disable_signature_validation();
-    }
-
-    //
     // Decode token
     //
-<<<<<<< Updated upstream
-    let token_data = decode::<Claims>(&token, &decoded_key, &validation)
-        .map_err(|err| {
-            tracing::error!("Error decoding token: {err}");
-=======
     let token_data = decode::<GenericAccessTokenClaims>(
         &token,
         &decoded_key,
@@ -323,10 +270,9 @@ async fn get_email_from_external_provider(
     )
     .map_err(|err| {
         tracing::error!("Error decoding token: {err}");
->>>>>>> Stashed changes
 
-            GatewayError::Unauthorized("Error on parse token".to_string())
-        })?;
+        GatewayError::Unauthorized("Error on parse token".to_string())
+    })?;
 
     //
     // Extract expected audience from issuer v2
@@ -339,56 +285,46 @@ async fn get_email_from_external_provider(
         })?;
 
     //
-    // Extract token audience
-    //
-    let token_audience = token_data
-        .claims
-        .fields
-        .get("aud")
-        .and_then(|v| v.as_str())
-        .ok_or(GatewayError::Unauthorized(format!(
-            "Missing aud in token: {token}"
-        )))?;
-
-    //
     // Validate audience
     //
-    if token_audience != expected_audience {
-        tracing::trace!("Expected audience: {:?}", expected_audience);
-        tracing::trace!("Token audience: {:?}", token_audience);
+    match token_data.claims.audience.to_owned() {
+        Audience::Single(aud) => {
+            if aud != expected_audience {
+                tracing::trace!("Expected audience: {:?}", expected_audience);
+                tracing::trace!("Token audience: {:?}", aud);
 
-        return Err(GatewayError::Unauthorized(format!(
-            "Invalid audience: {expected_audience}"
-        )));
+                return Err(GatewayError::Unauthorized(format!(
+                    "Invalid audience: {expected_audience}"
+                )));
+            }
+        }
+        Audience::Multiple(auds) => {
+            if !auds.contains(&expected_audience) {
+                tracing::trace!("Expected audience: {:?}", expected_audience);
+                tracing::trace!("Token audience: {:?}", auds);
+
+                return Err(GatewayError::Unauthorized(format!(
+                    "Invalid audience: {expected_audience}"
+                )));
+            }
+        }
     }
 
+    // ? -----------------------------------------------------------------------
+    // ? Try to extract email from token
     //
-    // Extract email from token
+    // In some the claims must include the email, upn or unique_name. Try to
+    // extract the email from the token. If the email is not found, return an
+    // error.
     //
-<<<<<<< Updated upstream
-    let email = Email::from_string({
-        if let Some(upn) = token_data.claims.upn {
-            upn
-        } else if let Some(unique_name) = token_data.claims.unique_name {
-            unique_name
-        } else if let Some(email) = token_data.claims.email {
-            email
-=======
     // ? -----------------------------------------------------------------------
 
     let token_email = {
         if let Some(email) = token_data.claims.email {
             Some(email)
->>>>>>> Stashed changes
         } else {
-            return Err(GatewayError::Unauthorized(
-                "Email not found in token".to_string(),
-            ));
+            None
         }
-<<<<<<< Updated upstream
-    })
-    .map_err(|err| {
-=======
     };
 
     if let Some(email) = token_email {
@@ -586,7 +522,6 @@ async fn set_email_in_cache(
     }
 }
 
-#[tracing::instrument(name = "get_user_info_from_url", skip_all)]
 async fn get_user_info_from_url(
     user_info_url: &str,
     token: &str,
@@ -639,7 +574,6 @@ async fn get_user_info_from_url(
     ))?;
 
     let parsed_email = Email::from_string(email).map_err(|err| {
->>>>>>> Stashed changes
         tracing::error!("Error on extract email from token: {err}");
 
         GatewayError::Unauthorized(
@@ -647,9 +581,6 @@ async fn get_user_info_from_url(
         )
     })?;
 
-<<<<<<< Updated upstream
-    Ok(email)
-=======
     // ? -----------------------------------------------------------------------
     // ? Cache email
     //
@@ -667,5 +598,4 @@ async fn get_user_info_from_url(
     // ? -----------------------------------------------------------------------
 
     Ok(Some(parsed_email))
->>>>>>> Stashed changes
 }

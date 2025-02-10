@@ -8,7 +8,7 @@ use crate::{
         },
         entities::{
             AccountFetching, GuestRoleFetching, GuestUserRegistration,
-            MessageSending,
+            LocalMessageSending,
         },
     },
     models::AccountLifeCycle,
@@ -39,7 +39,7 @@ pub async fn guest_user_to_subscription_account(
     account_fetching_repo: Box<&dyn AccountFetching>,
     guest_role_fetching_repo: Box<&dyn GuestRoleFetching>,
     guest_user_registration_repo: Box<&dyn GuestUserRegistration>,
-    message_sending_repo: Box<&dyn MessageSending>,
+    message_sending_repo: Box<&dyn LocalMessageSending>,
 ) -> Result<GetOrCreateResponseKind<GuestUser>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges

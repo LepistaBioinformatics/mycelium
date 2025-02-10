@@ -32,7 +32,7 @@ resolver = "2"
 
 [workspace.package]
 
-version = "7.1.0"
+version = "7.3.0"
 edition = "2021"
 authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
 license = "Apache-2.0"
@@ -66,6 +66,7 @@ derive_more = "0.99"
 env_logger = "0.10"
 futures = "0.3"
 futures-util = "0.3"
+hex = "0.4.3"
 jsonwebtoken = "8.2"
 jwt = "0.16.0"
 lazy_static = "1.4"

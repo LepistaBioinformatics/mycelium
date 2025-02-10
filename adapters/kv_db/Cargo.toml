@@ -1,0 +1,42 @@
+[package]
+name = "mycelium-key-value"
+description = "Provide key-value adapters to the mycelium project."
+
+edition.workspace = true
+authors.workspace = true
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+readme.workspace = true
+
+
+[dependencies]
+
+myc-core = { version = "7.3.0", path = "../../core" }
+mycelium-base = { version = "7.3.0", path = "../../base" }
+mycelium-config = { version = "7.3.0", path = "../../config" }
+mycelium-adapters-shared-lib = { version = "7.3.0", path = "../shared" }
+
+async-trait.workspace = true
+futures.workspace = true
+lazy_static.workspace = true
+redis.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+shaku.workspace = true
+tracing.workspace = true
+tokio.workspace = true
+uuid.workspace = true
+
+lettre = "0.10.4"
+
+
+[dev-dependencies]
+tokio.workspace = true
+
+[lib]
+name = "myc_kv"
+path = "src/lib.rs"
+crate-type = ["staticlib", "lib"]
