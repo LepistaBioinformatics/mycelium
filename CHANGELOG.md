@@ -1,3 +1,13 @@
+## v7.4.0 (2025-02-10)
+
+### Feat
+
+- implements the userinfo cache
+
+### Fix
+
+- replace the cached crate by a native implementation of the caching functions
+
 ## v7.3.0 (2025-02-09)
 
 ### Feat
