@@ -15,8 +15,8 @@ pub(crate) struct GenericAccessTokenClaims {
     #[serde(rename = "iss", skip_serializing_if = "Option::is_none")]
     pub(crate) issuer: Option<String>,
 
-    #[serde(rename = "sub", skip_serializing_if = "Option::is_none")]
-    pub(crate) subject: Option<String>,
+    #[serde(rename = "sub")]
+    pub(crate) subject: String,
 
     #[serde(rename = "aud")]
     pub(crate) audience: Audience,
@@ -27,11 +27,14 @@ pub(crate) struct GenericAccessTokenClaims {
     #[serde(rename = "nbf", skip_serializing_if = "Option::is_none")]
     pub(crate) not_before: Option<SecondsSinceEpoch>,
 
-    #[serde(rename = "iat", skip_serializing_if = "Option::is_none")]
-    pub(crate) issued_at: Option<SecondsSinceEpoch>,
+    #[serde(rename = "iat")]
+    pub(crate) issued_at: SecondsSinceEpoch,
 
     #[serde(rename = "jti", skip_serializing_if = "Option::is_none")]
     pub(crate) json_web_token_id: Option<String>,
+
+    #[serde(rename = "email", skip_serializing_if = "Option::is_none")]
+    pub(crate) email: Option<String>,
 
     #[serde(flatten)]
     pub(crate) fields: HashMap<String, Value>,
@@ -68,6 +71,7 @@ pub(crate) struct GenericIDTokenClaims {
     // ? -----------------------------------------------------------------------
     // ? Other providers claim fields
     // ? -----------------------------------------------------------------------
+
     #[serde(flatten)]
     pub(crate) fields: HashMap<String, Value>,
 }
