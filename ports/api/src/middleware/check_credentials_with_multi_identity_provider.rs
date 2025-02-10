@@ -1,19 +1,11 @@
-use crate::{dtos::JWKS, middleware::get_email_or_provider_from_request};
-
 use crate::{
     dtos::{Audience, GenericAccessTokenClaims, JWKS},
     middleware::get_email_or_provider_from_request,
     models::api_config::ApiConfig,
 };
 
-use crate::{
-    dtos::{Audience, GenericIDTokenClaims, JWKS},
-    middleware::get_email_or_provider_from_request,
-};
-
 use actix_web::{web, HttpRequest};
 use base64::{engine::general_purpose, Engine};
-use cached::proc_macro::io_cached;
 use jsonwebtoken::{decode, decode_header, DecodingKey, Validation};
 use myc_core::domain::{
     dtos::email::Email,
@@ -26,9 +18,7 @@ use myc_http_tools::{
 use myc_kv::repositories::KVAppModule;
 use mycelium_base::entities::FetchResponseKind;
 use openssl::{stack::Stack, x509::X509};
-use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use std::collections::HashMap;
+use serde::Deserialize;
 use shaku::HasComponent;
 
 #[derive(Deserialize)]
@@ -92,35 +82,6 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
     ))
 }
 
-/// Attempt to extract the `kid`-claim o
-///
-/// This function is used to fetch the JWKS from the given URI.
-#[io_cached(
-    disk = true,
-    time = 3600,
-    map_error = r##"|e| GatewayError::InternalServerError(format!("{e}", e = e))"##
-)]
-#[tracing::instrument(name = "fetch_jwks", skip_all)]
-async fn fetch_jwks(uri: &str) -> Result<JWKS, GatewayError> {
-    let res = reqwest::get(uri).await.map_err(|e| {
-        tracing::error!("Error fetching JWKS: {}", e);
-
-        GatewayError::InternalServerError(
-            "Unexpected error on fetch JWKS".to_string(),
-        )
-    })?;
-
-    let val = res.json::<JWKS>().await.map_err(|e| {
-        tracing::error!("Error parsing JWKS: {}", e);
-
-        GatewayError::InternalServerError(
-            "Unexpected error on parse JWKS".to_string(),
-        )
-    })?;
-
-    return Ok(val);
-}
-
 #[tracing::instrument(name = "get_email_from_external_provider", skip_all)]
 async fn get_email_from_external_provider(
     provider: &ExternalProviderConfig,
@@ -167,7 +128,7 @@ async fn get_email_from_external_provider(
     //
     // Find JWK in JWKS
     //
-    let jwks = fetch_jwks(&jwks_uri).await?;
+    let jwks = fetch_jwks(&jwks_uri, req).await?;
     let jwk = jwks.find(&kid).ok_or(GatewayError::Unauthorized(format!(
         "JWT kid not found in JWKS: {kid}"
     )))?;
@@ -406,6 +367,137 @@ async fn get_email_from_external_provider(
     // ? -----------------------------------------------------------------------
 
     Err(GatewayError::Unauthorized("Email not found".to_string()))
+}
+
+/// Fetch JWKS from the given URI
+///
+/// This function is used to fetch the JWKS from the given URI.
+#[tracing::instrument(name = "fetch_jwks", skip_all)]
+async fn fetch_jwks(
+    uri: &str,
+    req: &HttpRequest,
+) -> Result<JWKS, GatewayError> {
+    // ? -----------------------------------------------------------------------
+    // ? Try to fetch JWKS cache
+    // ? -----------------------------------------------------------------------
+
+    let search_key = format!("jwks_{uri}");
+
+    let app_module = req.app_data::<web::Data<KVAppModule>>().ok_or(
+        GatewayError::InternalServerError(
+            "Unable to extract profile fetching module from request"
+                .to_string(),
+        ),
+    )?;
+
+    let kv_artifact_read: &dyn KVArtifactRead = app_module.resolve_ref();
+
+    let jwks = kv_artifact_read
+        .get_encoded_artifact(search_key.to_owned())
+        .await
+        .map_err(|e| {
+            tracing::error!("Unexpected error on fetch JWKS from cache: {e}");
+
+            GatewayError::InternalServerError(
+                "Unexpected error on fetch JWKS from cache".to_string(),
+            )
+        })?;
+
+    if let FetchResponseKind::Found(jwks) = jwks {
+        let jwks_slice = match general_purpose::STANDARD.decode(jwks) {
+            Ok(res) => res,
+            Err(err) => {
+                tracing::warn!(
+                    "Unexpected error on fetch JWKS from cache: {err}"
+                );
+
+                return Err(GatewayError::InternalServerError(
+                    "Unexpected error on parse JWKS".to_string(),
+                ));
+            }
+        };
+
+        match serde_json::from_slice::<JWKS>(&jwks_slice) {
+            Ok(jwks) => return Ok(jwks),
+            Err(err) => {
+                tracing::error!("Unexpected error on parse JWKS: {err}");
+
+                return Err(GatewayError::InternalServerError(
+                    "Unexpected error on parse JWKS".to_string(),
+                ));
+            }
+        }
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? Try to fetch JWKS from the given URI
+    // ? -----------------------------------------------------------------------
+
+    let res = reqwest::get(uri).await.map_err(|e| {
+        tracing::error!("Error fetching JWKS: {}", e);
+
+        GatewayError::InternalServerError(
+            "Unexpected error on fetch JWKS".to_string(),
+        )
+    })?;
+
+    let jwks = res.json::<JWKS>().await.map_err(|e| {
+        tracing::error!("Error parsing JWKS: {}", e);
+
+        GatewayError::InternalServerError(
+            "Unexpected error on parse JWKS".to_string(),
+        )
+    })?;
+
+    set_jwks_in_cache(search_key, jwks.to_owned(), req).await;
+
+    return Ok(jwks);
+}
+
+#[tracing::instrument(name = "set_jwks_in_cache", skip_all)]
+async fn set_jwks_in_cache(search_key: String, jwks: JWKS, req: &HttpRequest) {
+    let app_module = match req.app_data::<web::Data<KVAppModule>>() {
+        Some(app_module) => app_module,
+        None => {
+            tracing::error!(
+                "Unable to extract profile fetching module from request"
+            );
+
+            return;
+        }
+    };
+
+    let ttl = if let Some(cache_ttl) = req.app_data::<web::Data<ApiConfig>>() {
+        cache_ttl.cache_ttl.unwrap_or(60)
+    } else {
+        60
+    };
+
+    let kv_artifact_write: &dyn KVArtifactWrite = app_module.resolve_ref();
+
+    let serialized_jwks = match serde_json::to_string(&jwks) {
+        Ok(serialized_jwks) => serialized_jwks,
+        Err(err) => {
+            tracing::error!("Unexpected error on serialize JWKS: {err}");
+
+            return;
+        }
+    };
+
+    let encoded_jwks =
+        general_purpose::STANDARD.encode(serialized_jwks.as_bytes());
+
+    match kv_artifact_write
+        .set_encoded_artifact(search_key, encoded_jwks, ttl)
+        .await
+    {
+        Ok(_) => (),
+        Err(err) => {
+            tracing::error!("Unexpected error on cache JWKS: {err}");
+
+            return;
+        }
+    }
 }
 
 #[tracing::instrument(name = "fetch_email_from_cache", skip_all)]
