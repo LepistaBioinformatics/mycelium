@@ -30,7 +30,7 @@ tokio.workspace = true
 tracing.workspace = true
 
 clap = { version = "4", features = ["derive"] }
-rpassword = "7.4.0"
+rpassword = "7.3.0"
 
 
 # ? ---------------------------------------------------------------------------
