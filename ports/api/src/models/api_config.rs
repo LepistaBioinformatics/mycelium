@@ -53,6 +53,35 @@ pub struct LoggingConfig {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CacheConfig {
+    /// JWKS TTL
+    ///
+    /// The time to live for the JWKS cache.
+    pub jwks_ttl: Option<u64>,
+
+    /// Email TTL
+    ///
+    /// The time to live for the email cache.
+    pub email_ttl: Option<u64>,
+
+    /// Profile TTL
+    ///
+    /// The time to live for the profile cache.
+    pub profile_ttl: Option<u64>,
+}
+
+impl Default for CacheConfig {
+    fn default() -> Self {
+        Self {
+            jwks_ttl: Some(60 * 60 * 12), // 12 hours
+            email_ttl: Some(60 * 10),     // 10 minutes
+            profile_ttl: Some(60 * 10),   // 10 minutes
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ApiConfig {
     pub service_ip: String,
     pub service_port: u16,
@@ -62,7 +91,7 @@ pub struct ApiConfig {
     pub logging: LoggingConfig,
     pub routes: String,
     pub tls: OptionalConfig<TlsConfig>,
-    pub cache_ttl: Option<u64>,
+    pub cache: Option<CacheConfig>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
