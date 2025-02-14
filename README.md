@@ -66,7 +66,10 @@ everything you need for seamless authentication, authorization, and security. ðŸ
 
 ### Prerequisites
 
-- **HashiCorp Vault** (optional but recommended for secret management)
+- **Postgres** (Database for tenant and user management)
+- **HashiCorp Vault** (optional but recommended for secret management in
+  production environments)
+- **Redis** (Caching for performance)
 - **Docker** (optional for quick deployment)
 
 ## ðŸ’¬ Join the Community

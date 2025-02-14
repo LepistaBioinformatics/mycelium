@@ -20,7 +20,7 @@ CREATE TABLE owner_on_tenant (
 
     CONSTRAINT unique_tenant_owner UNIQUE (tenant_id, owner_id),
     CONSTRAINT fk_tenant FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE,
-    CONSTRAINT fk_owner FOREIGN KEY (owner_id) REFERENCES user(id) ON DELETE CASCADE
+    CONSTRAINT fk_owner FOREIGN KEY (owner_id) REFERENCES public.user(id) ON DELETE CASCADE
 );
 
 CREATE TABLE manager_account_on_tenant (
@@ -49,7 +49,7 @@ CREATE TABLE tenant_tag (
 
 -- USER RELATED MODELS
 
-CREATE TABLE user (
+CREATE TABLE public.user (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username VARCHAR(140) NOT NULL,
     email VARCHAR(140) NOT NULL,
@@ -73,7 +73,7 @@ CREATE TABLE identity_provider (
 
     CONSTRAINT unique_user_password_hash UNIQUE (user_id, password_hash),
     CONSTRAINT unique_user_name UNIQUE (user_id, name),
-    CONSTRAINT fk_identity_user FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+    CONSTRAINT fk_identity_user FOREIGN KEY (user_id) REFERENCES public.user(id) ON DELETE CASCADE
 );
 
 CREATE TABLE guest_role (
