@@ -189,8 +189,22 @@ pub struct CheckUserCredentialsBody {
             body = HttpJsonResponse,
         ),
         (
-            status = 204,
+            status = 200,
             description = "Success.",
+            headers(
+                (
+                    "X-Email-Registration-Status" = String,
+                    description = "The email registration status."
+                ),
+                (
+                    "X-Account-Created" = bool,
+                    description = "If the user has an account. Boolean"
+                ),
+                (
+                    "X-Email-Provider" = String,
+                    description = "The email provider."
+                )
+            ),
         ),
     ),
     security(()),
@@ -219,7 +233,7 @@ pub async fn check_email_registration_status_url(
     .await
     {
         Ok(res) => {
-            let mut response = HttpResponse::NoContent();
+            let mut response = HttpResponse::Ok();
             let status_header = "X-Email-Registration-Status";
             let account_creation_header = "X-Account-Created";
             let provider_header = "X-Email-Provider";
