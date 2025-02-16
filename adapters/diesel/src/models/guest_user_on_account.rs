@@ -2,6 +2,7 @@ use super::account::Account;
 use super::guest_user::GuestUser;
 
 use diesel::prelude::*;
+use uuid::Uuid;
 
 #[derive(Identifiable, Associations, Debug, Queryable, Selectable)]
 #[diesel(table_name = crate::schema::guest_user_on_account)]
@@ -10,6 +11,8 @@ use diesel::prelude::*;
 #[diesel(primary_key(guest_user_id, account_id))]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct GuestUserOnAccount {
-    pub guest_user_id: String,
-    pub account_id: String,
+    #[diesel(sql_type = diesel::sql_types::Uuid)]
+    pub guest_user_id: Uuid,
+    #[diesel(sql_type = diesel::sql_types::Uuid)]
+    pub account_id: Uuid,
 }

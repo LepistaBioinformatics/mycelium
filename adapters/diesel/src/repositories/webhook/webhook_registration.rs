@@ -24,7 +24,7 @@ use mycelium_base::{
 };
 use serde_json::{from_value, to_value};
 use shaku::Component;
-use std::{str::FromStr, sync::Arc};
+use std::sync::Arc;
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -47,7 +47,7 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
         })?;
 
         let new_webhook = WebHookModel {
-            id: Uuid::new_v4().to_string(),
+            id: Uuid::new_v4(),
             name: webhook.name.clone(),
             description: webhook.description.clone(),
             url: webhook.url.clone(),
@@ -79,7 +79,7 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
             created.secret.map(|s| from_value(s).unwrap()),
         );
 
-        webhook.id = Some(Uuid::from_str(&created.id).unwrap());
+        webhook.id = Some(created.id);
         webhook.is_active = created.is_active;
         webhook.created = created.created.and_local_timezone(Local).unwrap();
         webhook.updated = created
@@ -102,7 +102,7 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
         })?;
 
         let new_webhook_execution = WebHookExecutionModel {
-            id: artifact.id.unwrap_or(Uuid::new_v4()).to_string(),
+            id: artifact.id.unwrap_or(Uuid::new_v4()),
             payload: artifact.payload,
             trigger: artifact.trigger.to_string(),
             created: Local::now().naive_utc(),
@@ -132,8 +132,6 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
                 }
             })?;
 
-        Ok(CreateResponseKind::Created(
-            Uuid::from_str(&created.id).unwrap(),
-        ))
+        Ok(CreateResponseKind::Created(created.id))
     }
 }

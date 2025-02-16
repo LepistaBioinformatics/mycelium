@@ -66,7 +66,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
         if let Some(record) = existing_user {
             return Ok(GetOrCreateResponseKind::NotCreated(
                 User::new(
-                    Some(Uuid::parse_str(&record.id).unwrap()),
+                    Some(record.id),
                     record.username,
                     Email::from_string(record.email)?,
                     Some(record.first_name),
@@ -76,9 +76,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                     record
                         .updated
                         .map(|dt| dt.and_local_timezone(Local).unwrap()),
-                    record
-                        .account_id
-                        .map(|id| Parent::Id(Uuid::parse_str(&id).unwrap())),
+                    record.account_id.map(|id| Parent::Id(id)),
                     None,
                 )
                 .with_principal(record.is_principal),
@@ -90,7 +88,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
         let result = conn.transaction(|conn| {
             // Create user
             let new_user = UserModel {
-                id: Uuid::new_v4().to_string(),
+                id: Uuid::new_v4(),
                 username: user.username.clone(),
                 email: user.email.email(),
                 first_name: user.first_name.clone().unwrap_or_default(),
@@ -103,10 +101,14 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                 mfa: None,
             };
 
+            tracing::trace!("Inserting new user: {new_user:?}");
+
             let created_user = diesel::insert_into(user_model::table)
                 .values(new_user)
                 .returning(UserModel::as_returning())
                 .get_result::<UserModel>(conn)?;
+
+            tracing::trace!("Inserted new user: {created_user:?}");
 
             // Create identity provider
             let provider_params = match provider {
@@ -122,9 +124,13 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                 },
             };
 
+            tracing::trace!("Inserting provider");
+
             diesel::insert_into(identity_provider_model::table)
                 .values(provider_params)
                 .execute(conn)?;
+
+            tracing::trace!("Inserted provider");
 
             Ok::<UserModel, diesel::result::Error>(created_user)
         });
@@ -132,7 +138,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
         match result {
             Ok(record) => Ok(GetOrCreateResponseKind::Created(
                 User::new(
-                    Some(Uuid::parse_str(&record.id).unwrap()),
+                    Some(record.id),
                     record.username,
                     Email::from_string(record.email)?,
                     Some(record.first_name),
@@ -142,16 +148,13 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                     record
                         .updated
                         .map(|dt| dt.and_local_timezone(Local).unwrap()),
-                    record
-                        .account_id
-                        .map(|id| Parent::Id(Uuid::parse_str(&id).unwrap())),
+                    record.account_id.map(|id| Parent::Id(id)),
                     None,
                 )
                 .with_principal(record.is_principal),
             )),
             Err(e) => creation_err(format!(
-                "Unexpected error detected on create user: {}",
-                e
+                "Unexpected error detected on create user: {e}"
             ))
             .as_error(),
         }

@@ -61,10 +61,10 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
         } else {
             // Create new guest user
             let new_user = GuestUserModel {
-                id: Uuid::new_v4().to_string(),
+                id: Uuid::new_v4(),
                 email: guest_user.email.to_string(),
                 guest_role_id: match guest_user.guest_role {
-                    Parent::Id(id) => id.to_string(),
+                    Parent::Id(id) => id,
                     _ => {
                         return creation_err(
                             "Guest role ID is required".to_string(),
@@ -89,7 +89,7 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
         diesel::insert_into(guest_user_on_account::table)
             .values((
                 guest_user_on_account::guest_user_id.eq(guest_user.id.clone()),
-                guest_user_on_account::account_id.eq(account_id.to_string()),
+                guest_user_on_account::account_id.eq(account_id),
             ))
             .execute(conn)
             .map_err(|e| match e {

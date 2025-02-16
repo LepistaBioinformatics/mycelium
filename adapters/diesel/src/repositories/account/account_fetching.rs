@@ -56,14 +56,20 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
 
         // Apply related accounts filter if provided
         if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
-            query = query.filter(account_model::id.eq_any(
-                ids.iter().map(|id| id.to_string()).collect::<Vec<String>>(),
-            ));
+            let ids = ids.iter().map(|id| id.to_string()).collect::<Vec<_>>();
+
+            query = query.filter(
+                account_model::id.eq_any(
+                    ids.iter()
+                        .map(|id| Uuid::from_str(id).unwrap())
+                        .collect::<Vec<_>>(),
+                ),
+            );
         }
 
         // Fetch account and its relationships
         let account = query
-            .filter(account_model::id.eq(id.to_string()))
+            .filter(account_model::id.eq(id))
             .left_join(user_model::table)
             .select(AccountModel::as_select())
             .first::<AccountModel>(conn)
@@ -81,7 +87,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                 })?
                 .into_iter()
                 .map(|t| Tag {
-                    id: Uuid::from_str(&t.id).unwrap(),
+                    id: t.id,
                     value: t.value,
                     meta: t.meta.map(|m| serde_json::from_value(m).unwrap()),
                 })
@@ -96,7 +102,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                 .into_iter()
                 .map(|o| {
                     User::new_public_redacted(
-                        Uuid::from_str(&o.id).unwrap(),
+                        o.id,
                         Email::from_string(o.email).unwrap(),
                         o.username,
                         o.created.and_local_timezone(Local).unwrap(),
@@ -160,7 +166,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         }
 
         if let Some(account_id_value) = account_id {
-            let dsl = account_dsl::id.eq(account_id_value.to_string());
+            let dsl = account_dsl::id.eq(account_id_value);
             records_query = records_query.filter(dsl.clone());
             count_query = count_query.filter(dsl);
         }
@@ -184,7 +190,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         }
 
         if let Some(tag_id_value) = tag_id {
-            let dsl = account_tag_dsl::id.eq(tag_id_value.to_string());
+            let dsl = account_tag_dsl::id.eq(tag_id_value);
             records_query = records_query.filter(dsl.clone());
             count_query = count_query.filter(dsl);
         }
@@ -221,8 +227,12 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         }
 
         if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
+            let ids = ids.iter().map(|id| id.to_string()).collect::<Vec<_>>();
+
             let dsl = account_dsl::id.eq_any(
-                ids.iter().map(|id| id.to_string()).collect::<Vec<String>>(),
+                ids.iter()
+                    .map(|id| Uuid::from_str(id).unwrap())
+                    .collect::<Vec<_>>(),
             );
             records_query = records_query.filter(dsl.clone());
             count_query = count_query.filter(dsl);
@@ -274,7 +284,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                 let tags = tags
                     .into_iter()
                     .map(|t| Tag {
-                        id: Uuid::from_str(&t.id).unwrap(),
+                        id: t.id,
                         value: t.value,
                         meta: t
                             .meta
@@ -286,7 +296,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                     .into_iter()
                     .map(|o| {
                         User::new_public_redacted(
-                            Uuid::from_str(&o.id).unwrap(),
+                            o.id,
                             Email::from_string(o.email).unwrap(),
                             o.username,
                             o.created.and_local_timezone(Local).unwrap(),

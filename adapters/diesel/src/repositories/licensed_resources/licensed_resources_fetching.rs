@@ -177,14 +177,12 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             .select((owner_dsl::tenant_id, owner_dsl::created));
 
         if let Some(tenant_id) = tenant {
-            query =
-                query.filter(owner_dsl::tenant_id.eq(tenant_id.to_string()));
+            query = query.filter(owner_dsl::tenant_id.eq(tenant_id));
         }
 
-        let rows =
-            query.load::<(String, NaiveDateTime)>(conn).map_err(|e| {
-                fetching_err(format!("Failed to fetch tenant ownerships: {e}"))
-            })?;
+        let rows = query.load::<(Uuid, NaiveDateTime)>(conn).map_err(|e| {
+            fetching_err(format!("Failed to fetch tenant ownerships: {e}"))
+        })?;
 
         if rows.is_empty() {
             return Ok(FetchManyResponseKind::NotFound);
@@ -193,7 +191,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         Ok(FetchManyResponseKind::Found(
             rows.into_iter()
                 .map(|(tenant_id, created)| TenantOwnership {
-                    tenant: Uuid::parse_str(&tenant_id).unwrap(),
+                    tenant: tenant_id,
                     since: created.and_local_timezone(Local).unwrap(),
                 })
                 .collect(),

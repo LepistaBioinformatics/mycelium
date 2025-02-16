@@ -82,7 +82,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
                 };
 
                 let mut user = User::new(
-                    Some(Uuid::parse_str(&user_record.id).unwrap()),
+                    Some(user_record.id),
                     user_record.username,
                     Email::from_string(user_record.email)?,
                     Some(user_record.first_name),
@@ -92,9 +92,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
                     user_record
                         .updated
                         .map(|dt| dt.and_local_timezone(Local).unwrap()),
-                    user_record
-                        .account_id
-                        .map(|id| Parent::Id(Uuid::parse_str(&id).unwrap())),
+                    user_record.account_id.map(|id| Parent::Id(id)),
                     Some(provider),
                 )
                 .with_principal(user_record.is_principal);
@@ -129,7 +127,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
         })?;
 
         let result = user_model::table
-            .find(id.to_string())
+            .find(id)
             .inner_join(identity_provider_model::table)
             .select((
                 UserModel::as_select(),
@@ -160,7 +158,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
                 };
 
                 let mut user = User::new(
-                    Some(Uuid::parse_str(&user_record.id).unwrap()),
+                    Some(user_record.id),
                     user_record.username,
                     Email::from_string(user_record.email)?,
                     Some(user_record.first_name),
@@ -170,9 +168,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
                     user_record
                         .updated
                         .map(|dt| dt.and_local_timezone(Local).unwrap()),
-                    user_record
-                        .account_id
-                        .map(|id| Parent::Id(Uuid::parse_str(&id).unwrap())),
+                    user_record.account_id.map(|id| Parent::Id(id)),
                     Some(provider),
                 )
                 .with_principal(user_record.is_principal);
@@ -245,7 +241,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
                 };
 
                 let mut user = User::new(
-                    Some(Uuid::parse_str(&user_record.id).unwrap()),
+                    Some(user_record.id),
                     user_record.username,
                     Email::from_string(user_record.email)?,
                     Some(user_record.first_name),
@@ -255,9 +251,7 @@ impl UserFetching for UserFetchingSqlDbRepository {
                     user_record
                         .updated
                         .map(|dt| dt.and_local_timezone(Local).unwrap()),
-                    user_record
-                        .account_id
-                        .map(|id| Parent::Id(Uuid::parse_str(&id).unwrap())),
+                    user_record.account_id.map(|id| Parent::Id(id)),
                     Some(provider),
                 )
                 .with_principal(user_record.is_principal);

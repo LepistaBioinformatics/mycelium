@@ -48,12 +48,9 @@ impl GuestUserDeletion for GuestUserDeletionSqlDbRepository {
             .inner_join(guest_user_model::table)
             .filter(
                 guest_user_on_account_model::account_id
-                    .eq(account_id.to_string())
+                    .eq(account_id)
                     .and(guest_user_model::email.eq(&email))
-                    .and(
-                        guest_user_model::guest_role_id
-                            .eq(guest_role_id.to_string()),
-                    ),
+                    .and(guest_user_model::guest_role_id.eq(guest_role_id)),
             )
             .select(GuestUserOnAccountModel::as_select())
             .first::<GuestUserOnAccountModel>(conn)

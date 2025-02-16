@@ -50,7 +50,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
         })?;
 
         let webhook = webhook_model::table
-            .find(id.to_string())
+            .find(id)
             .select(WebHookModel::as_select())
             .first::<WebHookModel>(conn)
             .optional()
@@ -68,7 +68,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                     record.secret.map(|s| from_value(s).unwrap()),
                 );
 
-                webhook.id = Some(Uuid::from_str(&record.id).unwrap());
+                webhook.id = Some(record.id);
                 webhook.is_active = record.is_active;
                 webhook.created =
                     record.created.and_local_timezone(Local).unwrap();
@@ -129,7 +129,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                     record.secret.map(|s| from_value(s).unwrap()),
                 );
 
-                webhook.id = Some(Uuid::from_str(&record.id).unwrap());
+                webhook.id = Some(record.id);
                 webhook.is_active = record.is_active;
                 webhook.created =
                     record.created.and_local_timezone(Local).unwrap();
@@ -179,7 +179,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                     record.secret.map(|s| from_value(s).unwrap()),
                 );
 
-                webhook.id = Some(Uuid::from_str(&record.id).unwrap());
+                webhook.id = Some(record.id);
                 webhook.is_active = record.is_active;
                 webhook.created =
                     record.created.and_local_timezone(Local).unwrap();
@@ -231,7 +231,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
         let execution_events = execution_events
             .into_iter()
             .map(|record| WebHookPayloadArtifact {
-                id: Some(Uuid::from_str(&record.id).unwrap()),
+                id: Some(record.id),
                 payload: record.payload.to_string(),
                 trigger: record.trigger.parse().unwrap(),
                 propagations: match record.propagations {

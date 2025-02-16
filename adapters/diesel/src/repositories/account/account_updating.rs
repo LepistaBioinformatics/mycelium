@@ -52,21 +52,20 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
             }
         };
 
-        let updated =
-            diesel::update(account_model::table.find(account_id.to_string()))
-                .set((
-                    account_model::name.eq(account.name),
-                    account_model::slug.eq(account.slug),
-                    account_model::is_active.eq(account.is_active),
-                    account_model::is_checked.eq(account.is_checked),
-                    account_model::is_archived.eq(account.is_archived),
-                    account_model::updated.eq(Some(Local::now().naive_utc())),
-                ))
-                .returning(AccountModel::as_returning())
-                .get_result(conn)
-                .map_err(|e| {
-                    updating_err(format!("Failed to update account: {}", e))
-                })?;
+        let updated = diesel::update(account_model::table.find(account_id))
+            .set((
+                account_model::name.eq(account.name),
+                account_model::slug.eq(account.slug),
+                account_model::is_active.eq(account.is_active),
+                account_model::is_checked.eq(account.is_checked),
+                account_model::is_archived.eq(account.is_archived),
+                account_model::updated.eq(Some(Local::now().naive_utc())),
+            ))
+            .returning(AccountModel::as_returning())
+            .get_result(conn)
+            .map_err(|e| {
+                updating_err(format!("Failed to update account: {}", e))
+            })?;
 
         Ok(UpdatingResponseKind::Updated(
             self.map_account_model_to_dto(updated),
@@ -84,20 +83,16 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let updated =
-            diesel::update(account_model::table.find(account_id.to_string()))
-                .set((
-                    account_model::name.eq(name),
-                    account_model::updated.eq(Some(Local::now().naive_utc())),
-                ))
-                .returning(AccountModel::as_returning())
-                .get_result(conn)
-                .map_err(|e| {
-                    updating_err(format!(
-                        "Failed to update account name: {}",
-                        e
-                    ))
-                })?;
+        let updated = diesel::update(account_model::table.find(account_id))
+            .set((
+                account_model::name.eq(name),
+                account_model::updated.eq(Some(Local::now().naive_utc())),
+            ))
+            .returning(AccountModel::as_returning())
+            .get_result(conn)
+            .map_err(|e| {
+                updating_err(format!("Failed to update account name: {}", e))
+            })?;
 
         Ok(UpdatingResponseKind::Updated(
             self.map_account_model_to_dto(updated),
@@ -115,21 +110,16 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let updated =
-            diesel::update(account_model::table.find(account_id.to_string()))
-                .set((
-                    account_model::account_type
-                        .eq(to_value(account_type).unwrap()),
-                    account_model::updated.eq(Some(Local::now().naive_utc())),
-                ))
-                .returning(AccountModel::as_returning())
-                .get_result(conn)
-                .map_err(|e| {
-                    updating_err(format!(
-                        "Failed to update account type: {}",
-                        e
-                    ))
-                })?;
+        let updated = diesel::update(account_model::table.find(account_id))
+            .set((
+                account_model::account_type.eq(to_value(account_type).unwrap()),
+                account_model::updated.eq(Some(Local::now().naive_utc())),
+            ))
+            .returning(AccountModel::as_returning())
+            .get_result(conn)
+            .map_err(|e| {
+                updating_err(format!("Failed to update account type: {}", e))
+            })?;
 
         Ok(UpdatingResponseKind::Updated(
             self.map_account_model_to_dto(updated),
@@ -151,7 +141,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
         let transaction_result = conn.transaction(|conn| {
             // Get current account and its meta
             let account = account_model::table
-                .find(account_id.to_string())
+                .find(account_id)
                 .select(account_model::meta)
                 .first::<Option<JsonValue>>(conn)?;
 
@@ -165,7 +155,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
 
             // Update account meta
             diesel::update(account_model::table)
-                .filter(account_model::id.eq(account_id.to_string()))
+                .filter(account_model::id.eq(account_id))
                 .set(account_model::meta.eq(to_value(&meta_map).unwrap()))
                 .execute(conn)?;
 
@@ -189,7 +179,7 @@ impl AccountUpdating for AccountUpdatingSqlDbRepository {
 impl AccountUpdatingSqlDbRepository {
     fn map_account_model_to_dto(&self, model: AccountModel) -> Account {
         Account {
-            id: Some(Uuid::from_str(&model.id).unwrap()),
+            id: Some(model.id),
             name: model.name,
             slug: model.slug,
             tags: None,

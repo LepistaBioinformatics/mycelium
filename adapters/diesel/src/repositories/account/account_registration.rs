@@ -32,7 +32,7 @@ use mycelium_base::{
 };
 use serde_json::{from_value, to_value};
 use shaku::Component;
-use std::{collections::HashMap, str::FromStr, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -126,7 +126,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                     }
                 }
             )))
-            .filter(account::tenant_id.eq(Some(tenant_id.to_string())))
+            .filter(account::tenant_id.eq(Some(tenant_id)))
             .select(AccountModel::as_select())
             .first::<AccountModel>(conn)
             .optional()
@@ -226,30 +226,20 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 creation_err(format!("Failed to create account: {}", e))
             })?;
 
+        tracing::trace!("new_account: {:?}", new_account);
+
         if omit_user_creation {
             // Create only the account
-            let transaction_result: Result<AccountModel, InternalError> = conn
-                .transaction(|conn| {
-                    diesel::insert_into(account::table)
-                        .values(&new_account)
-                        .execute(conn)?;
+            let created_account = diesel::insert_into(account::table)
+                .values(&new_account)
+                .returning(AccountModel::as_select())
+                .get_result(conn)
+                .map(|account| self.map_account_model_to_dto(account))
+                .map_err(|e| {
+                    creation_err(format!("Failed to create tag: {}", e))
+                })?;
 
-                    account::table
-                        .find(new_account.id)
-                        .select(AccountModel::as_select())
-                        .first(conn)
-                        .map_err(InternalError::from)
-                });
-
-            match transaction_result {
-                Ok(created_account) => Ok(GetOrCreateResponseKind::Created(
-                    self.map_account_model_to_dto(created_account),
-                )),
-                Err(InternalError::Database(e)) => {
-                    creation_err(format!("Database error: {}", e)).as_error()
-                }
-                _ => creation_err("Failed to create account").as_error(),
-            }
+            Ok(GetOrCreateResponseKind::Created(created_account))
         } else {
             // Create account and user
             let owner = match account.owners {
@@ -270,7 +260,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
 
                     if user_exists && owner.id.is_some() {
                         diesel::update(user::table)
-                            .filter(user::id.eq(owner.id.unwrap().to_string()))
+                            .filter(user::id.eq(owner.id.unwrap()))
                             .set((
                                 user::account_id
                                     .eq(Some(new_account.id.clone())),
@@ -279,7 +269,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             .execute(conn)?;
                     } else {
                         let new_user = UserModel {
-                            id: Uuid::new_v4().to_string(),
+                            id: Uuid::new_v4(),
                             username: owner.username.clone(),
                             email: owner.email.email(),
                             first_name: owner
@@ -324,7 +314,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                         .into_iter()
                         .map(|o| {
                             User::new_public_redacted(
-                                Uuid::from_str(&o.id).unwrap(),
+                                o.id,
                                 Email::from_string(o.email).unwrap(),
                                 o.username,
                                 o.created.and_local_timezone(Local).unwrap(),
@@ -384,8 +374,10 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
 
         // Check if account already exists
         let existing_account = account::table
-            .filter(account::tenant_id.eq(Some(tenant_id.to_string())).and(
-                sql::<diesel::sql_types::Bool>(&format!(
+            .filter(account::tenant_id.eq(Some(tenant_id)).and(sql::<
+                diesel::sql_types::Bool,
+            >(
+                &format!(
                     "account_type::jsonb @> '{}'",
                     match serde_json::to_string(&concrete_account_type) {
                         Ok(json) => json,
@@ -396,8 +388,8 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                             .as_error();
                         }
                     }
-                )),
-            ))
+                ),
+            )))
             .select(AccountModel::as_select())
             .first::<AccountModel>(conn)
             .optional()
@@ -420,7 +412,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 concrete_account_type,
             )
             .map(|mut account| {
-                account.tenant_id = Some(tenant_id.to_string());
+                account.tenant_id = Some(tenant_id);
                 account
             })
             .map_err(|e| {
@@ -552,7 +544,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
         })?;
 
         let account = account::table
-            .find(account_id.to_string())
+            .find(account_id)
             .select(AccountModel::as_select())
             .first::<AccountModel>(conn)
             .optional()
@@ -570,7 +562,7 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
             meta_map.insert(format!("{key}", key = key), value);
 
             diesel::update(account::table)
-                .filter(account::id.eq(account_id.to_string()))
+                .filter(account::id.eq(account_id))
                 .set(account::meta.eq(Some(to_value(&meta_map).unwrap())))
                 .execute(conn)
                 .map_err(|e| {
@@ -592,11 +584,11 @@ impl AccountRegistrationSqlDbRepository {
         account_type: AccountType,
     ) -> Result<AccountModel, MappedErrors> {
         Ok(AccountModel {
-            id: Uuid::new_v4().to_string(),
+            id: Uuid::new_v4(),
             name: account.name,
             slug: account.slug,
             meta: None,
-            tenant_id: tenant_id.map(|id| id.to_string()),
+            tenant_id,
             account_type: to_value(account_type).unwrap(),
             is_active: account.is_active,
             is_checked: account.is_checked,
@@ -609,7 +601,7 @@ impl AccountRegistrationSqlDbRepository {
 
     fn map_account_model_to_dto(&self, model: AccountModel) -> Account {
         Account {
-            id: Some(Uuid::from_str(&model.id).unwrap()),
+            id: Some(model.id),
             name: model.name,
             slug: model.slug,
             tags: None,

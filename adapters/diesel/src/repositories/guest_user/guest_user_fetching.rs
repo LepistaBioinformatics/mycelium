@@ -40,10 +40,7 @@ impl GuestUserFetching for GuestUserFetchingSqlDbRepository {
 
         let records = guest_user_model::table
             .inner_join(guest_user_on_account_model::table)
-            .filter(
-                guest_user_on_account_model::account_id
-                    .eq(account_id.to_string()),
-            )
+            .filter(guest_user_on_account_model::account_id.eq(account_id))
             .select(GuestUserModel::as_select())
             .load::<GuestUserModel>(conn)
             .map_err(|e| {

@@ -619,6 +619,7 @@ pub async fn check_email_password_validity_url(
     body: web::Json<CheckUserCredentialsBody>,
     app_module: web::Data<SqlAppModule>,
     auth_config: web::Data<InternalOauthConfig>,
+    core_config: web::Data<AccountLifeCycle>,
 ) -> impl Responder {
     let email_instance = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
@@ -656,6 +657,7 @@ pub async fn check_email_password_validity_url(
                     Totp::Disabled | Totp::Unknown => match encode_jwt(
                         _user.to_owned(),
                         auth_config.get_ref().to_owned(),
+                        core_config.get_ref().to_owned(),
                         false,
                     )
                     .await
@@ -698,6 +700,7 @@ pub async fn check_email_password_validity_url(
                         match encode_jwt(
                             _user.to_owned(),
                             auth_config.get_ref().to_owned(),
+                            core_config.get_ref().to_owned(),
                             true,
                         )
                         .await
@@ -926,6 +929,7 @@ pub async fn totp_check_token_url(
             match encode_jwt(
                 res.to_owned(),
                 auth_config.get_ref().to_owned(),
+                life_cycle_settings.get_ref().to_owned(),
                 false,
             )
             .await

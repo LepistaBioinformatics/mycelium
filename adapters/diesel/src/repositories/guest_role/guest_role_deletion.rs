@@ -40,9 +40,9 @@ impl GuestRoleDeletion for GuestRoleDeletionSqlDbRepository {
 
         // Check if role exists
         let role_exists = guest_role_model::table
-            .find(id.to_string())
+            .find(id)
             .select(guest_role_model::id)
-            .first::<String>(conn)
+            .first::<Uuid>(conn)
             .optional()
             .map_err(|e| {
                 deletion_err(format!("Failed to check role: {}", e))
@@ -51,14 +51,14 @@ impl GuestRoleDeletion for GuestRoleDeletionSqlDbRepository {
         match role_exists {
             Some(_) => {
                 // Delete role
-                diesel::delete(guest_role_model::table.find(id.to_string()))
+                diesel::delete(guest_role_model::table.find(id))
                     .execute(conn)
                     .map_err(|e| match e {
                         Error::DatabaseError(
                             DatabaseErrorKind::ForeignKeyViolation,
                             _,
                         ) => {
-                            deletion_err("Invalid hierarchy updation operation")
+                            deletion_err("Invalid hierarchy updating operation")
                                 .with_code(NativeErrorCodes::MYC00018)
                                 .with_exp_true()
                         }

@@ -34,9 +34,9 @@ impl WebHookDeletion for WebHookDeletionSqlDbRepository {
 
         // Check if webhook exists
         let exists = webhook_model::table
-            .find(hook_id.to_string())
+            .find(hook_id)
             .select(webhook_model::id)
-            .first::<String>(conn)
+            .first::<Uuid>(conn)
             .optional()
             .map_err(|e| {
                 deletion_err(format!("Failed to check webhook: {}", e))
@@ -45,7 +45,7 @@ impl WebHookDeletion for WebHookDeletionSqlDbRepository {
         match exists {
             Some(_) => {
                 // Delete webhook
-                diesel::delete(webhook_model::table.find(hook_id.to_string()))
+                diesel::delete(webhook_model::table.find(hook_id))
                     .execute(conn)
                     .map_err(|e| {
                         deletion_err(format!("Failed to delete webhook: {}", e))

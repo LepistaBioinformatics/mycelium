@@ -15,8 +15,7 @@ use mycelium_base::{
 };
 use serde_json::{from_value, to_value};
 use shaku::Component;
-use std::{str::FromStr, sync::Arc};
-use uuid::Uuid;
+use std::sync::Arc;
 
 #[derive(Component)]
 #[shaku(interface = TenantTagUpdating)]
@@ -37,28 +36,23 @@ impl TenantTagUpdating for TenantTagUpdatingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let updated =
-            diesel::update(tenant_tag_model::table.find(tag.id.to_string()))
-                .set((
-                    tenant_tag_model::value.eq(tag.value),
-                    tenant_tag_model::meta
-                        .eq(Some(to_value(&tag.meta).unwrap())),
-                ))
-                .returning(TenantTagModel::as_returning())
-                .get_result::<TenantTagModel>(conn)
-                .map_err(|e| {
-                    if e == diesel::result::Error::NotFound {
-                        updating_err(format!(
-                            "Invalid primary key: {:?}",
-                            tag.id
-                        ))
-                    } else {
-                        updating_err(format!("Failed to update tag: {}", e))
-                    }
-                })?;
+        let updated = diesel::update(tenant_tag_model::table.find(tag.id))
+            .set((
+                tenant_tag_model::value.eq(tag.value),
+                tenant_tag_model::meta.eq(Some(to_value(&tag.meta).unwrap())),
+            ))
+            .returning(TenantTagModel::as_returning())
+            .get_result::<TenantTagModel>(conn)
+            .map_err(|e| {
+                if e == diesel::result::Error::NotFound {
+                    updating_err(format!("Invalid primary key: {:?}", tag.id))
+                } else {
+                    updating_err(format!("Failed to update tag: {}", e))
+                }
+            })?;
 
         Ok(UpdatingResponseKind::Updated(Tag {
-            id: Uuid::from_str(&updated.id).unwrap(),
+            id: updated.id,
             value: updated.value,
             meta: updated.meta.map(|m| from_value(m).unwrap()),
         }))

@@ -2,8 +2,7 @@
 
 diesel::table! {
     account (id) {
-        #[max_length = 36]
-        id -> Text,
+        id -> Uuid,
         #[max_length = 256]
         name -> Varchar,
         created -> Timestamptz,
@@ -14,22 +13,20 @@ diesel::table! {
         is_default -> Bool,
         #[max_length = 256]
         slug -> Varchar,
-        account_type -> Json,
+        account_type -> Jsonb,
         #[max_length = 36]
-        tenant_id -> Nullable<Text>,
+        tenant_id -> Nullable<Uuid>,
         meta -> Nullable<Jsonb>,
     }
 }
 
 diesel::table! {
     account_tag (id) {
-        #[max_length = 36]
-        id -> Text,
+        id -> Uuid,
         #[max_length = 64]
         value -> Varchar,
         meta -> Nullable<Jsonb>,
-        #[max_length = 36]
-        account_id -> Text,
+        account_id -> Uuid,
     }
 }
 
@@ -48,8 +45,7 @@ diesel::table! {
 
 diesel::table! {
     guest_role (id) {
-        #[max_length = 36]
-        id -> Text,
+        id -> Uuid,
         #[max_length = 140]
         name -> Varchar,
         #[max_length = 255]
@@ -62,21 +58,17 @@ diesel::table! {
 
 diesel::table! {
     guest_role_children (parent_id, child_role_id) {
-        #[max_length = 36]
-        parent_id -> Text,
-        #[max_length = 36]
-        child_role_id -> Text,
+        parent_id -> Uuid,
+        child_role_id -> Uuid,
     }
 }
 
 diesel::table! {
     guest_user (id) {
-        #[max_length = 36]
-        id -> Text,
+        id -> Uuid,
         #[max_length = 255]
         email -> Varchar,
-        #[max_length = 36]
-        guest_role_id -> Text,
+        guest_role_id -> Uuid,
         created -> Timestamptz,
         updated -> Nullable<Timestamptz>,
         was_verified -> Bool,
@@ -85,10 +77,8 @@ diesel::table! {
 
 diesel::table! {
     guest_user_on_account (guest_user_id, account_id) {
-        #[max_length = 36]
-        guest_user_id -> Text,
-        #[max_length = 36]
-        account_id -> Text,
+        guest_user_id -> Uuid,
+        account_id -> Uuid,
         created -> Timestamptz,
     }
 }
@@ -99,19 +89,15 @@ diesel::table! {
         name -> Nullable<Varchar>,
         #[max_length = 255]
         password_hash -> Nullable<Varchar>,
-        #[max_length = 36]
-        user_id -> Text,
+        user_id -> Uuid,
     }
 }
 
 diesel::table! {
     manager_account_on_tenant (id) {
-        #[max_length = 36]
-        id -> Text,
-        #[max_length = 36]
-        tenant_id -> Text,
-        #[max_length = 36]
-        account_id -> Text,
+        id -> Uuid,
+        tenant_id -> Uuid,
+        account_id -> Uuid,
         created -> Timestamptz,
         updated -> Nullable<Timestamptz>,
     }
@@ -119,12 +105,9 @@ diesel::table! {
 
 diesel::table! {
     owner_on_tenant (id) {
-        #[max_length = 36]
-        id -> Text,
-        #[max_length = 36]
-        tenant_id -> Text,
-        #[max_length = 36]
-        owner_id -> Text,
+        id -> Uuid,
+        tenant_id -> Uuid,
+        owner_id -> Uuid,
         guest_by -> Text,
         created -> Timestamptz,
         updated -> Nullable<Timestamptz>,
@@ -133,8 +116,7 @@ diesel::table! {
 
 diesel::table! {
     tenant (id) {
-        #[max_length = 36]
-        id -> Text,
+        id -> Uuid,
         #[max_length = 255]
         name -> Varchar,
         description -> Nullable<Text>,
@@ -147,13 +129,11 @@ diesel::table! {
 
 diesel::table! {
     tenant_tag (id) {
-        #[max_length = 36]
-        id -> Text,
+        id -> Uuid,
         #[max_length = 64]
         value -> Varchar,
         meta -> Nullable<Jsonb>,
-        #[max_length = 36]
-        tenant_id -> Text,
+        tenant_id -> Uuid,
     }
 }
 
@@ -167,8 +147,7 @@ diesel::table! {
 
 diesel::table! {
     user (id) {
-        #[max_length = 36]
-        id -> Text,
+        id -> Uuid,
         #[max_length = 140]
         username -> Varchar,
         #[max_length = 140]
@@ -180,8 +159,7 @@ diesel::table! {
         is_active -> Bool,
         created -> Timestamptz,
         updated -> Nullable<Timestamptz>,
-        #[max_length = 36]
-        account_id -> Nullable<Text>,
+        account_id -> Nullable<Uuid>,
         is_principal -> Bool,
         mfa -> Nullable<Jsonb>,
     }
@@ -189,8 +167,7 @@ diesel::table! {
 
 diesel::table! {
     webhook (id) {
-        #[max_length = 36]
-        id -> Text,
+        id -> Uuid,
         #[max_length = 140]
         name -> Varchar,
         #[max_length = 255]
@@ -207,14 +184,12 @@ diesel::table! {
 
 diesel::table! {
     webhook_execution (id) {
-        #[max_length = 36]
-        id -> Text,
+        id -> Uuid,
         payload -> Text,
         #[max_length = 255]
         trigger -> Varchar,
         encrypted -> Nullable<Bool>,
         attempts -> Int4,
-        #[max_length = 36]
         created -> Timestamptz,
         attempted -> Nullable<Timestamptz>,
         #[max_length = 100]

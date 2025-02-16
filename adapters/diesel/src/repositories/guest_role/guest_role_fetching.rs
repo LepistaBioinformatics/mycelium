@@ -19,7 +19,7 @@ use mycelium_base::{
     utils::errors::{fetching_err, MappedErrors},
 };
 use shaku::Component;
-use std::{str::FromStr, sync::Arc};
+use std::sync::Arc;
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -42,7 +42,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
         })?;
 
         let role = guest_role_model::table
-            .find(id.to_string())
+            .find(id)
             .select(GuestRoleModel::as_select())
             .first::<GuestRoleModel>(conn)
             .optional()
@@ -64,10 +64,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                 None
             } else {
                 Some(Children::Ids(
-                    children
-                        .into_iter()
-                        .map(|c| Uuid::from_str(&c.child_role_id).unwrap())
-                        .collect(),
+                    children.into_iter().map(|c| c.child_role_id).collect(),
                 ))
             };
 
@@ -133,10 +130,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
                     None
                 } else {
                     Some(Children::Ids(
-                        children
-                            .into_iter()
-                            .map(|c| Uuid::from_str(&c.child_role_id).unwrap())
-                            .collect(),
+                        children.into_iter().map(|c| c.child_role_id).collect(),
                     ))
                 };
 

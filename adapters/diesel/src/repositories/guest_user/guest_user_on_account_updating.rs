@@ -50,7 +50,7 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
             .filter(guest_role_model::name.eq(&guest_role_name))
             .filter(guest_role_model::permission.eq(permission.to_i32()))
             .select(guest_role_model::id)
-            .first::<String>(conn)
+            .first::<Uuid>(conn)
             .optional()
             .map_err(|e| {
                 updating_err(format!("Failed to fetch guest role: {}", e))
@@ -69,9 +69,7 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
         // Find guest user by account
         let guest_user = guest_user_model::table
             .inner_join(guest_user_on_account::table)
-            .filter(
-                guest_user_on_account::account_id.eq(account_id.to_string()),
-            )
+            .filter(guest_user_on_account::account_id.eq(account_id))
             .filter(guest_user_model::was_verified.eq(false))
             .select(GuestUserModel::as_select())
             .first::<GuestUserModel>(conn)

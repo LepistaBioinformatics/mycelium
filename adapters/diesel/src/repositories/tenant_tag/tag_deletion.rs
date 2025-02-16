@@ -36,16 +36,16 @@ impl TenantTagDeletion for TenantTagDeletionSqlDbRepository {
 
         // Check if tag exists
         let exists = tenant_tag_model::table
-            .find(id.to_string())
+            .find(id)
             .select(tenant_tag_model::id)
-            .first::<String>(conn)
+            .first::<Uuid>(conn)
             .optional()
             .map_err(|e| deletion_err(format!("Failed to check tag: {}", e)))?;
 
         match exists {
             Some(_) => {
                 // Delete tag
-                diesel::delete(tenant_tag_model::table.find(id.to_string()))
+                diesel::delete(tenant_tag_model::table.find(id))
                     .execute(conn)
                     .map_err(|e| {
                         deletion_err(format!("Failed to delete tag: {}", e))

@@ -168,6 +168,7 @@ pub async fn main() -> std::io::Result<()> {
     init_vault_config_from_file(None, Some(config.vault)).await;
 
     // ? -----------------------------------------------------------------------
+<<<<<<< Updated upstream
     // ? Initialize notifier elements
     //
     // SMTP and Queue configurations should be initialized before the server
@@ -185,8 +186,13 @@ pub async fn main() -> std::io::Result<()> {
     // ? Configure SQL App Module
     // ? -----------------------------------------------------------------------
 
+    info!("Initialize SQL dependencies");
+=======
+    // ? Configure SQL App Module
+    // ? -----------------------------------------------------------------------
     info!("Initialize internal dependencies");
 
+>>>>>>> Stashed changes
     let sql_module = Arc::new(
         SqlAppModule::builder()
             .with_component_parameters::<DieselDbPoolProvider>(

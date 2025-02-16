@@ -61,7 +61,7 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
 
         // Create new role
         let new_role = GuestRoleModel {
-            id: Uuid::new_v4().to_string(),
+            id: Uuid::new_v4(),
             name: guest_role.name,
             slug: guest_role.slug,
             description: guest_role.description,

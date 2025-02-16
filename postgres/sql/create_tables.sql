@@ -1,8 +1,20 @@
--- TENANT RELATED MODELS
+--------------------------------------------------------------------------------
+-- Create extension for UUID generation
+--
+-- Extension is used to generate UUIDs for tables that require them
+--
+--------------------------------------------------------------------------------
 
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+--------------------------------------------------------------------------------
+-- TABLES
+--------------------------------------------------------------------------------
+
+-- Tenant table
 CREATE TABLE tenant (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(255) NOT NULL UNIQUE,
+    id UUID DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
     description TEXT,
     meta JSONB,
     status JSONB[],
@@ -10,6 +22,7 @@ CREATE TABLE tenant (
     updated TIMESTAMPTZ DEFAULT NULL
 );
 
+<<<<<<< Updated upstream
 CREATE TABLE owner_on_tenant (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL,
@@ -120,8 +133,11 @@ CREATE TABLE guest_user_on_account (
 
 -- ACCOUNT RELATED MODELS
 
+=======
+-- Account table
+>>>>>>> Stashed changes
 CREATE TABLE account (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID DEFAULT gen_random_uuid(),
     name VARCHAR(256) NOT NULL,
     slug VARCHAR(256) NOT NULL,
     meta JSONB,
@@ -132,40 +148,111 @@ CREATE TABLE account (
     is_checked BOOLEAN DEFAULT FALSE,
     is_archived BOOLEAN DEFAULT FALSE,
     is_default BOOLEAN DEFAULT FALSE,
-    tenant_id UUID DEFAULT NULL,
-
-    CONSTRAINT unique_account_name UNIQUE (name, tenant_id),
-    CONSTRAINT unique_account_slug UNIQUE (slug, tenant_id),
-    CONSTRAINT fk_account_tenant FOREIGN KEY (tenant_id) REFERENCES tenant(id)
+    tenant_id UUID DEFAULT NULL
 );
 
+-- Account tag table
 CREATE TABLE account_tag (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID DEFAULT gen_random_uuid(),
     value VARCHAR(64) NOT NULL,
     meta JSONB,
-    account_id UUID NOT NULL,
-
-    CONSTRAINT unique_account_tag UNIQUE (value, account_id, meta),
-    CONSTRAINT fk_account_tag FOREIGN KEY (account_id) REFERENCES account(id) ON DELETE CASCADE
+    account_id UUID NOT NULL
 );
 
--- ERROR CODE RELATED MODELS
+-- Public user table
+CREATE TABLE public.user (
+    id UUID DEFAULT gen_random_uuid(),
+    username VARCHAR(140) NOT NULL,
+    email VARCHAR(140) NOT NULL,
+    first_name VARCHAR(140) NOT NULL,
+    last_name VARCHAR(140) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    is_principal BOOLEAN DEFAULT FALSE,
+    created TIMESTAMPTZ DEFAULT now(),
+    updated TIMESTAMPTZ DEFAULT NULL,
+    mfa JSONB,
+    account_id UUID DEFAULT NULL
+);
 
+-- Identity provider table
+CREATE TABLE identity_provider (
+    user_id UUID,
+    name VARCHAR(255) DEFAULT NULL,
+    password_hash VARCHAR(255) DEFAULT NULL
+);
+
+-- Owner on tenant table
+CREATE TABLE owner_on_tenant (
+    id UUID DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    owner_id UUID NOT NULL,
+    guest_by VARCHAR NOT NULL,
+    created TIMESTAMPTZ DEFAULT now(),
+    updated TIMESTAMPTZ DEFAULT NULL
+);
+
+-- Manager account on tenant table
+CREATE TABLE manager_account_on_tenant (
+    id UUID DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL,
+    account_id UUID NOT NULL,
+    created TIMESTAMPTZ DEFAULT now(),
+    updated TIMESTAMPTZ DEFAULT NULL
+);
+
+-- Tenant tag table
+CREATE TABLE tenant_tag (
+    id UUID DEFAULT gen_random_uuid(),
+    value VARCHAR(64) NOT NULL,
+    meta JSONB,
+    tenant_id UUID NOT NULL
+);
+
+-- Guest role table
+CREATE TABLE guest_role (
+    id UUID DEFAULT gen_random_uuid(),
+    name VARCHAR(140) NOT NULL,
+    slug VARCHAR(140) NOT NULL,
+    description VARCHAR(255),
+    permission INT DEFAULT 0
+);
+
+-- Guest role children table
+CREATE TABLE guest_role_children (
+    parent_id UUID NOT NULL,
+    child_role_id UUID NOT NULL
+);
+
+-- Guest user table
+CREATE TABLE guest_user (
+    id UUID DEFAULT gen_random_uuid(),
+    email VARCHAR NOT NULL,
+    guest_role_id UUID NOT NULL,
+    created TIMESTAMPTZ DEFAULT now(),
+    updated TIMESTAMPTZ DEFAULT NULL,
+    was_verified BOOLEAN DEFAULT FALSE
+);
+
+-- Guest user on account table
+CREATE TABLE guest_user_on_account (
+    guest_user_id UUID NOT NULL,
+    account_id UUID NOT NULL,
+    created TIMESTAMPTZ DEFAULT now()
+);
+
+-- Error code table
 CREATE TABLE error_code (
     code SERIAL NOT NULL,
     prefix VARCHAR NOT NULL,
     message VARCHAR(255) NOT NULL,
     details VARCHAR(255),
     is_internal BOOLEAN DEFAULT FALSE,
-    is_native BOOLEAN DEFAULT FALSE,
-
-    PRIMARY KEY (prefix, code)
+    is_native BOOLEAN DEFAULT FALSE
 );
 
--- WEBHOOK MODELS
-
+-- Webhook table
 CREATE TABLE webhook (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID DEFAULT gen_random_uuid(),
     name VARCHAR(140) NOT NULL,
     description VARCHAR(255),
     url VARCHAR NOT NULL,
@@ -173,13 +260,12 @@ CREATE TABLE webhook (
     is_active BOOLEAN DEFAULT TRUE,
     created TIMESTAMPTZ DEFAULT now(),
     updated TIMESTAMPTZ DEFAULT NULL,
-    secret JSONB,
-
-    CONSTRAINT unique_webhook UNIQUE (name, url, trigger)
+    secret JSONB
 );
 
+-- Webhook execution table
 CREATE TABLE webhook_execution (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID DEFAULT gen_random_uuid(),
     trigger VARCHAR(255) NOT NULL,
     payload TEXT NOT NULL,
     encrypted BOOLEAN DEFAULT FALSE,
@@ -189,3 +275,122 @@ CREATE TABLE webhook_execution (
     status VARCHAR(100) DEFAULT NULL,
     propagations JSONB
 );
+
+-- Token table
+CREATE TABLE token (
+    id SERIAL PRIMARY KEY,
+    meta JSONB NOT NULL,
+    expiration TIMESTAMPTZ NOT NULL
+);
+
+--------------------------------------------------------------------------------
+-- CONSTRAINTS
+--------------------------------------------------------------------------------
+
+-- Tenant table constraints
+ALTER TABLE tenant ADD CONSTRAINT tenant_pk PRIMARY KEY (id);
+ALTER TABLE tenant ADD CONSTRAINT tenant_name_unique UNIQUE (name);
+
+-- Account table constraints
+ALTER TABLE account ADD CONSTRAINT account_pk PRIMARY KEY (id);
+ALTER TABLE account ADD CONSTRAINT unique_account_name UNIQUE (name, tenant_id);
+ALTER TABLE account ADD CONSTRAINT unique_account_slug UNIQUE (slug, tenant_id);
+ALTER TABLE account ADD CONSTRAINT fk_account_tenant FOREIGN KEY (tenant_id) REFERENCES tenant(id);
+
+-- Account tag table constraints
+ALTER TABLE account_tag ADD CONSTRAINT account_tag_pk PRIMARY KEY (id);
+ALTER TABLE account_tag ADD CONSTRAINT unique_account_tag UNIQUE (value, account_id, meta);
+ALTER TABLE account_tag ADD CONSTRAINT fk_account_tag FOREIGN KEY (account_id) REFERENCES account(id) ON DELETE CASCADE;
+
+-- Public user table constraints
+ALTER TABLE public.user ADD CONSTRAINT user_pk PRIMARY KEY (id);
+ALTER TABLE public.user ADD CONSTRAINT unique_email_account UNIQUE (email, account_id);
+ALTER TABLE public.user ADD CONSTRAINT fk_user_account FOREIGN KEY (account_id) REFERENCES account(id);
+
+-- Identity provider table constraints
+ALTER TABLE identity_provider ADD CONSTRAINT identity_provider_pk PRIMARY KEY (user_id);
+ALTER TABLE identity_provider ADD CONSTRAINT unique_user_password_hash UNIQUE (user_id, password_hash);
+ALTER TABLE identity_provider ADD CONSTRAINT unique_user_name UNIQUE (user_id, name);
+ALTER TABLE identity_provider ADD CONSTRAINT fk_identity_user FOREIGN KEY (user_id) REFERENCES public.user(id) ON DELETE CASCADE;
+
+-- Owner on tenant table constraints
+ALTER TABLE owner_on_tenant ADD CONSTRAINT owner_on_tenant_pk PRIMARY KEY (id);
+ALTER TABLE owner_on_tenant ADD CONSTRAINT unique_tenant_owner UNIQUE (tenant_id, owner_id);
+ALTER TABLE owner_on_tenant ADD CONSTRAINT fk_tenant FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE;
+ALTER TABLE owner_on_tenant ADD CONSTRAINT fk_owner FOREIGN KEY (owner_id) REFERENCES public.user(id) ON DELETE CASCADE;
+
+-- Manager account on tenant table constraints
+ALTER TABLE manager_account_on_tenant ADD CONSTRAINT manager_account_on_tenant_pk PRIMARY KEY (id);
+ALTER TABLE manager_account_on_tenant ADD CONSTRAINT unique_tenant UNIQUE (tenant_id);
+ALTER TABLE manager_account_on_tenant ADD CONSTRAINT unique_account UNIQUE (account_id);
+ALTER TABLE manager_account_on_tenant ADD CONSTRAINT unique_tenant_account UNIQUE (tenant_id, account_id);
+ALTER TABLE manager_account_on_tenant ADD CONSTRAINT fk_tenant_manager FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE;
+ALTER TABLE manager_account_on_tenant ADD CONSTRAINT fk_account_manager FOREIGN KEY (account_id) REFERENCES account(id) ON DELETE CASCADE;
+
+-- Tenant tag table constraints
+ALTER TABLE tenant_tag ADD CONSTRAINT tenant_tag_pk PRIMARY KEY (id);
+ALTER TABLE tenant_tag ADD CONSTRAINT unique_tenant_tag UNIQUE (value, tenant_id, meta);
+ALTER TABLE tenant_tag ADD CONSTRAINT fk_tenant_tag FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE;
+
+-- Guest role table constraints
+ALTER TABLE guest_role ADD CONSTRAINT guest_role_pk PRIMARY KEY (id);
+ALTER TABLE guest_role ADD CONSTRAINT unique_guest_role_name UNIQUE (name, permission);
+ALTER TABLE guest_role ADD CONSTRAINT unique_guest_role_slug UNIQUE (slug, permission);
+
+-- Guest role children table constraints
+ALTER TABLE guest_role_children ADD CONSTRAINT guest_role_children_pk PRIMARY KEY (parent_id, child_role_id);
+ALTER TABLE guest_role_children ADD CONSTRAINT fk_parent_role FOREIGN KEY (parent_id) REFERENCES guest_role(id);
+ALTER TABLE guest_role_children ADD CONSTRAINT fk_child_role FOREIGN KEY (child_role_id) REFERENCES guest_role(id);
+
+-- Guest user table constraints
+ALTER TABLE guest_user ADD CONSTRAINT guest_user_pk PRIMARY KEY (id);
+ALTER TABLE guest_user ADD CONSTRAINT unique_guest_user UNIQUE (email, guest_role_id);
+ALTER TABLE guest_user ADD CONSTRAINT fk_guest_user_role FOREIGN KEY (guest_role_id) REFERENCES guest_role(id);
+
+-- Guest user on account table constraints
+ALTER TABLE guest_user_on_account ADD CONSTRAINT guest_user_on_account_pk PRIMARY KEY (guest_user_id, account_id);
+ALTER TABLE guest_user_on_account ADD CONSTRAINT fk_guest_user FOREIGN KEY (guest_user_id) REFERENCES guest_user(id) ON DELETE CASCADE;
+ALTER TABLE guest_user_on_account ADD CONSTRAINT fk_guest_account FOREIGN KEY (account_id) REFERENCES account(id);
+
+-- Error code table constraints
+ALTER TABLE error_code ADD CONSTRAINT error_code_pk PRIMARY KEY (prefix, code);
+
+-- Webhook table constraints
+ALTER TABLE webhook ADD CONSTRAINT webhook_pk PRIMARY KEY (id);
+ALTER TABLE webhook ADD CONSTRAINT unique_webhook UNIQUE (name, url, trigger);
+
+-- Webhook execution table constraints
+ALTER TABLE webhook_execution ADD CONSTRAINT webhook_execution_pk PRIMARY KEY (id);
+
+--------------------------------------------------------------------------------
+-- VIEWS
+--------------------------------------------------------------------------------
+
+-- Licensed resources view
+CREATE OR REPLACE VIEW licensed_resources AS
+SELECT DISTINCT
+	ac.id AS acc_id,
+	ac.name AS acc_name,
+	ac.is_default AS is_acc_std,
+	gr.id AS gr_id,
+	gr.slug AS gr_slug,
+	gr.permission AS gr_perm,
+	gu.email AS gu_email,
+	gu.was_verified AS gu_verified,
+	ac.tenant_id AS tenant_id
+FROM
+	guest_user_on_account AS ga
+JOIN
+	guest_user AS gu
+ON
+	ga.guest_user_id = gu.id 
+JOIN
+	guest_role AS gr
+ON
+	gr.id = gu.guest_role_id
+JOIN
+	account AS ac
+ON
+	ac.id = ga.account_id
+ORDER BY
+    gu_email, gr_slug, acc_id, gr_id;

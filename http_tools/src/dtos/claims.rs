@@ -6,4 +6,6 @@ pub struct Claims {
     pub email: String,
     pub exp: i64,
     pub iss: String,
+    pub aud: String,
+    pub iat: i64,
 }

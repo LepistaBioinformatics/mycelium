@@ -32,9 +32,7 @@ impl UserDeletion for UserDeletionSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        match diesel::delete(user_model::table.find(user_id.to_string()))
-            .execute(conn)
-        {
+        match diesel::delete(user_model::table.find(user_id)).execute(conn) {
             Ok(_) => Ok(DeletionResponseKind::Deleted),
             Err(e) => {
                 Ok(DeletionResponseKind::NotDeleted(user_id, e.to_string()))

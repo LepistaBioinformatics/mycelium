@@ -6,18 +6,19 @@ use crate::{
 use actix_web::HttpResponse;
 use chrono::{Duration, Utc};
 use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
-use myc_core::domain::dtos::user::User;
+use myc_core::{domain::dtos::user::User, models::AccountLifeCycle};
 use tracing::error;
 
 /// Encode a user into a JWT token
 pub async fn encode_jwt(
     user: User,
-    token: InternalOauthConfig,
+    auth_config: InternalOauthConfig,
+    core_config: AccountLifeCycle,
     is_temporary: bool,
 ) -> Result<(String, Duration), HttpResponse> {
     let expires_in = match match is_temporary {
-        true => token.tmp_expires_in,
-        false => token.jwt_expires_in,
+        true => auth_config.tmp_expires_in,
+        false => auth_config.jwt_expires_in,
     }
     .async_get_or_error()
     .await
@@ -48,6 +49,7 @@ pub async fn encode_jwt(
     };
 
     let claims = Claims {
+        iat: Utc::now().timestamp(),
         sub: match user.id.to_owned() {
             Some(id) => id.to_string(),
             None => "".to_string(),
@@ -55,11 +57,34 @@ pub async fn encode_jwt(
         email: user.email.email(),
         exp: expiration,
         iss: MYCELIUM_PROVIDER_KEY.to_string(),
+        aud: core_config
+            .domain_url
+            .ok_or(core_config.domain_name)
+            .map_err(|err| {
+                error!("Could not get domain URL: {err:?}");
+
+                HttpResponse::InternalServerError().json(
+                    HttpJsonResponse::new_message(
+                        "Unexpected error on build JWT claims".to_string(),
+                    ),
+                )
+            })?
+            .async_get_or_error()
+            .await
+            .map_err(|err| {
+                error!("Could not get domain URL: {err:?}");
+
+                HttpResponse::InternalServerError().json(
+                    HttpJsonResponse::new_message(
+                        "Unexpected error on build JWT claims".to_string(),
+                    ),
+                )
+            })?,
     };
 
     let header = Header::new(Algorithm::HS512);
 
-    let secret = match token.jwt_secret.async_get_or_error().await {
+    let secret = match auth_config.jwt_secret.async_get_or_error().await {
         Ok(key) => key,
         Err(_) => {
             return Err(HttpResponse::InternalServerError().json(

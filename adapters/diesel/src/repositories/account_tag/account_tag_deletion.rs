@@ -36,22 +36,20 @@ impl AccountTagDeletion for AccountTagDeletionSqlDbRepository {
 
         // Check if tag exists
         let tag_exists = account_tag_model::table
-            .find(tag_id.to_string())
+            .find(tag_id)
             .select(account_tag_model::id)
-            .first::<String>(conn)
+            .first::<Uuid>(conn)
             .optional()
             .map_err(|e| deletion_err(format!("Failed to check tag: {}", e)))?;
 
         match tag_exists {
             Some(_) => {
                 // Delete tag
-                diesel::delete(
-                    account_tag_model::table.find(tag_id.to_string()),
-                )
-                .execute(conn)
-                .map_err(|e| {
-                    deletion_err(format!("Failed to delete tag: {}", e))
-                })?;
+                diesel::delete(account_tag_model::table.find(tag_id))
+                    .execute(conn)
+                    .map_err(|e| {
+                        deletion_err(format!("Failed to delete tag: {}", e))
+                    })?;
 
                 Ok(DeletionResponseKind::Deleted)
             }

@@ -14,9 +14,7 @@ use mycelium_base::{
 };
 use serde_json::to_value;
 use shaku::Component;
-use std::str::FromStr;
 use std::sync::Arc;
-use uuid::Uuid;
 
 #[derive(Component)]
 #[shaku(interface = AccountTagUpdating)]
@@ -38,27 +36,22 @@ impl AccountTagUpdating for AccountTagUpdatingSqlDbRepository {
 
         let tag_id = tag.id;
 
-        let updated_tag =
-            diesel::update(account_tag_model::table.find(tag_id.to_string()))
-                .set((
-                    account_tag_model::value.eq(tag.value),
-                    account_tag_model::meta
-                        .eq(Some(to_value(&tag.meta).unwrap())),
-                ))
-                .get_result::<AccountTagModel>(conn)
-                .map_err(|e| {
-                    if e == diesel::result::Error::NotFound {
-                        updating_err(format!(
-                            "Invalid primary key: {:?}",
-                            tag_id
-                        ))
-                    } else {
-                        updating_err(format!("Failed to update tag: {}", e))
-                    }
-                })?;
+        let updated_tag = diesel::update(account_tag_model::table.find(tag_id))
+            .set((
+                account_tag_model::value.eq(tag.value),
+                account_tag_model::meta.eq(Some(to_value(&tag.meta).unwrap())),
+            ))
+            .get_result::<AccountTagModel>(conn)
+            .map_err(|e| {
+                if e == diesel::result::Error::NotFound {
+                    updating_err(format!("Invalid primary key: {:?}", tag_id))
+                } else {
+                    updating_err(format!("Failed to update tag: {}", e))
+                }
+            })?;
 
         Ok(UpdatingResponseKind::Updated(Tag {
-            id: Uuid::from_str(&updated_tag.id).unwrap(),
+            id: updated_tag.id,
             value: updated_tag.value,
             meta: updated_tag.meta.map(|m| serde_json::from_value(m).unwrap()),
         }))

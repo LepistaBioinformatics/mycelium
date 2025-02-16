@@ -3,6 +3,7 @@ use super::account::Account;
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde_json::Value as JsonValue;
+use uuid::Uuid;
 
 #[derive(
     Identifiable, Associations, Debug, Queryable, Selectable, Insertable,
@@ -11,14 +12,14 @@ use serde_json::Value as JsonValue;
 #[diesel(belongs_to(Account))]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct User {
-    #[diesel(serialize_as = String)]
-    #[diesel(deserialize_as = String)]
-    pub id: String,
+    #[diesel(sql_type = diesel::sql_types::Uuid)]
+    pub id: Uuid,
     pub username: String,
     pub email: String,
     pub first_name: String,
     pub last_name: String,
-    pub account_id: Option<String>,
+    #[diesel(sql_type = Option<diesel::sql_types::Uuid>)]
+    pub account_id: Option<Uuid>,
     pub is_active: bool,
     pub is_principal: bool,
     pub created: NaiveDateTime,

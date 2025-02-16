@@ -5,11 +5,10 @@ use myc_core::domain::dtos::account::{Account, AccountMetaKey, VerboseStatus};
 use mycelium_base::dtos::Children;
 use serde_json::from_value;
 use std::{collections::HashMap, str::FromStr};
-use uuid::Uuid;
 
 pub(super) fn map_account_model_to_dto(model: AccountModel) -> Account {
     Account {
-        id: Some(Uuid::from_str(&model.id).unwrap()),
+        id: Some(model.id),
         name: model.name,
         slug: model.slug,
         tags: None,

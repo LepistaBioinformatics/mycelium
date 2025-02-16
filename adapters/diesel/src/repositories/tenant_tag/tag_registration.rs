@@ -15,7 +15,7 @@ use mycelium_base::{
 };
 use serde_json::{from_value, to_value};
 use shaku::Component;
-use std::{collections::HashMap, str::FromStr, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -43,7 +43,7 @@ impl TenantTagRegistration for TenantTagRegistrationSqlDbRepository {
         let existing = tenant_tag_model::table
             .filter(tenant_tag_model::value.eq(&tag))
             .filter(tenant_tag_model::meta.eq(to_value(&meta).unwrap()))
-            .filter(tenant_tag_model::tenant_id.eq(tenant_id.to_string()))
+            .filter(tenant_tag_model::tenant_id.eq(tenant_id))
             .select(TenantTagModel::as_select())
             .first::<TenantTagModel>(conn)
             .optional()
@@ -52,7 +52,7 @@ impl TenantTagRegistration for TenantTagRegistrationSqlDbRepository {
         if let Some(record) = existing {
             return Ok(GetOrCreateResponseKind::NotCreated(
                 Tag {
-                    id: Uuid::from_str(&record.id).unwrap(),
+                    id: record.id,
                     value: record.value,
                     meta: record.meta.map(|m| from_value(m).unwrap()),
                 },
@@ -62,10 +62,10 @@ impl TenantTagRegistration for TenantTagRegistrationSqlDbRepository {
 
         // Create new tag
         let new_tag = TenantTagModel {
-            id: Uuid::new_v4().to_string(),
+            id: Uuid::new_v4(),
             value: tag,
             meta: Some(to_value(&meta).unwrap()),
-            tenant_id: tenant_id.to_string(),
+            tenant_id: tenant_id.clone(),
         };
 
         let created = diesel::insert_into(tenant_tag_model::table)
@@ -77,7 +77,7 @@ impl TenantTagRegistration for TenantTagRegistrationSqlDbRepository {
             })?;
 
         Ok(GetOrCreateResponseKind::Created(Tag {
-            id: Uuid::from_str(&created.id).unwrap(),
+            id: created.id,
             value: created.value,
             meta: created.meta.map(|m| from_value(m).unwrap()),
         }))

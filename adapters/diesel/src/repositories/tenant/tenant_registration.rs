@@ -26,7 +26,7 @@ use mycelium_base::{
 };
 use serde_json::to_value;
 use shaku::Component;
-use std::{collections::HashMap, str::FromStr, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 use uuid::Uuid;
 
 #[derive(Component)]
@@ -62,7 +62,7 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
         if let Some(record) = existing {
             return Ok(CreateResponseKind::NotCreated(
                 Tenant {
-                    id: Some(Uuid::from_str(&record.id).unwrap()),
+                    id: Some(record.id),
                     name: record.name,
                     description: record.description,
                     meta: record
@@ -89,7 +89,7 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
         // Criar novo tenant
         let tenant_id = Uuid::new_v4();
         let new_tenant = TenantModel {
-            id: tenant_id.to_string(),
+            id: tenant_id,
             name: tenant.name,
             description: tenant.description,
             meta: tenant.meta.map(|m| to_value(&m).unwrap()),
@@ -117,9 +117,9 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
                     Children::Records(owners) => owners
                         .iter()
                         .map(|owner| OwnerOnTenantModel {
-                            id: Uuid::new_v4().to_string(),
+                            id: Uuid::new_v4(),
                             tenant_id: tenant_record.id.clone(),
-                            owner_id: owner.id.to_string(),
+                            owner_id: owner.id.clone(),
                             guest_by: guest_by.clone(),
                             created: Local::now().naive_utc(),
                             updated: None,
@@ -128,9 +128,9 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
                     Children::Ids(ids) => ids
                         .iter()
                         .map(|id| OwnerOnTenantModel {
-                            id: Uuid::new_v4().to_string(),
+                            id: Uuid::new_v4(),
                             tenant_id: tenant_record.id.clone(),
-                            owner_id: id.to_string(),
+                            owner_id: id.clone(),
                             guest_by: guest_by.clone(),
                             created: Local::now().naive_utc(),
                             updated: None,
@@ -149,7 +149,7 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
             })?;
 
         Ok(CreateResponseKind::Created(Tenant {
-            id: Some(Uuid::from_str(&created.id).unwrap()),
+            id: Some(created.id),
             name: created.name,
             description: created.description,
             meta: created.meta.map(|m| serde_json::from_value(m).unwrap()),
@@ -185,13 +185,13 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
         // Verify if the tenant exists and if the user has permission
         let tenant = tenant_model::table
             .inner_join(owner_on_tenant_model::table)
-            .filter(tenant_model::id.eq(tenant_id.to_string()))
+            .filter(tenant_model::id.eq(tenant_id))
             .filter(
                 owner_on_tenant_model::owner_id.eq_any(
                     owners_ids
                         .iter()
-                        .map(|id| id.to_string())
-                        .collect::<Vec<String>>(),
+                        .map(|id| id.clone())
+                        .collect::<Vec<Uuid>>(),
                 ),
             )
             .select(TenantModel::as_select())
@@ -219,7 +219,7 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
 
         meta_map.insert(format!("{key}", key = key), value.clone());
 
-        diesel::update(tenant_model::table.find(tenant_id.to_string()))
+        diesel::update(tenant_model::table.find(tenant_id))
             .set(tenant_model::meta.eq(to_value(&meta_map).unwrap()))
             .execute(conn)
             .map_err(|e| {

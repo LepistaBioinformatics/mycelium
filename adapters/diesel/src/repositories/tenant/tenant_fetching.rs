@@ -57,14 +57,10 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
 
         let tenant = tenant_model::table
             .inner_join(owner_on_tenant_model::table)
-            .filter(tenant_model::id.eq(id.to_string()))
+            .filter(tenant_model::id.eq(id))
             .filter(
-                owner_on_tenant_model::owner_id.eq_any(
-                    owners_ids
-                        .iter()
-                        .map(|id| id.to_string())
-                        .collect::<Vec<String>>(),
-                ),
+                owner_on_tenant_model::owner_id
+                    .eq_any(owners_ids.iter().map(|id| id).collect::<Vec<_>>()),
             )
             .select(TenantModel::as_select())
             .first::<TenantModel>(conn)
@@ -75,7 +71,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
 
         match tenant {
             Some(record) => Ok(FetchResponseKind::Found(Tenant {
-                id: Some(Uuid::from_str(&record.id).unwrap()),
+                id: Some(record.id),
                 name: record.name,
                 description: record.description,
                 meta: record.meta.map(|m| {
@@ -116,27 +112,23 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let tenant = tenant_model::table
-            .inner_join(manager_account_on_tenant_model::table)
-            .filter(tenant_model::id.eq(id.to_string()))
-            .filter(
-                manager_account_on_tenant_model::account_id.eq_any(
-                    manager_ids
-                        .iter()
-                        .map(|id| id.to_string())
-                        .collect::<Vec<String>>(),
-                ),
-            )
-            .select(TenantModel::as_select())
-            .first::<TenantModel>(conn)
-            .optional()
-            .map_err(|e| {
-                fetching_err(format!("Failed to fetch tenant: {}", e))
-            })?;
+        let tenant =
+            tenant_model::table
+                .inner_join(manager_account_on_tenant_model::table)
+                .filter(tenant_model::id.eq(id))
+                .filter(manager_account_on_tenant_model::account_id.eq_any(
+                    manager_ids.iter().map(|id| id).collect::<Vec<_>>(),
+                ))
+                .select(TenantModel::as_select())
+                .first::<TenantModel>(conn)
+                .optional()
+                .map_err(|e| {
+                    fetching_err(format!("Failed to fetch tenant: {}", e))
+                })?;
 
         match tenant {
             Some(record) => Ok(FetchResponseKind::Found(Tenant {
-                id: Some(Uuid::from_str(&record.id).unwrap()),
+                id: Some(record.id),
                 name: record.name,
                 description: record.description,
                 meta: record.meta.map(|m| {
@@ -194,7 +186,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         }
 
         if let Some(owner_id) = owner {
-            let dsl = owner_on_tenant_dsl::owner_id.eq(owner_id.to_string());
+            let dsl = owner_on_tenant_dsl::owner_id.eq(owner_id);
             records_query = records_query.filter(dsl.clone());
             count_query = count_query.filter(dsl);
         }
@@ -265,7 +257,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
 
                 let owners = owners
                     .into_iter()
-                    .map(|o| Uuid::from_str(&o.owner_id).unwrap())
+                    .map(|o| o.owner_id)
                     .collect::<Vec<Uuid>>();
 
                 let tags = if tags.is_empty() {
@@ -274,7 +266,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                     Some(
                         tags.into_iter()
                             .map(|t| Tag {
-                                id: Uuid::from_str(&t.id).unwrap(),
+                                id: t.id,
                                 value: t.value,
                                 meta: t.meta.map(|m| {
                                     serde_json::from_value(m).unwrap()
@@ -306,7 +298,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
 
 fn map_tenant_model_to_dto(record: TenantModel) -> Tenant {
     Tenant {
-        id: Some(Uuid::from_str(&record.id).unwrap()),
+        id: Some(record.id),
         name: record.name,
         description: record.description,
         meta: record.meta.map(|m| {
