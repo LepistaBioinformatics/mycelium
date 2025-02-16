@@ -18,7 +18,7 @@ readme.workspace = true
 
 [dependencies]
 
-mycelium-base = { version = "7.4.0", path = "../base" }
+mycelium-base = { version = "7.5.0", path = "../base" }
 
 lazy_static.workspace = true
 reqwest.workspace = true

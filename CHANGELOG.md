@@ -1,3 +1,19 @@
+## v7.5.0 (2025-02-16)
+
+### Feat
+
+- increase the ttl granularity of the cache for email and profile and the jwks response
+
+### Fix
+
+- update database model to be more migrationable
+- prefix user tables to include the public schema name on create table schema
+- fix the rpassword package name
+
+### Refactor
+
+- convert the response status to a ok status on verity the email registration status endpoint
+
 ## v7.4.0 (2025-02-10)
 
 ### Feat
