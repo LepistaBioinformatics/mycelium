@@ -6,9 +6,9 @@ FROM rust:latest AS builder
 
 WORKDIR /rust
 
-# ? The copy operations are performed in sepparate steps to allow caching layers
+# ? The copy operations are performed in separate steps to allow caching layers
 # ? over building operations
-RUN cargo install mycelium-api
+RUN cargo install mycelium-api --force
 
 # ? ----------------------------------------------------------------------------
 # ? Production stage
