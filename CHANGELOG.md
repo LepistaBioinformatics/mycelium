@@ -1,3 +1,13 @@
+## v7.5.1 (2025-02-18)
+
+### Fix
+
+- include a desynchronozation element to avoid multiple synchronous execution of email and webhook dispatcher
+
+### Refactor
+
+- move the tracer to trace only during vault executions
+
 ## v7.5.0 (2025-02-16)
 
 ### Feat
