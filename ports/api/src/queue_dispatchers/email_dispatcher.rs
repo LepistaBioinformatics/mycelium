@@ -1,6 +1,7 @@
 use myc_adapters_shared_lib::models::SharedClientProvider;
 use myc_core::domain::entities::RemoteMessageSending;
 use myc_notifier::{executor::consume_messages, models::QueueConfig};
+use rand::Rng;
 use std::{sync::Arc, time::Duration};
 
 /// Dispatch email messages
@@ -34,6 +35,17 @@ pub(crate) fn email_dispatcher(
         // same second as the dispatcher start.
         //
         interval.tick().await;
+
+        //
+        // Wait for a random time between 1 and the consume interval. This time
+        // should avoid the webhook dispatcher to start at the same time as the
+        // email dispatcher and avoid the simultaneous consumption of the same
+        // event over multiple containers.
+        //
+        let random_time =
+            rand::thread_rng().gen_range(1..=interval.period().as_secs());
+
+        tokio::time::sleep(Duration::from_secs(random_time)).await;
 
         loop {
             interval.tick().await;

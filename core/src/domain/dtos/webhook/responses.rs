@@ -11,9 +11,34 @@ use uuid::Uuid;
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum WebHookExecutionStatus {
+    /// The webhook execution is pending
+    ///
+    /// This is the status of the webhook execution when it is pending.
+    ///
     Pending,
+
+    /// The webhook execution is successful
+    ///
+    /// This is the status of the webhook execution when it is successful.
+    ///
     Success,
+
+    /// The webhook execution is failed
+    ///
+    /// This is the status of the webhook execution when it is failed.
+    ///
     Failed,
+
+    /// The webhook execution is skipped
+    ///
+    /// This is the status of the webhook execution when it is skipped.
+    ///
+    Skipped,
+
+    /// The webhook execution is unknown
+    ///
+    /// This is the status of the webhook execution when it is unknown.
+    ///
     Unknown,
 }
 
@@ -23,6 +48,7 @@ impl Display for WebHookExecutionStatus {
             Self::Pending => write!(f, "pending"),
             Self::Success => write!(f, "success"),
             Self::Failed => write!(f, "failed"),
+            Self::Skipped => write!(f, "skipped"),
             Self::Unknown => write!(f, "unknown"),
         }
     }
@@ -36,6 +62,7 @@ impl FromStr for WebHookExecutionStatus {
             "pending" => Ok(Self::Pending),
             "success" => Ok(Self::Success),
             "failed" => Ok(Self::Failed),
+            "skipped" => Ok(Self::Skipped),
             "unknown" => Ok(Self::Unknown),
             _ => dto_err("Invalid webhook execution status").as_error(),
         }

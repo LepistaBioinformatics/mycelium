@@ -20,7 +20,11 @@ use mycelium_base::{
 };
 use reqwest::Client;
 
-#[tracing::instrument(name = "dispatch_webhooks", skip_all)]
+#[tracing::instrument(
+    name = "dispatch_webhooks",
+    fields(trigger = %trigger),
+    skip(config, webhook_fetching_repo, webhook_updating_repo)
+)]
 pub async fn dispatch_webhooks(
     trigger: WebHookTrigger,
     artifact: WebHookPayloadArtifact,
@@ -48,6 +52,16 @@ pub async fn dispatch_webhooks(
     let hooks: Vec<WebHook> = match hooks_fetching_response {
         FetchManyResponseKind::Found(records) => records,
         FetchManyResponseKind::NotFound => {
+            //
+            // Update the artifact with the status of the event
+            //
+            artifact.status = Some(WebHookExecutionStatus::Skipped);
+            artifact.attempts = Some(artifact.attempts.unwrap_or(0) + 1);
+
+            webhook_updating_repo
+                .update_execution_event(artifact.encode_payload()?)
+                .await?;
+
             return Ok(artifact);
         }
         _ => {
@@ -55,6 +69,8 @@ pub async fn dispatch_webhooks(
                 .as_error();
         }
     };
+
+    tracing::info!("Found {} webhooks to dispatch", hooks.len());
 
     // ? -----------------------------------------------------------------------
     // ? Adjust the HTTP method given the trigger
@@ -158,6 +174,8 @@ pub async fn dispatch_webhooks(
         })
         .collect();
 
+    tracing::info!("Sending {} webhooks", bodies.len());
+
     // ? -----------------------------------------------------------------------
     // ? Propagate responses
     //
@@ -231,7 +249,7 @@ pub async fn dispatch_webhooks(
     }
 
     // ? -----------------------------------------------------------------------
-    // ? Persist the artifact into data store
+    // ? Update the artifact into data store
     // ? -----------------------------------------------------------------------
 
     match webhook_updating_repo

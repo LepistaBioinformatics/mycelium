@@ -7,6 +7,7 @@ use myc_core::{
 };
 use myc_diesel::repositories::SqlAppModule;
 use mycelium_base::entities::FetchManyResponseKind;
+use rand::Rng;
 use shaku::HasComponent;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -22,6 +23,8 @@ pub(crate) fn webhook_dispatcher(
     app_modules: Arc<SqlAppModule>,
 ) {
     tokio::spawn(async move {
+        tracing::trace!("Starting webhook dispatcher");
+
         let webhook_config = config.webhook.clone();
         let read_repo: &dyn WebHookFetching = app_modules.resolve_ref();
         let write_repo: &dyn WebHookUpdating = app_modules.resolve_ref();
@@ -45,10 +48,19 @@ pub(crate) fn webhook_dispatcher(
         //
         interval.tick().await;
 
+        //
+        // Wait for a random time between 1 and the consume interval. This time
+        // should avoid the webhook dispatcher to start at the same time as the
+        // email dispatcher and avoid the simultaneous consumption of the same
+        // event over multiple containers.
+        //
+        let random_time =
+            rand::thread_rng().gen_range(1..=interval.period().as_secs());
+
+        tokio::time::sleep(Duration::from_secs(random_time)).await;
+
         loop {
             interval.tick().await;
-
-            tracing::trace!("Start webhook dispatch");
 
             //
             // Fetch webhook dispatch events
@@ -81,7 +93,6 @@ pub(crate) fn webhook_dispatcher(
 
             let events = match events_response {
                 FetchManyResponseKind::NotFound => {
-                    tracing::trace!("No webhook dispatch events found");
                     continue;
                 }
                 FetchManyResponseKind::Found(events) => events,
@@ -107,7 +118,6 @@ pub(crate) fn webhook_dispatcher(
                 });
 
             if events_by_trigger.is_empty() {
-                tracing::trace!("No webhook dispatch events found");
                 continue;
             }
 
@@ -116,7 +126,10 @@ pub(crate) fn webhook_dispatcher(
             //
             for ((trigger, id), artifacts) in events_by_trigger {
                 tracing::info!(
-                    "Dispatch webhooks for trigger: {trigger} and id: {id}"
+                    "Dispatch webhooks for trigger {trigger} and id {id}: {artifacts}",
+                    trigger = trigger,
+                    id = id,
+                    artifacts = artifacts.len()
                 );
 
                 let dispatching_events =
@@ -137,8 +150,6 @@ pub(crate) fn webhook_dispatcher(
                     }
                 }
             }
-
-            tracing::trace!("End webhooks dispatch");
         }
     });
 }
