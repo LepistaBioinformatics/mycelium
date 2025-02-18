@@ -105,8 +105,6 @@ impl<T: FromStr + Debug + Clone> SecretResolver<T> {
 
     #[tracing::instrument(name = "async_get_or_error", skip_all)]
     pub async fn async_get_or_error(&self) -> Result<T, MappedErrors> {
-        tracing::trace!("Resolving secret: {:?}", self);
-
         match self {
             //
             // Return the value directly
@@ -132,6 +130,11 @@ impl<T: FromStr + Debug + Clone> SecretResolver<T> {
             // Retrieve value from the vault using simple HTTP GET
             //
             SecretResolver::Vault { path, key } => {
+                tracing::trace!(
+                    "Resolving remote secret from vault: {path}/{key}",
+                    path = path,
+                    key = key
+                );
                 //
                 // Get the vault configuration
                 //
