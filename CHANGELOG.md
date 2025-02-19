@@ -1,3 +1,9 @@
+## v7.5.3 (2025-02-19)
+
+### Refactor
+
+- replace the head endpoint to check the user status by a get method with body response
+
 ## v7.5.2 (2025-02-19)
 
 ### Fix
