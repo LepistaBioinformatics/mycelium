@@ -1,3 +1,44 @@
+-- Example usage:
+-- psql -v db_password='myc-password' -f create_tables.sql
+
+--------------------------------------------------------------------------------
+-- EXTERNAL VALUES
+--------------------------------------------------------------------------------
+
+-- Check if the db_password variable is provided
+\if :{?db_password}
+    \echo "Using the provided password."
+\else
+    \echo "ERROR: The db_password variable is required. Use -v db_password='your_password' when executing."
+    \quit
+\endif
+
+\set db_name 'mycelium-v7-dev'
+\set db_user 'mycelium-v7-user'
+\set db_role 'service-role-mycelium-v7'
+
+--------------------------------------------------------------------------------
+-- DATABASE
+--
+-- Create database if it doesn't exist
+--
+--------------------------------------------------------------------------------
+
+SELECT 'CREATE DATABASE "' || :'db_name' || '"'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = :'db_name')\gexec
+
+\c :"db_name"
+
+--------------------------------------------------------------------------------
+-- ROLES
+--------------------------------------------------------------------------------
+
+CREATE ROLE :"db_role";
+
+CREATE USER :"db_user" WITH PASSWORD :'db_password';
+
+GRANT :"db_role" TO :"db_user";
+
 --------------------------------------------------------------------------------
 -- Create extension for UUID generation
 --
@@ -281,3 +322,15 @@ ON
 	ac.id = ga.account_id
 ORDER BY
     gu_email, gr_slug, acc_id, gr_id;
+
+--------------------------------------------------------------------------------
+-- PERMISSIONS
+--------------------------------------------------------------------------------
+
+GRANT CONNECT ON DATABASE :"db_name" TO :"db_role";
+
+GRANT USAGE ON SCHEMA public TO :"db_role";
+
+GRANT ALL ON ALL TABLES IN SCHEMA public TO :"db_role";
+
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO :"db_role";
