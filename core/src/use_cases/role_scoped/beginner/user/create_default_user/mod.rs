@@ -8,7 +8,8 @@ use crate::{
             user::{PasswordHash, Provider, User},
         },
         entities::{
-            LocalMessageSending, TokenRegistration, UserDeletion, UserRegistration,
+            LocalMessageSending, TokenRegistration, UserDeletion,
+            UserRegistration,
         },
     },
     models::AccountLifeCycle,
@@ -45,6 +46,8 @@ pub async fn create_default_user(
     message_sending_repo: Box<&dyn LocalMessageSending>,
     user_deletion_repo: Box<&dyn UserDeletion>,
 ) -> Result<Uuid, MappedErrors> {
+    tracing::trace!("Creating user");
+
     // ? -----------------------------------------------------------------------
     // ? Build and validate email
     //
@@ -134,6 +137,8 @@ pub async fn create_default_user(
     // ? Notify internal user
     // ? -----------------------------------------------------------------------
 
+    tracing::trace!("User Created. Dispatching side effects");
+
     if let Some(Provider::Internal(_)) = user.provider() {
         register_token_and_notify_user(
             new_user_id,
@@ -145,6 +150,8 @@ pub async fn create_default_user(
         )
         .await?;
     }
+
+    tracing::trace!("Side effects dispatched");
 
     // ? -----------------------------------------------------------------------
     // ? Return a positive response
