@@ -1,3 +1,13 @@
+## v7.5.2 (2025-02-19)
+
+### Fix
+
+- increase verbosity of the user creation process
+
+### Refactor
+
+- merge all scripts for database creation to a single up file
+
 ## v7.5.1 (2025-02-18)
 
 ### Fix
