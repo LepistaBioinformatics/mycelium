@@ -6,7 +6,7 @@ use crate::{
     },
 };
 
-use actix_web::{head, post, web, HttpRequest, HttpResponse, Responder};
+use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
 use chrono::Duration;
 use myc_core::{
     domain::{
@@ -62,6 +62,15 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[serde(rename_all = "camelCase")]
 pub struct CheckEmailStatusQuery {
     email: String,
+}
+
+#[derive(Serialize, Deserialize, ToResponse, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckEmailStatusResponse {
+    email: String,
+    status: String,
+    provider: Option<String>,
+    has_account: bool,
 }
 
 fn serialize_duration<S>(
@@ -159,7 +168,7 @@ pub struct CheckUserCredentialsBody {
 /// Check if the email is already registered.
 ///
 #[utoipa::path(
-    head,
+    get,
     params(
         (
             "email" = String,
@@ -191,25 +200,12 @@ pub struct CheckUserCredentialsBody {
         (
             status = 200,
             description = "Success.",
-            headers(
-                (
-                    "X-Email-Registration-Status" = String,
-                    description = "The email registration status."
-                ),
-                (
-                    "X-Account-Created" = bool,
-                    description = "If the user has an account. Boolean"
-                ),
-                (
-                    "X-Email-Provider" = String,
-                    description = "The email provider."
-                )
-            ),
+            body = CheckEmailStatusResponse,
         ),
     ),
     security(()),
 )]
-#[head("/status")]
+#[get("/status")]
 pub async fn check_email_registration_status_url(
     query: web::Query<CheckEmailStatusQuery>,
     app_module: web::Data<SqlAppModule>,
@@ -233,68 +229,47 @@ pub async fn check_email_registration_status_url(
     .await
     {
         Ok(res) => {
-            let mut response = HttpResponse::Ok();
-            let status_header = "X-Email-Registration-Status";
-            let account_creation_header = "X-Account-Created";
-            let provider_header = "X-Email-Provider";
-
-            match res {
+            let (status, provider, has_account) = match res.to_owned() {
                 EmailRegistrationStatus::NotRegistered(_) => {
-                    response.append_header((status_header, "NotRegistered"));
+                    ("NotRegistered".to_string(), None, false)
                 }
                 EmailRegistrationStatus::WaitingActivation(_) => {
-                    response
-                        .append_header((status_header, "WaitingActivation"));
+                    ("WaitingForActivation".to_string(), None, false)
                 }
                 EmailRegistrationStatus::RegisteredWithInternalProvider(
-                    provider,
-                ) => {
-                    response.append_header((
-                        status_header,
-                        "RegisteredWithInternalProvider",
-                    ));
-
-                    response.append_header((
-                        account_creation_header,
-                        provider.account_created.to_string(),
-                    ));
-
-                    if let Some(provider) = provider.provider {
-                        response.append_header((
-                            provider_header,
-                            match provider {
-                                Provider::Internal(_) => "Internal".to_string(),
-                                _ => "Internal".to_string(),
-                            },
-                        ));
-                    }
-                }
+                    registered,
+                ) => (
+                    "RegisteredWithInternalProvider".to_string(),
+                    Some("INTERNAL".to_string()),
+                    registered.account_created,
+                ),
                 EmailRegistrationStatus::RegisteredWithExternalProvider(
-                    provider,
+                    external,
                 ) => {
-                    response.append_header((
-                        status_header,
-                        "RegisteredWithExternalProvider",
-                    ));
+                    let provider = match external.provider {
+                        Some(provider) => match provider {
+                            Provider::External(provider) => {
+                                Some(provider.to_string())
+                            }
+                            _ => None,
+                        },
+                        None => None,
+                    };
 
-                    response.append_header((
-                        account_creation_header,
-                        provider.account_created.to_string(),
-                    ));
-
-                    if let Some(provider) = provider.provider {
-                        response.append_header((
-                            provider_header,
-                            match provider {
-                                Provider::External(res) => res.to_string(),
-                                _ => "External".to_string(),
-                            },
-                        ));
-                    }
+                    (
+                        "RegisteredWithExternalProvider".to_string(),
+                        provider,
+                        external.account_created,
+                    )
                 }
-            }
+            };
 
-            response.finish()
+            HttpResponse::Ok().json(CheckEmailStatusResponse {
+                email: query.email.to_owned(),
+                status,
+                provider,
+                has_account,
+            })
         }
         Err(err) => {
             error!("Error checking email registration status: {err}");

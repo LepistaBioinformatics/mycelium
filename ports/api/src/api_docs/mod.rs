@@ -764,6 +764,7 @@ struct UsersManagerAccountApiDoc;
             role_scoped::beginners::user_endpoints::MyceliumLoginResponse,
             role_scoped::beginners::user_endpoints::TotpActivationStartedResponse,
             role_scoped::beginners::user_endpoints::TotpActivationFinishedResponse,
+            role_scoped::beginners::user_endpoints::CheckEmailStatusResponse,
 
             //
             // GUEST MANAGER
