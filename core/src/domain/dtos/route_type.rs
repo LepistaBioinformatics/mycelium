@@ -15,6 +15,10 @@ pub enum RouteType {
     ///
     Public,
     ///
+    /// Users should be only authenticated with a valid API token
+    ///
+    Authenticated,
+    ///
     /// Protect the route with the full user profile
     ///
     Protected,

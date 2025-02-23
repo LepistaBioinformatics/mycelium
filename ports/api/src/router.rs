@@ -1,7 +1,11 @@
 use super::middleware::fetch_and_inject_profile_to_forward;
 use crate::{
-    middleware::fetch_and_inject_role_scoped_connection_string_to_forward,
-    models::api_config::ApiConfig, modules::RoutesFetchingModule,
+    middleware::{
+        fetch_and_inject_email_to_forward,
+        fetch_and_inject_role_scoped_connection_string_to_forward,
+    },
+    models::api_config::ApiConfig,
+    modules::RoutesFetchingModule,
     settings::GATEWAY_API_SCOPE,
 };
 
@@ -242,6 +246,15 @@ pub(crate) async fn route_request(
             trace!("Route(Public): {path}", path = route.path);
 
             ()
+        }
+        RouteType::Authenticated => {
+            trace!("Route(Authenticated): {path}", path = route.path);
+            //
+            // Try to extract user email from the request and inject it into the
+            // request headers
+            //
+            forwarded_req =
+                fetch_and_inject_email_to_forward(req, forwarded_req).await?;
         }
         //
         // Protected routes should include the full qualified user profile into
