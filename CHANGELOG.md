@@ -1,3 +1,14 @@
+## v7.5.4 (2025-02-26)
+
+### Feat
+
+- do implements the public tenant fetcher
+- create a new option to allow authenticated users to interact with the mycelium downstream routes rithout registration
+
+### Fix
+
+- include the official image from mycelium-api docker hub in docker compose file
+
 ## v7.5.3 (2025-02-19)
 
 ### Refactor
