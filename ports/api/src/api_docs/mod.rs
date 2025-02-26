@@ -28,6 +28,7 @@ use role_scoped::beginners::account_endpoints as Beginners__Account;
 use role_scoped::beginners::meta_endpoints as Beginners__Meta;
 use role_scoped::beginners::profile_endpoints as Beginners__Profile;
 use role_scoped::beginners::user_endpoints as Beginners__User;
+use role_scoped::beginners::tenant_endpoints as Beginners__Tenant;
 use role_scoped::guest_manager::guest_role_endpoints as Guest_Manager__Guest_Role;
 use role_scoped::guest_manager::token_endpoints as Guest_Manager__Token;
 use role_scoped::subscriptions_manager::account_endpoints as Subscriptions_Manager__Account;
@@ -254,6 +255,19 @@ struct BeginnersProfileApiDoc;
     ),
 )]
 struct BeginnersUserApiDoc;
+
+/// Role Scoped Endpoints for Beginner Users for Tenant Management
+///
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Beginners | Tenant Endpoints",
+        description = "Endpoints reserved for the beginner users to manage their tenants",
+    ),
+    paths(Beginners__Tenant::fetch_tenant_public_info_url),
+    security(("Bearer" = []))
+)]
+struct BeginnersTenantApiDoc;
 
 /// Role Scoped Endpoints for Gateway Manager for Routes Management
 ///
@@ -581,7 +595,7 @@ struct UsersManagerAccountApiDoc;
         (path = "/adm/rs/beginners/meta", api = BeginnersMetaApiDoc),
         (path = "/adm/rs/beginners/profile", api = BeginnersProfileApiDoc),
         (path = "/adm/rs/beginners/users", api = BeginnersUserApiDoc),
-        //
+        (path = "/adm/rs/beginners/tenants", api = BeginnersTenantApiDoc),
         // Account Manager endpoints
         //
         (path = "/adm/rs/accounts-manager/guests", api = AccountManagerGuestApiDoc),

@@ -17,6 +17,7 @@ use beginners::{
     guest_user_endpoints as no_role_guest_user_endpoints,
     meta_endpoints as no_role_meta_endpoints,
     profile_endpoints as no_role_profile_endpoints,
+    tenant_endpoints as no_role_tenant_endpoints,
     user_endpoints as no_role_user_endpoints,
 };
 use gateway_manager::{
@@ -82,6 +83,10 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             .service(
                 web::scope(&format!("/{}", UrlGroup::Profile))
                     .configure(no_role_profile_endpoints::configure),
+            )
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Tenants))
+                    .configure(no_role_tenant_endpoints::configure),
             )
             .service(
                 web::scope(&format!("/{}", UrlGroup::Users))

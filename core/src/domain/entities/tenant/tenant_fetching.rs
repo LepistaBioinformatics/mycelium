@@ -19,6 +19,14 @@ pub trait TenantFetching: Interface + Send + Sync {
         owners_ids: Vec<Uuid>,
     ) -> Result<FetchResponseKind<Tenant, String>, MappedErrors>;
 
+    /// Get tenant public by id
+    ///
+    /// This use-case should be used by non-privileged users
+    async fn get_tenant_public_by_id(
+        &self,
+        id: Uuid,
+    ) -> Result<FetchResponseKind<Tenant, String>, MappedErrors>;
+
     /// Get tenants with we are tenant manager
     ///
     /// This use-case should ve used by tenant-managers only

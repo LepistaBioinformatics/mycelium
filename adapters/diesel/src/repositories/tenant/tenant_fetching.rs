@@ -101,6 +101,57 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         }
     }
 
+    #[tracing::instrument(name = "get_tenant_public_by_id", skip_all)]
+    async fn get_tenant_public_by_id(
+        &self,
+        id: Uuid,
+    ) -> Result<FetchResponseKind<Tenant, String>, MappedErrors> {
+        let conn = &mut self.db_config.get_pool().get().map_err(|e| {
+            fetching_err(format!("Failed to get DB connection: {}", e))
+                .with_code(NativeErrorCodes::MYC00001)
+        })?;
+
+        let record = tenant_model::table
+            .filter(tenant_model::id.eq(id))
+            .select(TenantModel::as_select())
+            .first::<TenantModel>(conn)
+            .optional()
+            .map_err(|e| {
+                fetching_err(format!("Failed to fetch tenant: {}", e))
+            })?;
+
+        match record {
+            Some(record) => {
+                let tags = TenantTagModel::belonging_to(&record)
+                    .select(TenantTagModel::as_select())
+                    .load::<TenantTagModel>(conn)
+                    .map_err(|e| {
+                        fetching_err(format!("Failed to fetch tags: {}", e))
+                    })?;
+
+                let mut tenant = map_tenant_model_to_dto(record);
+
+                let tags = tags
+                    .into_iter()
+                    .map(|t| Tag {
+                        id: t.id,
+                        value: t.value,
+                        meta: t
+                            .meta
+                            .map(|m| serde_json::from_value(m).unwrap()),
+                    })
+                    .collect::<Vec<Tag>>();
+
+                tenant.tags = Some(tags);
+
+                Ok(FetchResponseKind::Found(tenant))
+            }
+            None => {
+                return Ok(FetchResponseKind::NotFound(Some(id.to_string())))
+            }
+        }
+    }
+
     #[tracing::instrument(name = "get_tenants_by_manager_account", skip_all)]
     async fn get_tenants_by_manager_account(
         &self,

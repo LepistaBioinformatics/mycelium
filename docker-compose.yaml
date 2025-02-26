@@ -35,7 +35,7 @@ services:
       - 5432:5432/tcp
     volumes:
       - ./postgres/volume:/var/lib/postgresql/data
-      - ./postgres/sql/create_databases.sql:/docker-entrypoint-initdb.d/create_databases.sql:cached
+      - ./postgres/sql/up.sql:/docker-entrypoint-initdb.d/up.sql:cached
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
