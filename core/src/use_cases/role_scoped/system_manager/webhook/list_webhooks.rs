@@ -19,6 +19,8 @@ pub async fn list_webhooks(
     profile: Profile,
     name: Option<String>,
     trigger: Option<WebHookTrigger>,
+    page_size: Option<i32>,
+    skip: Option<i32>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
 ) -> Result<FetchManyResponseKind<WebHook>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -35,5 +37,7 @@ pub async fn list_webhooks(
     // ? Fetch webhooks
     // ? -----------------------------------------------------------------------
 
-    webhook_fetching_repo.list(name, trigger).await
+    webhook_fetching_repo
+        .list(name, trigger, page_size, skip)
+        .await
 }

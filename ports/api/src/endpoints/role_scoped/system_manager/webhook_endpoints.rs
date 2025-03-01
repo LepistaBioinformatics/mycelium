@@ -1,4 +1,4 @@
-use crate::dtos::MyceliumProfileData;
+use crate::{dtos::MyceliumProfileData, endpoints::shared::PaginationParams};
 
 use actix_web::{delete, get, patch, post, web, Responder};
 use myc_core::{
@@ -161,6 +161,7 @@ pub async fn crate_webhook_url(
 #[get("")]
 pub async fn list_webhooks_url(
     info: web::Query<ListWebHooksParams>,
+    page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
@@ -168,6 +169,8 @@ pub async fn list_webhooks_url(
         profile.to_profile(),
         info.name.to_owned(),
         info.trigger.to_owned(),
+        page.page_size.to_owned(),
+        page.skip.to_owned(),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

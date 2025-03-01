@@ -89,36 +89,55 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
         &self,
         name: Option<String>,
         trigger: Option<WebHookTrigger>,
+        page_size: Option<i32>,
+        skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<WebHook>, MappedErrors> {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
             fetching_err(format!("Failed to get DB connection: {}", e))
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let mut query = webhook_model::table.into_boxed();
+        let base_query = webhook_model::table;
+        let mut count_query = base_query.into_boxed();
+        let mut records_query = base_query.into_boxed();
 
         if let Some(name) = name {
-            query =
-                query.filter(webhook_model::name.ilike(format!("%{}%", name)));
+            let dsl = webhook_model::name.ilike(format!("%{}%", name));
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
         if let Some(trigger) = trigger {
-            query =
-                query.filter(webhook_model::trigger.eq(trigger.to_string()));
+            let dsl = webhook_model::trigger.eq(trigger.to_string());
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
         }
 
-        let webhooks = query
+        let page_size = page_size.unwrap_or(10) as i64;
+        let skip = skip.unwrap_or(0) as i64;
+
+        let records = records_query
             .select(WebHookModel::as_select())
+            .order_by(webhook_model::created.desc())
+            .limit(page_size)
+            .offset(skip)
             .load::<WebHookModel>(conn)
             .map_err(|e| {
                 fetching_err(format!("Failed to fetch webhooks: {}", e))
             })?;
 
-        if webhooks.is_empty() {
+        if records.is_empty() {
             return Ok(FetchManyResponseKind::NotFound);
         }
 
-        let webhooks = webhooks
+        let total = count_query
+            .select(diesel::dsl::count_star())
+            .first::<i64>(conn)
+            .map_err(|e| {
+                fetching_err(format!("Failed to count webhooks: {}", e))
+            })?;
+
+        let webhooks = records
             .into_iter()
             .map(|record| {
                 let mut webhook = WebHook::new(
@@ -142,7 +161,12 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
             })
             .collect();
 
-        Ok(FetchManyResponseKind::Found(webhooks))
+        Ok(FetchManyResponseKind::FoundPaginated {
+            count: total,
+            skip: Some(skip),
+            size: Some(page_size),
+            records: webhooks,
+        })
     }
 
     #[tracing::instrument(name = "list_webhooks_by_trigger", skip_all)]

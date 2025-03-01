@@ -21,6 +21,8 @@ pub trait WebHookFetching: Interface + Send + Sync {
         &self,
         name: Option<String>,
         trigger: Option<WebHookTrigger>,
+        page_size: Option<i32>,
+        skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<WebHook>, MappedErrors>;
 
     /// List all webhooks by trigger
