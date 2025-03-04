@@ -401,6 +401,7 @@ struct SubscriptionsManagerGuestApiDoc;
     ),
     paths(
         Subscriptions_Manager__Guest_Role::list_guest_roles_url,
+        Subscriptions_Manager__Guest_Role::fetch_guest_role_details_url,
     ),
     security(("Bearer" = [])),
 )]
