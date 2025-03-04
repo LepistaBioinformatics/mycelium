@@ -14,9 +14,9 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "7.5.6", path = "../../core" }
-mycelium-base = { version = "7.5.6", path = "../../base" }
-mycelium-config = { version = "7.5.6", path = "../../config" }
+myc-core = { version = "7.5.7", path = "../../core" }
+mycelium-base = { version = "7.5.7", path = "../../base" }
+mycelium-config = { version = "7.5.7", path = "../../config" }
 diesel = { version = "2", features = [
     "postgres",
     "uuid",

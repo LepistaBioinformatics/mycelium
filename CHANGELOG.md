@@ -1,3 +1,9 @@
+## v7.5.7 (2025-03-04)
+
+### Feat
+
+- implements a guest-role fetching details for subscriptions managers
+
 ## v7.5.6 (2025-03-03)
 
 ### Feat
