@@ -1,0 +1,17 @@
+{
+    "name": "Mycelium Dev Container",
+    "image": "mcr.microsoft.com/vscode/devcontainers/rust:latest",
+    "workspaceFolder": "/workspace",
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "rust-lang.rust-analyzer"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "bash"
+            }
+        }
+    },
+    "postCreateCommand": "cargo build --workspace"
+}

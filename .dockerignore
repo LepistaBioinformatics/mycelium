@@ -19,3 +19,5 @@ postgres/volume*
 vault/*
 !vault/docker
 redis
+.devcontainer
+.vscode
