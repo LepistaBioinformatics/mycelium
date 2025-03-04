@@ -33,6 +33,7 @@ use role_scoped::guest_manager::guest_role_endpoints as Guest_Manager__Guest_Rol
 use role_scoped::guest_manager::token_endpoints as Guest_Manager__Token;
 use role_scoped::subscriptions_manager::account_endpoints as Subscriptions_Manager__Account;
 use role_scoped::subscriptions_manager::guest_endpoints as Subscriptions_Manager__Guest;
+use role_scoped::subscriptions_manager::guest_role_endpoints as Subscriptions_Manager__Guest_Role;
 use role_scoped::subscriptions_manager::tag_endpoints as Subscriptions_Manager__Tag;
 use role_scoped::system_manager::error_code_endpoints as System_Manager__Error_Code;
 use role_scoped::system_manager::webhook_endpoints as System_Manager__Webhook;
@@ -390,6 +391,21 @@ struct SubscriptionsManagerTagApiDoc;
 )]
 struct SubscriptionsManagerGuestApiDoc;
 
+/// Role Scoped Endpoints for Subscriptions Manager for Guest Role Management
+///
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Subscriptions Manager | Guest Role Endpoints", 
+        description = "Endpoints reserved for the application subscriptions managers to manage guest roles",
+    ),
+    paths(
+        Subscriptions_Manager__Guest_Role::list_guest_roles_url,
+    ),
+    security(("Bearer" = [])),
+)]
+struct SubscriptionsManagerGuestRoleApiDoc;
+
 /// Role Scoped Endpoints for System Manager for Error Code Management
 ///
 #[derive(OpenApi)]
@@ -615,6 +631,7 @@ struct UsersManagerAccountApiDoc;
         (path = "/adm/rs/subscriptions-manager/accounts", api = SubscriptionsManagerAccountApiDoc),
         (path = "/adm/rs/subscriptions-manager/tags", api = SubscriptionsManagerTagApiDoc),
         (path = "/adm/rs/subscriptions-manager/guests", api = SubscriptionsManagerGuestApiDoc),
+        (path = "/adm/rs/subscriptions-manager/guest-roles", api = SubscriptionsManagerGuestRoleApiDoc),
         //
         // System Manager Endpoints
         //

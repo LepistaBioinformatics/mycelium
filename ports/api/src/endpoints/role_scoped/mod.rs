@@ -32,6 +32,7 @@ use myc_core::domain::actors::SystemActor;
 use subscriptions_manager::{
     account_endpoints as subscription_manager_account_endpoints,
     guest_endpoints as subscription_manager_guest_endpoints,
+    guest_role_endpoints as subscription_manager_guest_role_endpoints,
     tag_endpoints as subscription_manager_tag_endpoints,
 };
 use system_manager::{
@@ -200,6 +201,11 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             .service(
                 web::scope(&format!("/{}", UrlGroup::Guests))
                     .configure(subscription_manager_guest_endpoints::configure),
+            )
+            .service(
+                web::scope(&format!("/{}", UrlGroup::GuestRoles)).configure(
+                    subscription_manager_guest_role_endpoints::configure,
+                ),
             ),
         )
         //
