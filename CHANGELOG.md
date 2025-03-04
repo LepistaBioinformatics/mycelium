@@ -1,3 +1,9 @@
+## v7.5.6 (2025-03-03)
+
+### Feat
+
+- implements a subscriptions-manager endpoint group to list guest roles
+
 ## v7.5.5 (2025-03-01)
 
 ### Fix
