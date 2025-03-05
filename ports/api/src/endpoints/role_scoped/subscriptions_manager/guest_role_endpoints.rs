@@ -97,7 +97,7 @@ pub async fn list_guest_roles_url(
 #[utoipa::path(
     get,
     params(
-        ListGuestRolesParams,
+        ("id" = Uuid, Path, description = "The guest role primary key."),
     ),
     responses(
         (
@@ -122,11 +122,11 @@ pub async fn list_guest_roles_url(
         (
             status = 200,
             description = "Success.",
-            body = [GuestRole],
+            body = GuestRole,
         ),
     ),
 )]
-#[get("/{guest_role_id}")]
+#[get("/{id}")]
 pub async fn fetch_guest_role_details_url(
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
