@@ -1,7 +1,10 @@
 use super::{account::Account, email::Email, guest_role::GuestRole};
 
 use chrono::{DateTime, Local};
-use mycelium_base::dtos::{Children, Parent};
+use mycelium_base::{
+    dtos::{Children, Parent},
+    utils::errors::{dto_err, MappedErrors},
+};
 use serde::{Deserialize, Serialize};
 use utoipa::{ToResponse, ToSchema};
 use uuid::Uuid;
@@ -42,6 +45,16 @@ pub struct GuestUser {
 }
 
 impl GuestUser {
+    pub fn guest_role_id(&self) -> Result<Uuid, MappedErrors> {
+        match self.guest_role.to_owned() {
+            Parent::Id(id) => Ok(id),
+            Parent::Record(record) => match record.id {
+                Some(id) => Ok(id),
+                None => dto_err("Guest role id is required").as_error(),
+            },
+        }
+    }
+
     pub fn build_role_url(&self, base_url: String) -> Result<String, ()> {
         match self.guest_role.to_owned() {
             Parent::Id(id) => Ok(format!("{}/{}", base_url, id)),

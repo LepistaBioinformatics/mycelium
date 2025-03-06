@@ -45,7 +45,9 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
 
         // Check if guest user exists
         let existing = guest_user_model::table
-            .filter(guest_user_model::email.eq(guest_user.email.email()))
+            .filter(guest_user_model::email.eq(guest_user.email.email()).and(
+                guest_user_model::guest_role_id.eq(guest_user.guest_role_id()?),
+            ))
             .select(GuestUserModel::as_select())
             .first::<GuestUserModel>(conn)
             .optional()
