@@ -140,14 +140,11 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         let licenses = rows
             .into_iter()
             .map(|record| LicensedResource {
-                acc_id: Uuid::parse_str(&record.acc_id).unwrap(),
-                tenant_id: record
-                    .tenant_id
-                    .map(|id| Uuid::parse_str(&id).unwrap())
-                    .unwrap_or_else(|| {
-                        Uuid::parse_str("00000000-0000-0000-0000-000000000000")
-                            .unwrap()
-                    }),
+                acc_id: record.acc_id,
+                tenant_id: record.tenant_id.unwrap_or_else(|| {
+                    Uuid::parse_str("00000000-0000-0000-0000-000000000000")
+                        .unwrap()
+                }),
                 acc_name: record.acc_name,
                 sys_acc: record.is_acc_std,
                 role: record.gr_slug,
@@ -201,12 +198,12 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
 
 #[derive(QueryableByName)]
 struct LicensedResourceRow {
-    #[diesel(sql_type = Text)]
-    acc_id: String,
+    #[diesel(sql_type = diesel::sql_types::Uuid)]
+    acc_id: Uuid,
     #[diesel(sql_type = Text)]
     acc_name: String,
-    #[diesel(sql_type = Nullable<Text>)]
-    tenant_id: Option<String>,
+    #[diesel(sql_type = Nullable<diesel::sql_types::Uuid>)]
+    tenant_id: Option<Uuid>,
     #[diesel(sql_type = Bool)]
     is_acc_std: bool,
     #[diesel(sql_type = Text)]
