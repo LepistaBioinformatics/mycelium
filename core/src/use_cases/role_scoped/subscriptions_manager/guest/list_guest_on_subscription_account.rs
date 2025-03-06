@@ -65,11 +65,16 @@ pub async fn list_guest_on_subscription_account(
     // ? -----------------------------------------------------------------------
 
     match account.account_type {
-        AccountType::Subscription { .. } => (),
+        AccountType::ActorAssociated { .. }
+        | AccountType::TenantManager { .. }
+        | AccountType::RoleAssociated { .. }
+        | AccountType::Subscription { .. } => (),
         _ => {
             return use_case_err(
-                "Operation restricted to subscription accounts.",
+                "Operation restricted to subscription, tenant manager, role associated and actor associated accounts.",
             )
+            .with_exp_true()
+            .with_code(NativeErrorCodes::MYC00019)
             .as_error()
         }
     }
