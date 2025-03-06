@@ -1,3 +1,12 @@
+## v7.5.8 (2025-03-06)
+
+### Fix
+
+- include the guest role id during the guest user connection to account
+- replace licensed resources parsing during their loading on diesel adapter
+- remove lock for subscription account on list guest to account
+- upgrade account list to allow non tenant requests and refine the account filtering based on the user roles
+
 ## v7.5.7 (2025-03-04)
 
 ### Feat
