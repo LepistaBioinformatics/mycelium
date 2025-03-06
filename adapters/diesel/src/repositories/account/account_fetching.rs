@@ -141,7 +141,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         tag_id: Option<Uuid>,
         tag_value: Option<String>,
         account_id: Option<Uuid>,
-        account_type: Option<AccountType>,
+        account_type: AccountType,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Account>, MappedErrors> {
@@ -156,8 +156,25 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                     .on(account_dsl::id.eq(account_tag_dsl::account_id)),
             );
 
-        let mut count_query = base_query.into_boxed();
-        let mut records_query = base_query.into_boxed();
+        let account_type_dsl = sql::<diesel::sql_types::Bool>(&format!(
+            "account_type::jsonb @> '{}'",
+            match serde_json::to_string(&account_type) {
+                Ok(json) => json,
+                Err(e) => {
+                    return creation_err(format!(
+                        "Failed to serialize account type: {}",
+                        e
+                    ))
+                    .as_error();
+                }
+            }
+        ));
+
+        let mut count_query =
+            base_query.filter(account_type_dsl.clone()).into_boxed();
+
+        let mut records_query =
+            base_query.filter(account_type_dsl).into_boxed();
 
         if let Some(term_value) = term {
             let dsl = account_dsl::name.ilike(format!("%{}%", term_value));
@@ -203,25 +220,6 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
 
         if let Some(is_active) = is_owner_active {
             let dsl = user_dsl::is_active.eq(is_active);
-            records_query = records_query.filter(dsl.clone());
-            count_query = count_query.filter(dsl);
-        }
-
-        if let Some(acc_type) = account_type {
-            let dsl = sql::<diesel::sql_types::Bool>(&format!(
-                "account_type::jsonb @> '{}'",
-                match serde_json::to_string(&acc_type) {
-                    Ok(json) => json,
-                    Err(e) => {
-                        return creation_err(format!(
-                            "Failed to serialize account type: {}",
-                            e
-                        ))
-                        .as_error();
-                    }
-                }
-            ));
-
             records_query = records_query.filter(dsl.clone());
             count_query = count_query.filter(dsl);
         }

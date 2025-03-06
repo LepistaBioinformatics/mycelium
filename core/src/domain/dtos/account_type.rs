@@ -51,6 +51,32 @@ pub enum AccountType {
     TenantManager { tenant_id: Uuid },
 }
 
+impl AccountType {
+    pub fn is_tenant_dependent(&self) -> bool {
+        matches!(
+            self,
+            AccountType::Subscription { .. }
+                | AccountType::RoleAssociated { .. }
+                | AccountType::TenantManager { .. }
+        )
+    }
+
+    pub fn is_user_account(&self) -> bool {
+        matches!(
+            self,
+            AccountType::User | AccountType::Staff | AccountType::Manager
+        )
+    }
+
+    pub fn is_system_default_account(&self) -> bool {
+        matches!(
+            self,
+            AccountType::ActorAssociated { .. }
+                | AccountType::RoleAssociated { .. }
+        )
+    }
+}
+
 impl ToString for AccountType {
     fn to_string(&self) -> String {
         serde_json::to_string(self).unwrap()

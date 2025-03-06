@@ -30,7 +30,7 @@ pub trait AccountFetching: Interface + Send + Sync {
         tag_id: Option<Uuid>,
         tag_value: Option<String>,
         account_id: Option<Uuid>,
-        account_type: Option<AccountType>,
+        account_type: AccountType,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Account>, MappedErrors>;

@@ -77,31 +77,42 @@ pub(crate) enum APIAccountType {
 impl APIAccountType {
     fn into_account_type(
         &self,
-        tenant_id: Uuid,
+        tenant_id: Option<Uuid>,
         role_name: Option<String>,
         role_id: Option<Uuid>,
         actor: Option<SystemActor>,
     ) -> Result<AccountType, HttpResponse> {
         match self {
+            //
+            // User related accounts. Not tenant dependent.
+            //
             APIAccountType::Staff => Ok(AccountType::Staff),
             APIAccountType::Manager => Ok(AccountType::Manager),
             APIAccountType::User => Ok(AccountType::User),
-            APIAccountType::TenantManager => Ok(AccountType::TenantManager {
-                tenant_id: tenant_id.to_owned(),
-            }),
-            APIAccountType::Subscription => Ok(AccountType::Subscription {
-                tenant_id: tenant_id.to_owned(),
-            }),
-            APIAccountType::ActorAssociated => {
-                if actor.is_none() {
-                    return Err(HttpResponse::BadRequest().json(
-                        HttpJsonResponse::new_message("Actor is required."),
-                    ));
-                }
 
-                Ok(AccountType::ActorAssociated {
-                    actor: actor.unwrap(),
-                })
+            //
+            // Tenant related accounts. Tenant dependent.
+            //
+            APIAccountType::TenantManager => {
+                if let Some(tenant_id) = tenant_id {
+                    Ok(AccountType::TenantManager { tenant_id })
+                } else {
+                    Err(HttpResponse::BadRequest()
+                        .json(HttpJsonResponse::new_message(
+                        "Tenant ID is required for tenant manager accounts.",
+                    )))
+                }
+            }
+            APIAccountType::Subscription => {
+                if let Some(tenant_id) = tenant_id {
+                    Ok(AccountType::Subscription { tenant_id })
+                } else {
+                    Err(HttpResponse::BadRequest().json(
+                        HttpJsonResponse::new_message(
+                            "Tenant ID is required for subscription accounts.",
+                        ),
+                    ))
+                }
             }
             APIAccountType::RoleAssociated => {
                 if role_name.is_none() || role_id.is_none() {
@@ -112,11 +123,33 @@ impl APIAccountType {
                     ));
                 }
 
-                Ok(AccountType::RoleAssociated {
-                    tenant_id: tenant_id.to_owned(),
-                    role_name: SystemActor::CustomRole(role_name.unwrap())
-                        .to_string(),
-                    role_id: role_id.unwrap(),
+                if let Some(tenant_id) = tenant_id {
+                    Ok(AccountType::RoleAssociated {
+                        tenant_id,
+                        role_name: SystemActor::CustomRole(role_name.unwrap())
+                            .to_string(),
+                        role_id: role_id.unwrap(),
+                    })
+                } else {
+                    Err(HttpResponse::BadRequest()
+                        .json(HttpJsonResponse::new_message(
+                        "Tenant ID is required for role associated accounts.",
+                    )))
+                }
+            }
+
+            //
+            // Actor related accounts
+            //
+            APIAccountType::ActorAssociated => {
+                if actor.is_none() {
+                    return Err(HttpResponse::BadRequest().json(
+                        HttpJsonResponse::new_message("Actor is required."),
+                    ));
+                }
+
+                Ok(AccountType::ActorAssociated {
+                    actor: actor.unwrap(),
                 })
             }
         }
@@ -253,7 +286,7 @@ pub async fn create_subscription_account_url(
 )]
 #[get("")]
 pub async fn list_accounts_by_type_url(
-    tenant: TenantData,
+    tenant: Option<TenantData>,
     query: web::Query<ListSubscriptionAccountParams>,
     page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
@@ -280,7 +313,10 @@ pub async fn list_accounts_by_type_url(
         _ => (),
     }
 
-    let tenant_id = tenant.tenant_id().to_owned();
+    let tenant_id = match tenant {
+        Some(tenant) => Some(tenant.tenant_id().to_owned()),
+        None => None,
+    };
 
     let account_type = match &query.account_type {
         None => None,
