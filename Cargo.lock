@@ -2365,6 +2365,7 @@ name = "mycelium-diesel"
 version = "7.5.9"
 dependencies = [
  "async-trait",
+ "base64 0.22.1",
  "chrono",
  "diesel",
  "env_logger 0.10.2",
@@ -2450,6 +2451,7 @@ name = "mycelium-notifier"
 version = "7.5.9"
 dependencies = [
  "async-trait",
+ "chrono",
  "lazy_static",
  "lettre",
  "myc-core",

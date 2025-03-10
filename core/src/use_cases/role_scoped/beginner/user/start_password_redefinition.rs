@@ -5,10 +5,10 @@ use crate::{
             native_error_codes::NativeErrorCodes,
             token::{MultiTypeMeta, PasswordChangeTokenMeta},
         },
-        entities::{LocalMessageSending, TokenRegistration, UserFetching},
+        entities::{LocalMessageWrite, TokenRegistration, UserFetching},
     },
     models::AccountLifeCycle,
-    use_cases::support::send_email_notification,
+    use_cases::support::dispatch_notification,
 };
 
 use chrono::Local;
@@ -23,7 +23,7 @@ pub async fn start_password_redefinition(
     life_cycle_settings: AccountLifeCycle,
     user_fetching_repo: Box<&dyn UserFetching>,
     token_registration_repo: Box<&dyn TokenRegistration>,
-    message_sending_repo: Box<&dyn LocalMessageSending>,
+    message_sending_repo: Box<&dyn LocalMessageWrite>,
 ) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch user from email
@@ -34,13 +34,10 @@ pub async fn start_password_redefinition(
         .await?
     {
         FetchResponseKind::NotFound(_) => {
-            return use_case_err(format!(
-                "User not found: {}",
-                email.email()
-            ))
-            .with_code(NativeErrorCodes::MYC00009)
-            .with_exp_true()
-            .as_error()
+            return use_case_err(format!("User not found: {}", email.email()))
+                .with_code(NativeErrorCodes::MYC00009)
+                .with_exp_true()
+                .as_error()
         }
         FetchResponseKind::Found(user) => user,
     };
@@ -102,7 +99,7 @@ pub async fn start_password_redefinition(
     // ? Notify user owner
     // ? -----------------------------------------------------------------------
 
-    if let Err(err) = send_email_notification(
+    if let Err(err) = dispatch_notification(
         vec![("verification_code", meta.get_token())],
         "email/password-reset-initiated",
         life_cycle_settings,

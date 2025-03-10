@@ -1,5 +1,6 @@
-use myc_adapters_shared_lib::models::SharedClientProvider;
-use myc_core::domain::entities::{LocalMessageSending, RemoteMessageSending};
+use myc_core::domain::entities::{
+    LocalMessageReading, LocalMessageWrite, RemoteMessageWrite,
+};
 use myc_notifier::{executor::consume_messages, models::QueueConfig};
 use rand::Rng;
 use std::{sync::Arc, time::Duration};
@@ -11,24 +12,12 @@ use std::{sync::Arc, time::Duration};
 #[tracing::instrument(name = "email_dispatcher", skip_all)]
 pub(crate) fn email_dispatcher(
     queue_config: QueueConfig,
-    client: Arc<dyn SharedClientProvider>,
-    queue_sending_repo: Arc<dyn LocalMessageSending>,
-    message_sending_repo: Arc<dyn RemoteMessageSending>,
+    local_message_read_repo: Arc<dyn LocalMessageReading>,
+    local_message_write_repo: Arc<dyn LocalMessageWrite>,
+    remote_message_write_repo: Arc<dyn RemoteMessageWrite>,
 ) {
     tokio::spawn(async move {
         tracing::trace!("Starting email dispatcher");
-
-        //
-        // Test local message sending connection
-        //
-        match queue_sending_repo.ping().await {
-            Ok(_) => {
-                tracing::info!("Local message sending connection is OK");
-            }
-            Err(err) => {
-                panic!("Error on ping local message sending: {err}");
-            }
-        };
 
         let mut interval = actix_rt::time::interval(Duration::from_secs(
             match queue_config
@@ -77,18 +66,27 @@ pub(crate) fn email_dispatcher(
 
             match consume_messages(
                 queue_name.to_owned(),
-                client.clone(),
-                message_sending_repo.clone(),
+                local_message_read_repo.clone(),
+                local_message_write_repo.clone(),
+                remote_message_write_repo.clone(),
             )
             .await
             {
-                Ok(messages) => {
-                    if messages > 0 {
+                Ok((messages_success, messages_failed)) => {
+                    if messages_success > 0 {
                         tracing::info!(
                             "'{}' messages consumed from the queue '{}'",
-                            messages,
+                            messages_success,
                             queue_name.to_owned()
-                        )
+                        );
+                    }
+
+                    if messages_failed > 0 {
+                        tracing::error!(
+                            "'{}' messages failed to be consumed from the queue '{}'",
+                            messages_failed,
+                            queue_name.to_owned()
+                        );
                     }
                 }
                 Err(err) => {

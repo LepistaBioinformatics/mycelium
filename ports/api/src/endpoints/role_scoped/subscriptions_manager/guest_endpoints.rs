@@ -21,7 +21,6 @@ use myc_http_tools::{
     },
     Permission,
 };
-use myc_notifier::repositories::NotifierAppModule;
 use serde::Deserialize;
 use shaku::HasComponent;
 use utoipa::{IntoParams, ToSchema};
@@ -200,7 +199,6 @@ pub async fn guest_user_url(
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     sql_app_module: web::Data<SqlAppModule>,
-    notifier_module: web::Data<NotifierAppModule>,
 ) -> impl Responder {
     let (account_id, role_id) = path.to_owned();
 
@@ -222,7 +220,7 @@ pub async fn guest_user_url(
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
-        Box::new(&*notifier_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
     )
     .await
     {

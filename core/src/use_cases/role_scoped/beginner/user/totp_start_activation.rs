@@ -5,11 +5,11 @@ use crate::{
             native_error_codes::NativeErrorCodes,
             user::{MultiFactorAuthentication, Totp},
         },
-        entities::{LocalMessageSending, UserFetching, UserUpdating},
+        entities::{LocalMessageWrite, UserFetching, UserUpdating},
     },
     models::AccountLifeCycle,
     settings::DEFAULT_TOTP_DOMAIN,
-    use_cases::support::send_email_notification,
+    use_cases::support::dispatch_notification,
 };
 
 use mycelium_base::{
@@ -27,7 +27,7 @@ pub async fn totp_start_activation(
     life_cycle_settings: AccountLifeCycle,
     user_fetching_repo: Box<&dyn UserFetching>,
     user_updating_repo: Box<&dyn UserUpdating>,
-    message_sending_repo: Box<&dyn LocalMessageSending>,
+    message_sending_repo: Box<&dyn LocalMessageWrite>,
 ) -> Result<(Option<String>, Option<String>), MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch user from email
@@ -126,7 +126,7 @@ pub async fn totp_start_activation(
     // ? Inform user about TOTP activation
     // ? -----------------------------------------------------------------------
 
-    if let Err(err) = send_email_notification(
+    if let Err(err) = dispatch_notification(
         vec![],
         "email/mfa-activation-start",
         life_cycle_settings.to_owned(),

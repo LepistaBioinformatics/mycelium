@@ -46,7 +46,9 @@ use myc_config::{
     init_vault_config_from_file, optional_config::OptionalConfig,
 };
 use myc_core::{
-    domain::entities::{LocalMessageSending, RemoteMessageSending},
+    domain::entities::{
+        LocalMessageReading, LocalMessageWrite, RemoteMessageWrite,
+    },
     settings::init_in_memory_routes,
 };
 use myc_diesel::repositories::{
@@ -265,17 +267,17 @@ pub async fn main() -> std::io::Result<()> {
         config.queue.to_owned(),
         unsafe {
             Arc::from_raw(*Arc::new(
-                notifier_module.resolve_ref() as &dyn SharedClientProvider
+                sql_module.resolve_ref() as &dyn LocalMessageReading
             ))
         },
         unsafe {
             Arc::from_raw(*Arc::new(
-                notifier_module.resolve_ref() as &dyn LocalMessageSending
+                sql_module.resolve_ref() as &dyn LocalMessageWrite
             ))
         },
         unsafe {
             Arc::from_raw(*Arc::new(
-                notifier_module.resolve_ref() as &dyn RemoteMessageSending
+                notifier_module.resolve_ref() as &dyn RemoteMessageWrite
             ))
         },
     );

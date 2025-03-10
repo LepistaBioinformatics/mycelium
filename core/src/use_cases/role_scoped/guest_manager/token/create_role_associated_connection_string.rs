@@ -8,10 +8,10 @@ use crate::{
             route_type::PermissionedRoles,
             token::{RoleScopedConnectionString, RoleWithPermissionsScope},
         },
-        entities::{LocalMessageSending, TokenRegistration},
+        entities::{LocalMessageWrite, TokenRegistration},
     },
     models::AccountLifeCycle,
-    use_cases::support::send_email_notification,
+    use_cases::support::dispatch_notification,
 };
 
 use chrono::{Duration, Local};
@@ -34,7 +34,7 @@ pub async fn create_role_associated_connection_string(
     permissioned_roles: PermissionedRoles,
     life_cycle_settings: AccountLifeCycle,
     token_registration_repo: Box<&dyn TokenRegistration>,
-    message_sending_repo: Box<&dyn LocalMessageSending>,
+    message_sending_repo: Box<&dyn LocalMessageWrite>,
 ) -> Result<String, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges to create role
@@ -114,7 +114,7 @@ pub async fn create_role_associated_connection_string(
         ),
     ];
 
-    if let Err(err) = send_email_notification(
+    if let Err(err) = dispatch_notification(
         parameters,
         "email/create-connection-string",
         life_cycle_settings,

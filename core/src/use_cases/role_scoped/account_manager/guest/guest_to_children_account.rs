@@ -8,11 +8,11 @@ use crate::{
         },
         entities::{
             AccountFetching, GuestRoleFetching, GuestUserRegistration,
-            LocalMessageSending,
+            LocalMessageWrite,
         },
     },
     models::AccountLifeCycle,
-    use_cases::support::send_email_notification,
+    use_cases::support::dispatch_notification,
 };
 
 use futures::future;
@@ -40,7 +40,7 @@ pub async fn guest_to_children_account(
     account_fetching_repo: Box<&dyn AccountFetching>,
     guest_role_fetching_repo: Box<&dyn GuestRoleFetching>,
     guest_user_registration_repo: Box<&dyn GuestUserRegistration>,
-    message_sending_repo: Box<&dyn LocalMessageSending>,
+    message_sending_repo: Box<&dyn LocalMessageWrite>,
 ) -> Result<GetOrCreateResponseKind<GuestUser>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
@@ -199,7 +199,7 @@ pub async fn guest_to_children_account(
         parameters.push(("role_description", description));
     }
 
-    if let Err(err) = send_email_notification(
+    if let Err(err) = dispatch_notification(
         parameters,
         "email/guest-to-subscription-account",
         life_cycle_settings,

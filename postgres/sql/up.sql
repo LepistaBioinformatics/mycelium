@@ -211,6 +211,17 @@ CREATE TABLE token (
     expiration TIMESTAMPTZ NOT NULL
 );
 
+-- Message queue table
+CREATE TABLE message_queue (
+    id UUID DEFAULT gen_random_uuid(),
+    message TEXT NOT NULL,
+    created TIMESTAMPTZ DEFAULT now(),
+    attempted TIMESTAMPTZ DEFAULT NULL,
+    status VARCHAR(100) NOT NULL,
+    attempts INT DEFAULT 0,
+    error TEXT DEFAULT NULL
+);
+
 --------------------------------------------------------------------------------
 -- CONSTRAINTS
 --------------------------------------------------------------------------------
@@ -289,6 +300,9 @@ ALTER TABLE webhook ADD CONSTRAINT unique_webhook UNIQUE (name, url, trigger);
 
 -- Webhook execution table constraints
 ALTER TABLE webhook_execution ADD CONSTRAINT webhook_execution_pk PRIMARY KEY (id);
+
+-- Message queue table constraints
+ALTER TABLE message_queue ADD CONSTRAINT message_queue_pk PRIMARY KEY (id);
 
 --------------------------------------------------------------------------------
 -- VIEWS

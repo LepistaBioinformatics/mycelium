@@ -6,7 +6,7 @@ use lettre::{
 };
 use myc_core::domain::{
     dtos::message::{FromEmail, Message},
-    entities::RemoteMessageSending,
+    entities::RemoteMessageWrite,
 };
 use mycelium_base::{
     entities::CreateResponseKind,
@@ -17,14 +17,14 @@ use std::sync::Arc;
 use uuid::Uuid;
 
 #[derive(Component)]
-#[shaku(interface = RemoteMessageSending)]
+#[shaku(interface = RemoteMessageWrite)]
 pub struct RemoteMessageSendingRepository {
     #[shaku(inject)]
     client: Arc<dyn ClientProvider>,
 }
 
 #[async_trait]
-impl RemoteMessageSending for RemoteMessageSendingRepository {
+impl RemoteMessageWrite for RemoteMessageSendingRepository {
     #[tracing::instrument(name = "send", skip_all)]
     async fn send(
         &self,

@@ -5,12 +5,12 @@ use crate::{
             native_error_codes::NativeErrorCodes,
             token::{EmailConfirmationTokenMeta, MultiTypeMeta},
         },
-        entities::{LocalMessageSending, TokenRegistration, UserDeletion},
+        entities::{LocalMessageWrite, TokenRegistration, UserDeletion},
     },
     models::AccountLifeCycle,
     use_cases::{
         role_scoped::beginner::user::delete_default_user,
-        support::send_email_notification,
+        support::dispatch_notification,
     },
 };
 
@@ -27,7 +27,7 @@ pub(super) async fn register_token_and_notify_user(
     email: Email,
     life_cycle_settings: AccountLifeCycle,
     token_registration_repo: Box<&dyn TokenRegistration>,
-    message_sending_repo: Box<&dyn LocalMessageSending>,
+    message_sending_repo: Box<&dyn LocalMessageWrite>,
     user_deletion_repo: Box<&dyn UserDeletion>,
 ) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -105,7 +105,7 @@ pub(super) async fn register_token_and_notify_user(
 
     let parameters = vec![("verification_code", meta.get_token())];
 
-    if let Err(err) = send_email_notification(
+    if let Err(err) = dispatch_notification(
         parameters,
         "email/activation-code",
         life_cycle_settings,

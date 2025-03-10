@@ -198,6 +198,18 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    message_queue (id) {
+        id -> Uuid,
+        message -> Text,
+        created -> Timestamptz,
+        attempted -> Nullable<Timestamptz>,
+        status -> Varchar,
+        attempts -> Int4,
+        error -> Nullable<Text>,
+    }
+}
+
 diesel::joinable!(account -> tenant (tenant_id));
 diesel::joinable!(account_tag -> account (account_id));
 diesel::joinable!(guest_user -> guest_role (guest_role_id));

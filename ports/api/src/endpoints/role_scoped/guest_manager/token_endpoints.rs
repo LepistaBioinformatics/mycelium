@@ -14,7 +14,6 @@ use myc_http_tools::{
     wrappers::default_response_to_http_response::handle_mapped_error,
     Permission,
 };
-use myc_notifier::repositories::NotifierAppModule;
 use serde::{Deserialize, Serialize};
 use shaku::HasComponent;
 use utoipa::{ToResponse, ToSchema};
@@ -90,7 +89,6 @@ pub async fn create_default_account_associated_connection_string_url(
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     sql_app_module: web::Data<SqlAppModule>,
-    notifier_module: web::Data<NotifierAppModule>,
 ) -> impl Responder {
     match create_default_account_associated_connection_string(
         profile.to_profile(),
@@ -100,7 +98,7 @@ pub async fn create_default_account_associated_connection_string_url(
         body.permissioned_roles.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*sql_app_module.resolve_ref()),
-        Box::new(&*notifier_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
     )
     .await
     {
@@ -153,7 +151,6 @@ pub async fn create_role_associated_connection_string_url(
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     sql_app_module: web::Data<SqlAppModule>,
-    notifier_module: web::Data<NotifierAppModule>,
 ) -> impl Responder {
     match create_role_associated_connection_string(
         profile.to_profile(),
@@ -163,7 +160,7 @@ pub async fn create_role_associated_connection_string_url(
         body.permissioned_roles.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*sql_app_module.resolve_ref()),
-        Box::new(&*notifier_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
     )
     .await
     {

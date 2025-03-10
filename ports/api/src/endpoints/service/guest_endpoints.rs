@@ -11,7 +11,6 @@ use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error,
 };
-use myc_notifier::repositories::NotifierAppModule;
 use mycelium_base::dtos::Children;
 use serde::Deserialize;
 use shaku::HasComponent;
@@ -101,7 +100,6 @@ pub async fn guest_to_default_account_url(
     body: web::Json<ServiceGuestUserBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     sql_app_module: web::Data<SqlAppModule>,
-    notifier_module: web::Data<NotifierAppModule>,
 ) -> impl Responder {
     let role_id = path.to_owned();
 
@@ -136,7 +134,7 @@ pub async fn guest_to_default_account_url(
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
-        Box::new(&*notifier_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
     )
     .await

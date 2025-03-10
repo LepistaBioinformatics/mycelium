@@ -7,6 +7,7 @@ pub(crate) mod guest_user;
 pub(crate) mod guest_user_on_account;
 pub(crate) mod identity_provider;
 pub(crate) mod internal_error;
+pub(crate) mod message;
 pub(crate) mod owner_on_tenant;
 pub(crate) mod tenant;
 pub(crate) mod tenant_tag;

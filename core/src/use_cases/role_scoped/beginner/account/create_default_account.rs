@@ -6,13 +6,13 @@ use crate::{
             webhook::WebHookTrigger,
         },
         entities::{
-            AccountRegistration, LocalMessageSending, UserFetching,
+            AccountRegistration, LocalMessageWrite, UserFetching,
             WebHookRegistration,
         },
     },
     models::AccountLifeCycle,
     use_cases::support::{
-        register_webhook_dispatching_event, send_email_notification,
+        dispatch_notification, register_webhook_dispatching_event,
     },
 };
 
@@ -42,7 +42,7 @@ pub async fn create_default_account(
     user_fetching_repo: Box<&dyn UserFetching>,
     account_registration_repo: Box<&dyn AccountRegistration>,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
-    message_sending_repo: Box<&dyn LocalMessageSending>,
+    message_sending_repo: Box<&dyn LocalMessageWrite>,
 ) -> Result<Account, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Initialize tracing span
@@ -104,7 +104,7 @@ pub async fn create_default_account(
     tracing::trace!("Dispatching side effects");
 
     let (notification_response, webhook_responses) = futures::join!(
-        send_email_notification(
+        dispatch_notification(
             vec![("account_name", account_name)],
             "email/create-user-account",
             config.to_owned(),

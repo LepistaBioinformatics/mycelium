@@ -8,12 +8,12 @@ use crate::{
         },
         entities::{
             AccountRegistration, GuestRoleFetching, GuestUserRegistration,
-            LocalMessageSending,
+            LocalMessageWrite,
         },
     },
     models::AccountLifeCycle,
     use_cases::support::{
-        get_or_create_role_related_account, send_email_notification,
+        dispatch_notification, get_or_create_role_related_account,
     },
 };
 
@@ -38,7 +38,7 @@ pub async fn guest_to_default_account(
     life_cycle_settings: AccountLifeCycle,
     account_registration_repo: Box<&dyn AccountRegistration>,
     guest_role_fetching_repo: Box<&dyn GuestRoleFetching>,
-    message_sending_repo: Box<&dyn LocalMessageSending>,
+    message_sending_repo: Box<&dyn LocalMessageWrite>,
     guest_user_registration_repo: Box<&dyn GuestUserRegistration>,
 ) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -141,7 +141,7 @@ pub async fn guest_to_default_account(
         parameters.push(("role_description", description));
     }
 
-    if let Err(err) = send_email_notification(
+    if let Err(err) = dispatch_notification(
         parameters,
         "email/guest-to-subscription-account",
         life_cycle_settings,

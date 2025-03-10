@@ -2,9 +2,9 @@ use crate::{
     domain::{
         dtos::{
             email::Email,
-            message::{FromEmail, Message},
+            message::{FromEmail, Message, MessageSendingEvent},
         },
-        entities::LocalMessageSending,
+        entities::LocalMessageWrite,
     },
     models::AccountLifeCycle,
     settings::TEMPLATES,
@@ -17,21 +17,24 @@ use mycelium_base::{
 use tera::Context;
 use uuid::Uuid;
 
-#[tracing::instrument(name = "send_email_notification", skip_all)]
-pub(crate) async fn send_email_notification<T: ToString>(
+#[tracing::instrument(name = "dispatch_notification", skip_all)]
+pub(crate) async fn dispatch_notification<T: ToString>(
     parameters: Vec<(T, String)>,
     template_path_prefix: T,
     config: AccountLifeCycle,
     to: Email,
     cc: Option<Email>,
-    message_sending_repo: Box<&dyn LocalMessageSending>,
+    local_message_write_repo: Box<&dyn LocalMessageWrite>,
 ) -> Result<CreateResponseKind<Option<Uuid>>, MappedErrors> {
+    tracing::info!("Dispatching notification");
+
     let mut context = Context::new();
 
     context.insert(
         "domain_name",
         config.domain_name.async_get_or_error().await?.as_str(),
     );
+
     context.insert(
         "support_email",
         &config.support_email.async_get_or_error().await?,
@@ -105,17 +108,13 @@ pub(crate) async fn send_email_notification<T: ToString>(
         FromEmail::Email(from_email)
     };
 
-    message_sending_repo
-        .send(Message {
+    local_message_write_repo
+        .send(MessageSendingEvent::new(Message {
             from,
             to,
             cc,
-            subject: format!(
-                "[{}] {}",
-                config.domain_name.async_get_or_error().await?,
-                subject_
-            ),
+            subject: subject_,
             body,
-        })
+        }))
         .await
 }

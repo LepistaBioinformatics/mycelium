@@ -5,11 +5,11 @@ use crate::{
             token::PasswordChangeTokenMeta, user::PasswordHash,
         },
         entities::{
-            LocalMessageSending, TokenInvalidation, UserFetching, UserUpdating,
+            LocalMessageWrite, TokenInvalidation, UserFetching, UserUpdating,
         },
     },
     models::AccountLifeCycle,
-    use_cases::support::send_email_notification,
+    use_cases::support::dispatch_notification,
 };
 
 use mycelium_base::{
@@ -26,7 +26,7 @@ pub async fn check_token_and_reset_password(
     user_fetching_repo: Box<&dyn UserFetching>,
     user_updating_repo: Box<&dyn UserUpdating>,
     token_invalidation_repo: Box<&dyn TokenInvalidation>,
-    message_sending_repo: Box<&dyn LocalMessageSending>,
+    message_sending_repo: Box<&dyn LocalMessageWrite>,
 ) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch user from email
@@ -37,13 +37,10 @@ pub async fn check_token_and_reset_password(
         .await?
     {
         FetchResponseKind::NotFound(_) => {
-            return use_case_err(format!(
-                "User not found: {}",
-                email.email()
-            ))
-            .with_code(NativeErrorCodes::MYC00009)
-            .with_exp_true()
-            .as_error()
+            return use_case_err(format!("User not found: {}", email.email()))
+                .with_code(NativeErrorCodes::MYC00009)
+                .with_exp_true()
+                .as_error()
         }
         FetchResponseKind::Found(user) => user,
     };
@@ -114,7 +111,7 @@ pub async fn check_token_and_reset_password(
     // ? Notify guest user
     // ? -----------------------------------------------------------------------
 
-    if let Err(err) = send_email_notification(
+    if let Err(err) = dispatch_notification(
         vec![("verification_code", meta.get_token())],
         "email/password-reset-confirmation",
         life_cycle_settings,

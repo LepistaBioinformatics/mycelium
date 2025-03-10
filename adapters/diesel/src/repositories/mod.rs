@@ -7,6 +7,7 @@ mod error_code;
 mod guest_role;
 mod guest_user;
 mod licensed_resources;
+mod message;
 mod profile;
 mod tenant;
 mod tenant_tag;
@@ -20,6 +21,7 @@ use error_code::*;
 use guest_role::*;
 use guest_user::*;
 use licensed_resources::*;
+use message::*;
 use profile::*;
 use tenant::*;
 use tenant_tag::*;
@@ -60,6 +62,8 @@ module! {
             GuestUserRegistrationSqlDbRepository,
             ProfileFetchingSqlDbRepository,
             LicensedResourcesFetchingSqlDbRepository,
+            LocalMessageReadSqlDbRepository,
+            LocalMessageWriteSqlDbRepository,
             TenantDeletionSqlDbRepository,
             TenantFetchingSqlDbRepository,
             TenantRegistrationSqlDbRepository,
