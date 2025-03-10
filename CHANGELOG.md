@@ -1,3 +1,9 @@
+## v7.5.11 (2025-03-10)
+
+### Fix
+
+- upgrade production configurations to load templates as a project artifact
+
 ## v7.5.10 (2025-03-10)
 
 ### Feat
