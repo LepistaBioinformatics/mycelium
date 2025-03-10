@@ -14,10 +14,10 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "7.5.8", path = "../../core" }
-mycelium-base = { version = "7.5.8", path = "../../base" }
-mycelium-config = { version = "7.5.8", path = "../../config" }
-mycelium-adapters-shared-lib = { version = "7.5.8", path = "../shared" }
+myc-core = { version = "7.5.9", path = "../../core" }
+mycelium-base = { version = "7.5.9", path = "../../base" }
+mycelium-config = { version = "7.5.9", path = "../../config" }
+mycelium-adapters-shared-lib = { version = "7.5.9", path = "../shared" }
 
 async-trait.workspace = true
 futures.workspace = true

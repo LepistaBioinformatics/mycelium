@@ -1,3 +1,9 @@
+## v7.5.9 (2025-03-09)
+
+### Feat
+
+- implements a ping test to the email dispatcher initialization
+
 ## v7.5.8 (2025-03-06)
 
 ### Fix
