@@ -46,7 +46,8 @@ use myc_config::{
     init_vault_config_from_file, optional_config::OptionalConfig,
 };
 use myc_core::{
-    domain::entities::RemoteMessageSending, settings::init_in_memory_routes,
+    domain::entities::{LocalMessageSending, RemoteMessageSending},
+    settings::init_in_memory_routes,
 };
 use myc_diesel::repositories::{
     DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
@@ -265,6 +266,11 @@ pub async fn main() -> std::io::Result<()> {
         unsafe {
             Arc::from_raw(*Arc::new(
                 notifier_module.resolve_ref() as &dyn SharedClientProvider
+            ))
+        },
+        unsafe {
+            Arc::from_raw(*Arc::new(
+                notifier_module.resolve_ref() as &dyn LocalMessageSending
             ))
         },
         unsafe {

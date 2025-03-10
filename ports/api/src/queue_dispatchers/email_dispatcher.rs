@@ -1,5 +1,5 @@
 use myc_adapters_shared_lib::models::SharedClientProvider;
-use myc_core::domain::entities::RemoteMessageSending;
+use myc_core::domain::entities::{LocalMessageSending, RemoteMessageSending};
 use myc_notifier::{executor::consume_messages, models::QueueConfig};
 use rand::Rng;
 use std::{sync::Arc, time::Duration};
@@ -12,10 +12,23 @@ use std::{sync::Arc, time::Duration};
 pub(crate) fn email_dispatcher(
     queue_config: QueueConfig,
     client: Arc<dyn SharedClientProvider>,
+    queue_sending_repo: Arc<dyn LocalMessageSending>,
     message_sending_repo: Arc<dyn RemoteMessageSending>,
 ) {
     tokio::spawn(async move {
         tracing::trace!("Starting email dispatcher");
+
+        //
+        // Test local message sending connection
+        //
+        match queue_sending_repo.ping().await {
+            Ok(_) => {
+                tracing::info!("Local message sending connection is OK");
+            }
+            Err(err) => {
+                panic!("Error on ping local message sending: {err}");
+            }
+        };
 
         let mut interval = actix_rt::time::interval(Duration::from_secs(
             match queue_config

@@ -13,6 +13,8 @@ pub trait LocalMessageSending: Interface + Send + Sync {
         &self,
         message: Message,
     ) -> Result<CreateResponseKind<Option<Uuid>>, MappedErrors>;
+
+    async fn ping(&self) -> Result<(), MappedErrors>;
 }
 
 #[async_trait]

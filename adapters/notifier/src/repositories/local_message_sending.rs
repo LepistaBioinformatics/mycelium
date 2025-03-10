@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use myc_core::domain::{dtos::message::Message, entities::LocalMessageSending};
 use mycelium_base::{
     entities::CreateResponseKind,
-    utils::errors::{creation_err, MappedErrors},
+    utils::errors::{creation_err, execution_err, MappedErrors},
 };
 use redis::RedisError;
 use serde::{Deserialize, Serialize};
@@ -76,6 +76,30 @@ impl LocalMessageSending for LocalMessageSendingRepository {
                     Some(correspondence_key),
                     "Notification not send".to_string(),
                 ))
+            }
+        }
+    }
+
+    #[tracing::instrument(name = "ping", skip_all)]
+    async fn ping(&self) -> Result<(), MappedErrors> {
+        let mut connection =
+            self.notifier_provider.get_redis_client().as_ref().clone();
+
+        let res: Result<String, RedisError> =
+            redis::cmd("PING").query(&mut connection);
+
+        match res {
+            Ok(res) => {
+                debug!("Ping response: {res}");
+                Ok(())
+            }
+            Err(err) => {
+                error!("Failed to ping the redis server: {err}");
+
+                return execution_err(format!(
+                    "Failed to build notification: {err}"
+                ))
+                .as_error();
             }
         }
     }
