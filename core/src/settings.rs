@@ -5,7 +5,7 @@ use crate::{
 
 use futures::lock::Mutex;
 use lazy_static::lazy_static;
-use std::env::var_os;
+use std::env::{self, var_os};
 use tera::Tera;
 
 // ? ---------------------------------------------------------------------------
@@ -65,12 +65,18 @@ pub async fn init_in_memory_routes(routes_file: Option<String>) {
 
 lazy_static! {
     pub static ref TEMPLATES: Tera = {
-        let mut _tera = match Tera::new("templates/**/*") {
+        let template_dir = env::var("TEMPLATES_DIR")
+            .unwrap_or_else(|_| "templates".to_string());
+
+        tracing::info!("Loading templates from: {}", template_dir);
+
+        let mut _tera = match Tera::new(&format!("{}/{}", template_dir, "**/*"))
+        {
             Ok(res) => res,
             Err(err) => panic!("Error on load tera templates: {}", err),
         };
 
-        _tera.autoescape_on(vec![".jinja"]);
+        _tera.autoescape_on(vec![".jinja", ".subject"]);
         _tera
     };
 }

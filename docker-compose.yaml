@@ -103,16 +103,20 @@ services:
     <<: *common-config
 
     container_name: myc-api
-    image: sgelias/mycelium-api:latest
+    #image: sgelias/mycelium-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      no_cache: true
     restart: on-failure
     environment:
-      - SETTINGS_PATH=/home/config.dev.yaml
+      - SETTINGS_PATH=/home/config.yaml
       - MYC_VAULT_TOKEN=${MYC_VAULT_TOKEN}
       - UTOIPA_REDOC_CONFIG_FILE=/home/redoc.config.json
     ports:
       - 8080:8080
     volumes:
-      - ./settings/config.dev.yaml:/home/config.dev.yaml:ro
+      - ./settings/config.for-docker.yaml:/home/config.yaml:ro
       - ./test/mock/routes.yaml:/home/routes.yaml:ro
       - ./ports/api/src/api_docs/redoc.config.json:/home/redoc.config.json:ro
     depends_on:

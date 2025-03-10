@@ -8,7 +8,17 @@ WORKDIR /rust
 
 # ? The copy operations are performed in separate steps to allow caching layers
 # ? over building operations
-RUN cargo install mycelium-api --force
+COPY base /rust/base
+COPY core /rust/core
+COPY config /rust/config
+COPY http_tools /rust/http_tools
+COPY adapters /rust/adapters
+COPY ports /rust/ports
+COPY test /rust/test
+COPY Cargo.toml /rust/Cargo.toml
+COPY Cargo.lock /rust/Cargo.lock
+
+RUN cargo build --bin myc-api --release
 
 # ? ----------------------------------------------------------------------------
 # ? Production stage
@@ -16,9 +26,12 @@ RUN cargo install mycelium-api --force
 
 FROM rust:latest
 
-COPY --from=builder /usr/local/cargo/bin/myc-api /usr/local/bin/myc-api
+RUN apt-get update && apt-get install -y libpq-dev
+
+COPY --from=builder /rust/target/release/myc-api /usr/local/bin/myc-api
 
 COPY ports/api/src/api_docs/redoc.config.json /home/redoc.config.json
+COPY templates /home/templates
 
 ENV UTOIPA_REDOC_CONFIG_FILE=/home/redoc.config.json
 
