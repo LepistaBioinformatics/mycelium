@@ -26,16 +26,16 @@ connection-string = "0.2"
 
 [dependencies]
 
-myc-core = { version = "7.5.9", path = "../../core" }
-mycelium-base = { version = "7.5.9", path = "../../base" }
-mycelium-config = { version = "7.5.9", path = "../../config" }
-mycelium-http-tools = { version = "7.5.9", path = "../../http_tools" }
-mycelium-memory-db = { version = "7.5.9", path = "../../adapters/mem_db" }
-mycelium-service = { version = "7.5.9", path = "../../adapters/service" }
-mycelium-diesel = { version = "7.5.9", path = "../../adapters/diesel" }
-mycelium-notifier = { version = "7.5.9", path = "../../adapters/notifier" }
-mycelium-adapters-shared-lib = { version = "7.5.9", path = "../../adapters/shared" }
-mycelium-key-value = { version = "7.5.9", path = "../../adapters/kv_db" }
+myc-core = { version = "7.5.10", path = "../../core" }
+mycelium-base = { version = "7.5.10", path = "../../base" }
+mycelium-config = { version = "7.5.10", path = "../../config" }
+mycelium-http-tools = { version = "7.5.10", path = "../../http_tools" }
+mycelium-memory-db = { version = "7.5.10", path = "../../adapters/mem_db" }
+mycelium-service = { version = "7.5.10", path = "../../adapters/service" }
+mycelium-diesel = { version = "7.5.10", path = "../../adapters/diesel" }
+mycelium-notifier = { version = "7.5.10", path = "../../adapters/notifier" }
+mycelium-adapters-shared-lib = { version = "7.5.10", path = "../../adapters/shared" }
+mycelium-key-value = { version = "7.5.10", path = "../../adapters/kv_db" }
 
 actix-web.workspace = true
 actix-web-httpauth.workspace = true

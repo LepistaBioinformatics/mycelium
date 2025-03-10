@@ -1,3 +1,9 @@
+## v7.5.10 (2025-03-10)
+
+### Feat
+
+- remove the redis dependency from notifier system and replace by postgres dependency
+
 ## v7.5.9 (2025-03-09)
 
 ### Feat
