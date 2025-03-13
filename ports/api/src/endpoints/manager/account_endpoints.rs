@@ -61,7 +61,7 @@ pub struct CreateSystemSubscriptionAccountBody {
 // ? Define API paths
 // ? ---------------------------------------------------------------------------
 
-/// Create all system roles
+/// Create system account
 #[utoipa::path(
     post,
     request_body = CreateSystemSubscriptionAccountBody,

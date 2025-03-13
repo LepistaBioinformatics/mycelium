@@ -1,5 +1,7 @@
 # 🚀 Mycelium: The Ultimate API Gateway
 
+<img src="docs/assets/logo-large.svg" width="200" style="margin: 20px; background-color: #e2e8f0; border-radius: 10px; padding: 10px;" />
+
 Welcome to **Mycelium API Gateway**, the ultimate solution for secure, flexible,
 and multi-tenant API management! Whether you're building a robust platform or
 enhancing your downstream APIs, our gateway is designed to provide you with

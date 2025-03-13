@@ -1,6 +1,7 @@
 # Rust related
 target
 docs/*
+!docs/assets
 !docs/draw.io
 !docs/insomnia
 !docs/openapi
