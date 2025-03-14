@@ -11,4 +11,5 @@ pub struct GuestRole {
     pub description: Option<String>,
     pub permission: i32,
     pub slug: String,
+    pub system: bool,
 }

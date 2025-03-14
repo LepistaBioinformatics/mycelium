@@ -78,6 +78,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
     async fn list(
         &self,
         name: Option<String>,
+        system: Option<bool>,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<GuestRole>, MappedErrors> {
@@ -95,6 +96,13 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
         // Apply name filter if provided
         if let Some(name) = name {
             let stm = guest_role_model::name.ilike(format!("%{}%", name));
+            query_records = query_records.filter(stm.to_owned());
+            query_count = query_count.filter(stm);
+        }
+
+        // Apply system filter if provided
+        if let Some(system) = system {
+            let stm = guest_role_model::system.eq(system);
             query_records = query_records.filter(stm.to_owned());
             query_count = query_count.filter(stm);
         }

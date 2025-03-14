@@ -48,12 +48,17 @@ pub struct CreateGuestRoleBody {
     pub name: String,
     pub description: String,
     pub permission: Option<Permission>,
+    pub system: bool,
 }
 
 #[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct ListGuestRolesParams {
+    /// The name of the guest role.
     pub name: Option<String>,
+
+    /// If it is a system role.
+    pub system: Option<bool>,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -114,6 +119,7 @@ pub async fn crate_guest_role_url(
         json.name.to_owned(),
         json.description.to_owned(),
         json.permission.to_owned(),
+        json.system,
         Box::new(&*app_module.resolve_ref()),
     )
     .await
@@ -166,6 +172,7 @@ pub async fn list_guest_roles_url(
     match list_guest_roles(
         profile.to_profile(),
         info.name.to_owned(),
+        info.system.to_owned(),
         page.page_size,
         page.skip,
         Box::new(&*app_module.resolve_ref()),

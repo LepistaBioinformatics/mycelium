@@ -10,5 +10,6 @@ pub(super) fn map_model_to_dto(model: GuestRoleModel) -> GuestRole {
         description: model.description,
         permission: Permission::from_i32(model.permission),
         children: None,
+        system: model.system,
     }
 }

@@ -97,6 +97,7 @@ pub async fn create_system_roles(
                     )),
                     permission.to_owned(),
                     None,
+                    true,
                 ))
                 .await
             {

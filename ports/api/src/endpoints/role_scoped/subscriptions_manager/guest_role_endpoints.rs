@@ -36,7 +36,11 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, ToSchema, IntoParams)]
 #[serde(rename_all = "camelCase")]
 pub struct ListGuestRolesParams {
+    /// The name of the guest role.
     pub name: Option<String>,
+
+    /// If it is a system role.
+    pub system: Option<bool>,
 }
 
 /// List Roles
@@ -82,6 +86,7 @@ pub async fn list_guest_roles_url(
     match list_guest_roles(
         profile.to_profile(),
         info.name.to_owned(),
+        info.system.to_owned(),
         page.page_size,
         page.skip,
         Box::new(&*app_module.resolve_ref()),

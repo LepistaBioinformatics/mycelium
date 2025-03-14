@@ -394,7 +394,7 @@ pub async fn list_accounts_by_type_url(
 )]
 #[get("/{account_id}")]
 pub async fn get_account_details_url(
-    tenant: TenantData,
+    tenant: Option<TenantData>,
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
     app_module: web::Data<SqlAppModule>,
@@ -403,7 +403,7 @@ pub async fn get_account_details_url(
 
     match get_account_details(
         profile.to_profile(),
-        tenant.tenant_id().to_owned(),
+        tenant.map(|t| t.tenant_id().to_owned()),
         account_id,
         Box::new(&*app_module.resolve_ref()),
     )
@@ -414,7 +414,7 @@ pub async fn get_account_details_url(
     }
 }
 
-/// Create Subscription Account
+/// Update Subscription Account Name and Flags
 ///
 /// Subscription accounts represents shared entities, like institutions,
 /// groups, but not real persons.

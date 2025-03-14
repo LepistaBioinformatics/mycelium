@@ -27,6 +27,7 @@ pub async fn create_guest_role(
     name: String,
     description: String,
     permission: Option<Permission>,
+    system: bool,
     guest_role_registration_repo: Box<&dyn GuestRoleRegistration>,
 ) -> Result<GetOrCreateResponseKind<GuestRole>, MappedErrors> {
     // ? ----------------------------------------------------------------------
@@ -50,6 +51,7 @@ pub async fn create_guest_role(
             Some(description),
             permission.unwrap_or(Permission::Read),
             None,
+            system,
         ))
         .await
 }

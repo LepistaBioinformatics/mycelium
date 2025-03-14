@@ -69,6 +69,13 @@ pub struct GuestRole {
     pub description: Option<String>,
     pub permission: Permission,
 
+    /// If it is a system role
+    ///
+    /// System roles represents standard core actors of the Mycelium API
+    /// Gateway, defined in `SystemActor`
+    ///
+    pub system: bool,
+
     /// Children roles represents guest roles that are children of the current
     /// role, and should be used to determine the allowed roles for the role
     /// owner guest other users.
@@ -82,6 +89,7 @@ impl GuestRole {
         description: Option<String>,
         permission: Permission,
         children: Option<Children<GuestRole, Uuid>>,
+        system: bool,
     ) -> Self {
         GuestRole {
             id,
@@ -90,6 +98,7 @@ impl GuestRole {
             description,
             permission,
             children,
+            system,
         }
     }
 }

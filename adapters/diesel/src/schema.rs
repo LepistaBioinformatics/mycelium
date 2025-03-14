@@ -53,6 +53,7 @@ diesel::table! {
         permission -> Int4,
         #[max_length = 140]
         slug -> Varchar,
+        system -> Bool,
     }
 }
 
