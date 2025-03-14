@@ -1,0 +1,9 @@
+.env
+cert.pem
+key.pem
+
+# Docker
+postgres/volume*
+vault/*
+!vault/Dockerfile
+redis

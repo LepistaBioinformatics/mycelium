@@ -1,0 +1,68 @@
+# ? ----------------------------------------------------------------------------
+# ? NETWORK DEFINITION
+# ? ----------------------------------------------------------------------------
+networks:
+  mycelium_net:
+    driver: bridge
+
+# ? ----------------------------------------------------------------------------
+# ? SHARED CONFIGURATION
+# ? ----------------------------------------------------------------------------
+x-common-mycelium: &common-config
+  networks: &common-networks
+    - mycelium_net
+  env_file:
+    - .env
+
+# ? ----------------------------------------------------------------------------
+# ? SERVICES DEFINITION
+# ? ----------------------------------------------------------------------------
+services:
+  myc-postgres-devcontainer:
+    extends:
+      file: ../docker-compose.common.yaml
+      service: myc-postgres
+
+    <<: *common-config
+    container_name: myc-postgres-devcontainer
+
+  myc-jaeger-devcontainer:
+    extends:
+      file: ../docker-compose.common.yaml
+      service: myc-jaeger
+
+    <<: *common-config
+    container_name: myc-jaeger-devcontainer
+
+  myc-redis-devcontainer:
+    extends:
+      file: ../docker-compose.common.yaml
+      service: myc-redis
+
+    <<: *common-config
+    container_name: myc-redis-devcontainer
+
+  myc-vault-devcontainer:
+    extends:
+      file: ../docker-compose.common.yaml
+      service: myc-vault
+
+    networks: *common-networks
+    container_name: myc-vault-devcontainer
+
+  myc-devcontainer:
+    # Inject all shared configs
+    <<: *common-config
+
+    image: mcr.microsoft.com/vscode/devcontainers/rust:latest
+    command: sleep infinity
+    environment:
+      - MYC_VAULT_TOKEN=${MYC_VAULT_TOKEN}
+    volumes:
+      - ../..:/workspaces:cached
+
+    depends_on:
+      - myc-postgres-devcontainer
+      - myc-jaeger-devcontainer
+      - myc-redis-devcontainer
+      - myc-vault-devcontainer

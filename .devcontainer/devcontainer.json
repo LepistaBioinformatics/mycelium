@@ -1,8 +1,18 @@
 {
-    "name": "Mycelium Dev Container",
-    "image": "mcr.microsoft.com/vscode/devcontainers/rust:latest",
-    "workspaceFolder": "/workspace",
-    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+    "name": "Mycelium Gateway",
+    "dockerComposeFile": "docker-compose.yaml",
+    "service": "myc-devcontainer",
+    "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+    "forwardPorts": [
+        8080,
+        8200,
+        8201,
+        6379,
+        5432,
+        16686,
+        4317,
+        4318
+    ],
     "customizations": {
         "vscode": {
             "extensions": [
@@ -12,6 +22,5 @@
                 "terminal.integrated.defaultProfile.linux": "bash"
             }
         }
-    },
-    "postCreateCommand": "cargo build --workspace"
+    }
 }

@@ -1,9 +1,5 @@
-# ? ----------------------------------------------------------------------------
-# ? NETWORK DEFINITION
-# ? ----------------------------------------------------------------------------
-networks:
-  mycelium_net:
-    driver: bridge
+include:
+  - docker-compose.common.yaml
 
 # ? ----------------------------------------------------------------------------
 # ? SHARED CONFIGURATION
@@ -12,98 +8,17 @@ x-common-mycelium: &common-config
   networks: &common-networks
     - mycelium_net
   env_file:
-    - .env
+    - .devcontainer/.env
 
 # ? ----------------------------------------------------------------------------
 # ? SERVICES DEFINITION
 # ? ----------------------------------------------------------------------------
 services:
-  # ? --------------------------------------------------------------------------
-  # ? DATABASES
-  # ? --------------------------------------------------------------------------
-  myc-postgres:
-    # Inject all shared configs
-    <<: *common-config
-
-    container_name: myc-postgres
-    image: 'postgres:12'
-    restart: on-failure
-    environment:
-      - POSTGRES_USERNAME=postgres
-      - POSTGRES_PASSWORD=postgres
-    ports:
-      - 5432:5432/tcp
-    volumes:
-      - ./postgres/volume:/var/lib/postgresql/data
-      - ./postgres/sql/up.sql:/docker-entrypoint-initdb.d/up.sql:cached
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 5s
-      timeout: 5s
-      retries: 20
-
-  myc-jaeger:
-    # Inject all shared configs
-    <<: *common-config
-
-    container_name: myc-jaeger
-    image: 'jaegertracing/all-in-one:latest'
-    restart: on-failure
-    environment:
-      - COLLECTOR_OTLP_ENABLED=true
-    ports:
-      - 16686:16686
-      - 4317:4317 # OTLP gRPC receiver
-      - 4318:4318 # OTLP HTTP receiver
-
-  myc-redis:
-    # Inject all shared configs
-    <<: *common-config
-
-    container_name: myc-redis
-    image: redis:6.2-alpine
-    restart: on-failure
-    ports:
-      - '6379:6379'
-    command: redis-server --save 20 1 --loglevel warning --requirepass ${MYC_REDIS_PASS}
-    volumes:
-      - ./redis:/data
-
-  myc-vault:
-    # Inject network
-    networks: *common-networks
-
-    container_name: myc-vault
-    image: hashicorp/vault:latest
-    build:
-      context: ./vault/docker
-      args:
-        UID: 1001
-        GID: 1001
-    command: vault server -config /vault/config/vault.hcl
-    environment:
-      VAULT_ADDR: http://0.0.0.0:8200
-      VAULT_API_ADDR: http://0.0.0.0:8200
-      VAULT_ADDRESS: http://0.0.0.0:8200
-      VAULT_UI: true
-    ports:
-      - 8200:8200
-      - 8201:8201
-    restart: on-failure
-    volumes:
-      - ./vault/logs:/vault/logs/:rw
-      - ./vault/data:/vault/data/:rw
-      - ./vault/config:/vault/config/:rw
-      - ./vault/file:/vault/file/:rw
-    cap_add:
-      - IPC_LOCK
-
   myc-api:
     # Inject all shared configs
     <<: *common-config
 
     container_name: myc-api
-    #image: sgelias/mycelium-api:latest
     build:
       context: .
       dockerfile: Dockerfile.dev
