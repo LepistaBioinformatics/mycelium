@@ -25,7 +25,8 @@
 --------------------------------------------------------------------------------
 
 SELECT 'CREATE DATABASE "' || :'db_name' || '"'
-WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = :'db_name')\gexec
+
+                            WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = :'db_name')\gexec
 
 \c :"db_name"
 
@@ -142,7 +143,8 @@ CREATE TABLE guest_role (
     name VARCHAR(140) NOT NULL,
     slug VARCHAR(140) NOT NULL,
     description VARCHAR(255),
-    permission INT DEFAULT 0
+    permission INT DEFAULT 0,
+    system BOOLEAN DEFAULT FALSE NOT NULL
 );
 
 -- Guest role children table
