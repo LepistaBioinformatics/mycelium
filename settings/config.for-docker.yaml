@@ -2,7 +2,7 @@
 # ? VAULT CONFIGURATIONS
 # ? ----------------------------------------------------------------------------
 vault: !enabled
-  url: "http://myc-vault:8200"
+  url: http://myc-vault-devcontainer:8200
   versionWithNamespace: v1/kv
   token:
     env: MYC_VAULT_TOKEN
@@ -41,7 +41,7 @@ diesel:
   databaseUrl:
     vault:
       path: myc/prisma
-      key: databaseUrlDockerCompose
+      key: databaseUrlDevContainer
 
 # ? ----------------------------------------------------------------------------
 # ? NOTIFIER ADAPTER SETTINGS SETTINGS
@@ -70,7 +70,7 @@ queue:
 
 redis:
   protocol: redis # should be rediss for secure connection
-  hostname: myc-redis
+  hostname: myc-redis-devcontainer
 
   password:
     vault:
@@ -236,8 +236,8 @@ api:
   #         protocol: https
   #
   # ? --------------------------------------------------------------------------
-  #routes: test/mock/routes.yaml
-  routes: /home/routes.yaml
+  routes: test/mock/routes.yaml
+
   # ? ----------------------------------------------------------------------------
   # ? API PORT SETTINGS SETTINGS
   # ? ----------------------------------------------------------------------------
