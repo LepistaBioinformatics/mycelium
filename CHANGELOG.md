@@ -1,3 +1,9 @@
+## v7.6.0 (2025-03-14)
+
+### Feat
+
+- implements a system flag in guest-roles to indicate roles restricted to system accounts
+
 ## v7.5.11 (2025-03-10)
 
 ### Fix
