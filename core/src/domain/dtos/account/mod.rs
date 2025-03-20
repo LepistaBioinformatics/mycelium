@@ -112,6 +112,28 @@ pub struct Account {
     pub meta: Option<HashMap<AccountMetaKey, String>>,
 }
 
+impl Default for Account {
+    fn default() -> Self {
+        Self {
+            id: None,
+            name: String::new(),
+            slug: String::new(),
+            tags: None,
+            is_active: true,
+            is_checked: false,
+            is_archived: false,
+            verbose_status: None,
+            is_default: false,
+            owners: Children::Ids([].to_vec()),
+            account_type: AccountType::User,
+            guest_users: None,
+            created: Local::now(),
+            updated: None,
+            meta: None,
+        }
+    }
+}
+
 impl Account {
     /// Create a new subscription account
     ///
