@@ -146,6 +146,25 @@ pub struct Profile {
     filtering_state: Option<Vec<String>>,
 }
 
+impl Default for Profile {
+    fn default() -> Self {
+        Self::new(
+            vec![],
+            Uuid::new_v4(),
+            false,
+            false,
+            false,
+            true,
+            true,
+            true,
+            false,
+            None,
+            None,
+            None,
+        )
+    }
+}
+
 impl Profile {
     pub fn new(
         owners: Vec<Owner>,
