@@ -20,6 +20,7 @@ use mycelium_base::{
     entities::{FetchResponseKind, GetOrCreateResponseKind},
     utils::errors::{use_case_err, MappedErrors},
 };
+use slugify::slugify;
 use uuid::Uuid;
 
 /// Create a default account.
@@ -71,8 +72,18 @@ pub async fn create_default_account(
 
     if let Some(Provider::Internal(_)) = user.provider() {
         if !user.is_active {
-            return use_case_err("User is not active".to_string()).as_error();
+            return use_case_err("User is not active".to_string())
+                .with_exp_true()
+                .with_code(NativeErrorCodes::MYC00018)
+                .as_error();
         }
+    }
+
+    if !user.is_principal() {
+        return use_case_err("User is not the principal".to_string())
+            .with_exp_true()
+            .with_code(NativeErrorCodes::MYC00018)
+            .as_error();
     }
 
     // ? -----------------------------------------------------------------------
@@ -81,12 +92,13 @@ pub async fn create_default_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
+    let mut base_account =
+        Account::new(account_name.to_owned(), user.clone(), AccountType::User);
+
+    base_account.slug = slugify!(user.email.email().as_str());
+
     let account = match account_registration_repo
-        .get_or_create_user_account(
-            Account::new(account_name.to_owned(), user, AccountType::User),
-            true,
-            false,
-        )
+        .get_or_create_user_account(base_account, true, false)
         .await?
     {
         GetOrCreateResponseKind::Created(account) => account,
