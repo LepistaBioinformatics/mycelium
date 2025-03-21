@@ -51,6 +51,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                 guest_role_model::slug.eq(&user_role.slug),
                 guest_role_model::description.eq(user_role.description.clone()),
                 guest_role_model::permission.eq(user_role.permission.to_i32()),
+                guest_role_model::updated.eq(chrono::Utc::now()),
             ))
             .get_result::<GuestRoleModel>(conn)
             .optional()
