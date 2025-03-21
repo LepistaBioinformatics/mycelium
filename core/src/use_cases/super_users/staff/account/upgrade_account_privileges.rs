@@ -1,5 +1,8 @@
 use crate::domain::{
-    dtos::{account::Account, account_type::AccountType, profile::Profile},
+    dtos::{
+        account::Account, account_type::AccountType,
+        native_error_codes::NativeErrorCodes, profile::Profile,
+    },
     entities::AccountUpdating,
 };
 
@@ -13,7 +16,14 @@ use uuid::Uuid;
 ///
 /// This action should be used to upgrade Standard, Manager, and Staff accounts.
 /// Subscription accounts should not be upgraded.
-#[tracing::instrument(name = "upgrade_account_privileges", skip_all)]
+#[tracing::instrument(
+    name = "upgrade_account_privileges", 
+    fields(
+        profile_id = %profile.acc_id,
+        owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
+    ),
+    skip(profile, account_updating_repo)
+)]
 pub async fn upgrade_account_privileges(
     profile: Profile,
     account_id: Uuid,
@@ -28,10 +38,10 @@ pub async fn upgrade_account_privileges(
 
     if !profile.is_staff {
         return use_case_err(
-            "The current user has no sufficient privileges to upgrade 
-            accounts."
-                .to_string(),
+            "The current user has no sufficient privileges to upgrade accounts.",
         )
+        .with_exp_true()
+        .with_code(NativeErrorCodes::MYC00018)
         .as_error();
     }
 
@@ -42,7 +52,9 @@ pub async fn upgrade_account_privileges(
     if !vec![AccountType::Manager, AccountType::Staff]
         .contains(&target_account_type)
     {
-        return use_case_err(String::from("Invalid upgrade target."))
+        return use_case_err("Invalid upgrade target.")
+            .with_exp_true()
+            .with_code(NativeErrorCodes::MYC00018)
             .as_error();
     }
 
