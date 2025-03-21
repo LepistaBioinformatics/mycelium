@@ -91,6 +91,6 @@ pub async fn insert_role_child(
     // ? -----------------------------------------------------------------------
 
     guest_role_updating_repo
-        .insert_role_child(guest_role_id, child_id)
+        .insert_role_child(guest_role_id, child_id, profile.acc_id)
         .await
 }

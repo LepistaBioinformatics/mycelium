@@ -31,6 +31,6 @@ pub async fn remove_role_child(
     // ? ----------------------------------------------------------------------
 
     guest_role_updating_repo
-        .remove_role_child(guest_role_id, child_id)
+        .remove_role_child(guest_role_id, child_id, profile.acc_id)
         .await
 }
