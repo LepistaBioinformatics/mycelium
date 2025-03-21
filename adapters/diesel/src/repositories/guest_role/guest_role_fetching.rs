@@ -113,6 +113,10 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
 
         let records = query_records
             .select(GuestRoleModel::as_select())
+            .order((
+                guest_role_model::updated.desc().nulls_last(),
+                guest_role_model::system.desc(),
+            ))
             .limit(page_size)
             .offset(skip)
             .load::<GuestRoleModel>(conn)

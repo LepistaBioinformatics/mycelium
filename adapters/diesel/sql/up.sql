@@ -144,13 +144,18 @@ CREATE TABLE guest_role (
     slug VARCHAR(140) NOT NULL,
     description VARCHAR(255),
     permission INT DEFAULT 0,
-    system BOOLEAN DEFAULT FALSE NOT NULL
+    system BOOLEAN DEFAULT FALSE NOT NULL,
+    created TIMESTAMPTZ DEFAULT now(),
+    updated TIMESTAMPTZ DEFAULT NULL
 );
 
 -- Guest role children table
 CREATE TABLE guest_role_children (
     parent_id UUID NOT NULL,
-    child_role_id UUID NOT NULL
+    child_role_id UUID NOT NULL,
+    created_by UUID NOT NULL,
+    created TIMESTAMPTZ DEFAULT now(),
+    updated TIMESTAMPTZ DEFAULT NULL
 );
 
 -- Guest user table
