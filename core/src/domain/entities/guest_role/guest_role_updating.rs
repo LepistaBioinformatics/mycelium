@@ -18,11 +18,13 @@ pub trait GuestRoleUpdating: Interface + Send + Sync {
         &self,
         role_id: Uuid,
         child_id: Uuid,
+        created_by: Uuid,
     ) -> Result<UpdatingResponseKind<Option<GuestRole>>, MappedErrors>;
 
     async fn remove_role_child(
         &self,
         role_id: Uuid,
         child_id: Uuid,
+        created_by: Uuid,
     ) -> Result<UpdatingResponseKind<Option<GuestRole>>, MappedErrors>;
 }

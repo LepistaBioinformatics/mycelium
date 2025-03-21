@@ -75,6 +75,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
         &self,
         role_id: Uuid,
         child_id: Uuid,
+        created_by: Uuid,
     ) -> Result<UpdatingResponseKind<Option<GuestRole>>, MappedErrors> {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
             updating_err(format!("Failed to get DB connection: {}", e))
@@ -107,6 +108,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
                     .values((
                         guest_role_children::parent_id.eq(role_id),
                         guest_role_children::child_role_id.eq(child_id),
+                        guest_role_children::created_by.eq(created_by),
                     ))
                     .execute(conn)
                     .map_err(|e| match e {
@@ -143,6 +145,7 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
         &self,
         role_id: Uuid,
         child_id: Uuid,
+        created_by: Uuid,
     ) -> Result<UpdatingResponseKind<Option<GuestRole>>, MappedErrors> {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
             updating_err(format!("Failed to get DB connection: {}", e))
@@ -163,11 +166,16 @@ impl GuestRoleUpdating for GuestRoleUpdatingSqlDbRepository {
             Some(parent) => {
                 // Remove from guest_role_children table
                 let deleted = diesel::delete(
-                    guest_role_children::table
-                        .filter(guest_role_children::parent_id.eq(role_id))
-                        .filter(
-                            guest_role_children::child_role_id.eq(child_id),
-                        ),
+                    guest_role_children::table.filter(
+                        guest_role_children::parent_id
+                            .eq(role_id)
+                            .and(
+                                guest_role_children::child_role_id.eq(child_id),
+                            )
+                            .and(
+                                guest_role_children::created_by.eq(created_by),
+                            ),
+                    ),
                 )
                 .execute(conn)
                 .map_err(|e| {
