@@ -54,6 +54,8 @@ diesel::table! {
         #[max_length = 140]
         slug -> Varchar,
         system -> Bool,
+        created -> Timestamptz,
+        updated -> Nullable<Timestamptz>,
     }
 }
 
@@ -61,6 +63,9 @@ diesel::table! {
     guest_role_children (parent_id, child_role_id) {
         parent_id -> Uuid,
         child_role_id -> Uuid,
+        created_by -> Uuid,
+        created -> Timestamptz,
+        updated -> Nullable<Timestamptz>,
     }
 }
 

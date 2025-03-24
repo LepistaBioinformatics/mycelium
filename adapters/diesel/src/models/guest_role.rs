@@ -1,3 +1,4 @@
+use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use uuid::Uuid;
 
@@ -12,4 +13,6 @@ pub struct GuestRole {
     pub permission: i32,
     pub slug: String,
     pub system: bool,
+    pub created: NaiveDateTime,
+    pub updated: Option<NaiveDateTime>,
 }
