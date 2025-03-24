@@ -101,17 +101,16 @@ auth:
         path: myc/auth/internal
         key: jwtSecret
 
-  external:
+  external: !enabled
     # Google
-    !enabled
     - issuer: https://accounts.google.com
       jwksUri: https://www.googleapis.com/oauth2/v3/certs
       userInfoUrl: https://www.googleapis.com/oauth2/v3/userinfo
-      audience: 112585411117-outcfiefed0kbkj8401gvkrrodgj5a4l.apps.googleusercontent.com
+      audience: account-name.apps.googleusercontent.com
 
     # Microsoft 1.0
-    - issuer: https://sts.windows.net/d6ab08d1-7c42-4d1f-ac22-3a998577bde8/
-      jwksUri: https://login.microsoftonline.com/d6ab08d1-7c42-4d1f-ac22-3a998577bde8/discovery/keys
+    - issuer: https://sts.windows.net/{tenantId}/
+      jwksUri: https://login.microsoftonline.com/{tenantId}/discovery/keys
       userInfoUrl: https://graph.microsoft.com/oidc/userinfo
       #
       # Audience values for Microsoft Graph:
@@ -122,18 +121,19 @@ auth:
       audience: 00000003-0000-0000-c000-000000000000
 
     # Microsoft 2.0
-    #- issuer: https://login.microsoftonline.com/d6ab08d1-7c42-4d1f-ac22-3a998577bde8/v2.0
-    #  jwksUri: https://login.microsoftonline.com/d6ab08d1-7c42-4d1f-ac22-3a998577bde8/discovery/v2.0/keys
-    #  audience: YOUR_CLIENT_ID
+    #- issuer: https://login.microsoftonline.com/{tenantId}/v2.0
+    #  jwksUri: https://login.microsoftonline.com/{tenantId}/discovery/v2.0/keys
+    #  userInfoUrl: https://graph.microsoft.com/oidc/userinfo
+    #  audience: 00000003-0000-0000-c000-000000000000
 
     # Auth0
-    - issuer: https://souagrobiota.us.auth0.com/
-      jwksUri: https://souagrobiota.us.auth0.com/.well-known/jwks.json
-      userInfoUrl: https://souagrobiota.us.auth0.com/userinfo
+    - issuer: https://{app-name}.auth0.com/
+      jwksUri: https://{app-name}.auth0.com/.well-known/jwks.json
+      userInfoUrl: https://{app-name}.auth0.com/userinfo
       #
       # Audience values for Auth0 of the Auth0 Application ID
       #
-      audience: https://souagrobiota.us.auth0.com/api/v2/
+      audience: https://{app-name}.auth0.com/api/v2/
 
   # Google third party authentication. It uses the google oauth2 to authenticate
   # the user. It requires a valid client id and secret.
@@ -238,7 +238,7 @@ api:
   # ? --------------------------------------------------------------------------
   routes: test/mock/routes.yaml
 
-  # ? ----------------------------------------------------------------------------
-  # ? API PORT SETTINGS SETTINGS
-  # ? ----------------------------------------------------------------------------
+  # ? --------------------------------------------------------------------------
+  # ? CLI SETTINGS
+  # ? --------------------------------------------------------------------------
 cli: {}
