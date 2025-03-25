@@ -3,18 +3,18 @@ use crate::{
     middleware::check_credentials_with_multi_identity_provider,
 };
 
-use actix_web::{patch, post, web, HttpRequest, HttpResponse, Responder};
+use actix_web::{get, patch, post, web, HttpRequest, HttpResponse, Responder};
 use myc_core::{
     models::AccountLifeCycle,
     use_cases::role_scoped::beginner::account::{
-        create_default_account, update_own_account_name,
+        create_default_account, get_my_account_details, update_own_account_name,
     },
 };
 use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
-        handle_mapped_error, updating_response_kind,
+        fetch_response_kind, handle_mapped_error, updating_response_kind,
     },
     Account,
 };
@@ -31,7 +31,8 @@ use uuid::Uuid;
 pub fn configure(config: &mut web::ServiceConfig) {
     config
         .service(create_default_account_url)
-        .service(update_own_account_name_url);
+        .service(update_own_account_name_url)
+        .service(get_my_account_details_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -121,6 +122,54 @@ pub async fn create_default_account_url(
     .await
     {
         Ok(res) => HttpResponse::Created().json(res),
+        Err(err) => handle_mapped_error(err),
+    }
+}
+
+/// Get my account details
+///
+/// Get the details of the account associated with the current user.
+#[utoipa::path(
+    get,
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 204,
+            description = "Not found.",
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 200,
+            description = "Fetching success.",
+            body = Account,
+        ),
+    ),
+)]
+#[get("")]
+pub async fn get_my_account_details_url(
+    profile: MyceliumProfileData,
+    app_module: web::Data<SqlAppModule>,
+) -> impl Responder {
+    match get_my_account_details(
+        profile.to_profile(),
+        Box::new(&*app_module.resolve_ref()),
+    )
+    .await
+    {
+        Ok(res) => fetch_response_kind(res),
         Err(err) => handle_mapped_error(err),
     }
 }
