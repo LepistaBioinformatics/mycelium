@@ -199,6 +199,7 @@ struct AccountManagerGuestApiDoc;
     paths(
         Beginners__Account::create_default_account_url,
         Beginners__Account::update_own_account_name_url,
+        Beginners__Account::get_my_account_details_url,
     ),
     security(("Bearer" = []))
 )]
