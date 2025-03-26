@@ -26,6 +26,8 @@ pub async fn list_guest_on_subscription_account(
     profile: Profile,
     tenant_id: Uuid,
     account_id: Uuid,
+    page_size: Option<i32>,
+    skip: Option<i32>,
     account_fetching_repo: Box<&dyn AccountFetching>,
     guest_user_fetching_repo: Box<&dyn GuestUserFetching>,
 ) -> Result<FetchManyResponseKind<GuestUser>, MappedErrors> {
@@ -83,5 +85,7 @@ pub async fn list_guest_on_subscription_account(
     // ? Fetch guest users
     // ? -----------------------------------------------------------------------
 
-    guest_user_fetching_repo.list(account_id).await
+    guest_user_fetching_repo
+        .list(account_id, page_size, skip)
+        .await
 }

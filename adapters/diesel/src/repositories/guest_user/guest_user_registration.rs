@@ -107,7 +107,7 @@ impl GuestUserRegistration for GuestUserRegistrationSqlDbRepository {
             })?;
 
         Ok(GetOrCreateResponseKind::Created(map_model_to_dto(
-            guest_user,
+            guest_user, None,
         )))
     }
 }
