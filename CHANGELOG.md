@@ -1,3 +1,9 @@
+## v7.7.1 (2025-03-26)
+
+### Fix
+
+- **utoipa-swagger-ui**: include the reqwest feature flag in utoipa-swagger-ui to avoid to use curl during the swagger installation
+
 ## v7.7.0 (2025-03-26)
 
 ### Feat
