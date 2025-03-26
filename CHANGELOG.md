@@ -1,3 +1,9 @@
+## v7.7.2 (2025-03-26)
+
+### Fix
+
+- **utoipa-swagger-ui**: upgrade utoipa-swagger-ui version to 9
+
 ## v7.7.1 (2025-03-26)
 
 ### Fix
