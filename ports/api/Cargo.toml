@@ -69,7 +69,6 @@ actix-rt = "2.10"
 actix-web-error = { version = "0.2" }
 actix-web-error-derive = { version = "0.2" }
 actix-web-opentelemetry = "0.18.0"
-openssl = { version = "0.10", features = ["v110"] }
 opentelemetry = { version = "0.25", default-features = false, features = [
     "trace",
 ] }
@@ -94,6 +93,15 @@ tracing-subscriber = { version = "0.3", features = [
 ] }
 utoipa-redoc = { version = "5", features = ["actix-web"] }
 utoipa-swagger-ui = { version = "9", features = ["actix-web"] }
+
+
+# ! Security fixes
+openssl = { version = ">=0.10.70", features = ["v110"] }
+ring = ">=0.17.12"
+idna = ">=1.0.0"
+
+[build-dependencies]
+zip = ">=2.3.0"
 
 # ? ----------------------------------------------------------------------------
 # ? BINARIES
