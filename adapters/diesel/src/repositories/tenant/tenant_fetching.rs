@@ -171,6 +171,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
                     manager_ids.iter().map(|id| id).collect::<Vec<_>>(),
                 ))
                 .select(TenantModel::as_select())
+                .order_by(tenant_model::created.desc())
                 .first::<TenantModel>(conn)
                 .optional()
                 .map_err(|e| {

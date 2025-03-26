@@ -42,6 +42,7 @@ use system_manager::{
 use tenant_manager::{
     account_endpoints as tenant_manager_account_endpoints,
     tag_endpoints as tenant_manager_tag_endpoints,
+    tenant_endpoints as tenant_manager_tenant_endpoints,
     token_endpoints as tenant_manager_token_endpoints,
 };
 use tenant_owner::{
@@ -301,6 +302,10 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             .service(
                 web::scope(&format!("/{}", UrlGroup::Tags))
                     .configure(tenant_manager_tag_endpoints::configure),
+            )
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Tenants))
+                    .configure(tenant_manager_tenant_endpoints::configure),
             )
             .service(
                 web::scope(&format!("/{}", UrlGroup::Tokens))

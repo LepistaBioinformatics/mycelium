@@ -50,7 +50,7 @@ pub struct CreateTagBody {
 //
 // ? ---------------------------------------------------------------------------
 
-/// Create a user related account
+/// Create a tag
 #[utoipa::path(
     post,
     params(
