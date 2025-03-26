@@ -1,3 +1,9 @@
+## v7.7.3 (2025-03-26)
+
+### Fix
+
+- **dependabot**: introduce security fixes recommended by bependabot
+
 ## v7.7.2 (2025-03-26)
 
 ### Fix
