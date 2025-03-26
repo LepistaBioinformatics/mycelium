@@ -1,4 +1,7 @@
-use crate::dtos::{MyceliumProfileData, TenantData};
+use crate::{
+    dtos::{MyceliumProfileData, TenantData},
+    endpoints::shared::PaginationParams,
+};
 
 use actix_web::{delete, get, post, web, HttpResponse, Responder};
 use myc_core::{
@@ -21,6 +24,7 @@ use myc_http_tools::{
     },
     Permission,
 };
+use mycelium_base::dtos::PaginatedRecord;
 use serde::Deserialize;
 use shaku::HasComponent;
 use utoipa::{IntoParams, ToSchema};
@@ -331,7 +335,7 @@ pub async fn uninvite_guest_url(
         (
             status = 200,
             description = "Fetching success.",
-            body = GuestUser,
+            body = PaginatedRecord<GuestUser>,
         ),
     ),
 )]
@@ -339,6 +343,7 @@ pub async fn uninvite_guest_url(
 pub async fn list_guest_on_subscription_account_url(
     tenant: TenantData,
     path: web::Path<Uuid>,
+    page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
@@ -346,6 +351,8 @@ pub async fn list_guest_on_subscription_account_url(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         path.to_owned(),
+        page.page_size.to_owned(),
+        page.skip.to_owned(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
