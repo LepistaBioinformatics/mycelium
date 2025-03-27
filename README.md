@@ -93,5 +93,9 @@ Additional restrictions for commercial use apply under the Commons Clause.
 
 ---
 
+### Contributors
+
+---
+
 We can't wait to see how **Mycelium API Gateway** powers your next big project!
 🚀
