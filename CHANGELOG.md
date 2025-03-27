@@ -1,3 +1,9 @@
+## v7.7.4 (2025-03-27)
+
+### Fix
+
+- upgrade project dependencies including dependabot issues
+
 ## v7.7.3 (2025-03-26)
 
 ### Fix
