@@ -16,14 +16,6 @@ readme.workspace = true
 # ? DEPENDENCIES
 # ? ----------------------------------------------------------------------------
 
-# ! This is a workaround for a bug in cargo that prevents it from building
-# ! workspaces with path dependencies.
-#
-# This section was introduced to fix build error on package 
-# `connection-string`
-[patch.crates-io]
-connection-string = "0.2"
-
 [dependencies]
 
 myc-core = { version = "7.7.3", path = "../../core" }
@@ -51,6 +43,7 @@ jsonwebtoken.workspace = true
 jwt.workspace = true
 lazy_static.workspace = true
 oauth2.workspace = true
+openssl.workspace = true
 rand.workspace = true
 reqwest.workspace = true
 serde.workspace = true
@@ -92,16 +85,10 @@ tracing-subscriber = { version = "0.3", features = [
     "registry",
 ] }
 utoipa-redoc = { version = "5", features = ["actix-web"] }
-utoipa-swagger-ui = { version = "9", features = ["actix-web"] }
-
-
-# ! Security fixes
-openssl = { version = ">=0.10.70", features = ["v110"] }
-ring = ">=0.17.12"
-idna = ">=1.0.0"
+utoipa-swagger-ui = { version = "9", features = ["actix-web", "reqwest"] }
 
 [build-dependencies]
-zip = ">=2.3.0"
+zip.workspace = true
 
 # ? ----------------------------------------------------------------------------
 # ? BINARIES
