@@ -11,8 +11,8 @@ cargo publish -p myc-core $ARGS
 cargo publish -p mycelium-diesel $ARGS
 cargo publish -p mycelium-memory-db $ARGS
 cargo publish -p mycelium-service $ARGS
-cargo publish -p mycelium-notifier $ARGS
 cargo publish -p mycelium-adapters-shared-lib $ARGS
+cargo publish -p mycelium-notifier $ARGS
 cargo publish -p mycelium-key-value $ARGS
 
 # Ports and related

@@ -85,7 +85,7 @@ tracing-subscriber = { version = "0.3", features = [
     "registry",
 ] }
 utoipa-redoc = { version = "5", features = ["actix-web"] }
-utoipa-swagger-ui = { version = "9", features = ["actix-web", "reqwest"] }
+utoipa-swagger-ui = { version = "8", features = ["actix-web"] }
 
 [build-dependencies]
 zip.workspace = true
