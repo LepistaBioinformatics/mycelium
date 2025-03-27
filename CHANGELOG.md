@@ -1,3 +1,9 @@
+## v7.7.5 (2025-03-27)
+
+### Fix
+
+- downgrade utoipa to avoid nine version error on build
+
 ## v7.7.4 (2025-03-27)
 
 ### Fix
