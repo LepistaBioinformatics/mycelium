@@ -42,6 +42,7 @@ pub async fn create_management_account(
         format!("tid/{}/manager", tenant_id.to_string().replace("-", ""));
 
     unchecked_account.is_checked = true;
+    unchecked_account.is_default = true;
     unchecked_account.name = name.to_owned();
     unchecked_account.slug = slugify!(&name.as_str());
 

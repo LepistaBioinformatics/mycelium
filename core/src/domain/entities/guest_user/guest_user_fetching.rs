@@ -12,5 +12,7 @@ pub trait GuestUserFetching: Interface + Send + Sync {
     async fn list(
         &self,
         account_id: Uuid,
+        page_size: Option<i32>,
+        skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<GuestUser>, MappedErrors>;
 }

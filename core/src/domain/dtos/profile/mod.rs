@@ -146,6 +146,25 @@ pub struct Profile {
     filtering_state: Option<Vec<String>>,
 }
 
+impl Default for Profile {
+    fn default() -> Self {
+        Self::new(
+            vec![],
+            Uuid::new_v4(),
+            false,
+            false,
+            false,
+            true,
+            true,
+            true,
+            false,
+            None,
+            None,
+            None,
+        )
+    }
+}
+
 impl Profile {
     pub fn new(
         owners: Vec<Owner>,
@@ -555,7 +574,9 @@ mod tests {
         LicensedResource, LicensedResources, Profile, TenantOwnership,
         TenantsOwnership,
     };
-    use crate::domain::dtos::guest_role::Permission;
+    use crate::domain::dtos::{
+        guest_role::Permission, related_accounts::RelatedAccounts,
+    };
     use chrono::Local;
     use std::str::FromStr;
     use test_log::test;
@@ -820,5 +841,30 @@ mod tests {
         assert!(profile_on_tenant
             .with_tenant_ownership_or_error(Uuid::new_v4())
             .is_err());
+    }
+
+    #[test]
+    fn test_get_my_account_details() {
+        let profile = profile();
+        let result_ok = profile.get_related_account_or_error();
+
+        assert!(result_ok.is_ok());
+
+        let related_accounts = result_ok.unwrap();
+
+        assert_ne!(related_accounts, RelatedAccounts::HasManagerPrivileges);
+        assert_ne!(related_accounts, RelatedAccounts::HasStaffPrivileges);
+
+        let account_ids = match related_accounts {
+            RelatedAccounts::AllowedAccounts(ids) => ids,
+            _ => vec![],
+        };
+
+        let licensed_resources = profile.licensed_resources.unwrap();
+
+        let licensed_resources_ids = licensed_resources.to_licenses_vector();
+
+        assert_eq!(account_ids.len(), licensed_resources_ids.len());
+        assert!(!account_ids.contains(&profile.acc_id));
     }
 }

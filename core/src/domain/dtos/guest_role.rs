@@ -1,3 +1,4 @@
+use chrono::{DateTime, Local};
 use mycelium_base::dtos::Children;
 use serde::{Deserialize, Serialize};
 use slugify::slugify;
@@ -69,6 +70,12 @@ pub struct GuestRole {
     pub description: Option<String>,
     pub permission: Permission,
 
+    /// The date and time the role was created
+    pub created: DateTime<Local>,
+
+    /// The date and time the role was last updated
+    pub updated: Option<DateTime<Local>>,
+
     /// If it is a system role
     ///
     /// System roles represents standard core actors of the Mycelium API
@@ -99,6 +106,8 @@ impl GuestRole {
             permission,
             children,
             system,
+            created: Local::now(),
+            updated: None,
         }
     }
 }

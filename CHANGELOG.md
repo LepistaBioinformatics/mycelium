@@ -1,3 +1,58 @@
+## v7.7.6 (2025-03-28)
+
+### Fix
+
+- freeze zip version on try to avoid error on utoipa-swagger-ui
+
+## v7.7.5 (2025-03-27)
+
+### Fix
+
+- downgrade utoipa to avoid nine version error on build
+
+## v7.7.4 (2025-03-27)
+
+### Fix
+
+- upgrade project dependencies including dependabot issues
+
+## v7.7.3 (2025-03-26)
+
+### Fix
+
+- **dependabot**: introduce security fixes recommended by bependabot
+
+## v7.7.2 (2025-03-26)
+
+### Fix
+
+- **utoipa-swagger-ui**: upgrade utoipa-swagger-ui version to 9
+
+## v7.7.1 (2025-03-26)
+
+### Fix
+
+- **utoipa-swagger-ui**: include the reqwest feature flag in utoipa-swagger-ui to avoid to use curl during the swagger installation
+
+## v7.7.0 (2025-03-26)
+
+### Feat
+
+- do implements pagination when list guest users on account
+- implements an endpoint to serve tenant information for tenant-manager accounts
+- implements a new endpoint to serve account details to the account owners from the beginners api group
+- implements new created and updated fields and propagate this fields along the software stack
+- implements new created and updated fields and propagate this fields along the software stack
+
+### Fix
+
+- populate the created-by field during the creation of a connection between two guest-roles
+- populate the created-by field during the creation of a connection between two guest-roles
+- **create-management-account**: set the is-detault flag before persist the new created account to the datastore
+- **downgrade-account-privileges**: include a check to deny downgrade operations in non-self accounts
+- **create-default-account**: upgrade the create-default-account use-case to generate the account slug from the user principal email
+- **update-account-name-and-flags**: include a logic to avoid the updating of the account slug after update account name in update-account-name-and-flags use-case
+
 ## v7.6.0 (2025-03-14)
 
 ### Feat

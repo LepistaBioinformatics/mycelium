@@ -16,26 +16,18 @@ readme.workspace = true
 # ? DEPENDENCIES
 # ? ----------------------------------------------------------------------------
 
-# ! This is a workaround for a bug in cargo that prevents it from building
-# ! workspaces with path dependencies.
-#
-# This section was introduced to fix build error on package 
-# `connection-string`
-[patch.crates-io]
-connection-string = "0.2"
-
 [dependencies]
 
-myc-core = { version = "7.6.0", path = "../../core" }
-mycelium-base = { version = "7.6.0", path = "../../base" }
-mycelium-config = { version = "7.6.0", path = "../../config" }
-mycelium-http-tools = { version = "7.6.0", path = "../../http_tools" }
-mycelium-memory-db = { version = "7.6.0", path = "../../adapters/mem_db" }
-mycelium-service = { version = "7.6.0", path = "../../adapters/service" }
-mycelium-diesel = { version = "7.6.0", path = "../../adapters/diesel" }
-mycelium-notifier = { version = "7.6.0", path = "../../adapters/notifier" }
-mycelium-adapters-shared-lib = { version = "7.6.0", path = "../../adapters/shared" }
-mycelium-key-value = { version = "7.6.0", path = "../../adapters/kv_db" }
+myc-core = { version = "7.7.6", path = "../../core" }
+mycelium-base = { version = "7.7.6", path = "../../base" }
+mycelium-config = { version = "7.7.6", path = "../../config" }
+mycelium-http-tools = { version = "7.7.6", path = "../../http_tools" }
+mycelium-memory-db = { version = "7.7.6", path = "../../adapters/mem_db" }
+mycelium-service = { version = "7.7.6", path = "../../adapters/service" }
+mycelium-diesel = { version = "7.7.6", path = "../../adapters/diesel" }
+mycelium-notifier = { version = "7.7.6", path = "../../adapters/notifier" }
+mycelium-adapters-shared-lib = { version = "7.7.6", path = "../../adapters/shared" }
+mycelium-key-value = { version = "7.7.6", path = "../../adapters/kv_db" }
 
 actix-web.workspace = true
 actix-web-httpauth.workspace = true
@@ -51,6 +43,7 @@ jsonwebtoken.workspace = true
 jwt.workspace = true
 lazy_static.workspace = true
 oauth2.workspace = true
+openssl.workspace = true
 rand.workspace = true
 reqwest.workspace = true
 serde.workspace = true
@@ -62,6 +55,7 @@ tokio.workspace = true
 utoipa.workspace = true
 uuid.workspace = true
 url.workspace = true
+zip.workspace = true
 
 actix = "0.13"
 actix-cors = { version = "0.6.2" }
@@ -69,7 +63,6 @@ actix-rt = "2.10"
 actix-web-error = { version = "0.2" }
 actix-web-error-derive = { version = "0.2" }
 actix-web-opentelemetry = "0.18.0"
-openssl = { version = "0.10", features = ["v110"] }
 opentelemetry = { version = "0.25", default-features = false, features = [
     "trace",
 ] }
@@ -93,7 +86,10 @@ tracing-subscriber = { version = "0.3", features = [
     "registry",
 ] }
 utoipa-redoc = { version = "5", features = ["actix-web"] }
-utoipa-swagger-ui = { version = "8", features = ["actix-web"] }
+utoipa-swagger-ui = { version = "9", features = ["actix-web"] }
+
+[build-dependencies]
+zip.workspace = true
 
 # ? ----------------------------------------------------------------------------
 # ? BINARIES

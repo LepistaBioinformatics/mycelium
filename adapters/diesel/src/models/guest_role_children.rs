@@ -1,5 +1,6 @@
 use super::guest_role::GuestRole;
 
+use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use uuid::Uuid;
 
@@ -13,4 +14,8 @@ pub struct GuestRoleChildren {
     pub parent_id: Uuid,
     #[diesel(sql_type = diesel::sql_types::Uuid)]
     pub child_role_id: Uuid,
+    #[diesel(sql_type = diesel::sql_types::Uuid)]
+    pub created_by: Uuid,
+    pub created: NaiveDateTime,
+    pub updated: Option<NaiveDateTime>,
 }

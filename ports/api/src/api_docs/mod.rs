@@ -39,6 +39,7 @@ use role_scoped::system_manager::error_code_endpoints as System_Manager__Error_C
 use role_scoped::system_manager::webhook_endpoints as System_Manager__Webhook;
 use role_scoped::tenant_manager::account_endpoints as Tenant_Manager__Account;
 use role_scoped::tenant_manager::tag_endpoints as Tenant_Manager__Tag;
+use role_scoped::tenant_manager::tenant_endpoints as Tenant_Manager__Tenant;
 use role_scoped::tenant_manager::token_endpoints as Tenant_Manager__Token;
 use role_scoped::tenant_owner::account_endpoints as Tenant_Owner__Account;
 use role_scoped::tenant_owner::meta_endpoints as Tenant_Owner__Meta;
@@ -199,6 +200,7 @@ struct AccountManagerGuestApiDoc;
     paths(
         Beginners__Account::create_default_account_url,
         Beginners__Account::update_own_account_name_url,
+        Beginners__Account::get_my_account_details_url,
     ),
     security(("Bearer" = []))
 )]
@@ -537,6 +539,21 @@ struct TenantManagerAccountApiDoc;
 )]
 struct TenantManagerTagApiDoc;
 
+/// Role Scoped Endpoints for Tenant Manager for Tenant Management
+///
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Tenant Manager | Tenant Endpoints",
+        description = "Endpoints reserved for the application tenant managers to manage tenants",
+    ),
+    paths(
+        Tenant_Manager__Tenant::get_tenant_details_url,
+    ),
+    security(("Bearer" = [])),
+)]
+struct TenantManagerTenantApiDoc;
+
 /// Role Scoped Endpoints for Tenant Manager for Token Management
 ///
 #[derive(OpenApi)]
@@ -651,6 +668,7 @@ struct UsersManagerAccountApiDoc;
         (path = "/adm/rs/tenant-manager/accounts", api = TenantManagerAccountApiDoc),
         (path = "/adm/rs/tenant-manager/tags", api = TenantManagerTagApiDoc),
         (path = "/adm/rs/tenant-manager/tokens", api = TenantManagerTokenApiDoc),
+        (path = "/adm/rs/tenant-manager/tenants", api = TenantManagerTenantApiDoc),
         //
         // Users Manager Endpoints
         //

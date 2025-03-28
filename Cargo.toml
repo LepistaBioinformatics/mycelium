@@ -32,7 +32,7 @@ resolver = "2"
 
 [workspace.package]
 
-version = "7.6.0"
+version = "7.7.6"
 edition = "2021"
 authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
 license = "Apache-2.0"
@@ -49,12 +49,27 @@ categories = ["development-tools", "web-programming::http-server"]
 [workspace.dependencies]
 
 #
-# Fixed dependency
+# Dependabot security vulnerabilities:
 #
-# Vulnerability found from dependabot:
 # - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/3
 #
 hashbrown = "0.15.2"
+#
+# - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/4
+#
+idna = ">=1.0.0"
+#
+# - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/5
+#
+openssl = ">=0.10.70"
+#
+# - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/6
+#
+ring = ">=0.17.12"
+#
+# - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/7
+#
+zip = "=2.4.2"
 
 actix-web = { version = "4", features = ["openssl"] }
 actix-web-httpauth = "0.8.0"

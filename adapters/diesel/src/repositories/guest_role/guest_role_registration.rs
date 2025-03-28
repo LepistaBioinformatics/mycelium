@@ -67,6 +67,8 @@ impl GuestRoleRegistration for GuestRoleRegistrationSqlDbRepository {
             description: guest_role.description,
             permission: guest_role.permission.to_i32(),
             system: guest_role.system,
+            created: chrono::Utc::now().naive_utc(),
+            updated: None,
         };
 
         let created = diesel::insert_into(guest_role_model::table)
