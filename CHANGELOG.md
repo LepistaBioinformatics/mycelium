@@ -1,3 +1,9 @@
+## v7.7.6 (2025-03-28)
+
+### Fix
+
+- freeze zip version on try to avoid error on utoipa-swagger-ui
+
 ## v7.7.5 (2025-03-27)
 
 ### Fix
