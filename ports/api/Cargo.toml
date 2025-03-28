@@ -55,6 +55,7 @@ tokio.workspace = true
 utoipa.workspace = true
 uuid.workspace = true
 url.workspace = true
+zip.workspace = true
 
 actix = "0.13"
 actix-cors = { version = "0.6.2" }
@@ -85,7 +86,7 @@ tracing-subscriber = { version = "0.3", features = [
     "registry",
 ] }
 utoipa-redoc = { version = "5", features = ["actix-web"] }
-utoipa-swagger-ui = { version = "8", features = ["actix-web"] }
+utoipa-swagger-ui = { version = "9", features = ["actix-web"] }
 
 [build-dependencies]
 zip.workspace = true
