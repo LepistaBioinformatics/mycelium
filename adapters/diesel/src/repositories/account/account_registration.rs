@@ -4,7 +4,7 @@ use crate::{
         account::Account as AccountModel, config::DbPoolProvider,
         user::User as UserModel,
     },
-    schema::{account, user},
+    schema::{account, manager_account_on_tenant, user},
 };
 
 use async_trait::async_trait;
@@ -156,6 +156,14 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
             .transaction(|conn| {
                 diesel::insert_into(account::table)
                     .values(&new_account)
+                    .execute(conn)?;
+
+                diesel::insert_into(manager_account_on_tenant::table)
+                    .values((
+                        manager_account_on_tenant::tenant_id.eq(tenant_id),
+                        manager_account_on_tenant::account_id
+                            .eq(new_account.id),
+                    ))
                     .execute(conn)?;
 
                 account::table
