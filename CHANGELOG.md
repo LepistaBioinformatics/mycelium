@@ -1,3 +1,9 @@
+## v7.7.7 (2025-03-28)
+
+### Fix
+
+- include an additional step during the tenants management account creation to register the manager account on tenant
+
 ## v7.7.6 (2025-03-28)
 
 ### Fix
