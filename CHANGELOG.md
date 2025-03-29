@@ -1,3 +1,9 @@
+## v7.7.9 (2025-03-29)
+
+### Fix
+
+- **profile**: reconigure permissions to allow greater or equal instead to equal only on check user profile permissions
+
 ## v7.7.8 (2025-03-29)
 
 ### Fix
