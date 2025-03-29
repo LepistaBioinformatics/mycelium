@@ -6,7 +6,7 @@ use mycelium_base::dtos::Children;
 use serde_json::from_value;
 use std::{collections::HashMap, str::FromStr};
 
-pub(super) fn map_account_model_to_dto(model: AccountModel) -> Account {
+pub(crate) fn map_account_model_to_dto(model: AccountModel) -> Account {
     Account {
         id: Some(model.id),
         name: model.name,
