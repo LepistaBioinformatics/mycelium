@@ -1,3 +1,9 @@
+## v7.7.8 (2025-03-29)
+
+### Fix
+
+- remove the read-write option from permissions to avoid ambiguous filtering of profile options
+
 ## v7.7.7 (2025-03-28)
 
 ### Fix
