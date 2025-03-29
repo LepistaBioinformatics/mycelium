@@ -32,7 +32,7 @@ pub async fn update_guest_role_name_and_description(
 
     profile
         .with_system_accounts_access()
-        .with_read_write_access()
+        .with_write_access()
         .with_roles(vec![SystemActor::GuestsManager])
         .get_ids_or_error()?;
 

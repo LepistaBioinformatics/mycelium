@@ -340,7 +340,7 @@ mod tests {
         let role_scope = RoleWithPermissionsScope::new(
             Uuid::new_v4(),
             Uuid::new_v4(),
-            vec![("role".to_string(), Permission::ReadWrite)],
+            vec![("role".to_string(), Permission::Write)],
             Local::now(),
             config.to_owned(),
         )

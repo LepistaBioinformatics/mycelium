@@ -264,7 +264,7 @@ mod tests {
 
         let role_scope = TenantWithPermissionsScope::new(
             Uuid::new_v4(),
-            vec![("role".to_string(), Permission::ReadWrite)],
+            vec![("role".to_string(), Permission::Write)],
             Local::now(),
             config.to_owned(),
         )

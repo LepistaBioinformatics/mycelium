@@ -38,7 +38,7 @@ pub async fn update_account_name_and_flags(
     let related_accounts = profile
         .on_tenant(tenant_id)
         .with_system_accounts_access()
-        .with_read_write_access()
+        .with_write_access()
         .with_roles(vec![
             SystemActor::TenantOwner,
             SystemActor::TenantManager,

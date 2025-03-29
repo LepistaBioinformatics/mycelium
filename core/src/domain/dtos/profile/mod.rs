@@ -391,11 +391,6 @@ impl Profile {
         self.with_permission(Permission::Write)
     }
 
-    /// Filter the licensed resources to include only licenses with read/write
-    pub fn with_read_write_access(&self) -> Self {
-        self.with_permission(Permission::ReadWrite)
-    }
-
     /// Filter licensed resources by permission
     ///
     /// This is an internal method that should be used to filter the licensed
@@ -410,7 +405,7 @@ impl Profile {
                 let records: Vec<LicensedResource> = resources
                     .to_licenses_vector()
                     .iter()
-                    .filter(|i| i.perm == permission)
+                    .filter(|i| i.perm.to_i32() <= permission.to_i32())
                     .map(|i| i.to_owned())
                     .collect();
 
@@ -626,7 +621,7 @@ mod tests {
                     acc_name: "Guest Account Name".to_string(),
                     sys_acc: true,
                     role: "service".to_string(),
-                    perm: Permission::ReadWrite,
+                    perm: Permission::Write,
                     verified: true,
                 },
             ])),
@@ -679,7 +674,6 @@ mod tests {
         let profile = profile();
         let profile_with_read = profile.with_read_access();
         let profile_with_write = profile.with_write_access();
-        let profile_with_read_write = profile.with_read_write_access();
         let profile_with_standard = profile.with_system_accounts_access();
 
         assert_eq!(
@@ -694,15 +688,6 @@ mod tests {
         assert_eq!(
             1,
             profile_with_write
-                .licensed_resources
-                .unwrap()
-                .to_licenses_vector()
-                .len()
-        );
-
-        assert_eq!(
-            1,
-            profile_with_read_write
                 .licensed_resources
                 .unwrap()
                 .to_licenses_vector()
@@ -739,8 +724,6 @@ mod tests {
         let profile_on_tenant_with_read = profile_on_tenant.with_read_access();
         let profile_on_tenant_with_write =
             profile_on_tenant.with_write_access();
-        let profile_on_tenant_with_read_write =
-            profile_on_tenant.with_read_write_access();
         assert_eq!(
             1,
             profile_on_tenant_with_read
@@ -758,10 +741,6 @@ mod tests {
                 .to_licenses_vector()
                 .len()
         );
-
-        assert!(profile_on_tenant_with_read_write
-            .licensed_resources
-            .is_none());
     }
 
     #[test]

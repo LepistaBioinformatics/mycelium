@@ -77,9 +77,7 @@ pub async fn create_system_roles(
             .collect::<Vec<_>>()
             .join(" ");
 
-        for permission in
-            [Permission::Read, Permission::Write, Permission::ReadWrite]
-        {
+        for permission in [Permission::Read, Permission::Write] {
             trace!(
                 "Creating role for {} with {} permissions",
                 _actor,

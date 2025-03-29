@@ -48,7 +48,7 @@ pub async fn guest_user_to_subscription_account(
     let related_accounts = profile
         .on_tenant(tenant_id)
         .with_system_accounts_access()
-        .with_read_write_access()
+        .with_write_access()
         .with_roles(vec![
             SystemActor::TenantOwner,
             SystemActor::TenantManager,

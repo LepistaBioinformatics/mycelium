@@ -98,6 +98,10 @@ impl FromRequest for MyceliumProfileData {
             None => None,
         };
 
+        if let Some(tenant) = tenant {
+            trace!("Requested tenant: {:?}", tenant);
+        }
+
         //
         // Get the roles from the request
         //
@@ -127,7 +131,9 @@ impl FromRequest for MyceliumProfileData {
                 None => None,
             };
 
-        trace!("Requested roles: {:?}", roles);
+        if let Some(roles) = roles.to_owned() {
+            trace!("Requested roles: {:?}", roles);
+        }
 
         Box::pin(async move {
             fetch_profile_from_request(req_clone, tenant, roles, None).await
