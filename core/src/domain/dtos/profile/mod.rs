@@ -405,7 +405,7 @@ impl Profile {
                 let records: Vec<LicensedResource> = resources
                     .to_licenses_vector()
                     .iter()
-                    .filter(|i| i.perm.to_i32() <= permission.to_i32())
+                    .filter(|i| i.perm.to_i32() >= permission.to_i32())
                     .map(|i| i.to_owned())
                     .collect();
 
