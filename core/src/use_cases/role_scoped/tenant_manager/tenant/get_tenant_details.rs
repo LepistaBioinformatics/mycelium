@@ -21,12 +21,26 @@ pub async fn get_tenant_details(
     // ? Check if the current account has sufficient privileges to create role
     // ? -----------------------------------------------------------------------
 
-    let tenant_related_ids = profile
+    let tenant_related_ids = match profile
         .on_tenant(tenant_id)
         .with_system_accounts_access()
         .with_read_access()
         .with_roles(vec![SystemActor::TenantManager])
-        .get_ids_or_error()?;
+        .get_ids_or_error()
+    {
+        Ok(tenant_related_ids) => tenant_related_ids,
+        Err(e) => {
+            if !e.expected() {
+                return Err(e);
+            }
+
+            //
+            // If the current account is not a tenant manager, we need to
+            // fetch the tenant details from the tenant owner account.
+            //
+            vec![]
+        }
+    };
 
     // ? -----------------------------------------------------------------------
     // ? Fetch the tenant details
