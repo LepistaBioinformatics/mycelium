@@ -1,3 +1,14 @@
+## v7.7.11 (2025-03-29)
+
+### Feat
+
+- include the possibility to tenant-owners to request tenant details using the tenant-manager endpoint
+
+### Fix
+
+- **get-tenant-details**: handle get-ids-or-error result dispatch to avoid young return with error on check if user is tenant-manager
+- **tenant-details**: include details of owners tags and manager account to the tenant details when called by tenant-managers
+
 ## v7.7.10 (2025-03-29)
 
 ## v7.7.9 (2025-03-29)
