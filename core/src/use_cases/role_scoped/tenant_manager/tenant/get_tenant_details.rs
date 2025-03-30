@@ -32,7 +32,24 @@ pub async fn get_tenant_details(
     // ? Fetch the tenant details
     // ? -----------------------------------------------------------------------
 
-    tenant_fetching_repo
-        .get_tenants_by_manager_account(tenant_id, tenant_related_ids)
-        .await
+    //
+    // If the current account is a tenant manager, we need to fetch the tenant
+    // details from the tenant manager account.
+    //
+    if tenant_related_ids.len() > 0 {
+        tenant_fetching_repo
+            .get_tenants_by_manager_account(tenant_id, tenant_related_ids)
+            .await
+    //
+    // Otherwise, we need to fetch the tenant details from the tenant owner
+    // account. This is because the tenant owner account is the one that
+    // has the full access to the tenant details.
+    //
+    } else {
+        profile.with_tenant_ownership_or_error(tenant_id)?;
+
+        tenant_fetching_repo
+            .get_tenant_owned_by_me(tenant_id, vec![profile.acc_id])
+            .await
+    }
 }

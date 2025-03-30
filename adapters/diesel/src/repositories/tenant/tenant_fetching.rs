@@ -75,33 +75,93 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
             })?;
 
         match tenant {
-            Some(record) => Ok(FetchResponseKind::Found(Tenant {
-                id: Some(record.id),
-                name: record.name,
-                description: record.description,
-                meta: record.meta.map(|m| {
-                    serde_json::from_value::<HashMap<String, String>>(m)
-                        .unwrap()
-                        .iter()
-                        .map(|(k, v)| {
-                            (TenantMetaKey::from_str(k).unwrap(), v.to_string())
-                        })
-                        .collect()
-                }),
-                status: record
-                    .status
-                    .unwrap_or_default()
+            Some(record) => {
+                let owners = OwnerOnTenantModel::belonging_to(&record)
+                    .inner_join(user_model::table)
+                    .select(UserModel::as_select())
+                    .load::<UserModel>(conn)
+                    .map_err(|e| {
+                        fetching_err(format!("Failed to fetch owners: {}", e))
+                    })?
                     .into_iter()
-                    .map(|s| serde_json::from_value(s).unwrap())
-                    .collect(),
-                created: record.created.and_local_timezone(Local).unwrap(),
-                updated: record
-                    .updated
-                    .map(|dt| dt.and_local_timezone(Local).unwrap()),
-                owners: Children::Records(vec![]),
-                manager: None,
-                tags: None,
-            })),
+                    .map(|u| Owner {
+                        id: u.id,
+                        email: u.email,
+                        first_name: Some(u.first_name),
+                        last_name: Some(u.last_name),
+                        username: Some(u.username),
+                        is_principal: u.is_principal,
+                    })
+                    .collect::<Vec<Owner>>();
+
+                let manager = manager_account_on_tenant_model::table
+                    .inner_join(account_model::table)
+                    .filter(manager_account_on_tenant_model::tenant_id.eq(id))
+                    .select(AccountModel::as_select())
+                    .first::<AccountModel>(conn)
+                    .optional()
+                    .map_err(|e| {
+                        fetching_err(format!("Failed to fetch manager: {e}"))
+                    })?;
+
+                let tags = TenantTagModel::belonging_to(&record)
+                    .select(TenantTagModel::as_select())
+                    .load::<TenantTagModel>(conn)
+                    .map_err(|e| {
+                        fetching_err(format!("Failed to fetch tags: {}", e))
+                    })?
+                    .into_iter()
+                    .map(|t| Tag {
+                        id: t.id,
+                        value: t.value,
+                        meta: t
+                            .meta
+                            .map(|m| serde_json::from_value(m).unwrap()),
+                    })
+                    .collect::<Vec<Tag>>();
+
+                Ok(FetchResponseKind::Found(Tenant {
+                    id: Some(record.id),
+                    name: record.name,
+                    description: record.description,
+                    meta: record.meta.map(|m| {
+                        serde_json::from_value::<HashMap<String, String>>(m)
+                            .unwrap()
+                            .iter()
+                            .map(|(k, v)| {
+                                (
+                                    TenantMetaKey::from_str(k).unwrap(),
+                                    v.to_string(),
+                                )
+                            })
+                            .collect()
+                    }),
+                    status: record
+                        .status
+                        .unwrap_or_default()
+                        .into_iter()
+                        .map(|s| serde_json::from_value(s).unwrap())
+                        .collect(),
+                    created: record.created.and_local_timezone(Local).unwrap(),
+                    updated: record
+                        .updated
+                        .map(|dt| dt.and_local_timezone(Local).unwrap()),
+                    owners: match owners.len() {
+                        0 => Children::Records(vec![]),
+                        _ => Children::Records(owners),
+                    },
+                    manager: match manager {
+                        None => None,
+                        Some(account) => Some(Parent::Record(
+                            map_account_model_to_dto(account),
+                        )),
+                    },
+                    tags: match tags.len() {
+                        0 => None,
+                        _ => Some(tags),
+                    },
+                }))
+            }
             None => Ok(FetchResponseKind::NotFound(Some(id.to_string()))),
         }
     }
