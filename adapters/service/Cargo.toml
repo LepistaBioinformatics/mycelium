@@ -14,8 +14,8 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "7.7.11", path = "../../core" }
-mycelium-base = { version = "7.7.11", path = "../../base" }
+myc-core = { version = "7.7.12", path = "../../core" }
+mycelium-base = { version = "7.7.12", path = "../../base" }
 
 async-trait.workspace = true
 env_logger.workspace = true

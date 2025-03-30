@@ -1,3 +1,9 @@
+## v7.7.12 (2025-03-29)
+
+### Fix
+
+- use owner ids instead of the account id during filtration of the tenant details
+
 ## v7.7.11 (2025-03-29)
 
 ### Feat
