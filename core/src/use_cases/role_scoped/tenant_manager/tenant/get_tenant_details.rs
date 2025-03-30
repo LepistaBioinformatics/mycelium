@@ -63,7 +63,7 @@ pub async fn get_tenant_details(
         profile.with_tenant_ownership_or_error(tenant_id)?;
 
         tenant_fetching_repo
-            .get_tenant_owned_by_me(tenant_id, vec![profile.acc_id])
+            .get_tenant_owned_by_me(tenant_id, profile.get_owners_ids())
             .await
     }
 }
