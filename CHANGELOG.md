@@ -1,3 +1,9 @@
+## v7.7.13 (2025-04-01)
+
+### Fix
+
+- include a slug filtration during guest roles fetching
+
 ## v7.7.12 (2025-03-29)
 
 ### Fix
