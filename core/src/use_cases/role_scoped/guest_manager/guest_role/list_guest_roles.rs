@@ -13,6 +13,7 @@ use mycelium_base::{
 pub async fn list_guest_roles(
     profile: Profile,
     name: Option<String>,
+    slug: Option<String>,
     system: Option<bool>,
     page_size: Option<i32>,
     skip: Option<i32>,
@@ -33,6 +34,6 @@ pub async fn list_guest_roles(
     // ? -----------------------------------------------------------------------
 
     guest_role_fetching_repo
-        .list(name, system, page_size, skip)
+        .list(name, slug, system, page_size, skip)
         .await
 }
