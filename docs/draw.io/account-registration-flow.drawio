@@ -1,6 +1,6 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/24.7.8 Chrome/128.0.6613.36 Electron/32.0.1 Safari/537.36" version="24.7.8" pages="2">
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.1.1 Chrome/132.0.6834.210 Electron/34.3.3 Safari/537.36" version="26.1.1" pages="3">
   <diagram name="User Registration - Native" id="h0gBqg-u4J8CJtZ1Ysuk">
-    <mxGraphModel dx="2193" dy="1934" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="880" pageHeight="750" math="0" shadow="0">
+    <mxGraphModel dx="3857" dy="2850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="880" pageHeight="750" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -148,266 +148,334 @@
       </root>
     </mxGraphModel>
   </diagram>
-  <diagram id="0IYpumAEQvVQIla8VTXU" name="System Hierarchy">
-    <mxGraphModel dx="4976" dy="1649" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2369" pageHeight="1000" math="0" shadow="0">
+  <diagram id="0IYpumAEQvVQIla8VTXU" name="Tenant Structure">
+    <mxGraphModel dx="3674" dy="1630" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="2369" pageHeight="1000" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-27" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=3;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-1380" y="20" width="1350" height="960" as="geometry" />
+        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-27" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=3;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-1370" y="-292.2" width="1280" height="960" as="geometry" />
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-25" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=3;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-2340" y="20" width="910" height="960" as="geometry" />
-        </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-20" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-26" target="FVk5c1Z8qgSLQEcz-GKA-38" edge="1">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-20" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-26" target="FVk5c1Z8qgSLQEcz-GKA-38" edge="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="-356.8711656441719" y="270.3" as="sourcePoint" />
-            <mxPoint x="-680" y="241.02223658694248" as="targetPoint" />
+            <mxPoint x="-416.8711656441719" y="-41.89999999999998" as="sourcePoint" />
+            <mxPoint x="-740" y="-71.1777634130575" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-34" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;COMMON&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;ACCOUNTS&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;&lt;/div&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];movable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="FVk5c1Z8qgSLQEcz-GKA-20" vertex="1" connectable="0">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-34" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;COMMON&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;ACCOUNTS&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;&lt;/div&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-20" vertex="1" connectable="0">
           <mxGeometry x="-0.0074" relative="1" as="geometry">
             <mxPoint y="11" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-29" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-28" target="FVk5c1Z8qgSLQEcz-GKA-38" edge="1">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-29" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-28" target="FVk5c1Z8qgSLQEcz-GKA-38" edge="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="-680" y="215.96729153199743" as="targetPoint" />
+            <mxPoint x="-740" y="-96.23270846800256" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-30" value="&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;MANAGER&lt;/font&gt;&lt;/div&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];movable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="FVk5c1Z8qgSLQEcz-GKA-29" vertex="1" connectable="0">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-30" value="&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;MANAGER&lt;/font&gt;&lt;/div&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-29" vertex="1" connectable="0">
           <mxGeometry x="-0.1788" y="-1" relative="1" as="geometry">
             <mxPoint x="25" y="8" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-32" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-22" target="FVk5c1Z8qgSLQEcz-GKA-38" edge="1">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-32" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-22" target="FVk5c1Z8qgSLQEcz-GKA-38" edge="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="-680" y="193.37905623787975" as="targetPoint" />
+            <mxPoint x="-740" y="-118.82094376212024" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-33" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;OWNER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;x1&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];movable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="FVk5c1Z8qgSLQEcz-GKA-32" vertex="1" connectable="0">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-33" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;OWNER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;x1&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-32" vertex="1" connectable="0">
           <mxGeometry x="0.0539" y="1" relative="1" as="geometry">
             <mxPoint x="-13" y="17" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-22" value="TENANT&lt;div&gt;OWNER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-376.5" y="30.000000000000032" width="44.4" height="48.8" as="geometry" />
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-22" value="TENANT&lt;div&gt;OWNER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-436.5" y="-282.19999999999993" width="44.4" height="48.8" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-25" value="&lt;font color=&quot;#ffffff&quot;&gt;USER ACCOUNT&lt;/font&gt;" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.organizations_account;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-150" y="337.2" width="74" height="78" as="geometry" />
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-25" value="&lt;font color=&quot;#ffffff&quot;&gt;USER ACCOUNT&lt;/font&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.organizations_account;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-210" y="25" width="74" height="78" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-27" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-26" target="FVk5c1Z8qgSLQEcz-GKA-25" edge="1">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-27" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-26" target="FVk5c1Z8qgSLQEcz-GKA-25" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-37" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;USER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];movable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="FVk5c1Z8qgSLQEcz-GKA-27" vertex="1" connectable="0">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-37" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;USER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-27" vertex="1" connectable="0">
           <mxGeometry x="-0.0306" y="2" relative="1" as="geometry">
             <mxPoint y="7" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-26" value="SUBSCRIPTION&lt;div&gt;ACCOUNT&lt;/div&gt;" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.assignment_task;fillColor=#ACACAC;gradientColor=none;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-376.5" y="344.7" width="46.5" height="63" as="geometry" />
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-26" value="SUBSCRIPTION&lt;div&gt;ACCOUNT&lt;/div&gt;" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.assignment_task;fillColor=#ACACAC;gradientColor=none;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-436.5" y="32.5" width="46.5" height="63" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-40" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-28" target="FVk5c1Z8qgSLQEcz-GKA-39" edge="1">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-40" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-28" target="FVk5c1Z8qgSLQEcz-GKA-39" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-41" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;USER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;xN&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];movable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="FVk5c1Z8qgSLQEcz-GKA-40" vertex="1" connectable="0">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-41" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;USER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;xN&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-40" vertex="1" connectable="0">
           <mxGeometry x="-0.0257" y="2" relative="1" as="geometry">
             <mxPoint y="7" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-28" value="SUBSCRIPTION&lt;div&gt;ACCOUNT&lt;/div&gt;" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.assignment_task;fillColor=#ACACAC;gradientColor=none;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-376.5" y="183.2" width="46.5" height="63" as="geometry" />
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-28" value="SUBSCRIPTION&lt;div&gt;ACCOUNT&lt;/div&gt;" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.assignment_task;fillColor=#ACACAC;gradientColor=none;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-436.5" y="-129" width="46.5" height="63" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-38" value="TENANT" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/identity/Tenant_Properties.svg;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-740" y="190.7" width="68" height="48" as="geometry" />
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-38" value="TENANT" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/identity/Tenant_Properties.svg;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-800" y="-121.5" width="68" height="48" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-39" value="&lt;font color=&quot;#ffffff&quot;&gt;USER ACCOUNT&lt;/font&gt;" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.organizations_account;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-150" y="175.7" width="74" height="78" as="geometry" />
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-39" value="&lt;font color=&quot;#ffffff&quot;&gt;USER ACCOUNT&lt;/font&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.organizations_account;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-210" y="-136.5" width="74" height="78" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-43" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-42" target="FVk5c1Z8qgSLQEcz-GKA-38" edge="1">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-43" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-42" target="FVk5c1Z8qgSLQEcz-GKA-38" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-47" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-42" target="FVk5c1Z8qgSLQEcz-GKA-48" edge="1">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="-697.8350936967631" y="25.900000000000045" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-61" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-42" target="FVk5c1Z8qgSLQEcz-GKA-51" edge="1">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-97" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-42" target="FVk5c1Z8qgSLQEcz-GKA-79" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-97" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-42" target="FVk5c1Z8qgSLQEcz-GKA-79" edge="1">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-42" value="MYCELIUM&lt;div&gt;MANAGER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-1080" y="118.5" width="44.4" height="48.8" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-98" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-42" target="FVk5c1Z8qgSLQEcz-GKA-95" edge="1">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-65" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-75" target="FVk5c1Z8qgSLQEcz-GKA-79" edge="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="-720" y="454.7" as="targetPoint" />
+            <mxPoint x="-416.8711656441719" y="472.8" as="sourcePoint" />
+            <mxPoint x="-740" y="443.5222365869425" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-42" value="MYCELIUM&lt;div&gt;MANAGER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-1020" y="430.7" width="44.4" height="48.8" as="geometry" />
-        </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-63" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-48" target="FVk5c1Z8qgSLQEcz-GKA-22" edge="1">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="-530" y="11.1015400770038" as="sourcePoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-49" value="" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-1300" y="415.7" width="60" height="80" as="geometry" />
-        </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-62" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-51" target="FVk5c1Z8qgSLQEcz-GKA-49" edge="1">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-51" value="" style="image;aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;spacingTop=3;image=img/lib/active_directory/key.svg;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-1150" y="437.2" width="50" height="37" as="geometry" />
-        </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-53" value="PRIVATE KEY" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-1155" y="484.7" width="60" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-65" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-75" target="FVk5c1Z8qgSLQEcz-GKA-79" edge="1">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="-356.8711656441719" y="785" as="sourcePoint" />
-            <mxPoint x="-680" y="755.7222365869425" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-66" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;COMMON&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;ACCOUNTS&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;&lt;/div&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];movable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="FVk5c1Z8qgSLQEcz-GKA-65" vertex="1" connectable="0">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-66" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;COMMON&lt;/font&gt;&lt;div&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;ACCOUNTS&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;&lt;/div&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-65" vertex="1" connectable="0">
           <mxGeometry x="-0.0074" relative="1" as="geometry">
             <mxPoint y="11" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-67" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-78" target="FVk5c1Z8qgSLQEcz-GKA-79" edge="1">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-67" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-78" target="FVk5c1Z8qgSLQEcz-GKA-79" edge="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="-680" y="730.6672915319975" as="targetPoint" />
+            <mxPoint x="-740" y="418.46729153199755" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-68" value="&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;MANAGER&lt;/font&gt;&lt;/div&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];movable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="FVk5c1Z8qgSLQEcz-GKA-67" vertex="1" connectable="0">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-68" value="&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;MANAGER&lt;/font&gt;&lt;/div&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-67" vertex="1" connectable="0">
           <mxGeometry x="-0.1788" y="-1" relative="1" as="geometry">
             <mxPoint x="25" y="8" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-69" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-71" target="FVk5c1Z8qgSLQEcz-GKA-79" edge="1">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-69" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-71" target="FVk5c1Z8qgSLQEcz-GKA-79" edge="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="-680" y="708.0790562378797" as="targetPoint" />
+            <mxPoint x="-740" y="395.87905623787975" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-70" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;OWNER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;x1&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];movable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="FVk5c1Z8qgSLQEcz-GKA-69" vertex="1" connectable="0">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-70" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;OWNER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;x1&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-69" vertex="1" connectable="0">
           <mxGeometry x="0.0539" y="1" relative="1" as="geometry">
             <mxPoint x="-13" y="17" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-92" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-26" target="FVk5c1Z8qgSLQEcz-GKA-71" edge="1">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-92" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-26" target="FVk5c1Z8qgSLQEcz-GKA-71" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-71" value="TENANT&lt;div&gt;OWNER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-376.5" y="544.7" width="44.4" height="48.8" as="geometry" />
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-71" value="TENANT&lt;div&gt;OWNER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-436.5" y="232.50000000000006" width="44.4" height="48.8" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-72" value="&lt;font color=&quot;#ffffff&quot;&gt;USER ACCOUNT&lt;/font&gt;" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.organizations_account;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-150" y="851.9000000000001" width="74" height="78" as="geometry" />
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-72" value="&lt;font color=&quot;#ffffff&quot;&gt;USER ACCOUNT&lt;/font&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.organizations_account;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-210" y="539.7" width="74" height="78" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-73" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-75" target="FVk5c1Z8qgSLQEcz-GKA-72" edge="1">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-73" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-75" target="FVk5c1Z8qgSLQEcz-GKA-72" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-74" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;USER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];movable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="FVk5c1Z8qgSLQEcz-GKA-73" vertex="1" connectable="0">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-74" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;USER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-73" vertex="1" connectable="0">
           <mxGeometry x="-0.0306" y="2" relative="1" as="geometry">
             <mxPoint y="7" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-75" value="SUBSCRIPTION&lt;div&gt;ACCOUNT&lt;/div&gt;" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.assignment_task;fillColor=#ACACAC;gradientColor=none;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-376.5" y="859.4000000000001" width="46.5" height="63" as="geometry" />
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-75" value="SUBSCRIPTION&lt;div&gt;ACCOUNT&lt;/div&gt;" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.assignment_task;fillColor=#ACACAC;gradientColor=none;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-436.5" y="547.2" width="46.5" height="63" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-76" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-78" target="FVk5c1Z8qgSLQEcz-GKA-80" edge="1">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-76" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-78" target="FVk5c1Z8qgSLQEcz-GKA-80" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-77" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;USER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;xN&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];movable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="FVk5c1Z8qgSLQEcz-GKA-76" vertex="1" connectable="0">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-77" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;USER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;xN&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-76" vertex="1" connectable="0">
           <mxGeometry x="-0.0257" y="2" relative="1" as="geometry">
             <mxPoint y="7" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-78" value="SUBSCRIPTION&lt;div&gt;ACCOUNT&lt;/div&gt;" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.assignment_task;fillColor=#ACACAC;gradientColor=none;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-376.5" y="697.9000000000001" width="46.5" height="63" as="geometry" />
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-78" value="SUBSCRIPTION&lt;div&gt;ACCOUNT&lt;/div&gt;" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.assignment_task;fillColor=#ACACAC;gradientColor=none;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-436.5" y="385.7000000000001" width="46.5" height="63" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-79" value="TENANT" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/identity/Tenant_Properties.svg;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-740" y="705.4000000000001" width="68" height="48" as="geometry" />
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-79" value="TENANT" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/identity/Tenant_Properties.svg;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-800" y="393.2000000000001" width="68" height="48" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-80" value="&lt;font color=&quot;#ffffff&quot;&gt;USER ACCOUNT&lt;/font&gt;" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.organizations_account;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1">
-          <mxGeometry x="-150" y="690.4000000000001" width="74" height="78" as="geometry" />
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-80" value="&lt;font color=&quot;#ffffff&quot;&gt;USER ACCOUNT&lt;/font&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.organizations_account;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-210" y="378.2000000000001" width="74" height="78" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-93" value="" style="group;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1" connectable="0">
-          <mxGeometry x="-820" y="34.7" width="67" height="71.2" as="geometry" />
+        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-28" value="&lt;font style=&quot;font-size: 31px;&quot;&gt;ACCOUNTS RELATIONSHIPS&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
+          <mxGeometry x="-1330" y="-272.8" width="517" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-48" value="" style="image;aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;spacingTop=3;image=img/lib/active_directory/key.svg;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="FVk5c1Z8qgSLQEcz-GKA-93" vertex="1">
-          <mxGeometry width="50" height="37" as="geometry" />
-        </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-54" value="PUBLIC KEY" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="FVk5c1Z8qgSLQEcz-GKA-93" vertex="1">
-          <mxGeometry x="7" y="41.2" width="60" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-94" value="" style="group;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" vertex="1" connectable="0">
-          <mxGeometry x="-700" y="544.7" width="67" height="71.2" as="geometry" />
-        </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-95" value="" style="image;aspect=fixed;perimeter=ellipsePerimeter;html=1;align=center;shadow=0;dashed=0;spacingTop=3;image=img/lib/active_directory/key.svg;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="FVk5c1Z8qgSLQEcz-GKA-94" vertex="1">
-          <mxGeometry width="50" height="37" as="geometry" />
-        </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-96" value="PUBLIC KEY" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="FVk5c1Z8qgSLQEcz-GKA-94" vertex="1">
-          <mxGeometry x="7" y="41.2" width="60" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-99" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" parent="1" source="FVk5c1Z8qgSLQEcz-GKA-95" target="FVk5c1Z8qgSLQEcz-GKA-71" edge="1">
+        <mxCell id="dOt4SxHNBkfrewy2e2XF-61" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;" edge="1" parent="1" source="dOt4SxHNBkfrewy2e2XF-60" target="FVk5c1Z8qgSLQEcz-GKA-42">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-7" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" edge="1" parent="1" source="t-rUMjQkFmx4WvhtJ_v5-5" target="t-rUMjQkFmx4WvhtJ_v5-6">
+        <mxCell id="dOt4SxHNBkfrewy2e2XF-60" value="MYCELIUM&lt;div&gt;STAFF&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=left;verticalLabelPosition=middle;verticalAlign=middle;align=right;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="-1250" y="118.5" width="44.4" height="48.8" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="1t5QESKZS1b71BB2NjJA" name="System Accounts Hierarchy">
+    <mxGraphModel dx="3191" dy="2292" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1500" pageHeight="800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="iig9EMk6QLJ3KdZxPdn2-1" value="" style="rounded=1;whiteSpace=wrap;html=1;arcSize=3;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" vertex="1" parent="1">
+          <mxGeometry x="20.75" y="-340" width="1409.25" height="1420" as="geometry" />
+        </mxCell>
+        <mxCell id="iig9EMk6QLJ3KdZxPdn2-2" value="&lt;font style=&quot;font-size: 31px;&quot;&gt;ACCOUNTS HIERARCHY&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" vertex="1" parent="1">
+          <mxGeometry x="60.75" y="-320.6" width="517" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-1" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-2" target="vFki1-GnmfY4vZ-Kzhqf-11">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-5" value="MYCELIUM&lt;div&gt;STAFF&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-1970" y="166.99999999999994" width="44.4" height="48.8" as="geometry" />
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-2" value="MYCELIUM&lt;div&gt;STAFF&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=left;verticalLabelPosition=middle;verticalAlign=middle;align=right;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="560" y="-240.00000000000003" width="44.4" height="48.8" as="geometry" />
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-9" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" edge="1" parent="1" source="t-rUMjQkFmx4WvhtJ_v5-6" target="t-rUMjQkFmx4WvhtJ_v5-8">
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-3" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=14;flowAnimation=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-6" target="vFki1-GnmfY4vZ-Kzhqf-21">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-6" value="MYCELIUM&lt;div&gt;MANAGER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-1820" y="272.20000000000005" width="44.4" height="48.8" as="geometry" />
-        </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-11" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" edge="1" parent="1" source="t-rUMjQkFmx4WvhtJ_v5-8" target="t-rUMjQkFmx4WvhtJ_v5-10">
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-6" target="vFki1-GnmfY4vZ-Kzhqf-39">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-8" value="TENANT&lt;div&gt;OWNER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-1970" y="376.30000000000007" width="44.4" height="48.8" as="geometry" />
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-5" value="SHOULD MANAGE JURIDICAL&amp;nbsp;&lt;div&gt;ASPECTS OF TENANTS&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="vFki1-GnmfY4vZ-Kzhqf-4">
+          <mxGeometry x="-0.0067" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-13" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" edge="1" parent="1" source="t-rUMjQkFmx4WvhtJ_v5-10" target="t-rUMjQkFmx4WvhtJ_v5-12">
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-6" value="TENANT&lt;div&gt;OWNER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=left;verticalLabelPosition=middle;verticalAlign=middle;align=right;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="810" y="358.9" width="44.4" height="48.8" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-7" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-11" target="vFki1-GnmfY4vZ-Kzhqf-29">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-10" value="TENANT&lt;div&gt;MANAGER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-1820" y="496.30000000000007" width="44.4" height="48.8" as="geometry" />
-        </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-15" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" edge="1" parent="1" source="t-rUMjQkFmx4WvhtJ_v5-12" target="t-rUMjQkFmx4WvhtJ_v5-14">
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-8" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-11" target="vFki1-GnmfY4vZ-Kzhqf-34">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-12" value="SUBSCRIPTION&lt;div&gt;MANAGER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-1970" y="632.9000000000001" width="44.4" height="48.8" as="geometry" />
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-11" target="vFki1-GnmfY4vZ-Kzhqf-39">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1264" y="-60" />
+            </Array>
+          </mxGeometry>
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-14" value="USER" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-1820" y="763.2000000000002" width="44.4" height="48.8" as="geometry" />
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-10" value="SHOULD CREATE&amp;nbsp;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;TENANTS&lt;/span&gt;&lt;div&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;AND MANAGE TECHNICAL&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;ELEMENTS&amp;nbsp;&lt;/span&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;OF TENANTS&lt;/span&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="vFki1-GnmfY4vZ-Kzhqf-9">
+          <mxGeometry x="-0.2496" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-17" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;MYC STAFF&lt;/h1&gt;&lt;p&gt;Should upgrade users to work as Mycelium managers. Mycelium Staffs has all privileges of Mycelium Managers.&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-2260" y="169.8" width="190" height="120" as="geometry" />
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-11" value="MYCELIUM&lt;div&gt;MANAGER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=left;verticalLabelPosition=middle;verticalAlign=middle;align=right;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="560" y="-84.90000000000003" width="44.4" height="48.8" as="geometry" />
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-19" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;MYC MANAGERS&lt;/h1&gt;&lt;p&gt;Should create and manage tenants. Mycelium managers has all privileges of Tenant Owners.&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-1730" y="263.29999999999995" width="240" height="120" as="geometry" />
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-12" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=14;flowAnimation=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-15" target="vFki1-GnmfY4vZ-Kzhqf-25">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-21" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;TENANT OWNERS&lt;/h1&gt;&lt;p&gt;Owners of the tenant information, as metadata, tags, accounts, other owners, and basic details of the tenant itself. Tenant Owners has all privileges of the Tenant Managers&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-2260" y="367.8" width="220" height="132.2" as="geometry" />
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-15" target="vFki1-GnmfY4vZ-Kzhqf-43">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-22" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;TENANT MANAGERS&lt;/h1&gt;&lt;p&gt;Managers of the tenant information, as metadata, tags, accounts, other owners, and basic details of the tenant itself.&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-1730" y="487.8" width="260" height="120" as="geometry" />
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-14" value="SHOULD MANAGE&amp;nbsp;&lt;div&gt;ORGANIZATIONAL&amp;nbsp;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;ASPECTS&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;OF MULTIPLE SUBSCRIPTION&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;ACCOUNTS&lt;/span&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="vFki1-GnmfY4vZ-Kzhqf-13">
+          <mxGeometry x="-0.0213" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-23" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;SUBS. MANAGERS&lt;/h1&gt;&lt;p&gt;Managers of the subscription account. Should manage information of the subscription account and should guest users to the account. Subscription Managers has all privileges of the simple users.&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-2260" y="632.9" width="230" height="147.1" as="geometry" />
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-15" value="SUBSCRIPTIONS&lt;div&gt;MANAGER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=left;verticalLabelPosition=middle;verticalAlign=middle;align=right;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="810" y="667.8000000000001" width="44.4" height="48.8" as="geometry" />
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-24" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;USERS&lt;/h1&gt;&lt;p&gt;Simple users has not permissions to perform management operations on Mycelium platform. It has view only capabilities.&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-1730" y="752.9" width="210" height="120" as="geometry" />
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-16" value="SYSTEM&lt;div&gt;MANAGER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="148.05" y="358.09999999999997" width="44.4" height="48.8" as="geometry" />
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-26" value="&lt;font style=&quot;font-size: 31px;&quot;&gt;ACCOUNTS/USERS HIERARCHY&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-2300" y="40" width="840" height="30" as="geometry" />
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-17" value="GUESTS&lt;div&gt;MANAGER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="308.05" y="358.09999999999997" width="44.4" height="48.8" as="geometry" />
         </mxCell>
-        <mxCell id="t-rUMjQkFmx4WvhtJ_v5-28" value="&lt;font style=&quot;font-size: 31px;&quot;&gt;ACCOUNTS RELATIONSHIPS&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;locked=1;connectable=0;" vertex="1" parent="1">
-          <mxGeometry x="-1347" y="40" width="517" height="30" as="geometry" />
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-18" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=14;flowAnimation=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-21" target="vFki1-GnmfY4vZ-Kzhqf-15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-21" target="vFki1-GnmfY4vZ-Kzhqf-43">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-20" value="SHOULD MANAGE ACCOUNTS&lt;div&gt;AND ORGANIZATIONAL&amp;nbsp;&lt;/div&gt;&lt;div&gt;ASPECTS&amp;nbsp;&lt;span style=&quot;background-color: light-dark(#ffffff, var(--ge-dark-color, #121212)); color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;OF TENANTS&lt;/span&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="vFki1-GnmfY4vZ-Kzhqf-19">
+          <mxGeometry x="-0.0301" relative="1" as="geometry">
+            <mxPoint x="-54" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-21" value="TENANT&lt;div&gt;MANAGER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=left;verticalLabelPosition=middle;verticalAlign=middle;align=right;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="810" y="544.7" width="44.4" height="48.8" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-22" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-25" target="vFki1-GnmfY4vZ-Kzhqf-37">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="832.2000000000003" y="884.0999999999999" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-25" target="vFki1-GnmfY4vZ-Kzhqf-45">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-24" value="CAN MANAGE DETAILS AND&lt;div&gt;INVITATIONS OF A SINGLE&amp;nbsp;&lt;/div&gt;&lt;div&gt;SUBSCRIPTION ACCOUNT&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="vFki1-GnmfY4vZ-Kzhqf-23">
+          <mxGeometry x="0.0522" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-25" value="ACCOUNT&lt;div&gt;MANAGER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=left;verticalLabelPosition=middle;verticalAlign=middle;align=right;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="810" y="788.6" width="44.4" height="48.8" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-26" value="GATEWAY&lt;div&gt;MANAGER&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="448.05" y="358.09999999999997" width="44.4" height="48.8" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-28" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-29" target="vFki1-GnmfY4vZ-Kzhqf-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-29" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;Tenant Affinity&lt;/h1&gt;&lt;p&gt;Accounts with tenant affinity should perform actions only at the tenant which it was guest to&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;align=center;" vertex="1" parent="1">
+          <mxGeometry x="742.2" y="70" width="180" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-30" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-34" target="vFki1-GnmfY4vZ-Kzhqf-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-31" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-34" target="vFki1-GnmfY4vZ-Kzhqf-17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-32" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-34" target="vFki1-GnmfY4vZ-Kzhqf-26">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-34" value="&lt;h1 style=&quot;margin-top: 0px;&quot;&gt;System Affinity&lt;/h1&gt;&lt;p&gt;Accounts with system affinity should acts with system-wide privileges.&lt;/p&gt;" style="text;html=1;whiteSpace=wrap;overflow=hidden;rounded=0;align=center;" vertex="1" parent="1">
+          <mxGeometry x="240" y="70" width="180" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-35" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-37" target="vFki1-GnmfY4vZ-Kzhqf-48">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-36" value="SHOULD ACCESS RESOURCES&lt;div&gt;OF A SINGLE SUBSCRIPTION&lt;/div&gt;&lt;div&gt;ACCOUNT&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="vFki1-GnmfY4vZ-Kzhqf-35">
+          <mxGeometry x="0.0398" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-37" value="&lt;font&gt;USER ACCOUNT&lt;/font&gt;&lt;div&gt;&lt;font&gt;(BEGINNERS)&lt;/font&gt;&lt;/div&gt;" style="outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#E7157B;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=14;fontStyle=0;aspect=fixed;pointerEvents=1;shape=mxgraph.aws4.organizations_account;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" vertex="1" parent="1">
+          <mxGeometry x="795.2" y="929.9000000000001" width="74" height="78" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-39" target="vFki1-GnmfY4vZ-Kzhqf-43">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-39" value="TENANT" style="image;aspect=fixed;html=1;points=[];align=left;fontSize=12;image=img/lib/azure2/identity/Tenant_Properties.svg;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;labelPosition=right;verticalLabelPosition=middle;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1230" y="358.9" width="68" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-43" target="vFki1-GnmfY4vZ-Kzhqf-45">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-41" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-43" target="vFki1-GnmfY4vZ-Kzhqf-46">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-42" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-43" target="vFki1-GnmfY4vZ-Kzhqf-47">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-43" value="SUBSCRIPTION&lt;div&gt;ACCOUNTS&lt;/div&gt;" style="outlineConnect=0;dashed=0;verticalLabelPosition=middle;verticalAlign=middle;align=left;html=1;shape=mxgraph.aws3.assignment_task;fillColor=#ACACAC;gradientColor=none;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;labelPosition=right;" vertex="1" parent="1">
+          <mxGeometry x="1240.75" y="660.6999999999999" width="46.5" height="63" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-44" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="vFki1-GnmfY4vZ-Kzhqf-45" target="vFki1-GnmfY4vZ-Kzhqf-48">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-45" value="" style="outlineConnect=0;dashed=0;verticalLabelPosition=middle;verticalAlign=middle;align=left;html=1;shape=mxgraph.aws3.assignment_task;fillColor=#ACACAC;gradientColor=none;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;labelPosition=right;" vertex="1" parent="1">
+          <mxGeometry x="1200.75" y="792.7" width="26.5" height="40.4" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-46" value="" style="outlineConnect=0;dashed=0;verticalLabelPosition=middle;verticalAlign=middle;align=left;html=1;shape=mxgraph.aws3.assignment_task;fillColor=#ACACAC;gradientColor=none;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;labelPosition=right;" vertex="1" parent="1">
+          <mxGeometry x="1250.75" y="792.7" width="26.5" height="40.4" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-47" value="SINGLE&lt;div&gt;ACCOUNT&lt;/div&gt;" style="outlineConnect=0;dashed=0;verticalLabelPosition=middle;verticalAlign=middle;align=left;html=1;shape=mxgraph.aws3.assignment_task;fillColor=#ACACAC;gradientColor=none;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;labelPosition=right;" vertex="1" parent="1">
+          <mxGeometry x="1300.75" y="792.7" width="26.5" height="40.4" as="geometry" />
+        </mxCell>
+        <mxCell id="vFki1-GnmfY4vZ-Kzhqf-48" value="" style="outlineConnect=0;dashed=0;verticalLabelPosition=middle;verticalAlign=middle;align=left;html=1;shape=mxgraph.aws3.assignment_task;fillColor=#ACACAC;gradientColor=none;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;labelPosition=right;" vertex="1" parent="1">
+          <mxGeometry x="1200.75" y="948.7" width="26.5" height="40.4" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
