@@ -275,7 +275,7 @@ ALTER TABLE manager_account_on_tenant ADD CONSTRAINT fk_account_manager FOREIGN 
 
 -- Tenant tag table constraints
 ALTER TABLE tenant_tag ADD CONSTRAINT tenant_tag_pk PRIMARY KEY (id);
-ALTER TABLE tenant_tag ADD CONSTRAINT unique_tenant_tag UNIQUE (value, tenant_id, meta);
+ALTER TABLE tenant_tag ADD CONSTRAINT unique_tenant_tag UNIQUE (value, tenant_id);
 ALTER TABLE tenant_tag ADD CONSTRAINT fk_tenant_tag FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE;
 
 -- Guest role table constraints
