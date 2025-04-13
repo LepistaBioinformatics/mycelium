@@ -49,6 +49,7 @@ use role_scoped::users_manager::account_endpoints as Users_Manager__Account;
 use service::account_endpoints as Service__Account;
 use service::auxiliary_endpoints as Service__Auxiliary;
 use service::guest_endpoints as Service__Guest;
+use service::tools_endpoints as Service__Tools;
 use staff::account_endpoints as Staffs__Accounts;
 
 /// Azure Auth Endpoints
@@ -163,6 +164,18 @@ struct ServiceAccountApiDoc;
     paths(Service__Guest::guest_to_default_account_url)
 )]
 struct ServiceGuestApiDoc;
+
+/// Service Endpoints for Tools Management
+///
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Service | Tools Endpoints",
+        description = "Endpoints reserved for the application service to manage tools",
+    ),
+    paths(Service__Tools::list_discoverable_services_url)
+)]
+struct ServiceToolsApiDoc;
 
 /// Service Endpoints for Auxiliary
 ///
@@ -622,6 +635,7 @@ struct UsersManagerAccountApiDoc;
         (path = "/adm/svc/accounts", api = ServiceAccountApiDoc),
         (path = "/adm/svc/guests", api = ServiceGuestApiDoc),
         (path = "/adm/svc/auxiliary", api = ServiceAuxiliaryApiDoc),
+        (path = "/adm/svc/tools", api = ServiceToolsApiDoc),
         //
         // Beginner endpoints
         //

@@ -183,6 +183,7 @@ impl RoutesFetching for RoutesFetchingMemDbRepo {
         &self,
         id: Option<Uuid>,
         name: Option<String>,
+        discoverable: Option<bool>,
     ) -> Result<FetchManyResponseKind<Service>, MappedErrors> {
         let db = ROUTES.lock().await.clone();
 
@@ -250,6 +251,19 @@ impl RoutesFetching for RoutesFetchingMemDbRepo {
 
                         None
                     }
+                }
+            })
+            .filter(|service| {
+                if discoverable.is_none() {
+                    return true;
+                }
+
+                let disc = discoverable.unwrap();
+
+                if disc {
+                    service.discoverable.unwrap_or(false)
+                } else {
+                    true
                 }
             })
             .collect::<Vec<Service>>()

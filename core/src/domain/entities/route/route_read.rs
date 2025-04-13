@@ -30,6 +30,7 @@ pub trait RoutesFetching: Interface + Send + Sync {
         &self,
         id: Option<Uuid>,
         name: Option<String>,
+        discoverable: Option<bool>,
     ) -> Result<FetchManyResponseKind<Service>, MappedErrors>;
 }
 

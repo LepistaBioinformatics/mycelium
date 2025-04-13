@@ -33,6 +33,7 @@ use endpoints::{
         account_endpoints as service_account_endpoints,
         auxiliary_endpoints as service_auxiliary_endpoints,
         guest_endpoints as service_guest_endpoints,
+        tools_endpoints as service_tools_endpoints,
     },
     shared::insert_role_header,
     staff::account_endpoints as staff_account_endpoints,
@@ -78,7 +79,9 @@ use reqwest::header::{
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use router::route_request;
-use settings::{ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE};
+use settings::{
+    ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE, TOOLS_API_SCOPE,
+};
 use shaku::HasComponent;
 use std::{path::PathBuf, str::FromStr, sync::Arc};
 use tracing::{info, trace};
@@ -593,6 +596,13 @@ pub async fn main() -> std::io::Result<()> {
                     // Route to default route
                     //
                     .default_service(web::to(route_request)),
+            )
+            //
+            // Route to tools
+            //
+            .service(
+                web::scope(&format!("/{}", TOOLS_API_SCOPE))
+                    .configure(service_tools_endpoints::configure),
             )
     });
 
