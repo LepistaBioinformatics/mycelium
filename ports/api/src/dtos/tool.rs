@@ -3,18 +3,10 @@ use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use url::Url;
 use utoipa::ToSchema;
-use uuid::Uuid;
 
 #[derive(Debug, Clone, Deserialize, Serialize, ToSchema, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Tool {
-    /// The service id
-    ///
-    /// The id of the service. If the id is not provided, the service will be
-    /// generated using the name of the service.
-    ///
-    pub id: Option<Uuid>,
-
     /// The service unique name
     ///
     /// The name of the service. The name should be unique and is used to
@@ -67,7 +59,6 @@ impl Tool {
         };
 
         Ok(Self {
-            id: service.id,
             name: service.name.clone(),
             description,
             openapi_path: format!(

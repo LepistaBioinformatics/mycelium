@@ -1,7 +1,4 @@
-use crate::{
-    dtos::{MyceliumRoleScopedConnectionStringData, Tool},
-    modules::RoutesFetchingModule,
-};
+use crate::{dtos::Tool, modules::RoutesFetchingModule};
 
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
 use myc_core::{
@@ -83,11 +80,9 @@ pub struct ListServicesParams {
 pub async fn list_discoverable_services_url(
     query: web::Query<ListServicesParams>,
     request: HttpRequest,
-    connection_string: MyceliumRoleScopedConnectionStringData,
     routes_fetching_repo: Inject<RoutesFetchingModule, dyn RoutesFetching>,
 ) -> impl Responder {
     match list_discoverable_services(
-        connection_string.connection_string().clone(),
         query.id.to_owned(),
         query.name.to_owned(),
         Box::new(&*routes_fetching_repo),
