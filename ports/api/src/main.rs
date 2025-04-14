@@ -5,7 +5,6 @@ mod endpoints;
 mod middleware;
 mod models;
 mod modifiers;
-mod modules;
 mod otel;
 mod router;
 mod settings;
