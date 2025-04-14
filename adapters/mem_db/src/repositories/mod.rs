@@ -22,7 +22,7 @@ module! {
             //
             // Provide repositories
             //
-            RoutesFetchingMemDbRepo,
+            RoutesReadMemDbRepo,
             ServiceReadMemDbRepo,
             ServiceWriteMemDbRepo,
         ],

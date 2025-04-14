@@ -1,7 +1,6 @@
 use crate::domain::dtos::service::Service;
 
 use async_trait::async_trait;
-use mycelium_base::entities::FetchResponseKind;
 use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
@@ -12,11 +11,6 @@ use uuid::Uuid;
 
 #[async_trait]
 pub trait ServiceRead: Interface + Send + Sync {
-    async fn get(
-        &self,
-        id: Uuid,
-    ) -> Result<FetchResponseKind<Service, String>, MappedErrors>;
-
     async fn list_services(
         &self,
         id: Option<Uuid>,

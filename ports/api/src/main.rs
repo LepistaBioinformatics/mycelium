@@ -1,5 +1,4 @@
 mod api_docs;
-mod config;
 mod dispatchers;
 mod dtos;
 mod endpoints;
@@ -20,7 +19,6 @@ use actix_web::{
 use actix_web_opentelemetry::RequestTracing;
 use api_docs::ApiDoc;
 use awc::{error::HeaderValue, Client};
-use config::injectors::configure as configure_injection_modules;
 use dispatchers::{email_dispatcher, webhook_dispatcher};
 use endpoints::{
     index::heath_check_endpoints,
@@ -551,10 +549,6 @@ pub async fn main() -> std::io::Result<()> {
                     .exclude_regex("/doc/swagger/*")
                     .exclude_regex("/doc/redoc/*"),
             )
-            // ? ---------------------------------------------------------------
-            // ? Configure Injection modules
-            // ? ---------------------------------------------------------------
-            .configure(configure_injection_modules)
             // ? ---------------------------------------------------------------
             // ? Configure mycelium routes
             // ? ---------------------------------------------------------------

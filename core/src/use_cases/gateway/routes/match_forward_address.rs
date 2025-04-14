@@ -19,5 +19,7 @@ pub async fn match_forward_address(
     // ? Try to fetch routes from database
     // ? -----------------------------------------------------------------------
 
-    routes_fetching_repo.get(path.to_owned()).await
+    routes_fetching_repo
+        .match_single_path_or_error(path.to_owned())
+        .await
 }

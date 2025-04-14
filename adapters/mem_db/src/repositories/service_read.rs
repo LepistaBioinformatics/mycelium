@@ -3,7 +3,7 @@ use crate::models::config::DbPoolProvider;
 use async_trait::async_trait;
 use myc_core::domain::{dtos::service::Service, entities::ServiceRead};
 use mycelium_base::{
-    entities::{FetchManyResponseKind, FetchResponseKind},
+    entities::FetchManyResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
 use shaku::Component;
@@ -19,38 +19,6 @@ pub struct ServiceReadMemDbRepo {
 
 #[async_trait]
 impl ServiceRead for ServiceReadMemDbRepo {
-    async fn get(
-        &self,
-        id: Uuid,
-    ) -> Result<FetchResponseKind<Service, String>, MappedErrors> {
-        let db = self.db_config.get_services_db();
-
-        if db.len() == 0 {
-            return fetching_err("Routes already not initialized.").as_error();
-        }
-
-        let response = db
-            .into_iter()
-            .filter(|service| service.id == Some(id))
-            .collect::<Vec<Service>>();
-
-        if response.len() == 0 {
-            return Ok(FetchResponseKind::NotFound(None));
-        }
-
-        if response.len() > 1 {
-            return fetching_err(
-                "Multiple services found for the specified id.",
-            )
-            .with_exp_true()
-            .as_error();
-        }
-
-        Ok(FetchResponseKind::Found(
-            response.first().unwrap().to_owned(),
-        ))
-    }
-
     async fn list_services(
         &self,
         id: Option<Uuid>,

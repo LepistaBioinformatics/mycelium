@@ -5,7 +5,6 @@ use actix_web::http::uri::PathAndQuery;
 use async_trait::async_trait;
 use myc_core::domain::{dtos::route::Route, entities::RoutesRead};
 use mycelium_base::{
-    dtos::UntaggedChildren,
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{fetching_err, MappedErrors},
 };
@@ -16,14 +15,14 @@ use wildmatch::WildMatch;
 
 #[derive(Component)]
 #[shaku(interface = RoutesRead)]
-pub struct RoutesFetchingMemDbRepo {
+pub struct RoutesReadMemDbRepo {
     #[shaku(inject)]
     pub db_config: Arc<dyn DbPoolProvider>,
 }
 
 #[async_trait]
-impl RoutesRead for RoutesFetchingMemDbRepo {
-    async fn get(
+impl RoutesRead for RoutesReadMemDbRepo {
+    async fn match_single_path_or_error(
         &self,
         path: PathAndQuery,
     ) -> Result<FetchResponseKind<Route, String>, MappedErrors> {

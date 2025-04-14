@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 #[async_trait]
 pub trait RoutesRead: Interface + Send + Sync {
-    async fn get(
+    async fn match_single_path_or_error(
         &self,
         path: PathAndQuery,
     ) -> Result<FetchResponseKind<Route, String>, MappedErrors>;
