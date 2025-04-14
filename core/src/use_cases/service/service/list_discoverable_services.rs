@@ -1,4 +1,4 @@
-use crate::domain::{dtos::service::Service, entities::RoutesFetching};
+use crate::domain::{dtos::service::Service, entities::ServiceRead};
 
 use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
@@ -7,18 +7,16 @@ use uuid::Uuid;
 
 #[tracing::instrument(
     name = "list_discoverable_services",
-    skip(routes_fetching_repo)
+    skip(service_read_repo)
 )]
 pub async fn list_discoverable_services(
     id: Option<Uuid>,
     name: Option<String>,
-    routes_fetching_repo: Box<&dyn RoutesFetching>,
+    service_read_repo: Box<&dyn ServiceRead>,
 ) -> Result<FetchManyResponseKind<Service>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Match upstream routes
     // ? -----------------------------------------------------------------------
 
-    routes_fetching_repo
-        .list_services(id, name, Some(true))
-        .await
+    service_read_repo.list_services(id, name, Some(true)).await
 }

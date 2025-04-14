@@ -1,8 +1,8 @@
-use crate::{dtos::MyceliumProfileData, modules::RoutesFetchingModule};
+use crate::dtos::MyceliumProfileData;
 
 use actix_web::{get, web, Responder};
 use myc_core::{
-    domain::{dtos::route::Route, entities::RoutesFetching},
+    domain::dtos::route::Route,
     use_cases::role_scoped::gateway_manager::route::list_routes,
 };
 use myc_http_tools::{
@@ -11,8 +11,9 @@ use myc_http_tools::{
         fetch_many_response_kind, handle_mapped_error,
     },
 };
+use myc_mem_db::repositories::MemDbModule;
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
@@ -33,7 +34,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub struct ListRoutesByServiceParams {
     id: Option<Uuid>,
     name: Option<String>,
-    include_service_details: Option<bool>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -81,14 +81,13 @@ pub struct ListRoutesByServiceParams {
 pub async fn list_routes_url(
     query: web::Query<ListRoutesByServiceParams>,
     profile: MyceliumProfileData,
-    routes_fetching_repo: Inject<RoutesFetchingModule, dyn RoutesFetching>,
+    app_module: web::Data<MemDbModule>,
 ) -> impl Responder {
     match list_routes(
         profile.to_profile(),
         query.id.to_owned(),
         query.name.to_owned(),
-        query.include_service_details.to_owned(),
-        Box::new(&*routes_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

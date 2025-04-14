@@ -1,9 +1,9 @@
-use crate::modules::RoutesFetchingModule;
+//use crate::modules::RoutesFetchingModule;
 
 use actix_web::web;
-use myc_mem_db::repositories::{
-    RoutesFetchingMemDbRepo, RoutesFetchingMemDbRepoParameters,
-};
+//use myc_mem_db::repositories::{
+//    RoutesFetchingMemDbRepo, RoutesFetchingMemDbRepoParameters,
+//};
 use std::sync::Arc;
 
 /// Configure injection modules.
@@ -158,13 +158,13 @@ pub fn configure(config: &mut web::ServiceConfig) {
         // ? -------------------------------------------------------------------
         // ? Routes
         // ? -------------------------------------------------------------------
-        .app_data(Arc::new(
-            RoutesFetchingModule::builder()
-                .with_component_parameters::<RoutesFetchingMemDbRepo>(
-                    RoutesFetchingMemDbRepoParameters {},
-                )
-                .build(),
-        ))
+        //.app_data(Arc::new(
+        //    RoutesFetchingModule::builder()
+        //        .with_component_parameters::<RoutesFetchingMemDbRepo>(
+        //            RoutesFetchingMemDbRepoParameters {},
+        //        )
+        //        .build(),
+        //))
         // ? -------------------------------------------------------------------
         // ? ErrorCodes
         // ? -------------------------------------------------------------------

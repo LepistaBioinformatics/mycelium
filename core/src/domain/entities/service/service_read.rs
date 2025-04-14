@@ -1,6 +1,5 @@
-use crate::domain::dtos::route::Route;
+use crate::domain::dtos::service::Service;
 
-use actix_web::http::uri::PathAndQuery;
 use async_trait::async_trait;
 use mycelium_base::entities::FetchResponseKind;
 use mycelium_base::{
@@ -12,26 +11,27 @@ use std::fmt::{Debug, Display, Formatter};
 use uuid::Uuid;
 
 #[async_trait]
-pub trait RoutesRead: Interface + Send + Sync {
+pub trait ServiceRead: Interface + Send + Sync {
     async fn get(
         &self,
-        path: PathAndQuery,
-    ) -> Result<FetchResponseKind<Route, String>, MappedErrors>;
+        id: Uuid,
+    ) -> Result<FetchResponseKind<Service, String>, MappedErrors>;
 
-    async fn list_routes(
+    async fn list_services(
         &self,
         id: Option<Uuid>,
         name: Option<String>,
-    ) -> Result<FetchManyResponseKind<Route>, MappedErrors>;
+        discoverable: Option<bool>,
+    ) -> Result<FetchManyResponseKind<Service>, MappedErrors>;
 }
 
-impl Display for dyn RoutesRead {
+impl Display for dyn ServiceRead {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmResult {
         write!(f, "{}", self)
     }
 }
 
-impl Debug for dyn RoutesRead {
+impl Debug for dyn ServiceRead {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmResult {
         write!(f, "{}", self)
     }

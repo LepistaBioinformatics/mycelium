@@ -1,18 +1,19 @@
-use crate::{dtos::Tool, modules::RoutesFetchingModule};
+use crate::dtos::Tool;
 
 use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
 use myc_core::{
-    domain::{dtos::service::Service, entities::RoutesFetching},
+    domain::dtos::service::Service,
     use_cases::service::service::list_discoverable_services,
 };
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error,
 };
+use myc_mem_db::repositories::MemDbModule;
 use mycelium_base::entities::FetchManyResponseKind;
 use serde::Deserialize;
 use serde_json::json;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
@@ -80,12 +81,12 @@ pub struct ListServicesParams {
 pub async fn list_discoverable_services_url(
     query: web::Query<ListServicesParams>,
     request: HttpRequest,
-    routes_fetching_repo: Inject<RoutesFetchingModule, dyn RoutesFetching>,
+    app_module: web::Data<MemDbModule>,
 ) -> impl Responder {
     match list_discoverable_services(
         query.id.to_owned(),
         query.name.to_owned(),
-        Box::new(&*routes_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

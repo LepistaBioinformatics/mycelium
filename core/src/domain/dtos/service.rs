@@ -3,7 +3,6 @@ use super::{
 };
 
 use myc_config::secret_resolver::SecretResolver;
-use mycelium_base::dtos::UntaggedChildren;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -86,7 +85,7 @@ pub struct Service {
     ///
     /// The routes of the service.
     ///
-    pub routes: UntaggedChildren<Route, Uuid>,
+    pub routes: Vec<Route>,
 
     /// The service discoverable
     ///
@@ -172,7 +171,7 @@ impl Service {
             description,
             openapi_path,
             health_check,
-            routes: UntaggedChildren::Records(routes),
+            routes,
             secrets,
         }
     }

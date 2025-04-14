@@ -1,7 +1,7 @@
 use crate::domain::{
     actors::SystemActor,
     dtos::{profile::Profile, service::Service},
-    entities::RoutesFetching,
+    entities::ServiceRead,
 };
 
 use mycelium_base::{
@@ -12,13 +12,13 @@ use uuid::Uuid;
 #[tracing::instrument(
     name = "list_services",
     fields(profile_id = %profile.acc_id),
-    skip(profile, routes_fetching_repo)
+    skip(profile, service_read_repo)
 )]
 pub async fn list_services(
     profile: Profile,
     id: Option<Uuid>,
     name: Option<String>,
-    routes_fetching_repo: Box<&dyn RoutesFetching>,
+    service_read_repo: Box<&dyn ServiceRead>,
 ) -> Result<FetchManyResponseKind<Service>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges to create role
@@ -34,5 +34,5 @@ pub async fn list_services(
     // ? Match upstream routes
     // ? ----------------------------------------------------------------------
 
-    routes_fetching_repo.list_services(id, name, None).await
+    service_read_repo.list_services(id, name, None).await
 }

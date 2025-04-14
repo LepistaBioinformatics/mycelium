@@ -1,4 +1,4 @@
-use crate::domain::{dtos::route::Route, entities::RoutesFetching};
+use crate::domain::{dtos::route::Route, entities::RoutesRead};
 
 use actix_web::http::uri::PathAndQuery;
 use mycelium_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
@@ -13,7 +13,7 @@ use mycelium_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
 )]
 pub async fn match_forward_address(
     path: PathAndQuery,
-    routes_fetching_repo: Box<&dyn RoutesFetching>,
+    routes_fetching_repo: Box<&dyn RoutesRead>,
 ) -> Result<FetchResponseKind<Route, String>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Try to fetch routes from database

@@ -5,7 +5,6 @@ use crate::{
         fetch_and_inject_role_scoped_connection_string_to_forward,
     },
     models::api_config::ApiConfig,
-    modules::RoutesFetchingModule,
     settings::GATEWAY_API_SCOPE,
 };
 
@@ -16,13 +15,10 @@ use awc::{
 };
 use myc_config::optional_config::OptionalConfig;
 use myc_core::{
-    domain::{
-        dtos::{
-            http::{HttpMethod, Protocol},
-            http_secret::HttpSecret,
-            route_type::RouteType,
-        },
-        entities::RoutesFetching,
+    domain::dtos::{
+        http::{HttpMethod, Protocol},
+        http_secret::HttpSecret,
+        route_type::RouteType,
     },
     use_cases::gateway::routes::match_forward_address,
 };
@@ -33,8 +29,9 @@ use myc_http_tools::{
         FORWARD_FOR_KEY,
     },
 };
+use myc_mem_db::repositories::MemDbModule;
 use mycelium_base::{dtos::Parent, entities::FetchResponseKind};
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use std::{str::FromStr, time::Duration};
 use tracing::{error, trace, warn};
 use url::Url;
@@ -60,7 +57,7 @@ pub(crate) async fn route_request(
     client: web::Data<Client>,
     api_config: web::Data<ApiConfig>,
     timeout: web::Data<u64>,
-    routing_fetching_repo: Inject<RoutesFetchingModule, dyn RoutesFetching>,
+    app_module: web::Data<MemDbModule>,
 ) -> Result<HttpResponse, GatewayError> {
     let replace_path = &format!("/{}", GATEWAY_API_SCOPE);
 
@@ -106,7 +103,7 @@ pub(crate) async fn route_request(
 
     let route = match match_forward_address(
         request_path.to_owned(),
-        Box::new(&*routing_fetching_repo),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

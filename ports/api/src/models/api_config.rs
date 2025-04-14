@@ -89,7 +89,7 @@ pub struct ApiConfig {
     pub service_workers: i32,
     pub gateway_timeout: u64,
     pub logging: LoggingConfig,
-    pub routes: String,
+    pub routes: Option<String>,
     pub tls: OptionalConfig<TlsConfig>,
     pub cache: Option<CacheConfig>,
 }
