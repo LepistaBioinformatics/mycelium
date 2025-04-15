@@ -1,13 +1,11 @@
 mod api_docs;
-mod config;
+mod dispatchers;
 mod dtos;
 mod endpoints;
 mod middleware;
 mod models;
 mod modifiers;
-mod modules;
 mod otel;
-mod queue_dispatchers;
 mod router;
 mod settings;
 
@@ -20,7 +18,7 @@ use actix_web::{
 use actix_web_opentelemetry::RequestTracing;
 use api_docs::ApiDoc;
 use awc::{error::HeaderValue, Client};
-use config::injectors::configure as configure_injection_modules;
+use dispatchers::{email_dispatcher, webhook_dispatcher};
 use endpoints::{
     index::heath_check_endpoints,
     manager::{
@@ -33,6 +31,7 @@ use endpoints::{
         account_endpoints as service_account_endpoints,
         auxiliary_endpoints as service_auxiliary_endpoints,
         guest_endpoints as service_guest_endpoints,
+        tools_endpoints as service_tools_endpoints,
     },
     shared::insert_role_header,
     staff::account_endpoints as staff_account_endpoints,
@@ -45,11 +44,8 @@ use myc_adapters_shared_lib::models::{
 use myc_config::{
     init_vault_config_from_file, optional_config::OptionalConfig,
 };
-use myc_core::{
-    domain::entities::{
-        LocalMessageReading, LocalMessageWrite, RemoteMessageWrite,
-    },
-    settings::init_in_memory_routes,
+use myc_core::domain::entities::{
+    LocalMessageReading, LocalMessageWrite, RemoteMessageWrite,
 };
 use myc_diesel::repositories::{
     DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
@@ -59,6 +55,12 @@ use myc_http_tools::{
     settings::DEFAULT_REQUEST_ID_KEY,
 };
 use myc_kv::repositories::KVAppModule;
+use myc_mem_db::{
+    models::config::DbPoolProvider,
+    repositories::{
+        MemDbModule, MemDbPoolProvider, MemDbPoolProviderParameters,
+    },
+};
 use myc_notifier::{
     models::ClientProvider,
     repositories::{
@@ -72,13 +74,14 @@ use openssl::{
     x509::X509,
 };
 use otel::initialize_otel;
-use queue_dispatchers::{email_dispatcher, webhook_dispatcher};
 use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use router::route_request;
-use settings::{ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE};
+use settings::{
+    ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE, TOOLS_API_SCOPE,
+};
 use shaku::HasComponent;
 use std::{path::PathBuf, str::FromStr, sync::Arc};
 use tracing::{info, trace};
@@ -157,8 +160,8 @@ pub async fn main() -> std::io::Result<()> {
     // memory and the gateway should know the routes during their execution.
     //
     // ? -----------------------------------------------------------------------
-    info!("Initializing routes");
-    init_in_memory_routes(Some(config.api.routes.clone())).await;
+    //info!("Initializing routes");
+    //init_in_memory_routes(config.api.routes.clone()).await;
 
     // ? -----------------------------------------------------------------------
     // ? Initialize vault configuration
@@ -254,6 +257,18 @@ pub async fn main() -> std::io::Result<()> {
             .build(),
     );
 
+    let mem_module = Arc::new(
+        MemDbModule::builder()
+            .with_component_parameters::<MemDbPoolProvider>(
+                MemDbPoolProviderParameters {
+                    db: MemDbPoolProvider::new(config.api.routes.clone())
+                        .await
+                        .get_services_db(),
+                },
+            )
+            .build(),
+    );
+
     // ? -----------------------------------------------------------------------
     // ? Fire the scheduler
     //
@@ -342,6 +357,7 @@ pub async fn main() -> std::io::Result<()> {
             .app_data(web::Data::from(shared_module.clone()))
             .app_data(web::Data::from(notifier_module.clone()))
             .app_data(web::Data::from(kv_module.clone()))
+            .app_data(web::Data::from(mem_module.clone()))
             .app_data(web::Data::new(token_config).clone())
             .app_data(web::Data::new(auth_config.to_owned()).clone())
             //
@@ -533,10 +549,6 @@ pub async fn main() -> std::io::Result<()> {
                     .exclude_regex("/doc/redoc/*"),
             )
             // ? ---------------------------------------------------------------
-            // ? Configure Injection modules
-            // ? ---------------------------------------------------------------
-            .configure(configure_injection_modules)
-            // ? ---------------------------------------------------------------
             // ? Configure mycelium routes
             // ? ---------------------------------------------------------------
             .service(mycelium_scope)
@@ -565,6 +577,13 @@ pub async fn main() -> std::io::Result<()> {
                             .show_common_extensions(true)
                             .request_snippets_enabled(true),
                     ),
+            )
+            // ? ---------------------------------------------------------------
+            // ? Configure tools routes
+            // ? ---------------------------------------------------------------
+            .service(
+                web::scope(&format!("/{}", TOOLS_API_SCOPE))
+                    .configure(service_tools_endpoints::configure),
             )
             // ? ---------------------------------------------------------------
             // ? Configure gateway routes

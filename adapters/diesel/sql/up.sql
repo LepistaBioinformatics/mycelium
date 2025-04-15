@@ -25,8 +25,7 @@
 --------------------------------------------------------------------------------
 
 SELECT 'CREATE DATABASE "' || :'db_name' || '"'
-
-                            WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = :'db_name')\gexec
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = :'db_name')\gexec
 
 \c :"db_name"
 
@@ -229,6 +228,33 @@ CREATE TABLE message_queue (
     error TEXT DEFAULT NULL
 );
 
+-- Healthcheck logs table
+CREATE TABLE healthcheck_logs (
+    -- Route ID the user provided or route name-based identifier
+    route_id UUID NOT NULL,
+
+    -- Route name the user provided value
+    route_name VARCHAR(255) NOT NULL,
+
+    -- Timestamp the healthcheck was checked. This field is used to partition
+    -- the table
+    checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    status_code INT NOT NULL,
+    response_time_ms INT NOT NULL,
+    error_message TEXT,
+    response_body TEXT,
+    headers JSONB,
+    content_type TEXT,
+    response_size_bytes INT,
+    is_success BOOLEAN,
+    retry_count INT,
+    timeout_occurred BOOLEAN,
+    dns_resolved_ip INET,
+    gateway_instance_id UUID,
+    region TEXT
+) PARTITION BY RANGE (checked_at);
+
 --------------------------------------------------------------------------------
 -- CONSTRAINTS
 --------------------------------------------------------------------------------
@@ -310,6 +336,9 @@ ALTER TABLE webhook_execution ADD CONSTRAINT webhook_execution_pk PRIMARY KEY (i
 
 -- Message queue table constraints
 ALTER TABLE message_queue ADD CONSTRAINT message_queue_pk PRIMARY KEY (id);
+
+-- Healthcheck logs table constraints
+ALTER TABLE healthcheck_logs ADD CONSTRAINT healthcheck_logs_pk PRIMARY KEY (route_id, checked_at);
 
 --------------------------------------------------------------------------------
 -- VIEWS

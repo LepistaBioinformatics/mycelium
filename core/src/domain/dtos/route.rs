@@ -60,11 +60,11 @@ impl Route {
         service: Service,
         group: RouteType,
         methods: Vec<HttpMethod>,
-        downstream_url: String,
+        path: String,
         protocol: Protocol,
         allowed_sources: Option<Vec<String>>,
         secret_name: Option<String>,
-        route_without_tls: Option<bool>,
+        accept_insecure_routing: Option<bool>,
     ) -> Self {
         Self {
             id: match id {
@@ -72,10 +72,10 @@ impl Route {
                 None => Some(Uuid::new_v3(
                     &Uuid::NAMESPACE_DNS,
                     format!(
-                        "{service_name}-{protocol}-{downstream_url}-{methods}",
+                        "{service_name}-{protocol}-{path}-{methods}",
                         service_name = service.name,
                         protocol = protocol,
-                        downstream_url = downstream_url,
+                        path = path,
                         methods = methods
                             .iter()
                             .map(|m| m.to_string())
@@ -88,11 +88,11 @@ impl Route {
             service: Parent::Record(service),
             group,
             methods,
-            path: downstream_url,
+            path,
             protocol,
             allowed_sources,
             secret_name,
-            accept_insecure_routing: route_without_tls,
+            accept_insecure_routing,
         }
     }
 

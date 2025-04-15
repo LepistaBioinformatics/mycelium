@@ -2505,7 +2505,6 @@ dependencies = [
  "serde_yaml",
  "sha2",
  "shaku",
- "shaku_actix",
  "slugify",
  "tera",
  "test-log",
@@ -2573,7 +2572,6 @@ dependencies = [
  "serde",
  "serde_json",
  "shaku",
- "shaku_actix",
  "tokio",
  "tonic",
  "tracing",
@@ -2721,6 +2719,7 @@ dependencies = [
  "myc-core",
  "mycelium-base",
  "mycelium-config",
+ "serde",
  "shaku",
  "tracing",
  "uuid",
@@ -4119,17 +4118,6 @@ dependencies = [
  "anymap2",
  "once_cell",
  "shaku_derive",
-]
-
-[[package]]
-name = "shaku_actix"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4bf94dfba474de32f1cbacecced756c6c22ba1b20522bd1e2e8c0a4377a1557"
-dependencies = [
- "actix-web",
- "futures-util",
- "shaku",
 ]
 
 [[package]]

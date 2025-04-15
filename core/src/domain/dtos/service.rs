@@ -3,7 +3,6 @@ use super::{
 };
 
 use myc_config::secret_resolver::SecretResolver;
-use mycelium_base::dtos::UntaggedChildren;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -63,22 +62,69 @@ impl Serialize for ServiceSecret {
 #[serde(rename_all = "camelCase")]
 pub struct Service {
     /// The service id
+    ///
+    /// The id of the service. If the id is not provided, the service will be
+    /// generated using the name of the service.
+    ///
     pub id: Option<Uuid>,
 
     /// The service unique name
+    ///
+    /// The name of the service. The name should be unique and is used to
+    /// identify the service and call it from the gateway url path.
+    ///
     pub name: String,
 
     /// The service host
+    ///
+    /// The host of the service. The host should include the port number.
+    ///
     pub host: String,
 
+    /// The service routes
+    ///
+    /// The routes of the service.
+    ///
+    pub routes: Vec<Route>,
+
+    /// The service discoverable
+    ///
+    /// When true, the service will be discovered by LLM agents.
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub discoverable: Option<bool>,
+
+    /// The service description
+    ///
+    /// Optional together with discoverable field. The description of the
+    /// service. The description should be used during the service discovery by
+    /// LLM agents.
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+
+    /// The service openapi path
+    ///
+    /// Optional together with discoverable field. The path to the openapi.json
+    /// file. The file should be used for external clients to discover the
+    /// service. Is is used for the service discovery by LLM agents.
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub openapi_path: Option<String>,
+
     /// The service health check configuration
+    ///
+    /// The health check configuration for the service.
+    ///
     #[serde(skip_serializing_if = "Option::is_none")]
     pub health_check: Option<HealthCheckConfig>,
 
-    /// The service routes
-    pub routes: UntaggedChildren<Route, Uuid>,
-
     /// The service secrets
+    ///
+    /// The secrets of the service. Secrets are used to authenticate the api
+    /// gateway at the downstream service. Individual routes can request a
+    /// specific secret of this secrets vector.
+    ///
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secrets: Option<Vec<ServiceSecret>>,
 }
@@ -88,10 +134,30 @@ impl Service {
         id: Option<Uuid>,
         name: String,
         host: String,
+        discoverable: Option<bool>,
+        description: Option<String>,
+        openapi_path: Option<String>,
         health_check: Option<HealthCheckConfig>,
         routes: Vec<Route>,
         secrets: Option<Vec<ServiceSecret>>,
     ) -> Self {
+        //
+        // If the service is discoverable, the description, health_check and
+        // openapi_path are required.
+        //
+        if Some(true) == discoverable {
+            if [
+                description.is_none(),
+                openapi_path.is_none(),
+                health_check.is_none(),
+            ]
+            .iter()
+            .any(|b| *b)
+            {
+                panic!("The description, health_check and openapi_path are required when the service is discoverable");
+            }
+        }
+
         Self {
             id: match id {
                 Some(id) => Some(id),
@@ -101,8 +167,11 @@ impl Service {
             },
             name,
             host,
+            discoverable,
+            description,
+            openapi_path,
             health_check,
-            routes: UntaggedChildren::Records(routes),
+            routes,
             secrets,
         }
     }
