@@ -124,7 +124,7 @@ impl Route {
             }
         };
 
-        let host = service.to_owned().host;
+        let host = service.to_owned().host.choose_host();
         let path_parts = host.split("/").collect::<Vec<&str>>();
         let domain = path_parts[0];
 

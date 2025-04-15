@@ -243,16 +243,23 @@ CREATE TABLE healthcheck_logs (
     status_code INT NOT NULL,
     response_time_ms INT NOT NULL,
     error_message TEXT,
+
+    -- Response fields
     response_body TEXT,
     headers JSONB,
     content_type TEXT,
     response_size_bytes INT,
     is_success BOOLEAN,
+
+    -- Diagnostic fields
     retry_count INT,
     timeout_occurred BOOLEAN,
     dns_resolved_ip INET,
+
+    -- Infrastructure fields
     gateway_instance_id UUID,
     region TEXT
+
 ) PARTITION BY RANGE (checked_at);
 
 --------------------------------------------------------------------------------

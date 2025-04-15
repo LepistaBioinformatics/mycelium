@@ -1,9 +1,8 @@
 use crate::domain::dtos::{
-    health_check::HealthCheckConfig,
     http::{HttpMethod, Protocol},
     route::Route,
     route_type::RouteType,
-    service::{Service, ServiceSecret},
+    service::{Service, ServiceHost, ServiceSecret},
 };
 
 use futures::executor::block_on;
@@ -25,11 +24,12 @@ struct TempMainConfigDTO {
 struct TempServiceDTO {
     pub id: Option<Uuid>,
     pub name: String,
-    pub host: String,
+    #[serde(alias = "hosts")]
+    pub host: ServiceHost,
     pub discoverable: Option<bool>,
     pub description: Option<String>,
     pub openapi_path: Option<String>,
-    pub health_check: Option<HealthCheckConfig>,
+    pub health_check_path: Option<String>,
     pub routes: Vec<TempRouteDTO>,
     pub secrets: Option<Vec<ServiceSecret>>,
 }
@@ -43,7 +43,7 @@ impl TempServiceDTO {
             self.discoverable.clone(),
             self.description.clone(),
             self.openapi_path.clone(),
-            self.health_check.clone(),
+            self.health_check_path.clone(),
             vec![],
             self.secrets,
         )

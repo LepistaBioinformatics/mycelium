@@ -13,7 +13,16 @@ services:
 
   - name: test-service-01
     # Required field. The host of the service. The host should include the port
-    # number.
+    # number. It can be a single host or a vector of hosts.
+    #
+    # Example:
+    #
+    # ```yaml
+    # hosts:
+    #   - localhost:8083
+    #   - localhost:8084
+    # ```
+    #
     host: localhost:8083
 
     # Optional. When true, the service will be discovered by LLM agents.
@@ -30,10 +39,7 @@ services:
 
     # Optional together with discoverable field. The health check configuration
     # for the service.
-    healthCheck:
-      path: /health
-      healthResponseCodes:
-        - 200
+    healthCheckPath: /health
 
     # --------------------------------------------------------------------------
     # Define secrets
