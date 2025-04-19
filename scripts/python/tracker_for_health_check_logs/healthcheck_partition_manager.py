@@ -31,6 +31,17 @@ logging.basicConfig(
 
 
 def __send_telegram_alert(token: str, chat_id: str, message: str) -> None:
+    """Send an alert to Telegram.
+
+    Args:
+        token (str): Telegram bot token.
+        chat_id (str): Telegram chat ID.
+        message (str): Message to send.
+
+    Raises:
+        Exception: If the request to Telegram fails.
+    """
+
     try:
         url = f"https://api.telegram.org/bot{token}/sendMessage"
         data = {"chat_id": chat_id, "text": message}
@@ -99,6 +110,24 @@ def __main(
     telegram_chat_id: str,
     backup_dir: str,
 ) -> None:
+    """Main function.
+
+    Args:
+        db_name (str): Database name.
+        db_user (str): Database user.
+        db_host (str): Database host.
+        azure_container (str): Azure container.
+        azure_account (str): Azure storage account.
+        gcs_bucket (str): Google Cloud Storage bucket.
+        telegram_token (str): Telegram bot token.
+        telegram_chat_id (str): Telegram chat ID.
+        backup_dir (str): Temporary backup directory.
+
+    Raises:
+        click.UsageError: If no storage service is selected.
+        Exception: If an error occurs.
+    """
+
     #
     # Validate that at least one storage service was selected
     #
@@ -256,7 +285,7 @@ def __main(
         #
         logging.info(f"Dropping partition {partition_drop}...")
 
-        subprocess.run(
+        drop_partition = subprocess.run(
             [
                 "psql",
                 "-U",
