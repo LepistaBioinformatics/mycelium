@@ -39,7 +39,7 @@ impl ServiceRead for ServiceReadMemDbRepo {
                 // requested service id.
                 //
                 if let Some(id) = &id {
-                    service.id == Some(*id)
+                    service.id == *id
                 } else {
                     true
                 }

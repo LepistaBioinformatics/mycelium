@@ -111,7 +111,7 @@ pub struct Service {
     /// The id of the service. If the id is not provided, the service will be
     /// generated using the name of the service.
     ///
-    pub id: Option<Uuid>,
+    pub id: Uuid,
 
     /// The service unique name
     ///
@@ -208,10 +208,8 @@ impl Service {
 
         Self {
             id: match id {
-                Some(id) => Some(id),
-                None => {
-                    Some(Uuid::new_v3(&Uuid::NAMESPACE_DNS, name.as_bytes()))
-                }
+                Some(id) => id,
+                None => Uuid::new_v3(&Uuid::NAMESPACE_DNS, name.as_bytes()),
             },
             name,
             host,
