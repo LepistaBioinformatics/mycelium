@@ -11,7 +11,7 @@ use myc_http_tools::{
         fetch_many_response_kind, handle_mapped_error,
     },
 };
-use myc_mem_db::repositories::MemDbModule;
+use myc_mem_db::repositories::MemDbAppModule;
 use serde::Deserialize;
 use shaku::HasComponent;
 use utoipa::{IntoParams, ToSchema};
@@ -81,7 +81,7 @@ pub struct ListRoutesByServiceParams {
 pub async fn list_routes_url(
     query: web::Query<ListRoutesByServiceParams>,
     profile: MyceliumProfileData,
-    app_module: web::Data<MemDbModule>,
+    app_module: web::Data<MemDbAppModule>,
 ) -> impl Responder {
     match list_routes(
         profile.to_profile(),

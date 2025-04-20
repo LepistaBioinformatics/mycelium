@@ -9,7 +9,7 @@ use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error,
 };
-use myc_mem_db::repositories::MemDbModule;
+use myc_mem_db::repositories::MemDbAppModule;
 use mycelium_base::entities::FetchManyResponseKind;
 use serde::Deserialize;
 use serde_json::json;
@@ -81,7 +81,7 @@ pub struct ListServicesParams {
 pub async fn list_discoverable_services_url(
     query: web::Query<ListServicesParams>,
     request: HttpRequest,
-    app_module: web::Data<MemDbModule>,
+    app_module: web::Data<MemDbAppModule>,
 ) -> impl Responder {
     match list_discoverable_services(
         query.id.to_owned(),

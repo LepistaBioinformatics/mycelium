@@ -5,6 +5,7 @@ use myc_core::{
     use_cases::gateway::routes::load_config_from_yaml,
 };
 use shaku::Component;
+use std::sync::{Arc, Mutex};
 
 // ? ---------------------------------------------------------------------------
 // ? Configure routes and profile
@@ -14,14 +15,30 @@ use shaku::Component;
 
 #[derive(Component)]
 #[shaku(interface = DbPoolProvider)]
-#[derive(Debug, Clone)]
 pub struct MemDbPoolProvider {
-    db: Vec<Service>,
+    #[shaku(default)]
+    pub services_db: Arc<Mutex<Vec<Service>>>,
 }
 
 impl DbPoolProvider for MemDbPoolProvider {
     fn get_services_db(&self) -> Vec<Service> {
-        self.db.clone()
+        self.services_db.lock().unwrap().clone()
+    }
+
+    fn get_services_db_mut(&self) -> Vec<Service> {
+        self.services_db.lock().unwrap().clone()
+    }
+
+    fn set_services_db(&self, services: Vec<Service>) {
+        *self.services_db.lock().unwrap() = services;
+    }
+}
+
+impl Default for MemDbPoolProvider {
+    fn default() -> Self {
+        Self {
+            services_db: Arc::new(Mutex::new(vec![])),
+        }
     }
 }
 
@@ -30,7 +47,9 @@ impl MemDbPoolProvider {
         let source_file_path = match routes.clone() {
             None => {
                 tracing::info!("Routes file not provided. Initializing in memory routes without downstream services.");
-                return Self { db: vec![] };
+                return Self {
+                    services_db: Arc::new(Mutex::new(vec![])),
+                };
             }
             Some(path) => path,
         };
@@ -42,6 +61,8 @@ impl MemDbPoolProvider {
             })
             .unwrap();
 
-        Self { db }
+        Self {
+            services_db: Arc::new(Mutex::new(db)),
+        }
     }
 }

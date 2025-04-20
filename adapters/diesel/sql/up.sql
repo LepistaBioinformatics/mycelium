@@ -230,36 +230,37 @@ CREATE TABLE message_queue (
 
 -- Healthcheck logs table
 CREATE TABLE healthcheck_logs (
-    -- Route ID the user provided or route name-based identifier
+    --
+    -- Required fields always present
+    --
+    -- Route ID. The user provided or route name-based identifier
     route_id UUID NOT NULL,
 
-    -- Route name the user provided value
+    -- Route name. The user provided value
     route_name VARCHAR(255) NOT NULL,
 
-    -- Timestamp the healthcheck was checked. This field is used to partition
+    -- Timestamp. The healthcheck was checked. This field is used to partition
     -- the table
     checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
+    -- Status code. The status code of the healthcheck
     status_code INT NOT NULL,
-    response_time_ms INT NOT NULL,
-    error_message TEXT,
 
-    -- Response fields
+    -- Response time in milliseconds. The time it took to receive the response
+    response_time_ms INT NOT NULL,
+
+    -- DNS resolved IP. The IP address of the DNS resolved
+    dns_resolved_ip INET,
+
+    --
+    -- Optional fields when the healthcheck is not successful
+    --
     response_body TEXT,
     headers JSONB,
     content_type TEXT,
     response_size_bytes INT,
-    is_success BOOLEAN,
-
-    -- Diagnostic fields
     retry_count INT,
-    timeout_occurred BOOLEAN,
-    dns_resolved_ip INET,
-
-    -- Infrastructure fields
-    gateway_instance_id UUID,
-    region TEXT
-
+    timeout_occurred BOOLEAN
 ) PARTITION BY RANGE (checked_at);
 
 --------------------------------------------------------------------------------

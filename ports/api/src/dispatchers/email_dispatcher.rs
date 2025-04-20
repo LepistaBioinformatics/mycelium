@@ -17,7 +17,7 @@ pub(crate) fn email_dispatcher(
     remote_message_write_repo: Arc<dyn RemoteMessageWrite>,
 ) {
     tokio::spawn(async move {
-        tracing::trace!("Starting email dispatcher");
+        tracing::info!("Starting email dispatcher");
 
         let mut interval = actix_rt::time::interval(Duration::from_secs(
             match queue_config

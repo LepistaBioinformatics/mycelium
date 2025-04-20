@@ -25,6 +25,9 @@ services:
     #
     host: localhost:8083
 
+    # Optional. The protocol of the service.
+    protocol: http
+
     # Optional. When true, the service will be discovered by LLM agents.
     discoverable: true
 
@@ -125,7 +128,6 @@ services:
       #
       - group: public
         path: /public*
-        protocol: http
         methods:
           - GET
 
@@ -134,7 +136,6 @@ services:
       #
       - group: protected
         path: /protected*
-        protocol: http
         methods:
           - GET
 
@@ -149,7 +150,6 @@ services:
           roles:
             - new-users
         path: /protected*
-        protocol: http
         methods:
           - GET
 
@@ -164,7 +164,6 @@ services:
           permissionedRoles:
             - [admin, read]
         path: /protected*
-        protocol: http
         methods:
           - GET
 
@@ -180,7 +179,6 @@ services:
           roles:
             - newbie
         path: /role-protected*
-        protocol: http
         methods:
           - GET
 
@@ -196,13 +194,11 @@ services:
           permissionedRoles:
             - [newbie, read]
         path: /expects-header*
-        protocol: http
         methods:
           - GET
     # - group: protected
     #   secretName: test-service-01-authorization-header-token
     #   path: /expects-header*
-    #   protocol: http
     #   acceptInsecureRouting: true
     #   methods:
     #   - GET

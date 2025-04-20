@@ -29,7 +29,7 @@ use myc_http_tools::{
         FORWARD_FOR_KEY,
     },
 };
-use myc_mem_db::repositories::MemDbModule;
+use myc_mem_db::repositories::MemDbAppModule;
 use mycelium_base::{dtos::Parent, entities::FetchResponseKind};
 use shaku::HasComponent;
 use std::{str::FromStr, time::Duration};
@@ -57,7 +57,7 @@ pub(crate) async fn route_request(
     client: web::Data<Client>,
     api_config: web::Data<ApiConfig>,
     timeout: web::Data<u64>,
-    app_module: web::Data<MemDbModule>,
+    app_module: web::Data<MemDbAppModule>,
 ) -> Result<HttpResponse, GatewayError> {
     let replace_path = &format!("/{}", GATEWAY_API_SCOPE);
 
@@ -398,7 +398,16 @@ pub(crate) async fn route_request(
         //
         // Check if the route supports HTTPS
         //
-        if ![Protocol::Https].contains(&route.protocol) {
+        if ![Protocol::Https].contains(&match route.service {
+            Parent::Record(ref service) => service.protocol,
+            Parent::Id(_) => {
+                error!("Service not found");
+
+                return Err(GatewayError::InternalServerError(String::from(
+                    "Service not found",
+                )));
+            }
+        }) {
             if !accept_insecure_routing {
                 error!(
                     "Secrets are only allowed for HTTPS routes: {path}",

@@ -10,4 +10,6 @@ pub struct MemDbConfig {
 
 pub trait DbPoolProvider: Interface + Send + Sync {
     fn get_services_db(&self) -> Vec<Service>;
+    fn get_services_db_mut(&self) -> Vec<Service>;
+    fn set_services_db(&self, db: Vec<Service>);
 }

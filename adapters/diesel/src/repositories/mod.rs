@@ -6,6 +6,7 @@ mod config;
 mod error_code;
 mod guest_role;
 mod guest_user;
+mod health_check_info;
 mod licensed_resources;
 mod message;
 mod profile;
@@ -20,6 +21,7 @@ use account_tag::*;
 use error_code::*;
 use guest_role::*;
 use guest_user::*;
+use health_check_info::*;
 use licensed_resources::*;
 use message::*;
 use profile::*;
@@ -60,6 +62,7 @@ module! {
             GuestUserFetchingSqlDbRepository,
             GuestUserOnAccountUpdatingSqlDbRepository,
             GuestUserRegistrationSqlDbRepository,
+            HealthCheckInfoWriteSqlDbRepository,
             ProfileFetchingSqlDbRepository,
             LicensedResourcesFetchingSqlDbRepository,
             LocalMessageReadSqlDbRepository,

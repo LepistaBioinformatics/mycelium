@@ -18,7 +18,9 @@ use actix_web::{
 use actix_web_opentelemetry::RequestTracing;
 use api_docs::ApiDoc;
 use awc::{error::HeaderValue, Client};
-use dispatchers::{email_dispatcher, webhook_dispatcher};
+use dispatchers::{
+    email_dispatcher, services_health_dispatcher, webhook_dispatcher,
+};
 use endpoints::{
     index::heath_check_endpoints,
     manager::{
@@ -58,7 +60,7 @@ use myc_kv::repositories::KVAppModule;
 use myc_mem_db::{
     models::config::DbPoolProvider,
     repositories::{
-        MemDbModule, MemDbPoolProvider, MemDbPoolProviderParameters,
+        MemDbAppModule, MemDbPoolProvider, MemDbPoolProviderParameters,
     },
 };
 use myc_notifier::{
@@ -83,7 +85,7 @@ use settings::{
     ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE, TOOLS_API_SCOPE,
 };
 use shaku::HasComponent;
-use std::{path::PathBuf, str::FromStr, sync::Arc};
+use std::{path::PathBuf, str::FromStr, sync::Arc, sync::Mutex};
 use tracing::{info, trace};
 use tracing_actix_web::TracingLogger;
 use utoipa::OpenApi;
@@ -258,12 +260,14 @@ pub async fn main() -> std::io::Result<()> {
     );
 
     let mem_module = Arc::new(
-        MemDbModule::builder()
+        MemDbAppModule::builder()
             .with_component_parameters::<MemDbPoolProvider>(
                 MemDbPoolProviderParameters {
-                    db: MemDbPoolProvider::new(config.api.routes.clone())
-                        .await
-                        .get_services_db(),
+                    services_db: Arc::new(Mutex::new(
+                        MemDbPoolProvider::new(config.api.routes.clone())
+                            .await
+                            .get_services_db(),
+                    )),
                 },
             )
             .build(),
@@ -298,7 +302,7 @@ pub async fn main() -> std::io::Result<()> {
     );
 
     // ? -----------------------------------------------------------------------
-    // ? Fire the scheduler
+    // ? Fire the webhook dispatcher
     //
     // The webhook dispatcher should be fired to allow webhooks to be dispatched.
     // Dispatching will occur in a separate thread.
@@ -306,6 +310,20 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     info!("Fire webhook dispatcher");
     webhook_dispatcher(config.core.to_owned(), sql_module.clone());
+
+    // ? -----------------------------------------------------------------------
+    // ? Fire the services health dispatcher
+    //
+    // The services health dispatcher should be fired to allow the services
+    // health to be checked.
+    //
+    // ? -----------------------------------------------------------------------
+    info!("Fire services health dispatcher");
+    services_health_dispatcher(
+        config.api.clone(),
+        sql_module.clone(),
+        mem_module.clone(),
+    );
 
     // ? -----------------------------------------------------------------------
     // ? Configure the server

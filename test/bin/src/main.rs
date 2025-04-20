@@ -5,6 +5,11 @@ use myc_http_tools::dtos::gateway_profile_data::GatewayProfileData;
 use serde::Deserialize;
 use std::env::var_os;
 
+#[get("")]
+async fn health() -> impl Responder {
+    HttpResponse::Ok().body("success")
+}
+
 // ? ---------------------------------------------------------------------------
 // ? Public Route
 // ? ---------------------------------------------------------------------------
@@ -67,6 +72,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
+            .service(web::scope("/health").service(health))
             .service(web::scope("/public").service(public))
             .service(web::scope("/protected").service(protected))
             .service(web::scope("/role-protected").service(expects_header))

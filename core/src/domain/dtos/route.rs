@@ -1,7 +1,5 @@
 use super::{
-    http::{HttpMethod, Protocol},
-    http_secret::HttpSecret,
-    route_type::RouteType,
+    http::HttpMethod, http_secret::HttpSecret, route_type::RouteType,
     service::Service,
 };
 
@@ -34,9 +32,6 @@ pub struct Route {
     /// The route url
     pub path: String,
 
-    /// The route protocol
-    pub protocol: Protocol,
-
     /// The route is active
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allowed_sources: Option<Vec<String>>,
@@ -61,7 +56,6 @@ impl Route {
         group: RouteType,
         methods: Vec<HttpMethod>,
         path: String,
-        protocol: Protocol,
         allowed_sources: Option<Vec<String>>,
         secret_name: Option<String>,
         accept_insecure_routing: Option<bool>,
@@ -72,9 +66,8 @@ impl Route {
                 None => Some(Uuid::new_v3(
                     &Uuid::NAMESPACE_DNS,
                     format!(
-                        "{service_name}-{protocol}-{path}-{methods}",
+                        "{service_name}-{path}-{methods}",
                         service_name = service.name,
-                        protocol = protocol,
                         path = path,
                         methods = methods
                             .iter()
@@ -89,7 +82,6 @@ impl Route {
             group,
             methods,
             path,
-            protocol,
             allowed_sources,
             secret_name,
             accept_insecure_routing,
@@ -129,7 +121,7 @@ impl Route {
         let domain = path_parts[0];
 
         match Uri::builder()
-            .scheme(self.protocol.to_string().as_str())
+            .scheme(service.protocol.to_string().as_str())
             .authority(domain)
             .path_and_query(self.path.as_str())
             .build()
