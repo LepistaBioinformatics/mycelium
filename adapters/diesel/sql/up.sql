@@ -256,6 +256,7 @@ CREATE TABLE healthcheck_logs (
     -- Optional fields when the healthcheck is not successful
     --
     response_body TEXT,
+    error_message TEXT,
     headers JSONB,
     content_type TEXT,
     response_size_bytes INT,
