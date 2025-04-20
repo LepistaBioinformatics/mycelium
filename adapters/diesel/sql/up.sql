@@ -250,7 +250,7 @@ CREATE TABLE healthcheck_logs (
     response_time_ms INT NOT NULL,
 
     -- DNS resolved IP. The IP address of the DNS resolved
-    dns_resolved_ip INET,
+    dns_resolved_ip VARCHAR(64),
 
     --
     -- Optional fields when the healthcheck is not successful
