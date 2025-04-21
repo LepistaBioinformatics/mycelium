@@ -110,7 +110,12 @@ def __main(
     telegram_chat_id: str,
     backup_dir: str,
 ) -> None:
-    """Main function.
+    """Discover, backup and drop healthcheck partitions.
+
+    Description:
+        This script discovers healthcheck partitions that are older than 15 days
+        and drops them. It also backs up the partitions to Azure Blob Storage or
+        Google Cloud Storage.
 
     Args:
         db_name (str): Database name.
@@ -141,65 +146,13 @@ def __main(
     os.makedirs(backup_dir, exist_ok=True)
 
     today = datetime.now().date()
-    tomorrow = today + timedelta(days=1)
-    day_after = today + timedelta(days=2)
     drop_date = today - timedelta(days=15)
 
-    partition_today = f"healthcheck_logs_{today.strftime('%Y%m%d')}"
-    partition_tomorrow = f"healthcheck_logs_{tomorrow.strftime('%Y%m%d')}"
     partition_drop = f"healthcheck_logs_{drop_date.strftime('%Y%m%d')}"
     tsv_file = f"{partition_drop}.tsv"
     tsv_path = os.path.join(backup_dir, tsv_file)
 
     try:
-        #
-        # Create partitions
-        #
-        logging.info("Creating current and next day partitions...")
-
-        partition_sql = f"""
-        DO $$
-        BEGIN
-            IF NOT EXISTS (
-                SELECT 1 FROM pg_tables WHERE tablename = '{partition_today}'
-            ) THEN
-                EXECUTE 'CREATE TABLE {partition_today}
-                         PARTITION OF healthcheck_logs
-                         FOR VALUES FROM (''{today}'') TO (''{tomorrow}'')';
-            END IF;
-
-            IF NOT EXISTS (
-                SELECT 1 FROM pg_tables WHERE tablename = '{partition_tomorrow}'
-            ) THEN
-                EXECUTE 'CREATE TABLE {partition_tomorrow}
-                         PARTITION OF healthcheck_logs
-                         FOR VALUES FROM (''{tomorrow}'') TO (''{day_after}'')';
-            END IF;
-        END $$;
-        """
-
-        create_partitions = subprocess.run(
-            [
-                "psql",
-                "-U",
-                db_user,
-                "-d",
-                db_name,
-                "-h",
-                db_host,
-                "-c",
-                partition_sql,
-            ],
-            check=True,
-            capture_output=True,
-        )
-
-        if create_partitions.returncode != 0:
-            logging.error(f"Failed to create partitions: {create_partitions.stderr}")
-            __send_telegram_alert(telegram_token, telegram_chat_id, f"🚨 {msg}")
-
-            return
-
         #
         # Export TSV
         #
