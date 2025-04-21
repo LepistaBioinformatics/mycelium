@@ -217,10 +217,10 @@ diesel::table! {
 }
 
 diesel::table! {
-    healthcheck_logs (route_id, checked_at) {
-        route_id -> Uuid,
+    healthcheck_logs (service_id, checked_at) {
+        service_id -> Uuid,
         #[max_length = 255]
-        route_name -> Varchar,
+        service_name -> Varchar,
         checked_at -> Timestamptz,
         status_code -> Int4,
         response_time_ms -> Int4,

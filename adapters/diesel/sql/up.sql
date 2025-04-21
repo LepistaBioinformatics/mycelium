@@ -233,11 +233,11 @@ CREATE TABLE healthcheck_logs (
     --
     -- Required fields always present
     --
-    -- Route ID. The user provided or route name-based identifier
-    route_id UUID NOT NULL,
+    -- Service ID. The user provided or service name-based identifier
+    service_id UUID NOT NULL,
 
-    -- Route name. The user provided value
-    route_name VARCHAR(255) NOT NULL,
+    -- Service name. The user provided value
+    service_name VARCHAR(255) NOT NULL,
 
     -- Timestamp. The healthcheck was checked. This field is used to partition
     -- the table

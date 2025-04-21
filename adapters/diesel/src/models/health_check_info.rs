@@ -8,8 +8,8 @@ use uuid::Uuid;
 #[diesel(table_name = crate::schema::healthcheck_logs)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub(crate) struct HealthcheckInfo {
-    pub route_id: Uuid,
-    pub route_name: String,
+    pub service_id: Uuid,
+    pub service_name: String,
     pub checked_at: DateTime<Utc>,
     pub status_code: i32,
     pub response_time_ms: i32,

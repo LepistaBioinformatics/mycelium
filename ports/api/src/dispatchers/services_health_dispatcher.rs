@@ -1,5 +1,6 @@
 use crate::models::api_config::ApiConfig;
 
+use chrono::Local;
 use futures::future::join_all;
 use myc_core::domain::{
     dtos::{
@@ -74,6 +75,21 @@ pub(crate) fn services_health_dispatcher(
             interval.tick().await;
 
             tracing::trace!("Checking services health");
+
+            //
+            // Ensure daily partition
+            //
+            let checked_at = Local::now();
+            if let Err(err) = inner_health_check_info_write_repo
+                .ensure_dailly_partition(checked_at)
+                .await
+            {
+                tracing::error!(
+                    "Error on ensure daily partition during services health dispatcher: {err}"
+                );
+
+                continue;
+            }
 
             //
             // Fetch services
@@ -299,29 +315,37 @@ async fn check_host_health(
     //
     // ? -----------------------------------------------------------------------
 
+    let health_check_info_for_service = health_check_info.clone();
+
     service_write_repo
         .inform_health_status(
             service_id,
             service_name.clone(),
             match insident_level {
-                0 => HealthStatus::set_health(health_check_info.checked_at),
+                0 => HealthStatus::set_health(
+                    health_check_info_for_service.checked_at,
+                ),
                 1 => HealthStatus::set_unhealthy(
                     health_status,
-                    health_check_info.checked_at,
+                    health_check_info_for_service.checked_at,
                     retry_count,
                     UnhealthyInstance {
                         host,
-                        status_code: health_check_info.status_code,
-                        response_body: health_check_info.response_body,
-                        error_message: health_check_info.error_message,
-                        checked_at: health_check_info.checked_at,
+                        status_code: health_check_info_for_service.status_code,
+                        response_body: health_check_info_for_service
+                            .response_body,
+                        error_message: health_check_info_for_service
+                            .error_message,
+                        checked_at: health_check_info_for_service.checked_at,
                     },
                     max_instances,
                 ),
                 2 => HealthStatus::set_unavailable(
-                    health_check_info.checked_at,
+                    health_check_info_for_service.checked_at,
                     retry_count,
-                    health_check_info.error_message.unwrap_or_default(),
+                    health_check_info_for_service
+                        .error_message
+                        .unwrap_or_default(),
                 ),
                 _ => unreachable!(),
             },
@@ -335,7 +359,9 @@ async fn check_host_health(
     //
     // ? -----------------------------------------------------------------------
 
-    Ok(())
+    health_check_info_write_repo
+        .register_health_check_info(health_check_info)
+        .await
 }
 
 /// Parse valid http response
