@@ -1,4 +1,6 @@
-use myc_core::domain::dtos::service::Service;
+use myc_core::domain::dtos::{
+    health_check_info::HealthStatus, service::Service,
+};
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -29,6 +31,12 @@ pub struct Tool {
     /// service. Is is used for the service discovery by LLM agents.
     ///
     pub openapi_path: String,
+
+    /// The service health status
+    ///
+    /// The health status of the service.
+    ///
+    pub health_status: HealthStatus,
 }
 
 impl Tool {
@@ -67,6 +75,7 @@ impl Tool {
                 name = service.name.trim_end_matches('/'),
                 openapi_path = openapi_path.trim_start_matches("/")
             ),
+            health_status: service.health_status,
         })
     }
 }

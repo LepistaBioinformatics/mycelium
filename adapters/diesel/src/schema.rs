@@ -216,6 +216,25 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    healthcheck_logs (service_id, checked_at) {
+        service_id -> Uuid,
+        #[max_length = 255]
+        service_name -> Varchar,
+        checked_at -> Timestamptz,
+        status_code -> Int4,
+        response_time_ms -> Int4,
+        dns_resolved_ip -> Nullable<Text>,
+        response_body -> Nullable<Text>,
+        error_message -> Nullable<Text>,
+        headers -> Nullable<Jsonb>,
+        content_type -> Nullable<Text>,
+        response_size_bytes -> Nullable<Int4>,
+        retry_count -> Nullable<Int4>,
+        timeout_occurred -> Nullable<Bool>,
+    }
+}
+
 diesel::joinable!(account -> tenant (tenant_id));
 diesel::joinable!(account_tag -> account (account_id));
 diesel::joinable!(guest_user -> guest_role (guest_role_id));
@@ -238,6 +257,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     guest_role_children,
     guest_user,
     guest_user_on_account,
+    healthcheck_logs,
     identity_provider,
     manager_account_on_tenant,
     owner_on_tenant,

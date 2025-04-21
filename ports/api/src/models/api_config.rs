@@ -92,6 +92,9 @@ pub struct ApiConfig {
     pub routes: Option<String>,
     pub tls: OptionalConfig<TlsConfig>,
     pub cache: Option<CacheConfig>,
+    pub health_check_interval: Option<u64>,
+    pub max_retry_count: Option<u32>,
+    pub max_error_instances: Option<u32>,
 }
 
 #[derive(Clone, Debug, Deserialize)]

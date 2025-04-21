@@ -1,8 +1,10 @@
 use super::{
-    health_check::HealthCheckConfig, http_secret::HttpSecret, route::Route,
+    health_check_info::HealthStatus, http::Protocol, http_secret::HttpSecret,
+    route::Route,
 };
 
 use myc_config::secret_resolver::SecretResolver;
+use rand::seq::SliceRandom;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
@@ -54,6 +56,52 @@ impl Serialize for ServiceSecret {
     }
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema, PartialEq, Eq)]
+#[serde(untagged, rename_all = "camelCase")]
+pub enum ServiceHost {
+    /// The host of the service
+    ///
+    /// The host should include the port number.
+    ///
+    /// Example:
+    ///
+    /// ```yaml
+    /// host: localhost:8080
+    /// ```
+    ///
+    Host(String),
+
+    /// The hosts of the service
+    ///
+    /// The hosts should include the port number.
+    ///
+    /// Example:
+    ///
+    /// ```yaml
+    /// hosts:
+    ///   - localhost:8080
+    ///   - localhost:8081
+    /// ```
+    ///
+    Hosts(Vec<String>),
+}
+
+impl ServiceHost {
+    /// Random select a host if the host is a Hosts
+    ///
+    /// If the host is a Hosts, the function will return a random host from the
+    /// vector.
+    ///
+    pub fn choose_host(&self) -> String {
+        match self {
+            ServiceHost::Host(host) => host.clone(),
+            ServiceHost::Hosts(hosts) => {
+                hosts.choose(&mut rand::thread_rng()).unwrap().clone()
+            }
+        }
+    }
+}
+
 /// The Upstream Service
 ///
 /// The service is the upstream service that the route will proxy to.
@@ -66,7 +114,7 @@ pub struct Service {
     /// The id of the service. If the id is not provided, the service will be
     /// generated using the name of the service.
     ///
-    pub id: Option<Uuid>,
+    pub id: Uuid,
 
     /// The service unique name
     ///
@@ -77,15 +125,34 @@ pub struct Service {
 
     /// The service host
     ///
-    /// The host of the service. The host should include the port number.
+    /// The host of the service. The host should include the port number. It
+    /// can be a single host or a vector of hosts.
     ///
-    pub host: String,
+    #[serde(alias = "hosts")]
+    pub host: ServiceHost,
+
+    /// The service protocol
+    ///
+    /// The protocol of the service.
+    ///
+    #[serde(default = "default_protocol")]
+    pub protocol: Protocol,
 
     /// The service routes
     ///
     /// The routes of the service.
     ///
     pub routes: Vec<Route>,
+
+    /// The health status of the service
+    ///
+    pub health_status: HealthStatus,
+
+    /// The service health check configuration
+    ///
+    /// The health check configuration for the service.
+    ///
+    pub health_check_path: String,
 
     /// The service discoverable
     ///
@@ -112,13 +179,6 @@ pub struct Service {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub openapi_path: Option<String>,
 
-    /// The service health check configuration
-    ///
-    /// The health check configuration for the service.
-    ///
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub health_check: Option<HealthCheckConfig>,
-
     /// The service secrets
     ///
     /// The secrets of the service. Secrets are used to authenticate the api
@@ -129,15 +189,20 @@ pub struct Service {
     pub secrets: Option<Vec<ServiceSecret>>,
 }
 
+fn default_protocol() -> Protocol {
+    Protocol::Http
+}
+
 impl Service {
     pub(crate) fn new(
         id: Option<Uuid>,
         name: String,
-        host: String,
+        host: ServiceHost,
+        protocol: Protocol,
         discoverable: Option<bool>,
         description: Option<String>,
         openapi_path: Option<String>,
-        health_check: Option<HealthCheckConfig>,
+        health_check_path: String,
         routes: Vec<Route>,
         secrets: Option<Vec<ServiceSecret>>,
     ) -> Self {
@@ -146,33 +211,37 @@ impl Service {
         // openapi_path are required.
         //
         if Some(true) == discoverable {
-            if [
-                description.is_none(),
-                openapi_path.is_none(),
-                health_check.is_none(),
-            ]
-            .iter()
-            .any(|b| *b)
-            {
-                panic!("The description, health_check and openapi_path are required when the service is discoverable");
+            for (name, param) in [
+                ("description", description.is_none()),
+                ("openapiPath", openapi_path.is_none()),
+            ] {
+                if param {
+                    panic!(
+                        "The parameter '{name}' is required for discoverable services",
+                    );
+                }
             }
         }
 
         Self {
             id: match id {
-                Some(id) => Some(id),
-                None => {
-                    Some(Uuid::new_v3(&Uuid::NAMESPACE_DNS, name.as_bytes()))
-                }
+                Some(id) => id,
+                None => Uuid::new_v3(&Uuid::NAMESPACE_DNS, name.as_bytes()),
             },
             name,
             host,
+            protocol,
             discoverable,
             description,
             openapi_path,
-            health_check,
+            health_check_path,
             routes,
             secrets,
+            health_status: HealthStatus::Unknown,
         }
+    }
+
+    pub fn update_health_status(&mut self, health_status: HealthStatus) {
+        self.health_status = health_status;
     }
 }

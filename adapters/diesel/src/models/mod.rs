@@ -5,6 +5,7 @@ pub(crate) mod guest_role;
 pub(crate) mod guest_role_children;
 pub(crate) mod guest_user;
 pub(crate) mod guest_user_on_account;
+pub(crate) mod health_check_info;
 pub(crate) mod identity_provider;
 pub(crate) mod internal_error;
 pub(crate) mod message;

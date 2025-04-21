@@ -23,7 +23,7 @@ pub(crate) fn webhook_dispatcher(
     app_modules: Arc<SqlAppModule>,
 ) {
     tokio::spawn(async move {
-        tracing::trace!("Starting webhook dispatcher");
+        tracing::info!("Starting webhook dispatcher");
 
         let webhook_config = config.webhook.clone();
         let read_repo: &dyn WebHookFetching = app_modules.resolve_ref();

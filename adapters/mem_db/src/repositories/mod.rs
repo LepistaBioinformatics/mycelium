@@ -13,7 +13,7 @@ use service_write::*;
 pub use config::*;
 
 module! {
-    pub MemDbModule {
+    pub MemDbAppModule {
         components = [
             //
             // Provide the database pool

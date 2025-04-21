@@ -1,9 +1,8 @@
 use crate::domain::dtos::{
-    health_check::HealthCheckConfig,
     http::{HttpMethod, Protocol},
     route::Route,
     route_type::RouteType,
-    service::{Service, ServiceSecret},
+    service::{Service, ServiceHost, ServiceSecret},
 };
 
 use futures::executor::block_on;
@@ -25,11 +24,13 @@ struct TempMainConfigDTO {
 struct TempServiceDTO {
     pub id: Option<Uuid>,
     pub name: String,
-    pub host: String,
+    #[serde(alias = "hosts")]
+    pub host: ServiceHost,
+    pub protocol: Protocol,
     pub discoverable: Option<bool>,
     pub description: Option<String>,
     pub openapi_path: Option<String>,
-    pub health_check: Option<HealthCheckConfig>,
+    pub health_check_path: String,
     pub routes: Vec<TempRouteDTO>,
     pub secrets: Option<Vec<ServiceSecret>>,
 }
@@ -40,10 +41,11 @@ impl TempServiceDTO {
             self.id.clone(),
             self.name.clone(),
             self.host.clone(),
+            self.protocol.clone(),
             self.discoverable.clone(),
             self.description.clone(),
             self.openapi_path.clone(),
-            self.health_check.clone(),
+            self.health_check_path.clone(),
             vec![],
             self.secrets,
         )
@@ -57,7 +59,6 @@ struct TempRouteDTO {
     pub group: RouteType,
     pub methods: Vec<HttpMethod>,
     pub path: String,
-    pub protocol: Protocol,
     pub allowed_sources: Option<Vec<String>>,
     pub secret_name: Option<String>,
     pub accept_insecure_routing: Option<bool>,
@@ -71,7 +72,6 @@ impl TempRouteDTO {
             self.group,
             self.methods,
             self.path,
-            self.protocol,
             self.allowed_sources,
             self.secret_name,
             self.accept_insecure_routing,
