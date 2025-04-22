@@ -1,3 +1,27 @@
+## v7.8.0 (2025-04-22)
+
+### Feat
+
+- improve the tools discovery endpoint to include more information about context and capabilities
+- finish the implementation of the healthcheck-logs registration in database
+- implements base models for healthcheck-logs in diesel adapter
+- wip - implements in memory tracking for health check metrics
+- create a script to backup and drop old logs from the health check system
+- **multihost-support**: add support for multiple hosts for downstream services
+- create sql model for healthcheck-logs data storage
+- finish the migration of the lazy-static for in-memory storage of soutes to use shaku injection of in-memory data
+- wip - replace the lazy-static implementation of the memory database by a shaku injectable module
+- **tools**: wip - implements changes to serve discoverable services through endpoint
+
+### Fix
+
+- remove the partition creation part of the accessoru script for healthcheck logs management
+- include the error-message field in sql model for healthcheck
+- store drop partition operation result into a variable
+- turn service id required field
+- remove old module folder of the api-port submodule
+- **tools**: reduce information of the services available during discoverability
+
 ## v7.7.13 (2025-04-01)
 
 ### Fix
