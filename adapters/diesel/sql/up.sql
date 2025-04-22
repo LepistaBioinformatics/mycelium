@@ -393,3 +393,43 @@ GRANT USAGE ON SCHEMA public TO :"db_role";
 GRANT ALL ON ALL TABLES IN SCHEMA public TO :"db_role";
 
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO :"db_role";
+
+--------------------------------------------------------------------------------
+-- PERMISSIONS FOR PARTITIONED TABLES
+--------------------------------------------------------------------------------
+
+-- Ensure we are using the correct schema
+SET search_path TO public;
+
+-- Create the function to generate partitions automatically, using string YYYYMMDD
+CREATE OR REPLACE FUNCTION create_healthcheck_partition(from_date_str TEXT)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    from_date DATE := to_date(from_date_str, 'YYYYMMDD');
+    partition_name TEXT := format('healthcheck_logs_%s', from_date_str);
+    from_ts TIMESTAMPTZ := from_date::timestamptz;
+    to_ts TIMESTAMPTZ := (from_date + INTERVAL '1 day')::timestamptz;
+BEGIN
+    EXECUTE format(
+        'CREATE TABLE IF NOT EXISTS %I PARTITION OF healthcheck_logs
+         FOR VALUES FROM (%L) TO (%L)
+         PARTITION BY RANGE (checked_at);',
+        partition_name, from_ts, to_ts
+    );
+
+    -- Create the primary key constraint on the partition
+    EXECUTE format(
+        'ALTER TABLE %I ADD CONSTRAINT %I PRIMARY KEY (service_id, checked_at);',
+        partition_name, partition_name || '_pk'
+    );
+END;
+$$;
+
+-- Allow the service role to execute the function, but nothing else
+GRANT EXECUTE ON FUNCTION create_healthcheck_partition(TEXT) TO :"db_role";
+
+-- Execution example
+-- SELECT create_healthcheck_partition('20250421');

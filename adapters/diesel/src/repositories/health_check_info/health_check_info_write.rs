@@ -145,16 +145,11 @@ impl HealthCheckInfoWrite for HealthCheckInfoWriteSqlDbRepository {
             );
 
             let start_date = date.format("%Y-%m-%d").to_string();
-            let end_date =
-                (date.succ_opt().unwrap()).format("%Y-%m-%d").to_string();
 
             let create_sql = format!(
-            "CREATE TABLE IF NOT EXISTS {partition} PARTITION OF healthcheck_logs \
-            FOR VALUES FROM ('{start}') TO ('{end}')",
-            partition = partition_name,
-            start = start_date,
-            end = end_date,
-        );
+                "SELECT create_healthcheck_partition('{}')",
+                start_date
+            );
             sql_query(create_sql).execute(conn).map_err(|err| {
                 creation_err(format!("Failed to create partition: {err}"))
             })?;
