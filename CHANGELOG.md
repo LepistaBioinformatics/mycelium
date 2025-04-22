@@ -1,3 +1,9 @@
+## v7.8.1 (2025-04-22)
+
+### Fix
+
+- replace the ensure daily partition by a secondary access function to avoid higher level accessions
+
 ## v7.8.0 (2025-04-22)
 
 ### Feat
