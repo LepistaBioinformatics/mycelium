@@ -10,7 +10,7 @@
 
 - replace the ensure daily partition by a secondary access function to avoid higher level accessions
 
-## v7.8.2.dev1 (2025-04-22)
+## v7.8.2 (2025-04-22)
 
 ## v7.8.2 (2025-04-22)
 
