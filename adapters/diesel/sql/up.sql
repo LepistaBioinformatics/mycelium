@@ -412,19 +412,30 @@ DECLARE
     partition_name TEXT := format('healthcheck_logs_%s', from_date_str);
     from_ts TIMESTAMPTZ := from_date::timestamptz;
     to_ts TIMESTAMPTZ := (from_date + INTERVAL '1 day')::timestamptz;
+    partition_exists BOOLEAN;
 BEGIN
-    EXECUTE format(
-        'CREATE TABLE IF NOT EXISTS %I PARTITION OF healthcheck_logs
-         FOR VALUES FROM (%L) TO (%L)
-         PARTITION BY RANGE (checked_at);',
-        partition_name, from_ts, to_ts
-    );
+    -- Check if partition already exists
+    SELECT EXISTS (
+        SELECT 1
+        FROM pg_tables
+        WHERE schemaname = 'public'
+        AND tablename = partition_name
+    ) INTO partition_exists;
 
-    -- Create the primary key constraint on the partition
-    EXECUTE format(
-        'ALTER TABLE %I ADD CONSTRAINT %I PRIMARY KEY (service_id, checked_at);',
-        partition_name, partition_name || '_pk'
-    );
+    IF NOT partition_exists THEN
+        EXECUTE format(
+            'CREATE TABLE IF NOT EXISTS %I PARTITION OF healthcheck_logs
+             FOR VALUES FROM (%L) TO (%L)
+             PARTITION BY RANGE (checked_at);',
+            partition_name, from_ts, to_ts
+        );
+
+        -- Create the primary key constraint on the partition
+        EXECUTE format(
+            'ALTER TABLE %I ADD CONSTRAINT %I PRIMARY KEY (service_id, checked_at);',
+            partition_name, partition_name || '_pk'
+        );
+    END IF;
 END;
 $$;
 
