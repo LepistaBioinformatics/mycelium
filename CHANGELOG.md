@@ -1,3 +1,9 @@
+## v7.8.2.dev1 (2025-04-22)
+
+### Fix
+
+- **create-healthcheck-partition**: fix the create_healthcheck_partition sql funciton to create partitions
+
 ## v7.8.1 (2025-04-22)
 
 ### Fix
