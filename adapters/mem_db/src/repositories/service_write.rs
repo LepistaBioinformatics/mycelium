@@ -18,6 +18,7 @@ pub struct ServiceWriteMemDbRepo {
 
 #[async_trait]
 impl ServiceWrite for ServiceWriteMemDbRepo {
+    #[tracing::instrument(name = "inform_health_status", skip(self))]
     async fn inform_health_status(
         &self,
         id: Uuid,

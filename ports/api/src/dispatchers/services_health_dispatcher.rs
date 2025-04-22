@@ -19,7 +19,13 @@ use rand::Rng;
 use reqwest::{header::HeaderName, Response, StatusCode};
 use shaku::HasComponent;
 use std::{collections::HashMap, str::FromStr, sync::Arc, time::Duration};
+use tracing::Instrument;
 use uuid::Uuid;
+
+enum ServiceHealthRunStatus {
+    Continue,
+    Stop,
+}
 
 /// Check downstream services health
 ///
@@ -32,7 +38,7 @@ pub(crate) fn services_health_dispatcher(
     sql_app_modules: Arc<SqlAppModule>,
     mem_app_modules: Arc<MemDbAppModule>,
 ) {
-    tokio::spawn(async move {
+    tokio::spawn(tracing::Span::current().in_scope(|| async move {
         tracing::info!("Starting services health dispatcher");
 
         let inner_service_read_repo: &dyn ServiceRead =
@@ -74,99 +80,144 @@ pub(crate) fn services_health_dispatcher(
         loop {
             interval.tick().await;
 
-            tracing::trace!("Checking services health");
-
-            //
-            // Ensure daily partition
-            //
-            let checked_at = Local::now();
-            if let Err(err) = inner_health_check_info_write_repo
-                .ensure_dailly_partition(checked_at)
-                .await
-            {
-                tracing::error!(
-                    "Error on ensure daily partition during services health dispatcher: {err}"
-                );
-
-                continue;
-            }
-
-            //
-            // Fetch services
-            //
-            // Fetching without filters to collect all downstream services.
-            //
-            let services_response = match inner_service_read_repo
-                .list_services(None, None, None)
-                .await
-            {
-                Ok(services) => services,
-                Err(err) => {
-                    tracing::error!(
-                        "Error on fetch services during services health dispatcher: {err}"
-                    );
-
-                    continue;
-                }
-            };
-
-            let services = match services_response {
-                FetchManyResponseKind::Found(services) => services,
-                FetchManyResponseKind::NotFound => {
-                    tracing::error!(
-                        "No services found during services health dispatcher"
-                    );
-
-                    continue;
-                }
-                FetchManyResponseKind::FoundPaginated {
-                    records,
-                    count,
-                    ..
-                } => {
-                    tracing::error!(
-                        "Found paginated services during services health \
-dispatcher. Health check will be performed for the first {len} services. \
-Please, update the health check interval to return the full list of services \
-instead of paginated. The full records count is {count}.",
-                        len = records.len(),
-                        count = count
-                    );
-
-                    records
-                }
-            };
-
-            tracing::trace!("Services fetched: {:?}", services.len());
-
-            //
-            // Check services health
-            //
-            // In parallel, check the health of all downstream services.
-            //
-            let health_checks = join_all(services.into_iter().map(|service| {
-                check_service_health(
-                    service.clone(),
-                    max_retry_count,
-                    max_instances,
-                    Box::new(inner_service_write_repo),
-                    Box::new(inner_health_check_info_write_repo),
-                )
-            }))
+            let status = check_services_health(
+                max_retry_count,
+                max_instances,
+                Box::new(inner_service_read_repo),
+                Box::new(inner_service_write_repo),
+                Box::new(inner_health_check_info_write_repo),
+            )
             .await;
 
-            for health_check in health_checks {
-                if let Err(err) = health_check {
+            match status {
+                Ok(ServiceHealthRunStatus::Continue) => continue,
+                Ok(ServiceHealthRunStatus::Stop) => break,
+                Err(err) => {
                     tracing::error!(
-                        "Error on check service health during services health dispatcher: {err}"
+                        "Error on check services health during services health dispatcher: {err}"
                     );
                 }
             }
         }
-    });
+    }));
 }
 
-#[tracing::instrument(name = "check_service_health", skip_all)]
+#[tracing::instrument(
+    name = "check_services_health",
+    skip_all,
+    fields(
+        myc.port.checked_at = tracing::field::Empty,
+    )
+)]
+async fn check_services_health(
+    max_retry_count: u32,
+    max_instances: u32,
+    service_read_repo: Box<&dyn ServiceRead>,
+    service_write_repo: Box<&dyn ServiceWrite>,
+    health_check_info_write_repo: Box<&dyn HealthCheckInfoWrite>,
+) -> Result<ServiceHealthRunStatus, MappedErrors> {
+    let span = tracing::Span::current();
+
+    span.record("myc.port.checked_at", tracing::field::display(Local::now()));
+
+    tracing::trace!("Checking services health");
+
+    //
+    // Ensure daily partition
+    //
+    let checked_at = Local::now();
+    if let Err(err) = health_check_info_write_repo
+        .ensure_dailly_partition(checked_at)
+        .await
+    {
+        tracing::error!(
+            "Error on ensure daily partition during services health dispatcher: {err}"
+        );
+
+        return Ok(ServiceHealthRunStatus::Stop);
+    }
+
+    //
+    // Fetch services
+    //
+    // Fetching without filters to collect all downstream services.
+    //
+    let services_response = match service_read_repo
+        .list_services(None, None, None)
+        .instrument(span.clone())
+        .await
+    {
+        Ok(services) => services,
+        Err(err) => {
+            tracing::error!(
+                "Error on fetch services during services health dispatcher: {err}"
+            );
+
+            return Ok(ServiceHealthRunStatus::Stop);
+        }
+    };
+
+    let services = match services_response {
+        FetchManyResponseKind::Found(services) => services,
+        FetchManyResponseKind::NotFound => {
+            tracing::error!(
+                "No services found during services health dispatcher"
+            );
+
+            return Ok(ServiceHealthRunStatus::Stop);
+        }
+        FetchManyResponseKind::FoundPaginated { records, count, .. } => {
+            tracing::error!(
+                "Found paginated services during services health \
+dispatcher. Health check will be performed for the first {len} services. \
+Please, update the health check interval to return the full list of services \
+instead of paginated. The full records count is {count}.",
+                len = records.len(),
+                count = count
+            );
+
+            records
+        }
+    };
+
+    tracing::trace!("Evaluating health of {} services", services.len());
+
+    //
+    // Check services health
+    //
+    // In parallel, check the health of all downstream services.
+    //
+    let health_checks = join_all(services.into_iter().map(|service| {
+        check_service_health(
+            service.clone(),
+            max_retry_count,
+            max_instances,
+            service_write_repo.clone(),
+            health_check_info_write_repo.clone(),
+        )
+        .instrument(span.clone())
+    }))
+    .await;
+
+    for health_check in health_checks {
+        if let Err(err) = health_check {
+            tracing::error!(
+                "Error on check service health during services health dispatcher: {err}"
+            );
+        }
+    }
+
+    Ok(ServiceHealthRunStatus::Continue)
+}
+
+#[tracing::instrument(
+    name = "check_service_health",
+    skip_all,
+    fields(
+        myc.service_id = tracing::field::Empty,
+        myc.service_name = tracing::field::Empty,
+    ),
+)]
 async fn check_service_health(
     service: Service,
     max_retry_count: u32,
@@ -174,7 +225,14 @@ async fn check_service_health(
     service_write_repo: Box<&dyn ServiceWrite>,
     health_check_info_write_repo: Box<&dyn HealthCheckInfoWrite>,
 ) -> Result<(), MappedErrors> {
-    tracing::trace!("Checking health for service: {}", service.name);
+    let span = tracing::Span::current();
+
+    span.record("myc.service_id", tracing::field::display(service.id));
+
+    span.record(
+        "myc.service_name",
+        tracing::field::display(service.name.clone()),
+    );
 
     // ? -----------------------------------------------------------------------
     // ? Check for service health
@@ -191,7 +249,7 @@ async fn check_service_health(
     };
 
     for host in hosts {
-        check_host_health(
+        if let Err(err) = check_host_health(
             service.id,
             service.name.clone(),
             service.health_status.clone(),
@@ -204,13 +262,28 @@ async fn check_service_health(
             service_write_repo.clone(),
             health_check_info_write_repo.clone(),
         )
-        .await?;
+        .instrument(span.clone())
+        .await
+        {
+            tracing::error!(
+                "Error on check host health during services health dispatcher: {err}"
+            );
+        }
     }
+
+    tracing::trace!("Service {} health checked", service.name);
 
     Ok(())
 }
 
-#[tracing::instrument(name = "check_host_health", skip_all)]
+#[tracing::instrument(
+    name = "check_host_health",
+    skip_all,
+    fields(
+        myc.host = tracing::field::Empty,
+        myc.retry_count = tracing::field::Empty,
+    ),
+)]
 async fn check_host_health(
     service_id: Uuid,
     service_name: String,
@@ -221,7 +294,9 @@ async fn check_host_health(
     service_write_repo: Box<&dyn ServiceWrite>,
     health_check_info_write_repo: Box<&dyn HealthCheckInfoWrite>,
 ) -> Result<(), MappedErrors> {
-    tracing::trace!("Checking health for host: {}", host);
+    let span = tracing::Span::current();
+
+    span.record("myc.host", tracing::field::display(host.clone()));
 
     // ? -----------------------------------------------------------------------
     // ? Check single host health
@@ -231,42 +306,62 @@ async fn check_host_health(
     // ? -----------------------------------------------------------------------
 
     let mut response_time_ms = 0;
-    let mut retry_count = match health_status {
-        HealthStatus::Unknown | HealthStatus::Healthy { .. } => 0,
-        HealthStatus::Unhealthy { attempts, .. } => attempts,
-        HealthStatus::Unavailable { attempts, .. } => attempts,
-    };
-
+    let mut retry_count = 0;
     let mut response = None;
     let mut timeout_occurred = false;
     let mut error = None;
 
-    tracing::trace!("Checking host {host} health");
-
     for _ in 0..max_retry_count {
         retry_count += 1;
+
+        if retry_count >= max_retry_count {
+            let message = format!(
+                "Service {} with host {} health check failed after {} retries",
+                service_name, host, retry_count
+            );
+
+            tracing::error!("{}", message);
+
+            error = Some(message);
+            break;
+        }
+
+        span.record("myc.retry_count", tracing::field::display(retry_count));
 
         let start_time = std::time::Instant::now();
 
         let local_response = match reqwest::get(host.to_owned()).await {
             Ok(response) => response,
             Err(err) => {
-                error = Some(err);
-                break;
+                let msg = err.to_string();
+
+                tracing::error!("{}", msg);
+
+                error = Some(msg);
+                tokio::time::sleep(Duration::from_secs(3)).await;
+
+                continue;
             }
         };
 
         if local_response.status() == StatusCode::REQUEST_TIMEOUT {
             timeout_occurred = true;
-            break;
+            tokio::time::sleep(Duration::from_secs(3)).await;
+
+            continue;
         }
 
         response_time_ms = start_time.elapsed().as_millis();
 
-        if local_response.status().is_success()
-            || retry_count >= max_retry_count
-        {
+        if local_response.status().is_success() {
             response = Some(local_response);
+
+            tracing::trace!(
+                "Service {} with host {} health check passed",
+                service_name,
+                host
+            );
+
             break;
         }
 
@@ -282,6 +377,7 @@ async fn check_host_health(
             timeout_occurred,
             response,
         )
+        .instrument(span.clone())
         .await?;
 
         let status = if parsed_response.is_service_healthy {
@@ -300,10 +396,10 @@ async fn check_host_health(
 
         (parsed_response, 2)
     } else {
-        return Err(execution_err(format!(
+        return execution_err(format!(
             "Error on check host health with host {host}. Unable to perform the health check.",
             host = host,
-        )))?;
+        )).as_error();
     };
 
     // ? -----------------------------------------------------------------------
@@ -350,7 +446,14 @@ async fn check_host_health(
                 _ => unreachable!(),
             },
         )
+        .instrument(span.clone())
         .await?;
+
+    tracing::trace!(
+        "Health check info for service {} with id {} published",
+        service_name.clone(),
+        service_id
+    );
 
     // ? -----------------------------------------------------------------------
     // ? Register the health check info
@@ -359,9 +462,27 @@ async fn check_host_health(
     //
     // ? -----------------------------------------------------------------------
 
-    health_check_info_write_repo
+    let health_check_info_registered = health_check_info_write_repo
         .register_health_check_info(health_check_info)
-        .await
+        .instrument(span.clone())
+        .await;
+
+    if let Err(err) = health_check_info_registered {
+        tracing::error!(
+            "Error on register health check info for service {} with id {} during services health dispatcher: {err}",
+            service_name.clone(),
+            service_id,
+            err = err
+        );
+    }
+
+    tracing::trace!(
+        "Health check info for service {} with id {} registered",
+        service_name.clone(),
+        service_id
+    );
+
+    Ok(())
 }
 
 /// Parse valid http response
@@ -378,6 +499,7 @@ async fn parse_valid_http_response(
     response: Response,
 ) -> Result<HealthCheckInfo, MappedErrors> {
     let status_code = response.status().as_u16();
+
     let dns_resolved_ip = response
         .remote_addr()
         .map(|addr| addr.ip().to_string())

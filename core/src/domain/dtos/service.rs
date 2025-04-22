@@ -102,6 +102,13 @@ impl ServiceHost {
     }
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, ToSchema, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub enum ServiceType {
+    RestApi,
+    Unknown,
+}
+
 /// The Upstream Service
 ///
 /// The service is the upstream service that the route will proxy to.
@@ -161,6 +168,28 @@ pub struct Service {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub discoverable: Option<bool>,
 
+    /// The service type
+    ///
+    /// Optional together with discoverable field. The type of the service.
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub service_type: Option<ServiceType>,
+
+    /// If is a context api
+    ///
+    /// If is a context api, the service will be discovered by LLM agents.
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub is_context_api: Option<bool>,
+
+    /// The service capabilities
+    ///
+    /// Optional together with discoverable field. The capabilities of the
+    /// service.
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub capabilities: Option<Vec<String>>,
+
     /// The service description
     ///
     /// Optional together with discoverable field. The description of the
@@ -205,6 +234,9 @@ impl Service {
         health_check_path: String,
         routes: Vec<Route>,
         secrets: Option<Vec<ServiceSecret>>,
+        capabilities: Option<Vec<String>>,
+        service_type: Option<ServiceType>,
+        is_context_api: Option<bool>,
     ) -> Self {
         //
         // If the service is discoverable, the description, health_check and
@@ -212,8 +244,13 @@ impl Service {
         //
         if Some(true) == discoverable {
             for (name, param) in [
+                ("id", id.is_none()),
+                ("name", name.is_empty()),
                 ("description", description.is_none()),
                 ("openapiPath", openapi_path.is_none()),
+                ("capabilities", capabilities.is_none()),
+                ("serviceType", service_type.is_none()),
+                ("isContextApi", is_context_api.is_none()),
             ] {
                 if param {
                     panic!(
@@ -233,6 +270,9 @@ impl Service {
             protocol,
             discoverable,
             description,
+            capabilities,
+            service_type,
+            is_context_api,
             openapi_path,
             health_check_path,
             routes,
@@ -243,5 +283,13 @@ impl Service {
 
     pub fn update_health_status(&mut self, health_status: HealthStatus) {
         self.health_status = health_status;
+    }
+
+    pub fn is_context_api(&self) -> bool {
+        if let Some(is_context_api) = self.is_context_api {
+            is_context_api
+        } else {
+            false
+        }
     }
 }

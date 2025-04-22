@@ -839,6 +839,11 @@ struct UsersManagerAccountApiDoc;
             // TENANT MANAGER
             //
             role_scoped::tenant_manager::token_endpoints::CreateTokenResponse,
+
+            //
+            // SERVICE
+            //
+            service::tools_endpoints::ListServicesResponse,
         ),
     ),
 )]

@@ -201,20 +201,20 @@ api:
     #  path: logs/api.log
 
     # Example with jaeger target
-    #target: !jaeger
-    #  name: mycelium-api
-    #  # Hostname of the jaeger agent
-    #  host: localhost
-    #  # Allowed values:
-    #  # - http
-    #  # - https
-    #  # - grpc
-    #  protocol: grpc
-    #  # Use (for default ports for each protocol):
-    #  port: 4317
+    target: !jaeger
+      name: mycelium-api
+      # Hostname of the jaeger agent
+      host: myc-jaeger-devcontainer
+      # Allowed values:
+      # - http
+      # - https
+      # - grpc
+      protocol: grpc
+      # Use (for default ports for each protocol):
+      port: 4317
 
     # Example with stdout target
-    target: stdout
+    #target: stdout
 
   # ? --------------------------------------------------------------------------
   # ? API GATEWAY TLS SETTINGS

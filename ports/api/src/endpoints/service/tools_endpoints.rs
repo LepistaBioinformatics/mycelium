@@ -1,8 +1,9 @@
-use crate::dtos::Tool;
+use crate::{dtos::Tool, settings::GATEWAY_API_SCOPE};
 
-use actix_web::{get, web, HttpRequest, HttpResponse, Responder};
+use actix_web::{get, web, HttpResponse, Responder};
+use chrono::{DateTime, Local};
 use myc_core::{
-    domain::dtos::service::Service,
+    domain::dtos::health_check_info::HealthStatus,
     use_cases::service::service::list_discoverable_services,
 };
 use myc_http_tools::{
@@ -11,10 +12,10 @@ use myc_http_tools::{
 };
 use myc_mem_db::repositories::MemDbAppModule;
 use mycelium_base::entities::FetchManyResponseKind;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use shaku::HasComponent;
-use utoipa::{IntoParams, ToSchema};
+use utoipa::{IntoParams, ToResponse, ToSchema};
 use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
@@ -34,6 +35,36 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub struct ListServicesParams {
     id: Option<Uuid>,
     name: Option<String>,
+}
+
+#[derive(Serialize, ToSchema, ToResponse)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ListServicesResponse {
+    /// Description
+    ///
+    /// The description of the service.
+    ///
+    description: String,
+
+    /// The contexts
+    ///
+    /// The contexts of the service. This key snould include the context where
+    /// the service should run, including authentication and authorization
+    /// information.
+    ///
+    contexts: Vec<Tool>,
+
+    /// The last updated date
+    ///
+    /// The last updated date of the service.
+    ///
+    last_updated: Option<DateTime<Local>>,
+
+    /// A list of tools
+    ///
+    /// A list of tools that are discoverable by the service.
+    ///
+    tools: Vec<Tool>,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -73,14 +104,14 @@ pub struct ListServicesParams {
         (
             status = 200,
             description = "Fetching success.",
-            body = [Service],
+            body = ListServicesResponse,
         ),
     ),
+    security(()),
 )]
 #[get("")]
 pub async fn list_discoverable_services_url(
     query: web::Query<ListServicesParams>,
-    request: HttpRequest,
     app_module: web::Data<MemDbAppModule>,
 ) -> impl Responder {
     match list_discoverable_services(
@@ -92,10 +123,15 @@ pub async fn list_discoverable_services_url(
     {
         Ok(res) => match res {
             FetchManyResponseKind::Found(services) => {
+                //
+                // Build host from gateway api scope
+                //
+                let host = String::from(format!("/{GATEWAY_API_SCOPE}"));
+
                 let tools = services
                     .into_iter()
                     .map(|service| {
-                        match Tool::from_service(service, request.full_url()) {
+                        match Tool::from_service(service, host.clone()) {
                             Ok(tool) => Some(tool),
                             Err(err) => {
                                 tracing::error!(
@@ -109,7 +145,41 @@ pub async fn list_discoverable_services_url(
                     .filter_map(|tool| tool)
                     .collect::<Vec<_>>();
 
-                HttpResponse::Ok().json(tools)
+                let last_updated = tools
+                    .iter()
+                    .map(|tool| match tool.health_status {
+                        HealthStatus::Healthy { checked_at } => {
+                            Some(checked_at)
+                        }
+                        HealthStatus::Unhealthy { checked_at, .. } => {
+                            Some(checked_at)
+                        }
+                        HealthStatus::Unavailable { checked_at, .. } => {
+                            Some(checked_at)
+                        }
+                        _ => None,
+                    })
+                    .max()
+                    .unwrap_or_default();
+
+                let contexts = tools
+                    .iter()
+                    .filter(|tool| tool.is_context_api)
+                    .map(|tool| tool.to_owned())
+                    .collect::<Vec<_>>();
+
+                let tools = tools
+                    .iter()
+                    .filter(|tool| !tool.is_context_api)
+                    .map(|tool| tool.to_owned())
+                    .collect::<Vec<_>>();
+
+                HttpResponse::Ok().json(ListServicesResponse {
+                    description: get_description(),
+                    tools,
+                    last_updated,
+                    contexts,
+                })
             }
             FetchManyResponseKind::FoundPaginated {
                 count,
@@ -126,4 +196,8 @@ pub async fn list_discoverable_services_url(
         },
         Err(err) => handle_mapped_error(err),
     }
+}
+
+fn get_description() -> String {
+    "Describe public services, including the context where the service should run".to_string()
 }

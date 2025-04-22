@@ -41,6 +41,25 @@ impl HealthCheckInfoWrite for HealthCheckInfoWriteSqlDbRepository {
         &self,
         health_check_info: HealthCheckInfo,
     ) -> Result<(), MappedErrors> {
+        let span = tracing::Span::current();
+
+        span.record(
+            "service_id",
+            tracing::field::display(health_check_info.service_id),
+        );
+        span.record(
+            "service_name",
+            tracing::field::display(health_check_info.service_name.clone()),
+        );
+        span.record(
+            "checked_at",
+            tracing::field::display(health_check_info.checked_at),
+        );
+        span.record(
+            "status_code",
+            tracing::field::display(health_check_info.status_code),
+        );
+
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
             creation_err(format!("Failed to get DB connection: {}", e))
                 .with_code(NativeErrorCodes::MYC00001)
@@ -48,7 +67,7 @@ impl HealthCheckInfoWrite for HealthCheckInfoWriteSqlDbRepository {
 
         let health_check_info_model = HealthcheckInfoModel {
             service_id: health_check_info.service_id,
-            service_name: health_check_info.service_name,
+            service_name: health_check_info.service_name.clone(),
             checked_at: health_check_info.checked_at.into(),
             status_code: health_check_info.status_code as i32,
             response_time_ms: health_check_info.response_time_ms as i32,
@@ -73,13 +92,24 @@ impl HealthCheckInfoWrite for HealthCheckInfoWriteSqlDbRepository {
                 ))
             })?;
 
+        tracing::trace!(
+            "Health check info inserted for service {} with id {}",
+            health_check_info.service_name,
+            health_check_info.service_id
+        );
+
         Ok(())
     }
 
+    #[tracing::instrument(name = "ensure_dailly_partition", skip_all)]
     async fn ensure_dailly_partition(
         &self,
         checked_at: DateTime<Local>,
     ) -> Result<(), MappedErrors> {
+        let span = tracing::Span::current();
+
+        span.record("checked_at", tracing::field::display(checked_at));
+
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
             creation_err(format!("Failed to get DB connection: {}", e))
                 .with_code(NativeErrorCodes::MYC00001)
@@ -105,7 +135,15 @@ impl HealthCheckInfoWrite for HealthCheckInfoWriteSqlDbRepository {
             .map(|r| r.exists)
             .unwrap_or(false);
 
+        span.record("exists", tracing::field::display(exists));
+
         if !exists {
+            tracing::trace!(
+                "Partition {} created for date {}",
+                partition_name,
+                date
+            );
+
             let start_date = date.format("%Y-%m-%d").to_string();
             let end_date =
                 (date.succ_opt().unwrap()).format("%Y-%m-%d").to_string();

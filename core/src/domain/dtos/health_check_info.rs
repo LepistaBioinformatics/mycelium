@@ -63,10 +63,12 @@ pub enum HealthStatus {
 }
 
 impl HealthStatus {
+    #[tracing::instrument(name = "set_health", skip_all)]
     pub fn set_health(checked_at: DateTime<Local>) -> Self {
         Self::Healthy { checked_at }
     }
 
+    #[tracing::instrument(name = "set_unhealthy", skip_all)]
     pub fn set_unhealthy(
         old_status: Self,
         checked_at: DateTime<Local>,
@@ -239,6 +241,7 @@ pub struct HealthCheckInfo {
 }
 
 impl HealthCheckInfo {
+    #[tracing::instrument(name = "new_when_health", skip_all)]
     pub fn new_when_health(
         service_id: Uuid,
         service_name: String,
@@ -246,6 +249,8 @@ impl HealthCheckInfo {
         response_time_ms: u64,
         dns_resolved_ip: String,
     ) -> Self {
+        tracing::trace!("new_when_health method called");
+
         Self {
             //
             // Auto-generated field
@@ -292,6 +297,8 @@ impl HealthCheckInfo {
         retry_count: u32,
         timeout_occurred: bool,
     ) -> Self {
+        tracing::trace!("new_when_unhealthy method called");
+
         Self {
             //
             // Auto-generated field
@@ -326,6 +333,8 @@ impl HealthCheckInfo {
         service_name: String,
         error_message: String,
     ) -> Self {
+        tracing::trace!("new_when_unavailable method called");
+
         Self {
             //
             // Auto-generated field

@@ -1,9 +1,9 @@
 use myc_core::domain::dtos::{
-    health_check_info::HealthStatus, service::Service,
+    health_check_info::HealthStatus,
+    service::{Service, ServiceType},
 };
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
-use url::Url;
 use utoipa::ToSchema;
 
 #[derive(Debug, Clone, Deserialize, Serialize, ToSchema, PartialEq, Eq)]
@@ -24,6 +24,24 @@ pub struct Tool {
     ///
     pub description: String,
 
+    /// The service type
+    ///
+    /// The type of the service.
+    ///
+    pub tool_type: ServiceType,
+
+    /// If is a context api
+    ///
+    /// If is a context api, the service will be discovered by LLM agents.
+    ///
+    pub is_context_api: bool,
+
+    /// The service capabilities
+    ///
+    /// The capabilities of the service.
+    ///
+    pub capabilities: Vec<String>,
+
     /// The service openapi path
     ///
     /// Optional together with discoverable field. The path to the openapi.json
@@ -42,9 +60,9 @@ pub struct Tool {
 impl Tool {
     pub fn from_service(
         service: Service,
-        host: Url,
+        host: String,
     ) -> Result<Self, MappedErrors> {
-        let openapi_path = if let Some(path) = service.openapi_path {
+        let openapi_path = if let Some(path) = service.openapi_path.clone() {
             path
         } else {
             return execution_err(format!(
@@ -55,7 +73,7 @@ impl Tool {
             .as_error();
         };
 
-        let description = if let Some(desc) = service.description {
+        let description = if let Some(desc) = service.description.clone() {
             desc
         } else {
             return execution_err(format!(
@@ -69,13 +87,19 @@ impl Tool {
         Ok(Self {
             name: service.name.clone(),
             description,
+            capabilities: service.capabilities.clone().unwrap_or_default(),
+            health_status: service.health_status.clone(),
+            is_context_api: service.is_context_api(),
             openapi_path: format!(
                 "{host}/{name}/{openapi_path}",
-                host = host.to_string().trim_end_matches('/'),
+                host = host.trim_end_matches('/'),
                 name = service.name.trim_end_matches('/'),
                 openapi_path = openapi_path.trim_start_matches("/")
             ),
-            health_status: service.health_status,
+            tool_type: service
+                .service_type
+                .clone()
+                .unwrap_or(ServiceType::Unknown),
         })
     }
 }
