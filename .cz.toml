@@ -16,7 +16,7 @@ version_files = [
     "ports/cli/Cargo.toml",
 ]
 name = "cz_conventional_commits"
-tag_format = "v$version"
+tag_format = "v$major.$minor.$patch$prerelease-$devrelease"
 bump_message = "bump: $current_version → $new_version [skip-ci]"
 
 
