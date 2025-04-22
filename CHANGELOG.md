@@ -10,6 +10,20 @@
 
 - replace the ensure daily partition by a secondary access function to avoid higher level accessions
 
+## v7.8.2.dev1 (2025-04-22)
+
+## v7.8.2 (2025-04-22)
+
+### Fix
+
+- **create-healthcheck-partition**: fix the create_healthcheck_partition sql funciton to create partitions
+
+## v7.8.1 (2025-04-22)
+
+### Fix
+
+- replace the ensure daily partition by a secondary access function to avoid higher level accessions
+
 ## v7.8.0 (2025-04-22)
 
 ### Feat

@@ -18,10 +18,10 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "7.8.1", path = "../../core" }
-mycelium-base = { version = "7.8.1", path = "../../base" }
-mycelium-diesel = { version = "7.8.1", path = "../../adapters/diesel" }
-mycelium-notifier = { version = "7.8.1", path = "../../adapters/notifier" }
+myc-core = { version = "7.8.2.dev1", path = "../../core" }
+mycelium-base = { version = "7.8.2.dev1", path = "../../base" }
+mycelium-diesel = { version = "7.8.2.dev1", path = "../../adapters/diesel" }
+mycelium-notifier = { version = "7.8.2.dev1", path = "../../adapters/notifier" }
 
 env_logger.workspace = true
 serde_json.workspace = true
