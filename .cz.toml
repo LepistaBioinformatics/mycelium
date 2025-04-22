@@ -1,5 +1,5 @@
 [tool.commitizen]
-version = "8.0.0.dev2"
+version = "7.8.2-dev1"
 version_files = [
     "Cargo.toml",
     "base/Cargo.toml",
@@ -16,7 +16,7 @@ version_files = [
     "ports/cli/Cargo.toml",
 ]
 name = "cz_conventional_commits"
-tag_format = "v$major.$minor.$patch$prerelease-$devrelease"
+tag_format = "$major.$minor.$patch$prerelease-$devrelease"
 bump_message = "bump: $current_version → $new_version [skip-ci]"
 
 
