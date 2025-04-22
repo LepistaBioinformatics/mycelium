@@ -1444,3 +1444,621 @@
 - migrate the base objects to the agrobase-rs
 - group use-cases by data afinity
 - rename user-role entities to guest-roles
+
+## v8.0.0-$devrelease (2025-04-22)
+
+### BREAKING CHANGE
+
+- feature/gh29
+- feature/gh14
+- main
+- main
+- main
+- main
+- main
+- main
+- main
+- main
+- main
+- main
+
+### Feat
+
+- improve the tools discovery endpoint to include more information about context and capabilities
+- finish the implementation of the healthcheck-logs registration in database
+- implements base models for healthcheck-logs in diesel adapter
+- wip - implements in memory tracking for health check metrics
+- create a script to backup and drop old logs from the health check system
+- **multihost-support**: add support for multiple hosts for downstream services
+- create sql model for healthcheck-logs data storage
+- finish the migration of the lazy-static for in-memory storage of soutes to use shaku injection of in-memory data
+- wip - replace the lazy-static implementation of the memory database by a shaku injectable module
+- **tools**: wip - implements changes to serve discoverable services through endpoint
+- include the possibility to tenant-owners to request tenant details using the tenant-manager endpoint
+- do implements pagination when list guest users on account
+- implements an endpoint to serve tenant information for tenant-manager accounts
+- implements a new endpoint to serve account details to the account owners from the beginners api group
+- implements new created and updated fields and propagate this fields along the software stack
+- implements new created and updated fields and propagate this fields along the software stack
+- implements a system flag in guest-roles to indicate roles restricted to system accounts
+- remove the redis dependency from notifier system and replace by postgres dependency
+- implements a ping test to the email dispatcher initialization
+- implements a guest-role fetching details for subscriptions managers
+- implements a subscriptions-manager endpoint group to list guest roles
+- do implements the public tenant fetcher
+- create a new option to allow authenticated users to interact with the mycelium downstream routes rithout registration
+- increase the ttl granularity of the cache for email and profile and the jwks response
+- include an extractor to check already the userinfo from the audience list
+- **cached-profile**: finish the implementation for the profile caching
+- wip - implements the key profile persistence to the redis database
+- refactor the mycelium notifier to move the redis config init to a shared module
+- implements the userinfo cache
+- wip - implements the async dispatcher functionality
+- wip - do implements the asynchronous dispatching of webhooks
+- review the weghook trigger names to improve the user understanding of their goal
+- migrate all prisma dependencies to diesel
+- implements the licensed-resources diesel adapter
+- implements the profile adapter for diesel
+- implements the token adapter for diesel
+- implements the users adapter for prisma
+- implements methods for tenant tag for diesel adapter
+- implements the webhook diesel adapters
+- implements the tenant adapters for diesel
+- implements the guest_user diesel adapter
+- implemente diesel adapter to guest_role
+- implements the error code diesel repository and initialize modules for other entities
+- implements the account repository for diesel
+- create the basis for the diesel adapter
+- implements diesel models to mirror the sql implementation for the prisma adapter
+- formalize the sql model as a sql manifest
+- implements the account metadata crud
+- improve the profile owner filtration and apply the improvement to the tenant owner endpoints
+- implements the tenant ownership information into the profile
+- wip - review the guest system
+- apply the new profile filtering validation
+- **dto-profile**: upgrade profile to include a filtration state after each filter operation
+- turn the cert and key pem loading to use secret-resolver
+- implements the secrets collection from vault
+- **user-account-creation**: include a email notification to the new account creation workflow
+- **gateway-manager/service**: implements the service listing for gateway managers
+- expose the x-mycelium-request-id to the gateway user
+- implements a new functionality to create all system roles by managers
+- implements the injection of secrets through the gateway router
+- implements the secrets service collection during the api gateway initialization
+- wip - implements an aditional option to collect secrets from environment vault
+- implements the gateway routes basic elements to check endpoints by api
+- implements the invitation acceptance use cases and api
+- review the full api documentation and endpoints locations to improve the development experience and usability
+- implements the fetching the connection string from the request header
+- upgrade the profile management to inject licensed resources as a url instead of a json object
+- upgrade the azure authorization flow in replacement to the remote check
+- implements the totp disable
+- implements the two setp login using totp flow
+- implements the totp activation
+- implements the totp initial steps for the otp registration
+- implements the secret encryption during the totl registration on user mfa flow
+- implements the totp encryption and decryption
+- implements the prisma and api injectors for token fetching module
+- implements the token creation endpoint of guest-manager
+- implements the noreply and internal emails naming
+- implements the prisma adapter to create new connection string tokens and remove unused imports from native-errors in endpoints
+- implements the connection string elements to generate service tokens
+- implements the guest-to-children-account use-case as a api port endpoint
+- implements the route filtration by permissioned roles
+- implements the route level filtration by role
+- implemens the children guest role management endpoints
+- wip - implements the guest role children insertion and deletion features
+- replace the smtp direct sender by a scheduler sender
+- implements the tenant-manager endpoint related elements
+- implements the tenant-owner endpoints
+- implements the tenant management endpoints
+- re-include the myc-cli crate on the project after fixing
+- do implements the tenant management for prisma repositories
+- wip - implements the prisma repository for tenant registration
+- implements the abstract code for tenant tag management
+- implement use-cases for metadata management in tenant-owner modules
+- implement the account deletion repo
+- do implement the tenant owner guest and revoke use-cases
+- wip - do implement the tenant-owner functionalitie
+- wip - do implement the new tenant based accounts management
+- wip - do implement the base logic fot the tenant implementation
+- implements the password recovery flow
+- replace logs from the core use-cases by tracing
+- implements the base for opentelemetry in lycelium
+- improve the user activation code
+- wip - initialize the migration from activation url to numeric token on create new user accounts
+- improve the mycelium native auth to allow logins
+- upgrade the internal authentication flow to generate simple authentication tokens from mycelium
+- **generic-maps**: implements a generic map to allow ynamic typing of hashmaps
+- replace error factories to accept generic types as the error message argument
+- implements a reelated account enumerator that allow users to check permissions for a specified account or itself has privileged permissions
+- upgrade default festures to include new error handlings
+- implements the tags creation endpoint entities and use-cases
+- implements the tag models into domain dtos and adapters
+- implements the slug name to allow accounts renaming without rename
+- include default actors as an public object into the myc-http-tools
+- upgrade webhook propagation functionalities to passthrough the bearer token together request
+- implements the new base package to replace the clean-base package
+- **subscription-account**: implements a use-case and endpoint to update accounts name and flags
+- implements the api port to interact with the propagation use-case
+- implements webhook updating and listing
+- implements the collection of secret values from environment instead of to use hardcoded configurations
+- implements the configuration loading from environment already
+- implements the auxiliary endpoints
+- refactores standard and managers endpoints to mirror the new actors system
+- implements new notifications and improve the accounts creation flow
+- upgrade auth models tobe loaded from config file
+- implements configuration passthrough from api port to another application layers
+- migrate session-token management from redis to postgres
+- wip - implements the config manager module
+- wip - implements the config manager module
+- wip - start implementation of the session token management during users accounts lyfe cycle
+- start implementation of the config manager
+- turn accounts creation process to possible without user registration
+- create is-principal field to indicate users which created the accounts
+- finish implementation of the user and account registrations in two independent steps
+- implements the email check function to start the proccess of authentication
+- upgrade prisma adapter user model to include providers as options
+- move new method of user new_with_provider method allow the provider field to be required during default object creation
+- create base attributes to implement password checks to users
+- wip - start creation of the token management elements
+- wip - start creation of the default account management
+- upgrade router to allow http2 service as downstream url for apis management
+- upgrade the account model to include multiple owners allowing to work with multi-user accounts with the same real world identity
+- implements the webhooks creation and deletion usecases adapters and ports
+- wip - upgrade ports to work with with webhooks
+- create webhook base model
+- wip - upgrade management use-cases to dealing with webhooks during subscription accounts creation
+- wip - implements entities for webhook management
+- wip - upgrade prisma model to work with webhooks
+- remove the include-itself parameter of the profile functions that check privilegies
+- wip - implements the app interface for management and create the commitizen file for auto versioning
+- turn default include-itself parameter of profile as false
+- update user related dtos to include partial equals as derive and upgrade get ids elements of profile
+- Fix the wrong unwrap occurred on get used identity GatewayProfileData
+- include user names into the profile object
+- wip - create config and handlers for azure oauth2 authorization-code flow
+- include the google oauth2 flow for authorization-code flow usage
+- remove health checks from the main api logger
+- create methods to check ids permissinos with error status if no licensed ids were found
+- upgrade prisma version
+- implements the batch creation of the native error persistence
+- implements the api endpoints for error-codes management
+- implement use-cases to manage error codes
+- implements the error code prisma crud and include message code to prisma client
+- implements entities for error code crud management
+- upgrade version of the clean-base error handlers at mycelium
+- wip - start the implementation of the google identity checking flux
+- create the error code dto to manage code data
+- upgrade all gateway use-cases and some remaining use-cases from roles group to use infallibles
+- replace all manual error handling on use mapped-errors to infalible implementation
+- implement methods to update the guest-role of an existing guest
+- include the account name and guest-role name into the licensed resources object
+- include the possibility to jump from active users to archived users in managers use-cases
+- implements the unapproval use-cases and appropriate endpoints
+- implements the uninvite system for guests
+- replace the accounts filtration from using flags to use accounts verbose statuses
+- implements the verbose status notation to turn the status interpretation from tags to text
+- convert the account type from the managers account list to a flag indicating if only subscription account should be fetched
+- remove authorization codes from the api configuration module
+- remove oauth2 checks from the api
+- wip - implements swagger elements to serve the project apis documentations
+- implements endpoint to change account archival status
+- upgrade prisma client to reduce the build size of prisma installation
+- implements the endpoint to get all guests of a default account
+- implements all features to list accounts by type and include archivement options to database
+- implements the second step for identity checking on fetch profile from the api request
+- create methods to fetch user information from ms graph using me route
+- update extractor and credentials checker to work around profiles instead profile-packs
+- create api gateways functionalities to turn mycelium independent
+- start creation of the api gateway
+- split fetch profile pack use-case in two sepparate use-cases and create a new default-users endpoint to provide profiles
+- include an optional parameter to allow exclude the own id from from the licensed profiles list
+- create a new licensed-resources adapter to replace the guest-roles adapter used during profiles fetching
+- implements list methods for role and guest-roles
+- implements entpoint to fetch guest-users using the subscription account id
+- implement endpoints to get and list subscription accounts
+- change redis donnector to collect redis connection string trom the environment
+- update descriptions of default accounts
+- collect the application name from environment
+- update profile extractor to validate token
+- creeate staff endpoints for accounts management
+- implement endpoints from shared use-cases group to manager endpoints group
+- update seed staff creation to include is-manager flag at the created account
+- update utoipa path params documentation of all already implemented endpoints
+- imlement endpoints for token management by service users
+- implements manager role endpoints
+- refacror the manager endpoints to split routes by group
+- implement account endpoints of the managers api group
+- create endpoint to update account name
+- update the cli port that creates the seed staff account
+- update public elements of the myc-api library to include profile use-case dtos and update sub-packages versions
+- include profile response elements as the exportation elements of the api-public port
+- update the profile fetch api response
+- update all package dependencies to use unsufixed dtos and update fetch profile use-case to include new arguments
+- update the profile fetch use-case to include the validation token creation in the process
+- limit the visivility of the token-expiration-time config to crate
+- implements the token cleanup entities and redis adapters and prepare injection modules into api ports
+- update registration and de-registration adapter to group tokens by date allowing cleanup every day
+- include redis adapters into the api port module
+- implements the token validation data repositoryes and dependencies
+- implements the use-case and entities and their dtos to perform token registration and deregistration
+- include all adapters as modules and into the shaku configuration to be injected at the application runtime
+- implements the role updating prisma adapter
+- implements the role fetching prisma repository
+- implements the role registration prisma repository
+- implements the role deletion prisma repository
+- implements the guest-role updating prisma repository
+- implements the guest-role fetching prisma adapter
+- implements guest-role deletion repository
+- replace the guest-role deletion return type from dto to uuid
+- implements the account updating prisma repository
+- replace the id type of the get method by uuid
+- update profile methods to get ids by permission to include a list of roles instead of a single role
+- include methods to filter ids of accounts that profile has permissions
+- implements the account-creation endpoint into the api port and their dependencies
+- documenting the profile extractor of the public module and update the default profile key of the core module
+- include email-dto into the re-exports
+- re-export elements from the myc-core to reduce the number of packages to install
+- update the guest-user use-case to fetch profile from request and implement methods to extract it
+- implements the adapter for guest-role registrations
+- implements the account-type registration adapter
+- implement endpoints to fetch profiles from email and update profile object to be more informative
+- implements sql adapter to fetch profile from database
+- update profile dto to include information from the subscription flags and other
+- implements the use-case to fetch the user profile by email
+- include an account validation method on guest use-case and move the seed staff account creatio to staff use-cases
+- split application into api and cli and rename the seed staff creation function
+- implements the use-case to guest a user to a specific role
+- create actions create staff accounts and upgrade and downgrade account types
+- create a use-case to start subscription accounts
+- implement the use case to update role name and description
+- implement use-case to allow users to update the own account name
+- implements the user-registration adapter
+- create the use-case to mark accounts as checked
+- create use-case to activate and deactivate accounts
+- mirroring the data model into the database model
+- move the prisma module to a dedicated sub-project
+- update the account type and dependencies to deal with the is-subscription account type
+- replace the raw mappederrors by the specific errors functions
+- implements the user role deletion and updating for manager users
+- include the account id at the user-role object aht their use-case registration
+- include privilege checking for the roles registration use-case
+- implements the user-role registration use-case and dependencies
+- create the basic entities for the application roles and the use-case to create an account with default account-type
+- update the profile and user dtos to use a new email dto validation object instead of a raw string
+- implement a url generator on guest and user-rule structs
+- implements the url generator into accounts
+- wip - initialize the basis for the application evolution
+- update all dtos to work with parent and children representation of relations over pure types
+- implements abstract methods for application management
+- implements the initial structure and dtos
+- initial commit
+
+### Fix
+
+- **create-healthcheck-partition**: fix the create_healthcheck_partition sql funciton to create partitions
+- replace the ensure daily partition by a secondary access function to avoid higher level accessions
+- remove the partition creation part of the accessoru script for healthcheck logs management
+- include the error-message field in sql model for healthcheck
+- store drop partition operation result into a variable
+- turn service id required field
+- remove old module folder of the api-port submodule
+- **tools**: reduce information of the services available during discoverability
+- include a slug filtration during guest roles fetching
+- use owner ids instead of the account id during filtration of the tenant details
+- **get-tenant-details**: handle get-ids-or-error result dispatch to avoid young return with error on check if user is tenant-manager
+- **tenant-details**: include details of owners tags and manager account to the tenant details when called by tenant-managers
+- **profile**: reconigure permissions to allow greater or equal instead to equal only on check user profile permissions
+- remove the read-write option from permissions to avoid ambiguous filtering of profile options
+- include an additional step during the tenants management account creation to register the manager account on tenant
+- freeze zip version on try to avoid error on utoipa-swagger-ui
+- downgrade utoipa to avoid nine version error on build
+- upgrade project dependencies including dependabot issues
+- **dependabot**: introduce security fixes recommended by bependabot
+- **utoipa-swagger-ui**: upgrade utoipa-swagger-ui version to 9
+- **utoipa-swagger-ui**: include the reqwest feature flag in utoipa-swagger-ui to avoid to use curl during the swagger installation
+- populate the created-by field during the creation of a connection between two guest-roles
+- populate the created-by field during the creation of a connection between two guest-roles
+- **create-management-account**: set the is-detault flag before persist the new created account to the datastore
+- **downgrade-account-privileges**: include a check to deny downgrade operations in non-self accounts
+- **create-default-account**: upgrade the create-default-account use-case to generate the account slug from the user principal email
+- **update-account-name-and-flags**: include a logic to avoid the updating of the account slug after update account name in update-account-name-and-flags use-case
+- upgrade production configurations to load templates as a project artifact
+- include the guest role id during the guest user connection to account
+- replace licensed resources parsing during their loading on diesel adapter
+- remove lock for subscription account on list guest to account
+- upgrade account list to allow non tenant requests and refine the account filtering based on the user roles
+- turn webhooks paginated
+- include the official image from mycelium-api docker hub in docker compose file
+- increase verbosity of the user creation process
+- include a desynchronozation element to avoid multiple synchronous execution of email and webhook dispatcher
+- update database model to be more migrationable
+- prefix user tables to include the public schema name on create table schema
+- fix the rpassword package name
+- replace the cached crate by a native implementation of the caching functions
+- fix the email discovery process to include the user info collection from remote server
+- include secret resolver from myc-config in tracing
+- **hashbrown**: hashbrown was identified as a high impact security issuer - upgrade version
+- re-introduce the internal provider to the issuer fetcher flow
+- upgrade the credencials checker to dinamically load identity providers
+- remove log crate from the project
+- remove guesting and revoke options from the webhook trigger
+- fix the webhook async dispatch to avoid updates of the payload package and mirror important changes to database
+- fix the meta endpoints for account meta management
+- fix the guest to children account
+- review the guest roles related operations
+- **subscription-accounts**: fix the subscription accounts related operations
+- wip - fix the guest roles diesel orm functionalities
+- review the error code life cycle
+- fix the webhook updating options to avoid updation of the url and triggers
+- improve the tenant fetching and account fetching to adequate to the expected behaviour already validated with prisma
+- fix the tenant operations related to the diesel database engnie
+- fix the tenant fetching process
+- fix the tenant fetching to migrato to native orm diesel query
+- fix the totp lifecycle
+- fix the user token invalidation on create a new one
+- fix the profile fetching diesel query
+- replace diesel uuid in models and repositories by string
+- migrate the raw sql implementations injection of the fetch-profile-from-request to a native shaku module injection
+- fix the diesel injection module to avoid modules implementation expositions
+- fix the accout fetching adapter for prisma
+- include the tenant-fetching repo to the tenant endpoints for tenant-owners
+- include the meta field at the account model
+- improve information about the account creation status on email checking response
+- include the url option to the tenants-ownership field of the profile dto
+- include tenant at the profile filtering
+- **use-cases**: remove unused roles from profile filtering operation
+- **profile**: inform about deprecation of direct filter methods of profile
+- fix the permissioning system
+- inject the role name on guest to default account using service accounts
+- **email-template**: move the email subject to the templates file allowing the internationalization by file
+- fix the env variable collectino and migrate all auth variables to dynamically collected ones
+- fix the webhook dispatching to decrypt secrets befhre send request to the incoming route
+- set the utoipa redoc environment variable on the main file of the api port
+- fix the parsing and verification of connection strings not working
+- remove unused test
+- review the licensed resources filtering from database
+- include additional checks to allow routing to insecure downstream paths only if explicitly informed by users
+- ensure the downstream service secrets to be removed from the gateway request
+- fix the endpoints security definition
+- replace the myc path url by adm
+- fix the service endpoints to collect the tenant id from the connection string itself
+- finish the authorization code flow for the azure ad
+- review the account list method to allow filter directly by account-type
+- remove url query string from webhook response to avoid expose secrets
+- fix the guest to default subscription account name inserted at the account name
+- adjust the webhook dispatching method based on the webhook trigger
+- fix the webhook lifecycle to live as a more verbose to the final users
+- include the redaction function on get webhook from database
+- remove greather than equal from licensed resource fetching using prisma to use only equal to permissions
+- replace the myc00013 response from profile permissions check by a myc00019 code
+- allow users and staffs to use role protected routes
+- fix the email processing counter and fix the child role invitation use-case to avoid guest to different roles that the target one
+- fix staff endpoints to upgrade and downgrade accounts
+- replace the profile injection to responds with unauthorized instead of forbidden
+- fix the guest process
+- replace the guesting email template element to use the tera template
+- fix the email consumption queue processor
+- remove google and azure endpoints from logging ignore rules
+- reintroduce the system and users management endpoints
+- re-introduce the staff endpoints
+- fix account and licensed resources prisma repositories
+- fix database connection between tenant and account
+- migrate sql database before fix the prisma repositories
+- rename revoke tenant owner wrongly named use-case function
+- fix role-related account propagation through the webhook element
+- solve the permission check for the tenant operations to include validation over the manager and staff accounts
+- fix return tyoe of login function
+- move the tracing initialization to move it to the root of the main api function
+- include expiration time during the account activation token fetching from database
+- move the email template location and fix the email verification code generation
+- wip - improve the google authentication checking logs and the api port logs to allow better debug
+- inplements the google checks for oauth2 token online
+- **account-and-users**: turn the default user and account creation process to considering email as case-insensitive
+- fix actix-web corst to return specifig headers into responses
+- rename gateway request estractors of the injected profile
+- orient all internal paths dependencies to the project path instead to use directly into the workspace
+- implements related accounts filtering default methods
+- fix the subscription accounts search to include tag search and a case insensitive search including uuid targeted search
+- **subscription-account-propagation**: fix the subscription account propagation use-cases
+- **subscription-account**: include the subscription-accounts name and flags updating endpoint
+- fix tokio dependencies of config and adapters and update dockerfile to includ base into installatin
+- fix the subscription account creation elements to allow propagation of default-users accounts
+- upgrade all std use-cases to responds to default account on check actinos permissions from profile
+- upgrade the prisma model to include the flag is-default into database and update associated adapters
+- **router**: fix router to correctely check for all and none methods
+- **router**: fix http method filtragion from gateway router
+- fix action type
+- implementing serialization and deserialization into the permissions action type enumerator
+- include role creation models into openapi definitions
+- fix the argument delivery on guest-role endpoints
+- fix guest-role endpoints params to use from body instead header
+- fix guest-role url parameter wrong expecting the role id as url parameter
+- fix role and guest-role endpoints to use correct verbs and rest syntax
+- upgrade commitizen config file to upgrade the version from workspace file
+- fix the response from account creation to return a 409 code if account exists
+- fix the error handler on try to create existing users
+- move the email notifier on generate tokens to be collected form environment
+- **default-account-creation**: include identity extraction from request token on create default accounts
+- **default-user-creatio9n**: fix the absence of check of user token during user creation on use a third party provider
+- remove unused commitizen from redis cardo toml
+- fix app configuration at the api port
+- fix google oauth configs wrong written
+- fix the user fetching and registration adapters to include and omit password informations and init creation of users endpoints
+- upgrade staff account creation flow to include password and hash into data persistence modules
+- include error handling if some exception occurred during the user registration
+- fix prisma adapter to deals with the profile field as private
+- turn provider and their password hash and salt as private fields
+- upgrade user model to remove password hash and salt information before serialize user object
+- upgrade account creation use-cases to include or not profile information during accounts initializations
+- remove non domain logic from the session token domain dto
+- finish use-cases related to session token registration and expiration
+- fix account and user prisma adapters to deals with user provider models
+- extend previous commit
+- remove app from the main package
+- fix the decoding of headers parsing
+- replace all 404 responses of valid request by 204 ones
+- replace the is-internal from is-native flag evaluation on try to registre new errors
+- create a code field to present the concatenated prefix and error_number as the code
+- resolve the error on uninvite guest to account
+- **guest-user-deletion**: update the guest-user-deletion prisma repository to delete guest from guest role id instead of the guest user-id
+- upgrade the response status when an uninvitation event is called from manager endpoint
+- include account flags during the creation of the account
+- replace utoipa definitions of manager guest url to use params as query instead of body params
+- replace body param of query guest to query param instead
+- set checked as true during the creation of subscription accounts
+- remove full file path from the auto-generated prisma code
+- upgrade the status state checker to allow users to migrate to archived from inactive users
+- include an and statement during the filtration of the accounts
+- include permission type enumerator definition on the default-users endpoints openapi definition
+- include activation status change endpoints to the account endpoints set
+- fix bug during the approval or activation status change of an account
+- remove unused dependencies from mycelium api
+- fix bug repository to fetch licensed ids
+- **licensed-resources-fetching**: replace the licensed resources fetching from guest-users to guest-users-on-accoun data source
+- create an option to extract profile from header instead of try to extract directely from request
+- fix bug during the creation of the guest users
+- replace path from context-path at the openapi docs of each endpoins available in the mycelium
+- fix the profile validation and remove all code from token checking
+- upgrade version of clean-base and utoipa to fix downgrade dependencies
+- change log type from token deregistration from warn to debug
+- remove the full file path from the prisma generation file
+- update profile extractor message
+- include a debug log after build and collect profile
+- fix bug into the collection of profile during collection of the guest accounts
+- increase permissions of the myc-service-role to allow data insertion and reading in postgres development database
+- remove permissions settings form the guest-roles creation url
+- include a string parser on the permissions-type enumerator to allow parse permissions from api request
+- fix regex validation for email string parsing and include new tests for it
+- fix guest-role use-case to include role id as optional filtration argument
+- replace the guest-role id by the role id wrong send during the subscription guest list fetching operation
+- fix the guest accounts listing route to remove extra backslash
+- create a constructor method for json-error instead of the direct instance creation
+- fix response of the subscription accounts fetching from created to ok
+- fix the account-type parent type from id to record to avoid execution-error on execute the guest-user use-case
+- include owner and account-type as related elements on try to fetch accounts
+- remove unnecessary loggings from debug
+- stamdardize all application routes and fix actix-web endpoints configurations
+- update the response body and schemas from service and staff openapi
+- update visibility of the default account creation use-case to be accessible only from crates
+- fix the privilegies misverification on the account activation use-case
+- fix the error returned by adapters during the creation of the user and account
+- fix the guest-role registration adapter
+- include a match validation during the email validation that uses regex
+- fix the check on the guesting process which the subscription account were not correctely checked
+- remove profile requirement from the seed staff account creation
+- rename manager use-cases from simple role to guest-role to match the application rules
+- turn account type flags as static booleans instead of optionals
+
+### Refactor
+
+- replace the head endpoint to check the user status by a get method with body response
+- merge all scripts for database creation to a single up file
+- move the tracer to trace only during vault executions
+- convert the response status to a ok status on verity the email registration status endpoint
+- split notifier models to a dedicated submodules and initialize the kv lib
+- refactor project to inject notifier module instead instance along the api port
+- refactor email fetcher middleware to turn it more verbose and dev friendly
+- **fetch_profile_from_request**: split the fetch_profile_from_request to multiple submodules to turn the module arch as screamming
+- fix english words
+- comment not implemented triggers options for the webhook
+- move tracing and async dispatchers to dedicated modules
+- remove prisma client adapter
+- move the account-tag to a dedicated module
+- allow dead code for the profile fetching using telegram user use-case
+- standardize the headers used to check an email status
+- **profile**: split profile elements into independent modules
+- rename use-cases to better inform users about functionality
+- rename the standard account flag on licensed resources to a system account
+- remove the role submodule and move chindren modules to the root parent
+- move the match forward address use-case to the gateway use-cases group
+- rename the env-or-value functionality by secret-resolver
+- refactor the route match use-case to use a correct base response from mycelium
+- **secret-dto**: move the webhook secret dto to a independent dto named http-secret
+- refactor the azure provider model to include new functionalities
+- rename the standard folder to role-scoped in api prot
+- move the match-forward-address to the api-port-router functionality
+- rename the use-cases to mirror the application roles
+- refactor the no-role guest endpoint to the new service route group
+- refactor all routes to be more consistent
+- replace the tenant id from the api route to use a x-mycelium-tenant-id header
+- implements basic locale to the email template
+- centralize the platform name and the platform url as the domain config instead to inject from the request url
+- refactor providers to standardize modules
+- move the shared functions from the roles module to a support module
+- refactor webhooks to follow de main stream format widely used in web applications
+- rename the token generator for the account associated connection string use-case
+- move the email sender to a dedicated module shared between use-cases and create a new mapped-error-to-http-response mapping handled
+- rename user to users and subscription by subscriptions as default actors and mirror to dependent elements
+- refactor the permissions to be a integer with read write and read-write options only
+- replace all crud related permissioner elements by simple read-write ones
+- rename child insertion and removal use-cases files
+- move the guest-role to a dedicated dto module
+- refactor the mycelium smtp to be a general purpose notifier
+- rename all json-error occurrent by http-json-error crate
+- move otel acessory functions from main api port file to a dedicated otel file
+- refactor endpoints to use the standard error code wrappers
+- turn tenant endpoints of manager api module a file
+- reactivate guests endpoints and move it to the subscription-manager endpoints group
+- rename the checked status to verified or unverified in verbose-status
+- adequate all core elements to include tenant on the profile filtering
+- move the guest to subscription-manager instead to guest-managers
+- move the staff tenant management elements to manager management elements
+- rename the user and subscription manager roles
+- move the session_token to account-life-cycle module
+- move the sql adapters used during the profile extraction from requests of the api middleware to the own funciton that execute the action
+- move the mycelium-http-tools to a dedicated module and kept the api related middleware elements to the api port module
+- move the api to a backward directory given the absence of the base myc-http-tools library
+- move the myc-http-tools to a dedicated package
+- refactor the cargo dependencies to import shared dependencies from the workspace
+- rename accessor method of env-or-value from get to get-or-error to indicate that the mathod returns a result
+- move url groups api enumerator to a higher level inside the endpoints module
+- move error codes to system-manager role use-cases group
+- move manager use-cases to dedicated actors folders
+- turn default-user endpoints and apis to mirrir the new default system actors
+- move all entities to dedicated folders mirriring their role in the application
+- remove unused loggings from router
+- rename config loading use-case to indicate that config is loaded from yaml file not json
+- rename account propagation response during webhook actions
+- make stuff changes in router
+- split endpoints submodules to dedicated files
+- replace the default error imports from clean-base in use-case module to the new error factory import
+- rename the simple forwarding error from gateway to gateway error
+- move account approval and status changes to the manager use-cases group
+- move the upgrade and downgrade actions from shared to staff use-cases group
+- remove the dto notation from the domain dtos
+- update ports to adequate to the use-cases refactoring from the previous commits
+- refactore use-cases to re-export main case functions into the parent modules directelly
+- remove unused horizintal marker from the api config
+- re-export adapters to the root reposotories module
+- refactore adapter imports and move modules to a single file
+- fix paths of myc-core entities imports after upgrade the myc-core version
+- re-export all entities from their parend module instead of publish their directly
+- update api ports to export adapters after the latest refactoring
+- ungroup adapters by role
+- move all antities from core packate to the root entities folder instead of seggregate by role
+- remove the md extension from tthe license file
+- finish the migration of the smtp adapters to the adapters feature
+- wip - move infra and smtp adapters to the adapters feature
+- move ports to a dedicated directory
+- rename the core package from myc to myc-core
+- move the cli port to a dedicated project
+- move the api port to a dedicated submodle
+- rename internal project folders from mycelium to myc
+- fix the header profile key in settings and rename the profile-extraction function to best denote their goal
+- reduce the profile parsing on fetch it from database
+- rename remove-guest use-case to uninvite-guest
+- rename the create-account use-case to create-default-account to mirror the main goal of the use case that is create default accounts
+- migrate the base objects to the agrobase-rs
+- group use-cases by data afinity
+- rename user-role entities to guest-roles
+
+### Perf
+
+- include a slug to tenant-id index on tenant management model
+- **account**: remove from serialization none fields of account dto
+- **tenant**: remove from serialization none fields of tenant dto
+- improve the profile injection on internal roles to filter roles before send by downstream requests
+- **licensed-resources**: replace the licensed resources fetching to use a view instead to perform multiple joins to fetch licenses contents
+- move user creation of the account creation process to a transaction into the account creation
