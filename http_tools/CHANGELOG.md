@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [7.9.0] - 2025-04-23
 
+### 🚀 Features
+
+- *(git-cliff)* Introduce the git-cliff fot project changelog management
+
 ### 💼 Other
 
 - 7.8.1 → 7.8.2.dev1 [skip-ci]
