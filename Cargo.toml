@@ -23,6 +23,8 @@ default-members = [
     "adapters/*",
 ]
 
+exclude = ["test/bin"]
+
 resolver = "2"
 
 

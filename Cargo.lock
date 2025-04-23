@@ -2589,7 +2589,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-api-test-svc"
-version = "1.0.1+dev"
+version = "7.9.1+dev"
 dependencies = [
  "actix-web",
  "mycelium-http-tools",
