@@ -110,6 +110,7 @@ uuid = { version = "1.1", features = ["v3", "v4", "serde", "fast-rng"] }
 
 [workspace.metadata.release]
 
+shared-version = true
 sign-commit = false
 sign-tag = false
 push = true
