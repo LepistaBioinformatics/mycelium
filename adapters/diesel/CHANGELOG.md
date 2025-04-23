@@ -14,6 +14,10 @@ All notable changes to this project will be documented in this file.
 - 7.8.1 → 7.8.2.dev1 [skip-ci]
 - *(bump)* Manual fix the package version
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [7.8.2] - 2025-04-22
 
 ### 🐛 Bug Fixes
