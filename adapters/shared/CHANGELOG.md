@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### 🚀 Features
 
 - *(git-cliff)* Introduce the git-cliff fot project changelog management
+- *(git-cliff)* Track version upgrading into changelogs
 
 ### 💼 Other
 

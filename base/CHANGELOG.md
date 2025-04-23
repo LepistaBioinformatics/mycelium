@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - Wip - implements the async dispatcher functionality
 - Wip - implements the key profile persistence to the redis database
 - *(git-cliff)* Introduce the git-cliff fot project changelog management
+- *(git-cliff)* Track version upgrading into changelogs
 
 ### 🐛 Bug Fixes
 

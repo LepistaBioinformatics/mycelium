@@ -16,7 +16,7 @@ categories = ["http-client", "microservices"]
 
 [dependencies]
 actix-web = { version = "4" }
-mycelium-http-tools = { version = "7.8.2", path = "../../http_tools" }
+mycelium-http-tools = { version = "7.9.0", path = "../../http_tools" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
