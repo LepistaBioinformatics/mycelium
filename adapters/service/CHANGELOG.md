@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### 💼 Other
 
 - *(git-cliff)* Upgrade all workspace packages
+- *(git-cliff)* Upgrade all workspace packages
 
 ## [7.9.0] - 2025-04-23
 
