@@ -319,11 +319,7 @@ pub async fn main() -> std::io::Result<()> {
     //
     // ? -----------------------------------------------------------------------
     info!("Fire services health dispatcher");
-    services_health_dispatcher(
-        config.api.clone(),
-        sql_module.clone(),
-        mem_module.clone(),
-    );
+    services_health_dispatcher(config.api.clone(), mem_module.clone());
 
     // ? -----------------------------------------------------------------------
     // ? Configure the server

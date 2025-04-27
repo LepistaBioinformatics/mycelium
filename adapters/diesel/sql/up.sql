@@ -228,42 +228,6 @@ CREATE TABLE message_queue (
     error TEXT DEFAULT NULL
 );
 
--- Healthcheck logs table
-CREATE TABLE healthcheck_logs (
-    --
-    -- Required fields always present
-    --
-    -- Service ID. The user provided or service name-based identifier
-    service_id UUID NOT NULL,
-
-    -- Service name. The user provided value
-    service_name VARCHAR(255) NOT NULL,
-
-    -- Timestamp. The healthcheck was checked. This field is used to partition
-    -- the table
-    checked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-    -- Status code. The status code of the healthcheck
-    status_code INT NOT NULL,
-
-    -- Response time in milliseconds. The time it took to receive the response
-    response_time_ms INT NOT NULL,
-
-    -- DNS resolved IP. The IP address of the DNS resolved
-    dns_resolved_ip VARCHAR(64),
-
-    --
-    -- Optional fields when the healthcheck is not successful
-    --
-    response_body TEXT,
-    error_message TEXT,
-    headers JSONB,
-    content_type TEXT,
-    response_size_bytes INT,
-    retry_count INT,
-    timeout_occurred BOOLEAN
-) PARTITION BY RANGE (checked_at);
-
 --------------------------------------------------------------------------------
 -- CONSTRAINTS
 --------------------------------------------------------------------------------
@@ -346,9 +310,6 @@ ALTER TABLE webhook_execution ADD CONSTRAINT webhook_execution_pk PRIMARY KEY (i
 -- Message queue table constraints
 ALTER TABLE message_queue ADD CONSTRAINT message_queue_pk PRIMARY KEY (id);
 
--- Healthcheck logs table constraints
-ALTER TABLE healthcheck_logs ADD CONSTRAINT healthcheck_logs_pk PRIMARY KEY (route_id, checked_at);
-
 --------------------------------------------------------------------------------
 -- VIEWS
 --------------------------------------------------------------------------------
@@ -393,54 +354,3 @@ GRANT USAGE ON SCHEMA public TO :"db_role";
 GRANT ALL ON ALL TABLES IN SCHEMA public TO :"db_role";
 
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO :"db_role";
-
---------------------------------------------------------------------------------
--- PERMISSIONS FOR PARTITIONED TABLES
---------------------------------------------------------------------------------
-
--- Ensure we are using the correct schema
-SET search_path TO public;
-
--- Create the function to generate partitions automatically, using string YYYYMMDD
-CREATE OR REPLACE FUNCTION create_healthcheck_partition(from_date_str TEXT)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-DECLARE
-    from_date DATE := to_date(from_date_str, 'YYYYMMDD');
-    partition_name TEXT := format('healthcheck_logs_%s', from_date_str);
-    from_ts TIMESTAMPTZ := from_date::timestamptz;
-    to_ts TIMESTAMPTZ := (from_date + INTERVAL '1 day')::timestamptz;
-    partition_exists BOOLEAN;
-BEGIN
-    -- Check if partition already exists
-    SELECT EXISTS (
-        SELECT 1
-        FROM pg_tables
-        WHERE schemaname = 'public'
-        AND tablename = partition_name
-    ) INTO partition_exists;
-
-    IF NOT partition_exists THEN
-        EXECUTE format(
-            'CREATE TABLE IF NOT EXISTS %I PARTITION OF healthcheck_logs
-             FOR VALUES FROM (%L) TO (%L)
-             PARTITION BY RANGE (checked_at);',
-            partition_name, from_ts, to_ts
-        );
-
-        -- Create the primary key constraint on the partition
-        EXECUTE format(
-            'ALTER TABLE %I ADD CONSTRAINT %I PRIMARY KEY (service_id, checked_at);',
-            partition_name, partition_name || '_pk'
-        );
-    END IF;
-END;
-$$;
-
--- Allow the service role to execute the function, but nothing else
-GRANT EXECUTE ON FUNCTION create_healthcheck_partition(TEXT) TO :"db_role";
-
--- Execution example
--- SELECT create_healthcheck_partition('20250421');
