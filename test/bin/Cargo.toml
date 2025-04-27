@@ -1,5 +1,6 @@
 [package]
 name = "mycelium-api-test-svc"
+description = "Mycelium API Test Service"
 
 edition.workspace = true
 authors.workspace = true
