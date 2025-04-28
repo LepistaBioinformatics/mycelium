@@ -34,6 +34,34 @@ services:
     <<: *common-config
     container_name: myc-jaeger-devcontainer
 
+  myc-prometheus-devcontainer:
+    extends:
+      file: ../docker-compose.common.yaml
+      service: myc-prometheus
+
+    <<: *common-config
+    container_name: myc-prometheus-devcontainer
+
+  myc-grafana-devcontainer:
+    extends:
+      file: ../docker-compose.common.yaml
+      service: myc-grafana
+
+    <<: *common-config
+    container_name: myc-grafana-devcontainer
+
+  myc-otel-collector-devcontainer:
+    extends:
+      file: ../docker-compose.common.yaml
+      service: myc-otel-collector
+
+    networks: *common-networks
+    container_name: myc-otel-collector-devcontainer
+    depends_on:
+      - myc-jaeger-devcontainer
+      - myc-prometheus-devcontainer
+
+
   myc-redis-devcontainer:
     extends:
       file: ../docker-compose.common.yaml

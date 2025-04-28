@@ -1,0 +1,63 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:4317"
+      http:
+        endpoint: "0.0.0.0:4318"
+
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: "mycelium-otel-collector"
+          scrape_interval: 15s
+          static_configs:
+            - targets: ["myc-prometheus-devcontainer:9090"]
+
+processors:
+  batch: {}
+
+  span:
+    name:
+      from_attributes:
+        - myc.hc.service_name
+      to_attributes:
+        rules:
+          - ^\/api\/v1\/document\/(?P<documentId>.*)\/update$
+      separator: "::"
+
+  #filter:
+  #  error_mode: propagate
+  #  traces:
+  #    span:
+  #      - 'attributes["myc.hc.operation_code"] == "HC00007"'
+  #      - 'resource.attributes["myc.hc.operation_code"] == "HC00007"'
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+
+  otlp/jaeger:
+    endpoint: "0.0.0.0:4317"
+    tls:
+      insecure: true
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - prometheus
+      processors:
+        - batch
+      exporters:
+        - prometheus
+
+    traces:
+      receivers:
+        - otlp
+      processors:
+        - span
+        - batch
+        #- filter
+      exporters:
+        - otlp/jaeger
