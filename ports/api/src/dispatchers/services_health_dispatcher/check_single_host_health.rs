@@ -274,6 +274,7 @@ pub(super) async fn check_single_host_health(
 
     tracing::trace!(
         { MYC_IS_HOST_HEALTHY } = health_check_info.is_service_healthy,
+        { MYC_OPERATION_CODE } = ?APIOtelCodes::HC00007,
         myc.hc.response = ?json_health_check_info,
         "Host health check finished",
     );
