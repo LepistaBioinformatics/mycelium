@@ -244,6 +244,7 @@ api:
   # services:
   #   - name: cat
   #     host: catfact.ninja
+  #     protocol: https
   #
   #     healthCheck:
   #       path: /health/
@@ -255,7 +256,6 @@ api:
   #         methods:
   #           - GET
   #         downstreamUrl: /fact
-  #         protocol: https
   #
   # ? --------------------------------------------------------------------------
   routes: test/mock/routes.yaml

@@ -2,12 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [7.9.1] - 2025-04-23
+## [7.9.2] - 2025-04-27
 
 ### 💼 Other
 
 - *(git-cliff)* Upgrade all workspace packages
 - *(git-cliff)* Upgrade all workspace packages
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
 
 ## [7.9.0] - 2025-04-23
 
