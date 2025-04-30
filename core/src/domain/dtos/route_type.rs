@@ -49,3 +49,52 @@ pub enum RouteType {
         permissioned_roles: Vec<(String, Permission)>,
     },
 }
+
+impl ToString for RouteType {
+    fn to_string(&self) -> String {
+        match self {
+            RouteType::Public => "public".to_string(),
+            RouteType::Authenticated => "authenticated".to_string(),
+            RouteType::Protected => "protected".to_string(),
+            RouteType::ProtectedByRoles { roles } => {
+                format!("protected_by_roles({})", roles.join(", "))
+            }
+            RouteType::ProtectedByPermissionedRoles { permissioned_roles } => {
+                format!(
+                    "protected_by_permissioned_roles({})",
+                    permissioned_roles
+                        .iter()
+                        .map(|(role, permission)| format!(
+                            "{}: {}",
+                            role,
+                            permission.to_i32()
+                        ))
+                        .collect::<Vec<String>>()
+                        .join(", ")
+                )
+            }
+            RouteType::ProtectedByServiceTokenWithRole { roles } => {
+                format!(
+                    "protected_by_service_token_with_role({})",
+                    roles.join(", ")
+                )
+            }
+            RouteType::ProtectedByServiceTokenWithPermissionedRoles {
+                permissioned_roles,
+            } => {
+                format!(
+                    "protected_by_service_token_with_permissioned_roles({})",
+                    permissioned_roles
+                        .iter()
+                        .map(|(role, permission)| format!(
+                            "{}: {}",
+                            role,
+                            permission.to_i32()
+                        ))
+                        .collect::<Vec<String>>()
+                        .join(", ")
+                )
+            }
+        }
+    }
+}

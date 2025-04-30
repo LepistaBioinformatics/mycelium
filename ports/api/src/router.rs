@@ -33,7 +33,7 @@ use myc_mem_db::repositories::MemDbAppModule;
 use mycelium_base::{dtos::Parent, entities::FetchResponseKind};
 use shaku::HasComponent;
 use std::{str::FromStr, time::Duration};
-use tracing::{error, trace, warn};
+use tracing::Instrument;
 use url::Url;
 
 /// Forward request to the client service.
@@ -49,7 +49,28 @@ use url::Url;
 #[tracing::instrument(
     name = "route_request", 
     skip_all,
-    fields(myc.requestId = tracing::field::Empty)
+    fields(
+        //
+        // Request information
+        //
+        myc.router.req_id = tracing::field::Empty,
+        myc.router.req_path = tracing::field::Empty,
+        myc.router.req_method = tracing::field::Empty,
+        myc.router.req_protocol = tracing::field::Empty,
+        //
+        // Downstream information
+        //
+        myc.router.down_service_id = tracing::field::Empty,
+        myc.router.down_match_path = tracing::field::Empty,
+        myc.router.down_path_type = tracing::field::Empty,
+        myc.router.down_protocol = tracing::field::Empty,
+        //
+        // Response information
+        //
+        myc.router.res_status = tracing::field::Empty,
+        myc.router.res_duration = tracing::field::Empty,
+        myc.router.res_size = tracing::field::Empty,
+    )
 )]
 pub(crate) async fn route_request(
     req: HttpRequest,
@@ -62,18 +83,27 @@ pub(crate) async fn route_request(
     let replace_path = &format!("/{}", GATEWAY_API_SCOPE);
 
     // ? -----------------------------------------------------------------------
-    // ? Set the request id to the current span
+    // ? Initialize route span
     // ? -----------------------------------------------------------------------
 
-    let request_id =
-        if let Some(request_id) = req.headers().get(DEFAULT_REQUEST_ID_KEY) {
-            tracing::Span::current()
-                .record("myc.requestId", &Some(request_id.to_str().unwrap()));
+    let span = tracing::Span::current();
 
-            Some(request_id.to_owned())
-        } else {
-            None
-        };
+    span.record("myc.router.req_method", &Some(req.method().to_string()))
+        .record("myc.router.req_protocol", &Some(req.full_url().scheme()));
+
+    // ? -----------------------------------------------------------------------
+    // ? Populate request id if exists
+    // ? -----------------------------------------------------------------------
+
+    let request_id = if let Some(request_id) =
+        req.headers().get(DEFAULT_REQUEST_ID_KEY)
+    {
+        span.record("myc.router.req_id", &Some(request_id.to_str().unwrap()));
+
+        Some(request_id.to_owned())
+    } else {
+        None
+    };
 
     // ? -----------------------------------------------------------------------
     // ? Try to match the forward address
@@ -83,32 +113,31 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    trace!("Discovering route for request");
+    tracing::trace!("Discovering route for request");
 
-    let request_path = match PathAndQuery::from_str(
-        &req.uri()
-            .path()
-            .to_string()
-            .as_str()
-            .replace(replace_path, ""),
-    ) {
-        Err(err) => {
-            warn!("{:?}", err);
-            return Err(GatewayError::BadRequest(String::from(
-                "Invalid request path",
-            )));
-        }
-        Ok(res) => res,
-    };
+    let uri_str = &req
+        .uri()
+        .path()
+        .to_string()
+        .as_str()
+        .replace(replace_path, "");
+
+    let request_path = PathAndQuery::from_str(uri_str).map_err(|err| {
+        tracing::warn!("{:?}", err);
+        GatewayError::BadRequest(String::from("Invalid request path"))
+    })?;
+
+    span.record("myc.router.req_path", &Some(request_path.path()));
 
     let route = match match_forward_address(
         request_path.to_owned(),
         Box::new(&*app_module.resolve_ref()),
     )
+    .instrument(span.to_owned())
     .await
     {
         Err(err) => {
-            warn!("{:?}", err);
+            tracing::warn!("{:?}", err);
 
             return Err(GatewayError::InternalServerError(String::from(
                 "Invalid client service",
@@ -116,7 +145,7 @@ pub(crate) async fn route_request(
         }
         Ok(res) => match res {
             FetchResponseKind::Found(route) => {
-                trace!(
+                tracing::trace!(
                     "[ {request_path} ]: {service} -> {path}",
                     request_path = request_path.path(),
                     service = match route.service {
@@ -136,20 +165,34 @@ pub(crate) async fn route_request(
         },
     };
 
+    span.record(
+        "myc.router.down_service_id",
+        &Some(route.get_service_id().to_string()),
+    )
+    .record("myc.router.down_match_path", &Some(route.path.clone()))
+    .record("myc.router.down_path_type", &Some(route.group.to_string()));
+
+    if let Parent::Record(ref service) = route.service {
+        span.record(
+            "myc.router.down_protocol",
+            &Some(service.protocol.to_string()),
+        );
+    }
+
     // ? -----------------------------------------------------------------------
     // ? Check if the method is allowed
     // ? -----------------------------------------------------------------------
-
-    trace!("Checking if method is allowed");
 
     match route
         .allow_method(HttpMethod::from_reqwest_method(req.method().to_owned()))
         .await
     {
         None => {
+            tracing::warn!("Method not allowed for this route");
+
             return Err(GatewayError::MethodNotAllowed(String::from(
                 "Invalid HTTP method or not allowed for this route",
-            )))
+            )));
         }
         Some(method) => match method {
             HttpMethod::None => {
@@ -168,16 +211,16 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    trace!("Building downstream URL");
+    tracing::trace!("Building downstream URL");
 
     let registered_uri = match route.build_uri().await {
         Err(err) => {
-            warn!("{:?}", err);
+            tracing::warn!("{:?}", err);
             return Err(GatewayError::InternalServerError(format!("{err}")));
         }
         Ok(res) => match Url::parse(res.to_string().as_str()) {
             Err(err) => {
-                warn!("{:?}", err);
+                tracing::warn!("{:?}", err);
                 return Err(GatewayError::InternalServerError(format!(
                     "{err}"
                 )));
@@ -186,7 +229,7 @@ pub(crate) async fn route_request(
                 let service = match route.service {
                     Parent::Record(ref service) => service,
                     Parent::Id(_) => {
-                        error!("Service not found");
+                        tracing::error!("Service not found");
 
                         return Err(GatewayError::InternalServerError(
                             String::from("Service not found"),
@@ -233,32 +276,28 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    trace!("Checking authentication and permissions");
+    tracing::trace!("Checking authentication and permissions");
 
     match route.group.to_owned() {
         //
         // Public routes do not need any authentication or profile injection.
         //
-        RouteType::Public => {
-            trace!("Route(Public): {path}", path = route.path);
-
-            ()
-        }
+        RouteType::Public => (),
         RouteType::Authenticated => {
-            trace!("Route(Authenticated): {path}", path = route.path);
             //
             // Try to extract user email from the request and inject it into the
             // request headers
             //
             forwarded_req =
-                fetch_and_inject_email_to_forward(req, forwarded_req).await?;
+                fetch_and_inject_email_to_forward(req, forwarded_req)
+                    .instrument(span.to_owned())
+                    .await?;
         }
         //
         // Protected routes should include the full qualified user profile into
         // the header
         //
         RouteType::Protected => {
-            trace!("Route(Protected): {path}", path = route.path);
             //
             // Try to populate profile from the request
             //
@@ -269,6 +308,7 @@ pub(crate) async fn route_request(
                 None,
                 None,
             )
+            .instrument(span.to_owned())
             .await?;
         }
         //
@@ -276,7 +316,6 @@ pub(crate) async fn route_request(
         // into the header
         //
         RouteType::ProtectedByRoles { roles } => {
-            trace!("Route(ProtectedByRoles): {path}", path = route.path);
             //
             // Try to populate profile from the request filtering licensed
             // resources by roles
@@ -288,6 +327,7 @@ pub(crate) async fn route_request(
                 Some(roles),
                 None,
             )
+            .instrument(span.to_owned())
             .await?;
         }
         //
@@ -295,10 +335,6 @@ pub(crate) async fn route_request(
         // and permissions into the header
         //
         RouteType::ProtectedByPermissionedRoles { permissioned_roles } => {
-            trace!(
-                "Route(ProtectedByPermissionedRoles): {path}",
-                path = route.path
-            );
             //
             // Try to populate profile from the request filtering licensed
             // resources by roles and permissions
@@ -310,6 +346,7 @@ pub(crate) async fn route_request(
                 None,
                 Some(permissioned_roles),
             )
+            .instrument(span.to_owned())
             .await?;
         }
         //
@@ -317,10 +354,6 @@ pub(crate) async fn route_request(
         // the service token is associated
         //
         RouteType::ProtectedByServiceTokenWithRole { roles } => {
-            trace!(
-                "Route(ProtectedByServiceTokenWithRole): {path}",
-                path = route.path
-            );
             //
             // Try to populate profile from the request filtering licensed
             // resources by roles and permissions
@@ -332,6 +365,7 @@ pub(crate) async fn route_request(
                     Some(roles),
                     None,
                 )
+                .instrument(span.to_owned())
                 .await?;
         }
         //
@@ -341,10 +375,6 @@ pub(crate) async fn route_request(
         RouteType::ProtectedByServiceTokenWithPermissionedRoles {
             permissioned_roles,
         } => {
-            trace!(
-                "Route(ProtectedByServiceTokenWithPermissionedRoles): {path}",
-                path = route.path
-            );
             //
             // Try to populate profile from the request filtering licensed
             // resources by roles and permissions
@@ -356,6 +386,7 @@ pub(crate) async fn route_request(
                     None,
                     Some(permissioned_roles),
                 )
+                .instrument(span.to_owned())
                 .await?;
         }
     }
@@ -366,11 +397,11 @@ pub(crate) async fn route_request(
     // Submit the request and stream the response to the requester.
     // ? -----------------------------------------------------------------------
 
-    trace!("Injecting downstream secret into request");
+    tracing::trace!("Injecting downstream secret into request");
 
     let route_secret = match route.solve_secret().await {
         Err(err) => {
-            warn!("{:?}", err);
+            tracing::warn!("{:?}", err);
             return Err(GatewayError::InternalServerError(format!("{err}")));
         }
         Ok(res) => res,
@@ -387,7 +418,7 @@ pub(crate) async fn route_request(
         //
         if let OptionalConfig::Disabled = api_config.tls {
             if !accept_insecure_routing {
-                error!("Secrets are only allowed for HTTPS routes");
+                tracing::error!("Secrets are only allowed for HTTPS routes");
 
                 return Err(GatewayError::InternalServerError(
                     "Unexpected error on route request".to_string(),
@@ -401,7 +432,7 @@ pub(crate) async fn route_request(
         if ![Protocol::Https].contains(&match route.service {
             Parent::Record(ref service) => service.protocol,
             Parent::Id(_) => {
-                error!("Service not found");
+                tracing::error!("Service not found");
 
                 return Err(GatewayError::InternalServerError(String::from(
                     "Service not found",
@@ -409,7 +440,7 @@ pub(crate) async fn route_request(
             }
         }) {
             if !accept_insecure_routing {
-                error!(
+                tracing::error!(
                     "Secrets are only allowed for HTTPS routes: {path}",
                     path = route.path
                 );
@@ -462,7 +493,8 @@ pub(crate) async fn route_request(
                 forwarded_req =
                     match forwarded_req.query(&[(name, token.to_owned())]) {
                         Err(err) => {
-                            warn!("{:?}", err);
+                            tracing::warn!("{:?}", err);
+
                             return Err(GatewayError::InternalServerError(
                                 format!("{err}"),
                             ));
@@ -479,21 +511,21 @@ pub(crate) async fn route_request(
     // Submit the request and stream the response to the requester.
     // ? -----------------------------------------------------------------------
 
-    trace!("Forwarding request to service");
+    tracing::trace!("Forwarding request to service");
 
     let binding_response = match forwarded_req.send_stream(payload).await {
         Err(err) => match err {
             SendRequestError::Connect(e) => {
                 match e {
                     ConnectError::SslIsNotSupported => {
-                        warn!("SSL is not supported");
+                        tracing::warn!("SSL is not supported");
 
                         return Err(GatewayError::InternalServerError(
                             "SSL is not supported".to_string(),
                         ));
                     }
                     ConnectError::SslError(e) => {
-                        warn!("SSL error: {e}");
+                        tracing::warn!("SSL error: {e}");
 
                         return Err(GatewayError::InternalServerError(
                             "SSL error".to_string(),
@@ -502,21 +534,21 @@ pub(crate) async fn route_request(
                     _ => (),
                 }
 
-                warn!("Error on route/connect to service: {e}");
+                tracing::warn!("Error on route/connect to service: {e}");
 
                 return Err(GatewayError::InternalServerError(String::from(
                     "Unexpected error on route request",
                 )));
             }
             SendRequestError::Url(e) => {
-                warn!("Error on route/url to service: {e}");
+                tracing::warn!("Error on route/url to service: {e}");
 
                 return Err(GatewayError::InternalServerError(String::from(
                     format!("{e}"),
                 )));
             }
             err => {
-                warn!("Error on route/stream to service: {err}");
+                tracing::warn!("Error on route/stream to service: {err}");
 
                 return Err(GatewayError::InternalServerError(String::from(
                     format!("{err}"),
@@ -585,7 +617,15 @@ pub(crate) async fn route_request(
             .insert_header((header_name.clone(), header_value.clone()));
     }
 
-    trace!("Route request completed");
+    if let Some(size) = binding_response
+        .headers()
+        .get("content-length")
+        .map(|h| h.to_str().unwrap_or("0").parse::<u64>().unwrap_or(0))
+    {
+        span.record("myc.router.res_size", &Some(size));
+    }
+
+    tracing::trace!("Route request completed");
 
     Ok(client_response.streaming(binding_response))
 }

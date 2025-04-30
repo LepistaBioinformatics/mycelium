@@ -75,7 +75,21 @@ async fn main() -> std::io::Result<()> {
             .service(web::scope("/health").service(health))
             .service(web::scope("/public").service(public))
             .service(web::scope("/protected").service(protected))
-            .service(web::scope("/role-protected").service(expects_header))
+            .service(web::scope("/protected-by-roles").service(protected))
+            .service(
+                web::scope("/protected-by-permissioned-roles")
+                    .service(protected),
+            )
+            .service(
+                web::scope("/protected-by-service-token-with-role")
+                    .service(protected),
+            )
+            .service(
+                web::scope(
+                    "/protected-by-service-token-with-permissioned-roles",
+                )
+                .service(protected),
+            )
             .service(web::scope("/webhook").service(webhook))
             .service(web::scope("/expects-header").service(expects_header))
     })

@@ -22,6 +22,7 @@ pub struct RoutesReadMemDbRepo {
 
 #[async_trait]
 impl RoutesRead for RoutesReadMemDbRepo {
+    #[tracing::instrument(name = "match_single_path_or_error", skip_all)]
     async fn match_single_path_or_error(
         &self,
         path: PathAndQuery,
@@ -71,6 +72,7 @@ impl RoutesRead for RoutesReadMemDbRepo {
         ))
     }
 
+    #[tracing::instrument(name = "list_routes", skip_all)]
     async fn list_routes(
         &self,
         id: Option<Uuid>,

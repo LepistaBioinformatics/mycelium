@@ -110,7 +110,6 @@ mod tests {
             (false, "myceliumDefaultUsers@biotrop".to_string()),
         ] {
             let email = Email::from_string(email_string.to_owned());
-            println!("{:?}", email);
 
             if is_valid {
                 assert_eq!(email.unwrap().email(), email_string.to_lowercase());
