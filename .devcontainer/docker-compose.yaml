@@ -76,6 +76,20 @@ services:
       service: myc-vault
 
     networks: *common-networks
+
+    build:
+      context: ./vault
+      dockerfile: Dockerfile
+      args:
+        UID: 1001
+        GID: 1001
+
+    volumes:
+      - ./vault/logs:/vault/logs/:rw
+      - ./vault/data:/vault/data/:rw
+      - ./vault/config:/vault/config/:rw
+      - ./vault/file:/vault/file/:rw
+
     container_name: myc-vault-devcontainer
 
   myc-devcontainer:

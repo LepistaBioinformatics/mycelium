@@ -17,28 +17,12 @@ receivers:
 processors:
   batch: {}
 
-  span:
-    name:
-      from_attributes:
-        - myc.hc.service_name
-      to_attributes:
-        rules:
-          - ^\/api\/v1\/document\/(?P<documentId>.*)\/update$
-      separator: "::"
-
-  #filter:
-  #  error_mode: propagate
-  #  traces:
-  #    span:
-  #      - 'attributes["myc.hc.operation_code"] == "HC00007"'
-  #      - 'resource.attributes["myc.hc.operation_code"] == "HC00007"'
-
 exporters:
   prometheus:
     endpoint: "0.0.0.0:8889"
 
-  otlp/jaeger:
-    endpoint: "0.0.0.0:4317"
+  otlp:
+    endpoint: "myc-jaeger-devcontainer:4317"
     tls:
       insecure: true
 
@@ -56,8 +40,6 @@ service:
       receivers:
         - otlp
       processors:
-        - span
         - batch
-        #- filter
       exporters:
-        - otlp/jaeger
+        - otlp

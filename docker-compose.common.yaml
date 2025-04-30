@@ -121,12 +121,9 @@ services:
     networks: *common-networks
 
     container_name: myc-vault
-    image: hashicorp/vault:latest
     build:
-      context: ./vault/docker
-      args:
-        UID: 1001
-        GID: 1001
+      context: ./vault
+      dockerfile: Dockerfile
     command: vault server -config /vault/config/vault.hcl
     environment:
       VAULT_ADDR: http://0.0.0.0:8200
@@ -137,10 +134,5 @@ services:
       - 8200:8200
       - 8201:8201
     restart: on-failure
-    volumes:
-      - ./vault/logs:/vault/logs/:rw
-      - ./vault/data:/vault/data/:rw
-      - ./vault/config:/vault/config/:rw
-      - ./vault/file:/vault/file/:rw
     cap_add:
       - IPC_LOCK
