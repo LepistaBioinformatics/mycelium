@@ -52,6 +52,19 @@ services:
       timeout: 5s
       retries: 20
 
+  myc-otel-collector:
+    # Inject all shared configs
+    <<: *common-config
+
+    image: otel/opentelemetry-collector-contrib:latest
+    command: [ "--config=/etc/otel-collector-config.dev.yaml" ]
+    volumes:
+      - ./otel/otel-collector-config.dev.yaml:/etc/otel-collector-config.dev.yaml
+    ports:
+      - 4317:4317 # OTLP gRPC
+      - 4318:4318 # OTLP HTTP
+      - 8889:8889 # Prometheus metrics endpoint
+
   myc-jaeger:
     # Inject all shared configs
     <<: *common-config
@@ -61,10 +74,34 @@ services:
     restart: on-failure
     environment:
       - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_ZIPKIN_HOST_PORT=myc-jaeger-devcontainer:9411
+
     ports:
-      - 16686:16686
-      - 4317:4317 # OTLP gRPC receiver
-      - 4318:4318 # OTLP HTTP receiver
+      - 16686:16686 # Jaeger UI
+      - 14268:14268 # HTTP ingress for OpenTelemetry traces
+      - 14250:14250 # gRPC ingress
+
+  myc-prometheus:
+    # Inject all shared configs
+    <<: *common-config
+
+    image: prom/prometheus:v2.52.0
+    volumes:
+      - ./otel/prometheus.dev.yml:/etc/prometheus/prometheus.dev.yml
+    ports:
+      - "9090:9090"
+
+  myc-grafana:
+    # Inject all shared configs
+    <<: *common-config
+
+    image: grafana/grafana:latest
+    container_name: myc-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
 
   myc-redis:
     # Inject all shared configs
@@ -84,12 +121,9 @@ services:
     networks: *common-networks
 
     container_name: myc-vault
-    image: hashicorp/vault:latest
     build:
-      context: ./vault/docker
-      args:
-        UID: 1001
-        GID: 1001
+      context: ./vault
+      dockerfile: Dockerfile
     command: vault server -config /vault/config/vault.hcl
     environment:
       VAULT_ADDR: http://0.0.0.0:8200
@@ -100,10 +134,5 @@ services:
       - 8200:8200
       - 8201:8201
     restart: on-failure
-    volumes:
-      - ./vault/logs:/vault/logs/:rw
-      - ./vault/data:/vault/data/:rw
-      - ./vault/config:/vault/config/:rw
-      - ./vault/file:/vault/file/:rw
     cap_add:
       - IPC_LOCK

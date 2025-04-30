@@ -215,7 +215,10 @@ impl<T: FromStr + Debug + Clone> SecretResolver<T> {
                     Some(value) => value.to_owned(),
                     None => {
                         return execution_err(
-                            "Invalid vault secret path. Please verify.",
+                            format!("Invalid vault secret path. Please verify: {path}/{key}",
+                                path = path,
+                                key = key
+                            )
                         )
                         .as_error()
                     }

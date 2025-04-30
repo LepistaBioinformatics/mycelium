@@ -101,8 +101,7 @@ auth:
         path: myc/auth/internal
         key: jwtSecret
 
-  external: !enabled
-    # Google
+  external: !enabled # Google
     - issuer: https://accounts.google.com
       jwksUri: https://www.googleapis.com/oauth2/v3/certs
       userInfoUrl: https://www.googleapis.com/oauth2/v3/userinfo
@@ -163,7 +162,7 @@ api:
   # ? --------------------------------------------------------------------------
   # ? Health check settings
   # ? --------------------------------------------------------------------------
-  healthCheckInterval: 30
+  healthCheckInterval: 10
   maxRetryCount: 3
 
   # ? --------------------------------------------------------------------------
@@ -201,10 +200,10 @@ api:
     #  path: logs/api.log
 
     # Example with jaeger target
-    target: !jaeger
+    target: !collector
       name: mycelium-api
-      # Hostname of the jaeger agent
-      host: myc-jaeger-devcontainer
+      # Hostname of the otel collector
+      host: myc-otel-collector-devcontainer
       # Allowed values:
       # - http
       # - https

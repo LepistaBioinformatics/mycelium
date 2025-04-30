@@ -35,7 +35,7 @@ pub enum LoggingTarget {
     File {
         path: String,
     },
-    Jaeger {
+    Collector {
         name: String,
         protocol: Protocol,
         host: String,
