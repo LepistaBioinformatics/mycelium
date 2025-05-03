@@ -212,3 +212,205 @@ services:
         path: /protected-by-service-token-with-permissioned-roles*
         methods:
           - GET
+
+  - name: test-service-02
+    # Required field. The host of the service. The host should include the port
+    # number. It can be a single host or a vector of hosts.
+    #
+    # Example:
+    #
+    # ```yaml
+    # hosts:
+    #   - localhost:8083
+    #   - localhost:8084
+    # ```
+    #
+    host: localhost:8083
+
+    # Optional. The protocol of the service.
+    protocol: http
+
+    # Optional. When true, the service will be discovered by LLM agents.
+    discoverable: true
+
+    # Optional together with discoverable field. The id of the service.
+    id: dd5f8fb9-5a2e-4ff2-ad5e-63c76b9a30c0
+
+    # Optional together with discoverable field. The capabilities of the
+    # service.
+    capabilities:
+      - test-capability-01
+      - test-capability-02
+
+    # Optional together with discoverable field. Description should be used
+    # during the service discovery by LLM agents.
+    description: The service description
+
+    # Optional together with discoverable field. The type of the service.
+    serviceType: rest-api
+
+    # Optional together with discoverable field. If the service is a context
+    # api.
+    isContextApi: true
+
+    # Optional together with discoverable field. The path to the openapi.json
+    # file. The file should be used for external clients to discover the
+    # service. Is is used for the service discovery by LLM agents.
+    openapiPath: /openapi.json
+
+    # Optional together with discoverable field. The health check configuration
+    # for the service.
+    healthCheckPath: /health
+
+    # --------------------------------------------------------------------------
+    # Define secrets
+    #
+    # The secrets are used to authenticate the api gateway at the downstream
+    # service. Secrets should be defined in the following format:
+    #
+    # # Direct definition:
+    #
+    # ```yaml
+    # secrets:
+    # - name: test-service-01-query-token
+    #   queryParameter:
+    #     name: "token"
+    #     token: "my-secret-token"
+    #
+    # - name: test-service-01-authorization-header-token
+    #   authorizationHeader:
+    #     name: token
+    #     prefix: Bearer
+    #     token: "my-secret-token"
+    # ```
+    #
+    # Direct definition should be used only for testing purposes. In production
+    # the secrets should be stored in as environment variables or vault secrets.
+    #
+    # # Environment variable definition:
+    #
+    # ```bash
+    # export MY_SECRET_01='{"queryParameter": {"name": "token","token": "my-secret-01"}}'
+    # export MY_SECRET_02='{"authorizationHeader": {"name": "token","prefix": "Bearer","token": "my-secret-02"}}'
+    # ```
+    #
+    # ```yaml
+    # secrets:
+    # - name: test-service-01-query-token
+    #   env: MY_SECRET_01
+    #
+    # - name: test-service-01-authorization-header-token
+    #   env: MY_SECRET_02
+    # ```
+    #
+    # The environment variable should be defined in the system where the api
+    # gateway is running and should use the JSON format or YAML formats.
+    #
+    # # Vault secret definition:
+    #
+    # Not already implemented.
+    #
+    # --------------------------------------------------------------------------
+
+    secrets:
+      #
+      # Direct definition
+      #
+      - name: test-service-01-query-token
+        queryParameter:
+          name: "token"
+          token: "my-secret-01"
+
+      - name: test-service-01-authorization-header-token
+        authorizationHeader:
+          name: Authorization
+          prefix: Bearer
+          token: "my-secret-01"
+    #
+    # Environment variable definition
+    #
+    #- name: test-service-01-query-token-02
+    #  env: MY_SECRET_02
+    #
+    # Vault secret definition
+    #
+    #- name: test-service-01-query-token-03
+    #  vault: my-vault-path
+    # --------------------------------------------------------------------------
+    # Define routes
+    # --------------------------------------------------------------------------
+
+    routes:
+      #
+      # Example of public route
+      #
+      - group: public
+        path: /public*
+        methods:
+          - GET
+
+      #
+      # Example of protected route
+      #
+      - group: protected
+        path: /protected*
+        methods:
+          - GET
+
+      #
+      # Example of role protected route
+      #
+      # This route should receive only requests from users with the role
+      # new-users. Them the profile object injected as the request header should
+      # include only the role new-users.
+      #
+      - group: !protectedByRoles
+          roles:
+            - new-users
+        path: /protected-by-roles*
+        methods:
+          - GET
+
+      #
+      # Example of permissioned role protected route
+      #
+      # This route should receive only requests from users with the role admin
+      # and read. Them the profile object injected as the request header should
+      # include the roles admin and read.
+      #
+      - group: !protectedByPermissionedRoles
+          permissionedRoles:
+            - [admin, read]
+        path: /protected-by-permissioned-roles*
+        methods:
+          - GET
+
+      #
+      # Example of role protected route with service token
+      #
+      # This route should receive only requests from users with the role
+      # new-users. Them the profile object injected as the request header should
+      # include only the role new-users. In addition, the request should include
+      # a service token with the role new-users.
+      #
+      - group: !protectedByServiceTokenWithRole
+          roles:
+            - newbie
+        path: /protected-by-service-token-with-role*
+        methods:
+          - GET
+
+      #
+      # Example of permissioned role protected route with service token
+      #
+      # This route should receive only requests from users with the role admin
+      # and read. Them the profile object injected as the request header should
+      # include the roles admin and read. In addition, the request should
+      # include a service token with the roles admin and read.
+      #
+      - group: !protectedByServiceTokenWithPermissionedRoles
+          permissionedRoles:
+            - [newbie, read]
+        path: /protected-by-service-token-with-permissioned-roles*
+        methods:
+          - GET

@@ -28,9 +28,9 @@ processors:
     trace_statements:
       - context: span
         conditions:
-          - name == "route_request" and attributes["myc.router.down_service_name"] != nil
+          - name == "check_single_service_health" and attributes["myc.hc.service_name"] != nil
         statements:
-          - replace_match(name, "route_request", attributes["myc.router.down_service_name"])
+          - replace_match(name, "check_single_service_health", attributes["myc.hc.service_name"])
 
 exporters:
   prometheus:
