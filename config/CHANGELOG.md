@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.10.0] - 2025-05-03
+
+### 🐛 Bug Fixes
+
+- *(otel)* Fix open telemetry elements to keep only the basic elements of tracing passthrough
+
 ## [7.9.2] - 2025-04-27
 
 ### 💼 Other
@@ -11,6 +17,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 - Release
 

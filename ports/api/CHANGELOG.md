@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.10.0] - 2025-05-03
+
+### 🚀 Features
+
+- *(otel)* Redirect logs to the otel collector instead to use the direct jaeger path
+- *(downstream-tracing)* Configure traces and attributes to track downstream routes metrics
+- *(otel)* Finish the implementation of the tracing injection by collector instead of the direct jaeger injection
+
+### 🐛 Bug Fixes
+
+- *(health-check-otel)* Include the hc00007 code into the final of the host health check operation
+- Standardize the endpoint to inhect metrics into collector
+
 ## [7.9.2] - 2025-04-27
 
 ### 🚀 Features
@@ -15,6 +28,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 - Release
 

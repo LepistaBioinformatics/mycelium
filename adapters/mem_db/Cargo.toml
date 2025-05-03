@@ -14,9 +14,9 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "7.9.2", path = "../../core" }
-mycelium-base = { version = "7.9.2", path = "../../base" }
-mycelium-config = { version = "7.9.2", path = "../../config" }
+myc-core = { version = "7.10.0", path = "../../core" }
+mycelium-base = { version = "7.10.0", path = "../../base" }
+mycelium-config = { version = "7.10.0", path = "../../config" }
 
 serde.workspace = true
 shaku.workspace = true
