@@ -61,6 +61,7 @@ use url::Url;
         // Downstream information
         //
         myc.router.down_service_id = tracing::field::Empty,
+        myc.router.down_service_name = tracing::field::Empty,
         myc.router.down_match_path = tracing::field::Empty,
         myc.router.down_path_type = tracing::field::Empty,
         myc.router.down_protocol = tracing::field::Empty,
@@ -176,6 +177,10 @@ pub(crate) async fn route_request(
         span.record(
             "myc.router.down_protocol",
             &Some(service.protocol.to_string()),
+        )
+        .record(
+            "myc.router.down_service_name",
+            &Some(service.name.to_string()),
         );
     }
 
