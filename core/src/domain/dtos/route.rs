@@ -224,4 +224,11 @@ impl Route {
 
         Ok(None)
     }
+
+    pub fn get_service_id(&self) -> Uuid {
+        match self.service.to_owned() {
+            Parent::Id(id) => id,
+            Parent::Record(record) => record.id,
+        }
+    }
 }

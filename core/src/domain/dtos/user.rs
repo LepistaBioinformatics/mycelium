@@ -683,7 +683,6 @@ mod tests {
         };
 
         let encrypted = totp.encrypt_me(config.to_owned()).await;
-        println!("encrypted: {:?}", encrypted);
 
         assert!(encrypted.is_ok());
 

@@ -108,7 +108,7 @@ impl TryFrom<String> for ConnectionStringBean {
                         .with_nanosecond(0)
                         .expect("Invalid datetime"),
                     Err(err) => {
-                        eprintln!("Error parsing datetime: {}", err);
+                        tracing::error!("Error parsing datetime: {}", err);
                         return Err(());
                     }
                 };

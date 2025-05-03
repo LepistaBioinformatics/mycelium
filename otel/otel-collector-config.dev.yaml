@@ -17,6 +17,21 @@ receivers:
 processors:
   batch: {}
 
+  #
+  # Rename the span name to the service name
+  #
+  # This action should be executed to allow to count the number of requests
+  # by service name.
+  #
+  transform/rename-span:
+    error_mode: propagate
+    trace_statements:
+      - context: span
+        conditions:
+          - name == "route_request" and attributes["myc.router.down_service_name"] != nil
+        statements:
+          - replace_match(name, "route_request", attributes["myc.router.down_service_name"])
+
 exporters:
   prometheus:
     endpoint: "0.0.0.0:8889"
@@ -40,6 +55,7 @@ service:
       receivers:
         - otlp
       processors:
+        - transform/rename-span
         - batch
       exporters:
         - otlp
