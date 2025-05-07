@@ -36,6 +36,7 @@ struct TempServiceDTO {
     pub secrets: Option<Vec<ServiceSecret>>,
     pub service_type: Option<ServiceType>,
     pub is_context_api: Option<bool>,
+    pub allowed_sources: Option<Vec<String>>,
 }
 
 impl TempServiceDTO {
@@ -54,6 +55,7 @@ impl TempServiceDTO {
             self.capabilities,
             self.service_type,
             self.is_context_api,
+            self.allowed_sources,
         )
     }
 }
@@ -65,7 +67,6 @@ struct TempRouteDTO {
     pub group: RouteType,
     pub methods: Vec<HttpMethod>,
     pub path: String,
-    pub allowed_sources: Option<Vec<String>>,
     pub secret_name: Option<String>,
     pub accept_insecure_routing: Option<bool>,
 }
@@ -78,7 +79,6 @@ impl TempRouteDTO {
             self.group,
             self.methods,
             self.path,
-            self.allowed_sources,
             self.secret_name,
             self.accept_insecure_routing,
         )
@@ -178,7 +178,7 @@ pub async fn load_config_from_yaml(
         .collect::<Vec<Service>>();
 
     tracing::info!(
-        "Database successfully loaded:\n
+        "Local service configuration successfully loaded:\n
     Number of services: {}
     In memory size: {:.6} Mb\n",
         services.len(),
