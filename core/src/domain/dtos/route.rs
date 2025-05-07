@@ -32,10 +32,6 @@ pub struct Route {
     /// The route url
     pub path: String,
 
-    /// The route is active
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_sources: Option<Vec<String>>,
-
     /// The route secret name if it exists
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secret_name: Option<String>,
@@ -56,7 +52,6 @@ impl Route {
         group: RouteType,
         methods: Vec<HttpMethod>,
         path: String,
-        allowed_sources: Option<Vec<String>>,
         secret_name: Option<String>,
         accept_insecure_routing: Option<bool>,
     ) -> Self {
@@ -82,7 +77,6 @@ impl Route {
             group,
             methods,
             path,
-            allowed_sources,
             secret_name,
             accept_insecure_routing,
         }
