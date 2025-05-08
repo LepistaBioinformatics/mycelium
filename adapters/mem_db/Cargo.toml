@@ -22,10 +22,10 @@ serde.workspace = true
 shaku.workspace = true
 tracing.workspace = true
 uuid.workspace = true
+wildmatch.workspace = true
 
 actix-web = { version = "4", features = ["openssl"] }
 async-trait = "0.1"
-wildmatch = "2.1"
 
 
 [lib]

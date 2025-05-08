@@ -1,5 +1,5 @@
 use super::{
-    http::HttpMethod, http_secret::HttpSecret, route_type::RouteType,
+    http::HttpMethod, http_secret::HttpSecret, security_group::SecurityGroup,
     service::Service,
 };
 
@@ -24,7 +24,8 @@ pub struct Route {
     pub service: Parent<Service, Uuid>,
 
     /// The route name
-    pub group: RouteType,
+    #[serde(alias = "group")]
+    pub security_group: SecurityGroup,
 
     /// The route description
     pub methods: Vec<HttpMethod>,
@@ -49,7 +50,7 @@ impl Route {
     pub fn new(
         id: Option<Uuid>,
         service: Service,
-        group: RouteType,
+        group: SecurityGroup,
         methods: Vec<HttpMethod>,
         path: String,
         secret_name: Option<String>,
@@ -74,7 +75,7 @@ impl Route {
                 )),
             },
             service: Parent::Record(service),
-            group,
+            security_group: group,
             methods,
             path,
             secret_name,

@@ -9,7 +9,7 @@ pub type PermissionedRoles = Vec<(String, Permission)>;
     Debug, Clone, Deserialize, Serialize, PartialEq, Eq, ToSchema, ToResponse,
 )]
 #[serde(rename_all = "camelCase")]
-pub enum RouteType {
+pub enum SecurityGroup {
     ///
     /// Allow public access to the route
     ///
@@ -50,16 +50,18 @@ pub enum RouteType {
     },
 }
 
-impl ToString for RouteType {
+impl ToString for SecurityGroup {
     fn to_string(&self) -> String {
         match self {
-            RouteType::Public => "public".to_string(),
-            RouteType::Authenticated => "authenticated".to_string(),
-            RouteType::Protected => "protected".to_string(),
-            RouteType::ProtectedByRoles { roles } => {
+            SecurityGroup::Public => "public".to_string(),
+            SecurityGroup::Authenticated => "authenticated".to_string(),
+            SecurityGroup::Protected => "protected".to_string(),
+            SecurityGroup::ProtectedByRoles { roles } => {
                 format!("protected_by_roles({})", roles.join(", "))
             }
-            RouteType::ProtectedByPermissionedRoles { permissioned_roles } => {
+            SecurityGroup::ProtectedByPermissionedRoles {
+                permissioned_roles,
+            } => {
                 format!(
                     "protected_by_permissioned_roles({})",
                     permissioned_roles
@@ -73,13 +75,13 @@ impl ToString for RouteType {
                         .join(", ")
                 )
             }
-            RouteType::ProtectedByServiceTokenWithRole { roles } => {
+            SecurityGroup::ProtectedByServiceTokenWithRole { roles } => {
                 format!(
                     "protected_by_service_token_with_role({})",
                     roles.join(", ")
                 )
             }
-            RouteType::ProtectedByServiceTokenWithPermissionedRoles {
+            SecurityGroup::ProtectedByServiceTokenWithPermissionedRoles {
                 permissioned_roles,
             } => {
                 format!(

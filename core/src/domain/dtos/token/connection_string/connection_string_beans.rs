@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::domain::dtos::{
-    guest_role::Permission, route_type::PermissionedRoles,
+    guest_role::Permission, security_group::PermissionedRoles,
 };
 
 use chrono::{DateTime, Local, Timelike};
@@ -165,7 +165,7 @@ impl TryFrom<String> for ConnectionStringBean {
 mod tests {
     use super::*;
     use crate::domain::dtos::guest_role::Permission;
-    use crate::domain::dtos::route_type::PermissionedRoles;
+    use crate::domain::dtos::security_group::PermissionedRoles;
 
     #[test]
     fn test_to_string() {

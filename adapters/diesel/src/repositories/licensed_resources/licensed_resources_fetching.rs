@@ -17,7 +17,7 @@ use myc_core::domain::{
         native_error_codes::NativeErrorCodes,
         profile::{LicensedResource, TenantOwnership},
         related_accounts::RelatedAccounts,
-        route_type::PermissionedRoles,
+        security_group::PermissionedRoles,
     },
     entities::LicensedResourcesFetching,
 };

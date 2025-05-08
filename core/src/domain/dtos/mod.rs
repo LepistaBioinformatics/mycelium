@@ -12,7 +12,7 @@ pub mod native_error_codes;
 pub mod profile;
 pub mod related_accounts;
 pub mod route;
-pub mod route_type;
+pub mod security_group;
 pub mod service;
 pub mod tag;
 pub mod tenant;

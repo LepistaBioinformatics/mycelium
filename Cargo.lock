@@ -2584,6 +2584,7 @@ dependencies = [
  "utoipa-redoc",
  "utoipa-swagger-ui",
  "uuid",
+ "wildmatch",
  "zip",
 ]
 

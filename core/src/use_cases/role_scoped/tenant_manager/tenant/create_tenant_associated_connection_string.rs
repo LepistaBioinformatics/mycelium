@@ -5,7 +5,7 @@ use crate::{
             email::Email,
             native_error_codes::NativeErrorCodes,
             profile::Profile,
-            route_type::PermissionedRoles,
+            security_group::PermissionedRoles,
             token::{TenantScopedConnectionString, TenantWithPermissionsScope},
         },
         entities::{LocalMessageWrite, TokenRegistration},

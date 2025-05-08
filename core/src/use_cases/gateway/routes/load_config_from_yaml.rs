@@ -1,7 +1,7 @@
 use crate::domain::dtos::{
     http::{HttpMethod, Protocol},
     route::Route,
-    route_type::RouteType,
+    security_group::SecurityGroup,
     service::{Service, ServiceHost, ServiceSecret, ServiceType},
 };
 
@@ -64,7 +64,8 @@ impl TempServiceDTO {
 #[serde(rename_all = "camelCase")]
 struct TempRouteDTO {
     pub id: Option<Uuid>,
-    pub group: RouteType,
+    #[serde(alias = "group")]
+    pub security_group: SecurityGroup,
     pub methods: Vec<HttpMethod>,
     pub path: String,
     pub secret_name: Option<String>,
@@ -76,7 +77,7 @@ impl TempRouteDTO {
         Route::new(
             self.id,
             service,
-            self.group,
+            self.security_group,
             self.methods,
             self.path,
             self.secret_name,
