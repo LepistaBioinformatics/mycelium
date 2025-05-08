@@ -3,7 +3,7 @@ use super::fetch_role_scoped_connection_string_from_request;
 use actix_web::HttpRequest;
 use awc::ClientRequest;
 use myc_core::domain::dtos::{
-    native_error_codes::NativeErrorCodes, route_type::PermissionedRoles,
+    native_error_codes::NativeErrorCodes, security_group::PermissionedRoles,
     token::RoleScopedConnectionString,
 };
 use myc_http_tools::{responses::GatewayError, settings::DEFAULT_SCOPE_KEY};

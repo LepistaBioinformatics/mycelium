@@ -603,7 +603,15 @@ pub async fn main() -> std::io::Result<()> {
             // ? Configure gateway routes
             // ? ---------------------------------------------------------------
             .app_data(web::Data::new(Client::default()))
-            .app_data(web::Data::new(local_api_config.gateway_timeout))
+            //
+            // Remove it if the gateway timeout is not needed. This injection
+            // were consumed at the router layer at the
+            // `initialize_downstream_request` function execution. Remove it if
+            // the gateway timeout is already set on the `ApiConfig` struct. The
+            // ApiConfig struct is injected below with the `forward_api_config`
+            // variable.
+            //
+            //.app_data(web::Data::new(local_api_config.gateway_timeout))
             .app_data(web::Data::new(forward_api_config.to_owned()).clone())
             .service(
                 web::scope(&format!("/{}", GATEWAY_API_SCOPE))
