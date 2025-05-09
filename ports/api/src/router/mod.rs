@@ -16,37 +16,32 @@
 /// - Stream the response to the requester.
 /// - Inject spans to the request to be used by the tracing system.
 ///
+mod build_the_gateway_response;
 mod check_protocol_permission;
 mod check_security_group;
 mod check_source_reliability;
 mod initialize_downstream_request;
 mod inject_downstream_secret;
+mod match_downstream_route_from_request;
+mod stream_request_to_downstream;
 
+use build_the_gateway_response::*;
 use check_protocol_permission::*;
 use check_security_group::*;
 use check_source_reliability::*;
 use initialize_downstream_request::*;
 use inject_downstream_secret::*;
+use match_downstream_route_from_request::*;
+use stream_request_to_downstream::*;
 
 use crate::{models::api_config::ApiConfig, settings::GATEWAY_API_SCOPE};
 
-use actix_web::{http::uri::PathAndQuery, web, HttpRequest, HttpResponse};
-use awc::{
-    error::{ConnectError, SendRequestError},
-    Client,
-};
-use myc_core::use_cases::gateway::routes::match_forward_address;
+use actix_web::{web, HttpRequest, HttpResponse};
+use awc::Client;
 use myc_http_tools::{
-    responses::GatewayError,
-    settings::{
-        DEFAULT_PROFILE_KEY, DEFAULT_REQUEST_ID_KEY, FORWARDING_KEYS,
-        FORWARD_FOR_KEY,
-    },
+    responses::GatewayError, settings::DEFAULT_REQUEST_ID_KEY,
 };
 use myc_mem_db::repositories::MemDbAppModule;
-use mycelium_base::{dtos::Parent, entities::FetchResponseKind};
-use shaku::HasComponent;
-use std::str::FromStr;
 use tracing::Instrument;
 
 /// Forward request to the client service.
@@ -67,23 +62,13 @@ use tracing::Instrument;
         // Request information
         //
         myc.router.req_id = tracing::field::Empty,
-        myc.router.req_path = tracing::field::Empty,
         myc.router.req_method = tracing::field::Empty,
         myc.router.req_protocol = tracing::field::Empty,
-        //
-        // Downstream information
-        //
-        myc.router.down_service_id = tracing::field::Empty,
-        myc.router.down_service_name = tracing::field::Empty,
-        myc.router.down_match_path = tracing::field::Empty,
-        myc.router.down_path_type = tracing::field::Empty,
-        myc.router.down_protocol = tracing::field::Empty,
         //
         // Response information
         //
         myc.router.res_status = tracing::field::Empty,
         myc.router.res_duration = tracing::field::Empty,
-        myc.router.res_size = tracing::field::Empty,
     )
 )]
 pub(crate) async fn route_request(
@@ -119,70 +104,19 @@ pub(crate) async fn route_request(
     };
 
     // ? -----------------------------------------------------------------------
-    // ? Try to match the forward address
+    // ? Try to match the downstream route
     //
-    // Check if the specified client already exists. Case not, returns a
-    // BadClient error. Otherwise proceed the pipeline.
+    // Try to match the downstream route from the request.
     //
     // ? -----------------------------------------------------------------------
 
-    tracing::trace!("Discovering route for request");
-
-    let uri_str = &req
-        .uri()
-        .path()
-        .to_string()
-        .as_str()
-        .replace(gateway_base_path, "");
-
-    let request_path = PathAndQuery::from_str(uri_str).map_err(|err| {
-        tracing::warn!("{:?}", err);
-        GatewayError::BadRequest(String::from("Invalid request path"))
-    })?;
-
-    span.record("myc.router.req_path", &Some(request_path.path()));
-
-    let route = match match_forward_address(
-        request_path.to_owned(),
-        Box::new(&*app_module.resolve_ref()),
+    let route = match_downstream_route_from_request(
+        req.clone(),
+        gateway_base_path,
+        app_module.clone(),
     )
     .instrument(span.to_owned())
-    .await
-    .map_err(|err| {
-        tracing::warn!("{:?}", err);
-
-        GatewayError::InternalServerError(String::from(
-            "Invalid client service",
-        ))
-    })? {
-        FetchResponseKind::Found(route) => route,
-        _ => {
-            return Err(GatewayError::BadRequest(String::from(
-                "Request path does not match any service",
-            )))
-        }
-    };
-
-    span.record(
-        "myc.router.down_service_id",
-        &Some(route.get_service_id().to_string()),
-    )
-    .record("myc.router.down_match_path", &Some(route.path.clone()))
-    .record(
-        "myc.router.down_path_type",
-        &Some(route.security_group.to_string()),
-    );
-
-    if let Parent::Record(ref service) = route.service {
-        span.record(
-            "myc.router.down_protocol",
-            &Some(service.protocol.to_string()),
-        )
-        .record(
-            "myc.router.down_service_name",
-            &Some(service.name.to_string()),
-        );
-    }
+    .await?;
 
     // ? -----------------------------------------------------------------------
     // ? Check if the source is allowed
@@ -257,125 +191,36 @@ pub(crate) async fn route_request(
     .await?;
 
     // ? -----------------------------------------------------------------------
-    // ? Submit the request
+    // ? Submit downstream request
     //
     // Submit the request and stream the response to the downstream service.
     //
     // ? -----------------------------------------------------------------------
 
-    let binding_response = match downstream_request.send_stream(payload).await {
-        Err(err) => match err {
-            SendRequestError::Connect(e) => {
-                match e {
-                    ConnectError::SslIsNotSupported => {
-                        tracing::warn!("SSL is not supported");
+    let downstream_response =
+        stream_request_to_downstream(downstream_request, payload)
+            .instrument(span.to_owned())
+            .await?;
 
-                        return Err(GatewayError::InternalServerError(
-                            "SSL is not supported".to_string(),
-                        ));
-                    }
-                    ConnectError::SslError(e) => {
-                        tracing::warn!("SSL error: {e}");
-
-                        return Err(GatewayError::InternalServerError(
-                            "SSL error".to_string(),
-                        ));
-                    }
-                    _ => (),
-                }
-
-                tracing::warn!("Error on route/connect to service: {e}");
-
-                return Err(GatewayError::InternalServerError(String::from(
-                    "Unexpected error on route request",
-                )));
-            }
-            SendRequestError::Url(e) => {
-                tracing::warn!("Error on route/url to service: {e}");
-
-                return Err(GatewayError::InternalServerError(String::from(
-                    format!("{e}"),
-                )));
-            }
-            err => {
-                tracing::warn!("Error on route/stream to service: {err}");
-
-                return Err(GatewayError::InternalServerError(String::from(
-                    format!("{err}"),
-                )));
-            }
-        },
-        Ok(res) => res,
-    };
-
-    let mut client_response = HttpResponse::build(binding_response.status());
-
-    if let Some(request_id) = request_id {
-        client_response
-            .insert_header((DEFAULT_REQUEST_ID_KEY, request_id.to_owned()));
-    }
-
-    // ! Remove `Connection` as peer and forward service name
+    // ? -----------------------------------------------------------------------
+    // ? Build the gateway response
     //
-    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Connection#Directives
+    // Build the gateway response with the downstream response.
     //
-    // Both headers contain sensitive information about the system internals.
-    // Thus, be careful on edit this section.
+    // ? -----------------------------------------------------------------------
 
-    //
-    // Start the headers with the route key if exists
-    //
-    let mut headers = if let Some(key) = route_key {
-        [key].to_vec().into_iter().collect::<Vec<String>>()
-    } else {
-        vec![]
-    };
+    let mut gateway_response =
+        build_the_gateway_response(request_id, route_key, &downstream_response)
+            .instrument(span.to_owned())
+            .await?;
 
+    // ? -----------------------------------------------------------------------
+    // ? Stream the response to the client
     //
-    // Append the standard forwarding keys
+    // Final response should be streamed to the client to avoid memory
+    // exhaustion.
     //
-    headers.append(
-        &mut FORWARDING_KEYS
-            .to_vec()
-            .iter()
-            .map(|s| s.to_string())
-            .collect(),
-    );
+    // ? -----------------------------------------------------------------------
 
-    //
-    // Append the default profile and forward for keys
-    //
-    headers.append(&mut vec![
-        FORWARD_FOR_KEY.to_string(),
-        DEFAULT_PROFILE_KEY.to_string(),
-    ]);
-
-    //
-    // Filter the headers of the response before send it to the client
-    //
-    for (header_name, header_value) in
-        binding_response.headers().iter().filter(|(h, _)| {
-            headers
-                .to_owned()
-                .into_iter()
-                .map(|h| h.to_lowercase())
-                .collect::<Vec<String>>()
-                .contains(&h.to_owned().to_string().to_lowercase())
-        })
-    {
-        client_response
-            .insert_header((header_name.clone(), header_value.clone()));
-    }
-
-    if let Some(size) = binding_response
-        .headers()
-        .get("content-length")
-        .map(|h| h.to_str().unwrap_or("0").parse::<u64>().unwrap_or(0))
-    {
-        span.record("myc.router.res_size", &Some(size));
-    }
-
-    tracing::trace!("Route request completed");
-
-    Ok(client_response.streaming(binding_response))
+    Ok(gateway_response.streaming(downstream_response))
 }
