@@ -20,11 +20,13 @@ mod check_protocol_permission;
 mod check_security_group;
 mod check_source_reliability;
 mod initialize_downstream_request;
+mod inject_downstream_secret;
 
 use check_protocol_permission::*;
 use check_security_group::*;
 use check_source_reliability::*;
 use initialize_downstream_request::*;
+use inject_downstream_secret::*;
 
 use crate::{models::api_config::ApiConfig, settings::GATEWAY_API_SCOPE};
 
@@ -33,11 +35,7 @@ use awc::{
     error::{ConnectError, SendRequestError},
     Client,
 };
-use myc_config::optional_config::OptionalConfig;
-use myc_core::{
-    domain::dtos::{http::Protocol, http_secret::HttpSecret},
-    use_cases::gateway::routes::match_forward_address,
-};
+use myc_core::use_cases::gateway::routes::match_forward_address;
 use myc_http_tools::{
     responses::GatewayError,
     settings::{
@@ -150,34 +148,19 @@ pub(crate) async fn route_request(
     )
     .instrument(span.to_owned())
     .await
-    {
-        Err(err) => {
-            tracing::warn!("{:?}", err);
+    .map_err(|err| {
+        tracing::warn!("{:?}", err);
 
-            return Err(GatewayError::InternalServerError(String::from(
-                "Invalid client service",
-            )));
+        GatewayError::InternalServerError(String::from(
+            "Invalid client service",
+        ))
+    })? {
+        FetchResponseKind::Found(route) => route,
+        _ => {
+            return Err(GatewayError::BadRequest(String::from(
+                "Request path does not match any service",
+            )))
         }
-        Ok(res) => match res {
-            FetchResponseKind::Found(route) => {
-                tracing::trace!(
-                    "[ {request_path} ]: {service} -> {path}",
-                    request_path = request_path.path(),
-                    service = match route.service {
-                        Parent::Record(ref service) => service.name.to_owned(),
-                        Parent::Id(id) => id.to_string(),
-                    },
-                    path = route.path.to_owned()
-                );
-
-                route
-            }
-            _ => {
-                return Err(GatewayError::BadRequest(String::from(
-                    "Request path does not match any service",
-                )))
-            }
-        },
     };
 
     span.record(
@@ -257,129 +240,28 @@ pub(crate) async fn route_request(
             .await?;
 
     // ? -----------------------------------------------------------------------
-    // ? Build the downstream url if the address has match.
+    // ? Inject the downstream secret into the request
     //
-    // Submit the request and stream the response to the requester.
-    // ? -----------------------------------------------------------------------
-
-    tracing::trace!("Injecting downstream secret into request");
-
-    let route_secret = match route.solve_secret().await {
-        Err(err) => {
-            tracing::warn!("{:?}", err);
-            return Err(GatewayError::InternalServerError(format!("{err}")));
-        }
-        Ok(res) => res,
-    };
-
-    let mut route_key = None;
-
-    if let Some(secret) = route_secret {
-        let accept_insecure_routing =
-            route.accept_insecure_routing.unwrap_or(false);
-
-        //
-        // Check if the service supports TLS
-        //
-        if let OptionalConfig::Disabled = api_config.tls {
-            if !accept_insecure_routing {
-                tracing::error!("Secrets are only allowed for HTTPS routes");
-
-                return Err(GatewayError::InternalServerError(
-                    "Unexpected error on route request".to_string(),
-                ));
-            }
-        }
-
-        //
-        // Check if the route supports HTTPS
-        //
-        if ![Protocol::Https].contains(&match route.service {
-            Parent::Record(ref service) => service.protocol,
-            Parent::Id(_) => {
-                tracing::error!("Service not found");
-
-                return Err(GatewayError::InternalServerError(String::from(
-                    "Service not found",
-                )));
-            }
-        }) {
-            if !accept_insecure_routing {
-                tracing::error!(
-                    "Secrets are only allowed for HTTPS routes: {path}",
-                    path = route.path
-                );
-
-                return Err(GatewayError::InternalServerError(
-                    "Unexpected error on route request".to_string(),
-                ));
-            }
-        }
-
-        match secret {
-            //
-            // Insert the authorization key into the header
-            //
-            HttpSecret::AuthorizationHeader {
-                header_name,
-                prefix,
-                token,
-            } => {
-                //
-                // Build the bearer token
-                //
-                let mut bearer_token = prefix.unwrap_or("Bearer".to_string());
-                bearer_token.push_str(format!(" {}", token).as_str());
-                let bearer_name =
-                    header_name.unwrap_or("Authorization".to_string());
-                route_key = Some(bearer_name.to_owned());
-
-                //
-                // Remove any previous Authorization header that may exist
-                //
-                downstream_request
-                    .headers_mut()
-                    .remove(bearer_name.to_owned());
-                downstream_request
-                    .headers_mut()
-                    .remove(bearer_name.to_lowercase().to_owned());
-                downstream_request
-                    .headers_mut()
-                    .remove(bearer_name.to_uppercase().to_owned());
-
-                //
-                // Insert the new Authorization header
-                //
-                downstream_request = downstream_request
-                    .insert_header((bearer_name, bearer_token));
-            }
-            //
-            // Insert the query parameter into the header
-            //
-            HttpSecret::QueryParameter { name, token } => {
-                downstream_request = match downstream_request
-                    .query(&[(name, token.to_owned())])
-                {
-                    Err(err) => {
-                        tracing::warn!("{:?}", err);
-
-                        return Err(GatewayError::InternalServerError(
-                            format!("{err}"),
-                        ));
-                    }
-                    Ok(res) => res,
-                };
-            }
-        }
-    };
-
-    // ? -----------------------------------------------------------------------
-    // ? Build the downstream url if the address has match.
+    // Inject the downstream secret into the request if the service requested
+    // by the route has a secret.
     //
-    // Submit the request and stream the response to the requester.
     // ? -----------------------------------------------------------------------
 
-    tracing::trace!("Forwarding request to service");
+    let (downstream_request, route_key) = inject_downstream_secret(
+        downstream_request,
+        route.clone(),
+        None,
+        api_config.clone(),
+    )
+    .instrument(span.to_owned())
+    .await?;
+
+    // ? -----------------------------------------------------------------------
+    // ? Submit the request
+    //
+    // Submit the request and stream the response to the downstream service.
+    //
+    // ? -----------------------------------------------------------------------
 
     let binding_response = match downstream_request.send_stream(payload).await {
         Err(err) => match err {
