@@ -202,6 +202,7 @@ CREATE TABLE webhook_execution (
     id UUID DEFAULT gen_random_uuid(),
     trigger VARCHAR(255) NOT NULL,
     payload TEXT NOT NULL,
+    payload_id VARCHAR(255) NOT NULL,
     encrypted BOOLEAN DEFAULT FALSE,
     attempts INT DEFAULT 0,
     created TIMESTAMPTZ DEFAULT now(),

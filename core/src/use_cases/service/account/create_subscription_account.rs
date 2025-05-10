@@ -2,9 +2,11 @@ use crate::{
     domain::{
         actors::SystemActor::*,
         dtos::{
-            account::Account, guest_role::Permission,
+            account::Account,
+            guest_role::Permission,
             native_error_codes::NativeErrorCodes,
-            token::TenantScopedConnectionString, webhook::WebHookTrigger,
+            token::TenantScopedConnectionString,
+            webhook::{PayloadId, WebHookTrigger},
         },
         entities::{AccountRegistration, WebHookRegistration},
     },
@@ -86,10 +88,15 @@ pub async fn create_subscription_account(
 
     tracing::trace!("Dispatching side effects");
 
+    let account_id = account.id.ok_or_else(|| {
+        use_case_err("Account ID not found".to_string()).with_exp_true()
+    })?;
+
     register_webhook_dispatching_event(
         correspondence_id,
         WebHookTrigger::SubscriptionAccountCreated,
         account.to_owned(),
+        PayloadId::Uuid(account_id),
         webhook_registration_repo,
     )
     .await?;
