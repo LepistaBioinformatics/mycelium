@@ -15,6 +15,10 @@ All notable changes to this project will be documented in this file.
 - *(downstream secrets)* Move the secret injection to a dedicated module
 - Move the gateway response builder to a dedicated module
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [7.10.0] - 2025-05-03
 
 ### 🚀 Features

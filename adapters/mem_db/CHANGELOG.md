@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - *(route-dto)* Rename the group struct attribute to security-group to better intent their usage
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [7.10.0] - 2025-05-03
 
 ### 🚀 Features
