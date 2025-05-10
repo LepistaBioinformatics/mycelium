@@ -2,11 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.11.0] - 2025-05-10
+
+### 🚜 Refactor
+
+- *(route-dto)* Rename the group struct attribute to security-group to better intent their usage
+
 ## [7.10.0] - 2025-05-03
 
 ### 🚀 Features
 
 - *(downstream-tracing)* Configure traces and attributes to track downstream routes metrics
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [7.9.2] - 2025-04-27
 

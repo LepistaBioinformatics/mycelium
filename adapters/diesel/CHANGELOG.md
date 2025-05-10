@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.11.0] - 2025-05-10
+
+### 🐛 Bug Fixes
+
+- *(webhook-triggers)* Reactivate the webhook triggers for put and delete actions
+
+### 🚜 Refactor
+
+- *(route-dto)* Rename the group struct attribute to security-group to better intent their usage
+
+## [7.10.0] - 2025-05-03
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [7.9.2] - 2025-04-27
 
 ### 🚀 Features

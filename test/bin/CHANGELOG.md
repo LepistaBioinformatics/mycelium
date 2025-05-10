@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - *(downstream-tracing)* Configure traces and attributes to track downstream routes metrics
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [7.9.2] - 2025-04-27
 
 ### 💼 Other

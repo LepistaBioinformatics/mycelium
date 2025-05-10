@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.11.0] - 2025-05-10
+
+### 🚀 Features
+
+- *(allowed-sources)* Wip - move the definition of the allowed souces struct attribute from route to service
+- *(gateway-router)* Wip - split the api router into steps to increase the legibility
+
+### 🚜 Refactor
+
+- *(route-dto)* Rename the group struct attribute to security-group to better intent their usage
+- *(downstream secrets)* Move the secret injection to a dedicated module
+- Move the gateway response builder to a dedicated module
+
 ## [7.10.0] - 2025-05-03
 
 ### 🚀 Features
@@ -14,6 +27,10 @@ All notable changes to this project will be documented in this file.
 
 - *(health-check-otel)* Include the hc00007 code into the final of the host health check operation
 - Standardize the endpoint to inhect metrics into collector
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [7.9.2] - 2025-04-27
 
