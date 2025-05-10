@@ -11,6 +11,7 @@ pub(crate) struct WebHookExecution {
     pub id: Uuid,
     pub trigger: String,
     pub payload: String,
+    pub payload_id: String,
     pub created: NaiveDateTime,
     pub status: Option<String>,
     pub attempts: i32,

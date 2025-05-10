@@ -80,6 +80,38 @@ pub struct HookResponse {
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
+pub enum PayloadId {
+    Uuid(Uuid),
+    String(String),
+    Number(u64),
+}
+
+impl Display for PayloadId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Uuid(uuid) => write!(f, "{}", uuid),
+            Self::String(string) => write!(f, "{}", string),
+            Self::Number(number) => write!(f, "{}", number),
+        }
+    }
+}
+
+impl FromStr for PayloadId {
+    type Err = MappedErrors;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Ok(uuid) = s.parse::<Uuid>() {
+            Ok(Self::Uuid(uuid))
+        } else if let Ok(number) = s.parse::<u64>() {
+            Ok(Self::Number(number))
+        } else {
+            Ok(Self::String(s.to_string()))
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct WebHookPayloadArtifact {
     /// The id of the webhook payload artifact
     ///
@@ -95,6 +127,13 @@ pub struct WebHookPayloadArtifact {
     /// then the value is serialized as the value of the key.
     ///
     pub payload: String,
+
+    /// The id of the payload
+    ///
+    /// This is the id of the payload. It is the id that is used to identify the
+    /// payload.
+    ///
+    pub payload_id: PayloadId,
 
     /// The trigger of the webhook
     ///
@@ -153,11 +192,13 @@ impl WebHookPayloadArtifact {
     pub fn new(
         id: Option<Uuid>,
         payload: String,
+        payload_id: PayloadId,
         trigger: WebHookTrigger,
     ) -> Self {
         Self {
             id,
             payload,
+            payload_id,
             trigger,
             propagations: None,
             encrypted: None,

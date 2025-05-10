@@ -55,6 +55,7 @@ utoipa.workspace = true
 uuid.workspace = true
 url.workspace = true
 zip.workspace = true
+wildmatch.workspace = true
 
 actix = "0.13"
 actix-cors = { version = "0.6.2" }

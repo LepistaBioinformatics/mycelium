@@ -3,7 +3,7 @@ use crate::domain::{
     dtos::{
         email::Email,
         profile::{LicensedResource, Profile},
-        route_type::PermissionedRoles,
+        security_group::PermissionedRoles,
     },
     entities::LicensedResourcesFetching,
 };

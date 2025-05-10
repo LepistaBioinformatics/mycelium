@@ -1,7 +1,7 @@
 use crate::domain::dtos::{
     http::{HttpMethod, Protocol},
     route::Route,
-    route_type::RouteType,
+    security_group::SecurityGroup,
     service::{Service, ServiceHost, ServiceSecret, ServiceType},
 };
 
@@ -36,6 +36,7 @@ struct TempServiceDTO {
     pub secrets: Option<Vec<ServiceSecret>>,
     pub service_type: Option<ServiceType>,
     pub is_context_api: Option<bool>,
+    pub allowed_sources: Option<Vec<String>>,
 }
 
 impl TempServiceDTO {
@@ -54,6 +55,7 @@ impl TempServiceDTO {
             self.capabilities,
             self.service_type,
             self.is_context_api,
+            self.allowed_sources,
         )
     }
 }
@@ -62,10 +64,10 @@ impl TempServiceDTO {
 #[serde(rename_all = "camelCase")]
 struct TempRouteDTO {
     pub id: Option<Uuid>,
-    pub group: RouteType,
+    #[serde(alias = "group")]
+    pub security_group: SecurityGroup,
     pub methods: Vec<HttpMethod>,
     pub path: String,
-    pub allowed_sources: Option<Vec<String>>,
     pub secret_name: Option<String>,
     pub accept_insecure_routing: Option<bool>,
 }
@@ -75,10 +77,9 @@ impl TempRouteDTO {
         Route::new(
             self.id,
             service,
-            self.group,
+            self.security_group,
             self.methods,
             self.path,
-            self.allowed_sources,
             self.secret_name,
             self.accept_insecure_routing,
         )
@@ -178,7 +179,7 @@ pub async fn load_config_from_yaml(
         .collect::<Vec<Service>>();
 
     tracing::info!(
-        "Database successfully loaded:\n
+        "Local service configuration successfully loaded:\n
     Number of services: {}
     In memory size: {:.6} Mb\n",
         services.len(),

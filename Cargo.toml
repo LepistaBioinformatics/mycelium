@@ -108,6 +108,7 @@ utoipa = { version = "5", features = [
 ] }
 tracing = "0.1"
 uuid = { version = "1.1", features = ["v3", "v4", "serde", "fast-rng"] }
+wildmatch = "2.1"
 
 
 [workspace.metadata.release]

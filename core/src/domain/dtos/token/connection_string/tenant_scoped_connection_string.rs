@@ -9,7 +9,7 @@ use super::ConnectionStringBean;
 use crate::{
     domain::dtos::{
         native_error_codes::NativeErrorCodes,
-        route_type::PermissionedRoles,
+        security_group::PermissionedRoles,
         token::{HmacSha256, ScopedBehavior, ServiceAccountRelatedMeta},
     },
     models::AccountLifeCycle,

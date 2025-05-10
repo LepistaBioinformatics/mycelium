@@ -2,7 +2,7 @@ use crate::domain::dtos::{
     email::Email,
     profile::{LicensedResource, TenantOwnership},
     related_accounts::RelatedAccounts,
-    route_type::PermissionedRoles,
+    security_group::PermissionedRoles,
 };
 
 use async_trait::async_trait;

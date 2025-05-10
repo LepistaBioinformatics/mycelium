@@ -9,7 +9,7 @@ use base64::{engine::general_purpose, Engine};
 use hex;
 use myc_core::{
     domain::{
-        dtos::route_type::PermissionedRoles,
+        dtos::security_group::PermissionedRoles,
         entities::{KVArtifactRead, KVArtifactWrite},
     },
     use_cases::service::profile::{fetch_profile_from_email, ProfileResponse},

@@ -2,7 +2,7 @@ use crate::domain::{
     dtos::{
         email::Email,
         profile::{LicensedResources, Profile, TenantsOwnership},
-        route_type::PermissionedRoles,
+        security_group::PermissionedRoles,
     },
     entities::{LicensedResourcesFetching, ProfileFetching},
 };

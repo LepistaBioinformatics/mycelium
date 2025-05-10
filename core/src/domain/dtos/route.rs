@@ -1,5 +1,5 @@
 use super::{
-    http::HttpMethod, http_secret::HttpSecret, route_type::RouteType,
+    http::HttpMethod, http_secret::HttpSecret, security_group::SecurityGroup,
     service::Service,
 };
 
@@ -24,17 +24,14 @@ pub struct Route {
     pub service: Parent<Service, Uuid>,
 
     /// The route name
-    pub group: RouteType,
+    #[serde(alias = "group")]
+    pub security_group: SecurityGroup,
 
     /// The route description
     pub methods: Vec<HttpMethod>,
 
     /// The route url
     pub path: String,
-
-    /// The route is active
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_sources: Option<Vec<String>>,
 
     /// The route secret name if it exists
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -53,10 +50,9 @@ impl Route {
     pub fn new(
         id: Option<Uuid>,
         service: Service,
-        group: RouteType,
+        group: SecurityGroup,
         methods: Vec<HttpMethod>,
         path: String,
-        allowed_sources: Option<Vec<String>>,
         secret_name: Option<String>,
         accept_insecure_routing: Option<bool>,
     ) -> Self {
@@ -79,10 +75,9 @@ impl Route {
                 )),
             },
             service: Parent::Record(service),
-            group,
+            security_group: group,
             methods,
             path,
-            allowed_sources,
             secret_name,
             accept_insecure_routing,
         }

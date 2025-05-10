@@ -216,6 +216,15 @@ pub struct Service {
     ///
     #[serde(skip_serializing_if = "Option::is_none")]
     pub secrets: Option<Vec<ServiceSecret>>,
+
+    /// The allowed sources
+    ///
+    /// A list of sources with permissions to access the downstream service.
+    /// Values can be a domain name, ip address, a cidr block or a wildcard
+    /// domain name.
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_sources: Option<Vec<String>>,
 }
 
 fn default_protocol() -> Protocol {
@@ -237,6 +246,7 @@ impl Service {
         capabilities: Option<Vec<String>>,
         service_type: Option<ServiceType>,
         is_context_api: Option<bool>,
+        allowed_sources: Option<Vec<String>>,
     ) -> Self {
         //
         // If the service is discoverable, the description, health_check and
@@ -278,6 +288,7 @@ impl Service {
             routes,
             secrets,
             health_status: HealthStatus::Unknown,
+            allowed_sources,
         }
     }
 

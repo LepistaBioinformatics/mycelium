@@ -8,7 +8,7 @@
 use super::ConnectionStringBean;
 use crate::{
     domain::dtos::{
-        route_type::PermissionedRoles,
+        security_group::PermissionedRoles,
         token::{HmacSha256, ScopedBehavior, ServiceAccountRelatedMeta},
     },
     models::AccountLifeCycle,

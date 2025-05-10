@@ -104,6 +104,7 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
         let new_webhook_execution = WebHookExecutionModel {
             id: artifact.id.unwrap_or(Uuid::new_v4()),
             payload: artifact.payload,
+            payload_id: artifact.payload_id.to_string(),
             trigger: artifact.trigger.to_string(),
             created: Local::now().naive_utc(),
             status: match artifact.status {

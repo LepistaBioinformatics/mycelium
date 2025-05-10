@@ -193,6 +193,8 @@ diesel::table! {
         id -> Uuid,
         payload -> Text,
         #[max_length = 255]
+        payload_id -> Varchar,
+        #[max_length = 255]
         trigger -> Varchar,
         encrypted -> Nullable<Bool>,
         attempts -> Int4,
