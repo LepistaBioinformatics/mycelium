@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.12.0] - 2025-05-12
+
+### 🚀 Features
+
+- *(webhook events)* Register the webhook trigger for accounts update and delete
+
 ## [7.11.0] - 2025-05-10
 
 ### 🚀 Features
@@ -17,6 +23,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 - Release
 

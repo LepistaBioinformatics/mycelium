@@ -2,12 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [7.11.0] - 2025-05-10
+## [7.12.0] - 2025-05-12
 
 ### 🚀 Features
 
 - *(allowed-sources)* Wip - move the definition of the allowed souces struct attribute from route to service
 - *(allowed-sources)* Upgrade temporary structs that load services and routes do respond to the allowed-sources moving
+- *(webhook events)* Register the webhook trigger for accounts update and delete
 
 ### 🐛 Bug Fixes
 
@@ -16,6 +17,10 @@ All notable changes to this project will be documented in this file.
 ### 🚜 Refactor
 
 - *(route-dto)* Rename the group struct attribute to security-group to better intent their usage
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [7.10.0] - 2025-05-03
 

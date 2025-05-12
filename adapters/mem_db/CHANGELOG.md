@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [7.11.0] - 2025-05-10
+## [7.12.0] - 2025-05-12
 
 ### 🚜 Refactor
 
@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 
 ## [7.10.0] - 2025-05-03
