@@ -240,6 +240,7 @@ pub async fn update_own_account_name_url(
         profile,
         body.name.to_owned(),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

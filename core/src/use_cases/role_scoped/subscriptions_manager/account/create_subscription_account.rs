@@ -16,6 +16,7 @@ use mycelium_base::{
     entities::CreateResponseKind,
     utils::errors::{use_case_err, MappedErrors},
 };
+use tracing::Instrument;
 use uuid::Uuid;
 
 /// Create an account flagged as subscription.
@@ -42,8 +43,8 @@ pub async fn create_subscription_account(
 
     let correspondence_id = Uuid::new_v4();
 
-    tracing::Span::current()
-        .record("correspondence_id", &Some(correspondence_id.to_string()));
+    let span = tracing::Span::current();
+    span.record("correspondence_id", &Some(correspondence_id.to_string()));
 
     tracing::trace!("Starting to create a subscription account");
 
@@ -102,6 +103,7 @@ pub async fn create_subscription_account(
         PayloadId::Uuid(account_id),
         webhook_registration_repo,
     )
+    .instrument(span)
     .await?;
 
     tracing::trace!("Side effects dispatched");

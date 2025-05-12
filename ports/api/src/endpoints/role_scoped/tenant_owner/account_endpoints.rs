@@ -72,6 +72,7 @@ pub async fn create_management_account_url(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

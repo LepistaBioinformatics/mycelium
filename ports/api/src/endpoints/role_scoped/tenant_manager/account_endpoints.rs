@@ -76,6 +76,7 @@ pub async fn delete_subscription_account_url(
         tenant.tenant_id().to_owned(),
         account_id,
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

@@ -478,6 +478,7 @@ pub async fn update_account_name_and_flags_url(
         body.is_default.to_owned(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

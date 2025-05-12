@@ -1,10 +1,16 @@
-use crate::domain::{
-    actors::SystemActor,
-    dtos::{
-        account::Account, account_type::AccountType,
-        native_error_codes::NativeErrorCodes, profile::Profile,
+use crate::{
+    domain::{
+        actors::SystemActor,
+        dtos::{
+            account::Account,
+            account_type::AccountType,
+            native_error_codes::NativeErrorCodes,
+            profile::Profile,
+            webhook::{PayloadId, WebHookTrigger},
+        },
+        entities::{AccountFetching, AccountUpdating, WebHookRegistration},
     },
-    entities::{AccountFetching, AccountUpdating},
+    use_cases::support::register_webhook_dispatching_event,
 };
 
 use mycelium_base::{
@@ -12,6 +18,7 @@ use mycelium_base::{
     utils::errors::{use_case_err, MappedErrors},
 };
 use slugify::slugify;
+use tracing::Instrument;
 use uuid::Uuid;
 
 #[tracing::instrument(
@@ -30,7 +37,19 @@ pub async fn update_account_name_and_flags(
     is_default: Option<bool>,
     account_fetching_repo: Box<&dyn AccountFetching>,
     account_updating_repo: Box<&dyn AccountUpdating>,
+    webhook_registration_repo: Box<&dyn WebHookRegistration>,
 ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
+    // ? -----------------------------------------------------------------------
+    // ? Initialize tracing span
+    // ? -----------------------------------------------------------------------
+
+    let span = tracing::Span::current();
+
+    let correspondence_id = Uuid::new_v4();
+
+    tracing::Span::current()
+        .record("correspondence_id", &Some(correspondence_id.to_string()));
+
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
@@ -103,7 +122,29 @@ pub async fn update_account_name_and_flags(
     // ? Return a positive response
     // ? -----------------------------------------------------------------------
 
-    account_updating_repo.update(account).await
+    let response = account_updating_repo.update(account).await?;
+
+    if let UpdatingResponseKind::Updated(account) = response.to_owned() {
+        tracing::trace!("Dispatching side effects");
+
+        let account_id = account.id.ok_or_else(|| {
+            use_case_err("Account ID not found".to_string()).with_exp_true()
+        })?;
+
+        register_webhook_dispatching_event(
+            correspondence_id,
+            WebHookTrigger::SubscriptionAccountUpdated,
+            account.to_owned(),
+            PayloadId::Uuid(account_id),
+            webhook_registration_repo,
+        )
+        .instrument(span)
+        .await?;
+
+        tracing::trace!("Side effects dispatched");
+    }
+
+    Ok(response)
 }
 
 #[cfg(test)]
@@ -113,12 +154,13 @@ mod tests {
         dtos::{
             account::{AccountMeta, AccountMetaKey},
             related_accounts::RelatedAccounts,
+            webhook::{WebHook, WebHookPayloadArtifact},
         },
         entities::AccountFetching,
     };
 
     use async_trait::async_trait;
-    use mycelium_base::entities::FetchManyResponseKind;
+    use mycelium_base::entities::{CreateResponseKind, FetchManyResponseKind};
 
     fn account() -> Account {
         let mut account = Account::default();
@@ -206,6 +248,31 @@ mod tests {
         }
     }
 
+    struct MockWebHookRegistration;
+
+    impl Default for MockWebHookRegistration {
+        fn default() -> Self {
+            Self {}
+        }
+    }
+
+    #[async_trait]
+    impl WebHookRegistration for MockWebHookRegistration {
+        async fn create(
+            &self,
+            _: WebHook,
+        ) -> Result<CreateResponseKind<WebHook>, MappedErrors> {
+            unimplemented!()
+        }
+
+        async fn register_execution_event(
+            &self,
+            _: WebHookPayloadArtifact,
+        ) -> Result<CreateResponseKind<Uuid>, MappedErrors> {
+            unimplemented!()
+        }
+    }
+
     ///
     /// Test updating the account name and flags
     ///
@@ -231,9 +298,12 @@ mod tests {
 
         let fetching = MockAccountFetching::default();
         let updating = MockAccountUpdating::default();
+        let webhook_registration = MockWebHookRegistration::default();
 
         let account_fetching_repo = Box::new(&fetching as &dyn AccountFetching);
         let account_updating_repo = Box::new(&updating as &dyn AccountUpdating);
+        let webhook_registration_repo =
+            Box::new(&webhook_registration as &dyn WebHookRegistration);
 
         let result = update_account_name_and_flags(
             profile,
@@ -246,6 +316,7 @@ mod tests {
             is_default,
             account_fetching_repo,
             account_updating_repo,
+            webhook_registration_repo,
         )
         .await;
 

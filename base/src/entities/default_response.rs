@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum DeletionResponseKind<T>
 where
     T: Serialize,
@@ -9,7 +9,7 @@ where
     NotDeleted(T, String),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum DeletionManyResponseKind<T>
 where
     T: Serialize,
@@ -18,7 +18,7 @@ where
     NotDeleted(T, String),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum FetchResponseKind<T, U>
 where
     T: Serialize,
@@ -27,7 +27,7 @@ where
     NotFound(Option<U>),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum FetchManyResponseKind<T>
 where
     T: Serialize,
@@ -42,7 +42,7 @@ where
     NotFound,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum GetOrCreateResponseKind<T>
 where
     T: Serialize,
@@ -51,7 +51,7 @@ where
     NotCreated(T, String),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CreateResponseKind<T>
 where
     T: Serialize,
@@ -60,7 +60,7 @@ where
     NotCreated(T, String),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CreateManyResponseKind<T>
 where
     T: Serialize,
@@ -69,7 +69,7 @@ where
     NotCreated(Vec<T>, String),
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum UpdatingResponseKind<T>
 where
     T: Serialize,
