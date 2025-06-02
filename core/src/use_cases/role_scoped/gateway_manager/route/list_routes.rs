@@ -22,6 +22,8 @@ pub async fn list_routes(
     profile: Profile,
     id: Option<Uuid>,
     name: Option<String>,
+    page_size: Option<i32>,
+    skip: Option<i32>,
     routes_fetching_repo: Box<&dyn RoutesRead>,
 ) -> Result<FetchManyResponseKind<Route>, MappedErrors> {
     // ? ----------------------------------------------------------------------
@@ -38,5 +40,7 @@ pub async fn list_routes(
     // ? Match upstream routes
     // ? ----------------------------------------------------------------------
 
-    routes_fetching_repo.list_routes(id, name).await
+    routes_fetching_repo
+        .list_routes_paginated(id, name, page_size, skip)
+        .await
 }

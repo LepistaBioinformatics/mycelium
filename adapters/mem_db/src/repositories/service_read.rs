@@ -87,7 +87,12 @@ impl ServiceRead for ServiceReadMemDbRepo {
             return Ok(FetchManyResponseKind::NotFound);
         }
 
-        Ok(FetchManyResponseKind::Found(response))
+        Ok(FetchManyResponseKind::FoundPaginated {
+            count: response.len() as i64,
+            skip: Some(skip),
+            size: Some(page_size),
+            records: response,
+        })
     }
 
     async fn list_services(
