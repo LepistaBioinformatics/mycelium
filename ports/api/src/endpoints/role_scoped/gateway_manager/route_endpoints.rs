@@ -1,4 +1,4 @@
-use crate::dtos::MyceliumProfileData;
+use crate::{dtos::MyceliumProfileData, endpoints::shared::PaginationParams};
 
 use actix_web::{get, web, Responder};
 use myc_core::{
@@ -80,6 +80,7 @@ pub struct ListRoutesByServiceParams {
 #[get("")]
 pub async fn list_routes_url(
     query: web::Query<ListRoutesByServiceParams>,
+    page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
     app_module: web::Data<MemDbAppModule>,
 ) -> impl Responder {
@@ -87,6 +88,8 @@ pub async fn list_routes_url(
         profile.to_profile(),
         query.id.to_owned(),
         query.name.to_owned(),
+        page.page_size,
+        page.skip,
         Box::new(&*app_module.resolve_ref()),
     )
     .await

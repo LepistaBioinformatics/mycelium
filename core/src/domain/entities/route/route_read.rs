@@ -18,6 +18,14 @@ pub trait RoutesRead: Interface + Send + Sync {
         path: PathAndQuery,
     ) -> Result<FetchResponseKind<Route, String>, MappedErrors>;
 
+    async fn list_routes_paginated(
+        &self,
+        id: Option<Uuid>,
+        name: Option<String>,
+        page_size: Option<i32>,
+        skip: Option<i32>,
+    ) -> Result<FetchManyResponseKind<Route>, MappedErrors>;
+
     async fn list_routes(
         &self,
         id: Option<Uuid>,

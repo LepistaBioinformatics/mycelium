@@ -18,6 +18,8 @@ pub async fn list_services(
     profile: Profile,
     id: Option<Uuid>,
     name: Option<String>,
+    page_size: Option<i32>,
+    skip: Option<i32>,
     service_read_repo: Box<&dyn ServiceRead>,
 ) -> Result<FetchManyResponseKind<Service>, MappedErrors> {
     // ? ----------------------------------------------------------------------
@@ -34,5 +36,7 @@ pub async fn list_services(
     // ? Match upstream routes
     // ? ----------------------------------------------------------------------
 
-    service_read_repo.list_services(id, name, None).await
+    service_read_repo
+        .list_services_paginated(id, name, None, page_size, skip)
+        .await
 }
