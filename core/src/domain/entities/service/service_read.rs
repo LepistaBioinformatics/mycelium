@@ -11,6 +11,15 @@ use uuid::Uuid;
 
 #[async_trait]
 pub trait ServiceRead: Interface + Send + Sync {
+    async fn list_services_paginated(
+        &self,
+        id: Option<Uuid>,
+        name: Option<String>,
+        discoverable: Option<bool>,
+        page_size: Option<i32>,
+        skip: Option<i32>,
+    ) -> Result<FetchManyResponseKind<Service>, MappedErrors>;
+
     async fn list_services(
         &self,
         id: Option<Uuid>,
