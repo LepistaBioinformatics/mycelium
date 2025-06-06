@@ -1,5 +1,3 @@
-use std::cmp::Ordering;
-
 use crate::{dtos::ToolOperation, graphql::ToolsRegistry};
 
 use async_graphql::{Context, Object, SimpleObject};
@@ -113,73 +111,77 @@ impl QueryRoot {
                 }
             })
             .map(|op| {
+                let mut realized_matches = vec![];
+
                 //
                 // Check if the summary contains the query
                 //
-                let summary_contains = splitted_query.iter().any(|q| {
-                    op.summary
-                        .as_deref()
-                        .unwrap_or("")
-                        .to_lowercase()
-                        .contains(q)
-                });
+                let summary_contains = splitted_query
+                    .iter()
+                    .map(|q| {
+                        op.summary
+                            .as_deref()
+                            .unwrap_or("")
+                            .to_lowercase()
+                            .contains(q)
+                    })
+                    .collect::<Vec<bool>>();
 
-                //
-                // Check if the description contains the query
-                //
-                let description_contains = splitted_query.iter().any(|q| {
-                    op.description
-                        .as_deref()
-                        .unwrap_or("")
-                        .to_lowercase()
-                        .contains(q)
-                });
+                realized_matches.extend(summary_contains);
 
                 //
                 // Check if the tags contains the query
                 //
-                let tags_contains = splitted_query.iter().any(|q| {
-                    op.operation
-                        .tags
-                        .iter()
-                        .any(|tag| tag.to_lowercase().contains(q))
-                });
+                let tags_contains = splitted_query
+                    .iter()
+                    .map(|q| {
+                        op.operation
+                            .tags
+                            .iter()
+                            .any(|tag| tag.to_lowercase().contains(q))
+                    })
+                    .collect::<Vec<bool>>();
+
+                realized_matches.extend(tags_contains);
 
                 //
                 // Check if the path contains the query
                 //
                 let path_contains = splitted_query
                     .iter()
-                    .any(|q| op.path.to_lowercase().contains(q));
+                    .map(|q| op.path.to_lowercase().contains(q))
+                    .collect::<Vec<bool>>();
+
+                realized_matches.extend(path_contains);
 
                 //
                 // Check if the capabilities contains the query
                 //
-                let capabilities_contains =
-                    op.service.capabilities.iter().any(|cap| {
+                let capabilities_contains = op
+                    .service
+                    .capabilities
+                    .iter()
+                    .map(|cap| {
                         cap.iter().map(|c| c.to_lowercase()).any(|c| {
                             splitted_query.iter().any(|q| c.contains(q))
                         })
-                    });
+                    })
+                    .collect::<Vec<bool>>();
+
+                realized_matches.extend(capabilities_contains);
 
                 //
                 // Calculate the matching score
                 //
-                // The score varies from 0 to 100. 0 means no match, 100 means
+                // The score varies from 0 to N. 0 means no match, N means
                 // perfect match.
                 //
-                let expected_matches = [
-                    summary_contains as i32,
-                    description_contains as i32,
-                    tags_contains as i32,
-                    path_contains as i32,
-                    capabilities_contains as i32,
-                ];
+                let expected_matches = realized_matches.len() as i32;
 
-                let observed_matches = expected_matches.iter().sum::<i32>();
+                let observed_matches =
+                    realized_matches.iter().filter(|&b| *b).count() as i32;
 
-                let score =
-                    (observed_matches * 100) / expected_matches.len() as i32;
+                let score = (observed_matches * 100) / expected_matches;
 
                 ToolOperationResponse {
                     operation: op.clone(),
@@ -187,13 +189,12 @@ impl QueryRoot {
                 }
             })
             .filter(|op| op.score > score_cutoff)
-            .skip(skip as usize)
             .collect::<Vec<_>>();
 
         filtered_operations.sort_by(|a, b| {
             b.score
                 .partial_cmp(&a.score)
-                .unwrap_or(Ordering::Equal)
+                .unwrap()
                 .then(a.operation.operation_id.cmp(&b.operation.operation_id))
         });
 
@@ -204,6 +205,7 @@ impl QueryRoot {
             operations: filtered_operations
                 .clone()
                 .into_iter()
+                .skip(skip as usize)
                 .take(page_size as usize)
                 .collect(),
         }
