@@ -20,7 +20,8 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "rust-lang.rust-analyzer"
+                "rust-lang.rust-analyzer",
+                "streetsidesoftware.code-spell-checker"
             ],
             "settings": {
                 "terminal.integrated.defaultProfile.linux": "bash"

@@ -1,0 +1,67 @@
+services:
+  - name: self
+    id: dd5f8fb9-5a2e-4ff2-ad5e-63c76b8a30c0
+    host: dev.api.agrobiota.biotrop.agr.br/v1/gw/bio-archival-v7
+    protocol: https
+    discoverable: true
+    openapiPath: /doc/openapi.json
+    serviceType: rest-api
+    isContextApi: false
+    healthCheckPath: /health/
+
+    capabilities:
+    - agrobiota-results-access
+    - crops-listing
+    - assays-listing
+
+    description: |
+      This is the bio-archival service for the AgroBiota project. It provides
+      access to the Agrobiota results and is used by the Agroportal and other
+      services.
+
+    routes:
+    - group: public
+      methods:
+      - GET
+      - OPTIONS
+      path: /doc/*
+
+    - group: public
+      methods:
+      - GET
+      - OPTIONS
+      path: /health/*
+
+    - group: public
+      methods:
+      - GET
+      - OPTIONS
+      path: /public/*
+
+    - group: !protectedByRoles
+        roles:
+        - customers
+      methods:
+      - ALL
+      path: /customers/*
+
+    - group: !protectedByRoles
+        roles:
+        - results-experts
+      methods:
+      - ALL
+      path: /results-experts/*
+
+    - group: !protectedByRoles
+        roles:
+        - services
+      methods:
+      - ALL
+      path: /services/*
+
+    - group: !protectedByRoles
+        roles:
+        - subscriptions-manager
+      methods:
+      - ALL
+      path: /subscriptions-managers/*

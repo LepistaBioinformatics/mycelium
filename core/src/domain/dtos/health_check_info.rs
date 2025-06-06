@@ -114,6 +114,23 @@ impl HealthStatus {
     }
 }
 
+impl ToString for HealthStatus {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Unknown => "Unknown".to_string(),
+            Self::Healthy { checked_at } => {
+                format!("LastChecked: {}", checked_at)
+            }
+            Self::Unhealthy { checked_at, .. } => {
+                format!("LastChecked: {}", checked_at)
+            }
+            Self::Unavailable { checked_at, .. } => {
+                format!("LastChecked: {}", checked_at)
+            }
+        }
+    }
+}
+
 /// The unhealthy instance
 ///
 /// The unhealthy instance is a single instance of the service that is

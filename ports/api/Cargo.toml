@@ -49,6 +49,7 @@ reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 shaku.workspace = true
+slugify.workspace = true
 tracing.workspace = true
 tokio.workspace = true
 utoipa.workspace = true
@@ -63,6 +64,8 @@ actix-rt = "2.10"
 actix-web-error = { version = "0.2" }
 actix-web-error-derive = { version = "0.2" }
 actix-web-opentelemetry = "0.18.0"
+async-graphql = "7"
+async-graphql-actix-web = "7"
 opentelemetry = { version = "0.25", default-features = false, features = [
     "trace",
 ] }

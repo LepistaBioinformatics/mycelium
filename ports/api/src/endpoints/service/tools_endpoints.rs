@@ -13,7 +13,6 @@ use myc_http_tools::{
 use myc_mem_db::repositories::MemDbAppModule;
 use mycelium_base::entities::FetchManyResponseKind;
 use serde::{Deserialize, Serialize};
-use serde_json::json;
 use shaku::HasComponent;
 use utoipa::{IntoParams, ToResponse, ToSchema};
 use uuid::Uuid;
@@ -181,17 +180,15 @@ pub async fn list_discoverable_services_url(
                     contexts,
                 })
             }
-            FetchManyResponseKind::FoundPaginated {
-                count,
-                skip,
-                size,
-                records,
-            } => HttpResponse::Ok().json(json!({
-                "count": count,
-                "skip": skip,
-                "size": size,
-                "records": records,
-            })),
+            FetchManyResponseKind::FoundPaginated { .. } => {
+                tracing::error!(
+                    "Pagination is not supported for this endpoint"
+                );
+
+                HttpResponse::BadRequest().json(HttpJsonResponse::new_message(
+                    "Unexpected internal error",
+                ))
+            }
             _ => HttpResponse::NoContent().finish(),
         },
         Err(err) => handle_mapped_error(err),

@@ -162,7 +162,7 @@ api:
   # ? --------------------------------------------------------------------------
   # ? Health check settings
   # ? --------------------------------------------------------------------------
-  healthCheckInterval: 10
+  healthCheckInterval: 120
   maxRetryCount: 3
 
   # ? --------------------------------------------------------------------------
@@ -200,20 +200,20 @@ api:
     #  path: logs/api.log
 
     # Example with jaeger target
-    target: !collector
-      name: mycelium-api
-      # Hostname of the otel collector
-      host: myc-otel-collector-devcontainer
-      # Allowed values:
-      # - http
-      # - https
-      # - grpc
-      protocol: grpc
-      # Use (for default ports for each protocol):
-      port: 4317
+    #target: !collector
+    #  name: mycelium-api
+    #  # Hostname of the otel collector
+    #  host: myc-otel-collector-devcontainer
+    #  # Allowed values:
+    #  # - http
+    #  # - https
+    #  # - grpc
+    #  protocol: grpc
+    #  # Use (for default ports for each protocol):
+    #  port: 4317
 
     # Example with stdout target
-    #target: stdout
+    target: stdout
 
   # ? --------------------------------------------------------------------------
   # ? API GATEWAY TLS SETTINGS
@@ -257,4 +257,4 @@ api:
   #         downstreamUrl: /fact
   #
   # ? --------------------------------------------------------------------------
-  routes: test/mock/routes.yaml
+  routes: test/mock/routes-self.yaml

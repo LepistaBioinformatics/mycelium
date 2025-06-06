@@ -2,6 +2,7 @@ mod api_docs;
 mod dispatchers;
 mod dtos;
 mod endpoints;
+mod graphql;
 mod middleware;
 mod models;
 mod modifiers;
@@ -38,6 +39,7 @@ use endpoints::{
     shared::insert_role_header,
     staff::account_endpoints as staff_account_endpoints,
 };
+use graphql::initialize_tools_registry;
 use models::config_handler::ConfigHandler;
 use myc_adapters_shared_lib::models::{
     SharedAppModule, SharedClientImpl, SharedClientImplParameters,
@@ -86,12 +88,14 @@ use settings::{
 };
 use shaku::HasComponent;
 use std::{path::PathBuf, str::FromStr, sync::Arc, sync::Mutex};
-use tracing::{info, trace};
+use tracing::{info, trace, Instrument};
 use tracing_actix_web::TracingLogger;
 use utoipa::OpenApi;
 use utoipa_redoc::{FileConfig, Redoc, Servable};
 use utoipa_swagger_ui::{oauth, Config, SwaggerUi};
 use uuid::Uuid;
+
+use crate::graphql::{graphql_handler, graphql_playground};
 
 // ? ---------------------------------------------------------------------------
 // ? API fire elements
@@ -154,16 +158,7 @@ pub async fn main() -> std::io::Result<()> {
     info!("Initializing Logging and Telemetry configuration");
     let _guard = initialize_otel(api_config.to_owned().logging)?;
 
-    // ? -----------------------------------------------------------------------
-    // ? Routes should be used on API gateway
-    //
-    // When users perform queries to the API gateway, the gateway should
-    // redirect the request to the correct service. Services are loaded into
-    // memory and the gateway should know the routes during their execution.
-    //
-    // ? -----------------------------------------------------------------------
-    //info!("Initializing routes");
-    //init_in_memory_routes(config.api.routes.clone()).await;
+    let span = tracing::Span::current();
 
     // ? -----------------------------------------------------------------------
     // ? Initialize vault configuration
@@ -173,7 +168,9 @@ pub async fn main() -> std::io::Result<()> {
     //
     // ? -----------------------------------------------------------------------
     info!("Initializing Vault configs");
-    init_vault_config_from_file(None, Some(config.vault)).await;
+    init_vault_config_from_file(None, Some(config.vault))
+        .instrument(span.to_owned())
+        .await;
 
     // ? -----------------------------------------------------------------------
     // ? Configure SQL App Module
@@ -274,6 +271,24 @@ pub async fn main() -> std::io::Result<()> {
     );
 
     // ? -----------------------------------------------------------------------
+    // ? Initialize the tools registry
+    //
+    // The tools registry should be initialized before the server starts. The
+    // registry should be used to store the tools for the tools endpoints.
+    //
+    // ? -----------------------------------------------------------------------
+    info!("Initializing tools registry");
+
+    let tools_registry_schema = initialize_tools_registry(mem_module.clone())
+        .instrument(span.to_owned())
+        .await
+        .map_err(|err| {
+            tracing::error!("Error initializing tools registry: {err}");
+
+            std::io::Error::new(std::io::ErrorKind::Other, err)
+        })?;
+
+    // ? -----------------------------------------------------------------------
     // ? Fire the scheduler
     //
     // The email dispatcher should be fired to allow emails to be sent.
@@ -299,7 +314,9 @@ pub async fn main() -> std::io::Result<()> {
                 notifier_module.resolve_ref() as &dyn RemoteMessageWrite
             ))
         },
-    );
+    )
+    .instrument(span.to_owned())
+    .await;
 
     // ? -----------------------------------------------------------------------
     // ? Fire the webhook dispatcher
@@ -309,7 +326,9 @@ pub async fn main() -> std::io::Result<()> {
     //
     // ? -----------------------------------------------------------------------
     info!("Fire webhook dispatcher");
-    webhook_dispatcher(config.core.to_owned(), sql_module.clone());
+    webhook_dispatcher(config.core.to_owned(), sql_module.clone())
+        .instrument(span.to_owned())
+        .await;
 
     // ? -----------------------------------------------------------------------
     // ? Fire the services health dispatcher
@@ -319,7 +338,9 @@ pub async fn main() -> std::io::Result<()> {
     //
     // ? -----------------------------------------------------------------------
     info!("Fire services health dispatcher");
-    services_health_dispatcher(config.api.clone(), mem_module.clone());
+    services_health_dispatcher(config.api.clone(), mem_module.clone())
+        .instrument(span.to_owned())
+        .await;
 
     // ? -----------------------------------------------------------------------
     // ? Configure the server
@@ -597,21 +618,23 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             .service(
                 web::scope(&format!("/{}", TOOLS_API_SCOPE))
-                    .configure(service_tools_endpoints::configure),
+                    .app_data(web::Data::new(tools_registry_schema.clone()))
+                    .configure(service_tools_endpoints::configure)
+                    .service(
+                        web::resource("/graphql")
+                            .guard(actix_web::guard::Post())
+                            .to(graphql_handler),
+                    )
+                    .service(
+                        web::resource("/playground")
+                            .guard(actix_web::guard::Get())
+                            .to(graphql_playground),
+                    ),
             )
             // ? ---------------------------------------------------------------
             // ? Configure gateway routes
             // ? ---------------------------------------------------------------
             .app_data(web::Data::new(Client::default()))
-            //
-            // Remove it if the gateway timeout is not needed. This injection
-            // were consumed at the router layer at the
-            // `initialize_downstream_request` function execution. Remove it if
-            // the gateway timeout is already set on the `ApiConfig` struct. The
-            // ApiConfig struct is injected below with the `forward_api_config`
-            // variable.
-            //
-            //.app_data(web::Data::new(local_api_config.gateway_timeout))
             .app_data(web::Data::new(forward_api_config.to_owned()).clone())
             .service(
                 web::scope(&format!("/{}", GATEWAY_API_SCOPE))

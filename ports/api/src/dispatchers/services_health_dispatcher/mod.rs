@@ -19,7 +19,7 @@ use std::{sync::Arc, time::Duration};
 /// downstream services.
 ///
 #[tracing::instrument(name = "services_health_dispatcher", skip_all)]
-pub(crate) fn services_health_dispatcher(
+pub(crate) async fn services_health_dispatcher(
     config: ApiConfig,
     mem_app_modules: Arc<MemDbAppModule>,
 ) {
