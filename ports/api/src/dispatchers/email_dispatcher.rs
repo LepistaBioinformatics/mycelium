@@ -10,7 +10,7 @@ use std::{sync::Arc, time::Duration};
 /// Spawns a new thread to consume messages from the email queue.
 ///
 #[tracing::instrument(name = "email_dispatcher", skip_all)]
-pub(crate) fn email_dispatcher(
+pub(crate) async fn email_dispatcher(
     queue_config: QueueConfig,
     local_message_read_repo: Arc<dyn LocalMessageReading>,
     local_message_write_repo: Arc<dyn LocalMessageWrite>,
