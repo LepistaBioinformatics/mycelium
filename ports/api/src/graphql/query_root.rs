@@ -1,4 +1,10 @@
-use crate::{dtos::ToolOperation, graphql::ToolsRegistry};
+use crate::{
+    dtos::ToolOperation,
+    graphql::{
+        Example, Header, Parameter, RequestBody, Response, Schema,
+        ToolsRegistry,
+    },
+};
 
 use async_graphql::{Context, Object, SimpleObject};
 use serde::{Deserialize, Serialize};
@@ -47,10 +53,50 @@ struct SearchOperationResponse {
     skip: usize,
 }
 
+#[derive(SimpleObject, Serialize, Deserialize, Clone, Debug)]
+struct GetSchemaResponse {
+    #[serde(flatten)]
+    schema: Option<Schema>,
+}
+
+#[derive(SimpleObject, Serialize, Deserialize, Clone, Debug)]
+struct GetResponseResponse {
+    #[serde(flatten)]
+    schema: Option<Response>,
+}
+
+#[derive(SimpleObject, Serialize, Deserialize, Clone, Debug)]
+struct GetParameterResponse {
+    #[serde(flatten)]
+    schema: Option<Parameter>,
+}
+
+#[derive(SimpleObject, Serialize, Deserialize, Clone, Debug)]
+struct GetRequestBodyResponse {
+    #[serde(flatten)]
+    schema: Option<RequestBody>,
+}
+
+#[derive(SimpleObject, Serialize, Deserialize, Clone, Debug)]
+struct GetHeaderResponse {
+    #[serde(flatten)]
+    schema: Option<Header>,
+}
+
+#[derive(SimpleObject, Serialize, Deserialize, Clone, Debug)]
+struct GetExampleResponse {
+    #[serde(flatten)]
+    schema: Option<Example>,
+}
+
 pub struct QueryRoot;
 
 #[Object]
 impl QueryRoot {
+    /// Get the operation by operation id
+    ///
+    /// Return a single operation by its operation id.
+    ///
     #[tracing::instrument(name = "get_operation", skip_all)]
     async fn get_operation(
         &self,
@@ -73,12 +119,323 @@ impl QueryRoot {
         }
     }
 
+    /// Get schema by name
+    ///
+    /// If available, return the schema by name. Otherwise, return None.
+    ///
+    #[tracing::instrument(name = "get_schema", skip_all)]
+    async fn get_schema(
+        &self,
+        ctx: &Context<'_>,
+        name: String,
+    ) -> GetSchemaResponse {
+        let registry = ctx.data_unchecked::<ToolsRegistry>();
+
+        let components = registry.components.clone();
+
+        let name =
+            if let Some(name) = name.split("/").collect::<Vec<&str>>().last() {
+                name.to_owned()
+            } else {
+                return GetSchemaResponse { schema: None };
+            };
+
+        let schema = components
+            .iter()
+            .map(|c| c.schemas.clone())
+            .find_map(|s| s.get(name).map(|s| s.clone()));
+
+        if let Some(schema) = schema {
+            if let Some(schema) = schema.schema {
+                return GetSchemaResponse {
+                    schema: Some(schema),
+                };
+            }
+
+            //
+            // This is a recursive call to get the schema of the reference.
+            // Don't unbox it to avoid infinite recursion.
+            //
+            let introspected_schema = Box::pin(self.get_schema(
+                ctx,
+                schema.reference.reference.clone().unwrap_or("".to_string()),
+            ))
+            .await;
+
+            if let Ok(introspected_schema) = introspected_schema {
+                return introspected_schema;
+            }
+        }
+
+        GetSchemaResponse { schema: None }
+    }
+
+    /// Get response by name
+    ///
+    /// If available, return the response by name. Otherwise, return None.
+    ///
+    #[tracing::instrument(name = "get_response", skip_all)]
+    async fn get_response(
+        &self,
+        ctx: &Context<'_>,
+        name: String,
+    ) -> GetResponseResponse {
+        let registry = ctx.data_unchecked::<ToolsRegistry>();
+
+        let components = registry.components.clone();
+
+        let name =
+            if let Some(name) = name.split("/").collect::<Vec<&str>>().last() {
+                name.to_owned()
+            } else {
+                return GetResponseResponse { schema: None };
+            };
+
+        let schema = components
+            .iter()
+            .map(|c| c.responses.clone())
+            .find_map(|s| s.get(name).map(|s| s.clone()));
+
+        if let Some(schema) = schema {
+            if let Some(schema) = schema.schema {
+                return GetResponseResponse {
+                    schema: Some(schema),
+                };
+            }
+
+            //
+            // This is a recursive call to get the schema of the reference.
+            // Don't unbox it to avoid infinite recursion.
+            //
+            let introspected_schema = Box::pin(self.get_response(
+                ctx,
+                schema.reference.reference.clone().unwrap_or("".to_string()),
+            ))
+            .await;
+
+            if let Ok(introspected_schema) = introspected_schema {
+                return introspected_schema;
+            }
+        }
+
+        GetResponseResponse { schema: None }
+    }
+
+    /// Get parameter by name
+    ///
+    /// If available, return the parameter by name. Otherwise, return None.
+    ///
+    #[tracing::instrument(name = "get_parameter", skip_all)]
+    async fn get_parameter(
+        &self,
+        ctx: &Context<'_>,
+        name: String,
+    ) -> GetParameterResponse {
+        let registry = ctx.data_unchecked::<ToolsRegistry>();
+
+        let components = registry.components.clone();
+
+        let name =
+            if let Some(name) = name.split("/").collect::<Vec<&str>>().last() {
+                name.to_owned()
+            } else {
+                return GetParameterResponse { schema: None };
+            };
+
+        let schema = components
+            .iter()
+            .map(|c| c.parameters.clone())
+            .find_map(|s| s.get(name).map(|s| s.clone()));
+
+        if let Some(schema) = schema {
+            if let Some(schema) = schema.schema {
+                return GetParameterResponse {
+                    schema: Some(schema),
+                };
+            }
+
+            //
+            // This is a recursive call to get the schema of the reference.
+            // Don't unbox it to avoid infinite recursion.
+            //
+            let introspected_schema = Box::pin(self.get_parameter(
+                ctx,
+                schema.reference.reference.clone().unwrap_or("".to_string()),
+            ))
+            .await;
+
+            if let Ok(introspected_schema) = introspected_schema {
+                return introspected_schema;
+            }
+        }
+
+        GetParameterResponse { schema: None }
+    }
+
+    /// Get request body by name
+    ///
+    /// If available, return the request body by name. Otherwise, return None.
+    ///
+    #[tracing::instrument(name = "get_request_body", skip_all)]
+    async fn get_request_body(
+        &self,
+        ctx: &Context<'_>,
+        name: String,
+    ) -> GetRequestBodyResponse {
+        let registry = ctx.data_unchecked::<ToolsRegistry>();
+
+        let components = registry.components.clone();
+
+        let name =
+            if let Some(name) = name.split("/").collect::<Vec<&str>>().last() {
+                name.to_owned()
+            } else {
+                return GetRequestBodyResponse { schema: None };
+            };
+
+        let schema = components
+            .iter()
+            .map(|c| c.request_bodies.clone())
+            .find_map(|s| s.get(name).map(|s| s.clone()));
+
+        if let Some(schema) = schema {
+            if let Some(schema) = schema.schema {
+                return GetRequestBodyResponse {
+                    schema: Some(schema),
+                };
+            }
+
+            //
+            // This is a recursive call to get the schema of the reference.
+            // Don't unbox it to avoid infinite recursion.
+            //
+            let introspected_schema = Box::pin(self.get_request_body(
+                ctx,
+                schema.reference.reference.clone().unwrap_or("".to_string()),
+            ))
+            .await;
+
+            if let Ok(introspected_schema) = introspected_schema {
+                return introspected_schema;
+            }
+        }
+
+        GetRequestBodyResponse { schema: None }
+    }
+
+    /// Get header by name
+    ///
+    /// If available, return the header by name. Otherwise, return None.
+    ///
+    #[tracing::instrument(name = "get_header", skip_all)]
+    async fn get_header(
+        &self,
+        ctx: &Context<'_>,
+        name: String,
+    ) -> GetHeaderResponse {
+        let registry = ctx.data_unchecked::<ToolsRegistry>();
+
+        let components = registry.components.clone();
+
+        let name =
+            if let Some(name) = name.split("/").collect::<Vec<&str>>().last() {
+                name.to_owned()
+            } else {
+                return GetHeaderResponse { schema: None };
+            };
+
+        let schema = components
+            .iter()
+            .map(|c| c.headers.clone())
+            .find_map(|s| s.get(name).map(|s| s.clone()));
+
+        if let Some(schema) = schema {
+            if let Some(schema) = schema.schema {
+                return GetHeaderResponse {
+                    schema: Some(schema),
+                };
+            }
+
+            //
+            // This is a recursive call to get the schema of the reference.
+            // Don't unbox it to avoid infinite recursion.
+            //
+            let introspected_schema = Box::pin(self.get_header(
+                ctx,
+                schema.reference.reference.clone().unwrap_or("".to_string()),
+            ))
+            .await;
+
+            if let Ok(introspected_schema) = introspected_schema {
+                return introspected_schema;
+            }
+        }
+
+        GetHeaderResponse { schema: None }
+    }
+
+    /// Get example by name
+    ///
+    /// If available, return the example by name. Otherwise, return None.
+    ///
+    #[tracing::instrument(name = "get_example", skip_all)]
+    async fn get_example(
+        &self,
+        ctx: &Context<'_>,
+        name: String,
+    ) -> GetExampleResponse {
+        let registry = ctx.data_unchecked::<ToolsRegistry>();
+
+        let components = registry.components.clone();
+
+        let name =
+            if let Some(name) = name.split("/").collect::<Vec<&str>>().last() {
+                name.to_owned()
+            } else {
+                return GetExampleResponse { schema: None };
+            };
+
+        let schema = components
+            .iter()
+            .map(|c| c.examples.clone())
+            .find_map(|s| s.get(name).map(|s| s.clone()));
+
+        if let Some(schema) = schema {
+            if let Some(schema) = schema.schema {
+                return GetExampleResponse {
+                    schema: Some(schema),
+                };
+            }
+
+            //
+            // This is a recursive call to get the schema of the reference.
+            // Don't unbox it to avoid infinite recursion.
+            //
+            let introspected_schema = Box::pin(self.get_example(
+                ctx,
+                schema.reference.reference.clone().unwrap_or("".to_string()),
+            ))
+            .await;
+
+            if let Ok(introspected_schema) = introspected_schema {
+                return introspected_schema;
+            }
+        }
+
+        GetExampleResponse { schema: None }
+    }
+
+    /// Search for operations
+    ///
+    /// Search for operations by query, method, service name, and score cutoff.
+    ///
     #[tracing::instrument(name = "search_operation", skip_all)]
     async fn search_operation(
         &self,
         ctx: &Context<'_>,
         query: String,
         method: Option<String>,
+        service_name: Option<String>,
         score_cutoff: Option<i32>,
         page_size: Option<i32>,
         skip: Option<i32>,
@@ -106,6 +463,19 @@ impl QueryRoot {
                 //
                 if let Some(method) = method.clone() {
                     op.method.to_lowercase().contains(&method.to_lowercase())
+                } else {
+                    true
+                }
+            })
+            .filter(|op| {
+                //
+                // Check if the service name contains the query
+                //
+                if let Some(service_name) = service_name.clone() {
+                    op.service
+                        .name
+                        .to_lowercase()
+                        .contains(&service_name.to_lowercase())
                 } else {
                     true
                 }

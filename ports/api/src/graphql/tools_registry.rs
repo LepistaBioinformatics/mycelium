@@ -1,6 +1,6 @@
 use crate::{
     dtos::{ServiceWrapper, ToolOperation},
-    graphql::OpenApiPartial,
+    graphql::{Components, OpenApiPartial},
 };
 
 use awc::http::uri::PathAndQuery;
@@ -20,6 +20,7 @@ use std::sync::Arc;
 #[derive(Clone, Debug)]
 pub struct ToolsRegistry {
     pub operations: Vec<ToolOperation>,
+    pub components: Vec<Components>,
 }
 
 impl ToolsRegistry {
@@ -29,6 +30,7 @@ impl ToolsRegistry {
         app_modules: Arc<MemDbAppModule>,
     ) -> Result<Self, MappedErrors> {
         let mut operations = Vec::new();
+        let mut components = Vec::new();
 
         for service in services {
             if let Some(false) = service.discoverable {
@@ -68,16 +70,20 @@ impl ToolsRegistry {
             };
 
             let paths = ToolsRegistry::load_paths_from_spec(
-                doc,
+                doc.clone(),
                 service_wrapper,
                 app_modules.clone(),
             )
             .await?;
 
             operations.extend(paths.operations);
+            components.extend(paths.components);
         }
 
-        Ok(Self { operations })
+        Ok(Self {
+            operations,
+            components,
+        })
     }
 
     /// Loads the paths from a OpenAPI document
@@ -90,6 +96,7 @@ impl ToolsRegistry {
         let routes_read_repo: &dyn RoutesRead = app_modules.resolve_ref();
 
         let mut operations = Vec::new();
+        let mut components = Vec::new();
         let service_name = service_wrapper.name.to_owned();
 
         for (path, item) in doc.paths {
@@ -173,10 +180,15 @@ impl ToolsRegistry {
                     operation: operation.clone(),
                     security_group: security_group.to_string(),
                 });
+
+                components.push(doc.components.clone());
             }
         }
 
-        Ok(Self { operations })
+        Ok(Self {
+            operations,
+            components,
+        })
     }
 
     /// Loads a OpenAPI document from a string

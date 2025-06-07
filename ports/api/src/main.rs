@@ -95,7 +95,7 @@ use utoipa_redoc::{FileConfig, Redoc, Servable};
 use utoipa_swagger_ui::{oauth, Config, SwaggerUi};
 use uuid::Uuid;
 
-use crate::graphql::{graphql_handler, graphql_playground};
+use crate::graphql::graphql_handler;
 
 // ? ---------------------------------------------------------------------------
 // ? API fire elements
@@ -624,11 +624,6 @@ pub async fn main() -> std::io::Result<()> {
                         web::resource("/graphql")
                             .guard(actix_web::guard::Post())
                             .to(graphql_handler),
-                    )
-                    .service(
-                        web::resource("/playground")
-                            .guard(actix_web::guard::Get())
-                            .to(graphql_playground),
                     ),
             )
             // ? ---------------------------------------------------------------

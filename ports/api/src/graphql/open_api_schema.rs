@@ -10,7 +10,7 @@ use std::collections::HashMap;
 #[serde(rename_all = "camelCase")]
 pub(crate) struct Reference {
     #[serde(alias = "$ref", skip_serializing_if = "Option::is_none")]
-    reference: Option<String>,
+    pub reference: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize, SimpleObject, Clone)]
@@ -83,7 +83,7 @@ pub(crate) struct SchemaOrRefExample {
 // ? OpenApiPartial
 // ? ---------------------------------------------------------------------------
 
-#[derive(Debug, Deserialize, Serialize, SimpleObject)]
+#[derive(Clone, Debug, Deserialize, Serialize, SimpleObject)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct OpenApiPartial {
     pub paths: HashMap<String, HashMap<String, Option<Operation>>>,
@@ -210,27 +210,21 @@ pub(crate) struct Response {
 #[serde(rename_all = "camelCase")]
 pub(crate) struct Components {
     #[serde(default)]
-    #[graphql(name = "schemas")]
     pub schemas: HashMap<String, SchemaOrRefSchema>,
 
     #[serde(default)]
-    #[graphql(name = "responses")]
     pub responses: HashMap<String, SchemaOrRefResponse>,
 
     #[serde(default)]
-    #[graphql(name = "parameters")]
     pub parameters: HashMap<String, SchemaOrRefParameter>,
 
     #[serde(default)]
-    #[graphql(name = "requestBodies")]
     pub request_bodies: HashMap<String, SchemaOrRefRequestBody>,
 
     #[serde(default)]
-    #[graphql(name = "headers")]
     pub headers: HashMap<String, SchemaOrRefHeader>,
 
     #[serde(default)]
-    #[graphql(name = "examples")]
     pub examples: HashMap<String, SchemaOrRefExample>,
 }
 
@@ -276,12 +270,14 @@ impl From<&SchemaType> for SchemaTypeGQL {
     }
 }
 
-//#[derive(Debug, Deserialize, Serialize, Enum, Eq, PartialEq)]
-//#[serde(untagged, rename_all = "camelCase")]
-//pub enum ItemType {
-//    Item(SchemaOrRef<Schema>),
-//    Boolean(bool),
-//}
+#[derive(Debug, Deserialize, Serialize, SimpleObject, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ItemType {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub item: Option<Box<SchemaOrRefSchema>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub boolean: Option<bool>,
+}
 
 #[derive(Debug, Deserialize, Serialize, SimpleObject, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -303,12 +299,11 @@ pub(crate) struct Schema {
     pub required: Option<Vec<String>>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[graphql(name = "properties")]
     pub properties: Option<HashMap<String, SchemaOrRefSchema>>,
 
-    //#[serde(default)]
-    //pub items: Option<ItemType>,
-    //
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub items: Option<ItemType>,
+
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub enum_values: Option<Vec<serde_json::Value>>,
 
