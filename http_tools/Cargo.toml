@@ -13,10 +13,10 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "7.12.0", path = "../core" }
-mycelium-base = { version = "7.12.0", path = "../base" }
-mycelium-config = { version = "7.12.0", path = "../config" }
-mycelium-service = { version = "7.12.0", path = "../adapters/service" }
+myc-core = { version = "7.13.0", path = "../core" }
+mycelium-base = { version = "7.13.0", path = "../base" }
+mycelium-config = { version = "7.13.0", path = "../config" }
+mycelium-service = { version = "7.13.0", path = "../adapters/service" }
 
 actix-web.workspace = true
 actix-web-httpauth.workspace = true

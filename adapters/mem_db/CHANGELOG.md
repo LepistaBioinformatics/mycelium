@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.13.0] - 2025-06-07
+
+### 🚀 Features
+
+- *(paginated-services)* Implements pagination to the services listing
+- *(paginated-routes)* Include pagination in routes list endpoint
+
 ## [7.12.0] - 2025-05-12
 
 ### 🚜 Refactor
@@ -10,6 +17,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 - Release
 

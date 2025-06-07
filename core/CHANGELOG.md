@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.13.0] - 2025-06-07
+
+### 🚀 Features
+
+- *(paginated-services)* Implements pagination to the services listing
+- *(paginated-routes)* Include pagination in routes list endpoint
+- *(tools-discoverability)* Do implements the downstream routes discoverability
+
 ## [7.12.0] - 2025-05-12
 
 ### 🚀 Features
@@ -20,6 +28,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 
 ## [7.10.0] - 2025-05-03

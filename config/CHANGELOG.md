@@ -2,10 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.13.0] - 2025-06-07
+
+### 🚀 Features
+
+- *(tools-discoverability)* Do implements the downstream routes discoverability
+
 ## [7.12.0] - 2025-05-12
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 
 ## [7.10.0] - 2025-05-03

@@ -2,11 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.13.0] - 2025-06-07
+
+### 🚀 Features
+
+- *(paginated-services)* Implements pagination to the services listing
+- *(paginated-routes)* Include pagination in routes list endpoint
+- *(tools-discoverability)* Do implements the downstream routes discoverability
+- Increment methods to fetch schemas defined at the route response
+
+### 🐛 Bug Fixes
+
+- Include independent filtration scores to filter tue query on graphql query root
+
 ## [7.12.0] - 2025-05-12
 
 ### 🚀 Features
 
 - *(webhook events)* Register the webhook trigger for accounts update and delete
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [7.11.0] - 2025-05-10
 
