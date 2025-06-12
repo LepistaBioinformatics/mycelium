@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.13.1] - 2025-06-12
+
+### ⚡ Performance
+
+- Improve the score calculation performance on filter params
+
+### 🧪 Testing
+
+- Upgrade development elements to allows to test with real openapi documentation
+
 ## [7.13.0] - 2025-06-07
 
 ### 🚀 Features
@@ -14,6 +24,10 @@ All notable changes to this project will be documented in this file.
 ### 🐛 Bug Fixes
 
 - Include independent filtration scores to filter tue query on graphql query root
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [7.12.0] - 2025-05-12
 

@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - *(tools-discoverability)* Do implements the downstream routes discoverability
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [7.12.0] - 2025-05-12
 
 ### ⚙️ Miscellaneous Tasks

@@ -2,12 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.13.1] - 2025-06-12
+
+### 🧪 Testing
+
+- Upgrade development elements to allows to test with real openapi documentation
+
 ## [7.13.0] - 2025-06-07
 
 ### 🚀 Features
 
 - *(paginated-services)* Implements pagination to the services listing
 - *(paginated-routes)* Include pagination in routes list endpoint
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [7.12.0] - 2025-05-12
 
