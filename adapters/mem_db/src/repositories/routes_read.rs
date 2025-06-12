@@ -60,9 +60,14 @@ impl RoutesRead for RoutesReadMemDbRepo {
         }
 
         if response.len() > 1 {
-            return fetching_err(
-                "Multiple routes found for the specified path.",
-            )
+            return fetching_err(format!(
+                "Multiple routes found for the specified path: {}",
+                response
+                    .iter()
+                    .map(|r| r.path.clone())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ))
             .with_exp_true()
             .as_error();
         }

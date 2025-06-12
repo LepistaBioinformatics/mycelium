@@ -257,4 +257,4 @@ api:
   #         downstreamUrl: /fact
   #
   # ? --------------------------------------------------------------------------
-  routes: test/mock/routes-self.yaml
+  routes: test/mock/routes.yaml

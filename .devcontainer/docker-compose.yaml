@@ -102,6 +102,8 @@ services:
       - MYC_VAULT_TOKEN=${MYC_VAULT_TOKEN}
     volumes:
       - ../..:/workspaces:cached
+    ports:
+      - 8080:8080
 
     depends_on:
       - myc-postgres-devcontainer

@@ -52,6 +52,8 @@ impl ToolsRegistry {
                     .unwrap()
             );
 
+            tracing::debug!("Loading OpenAPI document from: {}", absolute_path);
+
             let response = reqwest::get(absolute_path).await.map_err(|e| {
                 execution_err(format!("Failed to load from url: {}", e))
             })?;
@@ -127,7 +129,15 @@ impl ToolsRegistry {
                 }
             };
 
-            let security_group = route_forward.security_group;
+            let security_group = serde_json::to_string(
+                &route_forward.security_group,
+            )
+            .map_err(|e| {
+                execution_err(format!(
+                    "Failed to serialize security group: {}",
+                    e
+                ))
+            })?;
 
             //
             // Populate the operations
@@ -178,7 +188,7 @@ impl ToolsRegistry {
                     summary: summary.clone(),
                     description: description.clone(),
                     operation: operation.clone(),
-                    security_group: security_group.to_string(),
+                    security_group: security_group.clone(),
                 });
 
                 components.push(doc.components.clone());
