@@ -64,20 +64,20 @@ services:
 
     routes:
       - group: public
-        path: /pets/*
+        path: /pet*
         methods:
           - ALL
 
       - group: !protectedByRoles
           roles:
             - employee
-        path: /store/*
+        path: /store*
         methods:
           - ALL
 
       - group: !protectedByRoles
           roles:
             - customer
-        path: /user/*
+        path: /user*
         methods:
           - ALL

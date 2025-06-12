@@ -435,7 +435,6 @@ impl QueryRoot {
         ctx: &Context<'_>,
         query: String,
         method: Option<String>,
-        service_name: Option<String>,
         score_cutoff: Option<i32>,
         page_size: Option<i32>,
         skip: Option<i32>,
@@ -467,21 +466,23 @@ impl QueryRoot {
                     true
                 }
             })
-            .filter(|op| {
+            .map(|op| {
+                let mut realized_matches = vec![];
+
                 //
                 // Check if the service name contains the query
                 //
-                if let Some(service_name) = service_name.clone() {
-                    op.service
-                        .name
-                        .to_lowercase()
-                        .contains(&service_name.to_lowercase())
-                } else {
-                    true
-                }
-            })
-            .map(|op| {
-                let mut realized_matches = vec![];
+                let service_name_contains = splitted_query
+                    .iter()
+                    .map(|q| {
+                        get_match_weight(
+                            q,
+                            &op.service.name.to_lowercase().as_str(),
+                        )
+                    })
+                    .collect::<Vec<i32>>();
+
+                realized_matches.extend(service_name_contains);
 
                 //
                 // Check if the summary contains the query
@@ -489,13 +490,16 @@ impl QueryRoot {
                 let summary_contains = splitted_query
                     .iter()
                     .map(|q| {
-                        op.summary
-                            .as_deref()
-                            .unwrap_or("")
-                            .to_lowercase()
-                            .contains(q)
+                        get_match_weight(
+                            q,
+                            &op.summary
+                                .as_deref()
+                                .unwrap_or("")
+                                .to_lowercase()
+                                .as_str(),
+                        )
                     })
-                    .collect::<Vec<bool>>();
+                    .collect::<Vec<i32>>();
 
                 realized_matches.extend(summary_contains);
 
@@ -505,12 +509,12 @@ impl QueryRoot {
                 let tags_contains = splitted_query
                     .iter()
                     .map(|q| {
-                        op.operation
-                            .tags
-                            .iter()
-                            .any(|tag| tag.to_lowercase().contains(q))
+                        op.operation.tags.iter().map(|tag| {
+                            get_match_weight(q, &tag.to_lowercase().as_str())
+                        })
                     })
-                    .collect::<Vec<bool>>();
+                    .flatten()
+                    .collect::<Vec<i32>>();
 
                 realized_matches.extend(tags_contains);
 
@@ -519,26 +523,12 @@ impl QueryRoot {
                 //
                 let path_contains = splitted_query
                     .iter()
-                    .map(|q| op.path.to_lowercase().contains(q))
-                    .collect::<Vec<bool>>();
+                    .map(|q| {
+                        get_match_weight(q, &op.path.to_lowercase().as_str())
+                    })
+                    .collect::<Vec<i32>>();
 
                 realized_matches.extend(path_contains);
-
-                //
-                // Check if the capabilities contains the query
-                //
-                let capabilities_contains = op
-                    .service
-                    .capabilities
-                    .iter()
-                    .map(|cap| {
-                        cap.iter().map(|c| c.to_lowercase()).any(|c| {
-                            splitted_query.iter().any(|q| c.contains(q))
-                        })
-                    })
-                    .collect::<Vec<bool>>();
-
-                realized_matches.extend(capabilities_contains);
 
                 //
                 // Calculate the matching score
@@ -549,7 +539,7 @@ impl QueryRoot {
                 let expected_matches = realized_matches.len() as i32;
 
                 let observed_matches =
-                    realized_matches.iter().filter(|&b| *b).count() as i32;
+                    realized_matches.iter().map(|&b| b).sum::<i32>();
 
                 let score = (observed_matches * 100) / expected_matches;
 
@@ -580,4 +570,23 @@ impl QueryRoot {
                 .collect(),
         }
     }
+}
+
+/// Get the match weight
+///
+/// If match ie exact, return 2 otherwise return 1, if has no match return 0.
+///
+fn get_match_weight<T: ToString>(query: &T, subject: &T) -> i32 {
+    let query = query.to_string().to_lowercase();
+    let subject = subject.to_string().to_lowercase();
+
+    if query == subject {
+        return 2;
+    }
+
+    if query.contains(&subject) || subject.contains(&query) {
+        return 1;
+    }
+
+    return 0;
 }
