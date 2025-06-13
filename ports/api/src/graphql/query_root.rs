@@ -439,6 +439,19 @@ impl QueryRoot {
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> SearchOperationResponse {
+        let span = tracing::info_span!(
+            "search_operation",
+            query = %query,
+            method = ?method,
+            score_cutoff = ?score_cutoff,
+            page_size = ?page_size,
+            skip = ?skip
+        );
+
+        let _enter = span.enter();
+
+        tracing::debug!("Searching for operations");
+
         let registry = ctx.data_unchecked::<ToolsRegistry>();
 
         let score_cutoff = score_cutoff.unwrap_or(0);

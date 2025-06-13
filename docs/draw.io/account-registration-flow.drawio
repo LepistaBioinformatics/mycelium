@@ -1,4 +1,4 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.1.1 Chrome/132.0.6834.210 Electron/34.3.3 Safari/537.36" version="26.1.1" pages="3">
+<mxfile host="Electron" agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/27.0.9 Chrome/134.0.6998.205 Electron/35.4.0 Safari/537.36" version="27.0.9" pages="3">
   <diagram name="User Registration - Native" id="h0gBqg-u4J8CJtZ1Ysuk">
     <mxGraphModel dx="3857" dy="2850" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="880" pageHeight="750" math="0" shadow="0">
       <root>
@@ -149,7 +149,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="0IYpumAEQvVQIla8VTXU" name="Tenant Structure">
-    <mxGraphModel dx="3674" dy="1630" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="2369" pageHeight="1000" math="0" shadow="0">
+    <mxGraphModel dx="3278" dy="1392" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="2369" pageHeight="1000" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -172,7 +172,7 @@
             <mxPoint x="-740" y="-96.23270846800256" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-30" value="&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;MANAGER&lt;/font&gt;&lt;/div&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-29" vertex="1" connectable="0">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-30" value="&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;MANAGER&lt;/font&gt;&lt;/div&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;x1&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-29" vertex="1" connectable="0">
           <mxGeometry x="-0.1788" y="-1" relative="1" as="geometry">
             <mxPoint x="25" y="8" as="offset" />
           </mxGeometry>
@@ -182,7 +182,7 @@
             <mxPoint x="-740" y="-118.82094376212024" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-33" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;OWNER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;x1&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-32" vertex="1" connectable="0">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-33" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;OWNER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-32" vertex="1" connectable="0">
           <mxGeometry x="0.0539" y="1" relative="1" as="geometry">
             <mxPoint x="-13" y="17" as="offset" />
           </mxGeometry>
@@ -246,7 +246,7 @@
             <mxPoint x="-740" y="418.46729153199755" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-68" value="&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;MANAGER&lt;/font&gt;&lt;/div&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-67" vertex="1" connectable="0">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-68" value="&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;MANAGER&lt;/font&gt;&lt;/div&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;x1&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-67" vertex="1" connectable="0">
           <mxGeometry x="-0.1788" y="-1" relative="1" as="geometry">
             <mxPoint x="25" y="8" as="offset" />
           </mxGeometry>
@@ -256,7 +256,7 @@
             <mxPoint x="-740" y="395.87905623787975" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-70" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;OWNER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;x1&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-69" vertex="1" connectable="0">
+        <mxCell id="FVk5c1Z8qgSLQEcz-GKA-70" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;OWNER&lt;/font&gt;&lt;div style=&quot;font-size: 14px;&quot;&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;xN&lt;/font&gt;&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=1;points=[];movable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="FVk5c1Z8qgSLQEcz-GKA-69" vertex="1" connectable="0">
           <mxGeometry x="0.0539" y="1" relative="1" as="geometry">
             <mxPoint x="-13" y="17" as="offset" />
           </mxGeometry>
@@ -301,10 +301,10 @@
         <mxCell id="t-rUMjQkFmx4WvhtJ_v5-28" value="&lt;font style=&quot;font-size: 31px;&quot;&gt;ACCOUNTS RELATIONSHIPS&lt;/font&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;" parent="1" vertex="1">
           <mxGeometry x="-1330" y="-272.8" width="517" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="dOt4SxHNBkfrewy2e2XF-61" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;" edge="1" parent="1" source="dOt4SxHNBkfrewy2e2XF-60" target="FVk5c1Z8qgSLQEcz-GKA-42">
+        <mxCell id="dOt4SxHNBkfrewy2e2XF-61" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;flowAnimation=1;" parent="1" source="dOt4SxHNBkfrewy2e2XF-60" target="FVk5c1Z8qgSLQEcz-GKA-42" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="dOt4SxHNBkfrewy2e2XF-60" value="MYCELIUM&lt;div&gt;STAFF&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=left;verticalLabelPosition=middle;verticalAlign=middle;align=right;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fontSize=14;" vertex="1" parent="1">
+        <mxCell id="dOt4SxHNBkfrewy2e2XF-60" value="MYCELIUM&lt;div&gt;STAFF&lt;/div&gt;" style="shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=left;verticalLabelPosition=middle;verticalAlign=middle;align=right;outlineConnect=0;shape=mxgraph.veeam.company_owner;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;fontSize=14;" parent="1" vertex="1">
           <mxGeometry x="-1250" y="118.5" width="44.4" height="48.8" as="geometry" />
         </mxCell>
       </root>
