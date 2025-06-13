@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.13.2] - 2025-06-13
+
+### 📚 Documentation
+
+- Fix the account hierarchy drawio chart to solve the cardinality of the account connnections
+
 ## [7.13.1] - 2025-06-12
 
 ### ⚡ Performance
@@ -11,6 +17,10 @@ All notable changes to this project will be documented in this file.
 ### 🧪 Testing
 
 - Upgrade development elements to allows to test with real openapi documentation
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [7.13.0] - 2025-06-07
 

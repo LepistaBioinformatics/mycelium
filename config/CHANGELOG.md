@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.13.1] - 2025-06-12
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [7.13.0] - 2025-06-07
 
 ### 🚀 Features

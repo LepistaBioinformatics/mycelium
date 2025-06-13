@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Upgrade development elements to allows to test with real openapi documentation
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [7.13.0] - 2025-06-07
 
 ### 🚀 Features
