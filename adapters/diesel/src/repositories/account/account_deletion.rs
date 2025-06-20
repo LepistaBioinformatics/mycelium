@@ -1,6 +1,14 @@
-use crate::{models::config::DbPoolProvider, schema::account as account_model};
+use crate::{
+    models::{config::DbPoolProvider, internal_error::InternalError},
+    schema::{
+        account as account_model, account_tag as account_tag_model,
+        guest_user_on_account as guest_user_on_account_model,
+        manager_account_on_tenant as manager_account_on_tenant_model,
+    },
+};
 
 use async_trait::async_trait;
+use chrono::Local;
 use diesel::prelude::*;
 use myc_core::domain::{
     dtos::{
@@ -27,8 +35,125 @@ pub struct AccountDeletionSqlDbRepository {
 
 #[async_trait]
 impl AccountDeletion for AccountDeletionSqlDbRepository {
-    #[tracing::instrument(name = "delete_account", skip_all)]
-    async fn delete(
+    #[tracing::instrument(name = "soft_delete_account", skip_all)]
+    async fn soft_delete(
+        &self,
+        account_id: Uuid,
+        related_accounts: RelatedAccounts,
+    ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
+        let conn = &mut self.db_config.get_pool().get().map_err(|e| {
+            deletion_err(format!("Failed to get DB connection: {}", e))
+                .with_code(NativeErrorCodes::MYC00001)
+        })?;
+
+        let mut query = account_model::table.into_boxed();
+
+        // Apply related accounts filter if provided
+        if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
+            let ids = ids.iter().map(|id| id.to_string()).collect::<Vec<_>>();
+            query = query.filter(
+                account_model::id.eq_any(
+                    ids.iter()
+                        .map(|id| Uuid::from_str(id).unwrap())
+                        .collect::<Vec<_>>(),
+                ),
+            );
+        }
+
+        // Check if account exists and is allowed
+        let account_exists = query
+            .filter(account_model::id.eq(account_id))
+            .select(account_model::id)
+            .first::<Uuid>(conn)
+            .optional()
+            .map_err(|e| {
+                deletion_err(format!("Failed to check account: {}", e))
+            })?;
+
+        match account_exists {
+            Some(_) => {
+                let account_id_string = format!("{}-deleted", account_id);
+
+                let transaction_result: Result<(), _> =
+                    conn.transaction(|conn| {
+                        //
+                        // Soft delete account by updating its fields
+                        //
+                        let _ = diesel::update(
+                            account_model::table.find(account_id),
+                        )
+                        .set((
+                            account_model::name
+                                .eq(account_id_string.to_owned()),
+                            account_model::slug.eq(account_id_string),
+                            account_model::is_active.eq(false),
+                            account_model::updated
+                                .eq(Some(Local::now().naive_utc())),
+                            account_model::meta.eq(serde_json::to_value(
+                                HashMap::<String, String>::new(),
+                            )
+                            .unwrap()),
+                        ))
+                        .execute(conn)
+                        .map_err(InternalError::from);
+
+                        //
+                        // Remove all associated tags
+                        //
+                        let _ = diesel::delete(account_tag_model::table)
+                            .filter(
+                                account_tag_model::account_id.eq(account_id),
+                            )
+                            .execute(conn)
+                            .map_err(InternalError::from);
+
+                        //
+                        // Remove all associated guest users
+                        //
+                        let _ =
+                            diesel::delete(guest_user_on_account_model::table)
+                                .filter(
+                                    guest_user_on_account_model::account_id
+                                        .eq(account_id),
+                                )
+                                .execute(conn)
+                                .map_err(InternalError::from);
+
+                        //
+                        // Remove all associated manager accounts on tenant
+                        //
+                        let _ = diesel::delete(
+                            manager_account_on_tenant_model::table,
+                        )
+                        .filter(
+                            manager_account_on_tenant_model::account_id
+                                .eq(account_id),
+                        )
+                        .execute(conn)
+                        .map_err(InternalError::from);
+
+                        Ok::<(), InternalError>(())
+                    });
+
+                match transaction_result {
+                    Ok(_) => Ok(DeletionResponseKind::Deleted),
+                    Err(InternalError::Database(e)) => {
+                        deletion_err(format!("Database error: {e}")).as_error()
+                    }
+                    _ => {
+                        deletion_err("Failed to soft delete account").as_error()
+                    }
+                }
+            }
+            None => Ok(DeletionResponseKind::NotDeleted(
+                account_id,
+                "Account not found".to_string(),
+            )),
+        }
+    }
+
+    #[tracing::instrument(name = "hard_delete_account", skip_all)]
+    async fn hard_delete(
         &self,
         account_id: Uuid,
         related_accounts: RelatedAccounts,
@@ -68,7 +193,9 @@ impl AccountDeletion for AccountDeletionSqlDbRepository {
                 diesel::delete(account_model::table.find(account_id))
                     .execute(conn)
                     .map_err(|e| {
-                        deletion_err(format!("Failed to delete account: {}", e))
+                        deletion_err(format!(
+                            "Failed to hard delete account: {e}"
+                        ))
                     })?;
 
                 Ok(DeletionResponseKind::Deleted)

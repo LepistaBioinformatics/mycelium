@@ -56,7 +56,7 @@ pub async fn delete_subscription_account(
     // ? -----------------------------------------------------------------------
 
     let response = account_deletion_repo
-        .delete(account_id, related_accounts)
+        .soft_delete(account_id, related_accounts)
         .await?;
 
     // ? -----------------------------------------------------------------------
