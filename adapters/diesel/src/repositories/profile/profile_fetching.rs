@@ -51,7 +51,11 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                 .inner_join(account_model::table.on(
                     account_model::id.nullable().eq(user_model::account_id),
                 ))
-                .filter(user_model::email.eq(email.email()))
+                .filter(
+                    user_model::email
+                        .eq(email.email())
+                        .and(account_model::is_deleted.eq(false)),
+                )
                 .select((AccountModel::as_select(), UserModel::as_select()))
                 .first::<(AccountModel, UserModel)>(conn)
                 .optional()

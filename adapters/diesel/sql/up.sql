@@ -342,6 +342,8 @@ JOIN
 	account AS ac
 ON
 	ac.id = ga.account_id
+WHERE
+	ac.is_deleted = FALSE
 ORDER BY
     gu_email, gr_slug, acc_id, gr_id;
 
