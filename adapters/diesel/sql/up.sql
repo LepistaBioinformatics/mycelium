@@ -75,6 +75,7 @@ CREATE TABLE account (
     is_active BOOLEAN DEFAULT TRUE,
     is_checked BOOLEAN DEFAULT FALSE,
     is_archived BOOLEAN DEFAULT FALSE,
+    is_deleted BOOLEAN DEFAULT FALSE,
     is_default BOOLEAN DEFAULT FALSE,
     tenant_id UUID DEFAULT NULL
 );

@@ -10,6 +10,7 @@ diesel::table! {
         is_active -> Bool,
         is_checked -> Bool,
         is_archived -> Bool,
+        is_deleted -> Bool,
         is_default -> Bool,
         #[max_length = 256]
         slug -> Varchar,

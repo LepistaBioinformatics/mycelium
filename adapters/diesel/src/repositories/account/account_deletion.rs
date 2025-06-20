@@ -87,6 +87,7 @@ impl AccountDeletion for AccountDeletionSqlDbRepository {
                                 .eq(account_id_string.to_owned()),
                             account_model::slug.eq(account_id_string),
                             account_model::is_active.eq(false),
+                            account_model::is_deleted.eq(true),
                             account_model::updated
                                 .eq(Some(Local::now().naive_utc())),
                             account_model::meta.eq(serde_json::to_value(
