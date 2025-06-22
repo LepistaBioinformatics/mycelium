@@ -178,7 +178,6 @@ pub struct CheckUserCredentialsBody {
     security(()),
 )]
 #[get("/status")]
-#[deprecated]
 pub async fn check_email_registration_status_url() -> impl Responder {
     HttpResponse::Gone().json(HttpJsonResponse::new_message(
         "This endpoint is deprecated. Please use the /status endpoint instead.",
