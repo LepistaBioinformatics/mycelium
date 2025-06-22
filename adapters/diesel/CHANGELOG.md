@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.13.3] - 2025-06-22
+
+### 🐛 Bug Fixes
+
+- *(soft-delete)* Implements the soft deletion of accounts
+- Upgrade the account model to set the is-deleted flag
+- Remove deleted accounts from the licensed resources view and profile fetching
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [7.13.1] - 2025-06-12
 
 ### ⚙️ Miscellaneous Tasks

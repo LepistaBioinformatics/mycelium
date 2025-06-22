@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [7.13.3] - 2025-06-22
+
+### 🚀 Features
+
+- *(proxy)* Implements a proxy feature to be applied at the service level
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [7.13.1] - 2025-06-12
 
 ### ⚙️ Miscellaneous Tasks
