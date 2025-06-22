@@ -56,12 +56,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
 // ? Define API structs
 // ? ---------------------------------------------------------------------------
 
-#[derive(Deserialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct CheckEmailStatusQuery {
-    email: String,
-}
-
 #[derive(Serialize, Deserialize, ToResponse, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CheckEmailStatusResponse {

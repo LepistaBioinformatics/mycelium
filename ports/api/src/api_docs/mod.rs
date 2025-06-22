@@ -750,7 +750,6 @@ struct UsersManagerAccountApiDoc;
             role_scoped::beginners::account_endpoints::UpdateOwnAccountNameAccountBody,
             role_scoped::beginners::meta_endpoints::CreateAccountMetaBody,
             role_scoped::beginners::meta_endpoints::DeleteAccountMetaParams,
-            role_scoped::beginners::user_endpoints::CheckEmailStatusQuery,
             role_scoped::beginners::user_endpoints::TotpUpdatingValidationBody,
             role_scoped::beginners::user_endpoints::CreateDefaultUserBody,
             role_scoped::beginners::user_endpoints::CheckTokenBody,
