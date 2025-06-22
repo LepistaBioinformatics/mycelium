@@ -17,6 +17,9 @@ services:
     # Optional. The protocol of the service.
     protocol: https
 
+    # Optional. The proxy address of the service.
+    proxyAddress: http://localhost:8888
+
     # Optional. When true, the service will be discovered by LLM agents.
     discoverable: true
 

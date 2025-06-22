@@ -63,6 +63,16 @@ pub const DEFAULT_TENANT_ID_KEY: &str = "x-mycelium-tenant-id";
 ///
 pub const FORWARD_FOR_KEY: &str = "x-forwarded-for";
 
+/// Default forwarded keys
+///
+/// This is the default key used to store the forwarded host, protocol and port
+/// in the request headers and send it to the gateway downstream services.
+///
+pub const MYCELIUM_TARGET_HOST: &str = "x-mycelium-target-host";
+pub const MYCELIUM_TARGET_PROTOCOL: &str = "x-mycelium-target-protocol";
+pub const MYCELIUM_TARGET_PORT: &str = "x-mycelium-target-port";
+pub const MYCELIUM_ROUTING_KEY: &str = "x-mycelium-routing";
+
 /// Default forwarding keys
 ///
 /// Such keys are used to map the headers that should be removed from the

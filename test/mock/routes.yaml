@@ -28,37 +28,15 @@ services:
     # Optional. The protocol of the service.
     protocol: http
 
+    # Optional. The proxy address of the service.
+    proxyAddress: http://localhost:8888
+
     # Optional. When true, the service will be discovered by LLM agents.
-    discoverable: true
-
-    # Optional together with discoverable field. The id of the service.
-    id: dd5f8fb9-5a2e-4ff2-ad5e-63c76b9a30c0
-
-    # Optional together with discoverable field. The capabilities of the
-    # service.
-    capabilities:
-      - test-capability-01
-      - test-capability-02
-
-    # Optional together with discoverable field. Description should be used
-    # during the service discovery by LLM agents.
-    description: The service description
-
-    # Optional together with discoverable field. The type of the service.
-    serviceType: rest-api
-
-    # Optional together with discoverable field. If the service is a context
-    # api.
-    isContextApi: true
-
-    # Optional together with discoverable field. The path to the openapi.json
-    # file. The file should be used for external clients to discover the
-    # service. Is is used for the service discovery by LLM agents.
-    openapiPath: /openapi.json
+    discoverable: false
 
     # Optional together with discoverable field. The health check configuration
     # for the service.
-    healthCheckPath: /health
+    healthCheckPath: /public
 
     # --------------------------------------------------------------------------
     # Define secrets
@@ -231,36 +209,11 @@ services:
     protocol: http
 
     # Optional. When true, the service will be discovered by LLM agents.
-    discoverable: true
-
-    # Optional together with discoverable field. The id of the service.
-    id: dd5f8fb9-5a2e-4ff2-ad5e-63c76b9a30c0
-
-    # Optional together with discoverable field. The capabilities of the
-    # service.
-    capabilities:
-      - test-capability-01
-      - test-capability-02
-
-    # Optional together with discoverable field. Description should be used
-    # during the service discovery by LLM agents.
-    description: The service description
-
-    # Optional together with discoverable field. The type of the service.
-    serviceType: rest-api
-
-    # Optional together with discoverable field. If the service is a context
-    # api.
-    isContextApi: true
-
-    # Optional together with discoverable field. The path to the openapi.json
-    # file. The file should be used for external clients to discover the
-    # service. Is is used for the service discovery by LLM agents.
-    openapiPath: /openapi.json
+    discoverable: false
 
     # Optional together with discoverable field. The health check configuration
     # for the service.
-    healthCheckPath: /health
+    healthCheckPath: /public
 
     # --------------------------------------------------------------------------
     # Define secrets

@@ -5,8 +5,14 @@ use awc::error::HeaderValue;
 use myc_http_tools::{
     responses::GatewayError,
     settings::{
-        DEFAULT_PROFILE_KEY, DEFAULT_REQUEST_ID_KEY, FORWARDING_KEYS,
+        DEFAULT_PROFILE_KEY,
+        DEFAULT_REQUEST_ID_KEY,
+        FORWARDING_KEYS,
         FORWARD_FOR_KEY,
+        MYCELIUM_ROUTING_KEY,
+        MYCELIUM_TARGET_HOST,
+        MYCELIUM_TARGET_PORT,
+        MYCELIUM_TARGET_PROTOCOL
     },
 };
 
@@ -69,6 +75,10 @@ pub(super) async fn build_the_gateway_response(
     headers.append(&mut vec![
         FORWARD_FOR_KEY.to_string(),
         DEFAULT_PROFILE_KEY.to_string(),
+        MYCELIUM_TARGET_HOST.to_string(),
+        MYCELIUM_TARGET_PROTOCOL.to_string(),
+        MYCELIUM_TARGET_PORT.to_string(),
+        MYCELIUM_ROUTING_KEY.to_string(),
     ]);
 
     //

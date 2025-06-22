@@ -37,6 +37,7 @@ struct TempServiceDTO {
     pub service_type: Option<ServiceType>,
     pub is_context_api: Option<bool>,
     pub allowed_sources: Option<Vec<String>>,
+    pub proxy_address: Option<String>,
 }
 
 impl TempServiceDTO {
@@ -56,6 +57,7 @@ impl TempServiceDTO {
             self.service_type,
             self.is_context_api,
             self.allowed_sources,
+            self.proxy_address,
         )
     }
 }

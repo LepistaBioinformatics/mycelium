@@ -225,6 +225,27 @@ pub struct Service {
     ///
     #[serde(skip_serializing_if = "Option::is_none")]
     pub allowed_sources: Option<Vec<String>>,
+
+    /// The proxy address
+    ///
+    /// The proxy address of the service. This is used to forward requests to
+    /// the service through a proxy. If the service is not behind a proxy, this
+    /// field should be empty.
+    ///
+    /// Example:
+    ///
+    /// ```yaml
+    /// proxyAddress: http://proxy.example.com:8080
+    /// ```
+    ///
+    /// Then, the downstream url should be:
+    ///
+    /// ```
+    /// http://proxy.example.com:8080/http://service.example.com:8080/api/v1/service/1234567890
+    /// ```
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub proxy_address: Option<String>,
 }
 
 fn default_protocol() -> Protocol {
@@ -247,6 +268,7 @@ impl Service {
         service_type: Option<ServiceType>,
         is_context_api: Option<bool>,
         allowed_sources: Option<Vec<String>>,
+        proxy_address: Option<String>,
     ) -> Self {
         //
         // If the service is discoverable, the description, health_check and
@@ -289,6 +311,7 @@ impl Service {
             secrets,
             health_status: HealthStatus::Unknown,
             allowed_sources,
+            proxy_address,
         }
     }
 
