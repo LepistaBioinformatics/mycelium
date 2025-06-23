@@ -2814,9 +2814,16 @@ name = "mycelium-api-test-svc"
 version = "7.13.3+rc"
 dependencies = [
  "actix-web",
+ "anyhow",
  "mycelium-http-tools",
  "serde",
  "serde_json",
+ "tracing",
+ "tracing-actix-web",
+ "tracing-subscriber",
+ "utoipa",
+ "utoipa-redoc",
+ "utoipa-swagger-ui",
 ]
 
 [[package]]

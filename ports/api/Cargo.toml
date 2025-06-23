@@ -51,10 +51,14 @@ serde_json.workspace = true
 shaku.workspace = true
 slugify.workspace = true
 tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-actix-web.workspace = true
 tokio.workspace = true
 utoipa.workspace = true
 uuid.workspace = true
 url.workspace = true
+utoipa-redoc.workspace = true
+utoipa-swagger-ui.workspace = true
 zip.workspace = true
 wildmatch.workspace = true
 
@@ -78,18 +82,8 @@ opentelemetry-otlp = { version = "0.25", features = [
 ] }
 opentelemetry-stdout = "0.25"
 tonic = { version = "0.12", features = ["tls", "tls-roots"] }
-tracing-actix-web = { version = "0.7", features = ["opentelemetry_0_25"] }
 tracing-appender = "0.2"
 tracing-opentelemetry = "0.26"
-tracing-subscriber = { version = "0.3", features = [
-    "alloc",
-    "json",
-    "env-filter",
-    "tracing-serde",
-    "registry",
-] }
-utoipa-redoc = { version = "5", features = ["actix-web"] }
-utoipa-swagger-ui = { version = "9", features = ["actix-web"] }
 
 [build-dependencies]
 zip.workspace = true
