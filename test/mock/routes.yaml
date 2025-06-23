@@ -1,6 +1,6 @@
 services:
   - name: service-01
-    host: localhost:8083
+    host: myc-test-service-devcontainer:8083
     protocol: http
     discoverable: false
     healthCheckPath: /health
@@ -134,7 +134,7 @@ services:
           - GET
 
   - name: service-02-proxy
-    host: localhost:8083
+    host: myc-test-service-devcontainer:8083
     protocol: http
     proxyAddress: http://localhost:8888
     discoverable: true
@@ -143,7 +143,6 @@ services:
     serviceType: rest-api
     isContextApi: false
     openapiPath: /doc/openapi.json
-
 
     description: |
       This is a sample application used to test the api gateway security

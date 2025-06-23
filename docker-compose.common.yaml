@@ -122,8 +122,11 @@ services:
 
     container_name: myc-vault
     build:
-      context: ./vault
+      context: ./.devcontainer/vault
       dockerfile: Dockerfile
+      args:
+        UID: 1001
+        GID: 1001
     command: vault server -config /vault/config/vault.hcl
     environment:
       VAULT_ADDR: http://0.0.0.0:8200
@@ -136,3 +139,22 @@ services:
     restart: on-failure
     cap_add:
       - IPC_LOCK
+
+  myc-test-service:
+    # Inject all shared configs
+    <<: *common-config
+
+    container_name: myc-test-service
+    entrypoint:
+      #- /bin/sh
+      #- -c
+      #- sleep infinity
+      - myc-api-test-svc
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      no_cache: true
+    environment:
+      - SERVICE_PORT=8083
+    ports:
+      - 8083:8083

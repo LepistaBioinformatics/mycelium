@@ -39,3 +39,4 @@ services:
       - myc-postgres
       - myc-redis
       - myc-jaeger
+      - myc-test-service
