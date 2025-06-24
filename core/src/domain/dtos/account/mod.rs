@@ -65,6 +65,13 @@ pub struct Account {
     ///
     pub is_archived: bool,
 
+    /// Account is deleted
+    ///
+    /// If the account is deleted. This is used for logic trash and restore
+    /// account.
+    ///
+    pub is_deleted: bool,
+
     /// Verbose status
     ///
     /// Is the human readable status of the account.
@@ -122,6 +129,7 @@ impl Default for Account {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            is_deleted: false,
             verbose_status: None,
             is_default: false,
             owners: Children::Ids([].to_vec()),
@@ -150,6 +158,7 @@ impl Account {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            is_deleted: false,
             verbose_status: None,
             is_default: false,
             owners: Children::Ids([].to_vec()),
@@ -176,6 +185,7 @@ impl Account {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            is_deleted: false,
             verbose_status: None,
             is_default,
             owners: Children::Ids([].to_vec()),
@@ -204,6 +214,7 @@ impl Account {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            is_deleted: false,
             verbose_status: None,
             is_default,
             owners: Children::Ids([].to_vec()),
@@ -227,6 +238,7 @@ impl Account {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            is_deleted: false,
             verbose_status: None,
             is_default: false,
             owners: Children::Ids([].to_vec()),
@@ -256,6 +268,7 @@ impl Account {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            is_deleted: false,
             verbose_status: None,
             is_default: false,
             owners: Children::Records([principal_owner].to_vec()),
@@ -290,6 +303,7 @@ mod tests {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            is_deleted: false,
             verbose_status: None,
             is_default: false,
             owners: Children::Records([].to_vec()),
@@ -318,31 +332,36 @@ mod tests {
     #[test]
     fn test_if_verbose_status_works() {
         [
-            ((false, true, true), VerboseStatus::Inactive),
-            ((false, false, true), VerboseStatus::Inactive),
-            ((false, true, false), VerboseStatus::Inactive),
-            ((false, false, false), VerboseStatus::Inactive),
-            ((true, false, false), VerboseStatus::Unverified),
-            ((true, false, true), VerboseStatus::Unverified),
-            ((true, true, true), VerboseStatus::Archived),
-            ((true, true, false), VerboseStatus::Verified),
+            ((false, true, true, false), VerboseStatus::Inactive),
+            ((false, false, true, false), VerboseStatus::Inactive),
+            ((false, true, false, false), VerboseStatus::Inactive),
+            ((false, false, false, false), VerboseStatus::Inactive),
+            ((true, false, false, false), VerboseStatus::Unverified),
+            ((true, false, true, false), VerboseStatus::Unverified),
+            ((true, true, true, false), VerboseStatus::Archived),
+            ((true, true, false, false), VerboseStatus::Verified),
+            ((true, true, true, true), VerboseStatus::Deleted),
             // Unknown responses should not be returned over all above
             // combinations. Them, all will be tested.
-            ((false, true, true), VerboseStatus::Unknown),
-            ((false, false, true), VerboseStatus::Unknown),
-            ((false, true, false), VerboseStatus::Unknown),
-            ((false, false, false), VerboseStatus::Unknown),
-            ((true, false, false), VerboseStatus::Unknown),
-            ((true, false, true), VerboseStatus::Unknown),
-            ((true, true, true), VerboseStatus::Unknown),
-            ((true, true, false), VerboseStatus::Unknown),
+            ((false, true, true, false), VerboseStatus::Unknown),
+            ((false, false, true, false), VerboseStatus::Unknown),
+            ((false, true, false, false), VerboseStatus::Unknown),
+            ((false, false, false, false), VerboseStatus::Unknown),
+            ((true, false, false, false), VerboseStatus::Unknown),
+            ((true, false, true, false), VerboseStatus::Unknown),
+            ((true, true, true, false), VerboseStatus::Unknown),
+            ((true, true, false, false), VerboseStatus::Unknown),
         ]
         .into_iter()
         .for_each(|(flags, expected_value)| {
-            let (is_active, is_checked, is_archived) = flags;
+            let (is_active, is_checked, is_archived, is_deleted) = flags;
 
-            let status =
-                VerboseStatus::from_flags(is_active, is_checked, is_archived);
+            let status = VerboseStatus::from_flags(
+                is_active,
+                is_checked,
+                is_archived,
+                is_deleted,
+            );
 
             // Unknown could not be returned from `from_flags` method
             if let VerboseStatus::Unknown = expected_value {
@@ -359,7 +378,8 @@ mod tests {
                         VerboseStatus::from_flags(
                             flags_response.is_active.unwrap(),
                             flags_response.is_checked.unwrap_or(is_checked),
-                            flags_response.is_archived.unwrap_or(is_archived)
+                            flags_response.is_archived.unwrap_or(is_archived),
+                            flags_response.is_deleted.unwrap_or(is_deleted)
                         ),
                         expected_value
                     );
@@ -369,7 +389,8 @@ mod tests {
                         VerboseStatus::from_flags(
                             flags_response.is_active.unwrap(),
                             flags_response.is_checked.unwrap(),
-                            flags_response.is_archived.unwrap_or(is_archived)
+                            flags_response.is_archived.unwrap_or(is_archived),
+                            flags_response.is_deleted.unwrap_or(is_deleted)
                         ),
                         expected_value
                     );
@@ -379,7 +400,8 @@ mod tests {
                         VerboseStatus::from_flags(
                             flags_response.is_active.unwrap(),
                             flags_response.is_checked.unwrap(),
-                            flags_response.is_archived.unwrap()
+                            flags_response.is_archived.unwrap(),
+                            flags_response.is_deleted.unwrap_or(is_deleted)
                         ),
                         expected_value
                     );
@@ -389,7 +411,19 @@ mod tests {
                         VerboseStatus::from_flags(
                             flags_response.is_active.unwrap(),
                             flags_response.is_checked.unwrap(),
-                            flags_response.is_archived.unwrap()
+                            flags_response.is_archived.unwrap(),
+                            flags_response.is_deleted.unwrap_or(is_deleted)
+                        ),
+                        expected_value
+                    );
+                }
+                VerboseStatus::Deleted => {
+                    assert_eq!(
+                        VerboseStatus::from_flags(
+                            flags_response.is_active.unwrap(),
+                            flags_response.is_checked.unwrap(),
+                            flags_response.is_archived.unwrap(),
+                            flags_response.is_deleted.unwrap(),
                         ),
                         expected_value
                     );

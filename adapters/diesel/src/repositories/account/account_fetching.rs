@@ -138,6 +138,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         is_account_active: Option<bool>,
         is_account_checked: Option<bool>,
         is_account_archived: Option<bool>,
+        is_account_deleted: Option<bool>,
         tag_id: Option<Uuid>,
         tag_value: Option<String>,
         account_id: Option<Uuid>,
@@ -202,6 +203,16 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
 
         if let Some(is_archived) = is_account_archived {
             let dsl = account_dsl::is_archived.eq(is_archived);
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
+        }
+
+        if let Some(is_deleted) = is_account_deleted {
+            let dsl = account_dsl::is_deleted.eq(is_deleted);
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
+        } else {
+            let dsl = account_dsl::is_deleted.eq(false);
             records_query = records_query.filter(dsl.clone());
             count_query = count_query.filter(dsl);
         }

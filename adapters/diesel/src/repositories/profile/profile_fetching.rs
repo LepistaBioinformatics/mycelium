@@ -105,10 +105,12 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                     account.is_active,
                     account.is_checked,
                     account.is_archived,
+                    account.is_deleted,
                     Some(VerboseStatus::from_flags(
                         account.is_active,
                         account.is_checked,
                         account.is_archived,
+                        account.is_deleted,
                     )),
                     None,
                     None,

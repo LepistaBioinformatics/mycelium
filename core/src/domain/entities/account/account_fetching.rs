@@ -27,6 +27,7 @@ pub trait AccountFetching: Interface + Send + Sync {
         is_account_active: Option<bool>,
         is_account_checked: Option<bool>,
         is_account_archived: Option<bool>,
+        is_account_deleted: Option<bool>,
         tag_id: Option<Uuid>,
         tag_value: Option<String>,
         account_id: Option<Uuid>,

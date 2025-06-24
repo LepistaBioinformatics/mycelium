@@ -79,6 +79,12 @@ pub struct Profile {
     /// included at default filtering actions.
     pub account_was_archived: bool,
 
+    /// If the account was deleted after registration
+    ///
+    /// New accounts should be deleted. After deleted accounts should not be
+    /// included at default filtering actions.
+    pub account_was_deleted: bool,
+
     /// Indicate the profile status for humans
     ///
     /// The profile status is composed of all account flags statuses
@@ -158,6 +164,7 @@ impl Default for Profile {
             true,
             true,
             false,
+            false,
             None,
             None,
             None,
@@ -176,6 +183,7 @@ impl Profile {
         account_is_active: bool,
         account_was_approved: bool,
         account_was_archived: bool,
+        account_was_deleted: bool,
         verbose_status: Option<VerboseStatus>,
         licensed_resources: Option<LicensedResources>,
         tenants_ownership: Option<TenantsOwnership>,
@@ -190,6 +198,7 @@ impl Profile {
             account_is_active,
             account_was_approved,
             account_was_archived,
+            account_was_deleted,
             verbose_status,
             licensed_resources,
             tenants_ownership,
@@ -595,6 +604,7 @@ mod tests {
             account_is_active: true,
             account_was_approved: true,
             account_was_archived: false,
+            account_was_deleted: false,
             verbose_status: None,
             licensed_resources: Some(LicensedResources::Records(vec![
                 LicensedResource {

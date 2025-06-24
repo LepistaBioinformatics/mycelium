@@ -295,6 +295,7 @@ pub async fn list_accounts_by_type_url(
     let mut is_account_active: Option<bool> = None;
     let mut is_account_checked: Option<bool> = None;
     let mut is_account_archived: Option<bool> = None;
+    let mut is_account_deleted: Option<bool> = None;
 
     match query.status.to_owned() {
         Some(res) => {
@@ -309,6 +310,7 @@ pub async fn list_accounts_by_type_url(
             is_account_active = flags.is_active;
             is_account_checked = flags.is_checked;
             is_account_archived = flags.is_archived;
+            is_account_deleted = flags.is_deleted;
         }
         _ => (),
     }
@@ -339,6 +341,7 @@ pub async fn list_accounts_by_type_url(
         is_account_active,
         is_account_checked,
         is_account_archived,
+        is_account_deleted,
         account_type,
         query.tag_value.to_owned(),
         page.page_size.to_owned(),

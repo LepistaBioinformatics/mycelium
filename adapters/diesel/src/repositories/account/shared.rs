@@ -15,10 +15,12 @@ pub(crate) fn map_account_model_to_dto(model: AccountModel) -> Account {
         is_active: model.is_active,
         is_checked: model.is_checked,
         is_archived: model.is_archived,
+        is_deleted: model.is_deleted,
         verbose_status: Some(VerboseStatus::from_flags(
             model.is_active,
             model.is_checked,
             model.is_archived,
+            model.is_deleted,
         )),
         is_default: model.is_default,
         owners: Children::Records(vec![]),

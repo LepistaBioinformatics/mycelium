@@ -602,6 +602,7 @@ impl AccountRegistrationSqlDbRepository {
             is_checked: account.is_checked,
             is_archived: account.is_archived,
             is_default: account.is_default,
+            is_deleted: account.is_deleted,
             created: Local::now().naive_utc(),
             updated: None,
         })
@@ -616,10 +617,12 @@ impl AccountRegistrationSqlDbRepository {
             is_active: model.is_active,
             is_checked: model.is_checked,
             is_archived: model.is_archived,
+            is_deleted: model.is_deleted,
             verbose_status: Some(VerboseStatus::from_flags(
                 model.is_active,
                 model.is_checked,
                 model.is_archived,
+                model.is_deleted,
             )),
             is_default: model.is_default,
             owners: Children::Records(vec![]),

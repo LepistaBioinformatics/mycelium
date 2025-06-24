@@ -19,6 +19,7 @@ pub(crate) struct Account {
     pub is_checked: bool,
     pub is_archived: bool,
     pub is_default: bool,
+    pub is_deleted: bool,
     #[diesel(sql_type = Option<diesel::sql_types::Uuid>)]
     pub tenant_id: Option<Uuid>,
 }

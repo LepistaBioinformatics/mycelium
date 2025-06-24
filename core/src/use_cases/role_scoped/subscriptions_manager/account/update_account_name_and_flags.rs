@@ -195,6 +195,7 @@ mod tests {
             _: Option<bool>,
             _: Option<bool>,
             _: Option<bool>,
+            _: Option<bool>,
             _: Option<Uuid>,
             _: Option<String>,
             _: Option<Uuid>,
