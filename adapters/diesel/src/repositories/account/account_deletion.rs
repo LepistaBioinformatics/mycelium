@@ -1,18 +1,23 @@
 use crate::{
-    models::{config::DbPoolProvider, internal_error::InternalError},
+    models::{
+        config::DbPoolProvider, internal_error::InternalError,
+        user::User as UserModel,
+    },
     schema::{
         account as account_model, account_tag as account_tag_model,
         guest_user_on_account as guest_user_on_account_model,
         manager_account_on_tenant as manager_account_on_tenant_model,
+        user as user_model,
     },
 };
 
 use async_trait::async_trait;
 use chrono::Local;
-use diesel::prelude::*;
+use diesel::{dsl::sql, prelude::*};
 use myc_core::domain::{
     dtos::{
-        account::AccountMetaKey, native_error_codes::NativeErrorCodes,
+        account::AccountMetaKey, account_type::AccountType,
+        native_error_codes::NativeErrorCodes,
         related_accounts::RelatedAccounts,
     },
     entities::AccountDeletion,
@@ -36,9 +41,10 @@ pub struct AccountDeletionSqlDbRepository {
 #[async_trait]
 impl AccountDeletion for AccountDeletionSqlDbRepository {
     #[tracing::instrument(name = "soft_delete_account", skip_all)]
-    async fn soft_delete(
+    async fn soft_delete_account(
         &self,
         account_id: Uuid,
+        account_type: AccountType,
         related_accounts: RelatedAccounts,
     ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
@@ -62,7 +68,22 @@ impl AccountDeletion for AccountDeletionSqlDbRepository {
 
         // Check if account exists and is allowed
         let account_exists = query
-            .filter(account_model::id.eq(account_id))
+            .filter(account_model::id.eq(account_id).and(sql::<
+                diesel::sql_types::Bool,
+            >(
+                &format!(
+                "account_type::jsonb @> '{}'",
+                match serde_json::to_string(&account_type) {
+                    Ok(json) => json,
+                    Err(e) => {
+                        return deletion_err(format!(
+                            "Failed to serialize account type: {e}"
+                        ))
+                        .as_error();
+                    }
+                }
+            )
+            )))
             .select(account_model::id)
             .first::<Uuid>(conn)
             .optional()
@@ -97,6 +118,36 @@ impl AccountDeletion for AccountDeletionSqlDbRepository {
                         ))
                         .execute(conn)
                         .map_err(InternalError::from);
+
+                        let optional_user = user_model::table
+                            .filter(user_model::account_id.eq(account_id))
+                            .select(UserModel::as_select())
+                            .first::<UserModel>(conn)
+                            .optional()
+                            .map_err(InternalError::from)?;
+
+                        if let Some(user) = optional_user {
+                            let user_id = format!("{}-deleted", user.id);
+
+                            let _ =
+                                diesel::update(user_model::table.filter(
+                                    user_model::account_id.eq(account_id),
+                                ))
+                                .set((
+                                    user_model::username.eq(user_id.to_owned()),
+                                    user_model::email.eq(user_id.to_owned()),
+                                    user_model::first_name.eq(""),
+                                    user_model::last_name.eq(""),
+                                    user_model::is_active.eq(false),
+                                    user_model::is_principal.eq(false),
+                                    user_model::updated
+                                        .eq(Some(Local::now().naive_utc())),
+                                    user_model::updated
+                                        .eq(Some(Local::now().naive_utc())),
+                                ))
+                                .execute(conn)
+                                .map_err(InternalError::from);
+                        }
 
                         //
                         // Remove all associated tags
@@ -154,9 +205,10 @@ impl AccountDeletion for AccountDeletionSqlDbRepository {
     }
 
     #[tracing::instrument(name = "hard_delete_account", skip_all)]
-    async fn hard_delete(
+    async fn hard_delete_account(
         &self,
         account_id: Uuid,
+        account_type: AccountType,
         related_accounts: RelatedAccounts,
     ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
@@ -180,7 +232,22 @@ impl AccountDeletion for AccountDeletionSqlDbRepository {
 
         // Check if account exists and is allowed
         let account_exists = query
-            .filter(account_model::id.eq(account_id))
+            .filter(account_model::id.eq(account_id).and(sql::<
+                diesel::sql_types::Bool,
+            >(
+                &format!(
+                "account_type::jsonb @> '{}'",
+                match serde_json::to_string(&account_type) {
+                    Ok(json) => json,
+                    Err(e) => {
+                        return deletion_err(format!(
+                            "Failed to serialize account type: {e}"
+                        ))
+                        .as_error();
+                    }
+                }
+            )
+            )))
             .select(account_model::id)
             .first::<Uuid>(conn)
             .optional()

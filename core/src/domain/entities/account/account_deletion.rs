@@ -1,5 +1,6 @@
 use crate::domain::dtos::{
-    account::AccountMetaKey, related_accounts::RelatedAccounts,
+    account::AccountMetaKey, account_type::AccountType,
+    related_accounts::RelatedAccounts,
 };
 
 use async_trait::async_trait;
@@ -11,9 +12,14 @@ use uuid::Uuid;
 
 #[async_trait]
 pub trait AccountDeletion: Interface + Send + Sync {
-    async fn hard_delete(
+    /// Hard delete account
+    ///
+    /// This method removes the account from the database.
+    ///
+    async fn hard_delete_account(
         &self,
         account_id: Uuid,
+        account_type: AccountType,
         related_accounts: RelatedAccounts,
     ) -> Result<DeletionResponseKind<Uuid>, MappedErrors>;
 
@@ -26,9 +32,10 @@ pub trait AccountDeletion: Interface + Send + Sync {
     /// This action will prevent the account from being used in the application,
     /// but it will still be present in the database for audit.
     ///
-    async fn soft_delete(
+    async fn soft_delete_account(
         &self,
         account_id: Uuid,
+        account_type: AccountType,
         related_accounts: RelatedAccounts,
     ) -> Result<DeletionResponseKind<Uuid>, MappedErrors>;
 

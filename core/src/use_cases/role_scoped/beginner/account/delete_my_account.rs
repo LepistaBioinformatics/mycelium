@@ -1,9 +1,9 @@
 use crate::{
     domain::{
-        actors::SystemActor,
         dtos::{
             account_type::AccountType,
             profile::Profile,
+            related_accounts::RelatedAccounts,
             webhook::{PayloadId, WebHookTrigger},
         },
         entities::{AccountDeletion, WebHookRegistration},
@@ -19,14 +19,12 @@ use tracing::Instrument;
 use uuid::Uuid;
 
 #[tracing::instrument(
-    name = "delete_subscription_account",
+    name = "delete_my_account",
     fields(profile_id = %profile.acc_id),
     skip(profile, account_deletion_repo, webhook_registration_repo)
 )]
-pub async fn delete_subscription_account(
+pub async fn delete_my_account(
     profile: Profile,
-    tenant_id: Uuid,
-    account_id: Uuid,
     account_deletion_repo: Box<&dyn AccountDeletion>,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
 ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
@@ -45,22 +43,11 @@ pub async fn delete_subscription_account(
     // ? Check the user permissions
     // ? -----------------------------------------------------------------------
 
-    let related_accounts = profile
-        .on_tenant(tenant_id.to_owned())
-        .with_system_accounts_access()
-        .with_write_access()
-        .with_roles(vec![SystemActor::TenantManager])
-        .get_related_account_or_error()?;
-
-    // ? -----------------------------------------------------------------------
-    // ? Delete account
-    // ? -----------------------------------------------------------------------
-
     let response = account_deletion_repo
         .soft_delete_account(
-            account_id,
-            AccountType::Subscription { tenant_id },
-            related_accounts,
+            profile.acc_id,
+            AccountType::User,
+            RelatedAccounts::AllowedAccounts(vec![profile.acc_id]),
         )
         .await?;
 
@@ -73,9 +60,9 @@ pub async fn delete_subscription_account(
 
         register_webhook_dispatching_event(
             correspondence_id,
-            WebHookTrigger::SubscriptionAccountDeleted,
-            json!({ "id": account_id }),
-            PayloadId::Uuid(account_id),
+            WebHookTrigger::UserAccountDeleted,
+            json!({ "id": profile.acc_id }),
+            PayloadId::Uuid(profile.acc_id),
             webhook_registration_repo,
         )
         .instrument(span)

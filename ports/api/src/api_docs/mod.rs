@@ -214,6 +214,7 @@ struct AccountManagerGuestApiDoc;
         Beginners__Account::create_default_account_url,
         Beginners__Account::update_own_account_name_url,
         Beginners__Account::get_my_account_details_url,
+        Beginners__Account::delete_my_account_url,
     ),
     security(("Bearer" = []))
 )]
@@ -467,7 +468,10 @@ struct SystemManagerWebhookApiDoc;
         title = "Tenant Owner | Account Endpoints",
         description = "Endpoints reserved for the application tenant owners to manage accounts",
     ),
-    paths(Tenant_Owner__Account::create_management_account_url),
+    paths(
+        Tenant_Owner__Account::create_management_account_url,
+        Tenant_Owner__Account::delete_tenant_manager_account_url,
+    ),
     security(("Bearer" = [])),
 )]
 struct TenantOwnerAccountApiDoc;
