@@ -93,7 +93,7 @@ services:
       # Test for webhook route for account created
       #
       - group: public
-        path: /webhook/account-created
+        path: /webhooks/account-created
         methods:
           - POST
 
@@ -101,7 +101,7 @@ services:
       # Test for webhook route for account updated
       #
       - group: public
-        path: /webhook/account-updated
+        path: /webhooks/account-updated
         methods:
           - PUT
 
@@ -109,7 +109,7 @@ services:
       # Test for webhook route for account deleted
       #
       - group: public
-        path: /webhook/account-deleted
+        path: /webhooks/account-deleted
         methods:
           - DELETE
 

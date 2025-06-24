@@ -50,12 +50,17 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
 
         let updated = diesel::update(webhook_model::table.find(webhook_id))
             .set((
-                webhook_model::name.eq(webhook.name),
-                webhook_model::description.eq(webhook.description),
-                webhook_model::url.eq(webhook.url),
+                webhook_model::name.eq(webhook.name.to_owned()),
+                webhook_model::description.eq(webhook.description.to_owned()),
+                webhook_model::url.eq(webhook.url.to_owned()),
                 webhook_model::trigger.eq(webhook.trigger.to_string()),
                 webhook_model::is_active.eq(webhook.is_active),
                 webhook_model::updated.eq(Some(Local::now().naive_utc())),
+                webhook_model::secret.eq(webhook
+                    .to_owned()
+                    .get_secret()
+                    .as_ref()
+                    .map(|s| serde_json::to_value(s).unwrap())),
             ))
             .returning(WebHookModel::as_returning())
             .get_result::<WebHookModel>(conn)
