@@ -246,7 +246,7 @@ ALTER TABLE account ADD CONSTRAINT fk_account_tenant FOREIGN KEY (tenant_id) REF
 
 -- Account tag table constraints
 ALTER TABLE account_tag ADD CONSTRAINT account_tag_pk PRIMARY KEY (id);
-ALTER TABLE account_tag ADD CONSTRAINT unique_account_tag UNIQUE (value, account_id, meta);
+ALTER TABLE account_tag ADD CONSTRAINT unique_account_tag UNIQUE (value, account_id);
 ALTER TABLE account_tag ADD CONSTRAINT fk_account_tag FOREIGN KEY (account_id) REFERENCES account(id) ON DELETE CASCADE;
 
 -- Public user table constraints
