@@ -50,7 +50,7 @@ pub async fn delete_subscription_account(
         .with_system_accounts_access()
         .with_write_access()
         .with_roles(vec![SystemActor::TenantManager])
-        .get_related_account_or_error()?;
+        .get_related_accounts_or_tenant_or_error(tenant_id)?;
 
     // ? -----------------------------------------------------------------------
     // ? Delete account

@@ -1,4 +1,7 @@
-use crate::{dtos::MyceliumProfileData, endpoints::shared::PaginationParams};
+use crate::{
+    dtos::{MyceliumProfileData, TenantData},
+    endpoints::shared::PaginationParams,
+};
 
 use actix_web::{get, web, Responder};
 use myc_core::{
@@ -81,13 +84,20 @@ pub struct ListGuestRolesParams {
 )]
 #[get("")]
 pub async fn list_guest_roles_url(
+    tenant: Option<TenantData>,
     info: web::Query<ListGuestRolesParams>,
     page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
+    let tenant_id = match tenant {
+        Some(tenant) => Some(tenant.tenant_id().to_owned()),
+        None => None,
+    };
+
     match list_guest_roles(
         profile.to_profile(),
+        tenant_id.to_owned(),
         info.name.to_owned(),
         info.slug.to_owned(),
         info.system.to_owned(),
