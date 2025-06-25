@@ -1,15 +1,9 @@
 use crate::domain::{
-    actors::SystemActor,
-    dtos::{
-        native_error_codes::NativeErrorCodes, profile::Profile,
-        related_accounts::RelatedAccounts,
-    },
-    entities::GuestUserDeletion,
+    actors::SystemActor, dtos::profile::Profile, entities::GuestUserDeletion,
 };
 
 use mycelium_base::{
-    entities::DeletionResponseKind,
-    utils::errors::{use_case_err, MappedErrors},
+    entities::DeletionResponseKind, utils::errors::MappedErrors,
 };
 use uuid::Uuid;
 
@@ -36,25 +30,16 @@ pub async fn revoke_user_guest_to_subscription_account(
     //
     // ? -----------------------------------------------------------------------
 
-    if let RelatedAccounts::AllowedAccounts(allowed_ids) = &profile
+    profile
         .on_tenant(tenant_id)
+        .on_account(account_id)
         .with_system_accounts_access()
         .with_write_access()
         .with_roles(vec![
-            SystemActor::TenantOwner,
             SystemActor::TenantManager,
             SystemActor::SubscriptionsManager,
         ])
-        .get_related_account_or_error()?
-    {
-        if !allowed_ids.contains(&account_id) {
-            return use_case_err(
-                "User is not allowed to perform this action".to_string(),
-            )
-            .with_code(NativeErrorCodes::MYC00013)
-            .as_error();
-        }
-    };
+        .get_related_accounts_or_tenant_or_error(tenant_id)?;
 
     // ? -----------------------------------------------------------------------
     // ? Uninvite guest

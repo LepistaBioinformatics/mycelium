@@ -55,16 +55,23 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         let mut query = account_model::table.into_boxed();
 
         // Apply related accounts filter if provided
-        if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
-            let ids = ids.iter().map(|id| id.to_string()).collect::<Vec<_>>();
+        match related_accounts {
+            RelatedAccounts::AllowedAccounts(ids) => {
+                let ids =
+                    ids.iter().map(|id| id.to_string()).collect::<Vec<_>>();
 
-            query = query.filter(
-                account_model::id.eq_any(
-                    ids.iter()
-                        .map(|id| Uuid::from_str(id).unwrap())
-                        .collect::<Vec<_>>(),
-                ),
-            );
+                query = query.filter(
+                    account_model::id.eq_any(
+                        ids.iter()
+                            .map(|id| Uuid::from_str(id).unwrap())
+                            .collect::<Vec<_>>(),
+                    ),
+                );
+            }
+            RelatedAccounts::HasTenantWidePrivileges(tenant_id) => {
+                query = query.filter(account_model::tenant_id.eq(tenant_id));
+            }
+            _ => (),
         }
 
         // Fetch account and its relationships
@@ -235,16 +242,25 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             count_query = count_query.filter(dsl);
         }
 
-        if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
-            let ids = ids.iter().map(|id| id.to_string()).collect::<Vec<_>>();
+        match related_accounts {
+            RelatedAccounts::AllowedAccounts(ids) => {
+                let ids =
+                    ids.iter().map(|id| id.to_string()).collect::<Vec<_>>();
 
-            let dsl = account_dsl::id.eq_any(
-                ids.iter()
-                    .map(|id| Uuid::from_str(id).unwrap())
-                    .collect::<Vec<_>>(),
-            );
-            records_query = records_query.filter(dsl.clone());
-            count_query = count_query.filter(dsl);
+                let dsl = account_dsl::id.eq_any(
+                    ids.iter()
+                        .map(|id| Uuid::from_str(id).unwrap())
+                        .collect::<Vec<_>>(),
+                );
+                records_query = records_query.filter(dsl.clone());
+                count_query = count_query.filter(dsl);
+            }
+            RelatedAccounts::HasTenantWidePrivileges(tenant_id) => {
+                let dsl = account_dsl::tenant_id.eq(tenant_id);
+                records_query = records_query.filter(dsl.clone());
+                count_query = count_query.filter(dsl);
+            }
+            _ => (),
         }
 
         let page_size = page_size.unwrap_or(10) as i64;

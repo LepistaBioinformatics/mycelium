@@ -106,17 +106,26 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         }
 
         if let Some(related_accounts) = related_accounts {
-            if let RelatedAccounts::AllowedAccounts(ids) = related_accounts {
-                sql.push_str(
-                    format!(
-                        " AND acc_id = ANY({})",
-                        ids.into_iter()
-                            .map(|i| i.to_string())
-                            .collect::<Vec<String>>()
-                            .join(",")
-                    )
-                    .as_str(),
-                );
+            match related_accounts {
+                RelatedAccounts::AllowedAccounts(ids) => {
+                    sql.push_str(
+                        format!(
+                            " AND acc_id = ANY({})",
+                            ids.into_iter()
+                                .map(|i| i.to_string())
+                                .collect::<Vec<String>>()
+                                .join(",")
+                        )
+                        .as_str(),
+                    );
+                }
+                RelatedAccounts::HasTenantWidePrivileges(tenant_id) => {
+                    sql.push_str(
+                        format!(" AND tenant_id = '{}'", tenant_id.to_string())
+                            .as_str(),
+                    );
+                }
+                _ => (),
             }
         }
 

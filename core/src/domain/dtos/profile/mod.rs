@@ -337,12 +337,12 @@ impl Profile {
     pub fn with_tenant_ownership_or_error(
         &self,
         tenant_id: Uuid,
-    ) -> Result<(), MappedErrors> {
+    ) -> Result<Self, MappedErrors> {
         if let Some(tenants) = self.tenants_ownership.as_ref() {
             let tenants = tenants.to_ownership_vector();
 
             if tenants.iter().any(|i| i.tenant == tenant_id) {
-                return Ok(());
+                return Ok(self.to_owned());
             }
         }
 
@@ -522,6 +522,29 @@ impl Profile {
         .with_code(NativeErrorCodes::MYC00019)
         .with_exp_true()
         .as_error()
+    }
+
+    pub fn get_related_accounts_or_tenant_or_error(
+        &self,
+        tenant_id: Uuid,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        if self.is_staff {
+            return Ok(RelatedAccounts::HasStaffPrivileges);
+        }
+
+        if self.is_manager {
+            return Ok(RelatedAccounts::HasManagerPrivileges);
+        }
+
+        if let Some(tenants) = self.tenants_ownership.as_ref() {
+            let tenants = tenants.to_ownership_vector();
+
+            if tenants.iter().any(|i| i.tenant == tenant_id) {
+                return Ok(RelatedAccounts::HasTenantWidePrivileges(tenant_id));
+            }
+        }
+
+        self.get_related_account_or_error()
     }
 
     pub fn get_ids_or_error(&self) -> Result<Vec<Uuid>, MappedErrors> {

@@ -3,6 +3,7 @@ use crate::domain::{
     dtos::{
         account::Account, account_type::AccountType,
         native_error_codes::NativeErrorCodes, profile::Profile,
+        related_accounts::RelatedAccounts,
     },
     entities::AccountFetching,
     utils::try_as_uuid,
@@ -66,18 +67,33 @@ pub async fn list_accounts_by_type(
     // Check if the current account has sufficient privileges. Inclusive the
     // subscription account should be tested.
     //
-    let related_accounts = check_user_privileges_given_account_type(
-        &profile,
-        Some(account_type.to_owned()),
-        tenant_id,
-    )?
-    .with_read_access()
-    .with_roles(vec![
-        SystemActor::TenantOwner,
-        SystemActor::TenantManager,
-        SystemActor::SubscriptionsManager,
-    ])
-    .get_related_account_or_error()?;
+    let (filtered_profile, is_tenant_ownership) =
+        check_user_privileges_given_account_type(
+            &profile,
+            Some(account_type.to_owned()),
+            tenant_id,
+        )?;
+
+    let related_accounts = if is_tenant_ownership {
+        if let Some(tenant_id) = tenant_id {
+            RelatedAccounts::HasTenantWidePrivileges(tenant_id)
+        } else {
+            return execution_err(
+                "tenant_id is required when listing accounts by type",
+            )
+            .with_code(NativeErrorCodes::MYC00019)
+            .with_exp_true()
+            .as_error();
+        }
+    } else {
+        filtered_profile
+            .with_read_access()
+            .with_roles(vec![
+                SystemActor::TenantManager,
+                SystemActor::SubscriptionsManager,
+            ])
+            .get_related_account_or_error()?
+    };
 
     // ? -----------------------------------------------------------------------
     // ? List accounts
@@ -128,7 +144,7 @@ fn check_user_privileges_given_account_type(
     profile: &Profile,
     account_type: Option<AccountType>,
     tenant_id: Option<Uuid>,
-) -> Result<Profile, MappedErrors> {
+) -> Result<(Profile, bool), MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
@@ -161,7 +177,17 @@ fn check_user_privileges_given_account_type(
 
     if is_tenant_dependent {
         if let Some(tenant_id) = tenant_id {
-            filtered_profile = filtered_profile.on_tenant(tenant_id);
+            if filtered_profile
+                .on_tenant(tenant_id)
+                .with_tenant_ownership_or_error(tenant_id)
+                .is_ok()
+            {
+                return Ok((filtered_profile, true));
+            }
+
+            filtered_profile = filtered_profile
+                .on_tenant(tenant_id)
+                .with_tenant_ownership_or_error(tenant_id)?;
         } else {
             return execution_err(
                 "tenant_id is required when listing accounts by type",
@@ -186,5 +212,5 @@ fn check_user_privileges_given_account_type(
         filtered_profile = filtered_profile.with_system_accounts_access();
     }
 
-    Ok(filtered_profile)
+    Ok((filtered_profile, false))
 }

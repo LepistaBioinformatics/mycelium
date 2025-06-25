@@ -40,11 +40,10 @@ pub async fn list_guest_on_subscription_account(
         .with_system_accounts_access()
         .with_read_access()
         .with_roles(vec![
-            SystemActor::TenantOwner,
             SystemActor::TenantManager,
             SystemActor::SubscriptionsManager,
         ])
-        .get_related_account_or_error()?;
+        .get_related_accounts_or_tenant_or_error(tenant_id)?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch the target subscription account

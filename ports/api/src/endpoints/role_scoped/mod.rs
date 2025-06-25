@@ -180,7 +180,6 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                 let req = insert_role_header(
                     req,
                     vec![
-                        SystemActor::TenantOwner,
                         SystemActor::TenantManager,
                         SystemActor::SubscriptionsManager,
                     ],
@@ -286,10 +285,8 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             // - TenantManager
             //
             .wrap_fn(|req, srv| {
-                let req = insert_role_header(
-                    req,
-                    vec![SystemActor::TenantOwner, SystemActor::TenantManager],
-                );
+                let req =
+                    insert_role_header(req, vec![SystemActor::TenantManager]);
                 srv.call(req)
             })
             //

@@ -52,16 +52,27 @@ pub async fn create_subscription_account(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile
+    let is_owner = profile.with_tenant_ownership_or_error(tenant_id).is_ok();
+
+    let has_access = profile
         .on_tenant(tenant_id)
         .with_system_accounts_access()
         .with_write_access()
         .with_roles(vec![
-            SystemActor::TenantOwner,
             SystemActor::TenantManager,
             SystemActor::SubscriptionsManager,
         ])
-        .get_ids_or_error()?;
+        .get_ids_or_error()
+        .is_ok();
+
+    if !is_owner && !has_access {
+        return use_case_err(
+            "Insufficient privileges to create a subscription account",
+        )
+        .with_code(NativeErrorCodes::MYC00019)
+        .with_exp_true()
+        .as_error();
+    }
 
     // ? -----------------------------------------------------------------------
     // ? Register the account
