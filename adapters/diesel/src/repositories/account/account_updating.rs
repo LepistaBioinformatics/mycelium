@@ -8,7 +8,9 @@ use chrono::Local;
 use diesel::prelude::*;
 use myc_core::domain::{
     dtos::{
-        account::{Account, AccountMeta, AccountMetaKey, VerboseStatus},
+        account::{
+            Account, AccountMeta, AccountMetaKey, Modifier, VerboseStatus,
+        },
         account_type::AccountType,
         native_error_codes::NativeErrorCodes,
     },
@@ -19,7 +21,7 @@ use mycelium_base::{
     entities::UpdatingResponseKind,
     utils::errors::{updating_err, MappedErrors},
 };
-use serde_json::{from_value, to_value, Value as JsonValue};
+use serde_json::{from_value, json, to_value, Value as JsonValue};
 use shaku::Component;
 use std::{collections::HashMap, str::FromStr, sync::Arc};
 use uuid::Uuid;
@@ -202,7 +204,20 @@ impl AccountUpdatingSqlDbRepository {
             updated_at: model
                 .updated
                 .map(|dt| dt.and_local_timezone(Local).unwrap()),
-            updated_by: model.updated_by.map(|m| from_value(m).unwrap()),
+            updated_by: model
+                .updated_by
+                .map(|m| {
+                    //
+                    // Check if the Value is a empty object
+                    //
+                    if m == json!({}) {
+                        None
+                    } else {
+                        let modifier: Modifier = from_value(m).unwrap();
+                        Some(modifier)
+                    }
+                })
+                .flatten(),
             meta: None,
         }
     }

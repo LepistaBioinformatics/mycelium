@@ -22,8 +22,8 @@ use reqwest::Client;
 
 #[tracing::instrument(
     name = "dispatch_webhooks",
-    fields(trigger = %trigger),
-    skip(config, webhook_fetching_repo, webhook_updating_repo)
+    fields(trigger = %trigger, artifact_id = %artifact.id.unwrap_or_default()),
+    skip(config, artifact, webhook_fetching_repo, webhook_updating_repo)
 )]
 pub async fn dispatch_webhooks(
     trigger: WebHookTrigger,
