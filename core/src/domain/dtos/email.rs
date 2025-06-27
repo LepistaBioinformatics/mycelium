@@ -60,9 +60,25 @@ impl Email {
     /// domain
     ///
     pub fn redacted_email(&self) -> String {
-        let binding = self.username.to_lowercase();
+        Self::redact_email(&self.email())
+    }
+
+    /// Effectively redact the email
+    ///
+    /// This is a static function used to expose the functionality
+    ///
+    pub fn redact_email(email: &str) -> String {
+        let email = match Email::from_string(email.to_string()) {
+            Ok(email) => email,
+            Err(e) => {
+                tracing::warn!("Invalid Email format: {:?}", e);
+                return email.to_owned();
+            }
+        };
+
+        let binding = email.username.to_lowercase();
         let username = binding.chars();
-        let domain = self.domain.to_lowercase();
+        let domain = email.domain.to_lowercase();
 
         let username_redacted = format!(
             "{}{}{}",
