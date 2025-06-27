@@ -4,7 +4,6 @@
 /// telegram account. The accession should be done by services using service
 /// accounts and not by the user itself.
 ///
-#[allow(dead_code)]
 fn fetch_profile_from_telegram_user() {
     unimplemented!("fetch_profile_from_telegram_user not implemented")
 }

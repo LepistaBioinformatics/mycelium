@@ -25,14 +25,20 @@ use uuid::Uuid;
 /// Subscription accounts represents results centering accounts.
 #[tracing::instrument(
     name = "create_subscription_account",
-    fields(user_id = %scope.user_id, correspondence_id = tracing::field::Empty),
-    skip(scope, account_registration_repo, webhook_registration_repo)
+    fields(
+        user_id = %connection_string.user_id,
+        correspondence_id = tracing::field::Empty
+    ),
+    skip(
+        connection_string,
+        account_registration_repo,
+        webhook_registration_repo
+    )
 )]
 pub async fn create_subscription_account(
-    scope: TenantScopedConnectionString,
+    connection_string: TenantScopedConnectionString,
     tenant_id: Uuid,
     account_name: String,
-    config: AccountLifeCycle,
     account_registration_repo: Box<&dyn AccountRegistration>,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
 ) -> Result<Account, MappedErrors> {
@@ -51,7 +57,7 @@ pub async fn create_subscription_account(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    scope.contain_enough_permissions(
+    connection_string.contain_enough_permissions(
         tenant_id,
         vec![
             (TenantManager.to_string(), Permission::Write),
@@ -68,7 +74,7 @@ pub async fn create_subscription_account(
     let mut unchecked_account = Account::new_subscription_account(
         account_name,
         tenant_id,
-        Some(Modifier::new_from_account(scope.scope.get_owner_id()?)),
+        Some(Modifier::new_from_account(connection_string.user_id)),
     );
 
     unchecked_account.is_checked = true;

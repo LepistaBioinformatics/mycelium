@@ -2,11 +2,9 @@ use crate::{
     domain::{
         actors::SystemActor::*,
         dtos::{
-            email::Email,
-            guest_role::Permission,
-            guest_user::GuestUser,
+            email::Email, guest_role::Permission, guest_user::GuestUser,
             native_error_codes::NativeErrorCodes,
-            token::{RoleScopedConnectionString, ScopedBehavior},
+            token::RoleScopedConnectionString,
         },
         entities::{
             AccountRegistration, GuestRoleFetching, GuestUserRegistration,
@@ -31,9 +29,25 @@ use uuid::Uuid;
 ///
 /// This method should be called from webhooks to propagate a new user to a
 /// default account.
-#[tracing::instrument(name = "guest_to_default_account", skip_all)]
+#[tracing::instrument(
+    name = "guest_to_default_account",
+    fields(
+        user_id = %connection_string.user_id,
+        email = %email.redacted_email(),
+        correspondence_id = tracing::field::Empty
+    ),
+    skip(
+        connection_string,
+        email,
+        life_cycle_settings,
+        account_registration_repo,
+        guest_role_fetching_repo,
+        message_sending_repo,
+        guest_user_registration_repo
+    )
+)]
 pub async fn guest_to_default_account(
-    scope: RoleScopedConnectionString,
+    connection_string: RoleScopedConnectionString,
     role_id: Uuid,
     email: Email,
     tenant_id: Uuid,
@@ -47,7 +61,7 @@ pub async fn guest_to_default_account(
     // ? Check permissions
     // ? -----------------------------------------------------------------------
 
-    scope.contain_tenant_enough_permissions(
+    connection_string.contain_tenant_enough_permissions(
         tenant_id,
         role_id,
         vec![
@@ -79,7 +93,7 @@ pub async fn guest_to_default_account(
 
     let default_subscription_account = match get_or_create_role_related_account(
         Some(target_role.name.to_owned()),
-        scope.scope.get_owner_id()?,
+        connection_string.user_id,
         tenant_id,
         role_id,
         None,
