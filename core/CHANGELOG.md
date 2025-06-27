@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.0] - 2025-06-27
+
+### 🚀 Features
+
+- *(delete-account)* Reduce scope of account deletions and include users account soft deletion
+- *(redact-email)* Expose the redact-email function to allow redact emails from simple strings
+- *(get-owner-id)* Include the owner id to the connection strings and create a getter to collect it
+- *(connection-strings)* Replace the multi-type connection strings by a single user-related connection string
+
+### 🐛 Bug Fixes
+
+- Include deletion flag through the account management in application
+- *(tenant-owner)* Remoce the tenant owner checking as a role
+- *(account-status-downgrade)* Include the possibility to new users downsgrade the own account without staff position
+- *(tenant-owner)* Include check for tenant ownership in all tenant-manager actions
+- *(email-redaction)* Replace all direct references to the user email in use-cases tracing by the redacted version
+- *(remove-owner-id)* Remove the owner id information from the public part of the connection strings
+- *(account-updating)* Fix the parsing of the field update-by during account updating operations
+
+### 🚜 Refactor
+
+- *(connection-string)* Review the applicaiton middlewares to allow users to access the full api interface with connection strings
+
 ## [7.13.3] - 2025-06-22
 
 ### 🚀 Features
@@ -14,6 +37,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 
 ## [7.13.1] - 2025-06-12

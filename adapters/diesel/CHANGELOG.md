@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.0] - 2025-06-27
+
+### 🚀 Features
+
+- *(delete-account)* Reduce scope of account deletions and include users account soft deletion
+- *(connection-strings)* Replace the multi-type connection strings by a single user-related connection string
+
+### 🐛 Bug Fixes
+
+- *(webhook-updating)* Secrets are not included in updating operation of the webhook
+- Include deletion flag through the account management in application
+- *(tenant-owner)* Remoce the tenant owner checking as a role
+- *(account-tag)* Fix the account-tag model constraint to remove the meta from unique set
+- *(account-updating)* Fix the parsing of the field update-by during account updating operations
+
 ## [7.13.3] - 2025-06-22
 
 ### 🐛 Bug Fixes
@@ -12,6 +27,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 
 ## [7.13.1] - 2025-06-12

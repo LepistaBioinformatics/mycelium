@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - Release
+- Release
 
 ## [7.13.1] - 2025-06-12
 

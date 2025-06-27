@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.0] - 2025-06-27
+
+### 🚀 Features
+
+- *(delete-account)* Reduce scope of account deletions and include users account soft deletion
+- *(connection-strings)* Replace the multi-type connection strings by a single user-related connection string
+
+### 🐛 Bug Fixes
+
+- Include deletion flag through the account management in application
+- *(tenant-owner)* Remoce the tenant owner checking as a role
+- *(tenant-owner)* Include check for tenant ownership in all tenant-manager actions
+
+### 🚜 Refactor
+
+- *(connection-string)* Review the applicaiton middlewares to allow users to access the full api interface with connection strings
+
+### 🧪 Testing
+
+- *(test-service)* Update the test service to allow run integration tests at the gateway level
+
 ## [7.13.3] - 2025-06-22
 
 ### 🚀 Features
@@ -21,6 +42,7 @@ All notable changes to this project will be documented in this file.
 - Release
 - Remove function level deprecation message from status endpoint
 - Remove the query parameter definition from status endpoint
+- Release
 
 ## [7.13.1] - 2025-06-12
 
