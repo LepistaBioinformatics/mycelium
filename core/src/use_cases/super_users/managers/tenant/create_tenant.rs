@@ -18,7 +18,7 @@ use uuid::Uuid;
     name = "create_tenant",
     fields(
         profile_id = %profile.acc_id,
-        owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
+        owners = ?profile.owners.iter().map(|o| o.redacted_email()).collect::<Vec<_>>(),
     ),
     skip(profile, user_fetching_repo, tenant_registration_repo)
 )]

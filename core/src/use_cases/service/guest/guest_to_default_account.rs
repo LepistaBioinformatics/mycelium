@@ -2,9 +2,11 @@ use crate::{
     domain::{
         actors::SystemActor::*,
         dtos::{
-            email::Email, guest_role::Permission, guest_user::GuestUser,
+            email::Email,
+            guest_role::Permission,
+            guest_user::GuestUser,
             native_error_codes::NativeErrorCodes,
-            token::RoleScopedConnectionString,
+            token::{RoleScopedConnectionString, ScopedBehavior},
         },
         entities::{
             AccountRegistration, GuestRoleFetching, GuestUserRegistration,
@@ -77,6 +79,7 @@ pub async fn guest_to_default_account(
 
     let default_subscription_account = match get_or_create_role_related_account(
         Some(target_role.name.to_owned()),
+        scope.scope.get_owner_id()?,
         tenant_id,
         role_id,
         None,

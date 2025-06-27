@@ -117,7 +117,7 @@ pub async fn guest_user_to_subscription_account(
             let is_owner =
                 profile.with_tenant_ownership_or_error(tenant_id).is_ok();
 
-            if !is_manager || !is_owner {
+            if ![is_manager, is_owner].iter().any(|&x| x) {
                 return use_case_err(
                     "Insufficient privileges to perform these action (no tenant ownership).",
                 )

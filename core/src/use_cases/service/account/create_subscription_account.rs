@@ -2,10 +2,10 @@ use crate::{
     domain::{
         actors::SystemActor::*,
         dtos::{
-            account::Account,
+            account::{Account, Modifier},
             guest_role::Permission,
             native_error_codes::NativeErrorCodes,
-            token::TenantScopedConnectionString,
+            token::{ScopedBehavior, TenantScopedConnectionString},
             webhook::{PayloadId, WebHookTrigger},
         },
         entities::{AccountRegistration, WebHookRegistration},
@@ -65,8 +65,11 @@ pub async fn create_subscription_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
-    let mut unchecked_account =
-        Account::new_subscription_account(account_name, tenant_id);
+    let mut unchecked_account = Account::new_subscription_account(
+        account_name,
+        tenant_id,
+        Some(Modifier::new_from_account(scope.scope.get_owner_id()?)),
+    );
 
     unchecked_account.is_checked = true;
 

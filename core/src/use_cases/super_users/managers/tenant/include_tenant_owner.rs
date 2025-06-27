@@ -12,7 +12,7 @@ use uuid::Uuid;
     name = "include_tenant_owner",
     fields(
         profile_id = %profile.acc_id,
-        owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
+        owners = ?profile.owners.iter().map(|o| o.redacted_email()).collect::<Vec<_>>(),
     ),
     skip(profile, tenant_updating_repo))]
 pub async fn include_tenant_owner(

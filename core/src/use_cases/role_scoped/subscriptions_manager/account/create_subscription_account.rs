@@ -2,7 +2,7 @@ use crate::{
     domain::{
         actors::SystemActor,
         dtos::{
-            account::Account,
+            account::{Account, Modifier},
             native_error_codes::NativeErrorCodes,
             profile::Profile,
             webhook::{PayloadId, WebHookTrigger},
@@ -62,10 +62,10 @@ pub async fn create_subscription_account(
             SystemActor::TenantManager,
             SystemActor::SubscriptionsManager,
         ])
-        .get_ids_or_error()
+        .get_related_account_or_error()
         .is_ok();
 
-    if !is_owner && !has_access {
+    if ![is_owner, has_access].iter().any(|&x| x) {
         return use_case_err(
             "Insufficient privileges to create a subscription account",
         )
@@ -80,8 +80,11 @@ pub async fn create_subscription_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
-    let mut unchecked_account =
-        Account::new_subscription_account(account_name, tenant_id);
+    let mut unchecked_account = Account::new_subscription_account(
+        account_name,
+        tenant_id,
+        Some(Modifier::new_from_account(profile.acc_id)),
+    );
 
     unchecked_account.is_checked = true;
 

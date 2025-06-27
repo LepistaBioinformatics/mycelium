@@ -1,5 +1,8 @@
 use crate::domain::{
-    dtos::{account::Account, profile::Profile},
+    dtos::{
+        account::{Account, Modifier},
+        profile::Profile,
+    },
     entities::AccountRegistration,
 };
 
@@ -13,7 +16,7 @@ use uuid::Uuid;
     name = "create_management_account",
     fields(
         profile_id = %profile.acc_id,
-        owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
+        owners = ?profile.owners.iter().map(|o| o.redacted_email()).collect::<Vec<_>>(),
     ),
     skip(profile, account_registration_repo)
 )]
@@ -43,9 +46,12 @@ pub async fn create_management_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
-    let mut unchecked_account =
-        Account::new_tenant_management_account(String::new(), tenant_id)
-            .with_id();
+    let mut unchecked_account = Account::new_tenant_management_account(
+        String::new(),
+        tenant_id,
+        Some(Modifier::new_from_account(profile.acc_id)),
+    )
+    .with_id();
 
     let name =
         format!("tid/{}/manager", tenant_id.to_string().replace("-", ""));

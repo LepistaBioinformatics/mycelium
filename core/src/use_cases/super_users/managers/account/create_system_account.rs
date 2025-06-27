@@ -1,7 +1,8 @@
 use crate::domain::{
     actors::SystemActor,
     dtos::{
-        account::Account, native_error_codes::NativeErrorCodes,
+        account::{Account, Modifier},
+        native_error_codes::NativeErrorCodes,
         profile::Profile,
     },
     entities::AccountRegistration,
@@ -26,7 +27,7 @@ use mycelium_base::{
     name = "create_system_account",
     fields(
         profile_id = %profile.acc_id,
-        owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
+        owners = ?profile.owners.iter().map(|o| o.redacted_email()).collect::<Vec<_>>(),
     ),
     skip(profile, account_registration_repo)
 )]
@@ -70,8 +71,12 @@ pub async fn create_system_account(
     // ? Create and register account
     // ? -----------------------------------------------------------------------
 
-    let mut unchecked_account =
-        Account::new_actor_related_account(name, actor, true);
+    let mut unchecked_account = Account::new_actor_related_account(
+        name,
+        actor,
+        true,
+        Some(Modifier::new_from_account(profile.acc_id)),
+    );
 
     unchecked_account.is_checked = true;
 

@@ -185,9 +185,7 @@ fn check_user_privileges_given_account_type(
                 return Ok((filtered_profile, true));
             }
 
-            filtered_profile = filtered_profile
-                .on_tenant(tenant_id)
-                .with_tenant_ownership_or_error(tenant_id)?;
+            filtered_profile = filtered_profile.on_tenant(tenant_id);
         } else {
             return execution_err(
                 "tenant_id is required when listing accounts by type",

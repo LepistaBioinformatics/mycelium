@@ -131,8 +131,10 @@ mod tests {
             owners: Children::Records([user].to_vec()),
             account_type: AccountType::User,
             guest_users: None,
-            created: Local::now(),
-            updated: Some(Local::now()),
+            created_at: Local::now(),
+            created_by: None,
+            updated_at: Some(Local::now()),
+            updated_by: None,
             meta: None,
         };
 
