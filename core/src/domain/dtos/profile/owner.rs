@@ -1,4 +1,4 @@
-use crate::domain::dtos::user::User;
+use crate::domain::dtos::{email::Email, user::User};
 
 use mycelium_base::utils::errors::{dto_err, MappedErrors};
 use serde::{Deserialize, Serialize};
@@ -54,5 +54,9 @@ impl Owner {
             username: Some(user.to_owned().username),
             is_principal: user.is_principal(),
         })
+    }
+
+    pub fn redacted_email(&self) -> String {
+        Email::redact_email(&self.email)
     }
 }

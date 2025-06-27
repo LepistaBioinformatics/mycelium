@@ -1,8 +1,8 @@
-use crate::{dtos::MyceliumProfileData, modules::RoutesFetchingModule};
+use crate::{dtos::MyceliumProfileData, endpoints::shared::PaginationParams};
 
 use actix_web::{get, web, Responder};
 use myc_core::{
-    domain::{dtos::service::Service, entities::RoutesFetching},
+    domain::dtos::service::Service,
     use_cases::role_scoped::gateway_manager::service::list_services,
 };
 use myc_http_tools::{
@@ -11,8 +11,9 @@ use myc_http_tools::{
         fetch_many_response_kind, handle_mapped_error,
     },
 };
+use myc_mem_db::repositories::MemDbAppModule;
 use serde::Deserialize;
-use shaku_actix::Inject;
+use shaku::HasComponent;
 use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
@@ -79,14 +80,17 @@ pub struct ListServicesParams {
 #[get("")]
 pub async fn list_services_url(
     query: web::Query<ListServicesParams>,
+    page: web::Query<PaginationParams>,
     profile: MyceliumProfileData,
-    routes_fetching_repo: Inject<RoutesFetchingModule, dyn RoutesFetching>,
+    app_module: web::Data<MemDbAppModule>,
 ) -> impl Responder {
     match list_services(
         profile.to_profile(),
         query.id.to_owned(),
         query.name.to_owned(),
-        Box::new(&*routes_fetching_repo),
+        page.page_size,
+        page.skip,
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

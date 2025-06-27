@@ -1,5 +1,7 @@
 use crate::domain::{
-    actors::SystemActor, dtos::account::Account, entities::AccountRegistration,
+    actors::SystemActor,
+    dtos::account::{Account, Modifier},
+    entities::AccountRegistration,
 };
 
 use mycelium_base::{
@@ -22,6 +24,7 @@ use uuid::Uuid;
 )]
 pub(crate) async fn get_or_create_role_related_account(
     name: Option<String>,
+    profile_id: Uuid,
     tenant_id: Uuid,
     guest_role_id: Uuid,
     system_actor: Option<SystemActor>,
@@ -44,6 +47,7 @@ pub(crate) async fn get_or_create_role_related_account(
         system_actor
             .unwrap_or(SystemActor::CustomRole(guest_role_id.to_string())),
         true,
+        Some(Modifier::new_from_account(profile_id)),
     );
 
     unchecked_account.is_checked = true;

@@ -81,7 +81,6 @@ pub enum UrlScope {
     RoleScoped,
     Managers,
     Staffs,
-    Service,
 }
 
 impl Display for UrlScope {
@@ -91,7 +90,6 @@ impl Display for UrlScope {
             UrlScope::RoleScoped => write!(f, "{}", ROLE_SCOPED_API_SCOPE),
             UrlScope::Managers => write!(f, "managers"),
             UrlScope::Staffs => write!(f, "staffs"),
-            UrlScope::Service => write!(f, "svc"),
         }
     }
 }

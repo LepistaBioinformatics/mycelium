@@ -101,8 +101,7 @@ auth:
         path: myc/auth/internal
         key: jwtSecret
 
-  external: !enabled
-    # Google
+  external: !enabled # Google
     - issuer: https://accounts.google.com
       jwksUri: https://www.googleapis.com/oauth2/v3/certs
       userInfoUrl: https://www.googleapis.com/oauth2/v3/userinfo
@@ -148,23 +147,45 @@ auth:
 # ? API PORT SETTINGS SETTINGS
 # ? ----------------------------------------------------------------------------
 api:
+  # ? --------------------------------------------------------------------------
+  # ? Service settings
+  # ? --------------------------------------------------------------------------
   serviceIp: 0.0.0.0
   servicePort: 8080
   serviceWorkers: 1
+
+  # ? --------------------------------------------------------------------------
+  # ? Timeout settings
+  # ? --------------------------------------------------------------------------
   gatewayTimeout: 60
+
+  # ? --------------------------------------------------------------------------
+  # ? Health check settings
+  # ? --------------------------------------------------------------------------
+  healthCheckInterval: 120
+  maxRetryCount: 3
+
+  # ? --------------------------------------------------------------------------
+  # ? Cache settings
+  # ? --------------------------------------------------------------------------
   cache:
     jwksTtl: 3600 # 1 hour
     emailTtl: 120 # 2 minutes
     profileTtl: 120 # 2 minutes
+
+  # ? --------------------------------------------------------------------------
+  # ? Allowed origins
+  # ? --------------------------------------------------------------------------
   allowedOrigins:
     - http://localhost:8080
     - https://localhost:8080
     - http://localhost:3000
     - http://localhost:3000/
     - http://localhost:5173
-    # ? --------------------------------------------------------------------------
-    # ? LOGGING SETTINGS
-    # ? --------------------------------------------------------------------------
+
+  # ? --------------------------------------------------------------------------
+  # ? LOGGING SETTINGS
+  # ? --------------------------------------------------------------------------
   logging:
     # Possible values: trace, debug, info, warn, error or specific level for
     # each module.
@@ -179,10 +200,10 @@ api:
     #  path: logs/api.log
 
     # Example with jaeger target
-    #target: !jaeger
+    #target: !collector
     #  name: mycelium-api
-    #  # Hostname of the jaeger agent
-    #  host: localhost
+    #  # Hostname of the otel collector
+    #  host: myc-otel-collector-devcontainer
     #  # Allowed values:
     #  # - http
     #  # - https
@@ -222,6 +243,7 @@ api:
   # services:
   #   - name: cat
   #     host: catfact.ninja
+  #     protocol: https
   #
   #     healthCheck:
   #       path: /health/
@@ -233,12 +255,6 @@ api:
   #         methods:
   #           - GET
   #         downstreamUrl: /fact
-  #         protocol: https
   #
   # ? --------------------------------------------------------------------------
   routes: test/mock/routes.yaml
-
-  # ? --------------------------------------------------------------------------
-  # ? CLI SETTINGS
-  # ? --------------------------------------------------------------------------
-cli: {}

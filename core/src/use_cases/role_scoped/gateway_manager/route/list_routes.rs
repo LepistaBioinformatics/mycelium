@@ -1,7 +1,7 @@
 use crate::domain::{
     actors::SystemActor,
     dtos::{profile::Profile, route::Route},
-    entities::RoutesFetching,
+    entities::RoutesRead,
 };
 
 use mycelium_base::{
@@ -22,8 +22,9 @@ pub async fn list_routes(
     profile: Profile,
     id: Option<Uuid>,
     name: Option<String>,
-    include_service_details: Option<bool>,
-    routes_fetching_repo: Box<&dyn RoutesFetching>,
+    page_size: Option<i32>,
+    skip: Option<i32>,
+    routes_fetching_repo: Box<&dyn RoutesRead>,
 ) -> Result<FetchManyResponseKind<Route>, MappedErrors> {
     // ? ----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges to create role
@@ -40,6 +41,6 @@ pub async fn list_routes(
     // ? ----------------------------------------------------------------------
 
     routes_fetching_repo
-        .list_routes(id, name, include_service_details)
+        .list_routes_paginated(id, name, page_size, skip)
         .await
 }

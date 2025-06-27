@@ -20,7 +20,7 @@ use uuid::Uuid;
     name = "downgrade_account_privileges", 
     fields(
         profile_id = %profile.acc_id,
-        owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
+        owners = ?profile.owners.iter().map(|o| o.redacted_email()).collect::<Vec<_>>(),
     ),
     skip(profile, account_updating_repo)
 )]
@@ -36,27 +36,30 @@ pub async fn downgrade_account_privileges(
     // Only staff users should perform such action.
     // ? -----------------------------------------------------------------------
 
-    if !profile.is_staff {
+    if ![
+        //
+        // Only staff users should perform such action in other accounts.
+        //
+        profile.is_staff,
+        //
+        // The account to downgrade should be the current account.
+        //
+        account_id == profile.acc_id,
+    ]
+    .iter()
+    .any(|&b| b)
+    {
         return use_case_err(
             "The current user has no sufficient privileges to downgrade accounts.",
         )
         .with_exp_true()
-        .with_code(NativeErrorCodes::MYC00018)
+        .with_code(NativeErrorCodes::MYC00019)
         .as_error();
     }
 
     // ? -----------------------------------------------------------------------
     // ? Check if the account type if allowed
     // ? -----------------------------------------------------------------------
-
-    if account_id != profile.acc_id {
-        return use_case_err(
-            "You cannot downgrade another account. Downgrade your own account instead.",
-        )
-        .with_exp_true()
-        .with_code(NativeErrorCodes::MYC00018)
-        .as_error();
-    }
 
     if !vec![AccountType::User, AccountType::Manager]
         .contains(&target_account_type)

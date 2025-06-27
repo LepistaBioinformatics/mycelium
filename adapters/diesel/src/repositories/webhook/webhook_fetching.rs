@@ -15,7 +15,7 @@ use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
         webhook::{
-            WebHook, WebHookExecutionStatus, WebHookPayloadArtifact,
+            PayloadId, WebHook, WebHookExecutionStatus, WebHookPayloadArtifact,
             WebHookTrigger,
         },
     },
@@ -257,6 +257,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
             .map(|record| WebHookPayloadArtifact {
                 id: Some(record.id),
                 payload: record.payload.to_string(),
+                payload_id: PayloadId::from_str(&record.payload_id).unwrap(),
                 trigger: record.trigger.parse().unwrap(),
                 propagations: match record.propagations {
                     Some(propagations) => {

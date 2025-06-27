@@ -23,6 +23,8 @@ default-members = [
     "adapters/*",
 ]
 
+exclude = ["test/bin"]
+
 resolver = "2"
 
 
@@ -32,7 +34,7 @@ resolver = "2"
 
 [workspace.package]
 
-version = "7.7.6"
+version = "8.0.0"
 edition = "2021"
 authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
 license = "Apache-2.0"
@@ -94,6 +96,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_yaml = "0.9"
 shaku = "0.6"
+slugify = "0.1.0"
 tokio = { version = "1", features = ["full"] }
 url = "2.2"
 utoipa = { version = "5", features = [
@@ -105,11 +108,29 @@ utoipa = { version = "5", features = [
     "uuid",
 ] }
 tracing = "0.1"
+tracing-actix-web = { version = "0.7", features = ["opentelemetry_0_25"] }
+tracing-subscriber = { version = "0.3", features = [
+    "alloc",
+    "json",
+    "env-filter",
+    "tracing-serde",
+    "registry",
+] }
 uuid = { version = "1.1", features = ["v3", "v4", "serde", "fast-rng"] }
+utoipa-redoc = { version = "5", features = ["actix-web"] }
+utoipa-swagger-ui = { version = "9", features = ["actix-web"] }
+wildmatch = "2.1"
 
-#
-# TODO: REMOVE AFTER MIGRATE FROM PRISMA TO DIESEL
-#
-# TODO: WAIT FOR THE FIX OF THE NOTIFIERS PACKATE MIGRATION BEFORE REMOVE
-#
-shaku_actix = "0.2"
+
+[workspace.metadata.release]
+
+shared-version = true
+sign-commit = false
+sign-tag = false
+push = true
+tag-name = "{{version}}"
+tag-message = "Release {{version}}"
+pre-release-hook = ["git-cliff", "-o", "CHANGELOG.md", "--tag", "{{version}}"]
+
+# For multiple packages
+consolidate-commits = true

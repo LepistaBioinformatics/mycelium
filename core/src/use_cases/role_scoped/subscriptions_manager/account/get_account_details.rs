@@ -36,7 +36,7 @@ pub async fn get_account_details(
         //
         // If the current account has administration privileges, the tenant id
         // is not required. Allowing the fetching of the account details without
-        // tenant afinity. It should be used to fetch the account details of non
+        // tenant affinity. It should be used to fetch the account details of non
         // subscription accounts.
         //
         Ok(_) => profile,
@@ -49,24 +49,22 @@ pub async fn get_account_details(
             if let Some(tenant_id) = tenant_id {
                 profile.on_tenant(tenant_id)
             } else {
-                return execution_err(
-                    "Current account has no administration privileges"
-                        .to_string(),
-                )
-                .with_code(NativeErrorCodes::MYC00019)
-                .with_exp_true()
-                .as_error();
+                return execution_err("No enough privileges".to_string())
+                    .with_code(NativeErrorCodes::MYC00019)
+                    .with_exp_true()
+                    .as_error();
             }
         }
     }
     .with_system_accounts_access()
     .with_read_access()
     .with_roles(vec![
-        SystemActor::TenantOwner,
         SystemActor::TenantManager,
         SystemActor::SubscriptionsManager,
     ])
-    .get_related_account_or_error()?;
+    .get_related_accounts_or_tenant_or_error(tenant_id.unwrap_or(
+        Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap(),
+    ))?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch account

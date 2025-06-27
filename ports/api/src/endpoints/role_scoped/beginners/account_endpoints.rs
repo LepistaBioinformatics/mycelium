@@ -3,18 +3,22 @@ use crate::{
     middleware::check_credentials_with_multi_identity_provider,
 };
 
-use actix_web::{get, patch, post, web, HttpRequest, HttpResponse, Responder};
+use actix_web::{
+    delete, get, patch, post, web, HttpRequest, HttpResponse, Responder,
+};
 use myc_core::{
     models::AccountLifeCycle,
     use_cases::role_scoped::beginner::account::{
-        create_default_account, get_my_account_details, update_own_account_name,
+        create_default_account, delete_my_account, get_my_account_details,
+        update_own_account_name,
     },
 };
 use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
-        fetch_response_kind, handle_mapped_error, updating_response_kind,
+        delete_response_kind, fetch_response_kind, handle_mapped_error,
+        updating_response_kind,
     },
     Account,
 };
@@ -32,7 +36,8 @@ pub fn configure(config: &mut web::ServiceConfig) {
     config
         .service(create_default_account_url)
         .service(update_own_account_name_url)
-        .service(get_my_account_details_url);
+        .service(get_my_account_details_url)
+        .service(delete_my_account_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -240,10 +245,58 @@ pub async fn update_own_account_name_url(
         profile,
         body.name.to_owned(),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
         Ok(res) => updating_response_kind(res),
+        Err(err) => handle_mapped_error(err),
+    }
+}
+
+/// Delete my account
+///
+/// Delete the account associated with the current user.
+///
+#[utoipa::path(
+    delete,
+    responses(
+        (
+            status = 200,
+            description = "Account successfully deleted.",
+            body = HttpJsonResponse,
+        ),
+    ),
+)]
+#[delete("/{account_id}")]
+pub async fn delete_my_account_url(
+    path: web::Path<Uuid>,
+    profile: MyceliumProfileData,
+    app_module: web::Data<SqlAppModule>,
+) -> impl Responder {
+    if path.to_owned() != profile.acc_id {
+        warn!("No account owner trying to perform account deleting.");
+        warn!(
+            "Account {} trying to delete {}",
+            profile.acc_id,
+            path.to_owned()
+        );
+
+        return HttpResponse::Forbidden().json(HttpJsonResponse::new_message(
+            String::from(
+                "Invalid operation. Operation restricted to account owners.",
+            ),
+        ));
+    }
+
+    match delete_my_account(
+        profile.to_profile(),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
+    )
+    .await
+    {
+        Ok(res) => delete_response_kind(res),
         Err(err) => handle_mapped_error(err),
     }
 }

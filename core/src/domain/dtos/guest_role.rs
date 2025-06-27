@@ -12,7 +12,6 @@ use uuid::Uuid;
 pub enum Permission {
     Read = 0,
     Write = 1,
-    ReadWrite = 2,
 }
 
 impl Permission {
@@ -20,7 +19,6 @@ impl Permission {
         match v {
             0 => Permission::Read,
             1 => Permission::Write,
-            2 => Permission::ReadWrite,
             _ => Permission::Read,
         }
     }
@@ -29,7 +27,6 @@ impl Permission {
         match self {
             Permission::Read => 0,
             Permission::Write => 1,
-            Permission::ReadWrite => 2,
         }
     }
 }
@@ -41,7 +38,6 @@ impl FromStr for Permission {
         match s {
             "read" => Ok(Permission::Read),
             "write" => Ok(Permission::Write),
-            "read-write" => Ok(Permission::ReadWrite),
             _ => {
                 error!("Invalid permission: {}", s);
                 Ok(Permission::Read)
@@ -55,7 +51,6 @@ impl ToString for Permission {
         match self {
             Permission::Read => "read".to_string(),
             Permission::Write => "write".to_string(),
-            Permission::ReadWrite => "read-write".to_string(),
         }
     }
 }

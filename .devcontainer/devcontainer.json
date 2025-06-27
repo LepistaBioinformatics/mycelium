@@ -5,18 +5,24 @@
     "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
     "forwardPorts": [
         8080,
+        8083,
         8200,
         8201,
         6379,
         5432,
         16686,
+        14268,
+        14250,
         4317,
-        4318
+        4318,
+        9090,
+        8889
     ],
     "customizations": {
         "vscode": {
             "extensions": [
-                "rust-lang.rust-analyzer"
+                "rust-lang.rust-analyzer",
+                "streetsidesoftware.code-spell-checker"
             ],
             "settings": {
                 "terminal.integrated.defaultProfile.linux": "bash"

@@ -5,7 +5,7 @@ use awc::ClientRequest;
 use myc_http_tools::{responses::GatewayError, settings::DEFAULT_EMAIL_KEY};
 use reqwest::header::{HeaderName, HeaderValue};
 use std::str::FromStr;
-use tracing::warn;
+use tracing::Instrument;
 
 /// Fetch and inject email to forward
 ///
@@ -17,8 +17,13 @@ pub async fn fetch_and_inject_email_to_forward(
     req: HttpRequest,
     mut forwarded_req: ClientRequest,
 ) -> Result<ClientRequest, GatewayError> {
-    let email =
-        check_credentials_with_multi_identity_provider(req.clone()).await?;
+    let span = tracing::Span::current();
+
+    tracing::trace!("Injecting email to forward");
+
+    let email = check_credentials_with_multi_identity_provider(req.clone())
+        .instrument(span.to_owned())
+        .await?;
 
     forwarded_req.headers_mut().insert(
         HeaderName::from_str(DEFAULT_EMAIL_KEY).unwrap(),
@@ -26,7 +31,7 @@ pub async fn fetch_and_inject_email_to_forward(
             &serde_json::to_string(&email.email()).unwrap(),
         ) {
             Err(err) => {
-                warn!("err: {:?}", err.to_string());
+                tracing::warn!("err: {:?}", err.to_string());
                 return Err(GatewayError::InternalServerError(format!(
                     "{err}"
                 )));
@@ -34,6 +39,10 @@ pub async fn fetch_and_inject_email_to_forward(
             Ok(res) => res,
         },
     );
+
+    span.record("myc.router.email", &Some(email.redacted_email()));
+
+    tracing::trace!("Email injected to forward");
 
     Ok(forwarded_req)
 }

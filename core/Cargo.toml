@@ -18,8 +18,8 @@ readme.workspace = true
 
 [dependencies]
 
-mycelium-base = { version = "7.7.6", path = "../base" }
-mycelium-config = { version = "7.7.6", path = "../config" }
+mycelium-base = { version = "8.0.0", path = "../base" }
+mycelium-config = { version = "8.0.0", path = "../config" }
 
 async-trait.workspace = true
 chrono.workspace = true
@@ -37,7 +37,7 @@ serde.workspace = true
 serde_json.workspace = true
 serde_yaml.workspace = true
 shaku.workspace = true
-shaku_actix.workspace = true
+slugify.workspace = true
 utoipa.workspace = true
 uuid.workspace = true
 tracing.workspace = true
@@ -53,7 +53,6 @@ sha2 = "0.10"
 tera = "1"
 pasetors = "0.6"
 ring = "0.17"
-slugify = "0.1.0"
 totp-rs = { version = "^5.0", features = ["otpauth", "qr"] }
 
 [dev-dependencies]

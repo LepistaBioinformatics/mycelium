@@ -11,6 +11,7 @@ pub struct SmtpConfig {
     pub host: SecretResolver<String>,
     pub username: SecretResolver<String>,
     pub password: SecretResolver<String>,
+    pub port: SecretResolver<u16>,
 }
 
 unsafe impl Send for SmtpConfig {}

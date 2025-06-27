@@ -20,6 +20,7 @@ use mycelium_base::entities::FetchResponseKind;
 use openssl::{stack::Stack, x509::X509};
 use serde::Deserialize;
 use shaku::HasComponent;
+use tracing::Instrument;
 
 #[derive(Deserialize)]
 struct UserInfo {
@@ -31,11 +32,19 @@ struct UserInfo {
 /// This function is used to check credentials from multiple identity providers.
 #[tracing::instrument(
     name = "check_credentials_with_multi_identity_provider",
-    skip_all
+    skip_all,
+    fields(
+        myc.router.email = tracing::field::Empty,
+        myc.router.provider = tracing::field::Empty,
+    )
 )]
 pub(crate) async fn check_credentials_with_multi_identity_provider(
     req: HttpRequest,
 ) -> Result<Email, GatewayError> {
+    let span = tracing::Span::current();
+
+    tracing::trace!("Checking credentials with multiple identity providers");
+
     // ? -----------------------------------------------------------------------
     // ? Extract issuer and token from request
     //
@@ -47,7 +56,9 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
     // ? -----------------------------------------------------------------------
 
     let (optional_email, optional_provider, token) =
-        get_email_or_provider_from_request(req.clone()).await?;
+        get_email_or_provider_from_request(req.clone())
+            .instrument(span.to_owned())
+            .await?;
 
     // ? -----------------------------------------------------------------------
     // ? If email is found, return it
@@ -58,6 +69,8 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
     // ? -----------------------------------------------------------------------
 
     if let Some(email) = optional_email {
+        span.record("myc.router.email", &Some(email.redacted_email()));
+
         return Ok(email);
     }
 
@@ -70,12 +83,20 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
     // ? -----------------------------------------------------------------------
 
     if let Some(provider) = optional_provider {
-        return get_email_from_external_provider(&provider, &token, &req).await;
+        if let Ok(issuer) = provider.issuer.async_get_or_error().await {
+            span.record("myc.router.provider", &Some(issuer));
+        }
+
+        return get_email_from_external_provider(&provider, &token, &req)
+            .instrument(span.to_owned())
+            .await;
     }
 
     // ? -----------------------------------------------------------------------
     // ? If no provider is found, return an error
     // ? -----------------------------------------------------------------------
+
+    tracing::error!("Unable to check user email or provider. Unauthorized");
 
     Err(GatewayError::Unauthorized(
         "Could not check issuer.".to_string(),

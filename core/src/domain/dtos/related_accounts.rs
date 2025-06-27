@@ -6,6 +6,7 @@ use uuid::Uuid;
 #[serde(rename_all = "camelCase")]
 pub enum RelatedAccounts {
     AllowedAccounts(Vec<Uuid>),
+    HasTenantWidePrivileges(Uuid),
     HasStaffPrivileges,
     HasManagerPrivileges,
 }

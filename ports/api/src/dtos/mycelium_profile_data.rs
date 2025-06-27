@@ -1,4 +1,7 @@
-use crate::middleware::fetch_profile_from_request;
+use crate::middleware::{
+    fetch_profile_from_request_connection_string,
+    fetch_profile_from_request_token,
+};
 
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
@@ -8,7 +11,10 @@ use myc_core::domain::dtos::{
 };
 use myc_http_tools::{
     responses::GatewayError,
-    settings::{DEFAULT_MYCELIUM_ROLE_KEY, DEFAULT_TENANT_ID_KEY},
+    settings::{
+        DEFAULT_CONNECTION_STRING_KEY, DEFAULT_MYCELIUM_ROLE_KEY,
+        DEFAULT_TENANT_ID_KEY,
+    },
     Profile,
 };
 use serde::Deserialize;
@@ -28,6 +34,7 @@ pub(crate) struct MyceliumProfileData {
     pub account_is_active: bool,
     pub account_was_approved: bool,
     pub account_was_archived: bool,
+    pub account_was_deleted: bool,
     pub verbose_status: Option<VerboseStatus>,
     pub licensed_resources: Option<LicensedResources>,
     pub tenants_ownership: Option<TenantsOwnership>,
@@ -45,6 +52,7 @@ impl MyceliumProfileData {
             account_is_active: profile.account_is_active,
             account_was_approved: profile.account_was_approved,
             account_was_archived: profile.account_was_archived,
+            account_was_deleted: profile.account_was_deleted,
             verbose_status: profile.verbose_status,
             licensed_resources: profile.licensed_resources,
             tenants_ownership: profile.tenants_ownership,
@@ -62,6 +70,7 @@ impl MyceliumProfileData {
             self.account_is_active,
             self.account_was_approved,
             self.account_was_archived,
+            self.account_was_deleted,
             self.verbose_status.to_owned(),
             self.licensed_resources.to_owned(),
             self.tenants_ownership.to_owned(),
@@ -98,6 +107,10 @@ impl FromRequest for MyceliumProfileData {
             None => None,
         };
 
+        if let Some(tenant) = tenant {
+            trace!("Requested tenant: {:?}", tenant);
+        }
+
         //
         // Get the roles from the request
         //
@@ -127,10 +140,26 @@ impl FromRequest for MyceliumProfileData {
                 None => None,
             };
 
-        trace!("Requested roles: {:?}", roles);
+        if let Some(roles) = roles.to_owned() {
+            trace!("Requested roles: {:?}", roles);
+        }
+
+        if let Some(connection_string) =
+            req_clone.headers().get(DEFAULT_CONNECTION_STRING_KEY)
+        {
+            if !connection_string.is_empty() {
+                return Box::pin(async move {
+                    fetch_profile_from_request_connection_string(
+                        req_clone, tenant, roles, None,
+                    )
+                    .await
+                });
+            }
+        }
 
         Box::pin(async move {
-            fetch_profile_from_request(req_clone, tenant, roles, None).await
+            fetch_profile_from_request_token(req_clone, tenant, roles, None)
+                .await
         })
     }
 }

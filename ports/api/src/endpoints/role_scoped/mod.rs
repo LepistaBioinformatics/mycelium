@@ -13,21 +13,19 @@ use super::shared::{insert_role_header, UrlGroup};
 use account_manager::guest_endpoints as account_manager_guest_endpoints;
 use actix_web::{dev::Service, web};
 use beginners::{
-    account_endpoints as no_role_account_endpoints,
-    guest_user_endpoints as no_role_guest_user_endpoints,
-    meta_endpoints as no_role_meta_endpoints,
-    profile_endpoints as no_role_profile_endpoints,
-    tenant_endpoints as no_role_tenant_endpoints,
-    user_endpoints as no_role_user_endpoints,
+    account_endpoints as beginners_account_endpoints,
+    guest_user_endpoints as beginners_guest_user_endpoints,
+    meta_endpoints as beginners_meta_endpoints,
+    profile_endpoints as beginners_profile_endpoints,
+    tenant_endpoints as beginners_tenant_endpoints,
+    token_endpoints as beginners_token_endpoints,
+    user_endpoints as beginners_user_endpoints,
 };
 use gateway_manager::{
     route_endpoints as gateway_manager_route_endpoints,
     service_endpoints as gateway_manager_service_endpoints,
 };
-use guest_manager::{
-    guest_role_endpoints as guest_manager_guest_role_endpoints,
-    token_endpoints as guest_manager_token_endpoints,
-};
+use guest_manager::guest_role_endpoints as guest_manager_guest_role_endpoints;
 use myc_core::domain::actors::SystemActor;
 use subscriptions_manager::{
     account_endpoints as subscription_manager_account_endpoints,
@@ -43,7 +41,6 @@ use tenant_manager::{
     account_endpoints as tenant_manager_account_endpoints,
     tag_endpoints as tenant_manager_tag_endpoints,
     tenant_endpoints as tenant_manager_tenant_endpoints,
-    token_endpoints as tenant_manager_token_endpoints,
 };
 use tenant_owner::{
     account_endpoints as tenant_owner_account_endpoints,
@@ -72,27 +69,31 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             //
             .service(
                 web::scope(&format!("/{}", UrlGroup::Accounts))
-                    .configure(no_role_account_endpoints::configure),
+                    .configure(beginners_account_endpoints::configure),
             )
             .service(
                 web::scope(&format!("/{}", UrlGroup::Guests))
-                    .configure(no_role_guest_user_endpoints::configure),
+                    .configure(beginners_guest_user_endpoints::configure),
             )
             .service(
                 web::scope(&format!("/{}", UrlGroup::Meta))
-                    .configure(no_role_meta_endpoints::configure),
+                    .configure(beginners_meta_endpoints::configure),
             )
             .service(
                 web::scope(&format!("/{}", UrlGroup::Profile))
-                    .configure(no_role_profile_endpoints::configure),
+                    .configure(beginners_profile_endpoints::configure),
             )
             .service(
                 web::scope(&format!("/{}", UrlGroup::Tenants))
-                    .configure(no_role_tenant_endpoints::configure),
+                    .configure(beginners_tenant_endpoints::configure),
+            )
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Tokens))
+                    .configure(beginners_token_endpoints::configure),
             )
             .service(
                 web::scope(&format!("/{}", UrlGroup::Users))
-                    .configure(no_role_user_endpoints::configure),
+                    .configure(beginners_user_endpoints::configure),
             ),
         )
         //
@@ -153,10 +154,6 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             .service(
                 web::scope(&format!("/{}", UrlGroup::GuestRoles))
                     .configure(guest_manager_guest_role_endpoints::configure),
-            )
-            .service(
-                web::scope(&format!("/{}", UrlGroup::Tokens))
-                    .configure(guest_manager_token_endpoints::configure),
             ),
         )
         //
@@ -180,7 +177,6 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                 let req = insert_role_header(
                     req,
                     vec![
-                        SystemActor::TenantOwner,
                         SystemActor::TenantManager,
                         SystemActor::SubscriptionsManager,
                     ],
@@ -286,10 +282,8 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             // - TenantManager
             //
             .wrap_fn(|req, srv| {
-                let req = insert_role_header(
-                    req,
-                    vec![SystemActor::TenantOwner, SystemActor::TenantManager],
-                );
+                let req =
+                    insert_role_header(req, vec![SystemActor::TenantManager]);
                 srv.call(req)
             })
             //
@@ -306,10 +300,6 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             .service(
                 web::scope(&format!("/{}", UrlGroup::Tenants))
                     .configure(tenant_manager_tenant_endpoints::configure),
-            )
-            .service(
-                web::scope(&format!("/{}", UrlGroup::Tokens))
-                    .configure(tenant_manager_token_endpoints::configure),
             ),
         )
         //

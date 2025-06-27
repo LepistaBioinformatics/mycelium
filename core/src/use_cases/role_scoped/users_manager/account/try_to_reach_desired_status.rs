@@ -71,6 +71,13 @@ fn should_perform_state_transition(
             Some(VerboseStatus::Inactive),
         ]),
 
+        VerboseStatus::Deleted => allowed_statuses.extend(vec![
+            Some(VerboseStatus::Unverified),
+            Some(VerboseStatus::Verified),
+            Some(VerboseStatus::Inactive),
+            Some(VerboseStatus::Archived),
+        ]),
+
         VerboseStatus::Unknown => return false,
     };
 
@@ -118,13 +125,16 @@ mod tests {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            is_deleted: false,
             verbose_status: None,
             is_default: false,
             owners: Children::Records([user].to_vec()),
             account_type: AccountType::User,
             guest_users: None,
-            created: Local::now(),
-            updated: Some(Local::now()),
+            created_at: Local::now(),
+            created_by: None,
+            updated_at: Some(Local::now()),
+            updated_by: None,
             meta: None,
         };
 
@@ -132,12 +142,14 @@ mod tests {
             account.is_active,
             account.is_checked,
             account.is_archived,
+            account.is_deleted,
         ));
 
         for status in vec![
             VerboseStatus::Verified,
             VerboseStatus::Unverified,
             VerboseStatus::Archived,
+            VerboseStatus::Deleted,
         ] {
             let response = match try_to_reach_desired_status(
                 account.to_owned(),

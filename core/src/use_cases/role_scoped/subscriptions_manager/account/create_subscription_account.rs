@@ -2,8 +2,10 @@ use crate::{
     domain::{
         actors::SystemActor,
         dtos::{
-            account::Account, native_error_codes::NativeErrorCodes,
-            profile::Profile, webhook::WebHookTrigger,
+            account::{Account, Modifier},
+            native_error_codes::NativeErrorCodes,
+            profile::Profile,
+            webhook::{PayloadId, WebHookTrigger},
         },
         entities::{AccountRegistration, WebHookRegistration},
     },
@@ -14,6 +16,7 @@ use mycelium_base::{
     entities::CreateResponseKind,
     utils::errors::{use_case_err, MappedErrors},
 };
+use tracing::Instrument;
 use uuid::Uuid;
 
 /// Create an account flagged as subscription.
@@ -40,8 +43,8 @@ pub async fn create_subscription_account(
 
     let correspondence_id = Uuid::new_v4();
 
-    tracing::Span::current()
-        .record("correspondence_id", &Some(correspondence_id.to_string()));
+    let span = tracing::Span::current();
+    span.record("correspondence_id", &Some(correspondence_id.to_string()));
 
     tracing::trace!("Starting to create a subscription account");
 
@@ -49,16 +52,27 @@ pub async fn create_subscription_account(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    profile
+    let is_owner = profile.with_tenant_ownership_or_error(tenant_id).is_ok();
+
+    let has_access = profile
         .on_tenant(tenant_id)
         .with_system_accounts_access()
         .with_write_access()
         .with_roles(vec![
-            SystemActor::TenantOwner,
             SystemActor::TenantManager,
             SystemActor::SubscriptionsManager,
         ])
-        .get_ids_or_error()?;
+        .get_related_account_or_error()
+        .is_ok();
+
+    if ![is_owner, has_access].iter().any(|&x| x) {
+        return use_case_err(
+            "Insufficient privileges to create a subscription account",
+        )
+        .with_code(NativeErrorCodes::MYC00019)
+        .with_exp_true()
+        .as_error();
+    }
 
     // ? -----------------------------------------------------------------------
     // ? Register the account
@@ -66,8 +80,11 @@ pub async fn create_subscription_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
-    let mut unchecked_account =
-        Account::new_subscription_account(account_name, tenant_id);
+    let mut unchecked_account = Account::new_subscription_account(
+        account_name,
+        tenant_id,
+        Some(Modifier::new_from_account(profile.acc_id)),
+    );
 
     unchecked_account.is_checked = true;
 
@@ -89,12 +106,18 @@ pub async fn create_subscription_account(
 
     tracing::trace!("Dispatching side effects");
 
+    let account_id = account.id.ok_or_else(|| {
+        use_case_err("Account ID not found".to_string()).with_exp_true()
+    })?;
+
     register_webhook_dispatching_event(
         correspondence_id,
         WebHookTrigger::SubscriptionAccountCreated,
         account.to_owned(),
+        PayloadId::Uuid(account_id),
         webhook_registration_repo,
     )
+    .instrument(span)
     .await?;
 
     tracing::trace!("Side effects dispatched");

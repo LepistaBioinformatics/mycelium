@@ -12,20 +12,20 @@ pub enum WebHookTrigger {
     // ? -----------------------------------------------------------------------
     #[serde(rename = "subscriptionAccount.created")]
     SubscriptionAccountCreated,
-    //#[serde(rename = "subscriptionAccount.updated")]
-    //SubscriptionAccountUpdated,
-    //#[serde(rename = "subscriptionAccount.deleted")]
-    //SubscriptionAccountDeleted,
+    #[serde(rename = "subscriptionAccount.updated")]
+    SubscriptionAccountUpdated,
+    #[serde(rename = "subscriptionAccount.deleted")]
+    SubscriptionAccountDeleted,
 
     // ? -----------------------------------------------------------------------
     // ? Default user account related actions
     // ? -----------------------------------------------------------------------
     #[serde(rename = "userAccount.created")]
     UserAccountCreated,
-    //#[serde(rename = "userAccount.updated")]
-    //UserAccountUpdated,
-    //#[serde(rename = "userAccount.deleted")]
-    //UserAccountDeleted,
+    #[serde(rename = "userAccount.updated")]
+    UserAccountUpdated,
+    #[serde(rename = "userAccount.deleted")]
+    UserAccountDeleted,
 }
 
 impl Display for WebHookTrigger {
@@ -34,15 +34,15 @@ impl Display for WebHookTrigger {
             Self::SubscriptionAccountCreated => {
                 write!(f, "subscriptionAccount.created")
             }
-            //Self::SubscriptionAccountUpdated => {
-            //    write!(f, "subscriptionAccount.updated")
-            //}
-            //Self::SubscriptionAccountDeleted => {
-            //    write!(f, "subscriptionAccount.deleted")
-            //}
+            Self::SubscriptionAccountUpdated => {
+                write!(f, "subscriptionAccount.updated")
+            }
+            Self::SubscriptionAccountDeleted => {
+                write!(f, "subscriptionAccount.deleted")
+            }
             Self::UserAccountCreated => write!(f, "userAccount.created"),
-            //Self::UserAccountUpdated => write!(f, "userAccount.updated"),
-            //Self::UserAccountDeleted => write!(f, "userAccount.deleted"),
+            Self::UserAccountUpdated => write!(f, "userAccount.updated"),
+            Self::UserAccountDeleted => write!(f, "userAccount.deleted"),
         }
     }
 }
@@ -55,15 +55,15 @@ impl FromStr for WebHookTrigger {
             "subscriptionAccount.created" => {
                 Ok(Self::SubscriptionAccountCreated)
             }
-            //"subscriptionAccount.updated" => {
-            //    Ok(Self::SubscriptionAccountUpdated)
-            //}
-            //"subscriptionAccount.deleted" => {
-            //    Ok(Self::SubscriptionAccountDeleted)
-            //}
+            "subscriptionAccount.updated" => {
+                Ok(Self::SubscriptionAccountUpdated)
+            }
+            "subscriptionAccount.deleted" => {
+                Ok(Self::SubscriptionAccountDeleted)
+            }
             "userAccount.created" => Ok(Self::UserAccountCreated),
-            //"userAccount.updated" => Ok(Self::UserAccountUpdated),
-            //"userAccount.deleted" => Ok(Self::UserAccountDeleted),
+            "userAccount.updated" => Ok(Self::UserAccountUpdated),
+            "userAccount.deleted" => Ok(Self::UserAccountDeleted),
             _ => Err(format!("Unknown webhook trigger: {}", s)),
         }
     }

@@ -23,6 +23,44 @@ pub type AccountMeta = HashMap<AccountMetaKey, String>;
     Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema, ToResponse,
 )]
 #[serde(rename_all = "camelCase")]
+pub enum IDSource {
+    /// The ID source is the user ID
+    User,
+
+    /// The ID source is the system actor
+    Account,
+}
+
+#[derive(
+    Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema, ToResponse,
+)]
+#[serde(rename_all = "camelCase")]
+pub struct Modifier {
+    /// The ID of the user who created the account
+    pub id: Uuid,
+
+    /// The ID source
+    pub from: IDSource,
+}
+
+impl Modifier {
+    fn new(id: Uuid, from: IDSource) -> Self {
+        Self { id, from }
+    }
+
+    pub fn new_from_user(id: Uuid) -> Self {
+        Self::new(id, IDSource::User)
+    }
+
+    pub fn new_from_account(id: Uuid) -> Self {
+        Self::new(id, IDSource::Account)
+    }
+}
+
+#[derive(
+    Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema, ToResponse,
+)]
+#[serde(rename_all = "camelCase")]
 pub struct Account {
     /// The Account ID
     pub id: Option<Uuid>,
@@ -65,6 +103,13 @@ pub struct Account {
     ///
     pub is_archived: bool,
 
+    /// Account is deleted
+    ///
+    /// If the account is deleted. This is used for logic trash and restore
+    /// account.
+    ///
+    pub is_deleted: bool,
+
     /// Verbose status
     ///
     /// Is the human readable status of the account.
@@ -98,11 +143,26 @@ pub struct Account {
     pub guest_users: Option<Children<GuestUser, Uuid>>,
 
     /// The Account Created Date
-    pub created: DateTime<Local>,
+    #[serde(alias = "created")]
+    pub created_at: DateTime<Local>,
+
+    /// The Account Created By
+    ///
+    /// The ID of the account that created the account. This is used for
+    /// auditing purposes.
+    ///
+    pub created_by: Option<Modifier>,
 
     /// The Account Updated Date
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub updated: Option<DateTime<Local>>,
+    #[serde(alias = "updated", skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<DateTime<Local>>,
+
+    /// The Account Updated By
+    ///
+    /// The ID of the account that updated the account. This is used for
+    /// auditing purposes.
+    ///
+    pub updated_by: Option<Modifier>,
 
     /// The Account Meta
     ///
@@ -122,13 +182,16 @@ impl Default for Account {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            is_deleted: false,
             verbose_status: None,
             is_default: false,
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::User,
             guest_users: None,
-            created: Local::now(),
-            updated: None,
+            created_at: Local::now(),
+            created_by: None,
+            updated_at: None,
+            updated_by: None,
             meta: None,
         }
     }
@@ -141,6 +204,7 @@ impl Account {
     pub fn new_subscription_account(
         account_name: String,
         tenant_id: Uuid,
+        created_by: Option<Modifier>,
     ) -> Self {
         Self {
             id: None,
@@ -150,13 +214,16 @@ impl Account {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            is_deleted: false,
             verbose_status: None,
             is_default: false,
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::Subscription { tenant_id },
             guest_users: None,
-            created: Local::now(),
-            updated: None,
+            created_at: Local::now(),
+            created_by,
+            updated_at: None,
+            updated_by: None,
             meta: None,
         }
     }
@@ -167,6 +234,7 @@ impl Account {
         role_id: Uuid,
         role_name: T,
         is_default: bool,
+        created_by: Option<Modifier>,
     ) -> Self {
         Self {
             id: None,
@@ -176,6 +244,7 @@ impl Account {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            is_deleted: false,
             verbose_status: None,
             is_default,
             owners: Children::Ids([].to_vec()),
@@ -185,8 +254,10 @@ impl Account {
                 role_name: role_name.to_string(),
             },
             guest_users: None,
-            created: Local::now(),
-            updated: None,
+            created_at: Local::now(),
+            created_by,
+            updated_at: None,
+            updated_by: None,
             meta: None,
         }
     }
@@ -195,6 +266,7 @@ impl Account {
         name: String,
         actor: SystemActor,
         is_default: bool,
+        created_by: Option<Modifier>,
     ) -> Self {
         Self {
             id: None,
@@ -204,13 +276,16 @@ impl Account {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            is_deleted: false,
             verbose_status: None,
             is_default,
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::ActorAssociated { actor },
             guest_users: None,
-            created: Local::now(),
-            updated: None,
+            created_at: Local::now(),
+            created_by,
+            updated_at: None,
+            updated_by: None,
             meta: None,
         }
     }
@@ -218,6 +293,7 @@ impl Account {
     pub fn new_tenant_management_account(
         account_name: String,
         tenant_id: Uuid,
+        created_by: Option<Modifier>,
     ) -> Self {
         Self {
             id: None,
@@ -227,13 +303,16 @@ impl Account {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            is_deleted: false,
             verbose_status: None,
             is_default: false,
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::TenantManager { tenant_id },
             guest_users: None,
-            created: Local::now(),
-            updated: None,
+            created_at: Local::now(),
+            created_by,
+            updated_at: None,
+            updated_by: None,
             meta: None,
         }
     }
@@ -247,6 +326,7 @@ impl Account {
         account_name: String,
         principal_owner: User,
         account_type: AccountType,
+        created_by: Option<Modifier>,
     ) -> Self {
         Self {
             id: None,
@@ -256,13 +336,16 @@ impl Account {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            is_deleted: false,
             verbose_status: None,
             is_default: false,
             owners: Children::Records([principal_owner].to_vec()),
             account_type,
             guest_users: None,
-            created: Local::now(),
-            updated: None,
+            created_at: Local::now(),
+            created_by,
+            updated_at: None,
+            updated_by: None,
             meta: None,
         }
     }
@@ -290,13 +373,16 @@ mod tests {
             is_active: true,
             is_checked: false,
             is_archived: false,
+            is_deleted: false,
             verbose_status: None,
             is_default: false,
             owners: Children::Records([].to_vec()),
             account_type: AccountType::User,
             guest_users: None,
-            created: Local::now(),
-            updated: Some(Local::now()),
+            created_at: Local::now(),
+            created_by: None,
+            updated_at: Some(Local::now()),
+            updated_by: None,
             meta: None,
         };
 
@@ -318,31 +404,36 @@ mod tests {
     #[test]
     fn test_if_verbose_status_works() {
         [
-            ((false, true, true), VerboseStatus::Inactive),
-            ((false, false, true), VerboseStatus::Inactive),
-            ((false, true, false), VerboseStatus::Inactive),
-            ((false, false, false), VerboseStatus::Inactive),
-            ((true, false, false), VerboseStatus::Unverified),
-            ((true, false, true), VerboseStatus::Unverified),
-            ((true, true, true), VerboseStatus::Archived),
-            ((true, true, false), VerboseStatus::Verified),
+            ((false, true, true, false), VerboseStatus::Inactive),
+            ((false, false, true, false), VerboseStatus::Inactive),
+            ((false, true, false, false), VerboseStatus::Inactive),
+            ((false, false, false, false), VerboseStatus::Inactive),
+            ((true, false, false, false), VerboseStatus::Unverified),
+            ((true, false, true, false), VerboseStatus::Unverified),
+            ((true, true, true, false), VerboseStatus::Archived),
+            ((true, true, false, false), VerboseStatus::Verified),
+            ((true, true, true, true), VerboseStatus::Deleted),
             // Unknown responses should not be returned over all above
             // combinations. Them, all will be tested.
-            ((false, true, true), VerboseStatus::Unknown),
-            ((false, false, true), VerboseStatus::Unknown),
-            ((false, true, false), VerboseStatus::Unknown),
-            ((false, false, false), VerboseStatus::Unknown),
-            ((true, false, false), VerboseStatus::Unknown),
-            ((true, false, true), VerboseStatus::Unknown),
-            ((true, true, true), VerboseStatus::Unknown),
-            ((true, true, false), VerboseStatus::Unknown),
+            ((false, true, true, false), VerboseStatus::Unknown),
+            ((false, false, true, false), VerboseStatus::Unknown),
+            ((false, true, false, false), VerboseStatus::Unknown),
+            ((false, false, false, false), VerboseStatus::Unknown),
+            ((true, false, false, false), VerboseStatus::Unknown),
+            ((true, false, true, false), VerboseStatus::Unknown),
+            ((true, true, true, false), VerboseStatus::Unknown),
+            ((true, true, false, false), VerboseStatus::Unknown),
         ]
         .into_iter()
         .for_each(|(flags, expected_value)| {
-            let (is_active, is_checked, is_archived) = flags;
+            let (is_active, is_checked, is_archived, is_deleted) = flags;
 
-            let status =
-                VerboseStatus::from_flags(is_active, is_checked, is_archived);
+            let status = VerboseStatus::from_flags(
+                is_active,
+                is_checked,
+                is_archived,
+                is_deleted,
+            );
 
             // Unknown could not be returned from `from_flags` method
             if let VerboseStatus::Unknown = expected_value {
@@ -359,7 +450,8 @@ mod tests {
                         VerboseStatus::from_flags(
                             flags_response.is_active.unwrap(),
                             flags_response.is_checked.unwrap_or(is_checked),
-                            flags_response.is_archived.unwrap_or(is_archived)
+                            flags_response.is_archived.unwrap_or(is_archived),
+                            flags_response.is_deleted.unwrap_or(is_deleted)
                         ),
                         expected_value
                     );
@@ -369,7 +461,8 @@ mod tests {
                         VerboseStatus::from_flags(
                             flags_response.is_active.unwrap(),
                             flags_response.is_checked.unwrap(),
-                            flags_response.is_archived.unwrap_or(is_archived)
+                            flags_response.is_archived.unwrap_or(is_archived),
+                            flags_response.is_deleted.unwrap_or(is_deleted)
                         ),
                         expected_value
                     );
@@ -379,7 +472,8 @@ mod tests {
                         VerboseStatus::from_flags(
                             flags_response.is_active.unwrap(),
                             flags_response.is_checked.unwrap(),
-                            flags_response.is_archived.unwrap()
+                            flags_response.is_archived.unwrap(),
+                            flags_response.is_deleted.unwrap_or(is_deleted)
                         ),
                         expected_value
                     );
@@ -389,7 +483,19 @@ mod tests {
                         VerboseStatus::from_flags(
                             flags_response.is_active.unwrap(),
                             flags_response.is_checked.unwrap(),
-                            flags_response.is_archived.unwrap()
+                            flags_response.is_archived.unwrap(),
+                            flags_response.is_deleted.unwrap_or(is_deleted)
+                        ),
+                        expected_value
+                    );
+                }
+                VerboseStatus::Deleted => {
+                    assert_eq!(
+                        VerboseStatus::from_flags(
+                            flags_response.is_active.unwrap(),
+                            flags_response.is_checked.unwrap(),
+                            flags_response.is_archived.unwrap(),
+                            flags_response.is_deleted.unwrap(),
                         ),
                         expected_value
                     );

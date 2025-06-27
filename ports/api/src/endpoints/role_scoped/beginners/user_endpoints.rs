@@ -11,15 +11,14 @@ use chrono::Duration;
 use myc_core::{
     domain::{
         actors::SystemActor,
-        dtos::user::{Provider, Totp, User},
+        dtos::user::{Totp, User},
     },
     models::AccountLifeCycle,
     use_cases::role_scoped::beginner::user::{
-        check_email_password_validity, check_email_registration_status,
-        check_token_and_activate_user, check_token_and_reset_password,
-        create_default_user, start_password_redefinition, totp_check_token,
-        totp_disable, totp_finish_activation, totp_start_activation,
-        EmailRegistrationStatus,
+        check_email_password_validity, check_token_and_activate_user,
+        check_token_and_reset_password, create_default_user,
+        start_password_redefinition, totp_check_token, totp_disable,
+        totp_finish_activation, totp_start_activation,
     },
 };
 use myc_diesel::repositories::SqlAppModule;
@@ -32,7 +31,7 @@ use reqwest::StatusCode;
 use serde::{Deserialize, Serialize, Serializer};
 use serde_json::json;
 use shaku::HasComponent;
-use tracing::{error, warn};
+use tracing::warn;
 use utoipa::{IntoParams, ToResponse, ToSchema};
 
 // ? ---------------------------------------------------------------------------
@@ -56,12 +55,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
 // ? ---------------------------------------------------------------------------
 // ? Define API structs
 // ? ---------------------------------------------------------------------------
-
-#[derive(Deserialize, ToSchema)]
-#[serde(rename_all = "camelCase")]
-pub struct CheckEmailStatusQuery {
-    email: String,
-}
 
 #[derive(Serialize, Deserialize, ToResponse, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -162,120 +155,27 @@ pub struct CheckUserCredentialsBody {
 //
 // ? ---------------------------------------------------------------------------
 
-/// Check email status
+/// DEPRECATED: Check email status
 ///
-/// Check if the email is already registered.
+/// This endpoint is deprecated. Please use the /status endpoint instead.
+///
 ///
 #[utoipa::path(
     get,
-    params(
-        (
-            "email" = String,
-            Query,
-            description = "The email to be checked.",
-        )
-    ),
     responses(
         (
-            status = 500,
-            description = "Unknown internal server error.",
+            status = 410,
+            description = "This endpoint is deprecated. Please use the /status endpoint instead.",
             body = HttpJsonResponse,
-        ),
-        (
-            status = 403,
-            description = "Forbidden.",
-            body = HttpJsonResponse,
-        ),
-        (
-            status = 401,
-            description = "Unauthorized.",
-            body = HttpJsonResponse,
-        ),
-        (
-            status = 400,
-            description = "Bad request.",
-            body = HttpJsonResponse,
-        ),
-        (
-            status = 200,
-            description = "Success.",
-            body = CheckEmailStatusResponse,
         ),
     ),
     security(()),
 )]
 #[get("/status")]
-pub async fn check_email_registration_status_url(
-    query: web::Query<CheckEmailStatusQuery>,
-    app_module: web::Data<SqlAppModule>,
-) -> impl Responder {
-    let email_instance = match Email::from_string(query.email.to_owned()) {
-        Err(err) => {
-            warn!("Invalid email: {err}");
-            return HttpResponse::BadRequest().json(
-                HttpJsonResponse::new_message(
-                    "Invalid email address.".to_string(),
-                ),
-            );
-        }
-        Ok(email) => email,
-    };
-
-    match check_email_registration_status(
-        email_instance,
-        Box::new(&*app_module.resolve_ref()),
-    )
-    .await
-    {
-        Ok(res) => {
-            let (status, provider, has_account) = match res.to_owned() {
-                EmailRegistrationStatus::NotRegistered(_) => {
-                    ("NotRegistered".to_string(), None, false)
-                }
-                EmailRegistrationStatus::WaitingActivation(_) => {
-                    ("WaitingForActivation".to_string(), None, false)
-                }
-                EmailRegistrationStatus::RegisteredWithInternalProvider(
-                    registered,
-                ) => (
-                    "RegisteredWithInternalProvider".to_string(),
-                    Some("INTERNAL".to_string()),
-                    registered.account_created,
-                ),
-                EmailRegistrationStatus::RegisteredWithExternalProvider(
-                    external,
-                ) => {
-                    let provider = match external.provider {
-                        Some(provider) => match provider {
-                            Provider::External(provider) => {
-                                Some(provider.to_string())
-                            }
-                            _ => None,
-                        },
-                        None => None,
-                    };
-
-                    (
-                        "RegisteredWithExternalProvider".to_string(),
-                        provider,
-                        external.account_created,
-                    )
-                }
-            };
-
-            HttpResponse::Ok().json(CheckEmailStatusResponse {
-                email: query.email.to_owned(),
-                status,
-                provider,
-                has_account,
-            })
-        }
-        Err(err) => {
-            error!("Error checking email registration status: {err}");
-
-            handle_mapped_error(err)
-        }
-    }
+pub async fn check_email_registration_status_url() -> impl Responder {
+    HttpResponse::Gone().json(HttpJsonResponse::new_message(
+        "This endpoint is deprecated. Please use the /status endpoint instead.",
+    ))
 }
 
 /// Register user
@@ -356,7 +256,8 @@ pub async fn create_default_user_url(
     )
     .await
     {
-        Ok(res) => HttpResponse::Created().json(json!({"id": res})),
+        Ok(_) => HttpResponse::Created()
+            .json(json!({"message": "User created successfully"})),
         Err(err) => handle_mapped_error(err),
     }
 }

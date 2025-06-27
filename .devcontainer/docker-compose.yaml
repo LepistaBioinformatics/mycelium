@@ -34,6 +34,33 @@ services:
     <<: *common-config
     container_name: myc-jaeger-devcontainer
 
+  myc-prometheus-devcontainer:
+    extends:
+      file: ../docker-compose.common.yaml
+      service: myc-prometheus
+
+    <<: *common-config
+    container_name: myc-prometheus-devcontainer
+
+  myc-grafana-devcontainer:
+    extends:
+      file: ../docker-compose.common.yaml
+      service: myc-grafana
+
+    <<: *common-config
+    container_name: myc-grafana-devcontainer
+
+  myc-otel-collector-devcontainer:
+    extends:
+      file: ../docker-compose.common.yaml
+      service: myc-otel-collector
+
+    networks: *common-networks
+    container_name: myc-otel-collector-devcontainer
+    depends_on:
+      - myc-jaeger-devcontainer
+      - myc-prometheus-devcontainer
+
   myc-redis-devcontainer:
     extends:
       file: ../docker-compose.common.yaml
@@ -48,7 +75,29 @@ services:
       service: myc-vault
 
     networks: *common-networks
+
+    build:
+      context: ./vault
+      dockerfile: Dockerfile
+      args:
+        UID: 1001
+        GID: 1001
+
+    volumes:
+      - ./vault/logs:/vault/logs/:rw
+      - ./vault/data:/vault/data/:rw
+      - ./vault/config:/vault/config/:rw
+      - ./vault/file:/vault/file/:rw
+
     container_name: myc-vault-devcontainer
+
+  myc-test-service-devcontainer:
+    extends:
+      file: ../docker-compose.common.yaml
+      service: myc-test-service
+
+    <<: *common-config
+    container_name: myc-test-service-devcontainer
 
   myc-devcontainer:
     # Inject all shared configs
@@ -60,6 +109,8 @@ services:
       - MYC_VAULT_TOKEN=${MYC_VAULT_TOKEN}
     volumes:
       - ../..:/workspaces:cached
+    ports:
+      - 8080:8080
 
     depends_on:
       - myc-postgres-devcontainer

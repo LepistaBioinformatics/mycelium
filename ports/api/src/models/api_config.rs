@@ -35,7 +35,7 @@ pub enum LoggingTarget {
     File {
         path: String,
     },
-    Jaeger {
+    Collector {
         name: String,
         protocol: Protocol,
         host: String,
@@ -89,9 +89,12 @@ pub struct ApiConfig {
     pub service_workers: i32,
     pub gateway_timeout: u64,
     pub logging: LoggingConfig,
-    pub routes: String,
+    pub routes: Option<String>,
     pub tls: OptionalConfig<TlsConfig>,
     pub cache: Option<CacheConfig>,
+    pub health_check_interval: Option<u64>,
+    pub max_retry_count: Option<u32>,
+    pub max_error_instances: Option<u32>,
 }
 
 #[derive(Clone, Debug, Deserialize)]

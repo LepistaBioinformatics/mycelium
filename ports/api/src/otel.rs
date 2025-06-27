@@ -94,7 +94,7 @@ pub(super) fn initialize_otel(
         _ => tracing_appender::non_blocking(std::io::stderr()),
     };
 
-    if let Some(LoggingTarget::Jaeger {
+    if let Some(LoggingTarget::Collector {
         name,
         protocol,
         host,
@@ -102,17 +102,18 @@ pub(super) fn initialize_otel(
     }) = config.target
     {
         //
-        // Jaeger logging configurations
+        // OpenTelemetry collector configurations
         //
         std::env::set_var("OTEL_SERVICE_NAME", name.to_owned());
         let headers = parse_otlp_headers_from_env();
         let tracer = opentelemetry_otlp::new_pipeline().tracing();
+        let address = format!("{}://{}:{}/v1/logs", protocol, host, port);
 
         let tracer = (match protocol {
             Protocol::Grpc => {
                 let exporter = opentelemetry_otlp::new_exporter()
                     .tonic()
-                    .with_endpoint(format!("{}://{}:{}", protocol, host, port))
+                    .with_endpoint(address)
                     .with_metadata(metadata_from_headers(headers));
 
                 tracer.with_exporter(exporter)
@@ -120,10 +121,7 @@ pub(super) fn initialize_otel(
             _ => {
                 let exporter = opentelemetry_otlp::new_exporter()
                     .http()
-                    .with_endpoint(format!(
-                        "{}://{}:{}/v1/logs",
-                        protocol, host, port
-                    ))
+                    .with_endpoint(address)
                     .with_headers(headers.into_iter().collect());
 
                 tracer.with_exporter(exporter)

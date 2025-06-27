@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::domain::dtos::{
-    guest_role::Permission, route_type::PermissionedRoles,
+    guest_role::Permission, security_group::PermissionedRoles,
 };
 
 use chrono::{DateTime, Local, Timelike};
@@ -11,6 +11,7 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ConnectionStringBean {
+    /// The signature
     SIG(String),
 
     /// The expiration date time
@@ -108,7 +109,7 @@ impl TryFrom<String> for ConnectionStringBean {
                         .with_nanosecond(0)
                         .expect("Invalid datetime"),
                     Err(err) => {
-                        eprintln!("Error parsing datetime: {}", err);
+                        tracing::error!("Error parsing datetime: {}", err);
                         return Err(());
                     }
                 };
@@ -165,7 +166,7 @@ impl TryFrom<String> for ConnectionStringBean {
 mod tests {
     use super::*;
     use crate::domain::dtos::guest_role::Permission;
-    use crate::domain::dtos::route_type::PermissionedRoles;
+    use crate::domain::dtos::security_group::PermissionedRoles;
 
     #[test]
     fn test_to_string() {

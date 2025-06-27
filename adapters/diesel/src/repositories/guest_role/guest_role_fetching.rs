@@ -78,6 +78,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
     async fn list(
         &self,
         name: Option<String>,
+        slug: Option<String>,
         system: Option<bool>,
         page_size: Option<i32>,
         skip: Option<i32>,
@@ -96,6 +97,13 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
         // Apply name filter if provided
         if let Some(name) = name {
             let stm = guest_role_model::name.ilike(format!("%{}%", name));
+            query_records = query_records.filter(stm.to_owned());
+            query_count = query_count.filter(stm);
+        }
+
+        // Apply slug filter if provided
+        if let Some(slug) = slug {
+            let stm = guest_role_model::slug.ilike(format!("%{}%", slug));
             query_records = query_records.filter(stm.to_owned());
             query_count = query_count.filter(stm);
         }

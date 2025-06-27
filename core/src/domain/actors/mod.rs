@@ -56,6 +56,45 @@ pub enum SystemActor {
     /// Tenant owner
     ///
     /// This actor is responsible for managing tenant metadata, tags, and owner.
+    ///
+    /// WARNING: This is not a role in the system. Don't use to filter licensed
+    /// resource scopes during the profile checking.
+    ///
+    /// ❌ Wrong example:
+    ///
+    /// ```rust
+    /// let related_accounts = profile
+    ///     .on_tenant(tenant_id)
+    ///     .with_system_accounts_access()
+    ///     .with_write_access()
+    ///     .with_roles(vec![
+    ///         SystemActor::TenantOwner,
+    ///         SystemActor::TenantManager,
+    ///         SystemActor::SubscriptionsManager,
+    ///     ])
+    ///     .get_related_accounts_or_error()?;
+    /// ```
+    ///
+    /// This way should check if the profile has access to the tenant as a guest
+    /// role. However, tenant owner should be guest as a ownership not as a
+    /// licensed resource.
+    ///
+    /// ✅ Right example:
+    ///
+    /// ```rust
+    /// let related_accounts = profile
+    ///     .on_tenant(tenant_id)
+    ///     .with_system_accounts_access()
+    ///     .with_write_access()
+    ///     .with_roles(vec![
+    ///         SystemActor::TenantManager,
+    ///         SystemActor::SubscriptionsManager,
+    ///     ])
+    ///     .get_related_accounts_or_tenant_or_error(tenant_id)?;
+    /// ```
+    ///
+    /// This way should check if the profile has ownership over the tenant.
+    ///
     TenantOwner,
 
     /// Tenant manager

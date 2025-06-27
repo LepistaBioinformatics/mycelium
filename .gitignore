@@ -11,10 +11,10 @@ dist
 .env
 cert.pem
 key.pem
-config.dev.yaml
+config.dev*.yaml
 
 # Other
-*.drawio.bkp
+*.drawio.bkp*
 
 # Logging
 logs/*

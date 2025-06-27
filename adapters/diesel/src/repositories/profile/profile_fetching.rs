@@ -5,10 +5,10 @@ use crate::{
     },
     schema::{account as account_model, user as user_model},
 };
-use diesel::prelude::*;
-use myc_core::domain::dtos::account_type::AccountType;
 
 use async_trait::async_trait;
+use diesel::prelude::*;
+use myc_core::domain::dtos::account_type::AccountType;
 use myc_core::domain::{
     dtos::{
         account::VerboseStatus,
@@ -51,7 +51,11 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                 .inner_join(account_model::table.on(
                     account_model::id.nullable().eq(user_model::account_id),
                 ))
-                .filter(user_model::email.eq(email.email()))
+                .filter(
+                    user_model::email
+                        .eq(email.email())
+                        .and(account_model::is_deleted.eq(false)),
+                )
                 .select((AccountModel::as_select(), UserModel::as_select()))
                 .first::<(AccountModel, UserModel)>(conn)
                 .optional()
@@ -101,10 +105,12 @@ impl ProfileFetching for ProfileFetchingSqlDbRepository {
                     account.is_active,
                     account.is_checked,
                     account.is_archived,
+                    account.is_deleted,
                     Some(VerboseStatus::from_flags(
                         account.is_active,
                         account.is_checked,
                         account.is_archived,
+                        account.is_deleted,
                     )),
                     None,
                     None,

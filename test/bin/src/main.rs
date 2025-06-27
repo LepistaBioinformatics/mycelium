@@ -1,79 +1,85 @@
-use actix_web::{
-    get, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder,
+mod api_docs;
+mod endpoints;
+
+use crate::{
+    api_docs::ApiDoc,
+    endpoints::{
+        account_created_webhook, account_deleted_webhook,
+        account_updated_webhook, expects_headers, health, protected,
+        protected_by_role, protected_by_role_with_permission,
+        protected_by_service_token_with_scope, public,
+        test_authorization_header, test_query_parameter_token,
+    },
 };
-use myc_http_tools::dtos::gateway_profile_data::GatewayProfileData;
-use serde::Deserialize;
+
+use actix_web::{App, HttpServer};
 use std::env::var_os;
-
-// ? ---------------------------------------------------------------------------
-// ? Public Route
-// ? ---------------------------------------------------------------------------
-
-#[get("")]
-async fn public() -> impl Responder {
-    HttpResponse::Ok().body("success")
-}
-
-// ? ---------------------------------------------------------------------------
-// ? Protected Route
-// ? ---------------------------------------------------------------------------
-
-#[get("")]
-async fn protected(profile: GatewayProfileData) -> impl Responder {
-    println!("{:?}", profile);
-
-    HttpResponse::Ok().body("success")
-}
-
-// ? ---------------------------------------------------------------------------
-// ? Expects Header Route
-// ? ---------------------------------------------------------------------------
-
-#[get("")]
-async fn expects_header(req: HttpRequest) -> impl Responder {
-    println!("Headers: {:?}", req.headers());
-
-    HttpResponse::Ok().body("success")
-}
-
-// ? ---------------------------------------------------------------------------
-// ? Webhook Route
-// ? ---------------------------------------------------------------------------
-
-#[derive(Debug, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct WebHookBody {
-    pub id: String,
-    pub name: String,
-    pub created: String,
-}
-
-#[post("")]
-async fn webhook(body: web::Json<WebHookBody>) -> impl Responder {
-    println!("{:?}", body);
-
-    HttpResponse::Ok().body("success")
-}
+use tracing_actix_web::TracingLogger;
+use utoipa::OpenApi;
+use utoipa_redoc::{FileConfig, Redoc, Servable};
+use utoipa_swagger_ui::SwaggerUi;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    //
+    // Configure utoipa redoc config file
+    //
+    if let Err(err) = std::env::var("UTOIPA_REDOC_CONFIG_FILE") {
+        tracing::trace!("Error on get env `UTOIPA_REDOC_CONFIG_FILE`: {err}");
+        tracing::info!("Env variable `UTOIPA_REDOC_CONFIG_FILE` not set. Setting default value");
+
+        std::env::set_var(
+            "UTOIPA_REDOC_CONFIG_FILE",
+            "ports/api/src/api_docs/redoc.config.json",
+        );
+    }
+
+    //
+    // Configure service
+    //
     let address = (
-        "127.0.0.1",
+        "0.0.0.0",
         match var_os("SERVICE_PORT") {
             Some(path) => path.into_string().unwrap().parse::<u16>().unwrap(),
             None => 8080,
         },
     );
 
+    //
+    // Configure tracing
+    //
+    tracing_subscriber::fmt::init();
+
+    //
+    // Fire up the server
+    //
     HttpServer::new(|| {
         App::new()
-            .service(web::scope("/public").service(public))
-            .service(web::scope("/protected").service(protected))
-            .service(web::scope("/role-protected").service(expects_header))
-            .service(web::scope("/webhook").service(webhook))
-            .service(web::scope("/expects-header").service(expects_header))
+            .wrap(TracingLogger::default())
+            .service(Redoc::with_url_and_config(
+                "/doc/redoc",
+                ApiDoc::openapi(),
+                FileConfig,
+            ))
+            .service(
+                SwaggerUi::new("/doc/swagger/{_:.*}")
+                    .url("/doc/openapi.json", ApiDoc::openapi()),
+            )
+            .service(health)
+            .service(public)
+            .service(protected)
+            .service(protected_by_role)
+            .service(protected_by_role_with_permission)
+            .service(protected_by_service_token_with_scope)
+            .service(account_created_webhook)
+            .service(account_updated_webhook)
+            .service(account_deleted_webhook)
+            .service(expects_headers)
+            .service(test_query_parameter_token)
+            .service(test_authorization_header)
     })
     .bind(address)?
+    .workers(1)
     .run()
     .await
 }

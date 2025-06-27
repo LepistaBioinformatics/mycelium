@@ -25,8 +25,7 @@
 --------------------------------------------------------------------------------
 
 SELECT 'CREATE DATABASE "' || :'db_name' || '"'
-
-                            WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = :'db_name')\gexec
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = :'db_name')\gexec
 
 \c :"db_name"
 
@@ -72,10 +71,13 @@ CREATE TABLE account (
     meta JSONB,
     account_type JSONB DEFAULT '{}'::JSONB,
     created TIMESTAMPTZ DEFAULT now(),
+    created_by JSONB DEFAULT '{}'::JSONB,
     updated TIMESTAMPTZ DEFAULT NULL,
+    updated_by JSONB DEFAULT '{}'::JSONB,
     is_active BOOLEAN DEFAULT TRUE,
     is_checked BOOLEAN DEFAULT FALSE,
     is_archived BOOLEAN DEFAULT FALSE,
+    is_deleted BOOLEAN DEFAULT FALSE,
     is_default BOOLEAN DEFAULT FALSE,
     tenant_id UUID DEFAULT NULL
 );
@@ -203,6 +205,7 @@ CREATE TABLE webhook_execution (
     id UUID DEFAULT gen_random_uuid(),
     trigger VARCHAR(255) NOT NULL,
     payload TEXT NOT NULL,
+    payload_id VARCHAR(255) NOT NULL,
     encrypted BOOLEAN DEFAULT FALSE,
     attempts INT DEFAULT 0,
     created TIMESTAMPTZ DEFAULT now(),
@@ -245,7 +248,7 @@ ALTER TABLE account ADD CONSTRAINT fk_account_tenant FOREIGN KEY (tenant_id) REF
 
 -- Account tag table constraints
 ALTER TABLE account_tag ADD CONSTRAINT account_tag_pk PRIMARY KEY (id);
-ALTER TABLE account_tag ADD CONSTRAINT unique_account_tag UNIQUE (value, account_id, meta);
+ALTER TABLE account_tag ADD CONSTRAINT unique_account_tag UNIQUE (value, account_id);
 ALTER TABLE account_tag ADD CONSTRAINT fk_account_tag FOREIGN KEY (account_id) REFERENCES account(id) ON DELETE CASCADE;
 
 -- Public user table constraints
@@ -275,7 +278,7 @@ ALTER TABLE manager_account_on_tenant ADD CONSTRAINT fk_account_manager FOREIGN 
 
 -- Tenant tag table constraints
 ALTER TABLE tenant_tag ADD CONSTRAINT tenant_tag_pk PRIMARY KEY (id);
-ALTER TABLE tenant_tag ADD CONSTRAINT unique_tenant_tag UNIQUE (value, tenant_id, meta);
+ALTER TABLE tenant_tag ADD CONSTRAINT unique_tenant_tag UNIQUE (value, tenant_id);
 ALTER TABLE tenant_tag ADD CONSTRAINT fk_tenant_tag FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE;
 
 -- Guest role table constraints
@@ -341,6 +344,8 @@ JOIN
 	account AS ac
 ON
 	ac.id = ga.account_id
+WHERE
+	ac.is_deleted = FALSE
 ORDER BY
     gu_email, gr_slug, acc_id, gr_id;
 

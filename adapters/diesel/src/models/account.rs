@@ -14,11 +14,14 @@ pub(crate) struct Account {
     pub meta: Option<JsonValue>,
     pub account_type: JsonValue,
     pub created: NaiveDateTime,
+    pub created_by: Option<JsonValue>,
     pub updated: Option<NaiveDateTime>,
+    pub updated_by: Option<JsonValue>,
     pub is_active: bool,
     pub is_checked: bool,
     pub is_archived: bool,
     pub is_default: bool,
+    pub is_deleted: bool,
     #[diesel(sql_type = Option<diesel::sql_types::Uuid>)]
     pub tenant_id: Option<Uuid>,
 }

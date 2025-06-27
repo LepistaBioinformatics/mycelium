@@ -18,16 +18,16 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "7.7.6", path = "../../core" }
-mycelium-base = { version = "7.7.6", path = "../../base" }
-mycelium-config = { version = "7.7.6", path = "../../config" }
-mycelium-http-tools = { version = "7.7.6", path = "../../http_tools" }
-mycelium-memory-db = { version = "7.7.6", path = "../../adapters/mem_db" }
-mycelium-service = { version = "7.7.6", path = "../../adapters/service" }
-mycelium-diesel = { version = "7.7.6", path = "../../adapters/diesel" }
-mycelium-notifier = { version = "7.7.6", path = "../../adapters/notifier" }
-mycelium-adapters-shared-lib = { version = "7.7.6", path = "../../adapters/shared" }
-mycelium-key-value = { version = "7.7.6", path = "../../adapters/kv_db" }
+myc-core = { version = "8.0.0", path = "../../core" }
+mycelium-base = { version = "8.0.0", path = "../../base" }
+mycelium-config = { version = "8.0.0", path = "../../config" }
+mycelium-http-tools = { version = "8.0.0", path = "../../http_tools" }
+mycelium-memory-db = { version = "8.0.0", path = "../../adapters/mem_db" }
+mycelium-service = { version = "8.0.0", path = "../../adapters/service" }
+mycelium-diesel = { version = "8.0.0", path = "../../adapters/diesel" }
+mycelium-notifier = { version = "8.0.0", path = "../../adapters/notifier" }
+mycelium-adapters-shared-lib = { version = "8.0.0", path = "../../adapters/shared" }
+mycelium-key-value = { version = "8.0.0", path = "../../adapters/kv_db" }
 
 actix-web.workspace = true
 actix-web-httpauth.workspace = true
@@ -49,13 +49,18 @@ reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 shaku.workspace = true
-shaku_actix.workspace = true
+slugify.workspace = true
 tracing.workspace = true
+tracing-subscriber.workspace = true
+tracing-actix-web.workspace = true
 tokio.workspace = true
 utoipa.workspace = true
 uuid.workspace = true
 url.workspace = true
+utoipa-redoc.workspace = true
+utoipa-swagger-ui.workspace = true
 zip.workspace = true
+wildmatch.workspace = true
 
 actix = "0.13"
 actix-cors = { version = "0.6.2" }
@@ -63,6 +68,8 @@ actix-rt = "2.10"
 actix-web-error = { version = "0.2" }
 actix-web-error-derive = { version = "0.2" }
 actix-web-opentelemetry = "0.18.0"
+async-graphql = "7"
+async-graphql-actix-web = "7"
 opentelemetry = { version = "0.25", default-features = false, features = [
     "trace",
 ] }
@@ -75,18 +82,8 @@ opentelemetry-otlp = { version = "0.25", features = [
 ] }
 opentelemetry-stdout = "0.25"
 tonic = { version = "0.12", features = ["tls", "tls-roots"] }
-tracing-actix-web = { version = "0.7", features = ["opentelemetry_0_25"] }
 tracing-appender = "0.2"
 tracing-opentelemetry = "0.26"
-tracing-subscriber = { version = "0.3", features = [
-    "alloc",
-    "json",
-    "env-filter",
-    "tracing-serde",
-    "registry",
-] }
-utoipa-redoc = { version = "5", features = ["actix-web"] }
-utoipa-swagger-ui = { version = "9", features = ["actix-web"] }
 
 [build-dependencies]
 zip.workspace = true

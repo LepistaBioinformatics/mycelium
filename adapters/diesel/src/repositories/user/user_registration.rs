@@ -64,6 +64,8 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
             })?;
 
         if let Some(record) = existing_user {
+            tracing::info!("User already exists: {record:?}");
+
             return Ok(GetOrCreateResponseKind::NotCreated(
                 User::new(
                     Some(record.id),
@@ -80,7 +82,7 @@ impl UserRegistration for UserRegistrationSqlDbRepository {
                     None,
                 )
                 .with_principal(record.is_principal),
-                "User already exists".to_string(),
+                "User created if not exists".to_string(),
             ));
         }
 

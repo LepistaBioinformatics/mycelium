@@ -6,10 +6,13 @@ diesel::table! {
         #[max_length = 256]
         name -> Varchar,
         created -> Timestamptz,
+        created_by -> Nullable<Jsonb>,
         updated -> Nullable<Timestamptz>,
+        updated_by -> Nullable<Jsonb>,
         is_active -> Bool,
         is_checked -> Bool,
         is_archived -> Bool,
+        is_deleted -> Bool,
         is_default -> Bool,
         #[max_length = 256]
         slug -> Varchar,
@@ -193,6 +196,8 @@ diesel::table! {
         id -> Uuid,
         payload -> Text,
         #[max_length = 255]
+        payload_id -> Varchar,
+        #[max_length = 255]
         trigger -> Varchar,
         encrypted -> Nullable<Bool>,
         attempts -> Int4,
@@ -213,6 +218,25 @@ diesel::table! {
         status -> Varchar,
         attempts -> Int4,
         error -> Nullable<Text>,
+    }
+}
+
+diesel::table! {
+    healthcheck_logs (service_id, checked_at) {
+        service_id -> Uuid,
+        #[max_length = 255]
+        service_name -> Varchar,
+        checked_at -> Timestamptz,
+        status_code -> Int4,
+        response_time_ms -> Int4,
+        dns_resolved_ip -> Nullable<Text>,
+        response_body -> Nullable<Text>,
+        error_message -> Nullable<Text>,
+        headers -> Nullable<Jsonb>,
+        content_type -> Nullable<Text>,
+        response_size_bytes -> Nullable<Int4>,
+        retry_count -> Nullable<Int4>,
+        timeout_occurred -> Nullable<Bool>,
     }
 }
 
@@ -238,6 +262,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     guest_role_children,
     guest_user,
     guest_user_on_account,
+    healthcheck_logs,
     identity_provider,
     manager_account_on_tenant,
     owner_on_tenant,

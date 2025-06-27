@@ -1,9 +1,14 @@
 use crate::domain::{
-    dtos::{profile::Profile, tenant::Tenant},
+    dtos::{
+        native_error_codes::NativeErrorCodes, profile::Profile, tenant::Tenant,
+    },
     entities::TenantFetching,
 };
 
-use mycelium_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
+use mycelium_base::{
+    entities::FetchResponseKind,
+    utils::errors::{use_case_err, MappedErrors},
+};
 use uuid::Uuid;
 
 #[tracing::instrument(name = "fetch_tenant_public_info", skip_all)]
@@ -13,10 +18,30 @@ pub async fn fetch_tenant_public_info(
     tenant_fetching_repo: Box<&dyn TenantFetching>,
 ) -> Result<FetchResponseKind<Tenant, Uuid>, MappedErrors> {
     // ? -----------------------------------------------------------------------
-    // ? Check if the profile is the owner of the tenant
+    // ? Check if the profile has tenant access
     // ? -----------------------------------------------------------------------
 
-    profile.on_tenant(tenant_id).get_ids_or_error()?;
+    let has_tenant_license =
+        match profile.on_tenant(tenant_id).get_ids_or_error() {
+            Ok(_) => true,
+            Err(_) => false,
+        };
+
+    let has_tenant_ownership =
+        match profile.with_tenant_ownership_or_error(tenant_id) {
+            Ok(_) => true,
+            Err(_) => false,
+        };
+
+    if ![has_tenant_license, has_tenant_ownership]
+        .iter()
+        .any(|&x| x == true)
+    {
+        return use_case_err("User does not have access to the tenant")
+            .with_code(NativeErrorCodes::MYC00019)
+            .with_exp_true()
+            .as_error();
+    }
 
     // ? -----------------------------------------------------------------------
     // ? Fetch the tenant public info

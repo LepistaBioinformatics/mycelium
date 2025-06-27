@@ -9,7 +9,7 @@ use uuid::Uuid;
     name = "delete_tenant",
     fields(
         profile_id = %profile.acc_id,
-        owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
+        owners = ?profile.owners.iter().map(|o| o.redacted_email()).collect::<Vec<_>>(),
     ),
     skip(profile, tenant_deletion_repo))]
 pub async fn delete_tenant(

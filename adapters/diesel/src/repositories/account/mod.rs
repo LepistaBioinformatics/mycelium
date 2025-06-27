@@ -9,3 +9,4 @@ pub(super) use account_deletion::*;
 pub(super) use account_fetching::*;
 pub(super) use account_registration::*;
 pub(super) use account_updating::*;
+pub(crate) use shared::*;

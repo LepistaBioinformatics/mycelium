@@ -29,7 +29,7 @@ use tracing::{error, info, trace, warn};
     name = "create_system_roles",
     fields(
         profile_id = %profile.acc_id,
-        owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
+        owners = ?profile.owners.iter().map(|o| o.redacted_email()).collect::<Vec<_>>(),
     ),
     skip(profile, guest_role_registration_repo)
 )]
@@ -77,9 +77,7 @@ pub async fn create_system_roles(
             .collect::<Vec<_>>()
             .join(" ");
 
-        for permission in
-            [Permission::Read, Permission::Write, Permission::ReadWrite]
-        {
+        for permission in [Permission::Read, Permission::Write] {
             trace!(
                 "Creating role for {} with {} permissions",
                 _actor,

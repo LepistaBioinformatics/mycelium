@@ -29,7 +29,7 @@ pub async fn update_tag(
         .with_system_accounts_access()
         .with_write_access()
         .with_roles(vec![SystemActor::TenantManager])
-        .get_ids_or_error()?;
+        .get_related_accounts_or_tenant_or_error(tenant_id)?;
 
     // ? -----------------------------------------------------------------------
     // ? Register tag

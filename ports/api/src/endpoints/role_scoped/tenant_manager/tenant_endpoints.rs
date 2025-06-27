@@ -30,7 +30,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 //
 // ? ---------------------------------------------------------------------------
 
-/// Fetch a user's profile.
+/// Fetch a tenant's details
 #[utoipa::path(
     get,
     responses(

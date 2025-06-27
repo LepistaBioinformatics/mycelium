@@ -1,9 +1,12 @@
 use crate::{
     domain::{
         dtos::{
-            account::Account, account_type::AccountType, email::Email,
-            native_error_codes::NativeErrorCodes, user::Provider,
-            webhook::WebHookTrigger,
+            account::{Account, Modifier},
+            account_type::AccountType,
+            email::Email,
+            native_error_codes::NativeErrorCodes,
+            user::Provider,
+            webhook::{PayloadId, WebHookTrigger},
         },
         entities::{
             AccountRegistration, LocalMessageWrite, UserFetching,
@@ -92,8 +95,14 @@ pub async fn create_default_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
-    let mut base_account =
-        Account::new(account_name.to_owned(), user.clone(), AccountType::User);
+    let mut base_account = Account::new(
+        account_name.to_owned(),
+        user.clone(),
+        AccountType::User,
+        Some(Modifier::new_from_user(user.id.ok_or_else(|| {
+            use_case_err("User ID not found".to_string()).with_exp_true()
+        })?)),
+    );
 
     base_account.slug = slugify!(user.email.email().as_str());
 
@@ -115,6 +124,10 @@ pub async fn create_default_account(
 
     tracing::trace!("Dispatching side effects");
 
+    let account_id = account.id.ok_or_else(|| {
+        use_case_err("Account ID not found".to_string()).with_exp_true()
+    })?;
+
     let (notification_response, webhook_responses) = futures::join!(
         dispatch_notification(
             vec![("account_name", account_name)],
@@ -128,6 +141,7 @@ pub async fn create_default_account(
             correspondence_id,
             WebHookTrigger::UserAccountCreated,
             account.to_owned(),
+            PayloadId::Uuid(account_id),
             webhook_registration_repo,
         )
     );

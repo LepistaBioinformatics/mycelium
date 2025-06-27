@@ -3,10 +3,11 @@
 // perform the following functions:
 //
 // - Delete subscription accounts.
-// - Guest users to the management account;
-// - Uninvite guest users from the management account;
+// - Create subscription manager accounts.
 //
 
+mod create_subscription_manager_account;
 mod delete_subscription_account;
 
+pub use create_subscription_manager_account::*;
 pub use delete_subscription_account::*;

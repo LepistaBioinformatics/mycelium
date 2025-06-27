@@ -22,8 +22,8 @@ use reqwest::Client;
 
 #[tracing::instrument(
     name = "dispatch_webhooks",
-    fields(trigger = %trigger),
-    skip(config, webhook_fetching_repo, webhook_updating_repo)
+    fields(trigger = %trigger, artifact_id = %artifact.id.unwrap_or_default()),
+    skip(config, artifact, webhook_fetching_repo, webhook_updating_repo)
 )]
 pub async fn dispatch_webhooks(
     trigger: WebHookTrigger,
@@ -79,10 +79,10 @@ pub async fn dispatch_webhooks(
     let method = match trigger {
         WebHookTrigger::SubscriptionAccountCreated
         | WebHookTrigger::UserAccountCreated => "POST",
-        //WebHookTrigger::SubscriptionAccountUpdated
-        //| WebHookTrigger::UserAccountUpdated => "PUT",
-        //WebHookTrigger::SubscriptionAccountDeleted
-        //| WebHookTrigger::UserAccountDeleted => "DELETE",
+        WebHookTrigger::SubscriptionAccountUpdated
+        | WebHookTrigger::UserAccountUpdated => "PUT",
+        WebHookTrigger::SubscriptionAccountDeleted
+        | WebHookTrigger::UserAccountDeleted => "DELETE",
     };
 
     // ? -----------------------------------------------------------------------
@@ -119,7 +119,10 @@ pub async fn dispatch_webhooks(
             let base_request = match method {
                 "POST" => base_request.post(hook.url.to_owned()),
                 "PUT" => base_request.put(hook.url.to_owned()),
-                "DELETE" => base_request.delete(hook.url.to_owned()),
+                "DELETE" => base_request.delete(match artifact.id {
+                    None => hook.url.to_owned(),
+                    Some(id) => format!("{}/{}", hook.url, id),
+                }),
                 _ => {
                     tracing::error!("Unknown method: {method}");
                     base_request.post(hook.url.to_owned())

@@ -1,13 +1,12 @@
 mod api_docs;
-mod config;
+mod dispatchers;
 mod dtos;
 mod endpoints;
+mod graphql;
 mod middleware;
 mod models;
 mod modifiers;
-mod modules;
 mod otel;
-mod queue_dispatchers;
 mod router;
 mod settings;
 
@@ -20,7 +19,9 @@ use actix_web::{
 use actix_web_opentelemetry::RequestTracing;
 use api_docs::ApiDoc;
 use awc::{error::HeaderValue, Client};
-use config::injectors::configure as configure_injection_modules;
+use dispatchers::{
+    email_dispatcher, services_health_dispatcher, webhook_dispatcher,
+};
 use endpoints::{
     index::heath_check_endpoints,
     manager::{
@@ -29,14 +30,11 @@ use endpoints::{
         tenant_endpoints as manager_tenant_endpoints,
     },
     role_scoped::configure as configure_standard_endpoints,
-    service::{
-        account_endpoints as service_account_endpoints,
-        auxiliary_endpoints as service_auxiliary_endpoints,
-        guest_endpoints as service_guest_endpoints,
-    },
+    service::tools_endpoints as service_tools_endpoints,
     shared::insert_role_header,
     staff::account_endpoints as staff_account_endpoints,
 };
+use graphql::initialize_tools_registry;
 use models::config_handler::ConfigHandler;
 use myc_adapters_shared_lib::models::{
     SharedAppModule, SharedClientImpl, SharedClientImplParameters,
@@ -45,11 +43,8 @@ use myc_adapters_shared_lib::models::{
 use myc_config::{
     init_vault_config_from_file, optional_config::OptionalConfig,
 };
-use myc_core::{
-    domain::entities::{
-        LocalMessageReading, LocalMessageWrite, RemoteMessageWrite,
-    },
-    settings::init_in_memory_routes,
+use myc_core::domain::entities::{
+    LocalMessageReading, LocalMessageWrite, RemoteMessageWrite,
 };
 use myc_diesel::repositories::{
     DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
@@ -59,6 +54,12 @@ use myc_http_tools::{
     settings::DEFAULT_REQUEST_ID_KEY,
 };
 use myc_kv::repositories::KVAppModule;
+use myc_mem_db::{
+    models::config::DbPoolProvider,
+    repositories::{
+        MemDbAppModule, MemDbPoolProvider, MemDbPoolProviderParameters,
+    },
+};
 use myc_notifier::{
     models::ClientProvider,
     repositories::{
@@ -72,21 +73,24 @@ use openssl::{
     x509::X509,
 };
 use otel::initialize_otel;
-use queue_dispatchers::{email_dispatcher, webhook_dispatcher};
 use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use router::route_request;
-use settings::{ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE};
+use settings::{
+    ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE, TOOLS_API_SCOPE,
+};
 use shaku::HasComponent;
-use std::{path::PathBuf, str::FromStr, sync::Arc};
-use tracing::{info, trace};
+use std::{path::PathBuf, str::FromStr, sync::Arc, sync::Mutex};
+use tracing::{info, trace, Instrument};
 use tracing_actix_web::TracingLogger;
 use utoipa::OpenApi;
 use utoipa_redoc::{FileConfig, Redoc, Servable};
 use utoipa_swagger_ui::{oauth, Config, SwaggerUi};
 use uuid::Uuid;
+
+use crate::graphql::graphql_handler;
 
 // ? ---------------------------------------------------------------------------
 // ? API fire elements
@@ -149,16 +153,7 @@ pub async fn main() -> std::io::Result<()> {
     info!("Initializing Logging and Telemetry configuration");
     let _guard = initialize_otel(api_config.to_owned().logging)?;
 
-    // ? -----------------------------------------------------------------------
-    // ? Routes should be used on API gateway
-    //
-    // When users perform queries to the API gateway, the gateway should
-    // redirect the request to the correct service. Services are loaded into
-    // memory and the gateway should know the routes during their execution.
-    //
-    // ? -----------------------------------------------------------------------
-    info!("Initializing routes");
-    init_in_memory_routes(Some(config.api.routes.clone())).await;
+    let span = tracing::Span::current();
 
     // ? -----------------------------------------------------------------------
     // ? Initialize vault configuration
@@ -168,7 +163,9 @@ pub async fn main() -> std::io::Result<()> {
     //
     // ? -----------------------------------------------------------------------
     info!("Initializing Vault configs");
-    init_vault_config_from_file(None, Some(config.vault)).await;
+    init_vault_config_from_file(None, Some(config.vault))
+        .instrument(span.to_owned())
+        .await;
 
     // ? -----------------------------------------------------------------------
     // ? Configure SQL App Module
@@ -254,6 +251,38 @@ pub async fn main() -> std::io::Result<()> {
             .build(),
     );
 
+    let mem_module = Arc::new(
+        MemDbAppModule::builder()
+            .with_component_parameters::<MemDbPoolProvider>(
+                MemDbPoolProviderParameters {
+                    services_db: Arc::new(Mutex::new(
+                        MemDbPoolProvider::new(config.api.routes.clone())
+                            .await
+                            .get_services_db(),
+                    )),
+                },
+            )
+            .build(),
+    );
+
+    // ? -----------------------------------------------------------------------
+    // ? Initialize the tools registry
+    //
+    // The tools registry should be initialized before the server starts. The
+    // registry should be used to store the tools for the tools endpoints.
+    //
+    // ? -----------------------------------------------------------------------
+    info!("Initializing tools registry");
+
+    let tools_registry_schema = initialize_tools_registry(mem_module.clone())
+        .instrument(span.to_owned())
+        .await
+        .map_err(|err| {
+            tracing::error!("Error initializing tools registry: {err}");
+
+            std::io::Error::new(std::io::ErrorKind::Other, err)
+        })?;
+
     // ? -----------------------------------------------------------------------
     // ? Fire the scheduler
     //
@@ -280,17 +309,33 @@ pub async fn main() -> std::io::Result<()> {
                 notifier_module.resolve_ref() as &dyn RemoteMessageWrite
             ))
         },
-    );
+    )
+    .instrument(span.to_owned())
+    .await;
 
     // ? -----------------------------------------------------------------------
-    // ? Fire the scheduler
+    // ? Fire the webhook dispatcher
     //
     // The webhook dispatcher should be fired to allow webhooks to be dispatched.
     // Dispatching will occur in a separate thread.
     //
     // ? -----------------------------------------------------------------------
     info!("Fire webhook dispatcher");
-    webhook_dispatcher(config.core.to_owned(), sql_module.clone());
+    webhook_dispatcher(config.core.to_owned(), sql_module.clone())
+        .instrument(span.to_owned())
+        .await;
+
+    // ? -----------------------------------------------------------------------
+    // ? Fire the services health dispatcher
+    //
+    // The services health dispatcher should be fired to allow the services
+    // health to be checked.
+    //
+    // ? -----------------------------------------------------------------------
+    info!("Fire services health dispatcher");
+    services_health_dispatcher(config.api.clone(), mem_module.clone())
+        .instrument(span.to_owned())
+        .await;
 
     // ? -----------------------------------------------------------------------
     // ? Configure the server
@@ -342,6 +387,7 @@ pub async fn main() -> std::io::Result<()> {
             .app_data(web::Data::from(shared_module.clone()))
             .app_data(web::Data::from(notifier_module.clone()))
             .app_data(web::Data::from(kv_module.clone()))
+            .app_data(web::Data::from(mem_module.clone()))
             .app_data(web::Data::new(token_config).clone())
             .app_data(web::Data::new(auth_config.to_owned()).clone())
             //
@@ -434,18 +480,6 @@ pub async fn main() -> std::io::Result<()> {
                         .as_str(),
                 )
                 .configure(configure_standard_endpoints),
-            )
-            //
-            // Service Scoped Endpoints
-            //
-            .service(
-                web::scope(
-                    format!("/{}", endpoints::shared::UrlScope::Service)
-                        .as_str(),
-                )
-                .configure(service_guest_endpoints::configure)
-                .configure(service_account_endpoints::configure)
-                .configure(service_auxiliary_endpoints::configure),
             );
 
         // ? -------------------------------------------------------------------
@@ -533,10 +567,6 @@ pub async fn main() -> std::io::Result<()> {
                     .exclude_regex("/doc/redoc/*"),
             )
             // ? ---------------------------------------------------------------
-            // ? Configure Injection modules
-            // ? ---------------------------------------------------------------
-            .configure(configure_injection_modules)
-            // ? ---------------------------------------------------------------
             // ? Configure mycelium routes
             // ? ---------------------------------------------------------------
             .service(mycelium_scope)
@@ -567,10 +597,22 @@ pub async fn main() -> std::io::Result<()> {
                     ),
             )
             // ? ---------------------------------------------------------------
+            // ? Configure tools routes
+            // ? ---------------------------------------------------------------
+            .service(
+                web::scope(&format!("/{}", TOOLS_API_SCOPE))
+                    .app_data(web::Data::new(tools_registry_schema.clone()))
+                    .configure(service_tools_endpoints::configure)
+                    .service(
+                        web::resource("/graphql")
+                            .guard(actix_web::guard::Post())
+                            .to(graphql_handler),
+                    ),
+            )
+            // ? ---------------------------------------------------------------
             // ? Configure gateway routes
             // ? ---------------------------------------------------------------
             .app_data(web::Data::new(Client::default()))
-            .app_data(web::Data::new(local_api_config.gateway_timeout))
             .app_data(web::Data::new(forward_api_config.to_owned()).clone())
             .service(
                 web::scope(&format!("/{}", GATEWAY_API_SCOPE))

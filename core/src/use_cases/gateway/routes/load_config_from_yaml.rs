@@ -1,18 +1,16 @@
 use crate::domain::dtos::{
-    health_check::HealthCheckConfig,
     http::{HttpMethod, Protocol},
     route::Route,
-    route_type::RouteType,
-    service::{Service, ServiceSecret},
+    security_group::SecurityGroup,
+    service::{Service, ServiceHost, ServiceSecret, ServiceType},
 };
 
 use futures::executor::block_on;
 use myc_config::secret_resolver::SecretResolver;
-use mycelium_base::utils::errors::{use_case_err, MappedErrors};
+use mycelium_base::{dtos::Parent, utils::errors::MappedErrors};
 use serde::{Deserialize, Serialize};
 use std::{mem::size_of_val, str::from_utf8};
 use tokio::fs::read as t_read;
-use tracing::{error, info};
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -26,23 +24,68 @@ struct TempMainConfigDTO {
 struct TempServiceDTO {
     pub id: Option<Uuid>,
     pub name: String,
-    pub host: String,
-    pub health_check: Option<HealthCheckConfig>,
+    #[serde(alias = "hosts")]
+    pub host: ServiceHost,
+    pub protocol: Protocol,
+    pub discoverable: Option<bool>,
+    pub description: Option<String>,
+    pub openapi_path: Option<String>,
+    pub health_check_path: String,
+    pub capabilities: Option<Vec<String>>,
     pub routes: Vec<TempRouteDTO>,
     pub secrets: Option<Vec<ServiceSecret>>,
+    pub service_type: Option<ServiceType>,
+    pub is_context_api: Option<bool>,
+    pub allowed_sources: Option<Vec<String>>,
+    pub proxy_address: Option<String>,
+}
+
+impl TempServiceDTO {
+    fn to_service(self) -> Service {
+        Service::new(
+            self.id.clone(),
+            self.name.clone(),
+            self.host.clone(),
+            self.protocol.clone(),
+            self.discoverable.clone(),
+            self.description.clone(),
+            self.openapi_path.clone(),
+            self.health_check_path.clone(),
+            vec![],
+            self.secrets,
+            self.capabilities,
+            self.service_type,
+            self.is_context_api,
+            self.allowed_sources,
+            self.proxy_address,
+        )
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct TempRouteDTO {
     pub id: Option<Uuid>,
-    pub group: RouteType,
+    #[serde(alias = "group")]
+    pub security_group: SecurityGroup,
     pub methods: Vec<HttpMethod>,
     pub path: String,
-    pub protocol: Protocol,
-    pub allowed_sources: Option<Vec<String>>,
     pub secret_name: Option<String>,
     pub accept_insecure_routing: Option<bool>,
+}
+
+impl TempRouteDTO {
+    fn to_route(self, service: Service) -> Route {
+        Route::new(
+            self.id,
+            service,
+            self.security_group,
+            self.methods,
+            self.path,
+            self.secret_name,
+            self.accept_insecure_routing,
+        )
+    }
 }
 
 /// Load configuration from YAML file
@@ -53,37 +96,25 @@ struct TempRouteDTO {
 #[tracing::instrument(name = "load_config_from_yaml")]
 pub async fn load_config_from_yaml(
     source_file_path: String,
-) -> Result<Vec<Route>, MappedErrors> {
-    let temp_services = t_read(source_file_path)
-        .await
-        .map(|data| {
-            match serde_yaml::from_str::<TempMainConfigDTO>(
-                match from_utf8(&data) {
-                    Err(err) => {
-                        error!("Invalid UTF-8 sequence: {err}");
-                        return use_case_err(format!(
-                            "Invalid UTF-8 sequence: {err}"
-                        ))
-                        .as_error();
-                    }
-                    Ok(res) => res,
-                },
-            ) {
-                Err(err) => {
-                    error!("Invalid UTF-8 sequence: {err}");
-                    return use_case_err(format!(
-                        "Invalid UTF-8 sequence: {err}"
-                    ))
-                    .as_error();
-                }
-                Ok(res) => Ok(res),
-            }
-        })
-        .unwrap();
+) -> Result<Vec<Service>, MappedErrors> {
+    let services_binding = t_read(source_file_path).await.map(|data| {
+        let decoded_string = from_utf8(&data)
+            .map_err(|err| panic!("Invalid UTF-8 sequence: {err}"))
+            .unwrap();
 
-    let db = temp_services?.services.iter().fold(
-        Vec::<Route>::new(),
-        |mut init, tmp_service| {
+        serde_yaml::from_str::<TempMainConfigDTO>(&decoded_string)
+            .map_err(|err| panic!("Invalid YAML: {err}"))
+            .unwrap()
+    });
+
+    let tmp_services = services_binding.unwrap().services;
+
+    //
+    // Check if secrets are valid
+    //
+    let services = tmp_services
+        .into_iter()
+        .map(|tmp_service| {
             let secrets = if let Some(secrets) = tmp_service.to_owned().secrets
             {
                 let secrets =
@@ -97,8 +128,7 @@ pub async fn load_config_from_yaml(
                 None
             };
 
-            // Check if secrets is valid
-            let parsed_secrets: Option<Vec<ServiceSecret>> = match secrets {
+            match secrets {
                 Some(secrets) => {
                     let mut parsed_secrets = vec![];
 
@@ -124,60 +154,39 @@ pub async fn load_config_from_yaml(
                 None => None,
             };
 
-            let service = Service::new(
-                tmp_service.id,
-                tmp_service.name.to_owned(),
-                tmp_service.host.to_owned(),
-                tmp_service.health_check.to_owned(),
-                vec![],
-                parsed_secrets.to_owned(),
-            );
+            let routes = tmp_service
+                .routes
+                .clone()
+                .into_iter()
+                .map(|route| {
+                    let mut tmp_route = route
+                        .to_owned()
+                        .to_route(tmp_service.to_owned().to_service());
 
-            init.append(
-                &mut tmp_service
-                    .to_owned()
-                    .routes
-                    .into_iter()
-                    .map(|r| {
-                        if let Some(secret_name) = r.secret_name.to_owned() {
-                            if let Some(secrets) = parsed_secrets.to_owned() {
-                                if !secrets
-                                    .iter()
-                                    .map(|i| i.name.to_owned())
-                                    .collect::<Vec<String>>()
-                                    .contains(&secret_name)
-                                {
-                                    panic!("Secret not found: {secret_name}");
-                                }
-                            }
-                        }
+                    let mut local_service = tmp_service.to_owned().to_service();
+                    local_service.routes = vec![];
 
-                        Route::new(
-                            r.id,
-                            service.to_owned(),
-                            r.group,
-                            r.methods,
-                            r.path,
-                            r.protocol,
-                            r.allowed_sources,
-                            r.secret_name,
-                            r.accept_insecure_routing,
-                        )
-                    })
-                    .collect::<Vec<Route>>(),
-            );
+                    tmp_route.service = Parent::Record(local_service);
 
-            init
-        },
-    );
+                    tmp_route
+                })
+                .collect::<Vec<Route>>();
 
-    info!(
-        "Database successfully loaded:\n
-    Number of routes: {}
+            let mut tmp_service = tmp_service.to_owned().to_service();
+
+            tmp_service.routes = routes;
+
+            tmp_service
+        })
+        .collect::<Vec<Service>>();
+
+    tracing::info!(
+        "Local service configuration successfully loaded:\n
+    Number of services: {}
     In memory size: {:.6} Mb\n",
-        db.len(),
-        ((size_of_val(&*db) as f64 * 0.000001) as f64),
+        services.len(),
+        ((size_of_val(&*services) as f64 * 0.000001) as f64),
     );
 
-    Ok(db)
+    Ok(services)
 }

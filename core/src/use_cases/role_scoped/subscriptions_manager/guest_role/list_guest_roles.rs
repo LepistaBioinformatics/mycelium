@@ -7,12 +7,15 @@ use crate::domain::{
 use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
+use uuid::Uuid;
 
 /// List guest roles
 #[tracing::instrument(name = "list_guest_roles", skip_all)]
 pub async fn list_guest_roles(
     profile: Profile,
+    tenant_id: Option<Uuid>,
     name: Option<String>,
+    slug: Option<String>,
     system: Option<bool>,
     page_size: Option<i32>,
     skip: Option<i32>,
@@ -25,14 +28,19 @@ pub async fn list_guest_roles(
     profile
         .with_system_accounts_access()
         .with_read_access()
-        .with_roles(vec![SystemActor::SubscriptionsManager])
-        .get_ids_or_error()?;
+        .with_roles(vec![
+            SystemActor::TenantManager,
+            SystemActor::SubscriptionsManager,
+        ])
+        .get_related_accounts_or_tenant_or_error(tenant_id.unwrap_or(
+            Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap(),
+        ))?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch Roles
     // ? -----------------------------------------------------------------------
 
     guest_role_fetching_repo
-        .list(name, system, page_size, skip)
+        .list(name, slug, system, page_size, skip)
         .await
 }

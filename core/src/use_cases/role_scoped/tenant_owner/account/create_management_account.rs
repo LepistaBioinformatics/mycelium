@@ -1,5 +1,8 @@
 use crate::domain::{
-    dtos::{account::Account, profile::Profile},
+    dtos::{
+        account::{Account, Modifier},
+        profile::Profile,
+    },
     entities::AccountRegistration,
 };
 
@@ -13,7 +16,7 @@ use uuid::Uuid;
     name = "create_management_account",
     fields(
         profile_id = %profile.acc_id,
-        owners = ?profile.owners.iter().map(|o| o.email.to_owned()).collect::<Vec<_>>(),
+        owners = ?profile.owners.iter().map(|o| o.redacted_email()).collect::<Vec<_>>(),
     ),
     skip(profile, account_registration_repo)
 )]
@@ -22,6 +25,15 @@ pub async fn create_management_account(
     tenant_id: Uuid,
     account_registration_repo: Box<&dyn AccountRegistration>,
 ) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
+    // ? -----------------------------------------------------------------------
+    // ? Initialize tracing span
+    // ? -----------------------------------------------------------------------
+
+    let correspondence_id = Uuid::new_v4();
+
+    tracing::Span::current()
+        .record("correspondence_id", &Some(correspondence_id.to_string()));
+
     // ? -----------------------------------------------------------------------
     // ? Check if the profile is the owner of the tenant
     // ? -----------------------------------------------------------------------
@@ -34,9 +46,12 @@ pub async fn create_management_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
-    let mut unchecked_account =
-        Account::new_tenant_management_account(String::new(), tenant_id)
-            .with_id();
+    let mut unchecked_account = Account::new_tenant_management_account(
+        String::new(),
+        tenant_id,
+        Some(Modifier::new_from_account(profile.acc_id)),
+    )
+    .with_id();
 
     let name =
         format!("tid/{}/manager", tenant_id.to_string().replace("-", ""));
@@ -46,7 +61,13 @@ pub async fn create_management_account(
     unchecked_account.name = name.to_owned();
     unchecked_account.slug = slugify!(&name.as_str());
 
-    account_registration_repo
+    let response = account_registration_repo
         .get_or_create_tenant_management_account(unchecked_account, tenant_id)
-        .await
+        .await?;
+
+    // ? -----------------------------------------------------------------------
+    // ? Return a positive response
+    // ? -----------------------------------------------------------------------
+
+    Ok(response)
 }

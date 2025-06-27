@@ -1,14 +1,13 @@
 use crate::{
     domain::{
-        actors::SystemActor::*,
         dtos::{
-            account::Account, guest_role::Permission,
+            account::{Account, Modifier},
             native_error_codes::NativeErrorCodes,
-            token::TenantScopedConnectionString, webhook::WebHookTrigger,
+            token::UserAccountConnectionString,
+            webhook::{PayloadId, WebHookTrigger},
         },
         entities::{AccountRegistration, WebHookRegistration},
     },
-    models::AccountLifeCycle,
     use_cases::support::register_webhook_dispatching_event,
 };
 
@@ -23,14 +22,20 @@ use uuid::Uuid;
 /// Subscription accounts represents results centering accounts.
 #[tracing::instrument(
     name = "create_subscription_account",
-    fields(user_id = %scope.user_id, correspondence_id = tracing::field::Empty),
-    skip(scope, account_registration_repo, webhook_registration_repo)
+    fields(
+        owner_id = %connection_string.account_id,
+        correspondence_id = tracing::field::Empty
+    ),
+    skip(
+        connection_string,
+        account_registration_repo,
+        webhook_registration_repo
+    )
 )]
 pub async fn create_subscription_account(
-    scope: TenantScopedConnectionString,
+    connection_string: UserAccountConnectionString,
     tenant_id: Uuid,
     account_name: String,
-    config: AccountLifeCycle,
     account_registration_repo: Box<&dyn AccountRegistration>,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
 ) -> Result<Account, MappedErrors> {
@@ -49,13 +54,13 @@ pub async fn create_subscription_account(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    scope.contain_enough_permissions(
-        tenant_id,
-        vec![
-            (TenantManager.to_string(), Permission::Write),
-            (SubscriptionsManager.to_string(), Permission::Write),
-        ],
-    )?;
+    //connection_string.contain_enough_permissions(
+    //    tenant_id,
+    //    vec![
+    //        (TenantManager.to_string(), Permission::Write),
+    //        (SubscriptionsManager.to_string(), Permission::Write),
+    //    ],
+    //)?;
 
     // ? -----------------------------------------------------------------------
     // ? Register the account
@@ -63,8 +68,11 @@ pub async fn create_subscription_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
-    let mut unchecked_account =
-        Account::new_subscription_account(account_name, tenant_id);
+    let mut unchecked_account = Account::new_subscription_account(
+        account_name,
+        tenant_id,
+        Some(Modifier::new_from_account(connection_string.account_id)),
+    );
 
     unchecked_account.is_checked = true;
 
@@ -86,10 +94,15 @@ pub async fn create_subscription_account(
 
     tracing::trace!("Dispatching side effects");
 
+    let account_id = account.id.ok_or_else(|| {
+        use_case_err("Account ID not found".to_string()).with_exp_true()
+    })?;
+
     register_webhook_dispatching_event(
         correspondence_id,
         WebHookTrigger::SubscriptionAccountCreated,
         account.to_owned(),
+        PayloadId::Uuid(account_id),
         webhook_registration_repo,
     )
     .await?;

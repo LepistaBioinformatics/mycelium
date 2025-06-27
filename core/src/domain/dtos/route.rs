@@ -1,7 +1,5 @@
 use super::{
-    http::{HttpMethod, Protocol},
-    http_secret::HttpSecret,
-    route_type::RouteType,
+    http::HttpMethod, http_secret::HttpSecret, security_group::SecurityGroup,
     service::Service,
 };
 
@@ -26,20 +24,14 @@ pub struct Route {
     pub service: Parent<Service, Uuid>,
 
     /// The route name
-    pub group: RouteType,
+    #[serde(alias = "group")]
+    pub security_group: SecurityGroup,
 
     /// The route description
     pub methods: Vec<HttpMethod>,
 
     /// The route url
     pub path: String,
-
-    /// The route protocol
-    pub protocol: Protocol,
-
-    /// The route is active
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_sources: Option<Vec<String>>,
 
     /// The route secret name if it exists
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -58,13 +50,11 @@ impl Route {
     pub fn new(
         id: Option<Uuid>,
         service: Service,
-        group: RouteType,
+        group: SecurityGroup,
         methods: Vec<HttpMethod>,
-        downstream_url: String,
-        protocol: Protocol,
-        allowed_sources: Option<Vec<String>>,
+        path: String,
         secret_name: Option<String>,
-        route_without_tls: Option<bool>,
+        accept_insecure_routing: Option<bool>,
     ) -> Self {
         Self {
             id: match id {
@@ -72,10 +62,9 @@ impl Route {
                 None => Some(Uuid::new_v3(
                     &Uuid::NAMESPACE_DNS,
                     format!(
-                        "{service_name}-{protocol}-{downstream_url}-{methods}",
+                        "{service_name}-{path}-{methods}",
                         service_name = service.name,
-                        protocol = protocol,
-                        downstream_url = downstream_url,
+                        path = path,
                         methods = methods
                             .iter()
                             .map(|m| m.to_string())
@@ -86,13 +75,11 @@ impl Route {
                 )),
             },
             service: Parent::Record(service),
-            group,
+            security_group: group,
             methods,
-            path: downstream_url,
-            protocol,
-            allowed_sources,
+            path,
             secret_name,
-            accept_insecure_routing: route_without_tls,
+            accept_insecure_routing,
         }
     }
 
@@ -124,12 +111,12 @@ impl Route {
             }
         };
 
-        let host = service.to_owned().host;
+        let host = service.to_owned().host.choose_host();
         let path_parts = host.split("/").collect::<Vec<&str>>();
         let domain = path_parts[0];
 
         match Uri::builder()
-            .scheme(self.protocol.to_string().as_str())
+            .scheme(service.protocol.to_string().as_str())
             .authority(domain)
             .path_and_query(self.path.as_str())
             .build()
@@ -231,5 +218,12 @@ impl Route {
         }
 
         Ok(None)
+    }
+
+    pub fn get_service_id(&self) -> Uuid {
+        match self.service.to_owned() {
+            Parent::Id(id) => id,
+            Parent::Record(record) => record.id,
+        }
     }
 }

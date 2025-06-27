@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::webhook::{WebHookPayloadArtifact, WebHookTrigger},
+    dtos::webhook::{PayloadId, WebHookPayloadArtifact, WebHookTrigger},
     entities::WebHookRegistration,
 };
 
@@ -21,6 +21,7 @@ pub(crate) async fn register_webhook_dispatching_event<
     correspondence_id: Uuid,
     trigger: WebHookTrigger,
     payload: PayloadBody,
+    payload_id: PayloadId,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
 ) -> Result<Uuid, MappedErrors> {
     tracing::trace!("Registering webhook dispatching event");
@@ -39,6 +40,7 @@ pub(crate) async fn register_webhook_dispatching_event<
                 return creation_err("Failed to serialize payload").as_error();
             }
         },
+        payload_id,
         trigger,
     )
     .encode_payload()?;

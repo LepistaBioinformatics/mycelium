@@ -1,6 +1,6 @@
 use crate::domain::{
     dtos::{
-        account::Account,
+        account::{Account, Modifier},
         account_type::AccountType,
         email::Email,
         native_error_codes::NativeErrorCodes,
@@ -84,7 +84,17 @@ pub async fn create_seed_staff_account(
 
     account_registration_repo
         .get_or_create_user_account(
-            Account::new(account_name, new_user, AccountType::Staff),
+            Account::new(
+                account_name,
+                new_user.to_owned(),
+                AccountType::Staff,
+                Some(Modifier::new_from_user(new_user.id.ok_or_else(
+                    || {
+                        use_case_err("User ID not found".to_string())
+                            .with_exp_true()
+                    },
+                )?)),
+            ),
             true,
             false,
         )

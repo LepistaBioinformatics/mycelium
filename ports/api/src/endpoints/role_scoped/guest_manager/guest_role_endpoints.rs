@@ -57,6 +57,9 @@ pub struct ListGuestRolesParams {
     /// The name of the guest role.
     pub name: Option<String>,
 
+    /// The slug of the guest role.
+    pub slug: Option<String>,
+
     /// If it is a system role.
     pub system: Option<bool>,
 }
@@ -172,6 +175,7 @@ pub async fn list_guest_roles_url(
     match list_guest_roles(
         profile.to_profile(),
         info.name.to_owned(),
+        info.slug.to_owned(),
         info.system.to_owned(),
         page.page_size,
         page.skip,

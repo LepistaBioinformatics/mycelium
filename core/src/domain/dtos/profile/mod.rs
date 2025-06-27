@@ -79,6 +79,12 @@ pub struct Profile {
     /// included at default filtering actions.
     pub account_was_archived: bool,
 
+    /// If the account was deleted after registration
+    ///
+    /// New accounts should be deleted. After deleted accounts should not be
+    /// included at default filtering actions.
+    pub account_was_deleted: bool,
+
     /// Indicate the profile status for humans
     ///
     /// The profile status is composed of all account flags statuses
@@ -158,6 +164,7 @@ impl Default for Profile {
             true,
             true,
             false,
+            false,
             None,
             None,
             None,
@@ -176,6 +183,7 @@ impl Profile {
         account_is_active: bool,
         account_was_approved: bool,
         account_was_archived: bool,
+        account_was_deleted: bool,
         verbose_status: Option<VerboseStatus>,
         licensed_resources: Option<LicensedResources>,
         tenants_ownership: Option<TenantsOwnership>,
@@ -190,6 +198,7 @@ impl Profile {
             account_is_active,
             account_was_approved,
             account_was_archived,
+            account_was_deleted,
             verbose_status,
             licensed_resources,
             tenants_ownership,
@@ -328,12 +337,12 @@ impl Profile {
     pub fn with_tenant_ownership_or_error(
         &self,
         tenant_id: Uuid,
-    ) -> Result<(), MappedErrors> {
+    ) -> Result<Self, MappedErrors> {
         if let Some(tenants) = self.tenants_ownership.as_ref() {
             let tenants = tenants.to_ownership_vector();
 
             if tenants.iter().any(|i| i.tenant == tenant_id) {
-                return Ok(());
+                return Ok(self.to_owned());
             }
         }
 
@@ -391,11 +400,6 @@ impl Profile {
         self.with_permission(Permission::Write)
     }
 
-    /// Filter the licensed resources to include only licenses with read/write
-    pub fn with_read_write_access(&self) -> Self {
-        self.with_permission(Permission::ReadWrite)
-    }
-
     /// Filter licensed resources by permission
     ///
     /// This is an internal method that should be used to filter the licensed
@@ -410,7 +414,7 @@ impl Profile {
                 let records: Vec<LicensedResource> = resources
                     .to_licenses_vector()
                     .iter()
-                    .filter(|i| i.perm == permission)
+                    .filter(|i| i.perm.to_i32() >= permission.to_i32())
                     .map(|i| i.to_owned())
                     .collect();
 
@@ -520,6 +524,29 @@ impl Profile {
         .as_error()
     }
 
+    pub fn get_related_accounts_or_tenant_or_error(
+        &self,
+        tenant_id: Uuid,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        if self.is_staff {
+            return Ok(RelatedAccounts::HasStaffPrivileges);
+        }
+
+        if self.is_manager {
+            return Ok(RelatedAccounts::HasManagerPrivileges);
+        }
+
+        if let Some(tenants) = self.tenants_ownership.as_ref() {
+            let tenants = tenants.to_ownership_vector();
+
+            if tenants.iter().any(|i| i.tenant == tenant_id) {
+                return Ok(RelatedAccounts::HasTenantWidePrivileges(tenant_id));
+            }
+        }
+
+        self.get_related_account_or_error()
+    }
+
     pub fn get_ids_or_error(&self) -> Result<Vec<Uuid>, MappedErrors> {
         let ids: Vec<Uuid> = self
             .licensed_resources
@@ -600,6 +627,7 @@ mod tests {
             account_is_active: true,
             account_was_approved: true,
             account_was_archived: false,
+            account_was_deleted: false,
             verbose_status: None,
             licensed_resources: Some(LicensedResources::Records(vec![
                 LicensedResource {
@@ -626,7 +654,7 @@ mod tests {
                     acc_name: "Guest Account Name".to_string(),
                     sys_acc: true,
                     role: "service".to_string(),
-                    perm: Permission::ReadWrite,
+                    perm: Permission::Write,
                     verified: true,
                 },
             ])),
@@ -679,7 +707,6 @@ mod tests {
         let profile = profile();
         let profile_with_read = profile.with_read_access();
         let profile_with_write = profile.with_write_access();
-        let profile_with_read_write = profile.with_read_write_access();
         let profile_with_standard = profile.with_system_accounts_access();
 
         assert_eq!(
@@ -694,15 +721,6 @@ mod tests {
         assert_eq!(
             1,
             profile_with_write
-                .licensed_resources
-                .unwrap()
-                .to_licenses_vector()
-                .len()
-        );
-
-        assert_eq!(
-            1,
-            profile_with_read_write
                 .licensed_resources
                 .unwrap()
                 .to_licenses_vector()
@@ -739,8 +757,6 @@ mod tests {
         let profile_on_tenant_with_read = profile_on_tenant.with_read_access();
         let profile_on_tenant_with_write =
             profile_on_tenant.with_write_access();
-        let profile_on_tenant_with_read_write =
-            profile_on_tenant.with_read_write_access();
         assert_eq!(
             1,
             profile_on_tenant_with_read
@@ -758,10 +774,6 @@ mod tests {
                 .to_licenses_vector()
                 .len()
         );
-
-        assert!(profile_on_tenant_with_read_write
-            .licensed_resources
-            .is_none());
     }
 
     #[test]

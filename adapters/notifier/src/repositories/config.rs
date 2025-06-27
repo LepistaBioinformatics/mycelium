@@ -61,12 +61,14 @@ impl NotifierClientImpl {
         let username = smtp_config.username.async_get_or_error().await?;
         let password = smtp_config.password.async_get_or_error().await?;
         let credentials = Credentials::new(username, password);
+        let port = smtp_config.port.async_get_or_error().await?;
 
         let smtp_client = SmtpTransport::relay(&host)
             .map_err(|err| {
                 execution_err(format!("Failed to connect to SMTP: {err}"))
             })?
             .credentials(credentials)
+            .port(port)
             .build();
 
         Ok(Arc::new(Self {

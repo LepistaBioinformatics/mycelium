@@ -1,5 +1,4 @@
 use crate::domain::dtos::route::Route;
-use crate::domain::dtos::service::Service;
 
 use actix_web::http::uri::PathAndQuery;
 use async_trait::async_trait;
@@ -13,33 +12,34 @@ use std::fmt::{Debug, Display, Formatter};
 use uuid::Uuid;
 
 #[async_trait]
-pub trait RoutesFetching: Interface + Send + Sync {
-    async fn get(
+pub trait RoutesRead: Interface + Send + Sync {
+    async fn match_single_path_or_error(
         &self,
         path: PathAndQuery,
     ) -> Result<FetchResponseKind<Route, String>, MappedErrors>;
+
+    async fn list_routes_paginated(
+        &self,
+        id: Option<Uuid>,
+        name: Option<String>,
+        page_size: Option<i32>,
+        skip: Option<i32>,
+    ) -> Result<FetchManyResponseKind<Route>, MappedErrors>;
 
     async fn list_routes(
         &self,
         id: Option<Uuid>,
         name: Option<String>,
-        include_service_details: Option<bool>,
     ) -> Result<FetchManyResponseKind<Route>, MappedErrors>;
-
-    async fn list_services(
-        &self,
-        id: Option<Uuid>,
-        name: Option<String>,
-    ) -> Result<FetchManyResponseKind<Service>, MappedErrors>;
 }
 
-impl Display for dyn RoutesFetching {
+impl Display for dyn RoutesRead {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmResult {
         write!(f, "{}", self)
     }
 }
 
-impl Debug for dyn RoutesFetching {
+impl Debug for dyn RoutesRead {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmResult {
         write!(f, "{}", self)
     }

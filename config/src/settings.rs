@@ -8,6 +8,7 @@ lazy_static! {
     pub(crate) static ref VAULT_CONFIG: Mutex<Option<OptionalConfig<VaultConfig>>> = Mutex::new(None);
 }
 
+#[tracing::instrument(name = "init_vault_config_from_file", skip_all)]
 pub async fn init_vault_config_from_file(
     config_path: Option<PathBuf>,
     config_instance: Option<OptionalConfig<VaultConfig>>,
