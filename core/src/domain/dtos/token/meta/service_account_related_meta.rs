@@ -22,6 +22,8 @@ pub trait ScopedBehavior {
         config: AccountLifeCycle,
         extra_data: Option<String>,
     ) -> impl std::future::Future<Output = Result<String, MappedErrors>> + Send;
+
+    fn get_owner_id(&self) -> Result<Uuid, MappedErrors>;
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

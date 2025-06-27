@@ -11,6 +11,10 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum ConnectionStringBean {
+    /// The owner ID
+    OID(Uuid),
+
+    /// The signature
     SIG(String),
 
     /// The expiration date time
@@ -41,6 +45,9 @@ pub enum ConnectionStringBean {
 impl ToString for ConnectionStringBean {
     fn to_string(&self) -> String {
         match self {
+            ConnectionStringBean::OID(owner_id) => {
+                format!("oid={}", owner_id.to_string())
+            }
             ConnectionStringBean::SIG(signature) => {
                 format!("sig={}", signature)
             }
@@ -97,6 +104,10 @@ impl TryFrom<String> for ConnectionStringBean {
         let value = parts[1];
 
         match key {
+            "OID" | "oid" => {
+                let owner_id = Uuid::parse_str(value).map_err(|_| ())?;
+                Ok(ConnectionStringBean::OID(owner_id))
+            }
             "SIG" | "sig" => Ok(ConnectionStringBean::SIG(value.to_string())),
             "EDT" | "edt" => {
                 let datetime = match DateTime::parse_from_str(

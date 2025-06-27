@@ -156,6 +156,19 @@ impl ScopedBehavior for TenantWithPermissionsScope {
 
         Ok(hex_string)
     }
+
+    fn get_owner_id(&self) -> Result<Uuid, MappedErrors> {
+        self.0
+            .iter()
+            .find_map(|bean| {
+                if let ConnectionStringBean::OID(owner_id) = bean {
+                    return Some(owner_id.clone());
+                }
+
+                None
+            })
+            .ok_or_else(|| dto_err("Owner ID not found"))
+    }
 }
 
 impl ToString for TenantWithPermissionsScope {
