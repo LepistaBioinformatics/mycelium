@@ -14,7 +14,7 @@ key.pem
 config.dev*.yaml
 
 # Other
-*.drawio.bkp
+*.drawio.bkp*
 
 # Logging
 logs/*

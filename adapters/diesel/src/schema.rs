@@ -6,7 +6,9 @@ diesel::table! {
         #[max_length = 256]
         name -> Varchar,
         created -> Timestamptz,
+        created_by -> Nullable<Jsonb>,
         updated -> Nullable<Timestamptz>,
+        updated_by -> Nullable<Jsonb>,
         is_active -> Bool,
         is_checked -> Bool,
         is_archived -> Bool,

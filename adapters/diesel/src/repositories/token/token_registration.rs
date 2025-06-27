@@ -10,9 +10,8 @@ use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
         token::{
-            AccountScopedConnectionString, EmailConfirmationTokenMeta,
-            MultiTypeMeta, PasswordChangeTokenMeta, RoleScopedConnectionString,
-            TenantScopedConnectionString, Token,
+            EmailConfirmationTokenMeta, MultiTypeMeta, PasswordChangeTokenMeta,
+            Token, UserAccountConnectionString,
         },
     },
     entities::TokenRegistration,
@@ -136,13 +135,10 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
         )))
     }
 
-    #[tracing::instrument(
-        name = "create_account_scoped_connection_string",
-        skip_all
-    )]
-    async fn create_account_scoped_connection_string(
+    #[tracing::instrument(name = "create_connection_string", skip_all)]
+    async fn create_connection_string(
         &self,
-        meta: AccountScopedConnectionString,
+        meta: UserAccountConnectionString,
         expires: DateTime<Local>,
     ) -> Result<CreateResponseKind<Token>, MappedErrors> {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
@@ -181,17 +177,16 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
                 ))
             })?;
 
-        let meta: AccountScopedConnectionString =
-            from_value(token.meta).unwrap();
+        let meta: UserAccountConnectionString = from_value(token.meta).unwrap();
 
         Ok(CreateResponseKind::Created(Token::new(
             Some(token.id),
             token.expiration.and_local_timezone(Local).unwrap(),
-            MultiTypeMeta::AccountScopedConnectionString(meta),
+            MultiTypeMeta::UserAccountConnectionString(meta),
         )))
     }
 
-    #[tracing::instrument(
+    /* #[tracing::instrument(
         name = "create_role_scoped_connection_string",
         skip_all
     )]
@@ -294,5 +289,5 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
             token.expiration.and_local_timezone(Local).unwrap(),
             MultiTypeMeta::TenantScopedConnectionString(meta),
         )))
-    }
+    } */
 }

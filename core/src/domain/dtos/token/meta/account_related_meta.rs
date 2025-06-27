@@ -36,14 +36,26 @@ where
     /// Scopes should be defined by the service needing the token
     pub scope: Scope,
 
-    /// This is the user id to which the token was issued
-    pub user_id: Uuid,
+    /// The account id
+    ///
+    /// This is the account id to which the token was issued. This is the same of
+    /// the profile id. Use-cases should use this id to identify the owner of
+    /// the token and collect the related data, as permissions, roles, tenants,
+    /// etc.
+    ///
+    pub account_id: Uuid,
 
-    /// This is the email to which the token is related
+    /// The email
+    ///
+    /// This is the email to which the token is related.
+    ///
     pub email: Email,
 
-    /// This is the email confirmation token
-    token: TokenType,
+    /// The token
+    ///
+    /// This is the token to be used by the service.
+    ///
+    pub token: TokenType,
 }
 
 impl<TokenType, Scope> ServiceAccountRelatedMeta<TokenType, Scope>
@@ -56,13 +68,13 @@ where
     /// This function creates a new ServiceAccountRelatedMeta object
     fn new(
         scope: Scope,
-        user_id: Uuid,
+        account_id: Uuid,
         email: Email,
         token: TokenType,
     ) -> Self {
         Self {
             scope,
-            user_id,
+            account_id,
             email,
             token,
         }
@@ -75,11 +87,11 @@ where
     ///
     pub(crate) async fn new_signed_token(
         scope: &mut Scope,
-        user_id: Uuid,
+        account_id: Uuid,
         email: Email,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
-        let extra_data = format!("{} <{}>", user_id, email.email());
+        let extra_data = format!("{} <{}>", account_id, email.email());
         let signature = scope.sign_token(config, Some(extra_data)).await?;
 
         let token = match TokenType::try_from(signature) {
@@ -92,7 +104,7 @@ where
 
         Ok(ServiceAccountRelatedMeta::<TokenType, Scope>::new(
             scope.to_owned(),
-            user_id,
+            account_id,
             email.to_owned(),
             token,
         ))

@@ -1,16 +1,13 @@
 use crate::{
     domain::{
-        actors::SystemActor::*,
         dtos::{
             account::{Account, Modifier},
-            guest_role::Permission,
             native_error_codes::NativeErrorCodes,
-            token::{ScopedBehavior, TenantScopedConnectionString},
+            token::UserAccountConnectionString,
             webhook::{PayloadId, WebHookTrigger},
         },
         entities::{AccountRegistration, WebHookRegistration},
     },
-    models::AccountLifeCycle,
     use_cases::support::register_webhook_dispatching_event,
 };
 
@@ -26,7 +23,7 @@ use uuid::Uuid;
 #[tracing::instrument(
     name = "create_subscription_account",
     fields(
-        user_id = %connection_string.user_id,
+        owner_id = %connection_string.account_id,
         correspondence_id = tracing::field::Empty
     ),
     skip(
@@ -36,7 +33,7 @@ use uuid::Uuid;
     )
 )]
 pub async fn create_subscription_account(
-    connection_string: TenantScopedConnectionString,
+    connection_string: UserAccountConnectionString,
     tenant_id: Uuid,
     account_name: String,
     account_registration_repo: Box<&dyn AccountRegistration>,
@@ -57,13 +54,13 @@ pub async fn create_subscription_account(
     // ? Check if the current account has sufficient privileges
     // ? -----------------------------------------------------------------------
 
-    connection_string.contain_enough_permissions(
-        tenant_id,
-        vec![
-            (TenantManager.to_string(), Permission::Write),
-            (SubscriptionsManager.to_string(), Permission::Write),
-        ],
-    )?;
+    //connection_string.contain_enough_permissions(
+    //    tenant_id,
+    //    vec![
+    //        (TenantManager.to_string(), Permission::Write),
+    //        (SubscriptionsManager.to_string(), Permission::Write),
+    //    ],
+    //)?;
 
     // ? -----------------------------------------------------------------------
     // ? Register the account
@@ -74,7 +71,7 @@ pub async fn create_subscription_account(
     let mut unchecked_account = Account::new_subscription_account(
         account_name,
         tenant_id,
-        Some(Modifier::new_from_account(connection_string.user_id)),
+        Some(Modifier::new_from_account(connection_string.account_id)),
     );
 
     unchecked_account.is_checked = true;

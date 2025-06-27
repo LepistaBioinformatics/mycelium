@@ -25,14 +25,8 @@ pub enum MultiTypeMeta {
     /// This is the password change token
     PasswordChange(PasswordChangeTokenMeta),
 
-    /// This is the account token
-    AccountScopedConnectionString(AccountScopedConnectionString),
-
-    /// This is the role token
-    RoleScopedConnectionString(RoleScopedConnectionString),
-
-    /// This is the token scoped connection string
-    TenantScopedConnectionString(TenantScopedConnectionString),
+    /// This is the user account token
+    UserAccountConnectionString(UserAccountConnectionString),
 }
 
 // ? ---------------------------------------------------------------------------

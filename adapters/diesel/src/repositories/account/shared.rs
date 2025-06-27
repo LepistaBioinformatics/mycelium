@@ -1,9 +1,11 @@
 use crate::models::account::Account as AccountModel;
 
 use chrono::Local;
-use myc_core::domain::dtos::account::{Account, AccountMetaKey, VerboseStatus};
+use myc_core::domain::dtos::account::{
+    Account, AccountMetaKey, Modifier, VerboseStatus,
+};
 use mycelium_base::dtos::Children;
-use serde_json::from_value;
+use serde_json::{from_value, json};
 use std::{collections::HashMap, str::FromStr};
 
 pub(crate) fn map_account_model_to_dto(model: AccountModel) -> Account {
@@ -26,10 +28,25 @@ pub(crate) fn map_account_model_to_dto(model: AccountModel) -> Account {
         owners: Children::Records(vec![]),
         account_type: from_value(model.account_type).unwrap(),
         guest_users: None,
-        created: model.created.and_local_timezone(Local).unwrap(),
-        updated: model
+        created_at: model.created.and_local_timezone(Local).unwrap(),
+        created_by: model.created_by.map(|m| from_value(m).unwrap()),
+        updated_at: model
             .updated
             .map(|dt| dt.and_local_timezone(Local).unwrap()),
+        updated_by: model
+            .updated_by
+            .map(|m| {
+                //
+                // Check if the Value is a empty object
+                //
+                if m == json!({}) {
+                    None
+                } else {
+                    let modifier: Modifier = from_value(m).unwrap();
+                    Some(modifier)
+                }
+            })
+            .flatten(),
         meta: model.meta.map(|m| {
             serde_json::from_value::<HashMap<String, String>>(m)
                 .unwrap()

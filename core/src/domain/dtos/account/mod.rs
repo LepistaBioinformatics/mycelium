@@ -23,6 +23,44 @@ pub type AccountMeta = HashMap<AccountMetaKey, String>;
     Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema, ToResponse,
 )]
 #[serde(rename_all = "camelCase")]
+pub enum IDSource {
+    /// The ID source is the user ID
+    User,
+
+    /// The ID source is the system actor
+    Account,
+}
+
+#[derive(
+    Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema, ToResponse,
+)]
+#[serde(rename_all = "camelCase")]
+pub struct Modifier {
+    /// The ID of the user who created the account
+    pub id: Uuid,
+
+    /// The ID source
+    pub from: IDSource,
+}
+
+impl Modifier {
+    fn new(id: Uuid, from: IDSource) -> Self {
+        Self { id, from }
+    }
+
+    pub fn new_from_user(id: Uuid) -> Self {
+        Self::new(id, IDSource::User)
+    }
+
+    pub fn new_from_account(id: Uuid) -> Self {
+        Self::new(id, IDSource::Account)
+    }
+}
+
+#[derive(
+    Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema, ToResponse,
+)]
+#[serde(rename_all = "camelCase")]
 pub struct Account {
     /// The Account ID
     pub id: Option<Uuid>,
@@ -105,11 +143,26 @@ pub struct Account {
     pub guest_users: Option<Children<GuestUser, Uuid>>,
 
     /// The Account Created Date
-    pub created: DateTime<Local>,
+    #[serde(alias = "created")]
+    pub created_at: DateTime<Local>,
+
+    /// The Account Created By
+    ///
+    /// The ID of the account that created the account. This is used for
+    /// auditing purposes.
+    ///
+    pub created_by: Option<Modifier>,
 
     /// The Account Updated Date
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub updated: Option<DateTime<Local>>,
+    #[serde(alias = "updated", skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<DateTime<Local>>,
+
+    /// The Account Updated By
+    ///
+    /// The ID of the account that updated the account. This is used for
+    /// auditing purposes.
+    ///
+    pub updated_by: Option<Modifier>,
 
     /// The Account Meta
     ///
@@ -135,8 +188,10 @@ impl Default for Account {
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::User,
             guest_users: None,
-            created: Local::now(),
-            updated: None,
+            created_at: Local::now(),
+            created_by: None,
+            updated_at: None,
+            updated_by: None,
             meta: None,
         }
     }
@@ -149,6 +204,7 @@ impl Account {
     pub fn new_subscription_account(
         account_name: String,
         tenant_id: Uuid,
+        created_by: Option<Modifier>,
     ) -> Self {
         Self {
             id: None,
@@ -164,8 +220,10 @@ impl Account {
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::Subscription { tenant_id },
             guest_users: None,
-            created: Local::now(),
-            updated: None,
+            created_at: Local::now(),
+            created_by,
+            updated_at: None,
+            updated_by: None,
             meta: None,
         }
     }
@@ -176,6 +234,7 @@ impl Account {
         role_id: Uuid,
         role_name: T,
         is_default: bool,
+        created_by: Option<Modifier>,
     ) -> Self {
         Self {
             id: None,
@@ -195,8 +254,10 @@ impl Account {
                 role_name: role_name.to_string(),
             },
             guest_users: None,
-            created: Local::now(),
-            updated: None,
+            created_at: Local::now(),
+            created_by,
+            updated_at: None,
+            updated_by: None,
             meta: None,
         }
     }
@@ -205,6 +266,7 @@ impl Account {
         name: String,
         actor: SystemActor,
         is_default: bool,
+        created_by: Option<Modifier>,
     ) -> Self {
         Self {
             id: None,
@@ -220,8 +282,10 @@ impl Account {
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::ActorAssociated { actor },
             guest_users: None,
-            created: Local::now(),
-            updated: None,
+            created_at: Local::now(),
+            created_by,
+            updated_at: None,
+            updated_by: None,
             meta: None,
         }
     }
@@ -229,6 +293,7 @@ impl Account {
     pub fn new_tenant_management_account(
         account_name: String,
         tenant_id: Uuid,
+        created_by: Option<Modifier>,
     ) -> Self {
         Self {
             id: None,
@@ -244,8 +309,10 @@ impl Account {
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::TenantManager { tenant_id },
             guest_users: None,
-            created: Local::now(),
-            updated: None,
+            created_at: Local::now(),
+            created_by,
+            updated_at: None,
+            updated_by: None,
             meta: None,
         }
     }
@@ -259,6 +326,7 @@ impl Account {
         account_name: String,
         principal_owner: User,
         account_type: AccountType,
+        created_by: Option<Modifier>,
     ) -> Self {
         Self {
             id: None,
@@ -274,8 +342,10 @@ impl Account {
             owners: Children::Records([principal_owner].to_vec()),
             account_type,
             guest_users: None,
-            created: Local::now(),
-            updated: None,
+            created_at: Local::now(),
+            created_by,
+            updated_at: None,
+            updated_by: None,
             meta: None,
         }
     }
@@ -309,8 +379,10 @@ mod tests {
             owners: Children::Records([].to_vec()),
             account_type: AccountType::User,
             guest_users: None,
-            created: Local::now(),
-            updated: Some(Local::now()),
+            created_at: Local::now(),
+            created_by: None,
+            updated_at: Some(Local::now()),
+            updated_by: None,
             meta: None,
         };
 

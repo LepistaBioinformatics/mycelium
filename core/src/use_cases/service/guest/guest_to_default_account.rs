@@ -1,10 +1,9 @@
 use crate::{
     domain::{
-        actors::SystemActor::*,
         dtos::{
-            email::Email, guest_role::Permission, guest_user::GuestUser,
+            email::Email, guest_user::GuestUser,
             native_error_codes::NativeErrorCodes,
-            token::RoleScopedConnectionString,
+            token::UserAccountConnectionString,
         },
         entities::{
             AccountRegistration, GuestRoleFetching, GuestUserRegistration,
@@ -32,7 +31,7 @@ use uuid::Uuid;
 #[tracing::instrument(
     name = "guest_to_default_account",
     fields(
-        user_id = %connection_string.user_id,
+        user_id = %connection_string.account_id,
         email = %email.redacted_email(),
         correspondence_id = tracing::field::Empty
     ),
@@ -47,7 +46,7 @@ use uuid::Uuid;
     )
 )]
 pub async fn guest_to_default_account(
-    connection_string: RoleScopedConnectionString,
+    connection_string: UserAccountConnectionString,
     role_id: Uuid,
     email: Email,
     tenant_id: Uuid,
@@ -61,14 +60,14 @@ pub async fn guest_to_default_account(
     // ? Check permissions
     // ? -----------------------------------------------------------------------
 
-    connection_string.contain_tenant_enough_permissions(
-        tenant_id,
-        role_id,
-        vec![
-            (GuestsManager.to_string(), Permission::Write),
-            (SubscriptionsManager.to_string(), Permission::Write),
-        ],
-    )?;
+    //connection_string.contain_tenant_enough_permissions(
+    //    tenant_id,
+    //    role_id,
+    //    vec![
+    //        (GuestsManager.to_string(), Permission::Write),
+    //        (SubscriptionsManager.to_string(), Permission::Write),
+    //    ],
+    //)?;
 
     // ? -----------------------------------------------------------------------
     // ? Guarantee needed information to evaluate guesting
@@ -93,7 +92,7 @@ pub async fn guest_to_default_account(
 
     let default_subscription_account = match get_or_create_role_related_account(
         Some(target_role.name.to_owned()),
-        connection_string.user_id,
+        connection_string.account_id,
         tenant_id,
         role_id,
         None,

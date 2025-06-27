@@ -1,12 +1,15 @@
 use crate::middleware::{
-    fetch_and_inject_email_to_forward, fetch_and_inject_profile_to_forward,
-    fetch_and_inject_role_scoped_connection_string_to_forward,
+    fetch_and_inject_email_to_forward,
+    fetch_and_inject_profile_from_connection_string_to_forward,
+    fetch_and_inject_profile_to_forward,
 };
 
-use actix_web::HttpRequest;
+use actix_web::{web, HttpRequest};
 use awc::ClientRequest;
 use myc_core::domain::dtos::{route::Route, security_group::SecurityGroup};
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::responses::GatewayError;
+use shaku::HasComponent;
 use tracing::Instrument;
 
 /// Check the security group
@@ -19,6 +22,7 @@ pub(super) async fn check_security_group(
     req: HttpRequest,
     mut downstream_request: ClientRequest,
     route: Route,
+    app_module: web::Data<SqlAppModule>,
 ) -> Result<ClientRequest, GatewayError> {
     let span = tracing::Span::current();
 
@@ -103,11 +107,13 @@ pub(super) async fn check_security_group(
             // resources by roles and permissions
             //
             downstream_request =
-                fetch_and_inject_role_scoped_connection_string_to_forward(
+                fetch_and_inject_profile_from_connection_string_to_forward(
                     req,
                     downstream_request,
                     Some(roles),
                     None,
+                    Box::new(&*app_module.resolve_ref()),
+                    Box::new(&*app_module.resolve_ref()),
                 )
                 .instrument(span.to_owned())
                 .await?;
@@ -124,11 +130,13 @@ pub(super) async fn check_security_group(
             // resources by roles and permissions
             //
             downstream_request =
-                fetch_and_inject_role_scoped_connection_string_to_forward(
+                fetch_and_inject_profile_from_connection_string_to_forward(
                     req,
                     downstream_request,
                     None,
                     Some(permissioned_roles),
+                    Box::new(&*app_module.resolve_ref()),
+                    Box::new(&*app_module.resolve_ref()),
                 )
                 .instrument(span.to_owned())
                 .await?;

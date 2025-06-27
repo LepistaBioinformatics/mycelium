@@ -3,25 +3,23 @@ use crate::dtos::MyceliumProfileData;
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
     models::AccountLifeCycle,
-    use_cases::role_scoped::tenant_manager::create_tenant_associated_connection_string,
+    use_cases::role_scoped::beginner::token::create_connection_string,
 };
 use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error,
-    Permission,
 };
 use serde::{Deserialize, Serialize};
 use shaku::HasComponent;
 use utoipa::{ToResponse, ToSchema};
-use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
 // ? ---------------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
-    config.service(create_tenant_associated_connection_string_url);
+    config.service(create_connection_string_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -30,8 +28,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateTenantScopedTokenBody {
-    permissioned_roles: Vec<(String, Permission)>,
+pub struct CreateTokenBody {
     expiration: i64,
 }
 
@@ -41,14 +38,15 @@ pub struct CreateTokenResponse {
     connection_string: String,
 }
 
-/// Create Tenant Associated Token
+/// Create Account Associated Token
+///
+/// This action creates a token that is associated with the account specified
+/// in the `account_id` argument. The token is scoped to the roles specified
+/// in the `permissioned_roles` argument.
 ///
 #[utoipa::path(
     post,
-    params(
-        ("tenant_id" = Uuid, Path, description = "The tenant unique id."),
-    ),
-    request_body = CreateTenantScopedTokenBody,
+    request_body = CreateTokenBody,
     responses(
         (
             status = 500,
@@ -72,19 +70,16 @@ pub struct CreateTokenResponse {
         ),
     ),
 )]
-#[post("/tenants/{tenant_id}")]
-pub async fn create_tenant_associated_connection_string_url(
-    path: web::Path<Uuid>,
-    body: web::Json<CreateTenantScopedTokenBody>,
+#[post("")]
+pub async fn create_connection_string_url(
+    body: web::Json<CreateTokenBody>,
     profile: MyceliumProfileData,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     sql_app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
-    match create_tenant_associated_connection_string(
+    match create_connection_string(
         profile.to_profile(),
-        path.to_owned(),
         body.expiration.to_owned(),
-        body.permissioned_roles.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),

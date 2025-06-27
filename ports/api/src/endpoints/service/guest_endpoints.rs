@@ -1,4 +1,4 @@
-use crate::dtos::MyceliumRoleScopedConnectionStringData;
+use crate::dtos::MyceliumConnectionStringData;
 
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
@@ -93,15 +93,15 @@ pub struct ServiceGuestUserBody {
     ),
     security(("ConnectionString" = [])),
 )]
-#[post("/roles/{role_id}")]
+#[post("/tenants/{tenant_id}/roles/{role_id}")]
 pub async fn guest_to_default_account_url(
-    path: web::Path<Uuid>,
-    connection_string: MyceliumRoleScopedConnectionStringData,
+    path: web::Path<(Uuid, Uuid)>,
+    connection_string: MyceliumConnectionStringData,
     body: web::Json<ServiceGuestUserBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     sql_app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
-    let role_id = path.to_owned();
+    let (tenant_id, role_id) = path.to_owned();
 
     let email = match body.account.owners.to_owned() {
         Children::Ids(_) => {
@@ -116,14 +116,6 @@ pub async fn guest_to_default_account_url(
             .unwrap()
             .email
             .to_owned(),
-    };
-
-    let tenant_id = match connection_string.tenant_id() {
-        Some(tenant_id) => tenant_id,
-        None => {
-            return HttpResponse::BadRequest()
-                .json("Tenant id not found in the connection string.");
-        }
     };
 
     match guest_to_default_account(

@@ -5,10 +5,10 @@ use crate::{
     },
     schema::{account as account_model, user as user_model},
 };
-use diesel::prelude::*;
-use myc_core::domain::dtos::account_type::AccountType;
 
 use async_trait::async_trait;
+use diesel::prelude::*;
+use myc_core::domain::dtos::account_type::AccountType;
 use myc_core::domain::{
     dtos::{
         account::VerboseStatus,

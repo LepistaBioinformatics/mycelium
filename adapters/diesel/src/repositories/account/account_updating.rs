@@ -197,10 +197,12 @@ impl AccountUpdatingSqlDbRepository {
             owners: Children::Records(vec![]),
             account_type: from_value(model.account_type).unwrap(),
             guest_users: None,
-            created: model.created.and_local_timezone(Local).unwrap(),
-            updated: model
+            created_at: model.created.and_local_timezone(Local).unwrap(),
+            created_by: model.created_by.map(|m| from_value(m).unwrap()),
+            updated_at: model
                 .updated
                 .map(|dt| dt.and_local_timezone(Local).unwrap()),
+            updated_by: model.updated_by.map(|m| from_value(m).unwrap()),
             meta: None,
         }
     }

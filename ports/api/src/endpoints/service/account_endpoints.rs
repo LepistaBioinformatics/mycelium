@@ -1,10 +1,7 @@
-use crate::dtos::MyceliumTenantScopedConnectionStringData;
+use crate::dtos::MyceliumConnectionStringData;
 
 use actix_web::{post, web, HttpResponse, Responder};
-use myc_core::{
-    models::AccountLifeCycle,
-    use_cases::service::account::create_subscription_account,
-};
+use myc_core::use_cases::service::account::create_subscription_account;
 use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
@@ -13,6 +10,7 @@ use myc_http_tools::{
 use serde::Deserialize;
 use shaku::HasComponent;
 use utoipa::ToSchema;
+use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -82,26 +80,19 @@ pub struct CreateSubscriptionAccountBody {
     ),
     security(("ConnectionString" = [])),
 )]
-#[post("")]
+#[post("/tenants/{tenant_id}")]
 pub async fn create_subscription_account_from_service_url(
+    path: web::Path<Uuid>,
     body: web::Json<CreateSubscriptionAccountBody>,
-    connection_string: MyceliumTenantScopedConnectionStringData,
-    life_cycle_settings: web::Data<AccountLifeCycle>,
+    connection_string: MyceliumConnectionStringData,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
-    let tenant_id = match connection_string.tenant_id() {
-        Some(tenant_id) => tenant_id,
-        None => {
-            return HttpResponse::BadRequest()
-                .json("Tenant id not found in the connection string.");
-        }
-    };
+    let tenant_id = path.to_owned();
 
     match create_subscription_account(
         connection_string.connection_string().clone(),
         tenant_id,
         body.name.to_owned(),
-        life_cycle_settings.get_ref().clone(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )

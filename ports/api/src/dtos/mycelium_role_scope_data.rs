@@ -1,34 +1,27 @@
-use crate::middleware::fetch_role_scoped_connection_string_from_request;
+use crate::middleware::fetch_connection_string_from_request;
 
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
-use myc_core::domain::dtos::token::RoleScopedConnectionString;
+use myc_core::domain::dtos::token::UserAccountConnectionString;
 use myc_http_tools::responses::GatewayError;
 use serde::Deserialize;
 use std::pin::Pin;
-use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub(crate) struct MyceliumRoleScopedConnectionStringData(
-    RoleScopedConnectionString,
-);
+pub(crate) struct MyceliumConnectionStringData(UserAccountConnectionString);
 
-impl MyceliumRoleScopedConnectionStringData {
-    pub fn new(connection_string: RoleScopedConnectionString) -> Self {
+impl MyceliumConnectionStringData {
+    pub fn new(connection_string: UserAccountConnectionString) -> Self {
         Self(connection_string)
     }
 
-    pub fn connection_string(&self) -> &RoleScopedConnectionString {
+    pub fn connection_string(&self) -> &UserAccountConnectionString {
         &self.0
-    }
-
-    pub fn tenant_id(&self) -> Option<Uuid> {
-        self.0.get_tenant_id()
     }
 }
 
-impl FromRequest for MyceliumRoleScopedConnectionStringData {
+impl FromRequest for MyceliumConnectionStringData {
     type Error = GatewayError;
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
@@ -36,7 +29,7 @@ impl FromRequest for MyceliumRoleScopedConnectionStringData {
         let req_clone = req.clone();
 
         Box::pin(async move {
-            fetch_role_scoped_connection_string_from_request(req_clone).await
+            fetch_connection_string_from_request(req_clone).await
         })
     }
 }

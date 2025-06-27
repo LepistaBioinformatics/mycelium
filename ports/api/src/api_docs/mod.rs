@@ -29,8 +29,8 @@ use role_scoped::beginners::meta_endpoints as Beginners__Meta;
 use role_scoped::beginners::profile_endpoints as Beginners__Profile;
 use role_scoped::beginners::user_endpoints as Beginners__User;
 use role_scoped::beginners::tenant_endpoints as Beginners__Tenant;
+use role_scoped::beginners::token_endpoints as Beginners__Token;
 use role_scoped::guest_manager::guest_role_endpoints as Guest_Manager__Guest_Role;
-use role_scoped::guest_manager::token_endpoints as Guest_Manager__Token;
 use role_scoped::subscriptions_manager::account_endpoints as Subscriptions_Manager__Account;
 use role_scoped::subscriptions_manager::guest_endpoints as Subscriptions_Manager__Guest;
 use role_scoped::subscriptions_manager::guest_role_endpoints as Subscriptions_Manager__Guest_Role;
@@ -40,7 +40,6 @@ use role_scoped::system_manager::webhook_endpoints as System_Manager__Webhook;
 use role_scoped::tenant_manager::account_endpoints as Tenant_Manager__Account;
 use role_scoped::tenant_manager::tag_endpoints as Tenant_Manager__Tag;
 use role_scoped::tenant_manager::tenant_endpoints as Tenant_Manager__Tenant;
-use role_scoped::tenant_manager::token_endpoints as Tenant_Manager__Token;
 use role_scoped::tenant_owner::account_endpoints as Tenant_Owner__Account;
 use role_scoped::tenant_owner::meta_endpoints as Tenant_Owner__Meta;
 use role_scoped::tenant_owner::owner_endpoints as Tenant_Owner__Owner;
@@ -286,6 +285,21 @@ struct BeginnersUserApiDoc;
 )]
 struct BeginnersTenantApiDoc;
 
+/// Role Scoped Endpoints for Beginner Users for Tokens Management
+///
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Beginners | Token Endpoints",
+        description = "Endpoints reserved for the beginner users to manage their tokens",
+    ),
+    paths(
+        Beginners__Token::create_connection_string_url,
+    ),
+    security(("Bearer" = []))
+)]
+struct BeginnersTokenApiDoc;
+
 /// Role Scoped Endpoints for Gateway Manager for Routes Management
 ///
 #[derive(OpenApi)]
@@ -336,22 +350,6 @@ struct GatewayManagerServiceApiDoc;
     security(("Bearer" = []))
 )]
 struct GuestManagerGuestRoleApiDoc;
-
-/// Role Scoped Endpoints for Guest Manager for Tokens Management
-///
-#[derive(OpenApi)]
-#[openapi(
-    info(
-        title = "Guest Manager | Token Endpoints",
-        description = "Endpoints reserved for the application guest managers to manage tokens",
-    ),
-    paths(
-        Guest_Manager__Token::create_default_account_associated_connection_string_url,
-        Guest_Manager__Token::create_role_associated_connection_string_url,
-    ),
-    security(("Bearer" = []))
-)]
-struct GuestManagerTokenApiDoc;
 
 /// Role Scoped Endpoints for Subscriptions Manager for Account Management
 ///
@@ -571,21 +569,6 @@ struct TenantManagerTagApiDoc;
 )]
 struct TenantManagerTenantApiDoc;
 
-/// Role Scoped Endpoints for Tenant Manager for Token Management
-///
-#[derive(OpenApi)]
-#[openapi(
-    info(
-        title = "Tenant Manager | Token Endpoints",
-        description = "Endpoints reserved for the application tenant managers to manage tokens",
-    ),
-    paths(
-        Tenant_Manager__Token::create_tenant_associated_connection_string_url,
-    ),
-    security(("Bearer" = [])),
-)]
-struct TenantManagerTokenApiDoc;
-
 /// Role Scoped Endpoints for Users Manager for Account Management
 ///
 #[derive(OpenApi)]
@@ -648,6 +631,7 @@ struct UsersManagerAccountApiDoc;
         (path = "/adm/rs/beginners/profile", api = BeginnersProfileApiDoc),
         (path = "/adm/rs/beginners/users", api = BeginnersUserApiDoc),
         (path = "/adm/rs/beginners/tenants", api = BeginnersTenantApiDoc),
+        (path = "/adm/rs/beginners/tokens", api = BeginnersTokenApiDoc),
         // Account Manager endpoints
         //
         (path = "/adm/rs/accounts-manager/guests", api = AccountManagerGuestApiDoc),
@@ -660,7 +644,6 @@ struct UsersManagerAccountApiDoc;
         // Guest Manager Endpoints
         //
         (path = "/adm/rs/guests-manager/guest-roles", api = GuestManagerGuestRoleApiDoc),
-        (path = "/adm/rs/guests-manager/tokens", api = GuestManagerTokenApiDoc),
         //
         // Subscriptions Manager Endpoints
         //
@@ -685,7 +668,6 @@ struct UsersManagerAccountApiDoc;
         //
         (path = "/adm/rs/tenant-manager/accounts", api = TenantManagerAccountApiDoc),
         (path = "/adm/rs/tenant-manager/tags", api = TenantManagerTagApiDoc),
-        (path = "/adm/rs/tenant-manager/tokens", api = TenantManagerTokenApiDoc),
         (path = "/adm/rs/tenant-manager/tenants", api = TenantManagerTenantApiDoc),
         //
         // Users Manager Endpoints
@@ -760,6 +742,7 @@ struct UsersManagerAccountApiDoc;
             role_scoped::beginners::user_endpoints::StartPasswordResetBody,
             role_scoped::beginners::user_endpoints::ResetPasswordBody,
             role_scoped::beginners::user_endpoints::CheckUserCredentialsBody,
+            role_scoped::beginners::token_endpoints::CreateTokenBody,
 
             //
             // GATEWAY MANAGER
@@ -774,7 +757,6 @@ struct UsersManagerAccountApiDoc;
             role_scoped::guest_manager::guest_role_endpoints::UpdateGuestRoleNameAndDescriptionBody,
             role_scoped::guest_manager::guest_role_endpoints::UpdateGuestRolePermissionsBody,
             role_scoped::guest_manager::guest_role_endpoints::ListGuestRolesParams,
-            role_scoped::guest_manager::token_endpoints::CreateTokenBody,
 
             //
             // SUBSCRIPTIONS MANAGER
@@ -803,7 +785,6 @@ struct UsersManagerAccountApiDoc;
             // TENANT MANAGER
             //
             role_scoped::tenant_manager::tag_endpoints::CreateTagBody,
-            role_scoped::tenant_manager::token_endpoints::CreateTenantScopedTokenBody,
 
             //
             // TENANT OWNER
@@ -832,16 +813,7 @@ struct UsersManagerAccountApiDoc;
             role_scoped::beginners::user_endpoints::TotpActivationStartedResponse,
             role_scoped::beginners::user_endpoints::TotpActivationFinishedResponse,
             role_scoped::beginners::user_endpoints::CheckEmailStatusResponse,
-
-            //
-            // GUEST MANAGER
-            //
-            role_scoped::guest_manager::token_endpoints::CreateTokenResponse,
-
-            //
-            // TENANT MANAGER
-            //
-            role_scoped::tenant_manager::token_endpoints::CreateTokenResponse,
+            role_scoped::beginners::token_endpoints::CreateTokenResponse,
 
             //
             // SERVICE

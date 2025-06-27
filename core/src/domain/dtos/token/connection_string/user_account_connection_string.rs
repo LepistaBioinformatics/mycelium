@@ -7,10 +7,8 @@
 
 use super::ConnectionStringBean;
 use crate::{
-    domain::dtos::{
-        native_error_codes::NativeErrorCodes,
-        security_group::PermissionedRoles,
-        token::{HmacSha256, ScopedBehavior, ServiceAccountRelatedMeta},
+    domain::dtos::token::{
+        HmacSha256, ScopedBehavior, ServiceAccountRelatedMeta,
     },
     models::AccountLifeCycle,
 };
@@ -25,9 +23,9 @@ use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct TenantWithPermissionsScope(Vec<ConnectionStringBean>);
+pub struct UserAccountScope(Vec<ConnectionStringBean>);
 
-impl TenantWithPermissionsScope {
+impl UserAccountScope {
     /// Create a new AccountScope
     ///
     /// Account scope is a list of ConnectionStringBean including the tenant_id,
@@ -36,14 +34,12 @@ impl TenantWithPermissionsScope {
     ///
     #[tracing::instrument(name = "new", skip(config))]
     pub async fn new(
-        tenant_id: Uuid,
-        permissioned_roles: PermissionedRoles,
+        account_id: Uuid,
         expires_at: DateTime<Local>,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
         let mut self_signed_scope = Self(vec![
-            ConnectionStringBean::TID(tenant_id),
-            ConnectionStringBean::PR(permissioned_roles),
+            ConnectionStringBean::AID(account_id),
             ConnectionStringBean::EDT(expires_at),
         ]);
 
@@ -74,41 +70,19 @@ impl TenantWithPermissionsScope {
         })
     }
 
-    #[tracing::instrument(name = "get_tenant_id", skip(self))]
-    pub fn get_tenant_id(&self) -> Option<Uuid> {
+    #[tracing::instrument(name = "get_user_account_id", skip(self))]
+    pub fn get_user_account_id(&self) -> Option<Uuid> {
         self.0.iter().find_map(|bean| {
-            if let ConnectionStringBean::TID(id) = bean {
-                return Some(*id);
+            if let ConnectionStringBean::AID(id) = bean {
+                return Some(id.clone());
             }
 
             None
-        })
-    }
-
-    #[tracing::instrument(name = "get_permissioned_roles", skip(self))]
-    fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
-        self.0.iter().find_map(|bean| {
-            if let ConnectionStringBean::PR(permissioned_roles) = bean {
-                return Some(permissioned_roles.clone());
-            }
-
-            None
-        })
-    }
-
-    #[tracing::instrument(name = "include_tenant", skip(self))]
-    fn include_tenant(&self, tenant_id: Uuid) -> bool {
-        self.0.iter().any(|bean| {
-            if let ConnectionStringBean::TID(id) = bean {
-                return *id == tenant_id;
-            }
-
-            false
         })
     }
 }
 
-impl ScopedBehavior for TenantWithPermissionsScope {
+impl ScopedBehavior for UserAccountScope {
     /// Sign the token with secret and data
     ///
     /// Add or replace a signature to self with the HMAC of the data and the
@@ -158,7 +132,7 @@ impl ScopedBehavior for TenantWithPermissionsScope {
     }
 }
 
-impl ToString for TenantWithPermissionsScope {
+impl ToString for UserAccountScope {
     fn to_string(&self) -> String {
         self.0
             .iter()
@@ -170,7 +144,7 @@ impl ToString for TenantWithPermissionsScope {
     }
 }
 
-impl TryFrom<String> for TenantWithPermissionsScope {
+impl TryFrom<String> for UserAccountScope {
     type Error = ();
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
@@ -183,63 +157,25 @@ impl TryFrom<String> for TenantWithPermissionsScope {
     }
 }
 
-pub type TenantScopedConnectionString =
-    ServiceAccountRelatedMeta<String, TenantWithPermissionsScope>;
+pub type UserAccountConnectionString =
+    ServiceAccountRelatedMeta<String, UserAccountScope>;
 
-impl TenantScopedConnectionString {
-    #[tracing::instrument(name = "get_tenant_id", skip(self))]
-    pub fn get_tenant_id(&self) -> Option<Uuid> {
-        self.scope.get_tenant_id()
-    }
-
+impl UserAccountConnectionString {
     #[tracing::instrument(name = "get_signature", skip(self))]
     pub fn get_signature(&self) -> Option<String> {
         self.scope.get_signature()
     }
 
-    #[tracing::instrument(name = "get_permissioned_roles", skip(self))]
-    pub fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
-        self.scope.get_permissioned_roles()
-    }
-
-    #[tracing::instrument(name = "contain_enough_permissions", skip(self))]
-    pub fn contain_enough_permissions(
-        &self,
-        tenant_id: Uuid,
-        permissioned_roles: PermissionedRoles,
-    ) -> Result<(), MappedErrors> {
-        if !self.scope.include_tenant(tenant_id) {
-            return dto_err("Tenant not included in the scope")
-                .with_code(NativeErrorCodes::MYC00013)
-                .as_error();
-        }
-
-        if self.scope.0.iter().any(|bean| {
-            if let ConnectionStringBean::PR(permissions) = bean {
-                for (role, permission) in permissions {
-                    if permissioned_roles
-                        .contains(&(role.clone(), permission.clone()))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            false
-        }) {
-            return Ok(());
-        };
-
-        dto_err("Invalid scope scope")
-            .with_code(NativeErrorCodes::MYC00013)
-            .as_error()
+    #[tracing::instrument(name = "get_user_account_id", skip(self))]
+    pub fn get_user_account_id(&self) -> Option<Uuid> {
+        self.scope.get_user_account_id()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::dtos::{email::Email, guest_role::Permission};
+    use crate::domain::dtos::email::Email;
 
     use myc_config::secret_resolver::SecretResolver;
 
@@ -262,17 +198,16 @@ mod tests {
             token_secret: SecretResolver::Value("test".to_string()),
         };
 
-        let role_scope = TenantWithPermissionsScope::new(
+        let account_scope = UserAccountScope::new(
             Uuid::new_v4(),
-            vec![("role".to_string(), Permission::Write)],
             Local::now(),
             config.to_owned(),
         )
         .await;
 
-        assert!(role_scope.is_ok());
+        assert!(account_scope.is_ok());
 
-        let mut tenant_scope = role_scope.unwrap();
+        let mut account_scope = account_scope.unwrap();
 
         let user_id = Uuid::new_v4();
         let email = Email {
@@ -280,33 +215,33 @@ mod tests {
             domain: "test.com".to_string(),
         };
 
-        let tenant_scoped_connection_string =
-            TenantScopedConnectionString::new_signed_token(
-                &mut tenant_scope,
+        let account_scoped_connection_string =
+            UserAccountConnectionString::new_signed_token(
+                &mut account_scope,
                 user_id,
                 email,
                 config,
             )
             .await;
 
-        assert!(tenant_scoped_connection_string.is_ok());
+        assert!(account_scoped_connection_string.is_ok());
 
-        let mut tenant_scoped_connection_string =
-            tenant_scoped_connection_string.unwrap();
+        let mut account_scoped_connection_string =
+            account_scoped_connection_string.unwrap();
 
-        let signature = tenant_scoped_connection_string.get_signature();
+        let signature = account_scoped_connection_string.get_signature();
 
         assert!(signature.is_some());
 
         let signature = signature.unwrap();
 
         let with_encrypted_token =
-            tenant_scoped_connection_string.encrypted_token();
+            account_scoped_connection_string.encrypted_token();
 
         assert!(with_encrypted_token.is_ok());
 
         let password_check =
-            tenant_scoped_connection_string.check_token(signature.as_bytes());
+            account_scoped_connection_string.check_token(signature.as_bytes());
 
         assert!(password_check.is_ok());
     }
