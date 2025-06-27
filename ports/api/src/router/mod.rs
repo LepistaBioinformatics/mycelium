@@ -32,7 +32,6 @@ use check_source_reliability::*;
 use initialize_downstream_request::*;
 use inject_downstream_secret::*;
 use match_downstream_route_from_request::*;
-use myc_diesel::repositories::SqlAppModule;
 use stream_request_to_downstream::*;
 
 use crate::{models::api_config::ApiConfig, settings::GATEWAY_API_SCOPE};
@@ -77,8 +76,7 @@ pub(crate) async fn route_request(
     payload: web::Payload,
     client: web::Data<Client>,
     api_config: web::Data<ApiConfig>,
-    mem_app_module: web::Data<MemDbAppModule>,
-    sql_app_module: web::Data<SqlAppModule>,
+    pp_module: web::Data<MemDbAppModule>,
 ) -> Result<HttpResponse, GatewayError> {
     let gateway_base_path = &format!("/{}", GATEWAY_API_SCOPE);
 
@@ -115,7 +113,7 @@ pub(crate) async fn route_request(
     let route = match_downstream_route_from_request(
         req.clone(),
         gateway_base_path,
-        mem_app_module.clone(),
+        pp_module.clone(),
     )
     .instrument(span.to_owned())
     .await?;
@@ -170,14 +168,10 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    downstream_request = check_security_group(
-        req.clone(),
-        downstream_request,
-        route.clone(),
-        sql_app_module.clone(),
-    )
-    .instrument(span.to_owned())
-    .await?;
+    downstream_request =
+        check_security_group(req.clone(), downstream_request, route.clone())
+            .instrument(span.to_owned())
+            .await?;
 
     // ? -----------------------------------------------------------------------
     // ? Inject the downstream secret into the request

@@ -1,4 +1,7 @@
-use crate::middleware::fetch_profile_from_request;
+use crate::middleware::{
+    fetch_profile_from_request_connection_string,
+    fetch_profile_from_request_token,
+};
 
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
@@ -8,7 +11,10 @@ use myc_core::domain::dtos::{
 };
 use myc_http_tools::{
     responses::GatewayError,
-    settings::{DEFAULT_MYCELIUM_ROLE_KEY, DEFAULT_TENANT_ID_KEY},
+    settings::{
+        DEFAULT_CONNECTION_STRING_KEY, DEFAULT_MYCELIUM_ROLE_KEY,
+        DEFAULT_TENANT_ID_KEY,
+    },
     Profile,
 };
 use serde::Deserialize;
@@ -138,8 +144,22 @@ impl FromRequest for MyceliumProfileData {
             trace!("Requested roles: {:?}", roles);
         }
 
+        if let Some(connection_string) =
+            req_clone.headers().get(DEFAULT_CONNECTION_STRING_KEY)
+        {
+            if !connection_string.is_empty() {
+                return Box::pin(async move {
+                    fetch_profile_from_request_connection_string(
+                        req_clone, tenant, roles, None,
+                    )
+                    .await
+                });
+            }
+        }
+
         Box::pin(async move {
-            fetch_profile_from_request(req_clone, tenant, roles, None).await
+            fetch_profile_from_request_token(req_clone, tenant, roles, None)
+                .await
         })
     }
 }

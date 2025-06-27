@@ -1,4 +1,4 @@
-use super::fetch_profile_from_request;
+use super::fetch_profile_from_request_token;
 
 use actix_web::HttpRequest;
 use awc::ClientRequest;
@@ -17,7 +17,7 @@ use uuid::Uuid;
 ///
 /// These use-case is usual over middleware or routers parts of the application.
 #[tracing::instrument(
-    name = "fetch_and_inject_profile_to_forward", 
+    name = "fetch_and_inject_profile_from_token_to_forward", 
     skip_all,
 fields(
         //
@@ -31,7 +31,7 @@ fields(
         myc.router.has_licensed_resources = tracing::field::Empty,
     )
 )]
-pub async fn fetch_and_inject_profile_to_forward(
+pub async fn fetch_and_inject_profile_from_token_to_forward(
     req: HttpRequest,
     mut forwarded_req: ClientRequest,
     tenant: Option<Uuid>,
@@ -42,7 +42,7 @@ pub async fn fetch_and_inject_profile_to_forward(
 
     tracing::trace!("Injecting profile to forward");
 
-    let profile = fetch_profile_from_request(
+    let profile = fetch_profile_from_request_token(
         req,
         tenant,
         roles.to_owned(),

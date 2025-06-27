@@ -30,12 +30,7 @@ use endpoints::{
         tenant_endpoints as manager_tenant_endpoints,
     },
     role_scoped::configure as configure_standard_endpoints,
-    service::{
-        account_endpoints as service_account_endpoints,
-        auxiliary_endpoints as service_auxiliary_endpoints,
-        guest_endpoints as service_guest_endpoints,
-        tools_endpoints as service_tools_endpoints,
-    },
+    service::tools_endpoints as service_tools_endpoints,
     shared::insert_role_header,
     staff::account_endpoints as staff_account_endpoints,
 };
@@ -485,18 +480,6 @@ pub async fn main() -> std::io::Result<()> {
                         .as_str(),
                 )
                 .configure(configure_standard_endpoints),
-            )
-            //
-            // Service Scoped Endpoints
-            //
-            .service(
-                web::scope(
-                    format!("/{}", endpoints::shared::UrlScope::Service)
-                        .as_str(),
-                )
-                .configure(service_guest_endpoints::configure)
-                .configure(service_account_endpoints::configure)
-                .configure(service_auxiliary_endpoints::configure),
             );
 
         // ? -------------------------------------------------------------------

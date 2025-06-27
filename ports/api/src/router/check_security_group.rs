@@ -1,15 +1,13 @@
 use crate::middleware::{
     fetch_and_inject_email_to_forward,
     fetch_and_inject_profile_from_connection_string_to_forward,
-    fetch_and_inject_profile_to_forward,
+    fetch_and_inject_profile_from_token_to_forward,
 };
 
-use actix_web::{web, HttpRequest};
+use actix_web::HttpRequest;
 use awc::ClientRequest;
 use myc_core::domain::dtos::{route::Route, security_group::SecurityGroup};
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::responses::GatewayError;
-use shaku::HasComponent;
 use tracing::Instrument;
 
 /// Check the security group
@@ -22,7 +20,6 @@ pub(super) async fn check_security_group(
     req: HttpRequest,
     mut downstream_request: ClientRequest,
     route: Route,
-    app_module: web::Data<SqlAppModule>,
 ) -> Result<ClientRequest, GatewayError> {
     let span = tracing::Span::current();
 
@@ -49,15 +46,16 @@ pub(super) async fn check_security_group(
             //
             // Try to populate profile from the request
             //
-            downstream_request = fetch_and_inject_profile_to_forward(
-                req,
-                downstream_request,
-                None,
-                None,
-                None,
-            )
-            .instrument(span.to_owned())
-            .await?;
+            downstream_request =
+                fetch_and_inject_profile_from_token_to_forward(
+                    req,
+                    downstream_request,
+                    None,
+                    None,
+                    None,
+                )
+                .instrument(span.to_owned())
+                .await?;
         }
         //
         // Protected routes should include the user profile filtered by roles
@@ -68,15 +66,16 @@ pub(super) async fn check_security_group(
             // Try to populate profile from the request filtering licensed
             // resources by roles
             //
-            downstream_request = fetch_and_inject_profile_to_forward(
-                req,
-                downstream_request,
-                None,
-                Some(roles),
-                None,
-            )
-            .instrument(span.to_owned())
-            .await?;
+            downstream_request =
+                fetch_and_inject_profile_from_token_to_forward(
+                    req,
+                    downstream_request,
+                    None,
+                    Some(roles),
+                    None,
+                )
+                .instrument(span.to_owned())
+                .await?;
         }
         //
         // Protected routes should include the user profile filtered by roles
@@ -87,15 +86,16 @@ pub(super) async fn check_security_group(
             // Try to populate profile from the request filtering licensed
             // resources by roles and permissions
             //
-            downstream_request = fetch_and_inject_profile_to_forward(
-                req,
-                downstream_request,
-                None,
-                None,
-                Some(permissioned_roles),
-            )
-            .instrument(span.to_owned())
-            .await?;
+            downstream_request =
+                fetch_and_inject_profile_from_token_to_forward(
+                    req,
+                    downstream_request,
+                    None,
+                    None,
+                    Some(permissioned_roles),
+                )
+                .instrument(span.to_owned())
+                .await?;
         }
         //
         // Protected routes by service token should include the users role which
@@ -112,8 +112,6 @@ pub(super) async fn check_security_group(
                     downstream_request,
                     Some(roles),
                     None,
-                    Box::new(&*app_module.resolve_ref()),
-                    Box::new(&*app_module.resolve_ref()),
                 )
                 .instrument(span.to_owned())
                 .await?;
@@ -135,8 +133,6 @@ pub(super) async fn check_security_group(
                     downstream_request,
                     None,
                     Some(permissioned_roles),
-                    Box::new(&*app_module.resolve_ref()),
-                    Box::new(&*app_module.resolve_ref()),
                 )
                 .instrument(span.to_owned())
                 .await?;

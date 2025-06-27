@@ -1,6 +1,9 @@
 use crate::{
     dtos::MyceliumProfileData,
-    middleware::check_credentials_with_multi_identity_provider,
+    middleware::{
+        check_credentials_with_multi_identity_provider,
+        recovery_profile_from_storage_engines,
+    },
     models::api_config::{ApiConfig, CacheConfig},
 };
 
@@ -21,19 +24,24 @@ use mycelium_base::entities::FetchResponseKind;
 use openssl::sha::Sha256;
 use shaku::HasComponent;
 use std::vec;
+use tracing::Instrument;
 use uuid::Uuid;
 
 /// Try to populate profile to request header
 ///
 /// This function is auxiliary of the MyceliumProfileData struct used to extract
 /// the Mycelium Profile from the request on mycelium native APIs.
-#[tracing::instrument(name = "fetch_profile_from_request", skip(req))]
-pub(crate) async fn fetch_profile_from_request(
+#[tracing::instrument(name = "fetch_profile_from_request_token", skip(req))]
+pub(crate) async fn fetch_profile_from_request_token(
     req: HttpRequest,
     tenant: Option<Uuid>,
     roles: Option<Vec<String>>,
     permissioned_roles: Option<PermissionedRoles>,
 ) -> Result<MyceliumProfileData, GatewayError> {
+    let span = tracing::Span::current();
+
+    tracing::trace!("Fetching profile from request token");
+
     // ? -----------------------------------------------------------------------
     // ? Fetch email from request
     // ? -----------------------------------------------------------------------
@@ -44,45 +52,18 @@ pub(crate) async fn fetch_profile_from_request(
     tracing::trace!("Email: {:?}", email.redacted_email());
 
     // ? -----------------------------------------------------------------------
-    // ? Try to fetch profile from cache
+    // ? Try to fetch profile from storage engines
     // ? -----------------------------------------------------------------------
 
-    let search_key = hash_profile_request(
-        email.to_owned(),
-        tenant,
-        roles.to_owned(),
-        permissioned_roles.to_owned(),
-    );
-
-    if let Some(profile) =
-        fetch_profile_from_cache(search_key.to_owned(), req.clone()).await
-    {
-        return Ok(MyceliumProfileData::from_profile(profile));
-    }
-
-    // ? -----------------------------------------------------------------------
-    // ? Fetch profile from datastore
-    // ? -----------------------------------------------------------------------
-
-    let profile = fetch_profile_from_datastore(
+    let profile = recovery_profile_from_storage_engines(
         req.clone(),
         email.to_owned(),
         tenant,
         roles.to_owned(),
         permissioned_roles.to_owned(),
     )
-    .await
-    .ok_or_else(|| {
-        GatewayError::Forbidden(
-            "User was authenticated but has not an account".to_string(),
-        )
-    })?;
-
-    // ? -----------------------------------------------------------------------
-    // ? Cache profile
-    // ? -----------------------------------------------------------------------
-
-    cache_profile(search_key, profile.clone(), req.clone()).await;
+    .instrument(span)
+    .await?;
 
     // ? -----------------------------------------------------------------------
     // ? Return profile

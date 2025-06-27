@@ -4,6 +4,7 @@ use crate::{
             email::Email,
             native_error_codes::NativeErrorCodes,
             profile::Profile,
+            security_group::PermissionedRoles,
             token::{UserAccountConnectionString, UserAccountScope},
         },
         entities::{LocalMessageWrite, TokenRegistration},
@@ -17,7 +18,15 @@ use mycelium_base::{
     entities::CreateResponseKind,
     utils::errors::{use_case_err, MappedErrors},
 };
+use uuid::Uuid;
 
+/// Create a connection string
+///
+/// This function creates a connection string that is associated with the user
+/// account. The connection string has the same permissions of the user account,
+/// but the tenant_id and permissioned_roles can be specified to create a
+/// connection string that is scoped to a specific tenant and/or roles.
+///
 #[tracing::instrument(
     name = "create_connection_string",
     fields(profile_id = %profile.acc_id),
@@ -26,6 +35,9 @@ use mycelium_base::{
 pub async fn create_connection_string(
     profile: Profile,
     expiration: i64,
+    tenant_id: Option<Uuid>,
+    role: Option<String>,
+    permissioned_roles: Option<PermissionedRoles>,
     life_cycle_settings: AccountLifeCycle,
     token_registration_repo: Box<&dyn TokenRegistration>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
@@ -51,6 +63,9 @@ pub async fn create_connection_string(
     let mut role_scope = UserAccountScope::new(
         profile.acc_id,
         expires_at,
+        role,
+        permissioned_roles,
+        tenant_id,
         life_cycle_settings.to_owned(),
     )
     .await?;

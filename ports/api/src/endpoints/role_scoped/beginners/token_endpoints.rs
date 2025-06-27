@@ -9,10 +9,12 @@ use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error,
+    Permission,
 };
 use serde::{Deserialize, Serialize};
 use shaku::HasComponent;
 use utoipa::{ToResponse, ToSchema};
+use uuid::Uuid;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application
@@ -29,7 +31,35 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateTokenBody {
+    /// The expiration time of the token
+    ///
+    /// The expiration time of the token in seconds.
+    ///
     expiration: i64,
+
+    /// A single tenant ID
+    ///
+    /// If specified, the actions allowed by the token will be scoped to the
+    /// tenant. If not specified, the actions allowed by the token will be
+    /// scoped to the user profile.
+    ///
+    tenant_id: Option<Uuid>,
+
+    /// A single role
+    ///
+    /// If specified, the actions allowed by the token will be scoped to the
+    /// role. If not specified, the actions allowed by the token will be
+    /// scoped to the user profile.
+    ///
+    role: Option<String>,
+
+    /// The permissioned roles
+    ///
+    /// If specified, the actions allowed by the token will be scoped to the
+    /// roles and permissions. Otherwise, the complete set of roles and
+    /// permissions present in the user profile will be used.
+    ///
+    permissioned_roles: Option<Vec<(String, Permission)>>,
 }
 
 #[derive(Serialize, ToSchema, ToResponse)]
@@ -38,11 +68,10 @@ pub struct CreateTokenResponse {
     connection_string: String,
 }
 
-/// Create Account Associated Token
+/// Create Connection String
 ///
-/// This action creates a token that is associated with the account specified
-/// in the `account_id` argument. The token is scoped to the roles specified
-/// in the `permissioned_roles` argument.
+/// This action creates a connection string that is associated with the user
+/// account. The connection string has the same permissions of the user account.
 ///
 #[utoipa::path(
     post,
@@ -80,6 +109,9 @@ pub async fn create_connection_string_url(
     match create_connection_string(
         profile.to_profile(),
         body.expiration.to_owned(),
+        body.tenant_id.to_owned(),
+        body.role.to_owned(),
+        body.permissioned_roles.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
