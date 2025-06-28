@@ -62,7 +62,7 @@ pub async fn update_account_name_and_flags(
             SystemActor::TenantManager,
             SystemActor::SubscriptionsManager,
         ])
-        .get_related_accounts_or_tenant_or_error(tenant_id)?;
+        .get_related_accounts_or_tenant_wide_permission_or_error(tenant_id)?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch account

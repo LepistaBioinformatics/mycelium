@@ -1,12 +1,13 @@
 use crate::{
     domain::{
         dtos::{
-            account::{Account, Modifier},
+            account::Account,
             account_type::AccountType,
             email::Email,
             native_error_codes::NativeErrorCodes,
             user::Provider,
             webhook::{PayloadId, WebHookTrigger},
+            written_by::WrittenBy,
         },
         entities::{
             AccountRegistration, LocalMessageWrite, UserFetching,
@@ -99,7 +100,7 @@ pub async fn create_default_account(
         account_name.to_owned(),
         user.clone(),
         AccountType::User,
-        Some(Modifier::new_from_user(user.id.ok_or_else(|| {
+        Some(WrittenBy::new_from_user(user.id.ok_or_else(|| {
             use_case_err("User ID not found".to_string()).with_exp_true()
         })?)),
     );

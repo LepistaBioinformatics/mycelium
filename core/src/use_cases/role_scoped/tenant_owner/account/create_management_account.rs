@@ -1,8 +1,5 @@
 use crate::domain::{
-    dtos::{
-        account::{Account, Modifier},
-        profile::Profile,
-    },
+    dtos::{account::Account, profile::Profile, written_by::WrittenBy},
     entities::AccountRegistration,
 };
 
@@ -49,7 +46,7 @@ pub async fn create_management_account(
     let mut unchecked_account = Account::new_tenant_management_account(
         String::new(),
         tenant_id,
-        Some(Modifier::new_from_account(profile.acc_id)),
+        Some(WrittenBy::new_from_account(profile.acc_id)),
     )
     .with_id();
 

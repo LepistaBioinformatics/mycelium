@@ -1,6 +1,6 @@
 use crate::domain::{
     actors::SystemActor,
-    dtos::account::{Account, Modifier},
+    dtos::{account::Account, written_by::WrittenBy},
     entities::AccountRegistration,
 };
 
@@ -47,7 +47,7 @@ pub(crate) async fn get_or_create_role_related_account(
         system_actor
             .unwrap_or(SystemActor::CustomRole(guest_role_id.to_string())),
         true,
-        Some(Modifier::new_from_account(profile_id)),
+        Some(WrittenBy::new_from_account(profile_id)),
     );
 
     unchecked_account.is_checked = true;

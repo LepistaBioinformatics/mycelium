@@ -3,6 +3,7 @@ use crate::{
         config::DbPoolProvider, webhook::WebHook as WebHookModel,
         webhook_execution::WebHookExecution as WebHookExecutionModel,
     },
+    repositories::parse_optional_written_by,
     schema::{
         webhook as webhook_model, webhook_execution as webhook_execution_model,
     },
@@ -66,6 +67,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                     record.url,
                     record.trigger.parse().unwrap(),
                     record.secret.map(|s| from_value(s).unwrap()),
+                    parse_optional_written_by(record.created_by),
                 );
 
                 webhook.id = Some(record.id);
@@ -75,6 +77,8 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                 webhook.updated = record
                     .updated
                     .map(|dt| dt.and_local_timezone(Local).unwrap());
+                webhook.updated_by =
+                    parse_optional_written_by(record.updated_by);
 
                 webhook.redact_secret_token();
 
@@ -146,6 +150,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                     record.url,
                     record.trigger.parse().unwrap(),
                     record.secret.map(|s| from_value(s).unwrap()),
+                    parse_optional_written_by(record.created_by),
                 );
 
                 webhook.id = Some(record.id);
@@ -155,6 +160,8 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                 webhook.updated = record
                     .updated
                     .map(|dt| dt.and_local_timezone(Local).unwrap());
+                webhook.updated_by =
+                    parse_optional_written_by(record.updated_by);
 
                 webhook.redact_secret_token();
                 webhook
@@ -201,6 +208,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                     record.url,
                     record.trigger.parse().unwrap(),
                     record.secret.map(|s| from_value(s).unwrap()),
+                    parse_optional_written_by(record.created_by),
                 );
 
                 webhook.id = Some(record.id);
@@ -210,6 +218,8 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                 webhook.updated = record
                     .updated
                     .map(|dt| dt.and_local_timezone(Local).unwrap());
+                webhook.updated_by =
+                    parse_optional_written_by(record.updated_by);
 
                 webhook
             })

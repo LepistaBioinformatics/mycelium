@@ -42,7 +42,7 @@ pub async fn list_licensed_accounts_of_email(
             SystemActor::TenantManager,
             SystemActor::SubscriptionsManager,
         ])
-        .get_related_accounts_or_tenant_or_error(tenant_id)?;
+        .get_related_accounts_or_tenant_wide_permission_or_error(tenant_id)?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch subscriptions from email

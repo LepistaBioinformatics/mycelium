@@ -53,7 +53,7 @@ pub async fn guest_user_to_subscription_account(
             SystemActor::TenantManager,
             SystemActor::SubscriptionsManager,
         ])
-        .get_related_accounts_or_tenant_or_error(tenant_id)?;
+        .get_related_accounts_or_tenant_wide_permission_or_error(tenant_id)?;
 
     // ? -----------------------------------------------------------------------
     // ? Guarantee needed information to evaluate guesting

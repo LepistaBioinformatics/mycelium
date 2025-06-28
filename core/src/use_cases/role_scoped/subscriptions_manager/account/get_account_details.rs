@@ -62,9 +62,9 @@ pub async fn get_account_details(
         SystemActor::TenantManager,
         SystemActor::SubscriptionsManager,
     ])
-    .get_related_accounts_or_tenant_or_error(tenant_id.unwrap_or(
-        Uuid::parse_str("00000000-0000-0000-0000-000000000000").unwrap(),
-    ))?;
+    .get_related_accounts_or_tenant_wide_permission_or_error(
+        tenant_id.unwrap_or(Uuid::nil()),
+    )?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch account

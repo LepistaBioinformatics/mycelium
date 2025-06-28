@@ -56,6 +56,7 @@ pub struct UpdateWebHookBody {
     name: Option<String>,
     description: Option<String>,
     secret: Option<HttpSecret>,
+    is_active: Option<bool>,
 }
 
 #[derive(Deserialize, ToSchema, IntoParams)]
@@ -215,6 +216,7 @@ pub async fn update_webhook_url(
     body: web::Json<UpdateWebHookBody>,
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match update_webhook(
@@ -223,6 +225,8 @@ pub async fn update_webhook_url(
         body.name.to_owned(),
         body.description.to_owned(),
         body.secret.to_owned(),
+        life_cycle_settings.get_ref().to_owned(),
+        body.is_active.to_owned(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )

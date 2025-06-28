@@ -1,10 +1,11 @@
 use crate::{
     domain::{
         dtos::{
-            account::{Account, Modifier},
+            account::Account,
             native_error_codes::NativeErrorCodes,
             token::UserAccountConnectionString,
             webhook::{PayloadId, WebHookTrigger},
+            written_by::WrittenBy,
         },
         entities::{AccountRegistration, WebHookRegistration},
     },
@@ -71,7 +72,7 @@ pub async fn create_subscription_account(
     let mut unchecked_account = Account::new_subscription_account(
         account_name,
         tenant_id,
-        Some(Modifier::new_from_account(connection_string.account_id)),
+        Some(WrittenBy::new_from_account(connection_string.account_id)),
     );
 
     unchecked_account.is_checked = true;

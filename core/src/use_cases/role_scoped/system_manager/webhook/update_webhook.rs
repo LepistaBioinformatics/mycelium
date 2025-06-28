@@ -1,10 +1,13 @@
-use crate::domain::{
-    actors::SystemActor,
-    dtos::{
-        http_secret::HttpSecret, native_error_codes::NativeErrorCodes,
-        profile::Profile, webhook::WebHook,
+use crate::{
+    domain::{
+        actors::SystemActor,
+        dtos::{
+            http_secret::HttpSecret, native_error_codes::NativeErrorCodes,
+            profile::Profile, written_by::WrittenBy, webhook::WebHook,
+        },
+        entities::{WebHookFetching, WebHookUpdating},
     },
-    entities::{WebHookFetching, WebHookUpdating},
+    models::AccountLifeCycle,
 };
 
 use mycelium_base::{
@@ -16,7 +19,15 @@ use uuid::Uuid;
 #[tracing::instrument(
     name = "update_webhook",
     fields(profile_id = %profile.acc_id),
-    skip_all,
+    skip(
+        profile,
+        name,
+        description,
+        secret,
+        config,
+        webhook_fetching_repo,
+        webhook_updating_repo,
+    ),
 )]
 pub async fn update_webhook(
     profile: Profile,
@@ -24,6 +35,8 @@ pub async fn update_webhook(
     name: Option<String>,
     description: Option<String>,
     secret: Option<HttpSecret>,
+    config: AccountLifeCycle,
+    is_active: Option<bool>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
     webhook_updating_repo: Box<&dyn WebHookUpdating>,
 ) -> Result<UpdatingResponseKind<WebHook>, MappedErrors> {
@@ -34,7 +47,7 @@ pub async fn update_webhook(
     profile
         .with_system_accounts_access()
         .with_write_access()
-        .with_roles(vec![SystemActor::SystemManager.to_string()])
+        .with_roles(vec![SystemActor::SystemManager])
         .get_ids_or_error()?;
 
     // ? -----------------------------------------------------------------------
@@ -66,7 +79,17 @@ pub async fn update_webhook(
     }
 
     if let Some(secret) = secret {
-        webhook.set_secret(secret);
+        webhook
+            .set_secret(
+                secret,
+                config,
+                Some(WrittenBy::new_from_account(profile.acc_id)),
+            )
+            .await?;
+    }
+
+    if let Some(is_active) = is_active {
+        webhook.is_active = is_active;
     }
 
     webhook_updating_repo.update(webhook).await

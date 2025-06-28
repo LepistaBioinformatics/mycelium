@@ -10,7 +10,7 @@ use super::{
     account::VerboseStatus, guest_role::Permission,
     native_error_codes::NativeErrorCodes, related_accounts::RelatedAccounts,
 };
-use crate::domain::dtos::email::Email;
+use crate::domain::{actors::SystemActor, dtos::email::Email};
 
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
@@ -302,6 +302,15 @@ impl Profile {
         }
     }
 
+    /// Filter the licensed resources to the tenant as manager
+    ///
+    /// This method should be used to filter licensed resources to the tenant
+    /// that the profile is currently working on.
+    pub fn on_tenant_as_manager(&self, tenant_id: Uuid) -> Self {
+        self.with_roles(vec![SystemActor::TenantManager])
+            .on_tenant(tenant_id)
+    }
+
     /// Filter the licensed resources to the account
     ///
     /// This method should be used to filter licensed resources to the account
@@ -524,18 +533,27 @@ impl Profile {
         .as_error()
     }
 
-    pub fn get_related_accounts_or_tenant_or_error(
+    pub fn get_related_accounts_or_tenant_wide_permission_or_error(
         &self,
         tenant_id: Uuid,
     ) -> Result<RelatedAccounts, MappedErrors> {
+        //
+        // Check if the profile has staff privileges
+        //
         if self.is_staff {
             return Ok(RelatedAccounts::HasStaffPrivileges);
         }
 
+        //
+        // Check if the profile has manager privileges
+        //
         if self.is_manager {
             return Ok(RelatedAccounts::HasManagerPrivileges);
         }
 
+        //
+        // Check if the profile has tenant ownership
+        //
         if let Some(tenants) = self.tenants_ownership.as_ref() {
             let tenants = tenants.to_ownership_vector();
 
@@ -544,6 +562,21 @@ impl Profile {
             }
         }
 
+        //
+        // Check if the profile has tenant wide privileges by using the
+        // tenant manager role.
+        //
+        if self
+            .on_tenant_as_manager(tenant_id)
+            .get_ids_or_error()
+            .is_ok()
+        {
+            return Ok(RelatedAccounts::HasTenantWidePrivileges(tenant_id));
+        }
+
+        //
+        // Check if the profile has access to the account
+        //
         self.get_related_account_or_error()
     }
 

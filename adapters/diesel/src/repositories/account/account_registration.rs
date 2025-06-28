@@ -1,4 +1,5 @@
 use crate::models::internal_error::InternalError;
+use crate::repositories::parse_optional_written_by;
 use crate::{
     models::{
         account::Account as AccountModel, config::DbPoolProvider,
@@ -14,14 +15,13 @@ use diesel::{
     prelude::*,
     result::{DatabaseErrorKind, Error},
 };
-use myc_core::domain::dtos::account::Modifier;
-use myc_core::domain::dtos::email::Email;
-use myc_core::domain::dtos::user::User;
 use myc_core::domain::{
     dtos::{
         account::{Account, AccountMetaKey, VerboseStatus},
         account_type::AccountType,
+        email::Email,
         native_error_codes::NativeErrorCodes,
+        user::User,
     },
     entities::AccountRegistration,
 };
@@ -31,7 +31,7 @@ use mycelium_base::{
     entities::{CreateResponseKind, GetOrCreateResponseKind},
     utils::errors::{creation_err, MappedErrors},
 };
-use serde_json::{from_value, json, to_value};
+use serde_json::{from_value, to_value};
 use shaku::Component;
 use std::{collections::HashMap, sync::Arc};
 use uuid::Uuid;
@@ -632,24 +632,11 @@ impl AccountRegistrationSqlDbRepository {
             account_type: from_value(model.account_type).unwrap(),
             guest_users: None,
             created_at: model.created.and_local_timezone(Local).unwrap(),
-            created_by: model.created_by.map(|m| from_value(m).unwrap()),
+            created_by: parse_optional_written_by(model.created_by),
             updated_at: model
                 .updated
                 .map(|dt| dt.and_local_timezone(Local).unwrap()),
-            updated_by: model
-                .updated_by
-                .map(|m| {
-                    //
-                    // Check if the Value is a empty object
-                    //
-                    if m == json!({}) {
-                        None
-                    } else {
-                        let modifier: Modifier = from_value(m).unwrap();
-                        Some(modifier)
-                    }
-                })
-                .flatten(),
+            updated_by: parse_optional_written_by(model.updated_by),
             meta: None,
         }
     }

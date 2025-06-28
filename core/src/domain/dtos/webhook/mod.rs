@@ -5,7 +5,7 @@ pub use responses::*;
 pub use trigger::*;
 
 use super::http_secret::HttpSecret;
-use crate::models::AccountLifeCycle;
+use crate::{domain::dtos::written_by::WrittenBy, models::AccountLifeCycle};
 
 use chrono::{DateTime, Local};
 use mycelium_base::utils::errors::MappedErrors;
@@ -37,8 +37,22 @@ pub struct WebHook {
     /// The webhook created date
     pub created: DateTime<Local>,
 
+    /// The webhook created by
+    ///
+    /// The ID of the account that created the webhook. This is used for
+    /// auditing purposes.
+    ///
+    pub created_by: Option<WrittenBy>,
+
     /// The webhook updated date
     pub updated: Option<DateTime<Local>>,
+
+    /// The webhook updated by
+    ///
+    /// The ID of the account that updated the webhook. This is used for
+    /// auditing purposes.
+    ///
+    pub updated_by: Option<WrittenBy>,
 
     /// The webhook secret
     ///
@@ -55,6 +69,7 @@ impl WebHook {
         url: String,
         trigger: WebHookTrigger,
         secret: Option<HttpSecret>,
+        created_by: Option<WrittenBy>,
     ) -> Self {
         Self {
             id: None,
@@ -64,7 +79,9 @@ impl WebHook {
             trigger,
             is_active: true,
             created: Local::now(),
+            created_by,
             updated: None,
+            updated_by: None,
             secret,
         }
     }
@@ -76,11 +93,14 @@ impl WebHook {
         trigger: WebHookTrigger,
         secret: Option<HttpSecret>,
         config: AccountLifeCycle,
+        created_by: Option<WrittenBy>,
     ) -> Result<Self, MappedErrors> {
         let encrypted_secret = match secret {
             None => None,
             Some(secret) => Some(secret.encrypt_me(config).await?),
         };
+
+        println!("encrypted_secret: {:?}", encrypted_secret);
 
         Ok(Self {
             id: None,
@@ -90,7 +110,9 @@ impl WebHook {
             trigger,
             is_active: true,
             created: Local::now(),
+            created_by,
             updated: None,
+            updated_by: None,
             secret: encrypted_secret,
         })
     }
@@ -105,7 +127,14 @@ impl WebHook {
         self.secret.clone()
     }
 
-    pub fn set_secret(&mut self, secret: HttpSecret) {
-        self.secret = Some(secret);
+    pub async fn set_secret(
+        &mut self,
+        secret: HttpSecret,
+        config: AccountLifeCycle,
+        updated_by: Option<WrittenBy>,
+    ) -> Result<(), MappedErrors> {
+        self.secret = Some(secret.encrypt_me(config).await?);
+        self.updated_by = updated_by;
+        Ok(())
     }
 }

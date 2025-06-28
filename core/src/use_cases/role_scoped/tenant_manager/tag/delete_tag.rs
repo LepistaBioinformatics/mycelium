@@ -31,7 +31,7 @@ pub async fn delete_tag(
         .with_system_accounts_access()
         .with_write_access()
         .with_roles(vec![SystemActor::TenantManager])
-        .get_related_accounts_or_tenant_or_error(tenant_id)?;
+        .get_related_accounts_or_tenant_wide_permission_or_error(tenant_id)?;
 
     // ? -----------------------------------------------------------------------
     // ? Register tag

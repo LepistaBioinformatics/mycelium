@@ -7,7 +7,7 @@ pub use verbose_status::{FlagResponse, VerboseStatus};
 use super::{
     account_type::AccountType, guest_user::GuestUser, tag::Tag, user::User,
 };
-use crate::domain::actors::SystemActor;
+use crate::domain::{actors::SystemActor, dtos::written_by::WrittenBy};
 
 use chrono::{DateTime, Local};
 use mycelium_base::dtos::Children;
@@ -18,44 +18,6 @@ use utoipa::{ToResponse, ToSchema};
 use uuid::Uuid;
 
 pub type AccountMeta = HashMap<AccountMetaKey, String>;
-
-#[derive(
-    Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema, ToResponse,
-)]
-#[serde(rename_all = "camelCase")]
-pub enum IDSource {
-    /// The ID source is the user ID
-    User,
-
-    /// The ID source is the system actor
-    Account,
-}
-
-#[derive(
-    Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema, ToResponse,
-)]
-#[serde(rename_all = "camelCase")]
-pub struct Modifier {
-    /// The ID of the user who created the account
-    pub id: Uuid,
-
-    /// The ID source
-    pub from: IDSource,
-}
-
-impl Modifier {
-    fn new(id: Uuid, from: IDSource) -> Self {
-        Self { id, from }
-    }
-
-    pub fn new_from_user(id: Uuid) -> Self {
-        Self::new(id, IDSource::User)
-    }
-
-    pub fn new_from_account(id: Uuid) -> Self {
-        Self::new(id, IDSource::Account)
-    }
-}
 
 #[derive(
     Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema, ToResponse,
@@ -151,7 +113,7 @@ pub struct Account {
     /// The ID of the account that created the account. This is used for
     /// auditing purposes.
     ///
-    pub created_by: Option<Modifier>,
+    pub created_by: Option<WrittenBy>,
 
     /// The Account Updated Date
     #[serde(alias = "updated", skip_serializing_if = "Option::is_none")]
@@ -162,7 +124,7 @@ pub struct Account {
     /// The ID of the account that updated the account. This is used for
     /// auditing purposes.
     ///
-    pub updated_by: Option<Modifier>,
+    pub updated_by: Option<WrittenBy>,
 
     /// The Account Meta
     ///
@@ -204,7 +166,7 @@ impl Account {
     pub fn new_subscription_account(
         account_name: String,
         tenant_id: Uuid,
-        created_by: Option<Modifier>,
+        created_by: Option<WrittenBy>,
     ) -> Self {
         Self {
             id: None,
@@ -234,7 +196,7 @@ impl Account {
         role_id: Uuid,
         role_name: T,
         is_default: bool,
-        created_by: Option<Modifier>,
+        created_by: Option<WrittenBy>,
     ) -> Self {
         Self {
             id: None,
@@ -266,7 +228,7 @@ impl Account {
         name: String,
         actor: SystemActor,
         is_default: bool,
-        created_by: Option<Modifier>,
+        created_by: Option<WrittenBy>,
     ) -> Self {
         Self {
             id: None,
@@ -293,7 +255,7 @@ impl Account {
     pub fn new_tenant_management_account(
         account_name: String,
         tenant_id: Uuid,
-        created_by: Option<Modifier>,
+        created_by: Option<WrittenBy>,
     ) -> Self {
         Self {
             id: None,
@@ -326,7 +288,7 @@ impl Account {
         account_name: String,
         principal_owner: User,
         account_type: AccountType,
-        created_by: Option<Modifier>,
+        created_by: Option<WrittenBy>,
     ) -> Self {
         Self {
             id: None,
