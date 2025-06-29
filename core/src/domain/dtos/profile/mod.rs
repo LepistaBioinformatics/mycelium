@@ -306,9 +306,14 @@ impl Profile {
     ///
     /// This method should be used to filter licensed resources to the tenant
     /// that the profile is currently working on.
-    pub fn on_tenant_as_manager(&self, tenant_id: Uuid) -> Self {
-        self.with_roles(vec![SystemActor::TenantManager])
-            .on_tenant(tenant_id)
+    pub fn on_tenant_as_manager(
+        &self,
+        tenant_id: Uuid,
+        permission: Permission,
+    ) -> Self {
+        self.on_tenant(tenant_id)
+            .with_permission(permission)
+            .with_roles(vec![SystemActor::TenantManager])
     }
 
     /// Filter the licensed resources to the account
@@ -533,9 +538,19 @@ impl Profile {
         .as_error()
     }
 
-    pub fn get_related_accounts_or_tenant_wide_permission_or_error(
+    /// Get the tenant wide permission or error
+    ///
+    /// Use this method to check permission requirements of use-cases accessible
+    /// to users with specific roles or with tenant wide permissions. The tenant
+    /// wide permissions will be checked first. If the profile has tenant wide
+    /// permissions, the method will return the related accounts. If the profile
+    /// has no tenant wide permissions, the method will return the related
+    /// accounts.
+    ///
+    pub fn get_tenant_wide_permission_or_error(
         &self,
         tenant_id: Uuid,
+        permission: Permission,
     ) -> Result<RelatedAccounts, MappedErrors> {
         //
         // Check if the profile has staff privileges
@@ -567,11 +582,43 @@ impl Profile {
         // tenant manager role.
         //
         if self
-            .on_tenant_as_manager(tenant_id)
+            .on_tenant_as_manager(tenant_id, permission)
             .get_ids_or_error()
             .is_ok()
         {
             return Ok(RelatedAccounts::HasTenantWidePrivileges(tenant_id));
+        }
+
+        execution_err(format!(
+            "Insufficient privileges to perform these action (no tenant wide permission): {}",
+            self.filtering_state.to_owned().unwrap_or(vec![]).join(", ")
+        ))
+        .with_code(NativeErrorCodes::MYC00019)
+        .with_exp_true()
+        .as_error()
+    }
+
+    /// Get the related accounts or tenant wide permission or error
+    ///
+    /// Use this method to check permission requirements of use-cases accessible
+    /// to users with specific roles or with tenant wide permissions. The tenant
+    /// wide permissions will be checked first. If the profile has tenant wide
+    /// permissions, the method will return the related accounts. If the profile
+    /// has no tenant wide permissions, the method will return the related
+    /// accounts.
+    ///
+    pub fn get_related_accounts_or_tenant_wide_permission_or_error(
+        &self,
+        tenant_id: Uuid,
+        permission: Permission,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        //
+        // Check if the profile has tenant wide privileges
+        //
+        if let Ok(related_accounts) =
+            self.get_tenant_wide_permission_or_error(tenant_id, permission)
+        {
+            return Ok(related_accounts);
         }
 
         //

@@ -360,25 +360,27 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let (tenant_id, role_name, role_id) = match account.account_type.clone()
-        {
-            AccountType::RoleAssociated {
-                tenant_id,
-                role_name,
-                role_id,
-            } => (tenant_id, role_name, role_id),
-            _ => {
-                return creation_err(
-                    "Could not create account. Invalid account type.",
-                )
-                .as_error()
-            }
-        };
+        let (tenant_id, role_name, read_role_id, write_role_id) =
+            match account.account_type.clone() {
+                AccountType::RoleAssociated {
+                    tenant_id,
+                    role_name,
+                    read_role_id,
+                    write_role_id,
+                } => (tenant_id, role_name, read_role_id, write_role_id),
+                _ => {
+                    return creation_err(
+                        "Could not create account. Invalid account type.",
+                    )
+                    .as_error()
+                }
+            };
 
         let concrete_account_type = AccountType::RoleAssociated {
             tenant_id,
             role_name,
-            role_id,
+            read_role_id,
+            write_role_id,
         };
 
         // Check if account already exists

@@ -7,8 +7,9 @@ use uuid::Uuid;
 use crate::domain::{
     actors::SystemActor,
     dtos::{
-        account_type::AccountType, guest_user::GuestUser,
-        native_error_codes::NativeErrorCodes, profile::Profile,
+        account_type::AccountType, guest_role::Permission,
+        guest_user::GuestUser, native_error_codes::NativeErrorCodes,
+        profile::Profile,
     },
     entities::{AccountFetching, GuestUserFetching},
 };
@@ -43,7 +44,10 @@ pub async fn list_guest_on_subscription_account(
             SystemActor::TenantManager,
             SystemActor::SubscriptionsManager,
         ])
-        .get_related_accounts_or_tenant_wide_permission_or_error(tenant_id)?;
+        .get_related_accounts_or_tenant_wide_permission_or_error(
+            tenant_id,
+            Permission::Read,
+        )?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch the target subscription account

@@ -1,7 +1,7 @@
 use crate::domain::{
     actors::SystemActor,
     dtos::{
-        account::Account, account_type::AccountType,
+        account::Account, account_type::AccountType, guest_role::Permission,
         native_error_codes::NativeErrorCodes, profile::Profile,
         related_accounts::RelatedAccounts,
     },
@@ -193,7 +193,7 @@ fn check_user_privileges_given_account_type(
             // tenant manager role.
             //
             if filtered_profile
-                .on_tenant_as_manager(tenant_id)
+                .on_tenant_as_manager(tenant_id, Permission::Read)
                 .get_ids_or_error()
                 .is_ok()
             {
@@ -201,7 +201,7 @@ fn check_user_privileges_given_account_type(
             }
 
             filtered_profile = filtered_profile
-                .on_tenant_as_manager(tenant_id)
+                .on_tenant_as_manager(tenant_id, Permission::Read)
                 .on_tenant(tenant_id);
         } else {
             return execution_err(

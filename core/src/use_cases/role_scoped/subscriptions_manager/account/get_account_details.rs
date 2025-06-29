@@ -1,8 +1,8 @@
 use crate::domain::{
     actors::SystemActor,
     dtos::{
-        account::Account, native_error_codes::NativeErrorCodes,
-        profile::Profile,
+        account::Account, guest_role::Permission,
+        native_error_codes::NativeErrorCodes, profile::Profile,
     },
     entities::AccountFetching,
 };
@@ -64,6 +64,7 @@ pub async fn get_account_details(
     ])
     .get_related_accounts_or_tenant_wide_permission_or_error(
         tenant_id.unwrap_or(Uuid::nil()),
+        Permission::Read,
     )?;
 
     // ? -----------------------------------------------------------------------

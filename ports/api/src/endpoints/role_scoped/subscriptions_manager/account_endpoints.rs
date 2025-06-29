@@ -69,7 +69,6 @@ pub(crate) enum APIAccountType {
     Manager,
     User,
     Subscription,
-    RoleAssociated,
     ActorAssociated,
     TenantManager,
 }
@@ -78,8 +77,6 @@ impl APIAccountType {
     fn into_account_type(
         &self,
         tenant_id: Option<Uuid>,
-        role_name: Option<String>,
-        role_id: Option<Uuid>,
         actor: Option<SystemActor>,
     ) -> Result<AccountType, HttpResponse> {
         match self {
@@ -114,29 +111,6 @@ impl APIAccountType {
                     ))
                 }
             }
-            APIAccountType::RoleAssociated => {
-                if role_name.is_none() || role_id.is_none() {
-                    return Err(HttpResponse::BadRequest().json(
-                        HttpJsonResponse::new_message(
-                            "Role name and role id are required.",
-                        ),
-                    ));
-                }
-
-                if let Some(tenant_id) = tenant_id {
-                    Ok(AccountType::RoleAssociated {
-                        tenant_id,
-                        role_name: SystemActor::CustomRole(role_name.unwrap())
-                            .to_string(),
-                        role_id: role_id.unwrap(),
-                    })
-                } else {
-                    Err(HttpResponse::BadRequest()
-                        .json(HttpJsonResponse::new_message(
-                        "Tenant ID is required for role associated accounts.",
-                    )))
-                }
-            }
 
             //
             // Actor related accounts
@@ -164,8 +138,6 @@ pub struct ListSubscriptionAccountParams {
     account_type: Option<APIAccountType>,
     is_owner_active: Option<bool>,
     status: Option<VerboseStatus>,
-    role_name: Option<String>,
-    role_id: Option<Uuid>,
     actor: Option<SystemActor>,
 }
 
@@ -252,7 +224,7 @@ pub async fn create_subscription_account_url(
         (
             "x-mycelium-tenant-id" = Uuid,
             Header,
-            description = "The tenant unique id."
+            description = "The tenant unique id.",
         ),
         ListSubscriptionAccountParams,
         PaginationParams,
@@ -322,15 +294,12 @@ pub async fn list_accounts_by_type_url(
 
     let account_type = match &query.account_type {
         None => None,
-        Some(res) => match res.into_account_type(
-            tenant_id,
-            query.role_name.to_owned(),
-            query.role_id,
-            query.actor.to_owned(),
-        ) {
-            Ok(res) => Some(res),
-            Err(err) => return err,
-        },
+        Some(res) => {
+            match res.into_account_type(tenant_id, query.actor.to_owned()) {
+                Ok(res) => Some(res),
+                Err(err) => return err,
+            }
+        }
     };
 
     match list_accounts_by_type(

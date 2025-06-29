@@ -1,6 +1,6 @@
 use crate::domain::{
     actors::SystemActor,
-    dtos::{profile::Profile, tag::Tag},
+    dtos::{guest_role::Permission, profile::Profile, tag::Tag},
     entities::TenantTagRegistration,
 };
 
@@ -31,7 +31,10 @@ pub async fn register_tag(
         .with_system_accounts_access()
         .with_write_access()
         .with_roles(vec![SystemActor::TenantManager])
-        .get_related_accounts_or_tenant_wide_permission_or_error(tenant_id)?;
+        .get_related_accounts_or_tenant_wide_permission_or_error(
+            tenant_id,
+            Permission::Write,
+        )?;
 
     // ? -----------------------------------------------------------------------
     // ? Register tag

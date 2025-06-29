@@ -193,7 +193,8 @@ impl Account {
     pub fn new_role_related_account<T: ToString>(
         account_name: String,
         tenant_id: Uuid,
-        role_id: Uuid,
+        read_role_id: Uuid,
+        write_role_id: Uuid,
         role_name: T,
         is_default: bool,
         created_by: Option<WrittenBy>,
@@ -212,8 +213,9 @@ impl Account {
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::RoleAssociated {
                 tenant_id,
-                role_id,
                 role_name: role_name.to_string(),
+                read_role_id,
+                write_role_id,
             },
             guest_users: None,
             created_at: Local::now(),

@@ -3,6 +3,7 @@ use crate::{
         actors::SystemActor,
         dtos::{
             account_type::AccountType,
+            guest_role::Permission,
             profile::Profile,
             webhook::{PayloadId, WebHookTrigger},
         },
@@ -50,7 +51,10 @@ pub async fn delete_subscription_account(
         .with_system_accounts_access()
         .with_write_access()
         .with_roles(vec![SystemActor::TenantManager])
-        .get_related_accounts_or_tenant_wide_permission_or_error(tenant_id)?;
+        .get_related_accounts_or_tenant_wide_permission_or_error(
+            tenant_id,
+            Permission::Write,
+        )?;
 
     // ? -----------------------------------------------------------------------
     // ? Delete account
