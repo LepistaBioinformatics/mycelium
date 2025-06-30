@@ -90,7 +90,8 @@ pub async fn create_connection_string(
         )
         .await?
     {
-        return use_case_err(msg).as_error();
+        tracing::error!("Unable to register connection string: {msg}");
+        return use_case_err("Unable to register token").as_error();
     };
 
     // ? -----------------------------------------------------------------------
