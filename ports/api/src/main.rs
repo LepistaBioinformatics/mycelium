@@ -49,10 +49,7 @@ use myc_core::domain::entities::{
 use myc_diesel::repositories::{
     DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
 };
-use myc_http_tools::{
-    providers::{azure_endpoints, google_endpoints},
-    settings::DEFAULT_REQUEST_ID_KEY,
-};
+use myc_http_tools::settings::DEFAULT_REQUEST_ID_KEY;
 use myc_kv::repositories::KVAppModule;
 use myc_mem_db::{
     models::config::DbPoolProvider,
@@ -497,50 +494,6 @@ pub async fn main() -> std::io::Result<()> {
                 app.app_data(web::Data::new(config.clone()))
             }
             _ => app,
-        };
-
-        // ? -------------------------------------------------------------------
-        // ? Configure authentication elements
-        //
-        // Google OAuth2
-        //
-        // ? -------------------------------------------------------------------
-        let mycelium_scope = match auth_config.google {
-            OptionalConfig::Enabled(_) => {
-                //
-                // Configure OAuth2 Scope
-                //
-                info!("Configuring Google authentication");
-                let scope = mycelium_scope.service(
-                    web::scope("/auth/google")
-                        .configure(google_endpoints::configure),
-                );
-
-                scope
-            }
-            _ => mycelium_scope,
-        };
-
-        // ? -------------------------------------------------------------------
-        // ? Configure authentication elements
-        //
-        // Azure AD OAuth2
-        //
-        // ? -------------------------------------------------------------------
-        let mycelium_scope = match auth_config.azure {
-            OptionalConfig::Enabled(_) => {
-                //
-                // Configure OAuth2 Scope
-                //
-                info!("Configuring Azure AD authentication");
-                let scope = mycelium_scope.service(
-                    web::scope("/auth/azure")
-                        .configure(azure_endpoints::configure),
-                );
-
-                scope
-            }
-            _ => mycelium_scope,
         };
 
         // ? -------------------------------------------------------------------

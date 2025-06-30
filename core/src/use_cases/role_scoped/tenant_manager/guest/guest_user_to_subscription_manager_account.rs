@@ -19,6 +19,22 @@ use mycelium_base::{
 use tracing::Instrument;
 use uuid::Uuid;
 
+#[tracing::instrument(
+    name = "Guest user to subscription manager account",
+    fields(
+        profile_id = %profile.acc_id,
+        owners = ?profile.owners.iter().map(|o| o.redacted_email()).collect::<Vec<_>>(),
+        guest_email = %email.redacted_email(),
+    ),
+    skip(
+        profile,
+        email,
+        life_cycle_settings,
+        account_fetching_repo,
+        guest_user_registration_repo,
+        message_sending_repo,
+    )
+)]
 pub async fn guest_user_to_subscription_manager_account(
     profile: Profile,
     email: Email,

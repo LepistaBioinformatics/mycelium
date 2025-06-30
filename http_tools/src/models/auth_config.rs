@@ -2,9 +2,6 @@ use super::{
     external_providers_config::ExternalProviderConfig,
     internal_auth_config::InternalOauthConfig,
 };
-use crate::providers::{
-    azure_config::AzureOauthConfig, google_config::GoogleOauthConfig,
-};
 
 use myc_config::{load_config_from_file, optional_config::OptionalConfig};
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
@@ -16,8 +13,6 @@ use std::path::PathBuf;
 pub struct AuthConfig {
     pub internal: OptionalConfig<InternalOauthConfig>,
     pub external: OptionalConfig<Vec<ExternalProviderConfig>>,
-    pub google: OptionalConfig<GoogleOauthConfig>,
-    pub azure: OptionalConfig<AzureOauthConfig>,
 }
 
 #[derive(Clone, Debug, Deserialize)]

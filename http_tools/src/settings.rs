@@ -1,5 +1,4 @@
 use lazy_static::lazy_static;
-use reqwest::Client;
 use std::env::var_os;
 
 // ? ---------------------------------------------------------------------------
@@ -103,16 +102,6 @@ pub const MYCELIUM_PROVIDER_KEY: &str = "mycelium";
 // ? ---------------------------------------------------------------------------
 
 lazy_static! {
-    #[derive(Debug)]
-    pub(super) static ref REQWEST_CLIENT: Client = Client::new();
-}
-
-pub(super) async fn get_client() -> Client {
-    REQWEST_CLIENT.to_owned()
-}
-
-lazy_static! {
-
     #[derive(Debug)]
     pub(crate) static ref PROFILE_FETCHING_URL: String =
         match var_os("PROFILE_FETCHING_URL") {

@@ -1,5 +1,5 @@
 use crate::domain::{
-    dtos::{guest_role::Permission, profile::Profile},
+    dtos::{email::Email, guest_role::Permission, profile::Profile},
     entities::GuestUserDeletion,
 };
 
@@ -12,15 +12,23 @@ use uuid::Uuid;
 ///
 #[tracing::instrument(
     name = "revoke_user_guest_to_subscription_account",
-    fields(profile_id = %profile.acc_id),
-    skip_all
+    fields(
+        profile_id = %profile.acc_id,
+        owners = ?profile.owners.iter().map(|o| o.redacted_email()).collect::<Vec<_>>(),
+        guest_email = %email.redacted_email(),
+    ),
+    skip(
+        profile,
+        email,
+        guest_user_deletion_repo,
+    )
 )]
-pub async fn revoke_user_guest_to_subscription_account(
+pub async fn revoke_user_guest_to_subscription_manager_account(
     profile: Profile,
     tenant_id: Uuid,
     account_id: Uuid,
     guest_role_id: Uuid,
-    email: String,
+    email: Email,
     guest_user_deletion_repo: Box<&dyn GuestUserDeletion>,
 ) -> Result<DeletionResponseKind<(Uuid, Uuid)>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -39,6 +47,6 @@ pub async fn revoke_user_guest_to_subscription_account(
     // ? -----------------------------------------------------------------------
 
     guest_user_deletion_repo
-        .delete(guest_role_id, account_id, email)
+        .delete(guest_role_id, account_id, email.to_string())
         .await
 }

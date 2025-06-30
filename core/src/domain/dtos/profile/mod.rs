@@ -311,9 +311,19 @@ impl Profile {
         tenant_id: Uuid,
         permission: Permission,
     ) -> Self {
-        self.on_tenant(tenant_id)
+        let profile = self
+            .on_tenant(tenant_id)
             .with_permission(permission)
-            .with_roles(vec![SystemActor::TenantManager])
+            .with_roles(vec![SystemActor::TenantManager]);
+
+        //
+        // Return the new profile
+        //
+        Self {
+            ..profile
+                .update_state("isTenantManager".to_string(), "true".to_string())
+                .clone()
+        }
     }
 
     /// Filter the licensed resources to the account
@@ -356,7 +366,17 @@ impl Profile {
             let tenants = tenants.to_ownership_vector();
 
             if tenants.iter().any(|i| i.tenant == tenant_id) {
-                return Ok(self.to_owned());
+                let profile = Self {
+                    ..self
+                        .clone()
+                        .update_state(
+                            "tenantOwnership".to_string(),
+                            tenant_id.to_string(),
+                        )
+                        .clone()
+                };
+
+                return Ok(profile);
             }
         }
 

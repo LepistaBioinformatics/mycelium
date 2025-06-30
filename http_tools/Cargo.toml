@@ -32,7 +32,6 @@ serde.workspace = true
 serde_json.workspace = true
 utoipa.workspace = true
 lazy_static.workspace = true
-reqwest.workspace = true
 url.workspace = true
 uuid.workspace = true
 tracing.workspace = true
