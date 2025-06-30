@@ -14,12 +14,12 @@ use crate::{
     models::AccountLifeCycle,
 };
 
+use base64::{engine::general_purpose, Engine};
 use chrono::{DateTime, Local};
 use hmac::Mac;
 use mycelium_base::utils::errors::{dto_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use std::fmt::Write;
-use tracing::error;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -150,7 +150,7 @@ impl ScopedBehavior for UserAccountScope {
         let mut mac = match HmacSha256::new_from_slice(secret?.as_bytes()) {
             Ok(mac) => mac,
             Err(err) => {
-                error!("Could not create HMAC: {}", err);
+                tracing::error!("Could not create HMAC: {}", err);
                 return dto_err("Unable to sign token").as_error();
             }
         };
@@ -184,22 +184,63 @@ impl ScopedBehavior for UserAccountScope {
 }
 
 impl ToString for UserAccountScope {
+    /// Convert the UserAccountScope to a string
+    ///
+    /// This function generate a base64 representation of the scope beans
+    ///
     fn to_string(&self) -> String {
-        self.0
+        //
+        // Generate a raw string representation of the scope beans
+        //
+        let raw_string = self
+            .0
             .iter()
             .fold(String::new(), |acc, bean| {
                 format!("{}{};", acc, bean.to_string())
             })
             .trim_end_matches(';')
-            .to_string()
+            .to_string();
+
+        //
+        // Encode the raw string using base64
+        //
+        general_purpose::STANDARD.encode(raw_string)
     }
 }
 
 impl TryFrom<String> for UserAccountScope {
     type Error = ();
 
+    /// Try to convert a base64 encoded string into a UserAccountScope
+    ///
+    /// This function decodes the base64 string, converts it into a UTF-8 string
+    /// and then parses the string into individual ConnectionStringBeans. If any
+    /// step fails, it returns an empty error.
+    ///
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        let beans = value
+        //
+        // Decode the base64 encoded string resulting into a [u8] vector
+        //
+        let raw_decoded = match general_purpose::STANDARD.decode(value) {
+            Ok(decoded) => decoded,
+            Err(err) => {
+                tracing::error!("Failed to decode base64 string: {err}");
+                return Err(());
+            }
+        };
+
+        //
+        // Convert the raw bytes into a UTF-8 string
+        //
+        let decoded = String::from_utf8(raw_decoded).map_err(|_| {
+            tracing::error!("Failed to convert decoded bytes to UTF-8 string");
+            ()
+        })?;
+
+        //
+        // Parse the decoded string into individual beans
+        //
+        let beans = decoded
             .split(';')
             .map(|bean| ConnectionStringBean::try_from(bean.to_string()))
             .collect::<Result<Vec<ConnectionStringBean>, ()>>()?;

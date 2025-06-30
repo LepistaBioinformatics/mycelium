@@ -97,19 +97,10 @@ pub async fn create_connection_string(
     // ? Notify guest user
     // ? -----------------------------------------------------------------------
 
-    let parameters = vec![
-        //("tenant_id", tenant_id.to_string().to_uppercase()),
-        //("target_id", guest_role_id.to_string().to_uppercase()),
-        //(
-        //    "permissioned_roles",
-        //    permissioned_roles.iter().fold(
-        //        String::new(),
-        //        |acc, (role, permission)| {
-        //            acc + &format!("{}: {}\n", role, permission.to_string())
-        //        },
-        //    ),
-        //),
-    ];
+    let parameters = vec![(
+        "expires_in",
+        format_expiration_as_human_readable(expiration),
+    )];
 
     if let Err(err) = dispatch_notification(
         parameters,
@@ -121,7 +112,8 @@ pub async fn create_connection_string(
     )
     .await
     {
-        return use_case_err(format!("Unable to send email: {err}"))
+        tracing::error!("Unable to send email: {err}");
+        return use_case_err("Unable to notify user")
             .with_code(NativeErrorCodes::MYC00010)
             .as_error();
     };
@@ -131,4 +123,21 @@ pub async fn create_connection_string(
     // ? -----------------------------------------------------------------------
 
     Ok(role_scoped_connection_string.scope.to_string())
+}
+
+fn format_expiration_as_human_readable(expiration: i64) -> String {
+    let duration = Duration::seconds(expiration);
+    let days = duration.num_days();
+    let hours = duration.num_hours() % 24;
+    let minutes = duration.num_minutes() % 60;
+
+    if days > 0 {
+        return format!("{days}d");
+    }
+
+    if hours > 0 {
+        return format!("{hours}h");
+    }
+
+    format!("{minutes}m")
 }
