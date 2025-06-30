@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.1] - 2025-06-30
+
+### 🚀 Features
+
+- *(written-by)* Include the written by field into the webhooks model
+- *(tenant-wide-permissions)* Upgrade use-cases to use the tenant-wide permissions checker throug profile
+
+### ⚙️ Miscellaneous Tasks
+
+- *(connection-string)* Encode connection strings
+
 ## [8.0.0] - 2025-06-27
 
 ### 🚀 Features
@@ -22,6 +33,10 @@ All notable changes to this project will be documented in this file.
 ### 🧪 Testing
 
 - *(test-service)* Update the test service to allow run integration tests at the gateway level
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [7.13.3] - 2025-06-22
 

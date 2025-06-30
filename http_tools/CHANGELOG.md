@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Include deletion flag through the account management in application
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [7.13.3] - 2025-06-22
 
 ### 🚀 Features

@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.1] - 2025-06-30
+
+### 🚀 Features
+
+- *(written-by)* Include the written by field into the webhooks model
+- *(subscription-manager-account)* Create a use-case to initialize the subscription manager account with role scoped account type
+- *(guest-to-subs-manager-account)* Create methods to guest and revoke to subscription management accounts
+- *(tenant-wide-permissions)* Upgrade use-cases to use the tenant-wide permissions checker throug profile
+
+### ⚙️ Miscellaneous Tasks
+
+- *(connection-string)* Encode connection strings
+
 ## [8.0.0] - 2025-06-27
 
 ### 🚀 Features
@@ -24,6 +37,10 @@ All notable changes to this project will be documented in this file.
 ### 🚜 Refactor
 
 - *(connection-string)* Review the applicaiton middlewares to allow users to access the full api interface with connection strings
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [7.13.3] - 2025-06-22
 

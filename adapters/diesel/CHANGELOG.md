@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.1] - 2025-06-30
+
+### 🚀 Features
+
+- *(written-by)* Include the written by field into the webhooks model
+- *(tenant-wide-permissions)* Upgrade use-cases to use the tenant-wide permissions checker throug profile
+
 ## [8.0.0] - 2025-06-27
 
 ### 🚀 Features
@@ -16,6 +23,10 @@ All notable changes to this project will be documented in this file.
 - *(tenant-owner)* Remoce the tenant owner checking as a role
 - *(account-tag)* Fix the account-tag model constraint to remove the meta from unique set
 - *(account-updating)* Fix the parsing of the field update-by during account updating operations
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [7.13.3] - 2025-06-22
 

@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - *(connection-strings)* Replace the multi-type connection strings by a single user-related connection string
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [7.13.3] - 2025-06-22
 
 ### ⚙️ Miscellaneous Tasks
