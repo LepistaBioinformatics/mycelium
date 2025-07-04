@@ -37,9 +37,10 @@ impl UserAccountScope {
     pub async fn new(
         account_id: Uuid,
         expires_at: DateTime<Local>,
-        role: Option<String>,
+        roles: Option<Vec<String>>,
         permissioned_roles: Option<PermissionedRoles>,
         tenant_id: Option<Uuid>,
+        subscription_account_id: Option<Uuid>,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
         let mut beans = vec![
@@ -47,8 +48,8 @@ impl UserAccountScope {
             ConnectionStringBean::EDT(expires_at),
         ];
 
-        if let Some(role) = role {
-            beans.push(ConnectionStringBean::RL(role));
+        if let Some(roles) = roles {
+            beans.push(ConnectionStringBean::RLS(roles));
         }
 
         if let Some(permissioned_roles) = permissioned_roles {
@@ -57,6 +58,10 @@ impl UserAccountScope {
 
         if let Some(tenant_id) = tenant_id {
             beans.push(ConnectionStringBean::TID(tenant_id));
+        }
+
+        if let Some(subscription_account_id) = subscription_account_id {
+            beans.push(ConnectionStringBean::SID(subscription_account_id));
         }
 
         let mut self_signed_scope = Self(beans);
@@ -99,11 +104,11 @@ impl UserAccountScope {
         })
     }
 
-    #[tracing::instrument(name = "get_role", skip(self))]
-    pub fn get_role(&self) -> Option<String> {
+    #[tracing::instrument(name = "get_roles", skip(self))]
+    pub fn get_roles(&self) -> Option<Vec<String>> {
         self.0.iter().find_map(|bean| {
-            if let ConnectionStringBean::RL(role) = bean {
-                return Some(role.clone());
+            if let ConnectionStringBean::RLS(roles) = bean {
+                return Some(roles.clone());
             }
 
             None
@@ -114,6 +119,17 @@ impl UserAccountScope {
     pub fn get_tenant_id(&self) -> Option<Uuid> {
         self.0.iter().find_map(|bean| {
             if let ConnectionStringBean::TID(id) = bean {
+                return Some(id.clone());
+            }
+
+            None
+        })
+    }
+
+    #[tracing::instrument(name = "get_service_account_id", skip(self))]
+    pub fn get_service_account_id(&self) -> Option<Uuid> {
+        self.0.iter().find_map(|bean| {
+            if let ConnectionStringBean::SID(id) = bean {
                 return Some(id.clone());
             }
 
@@ -263,14 +279,19 @@ impl UserAccountConnectionString {
         self.scope.get_user_account_id()
     }
 
-    #[tracing::instrument(name = "get_role", skip(self))]
-    pub fn get_role(&self) -> Option<String> {
-        self.scope.get_role()
+    #[tracing::instrument(name = "get_roles", skip(self))]
+    pub fn get_roles(&self) -> Option<Vec<String>> {
+        self.scope.get_roles()
     }
 
     #[tracing::instrument(name = "get_tenant_id", skip(self))]
     pub fn get_tenant_id(&self) -> Option<Uuid> {
         self.scope.get_tenant_id()
+    }
+
+    #[tracing::instrument(name = "get_service_account_id", skip(self))]
+    pub fn get_service_account_id(&self) -> Option<Uuid> {
+        self.scope.get_service_account_id()
     }
 
     #[tracing::instrument(name = "get_permissioned_roles", skip(self))]
@@ -308,6 +329,7 @@ mod tests {
         let account_scope = UserAccountScope::new(
             Uuid::new_v4(),
             Local::now(),
+            None,
             None,
             None,
             None,

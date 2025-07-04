@@ -23,11 +23,11 @@ pub enum ConnectionStringBean {
     /// The account ID
     AID(Uuid),
 
-    /// The role
-    RID(Uuid),
+    /// A service account ID
+    SID(Uuid),
 
-    /// The role
-    RL(String),
+    /// A list of roles slugs
+    RLS(Vec<String>),
 
     /// The permission
     PM(Permission),
@@ -57,11 +57,17 @@ impl ToString for ConnectionStringBean {
             ConnectionStringBean::AID(account_id) => {
                 format!("aid={}", account_id.to_string())
             }
-            ConnectionStringBean::RID(role_id) => {
-                format!("rid={}", role_id.to_string())
+            ConnectionStringBean::SID(subscription_account_id) => {
+                format!("sid={}", subscription_account_id.to_string())
             }
-            ConnectionStringBean::RL(role) => {
-                format!("rl={}", role)
+            ConnectionStringBean::RLS(roles) => {
+                let roles = roles
+                    .iter()
+                    .map(|role| role.to_string())
+                    .collect::<Vec<String>>()
+                    .join(",");
+
+                format!("rls={}", roles)
             }
             ConnectionStringBean::PM(permission) => {
                 format!("pm={}", permission.to_string())
@@ -124,11 +130,19 @@ impl TryFrom<String> for ConnectionStringBean {
                 let account_id = Uuid::parse_str(value).map_err(|_| ())?;
                 Ok(ConnectionStringBean::AID(account_id))
             }
-            "RID" | "rid" => {
-                let role_id = Uuid::parse_str(value).map_err(|_| ())?;
-                Ok(ConnectionStringBean::RID(role_id))
+            "SID" | "sid" => {
+                let subscription_account_id =
+                    Uuid::parse_str(value).map_err(|_| ())?;
+                Ok(ConnectionStringBean::SID(subscription_account_id))
             }
-            "RL" | "rl" => Ok(ConnectionStringBean::RL(value.to_string())),
+            "RLS" | "rls" => {
+                let roles = value
+                    .split(',')
+                    .map(|role| role.to_string())
+                    .collect::<Vec<String>>();
+
+                Ok(ConnectionStringBean::RLS(roles))
+            }
             "PM" | "pm" => {
                 let permission = Permission::from_str(value).map_err(|_| ())?;
                 Ok(ConnectionStringBean::PM(permission))
@@ -183,7 +197,7 @@ mod tests {
         let signature_bean = ConnectionStringBean::SIG(signature.clone());
         let tenant_id_bean = ConnectionStringBean::TID(tenant_id);
         let account_id_bean = ConnectionStringBean::AID(account_id);
-        let role_bean = ConnectionStringBean::RL(role.clone());
+        let role_bean = ConnectionStringBean::RLS(vec![role.clone()]);
         let permission_bean = ConnectionStringBean::PM(permission.to_owned());
         let permissioned_roles_bean =
             ConnectionStringBean::PR(permissioned_roles);
@@ -197,7 +211,7 @@ mod tests {
             account_id_bean.to_string(),
             format!("aid={}", account_id.to_string())
         );
-        assert_eq!(role_bean.to_string(), format!("rl={}", role));
+        assert_eq!(role_bean.to_string(), format!("rls={}", role));
         assert_eq!(
             permission_bean.to_string(),
             format!("pm={}", permission.to_string())
@@ -227,7 +241,7 @@ mod tests {
         let signature_bean = ConnectionStringBean::SIG(signature.clone());
         let tenant_id_bean = ConnectionStringBean::TID(tenant_id);
         let account_id_bean = ConnectionStringBean::AID(account_id);
-        let role_bean = ConnectionStringBean::RL(role.clone());
+        let role_bean = ConnectionStringBean::RLS(vec![role.clone()]);
         let permission_bean = ConnectionStringBean::PM(permission.to_owned());
         let permissioned_roles_bean =
             ConnectionStringBean::PR(permissioned_roles);
