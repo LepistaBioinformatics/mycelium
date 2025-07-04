@@ -146,15 +146,12 @@ services:
 
     container_name: myc-test-service
     entrypoint:
-      #- /bin/sh
-      #- -c
-      #- sleep infinity
       - myc-api-test-svc
+    ports:
+      - 8083:8083
     build:
       context: .
       dockerfile: Dockerfile.dev
       no_cache: true
-    environment:
-      - SERVICE_PORT=8083
-    ports:
-      - 8083:8083
+      args:
+        SERVICE_PORT: 8083
