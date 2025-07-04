@@ -21,7 +21,10 @@ use uuid::Uuid;
 
 #[tracing::instrument(
     name = "delete_subscription_account",
-    fields(profile_id = %profile.acc_id),
+    fields(
+        profile_id = %profile.acc_id,
+        correspondence_id = tracing::field::Empty
+    ),
     skip(profile, account_deletion_repo, webhook_registration_repo)
 )]
 pub async fn delete_subscription_account(

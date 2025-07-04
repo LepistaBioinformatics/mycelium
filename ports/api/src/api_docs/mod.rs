@@ -296,6 +296,7 @@ struct GuestManagerGuestRoleApiDoc;
     ),
     paths(
         Subscriptions_Manager__Account::create_subscription_account_url,
+        Subscriptions_Manager__Account::create_role_associated_account_url,
         Subscriptions_Manager__Account::update_account_name_and_flags_url,
         Subscriptions_Manager__Account::list_accounts_by_type_url,
         Subscriptions_Manager__Account::get_account_details_url,
@@ -709,6 +710,7 @@ struct UsersManagerAccountApiDoc;
             // SUBSCRIPTIONS MANAGER
             //
             Subscriptions_Manager__Account::CreateSubscriptionAccountBody,
+            Subscriptions_Manager__Account::CreateRoleAssociatedAccountBody,
             Subscriptions_Manager__Account::UpdateSubscriptionAccountNameAndFlagsBody,
             Subscriptions_Manager__Account::APIAccountType,
             Subscriptions_Manager__Account::ListSubscriptionAccountParams,

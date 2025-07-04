@@ -22,7 +22,7 @@ services:
       # Test for public route
       #
       - group: public
-        path: /public*
+        path: /public
         methods:
           - GET
 

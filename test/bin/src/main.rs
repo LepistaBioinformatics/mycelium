@@ -40,7 +40,11 @@ async fn main() -> std::io::Result<()> {
     let address = (
         "0.0.0.0",
         match var_os("SERVICE_PORT") {
-            Some(path) => path.into_string().unwrap().parse::<u16>().unwrap(),
+            Some(path) => path
+                .into_string()
+                .unwrap_or("8080".to_string())
+                .parse::<u16>()
+                .unwrap(),
             None => 8080,
         },
     );

@@ -45,13 +45,22 @@ pub struct CreateTokenBody {
     ///
     tenant_id: Option<Uuid>,
 
-    /// A single role
+    /// A single service account ID
     ///
     /// If specified, the actions allowed by the token will be scoped to the
-    /// role. If not specified, the actions allowed by the token will be
+    /// service account. Service account should be a subscription account,
+    /// tenant management account, or role scoped account. If not specified, the
+    /// actions allowed by the token will be scoped to the user profile.
+    ///
+    service_account_id: Option<Uuid>,
+
+    /// A list of roles
+    ///
+    /// If specified, the actions allowed by the token will be scoped to the
+    /// roles. If not specified, the actions allowed by the token will be
     /// scoped to the user profile.
     ///
-    role: Option<String>,
+    roles: Option<Vec<String>>,
 
     /// The permissioned roles
     ///
@@ -110,7 +119,8 @@ pub async fn create_connection_string_url(
         profile.to_profile(),
         body.expiration.to_owned(),
         body.tenant_id.to_owned(),
-        body.role.to_owned(),
+        body.service_account_id.to_owned(),
+        body.roles.to_owned(),
         body.permissioned_roles.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*sql_app_module.resolve_ref()),

@@ -46,20 +46,20 @@ pub(crate) async fn fetch_profile_from_request_connection_string(
     // connection string
     //
     let updated_roles = connection_string
-        .get_role()
-        .map(|role| {
-            if role.is_empty() {
+        .get_roles()
+        .map(|connection_string_roles| {
+            if connection_string_roles.is_empty() {
                 return None;
             }
 
             if roles.is_none() {
-                return Some(vec![role]);
+                return Some(connection_string_roles.clone());
             }
 
             let filtered_roles = roles
                 .unwrap()
                 .iter()
-                .filter(|r| r == &&role)
+                .filter(|r| connection_string_roles.contains(r))
                 .map(|r| r.clone())
                 .collect::<Vec<_>>();
 

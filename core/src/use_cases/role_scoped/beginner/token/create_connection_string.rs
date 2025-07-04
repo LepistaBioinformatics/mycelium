@@ -36,7 +36,8 @@ pub async fn create_connection_string(
     profile: Profile,
     expiration: i64,
     tenant_id: Option<Uuid>,
-    role: Option<String>,
+    subscription_account_id: Option<Uuid>,
+    roles: Option<Vec<String>>,
     permissioned_roles: Option<PermissionedRoles>,
     life_cycle_settings: AccountLifeCycle,
     token_registration_repo: Box<&dyn TokenRegistration>,
@@ -63,9 +64,10 @@ pub async fn create_connection_string(
     let mut role_scope = UserAccountScope::new(
         profile.acc_id,
         expires_at,
-        role,
+        roles,
         permissioned_roles,
         tenant_id,
+        subscription_account_id,
         life_cycle_settings.to_owned(),
     )
     .await?;

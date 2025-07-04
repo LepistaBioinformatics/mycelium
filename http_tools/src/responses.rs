@@ -28,6 +28,9 @@ pub enum GatewayError {
     #[display(fmt = "BadRequest")]
     BadRequest(String),
 
+    #[display(fmt = "BadGateway")]
+    BadGateway(String),
+
     #[display(fmt = "Forbidden")]
     Forbidden(String),
 
@@ -53,6 +56,7 @@ impl error::ResponseError for GatewayError {
                 status: self.status_code().as_u16(),
                 message: match self {
                     GatewayError::BadRequest(msg) => msg.to_owned(),
+                    GatewayError::BadGateway(msg) => msg.to_owned(),
                     GatewayError::Forbidden(msg) => msg.to_owned(),
                     GatewayError::Unauthorized(msg) => msg.to_owned(),
                     GatewayError::MethodNotAllowed(msg) => msg.to_owned(),
@@ -64,6 +68,7 @@ impl error::ResponseError for GatewayError {
     fn status_code(&self) -> StatusCode {
         match *self {
             GatewayError::BadRequest { .. } => StatusCode::BAD_REQUEST,
+            GatewayError::BadGateway { .. } => StatusCode::BAD_GATEWAY,
             GatewayError::Forbidden { .. } => StatusCode::FORBIDDEN,
             GatewayError::Unauthorized { .. } => StatusCode::UNAUTHORIZED,
             GatewayError::MethodNotAllowed { .. } => {

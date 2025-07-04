@@ -24,7 +24,10 @@ use uuid::Uuid;
 
 #[tracing::instrument(
     name = "update_account_name_and_flags",
-    fields(profile_id = %profile.acc_id),
+    fields(
+        profile_id = %profile.acc_id,
+        correspondence_id = tracing::field::Empty
+    ),
     skip_all
 )]
 pub async fn update_account_name_and_flags(

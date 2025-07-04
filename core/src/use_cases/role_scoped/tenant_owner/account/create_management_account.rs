@@ -13,6 +13,7 @@ use uuid::Uuid;
     name = "create_management_account",
     fields(
         profile_id = %profile.acc_id,
+        correspondence_id = tracing::field::Empty,
         owners = ?profile.owners.iter().map(|o| o.redacted_email()).collect::<Vec<_>>(),
     ),
     skip(profile, account_registration_repo)

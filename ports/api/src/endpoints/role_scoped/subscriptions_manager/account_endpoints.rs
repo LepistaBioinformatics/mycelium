@@ -10,9 +10,9 @@ use myc_core::{
         dtos::{account::VerboseStatus, account_type::AccountType},
     },
     use_cases::role_scoped::subscriptions_manager::account::{
-        create_subscription_account, get_account_details,
-        list_accounts_by_type, propagate_existing_subscription_account,
-        update_account_name_and_flags,
+        create_role_associated_account, create_subscription_account,
+        get_account_details, list_accounts_by_type,
+        propagate_existing_subscription_account, update_account_name_and_flags,
     },
 };
 use myc_diesel::repositories::SqlAppModule;
@@ -24,6 +24,7 @@ use myc_http_tools::{
     },
     Account,
 };
+use mycelium_base::entities::GetOrCreateResponseKind;
 use serde::Deserialize;
 use shaku::HasComponent;
 use utoipa::{IntoParams, ToSchema};
@@ -36,6 +37,7 @@ use uuid::Uuid;
 pub fn configure(config: &mut web::ServiceConfig) {
     config
         .service(create_subscription_account_url)
+        .service(create_role_associated_account_url)
         .service(update_account_name_and_flags_url)
         .service(list_accounts_by_type_url)
         .service(get_account_details_url)
@@ -50,6 +52,13 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[serde(rename_all = "camelCase")]
 pub struct CreateSubscriptionAccountBody {
     name: String,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateRoleAssociatedAccountBody {
+    role_name: String,
+    role_description: String,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -208,6 +217,79 @@ pub async fn create_subscription_account_url(
     {
         Err(err) => handle_mapped_error(err),
         Ok(account) => HttpResponse::Created().json(account),
+    }
+}
+
+/// Create Subscription Account
+///
+/// Subscription accounts represents shared entities, like institutions,
+/// groups, but not real persons.
+#[utoipa::path(
+    post,
+    params(
+        (
+            "x-mycelium-tenant-id" = Uuid,
+            Header,
+            description = "The tenant unique id."
+        ),
+    ),
+    request_body = CreateRoleAssociatedAccountBody,
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 400,
+            description = "Account already exists.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 201,
+            description = "Account created.",
+            body = Account,
+        ),
+    ),
+)]
+#[post("")]
+pub async fn create_role_associated_account_url(
+    tenant: TenantData,
+    body: web::Json<CreateRoleAssociatedAccountBody>,
+    profile: MyceliumProfileData,
+    app_module: web::Data<SqlAppModule>,
+) -> impl Responder {
+    match create_role_associated_account(
+        profile.to_profile(),
+        tenant.tenant_id().to_owned(),
+        body.role_name.to_owned(),
+        body.role_description.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
+    )
+    .await
+    {
+        Err(err) => handle_mapped_error(err),
+        Ok(account) => match account {
+            GetOrCreateResponseKind::Created(account) => {
+                HttpResponse::Created().json(account)
+            }
+            GetOrCreateResponseKind::NotCreated(account, msg) => {
+                tracing::warn!("{}", msg);
+
+                HttpResponse::Ok().json(account)
+            }
+        },
     }
 }
 
