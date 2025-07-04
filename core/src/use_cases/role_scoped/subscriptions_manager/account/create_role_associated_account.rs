@@ -166,7 +166,7 @@ pub async fn create_role_associated_account(
         read_role_id,
         write_role_id,
         role_slug,
-        true,
+        false,
         Some(WrittenBy::new_from_account(profile.acc_id)),
     );
 
