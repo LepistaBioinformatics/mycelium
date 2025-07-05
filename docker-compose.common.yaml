@@ -151,7 +151,7 @@ services:
       - 8083:8083
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.test
       no_cache: true
       args:
         SERVICE_PORT: 8083
