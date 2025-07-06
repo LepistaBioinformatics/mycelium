@@ -65,8 +65,6 @@ pub(super) async fn initialize_downstream_request(
         GatewayError::InternalServerError(format!("{err}"))
     })?;
 
-    println!("route_matching_uri: {}", route_matching_uri);
-
     // ? -----------------------------------------------------------------------
     // ? Parse the registered uri as a url
     //
@@ -93,8 +91,6 @@ pub(super) async fn initialize_downstream_request(
     );
 
     target_url.set_query(req.uri().query());
-
-    println!("target_url 1: {}", target_url);
 
     //
     // If the proxy address exists, the downstream url should be adjusted to
@@ -125,8 +121,6 @@ pub(super) async fn initialize_downstream_request(
         } else {
             target_url.to_owned()
         };
-
-    println!("routing_url: {}", routing_url);
 
     // ? -----------------------------------------------------------------------
     // ? Build the downstream request
