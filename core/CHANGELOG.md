@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.2] - 2025-07-06
+
+### 🚀 Features
+
+- Upgrade connection strings to allow roles and account-ids instead of permissioned roles
+- Implements an option co create role related accounts for spurious roles
+
+### 🐛 Bug Fixes
+
+- Avoid to expose system message to external customers
+- Set spurious role related accounts as no std
+
 ## [8.0.1-beta.1] - 2025-06-30
 
 ### 🚀 Features
@@ -14,6 +26,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - *(connection-string)* Encode connection strings
+- Release
 
 ## [8.0.0] - 2025-06-27
 

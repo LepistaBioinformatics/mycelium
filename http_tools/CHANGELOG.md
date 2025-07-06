@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.2] - 2025-07-06
+
+### 🚀 Features
+
+- Implements an option co create role related accounts for spurious roles
+
+## [8.0.1-beta.1] - 2025-06-30
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.0] - 2025-06-27
 
 ### 🐛 Bug Fixes

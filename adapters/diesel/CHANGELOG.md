@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 - *(written-by)* Include the written by field into the webhooks model
 - *(tenant-wide-permissions)* Upgrade use-cases to use the tenant-wide permissions checker throug profile
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.0] - 2025-06-27
 
 ### 🚀 Features

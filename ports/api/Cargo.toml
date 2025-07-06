@@ -18,16 +18,16 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "8.0.1-beta.1", path = "../../core" }
-mycelium-base = { version = "8.0.1-beta.1", path = "../../base" }
-mycelium-config = { version = "8.0.1-beta.1", path = "../../config" }
-mycelium-http-tools = { version = "8.0.1-beta.1", path = "../../http_tools" }
-mycelium-memory-db = { version = "8.0.1-beta.1", path = "../../adapters/mem_db" }
-mycelium-service = { version = "8.0.1-beta.1", path = "../../adapters/service" }
-mycelium-diesel = { version = "8.0.1-beta.1", path = "../../adapters/diesel" }
-mycelium-notifier = { version = "8.0.1-beta.1", path = "../../adapters/notifier" }
-mycelium-adapters-shared-lib = { version = "8.0.1-beta.1", path = "../../adapters/shared" }
-mycelium-key-value = { version = "8.0.1-beta.1", path = "../../adapters/kv_db" }
+myc-core = { version = "8.0.1-beta.2", path = "../../core" }
+mycelium-base = { version = "8.0.1-beta.2", path = "../../base" }
+mycelium-config = { version = "8.0.1-beta.2", path = "../../config" }
+mycelium-http-tools = { version = "8.0.1-beta.2", path = "../../http_tools" }
+mycelium-memory-db = { version = "8.0.1-beta.2", path = "../../adapters/mem_db" }
+mycelium-service = { version = "8.0.1-beta.2", path = "../../adapters/service" }
+mycelium-diesel = { version = "8.0.1-beta.2", path = "../../adapters/diesel" }
+mycelium-notifier = { version = "8.0.1-beta.2", path = "../../adapters/notifier" }
+mycelium-adapters-shared-lib = { version = "8.0.1-beta.2", path = "../../adapters/shared" }
+mycelium-key-value = { version = "8.0.1-beta.2", path = "../../adapters/kv_db" }
 
 actix-web.workspace = true
 actix-web-httpauth.workspace = true
