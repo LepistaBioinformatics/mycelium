@@ -5,25 +5,23 @@
 [workspace]
 
 members = [
-    "base",
-    "config",
     "core",
-    "http_tools",
+    "lib/*",
     "ports/*",
     "adapters/*",
-    "test/bin",
+    "test/downstream_service",
 ]
 
 default-members = [
-    "base",
-    "config",
     "core",
-    "http_tools",
+    "lib/base",
+    "lib/config",
+    "lib/http_tools",
     "ports/*",
     "adapters/*",
 ]
 
-exclude = ["test/bin"]
+exclude = ["test/downstream_service"]
 
 resolver = "2"
 

@@ -15,8 +15,8 @@ readme.workspace = true
 [dependencies]
 
 myc-core = { version = "8.0.1-beta.2", path = "../../core" }
-mycelium-base = { version = "8.0.1-beta.2", path = "../../base" }
-mycelium-config = { version = "8.0.1-beta.2", path = "../../config" }
+mycelium-base = { version = "8.0.1-beta.2", path = "../../lib/base" }
+mycelium-config = { version = "8.0.1-beta.2", path = "../../lib/config" }
 
 redis.workspace = true
 serde.workspace = true

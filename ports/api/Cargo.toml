@@ -19,9 +19,9 @@ readme.workspace = true
 [dependencies]
 
 myc-core = { version = "8.0.1-beta.2", path = "../../core" }
-mycelium-base = { version = "8.0.1-beta.2", path = "../../base" }
-mycelium-config = { version = "8.0.1-beta.2", path = "../../config" }
-mycelium-http-tools = { version = "8.0.1-beta.2", path = "../../http_tools" }
+mycelium-base = { version = "8.0.1-beta.2", path = "../../lib/base" }
+mycelium-config = { version = "8.0.1-beta.2", path = "../../lib/config" }
+mycelium-http-tools = { version = "8.0.1-beta.2", path = "../../lib/http_tools" }
 mycelium-memory-db = { version = "8.0.1-beta.2", path = "../../adapters/mem_db" }
 mycelium-service = { version = "8.0.1-beta.2", path = "../../adapters/service" }
 mycelium-diesel = { version = "8.0.1-beta.2", path = "../../adapters/diesel" }

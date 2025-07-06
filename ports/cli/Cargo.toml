@@ -19,7 +19,7 @@ readme.workspace = true
 [dependencies]
 
 myc-core = { version = "8.0.1-beta.2", path = "../../core" }
-mycelium-base = { version = "8.0.1-beta.2", path = "../../base" }
+mycelium-base = { version = "8.0.1-beta.2", path = "../../lib/base" }
 mycelium-diesel = { version = "8.0.1-beta.2", path = "../../adapters/diesel" }
 mycelium-notifier = { version = "8.0.1-beta.2", path = "../../adapters/notifier" }
 
