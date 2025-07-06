@@ -147,8 +147,6 @@ services:
     container_name: myc-test-service
     entrypoint:
       - myc-api-test-svc
-    ports:
-      - 8083:8083
     build:
       context: .
       dockerfile: Dockerfile.test
