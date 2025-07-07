@@ -1,0 +1,28 @@
+[package]
+name = "mycelium-openapi"
+description = "Provide OpenAPI related elements to the mycelium project."
+
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+
+[dependencies]
+mycelium-base = { version = "8.0.1-beta.2", path = "../base" }
+
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+
+# ? ----------------------------------------------------------------------------
+# ? LIBRARY
+# ? ----------------------------------------------------------------------------
+
+[lib]
+name = "mycelium_openapi"
+path = "src/lib.rs"
+crate-type = ["staticlib", "lib"]

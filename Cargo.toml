@@ -14,9 +14,7 @@ members = [
 
 default-members = [
     "core",
-    "lib/base",
-    "lib/config",
-    "lib/http_tools",
+    "lib/*",
     "ports/*",
     "adapters/*",
 ]

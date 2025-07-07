@@ -2976,6 +2976,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "mycelium-openapi"
+version = "8.0.1-beta.2"
+dependencies = [
+ "mycelium-base",
+ "serde",
+ "serde_json",
+ "tracing",
+]
+
+[[package]]
 name = "mycelium-service"
 version = "8.0.1-beta.2"
 dependencies = [
