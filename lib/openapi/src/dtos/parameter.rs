@@ -1,5 +1,9 @@
-use crate::dtos::{location::Location, schema_or_one_of::SchemaOrOneOf};
+use crate::{
+    dtos::{location::Location, schema_or_one_of::SchemaOrOneOf},
+    entities::{DepthTracker, ReferenceResolver},
+};
 
+use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
@@ -30,4 +34,28 @@ pub struct Parameter {
     pub explode: Option<bool>,
 
     pub schema: SchemaOrOneOf,
+}
+
+impl ReferenceResolver for Parameter {
+    fn resolve_ref(
+        &self,
+        components: &serde_json::Value,
+        depth_tracker: &mut DepthTracker,
+    ) -> Result<serde_json::Value, MappedErrors> {
+        if depth_tracker.should_stop() {
+            return Ok(depth_tracker.empty_value());
+        }
+
+        depth_tracker.increment();
+
+        let mut value = serde_json::to_value(self).map_err(|e| {
+            execution_err(format!("Failed to resolve parameter: {e}"))
+        })?;
+
+        let schema = self.schema.resolve_ref(components, depth_tracker)?;
+
+        value["schema"] = schema;
+
+        Ok(value)
+    }
 }

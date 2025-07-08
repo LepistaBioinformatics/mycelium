@@ -1,8 +1,6 @@
 mod content_value_schema;
 mod example;
 mod generic_schema_or_ref;
-mod header;
-mod item_type;
 mod location;
 mod open_api_schema;
 mod operation;

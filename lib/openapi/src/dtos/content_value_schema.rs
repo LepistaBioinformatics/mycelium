@@ -1,10 +1,11 @@
-use std::collections::HashMap;
-
-use serde::{Deserialize, Serialize};
-
-use crate::dtos::{
-    example::Example, generic_schema_or_ref::GenericSchemaOrRef,
+use crate::{
+    dtos::{example::Example, generic_schema_or_ref::GenericSchemaOrRef},
+    entities::{DepthTracker, ReferenceResolver},
 };
+
+use mycelium_base::utils::errors::MappedErrors;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// Content Schema
 ///
@@ -55,4 +56,22 @@ pub struct ContentValueSchema {
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub examples: Option<HashMap<String, GenericSchemaOrRef<Example>>>,
+}
+
+impl ReferenceResolver for ContentValueSchema {
+    fn resolve_ref(
+        &self,
+        components: &serde_json::Value,
+        depth_tracker: &mut DepthTracker,
+    ) -> Result<serde_json::Value, MappedErrors> {
+        if self.schema.is_some() {
+            return self
+                .schema
+                .as_ref()
+                .unwrap()
+                .resolve_ref(components, depth_tracker);
+        }
+
+        Ok(serde_json::Value::Null)
+    }
 }

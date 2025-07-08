@@ -1,5 +1,9 @@
-use crate::dtos::parameter::Parameter;
+use crate::{
+    dtos::parameter::Parameter,
+    entities::{DepthTracker, ReferenceResolver},
+};
 
+use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -32,4 +36,48 @@ pub struct Operation {
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub security: Option<serde_json::Value>,
+}
+
+impl ReferenceResolver for Operation {
+    fn resolve_ref(
+        &self,
+        components: &serde_json::Value,
+        depth_tracker: &mut DepthTracker,
+    ) -> Result<serde_json::Value, MappedErrors> {
+        if depth_tracker.should_stop() {
+            return Ok(depth_tracker.empty_value());
+        }
+
+        depth_tracker.increment();
+
+        let mut value = serde_json::to_value(self).map_err(|e| {
+            execution_err(format!("Failed to resolve operation: {e}"))
+        })?;
+
+        let parameters = self.parameters.as_ref().map(|params| {
+            params
+                .iter()
+                .filter_map(|parameter| {
+                    let mut tracker_clone = depth_tracker.clone();
+
+                    parameter
+                        .resolve_ref(components, &mut tracker_clone)
+                        .map_err(|e| {
+                            execution_err(format!(
+                                "Failed to resolve parameter: {e}"
+                            ))
+                        })
+                        .ok()
+                })
+                .collect::<Vec<serde_json::Value>>()
+        });
+
+        if let Some(parameters) = parameters {
+            if !parameters.is_empty() {
+                value["parameters"] = parameters.into();
+            }
+        }
+
+        Ok(value)
+    }
 }
