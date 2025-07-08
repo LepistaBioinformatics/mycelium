@@ -241,11 +241,13 @@ mod tests {
 
         let doc = doc.unwrap();
 
-        let operation = doc
-            .resolve_input_refs_from_operation_id("list_accounts_by_type_url");
+        for operation_id in
+            ["register_tenant_tag_url", "list_accounts_by_type_url"]
+        {
+            let operation =
+                doc.resolve_input_refs_from_operation_id(operation_id);
 
-        // Pretty print the operation
-        let content = serde_json::to_string_pretty(&operation).unwrap();
-        println!("{}", content);
+            assert!(operation.is_ok());
+        }
     }
 }
