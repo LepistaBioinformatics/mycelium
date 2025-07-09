@@ -12,7 +12,7 @@ use base64::{engine::general_purpose, Engine};
 use hex;
 use myc_core::{
     domain::{
-        dtos::security_group::PermissionedRoles,
+        dtos::security_group::PermissionedRole,
         entities::{KVArtifactRead, KVArtifactWrite},
     },
     use_cases::service::profile::{fetch_profile_from_email, ProfileResponse},
@@ -23,7 +23,6 @@ use myc_kv::repositories::KVAppModule;
 use mycelium_base::entities::FetchResponseKind;
 use openssl::sha::Sha256;
 use shaku::HasComponent;
-use std::vec;
 use tracing::Instrument;
 use uuid::Uuid;
 
@@ -35,8 +34,7 @@ use uuid::Uuid;
 pub(crate) async fn fetch_profile_from_request_token(
     req: HttpRequest,
     tenant: Option<Uuid>,
-    roles: Option<Vec<String>>,
-    permissioned_roles: Option<PermissionedRoles>,
+    roles: Option<Vec<PermissionedRole>>,
 ) -> Result<MyceliumProfileData, GatewayError> {
     let span = tracing::Span::current();
 
@@ -60,7 +58,6 @@ pub(crate) async fn fetch_profile_from_request_token(
         email.to_owned(),
         tenant,
         roles.to_owned(),
-        permissioned_roles.to_owned(),
     )
     .instrument(span)
     .await?;
@@ -83,8 +80,7 @@ pub(crate) async fn fetch_profile_from_request_token(
 fn hash_profile_request(
     email: Email,
     tenant: Option<Uuid>,
-    roles: Option<Vec<String>>,
-    permissioned_roles: Option<PermissionedRoles>,
+    roles: Option<Vec<PermissionedRole>>,
 ) -> String {
     let email = email.email();
     let email_based_uuid = Uuid::new_v3(&Uuid::NAMESPACE_DNS, email.as_bytes());
@@ -104,22 +100,24 @@ fn hash_profile_request(
     //
     // If roles is None, generate a hash from the email
     //
-    let roles = roles
+    /* let roles = roles
         .unwrap_or_else(|| vec![email_based_uuid.to_string()])
         .join("");
 
-    hasher.update(roles.as_bytes());
+    hasher.update(roles.as_bytes()); */
 
     //
     // If permissioned roles is None, generate a hash from the email
     //
-    let permissioned_roles = if let Some(permissioned_roles) =
-        permissioned_roles
-    {
-        permissioned_roles
+    let roles = if let Some(roles) = roles {
+        roles
             .iter()
-            .map(|(role, permission)| {
-                format!("{role}:{permission}", permission = permission.to_i32())
+            .map(|role| {
+                format!(
+                    "{r}:{p}",
+                    r = role.slug,
+                    p = role.permission.clone().unwrap_or_default().to_i32()
+                )
             })
             .collect::<Vec<_>>()
             .join("")
@@ -127,7 +125,7 @@ fn hash_profile_request(
         email_based_uuid.to_string()
     };
 
-    hasher.update(permissioned_roles.as_bytes());
+    hasher.update(roles.as_bytes());
 
     hex::encode(hasher.finish())
 }
@@ -211,8 +209,7 @@ async fn fetch_profile_from_datastore(
     req: HttpRequest,
     email: Email,
     tenant: Option<Uuid>,
-    roles: Option<Vec<String>>,
-    permissioned_roles: Option<PermissionedRoles>,
+    roles: Option<Vec<PermissionedRole>>,
 ) -> Option<Profile> {
     tracing::trace!("Fetching profile from datastore");
 
@@ -232,7 +229,6 @@ async fn fetch_profile_from_datastore(
         None,
         tenant,
         roles,
-        permissioned_roles,
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )

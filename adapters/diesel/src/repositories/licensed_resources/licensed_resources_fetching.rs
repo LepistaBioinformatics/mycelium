@@ -17,7 +17,7 @@ use myc_core::domain::{
         native_error_codes::NativeErrorCodes,
         profile::{LicensedResource, TenantOwnership},
         related_accounts::RelatedAccounts,
-        security_group::PermissionedRoles,
+        security_group::PermissionedRole,
     },
     entities::LicensedResourcesFetching,
 };
@@ -44,8 +44,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         &self,
         email: Email,
         tenant: Option<Uuid>,
-        roles: Option<Vec<String>>,
-        permissioned_roles: Option<PermissionedRoles>,
+        roles: Option<Vec<PermissionedRole>>,
         related_accounts: Option<RelatedAccounts>,
         was_verified: Option<bool>,
     ) -> Result<FetchManyResponseKind<LicensedResource>, MappedErrors> {
@@ -70,31 +69,15 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         }
 
         if let Some(roles) = roles {
-            sql.push_str(
+            let statement = roles.iter().fold(String::new(), |acc, role| {
                 format!(
-                    " AND gr_slug IN ({})",
-                    roles
-                        .iter()
-                        .map(|r| format!("'{}'", r))
-                        .collect::<Vec<String>>()
-                        .join(",")
+                    "{}(gr_slug = '{}' AND gr_perm = {}) OR ",
+                    acc,
+                    role.slug,
+                    role.permission.to_owned().clone().unwrap_or_default()
+                        as i64
                 )
-                .as_str(),
-            );
-        }
-
-        if let Some(permissioned_roles) = permissioned_roles {
-            let statement = permissioned_roles.iter().fold(
-                String::new(),
-                |acc, (role, permission)| {
-                    format!(
-                        "{}(gr_slug = '{}' AND gr_perm = {}) OR ",
-                        acc,
-                        role,
-                        permission.to_owned() as i64
-                    )
-                },
-            );
+            });
 
             sql.push_str(format!(" AND ({})", statement).as_str());
         }

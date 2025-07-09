@@ -42,7 +42,8 @@ services:
       #
       - group: !protectedByRoles
           roles:
-            - newbies
+            - slug: newbies
+              permission: read
         path: /protected/roles/newbies
         methods:
           - GET
@@ -54,9 +55,10 @@ services:
       # The downstream service should receive only requests from users with the
       # role newbies and the read permission.
       #
-      - group: !protectedByPermissionedRoles
-          permissionedRoles:
-            - [newbies, read]
+      - group: !protectedByRoles
+          roles:
+            - slug: newbies
+              permission: read
         path: /protected/roles/newbies/with-permission
         methods:
           - GET
@@ -68,9 +70,9 @@ services:
       # downstream service should receive only requests from users with the role
       # newbies injected using service token.
       #
-      - group: !protectedByServiceTokenWithRole
+      - group: !protectedByRoles
           roles:
-            - newbie
+            - slug: newbie
         path: /protected/roles/newbies/with-scope
         methods:
           - GET
@@ -82,9 +84,10 @@ services:
       # receive only requests with any headers. This is util to test if the
       # request headers are injected correctly.
       #
-      - group: !protectedByServiceTokenWithPermissionedRoles
-          permissionedRoles:
-            - [newbie, read]
+      - group: !protectedByRoles
+          roles:
+            - slug: newbie
+              permission: read
         path: /protected/expects-headers
         methods:
           - GET

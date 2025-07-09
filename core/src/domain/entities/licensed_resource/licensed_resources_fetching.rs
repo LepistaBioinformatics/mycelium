@@ -2,7 +2,7 @@ use crate::domain::dtos::{
     email::Email,
     profile::{LicensedResource, TenantOwnership},
     related_accounts::RelatedAccounts,
-    security_group::PermissionedRoles,
+    security_group::PermissionedRole,
 };
 
 use async_trait::async_trait;
@@ -18,8 +18,7 @@ pub trait LicensedResourcesFetching: Interface + Send + Sync {
         &self,
         email: Email,
         tenant: Option<Uuid>,
-        roles: Option<Vec<String>>,
-        permissioned_roles: Option<PermissionedRoles>,
+        roles: Option<Vec<PermissionedRole>>,
         related_accounts: Option<RelatedAccounts>,
         was_verified: Option<bool>,
     ) -> Result<FetchManyResponseKind<LicensedResource>, MappedErrors>;

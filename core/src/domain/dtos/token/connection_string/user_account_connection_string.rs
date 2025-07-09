@@ -8,7 +8,7 @@
 use super::ConnectionStringBean;
 use crate::{
     domain::dtos::{
-        security_group::PermissionedRoles,
+        security_group::PermissionedRole,
         token::{HmacSha256, ScopedBehavior, ServiceAccountRelatedMeta},
     },
     models::AccountLifeCycle,
@@ -37,8 +37,8 @@ impl UserAccountScope {
     pub async fn new(
         account_id: Uuid,
         expires_at: DateTime<Local>,
-        roles: Option<Vec<String>>,
-        permissioned_roles: Option<PermissionedRoles>,
+        roles: Option<Vec<PermissionedRole>>,
+        //permissioned_roles: Option<PermissionedRoles>,
         tenant_id: Option<Uuid>,
         subscription_account_id: Option<Uuid>,
         config: AccountLifeCycle,
@@ -52,9 +52,9 @@ impl UserAccountScope {
             beans.push(ConnectionStringBean::RLS(roles));
         }
 
-        if let Some(permissioned_roles) = permissioned_roles {
-            beans.push(ConnectionStringBean::PR(permissioned_roles));
-        }
+        //if let Some(permissioned_roles) = permissioned_roles {
+        //    beans.push(ConnectionStringBean::PR(permissioned_roles));
+        //}
 
         if let Some(tenant_id) = tenant_id {
             beans.push(ConnectionStringBean::TID(tenant_id));
@@ -105,7 +105,7 @@ impl UserAccountScope {
     }
 
     #[tracing::instrument(name = "get_roles", skip(self))]
-    pub fn get_roles(&self) -> Option<Vec<String>> {
+    pub fn get_roles(&self) -> Option<Vec<PermissionedRole>> {
         self.0.iter().find_map(|bean| {
             if let ConnectionStringBean::RLS(roles) = bean {
                 return Some(roles.clone());
@@ -137,16 +137,15 @@ impl UserAccountScope {
         })
     }
 
-    #[tracing::instrument(name = "get_permissioned_roles", skip(self))]
-    pub fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
-        self.0.iter().find_map(|bean| {
-            if let ConnectionStringBean::PR(roles) = bean {
-                return Some(roles.clone());
-            }
-
-            None
-        })
-    }
+    //#[tracing::instrument(name = "get_permissioned_roles", skip(self))]
+    //pub fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
+    //    self.0.iter().find_map(|bean| {
+    //        if let ConnectionStringBean::PR(roles) = bean {
+    //            return Some(roles.clone());
+    //        }
+    //        None
+    //    })
+    //}
 }
 
 impl ScopedBehavior for UserAccountScope {
@@ -280,7 +279,7 @@ impl UserAccountConnectionString {
     }
 
     #[tracing::instrument(name = "get_roles", skip(self))]
-    pub fn get_roles(&self) -> Option<Vec<String>> {
+    pub fn get_roles(&self) -> Option<Vec<PermissionedRole>> {
         self.scope.get_roles()
     }
 
@@ -294,10 +293,10 @@ impl UserAccountConnectionString {
         self.scope.get_service_account_id()
     }
 
-    #[tracing::instrument(name = "get_permissioned_roles", skip(self))]
-    pub fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
-        self.scope.get_permissioned_roles()
-    }
+    //#[tracing::instrument(name = "get_permissioned_roles", skip(self))]
+    //pub fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
+    //    self.scope.get_permissioned_roles()
+    //}
 }
 
 #[cfg(test)]
@@ -329,7 +328,6 @@ mod tests {
         let account_scope = UserAccountScope::new(
             Uuid::new_v4(),
             Local::now(),
-            None,
             None,
             None,
             None,
