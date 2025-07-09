@@ -6,8 +6,9 @@ use crate::{
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use utoipa::ToSchema;
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Schema {
     #[serde(rename = "$ref", skip_serializing_if = "Option::is_none")]
@@ -29,6 +30,7 @@ pub struct Schema {
     pub required: Option<Vec<String>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
+    #[schema(no_recursion)]
     pub properties: Option<HashMap<String, Schema>>,
 
     #[serde(skip_serializing_if = "Option::is_none")]

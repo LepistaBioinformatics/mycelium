@@ -169,3 +169,18 @@ services:
         path: /protected*
         methods:
           - GET
+
+      - group: protected
+        path: /webhooks*
+        methods:
+          - ALL
+
+      - group: protected
+        path: /secrets*
+        methods:
+          - ALL
+
+      - group: public
+        path: /health
+        methods:
+          - GET

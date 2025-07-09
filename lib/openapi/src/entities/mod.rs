@@ -1,3 +1,3 @@
 mod reference_resolver;
 
-pub(crate) use reference_resolver::*;
+pub use reference_resolver::*;

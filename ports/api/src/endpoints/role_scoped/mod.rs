@@ -24,6 +24,7 @@ use beginners::{
 use gateway_manager::{
     route_endpoints as gateway_manager_route_endpoints,
     service_endpoints as gateway_manager_service_endpoints,
+    tools_endpoints as gateway_manager_tools_endpoints,
 };
 use guest_manager::guest_role_endpoints as guest_manager_guest_role_endpoints;
 use myc_core::domain::actors::SystemActor;
@@ -127,6 +128,10 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
             .service(
                 web::scope(&format!("/{}", UrlGroup::Services))
                     .configure(gateway_manager_service_endpoints::configure),
+            )
+            .service(
+                web::scope(&format!("/{}", UrlGroup::Tools))
+                    .configure(gateway_manager_tools_endpoints::configure),
             ),
         )
         //

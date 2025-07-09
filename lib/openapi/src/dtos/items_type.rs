@@ -5,10 +5,12 @@ use crate::{
 
 use mycelium_base::utils::errors::MappedErrors;
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, ToSchema)]
 #[serde(untagged, rename_all = "camelCase")]
 pub enum ItemsType {
+    #[schema(no_recursion)]
     Schema(Schema),
     Boolean(bool),
 }

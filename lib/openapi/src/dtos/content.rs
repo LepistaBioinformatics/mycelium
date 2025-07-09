@@ -6,8 +6,9 @@ use crate::{
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use utoipa::ToSchema;
 
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct ValueSchema {
     schema: Schema,
@@ -66,7 +67,7 @@ impl ReferenceResolver for ValueSchema {
 ///
 /// This struct refers to the value of the schema in response.
 ///
-#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq, Eq, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct Content {
     #[serde(default, skip_serializing_if = "Option::is_none")]

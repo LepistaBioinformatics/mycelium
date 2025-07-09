@@ -113,6 +113,7 @@ pub enum UrlGroup {
     Tags,
     Tenants,
     Tokens,
+    Tools,
     Users,
     Webhooks,
 }
@@ -132,6 +133,7 @@ impl Display for UrlGroup {
             UrlGroup::Tags => write!(f, "tags"),
             UrlGroup::Tenants => write!(f, "tenants"),
             UrlGroup::Tokens => write!(f, "tokens"),
+            UrlGroup::Tools => write!(f, "tools"),
             UrlGroup::Users => write!(f, "users"),
             UrlGroup::Webhooks => write!(f, "webhooks"),
         }

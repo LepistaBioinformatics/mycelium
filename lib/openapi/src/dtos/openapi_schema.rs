@@ -130,7 +130,7 @@ pub struct OpenApiSchema {
 
 impl OpenApiSchema {
     #[tracing::instrument(name = "load_doc_from_string", skip_all)]
-    fn load_doc_from_string(
+    pub fn load_doc_from_string(
         content: &str,
     ) -> Result<OpenApiSchema, MappedErrors> {
         let doc =
@@ -139,21 +139,6 @@ impl OpenApiSchema {
             })?;
 
         Ok(doc)
-    }
-
-    #[tracing::instrument(name = "resolve_ref", skip_all)]
-    fn resolve_ref(
-        &self,
-        ref_path: &str,
-    ) -> Result<serde_json::Value, MappedErrors> {
-        let ref_path = ref_path.split('/').collect::<Vec<&str>>();
-        let ref_path = ref_path.last().unwrap();
-
-        let components = self.components.clone().unwrap_or_default();
-
-        let component = components.get(ref_path).unwrap();
-
-        Ok(component.clone())
     }
 
     /// Resolve the input refs
@@ -168,7 +153,7 @@ impl OpenApiSchema {
         name = "resolve_input_refs_from_operation_id",
         skip_all
     )]
-    fn resolve_input_refs_from_operation_id(
+    pub fn resolve_input_refs_from_operation_id(
         &self,
         operation_id: &str,
     ) -> Result<serde_json::Value, MappedErrors> {
@@ -184,13 +169,6 @@ impl OpenApiSchema {
             &self.components.clone().unwrap_or_default(),
             &mut depth_tracker,
         )?;
-
-        /* let request_body = operation.request_body.clone().unwrap_or_default();
-        let security = operation.security.clone().unwrap_or_default(); */
-
-        /* for parameter in parameters {
-            let parameter = parameter.schema.resolve_ref(3);
-        } */
 
         Ok(resolved_operation)
     }

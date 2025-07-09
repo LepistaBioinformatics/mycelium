@@ -2,13 +2,15 @@ mod api_docs;
 mod dispatchers;
 mod dtos;
 mod endpoints;
-mod graphql;
 mod middleware;
 mod models;
 mod modifiers;
+mod openapi_processor;
 mod otel;
 mod router;
 mod settings;
+
+use crate::openapi_processor::initialize_tools_registry;
 
 use actix_cors::Cors;
 use actix_web::{
@@ -34,7 +36,6 @@ use endpoints::{
     shared::insert_role_header,
     staff::account_endpoints as staff_account_endpoints,
 };
-use graphql::initialize_tools_registry;
 use models::config_handler::ConfigHandler;
 use myc_adapters_shared_lib::models::{
     SharedAppModule, SharedClientImpl, SharedClientImplParameters,
@@ -86,8 +87,6 @@ use utoipa::OpenApi;
 use utoipa_redoc::{FileConfig, Redoc, Servable};
 use utoipa_swagger_ui::{oauth, Config, SwaggerUi};
 use uuid::Uuid;
-
-use crate::graphql::graphql_handler;
 
 // ? ---------------------------------------------------------------------------
 // ? API fire elements
@@ -380,6 +379,7 @@ pub async fn main() -> std::io::Result<()> {
             // system
             //
             .wrap(TracingLogger::default())
+            .app_data(web::Data::new(tools_registry_schema.clone()))
             .app_data(web::Data::from(sql_module.clone()))
             .app_data(web::Data::from(shared_module.clone()))
             .app_data(web::Data::from(notifier_module.clone()))
@@ -554,13 +554,7 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             .service(
                 web::scope(&format!("/{}", TOOLS_API_SCOPE))
-                    .app_data(web::Data::new(tools_registry_schema.clone()))
-                    .configure(service_tools_endpoints::configure)
-                    .service(
-                        web::resource("/graphql")
-                            .guard(actix_web::guard::Post())
-                            .to(graphql_handler),
-                    ),
+                    .configure(service_tools_endpoints::configure),
             )
             // ? ---------------------------------------------------------------
             // ? Configure gateway routes

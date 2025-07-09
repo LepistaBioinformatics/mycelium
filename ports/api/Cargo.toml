@@ -21,6 +21,7 @@ readme.workspace = true
 myc-core = { version = "8.0.1-beta.2", path = "../../core" }
 mycelium-base = { version = "8.0.1-beta.2", path = "../../lib/base" }
 mycelium-config = { version = "8.0.1-beta.2", path = "../../lib/config" }
+mycelium-openapi = { version = "8.0.1-beta.2", path = "../../lib/openapi" }
 mycelium-http-tools = { version = "8.0.1-beta.2", path = "../../lib/http_tools" }
 mycelium-memory-db = { version = "8.0.1-beta.2", path = "../../adapters/mem_db" }
 mycelium-service = { version = "8.0.1-beta.2", path = "../../adapters/service" }
@@ -68,8 +69,6 @@ actix-rt = "2.10"
 actix-web-error = { version = "0.2" }
 actix-web-error-derive = { version = "0.2" }
 actix-web-opentelemetry = "0.18.0"
-async-graphql = "7"
-async-graphql-actix-web = "7"
 opentelemetry = { version = "0.25", default-features = false, features = [
     "trace",
 ] }
