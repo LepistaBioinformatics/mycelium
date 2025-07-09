@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.3] - 2025-07-09
+
+### 🚀 Features
+
+- *(operations-discovery)* Implements endpoints to perform operations discovery
+
+### 🚜 Refactor
+
+- *(libs)* Move auxiliary libs to a dedicated directory
+
 ## [8.0.1-beta.2] - 2025-07-06
 
 ### 🚀 Features
@@ -13,6 +23,10 @@ All notable changes to this project will be documented in this file.
 
 - Avoid to expose system message to external customers
 - Set spurious role related accounts as no std
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.1] - 2025-06-30
 

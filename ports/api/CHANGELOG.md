@@ -2,11 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.3] - 2025-07-09
+
+### 🚀 Features
+
+- *(operations-discovery)* Implements endpoints to perform operations discovery
+
+### 🚜 Refactor
+
+- *(libs)* Move auxiliary libs to a dedicated directory
+
+### ⚙️ Miscellaneous Tasks
+
+- Remove undesired println from the router module
+
 ## [8.0.1-beta.2] - 2025-07-06
 
 ### 🚀 Features
 
 - Implements an option co create role related accounts for spurious roles
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.1] - 2025-06-30
 
