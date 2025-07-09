@@ -12,7 +12,7 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-mycelium-base = { version = "8.0.1-beta.4", path = "../base" }
+mycelium-base = { version = "8.0.1-beta.5", path = "../base" }
 
 serde.workspace = true
 serde_json.workspace = true

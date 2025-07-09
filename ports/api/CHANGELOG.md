@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.5] - 2025-07-09
+
+### 🚀 Features
+
+- *(security-groups)* Reduce the security group options to include only up to the protected-by-role option
+
 ## [8.0.1-beta.4] - 2025-07-09
 
 ### 🚀 Features
@@ -15,6 +21,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - Remove undesired println from the router module
+- Release
 - Release
 
 ## [8.0.1-beta.2] - 2025-07-06
