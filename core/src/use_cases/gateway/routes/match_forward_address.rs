@@ -1,6 +1,6 @@
 use crate::domain::{dtos::route::Route, entities::RoutesRead};
 
-use actix_web::http::uri::PathAndQuery;
+use http::uri::PathAndQuery;
 use mycelium_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
 use tracing::Instrument;
 

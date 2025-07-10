@@ -16,7 +16,8 @@ use utoipa::{ToResponse, ToSchema};
 )]
 #[serde(rename_all = "camelCase")]
 pub struct PermissionedRole {
-    pub slug: String,
+    #[serde(alias = "slug")]
+    pub name: String,
 
     #[serde(default = "default_permission")]
     pub permission: Option<Permission>,
@@ -30,7 +31,7 @@ impl ToString for PermissionedRole {
     fn to_string(&self) -> String {
         format!(
             "{}: {}",
-            self.slug,
+            self.name,
             self.permission.clone().unwrap_or_default().to_string()
         )
     }
@@ -75,7 +76,7 @@ impl ToString for SecurityGroup {
                         .iter()
                         .map(|permissioned_role| format!(
                             "{}: {}",
-                            permissioned_role.slug,
+                            permissioned_role.name,
                             permissioned_role
                                 .permission
                                 .as_ref()

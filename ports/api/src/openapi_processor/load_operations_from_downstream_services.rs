@@ -1,6 +1,6 @@
 use crate::dtos::{ServiceWrapper, ToolOperation};
 
-use awc::http::uri::PathAndQuery;
+use http::uri::PathAndQuery;
 use myc_core::{
     domain::{
         dtos::{http::HttpMethod, service::Service},

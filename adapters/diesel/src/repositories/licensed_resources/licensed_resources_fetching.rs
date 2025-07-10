@@ -69,15 +69,19 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         }
 
         if let Some(roles) = roles {
-            let statement = roles.iter().fold(String::new(), |acc, role| {
-                format!(
-                    "{}(gr_slug = '{}' AND gr_perm = {}) OR ",
-                    acc,
-                    role.slug,
-                    role.permission.to_owned().clone().unwrap_or_default()
-                        as i64
-                )
-            });
+            let statement = roles
+                .iter()
+                .fold(String::new(), |acc, role| {
+                    format!(
+                        "{}(gr_slug = '{}' AND gr_perm = {}) OR ",
+                        acc,
+                        role.name,
+                        role.permission.to_owned().clone().unwrap_or_default()
+                            as i64
+                    )
+                })
+                .trim_end_matches(" OR ")
+                .to_string();
 
             sql.push_str(format!(" AND ({})", statement).as_str());
         }

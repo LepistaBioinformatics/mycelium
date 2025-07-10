@@ -1,4 +1,4 @@
-use actix_web::http::uri::PathAndQuery;
+use http::uri::PathAndQuery;
 
 #[tracing::instrument(name = "extract_path_parts")]
 pub(crate) fn extract_path_parts(path: PathAndQuery) -> (String, String) {

@@ -135,7 +135,7 @@ impl FromRequest for MyceliumProfileData {
                             let roles = roles
                                 .iter()
                                 .map(|r| PermissionedRole {
-                                    slug: r.to_owned(),
+                                    name: r.to_owned(),
                                     permission: None,
                                 })
                                 .collect();

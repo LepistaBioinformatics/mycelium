@@ -1,5 +1,5 @@
 use actix_web::{web, HttpRequest};
-use awc::http::uri::PathAndQuery;
+use http::uri::PathAndQuery;
 use myc_core::{
     domain::dtos::route::Route,
     use_cases::gateway::routes::match_forward_address,

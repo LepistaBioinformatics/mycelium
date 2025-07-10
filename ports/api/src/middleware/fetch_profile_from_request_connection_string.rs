@@ -85,12 +85,12 @@ pub(crate) async fn fetch_profile_from_request_connection_string(
             let local_pairs = roles
                 .unwrap()
                 .iter()
-                .map(|role| (role.slug.clone(), role.permission.clone()))
+                .map(|role| (role.name.clone(), role.permission.clone()))
                 .collect::<Vec<_>>();
 
             filtered_permissioned_roles.retain(|role| {
                 local_pairs
-                    .contains(&(role.slug.clone(), role.permission.clone()))
+                    .contains(&(role.name.clone(), role.permission.clone()))
             });
 
             match filtered_permissioned_roles.is_empty() {

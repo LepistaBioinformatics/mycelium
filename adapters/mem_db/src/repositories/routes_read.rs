@@ -1,8 +1,8 @@
 use super::shared::extract_path_parts;
 use crate::models::config::DbPoolProvider;
 
-use actix_web::http::uri::PathAndQuery;
 use async_trait::async_trait;
+use http::uri::PathAndQuery;
 use myc_core::domain::{dtos::route::Route, entities::RoutesRead};
 use mycelium_base::{
     entities::{FetchManyResponseKind, FetchResponseKind},

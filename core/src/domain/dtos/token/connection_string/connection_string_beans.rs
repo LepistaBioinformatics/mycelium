@@ -59,7 +59,7 @@ impl ToString for ConnectionStringBean {
                         format!(
                             "{}{}:{},",
                             acc,
-                            role.slug,
+                            role.name,
                             role.permission
                                 .clone()
                                 .unwrap_or_default()
@@ -154,7 +154,7 @@ impl TryFrom<String> for ConnectionStringBean {
                         );
 
                         Ok(PermissionedRole {
-                            slug: role.to_string(),
+                            name: role.to_string(),
                             permission: Some(permission),
                         })
                     })
@@ -198,19 +198,19 @@ mod tests {
     fn generate_roles() -> Vec<PermissionedRole> {
         vec![
             PermissionedRole {
-                slug: "role1".to_string(),
+                name: "role1".to_string(),
                 permission: Some(Permission::Read),
             },
             PermissionedRole {
-                slug: "role1".to_string(),
+                name: "role1".to_string(),
                 permission: Some(Permission::Write),
             },
             PermissionedRole {
-                slug: "role2".to_string(),
+                name: "role2".to_string(),
                 permission: Some(Permission::Read),
             },
             PermissionedRole {
-                slug: "role3".to_string(),
+                name: "role3".to_string(),
                 permission: None,
             },
         ]

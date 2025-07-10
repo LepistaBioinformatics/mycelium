@@ -108,7 +108,7 @@ fn hash_profile_request(
             .map(|role| {
                 format!(
                     "{r}:{p}",
-                    r = role.slug,
+                    r = role.name,
                     p = role.permission.clone().unwrap_or_default().to_i32()
                 )
             })

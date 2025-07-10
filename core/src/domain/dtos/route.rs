@@ -3,7 +3,7 @@ use super::{
     service::Service,
 };
 
-use actix_web::http::{uri::PathAndQuery, Uri};
+use http::{uri::PathAndQuery, Uri};
 use mycelium_base::{
     dtos::Parent,
     utils::errors::{dto_err, execution_err, MappedErrors},
