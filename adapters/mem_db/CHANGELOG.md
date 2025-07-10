@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.6] - 2025-07-10
+
+### 🐛 Bug Fixes
+
+- *(remove unused packages from actix-web and fix licensed resources fetching sql syntax)* N
+
+## [8.0.1-beta.5] - 2025-07-09
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.4] - 2025-07-09
 
 ### 🚜 Refactor
