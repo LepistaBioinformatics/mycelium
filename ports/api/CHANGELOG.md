@@ -2,11 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.7] - 2025-07-11
+
+### 🚜 Refactor
+
+- Remove unused functions from the fetch-profile-from-request-token middleware
+
+### ⚡ Performance
+
+- Review the components resolution to avoid overresolution of components not rendered to the final users
+
 ## [8.0.1-beta.6] - 2025-07-10
 
 ### 🐛 Bug Fixes
 
 - *(remove unused packages from actix-web and fix licensed resources fetching sql syntax)* N
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.5] - 2025-07-09
 
