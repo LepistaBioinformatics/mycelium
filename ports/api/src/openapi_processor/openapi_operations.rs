@@ -7,6 +7,7 @@ use actix_web::web;
 use myc_http_tools::Profile;
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ToolOperationResponse {
@@ -57,7 +58,7 @@ pub struct SearchOperationResponse {
         profile_id = %profile.acc_id,
         owners = ?profile.owners.iter().map(|o| o.redacted_email()).collect::<Vec<_>>(),
     ),
-    skip(profile)
+    skip(profile, operations_database)
 )]
 pub(crate) async fn list_operations(
     profile: Profile,
@@ -117,14 +118,11 @@ pub(crate) async fn list_operations(
                 true
             }
         })
+        //
+        // Apply filters
+        //
         .filter_map(|tool_operation| {
             let mut realized_matches = vec![];
-
-            let operation_id = build_operation_id(
-                tool_operation.operation.operation_id.clone(),
-                &tool_operation.service.name,
-                &tool_operation.path,
-            );
 
             //
             // Check if the service name contains the query
@@ -192,7 +190,28 @@ pub(crate) async fn list_operations(
                 0
             };
 
-            let resolved_operation = operations_database
+            Some((tool_operation, score))
+        })
+        //
+        // Filter by score
+        //
+        .filter(|(_, score)| score.to_owned() >= score_cutoff as i32)
+        .collect::<Vec<_>>();
+
+    mut_operations.sort_by(|(_, a), (_, b)| b.cmp(&a));
+
+    let records = mut_operations
+        .iter()
+        .skip(skip)
+        .take(page_size)
+        .filter_map(|(tool_operation, score)| {
+            let operation_id = build_operation_id(
+                tool_operation.operation.operation_id.clone(),
+                &tool_operation.service.name,
+                &tool_operation.path,
+            );
+
+            let first_level_resolved_operation = operations_database
                 .docs
                 .get(&tool_operation.service.name)
                 .and_then(|doc| {
@@ -239,38 +258,41 @@ pub(crate) async fn list_operations(
                 })
                 .ok_or(execution_err("Operation not found"));
 
-            if let Ok(mut resolved_operation) = resolved_operation {
-                //
-                // Update the operation id
-                //
-                resolved_operation["operationId"] = operation_id.into();
+            let first_level_resolved_operation =
+                if let Ok(value) = first_level_resolved_operation {
+                    value
+                } else {
+                    return None;
+                };
 
-                //
-                // Build the response
-                //
-                Some(ToolOperationResponse {
-                    operation: resolved_operation,
-                    score,
-                })
-            } else {
-                None
-            }
+            let serde_docs =
+                serde_json::to_value(operations_database.docs.clone()).unwrap();
+
+            let mut resolved_operation = match edit_refs(
+                &mut first_level_resolved_operation.clone(),
+                &edit_fn,
+                0,
+                10,
+                &serde_docs,
+            ) {
+                Ok(resolved_operation) => resolved_operation,
+                Err(_) => first_level_resolved_operation,
+            };
+
+            resolved_operation["operationId"] = operation_id.into();
+
+            Some(ToolOperationResponse {
+                operation: resolved_operation,
+                score: score.to_owned(),
+            })
         })
-        .filter(|response| response.score >= score_cutoff as i32)
         .collect::<Vec<_>>();
 
-    mut_operations.sort_by(|a, b| b.score.cmp(&a.score));
-
     Ok(SearchOperationResponse {
-        count: mut_operations.len(),
+        count: records.len(),
         page_size,
         skip,
-        records: mut_operations
-            .clone()
-            .into_iter()
-            .skip(skip)
-            .take(page_size)
-            .collect::<Vec<_>>(),
+        records,
     })
 }
 
@@ -291,4 +313,79 @@ fn get_match_weight<T: ToString>(query: &T, subject: &T) -> i32 {
     }
 
     return 0;
+}
+
+fn edit_fn(ref_path: &str, components: &Value) -> Result<String, MappedErrors> {
+    let splitted_ref_path = ref_path.split('/').collect::<Vec<&str>>();
+    let default_string = String::new();
+
+    let element_definition = if splitted_ref_path.len() > 2 {
+        splitted_ref_path[splitted_ref_path.len() - 2]
+    } else {
+        return execution_err(format!(
+            "Failed to resolve schema ref. Unable to get the component name from reference: {:?}",
+            ref_path
+        )).as_error();
+    };
+
+    let element_name = splitted_ref_path.last().ok_or(execution_err(format!(
+        "Failed to resolve schema ref. Unable to get the component name from reference: {:?}",
+        default_string
+    )))?;
+
+    let ref_value = components
+        .get(element_definition)
+        .and_then(|schema| schema.get(element_name))
+        .ok_or(
+            execution_err(format!("Failed to resolve schema ref: {ref_path}"))
+                .with_exp_true(),
+        )?;
+
+    Ok(ref_value.to_string())
+}
+
+fn edit_refs(
+    value: &mut Value,
+    edit_fn: &dyn Fn(&str, &Value) -> Result<String, MappedErrors>,
+    current_depth: usize,
+    max_depth: usize,
+    components: &Value,
+) -> Result<Value, MappedErrors> {
+    if current_depth > max_depth {
+        return Ok(value.clone());
+    }
+
+    match value {
+        Value::Object(map) => {
+            for (k, v) in map.iter_mut() {
+                if k == "$ref" {
+                    if let Value::String(s) = v {
+                        *s = edit_fn(s, components)?;
+                    }
+                } else {
+                    edit_refs(
+                        v,
+                        edit_fn,
+                        current_depth + 1,
+                        max_depth,
+                        components,
+                    )?;
+                }
+            }
+        }
+        Value::Array(arr) => {
+            for item in arr {
+                edit_refs(
+                    item,
+                    edit_fn,
+                    current_depth + 1,
+                    max_depth,
+                    components,
+                )?;
+            }
+        }
+        _ => {}
+    }
+
+    Ok(value.clone())
 }

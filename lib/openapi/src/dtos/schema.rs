@@ -115,9 +115,12 @@ impl ReferenceResolver for Schema {
             let ref_value = components
                 .get(element_definition)
                 .and_then(|schema| schema.get(element_name))
-                .ok_or(execution_err(format!(
-                    "Failed to resolve schema ref: {element_name}"
-                )))?;
+                .ok_or(
+                    execution_err(format!(
+                        "Failed to resolve schema ref: {element_name}"
+                    ))
+                    .with_exp_true(),
+                )?;
 
             return Ok(ref_value.clone());
         }
