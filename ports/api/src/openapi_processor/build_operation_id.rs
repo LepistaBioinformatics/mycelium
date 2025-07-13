@@ -6,8 +6,8 @@ pub(crate) fn build_operation_id(
     path: &str,
 ) -> String {
     (match &operation_id {
-        Some(id) => format!("{}_{}", service_name, id),
-        None => slugify!(&format!("{}_{}", service_name, path)),
+        Some(id) => format!("{}__{}", service_name, id),
+        None => slugify!(&format!("{}__{}", service_name, path)),
     })
     .replace("-", "_")
 }
