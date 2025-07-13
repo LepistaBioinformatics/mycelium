@@ -82,6 +82,7 @@ pub(crate) async fn list_operations(
 
     let _guard = span.enter();
 
+    let max_resolution_iterations = 3;
     let score_cutoff = score_cutoff.unwrap_or(5);
     let page_size = page_size.unwrap_or(5);
     let skip = skip.unwrap_or(0);
@@ -268,16 +269,26 @@ pub(crate) async fn list_operations(
             let serde_docs =
                 serde_json::to_value(operations_database.docs.clone()).unwrap();
 
-            let mut resolved_operation = match edit_refs(
-                &mut first_level_resolved_operation.clone(),
-                &edit_fn,
-                0,
-                10,
-                &serde_docs,
-            ) {
-                Ok(resolved_operation) => resolved_operation,
-                Err(_) => first_level_resolved_operation,
-            };
+            let mut resolved_operation = first_level_resolved_operation.clone();
+
+            //
+            // Resolve the refs recursively
+            //
+            // Resolution should stop when no more refs are found or the
+            // maximum number of iterations is reached.
+            //
+            for _ in 0..max_resolution_iterations {
+                resolved_operation = match edit_refs(
+                    &mut resolved_operation.clone(),
+                    &edit_fn,
+                    0,
+                    15,
+                    &serde_docs,
+                ) {
+                    Ok(resolved_operation) => resolved_operation,
+                    Err(_) => resolved_operation,
+                };
+            }
 
             resolved_operation["operationId"] = operation_id.into();
 
@@ -315,6 +326,10 @@ fn get_match_weight<T: ToString>(query: &T, subject: &T) -> i32 {
     return 0;
 }
 
+/// Edit the refs
+///
+/// This is the edit function for the refs.
+///
 fn edit_fn(ref_path: &str, components: &Value) -> Result<String, MappedErrors> {
     let splitted_ref_path = ref_path.split('/').collect::<Vec<&str>>();
     let default_string = String::new();
@@ -344,6 +359,10 @@ fn edit_fn(ref_path: &str, components: &Value) -> Result<String, MappedErrors> {
     Ok(ref_value.to_string())
 }
 
+/// Edit the refs
+///
+/// Resolve the ref path to the actual value.
+///
 fn edit_refs(
     value: &mut Value,
     edit_fn: &dyn Fn(&str, &Value) -> Result<String, MappedErrors>,
@@ -362,15 +381,17 @@ fn edit_refs(
                     if let Value::String(s) = v {
                         *s = edit_fn(s, components)?;
                     }
-                } else {
-                    edit_refs(
-                        v,
-                        edit_fn,
-                        current_depth + 1,
-                        max_depth,
-                        components,
-                    )?;
+
+                    continue;
                 }
+
+                edit_refs(
+                    v,
+                    edit_fn,
+                    current_depth + 1,
+                    max_depth,
+                    components,
+                )?;
             }
         }
         Value::Array(arr) => {
