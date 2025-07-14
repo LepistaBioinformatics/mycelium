@@ -3,31 +3,6 @@
 version = 4
 
 [[package]]
-name = "actix"
-version = "0.13.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de7fa236829ba0841304542f7614c42b80fca007455315c45c785ccfa873a85b"
-dependencies = [
- "actix-macros",
- "actix-rt",
- "actix_derive",
- "bitflags 2.9.1",
- "bytes",
- "crossbeam-channel",
- "futures-core",
- "futures-sink",
- "futures-task",
- "futures-util",
- "log",
- "once_cell",
- "parking_lot",
- "pin-project-lite",
- "smallvec",
- "tokio",
- "tokio-util",
-]
-
-[[package]]
 name = "actix-codec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -250,28 +225,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "actix-web-error"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b7cb9768f3b52414ae8a94115dd7ce704d1fbb190f7e8c0789b07ec42bd3dec"
-dependencies = [
- "actix-web-error-derive",
- "serde",
-]
-
-[[package]]
-name = "actix-web-error-derive"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61e2789c602f0c2ad274009620766690e334fe36f46aeaeea081d19b8af22c43"
-dependencies = [
- "http 0.2.12",
- "proc-macro2",
- "quote",
- "syn 2.0.104",
-]
-
-[[package]]
 name = "actix-web-httpauth"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -298,17 +251,6 @@ dependencies = [
  "opentelemetry 0.23.0",
  "opentelemetry-semantic-conventions",
  "serde",
-]
-
-[[package]]
-name = "actix_derive"
-version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6ac1e58cded18cb28ddc17143c4dea5345b3ad575e14f32f66e4054a56eb271"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.104",
 ]
 
 [[package]]
@@ -2518,21 +2460,16 @@ dependencies = [
 name = "mycelium-api"
 version = "8.0.1-beta.7"
 dependencies = [
- "actix",
  "actix-cors",
  "actix-rt",
  "actix-web",
- "actix-web-error",
- "actix-web-error-derive",
  "actix-web-httpauth",
  "actix-web-opentelemetry",
  "async-trait",
  "awc",
  "base64 0.22.1",
  "chrono",
- "derive_more 0.99.20",
  "futures",
- "futures-util",
  "hex",
  "http 1.3.1",
  "jsonwebtoken",
@@ -2553,7 +2490,6 @@ dependencies = [
  "openssl",
  "opentelemetry 0.25.0",
  "opentelemetry-otlp",
- "opentelemetry-stdout",
  "opentelemetry_sdk",
  "rand 0.8.5",
  "reqwest 0.11.27",
@@ -3022,23 +2958,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1869fb4bb9b35c5ba8a1e40c9b128a7b4c010d07091e864a29da19e4fe2ca4d7"
 
 [[package]]
-name = "opentelemetry-stdout"
-version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f76e2ded3f6e5d8b51e7aefc267022e7586975c00763aab70f807ad2cc156e94"
-dependencies = [
- "async-trait",
- "chrono",
- "futures-util",
- "opentelemetry 0.25.0",
- "opentelemetry_sdk",
- "ordered-float",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
-]
-
-[[package]]
 name = "opentelemetry_sdk"
 version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3057,15 +2976,6 @@ dependencies = [
  "thiserror 1.0.69",
  "tokio",
  "tokio-stream",
-]
-
-[[package]]
-name = "ordered-float"
-version = "4.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7bb71e1b3fa6ca1c61f383464aaf2bb0e2f8e772a1f01d486832464de363b951"
-dependencies = [
- "num-traits",
 ]
 
 [[package]]
