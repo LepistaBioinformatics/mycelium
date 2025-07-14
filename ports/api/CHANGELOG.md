@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.8] - 2025-07-14
+
+### 🐛 Bug Fixes
+
+- Create a new resolution step to try to solve references in a recursive mode
+- Update the operation-id to include a double underscore between service name and operation id to avoid conflicts
+
+### 💼 Other
+
+- Move the api dependencies from mycelium sibling packages to the workspace
+- Move all cross dependencies of the project to the workspace definition
+
 ## [8.0.1-beta.7] - 2025-07-11
 
 ### 🚜 Refactor
@@ -11,6 +23,10 @@ All notable changes to this project will be documented in this file.
 ### ⚡ Performance
 
 - Review the components resolution to avoid overresolution of components not rendered to the final users
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.6] - 2025-07-10
 

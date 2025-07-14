@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.8] - 2025-07-14
+
+### 💼 Other
+
+- Move all cross dependencies of the project to the workspace definition
+
+## [8.0.1-beta.7] - 2025-07-11
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.6] - 2025-07-10
 
 ### ⚙️ Miscellaneous Tasks

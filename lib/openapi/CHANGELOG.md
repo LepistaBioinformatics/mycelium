@@ -2,11 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.8] - 2025-07-14
+
+### 💼 Other
+
+- Move all cross dependencies of the project to the workspace definition
+
 ## [8.0.1-beta.7] - 2025-07-11
 
 ### ⚡ Performance
 
 - Review the components resolution to avoid overresolution of components not rendered to the final users
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.6] - 2025-07-10
 
