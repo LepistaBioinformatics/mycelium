@@ -1,6 +1,7 @@
 [package]
 name = "myc-core"
 description = "Provide base features of the Mycelium project as s and Use-cases."
+readme = "README.md"
 
 edition.workspace = true
 authors.workspace = true
@@ -9,7 +10,6 @@ license.workspace = true
 repository.workspace = true
 keywords.workspace = true
 categories.workspace = true
-readme.workspace = true
 
 
 # ? ---------------------------------------------------------------------------

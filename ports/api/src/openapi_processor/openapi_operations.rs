@@ -207,7 +207,8 @@ pub(crate) async fn list_operations(
         .take(page_size)
         .filter_map(|(tool_operation, score)| {
             let operation_id = build_operation_id(
-                tool_operation.operation.operation_id.clone(),
+                &tool_operation.method.to_string(),
+                tool_operation.operation.operation_id.as_ref(),
                 &tool_operation.service.name,
                 &tool_operation.path,
             );

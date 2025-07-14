@@ -1,13 +1,44 @@
 use slugify::slugify;
 
+/// Build operation id
+///
+/// This function builds an operation id from a method, operation id, service
+/// name, and path.
+///
 pub(crate) fn build_operation_id(
-    operation_id: Option<String>,
+    method: &str,
+    operation_id: Option<&String>,
     service_name: &str,
     path: &str,
 ) -> String {
-    (match &operation_id {
-        Some(id) => format!("{}__{}", service_name, id),
-        None => slugify!(&format!("{}__{}", service_name, path)),
+    let method = method.to_string().to_uppercase();
+    let operation_id = (match &operation_id {
+        Some(id) => slugify!(id.to_string().as_str()),
+        None => slugify!(path.to_string().as_str()),
     })
-    .replace("-", "_")
+    .replace("-", "_");
+
+    format!("{}:{}:{}", service_name.to_string(), method, operation_id)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_build_operation_id() {
+        let operation_id_named = build_operation_id(
+            "GET",
+            Some(&String::from("get_user")),
+            "user",
+            "user/1",
+        );
+
+        let operation_id_unnamed =
+            build_operation_id("GET", None, "user", "user/1");
+
+        assert_eq!(operation_id_named, "user:GET:get_user");
+
+        assert_eq!(operation_id_unnamed, "user:GET:user_1");
+    }
 }
