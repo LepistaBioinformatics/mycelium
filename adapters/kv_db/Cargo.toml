@@ -14,11 +14,6 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "8.0.1-beta.7", path = "../../core" }
-mycelium-base = { version = "8.0.1-beta.7", path = "../../lib/base" }
-mycelium-config = { version = "8.0.1-beta.7", path = "../../lib/config" }
-mycelium-adapters-shared-lib = { version = "8.0.1-beta.7", path = "../shared" }
-
 async-trait.workspace = true
 futures.workspace = true
 lazy_static.workspace = true
@@ -32,6 +27,19 @@ uuid.workspace = true
 
 lettre = "0.10.4"
 
+
+# ------------------------------------------------------------------------------
+# Mycelium packages
+# ------------------------------------------------------------------------------
+
+myc-core.workspace = true
+mycelium-base.workspace = true
+mycelium-config.workspace = true
+mycelium-adapters-shared-lib.workspace = true
+
+# ------------------------------------------------------------------------------
+# Dev dependencies
+# ------------------------------------------------------------------------------
 
 [dev-dependencies]
 tokio.workspace = true

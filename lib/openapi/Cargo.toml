@@ -12,12 +12,16 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-mycelium-base = { version = "8.0.1-beta.7", path = "../base" }
-
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
 utoipa.workspace = true
+
+# ------------------------------------------------------------------------------
+# Mycelium packages
+# ------------------------------------------------------------------------------
+
+mycelium-base.workspace = true
 
 # ? ----------------------------------------------------------------------------
 # ? LIBRARY

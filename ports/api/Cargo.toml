@@ -18,30 +18,6 @@ readme.workspace = true
 
 [dependencies]
 
-#myc-core = { version = "8.0.1-beta.7", path = "../../core" }
-#mycelium-base = { version = "8.0.1-beta.7", path = "../../lib/base" }
-#mycelium-config = { version = "8.0.1-beta.7", path = "../../lib/config" }
-#mycelium-openapi = { version = "8.0.1-beta.7", path = "../../lib/openapi" }
-#mycelium-http-tools = { version = "8.0.1-beta.7", path = "../../lib/http_tools" }
-#mycelium-memory-db = { version = "8.0.1-beta.7", path = "../../adapters/mem_db" }
-#mycelium-service = { version = "8.0.1-beta.7", path = "../../adapters/service" }
-#mycelium-diesel = { version = "8.0.1-beta.7", path = "../../adapters/diesel" }
-#mycelium-notifier = { version = "8.0.1-beta.7", path = "../../adapters/notifier" }
-#mycelium-adapters-shared-lib = { version = "8.0.1-beta.7", path = "../../adapters/shared" }
-#mycelium-key-value = { version = "8.0.1-beta.7", path = "../../adapters/kv_db" }
-
-myc-core.workspace = true
-mycelium-base.workspace = true
-mycelium-config.workspace = true
-mycelium-openapi.workspace = true
-mycelium-http-tools.workspace = true
-mycelium-memory-db.workspace = true
-mycelium-service.workspace = true
-mycelium-diesel.workspace = true
-mycelium-notifier.workspace = true
-mycelium-adapters-shared-lib.workspace = true
-mycelium-key-value.workspace = true
-
 actix-web.workspace = true
 actix-web-httpauth.workspace = true
 async-trait.workspace = true
@@ -90,6 +66,29 @@ opentelemetry-otlp = { version = "0.25", features = [
 tonic = { version = "0.12", features = ["tls", "tls-roots"] }
 tracing-appender = "0.2"
 tracing-opentelemetry = "0.26"
+
+# ------------------------------------------------------------------------------
+# Mycelium packages
+# ------------------------------------------------------------------------------
+
+myc-core.workspace = true
+mycelium-base.workspace = true
+mycelium-config.workspace = true
+mycelium-openapi.workspace = true
+mycelium-http-tools.workspace = true
+mycelium-memory-db.workspace = true
+mycelium-service.workspace = true
+mycelium-diesel.workspace = true
+mycelium-notifier.workspace = true
+mycelium-adapters-shared-lib.workspace = true
+mycelium-key-value.workspace = true
+
+# ------------------------------------------------------------------------------
+# Build dependencies
+#
+# The zip package should be fixed from workspace due to security issues.
+#
+# ------------------------------------------------------------------------------
 
 [build-dependencies]
 zip.workspace = true

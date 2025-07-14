@@ -14,15 +14,23 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "8.0.1-beta.7", path = "../../core" }
-mycelium-base = { version = "8.0.1-beta.7", path = "../../lib/base" }
-mycelium-config = { version = "8.0.1-beta.7", path = "../../lib/config" }
-
 redis.workspace = true
 serde.workspace = true
 shaku.workspace = true
 tracing.workspace = true
 
+
+# ------------------------------------------------------------------------------
+# Mycelium packages
+# ------------------------------------------------------------------------------
+
+myc-core.workspace = true
+mycelium-base.workspace = true
+mycelium-config.workspace = true
+
+# ------------------------------------------------------------------------------
+# Library
+# ------------------------------------------------------------------------------
 
 [lib]
 name = "myc_adapters_shared_lib"
