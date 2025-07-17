@@ -22,7 +22,6 @@ pub(super) async fn initialize_downstream_request(
     route: &Route,
     client: web::Data<Client>,
     config: web::Data<ApiConfig>,
-    gateway_base_path: &str,
 ) -> Result<ClientRequest, GatewayError> {
     // ? -----------------------------------------------------------------------
     // ? Extract service name from the route matching uri
@@ -82,7 +81,6 @@ pub(super) async fn initialize_downstream_request(
     target_url.set_path(
         req.uri()
             .path()
-            .replace(gateway_base_path, "")
             .replace(
                 format!("/{name}", name = service.name.to_owned()).as_str(),
                 "",

@@ -58,10 +58,7 @@ pub struct Tool {
 }
 
 impl Tool {
-    pub fn from_service(
-        service: Service,
-        host: String,
-    ) -> Result<Self, MappedErrors> {
+    pub fn from_service(service: Service) -> Result<Self, MappedErrors> {
         let openapi_path = if let Some(path) = service.openapi_path.clone() {
             path
         } else {
@@ -91,8 +88,7 @@ impl Tool {
             health_status: service.health_status.clone(),
             is_context_api: service.is_context_api(),
             openapi_path: format!(
-                "{host}/{name}/{openapi_path}",
-                host = host.trim_end_matches('/'),
+                "/{name}/{openapi_path}",
                 name = service.name.trim_end_matches('/'),
                 openapi_path = openapi_path.trim_start_matches("/")
             ),

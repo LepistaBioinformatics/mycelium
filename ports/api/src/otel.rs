@@ -1,56 +1,14 @@
 use crate::models::api_config::{LogFormat, LoggingConfig, LoggingTarget};
 
 use myc_core::domain::dtos::http::Protocol;
-use opentelemetry::trace::TracerProvider;
-use opentelemetry_otlp::WithExportConfig;
+use opentelemetry::{global, trace::TracerProvider};
+use opentelemetry_otlp::{WithExportConfig, WithHttpConfig, WithTonicConfig};
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::str::FromStr;
 use tonic::metadata::{Ascii, MetadataKey, MetadataMap, MetadataValue};
 use tracing_appender::non_blocking::WorkerGuard;
-use tracing_subscriber::prelude::*;
-use tracing_subscriber::{fmt, EnvFilter};
-
-/// Parse headers from environment variable into MetadataMap
-///
-/// This function is used to parse headers from environment variable
-/// `OTEL_EXPORTER_OTLP_HEADERS` into MetadataMap. The headers are expected to
-/// be in the format `name1=value1,name2=value2,...`. The function will return a
-/// MetadataMap containing the headers.
-fn metadata_from_headers(headers: Vec<(String, String)>) -> MetadataMap {
-    let mut metadata = MetadataMap::new();
-
-    headers.into_iter().for_each(|(name, value)| {
-        let value = value
-            .parse::<MetadataValue<Ascii>>()
-            .expect("Header value invalid");
-        metadata.insert(MetadataKey::from_str(&name).unwrap(), value);
-    });
-
-    metadata
-}
-
-/// Parse OTLP headers from environment variable
-///
-/// This function is used to parse headers from environment variable
-/// `OTEL_EXPORTER_OTLP_HEADERS` into a vector of tuples. The headers are
-/// expected to be in the format `name1=value1,name2=value2,...`. The function
-/// will return a vector of tuples containing the headers.
-fn parse_otlp_headers_from_env() -> Vec<(String, String)> {
-    let mut headers = Vec::new();
-
-    if let Ok(hdrs) = std::env::var("OTEL_EXPORTER_OTLP_HEADERS") {
-        hdrs.split(',')
-            .map(|header| {
-                header
-                    .split_once('=')
-                    .expect("Header should contain '=' character")
-            })
-            .for_each(|(name, value)| {
-                headers.push((name.to_owned(), value.to_owned()))
-            });
-    }
-    headers
-}
+use tracing_subscriber::{fmt, layer::SubscriberExt, EnvFilter};
 
 pub(super) fn initialize_otel(
     config: LoggingConfig,
@@ -102,41 +60,91 @@ pub(super) fn initialize_otel(
     }) = config.target
     {
         //
-        // OpenTelemetry collector configurations
+        // Populate config from execution environment
         //
         std::env::set_var("OTEL_SERVICE_NAME", name.to_owned());
         let headers = parse_otlp_headers_from_env();
-        let tracer = opentelemetry_otlp::new_pipeline().tracing();
-        let address = format!("{}://{}:{}/v1/logs", protocol, host, port);
 
-        let tracer = (match protocol {
+        //
+        // Build external address
+        //
+        let metrics_address =
+            format!("{}://{}:{}/v1/metrics", protocol, host, port);
+
+        let traces_address =
+            format!("{}://{}:{}/v1/traces", protocol, host, port);
+
+        //let logs_address = format!("{}://{}:{}/v1/logs", protocol, host, port);
+
+        //
+        // Initialize providers
+        //
+        let tracer_provider =
+            opentelemetry_sdk::trace::SdkTracerProvider::builder();
+
+        let meter_provider =
+            opentelemetry_sdk::metrics::SdkMeterProvider::builder();
+
+        //let logs_provider =
+        //    opentelemetry_sdk::logs::SdkLoggerProvider::builder();
+
+        let tracer_provider = (match protocol {
             Protocol::Grpc => {
-                let exporter = opentelemetry_otlp::new_exporter()
-                    .tonic()
-                    .with_endpoint(address)
-                    .with_metadata(metadata_from_headers(headers));
+                let trace_exporter =
+                    opentelemetry_otlp::SpanExporter::builder()
+                        .with_tonic()
+                        .with_endpoint(traces_address)
+                        .with_metadata(metadata_from_headers(headers))
+                        .build()
+                        .expect("Failed to build gRPC exporter");
 
-                tracer.with_exporter(exporter)
+                tracer_provider.with_simple_exporter(trace_exporter)
             }
             _ => {
-                let exporter = opentelemetry_otlp::new_exporter()
-                    .http()
-                    .with_endpoint(address)
-                    .with_headers(headers.into_iter().collect());
+                let trace_exporter =
+                    opentelemetry_otlp::SpanExporter::builder()
+                        .with_http()
+                        .with_endpoint(traces_address)
+                        .with_headers(headers)
+                        .build()
+                        .expect("Failed to build HTTP exporter");
 
-                tracer.with_exporter(exporter)
+                tracer_provider.with_simple_exporter(trace_exporter)
             }
         })
-        .install_batch(opentelemetry_sdk::runtime::Tokio)
-        .expect("Failed to install OpenTelemetry tracer")
+        .build()
         .tracer(name);
 
-        let telemetry_layer =
-            tracing_opentelemetry::layer().with_tracer(tracer);
+        let meter_provider = (match protocol {
+            Protocol::Grpc => {
+                let meter_exporter =
+                    opentelemetry_otlp::MetricExporter::builder()
+                        .with_tonic()
+                        .with_endpoint(metrics_address)
+                        .build()
+                        .expect("Failed to build gRPC exporter");
 
-        tracing_subscriber::Registry::default()
-            .with(telemetry_layer)
-            .init();
+                meter_provider.with_periodic_exporter(meter_exporter)
+            }
+            _ => {
+                let meter_exporter =
+                    opentelemetry_otlp::MetricExporter::builder()
+                        .with_http()
+                        .with_endpoint(metrics_address)
+                        .build()
+                        .expect("Failed to build HTTP exporter");
+
+                meter_provider.with_periodic_exporter(meter_exporter)
+            }
+        })
+        .build();
+
+        let tracing_layer =
+            tracing_opentelemetry::layer().with_tracer(tracer_provider);
+
+        tracing_subscriber::Registry::default().with(tracing_layer);
+
+        global::set_meter_provider(meter_provider);
     } else {
         //
         // Default logging configurations
@@ -164,4 +172,47 @@ pub(super) fn initialize_otel(
     };
 
     Ok(guard)
+}
+
+/// Parse headers from environment variable into MetadataMap
+///
+/// This function is used to parse headers from environment variable
+/// `OTEL_EXPORTER_OTLP_HEADERS` into MetadataMap. The headers are expected to
+/// be in the format `name1=value1,name2=value2,...`. The function will return a
+/// MetadataMap containing the headers.
+fn metadata_from_headers(headers: HashMap<String, String>) -> MetadataMap {
+    let mut metadata = MetadataMap::new();
+
+    headers.into_iter().for_each(|(name, value)| {
+        let value = value
+            .parse::<MetadataValue<Ascii>>()
+            .expect("Header value invalid");
+        metadata.insert(MetadataKey::from_str(&name).unwrap(), value);
+    });
+
+    metadata
+}
+
+/// Parse OTLP headers from environment variable
+///
+/// This function is used to parse headers from environment variable
+/// `OTEL_EXPORTER_OTLP_HEADERS` into a vector of tuples. The headers are
+/// expected to be in the format `name1=value1,name2=value2,...`. The function
+/// will return a vector of tuples containing the headers.
+fn parse_otlp_headers_from_env() -> HashMap<String, String> {
+    let mut metadata = HashMap::new();
+
+    if let Ok(hdrs) = std::env::var("OTEL_EXPORTER_OTLP_HEADERS") {
+        hdrs.split(',')
+            .map(|header| {
+                header
+                    .split_once('=')
+                    .expect("Header should contain '=' character")
+            })
+            .for_each(|(name, value)| {
+                metadata.insert(name.to_string(), value.to_string());
+            });
+    }
+
+    metadata
 }

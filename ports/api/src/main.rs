@@ -2,6 +2,7 @@ mod api_docs;
 mod dispatchers;
 mod dtos;
 mod endpoints;
+mod mcp;
 mod middleware;
 mod models;
 mod modifiers;
@@ -76,9 +77,7 @@ use reqwest::header::{
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use router::route_request;
-use settings::{
-    ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE, TOOLS_API_SCOPE,
-};
+use settings::{ADMIN_API_SCOPE, SUPER_USER_API_SCOPE, TOOLS_API_SCOPE};
 use shaku::HasComponent;
 use std::{path::PathBuf, str::FromStr, sync::Arc, sync::Mutex};
 use tracing::{info, trace, Instrument};
@@ -92,7 +91,7 @@ use uuid::Uuid;
 // ? API fire elements
 // ? ---------------------------------------------------------------------------
 
-#[actix_web::main]
+#[tokio::main]
 pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     // ? Export the UTOIPA_REDOC_CONFIG_FILE environment variable
@@ -373,7 +372,7 @@ pub async fn main() -> std::io::Result<()> {
             // Include the tracing request to trace the request to the tracing
             // system
             //
-            .wrap(RequestTracing::new())
+            .wrap(RequestTracing::default())
             //
             // Include the tracing logger to log routes request to the tracing
             // system
@@ -561,28 +560,41 @@ pub async fn main() -> std::io::Result<()> {
             // ? ---------------------------------------------------------------
             .app_data(web::Data::new(Client::default()))
             .app_data(web::Data::new(forward_api_config.to_owned()).clone())
-            .service(
-                web::scope(&format!("/{}", GATEWAY_API_SCOPE))
-                    //
-                    // Inject a request ID to downstream services
-                    //
-                    .wrap_fn(|mut req, srv| {
-                        req.headers_mut().insert(
-                            HeaderName::from_str(DEFAULT_REQUEST_ID_KEY)
-                                .unwrap(),
-                            HeaderValue::from_str(
-                                Uuid::new_v4().to_string().as_str(),
-                            )
-                            .unwrap(),
-                        );
+            .wrap_fn(|mut req, srv| {
+                req.headers_mut().insert(
+                    HeaderName::from_str(DEFAULT_REQUEST_ID_KEY).unwrap(),
+                    HeaderValue::from_str(Uuid::new_v4().to_string().as_str())
+                        .unwrap(),
+                );
 
-                        srv.call(req)
-                    })
-                    //
-                    // Route to default route
-                    //
-                    .default_service(web::to(route_request)),
-            )
+                srv.call(req)
+            })
+            //
+            // Route to default route
+            //
+            .default_service(web::to(route_request))
+        /* .service(
+            web::scope(&format!("/{}", GATEWAY_API_SCOPE))
+                //
+                // Inject a request ID to downstream services
+                //
+                .wrap_fn(|mut req, srv| {
+                    req.headers_mut().insert(
+                        HeaderName::from_str(DEFAULT_REQUEST_ID_KEY)
+                            .unwrap(),
+                        HeaderValue::from_str(
+                            Uuid::new_v4().to_string().as_str(),
+                        )
+                        .unwrap(),
+                    );
+
+                    srv.call(req)
+                })
+                //
+                // Route to default route
+                //
+                .default_service(web::to(route_request)),
+        ) */
     });
 
     let address = (

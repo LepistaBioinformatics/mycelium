@@ -52,20 +52,28 @@ wildmatch.workspace = true
 
 actix-cors = { version = "0.6.2" }
 actix-rt = "2.10"
-actix-web-opentelemetry = "0.18.0"
-opentelemetry = { version = "0.25", default-features = false, features = [
+actix-web-opentelemetry = "0.22.0"
+anyhow = "1.0"
+opentelemetry = { version = "0.29", default-features = false, features = [
     "trace",
+    "metrics",
+    "logs",
 ] }
-opentelemetry_sdk = { version = "0.25", features = ["rt-tokio"] }
-opentelemetry-otlp = { version = "0.25", features = [
+opentelemetry_sdk = { version = "0.29", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.29", features = [
     "reqwest-client",
     "reqwest-rustls",
     "http-proto",
     "tls",
+    "grpc-tonic",
+    "trace",
+    "metrics",
+    "logs",
 ] }
-tonic = { version = "0.12", features = ["tls", "tls-roots"] }
+rust-mcp-sdk = "0.5.0"
+tonic = { version = "0", features = ["tls", "tls-roots"] }
 tracing-appender = "0.2"
-tracing-opentelemetry = "0.26"
+tracing-opentelemetry = "0.30"
 
 # ------------------------------------------------------------------------------
 # Mycelium packages

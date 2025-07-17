@@ -9,6 +9,7 @@ use myc_http_tools::{
     responses::GatewayError,
     settings::{DEFAULT_CONNECTION_STRING_KEY, DEFAULT_PROFILE_KEY},
 };
+use opentelemetry::{global, KeyValue};
 use reqwest::header::{HeaderName, HeaderValue};
 use std::str::FromStr;
 use tracing::{warn, Instrument};
@@ -79,6 +80,17 @@ pub async fn fetch_and_inject_profile_from_token_to_forward(
             "myc.router.has_licensed_resources",
             &Some(profile.licensed_resources.is_some()),
         );
+
+    // Get a meter
+    let meter = global::meter("router_counter");
+
+    // Create a metric
+    let counter = meter.u64_counter("router.requests_count").build();
+
+    counter.add(
+        1,
+        &[KeyValue::new("profile_id", profile.acc_id.to_string())],
+    );
 
     if let Some(_) = roles {
         if profile.licensed_resources.is_none()

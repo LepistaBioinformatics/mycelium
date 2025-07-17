@@ -1,13 +1,13 @@
 use crate::openapi_processor::{
     build_operation_id,
     load_operations_from_downstream_services::ServiceOpenApiSchema,
+    resolve_refs,
 };
 
 use actix_web::web;
 use myc_http_tools::Profile;
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct ToolOperationResponse {
@@ -279,9 +279,8 @@ pub(crate) async fn list_operations(
             // maximum number of iterations is reached.
             //
             for _ in 0..max_resolution_iterations {
-                resolved_operation = match edit_refs(
+                resolved_operation = match resolve_refs(
                     &mut resolved_operation.clone(),
-                    &edit_fn,
                     0,
                     15,
                     &serde_docs,
@@ -325,89 +324,4 @@ fn get_match_weight<T: ToString>(query: &T, subject: &T) -> i32 {
     }
 
     return 0;
-}
-
-/// Edit the refs
-///
-/// This is the edit function for the refs.
-///
-fn edit_fn(ref_path: &str, components: &Value) -> Result<String, MappedErrors> {
-    let splitted_ref_path = ref_path.split('/').collect::<Vec<&str>>();
-    let default_string = String::new();
-
-    let element_definition = if splitted_ref_path.len() > 2 {
-        splitted_ref_path[splitted_ref_path.len() - 2]
-    } else {
-        return execution_err(format!(
-            "Failed to resolve schema ref. Unable to get the component name from reference: {:?}",
-            ref_path
-        )).as_error();
-    };
-
-    let element_name = splitted_ref_path.last().ok_or(execution_err(format!(
-        "Failed to resolve schema ref. Unable to get the component name from reference: {:?}",
-        default_string
-    )))?;
-
-    let ref_value = components
-        .get(element_definition)
-        .and_then(|schema| schema.get(element_name))
-        .ok_or(
-            execution_err(format!("Failed to resolve schema ref: {ref_path}"))
-                .with_exp_true(),
-        )?;
-
-    Ok(ref_value.to_string())
-}
-
-/// Edit the refs
-///
-/// Resolve the ref path to the actual value.
-///
-fn edit_refs(
-    value: &mut Value,
-    edit_fn: &dyn Fn(&str, &Value) -> Result<String, MappedErrors>,
-    current_depth: usize,
-    max_depth: usize,
-    components: &Value,
-) -> Result<Value, MappedErrors> {
-    if current_depth > max_depth {
-        return Ok(value.clone());
-    }
-
-    match value {
-        Value::Object(map) => {
-            for (k, v) in map.iter_mut() {
-                if k == "$ref" {
-                    if let Value::String(s) = v {
-                        *s = edit_fn(s, components)?;
-                    }
-
-                    continue;
-                }
-
-                edit_refs(
-                    v,
-                    edit_fn,
-                    current_depth + 1,
-                    max_depth,
-                    components,
-                )?;
-            }
-        }
-        Value::Array(arr) => {
-            for item in arr {
-                edit_refs(
-                    item,
-                    edit_fn,
-                    current_depth + 1,
-                    max_depth,
-                    components,
-                )?;
-            }
-        }
-        _ => {}
-    }
-
-    Ok(value.clone())
 }
