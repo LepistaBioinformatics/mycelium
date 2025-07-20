@@ -71,13 +71,13 @@ impl ReferenceResolver for ValueSchema {
 #[serde(rename_all = "camelCase")]
 pub struct Content {
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    content: Option<HashMap<String, ValueSchema>>,
+    pub content: Option<HashMap<String, ValueSchema>>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    description: Option<String>,
+    pub description: Option<String>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    required: Option<bool>,
+    pub required: Option<bool>,
 }
 
 impl ReferenceResolver for Content {

@@ -11,7 +11,10 @@ mod otel;
 mod router;
 mod settings;
 
-use crate::openapi_processor::initialize_tools_registry;
+use crate::{
+    mcp::MyceliumMcpHandler, openapi_processor::initialize_tools_registry,
+    settings::MCP_API_SCOPE,
+};
 
 use actix_cors::Cors;
 use actix_web::{
@@ -76,6 +79,8 @@ use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
+use rmcp::transport::streamable_http_server::session::local::LocalSessionManager;
+use rmcp_actix_web::StreamableHttpService;
 use router::route_request;
 use settings::{ADMIN_API_SCOPE, SUPER_USER_API_SCOPE, TOOLS_API_SCOPE};
 use shaku::HasComponent;
@@ -278,6 +283,25 @@ pub async fn main() -> std::io::Result<()> {
             std::io::Error::new(std::io::ErrorKind::Other, err)
         })?;
 
+    /* let tools_refs = tools_registry_schema
+    .operations
+    .iter()
+    .filter_map(|operation| {
+        match ToolDef::from_openapi_operation(
+            &operation.path,
+            &operation.method.to_string(),
+            &operation.operation,
+        ) {
+            Ok(tool) => Some(tool),
+            Err(err) => {
+                tracing::warn!("Error on get tool from operation: {err}");
+
+                None
+            }
+        }
+    })
+    .collect::<Vec<_>>(); */
+
     // ? -----------------------------------------------------------------------
     // ? Fire the scheduler
     //
@@ -341,6 +365,16 @@ pub async fn main() -> std::io::Result<()> {
         let forward_api_config = config.api.clone();
         let auth_config = config.auth.clone();
         let token_config = config.core.account_life_cycle.clone();
+
+        let tools_registry_schema_clone = tools_registry_schema.clone();
+
+        let mcp_service = StreamableHttpService::new(
+            move || {
+                Ok(MyceliumMcpHandler::new(tools_registry_schema_clone.clone()))
+            },
+            LocalSessionManager::default().into(),
+            Default::default(),
+        );
 
         let cors = Cors::default()
             .allowed_origin_fn(move |origin, _| {
@@ -555,6 +589,9 @@ pub async fn main() -> std::io::Result<()> {
                 web::scope(&format!("/{}", TOOLS_API_SCOPE))
                     .configure(service_tools_endpoints::configure),
             )
+            .service(web::scope(&format!("/{}", MCP_API_SCOPE)).configure(
+                StreamableHttpService::configure(Arc::new(mcp_service)),
+            ))
             // ? ---------------------------------------------------------------
             // ? Configure gateway routes
             // ? ---------------------------------------------------------------

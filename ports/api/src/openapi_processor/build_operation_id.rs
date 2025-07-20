@@ -1,3 +1,4 @@
+use rand::{distributions::Alphanumeric, Rng};
 use slugify::slugify;
 
 /// Build operation id
@@ -18,7 +19,19 @@ pub(crate) fn build_operation_id(
     })
     .replace("-", "_");
 
-    format!("{}:{}:{}", service_name.to_string(), method, operation_id)
+    let random_suffix: String = rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(8)
+        .map(char::from)
+        .collect();
+
+    format!(
+        "{}__{}__{}__{}",
+        service_name.to_string(),
+        method,
+        operation_id,
+        random_suffix
+    )
 }
 
 #[cfg(test)]
