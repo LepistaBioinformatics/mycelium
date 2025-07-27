@@ -84,6 +84,7 @@ pub(crate) async fn load_paths_from_spec(
                     method: method.clone(),
                     path: stripped_path.to_string(),
                     operation: operation.clone(),
+                    operation_value: None,
                     security_group: SecurityGroup::Public,
                 });
 
@@ -113,6 +114,7 @@ pub(crate) async fn load_paths_from_spec(
                 method: method.clone(),
                 path: format!("/{}/{}", service_name, stripped_path),
                 operation: operation.clone(),
+                operation_value: None,
                 security_group: route_forward.security_group.clone(),
             });
         }

@@ -58,7 +58,7 @@ use staff::account_endpoints as Staffs__Accounts;
     paths(
         Managers__Accounts::create_system_account_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct ManagersAccountsApiDoc;
 
@@ -73,7 +73,7 @@ struct ManagersAccountsApiDoc;
     paths(
         Managers__Guest_Role::create_system_roles_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct ManagersGuestRoleApiDoc;
 
@@ -92,7 +92,7 @@ struct ManagersGuestRoleApiDoc;
         Managers__Tenants::include_tenant_owner_url,
         Managers__Tenants::exclude_tenant_owner_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct ManagersTenantsApiDoc;
 
@@ -108,7 +108,7 @@ struct ManagersTenantsApiDoc;
         Staffs__Accounts::upgrade_account_privileges_url,
         Staffs__Accounts::downgrade_account_privileges_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct StaffsAccountsApiDoc;
 
@@ -133,7 +133,7 @@ struct ServiceToolsApiDoc;
         description = "Endpoints reserved for the application account managers to manage guests",
     ),
     paths(Account_Manager__Guest::guest_to_children_account_url),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct AccountManagerGuestApiDoc;
 
@@ -151,7 +151,7 @@ struct AccountManagerGuestApiDoc;
         Beginners__Account::get_my_account_details_url,
         Beginners__Account::delete_my_account_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct BeginnersAccountApiDoc;
 
@@ -168,7 +168,7 @@ struct BeginnersAccountApiDoc;
         Beginners__Meta::update_account_meta_url,
         Beginners__Meta::delete_account_meta_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct BeginnersMetaApiDoc;
 
@@ -181,7 +181,7 @@ struct BeginnersMetaApiDoc;
         description = "Endpoints reserved for the beginner users to manage their profiles",
     ),
     paths(Beginners__Profile::fetch_profile_url),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct BeginnersProfileApiDoc;
 
@@ -217,7 +217,7 @@ struct BeginnersUserApiDoc;
         description = "Endpoints reserved for the beginner users to manage their tenants",
     ),
     paths(Beginners__Tenant::fetch_tenant_public_info_url),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct BeginnersTenantApiDoc;
 
@@ -232,7 +232,7 @@ struct BeginnersTenantApiDoc;
     paths(
         Beginners__Token::create_connection_string_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct BeginnersTokenApiDoc;
 
@@ -247,7 +247,7 @@ struct BeginnersTokenApiDoc;
     paths(
         Gateway_Manager__Route::list_routes_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct GatewayManagerRouteApiDoc;
 
@@ -262,7 +262,7 @@ struct GatewayManagerRouteApiDoc;
     paths(
         Gateway_Manager__Service::list_services_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct GatewayManagerServiceApiDoc;
 
@@ -277,7 +277,7 @@ struct GatewayManagerServiceApiDoc;
     paths(
         Gateway_Manager__Tools::list_operations_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct GatewayManagerToolsApiDoc;
 
@@ -298,7 +298,7 @@ struct GatewayManagerToolsApiDoc;
         Guest_Manager__Guest_Role::insert_role_child_url,
         Guest_Manager__Guest_Role::remove_role_child_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct GuestManagerGuestRoleApiDoc;
 
@@ -318,7 +318,7 @@ struct GuestManagerGuestRoleApiDoc;
         Subscriptions_Manager__Account::get_account_details_url,
         Subscriptions_Manager__Account::propagate_existing_subscription_account_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct SubscriptionsManagerAccountApiDoc;
 
@@ -335,7 +335,7 @@ struct SubscriptionsManagerAccountApiDoc;
         Subscriptions_Manager__Tag::update_account_tag_url,
         Subscriptions_Manager__Tag::delete_account_tag_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct SubscriptionsManagerTagApiDoc;
 
@@ -353,7 +353,7 @@ struct SubscriptionsManagerTagApiDoc;
         Subscriptions_Manager__Guest::uninvite_guest_url,
         Subscriptions_Manager__Guest::list_guest_on_subscription_account_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct SubscriptionsManagerGuestApiDoc;
 
@@ -369,7 +369,7 @@ struct SubscriptionsManagerGuestApiDoc;
         Subscriptions_Manager__Guest_Role::list_guest_roles_url,
         Subscriptions_Manager__Guest_Role::fetch_guest_role_details_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct SubscriptionsManagerGuestRoleApiDoc;
 
@@ -388,7 +388,7 @@ struct SubscriptionsManagerGuestRoleApiDoc;
         System_Manager__Error_Code::update_error_code_message_and_details_url,
         System_Manager__Error_Code::delete_error_code_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct SystemManagerErrorCodeApiDoc;
 
@@ -406,7 +406,7 @@ struct SystemManagerErrorCodeApiDoc;
         System_Manager__Webhook::list_webhooks_url,
         System_Manager__Webhook::update_webhook_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct SystemManagerWebhookApiDoc;
 
@@ -422,7 +422,7 @@ struct SystemManagerWebhookApiDoc;
         Tenant_Owner__Account::create_management_account_url,
         Tenant_Owner__Account::delete_tenant_manager_account_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct TenantOwnerAccountApiDoc;
 
@@ -438,7 +438,7 @@ struct TenantOwnerAccountApiDoc;
         Tenant_Owner__Meta::create_tenant_meta_url,
         Tenant_Owner__Meta::delete_tenant_meta_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct TenantOwnerMetaApiDoc;
 
@@ -454,7 +454,7 @@ struct TenantOwnerMetaApiDoc;
         Tenant_Owner__Owner::guest_tenant_owner_url,
         Tenant_Owner__Owner::revoke_tenant_owner_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct TenantOwnerOwnerApiDoc;
 
@@ -472,7 +472,7 @@ struct TenantOwnerOwnerApiDoc;
         Tenant_Owner__Tenant::update_tenant_trashing_status_url,
         Tenant_Owner__Tenant::update_tenant_verifying_status_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct TenantOwnerTenantApiDoc;
 
@@ -488,7 +488,7 @@ struct TenantOwnerTenantApiDoc;
         Tenant_Manager__Account::delete_subscription_account_url,
         Tenant_Manager__Account::create_subscription_manager_account_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct TenantManagerAccountApiDoc;
 
@@ -504,7 +504,7 @@ struct TenantManagerAccountApiDoc;
         Tenant_Manager__Guest::guest_user_to_subscription_manager_account_url,
         Tenant_Manager__Guest::revoke_user_guest_to_subscription_manager_account_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct TenantManagerGuestApiDoc;
 
@@ -521,7 +521,7 @@ struct TenantManagerGuestApiDoc;
         Tenant_Manager__Tag::update_tenant_tag_url,
         Tenant_Manager__Tag::delete_tenant_tag_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct TenantManagerTagApiDoc;
 
@@ -536,7 +536,7 @@ struct TenantManagerTagApiDoc;
     paths(
         Tenant_Manager__Tenant::get_tenant_details_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct TenantManagerTenantApiDoc;
 
@@ -556,7 +556,7 @@ struct TenantManagerTenantApiDoc;
         Users_Manager__Account::archive_account_url,
         Users_Manager__Account::unarchive_account_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct UsersManagerAccountApiDoc;
 

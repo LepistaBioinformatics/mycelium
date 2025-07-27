@@ -18,9 +18,18 @@ pub(crate) fn resolve_refs(
     match value {
         Value::Object(map) => {
             for (k, v) in map.iter_mut() {
-                if k == "$ref" {
+                if k == "$ref"
+                    && v.is_string()
+                    && v.as_str().unwrap_or("").starts_with("#/components/")
+                {
                     if let Value::String(s) = v {
-                        *s = resolver_fn(s, components)?;
+                        let resolved_value = resolver_fn(s, components)?;
+
+                        //
+                        // Set and coerce the original value "v" to value
+                        // instead of string.
+                        //
+                        *v = resolved_value.to_owned();
                     }
 
                     continue;
@@ -47,7 +56,7 @@ pub(crate) fn resolve_refs(
 fn resolver_fn(
     ref_path: &str,
     components: &Value,
-) -> Result<String, MappedErrors> {
+) -> Result<Value, MappedErrors> {
     let splitted_ref_path = ref_path.split('/').collect::<Vec<&str>>();
     let default_string = String::new();
 
@@ -66,12 +75,13 @@ fn resolver_fn(
     )))?;
 
     let ref_value = components
-        .get(element_definition)
+        .get("components")
+        .and_then(|schema| schema.get(element_definition))
         .and_then(|schema| schema.get(element_name))
         .ok_or(
             execution_err(format!("Failed to resolve schema ref: {ref_path}"))
                 .with_exp_true(),
         )?;
 
-    Ok(ref_value.to_string())
+    Ok(ref_value.to_owned())
 }

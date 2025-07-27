@@ -267,8 +267,13 @@ pub(crate) async fn list_operations(
                     return None;
                 };
 
-            let serde_docs =
-                serde_json::to_value(operations_database.docs.clone()).unwrap();
+            let serde_docs_binding =
+                serde_json::to_value(operations_database.docs.clone())
+                    .unwrap_or(serde_json::Value::Null);
+
+            let serde_docs = serde_docs_binding
+                .get(tool_operation.service.name.to_owned().as_str())
+                .unwrap_or(&serde_json::Value::Null);
 
             let mut resolved_operation = first_level_resolved_operation.clone();
 

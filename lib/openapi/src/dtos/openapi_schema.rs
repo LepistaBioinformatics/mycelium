@@ -126,6 +126,13 @@ pub struct OpenApiSchema {
     ///
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub components: Option<serde_json::Value>,
+
+    /// The security
+    ///
+    /// This is the security of the OpenAPI specification.
+    ///
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub security: Option<serde_json::Value>,
 }
 
 impl OpenApiSchema {

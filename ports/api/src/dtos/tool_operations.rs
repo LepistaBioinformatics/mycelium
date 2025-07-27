@@ -4,6 +4,7 @@ use myc_core::domain::dtos::{
 };
 use mycelium_openapi::Operation;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use utoipa::ToSchema;
 
 #[derive(Serialize, Deserialize, Clone, Debug, ToSchema)]
@@ -27,6 +28,13 @@ pub(crate) struct ToolOperation {
     ///
     #[serde(flatten)]
     pub operation: Operation,
+
+    /// The operation value
+    ///
+    /// The operation value.
+    ///
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub operation_value: Option<Value>,
 
     /// The mycelium security group
     ///

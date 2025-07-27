@@ -35,6 +35,9 @@ pub struct Parameter {
     pub explode: Option<bool>,
 
     pub schema: SchemaOrOneOf,
+
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub security: Option<serde_json::Value>,
 }
 
 impl ReferenceResolver for Parameter {

@@ -304,6 +304,10 @@ pub(crate) async fn expects_headers(req: HttpRequest) -> impl Responder {
     HttpResponse::Ok().json(headers)
 }
 
+/// Webhook body
+///
+/// The body used to propagate the webhook event.
+///
 #[derive(Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct WebHookBody {
