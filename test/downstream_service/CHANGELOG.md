@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.9] - 2025-07-28
+
+### 🚀 Features
+
+- Resover mcp return for list tools to include request body
+
+## [8.0.1-beta.8] - 2025-07-14
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.7] - 2025-07-11
 
 ### ⚙️ Miscellaneous Tasks

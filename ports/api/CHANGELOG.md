@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.9] - 2025-07-28
+
+### 🚀 Features
+
+- Implements the basis for servces discovery and mcp integration
+- Wip - implements the basis for the mcp server management and connection
+- Resover mcp return for list tools to include request body
+- *(mcp-server)* Implements the basis for the mcp server execution
+- *(mcp)* Finish the mcp server implementation
+
+### 🐛 Bug Fixes
+
+- *(operation-id)* Update operation-id building to include method service name
+
+### 🚜 Refactor
+
+- *(main-api-config)* Review the api configuration to group close elements given their system importance
+
 ## [8.0.1-beta.8] - 2025-07-14
 
 ### 🐛 Bug Fixes
@@ -13,6 +31,10 @@ All notable changes to this project will be documented in this file.
 
 - Move the api dependencies from mycelium sibling packages to the workspace
 - Move all cross dependencies of the project to the workspace definition
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.7] - 2025-07-11
 

@@ -2,11 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.9] - 2025-07-28
+
+### 🚀 Features
+
+- *(mcp)* Finish the mcp server implementation
+
+### 🐛 Bug Fixes
+
+- *(operation-id)* Update operation-id building to include method service name
+
 ## [8.0.1-beta.8] - 2025-07-14
 
 ### 💼 Other
 
 - Move all cross dependencies of the project to the workspace definition
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.7] - 2025-07-11
 
