@@ -12,8 +12,9 @@ mod router;
 mod settings;
 
 use crate::{
-    mcp::MyceliumMcpHandler, openapi_processor::initialize_tools_registry,
-    settings::MCP_API_SCOPE,
+    mcp::MyceliumMcpHandler,
+    openapi_processor::initialize_tools_registry,
+    settings::{GATEWAY_API_SCOPE, MCP_API_SCOPE},
 };
 
 use actix_cors::Cors;
@@ -24,12 +25,12 @@ use actix_web::{
 };
 use actix_web_opentelemetry::RequestTracing;
 use api_docs::ApiDoc;
-use awc::{error::HeaderValue, Client};
+use awc::error::HeaderValue;
 use dispatchers::{
     email_dispatcher, services_health_dispatcher, webhook_dispatcher,
 };
 use endpoints::{
-    index::heath_check_endpoints,
+    index::{heath_check_endpoints, openid_configuration_endpoints},
     manager::{
         account_endpoints as manager_account_endpoints,
         guest_role_endpoints as manager_guest_role_endpoints,
@@ -92,14 +93,10 @@ use utoipa_redoc::{FileConfig, Redoc, Servable};
 use utoipa_swagger_ui::{oauth, Config, SwaggerUi};
 use uuid::Uuid;
 
-// ? ---------------------------------------------------------------------------
-// ? API fire elements
-// ? ---------------------------------------------------------------------------
-
 #[tokio::main]
 pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
-    // ? Export the UTOIPA_REDOC_CONFIG_FILE environment variable
+    // ? EXPORT THE UTOIPA_REDOC_CONFIG_FILE ENVIRONMENT VARIABLE
     //
     // The UTOIPA_REDOC_CONFIG_FILE environment variable should be exported
     // before the server starts. The variable should contain the path to the
@@ -118,7 +115,7 @@ pub async fn main() -> std::io::Result<()> {
     }
 
     // ? -----------------------------------------------------------------------
-    // ? Initialize services configuration
+    // ? INITIALIZE SERVICES CONFIGURATION
     //
     // All configurations for the core, ports, and adapters layers should exists
     // into the configuration file. Such file are loaded here.
@@ -140,7 +137,7 @@ pub async fn main() -> std::io::Result<()> {
     let api_config = config.api.clone();
 
     // ? -----------------------------------------------------------------------
-    // ? Configure logging and telemetry
+    // ? CONFIGURE LOGGING AND TELEMETRY
     //
     // The logging and telemetry configuration should be initialized before the
     // server starts. The configuration should be set to the server and the
@@ -156,7 +153,7 @@ pub async fn main() -> std::io::Result<()> {
     let span = tracing::Span::current();
 
     // ? -----------------------------------------------------------------------
-    // ? Initialize vault configuration
+    // ? INITIALIZE VAULT CONFIGURATION
     //
     // The vault configuration should be initialized before the server starts.
     // Vault configurations should be used to store sensitive data.
@@ -168,7 +165,7 @@ pub async fn main() -> std::io::Result<()> {
         .await;
 
     // ? -----------------------------------------------------------------------
-    // ? Configure SQL App Module
+    // ? CONFIGURE INTERNAL DEPENDENCIES
     // ? -----------------------------------------------------------------------
     info!("Initialize internal dependencies");
 
@@ -266,7 +263,7 @@ pub async fn main() -> std::io::Result<()> {
     );
 
     // ? -----------------------------------------------------------------------
-    // ? Initialize the tools registry
+    // ? INITIALIZE THE TOOLS REGISTRY
     //
     // The tools registry should be initialized before the server starts. The
     // registry should be used to store the tools for the tools endpoints.
@@ -283,27 +280,8 @@ pub async fn main() -> std::io::Result<()> {
             std::io::Error::new(std::io::ErrorKind::Other, err)
         })?;
 
-    /* let tools_refs = tools_registry_schema
-    .operations
-    .iter()
-    .filter_map(|operation| {
-        match ToolDef::from_openapi_operation(
-            &operation.path,
-            &operation.method.to_string(),
-            &operation.operation,
-        ) {
-            Ok(tool) => Some(tool),
-            Err(err) => {
-                tracing::warn!("Error on get tool from operation: {err}");
-
-                None
-            }
-        }
-    })
-    .collect::<Vec<_>>(); */
-
     // ? -----------------------------------------------------------------------
-    // ? Fire the scheduler
+    // ? FIRE THE EMAIL DISPATCHER
     //
     // The email dispatcher should be fired to allow emails to be sent.
     // Dispatching will occur in a separate thread.
@@ -333,7 +311,7 @@ pub async fn main() -> std::io::Result<()> {
     .await;
 
     // ? -----------------------------------------------------------------------
-    // ? Fire the webhook dispatcher
+    // ? FIRE THE WEBHOOK DISPATCHER
     //
     // The webhook dispatcher should be fired to allow webhooks to be dispatched.
     // Dispatching will occur in a separate thread.
@@ -345,7 +323,7 @@ pub async fn main() -> std::io::Result<()> {
         .await;
 
     // ? -----------------------------------------------------------------------
-    // ? Fire the services health dispatcher
+    // ? FIRE THE SERVICES HEALTH DISPATCHER
     //
     // The services health dispatcher should be fired to allow the services
     // health to be checked.
@@ -357,17 +335,22 @@ pub async fn main() -> std::io::Result<()> {
         .await;
 
     // ? -----------------------------------------------------------------------
-    // ? Configure the server
+    // ? CONFIGURE THE SERVER
     // ? -----------------------------------------------------------------------
-    info!("Set the server configuration");
+    info!("Startup the server configuration");
     let server = HttpServer::new(move || {
-        let local_api_config = config.api.clone();
+        //
+        // Here we should clone the config to avoid borrowing issues
+        //
+        let allowed_origins = config.api.allowed_origins.clone();
         let forward_api_config = config.api.clone();
         let auth_config = config.auth.clone();
         let token_config = config.core.account_life_cycle.clone();
-
         let tools_registry_schema_clone = tools_registry_schema.clone();
 
+        //
+        // Initialize the MCP service
+        //
         let mcp_service = StreamableHttpService::new(
             move || {
                 Ok(MyceliumMcpHandler::new(tools_registry_schema_clone.clone()))
@@ -376,10 +359,12 @@ pub async fn main() -> std::io::Result<()> {
             Default::default(),
         );
 
+        //
+        // Configure the CORS policy
+        //
         let cors = Cors::default()
             .allowed_origin_fn(move |origin, _| {
-                local_api_config
-                    .allowed_origins
+                allowed_origins
                     .contains(&origin.to_str().unwrap_or("").to_string())
             })
             .expose_headers(vec![
@@ -398,32 +383,40 @@ pub async fn main() -> std::io::Result<()> {
         trace!("Configured Cors: {:?}", cors);
 
         // ? -------------------------------------------------------------------
-        // ? Configure Base Application
+        // ? Create the basis for the application
         // ? -------------------------------------------------------------------
-
-        let app = App::new()
+        let base_app = App::new()
             //
-            // Include the tracing request to trace the request to the tracing
-            // system
+            // Configure CORS policies
+            //
+            .wrap(cors)
+            //
+            // Normalize path
+            //
+            .wrap(NormalizePath::new(TrailingSlash::MergeOnly))
+            //
+            // Configure tracing and logging
             //
             .wrap(RequestTracing::default())
-            //
-            // Include the tracing logger to log routes request to the tracing
-            // system
-            //
             .wrap(TracingLogger::default())
+            //
+            // Inject configuration
+            //
             .app_data(web::Data::new(tools_registry_schema.clone()))
+            .app_data(web::Data::new(token_config).clone())
+            .app_data(web::Data::new(auth_config.to_owned()).clone())
+            //
+            // Inject modules
+            //
             .app_data(web::Data::from(sql_module.clone()))
             .app_data(web::Data::from(shared_module.clone()))
             .app_data(web::Data::from(notifier_module.clone()))
             .app_data(web::Data::from(kv_module.clone()))
             .app_data(web::Data::from(mem_module.clone()))
-            .app_data(web::Data::new(token_config).clone())
-            .app_data(web::Data::new(auth_config.to_owned()).clone())
             //
-            // Index
+            // Index endpoints
             //
-            // Index endpoints allow to check fht status of the service.
+            // Index endpoints allow to check the status of the service
             //
             .service(
                 web::scope(
@@ -431,12 +424,79 @@ pub async fn main() -> std::io::Result<()> {
                         .as_str(),
                 )
                 .configure(heath_check_endpoints::configure),
+            )
+            //
+            // The well known openid configuration path
+            //
+            // This path is used to get the well known openid configuration
+            // from the auth0 server.
+            //
+            .configure(openid_configuration_endpoints::configure)
+            //
+            // Configure tools routes
+            //
+            // These endpoints allow users to identify the status of public
+            // services.
+            //
+            .service(
+                web::scope(&format!("/{}", TOOLS_API_SCOPE))
+                    .configure(service_tools_endpoints::configure),
+            )
+            //
+            // Configure MCP routes
+            //
+            // These endpoints allow users connect to the MCP service.
+            //
+            .service(web::scope(&format!("/{}", MCP_API_SCOPE)).configure(
+                StreamableHttpService::configure(Arc::new(mcp_service)),
+            ))
+            //
+            // Configure API documentation
+            //
+            .service(Redoc::with_url_and_config(
+                "/doc/redoc",
+                ApiDoc::openapi(),
+                FileConfig,
+            ))
+            .service(
+                SwaggerUi::new("/doc/swagger/{_:.*}")
+                    .url("/doc/openapi.json", ApiDoc::openapi())
+                    .oauth(
+                        oauth::Config::new()
+                            .client_id("client-id")
+                            .scopes(vec![String::from("openid")])
+                            .use_pkce_with_authorization_code_grant(true),
+                    )
+                    .config(
+                        Config::default()
+                            .filter(true)
+                            .show_extensions(true)
+                            .persist_authorization(true)
+                            .show_common_extensions(true)
+                            .request_snippets_enabled(true),
+                    ),
+            )
+            //
+            // Configure anti-log elements
+            //
+            // Filter docs and common routes from the logs.
+            //
+            .wrap(
+                Logger::default()
+                    .exclude_regex("/health/*")
+                    .exclude_regex("/doc/swagger/*")
+                    .exclude_regex("/doc/redoc/*"),
             );
 
         // ? -------------------------------------------------------------------
-        // ? Configure base mycelium scope
+        // ? CREATE THE ADMIN SCOPE
+        //
+        // Here you can find endpoints for the mycelium management (admin
+        // scope). There include super users endpoints endpoints and role scoped
+        // endpoints.
+        //
         // ? -------------------------------------------------------------------
-        let mycelium_scope = web::scope(&format!("/{}", ADMIN_API_SCOPE))
+        let admin_scope = web::scope(&format!("/{}", ADMIN_API_SCOPE))
             //
             // Super Users
             //
@@ -513,89 +573,30 @@ pub async fn main() -> std::io::Result<()> {
             );
 
         // ? -------------------------------------------------------------------
-        // ? Configure authentication elements
-        //
-        // Mycelium Auth
-        //
+        // ? CONFIGURE INTERNAL AUTHENTICATION
         // ? -------------------------------------------------------------------
-        let app = match auth_config.internal {
+        let final_app = match auth_config.internal {
             OptionalConfig::Enabled(config) => {
                 //
                 // Configure OAuth2 Scope
                 //
                 info!("Configuring Mycelium Internal authentication");
-                app.app_data(web::Data::new(config.clone()))
+                base_app.app_data(web::Data::new(config.clone()))
             }
-            _ => app,
+            _ => base_app,
         };
 
         // ? -------------------------------------------------------------------
-        // ? Fire the server
+        // ? CREATE THE GATEWAY SCOPE
         // ? -------------------------------------------------------------------
-        app
-            // ? ---------------------------------------------------------------
-            // ? Normalize path
-            // ? ---------------------------------------------------------------
-            .wrap(NormalizePath::new(TrailingSlash::MergeOnly))
-            // ? ---------------------------------------------------------------
-            // ? Configure CORS policies
-            // ? ---------------------------------------------------------------
-            .wrap(cors)
-            // ? ---------------------------------------------------------------
-            // ? Configure Log elements
-            // ? ---------------------------------------------------------------
-            // These wrap create the basic log elements and exclude the health
-            // check route.
-            .wrap(
-                Logger::default()
-                    .exclude_regex("/health/*")
-                    .exclude_regex("/doc/swagger/*")
-                    .exclude_regex("/doc/redoc/*"),
-            )
-            // ? ---------------------------------------------------------------
-            // ? Configure mycelium routes
-            // ? ---------------------------------------------------------------
-            .service(mycelium_scope)
-            // ? ---------------------------------------------------------------
-            // ? Configure API documentation
-            // ? ---------------------------------------------------------------
-            .service(Redoc::with_url_and_config(
-                "/doc/redoc",
-                ApiDoc::openapi(),
-                FileConfig,
-            ))
-            .service(
-                SwaggerUi::new("/doc/swagger/{_:.*}")
-                    .url("/doc/openapi.json", ApiDoc::openapi())
-                    .oauth(
-                        oauth::Config::new()
-                            .client_id("client-id")
-                            .scopes(vec![String::from("openid")])
-                            .use_pkce_with_authorization_code_grant(true),
-                    )
-                    .config(
-                        Config::default()
-                            .filter(true)
-                            .show_extensions(true)
-                            .persist_authorization(true)
-                            .show_common_extensions(true)
-                            .request_snippets_enabled(true),
-                    ),
-            )
-            // ? ---------------------------------------------------------------
-            // ? Configure tools routes
-            // ? ---------------------------------------------------------------
-            .service(
-                web::scope(&format!("/{}", TOOLS_API_SCOPE))
-                    .configure(service_tools_endpoints::configure),
-            )
-            .service(web::scope(&format!("/{}", MCP_API_SCOPE)).configure(
-                StreamableHttpService::configure(Arc::new(mcp_service)),
-            ))
-            // ? ---------------------------------------------------------------
-            // ? Configure gateway routes
-            // ? ---------------------------------------------------------------
-            .app_data(web::Data::new(Client::default()))
+        final_app
+            //
+            // Configure mycelium routes
+            //
+            .service(admin_scope)
+            //
+            // Configure gateway routes
+            //
             .app_data(web::Data::new(forward_api_config.to_owned()).clone())
             .wrap_fn(|mut req, srv| {
                 req.headers_mut().insert(
@@ -609,30 +610,33 @@ pub async fn main() -> std::io::Result<()> {
             //
             // Route to default route
             //
-            .default_service(web::to(route_request))
-        /* .service(
-            web::scope(&format!("/{}", GATEWAY_API_SCOPE))
-                //
-                // Inject a request ID to downstream services
-                //
-                .wrap_fn(|mut req, srv| {
-                    req.headers_mut().insert(
-                        HeaderName::from_str(DEFAULT_REQUEST_ID_KEY)
+            .service(
+                web::scope(&format!("/{}", GATEWAY_API_SCOPE))
+                    //
+                    // Inject a request ID to downstream services
+                    //
+                    .wrap_fn(|mut req, srv| {
+                        req.headers_mut().insert(
+                            HeaderName::from_str(DEFAULT_REQUEST_ID_KEY)
+                                .unwrap(),
+                            HeaderValue::from_str(
+                                Uuid::new_v4().to_string().as_str(),
+                            )
                             .unwrap(),
-                        HeaderValue::from_str(
-                            Uuid::new_v4().to_string().as_str(),
-                        )
-                        .unwrap(),
-                    );
+                        );
 
-                    srv.call(req)
-                })
-                //
-                // Route to default route
-                //
-                .default_service(web::to(route_request)),
-        ) */
+                        srv.call(req)
+                    })
+                    //
+                    // Route to default route
+                    //
+                    .default_service(web::to(route_request)),
+            )
     });
+
+    // ? -----------------------------------------------------------------------
+    // ? FIRE THE SERVER
+    // ? -----------------------------------------------------------------------
 
     let address = (
         api_config.to_owned().service_ip,
@@ -641,6 +645,9 @@ pub async fn main() -> std::io::Result<()> {
 
     info!("Listening on Address and Port: {:?}: ", address);
 
+    // ? -----------------------------------------------------------------------
+    // ? WITH TLS IF CONFIGURED
+    // ? -----------------------------------------------------------------------
     if let OptionalConfig::Enabled(tls_config) = api_config.to_owned().tls {
         let api_config = api_config.clone();
 
@@ -694,6 +701,9 @@ pub async fn main() -> std::io::Result<()> {
             .await;
     }
 
+    // ? -----------------------------------------------------------------------
+    // ? WITHOUT TLS OTHERWISE
+    // ? -----------------------------------------------------------------------
     info!("Fire the server without TLS");
     server
         .bind(address)?
