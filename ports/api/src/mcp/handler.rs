@@ -282,8 +282,6 @@ impl ServerHandler for MyceliumMcpHandler {
         _context: RequestContext<RoleServer>,
     ) -> impl Future<Output = Result<CallToolResult, ErrorData>> + Send + '_
     {
-        println!("_request: {:?}", _request);
-        println!("_context: {:?}", _context);
         std::future::ready(Err(ErrorData::method_not_found::<
             CallToolRequestMethod,
         >()))
