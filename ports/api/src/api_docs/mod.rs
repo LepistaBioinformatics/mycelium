@@ -578,66 +578,66 @@ struct UsersManagerAccountApiDoc;
         //
         // Super User endpoints
         //
-        (path = "/adm/su/staffs/accounts", api = StaffsAccountsApiDoc),
-        (path = "/adm/su/managers/accounts", api = ManagersAccountsApiDoc),
-        (path = "/adm/su/managers/tenants", api = ManagersTenantsApiDoc),
-        (path = "/adm/su/managers/guest-roles", api = ManagersGuestRoleApiDoc),
-        //
-        // Service endpoints
-        //
-        (path = "/adm/svc/tools", api = ServiceToolsApiDoc),
+        (path = "/_adm/staffs/accounts", api = StaffsAccountsApiDoc),
+        (path = "/_adm/managers/accounts", api = ManagersAccountsApiDoc),
+        (path = "/_adm/managers/tenants", api = ManagersTenantsApiDoc),
+        (path = "/_adm/managers/guest-roles", api = ManagersGuestRoleApiDoc),
         //
         // Beginner endpoints
         //
-        (path = "/adm/rs/beginners/accounts", api = BeginnersAccountApiDoc),
-        (path = "/adm/rs/beginners/meta", api = BeginnersMetaApiDoc),
-        (path = "/adm/rs/beginners/profile", api = BeginnersProfileApiDoc),
-        (path = "/adm/rs/beginners/users", api = BeginnersUserApiDoc),
-        (path = "/adm/rs/beginners/tenants", api = BeginnersTenantApiDoc),
-        (path = "/adm/rs/beginners/tokens", api = BeginnersTokenApiDoc),
+        (path = "/_adm/beginners/accounts", api = BeginnersAccountApiDoc),
+        (path = "/_adm/beginners/meta", api = BeginnersMetaApiDoc),
+        (path = "/_adm/beginners/profile", api = BeginnersProfileApiDoc),
+        (path = "/_adm/beginners/users", api = BeginnersUserApiDoc),
+        (path = "/_adm/beginners/tenants", api = BeginnersTenantApiDoc),
+        (path = "/_adm/beginners/tokens", api = BeginnersTokenApiDoc),
         // Account Manager endpoints
         //
-        (path = "/adm/rs/accounts-manager/guests", api = AccountManagerGuestApiDoc),
+        (path = "/_adm/accounts-manager/guests", api = AccountManagerGuestApiDoc),
         //
         // Gateway Manager endpoints
         //
-        (path = "/adm/rs/gateway-manager/routes", api = GatewayManagerRouteApiDoc),
-        (path = "/adm/rs/gateway-manager/services", api = GatewayManagerServiceApiDoc),
-        (path = "/adm/rs/gateway-manager/tools", api = GatewayManagerToolsApiDoc),
+        (path = "/_adm/gateway-manager/routes", api = GatewayManagerRouteApiDoc),
+        (path = "/_adm/gateway-manager/services", api = GatewayManagerServiceApiDoc),
+        (path = "/_adm/gateway-manager/tools", api = GatewayManagerToolsApiDoc),
         //
         // Guest Manager Endpoints
         //
-        (path = "/adm/rs/guests-manager/guest-roles", api = GuestManagerGuestRoleApiDoc),
+        (path = "/_adm/guests-manager/guest-roles", api = GuestManagerGuestRoleApiDoc),
         //
         // Subscriptions Manager Endpoints
         //
-        (path = "/adm/rs/subscriptions-manager/accounts", api = SubscriptionsManagerAccountApiDoc),
-        (path = "/adm/rs/subscriptions-manager/tags", api = SubscriptionsManagerTagApiDoc),
-        (path = "/adm/rs/subscriptions-manager/guests", api = SubscriptionsManagerGuestApiDoc),
-        (path = "/adm/rs/subscriptions-manager/guest-roles", api = SubscriptionsManagerGuestRoleApiDoc),
+        (path = "/_adm/subscriptions-manager/accounts", api = SubscriptionsManagerAccountApiDoc),
+        (path = "/_adm/subscriptions-manager/tags", api = SubscriptionsManagerTagApiDoc),
+        (path = "/_adm/subscriptions-manager/guests", api = SubscriptionsManagerGuestApiDoc),
+        (path = "/_adm/subscriptions-manager/guest-roles", api = SubscriptionsManagerGuestRoleApiDoc),
         //
         // System Manager Endpoints
         //
-        (path = "/adm/rs/system-manager/error-codes", api = SystemManagerErrorCodeApiDoc),
-        (path = "/adm/rs/system-manager/webhooks", api = SystemManagerWebhookApiDoc),
+        (path = "/_adm/system-manager/error-codes", api = SystemManagerErrorCodeApiDoc),
+        (path = "/_adm/system-manager/webhooks", api = SystemManagerWebhookApiDoc),
         //
         // Tenant Owner Endpoints
         //
-        (path = "/adm/rs/tenant-owner/accounts", api = TenantOwnerAccountApiDoc),
-        (path = "/adm/rs/tenant-owner/meta", api = TenantOwnerMetaApiDoc),
-        (path = "/adm/rs/tenant-owner/owners", api = TenantOwnerOwnerApiDoc),
-        (path = "/adm/rs/tenant-owner/tenants", api = TenantOwnerTenantApiDoc),
+        (path = "/_adm/tenant-owner/accounts", api = TenantOwnerAccountApiDoc),
+        (path = "/_adm/tenant-owner/meta", api = TenantOwnerMetaApiDoc),
+        (path = "/_adm/tenant-owner/owners", api = TenantOwnerOwnerApiDoc),
+        (path = "/_adm/tenant-owner/tenants", api = TenantOwnerTenantApiDoc),
         //
         // Tenant Manager Endpoints
         //
-        (path = "/adm/rs/tenant-manager/accounts", api = TenantManagerAccountApiDoc),
-        (path = "/adm/rs/tenant-manager/guests", api = TenantManagerGuestApiDoc),
-        (path = "/adm/rs/tenant-manager/tags", api = TenantManagerTagApiDoc),
-        (path = "/adm/rs/tenant-manager/tenants", api = TenantManagerTenantApiDoc),
+        (path = "/_adm/tenant-manager/accounts", api = TenantManagerAccountApiDoc),
+        (path = "/_adm/tenant-manager/guests", api = TenantManagerGuestApiDoc),
+        (path = "/_adm/tenant-manager/tags", api = TenantManagerTagApiDoc),
+        (path = "/_adm/tenant-manager/tenants", api = TenantManagerTenantApiDoc),
         //
         // Users Manager Endpoints
         //
-        (path = "/adm/rs/users-manager/accounts", api = UsersManagerAccountApiDoc),
+        (path = "/_adm/users-manager/accounts", api = UsersManagerAccountApiDoc),
+        //
+        // Service endpoints
+        //
+        (path = "/tools", api = ServiceToolsApiDoc),
     ),
     paths(
         //

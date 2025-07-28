@@ -36,7 +36,17 @@ pub struct ExternalProviderConfig {
     ///  - Auth0: YOUR_CLIENT_ID
     ///
     pub audience: SecretResolver<String>,
-
+    /// The discovery url of the token
+    ///
+    /// This is the discovery url of the token that will be used to validate the
+    /// token.
+    ///
+    /// Example:
+    ///  - Google: https://accounts.google.com/.well-known/openid-configuration
+    ///  - Microsoft: https://login.microsoftonline.com/{tenant_id}/v2.0/.well-known/openid-configuration
+    ///  - Auth0: https://{your-auth0-domain}/.well-known/openid-configuration
+    ///
+    pub discovery_url: Option<SecretResolver<String>>,
     /// The user info url of the token
     ///
     /// This is the user info url of the token that will be used to validate the

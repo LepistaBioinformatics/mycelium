@@ -12,9 +12,8 @@ mod router;
 mod settings;
 
 use crate::{
-    mcp::MyceliumMcpHandler,
-    openapi_processor::initialize_tools_registry,
-    settings::{GATEWAY_API_SCOPE, MCP_API_SCOPE},
+    mcp::MyceliumMcpHandler, openapi_processor::initialize_tools_registry,
+    settings::MCP_API_SCOPE,
 };
 
 use actix_cors::Cors;
@@ -25,17 +24,18 @@ use actix_web::{
 };
 use actix_web_opentelemetry::RequestTracing;
 use api_docs::ApiDoc;
-use awc::error::HeaderValue;
+use awc::{error::HeaderValue, Client};
 use dispatchers::{
     email_dispatcher, services_health_dispatcher, webhook_dispatcher,
 };
 use endpoints::{
-    index::{heath_check_endpoints, openid_configuration_endpoints},
+    index::heath_check_endpoints,
     manager::{
         account_endpoints as manager_account_endpoints,
         guest_role_endpoints as manager_guest_role_endpoints,
         tenant_endpoints as manager_tenant_endpoints,
     },
+    openid::well_known_endpoints,
     role_scoped::configure as configure_standard_endpoints,
     service::tools_endpoints as service_tools_endpoints,
     shared::insert_role_header,
@@ -83,7 +83,7 @@ use reqwest::header::{
 use rmcp::transport::streamable_http_server::session::local::LocalSessionManager;
 use rmcp_actix_web::StreamableHttpService;
 use router::route_request;
-use settings::{ADMIN_API_SCOPE, SUPER_USER_API_SCOPE, TOOLS_API_SCOPE};
+use settings::{ADMIN_API_SCOPE, TOOLS_API_SCOPE};
 use shaku::HasComponent;
 use std::{path::PathBuf, str::FromStr, sync::Arc, sync::Mutex};
 use tracing::{info, trace, Instrument};
@@ -419,11 +419,8 @@ pub async fn main() -> std::io::Result<()> {
             // Index endpoints allow to check the status of the service
             //
             .service(
-                web::scope(
-                    format!("/{}", endpoints::shared::UrlScope::Health)
-                        .as_str(),
-                )
-                .configure(heath_check_endpoints::configure),
+                web::scope("/health")
+                    .configure(heath_check_endpoints::configure),
             )
             //
             // The well known openid configuration path
@@ -431,7 +428,7 @@ pub async fn main() -> std::io::Result<()> {
             // This path is used to get the well known openid configuration
             // from the auth0 server.
             //
-            .configure(openid_configuration_endpoints::configure)
+            .configure(well_known_endpoints::configure)
             //
             // Configure tools routes
             //
@@ -439,7 +436,7 @@ pub async fn main() -> std::io::Result<()> {
             // services.
             //
             .service(
-                web::scope(&format!("/{}", TOOLS_API_SCOPE))
+                web::scope(TOOLS_API_SCOPE)
                     .configure(service_tools_endpoints::configure),
             )
             //
@@ -447,7 +444,7 @@ pub async fn main() -> std::io::Result<()> {
             //
             // These endpoints allow users connect to the MCP service.
             //
-            .service(web::scope(&format!("/{}", MCP_API_SCOPE)).configure(
+            .service(web::scope(MCP_API_SCOPE).configure(
                 StreamableHttpService::configure(Arc::new(mcp_service)),
             ))
             //
@@ -496,7 +493,7 @@ pub async fn main() -> std::io::Result<()> {
         // endpoints.
         //
         // ? -------------------------------------------------------------------
-        let admin_scope = web::scope(&format!("/{}", ADMIN_API_SCOPE))
+        let admin_scope = web::scope(ADMIN_API_SCOPE)
             //
             // Super Users
             //
@@ -505,72 +502,54 @@ pub async fn main() -> std::io::Result<()> {
             // managers.
             //
             .service(
-                web::scope(format!("/{}", SUPER_USER_API_SCOPE).as_str())
-                    .service(
-                        web::scope(
-                            format!("/{}", endpoints::shared::UrlScope::Staffs)
-                                .as_str(),
-                        )
-                        //
-                        // Inject a header to be collected by the
-                        // MyceliumProfileData extractor.
-                        //
-                        // An empty role header was injected to allow only the
-                        // super users with Staff status to access the staff
-                        // endpoints.
-                        //
-                        .wrap_fn(|req, srv| {
-                            let req = insert_role_header(req, vec![]);
-
-                            srv.call(req)
-                        })
-                        //
-                        // Configure endpoints
-                        //
-                        .configure(staff_account_endpoints::configure),
-                    )
+                web::scope(endpoints::shared::UrlScope::Staffs.str())
                     //
-                    // Manager Users
+                    // Inject a header to be collected by the
+                    // MyceliumProfileData extractor.
                     //
-                    .service(
-                        web::scope(
-                            format!(
-                                "/{}",
-                                endpoints::shared::UrlScope::Managers
-                            )
-                            .as_str(),
-                        )
-                        //
-                        // Inject a header to be collected by the
-                        // MyceliumProfileData extractor.
-                        //
-                        // An empty role header was injected to allow only the
-                        // super users with Managers status to access the
-                        // managers endpoints.
-                        //
-                        .wrap_fn(|req, srv| {
-                            let req = insert_role_header(req, vec![]);
+                    // An empty role header was injected to allow only the
+                    // super users with Staff status to access the staff
+                    // endpoints.
+                    //
+                    .wrap_fn(|req, srv| {
+                        let req = insert_role_header(req, vec![]);
 
-                            srv.call(req)
-                        })
-                        //
-                        // Configure endpoints
-                        //
-                        .configure(manager_tenant_endpoints::configure)
-                        .configure(manager_guest_role_endpoints::configure)
-                        .configure(manager_account_endpoints::configure),
-                    ),
+                        srv.call(req)
+                    })
+                    //
+                    // Configure endpoints
+                    //
+                    .configure(staff_account_endpoints::configure),
+            )
+            //
+            // Manager Users
+            //
+            .service(
+                web::scope(endpoints::shared::UrlScope::Managers.str())
+                    //
+                    // Inject a header to be collected by the
+                    // MyceliumProfileData extractor.
+                    //
+                    // An empty role header was injected to allow only the
+                    // super users with Managers status to access the
+                    // managers endpoints.
+                    //
+                    .wrap_fn(|req, srv| {
+                        let req = insert_role_header(req, vec![]);
+
+                        srv.call(req)
+                    })
+                    //
+                    // Configure endpoints
+                    //
+                    .configure(manager_tenant_endpoints::configure)
+                    .configure(manager_guest_role_endpoints::configure)
+                    .configure(manager_account_endpoints::configure),
             )
             //
             // Role Scoped Endpoints
             //
-            .service(
-                web::scope(
-                    format!("/{}", endpoints::shared::UrlScope::RoleScoped)
-                        .as_str(),
-                )
-                .configure(configure_standard_endpoints),
-            );
+            .configure(configure_standard_endpoints);
 
         // ? -------------------------------------------------------------------
         // ? CONFIGURE INTERNAL AUTHENTICATION
@@ -591,12 +570,13 @@ pub async fn main() -> std::io::Result<()> {
         // ? -------------------------------------------------------------------
         final_app
             //
-            // Configure mycelium routes
+            // Configure admin routes
             //
             .service(admin_scope)
             //
             // Configure gateway routes
             //
+            .app_data(web::Data::new(Client::new()))
             .app_data(web::Data::new(forward_api_config.to_owned()).clone())
             .wrap_fn(|mut req, srv| {
                 req.headers_mut().insert(
@@ -607,31 +587,7 @@ pub async fn main() -> std::io::Result<()> {
 
                 srv.call(req)
             })
-            //
-            // Route to default route
-            //
-            .service(
-                web::scope(&format!("/{}", GATEWAY_API_SCOPE))
-                    //
-                    // Inject a request ID to downstream services
-                    //
-                    .wrap_fn(|mut req, srv| {
-                        req.headers_mut().insert(
-                            HeaderName::from_str(DEFAULT_REQUEST_ID_KEY)
-                                .unwrap(),
-                            HeaderValue::from_str(
-                                Uuid::new_v4().to_string().as_str(),
-                            )
-                            .unwrap(),
-                        );
-
-                        srv.call(req)
-                    })
-                    //
-                    // Route to default route
-                    //
-                    .default_service(web::to(route_request)),
-            )
+            .default_service(web::to(route_request))
     });
 
     // ? -----------------------------------------------------------------------

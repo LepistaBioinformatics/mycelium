@@ -166,3 +166,21 @@ impl FromStr for SystemActor {
         }
     }
 }
+
+impl SystemActor {
+    pub fn str(&self) -> &str {
+        match self {
+            SystemActor::CustomRole(role) => role,
+            SystemActor::Beginner => "beginner",
+            SystemActor::SubscriptionsManager => "subscriptions-manager",
+            SystemActor::UsersManager => "users-manager",
+            SystemActor::AccountManager => "account-manager",
+            SystemActor::GuestsManager => "guest-manager",
+            SystemActor::GatewayManager => "gateway-manager",
+            SystemActor::SystemManager => "system-manager",
+            SystemActor::TenantOwner => "tenant-owner",
+            SystemActor::TenantManager => "tenant-manager",
+            SystemActor::Service => "service",
+        }
+    }
+}
