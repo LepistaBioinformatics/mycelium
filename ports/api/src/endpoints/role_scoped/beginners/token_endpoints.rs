@@ -2,14 +2,13 @@ use crate::dtos::MyceliumProfileData;
 
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
-    models::AccountLifeCycle,
+    domain::dtos::security_group::PermissionedRole, models::AccountLifeCycle,
     use_cases::role_scoped::beginner::token::create_connection_string,
 };
 use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error,
-    Permission,
 };
 use serde::{Deserialize, Serialize};
 use shaku::HasComponent;
@@ -60,15 +59,7 @@ pub struct CreateTokenBody {
     /// roles. If not specified, the actions allowed by the token will be
     /// scoped to the user profile.
     ///
-    roles: Option<Vec<String>>,
-
-    /// The permissioned roles
-    ///
-    /// If specified, the actions allowed by the token will be scoped to the
-    /// roles and permissions. Otherwise, the complete set of roles and
-    /// permissions present in the user profile will be used.
-    ///
-    permissioned_roles: Option<Vec<(String, Permission)>>,
+    roles: Option<Vec<PermissionedRole>>,
 }
 
 #[derive(Serialize, ToSchema, ToResponse)]
@@ -121,7 +112,6 @@ pub async fn create_connection_string_url(
         body.tenant_id.to_owned(),
         body.service_account_id.to_owned(),
         body.roles.to_owned(),
-        body.permissioned_roles.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),

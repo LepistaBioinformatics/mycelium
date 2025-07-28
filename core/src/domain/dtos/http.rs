@@ -73,17 +73,17 @@ impl FromStr for HttpMethod {
 
     fn from_str(s: &str) -> Result<HttpMethod, HttpMethod> {
         match s {
-            "GET" => Ok(HttpMethod::Get),
-            "HEAD" => Ok(HttpMethod::Head),
-            "PATCH" => Ok(HttpMethod::Patch),
-            "POST" => Ok(HttpMethod::Post),
-            "PUT" => Ok(HttpMethod::Put),
-            "DELETE" => Ok(HttpMethod::Delete),
-            "CONNECT" => Ok(HttpMethod::Connect),
-            "OPTIONS" => Ok(HttpMethod::Options),
-            "TRACE" => Ok(HttpMethod::Trace),
-            "ALL" => Ok(HttpMethod::All),
-            "NONE" => Ok(HttpMethod::None),
+            "GET" | "get" => Ok(HttpMethod::Get),
+            "HEAD" | "head" => Ok(HttpMethod::Head),
+            "PATCH" | "patch" => Ok(HttpMethod::Patch),
+            "POST" | "post" => Ok(HttpMethod::Post),
+            "PUT" | "put" => Ok(HttpMethod::Put),
+            "DELETE" | "delete" => Ok(HttpMethod::Delete),
+            "CONNECT" | "connect" => Ok(HttpMethod::Connect),
+            "OPTIONS" | "options" => Ok(HttpMethod::Options),
+            "TRACE" | "trace" => Ok(HttpMethod::Trace),
+            "ALL" | "all" => Ok(HttpMethod::All),
+            "NONE" | "none" => Ok(HttpMethod::None),
             _ => Err(HttpMethod::None),
         }
     }

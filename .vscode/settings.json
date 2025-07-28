@@ -28,6 +28,7 @@
     "reqwest",
     "Routable",
     "shaku",
+    "streamable",
     "structs",
     "Tera",
     "thiserror",

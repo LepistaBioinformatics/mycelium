@@ -1,6 +1,5 @@
 use crate::middleware::{
     fetch_and_inject_email_to_forward,
-    fetch_and_inject_profile_from_connection_string_to_forward,
     fetch_and_inject_profile_from_token_to_forward,
 };
 
@@ -28,6 +27,10 @@ pub(super) async fn check_security_group(
         // Public routes do not need any authentication or profile injection.
         //
         SecurityGroup::Public => (),
+        //
+        // Authenticated routes should include the user email into the request
+        // token
+        //
         SecurityGroup::Authenticated => {
             //
             // Try to extract user email from the request and inject it into the
@@ -52,7 +55,6 @@ pub(super) async fn check_security_group(
                     downstream_request,
                     None,
                     None,
-                    None,
                 )
                 .instrument(span.to_owned())
                 .await?;
@@ -72,67 +74,6 @@ pub(super) async fn check_security_group(
                     downstream_request,
                     None,
                     Some(roles),
-                    None,
-                )
-                .instrument(span.to_owned())
-                .await?;
-        }
-        //
-        // Protected routes should include the user profile filtered by roles
-        // and permissions into the header
-        //
-        SecurityGroup::ProtectedByPermissionedRoles { permissioned_roles } => {
-            //
-            // Try to populate profile from the request filtering licensed
-            // resources by roles and permissions
-            //
-            downstream_request =
-                fetch_and_inject_profile_from_token_to_forward(
-                    req,
-                    downstream_request,
-                    None,
-                    None,
-                    Some(permissioned_roles),
-                )
-                .instrument(span.to_owned())
-                .await?;
-        }
-        //
-        // Protected routes by service token should include the users role which
-        // the service token is associated
-        //
-        SecurityGroup::ProtectedByServiceTokenWithRole { roles } => {
-            //
-            // Try to populate profile from the request filtering licensed
-            // resources by roles and permissions
-            //
-            downstream_request =
-                fetch_and_inject_profile_from_connection_string_to_forward(
-                    req,
-                    downstream_request,
-                    Some(roles),
-                    None,
-                )
-                .instrument(span.to_owned())
-                .await?;
-        }
-        //
-        // Protected routes by service token should include the users role which
-        // the service token is associated
-        //
-        SecurityGroup::ProtectedByServiceTokenWithPermissionedRoles {
-            permissioned_roles,
-        } => {
-            //
-            // Try to populate profile from the request filtering licensed
-            // resources by roles and permissions
-            //
-            downstream_request =
-                fetch_and_inject_profile_from_connection_string_to_forward(
-                    req,
-                    downstream_request,
-                    None,
-                    Some(permissioned_roles),
                 )
                 .instrument(span.to_owned())
                 .await?;

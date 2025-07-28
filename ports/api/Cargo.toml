@@ -18,27 +18,15 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "8.0.1-beta.2", path = "../../core" }
-mycelium-base = { version = "8.0.1-beta.2", path = "../../base" }
-mycelium-config = { version = "8.0.1-beta.2", path = "../../config" }
-mycelium-http-tools = { version = "8.0.1-beta.2", path = "../../http_tools" }
-mycelium-memory-db = { version = "8.0.1-beta.2", path = "../../adapters/mem_db" }
-mycelium-service = { version = "8.0.1-beta.2", path = "../../adapters/service" }
-mycelium-diesel = { version = "8.0.1-beta.2", path = "../../adapters/diesel" }
-mycelium-notifier = { version = "8.0.1-beta.2", path = "../../adapters/notifier" }
-mycelium-adapters-shared-lib = { version = "8.0.1-beta.2", path = "../../adapters/shared" }
-mycelium-key-value = { version = "8.0.1-beta.2", path = "../../adapters/kv_db" }
-
 actix-web.workspace = true
 actix-web-httpauth.workspace = true
 async-trait.workspace = true
 awc.workspace = true
 base64.workspace = true
 chrono.workspace = true
-derive_more.workspace = true
 futures.workspace = true
-futures-util.workspace = true
 hex.workspace = true
+http.workspace = true
 jsonwebtoken.workspace = true
 jwt.workspace = true
 lazy_static.workspace = true
@@ -62,28 +50,64 @@ utoipa-swagger-ui.workspace = true
 zip.workspace = true
 wildmatch.workspace = true
 
-actix = "0.13"
 actix-cors = { version = "0.6.2" }
 actix-rt = "2.10"
-actix-web-error = { version = "0.2" }
-actix-web-error-derive = { version = "0.2" }
-actix-web-opentelemetry = "0.18.0"
-async-graphql = "7"
-async-graphql-actix-web = "7"
-opentelemetry = { version = "0.25", default-features = false, features = [
+actix-web-opentelemetry = "0.22.0"
+anyhow = "1.0"
+opentelemetry = { version = "0.29", default-features = false, features = [
     "trace",
+    "metrics",
+    "logs",
 ] }
-opentelemetry_sdk = { version = "0.25", features = ["rt-tokio"] }
-opentelemetry-otlp = { version = "0.25", features = [
+opentelemetry_sdk = { version = "0.29", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.29", features = [
     "reqwest-client",
     "reqwest-rustls",
     "http-proto",
     "tls",
+    "grpc-tonic",
+    "trace",
+    "metrics",
+    "logs",
 ] }
-opentelemetry-stdout = "0.25"
-tonic = { version = "0.12", features = ["tls", "tls-roots"] }
+rmcp = { version = "0.3", features = [
+    "server",
+    #"transport-sse-server",
+    "transport-worker",
+    #"transport-io",
+    "transport-streamable-http-server",
+    #"auth",
+] }
+rmcp-actix-web = { version = "0.2", default-features = false, features = [
+    "transport-streamable-http-server",
+] }
+rust-mcp-sdk = "0.5.0"
+tonic = { version = "0", features = ["tls", "tls-roots"] }
 tracing-appender = "0.2"
-tracing-opentelemetry = "0.26"
+tracing-opentelemetry = "0.30"
+
+# ------------------------------------------------------------------------------
+# Mycelium packages
+# ------------------------------------------------------------------------------
+
+myc-core.workspace = true
+mycelium-base.workspace = true
+mycelium-config.workspace = true
+mycelium-openapi.workspace = true
+mycelium-http-tools.workspace = true
+mycelium-memory-db.workspace = true
+mycelium-service.workspace = true
+mycelium-diesel.workspace = true
+mycelium-notifier.workspace = true
+mycelium-adapters-shared-lib.workspace = true
+mycelium-key-value.workspace = true
+
+# ------------------------------------------------------------------------------
+# Build dependencies
+#
+# The zip package should be fixed from workspace due to security issues.
+#
+# ------------------------------------------------------------------------------
 
 [build-dependencies]
 zip.workspace = true

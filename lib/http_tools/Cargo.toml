@@ -1,0 +1,50 @@
+[package]
+name = "mycelium-http-tools"
+description = "Provide HTTP related elements to the mycelium project."
+
+edition.workspace = true
+authors.workspace = true
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+readme.workspace = true
+
+[dependencies]
+
+actix-web.workspace = true
+actix-web-httpauth.workspace = true
+awc.workspace = true
+chrono.workspace = true
+derive_more.workspace = true
+futures.workspace = true
+jsonwebtoken.workspace = true
+jwt.workspace = true
+oauth2.workspace = true
+rand.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+utoipa.workspace = true
+lazy_static.workspace = true
+url.workspace = true
+uuid.workspace = true
+tracing.workspace = true
+
+# ------------------------------------------------------------------------------
+# Mycelium packages
+# ------------------------------------------------------------------------------
+
+myc-core.workspace = true
+mycelium-base.workspace = true
+mycelium-config.workspace = true
+mycelium-service.workspace = true
+
+# ? ----------------------------------------------------------------------------
+# ? LIBRARY
+# ? ----------------------------------------------------------------------------
+
+[lib]
+name = "myc_http_tools"
+path = "src/lib.rs"
+crate-type = ["staticlib", "lib"]

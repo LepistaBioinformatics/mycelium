@@ -6,7 +6,7 @@ use crate::{
 
 use actix_web::HttpRequest;
 use myc_core::domain::dtos::{
-    security_group::PermissionedRoles, token::UserAccountConnectionString,
+    security_group::PermissionedRole, token::UserAccountConnectionString,
 };
 use myc_http_tools::responses::GatewayError;
 use tracing::Instrument;
@@ -19,8 +19,7 @@ use uuid::Uuid;
 pub(crate) async fn fetch_profile_from_request_connection_string(
     req: HttpRequest,
     tenant: Option<Uuid>,
-    roles: Option<Vec<String>>,
-    permissioned_roles: Option<PermissionedRoles>,
+    roles: Option<Vec<PermissionedRole>>,
 ) -> Result<MyceliumProfileData, GatewayError> {
     let span: tracing::Span = tracing::Span::current();
 
@@ -40,36 +39,6 @@ pub(crate) async fn fetch_profile_from_request_connection_string(
     // ? -----------------------------------------------------------------------
     // ? Check permissions intrinsic to the connection string
     // ? -----------------------------------------------------------------------
-
-    //
-    // If not None, filter the request roles by the role stated in the
-    // connection string
-    //
-    let updated_roles = connection_string
-        .get_roles()
-        .map(|connection_string_roles| {
-            if connection_string_roles.is_empty() {
-                return None;
-            }
-
-            if roles.is_none() {
-                return Some(connection_string_roles.clone());
-            }
-
-            let filtered_roles = roles
-                .unwrap()
-                .iter()
-                .filter(|r| connection_string_roles.contains(r))
-                .map(|r| r.clone())
-                .collect::<Vec<_>>();
-
-            if filtered_roles.is_empty() {
-                return None;
-            }
-
-            Some(filtered_roles)
-        })
-        .flatten();
 
     //
     // If not None, filter the request tenant by the tenant stated in the
@@ -94,15 +63,15 @@ pub(crate) async fn fetch_profile_from_request_connection_string(
     // If not None, filter the request permissioned roles by roles stated in
     // the connection string
     //
-    let updated_permissioned_roles = connection_string
-        .get_permissioned_roles()
-        .map(|connection_string_permissioned_roles| {
+    let updated_roles = connection_string
+        .get_roles()
+        .map(|connection_string_roles| {
             //
             // If the external permissioned roles are not provided, return the
             // connection string permissioned roles
             //
-            if permissioned_roles.is_none() {
-                return Some(connection_string_permissioned_roles);
+            if roles.is_none() {
+                return Some(connection_string_roles);
             }
 
             //
@@ -111,16 +80,17 @@ pub(crate) async fn fetch_profile_from_request_connection_string(
             // connection string
             //
             let mut filtered_permissioned_roles =
-                connection_string_permissioned_roles.clone();
+                connection_string_roles.clone();
 
-            let local_pairs = permissioned_roles
+            let local_pairs = roles
                 .unwrap()
                 .iter()
-                .map(|(role, permission)| (role.clone(), permission.clone()))
+                .map(|role| (role.name.clone(), role.permission.clone()))
                 .collect::<Vec<_>>();
 
-            filtered_permissioned_roles.retain(|(role, permission)| {
-                local_pairs.contains(&(role.clone(), permission.clone()))
+            filtered_permissioned_roles.retain(|role| {
+                local_pairs
+                    .contains(&(role.name.clone(), role.permission.clone()))
             });
 
             match filtered_permissioned_roles.is_empty() {
@@ -139,7 +109,6 @@ pub(crate) async fn fetch_profile_from_request_connection_string(
         connection_string.email.to_owned(),
         updated_tenant.to_owned(),
         updated_roles.to_owned(),
-        updated_permissioned_roles.to_owned(),
     )
     .instrument(span)
     .await?;

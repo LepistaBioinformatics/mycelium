@@ -7,6 +7,7 @@ use actix_web::{delete, get, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::dtos::{
         email::Email, guest_user::GuestUser, profile::LicensedResources,
+        security_group::PermissionedRole,
     },
     models::AccountLifeCycle,
     use_cases::role_scoped::subscriptions_manager::guest::{
@@ -22,7 +23,6 @@ use myc_http_tools::{
         delete_response_kind, fetch_many_response_kind,
         get_or_create_response_kind, handle_mapped_error,
     },
-    Permission,
 };
 use mycelium_base::dtos::PaginatedRecord;
 use serde::Deserialize;
@@ -59,10 +59,7 @@ pub struct ListLicensedAccountsOfEmailParams {
     email: String,
 
     /// The roles which the guest user was invited to
-    roles: Option<Vec<String>>,
-
-    /// The permissioned roles which the guest user was invited to
-    permissioned_roles: Option<Vec<(String, Permission)>>,
+    roles: Option<Vec<PermissionedRole>>,
 
     /// The guest user was verified
     was_verified: Option<bool>,
@@ -135,7 +132,6 @@ pub async fn list_licensed_accounts_of_email_url(
         email.to_owned(),
         query.roles.to_owned(),
         query.was_verified.to_owned(),
-        query.permissioned_roles.to_owned(),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

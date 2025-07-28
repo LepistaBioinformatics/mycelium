@@ -34,7 +34,7 @@ use inject_downstream_secret::*;
 use match_downstream_route_from_request::*;
 use stream_request_to_downstream::*;
 
-use crate::{models::api_config::ApiConfig, settings::GATEWAY_API_SCOPE};
+use crate::models::api_config::ApiConfig;
 
 use actix_web::{web, HttpRequest, HttpResponse};
 use awc::Client;
@@ -78,8 +78,6 @@ pub(crate) async fn route_request(
     api_config: web::Data<ApiConfig>,
     pp_module: web::Data<MemDbAppModule>,
 ) -> Result<HttpResponse, GatewayError> {
-    let gateway_base_path = &format!("/{}", GATEWAY_API_SCOPE);
-
     // ? -----------------------------------------------------------------------
     // ? Initialize route span
     // ? -----------------------------------------------------------------------
@@ -110,13 +108,10 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    let route = match_downstream_route_from_request(
-        req.clone(),
-        gateway_base_path,
-        pp_module.clone(),
-    )
-    .instrument(span.to_owned())
-    .await?;
+    let route =
+        match_downstream_route_from_request(req.clone(), pp_module.clone())
+            .instrument(span.to_owned())
+            .await?;
 
     // ? -----------------------------------------------------------------------
     // ? Check if the source is allowed
@@ -155,7 +150,6 @@ pub(crate) async fn route_request(
         &route,
         client.clone(),
         api_config.clone(),
-        gateway_base_path,
     )
     .instrument(span.to_owned())
     .await?;

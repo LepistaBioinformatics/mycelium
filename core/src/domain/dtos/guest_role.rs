@@ -14,6 +14,12 @@ pub enum Permission {
     Write = 1,
 }
 
+impl Default for Permission {
+    fn default() -> Self {
+        Permission::Read
+    }
+}
+
 impl Permission {
     pub fn from_i32(v: i32) -> Self {
         match v {

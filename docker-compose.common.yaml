@@ -70,7 +70,7 @@ services:
     <<: *common-config
 
     container_name: myc-jaeger
-    image: 'jaegertracing/all-in-one:latest'
+    image: 'jaegertracing/jaeger:latest'
     restart: on-failure
     environment:
       - COLLECTOR_OTLP_ENABLED=true

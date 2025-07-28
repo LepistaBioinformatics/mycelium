@@ -2,6 +2,55 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.8] - 2025-07-14
+
+### 💼 Other
+
+- Move all cross dependencies of the project to the workspace definition
+
+## [8.0.1-beta.7] - 2025-07-11
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.6] - 2025-07-10
+
+### 🐛 Bug Fixes
+
+- *(remove unused packages from actix-web and fix licensed resources fetching sql syntax)* N
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.5] - 2025-07-09
+
+### 🚀 Features
+
+- *(security-groups)* Reduce the security group options to include only up to the protected-by-role option
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.4] - 2025-07-09
+
+### 🚜 Refactor
+
+- *(libs)* Move auxiliary libs to a dedicated directory
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.0.1-beta.2] - 2025-07-06
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.1] - 2025-06-30
 
 ### 🚀 Features
