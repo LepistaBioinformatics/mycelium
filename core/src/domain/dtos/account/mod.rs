@@ -84,7 +84,7 @@ pub struct Account {
     // Default account is the one that is created when the system is
     // initialized. Every user further created will be associated with this
     // account.
-    pub is_default: bool,
+    pub is_system_account: bool,
 
     /// The Account Owners
     ///
@@ -146,7 +146,7 @@ impl Default for Account {
             is_archived: false,
             is_deleted: false,
             verbose_status: None,
-            is_default: false,
+            is_system_account: false,
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::User,
             guest_users: None,
@@ -178,7 +178,7 @@ impl Account {
             is_archived: false,
             is_deleted: false,
             verbose_status: None,
-            is_default: false,
+            is_system_account: false,
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::Subscription { tenant_id },
             guest_users: None,
@@ -196,7 +196,7 @@ impl Account {
         read_role_id: Uuid,
         write_role_id: Uuid,
         role_name: T,
-        is_default: bool,
+        is_system_account: bool,
         created_by: Option<WrittenBy>,
     ) -> Self {
         Self {
@@ -209,7 +209,7 @@ impl Account {
             is_archived: false,
             is_deleted: false,
             verbose_status: None,
-            is_default,
+            is_system_account,
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::RoleAssociated {
                 tenant_id,
@@ -229,7 +229,7 @@ impl Account {
     pub fn new_actor_related_account(
         name: String,
         actor: SystemActor,
-        is_default: bool,
+        is_system_account: bool,
         created_by: Option<WrittenBy>,
     ) -> Self {
         Self {
@@ -242,7 +242,7 @@ impl Account {
             is_archived: false,
             is_deleted: false,
             verbose_status: None,
-            is_default,
+            is_system_account,
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::ActorAssociated { actor },
             guest_users: None,
@@ -269,7 +269,7 @@ impl Account {
             is_archived: false,
             is_deleted: false,
             verbose_status: None,
-            is_default: false,
+            is_system_account: false,
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::TenantManager { tenant_id },
             guest_users: None,
@@ -302,7 +302,7 @@ impl Account {
             is_archived: false,
             is_deleted: false,
             verbose_status: None,
-            is_default: false,
+            is_system_account: false,
             owners: Children::Records([principal_owner].to_vec()),
             account_type,
             guest_users: None,
@@ -339,7 +339,7 @@ mod tests {
             is_archived: false,
             is_deleted: false,
             verbose_status: None,
-            is_default: false,
+            is_system_account: false,
             owners: Children::Records([].to_vec()),
             account_type: AccountType::User,
             guest_users: None,

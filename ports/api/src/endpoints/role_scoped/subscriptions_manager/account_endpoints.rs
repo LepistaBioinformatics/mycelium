@@ -68,7 +68,7 @@ pub struct UpdateSubscriptionAccountNameAndFlagsBody {
     is_active: Option<bool>,
     is_checked: Option<bool>,
     is_archived: Option<bool>,
-    is_default: Option<bool>,
+    is_system_account: Option<bool>,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]
@@ -80,6 +80,7 @@ pub(crate) enum APIAccountType {
     Subscription,
     ActorAssociated,
     TenantManager,
+    RoleAssociated,
 }
 
 impl APIAccountType {
@@ -134,6 +135,26 @@ impl APIAccountType {
                 Ok(AccountType::ActorAssociated {
                     actor: actor.unwrap(),
                 })
+            }
+
+            //
+            // Role associated accounts
+            //
+            APIAccountType::RoleAssociated => {
+                if let Some(tenant_id) = tenant_id {
+                    Ok(AccountType::RoleAssociated {
+                        tenant_id,
+                        role_name: String::new(),
+                        read_role_id: Uuid::nil(),
+                        write_role_id: Uuid::nil(),
+                    })
+                } else {
+                    Err(HttpResponse::BadRequest().json(
+                        HttpJsonResponse::new_message(
+                            "Tenant ID is required for subscription accounts.",
+                        ),
+                    ))
+                }
             }
         }
     }
@@ -529,7 +550,7 @@ pub async fn update_account_name_and_flags_url(
         body.is_active.to_owned(),
         body.is_checked.to_owned(),
         body.is_archived.to_owned(),
-        body.is_default.to_owned(),
+        body.is_system_account.to_owned(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),

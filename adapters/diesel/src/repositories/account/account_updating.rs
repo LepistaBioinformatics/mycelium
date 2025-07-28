@@ -194,7 +194,7 @@ impl AccountUpdatingSqlDbRepository {
                 model.is_archived,
                 model.is_deleted,
             )),
-            is_default: model.is_default,
+            is_system_account: model.is_default,
             owners: Children::Records(vec![]),
             account_type: from_value(model.account_type).unwrap(),
             guest_users: None,

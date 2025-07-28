@@ -38,7 +38,7 @@ pub async fn update_account_name_and_flags(
     is_active: Option<bool>,
     is_checked: Option<bool>,
     is_archived: Option<bool>,
-    is_default: Option<bool>,
+    is_system_account: Option<bool>,
     account_fetching_repo: Box<&dyn AccountFetching>,
     account_updating_repo: Box<&dyn AccountUpdating>,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
@@ -105,7 +105,9 @@ pub async fn update_account_name_and_flags(
             _ => {}
         }
 
-        account.slug = slugify!(&name.as_str());
+        if !matches!(account.account_type, AccountType::RoleAssociated { .. }) {
+            account.slug = slugify!(&name.as_str());
+        }
     }
 
     if let Some(is_active) = is_active {
@@ -120,8 +122,8 @@ pub async fn update_account_name_and_flags(
         account.is_archived = is_archived;
     }
 
-    if let Some(is_default) = is_default {
-        account.is_default = is_default;
+    if let Some(is_system_account) = is_system_account {
+        account.is_system_account = is_system_account;
     }
 
     // ? -----------------------------------------------------------------------

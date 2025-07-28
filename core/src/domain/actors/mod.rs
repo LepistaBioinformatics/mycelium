@@ -141,15 +141,19 @@ impl FromStr for SystemActor {
 
     fn from_str(s: &str) -> Result<SystemActor, ()> {
         match s {
-            "beginner" | "no-role" => Ok(SystemActor::Beginner),
+            "beginners" | "beginner" | "no-role" => Ok(SystemActor::Beginner),
             "subscriptions-account-manager" | "subscriptions-manager" => {
                 Ok(SystemActor::SubscriptionsManager)
             }
             "users-account-manager" | "users-manager" => {
                 Ok(SystemActor::UsersManager)
             }
-            "account-manager" => Ok(SystemActor::AccountManager),
-            "guest-manager" => Ok(SystemActor::GuestsManager),
+            "accounts-manager" | "account-manager" => {
+                Ok(SystemActor::AccountManager)
+            }
+            "guests-manager" | "guest-manager" => {
+                Ok(SystemActor::GuestsManager)
+            }
             "gateway-manager" => Ok(SystemActor::GatewayManager),
             "system-manager" => Ok(SystemActor::SystemManager),
             "tenant-manager" => Ok(SystemActor::TenantManager),
@@ -171,11 +175,11 @@ impl SystemActor {
     pub fn str(&self) -> &str {
         match self {
             SystemActor::CustomRole(role) => role,
-            SystemActor::Beginner => "beginner",
+            SystemActor::Beginner => "beginners",
             SystemActor::SubscriptionsManager => "subscriptions-manager",
             SystemActor::UsersManager => "users-manager",
-            SystemActor::AccountManager => "account-manager",
-            SystemActor::GuestsManager => "guest-manager",
+            SystemActor::AccountManager => "accounts-manager",
+            SystemActor::GuestsManager => "guests-manager",
             SystemActor::GatewayManager => "gateway-manager",
             SystemActor::SystemManager => "system-manager",
             SystemActor::TenantOwner => "tenant-owner",

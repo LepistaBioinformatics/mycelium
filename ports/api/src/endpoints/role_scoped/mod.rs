@@ -62,41 +62,38 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
         // Beginners
         //
         .service(
-            web::scope(&format!(
-                "/{}",
-                SystemActor::Beginner.to_string().as_str()
-            ))
-            //
-            // Configure the standard role endpoints
-            //
-            .service(
-                web::scope(UrlGroup::Accounts.str())
-                    .configure(beginners_account_endpoints::configure),
-            )
-            .service(
-                web::scope(UrlGroup::Guests.str())
-                    .configure(beginners_guest_user_endpoints::configure),
-            )
-            .service(
-                web::scope(UrlGroup::Meta.str())
-                    .configure(beginners_meta_endpoints::configure),
-            )
-            .service(
-                web::scope(UrlGroup::Profile.str())
-                    .configure(beginners_profile_endpoints::configure),
-            )
-            .service(
-                web::scope(UrlGroup::Tenants.str())
-                    .configure(beginners_tenant_endpoints::configure),
-            )
-            .service(
-                web::scope(UrlGroup::Tokens.str())
-                    .configure(beginners_token_endpoints::configure),
-            )
-            .service(
-                web::scope(UrlGroup::Users.str())
-                    .configure(beginners_user_endpoints::configure),
-            ),
+            web::scope(SystemActor::Beginner.str())
+                //
+                // Configure the standard role endpoints
+                //
+                .service(
+                    web::scope(UrlGroup::Accounts.str())
+                        .configure(beginners_account_endpoints::configure),
+                )
+                .service(
+                    web::scope(UrlGroup::Guests.str())
+                        .configure(beginners_guest_user_endpoints::configure),
+                )
+                .service(
+                    web::scope(UrlGroup::Meta.str())
+                        .configure(beginners_meta_endpoints::configure),
+                )
+                .service(
+                    web::scope(UrlGroup::Profile.str())
+                        .configure(beginners_profile_endpoints::configure),
+                )
+                .service(
+                    web::scope(UrlGroup::Tenants.str())
+                        .configure(beginners_tenant_endpoints::configure),
+                )
+                .service(
+                    web::scope(UrlGroup::Tokens.str())
+                        .configure(beginners_token_endpoints::configure),
+                )
+                .service(
+                    web::scope(UrlGroup::Users.str())
+                        .configure(beginners_user_endpoints::configure),
+                ),
         )
         //
         // Gateway Managers

@@ -25,7 +25,7 @@ pub(crate) fn map_account_model_to_dto(model: AccountModel) -> Account {
             model.is_archived,
             model.is_deleted,
         )),
-        is_default: model.is_default,
+        is_system_account: model.is_default,
         owners: Children::Records(vec![]),
         account_type: from_value(model.account_type).unwrap(),
         guest_users: None,

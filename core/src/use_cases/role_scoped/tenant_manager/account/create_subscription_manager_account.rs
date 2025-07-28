@@ -12,7 +12,7 @@ use crate::domain::{
 
 use futures::future;
 use mycelium_base::{
-    entities::{CreateResponseKind, GetOrCreateResponseKind},
+    entities::GetOrCreateResponseKind,
     utils::errors::{use_case_err, MappedErrors},
 };
 use tracing::Instrument;
@@ -36,7 +36,7 @@ pub async fn create_subscription_manager_account(
     tenant_id: Uuid,
     guest_role_registration_repo: Box<&dyn GuestRoleRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
-) -> Result<CreateResponseKind<Account>, MappedErrors> {
+) -> Result<GetOrCreateResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Initialize tracing span
     // ? -----------------------------------------------------------------------
@@ -60,7 +60,7 @@ pub async fn create_subscription_manager_account(
 
     let (id, slug, description, children, is_system) = (
         None,
-        SystemActor::TenantManager.to_string(),
+        SystemActor::SubscriptionsManager.to_string(),
         Some(format!(
             "Role associated subscription manager account for tenant: {}",
             tenant_id
@@ -135,7 +135,7 @@ pub async fn create_subscription_manager_account(
     // ? -----------------------------------------------------------------------
 
     let mut unchecked_account = Account::new_role_related_account(
-        format!("tid/{}/{}", tenant_id, slug),
+        format!("tid/{}/role/{}", tenant_id, slug),
         tenant_id,
         read_role_id,
         write_role_id,
@@ -147,7 +147,7 @@ pub async fn create_subscription_manager_account(
     unchecked_account.is_checked = true;
 
     account_registration_repo
-        .create_subscription_account(unchecked_account, tenant_id)
+        .get_or_create_role_related_account(unchecked_account)
         .instrument(span)
         .await
 }

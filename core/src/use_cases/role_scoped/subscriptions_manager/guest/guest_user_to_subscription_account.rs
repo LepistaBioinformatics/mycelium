@@ -95,6 +95,8 @@ pub async fn guest_user_to_subscription_account(
         }
     };
 
+    println!("account type: {:?}", target_account.account_type);
+
     match target_account.account_type {
         //
         // If the target account is an actor associated account, the user must
@@ -135,6 +137,8 @@ pub async fn guest_user_to_subscription_account(
         //
         AccountType::RoleAssociated { .. }
         | AccountType::Subscription { .. } => {
+            println!("matched role associated or subscription account");
+
             profile
                 .on_account(account_id)
                 .with_write_access()
