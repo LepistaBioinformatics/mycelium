@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - *(role-assiciated-accounts)* Do implement features that allow the role-associated accounts to be managed
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.9] - 2025-07-28
 
 ### 🚀 Features
