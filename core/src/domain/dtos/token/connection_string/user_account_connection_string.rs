@@ -38,7 +38,6 @@ impl UserAccountScope {
         account_id: Uuid,
         expires_at: DateTime<Local>,
         roles: Option<Vec<PermissionedRole>>,
-        //permissioned_roles: Option<PermissionedRoles>,
         tenant_id: Option<Uuid>,
         subscription_account_id: Option<Uuid>,
         config: AccountLifeCycle,
@@ -51,10 +50,6 @@ impl UserAccountScope {
         if let Some(roles) = roles {
             beans.push(ConnectionStringBean::RLS(roles));
         }
-
-        //if let Some(permissioned_roles) = permissioned_roles {
-        //    beans.push(ConnectionStringBean::PR(permissioned_roles));
-        //}
 
         if let Some(tenant_id) = tenant_id {
             beans.push(ConnectionStringBean::TID(tenant_id));

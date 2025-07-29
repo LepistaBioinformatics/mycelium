@@ -68,6 +68,8 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             );
         }
 
+        println!("Roles list_licensed_resources: {:?}", roles);
+
         if let Some(roles) = roles {
             let statement = roles
                 .iter()
@@ -85,6 +87,8 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
 
             sql.push_str(format!(" AND ({})", statement).as_str());
         }
+
+        println!("SQL Query: {}", sql);
 
         if let Some(was_verified) = was_verified {
             sql.push_str(
