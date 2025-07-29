@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.13] - 2025-07-29
+
+### 🐛 Bug Fixes
+
+- *(profile-filtration)* Solve the profile filtration bug that completely remove the roles during connnection string usage
+
+## [8.0.1-beta.12] - 2025-07-29
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.11] - 2025-07-29
 
 ### 🐛 Bug Fixes
