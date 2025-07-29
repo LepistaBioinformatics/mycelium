@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.12] - 2025-07-29
+
+### 🐛 Bug Fixes
+
+- Fix tools listing on unwrap summary
+
+## [8.0.1-beta.11] - 2025-07-29
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.10] - 2025-07-29
 
 ### 🚀 Features

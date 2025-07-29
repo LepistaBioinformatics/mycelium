@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Turn the tenant manager account slug immutable like the role-associated
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.10] - 2025-07-29
 
 ### 🚀 Features
