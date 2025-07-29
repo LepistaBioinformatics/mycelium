@@ -176,7 +176,12 @@ impl From<ToolOperation> for Tool {
 
         Tool::new(
             tool_operation.operation.operation_id.unwrap(),
-            std::borrow::Cow::Owned(tool_operation.operation.summary.unwrap()),
+            std::borrow::Cow::Owned(
+                tool_operation
+                    .operation
+                    .summary
+                    .unwrap_or("no summary".to_string()),
+            ),
             Arc::new(input_schema_json_object),
         )
     }
