@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.10] - 2025-07-29
+
+### 🚀 Features
+
+- *(role-assiciated-accounts)* Do implement features that allow the role-associated accounts to be managed
+
 ## [8.0.1-beta.9] - 2025-07-28
 
 ### 🚀 Features
@@ -19,6 +25,10 @@ All notable changes to this project will be documented in this file.
 ### 🚜 Refactor
 
 - *(main-api-config)* Review the api configuration to group close elements given their system importance
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.8] - 2025-07-14
 

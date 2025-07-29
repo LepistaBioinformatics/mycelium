@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - *(mcp)* Finish the mcp server implementation
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.8] - 2025-07-14
 
 ### 💼 Other

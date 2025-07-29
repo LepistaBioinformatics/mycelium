@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 - Wip - implements the basis for the mcp server management and connection
 - Resover mcp return for list tools to include request body
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.8] - 2025-07-14
 
 ### 💼 Other
