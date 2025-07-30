@@ -68,6 +68,8 @@ pub async fn fetch_and_inject_profile_from_token_to_forward(
             .await?
     };
 
+    tracing::debug!("Profile: {:?}", profile);
+
     span.record("myc.router.profile_id", &Some(profile.acc_id.to_string()))
         .record("myc.router.is_staff", &Some(profile.is_staff))
         .record("myc.router.is_manager", &Some(profile.is_manager))
