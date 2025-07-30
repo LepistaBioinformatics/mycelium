@@ -165,7 +165,7 @@ fn filter_roles(
                         // connection string permission represents the baseline.
                         //
                         let perm_match =
-                            profile_perm.to_i32() >= conn_str_perm.to_i32();
+                            profile_perm.to_i32() == conn_str_perm.to_i32();
 
                         name_match && perm_match
                     },

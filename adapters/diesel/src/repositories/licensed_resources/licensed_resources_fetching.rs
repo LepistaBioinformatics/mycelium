@@ -75,7 +75,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 .iter()
                 .fold(String::new(), |acc, role| {
                     format!(
-                        "{}(gr_slug = '{}' AND gr_perm >= {}) OR ",
+                        "{}(gr_slug = '{}' AND gr_perm <= {}) OR ",
                         acc,
                         role.name,
                         role.permission.to_owned().clone().unwrap_or_default()
