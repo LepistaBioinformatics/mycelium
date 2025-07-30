@@ -20,7 +20,8 @@ use uuid::Uuid;
 
 #[tracing::instrument(
     name = "recovery_profile_from_storage_engines",
-    skip(req)
+    fields(email = %email.redacted_email()),
+    skip(req, email)
 )]
 pub(crate) async fn recovery_profile_from_storage_engines(
     req: HttpRequest,

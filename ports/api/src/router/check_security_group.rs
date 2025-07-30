@@ -14,7 +14,15 @@ use tracing::Instrument;
 /// This function checks the security group of the route and injects the
 /// appropriate headers into the request.
 ///
-#[tracing::instrument(name = "check_security_group", skip_all)]
+#[tracing::instrument(
+    name = "check_security_group",
+    fields(
+        request_path = format!("{} {}", req.method(), req.path()),
+        route_pattern = format!("'{}'", route.path),
+        security_group = %route.security_group.to_string(),
+    ),
+    skip(req, downstream_request, route)
+)]
 pub(super) async fn check_security_group(
     req: HttpRequest,
     mut downstream_request: ClientRequest,

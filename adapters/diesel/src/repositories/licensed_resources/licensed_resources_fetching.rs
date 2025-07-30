@@ -68,14 +68,14 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             );
         }
 
-        println!("Roles list_licensed_resources: {:?}", roles);
+        tracing::debug!("Roles in List Licensed Resources: {:?}", roles);
 
         if let Some(roles) = roles {
             let statement = roles
                 .iter()
                 .fold(String::new(), |acc, role| {
                     format!(
-                        "{}(gr_slug = '{}' AND gr_perm = {}) OR ",
+                        "{}(gr_slug = '{}' AND gr_perm <= {}) OR ",
                         acc,
                         role.name,
                         role.permission.to_owned().clone().unwrap_or_default()
@@ -88,7 +88,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             sql.push_str(format!(" AND ({})", statement).as_str());
         }
 
-        println!("SQL Query: {}", sql);
+        tracing::debug!("SQL Query: {}", sql);
 
         if let Some(was_verified) = was_verified {
             sql.push_str(

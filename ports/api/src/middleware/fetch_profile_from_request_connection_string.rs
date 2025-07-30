@@ -19,7 +19,7 @@ use uuid::Uuid;
 pub(crate) async fn fetch_profile_from_request_connection_string(
     req: HttpRequest,
     tenant: Option<Uuid>,
-    roles: Option<Vec<PermissionedRole>>,
+    required_roles: Option<Vec<PermissionedRole>>,
 ) -> Result<MyceliumProfileData, GatewayError> {
     let span: tracing::Span = tracing::Span::current();
 
@@ -54,7 +54,7 @@ pub(crate) async fn fetch_profile_from_request_connection_string(
     // the connection string
     //
     let updated_roles = filter_roles(
-        roles.to_owned(),
+        required_roles.to_owned(),
         connection_string.get_roles().to_owned(),
     );
 
@@ -120,36 +120,63 @@ fn filter_roles(
     if let (Some(profile_roles), Some(connection_string_roles)) =
         (profile_roles.to_owned(), connection_string_roles.to_owned())
     {
-        let local_pairs = profile_roles
+        let connection_string_roles_binding = connection_string_roles
             .iter()
             .map(|role| (role.name.clone(), role.permission.clone()))
             .collect::<Vec<_>>();
 
-        let matched_roles = connection_string_roles
-            .clone()
+        //
+        // The profile roles represented the real permissions of the user, when
+        // the connection string restrictions are ignored. This permissions
+        // should be filtered by the connection string restrictions.
+        //
+        let filtered_roles = profile_roles
             .iter()
-            .filter(|role| {
-                let conn_str_perm =
-                    role.permission.clone().unwrap_or(Permission::Read);
+            .filter(|profile_role| {
+                //
+                // If the connection string has no restrictions, the profile
+                // permissions should be accepted.
+                //
+                if connection_string_roles.is_empty() {
+                    return true;
+                }
+
+                let profile_perm =
+                    profile_role.permission.clone().unwrap_or(Permission::Read);
 
                 //
-                // Filter local pairs that contains the same role name AND
-                // permissions with equal or lower permission (as numeric value).
+                // Otherwise, the profile permissions should be filtered by
+                // the connection string permissions.
                 //
-                local_pairs.iter().any(|(name, permission)| {
-                    let local_perm =
-                        permission.clone().unwrap_or(Permission::Read);
+                connection_string_roles_binding.iter().any(
+                    |(name, permission)| {
+                        let conn_str_perm =
+                            permission.clone().unwrap_or(Permission::Read);
 
-                    role.name == *name
-                        && conn_str_perm.to_i32() >= local_perm.to_i32()
-                })
+                        //
+                        // Name should perfectly match
+                        //
+                        let name_match = name.to_lowercase()
+                            == profile_role.name.to_lowercase();
+
+                        //
+                        // The profile permissions should be GREATER or EQUAL
+                        // than the connection string permissions. The
+                        // connection string permission represents the baseline.
+                        //
+                        let perm_match =
+                            profile_perm.to_i32() >= conn_str_perm.to_i32();
+
+                        name_match && perm_match
+                    },
+                )
             })
             .map(|i| i.to_owned())
             .collect::<Vec<_>>();
 
-        return match matched_roles.is_empty() {
+        return match filtered_roles.is_empty() {
             true => None,
-            false => Some(matched_roles),
+            false => Some(filtered_roles),
         };
     }
 
