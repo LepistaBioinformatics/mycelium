@@ -2709,7 +2709,7 @@ checksum = "e94e1e6445d314f972ff7395df2de295fe51b71821694f0b0e1e79c4f12c8577"
 
 [[package]]
 name = "myc-core"
-version = "8.0.1-beta.14"
+version = "8.0.1-beta.15"
 dependencies = [
  "argon2",
  "async-trait",
@@ -2750,7 +2750,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-adapters-shared-lib"
-version = "8.0.1-beta.14"
+version = "8.0.1-beta.15"
 dependencies = [
  "myc-core",
  "mycelium-base",
@@ -2763,7 +2763,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-api"
-version = "8.0.1-beta.14"
+version = "8.0.1-beta.15"
 dependencies = [
  "actix-cors",
  "actix-rt",
@@ -2824,7 +2824,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-api-test-svc"
-version = "8.0.1-beta.14"
+version = "8.0.1-beta.15"
 dependencies = [
  "actix-web",
  "anyhow",
@@ -2841,7 +2841,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-base"
-version = "8.0.1-beta.14"
+version = "8.0.1-beta.15"
 dependencies = [
  "regex",
  "serde",
@@ -2852,7 +2852,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-cli"
-version = "8.0.1-beta.14"
+version = "8.0.1-beta.15"
 dependencies = [
  "clap",
  "env_logger 0.10.2",
@@ -2869,7 +2869,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-config"
-version = "8.0.1-beta.14"
+version = "8.0.1-beta.15"
 dependencies = [
  "lazy_static",
  "mycelium-base",
@@ -2883,7 +2883,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-diesel"
-version = "8.0.1-beta.14"
+version = "8.0.1-beta.15"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -2905,7 +2905,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-http-tools"
-version = "8.0.1-beta.14"
+version = "8.0.1-beta.15"
 dependencies = [
  "actix-web",
  "actix-web-httpauth",
@@ -2932,7 +2932,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-key-value"
-version = "8.0.1-beta.14"
+version = "8.0.1-beta.15"
 dependencies = [
  "async-trait",
  "futures",
@@ -2953,7 +2953,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-memory-db"
-version = "8.0.1-beta.14"
+version = "8.0.1-beta.15"
 dependencies = [
  "async-trait",
  "http 1.3.1",
@@ -2969,7 +2969,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-notifier"
-version = "8.0.1-beta.14"
+version = "8.0.1-beta.15"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2990,7 +2990,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-openapi"
-version = "8.0.1-beta.14"
+version = "8.0.1-beta.15"
 dependencies = [
  "mycelium-base",
  "serde",
@@ -3001,7 +3001,7 @@ dependencies = [
 
 [[package]]
 name = "mycelium-service"
-version = "8.0.1-beta.14"
+version = "8.0.1-beta.15"
 dependencies = [
  "async-trait",
  "env_logger 0.10.2",

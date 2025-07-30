@@ -2,11 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.15] - 2025-07-30
+
+### 🐛 Bug Fixes
+
+- *(licensed-resources)* Fix the logic to check the user permissions matching between their profile and connection-string
+
 ## [8.0.1-beta.14] - 2025-07-30
 
 ### 🐛 Bug Fixes
 
 - *(roles filtering)* Review the profile injection cascade to empower the connection string filtration priority
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.13] - 2025-07-29
 

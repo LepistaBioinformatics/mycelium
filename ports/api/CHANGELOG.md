@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - *(roles filtering)* Review the profile injection cascade to empower the connection string filtration priority
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.13] - 2025-07-29
 
 ### 🐛 Bug Fixes
