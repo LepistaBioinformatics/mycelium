@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Return to the previous state on filter permissions to be greater or equal to profile perms
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.16] - 2025-07-30
 
 ### 🐛 Bug Fixes
