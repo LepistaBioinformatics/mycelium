@@ -6,7 +6,9 @@ use crate::middleware::{
 use actix_web::HttpRequest;
 use awc::ClientRequest;
 use myc_core::domain::dtos::{route::Route, security_group::SecurityGroup};
-use myc_http_tools::responses::GatewayError;
+use myc_http_tools::{
+    responses::GatewayError, settings::MYCELIUM_SECURITY_GROUP,
+};
 use tracing::Instrument;
 
 /// Check the security group
@@ -30,7 +32,28 @@ pub(super) async fn check_security_group(
 ) -> Result<ClientRequest, GatewayError> {
     let span = tracing::Span::current();
 
-    match route.security_group.to_owned() {
+    let security_group = route.security_group.to_owned();
+
+    //
+    // Inject security group as header
+    //
+    let serialized_security_group = serde_json::to_string(&security_group)
+        .map_err(|e| {
+            tracing::error!("Failed to serialize security group: {e}");
+
+            GatewayError::BadGateway(
+                "Failed to build downstream request. Please try again later."
+                    .to_string(),
+            )
+        })?;
+
+    downstream_request = downstream_request
+        .insert_header((MYCELIUM_SECURITY_GROUP, serialized_security_group));
+
+    //
+    // Check requester permissions given the security group
+    //
+    match security_group {
         //
         // Public routes do not need any authentication or profile injection.
         //

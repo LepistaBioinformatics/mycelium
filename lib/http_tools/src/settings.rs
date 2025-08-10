@@ -69,6 +69,13 @@ pub const FORWARD_FOR_KEY: &str = "x-forwarded-for";
 ///
 pub const MYCELIUM_SERVICE_NAME: &str = "x-mycelium-service-name";
 
+/// Default security group key
+///
+/// This is the default key used to store the security group in the request
+/// headers and send it to the gateway downstream services.
+///
+pub const MYCELIUM_SECURITY_GROUP: &str = "x-mycelium-security-group";
+
 /// Default forwarding keys
 ///
 /// Such keys are used to map the headers that should be removed from the
