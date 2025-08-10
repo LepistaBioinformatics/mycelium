@@ -8,14 +8,11 @@ pub mod utils;
 pub mod wrappers;
 
 /// This is a re-exportation from the myc core to allow users to import both
-/// from myc-api instead of the myc-core.
+/// from myc-http-tools instead of the myc-core.
 pub use myc_core::domain::{
-    actors::SystemActor,
+    actors::*,
     dtos::{
-        account::Account,
-        email::Email,
-        guest_role::Permission,
-        profile::{LicensedResource, Profile},
-        related_accounts::RelatedAccounts,
+        account::*, email::*, guest_role::*, profile::*, related_accounts::*,
+        security_group::*,
     },
 };
