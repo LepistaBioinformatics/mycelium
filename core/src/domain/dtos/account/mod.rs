@@ -458,7 +458,7 @@ mod tests {
                         VerboseStatus::from_flags(
                             flags_response.is_active.unwrap(),
                             flags_response.is_checked.unwrap(),
-                            flags_response.is_archived.unwrap(),
+                            flags_response.is_archived.unwrap_or(is_archived),
                             flags_response.is_deleted.unwrap(),
                         ),
                         expected_value

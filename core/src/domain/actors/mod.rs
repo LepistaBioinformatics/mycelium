@@ -63,6 +63,13 @@ pub enum SystemActor {
     /// ❌ Wrong example:
     ///
     /// ```rust
+    /// use myc_core::domain::dtos::profile::Profile;
+    /// use myc_core::domain::actors::SystemActor;
+    /// use uuid::Uuid;
+    ///
+    /// let profile = Profile::default();
+    /// let tenant_id = Uuid::new_v4();
+    ///
     /// let related_accounts = profile
     ///     .on_tenant(tenant_id)
     ///     .with_system_accounts_access()
@@ -72,7 +79,7 @@ pub enum SystemActor {
     ///         SystemActor::TenantManager,
     ///         SystemActor::SubscriptionsManager,
     ///     ])
-    ///     .get_related_accounts_or_error()?;
+    ///     .get_related_account_or_error();
     /// ```
     ///
     /// This way should check if the profile has access to the tenant as a guest
@@ -82,6 +89,14 @@ pub enum SystemActor {
     /// ✅ Right example:
     ///
     /// ```rust
+    /// use myc_core::domain::dtos::profile::Profile;
+    /// use myc_core::domain::actors::SystemActor;
+    /// use myc_core::domain::dtos::guest_role::Permission;
+    /// use uuid::Uuid;
+    ///
+    /// let profile = Profile::default();
+    /// let tenant_id = Uuid::new_v4();
+    ///
     /// let related_accounts = profile
     ///     .on_tenant(tenant_id)
     ///     .with_system_accounts_access()
@@ -90,7 +105,7 @@ pub enum SystemActor {
     ///         SystemActor::TenantManager,
     ///         SystemActor::SubscriptionsManager,
     ///     ])
-    ///     .get_related_accounts_or_tenant_or_error(tenant_id)?;
+    ///     .get_related_accounts_or_tenant_wide_permission_or_error(tenant_id, Permission::Write);
     /// ```
     ///
     /// This way should check if the profile has ownership over the tenant.

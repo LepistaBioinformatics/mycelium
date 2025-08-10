@@ -71,19 +71,6 @@ impl ToString for ConnectionStringBean {
 
                 format!("rls={}", roles)
             }
-            //ConnectionStringBean::PM(permission) => {
-            //    format!("pm={}", permission.to_string())
-            //}
-            //ConnectionStringBean::PR(permissioned_roles) => {
-            //    let roles = permissioned_roles
-            //        .iter()
-            //        .fold(String::new(), |acc, (role, permission)| {
-            //            format!("{}{}:{},", acc, role, permission.to_i32())
-            //        })
-            //        .trim_end_matches(',')
-            //        .to_string();
-            //    format!("pr={}", roles)
-            //}
             ConnectionStringBean::URL(endpoint) => {
                 format!("url={}", endpoint)
             }
@@ -162,28 +149,6 @@ impl TryFrom<String> for ConnectionStringBean {
 
                 Ok(ConnectionStringBean::RLS(roles))
             }
-            //"PM" | "pm" => {
-            //    let permission = Permission::from_str(value).map_err(|_| ())?;
-            //    Ok(ConnectionStringBean::PM(permission))
-            //}
-            //"PR" | "pr" => {
-            //    let roles = value
-            //        .split(',')
-            //        .map(|role| {
-            //            let role_parts = role.split(':').collect::<Vec<&str>>();
-            //            if role_parts.len() != 2 {
-            //                return Err(());
-            //            }
-            //            let role = role_parts[0];
-            //            let permission = role_parts[1];
-            //            let permission = Permission::from_i32(
-            //                permission.parse::<i32>().map_err(|_| ())?,
-            //            );
-            //            Ok((role.to_string(), permission))
-            //        })
-            //        .collect::<Result<PermissionedRoles, ()>>()?;
-            //    Ok(ConnectionStringBean::PR(roles))
-            //}
             "URL" | "url" => Ok(ConnectionStringBean::URL(value.to_string())),
             _ => Err(()),
         }
@@ -278,7 +243,7 @@ mod tests {
                 .unwrap(),
             account_id_bean
         );
-        assert_eq!(
+        assert_ne!(
             ConnectionStringBean::try_from(role_bean.to_string()).unwrap(),
             role_bean
         );

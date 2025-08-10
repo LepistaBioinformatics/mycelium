@@ -12,13 +12,17 @@
 ///
 /// ```
 /// use mycelium_base::dtos::{Children, Parent};
+/// use serde::{Deserialize, Serialize};
+/// use utoipa::ToSchema;
 ///
+/// #[derive(Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema)]
 /// struct Post {
 ///    id: i32,
 ///    title: String,
 ///    comments: Children<Comment, i32>,
 /// };
 ///
+/// #[derive(Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema)]
 /// struct Comment {
 ///     post: Parent<Post, i32>,
 ///     id: i32,

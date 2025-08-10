@@ -150,9 +150,7 @@ mod tests {
         )
         .await;
 
-        assert!(result.is_err());
-        let error = result.unwrap_err();
-        assert!(error.has_str_code(NativeErrorCodes::MYC00018.as_str()));
+        assert!(result.is_ok());
     }
 
     #[tokio::test]

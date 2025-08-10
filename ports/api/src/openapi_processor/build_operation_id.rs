@@ -50,8 +50,30 @@ mod tests {
         let operation_id_unnamed =
             build_operation_id("GET", None, "user", "user/1");
 
-        assert_eq!(operation_id_named, "user:GET:get_user");
+        let operation_id_named_without_random_suffix = operation_id_named
+            .split("__")
+            .collect::<Vec<&str>>()
+            .into_iter()
+            .take(3)
+            .collect::<Vec<&str>>()
+            .join("__");
 
-        assert_eq!(operation_id_unnamed, "user:GET:user_1");
+        let operation_id_unnamed_without_random_suffix = operation_id_unnamed
+            .split("__")
+            .collect::<Vec<&str>>()
+            .into_iter()
+            .take(3)
+            .collect::<Vec<&str>>()
+            .join("__");
+
+        assert_eq!(
+            operation_id_named_without_random_suffix,
+            "user__GET__get_user"
+        );
+
+        assert_eq!(
+            operation_id_unnamed_without_random_suffix,
+            "user__GET__user_1"
+        );
     }
 }

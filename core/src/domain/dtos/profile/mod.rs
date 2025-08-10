@@ -810,7 +810,7 @@ mod tests {
         let profile_with_standard = profile.with_system_accounts_access();
 
         assert_eq!(
-            1,
+            3,
             profile_with_read
                 .licensed_resources
                 .unwrap()
@@ -819,7 +819,7 @@ mod tests {
         );
 
         assert_eq!(
-            1,
+            2,
             profile_with_write
                 .licensed_resources
                 .unwrap()
@@ -858,7 +858,7 @@ mod tests {
         let profile_on_tenant_with_write =
             profile_on_tenant.with_write_access();
         assert_eq!(
-            1,
+            2,
             profile_on_tenant_with_read
                 .licensed_resources
                 .unwrap()

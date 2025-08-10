@@ -240,7 +240,7 @@ pub struct Service {
     ///
     /// Then, the downstream url should be:
     ///
-    /// ```
+    /// ```bash
     /// http://proxy.example.com:8080/http://service.example.com:8080/api/v1/service/1234567890
     /// ```
     ///

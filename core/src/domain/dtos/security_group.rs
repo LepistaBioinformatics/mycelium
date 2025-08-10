@@ -30,9 +30,9 @@ fn default_permission() -> Option<Permission> {
 impl ToString for PermissionedRole {
     fn to_string(&self) -> String {
         format!(
-            "{}: {}",
+            "{}:{}",
             self.name,
-            self.permission.clone().unwrap_or_default().to_string()
+            self.permission.clone().unwrap_or_default().to_i32()
         )
     }
 }
