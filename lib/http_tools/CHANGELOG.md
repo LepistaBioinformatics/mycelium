@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.19] - 2025-08-10
+
+### 🚀 Features
+
+- Increase the scope of re-exportated dtos from the myc-http-tools export of myc-core
+
+## [8.0.1-beta.18] - 2025-07-31
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.17] - 2025-07-30
 
 ### ⚙️ Miscellaneous Tasks
