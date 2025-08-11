@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.21] - 2025-08-11
+
+### 🚀 Features
+
+- Include the security group in downstream hequest header
+
 ## [8.0.1-beta.20] - 2025-08-10
 
 ### 🚀 Features
@@ -10,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 
 ## [8.0.1-beta.18] - 2025-07-31
