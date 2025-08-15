@@ -34,6 +34,7 @@ use uuid::Uuid;
 )]
 pub async fn create_connection_string(
     profile: Profile,
+    name: String,
     expiration: i64,
     tenant_id: Option<Uuid>,
     subscription_account_id: Option<Uuid>,
@@ -76,6 +77,7 @@ pub async fn create_connection_string(
             profile.acc_id,
             Email::from_string(owner.email.to_owned())?,
             life_cycle_settings.to_owned(),
+            Some(name),
         )
         .await?;
 

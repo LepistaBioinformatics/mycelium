@@ -346,6 +346,7 @@ mod tests {
                 user_id,
                 email,
                 config,
+                None,
             )
             .await;
 

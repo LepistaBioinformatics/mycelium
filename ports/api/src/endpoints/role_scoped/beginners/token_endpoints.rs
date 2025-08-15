@@ -36,6 +36,12 @@ pub struct CreateTokenBody {
     ///
     expiration: i64,
 
+    /// The name of the token
+    ///
+    /// The name of the token.
+    ///
+    name: String,
+
     /// A single tenant ID
     ///
     /// If specified, the actions allowed by the token will be scoped to the
@@ -108,6 +114,7 @@ pub async fn create_connection_string_url(
 ) -> impl Responder {
     match create_connection_string(
         profile.to_profile(),
+        body.name.to_owned(),
         body.expiration.to_owned(),
         body.tenant_id.to_owned(),
         body.service_account_id.to_owned(),
