@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [8.0.1-beta.22] - 2025-08-17
+## [8.0.1-beta.23] - 2025-08-17
 
 ### 🚀 Features
 
@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file.
 ### 🐛 Bug Fixes
 
 - Fix authorization endpoints to allow oidc discovery with self registration
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.21] - 2025-08-11
 

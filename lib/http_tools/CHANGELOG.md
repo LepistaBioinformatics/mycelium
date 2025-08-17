@@ -2,11 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [8.0.1-beta.22] - 2025-08-17
+## [8.0.1-beta.23] - 2025-08-17
 
 ### 🚀 Features
 
 - Include a restriction tag to filter mcp tools before routing it to mcp server
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.21] - 2025-08-11
 
