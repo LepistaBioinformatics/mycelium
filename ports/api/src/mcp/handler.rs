@@ -5,6 +5,7 @@ use crate::{
     },
 };
 
+use myc_http_tools::settings::MYCELIUM_AI_AWARE;
 use mycelium_openapi::Operation;
 use rmcp::{
     handler::server::ServerHandler,
@@ -160,7 +161,7 @@ impl From<ToolOperation> for Tool {
 
         let input_schema_value = serde_json::json!({
             "type": "object",
-            "properties": input_schema_obj,
+            "parameters": input_schema_obj,
             "required": required_fields,
         });
 
@@ -206,6 +207,9 @@ impl MyceliumMcpHandler {
         let tools: Vec<ToolOperation> = operations_database
             .operations
             .iter()
+            .filter(|op| {
+                op.operation.tags.contains(&MYCELIUM_AI_AWARE.to_string())
+            })
             .filter_map(|tool_operation| {
                 let operation_id = build_operation_id(
                     &tool_operation.method.to_string(),
