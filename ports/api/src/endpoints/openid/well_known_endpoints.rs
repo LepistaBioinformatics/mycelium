@@ -3,6 +3,7 @@ use crate::endpoints::openid::shared::{
 };
 
 use actix_web::{get, web, HttpResponse, Responder};
+use awc::Client;
 use myc_config::optional_config::OptionalConfig;
 use myc_core::models::AccountLifeCycle;
 use myc_http_tools::{
@@ -26,10 +27,10 @@ pub fn configure(config: &mut web::ServiceConfig) {
 // ? ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Deserialize, Serialize, ToResponse, ToSchema)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "snake_case")]
 struct ProtectedResource {
     resource: String,
-    authorization_servers: Vec<AuthorizationProvider>,
+    authorization_servers: Vec<String>,
     scopes_supported: Vec<String>,
     bearer_methods_supported: Vec<String>,
     resource_documentation: String,
@@ -54,6 +55,7 @@ struct ProtectedResource {
 #[get("/.well-known/oauth-authorization-server")]
 pub async fn well_known_oauth_authorization_server(
     auth_config: web::Data<AuthConfig>,
+    client: web::Data<Client>,
 ) -> impl Responder {
     let auth_config = auth_config.get_ref();
 
@@ -90,9 +92,26 @@ pub async fn well_known_oauth_authorization_server(
 
     let provider = authorization_providers.iter().next().unwrap();
 
-    HttpResponse::Found()
-        .append_header(("Location", provider.discovery_url.clone()))
-        .finish()
+    match client.get(provider.discovery_url.clone()).send().await {
+        Err(err) => {
+            tracing::error!(
+                "Error fetching well known oauth authorization server from provider {}: {err}",
+                provider.issuer
+            );
+
+            HttpResponse::InternalServerError().finish()
+        }
+        Ok(mut res) => {
+            let mut client_resp = HttpResponse::build(res.status());
+
+            for (h_name, h_value) in res.headers().iter() {
+                client_resp.append_header((h_name.clone(), h_value.clone()));
+            }
+
+            let body = res.body().await.unwrap_or_else(|_| web::Bytes::new());
+            client_resp.body(body)
+        }
+    }
 }
 
 /// Provide the well known auth protected resources endpoint
@@ -141,7 +160,10 @@ pub async fn well_known_protected_resource(
 
     let authorization_servers =
         match get_authorization_providers(auth_config, None).await {
-            Ok(providers) => providers,
+            Ok(providers) => providers
+                .iter()
+                .map(|p| p.issuer.clone())
+                .collect::<Vec<_>>(),
             Err(error) => {
                 return error;
             }
