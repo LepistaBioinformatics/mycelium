@@ -2,11 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.22] - 2025-08-17
+
+### 🚀 Features
+
+- Insert comprehensive identifiers to the mycelium tokens
+- Include a restriction tag to filter mcp tools before routing it to mcp server
+
+### 🐛 Bug Fixes
+
+- Fix authorization endpoints to allow oidc discovery with self registration
+
 ## [8.0.1-beta.21] - 2025-08-11
 
 ### 🚀 Features
 
 - Include the security group in downstream hequest header
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.20] - 2025-08-10
 

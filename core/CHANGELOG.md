@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.22] - 2025-08-17
+
+### 🚀 Features
+
+- Insert comprehensive identifiers to the mycelium tokens
+
+## [8.0.1-beta.21] - 2025-08-11
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.20] - 2025-08-10
 
 ### 🧪 Testing
