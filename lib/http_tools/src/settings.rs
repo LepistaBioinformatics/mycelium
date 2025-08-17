@@ -101,6 +101,9 @@ pub const FORWARDING_KEYS: [&str; 9] = [
 ///
 pub const MYCELIUM_PROVIDER_KEY: &str = "mycelium";
 
+/// The scope used to indicate MCP routes
+pub const MYCELIUM_AI_AWARE: &str = "mycelium-ai-aware";
+
 // ? ---------------------------------------------------------------------------
 // ? Authentication and authorization
 // ? ---------------------------------------------------------------------------

@@ -12,6 +12,7 @@ use chrono::Local;
 use myc_core::domain::{
     dtos::health_check_info::HealthStatus, entities::ServiceRead,
 };
+use myc_http_tools::settings::MYCELIUM_AI_AWARE;
 use myc_mem_db::repositories::MemDbAppModule;
 use mycelium_base::{
     entities::FetchManyResponseKind,
@@ -95,7 +96,11 @@ pub(crate) async fn initialize_tools_registry(
         app_modules,
         true,
     )
-    .await?;
+    .await?
+    .iter()
+    .filter(|op| op.operation.tags.contains(&MYCELIUM_AI_AWARE.to_string()))
+    .map(|op| op.clone())
+    .collect::<Vec<_>>();
 
     service_operations.operations.extend(mycelium_operations);
     service_operations

@@ -4,6 +4,7 @@ use crate::{
 };
 
 use myc_core::domain::dtos::service::Service;
+use myc_http_tools::settings::MYCELIUM_AI_AWARE;
 use myc_mem_db::repositories::MemDbAppModule;
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use mycelium_openapi::OpenApiSchema;
@@ -71,7 +72,11 @@ pub(super) async fn load_operations_from_downstream_services(
             app_modules.clone(),
             false,
         )
-        .await?;
+        .await?
+        .iter()
+        .filter(|op| op.operation.tags.contains(&MYCELIUM_AI_AWARE.to_string()))
+        .map(|op| op.clone())
+        .collect::<Vec<_>>();
 
         operations.extend(local_operations);
         docs.insert(service.name, doc);

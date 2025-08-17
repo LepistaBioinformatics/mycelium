@@ -4,7 +4,8 @@ use actix_web::{
     delete, get, post, put, web, HttpRequest, HttpResponse, Responder,
 };
 use myc_http_tools::{
-    dtos::gateway_profile_data::GatewayProfileData, Permission, Profile,
+    dtos::gateway_profile_data::GatewayProfileData,
+    settings::MYCELIUM_AI_AWARE, Permission, Profile,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::json;
@@ -79,7 +80,7 @@ pub(crate) async fn public() -> impl Responder {
             body = String,
         ),
     ),
-    tags = ["Profile"],
+    tags = ["Profile", MYCELIUM_AI_AWARE],
 )]
 #[get("/protected")]
 pub(crate) async fn protected(profile: GatewayProfileData) -> impl Responder {
@@ -120,7 +121,7 @@ pub(crate) async fn protected(profile: GatewayProfileData) -> impl Responder {
             body = String,
         ),
     ),
-    tags = ["Profile", "Roles"],
+    tags = ["Profile", "Roles", MYCELIUM_AI_AWARE],
 )]
 #[get("/protected/roles/{role}")]
 pub(crate) async fn protected_by_role(
