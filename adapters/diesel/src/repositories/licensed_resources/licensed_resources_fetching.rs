@@ -1,6 +1,9 @@
 use crate::{
     models::config::DbPoolProvider,
-    schema::{owner_on_tenant::dsl as owner_dsl, user::dsl as user_dsl},
+    schema::{
+        owner_on_tenant::dsl as owner_dsl, tenant::dsl as tenant_dsl,
+        user::dsl as user_dsl,
+    },
 };
 
 use async_trait::async_trait;
@@ -170,16 +173,28 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         let mut query = user_dsl::user
             .into_boxed()
             .inner_join(owner_dsl::owner_on_tenant)
+            .inner_join(
+                tenant_dsl::tenant.on(owner_dsl::tenant_id.eq(tenant_dsl::id)),
+            )
             .filter(user_dsl::email.eq(email.email()))
-            .select((owner_dsl::tenant_id, owner_dsl::created));
+            .select((
+                owner_dsl::tenant_id,
+                owner_dsl::created,
+                tenant_dsl::name,
+            ));
 
         if let Some(tenant_id) = tenant {
             query = query.filter(owner_dsl::tenant_id.eq(tenant_id));
         }
 
-        let rows = query.load::<(Uuid, NaiveDateTime)>(conn).map_err(|e| {
-            fetching_err(format!("Failed to fetch tenant ownerships: {e}"))
-        })?;
+        let rows =
+            query
+                .load::<(Uuid, NaiveDateTime, String)>(conn)
+                .map_err(|e| {
+                    fetching_err(format!(
+                        "Failed to fetch tenant ownerships: {e}"
+                    ))
+                })?;
 
         if rows.is_empty() {
             return Ok(FetchManyResponseKind::NotFound);
@@ -187,9 +202,10 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
 
         Ok(FetchManyResponseKind::Found(
             rows.into_iter()
-                .map(|(tenant_id, created)| TenantOwnership {
-                    tenant: tenant_id,
+                .map(|(tenant_id, created, tenant_name)| TenantOwnership {
+                    id: tenant_id,
                     since: created.and_local_timezone(Local).unwrap(),
+                    name: tenant_name,
                 })
                 .collect(),
         ))

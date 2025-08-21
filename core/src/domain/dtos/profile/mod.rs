@@ -365,7 +365,7 @@ impl Profile {
         if let Some(tenants) = self.tenants_ownership.as_ref() {
             let tenants = tenants.to_ownership_vector();
 
-            if tenants.iter().any(|i| i.tenant == tenant_id) {
+            if tenants.iter().any(|i| i.id == tenant_id) {
                 let profile = Self {
                     ..self
                         .clone()
@@ -592,7 +592,7 @@ impl Profile {
         if let Some(tenants) = self.tenants_ownership.as_ref() {
             let tenants = tenants.to_ownership_vector();
 
-            if tenants.iter().any(|i| i.tenant == tenant_id) {
+            if tenants.iter().any(|i| i.id == tenant_id) {
                 return Ok(RelatedAccounts::HasTenantWidePrivileges(tenant_id));
             }
         }
@@ -760,7 +760,8 @@ mod tests {
             ])),
             tenants_ownership: Some(TenantsOwnership::Records(vec![
                 TenantOwnership {
-                    tenant: tenant_id,
+                    id: tenant_id,
+                    name: "Tenant Name".to_string(),
                     since: Local::now(),
                 },
             ])),
