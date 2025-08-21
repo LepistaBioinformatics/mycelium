@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [8.0.1-beta.24] - 2025-08-21
+## [8.0.1-beta.25] - 2025-08-21
 
 ### 🚀 Features
 
@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 ### 🐛 Bug Fixes
 
 - Replace the properties parameter by parameter word on define mcp tool
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.23] - 2025-08-17
 
