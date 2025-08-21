@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.26] - 2025-08-21
+
+### 🐛 Bug Fixes
+
+- Fix mcp dependencies broken from 8.0.1-beta.25 version
+
 ## [8.0.1-beta.25] - 2025-08-21
 
 ### 🚀 Features
@@ -14,6 +20,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 
 ## [8.0.1-beta.23] - 2025-08-17
