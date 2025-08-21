@@ -70,16 +70,15 @@ opentelemetry-otlp = { version = "0.29", features = [
     "metrics",
     "logs",
 ] }
-rmcp = { version = "0.3", features = [
+rmcp = { version = "0.6", features = [
     "auth",
     "server",
     #"transport-sse-server",
     "transport-worker",
     #"transport-io",
     "transport-streamable-http-server",
-    #"auth",
 ] }
-rmcp-actix-web = { version = "0.2", default-features = false, features = [
+rmcp-actix-web = { version = "0.2.8", default-features = false, features = [
     "transport-streamable-http-server",
 ] }
 rust-mcp-sdk = "0.5.0"

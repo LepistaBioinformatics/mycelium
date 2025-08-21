@@ -11,17 +11,18 @@ WORKDIR /rust
 
 ARG VERSION="latest"
 ENV VERSION=${VERSION}
+RUN echo "Building mycelium-api version: ${VERSION}"
 
 # ? If the VERSION is latest, instal using cargo install
 # ? Otherwise, install using the --version flag
 RUN if [ "${VERSION}" = "latest" ]; then \
-        echo "Installing mycelium-api using cargo install"; \
-        cargo install mycelium-api --force; \
+        echo "Installing mycelium-api from minor version"; \
+        cargo install mycelium-api; \
         echo "mycelium-api installed successfully"; \
         echo "Version: $(myc-api --version)"; \
     else \
-        echo "Cloning mycelium-api repository and building from source"; \
-        cargo install mycelium-api --version ${VERSION} --force; \
+        echo "Installing mycelium-api from specific version"; \
+        cargo install mycelium-api --version ${VERSION}; \
         echo "mycelium-api installed successfully"; \
         echo "Version: $(myc-api --version)"; \
     fi
