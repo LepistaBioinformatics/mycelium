@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.24] - 2025-08-21
+
+### 🚀 Features
+
+- Include the tenant name in profile response
+- Wip - try to solve authentication into the mcp call tool
+
 ## [8.0.1-beta.23] - 2025-08-17
 
 ### 🚀 Features
@@ -10,6 +17,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 
 ## [8.0.1-beta.21] - 2025-08-11
