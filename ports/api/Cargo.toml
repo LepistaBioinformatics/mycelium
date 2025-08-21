@@ -71,6 +71,7 @@ opentelemetry-otlp = { version = "0.29", features = [
     "logs",
 ] }
 rmcp = { version = "0.3", features = [
+    "auth",
     "server",
     #"transport-sse-server",
     "transport-worker",

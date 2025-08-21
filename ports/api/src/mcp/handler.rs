@@ -5,8 +5,10 @@ use crate::{
     },
 };
 
+use myc_core::domain::dtos::http::HttpMethod;
 use myc_http_tools::settings::MYCELIUM_AI_AWARE;
 use mycelium_openapi::Operation;
+use reqwest::blocking::RequestBuilder;
 use rmcp::{
     handler::server::ServerHandler,
     model::{
@@ -287,12 +289,108 @@ impl ServerHandler for MyceliumMcpHandler {
     ///
     fn call_tool(
         &self,
-        _request: CallToolRequestParam,
+        request: CallToolRequestParam,
         _context: RequestContext<RoleServer>,
     ) -> impl Future<Output = Result<CallToolResult, ErrorData>> + Send + '_
     {
-        std::future::ready(Err(ErrorData::method_not_found::<
-            CallToolRequestMethod,
-        >()))
+        //
+        // Extract authentication token from MCP request arguments
+        //
+        let auth_token = if let Some(args) = &request.arguments {
+            args.get("authorization")
+                .or_else(|| args.get("Authorization"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string()
+        } else {
+            "".to_string()
+        };
+
+        if auth_token.is_empty() {
+            return std::future::ready(Err(ErrorData::internal_error(
+                "Missing authorization token in request arguments".to_string(),
+                None,
+            )));
+        }
+
+        //
+        // Build downstream request
+        //
+        let target_tool = match self.operations.iter().find(|op| {
+            op.operation
+                .operation_id
+                .as_ref()
+                .unwrap_or(&"".to_string())
+                .to_string()
+                == request.name
+        }) {
+            Some(tool) => tool,
+            None => {
+                return std::future::ready(Err(ErrorData::method_not_found::<
+                    CallToolRequestMethod,
+                >()))
+            }
+        };
+
+        let arguments = request.arguments;
+
+        //
+        // Perform an HTTP request to the target tool
+        //
+        let response_binding = match get_client_from_method(
+            target_tool.method,
+            target_tool.path.clone(),
+            &auth_token,
+        ) {
+            Ok(builder) => builder.json(&arguments),
+            Err(error) => return std::future::ready(Err(error)),
+        }
+        .json(&arguments)
+        .send();
+
+        let response = match response_binding {
+            Ok(response) => response,
+            Err(error) => {
+                return std::future::ready(Err(ErrorData::internal_error(
+                    error.to_string(),
+                    None,
+                )))
+            }
+        };
+
+        let response_json = match response.json() {
+            Ok(json) => json,
+            Err(error) => {
+                return std::future::ready(Err(ErrorData::internal_error(
+                    error.to_string(),
+                    None,
+                )))
+            }
+        };
+
+        std::future::ready(Ok(CallToolResult::success(response_json)))
     }
+}
+
+fn get_client_from_method(
+    method: HttpMethod,
+    path: String,
+    auth_token: &str,
+) -> Result<RequestBuilder, ErrorData> {
+    let client = reqwest::blocking::Client::new();
+
+    let builder = match method {
+        HttpMethod::Get => client.get(&path),
+        HttpMethod::Post => client.post(&path),
+        HttpMethod::Put => client.put(&path),
+        HttpMethod::Delete => client.delete(&path),
+        HttpMethod::Patch => client.patch(&path),
+        HttpMethod::Head => client.head(&path),
+        _ => return Err(ErrorData::method_not_found::<CallToolRequestMethod>()),
+    };
+
+    // Add authorization header
+    let builder = builder.header("Authorization", auth_token);
+
+    Ok(builder)
 }
