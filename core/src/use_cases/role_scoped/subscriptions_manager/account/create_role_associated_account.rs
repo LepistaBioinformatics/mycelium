@@ -36,6 +36,7 @@ use uuid::Uuid;
 pub async fn create_role_associated_account(
     profile: Profile,
     tenant_id: Uuid,
+    account_name: String,
     role_name: String,
     role_description: String,
     guest_role_registration_repo: Box<&dyn GuestRoleRegistration>,
@@ -157,11 +158,14 @@ pub async fn create_role_associated_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
+    let account_name_base_slug = slugify!(format!(
+        "tid/{}/role/{}/role-associated-account",
+        tenant_id, role_slug
+    )
+    .as_str());
+
     let mut unchecked_account = Account::new_role_related_account(
-        format!(
-            "tid/{}/role/{}/role-associated-account",
-            tenant_id, role_slug
-        ),
+        account_name,
         tenant_id,
         read_role_id,
         write_role_id,
@@ -170,6 +174,7 @@ pub async fn create_role_associated_account(
         Some(WrittenBy::new_from_account(profile.acc_id)),
     );
 
+    unchecked_account.slug = account_name_base_slug;
     unchecked_account.is_checked = true;
 
     account_registration_repo

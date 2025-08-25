@@ -57,6 +57,7 @@ pub struct CreateSubscriptionAccountBody {
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateRoleAssociatedAccountBody {
+    account_name: String,
     role_name: String,
     role_description: String,
 }
@@ -293,6 +294,7 @@ pub async fn create_role_associated_account_url(
     match create_role_associated_account(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
+        body.account_name.to_owned(),
         body.role_name.to_owned(),
         body.role_description.to_owned(),
         Box::new(&*app_module.resolve_ref()),
