@@ -241,10 +241,10 @@ pub async fn create_subscription_account_url(
     }
 }
 
-/// Create Subscription Account
+/// Create Role Associated Account
 ///
-/// Subscription accounts represents shared entities, like institutions,
-/// groups, but not real persons.
+/// Role associated accounts mirrors the guest-roles used to connect peoples in
+/// non-personal accounts, like institutions, groups, etc.
 #[utoipa::path(
     post,
     params(
@@ -283,7 +283,7 @@ pub async fn create_subscription_account_url(
         ),
     ),
 )]
-#[post("")]
+#[post("/role-associated")]
 pub async fn create_role_associated_account_url(
     tenant: TenantData,
     body: web::Json<CreateRoleAssociatedAccountBody>,
