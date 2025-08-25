@@ -2,11 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.29] - 2025-08-25
+
+### 🐛 Bug Fixes
+
+- Include account-type on re-exported types from http lib
+
 ## [8.0.1-beta.28] - 2025-08-25
 
 ### 🚀 Features
 
 - Include the account name at the role-related account creation
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.27] - 2025-08-25
 
