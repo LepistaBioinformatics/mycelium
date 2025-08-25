@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.28] - 2025-08-25
+
+### 🚀 Features
+
+- Include the account name at the role-related account creation
+
+## [8.0.1-beta.27] - 2025-08-25
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.26] - 2025-08-21
 
 ### ⚙️ Miscellaneous Tasks
