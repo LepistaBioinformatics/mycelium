@@ -100,8 +100,6 @@ impl WebHook {
             Some(secret) => Some(secret.encrypt_me(config).await?),
         };
 
-        println!("encrypted_secret: {:?}", encrypted_secret);
-
         Ok(Self {
             id: None,
             name,

@@ -12,7 +12,7 @@ pub mod wrappers;
 pub use myc_core::domain::{
     actors::*,
     dtos::{
-        account::*, email::*, guest_role::*, profile::*, related_accounts::*,
-        security_group::*,
+        account::*, account_type::*, email::*, guest_role::*, profile::*,
+        related_accounts::*, security_group::*,
     },
 };
