@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.26] - 2025-08-21
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.25] - 2025-08-21
 
 ### ⚙️ Miscellaneous Tasks
