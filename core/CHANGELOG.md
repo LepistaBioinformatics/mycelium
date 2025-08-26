@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Include account-type on re-exported types from http lib
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.28] - 2025-08-25
 
 ### 🚀 Features

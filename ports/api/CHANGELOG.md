@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.30] - 2025-08-26
+
+### 📚 Documentation
+
+- Fix operation id of all endpoints using openapi operation-id key
+
+## [8.0.1-beta.29] - 2025-08-25
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.28] - 2025-08-25
 
 ### 🚀 Features
