@@ -75,6 +75,7 @@ pub struct ListLicensedAccountsOfEmailParams {
 /// List subscription accounts which email was guest
 #[utoipa::path(
     get,
+    operation_id = "list_licensed_accounts_of_email",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -148,6 +149,7 @@ pub async fn list_licensed_accounts_of_email_url(
 /// path argument.
 #[utoipa::path(
     post,
+    operation_id = "guest_user",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -232,6 +234,7 @@ pub async fn guest_user_url(
 /// Uninvite user to perform a role to account
 #[utoipa::path(
     delete,
+    operation_id = "uninvite_guest",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -300,6 +303,7 @@ pub async fn uninvite_guest_url(
 /// informed subscription account.
 #[utoipa::path(
     get,
+    operation_id = "list_guest_on_subscription_account",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

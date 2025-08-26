@@ -32,6 +32,7 @@ pub struct ProfileParams {
 /// Fetch a user's profile.
 #[utoipa::path(
     get,
+    operation_id = "fetch_my_mycelium_profile",
     params(ProfileParams),
     responses(
         (

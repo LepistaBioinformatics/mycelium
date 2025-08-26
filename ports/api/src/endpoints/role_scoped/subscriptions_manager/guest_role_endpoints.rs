@@ -52,6 +52,7 @@ pub struct ListGuestRolesParams {
 /// List Roles
 #[utoipa::path(
     get,
+    operation_id = "list_guest_roles",
     params(
         ListGuestRolesParams,
         (
@@ -120,6 +121,7 @@ pub async fn list_guest_roles_url(
 /// Fetch Guest Role Details
 #[utoipa::path(
     get,
+    operation_id = "fetch_guest_role_details",
     params(
         ("id" = Uuid, Path, description = "The guest role primary key."),
         (

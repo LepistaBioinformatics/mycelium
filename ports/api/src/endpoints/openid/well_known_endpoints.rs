@@ -42,16 +42,16 @@ struct ProtectedResource {
 /// auth0 server.
 ///
 #[utoipa::path(
-        get,
-        responses(
-            (
-                status = 200,
-                description = "Well known oauth authorization server.",
-                body = AuthorizationProvider,
-            ),
+    get,
+    operation_id = "get_well_known_oauth_authorization_server",
+    responses(
+        (
+            status = 200,
+            description = "Well known oauth authorization server.",
+            body = AuthorizationProvider,
         ),
-    )
-]
+    ),
+)]
 #[get("/.well-known/oauth-authorization-server")]
 pub async fn well_known_oauth_authorization_server(
     auth_config: web::Data<AuthConfig>,
@@ -141,16 +141,16 @@ pub async fn well_known_oauth_authorization_server(
 /// ```
 ///
 #[utoipa::path(
-        get,
-        responses(
-            (
-                status = 200,
-                description = "Well known oauth protected resource.",
-                body = AuthorizationProvider,
-            ),
+    get,
+    operation_id = "get_well_known_oauth_protected_resource",
+    responses(
+        (
+            status = 200,
+            description = "Well known oauth protected resource.",
+            body = AuthorizationProvider,
         ),
-    )
-]
+    ),
+)]
 #[get("/.well-known/oauth-protected-resource")]
 pub async fn well_known_protected_resource(
     auth_config: web::Data<AuthConfig>,

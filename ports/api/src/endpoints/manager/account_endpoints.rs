@@ -64,6 +64,7 @@ pub struct CreateSystemSubscriptionAccountBody {
 /// Create system account
 #[utoipa::path(
     post,
+    operation_id = "create_system_level_account",
     request_body = CreateSystemSubscriptionAccountBody,
     responses(
         (

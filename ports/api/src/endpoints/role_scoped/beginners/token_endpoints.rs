@@ -81,6 +81,7 @@ pub struct CreateTokenResponse {
 ///
 #[utoipa::path(
     post,
+    operation_id = "create_connection_string",
     request_body = CreateTokenBody,
     responses(
         (

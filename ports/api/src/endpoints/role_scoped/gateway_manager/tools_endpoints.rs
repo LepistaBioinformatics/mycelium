@@ -43,6 +43,7 @@ pub struct ListOperationsParams {
 ///
 #[utoipa::path(
     get,
+    operation_id = "list_operations",
     params(
         ListOperationsParams,
     ),

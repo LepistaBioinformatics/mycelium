@@ -77,6 +77,7 @@ pub(crate) struct ListServicesResponse {
 ///
 #[utoipa::path(
     get,
+    operation_id = "list_discoverable_services",
     params(
         ListServicesParams,
     ),

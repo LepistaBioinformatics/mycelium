@@ -185,6 +185,7 @@ pub struct ListSubscriptionAccountParams {
 /// groups, but not real persons.
 #[utoipa::path(
     post,
+    operation_id = "create_subscription_account",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -248,6 +249,7 @@ pub async fn create_subscription_account_url(
 /// non-personal accounts, like institutions, groups, etc.
 #[utoipa::path(
     post,
+    operation_id = "create_role_associated_account",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -325,6 +327,7 @@ pub async fn create_role_associated_account_url(
 ///
 #[utoipa::path(
     get,
+    operation_id = "list_accounts_by_type",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -434,6 +437,7 @@ pub async fn list_accounts_by_type_url(
 /// Get a single subscription account.
 #[utoipa::path(
     get,
+    operation_id = "get_account_details",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -497,6 +501,7 @@ pub async fn get_account_details_url(
 /// groups, but not real persons.
 #[utoipa::path(
     patch,
+    operation_id = "update_account_name_and_flags",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -569,6 +574,7 @@ pub async fn update_account_name_and_flags_url(
 /// Propagate a single subscription account.
 #[utoipa::path(
     post,
+    operation_id = "propagate_existing_subscription_account",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

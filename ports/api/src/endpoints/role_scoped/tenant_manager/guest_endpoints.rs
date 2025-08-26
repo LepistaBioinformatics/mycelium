@@ -63,6 +63,7 @@ pub struct RevokeUserGuestToSubscriptionManagerAccountParams {
 /// path argument.
 #[utoipa::path(
     post,
+    operation_id = "guest_user_to_subscription_manager_account",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -145,6 +146,7 @@ pub async fn guest_user_to_subscription_manager_account_url(
 /// Uninvite user to perform a role to account
 #[utoipa::path(
     delete,
+    operation_id = "revoke_user_guest_to_subscription_manager_account",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

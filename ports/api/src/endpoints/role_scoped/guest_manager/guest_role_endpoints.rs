@@ -82,6 +82,7 @@ pub struct UpdateGuestRolePermissionsBody {
 /// Guest Roles provide permissions to simple Roles.
 #[utoipa::path(
     post,
+    operation_id = "create_guest_role",
     request_body = CreateGuestRoleBody,
     responses(
         (
@@ -135,6 +136,7 @@ pub async fn crate_guest_role_url(
 /// List Roles
 #[utoipa::path(
     get,
+    operation_id = "list_guest_roles",
     params(
         ListGuestRolesParams,
     ),
@@ -193,6 +195,7 @@ pub async fn list_guest_roles_url(
 /// Delete a single guest role.
 #[utoipa::path(
     delete,
+    operation_id = "delete_guest_role",
     params(
         ("guest_role_id" = Uuid, Path, description = "The guest-role primary key."),
     ),
@@ -246,6 +249,7 @@ pub async fn delete_guest_role_url(
 /// Update name and description of a single Guest Role.
 #[utoipa::path(
     patch,
+    operation_id = "update_guest_role_name_and_description",
     params(
         ("guest_role_id" = Uuid, Path, description = "The guest-role primary key."),
     ),
@@ -305,6 +309,7 @@ pub async fn update_guest_role_name_and_description_url(
 /// Upgrade or Downgrade permissions of Guest Role.
 #[utoipa::path(
     patch,
+    operation_id = "update_guest_role_permissions",
     params(
         ("guest_role_id" = Uuid, Path, description = "The guest-role primary key."),
     ),
@@ -363,6 +368,7 @@ pub async fn update_guest_role_permissions_url(
 /// Insert a child role to a parent role.
 #[utoipa::path(
     post,
+    operation_id = "set_role_child",
     params(
         ("guest_role_id" = Uuid, Path, description = "The guest-role primary key."),
         ("child_id" = Uuid, Path, description = "The child guest-role primary key."),
@@ -423,6 +429,7 @@ pub async fn insert_role_child_url(
 /// Delete a child role to a parent role.
 #[utoipa::path(
     delete,
+    operation_id = "remove_role_child",
     params(
         ("guest_role_id" = Uuid, Path, description = "The guest-role primary key."),
         ("child_id" = Uuid, Path, description = "The child guest-role primary key."),

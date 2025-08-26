@@ -69,6 +69,7 @@ pub struct UpdateOwnAccountNameAccountBody {
 ///
 #[utoipa::path(
     post,
+    operation_id = "create_default_account",
     request_body = CreateDefaultAccountBody,
     responses(
         (
@@ -136,6 +137,7 @@ pub async fn create_default_account_url(
 /// Get the details of the account associated with the current user.
 #[utoipa::path(
     get,
+    operation_id = "get_my_account_details",
     responses(
         (
             status = 500,
@@ -185,6 +187,7 @@ pub async fn get_my_account_details_url(
 ///
 #[utoipa::path(
     patch,
+    operation_id = "update_own_account_name",
     request_body = UpdateOwnAccountNameAccountBody,
     params(
         ("account_id" = Uuid, Path, description = "The account primary key."),
@@ -217,7 +220,7 @@ pub async fn get_my_account_details_url(
         ),
     ),
 )]
-#[patch("/{account_id}/update-account-name")]
+#[patch("/{account_id}")]
 pub async fn update_own_account_name_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateOwnAccountNameAccountBody>,
@@ -260,6 +263,7 @@ pub async fn update_own_account_name_url(
 ///
 #[utoipa::path(
     delete,
+    operation_id = "delete_my_account",
     responses(
         (
             status = 200,

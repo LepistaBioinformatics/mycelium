@@ -46,6 +46,7 @@ pub struct GuestTenantOwnerBody {
 /// Guest a user to work as a tenant owner
 #[utoipa::path(
     post,
+    operation_id = "guest_tenant_owner",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -114,6 +115,7 @@ pub async fn guest_tenant_owner_url(
 /// Revoke a user from working as a tenant owner
 #[utoipa::path(
     delete,
+    operation_id = "revoke_tenant_owner",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

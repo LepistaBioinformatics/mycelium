@@ -36,6 +36,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 ///
 #[utoipa::path(
     post,
+    operation_id = "create_management_account",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -95,6 +96,7 @@ pub async fn create_management_account_url(
 ///
 #[utoipa::path(
     delete,
+    operation_id = "delete_tenant_manager_account",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

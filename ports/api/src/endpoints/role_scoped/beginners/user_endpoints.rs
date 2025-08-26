@@ -162,6 +162,7 @@ pub struct CheckUserCredentialsBody {
 ///
 #[utoipa::path(
     get,
+    operation_id = "check_email_registration_status",
     responses(
         (
             status = 410,
@@ -186,6 +187,7 @@ pub async fn check_email_registration_status_url() -> impl Responder {
 ///
 #[utoipa::path(
     post,
+    operation_id = "create_default_user",
     params(
         (
             "Authorization" = Option<String>,
@@ -268,6 +270,7 @@ pub async fn create_default_user_url(
 ///
 #[utoipa::path(
     post,
+    operation_id = "check_user_token",
     request_body = CheckTokenBody,
     responses(
         (
@@ -330,6 +333,7 @@ pub async fn check_user_token_url(
 ///
 #[utoipa::path(
     post,
+    operation_id = "start_password_redefinition",
     request_body = StartPasswordResetBody,
     responses(
         (
@@ -393,6 +397,7 @@ pub async fn start_password_redefinition_url(
 ///
 #[utoipa::path(
     post,
+    operation_id = "check_token_and_reset_password",
     request_body = ResetPasswordBody,
     responses(
         (
@@ -461,6 +466,7 @@ pub async fn check_token_and_reset_password_url(
 ///
 #[utoipa::path(
     post,
+    operation_id = "login_with_email_and_password",
     request_body = CheckUserCredentialsBody,
     responses(
         (
@@ -604,6 +610,7 @@ pub async fn check_email_password_validity_url(
 ///
 #[utoipa::path(
     post,
+    operation_id = "totp_start_activation",
     params(TotpActivationStartedParams),
     responses(
         (
@@ -681,6 +688,7 @@ pub async fn totp_start_activation_url(
 ///
 #[utoipa::path(
     post,
+    operation_id = "totp_finish_activation",
     request_body = TotpUpdatingValidationBody,
     responses(
         (
@@ -745,6 +753,7 @@ pub async fn totp_finish_activation_url(
 ///
 #[utoipa::path(
     post,
+    operation_id = "totp_check_token",
     request_body = TotpUpdatingValidationBody,
     responses(
         (
@@ -825,6 +834,7 @@ pub async fn totp_check_token_url(
 ///
 #[utoipa::path(
     post,
+    operation_id = "totp_disable",
     request_body = TotpUpdatingValidationBody,
     responses(
         (

@@ -73,6 +73,7 @@ pub struct ListWebHooksParams {
 /// Create a webhook
 #[utoipa::path(
     post,
+    operation_id = "create_webhook",
     request_body = CreateWebHookBody,
     responses(
         (
@@ -129,6 +130,7 @@ pub async fn crate_webhook_url(
 /// List webhooks
 #[utoipa::path(
     get,
+    operation_id = "list_webhooks",
     params(
         ListWebHooksParams,
     ),
@@ -184,6 +186,7 @@ pub async fn list_webhooks_url(
 /// Update a webhook
 #[utoipa::path(
     patch,
+    operation_id = "update_webhook",
     params(
         ("webhook_id" = Uuid, Path, description = "The webhook primary key."),
     ),
@@ -240,6 +243,7 @@ pub async fn update_webhook_url(
 /// Delete a webhook
 #[utoipa::path(
     delete,
+    operation_id = "delete_webhook",
     params(
         ("webhook_id" = Uuid, Path, description = "The webhook primary key."),
     ),
