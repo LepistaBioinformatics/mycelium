@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [8.0.1-beta.31] - 2025-09-03
+## [8.0.1-beta.32] - 2025-09-03
 
 ### 🚀 Features
 
@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 ### 🚜 Refactor
 
 - Renamt the user account creation use-case to mirror their goal
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.30] - 2025-08-26
 
