@@ -9,8 +9,8 @@ use actix_web::{
 use myc_core::{
     models::AccountLifeCycle,
     use_cases::role_scoped::beginner::account::{
-        create_account_from_existing_user, delete_my_account,
-        get_my_account_details, update_own_account_name,
+        create_user_account, delete_my_account, get_my_account_details,
+        update_own_account_name,
     },
 };
 use myc_diesel::repositories::SqlAppModule;
@@ -106,20 +106,39 @@ pub async fn create_default_account_url(
     life_cycle_settings: web::Data<AccountLifeCycle>,
     sql_app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
-    let email = match check_credentials_with_multi_identity_provider(req).await
-    {
-        Err(err) => {
-            warn!("err: {:?}", err);
-            return HttpResponse::InternalServerError()
-                .json(HttpJsonResponse::new_message(err.to_string()));
+    let (email, external_provider) =
+        match check_credentials_with_multi_identity_provider(req.to_owned())
+            .await
+        {
+            Err(err) => {
+                warn!("err: {:?}", err);
+                return HttpResponse::InternalServerError()
+                    .json(HttpJsonResponse::new_message(err.to_string()));
+            }
+            Ok(res) => res,
+        };
+
+    let issuer = if let Some(provider) = external_provider {
+        match provider.issuer.async_get_or_error().await {
+            Ok(issuer) => issuer,
+            Err(err) => {
+                warn!("err: {:?}", err);
+                return HttpResponse::InternalServerError()
+                    .json(HttpJsonResponse::new_message(err.to_string()));
+            }
         }
-        Ok(res) => res,
+    } else {
+        return HttpResponse::BadRequest().json(HttpJsonResponse::new_message(
+            "Invalid provider".to_string(),
+        ));
     };
 
-    match create_account_from_existing_user(
+    match create_user_account(
         email,
+        Some(issuer),
         body.name.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),

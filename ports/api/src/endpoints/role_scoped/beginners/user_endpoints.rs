@@ -647,15 +647,15 @@ pub async fn totp_start_activation_url(
     life_cycle_settings: web::Data<AccountLifeCycle>,
     sql_app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
-    let email = match check_credentials_with_multi_identity_provider(req).await
-    {
-        Err(err) => {
-            warn!("err: {:?}", err);
-            return HttpResponse::InternalServerError()
-                .json(HttpJsonResponse::new_message(err));
-        }
-        Ok(res) => res,
-    };
+    let (email, _) =
+        match check_credentials_with_multi_identity_provider(req).await {
+            Err(err) => {
+                warn!("err: {:?}", err);
+                return HttpResponse::InternalServerError()
+                    .json(HttpJsonResponse::new_message(err));
+            }
+            Ok(res) => res,
+        };
 
     let as_qr_code = query.qr_code.to_owned().unwrap_or(false);
 
@@ -720,15 +720,15 @@ pub async fn totp_finish_activation_url(
     life_cycle_settings: web::Data<AccountLifeCycle>,
     sql_app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
-    let email = match check_credentials_with_multi_identity_provider(req).await
-    {
-        Err(err) => {
-            warn!("err: {:?}", err);
-            return HttpResponse::InternalServerError()
-                .json(HttpJsonResponse::new_message(err));
-        }
-        Ok(res) => res,
-    };
+    let (email, _) =
+        match check_credentials_with_multi_identity_provider(req).await {
+            Err(err) => {
+                warn!("err: {:?}", err);
+                return HttpResponse::InternalServerError()
+                    .json(HttpJsonResponse::new_message(err));
+            }
+            Ok(res) => res,
+        };
 
     match totp_finish_activation(
         email,
@@ -786,15 +786,15 @@ pub async fn totp_check_token_url(
     life_cycle_settings: web::Data<AccountLifeCycle>,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
-    let email = match check_credentials_with_multi_identity_provider(req).await
-    {
-        Err(err) => {
-            warn!("err: {:?}", err);
-            return HttpResponse::InternalServerError()
-                .json(HttpJsonResponse::new_message(err));
-        }
-        Ok(res) => res,
-    };
+    let (email, _) =
+        match check_credentials_with_multi_identity_provider(req).await {
+            Err(err) => {
+                warn!("err: {:?}", err);
+                return HttpResponse::InternalServerError()
+                    .json(HttpJsonResponse::new_message(err));
+            }
+            Ok(res) => res,
+        };
 
     match totp_check_token(
         email,
@@ -866,15 +866,15 @@ pub async fn totp_disable_url(
     life_cycle_settings: web::Data<AccountLifeCycle>,
     sql_app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
-    let email = match check_credentials_with_multi_identity_provider(req).await
-    {
-        Err(err) => {
-            warn!("err: {:?}", err);
-            return HttpResponse::InternalServerError()
-                .json(HttpJsonResponse::new_message(err));
-        }
-        Ok(res) => res,
-    };
+    let (email, _) =
+        match check_credentials_with_multi_identity_provider(req).await {
+            Err(err) => {
+                warn!("err: {:?}", err);
+                return HttpResponse::InternalServerError()
+                    .json(HttpJsonResponse::new_message(err));
+            }
+            Ok(res) => res,
+        };
 
     match totp_disable(
         email,

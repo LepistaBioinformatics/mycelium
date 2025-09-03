@@ -5,13 +5,13 @@ use crate::{
             account_type::AccountType,
             email::Email,
             native_error_codes::NativeErrorCodes,
-            user::Provider,
+            user::{Provider, User},
             webhook::{PayloadId, WebHookTrigger},
             written_by::WrittenBy,
         },
         entities::{
             AccountRegistration, LocalMessageWrite, UserFetching,
-            WebHookRegistration,
+            UserRegistration, WebHookRegistration,
         },
     },
     models::AccountLifeCycle,
@@ -36,15 +36,17 @@ use uuid::Uuid;
 /// account-creation method also insert a new user into the database and set the
 /// default role as `default-user`.
 #[tracing::instrument(
-    name = "create_account_from_existing_user",
+    name = "create_user_account",
     fields(correspondence_id = tracing::field::Empty),
     skip_all
 )]
-pub async fn create_account_from_existing_user(
+pub async fn create_user_account(
     email: Email,
+    provider: Option<String>,
     account_name: String,
     config: AccountLifeCycle,
     user_fetching_repo: Box<&dyn UserFetching>,
+    user_registration_repo: Box<&dyn UserRegistration>,
     account_registration_repo: Box<&dyn AccountRegistration>,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
@@ -64,12 +66,27 @@ pub async fn create_account_from_existing_user(
     // ? Try to fetch user from database
     // ? -----------------------------------------------------------------------
 
+    let (identity_is_verified, _provider) = if let Some(provider) = provider {
+        (true, Some(provider))
+    } else {
+        (false, None)
+    };
+
     let user = match user_fetching_repo
         .get_user_by_email(email.to_owned())
         .await?
     {
         FetchResponseKind::NotFound(_) => {
-            return use_case_err("User not found".to_string()).as_error();
+            if !identity_is_verified || _provider.is_none() {
+                return use_case_err("User not found".to_string()).as_error();
+            }
+
+            register_user_with_provider(
+                email.to_owned(),
+                _provider.unwrap(),
+                user_registration_repo,
+            )
+            .await?
         }
         FetchResponseKind::Found(user) => user,
     };
@@ -166,4 +183,30 @@ pub async fn create_account_from_existing_user(
     // ? -----------------------------------------------------------------------
 
     Ok(account)
+}
+
+async fn register_user_with_provider(
+    email: Email,
+    provider: String,
+    user_registration_repo: Box<&dyn UserRegistration>,
+) -> Result<User, MappedErrors> {
+    let user = User::new_principal_with_provider(
+        None,
+        email.to_owned(),
+        Provider::External(provider),
+        None,
+        None,
+    )?;
+
+    match user_registration_repo
+        .get_or_create(user.to_owned())
+        .await?
+    {
+        GetOrCreateResponseKind::Created(user) => Ok(user),
+        GetOrCreateResponseKind::NotCreated(_, msg) => {
+            tracing::error!("User not created: {msg}");
+
+            return use_case_err("User not created".to_string()).as_error();
+        }
+    }
 }

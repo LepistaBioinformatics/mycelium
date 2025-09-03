@@ -30,7 +30,7 @@ pub(crate) async fn fetch_profile_from_request_token(
     // ? Fetch email from request
     // ? -----------------------------------------------------------------------
 
-    let email =
+    let (email, _) =
         check_credentials_with_multi_identity_provider(req.clone()).await?;
 
     tracing::trace!("Email: {:?}", email.redacted_email());

@@ -21,9 +21,10 @@ pub async fn fetch_and_inject_email_to_forward(
 
     tracing::trace!("Injecting email to forward");
 
-    let email = check_credentials_with_multi_identity_provider(req.clone())
-        .instrument(span.to_owned())
-        .await?;
+    let (email, _) =
+        check_credentials_with_multi_identity_provider(req.clone())
+            .instrument(span.to_owned())
+            .await?;
 
     forwarded_req.headers_mut().insert(
         HeaderName::from_str(DEFAULT_EMAIL_KEY).unwrap(),
