@@ -36,11 +36,11 @@ use uuid::Uuid;
 /// account-creation method also insert a new user into the database and set the
 /// default role as `default-user`.
 #[tracing::instrument(
-    name = "create_default_account",
+    name = "create_account_from_existing_user",
     fields(correspondence_id = tracing::field::Empty),
     skip_all
 )]
-pub async fn create_default_account(
+pub async fn create_account_from_existing_user(
     email: Email,
     account_name: String,
     config: AccountLifeCycle,

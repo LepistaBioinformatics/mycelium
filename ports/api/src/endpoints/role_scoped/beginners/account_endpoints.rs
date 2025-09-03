@@ -9,8 +9,8 @@ use actix_web::{
 use myc_core::{
     models::AccountLifeCycle,
     use_cases::role_scoped::beginner::account::{
-        create_default_account, delete_my_account, get_my_account_details,
-        update_own_account_name,
+        create_account_from_existing_user, delete_my_account,
+        get_my_account_details, update_own_account_name,
     },
 };
 use myc_diesel::repositories::SqlAppModule;
@@ -116,7 +116,7 @@ pub async fn create_default_account_url(
         Ok(res) => res,
     };
 
-    match create_default_account(
+    match create_account_from_existing_user(
         email,
         body.name.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
