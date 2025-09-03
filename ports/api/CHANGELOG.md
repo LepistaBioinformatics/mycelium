@@ -2,11 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.31] - 2025-09-03
+
+### 🚀 Features
+
+- Implements the single step account creation flow for verified accounts
+
+### 🚜 Refactor
+
+- Renamt the user account creation use-case to mirror their goal
+
 ## [8.0.1-beta.30] - 2025-08-26
 
 ### 📚 Documentation
 
 - Fix operation id of all endpoints using openapi operation-id key
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.0.1-beta.29] - 2025-08-25
 
