@@ -15,6 +15,7 @@ use myc_core::{
 };
 use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
+    settings::MYCELIUM_AI_AWARE,
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
         delete_response_kind, fetch_response_kind, handle_mapped_error,
@@ -183,6 +184,7 @@ pub async fn create_default_account_url(
             body = Account,
         ),
     ),
+    tag = MYCELIUM_AI_AWARE
 )]
 #[get("")]
 pub async fn get_my_account_details_url(

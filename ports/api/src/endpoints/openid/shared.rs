@@ -31,7 +31,12 @@ pub(super) async fn get_authorization_providers(
 
     let mut authorization_servers = vec![];
 
-    for provider in external_config {
+    for provider in external_config
+        .iter()
+        .filter(|provider| provider.discovery_url.is_some())
+        .map(|provider| provider.clone())
+        .collect::<Vec<_>>()
+    {
         let discovery_url =
             if let Some(discovery_url) = provider.discovery_url.to_owned() {
                 match discovery_url.async_get_or_error().await {

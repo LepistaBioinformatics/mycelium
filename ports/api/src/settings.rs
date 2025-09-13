@@ -8,9 +8,6 @@ pub const ADMIN_API_SCOPE: &str = "_adm";
 /// The scope used to indicate tools routes
 pub const TOOLS_API_SCOPE: &str = "tools";
 
-/// The scope used to indicate MCP routes
-pub const MCP_API_SCOPE: &str = "mcp";
-
 // ? ---------------------------------------------------------------------------
 // ? Health check
 // ? ---------------------------------------------------------------------------

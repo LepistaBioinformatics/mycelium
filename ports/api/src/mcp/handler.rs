@@ -161,11 +161,15 @@ impl From<ToolOperation> for Tool {
             );
         }
 
-        let input_schema_value = serde_json::json!({
+        let mut input_schema_value = serde_json::json!({
             "type": "object",
-            "parameters": input_schema_obj,
             "required": required_fields,
         });
+
+        if input_schema_obj.len() > 0 {
+            input_schema_value["parameters"] =
+                serde_json::to_value(input_schema_obj).unwrap();
+        }
 
         //
         // Convert input_schema_value into JsonObject<String, Value>
@@ -293,25 +297,11 @@ impl ServerHandler for MyceliumMcpHandler {
         _context: RequestContext<RoleServer>,
     ) -> impl Future<Output = Result<CallToolResult, ErrorData>> + Send + '_
     {
-        //
-        // Extract authentication token from MCP request arguments
-        //
-        let auth_token = if let Some(args) = &request.arguments {
-            args.get("authorization")
-                .or_else(|| args.get("Authorization"))
-                .and_then(|v| v.as_str())
-                .unwrap_or("")
-                .to_string()
-        } else {
-            "".to_string()
-        };
+        println!("context: {:?}", _context.extensions);
 
-        if auth_token.is_empty() {
-            return std::future::ready(Err(ErrorData::internal_error(
-                "Missing authorization token in request arguments".to_string(),
-                None,
-            )));
-        }
+        if let Some(user) = _context.extensions.get::<serde_json::Value>() {
+            println!("User: {:?}", user);
+        };
 
         //
         // Build downstream request
@@ -340,7 +330,6 @@ impl ServerHandler for MyceliumMcpHandler {
         let response_binding = match get_client_from_method(
             target_tool.method,
             target_tool.path.clone(),
-            &auth_token,
         ) {
             Ok(builder) => builder.json(&arguments),
             Err(error) => return std::future::ready(Err(error)),
@@ -375,7 +364,6 @@ impl ServerHandler for MyceliumMcpHandler {
 fn get_client_from_method(
     method: HttpMethod,
     path: String,
-    auth_token: &str,
 ) -> Result<RequestBuilder, ErrorData> {
     let client = reqwest::blocking::Client::new();
 
@@ -388,9 +376,6 @@ fn get_client_from_method(
         HttpMethod::Head => client.head(&path),
         _ => return Err(ErrorData::method_not_found::<CallToolRequestMethod>()),
     };
-
-    // Add authorization header
-    let builder = builder.header("Authorization", auth_token);
 
     Ok(builder)
 }

@@ -2,7 +2,7 @@ mod api_docs;
 mod dispatchers;
 mod dtos;
 mod endpoints;
-mod mcp;
+//mod mcp;
 mod middleware;
 mod models;
 mod modifiers;
@@ -11,10 +11,7 @@ mod otel;
 mod router;
 mod settings;
 
-use crate::{
-    mcp::MyceliumMcpHandler, openapi_processor::initialize_tools_registry,
-    settings::MCP_API_SCOPE,
-};
+use crate::openapi_processor::initialize_tools_registry;
 
 use actix_cors::Cors;
 use actix_web::{
@@ -80,8 +77,6 @@ use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
-use rmcp::transport::streamable_http_server::session::local::LocalSessionManager;
-use rmcp_actix_web::StreamableHttpService;
 use router::route_request;
 use settings::{ADMIN_API_SCOPE, TOOLS_API_SCOPE};
 use shaku::HasComponent;
@@ -346,18 +341,6 @@ pub async fn main() -> std::io::Result<()> {
         let forward_api_config = config.api.clone();
         let auth_config = config.auth.clone();
         let token_config = config.core.account_life_cycle.clone();
-        let tools_registry_schema_clone = tools_registry_schema.clone();
-
-        //
-        // Initialize the MCP service
-        //
-        let mcp_service = StreamableHttpService::new(
-            move || {
-                Ok(MyceliumMcpHandler::new(tools_registry_schema_clone.clone()))
-            },
-            LocalSessionManager::default().into(),
-            Default::default(),
-        );
 
         //
         // Configure the CORS policy
@@ -439,14 +422,6 @@ pub async fn main() -> std::io::Result<()> {
                 web::scope(TOOLS_API_SCOPE)
                     .configure(service_tools_endpoints::configure),
             )
-            //
-            // Configure MCP routes
-            //
-            // These endpoints allow users connect to the MCP service.
-            //
-            .service(web::scope(MCP_API_SCOPE).configure(
-                StreamableHttpService::configure(Arc::new(mcp_service)),
-            ))
             //
             // Configure API documentation
             //
