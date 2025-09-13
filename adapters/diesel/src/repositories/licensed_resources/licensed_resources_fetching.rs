@@ -1,6 +1,9 @@
 use crate::{
     models::config::DbPoolProvider,
-    schema::{owner_on_tenant::dsl as owner_dsl, user::dsl as user_dsl},
+    schema::{
+        owner_on_tenant::dsl as owner_dsl, tenant::dsl as tenant_dsl,
+        user::dsl as user_dsl,
+    },
 };
 
 use async_trait::async_trait;
@@ -17,7 +20,7 @@ use myc_core::domain::{
         native_error_codes::NativeErrorCodes,
         profile::{LicensedResource, TenantOwnership},
         related_accounts::RelatedAccounts,
-        security_group::PermissionedRoles,
+        security_group::PermissionedRole,
     },
     entities::LicensedResourcesFetching,
 };
@@ -44,8 +47,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         &self,
         email: Email,
         tenant: Option<Uuid>,
-        roles: Option<Vec<String>>,
-        permissioned_roles: Option<PermissionedRoles>,
+        roles: Option<Vec<PermissionedRole>>,
         related_accounts: Option<RelatedAccounts>,
         was_verified: Option<bool>,
     ) -> Result<FetchManyResponseKind<LicensedResource>, MappedErrors> {
@@ -69,35 +71,27 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             );
         }
 
-        if let Some(roles) = roles {
-            sql.push_str(
-                format!(
-                    " AND gr_slug IN ({})",
-                    roles
-                        .iter()
-                        .map(|r| format!("'{}'", r))
-                        .collect::<Vec<String>>()
-                        .join(",")
-                )
-                .as_str(),
-            );
-        }
+        tracing::debug!("Roles in List Licensed Resources: {:?}", roles);
 
-        if let Some(permissioned_roles) = permissioned_roles {
-            let statement = permissioned_roles.iter().fold(
-                String::new(),
-                |acc, (role, permission)| {
+        if let Some(roles) = roles {
+            let statement = roles
+                .iter()
+                .fold(String::new(), |acc, role| {
                     format!(
-                        "{}(gr_slug = '{}' AND gr_perm = {}) OR ",
+                        "{}(gr_slug = '{}' AND gr_perm >= {}) OR ",
                         acc,
-                        role,
-                        permission.to_owned() as i64
+                        role.name,
+                        role.permission.to_owned().clone().unwrap_or_default()
+                            as i64
                     )
-                },
-            );
+                })
+                .trim_end_matches(" OR ")
+                .to_string();
 
             sql.push_str(format!(" AND ({})", statement).as_str());
         }
+
+        tracing::debug!("SQL Query: {}", sql);
 
         if let Some(was_verified) = was_verified {
             sql.push_str(
@@ -179,16 +173,28 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         let mut query = user_dsl::user
             .into_boxed()
             .inner_join(owner_dsl::owner_on_tenant)
+            .inner_join(
+                tenant_dsl::tenant.on(owner_dsl::tenant_id.eq(tenant_dsl::id)),
+            )
             .filter(user_dsl::email.eq(email.email()))
-            .select((owner_dsl::tenant_id, owner_dsl::created));
+            .select((
+                owner_dsl::tenant_id,
+                owner_dsl::created,
+                tenant_dsl::name,
+            ));
 
         if let Some(tenant_id) = tenant {
             query = query.filter(owner_dsl::tenant_id.eq(tenant_id));
         }
 
-        let rows = query.load::<(Uuid, NaiveDateTime)>(conn).map_err(|e| {
-            fetching_err(format!("Failed to fetch tenant ownerships: {e}"))
-        })?;
+        let rows =
+            query
+                .load::<(Uuid, NaiveDateTime, String)>(conn)
+                .map_err(|e| {
+                    fetching_err(format!(
+                        "Failed to fetch tenant ownerships: {e}"
+                    ))
+                })?;
 
         if rows.is_empty() {
             return Ok(FetchManyResponseKind::NotFound);
@@ -196,9 +202,10 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
 
         Ok(FetchManyResponseKind::Found(
             rows.into_iter()
-                .map(|(tenant_id, created)| TenantOwnership {
-                    tenant: tenant_id,
+                .map(|(tenant_id, created, tenant_name)| TenantOwnership {
+                    id: tenant_id,
                     since: created.and_local_timezone(Local).unwrap(),
+                    name: tenant_name,
                 })
                 .collect(),
         ))

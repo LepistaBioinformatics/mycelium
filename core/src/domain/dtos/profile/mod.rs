@@ -10,7 +10,7 @@ use super::{
     account::VerboseStatus, guest_role::Permission,
     native_error_codes::NativeErrorCodes, related_accounts::RelatedAccounts,
 };
-use crate::domain::dtos::email::Email;
+use crate::domain::{actors::SystemActor, dtos::email::Email};
 
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
@@ -302,6 +302,30 @@ impl Profile {
         }
     }
 
+    /// Filter the licensed resources to the tenant as manager
+    ///
+    /// This method should be used to filter licensed resources to the tenant
+    /// that the profile is currently working on.
+    pub fn on_tenant_as_manager(
+        &self,
+        tenant_id: Uuid,
+        permission: Permission,
+    ) -> Self {
+        let profile = self
+            .on_tenant(tenant_id)
+            .with_permission(permission)
+            .with_roles(vec![SystemActor::TenantManager]);
+
+        //
+        // Return the new profile
+        //
+        Self {
+            ..profile
+                .update_state("isTenantManager".to_string(), "true".to_string())
+                .clone()
+        }
+    }
+
     /// Filter the licensed resources to the account
     ///
     /// This method should be used to filter licensed resources to the account
@@ -341,8 +365,18 @@ impl Profile {
         if let Some(tenants) = self.tenants_ownership.as_ref() {
             let tenants = tenants.to_ownership_vector();
 
-            if tenants.iter().any(|i| i.tenant == tenant_id) {
-                return Ok(self.to_owned());
+            if tenants.iter().any(|i| i.id == tenant_id) {
+                let profile = Self {
+                    ..self
+                        .clone()
+                        .update_state(
+                            "tenantOwnership".to_string(),
+                            tenant_id.to_string(),
+                        )
+                        .clone()
+                };
+
+                return Ok(profile);
             }
         }
 
@@ -524,26 +558,92 @@ impl Profile {
         .as_error()
     }
 
-    pub fn get_related_accounts_or_tenant_or_error(
+    /// Get the tenant wide permission or error
+    ///
+    /// Use this method to check permission requirements of use-cases accessible
+    /// to users with specific roles or with tenant wide permissions. The tenant
+    /// wide permissions will be checked first. If the profile has tenant wide
+    /// permissions, the method will return the related accounts. If the profile
+    /// has no tenant wide permissions, the method will return the related
+    /// accounts.
+    ///
+    pub fn get_tenant_wide_permission_or_error(
         &self,
         tenant_id: Uuid,
+        permission: Permission,
     ) -> Result<RelatedAccounts, MappedErrors> {
+        //
+        // Check if the profile has staff privileges
+        //
         if self.is_staff {
             return Ok(RelatedAccounts::HasStaffPrivileges);
         }
 
+        //
+        // Check if the profile has manager privileges
+        //
         if self.is_manager {
             return Ok(RelatedAccounts::HasManagerPrivileges);
         }
 
+        //
+        // Check if the profile has tenant ownership
+        //
         if let Some(tenants) = self.tenants_ownership.as_ref() {
             let tenants = tenants.to_ownership_vector();
 
-            if tenants.iter().any(|i| i.tenant == tenant_id) {
+            if tenants.iter().any(|i| i.id == tenant_id) {
                 return Ok(RelatedAccounts::HasTenantWidePrivileges(tenant_id));
             }
         }
 
+        //
+        // Check if the profile has tenant wide privileges by using the
+        // tenant manager role.
+        //
+        if self
+            .on_tenant_as_manager(tenant_id, permission)
+            .get_ids_or_error()
+            .is_ok()
+        {
+            return Ok(RelatedAccounts::HasTenantWidePrivileges(tenant_id));
+        }
+
+        execution_err(format!(
+            "Insufficient privileges to perform these action (no tenant wide permission): {}",
+            self.filtering_state.to_owned().unwrap_or(vec![]).join(", ")
+        ))
+        .with_code(NativeErrorCodes::MYC00019)
+        .with_exp_true()
+        .as_error()
+    }
+
+    /// Get the related accounts or tenant wide permission or error
+    ///
+    /// Use this method to check permission requirements of use-cases accessible
+    /// to users with specific roles or with tenant wide permissions. The tenant
+    /// wide permissions will be checked first. If the profile has tenant wide
+    /// permissions, the method will return the related accounts. If the profile
+    /// has no tenant wide permissions, the method will return the related
+    /// accounts.
+    ///
+    pub fn get_related_accounts_or_tenant_wide_permission_or_error(
+        &self,
+        tenant_id: Uuid,
+        permission: Permission,
+    ) -> Result<RelatedAccounts, MappedErrors> {
+        //
+        // Check if the profile has tenant wide privileges
+        //
+        if let Ok(related_accounts) =
+            self.get_tenant_wide_permission_or_error(tenant_id, permission)
+        {
+            return Ok(related_accounts);
+        }
+
+        //
+        // Check if the profile has access to the account
+        //
         self.get_related_account_or_error()
     }
 
@@ -660,7 +760,8 @@ mod tests {
             ])),
             tenants_ownership: Some(TenantsOwnership::Records(vec![
                 TenantOwnership {
-                    tenant: tenant_id,
+                    id: tenant_id,
+                    name: "Tenant Name".to_string(),
                     since: Local::now(),
                 },
             ])),
@@ -710,7 +811,7 @@ mod tests {
         let profile_with_standard = profile.with_system_accounts_access();
 
         assert_eq!(
-            1,
+            3,
             profile_with_read
                 .licensed_resources
                 .unwrap()
@@ -719,7 +820,7 @@ mod tests {
         );
 
         assert_eq!(
-            1,
+            2,
             profile_with_write
                 .licensed_resources
                 .unwrap()
@@ -758,7 +859,7 @@ mod tests {
         let profile_on_tenant_with_write =
             profile_on_tenant.with_write_access();
         assert_eq!(
-            1,
+            2,
             profile_on_tenant_with_read
                 .licensed_resources
                 .unwrap()

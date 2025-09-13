@@ -1,5 +1,7 @@
 use crate::domain::{
-    actors::SystemActor, dtos::profile::Profile, entities::GuestUserDeletion,
+    actors::SystemActor,
+    dtos::{guest_role::Permission, profile::Profile},
+    entities::GuestUserDeletion,
 };
 
 use mycelium_base::{
@@ -39,7 +41,10 @@ pub async fn revoke_user_guest_to_subscription_account(
             SystemActor::TenantManager,
             SystemActor::SubscriptionsManager,
         ])
-        .get_related_accounts_or_tenant_or_error(tenant_id)?;
+        .get_related_accounts_or_tenant_wide_permission_or_error(
+            tenant_id,
+            Permission::Write,
+        )?;
 
     // ? -----------------------------------------------------------------------
     // ? Uninvite guest

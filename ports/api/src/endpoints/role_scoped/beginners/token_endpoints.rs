@@ -2,14 +2,13 @@ use crate::dtos::MyceliumProfileData;
 
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
-    models::AccountLifeCycle,
+    domain::dtos::security_group::PermissionedRole, models::AccountLifeCycle,
     use_cases::role_scoped::beginner::token::create_connection_string,
 };
 use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error,
-    Permission,
 };
 use serde::{Deserialize, Serialize};
 use shaku::HasComponent;
@@ -37,6 +36,12 @@ pub struct CreateTokenBody {
     ///
     expiration: i64,
 
+    /// The name of the token
+    ///
+    /// The name of the token.
+    ///
+    name: String,
+
     /// A single tenant ID
     ///
     /// If specified, the actions allowed by the token will be scoped to the
@@ -45,21 +50,22 @@ pub struct CreateTokenBody {
     ///
     tenant_id: Option<Uuid>,
 
-    /// A single role
+    /// A single service account ID
     ///
     /// If specified, the actions allowed by the token will be scoped to the
-    /// role. If not specified, the actions allowed by the token will be
+    /// service account. Service account should be a subscription account,
+    /// tenant management account, or role scoped account. If not specified, the
+    /// actions allowed by the token will be scoped to the user profile.
+    ///
+    service_account_id: Option<Uuid>,
+
+    /// A list of roles
+    ///
+    /// If specified, the actions allowed by the token will be scoped to the
+    /// roles. If not specified, the actions allowed by the token will be
     /// scoped to the user profile.
     ///
-    role: Option<String>,
-
-    /// The permissioned roles
-    ///
-    /// If specified, the actions allowed by the token will be scoped to the
-    /// roles and permissions. Otherwise, the complete set of roles and
-    /// permissions present in the user profile will be used.
-    ///
-    permissioned_roles: Option<Vec<(String, Permission)>>,
+    roles: Option<Vec<PermissionedRole>>,
 }
 
 #[derive(Serialize, ToSchema, ToResponse)]
@@ -75,6 +81,7 @@ pub struct CreateTokenResponse {
 ///
 #[utoipa::path(
     post,
+    operation_id = "create_connection_string",
     request_body = CreateTokenBody,
     responses(
         (
@@ -108,10 +115,11 @@ pub async fn create_connection_string_url(
 ) -> impl Responder {
     match create_connection_string(
         profile.to_profile(),
+        body.name.to_owned(),
         body.expiration.to_owned(),
         body.tenant_id.to_owned(),
-        body.role.to_owned(),
-        body.permissioned_roles.to_owned(),
+        body.service_account_id.to_owned(),
+        body.roles.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),

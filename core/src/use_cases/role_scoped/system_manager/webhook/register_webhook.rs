@@ -1,9 +1,7 @@
 use crate::{domain::{
     actors::SystemActor,
     dtos::{
-        profile::Profile,
-        http_secret::HttpSecret,
-        webhook::{WebHook, WebHookTrigger},
+        http_secret::HttpSecret, profile::Profile, written_by::WrittenBy, webhook::{WebHook, WebHookTrigger}
     },
     entities::WebHookRegistration,
 }, models::AccountLifeCycle};
@@ -34,14 +32,23 @@ pub async fn register_webhook(
     profile
         .with_system_accounts_access()
         .with_write_access()
-        .with_roles(vec![SystemActor::SystemManager.to_string()])
+        .with_roles(vec![SystemActor::SystemManager])
         .get_ids_or_error()?;
 
     // ? -----------------------------------------------------------------------
     // ? Register webhook
     // ? -----------------------------------------------------------------------
 
-    let webhook = WebHook::new_encrypted(name, description, url, trigger, secret, config).await?;
+    let webhook = WebHook::new_encrypted(
+        name,
+        description,
+        url,
+        trigger,
+        secret,
+        config,
+        Some(WrittenBy::new_from_account(profile.acc_id)),
+    )
+    .await?;
 
     webhook_registration_repo
         .create(webhook)

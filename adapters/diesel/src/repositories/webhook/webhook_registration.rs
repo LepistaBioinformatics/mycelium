@@ -1,7 +1,9 @@
 use crate::{
     models::{config::DbPoolProvider, webhook::WebHook as WebHookModel},
-    schema::webhook as webhook_model,
-    schema::webhook_execution as webhook_execution_model,
+    repositories::parse_optional_written_by,
+    schema::{
+        webhook as webhook_model, webhook_execution as webhook_execution_model,
+    },
 };
 
 use crate::models::webhook_execution::WebHookExecution as WebHookExecutionModel;
@@ -55,7 +57,9 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
             secret: webhook.get_secret().map(|s| to_value(s).unwrap()),
             is_active: webhook.is_active,
             created: Local::now().naive_utc(),
+            created_by: webhook.created_by.map(|m| to_value(m).unwrap()),
             updated: None,
+            updated_by: None,
         };
 
         let created = diesel::insert_into(webhook_model::table)
@@ -77,6 +81,7 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
             created.url,
             created.trigger.parse().unwrap(),
             created.secret.map(|s| from_value(s).unwrap()),
+            parse_optional_written_by(created.created_by),
         );
 
         webhook.id = Some(created.id);
@@ -85,6 +90,7 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
         webhook.updated = created
             .updated
             .map(|dt| dt.and_local_timezone(Local).unwrap());
+        webhook.updated_by = parse_optional_written_by(created.updated_by);
 
         webhook.redact_secret_token();
 

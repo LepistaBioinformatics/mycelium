@@ -1,5 +1,6 @@
 use super::LicensedResource;
 
+use base64::{engine::general_purpose, Engine};
 use chrono::{DateTime, Local};
 use reqwest::Url;
 use serde::{Deserialize, Serialize};
@@ -12,7 +13,10 @@ use uuid::Uuid;
 )]
 pub struct TenantOwnership {
     /// The tenant ID that the profile has administration privileges
-    pub tenant: Uuid,
+    pub id: Uuid,
+
+    /// The tenant name
+    pub name: String,
 
     /// The date and time the tenant was granted to the profile
     pub since: DateTime<Local>,
@@ -29,10 +33,14 @@ pub enum TenantsOwnership {
 
 impl ToString for TenantOwnership {
     fn to_string(&self) -> String {
+        let encoded_name =
+            general_purpose::STANDARD.encode(self.name.as_bytes());
+
         format!(
-            "tid/{tenant_id}?since={since}",
-            tenant_id = self.tenant.to_string().replace("-", ""),
-            since = self.since.to_rfc3339()
+            "tid/{tenant_id}?since={since}&name={name}",
+            tenant_id = self.id.to_string().replace("-", ""),
+            since = self.since.to_rfc3339(),
+            name = encoded_name,
         )
     }
 }
@@ -63,6 +71,9 @@ impl FromStr for TenantOwnership {
             return Err("Invalid tenant UUID".to_string());
         }
 
+        //
+        // Extract the since
+        //
         let since = match url
             .query_pairs()
             .find(|(key, _)| key == "since")
@@ -78,8 +89,35 @@ impl FromStr for TenantOwnership {
             }
         };
 
+        //
+        // Extract the name
+        //
+        let name_encoded = match url
+            .query_pairs()
+            .find(|(key, _)| key == "name")
+            .map(|(_, value)| value)
+            .ok_or("Parameter name not found")?
+            .parse::<String>()
+        {
+            Ok(name) => name,
+            Err(_) => {
+                return Err("Failed to parse tenant ownership name".to_string());
+            }
+        };
+
+        let name_decoded =
+            match general_purpose::STANDARD.decode(name_encoded.as_bytes()) {
+                Ok(name) => String::from_utf8(name).unwrap(),
+                Err(_) => {
+                    return Err(
+                        "Failed to decode tenant ownership name".to_string()
+                    );
+                }
+            };
+
         Ok(Self {
-            tenant: Uuid::from_str(tenant_id).unwrap(),
+            id: Uuid::from_str(tenant_id).unwrap(),
+            name: name_decoded,
             since,
         })
     }

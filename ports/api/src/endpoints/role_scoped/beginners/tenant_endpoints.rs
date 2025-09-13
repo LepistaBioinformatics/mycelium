@@ -33,6 +33,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 /// Fetch a user's profile.
 #[utoipa::path(
     get,
+    operation_id = "fetch_tenant_public_info",
     responses(
         (
             status = 500,

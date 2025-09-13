@@ -60,6 +60,7 @@ pub struct GuestUserToChildrenBody {
 /// path argument.
 #[utoipa::path(
     post,
+    operation_id = "guest_to_children_account",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

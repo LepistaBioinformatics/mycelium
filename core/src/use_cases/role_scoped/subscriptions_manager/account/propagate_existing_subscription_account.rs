@@ -3,6 +3,7 @@ use crate::{
         actors::SystemActor,
         dtos::{
             account::Account,
+            guest_role::Permission,
             profile::Profile,
             webhook::{PayloadId, WebHookTrigger},
         },
@@ -61,7 +62,10 @@ pub async fn propagate_existing_subscription_account(
             SystemActor::TenantManager,
             SystemActor::SubscriptionsManager,
         ])
-        .get_related_accounts_or_tenant_or_error(tenant_id)?;
+        .get_related_accounts_or_tenant_wide_permission_or_error(
+            tenant_id,
+            Permission::Write,
+        )?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch subscription account

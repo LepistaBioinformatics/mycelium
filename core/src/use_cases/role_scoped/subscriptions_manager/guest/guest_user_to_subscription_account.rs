@@ -3,8 +3,8 @@ use crate::{
         actors::SystemActor,
         dtos::{
             account::VerboseStatus, account_type::AccountType, email::Email,
-            guest_user::GuestUser, native_error_codes::NativeErrorCodes,
-            profile::Profile,
+            guest_role::Permission, guest_user::GuestUser,
+            native_error_codes::NativeErrorCodes, profile::Profile,
         },
         entities::{
             AccountFetching, GuestRoleFetching, GuestUserRegistration,
@@ -53,7 +53,10 @@ pub async fn guest_user_to_subscription_account(
             SystemActor::TenantManager,
             SystemActor::SubscriptionsManager,
         ])
-        .get_related_accounts_or_tenant_or_error(tenant_id)?;
+        .get_related_accounts_or_tenant_wide_permission_or_error(
+            tenant_id,
+            Permission::Write,
+        )?;
 
     // ? -----------------------------------------------------------------------
     // ? Guarantee needed information to evaluate guesting
@@ -92,9 +95,11 @@ pub async fn guest_user_to_subscription_account(
         }
     };
 
+    println!("account type: {:?}", target_account.account_type);
+
     match target_account.account_type {
         //
-        // If the targed account is an actor associated account, the user must
+        // If the target account is an actor associated account, the user must
         // have write access and system accounts access.
         //
         AccountType::ActorAssociated { .. } => {
@@ -132,6 +137,8 @@ pub async fn guest_user_to_subscription_account(
         //
         AccountType::RoleAssociated { .. }
         | AccountType::Subscription { .. } => {
+            println!("matched role associated or subscription account");
+
             profile
                 .on_account(account_id)
                 .with_write_access()

@@ -2,13 +2,16 @@ mod api_docs;
 mod dispatchers;
 mod dtos;
 mod endpoints;
-mod graphql;
+//mod mcp;
 mod middleware;
 mod models;
 mod modifiers;
+mod openapi_processor;
 mod otel;
 mod router;
 mod settings;
+
+use crate::openapi_processor::initialize_tools_registry;
 
 use actix_cors::Cors;
 use actix_web::{
@@ -29,12 +32,12 @@ use endpoints::{
         guest_role_endpoints as manager_guest_role_endpoints,
         tenant_endpoints as manager_tenant_endpoints,
     },
+    openid::well_known_endpoints,
     role_scoped::configure as configure_standard_endpoints,
     service::tools_endpoints as service_tools_endpoints,
     shared::insert_role_header,
     staff::account_endpoints as staff_account_endpoints,
 };
-use graphql::initialize_tools_registry;
 use models::config_handler::ConfigHandler;
 use myc_adapters_shared_lib::models::{
     SharedAppModule, SharedClientImpl, SharedClientImplParameters,
@@ -49,10 +52,7 @@ use myc_core::domain::entities::{
 use myc_diesel::repositories::{
     DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
 };
-use myc_http_tools::{
-    providers::{azure_endpoints, google_endpoints},
-    settings::DEFAULT_REQUEST_ID_KEY,
-};
+use myc_http_tools::settings::DEFAULT_REQUEST_ID_KEY;
 use myc_kv::repositories::KVAppModule;
 use myc_mem_db::{
     models::config::DbPoolProvider,
@@ -78,9 +78,7 @@ use reqwest::header::{
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use router::route_request;
-use settings::{
-    ADMIN_API_SCOPE, GATEWAY_API_SCOPE, SUPER_USER_API_SCOPE, TOOLS_API_SCOPE,
-};
+use settings::{ADMIN_API_SCOPE, TOOLS_API_SCOPE};
 use shaku::HasComponent;
 use std::{path::PathBuf, str::FromStr, sync::Arc, sync::Mutex};
 use tracing::{info, trace, Instrument};
@@ -90,16 +88,10 @@ use utoipa_redoc::{FileConfig, Redoc, Servable};
 use utoipa_swagger_ui::{oauth, Config, SwaggerUi};
 use uuid::Uuid;
 
-use crate::graphql::graphql_handler;
-
-// ? ---------------------------------------------------------------------------
-// ? API fire elements
-// ? ---------------------------------------------------------------------------
-
-#[actix_web::main]
+#[tokio::main]
 pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
-    // ? Export the UTOIPA_REDOC_CONFIG_FILE environment variable
+    // ? EXPORT THE UTOIPA_REDOC_CONFIG_FILE ENVIRONMENT VARIABLE
     //
     // The UTOIPA_REDOC_CONFIG_FILE environment variable should be exported
     // before the server starts. The variable should contain the path to the
@@ -118,7 +110,7 @@ pub async fn main() -> std::io::Result<()> {
     }
 
     // ? -----------------------------------------------------------------------
-    // ? Initialize services configuration
+    // ? INITIALIZE SERVICES CONFIGURATION
     //
     // All configurations for the core, ports, and adapters layers should exists
     // into the configuration file. Such file are loaded here.
@@ -140,7 +132,7 @@ pub async fn main() -> std::io::Result<()> {
     let api_config = config.api.clone();
 
     // ? -----------------------------------------------------------------------
-    // ? Configure logging and telemetry
+    // ? CONFIGURE LOGGING AND TELEMETRY
     //
     // The logging and telemetry configuration should be initialized before the
     // server starts. The configuration should be set to the server and the
@@ -156,7 +148,7 @@ pub async fn main() -> std::io::Result<()> {
     let span = tracing::Span::current();
 
     // ? -----------------------------------------------------------------------
-    // ? Initialize vault configuration
+    // ? INITIALIZE VAULT CONFIGURATION
     //
     // The vault configuration should be initialized before the server starts.
     // Vault configurations should be used to store sensitive data.
@@ -168,7 +160,7 @@ pub async fn main() -> std::io::Result<()> {
         .await;
 
     // ? -----------------------------------------------------------------------
-    // ? Configure SQL App Module
+    // ? CONFIGURE INTERNAL DEPENDENCIES
     // ? -----------------------------------------------------------------------
     info!("Initialize internal dependencies");
 
@@ -266,7 +258,7 @@ pub async fn main() -> std::io::Result<()> {
     );
 
     // ? -----------------------------------------------------------------------
-    // ? Initialize the tools registry
+    // ? INITIALIZE THE TOOLS REGISTRY
     //
     // The tools registry should be initialized before the server starts. The
     // registry should be used to store the tools for the tools endpoints.
@@ -284,7 +276,7 @@ pub async fn main() -> std::io::Result<()> {
         })?;
 
     // ? -----------------------------------------------------------------------
-    // ? Fire the scheduler
+    // ? FIRE THE EMAIL DISPATCHER
     //
     // The email dispatcher should be fired to allow emails to be sent.
     // Dispatching will occur in a separate thread.
@@ -314,7 +306,7 @@ pub async fn main() -> std::io::Result<()> {
     .await;
 
     // ? -----------------------------------------------------------------------
-    // ? Fire the webhook dispatcher
+    // ? FIRE THE WEBHOOK DISPATCHER
     //
     // The webhook dispatcher should be fired to allow webhooks to be dispatched.
     // Dispatching will occur in a separate thread.
@@ -326,7 +318,7 @@ pub async fn main() -> std::io::Result<()> {
         .await;
 
     // ? -----------------------------------------------------------------------
-    // ? Fire the services health dispatcher
+    // ? FIRE THE SERVICES HEALTH DISPATCHER
     //
     // The services health dispatcher should be fired to allow the services
     // health to be checked.
@@ -338,19 +330,24 @@ pub async fn main() -> std::io::Result<()> {
         .await;
 
     // ? -----------------------------------------------------------------------
-    // ? Configure the server
+    // ? CONFIGURE THE SERVER
     // ? -----------------------------------------------------------------------
-    info!("Set the server configuration");
+    info!("Startup the server configuration");
     let server = HttpServer::new(move || {
-        let local_api_config = config.api.clone();
+        //
+        // Here we should clone the config to avoid borrowing issues
+        //
+        let allowed_origins = config.api.allowed_origins.clone();
         let forward_api_config = config.api.clone();
         let auth_config = config.auth.clone();
         let token_config = config.core.account_life_cycle.clone();
 
+        //
+        // Configure the CORS policy
+        //
         let cors = Cors::default()
             .allowed_origin_fn(move |origin, _| {
-                local_api_config
-                    .allowed_origins
+                allowed_origins
                     .contains(&origin.to_str().unwrap_or("").to_string())
             })
             .expose_headers(vec![
@@ -369,210 +366,65 @@ pub async fn main() -> std::io::Result<()> {
         trace!("Configured Cors: {:?}", cors);
 
         // ? -------------------------------------------------------------------
-        // ? Configure Base Application
+        // ? Create the basis for the application
         // ? -------------------------------------------------------------------
-
-        let app = App::new()
+        let base_app = App::new()
             //
-            // Include the tracing request to trace the request to the tracing
-            // system
+            // Configure CORS policies
             //
-            .wrap(RequestTracing::new())
+            .wrap(cors)
             //
-            // Include the tracing logger to log routes request to the tracing
-            // system
+            // Normalize path
             //
+            .wrap(NormalizePath::new(TrailingSlash::MergeOnly))
+            //
+            // Configure tracing and logging
+            //
+            .wrap(RequestTracing::default())
             .wrap(TracingLogger::default())
+            //
+            // Inject configuration
+            //
+            .app_data(web::Data::new(tools_registry_schema.clone()))
+            .app_data(web::Data::new(token_config).clone())
+            .app_data(web::Data::new(auth_config.to_owned()).clone())
+            //
+            // Inject modules
+            //
             .app_data(web::Data::from(sql_module.clone()))
             .app_data(web::Data::from(shared_module.clone()))
             .app_data(web::Data::from(notifier_module.clone()))
             .app_data(web::Data::from(kv_module.clone()))
             .app_data(web::Data::from(mem_module.clone()))
-            .app_data(web::Data::new(token_config).clone())
-            .app_data(web::Data::new(auth_config.to_owned()).clone())
             //
-            // Index
+            // Index endpoints
             //
-            // Index endpoints allow to check fht status of the service.
+            // Index endpoints allow to check the status of the service
             //
             .service(
-                web::scope(
-                    format!("/{}", endpoints::shared::UrlScope::Health)
-                        .as_str(),
-                )
-                .configure(heath_check_endpoints::configure),
-            );
-
-        // ? -------------------------------------------------------------------
-        // ? Configure base mycelium scope
-        // ? -------------------------------------------------------------------
-        let mycelium_scope = web::scope(&format!("/{}", ADMIN_API_SCOPE))
-            //
-            // Super Users
-            //
-            // Super user endpoints allow to perform manage the staff and
-            // manager users actions, including determine new staffs and
-            // managers.
-            //
-            .service(
-                web::scope(format!("/{}", SUPER_USER_API_SCOPE).as_str())
-                    .service(
-                        web::scope(
-                            format!("/{}", endpoints::shared::UrlScope::Staffs)
-                                .as_str(),
-                        )
-                        //
-                        // Inject a header to be collected by the
-                        // MyceliumProfileData extractor.
-                        //
-                        // An empty role header was injected to allow only the
-                        // super users with Staff status to access the staff
-                        // endpoints.
-                        //
-                        .wrap_fn(|req, srv| {
-                            let req = insert_role_header(req, vec![]);
-
-                            srv.call(req)
-                        })
-                        //
-                        // Configure endpoints
-                        //
-                        .configure(staff_account_endpoints::configure),
-                    )
-                    //
-                    // Manager Users
-                    //
-                    .service(
-                        web::scope(
-                            format!(
-                                "/{}",
-                                endpoints::shared::UrlScope::Managers
-                            )
-                            .as_str(),
-                        )
-                        //
-                        // Inject a header to be collected by the
-                        // MyceliumProfileData extractor.
-                        //
-                        // An empty role header was injected to allow only the
-                        // super users with Managers status to access the
-                        // managers endpoints.
-                        //
-                        .wrap_fn(|req, srv| {
-                            let req = insert_role_header(req, vec![]);
-
-                            srv.call(req)
-                        })
-                        //
-                        // Configure endpoints
-                        //
-                        .configure(manager_tenant_endpoints::configure)
-                        .configure(manager_guest_role_endpoints::configure)
-                        .configure(manager_account_endpoints::configure),
-                    ),
+                web::scope("/health")
+                    .configure(heath_check_endpoints::configure),
             )
             //
-            // Role Scoped Endpoints
+            // The well known openid configuration path
+            //
+            // This path is used to get the well known openid configuration
+            // from the auth0 server.
+            //
+            .configure(well_known_endpoints::configure)
+            //
+            // Configure tools routes
+            //
+            // These endpoints allow users to identify the status of public
+            // services.
             //
             .service(
-                web::scope(
-                    format!("/{}", endpoints::shared::UrlScope::RoleScoped)
-                        .as_str(),
-                )
-                .configure(configure_standard_endpoints),
-            );
-
-        // ? -------------------------------------------------------------------
-        // ? Configure authentication elements
-        //
-        // Mycelium Auth
-        //
-        // ? -------------------------------------------------------------------
-        let app = match auth_config.internal {
-            OptionalConfig::Enabled(config) => {
-                //
-                // Configure OAuth2 Scope
-                //
-                info!("Configuring Mycelium Internal authentication");
-                app.app_data(web::Data::new(config.clone()))
-            }
-            _ => app,
-        };
-
-        // ? -------------------------------------------------------------------
-        // ? Configure authentication elements
-        //
-        // Google OAuth2
-        //
-        // ? -------------------------------------------------------------------
-        let mycelium_scope = match auth_config.google {
-            OptionalConfig::Enabled(_) => {
-                //
-                // Configure OAuth2 Scope
-                //
-                info!("Configuring Google authentication");
-                let scope = mycelium_scope.service(
-                    web::scope("/auth/google")
-                        .configure(google_endpoints::configure),
-                );
-
-                scope
-            }
-            _ => mycelium_scope,
-        };
-
-        // ? -------------------------------------------------------------------
-        // ? Configure authentication elements
-        //
-        // Azure AD OAuth2
-        //
-        // ? -------------------------------------------------------------------
-        let mycelium_scope = match auth_config.azure {
-            OptionalConfig::Enabled(_) => {
-                //
-                // Configure OAuth2 Scope
-                //
-                info!("Configuring Azure AD authentication");
-                let scope = mycelium_scope.service(
-                    web::scope("/auth/azure")
-                        .configure(azure_endpoints::configure),
-                );
-
-                scope
-            }
-            _ => mycelium_scope,
-        };
-
-        // ? -------------------------------------------------------------------
-        // ? Fire the server
-        // ? -------------------------------------------------------------------
-        app
-            // ? ---------------------------------------------------------------
-            // ? Normalize path
-            // ? ---------------------------------------------------------------
-            .wrap(NormalizePath::new(TrailingSlash::MergeOnly))
-            // ? ---------------------------------------------------------------
-            // ? Configure CORS policies
-            // ? ---------------------------------------------------------------
-            .wrap(cors)
-            // ? ---------------------------------------------------------------
-            // ? Configure Log elements
-            // ? ---------------------------------------------------------------
-            // These wrap create the basic log elements and exclude the health
-            // check route.
-            .wrap(
-                Logger::default()
-                    .exclude_regex("/health/*")
-                    .exclude_regex("/doc/swagger/*")
-                    .exclude_regex("/doc/redoc/*"),
+                web::scope(TOOLS_API_SCOPE)
+                    .configure(service_tools_endpoints::configure),
             )
-            // ? ---------------------------------------------------------------
-            // ? Configure mycelium routes
-            // ? ---------------------------------------------------------------
-            .service(mycelium_scope)
-            // ? ---------------------------------------------------------------
-            // ? Configure API documentation
-            // ? ---------------------------------------------------------------
+            //
+            // Configure API documentation
+            //
             .service(Redoc::with_url_and_config(
                 "/doc/redoc",
                 ApiDoc::openapi(),
@@ -596,47 +448,126 @@ pub async fn main() -> std::io::Result<()> {
                             .request_snippets_enabled(true),
                     ),
             )
-            // ? ---------------------------------------------------------------
-            // ? Configure tools routes
-            // ? ---------------------------------------------------------------
+            //
+            // Configure anti-log elements
+            //
+            // Filter docs and common routes from the logs.
+            //
+            .wrap(
+                Logger::default()
+                    .exclude_regex("/health/*")
+                    .exclude_regex("/doc/swagger/*")
+                    .exclude_regex("/doc/redoc/*"),
+            );
+
+        // ? -------------------------------------------------------------------
+        // ? CREATE THE ADMIN SCOPE
+        //
+        // Here you can find endpoints for the mycelium management (admin
+        // scope). There include super users endpoints endpoints and role scoped
+        // endpoints.
+        //
+        // ? -------------------------------------------------------------------
+        let admin_scope = web::scope(ADMIN_API_SCOPE)
+            //
+            // Super Users
+            //
+            // Super user endpoints allow to perform manage the staff and
+            // manager users actions, including determine new staffs and
+            // managers.
+            //
             .service(
-                web::scope(&format!("/{}", TOOLS_API_SCOPE))
-                    .app_data(web::Data::new(tools_registry_schema.clone()))
-                    .configure(service_tools_endpoints::configure)
-                    .service(
-                        web::resource("/graphql")
-                            .guard(actix_web::guard::Post())
-                            .to(graphql_handler),
-                    ),
-            )
-            // ? ---------------------------------------------------------------
-            // ? Configure gateway routes
-            // ? ---------------------------------------------------------------
-            .app_data(web::Data::new(Client::default()))
-            .app_data(web::Data::new(forward_api_config.to_owned()).clone())
-            .service(
-                web::scope(&format!("/{}", GATEWAY_API_SCOPE))
+                web::scope(endpoints::shared::UrlScope::Staffs.str())
                     //
-                    // Inject a request ID to downstream services
+                    // Inject a header to be collected by the
+                    // MyceliumProfileData extractor.
                     //
-                    .wrap_fn(|mut req, srv| {
-                        req.headers_mut().insert(
-                            HeaderName::from_str(DEFAULT_REQUEST_ID_KEY)
-                                .unwrap(),
-                            HeaderValue::from_str(
-                                Uuid::new_v4().to_string().as_str(),
-                            )
-                            .unwrap(),
-                        );
+                    // An empty role header was injected to allow only the
+                    // super users with Staff status to access the staff
+                    // endpoints.
+                    //
+                    .wrap_fn(|req, srv| {
+                        let req = insert_role_header(req, vec![]);
 
                         srv.call(req)
                     })
                     //
-                    // Route to default route
+                    // Configure endpoints
                     //
-                    .default_service(web::to(route_request)),
+                    .configure(staff_account_endpoints::configure),
             )
+            //
+            // Manager Users
+            //
+            .service(
+                web::scope(endpoints::shared::UrlScope::Managers.str())
+                    //
+                    // Inject a header to be collected by the
+                    // MyceliumProfileData extractor.
+                    //
+                    // An empty role header was injected to allow only the
+                    // super users with Managers status to access the
+                    // managers endpoints.
+                    //
+                    .wrap_fn(|req, srv| {
+                        let req = insert_role_header(req, vec![]);
+
+                        srv.call(req)
+                    })
+                    //
+                    // Configure endpoints
+                    //
+                    .configure(manager_tenant_endpoints::configure)
+                    .configure(manager_guest_role_endpoints::configure)
+                    .configure(manager_account_endpoints::configure),
+            )
+            //
+            // Role Scoped Endpoints
+            //
+            .configure(configure_standard_endpoints);
+
+        // ? -------------------------------------------------------------------
+        // ? CONFIGURE INTERNAL AUTHENTICATION
+        // ? -------------------------------------------------------------------
+        let final_app = match auth_config.internal {
+            OptionalConfig::Enabled(config) => {
+                //
+                // Configure OAuth2 Scope
+                //
+                info!("Configuring Mycelium Internal authentication");
+                base_app.app_data(web::Data::new(config.clone()))
+            }
+            _ => base_app,
+        };
+
+        // ? -------------------------------------------------------------------
+        // ? CREATE THE GATEWAY SCOPE
+        // ? -------------------------------------------------------------------
+        final_app
+            //
+            // Configure admin routes
+            //
+            .service(admin_scope)
+            //
+            // Configure gateway routes
+            //
+            .app_data(web::Data::new(Client::new()))
+            .app_data(web::Data::new(forward_api_config.to_owned()).clone())
+            .wrap_fn(|mut req, srv| {
+                req.headers_mut().insert(
+                    HeaderName::from_str(DEFAULT_REQUEST_ID_KEY).unwrap(),
+                    HeaderValue::from_str(Uuid::new_v4().to_string().as_str())
+                        .unwrap(),
+                );
+
+                srv.call(req)
+            })
+            .default_service(web::to(route_request))
     });
+
+    // ? -----------------------------------------------------------------------
+    // ? FIRE THE SERVER
+    // ? -----------------------------------------------------------------------
 
     let address = (
         api_config.to_owned().service_ip,
@@ -645,6 +576,9 @@ pub async fn main() -> std::io::Result<()> {
 
     info!("Listening on Address and Port: {:?}: ", address);
 
+    // ? -----------------------------------------------------------------------
+    // ? WITH TLS IF CONFIGURED
+    // ? -----------------------------------------------------------------------
     if let OptionalConfig::Enabled(tls_config) = api_config.to_owned().tls {
         let api_config = api_config.clone();
 
@@ -698,6 +632,9 @@ pub async fn main() -> std::io::Result<()> {
             .await;
     }
 
+    // ? -----------------------------------------------------------------------
+    // ? WITHOUT TLS OTHERWISE
+    // ? -----------------------------------------------------------------------
     info!("Fire the server without TLS");
     server
         .bind(address)?

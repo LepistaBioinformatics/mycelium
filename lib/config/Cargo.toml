@@ -1,0 +1,48 @@
+[package]
+name = "mycelium-config"
+description = "Provide config manager features of the Mycelium project as and use-cases."
+
+edition.workspace = true
+authors.workspace = true
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+readme.workspace = true
+
+
+# ? ----------------------------------------------------------------------------
+# ? DEPENDENCIES
+# ? ----------------------------------------------------------------------------
+
+[dependencies]
+
+lazy_static.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_yaml.workspace = true
+tracing.workspace = true
+utoipa.workspace = true
+
+# ------------------------------------------------------------------------------
+# Mycelium packages
+# ------------------------------------------------------------------------------
+
+mycelium-base.workspace = true
+
+# ? ----------------------------------------------------------------------------
+# ? DEV DEPENDENCIES
+# ? ----------------------------------------------------------------------------
+
+[dev-dependencies]
+tokio.workspace = true
+
+# ? ----------------------------------------------------------------------------
+# ? LIBRARY
+# ? ----------------------------------------------------------------------------
+
+[lib]
+name = "myc_config"
+path = "src/lib.rs"
+crate-type = ["staticlib", "lib"]

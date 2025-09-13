@@ -47,6 +47,7 @@ pub struct ListRoutesByServiceParams {
 ///
 #[utoipa::path(
     get,
+    operation_id = "list_routes_by_service",
     params(
         ListRoutesByServiceParams,
     ),

@@ -70,7 +70,7 @@ services:
     <<: *common-config
 
     container_name: myc-jaeger
-    image: 'jaegertracing/all-in-one:latest'
+    image: 'jaegertracing/jaeger:latest'
     restart: on-failure
     environment:
       - COLLECTOR_OTLP_ENABLED=true
@@ -146,15 +146,10 @@ services:
 
     container_name: myc-test-service
     entrypoint:
-      #- /bin/sh
-      #- -c
-      #- sleep infinity
       - myc-api-test-svc
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.test
       no_cache: true
-    environment:
-      - SERVICE_PORT=8083
-    ports:
-      - 8083:8083
+      args:
+        SERVICE_PORT: 8083

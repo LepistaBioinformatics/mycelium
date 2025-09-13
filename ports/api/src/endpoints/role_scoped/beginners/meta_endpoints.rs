@@ -56,6 +56,7 @@ pub struct DeleteAccountMetaParams {
 /// Register a account metadata
 #[utoipa::path(
     post,
+    operation_id = "create_account_meta",
     request_body = CreateAccountMetaBody,
     responses(
         (
@@ -116,6 +117,7 @@ pub async fn create_account_meta_url(
 /// Update a account metadata
 #[utoipa::path(
     put,
+    operation_id = "update_account_meta",
     request_body = CreateAccountMetaBody,
     responses(
         (
@@ -175,6 +177,7 @@ pub async fn update_account_meta_url(
 /// Delete a account metadata
 #[utoipa::path(
     delete,
+    operation_id = "delete_account_meta",
     request_body = DeleteAccountMetaParams,
     responses(
         (

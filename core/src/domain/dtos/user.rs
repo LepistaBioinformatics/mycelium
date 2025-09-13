@@ -679,7 +679,9 @@ mod tests {
             noreply_email: SecretResolver::Value("test".to_string()),
             support_name: None,
             support_email: SecretResolver::Value("test".to_string()),
-            token_secret: SecretResolver::Value("test".to_string()),
+            token_secret: SecretResolver::Value(
+                "ab4c0550-310b-4218-9edf-58edc87979b9".to_string(),
+            ),
         };
 
         let encrypted = totp.encrypt_me(config.to_owned()).await;

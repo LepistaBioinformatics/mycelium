@@ -74,6 +74,7 @@ pub struct DowngradeAccountPrivilegesBody {
 /// Increase permissions of the refereed account.
 #[utoipa::path(
     patch,
+    operation_id = "upgrade_account_privileges",
     params(
         ("account_id" = Uuid, Path, description = "The account primary key."),
     ),
@@ -134,6 +135,7 @@ pub async fn upgrade_account_privileges_url(
 /// Decrease permissions of the refereed account.
 #[utoipa::path(
     patch,
+    operation_id = "downgrade_account_privileges",
     params(
         ("account_id" = Uuid, Path, description = "The account primary key."),
     ),

@@ -53,6 +53,7 @@ pub struct CreateTagBody {
 /// Create a tag
 #[utoipa::path(
     post,
+    operation_id = "register_tenant_tag",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -113,6 +114,7 @@ pub async fn register_tenant_tag_url(
 /// Update a tag
 #[utoipa::path(
     put,
+    operation_id = "update_tenant_tag",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -178,6 +180,7 @@ pub async fn update_tenant_tag_url(
 /// Delete a tag
 #[utoipa::path(
     delete,
+    operation_id = "delete_tenant_tag",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

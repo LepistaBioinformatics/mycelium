@@ -1,4 +1,4 @@
-use crate::{dtos::Tool, settings::GATEWAY_API_SCOPE};
+use crate::dtos::Tool;
 
 use actix_web::{get, web, HttpResponse, Responder};
 use chrono::{DateTime, Local};
@@ -77,6 +77,7 @@ pub(crate) struct ListServicesResponse {
 ///
 #[utoipa::path(
     get,
+    operation_id = "list_discoverable_services",
     params(
         ListServicesParams,
     ),
@@ -125,20 +126,16 @@ pub async fn list_discoverable_services_url(
                 //
                 // Build host from gateway api scope
                 //
-                let host = String::from(format!("/{GATEWAY_API_SCOPE}"));
-
                 let tools = services
                     .into_iter()
-                    .map(|service| {
-                        match Tool::from_service(service, host.clone()) {
-                            Ok(tool) => Some(tool),
-                            Err(err) => {
-                                tracing::error!(
-                                    "Error converting service to tool: {err}"
-                                );
+                    .map(|service| match Tool::from_service(service) {
+                        Ok(tool) => Some(tool),
+                        Err(err) => {
+                            tracing::error!(
+                                "Error converting service to tool: {err}"
+                            );
 
-                                None
-                            }
+                            None
                         }
                     })
                     .filter_map(|tool| tool)

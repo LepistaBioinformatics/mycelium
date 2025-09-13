@@ -1,3 +1,4 @@
+use http::Method as HttpCrateMethod;
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -73,18 +74,52 @@ impl FromStr for HttpMethod {
 
     fn from_str(s: &str) -> Result<HttpMethod, HttpMethod> {
         match s {
-            "GET" => Ok(HttpMethod::Get),
-            "HEAD" => Ok(HttpMethod::Head),
-            "PATCH" => Ok(HttpMethod::Patch),
-            "POST" => Ok(HttpMethod::Post),
-            "PUT" => Ok(HttpMethod::Put),
-            "DELETE" => Ok(HttpMethod::Delete),
-            "CONNECT" => Ok(HttpMethod::Connect),
-            "OPTIONS" => Ok(HttpMethod::Options),
-            "TRACE" => Ok(HttpMethod::Trace),
-            "ALL" => Ok(HttpMethod::All),
-            "NONE" => Ok(HttpMethod::None),
+            "GET" | "get" => Ok(HttpMethod::Get),
+            "HEAD" | "head" => Ok(HttpMethod::Head),
+            "PATCH" | "patch" => Ok(HttpMethod::Patch),
+            "POST" | "post" => Ok(HttpMethod::Post),
+            "PUT" | "put" => Ok(HttpMethod::Put),
+            "DELETE" | "delete" => Ok(HttpMethod::Delete),
+            "CONNECT" | "connect" => Ok(HttpMethod::Connect),
+            "OPTIONS" | "options" => Ok(HttpMethod::Options),
+            "TRACE" | "trace" => Ok(HttpMethod::Trace),
+            "ALL" | "all" => Ok(HttpMethod::All),
+            "NONE" | "none" => Ok(HttpMethod::None),
             _ => Err(HttpMethod::None),
+        }
+    }
+}
+
+impl From<HttpMethod> for Method {
+    fn from(method: HttpMethod) -> Self {
+        match method {
+            HttpMethod::Get => Method::GET,
+            HttpMethod::Head => Method::HEAD,
+            HttpMethod::Patch => Method::PATCH,
+            HttpMethod::Post => Method::POST,
+            HttpMethod::Put => Method::PUT,
+            HttpMethod::Delete => Method::DELETE,
+            HttpMethod::Connect => Method::CONNECT,
+            HttpMethod::Options => Method::OPTIONS,
+            HttpMethod::Trace => Method::TRACE,
+            _ => Method::GET,
+        }
+    }
+}
+
+impl From<HttpMethod> for HttpCrateMethod {
+    fn from(method: HttpMethod) -> Self {
+        match method {
+            HttpMethod::Get => HttpCrateMethod::GET,
+            HttpMethod::Head => HttpCrateMethod::HEAD,
+            HttpMethod::Patch => HttpCrateMethod::PATCH,
+            HttpMethod::Post => HttpCrateMethod::POST,
+            HttpMethod::Put => HttpCrateMethod::PUT,
+            HttpMethod::Delete => HttpCrateMethod::DELETE,
+            HttpMethod::Connect => HttpCrateMethod::CONNECT,
+            HttpMethod::Options => HttpCrateMethod::OPTIONS,
+            HttpMethod::Trace => HttpCrateMethod::TRACE,
+            _ => HttpCrateMethod::GET,
         }
     }
 }

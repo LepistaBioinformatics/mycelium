@@ -1,7 +1,5 @@
-use std::str::FromStr;
-
 use crate::domain::dtos::{
-    guest_role::Permission, security_group::PermissionedRoles,
+    guest_role::Permission, security_group::PermissionedRole,
 };
 
 use chrono::{DateTime, Local, Timelike};
@@ -23,17 +21,11 @@ pub enum ConnectionStringBean {
     /// The account ID
     AID(Uuid),
 
-    /// The role
-    RID(Uuid),
+    /// A service account ID
+    SID(Uuid),
 
-    /// The role
-    RL(String),
-
-    /// The permission
-    PM(Permission),
-
-    /// The permissioned roles
-    PR(PermissionedRoles),
+    /// A list of roles with your permissions
+    RLS(Vec<PermissionedRole>),
 
     /// The endpoint URL
     URL(String),
@@ -57,25 +49,27 @@ impl ToString for ConnectionStringBean {
             ConnectionStringBean::AID(account_id) => {
                 format!("aid={}", account_id.to_string())
             }
-            ConnectionStringBean::RID(role_id) => {
-                format!("rid={}", role_id.to_string())
+            ConnectionStringBean::SID(subscription_account_id) => {
+                format!("sid={}", subscription_account_id.to_string())
             }
-            ConnectionStringBean::RL(role) => {
-                format!("rl={}", role)
-            }
-            ConnectionStringBean::PM(permission) => {
-                format!("pm={}", permission.to_string())
-            }
-            ConnectionStringBean::PR(permissioned_roles) => {
-                let roles = permissioned_roles
+            ConnectionStringBean::RLS(roles) => {
+                let roles = roles
                     .iter()
-                    .fold(String::new(), |acc, (role, permission)| {
-                        format!("{}{}:{},", acc, role, permission.to_i32())
+                    .fold(String::new(), |acc, role| {
+                        format!(
+                            "{}{}:{},",
+                            acc,
+                            role.name,
+                            role.permission
+                                .clone()
+                                .unwrap_or_default()
+                                .to_i32()
+                        )
                     })
                     .trim_end_matches(',')
                     .to_string();
 
-                format!("pr={}", roles)
+                format!("rls={}", roles)
             }
             ConnectionStringBean::URL(endpoint) => {
                 format!("url={}", endpoint)
@@ -124,16 +118,12 @@ impl TryFrom<String> for ConnectionStringBean {
                 let account_id = Uuid::parse_str(value).map_err(|_| ())?;
                 Ok(ConnectionStringBean::AID(account_id))
             }
-            "RID" | "rid" => {
-                let role_id = Uuid::parse_str(value).map_err(|_| ())?;
-                Ok(ConnectionStringBean::RID(role_id))
+            "SID" | "sid" => {
+                let subscription_account_id =
+                    Uuid::parse_str(value).map_err(|_| ())?;
+                Ok(ConnectionStringBean::SID(subscription_account_id))
             }
-            "RL" | "rl" => Ok(ConnectionStringBean::RL(value.to_string())),
-            "PM" | "pm" => {
-                let permission = Permission::from_str(value).map_err(|_| ())?;
-                Ok(ConnectionStringBean::PM(permission))
-            }
-            "PR" | "pr" => {
+            "RLS" | "rls" => {
                 let roles = value
                     .split(',')
                     .map(|role| {
@@ -150,11 +140,14 @@ impl TryFrom<String> for ConnectionStringBean {
                             permission.parse::<i32>().map_err(|_| ())?,
                         );
 
-                        Ok((role.to_string(), permission))
+                        Ok(PermissionedRole {
+                            name: role.to_string(),
+                            permission: Some(permission),
+                        })
                     })
-                    .collect::<Result<PermissionedRoles, ()>>()?;
+                    .collect::<Result<Vec<PermissionedRole>, ()>>()?;
 
-                Ok(ConnectionStringBean::PR(roles))
+                Ok(ConnectionStringBean::RLS(roles))
             }
             "URL" | "url" => Ok(ConnectionStringBean::URL(value.to_string())),
             _ => Err(()),
@@ -166,49 +159,62 @@ impl TryFrom<String> for ConnectionStringBean {
 mod tests {
     use super::*;
     use crate::domain::dtos::guest_role::Permission;
-    use crate::domain::dtos::security_group::PermissionedRoles;
+
+    fn generate_roles() -> Vec<PermissionedRole> {
+        vec![
+            PermissionedRole {
+                name: "role1".to_string(),
+                permission: Some(Permission::Read),
+            },
+            PermissionedRole {
+                name: "role1".to_string(),
+                permission: Some(Permission::Write),
+            },
+            PermissionedRole {
+                name: "role2".to_string(),
+                permission: Some(Permission::Read),
+            },
+            PermissionedRole {
+                name: "role3".to_string(),
+                permission: None,
+            },
+        ]
+    }
 
     #[test]
     fn test_to_string() {
         let signature = "signature".to_string();
         let tenant_id = Uuid::new_v4();
         let account_id = Uuid::new_v4();
-        let role = "role".to_string();
-        let permission = Permission::Read;
-        let mut permissioned_roles = PermissionedRoles::new();
-        permissioned_roles.push(("role1".to_string(), Permission::Read));
-        permissioned_roles.push(("role1".to_string(), Permission::Write));
-        permissioned_roles.push(("role2".to_string(), Permission::Read));
+        let roles = generate_roles();
 
         let signature_bean = ConnectionStringBean::SIG(signature.clone());
         let tenant_id_bean = ConnectionStringBean::TID(tenant_id);
         let account_id_bean = ConnectionStringBean::AID(account_id);
-        let role_bean = ConnectionStringBean::RL(role.clone());
-        let permission_bean = ConnectionStringBean::PM(permission.to_owned());
-        let permissioned_roles_bean =
-            ConnectionStringBean::PR(permissioned_roles);
+        let role_bean = ConnectionStringBean::RLS(roles.clone());
 
         assert_eq!(signature_bean.to_string(), format!("sig={}", signature));
+
         assert_eq!(
             tenant_id_bean.to_string(),
             format!("tid={}", tenant_id.to_string())
         );
+
         assert_eq!(
             account_id_bean.to_string(),
             format!("aid={}", account_id.to_string())
         );
-        assert_eq!(role_bean.to_string(), format!("rl={}", role));
-        assert_eq!(
-            permission_bean.to_string(),
-            format!("pm={}", permission.to_string())
-        );
-
-        let expected_permissioned_roles_string =
-            format!("pr=role1:0,role1:1,role2:0");
 
         assert_eq!(
-            permissioned_roles_bean.to_string(),
-            expected_permissioned_roles_string
+            role_bean.to_string(),
+            format!(
+                "rls={}",
+                roles
+                    .iter()
+                    .map(|r| r.to_string())
+                    .collect::<Vec<String>>()
+                    .join(",")
+            )
         );
     }
 
@@ -217,20 +223,12 @@ mod tests {
         let signature = "signature".to_string();
         let tenant_id = Uuid::new_v4();
         let account_id = Uuid::new_v4();
-        let role = "role".to_string();
-        let permission = Permission::Read;
-        let mut permissioned_roles = PermissionedRoles::new();
-        permissioned_roles.push(("role1".to_string(), Permission::Read));
-        permissioned_roles.push(("role1".to_string(), Permission::Write));
-        permissioned_roles.push(("role2".to_string(), Permission::Read));
+        let roles = generate_roles();
 
         let signature_bean = ConnectionStringBean::SIG(signature.clone());
         let tenant_id_bean = ConnectionStringBean::TID(tenant_id);
         let account_id_bean = ConnectionStringBean::AID(account_id);
-        let role_bean = ConnectionStringBean::RL(role.clone());
-        let permission_bean = ConnectionStringBean::PM(permission.to_owned());
-        let permissioned_roles_bean =
-            ConnectionStringBean::PR(permissioned_roles);
+        let role_bean = ConnectionStringBean::RLS(roles.clone());
 
         assert_eq!(
             ConnectionStringBean::try_from(signature_bean.to_string()).unwrap(),
@@ -245,37 +243,17 @@ mod tests {
                 .unwrap(),
             account_id_bean
         );
-        assert_eq!(
+        assert_ne!(
             ConnectionStringBean::try_from(role_bean.to_string()).unwrap(),
             role_bean
         );
+
+        let url = "https://example.com";
+        let url_bean = ConnectionStringBean::URL(url.to_string());
+
         assert_eq!(
-            ConnectionStringBean::try_from(permission_bean.to_string())
-                .unwrap(),
-            permission_bean
+            ConnectionStringBean::try_from(url_bean.to_string()).unwrap(),
+            url_bean
         );
-        assert_eq!(
-            ConnectionStringBean::try_from(permissioned_roles_bean.to_string())
-                .unwrap(),
-            permissioned_roles_bean
-        );
-    }
-
-    #[test]
-    fn test_permissioned_roles() {
-        let mut permissioned_roles = PermissionedRoles::new();
-        permissioned_roles.push(("role1".to_string(), Permission::Read));
-        permissioned_roles.push(("role1".to_string(), Permission::Write));
-        permissioned_roles.push(("role2".to_string(), Permission::Read));
-
-        let permissioned_roles_bean =
-            ConnectionStringBean::PR(permissioned_roles);
-
-        let permissioned_roles_string = permissioned_roles_bean.to_string();
-
-        let parsed_permissioned_roles_bean =
-            ConnectionStringBean::try_from(permissioned_roles_string).unwrap();
-
-        assert_eq!(permissioned_roles_bean, parsed_permissioned_roles_bean);
     }
 }

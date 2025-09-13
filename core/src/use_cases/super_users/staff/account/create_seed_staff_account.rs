@@ -1,9 +1,10 @@
 use crate::domain::{
     dtos::{
-        account::{Account, Modifier},
+        account::Account,
         account_type::AccountType,
         email::Email,
         native_error_codes::NativeErrorCodes,
+        written_by::WrittenBy,
         user::{PasswordHash, Provider, User},
     },
     entities::{AccountRegistration, UserRegistration},
@@ -88,7 +89,7 @@ pub async fn create_seed_staff_account(
                 account_name,
                 new_user.to_owned(),
                 AccountType::Staff,
-                Some(Modifier::new_from_user(new_user.id.ok_or_else(
+                Some(WrittenBy::new_from_user(new_user.id.ok_or_else(
                     || {
                         use_case_err("User ID not found".to_string())
                             .with_exp_true()

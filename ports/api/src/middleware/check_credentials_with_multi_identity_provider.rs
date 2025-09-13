@@ -30,6 +30,10 @@ struct UserInfo {
 /// Try to populate profile to request header
 ///
 /// This function is used to check credentials from multiple identity providers.
+/// It returns a tuple with the email and the provider config if the provider is
+/// a external one. If the provider is a internal one, the second element is
+/// None.
+///
 #[tracing::instrument(
     name = "check_credentials_with_multi_identity_provider",
     skip_all,
@@ -40,7 +44,7 @@ struct UserInfo {
 )]
 pub(crate) async fn check_credentials_with_multi_identity_provider(
     req: HttpRequest,
-) -> Result<Email, GatewayError> {
+) -> Result<(Email, Option<ExternalProviderConfig>), GatewayError> {
     let span = tracing::Span::current();
 
     tracing::trace!("Checking credentials with multiple identity providers");
@@ -48,30 +52,34 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
     // ? -----------------------------------------------------------------------
     // ? Extract issuer and token from request
     //
-    // If the function parse_issuer_from_request_v2 found an valid email,
-    // indicate that this found a internal provider. Otherwise, the function
-    // will return a vector of external providers. If the internal and external
-    // providers are not found, the function will return an Unauthorized error.
+    // If the function get_email_or_provider_from_request found an valid email
+    // from internal provider, the found email is returned. Otherwise, the
+    // function will return a vector of external providers. If the internal and
+    // external providers are not found, the function will return an
+    // Unauthorized error.
     //
     // ? -----------------------------------------------------------------------
 
-    let (optional_email, optional_provider, token) =
-        get_email_or_provider_from_request(req.clone())
-            .instrument(span.to_owned())
-            .await?;
+    let (
+        optional_email_from_internal_provider,
+        optional_external_provider_config,
+        token,
+    ) = get_email_or_provider_from_request(req.clone())
+        .instrument(span.to_owned())
+        .await?;
 
     // ? -----------------------------------------------------------------------
-    // ? If email is found, return it
+    // ? If email from internal provider was found, return it
     //
     // An email response indicates that the request is coming from the internal
     // provider. Then, the function will return the email.
     //
     // ? -----------------------------------------------------------------------
 
-    if let Some(email) = optional_email {
+    if let Some(email) = optional_email_from_internal_provider {
         span.record("myc.router.email", &Some(email.redacted_email()));
 
-        return Ok(email);
+        return Ok((email, None));
     }
 
     // ? -----------------------------------------------------------------------
@@ -82,14 +90,18 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
     //
     // ? -----------------------------------------------------------------------
 
-    if let Some(provider) = optional_provider {
+    if let Some(provider) = optional_external_provider_config {
         if let Ok(issuer) = provider.issuer.async_get_or_error().await {
             span.record("myc.router.provider", &Some(issuer));
         }
 
-        return get_email_from_external_provider(&provider, &token, &req)
+        return match get_email_from_external_provider(&provider, &token, &req)
             .instrument(span.to_owned())
-            .await;
+            .await
+        {
+            Ok(email) => Ok((email, Some(provider))),
+            Err(err) => Err(err),
+        };
     }
 
     // ? -----------------------------------------------------------------------

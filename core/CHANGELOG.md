@@ -2,6 +2,260 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.33] - 2025-09-03
+
+### 🚀 Features
+
+- Implements the single step account creation flow for verified accounts
+
+### 🚜 Refactor
+
+- Renamt the user account creation use-case to mirror their goal
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.0.1-beta.30] - 2025-08-26
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.29] - 2025-08-25
+
+### 🐛 Bug Fixes
+
+- Include account-type on re-exported types from http lib
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.28] - 2025-08-25
+
+### 🚀 Features
+
+- Include the account name at the role-related account creation
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.27] - 2025-08-25
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.26] - 2025-08-21
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.25] - 2025-08-21
+
+### 🚀 Features
+
+- Include the tenant name in profile response
+- Wip - try to solve authentication into the mcp call tool
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.0.1-beta.23] - 2025-08-17
+
+### 🚀 Features
+
+- Insert comprehensive identifiers to the mycelium tokens
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.0.1-beta.21] - 2025-08-11
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.20] - 2025-08-10
+
+### 🧪 Testing
+
+- Fix all non passing tests
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.0.1-beta.18] - 2025-07-31
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.17] - 2025-07-30
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.16] - 2025-07-30
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.15] - 2025-07-30
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.14] - 2025-07-30
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.13] - 2025-07-29
+
+### 🐛 Bug Fixes
+
+- *(profile-filtration)* Solve the profile filtration bug that completely remove the roles during connnection string usage
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.12] - 2025-07-29
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.11] - 2025-07-29
+
+### 🐛 Bug Fixes
+
+- Turn the tenant manager account slug immutable like the role-associated
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.10] - 2025-07-29
+
+### 🚀 Features
+
+- *(role-assiciated-accounts)* Do implement features that allow the role-associated accounts to be managed
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.9] - 2025-07-28
+
+### 🚀 Features
+
+- *(mcp)* Finish the mcp server implementation
+
+### 🐛 Bug Fixes
+
+- *(operation-id)* Update operation-id building to include method service name
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.8] - 2025-07-14
+
+### 💼 Other
+
+- Move all cross dependencies of the project to the workspace definition
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.7] - 2025-07-11
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.6] - 2025-07-10
+
+### 🐛 Bug Fixes
+
+- *(remove unused packages from actix-web and fix licensed resources fetching sql syntax)* N
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.5] - 2025-07-09
+
+### 🚀 Features
+
+- *(security-groups)* Reduce the security group options to include only up to the protected-by-role option
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.4] - 2025-07-09
+
+### 🚀 Features
+
+- *(operations-discovery)* Implements endpoints to perform operations discovery
+
+### 🚜 Refactor
+
+- *(libs)* Move auxiliary libs to a dedicated directory
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.0.1-beta.2] - 2025-07-06
+
+### 🚀 Features
+
+- Upgrade connection strings to allow roles and account-ids instead of permissioned roles
+- Implements an option co create role related accounts for spurious roles
+
+### 🐛 Bug Fixes
+
+- Avoid to expose system message to external customers
+- Set spurious role related accounts as no std
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.1] - 2025-06-30
+
+### 🚀 Features
+
+- *(written-by)* Include the written by field into the webhooks model
+- *(subscription-manager-account)* Create a use-case to initialize the subscription manager account with role scoped account type
+- *(guest-to-subs-manager-account)* Create methods to guest and revoke to subscription management accounts
+- *(tenant-wide-permissions)* Upgrade use-cases to use the tenant-wide permissions checker throug profile
+
+### ⚙️ Miscellaneous Tasks
+
+- *(connection-string)* Encode connection strings
+- Release
+
 ## [8.0.0] - 2025-06-27
 
 ### 🚀 Features
@@ -24,6 +278,10 @@ All notable changes to this project will be documented in this file.
 ### 🚜 Refactor
 
 - *(connection-string)* Review the applicaiton middlewares to allow users to access the full api interface with connection strings
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [7.13.3] - 2025-06-22
 

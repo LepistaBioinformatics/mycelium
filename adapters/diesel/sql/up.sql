@@ -196,7 +196,9 @@ CREATE TABLE webhook (
     trigger VARCHAR(255) NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     created TIMESTAMPTZ DEFAULT now(),
+    created_by JSONB DEFAULT '{}'::JSONB,
     updated TIMESTAMPTZ DEFAULT NULL,
+    updated_by JSONB DEFAULT '{}'::JSONB,
     secret JSONB
 );
 

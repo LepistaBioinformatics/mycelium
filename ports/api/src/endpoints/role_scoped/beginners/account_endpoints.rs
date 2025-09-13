@@ -9,12 +9,13 @@ use actix_web::{
 use myc_core::{
     models::AccountLifeCycle,
     use_cases::role_scoped::beginner::account::{
-        create_default_account, delete_my_account, get_my_account_details,
+        create_user_account, delete_my_account, get_my_account_details,
         update_own_account_name,
     },
 };
 use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
+    settings::MYCELIUM_AI_AWARE,
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
         delete_response_kind, fetch_response_kind, handle_mapped_error,
@@ -69,6 +70,7 @@ pub struct UpdateOwnAccountNameAccountBody {
 ///
 #[utoipa::path(
     post,
+    operation_id = "create_default_account",
     request_body = CreateDefaultAccountBody,
     responses(
         (
@@ -105,20 +107,39 @@ pub async fn create_default_account_url(
     life_cycle_settings: web::Data<AccountLifeCycle>,
     sql_app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
-    let email = match check_credentials_with_multi_identity_provider(req).await
-    {
-        Err(err) => {
-            warn!("err: {:?}", err);
-            return HttpResponse::InternalServerError()
-                .json(HttpJsonResponse::new_message(err.to_string()));
+    let (email, external_provider) =
+        match check_credentials_with_multi_identity_provider(req.to_owned())
+            .await
+        {
+            Err(err) => {
+                warn!("err: {:?}", err);
+                return HttpResponse::InternalServerError()
+                    .json(HttpJsonResponse::new_message(err.to_string()));
+            }
+            Ok(res) => res,
+        };
+
+    let issuer = if let Some(provider) = external_provider {
+        match provider.issuer.async_get_or_error().await {
+            Ok(issuer) => issuer,
+            Err(err) => {
+                warn!("err: {:?}", err);
+                return HttpResponse::InternalServerError()
+                    .json(HttpJsonResponse::new_message(err.to_string()));
+            }
         }
-        Ok(res) => res,
+    } else {
+        return HttpResponse::BadRequest().json(HttpJsonResponse::new_message(
+            "Invalid provider".to_string(),
+        ));
     };
 
-    match create_default_account(
+    match create_user_account(
         email,
+        Some(issuer),
         body.name.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
@@ -136,6 +157,7 @@ pub async fn create_default_account_url(
 /// Get the details of the account associated with the current user.
 #[utoipa::path(
     get,
+    operation_id = "get_my_account_details",
     responses(
         (
             status = 500,
@@ -162,6 +184,7 @@ pub async fn create_default_account_url(
             body = Account,
         ),
     ),
+    tag = MYCELIUM_AI_AWARE
 )]
 #[get("")]
 pub async fn get_my_account_details_url(
@@ -185,6 +208,7 @@ pub async fn get_my_account_details_url(
 ///
 #[utoipa::path(
     patch,
+    operation_id = "update_own_account_name",
     request_body = UpdateOwnAccountNameAccountBody,
     params(
         ("account_id" = Uuid, Path, description = "The account primary key."),
@@ -217,7 +241,7 @@ pub async fn get_my_account_details_url(
         ),
     ),
 )]
-#[patch("/{account_id}/update-account-name")]
+#[patch("/{account_id}")]
 pub async fn update_own_account_name_url(
     path: web::Path<Uuid>,
     body: web::Json<UpdateOwnAccountNameAccountBody>,
@@ -260,6 +284,7 @@ pub async fn update_own_account_name_url(
 ///
 #[utoipa::path(
     delete,
+    operation_id = "delete_my_account",
     responses(
         (
             status = 200,

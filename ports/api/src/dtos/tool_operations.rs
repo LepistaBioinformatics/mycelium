@@ -1,16 +1,14 @@
-use crate::graphql::Operation;
-
-use async_graphql::SimpleObject;
+use myc_core::domain::dtos::{
+    health_check_info::HealthStatus, http::HttpMethod,
+    security_group::SecurityGroup,
+};
+use mycelium_openapi::Operation;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use utoipa::ToSchema;
 
-#[derive(SimpleObject, Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, ToSchema)]
 pub(crate) struct ToolOperation {
-    /// The operation id
-    ///
-    /// The id of the operation.
-    ///
-    pub operation_id: String,
-
     /// The path
     ///
     /// The openapi operation path. This should include the parent service
@@ -22,31 +20,27 @@ pub(crate) struct ToolOperation {
     ///
     /// The allowed method of the operation.
     ///
-    pub method: String,
+    pub method: HttpMethod,
+
+    /// The operation
+    ///
+    /// A serialized operation. See the [Operation] struct for more details.
+    ///
+    #[serde(flatten)]
+    pub operation: Operation,
+
+    /// The operation value
+    ///
+    /// The operation value.
+    ///
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub operation_value: Option<Value>,
 
     /// The mycelium security group
     ///
     /// The mycelium security group for the operation.
     ///
-    pub security_group: String,
-
-    /// The summary
-    ///
-    /// The openapi summary of the operation.
-    ///
-    pub summary: Option<String>,
-
-    /// The description
-    ///
-    /// The openapi description of the operation.
-    ///
-    pub description: Option<String>,
-
-    /// The operation
-    ///
-    /// A serialized operation.
-    ///
-    pub operation: Operation,
+    pub security_group: SecurityGroup,
 
     /// The related service
     ///
@@ -55,7 +49,7 @@ pub(crate) struct ToolOperation {
     pub service: ServiceWrapper,
 }
 
-#[derive(SimpleObject, Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, ToSchema)]
 pub(crate) struct ServiceWrapper {
     /// The service name
     ///
@@ -67,7 +61,7 @@ pub(crate) struct ServiceWrapper {
     ///
     /// The health status of the service.
     ///
-    pub health_status: String,
+    pub health_status: HealthStatus,
 
     /// The service capabilities
     ///

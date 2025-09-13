@@ -8,6 +8,7 @@ use crate::{
     models::AccountLifeCycle,
 };
 
+use chrono::{DateTime, Local};
 use hmac::Hmac;
 use mycelium_base::utils::errors::{dto_err, MappedErrors};
 use serde::{Deserialize, Serialize};
@@ -31,6 +32,18 @@ where
     TokenType: ToString,
     Scope: ToString,
 {
+    /// The unique identifier of the token
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub id: Option<Uuid>,
+
+    /// The creation date of the token
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Local>>,
+
+    /// The name of the token
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+
     /// The scope which the token should be used
     ///
     /// Scopes should be defined by the service needing the token
@@ -55,7 +68,7 @@ where
     ///
     /// This is the token to be used by the service.
     ///
-    pub token: TokenType,
+    token: TokenType,
 }
 
 impl<TokenType, Scope> ServiceAccountRelatedMeta<TokenType, Scope>
@@ -71,12 +84,16 @@ where
         account_id: Uuid,
         email: Email,
         token: TokenType,
+        name: Option<String>,
     ) -> Self {
         Self {
             scope,
             account_id,
             email,
             token,
+            name,
+            id: Some(Uuid::now_v7()),
+            created_at: Some(Local::now()),
         }
     }
 
@@ -90,6 +107,7 @@ where
         account_id: Uuid,
         email: Email,
         config: AccountLifeCycle,
+        name: Option<String>,
     ) -> Result<Self, MappedErrors> {
         let extra_data = format!("{} <{}>", account_id, email.email());
         let signature = scope.sign_token(config, Some(extra_data)).await?;
@@ -107,6 +125,7 @@ where
             account_id,
             email.to_owned(),
             token,
+            name,
         ))
     }
 

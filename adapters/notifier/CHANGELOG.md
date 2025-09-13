@@ -2,11 +2,190 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.33] - 2025-09-03
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.0.1-beta.30] - 2025-08-26
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.29] - 2025-08-25
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.28] - 2025-08-25
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.27] - 2025-08-25
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.26] - 2025-08-21
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.25] - 2025-08-21
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.0.1-beta.23] - 2025-08-17
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.0.1-beta.21] - 2025-08-11
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.20] - 2025-08-10
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.0.1-beta.18] - 2025-07-31
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.17] - 2025-07-30
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.16] - 2025-07-30
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.15] - 2025-07-30
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.14] - 2025-07-30
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.13] - 2025-07-29
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.12] - 2025-07-29
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.11] - 2025-07-29
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.10] - 2025-07-29
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.9] - 2025-07-28
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.8] - 2025-07-14
+
+### 💼 Other
+
+- Move all cross dependencies of the project to the workspace definition
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.7] - 2025-07-11
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.6] - 2025-07-10
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.5] - 2025-07-09
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.4] - 2025-07-09
+
+### 🚜 Refactor
+
+- *(libs)* Move auxiliary libs to a dedicated directory
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.0.1-beta.2] - 2025-07-06
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.1] - 2025-06-30
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.0] - 2025-06-27
 
 ### 🚀 Features
 
 - *(connection-strings)* Replace the multi-type connection strings by a single user-related connection string
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [7.13.3] - 2025-06-22
 

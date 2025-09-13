@@ -37,9 +37,28 @@ pub enum AccountType {
     /// connect users to a specific standard role in the application.
     #[serde(rename_all = "camelCase")]
     RoleAssociated {
+        /// The tenant ID
         tenant_id: Uuid,
+
+        /// The role name
+        ///
+        /// The role name should be the same for the read and write roles.
+        ///
         role_name: String,
-        role_id: Uuid,
+
+        /// The read role ID
+        ///
+        /// The read role ID is the ID of the role that will be used to read the
+        /// data from the account.
+        ///
+        read_role_id: Uuid,
+
+        /// The write role ID
+        ///
+        /// The write role ID is the ID of the role that will be used to write
+        /// the data to the account.
+        ///
+        write_role_id: Uuid,
     },
 
     /// Actor associated account type
@@ -118,14 +137,15 @@ mod tests {
         let account_type = AccountType::RoleAssociated {
             tenant_id: Uuid::from_u128(0),
             role_name: SystemActor::CustomRole("test".to_string()).to_string(),
-            role_id: Uuid::from_u128(0),
+            read_role_id: Uuid::from_u128(0),
+            write_role_id: Uuid::from_u128(0),
         };
 
         let json = serde_json::to_string(&account_type).unwrap();
 
         assert_eq!(
             json,
-            r#"{"standardRoleAssociated":{"tenantId":"00000000-0000-0000-0000-000000000000","roleName":"test","roleId":"00000000-0000-0000-0000-000000000000"}}"#
+            r#"{"roleAssociated":{"tenantId":"00000000-0000-0000-0000-000000000000","roleName":"custom-role:test","readRoleId":"00000000-0000-0000-0000-000000000000","writeRoleId":"00000000-0000-0000-0000-000000000000"}}"#
         );
 
         let account_type: AccountType = serde_json::from_str(&json).unwrap();
@@ -136,7 +156,8 @@ mod tests {
                 tenant_id: Uuid::from_u128(0),
                 role_name: SystemActor::CustomRole("test".to_string())
                     .to_string(),
-                role_id: Uuid::from_u128(0),
+                read_role_id: Uuid::from_u128(0),
+                write_role_id: Uuid::from_u128(0),
             }
         );
 

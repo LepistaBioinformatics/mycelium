@@ -52,8 +52,14 @@ pub struct ListGuestRolesParams {
 /// List Roles
 #[utoipa::path(
     get,
+    operation_id = "list_guest_roles",
     params(
         ListGuestRolesParams,
+        (
+            "x-mycelium-tenant-id" = Uuid,
+            Header,
+            description = "The tenant unique id."
+        )
     ),
     responses(
         (
@@ -115,8 +121,14 @@ pub async fn list_guest_roles_url(
 /// Fetch Guest Role Details
 #[utoipa::path(
     get,
+    operation_id = "fetch_guest_role_details",
     params(
         ("id" = Uuid, Path, description = "The guest role primary key."),
+        (
+            "x-mycelium-tenant-id" = Uuid,
+            Header,
+            description = "The tenant unique id."
+        )
     ),
     responses(
         (
@@ -147,12 +159,19 @@ pub async fn list_guest_roles_url(
 )]
 #[get("/{id}")]
 pub async fn fetch_guest_role_details_url(
+    tenant: Option<TenantData>,
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
+    let tenant_id = match tenant {
+        Some(tenant) => Some(tenant.tenant_id().to_owned()),
+        None => None,
+    };
+
     match fetch_guest_role_details(
         profile.to_profile(),
+        tenant_id.to_owned(),
         path.to_owned(),
         Box::new(&*app_module.resolve_ref()),
     )

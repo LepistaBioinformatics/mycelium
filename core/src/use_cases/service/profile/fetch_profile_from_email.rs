@@ -2,7 +2,7 @@ use crate::domain::{
     dtos::{
         email::Email,
         profile::{LicensedResources, Profile, TenantsOwnership},
-        security_group::PermissionedRoles,
+        security_group::PermissionedRole,
     },
     entities::{LicensedResourcesFetching, ProfileFetching},
 };
@@ -35,8 +35,7 @@ pub async fn fetch_profile_from_email(
     email: Email,
     was_verified: Option<bool>,
     tenant: Option<Uuid>,
-    roles: Option<Vec<String>>,
-    permissioned_roles: Option<PermissionedRoles>,
+    roles: Option<Vec<PermissionedRole>>,
     profile_fetching_repo: Box<&dyn ProfileFetching>,
     licensed_resources_fetching_repo: Box<&dyn LicensedResourcesFetching>,
 ) -> Result<ProfileResponse, MappedErrors> {
@@ -50,7 +49,6 @@ pub async fn fetch_profile_from_email(
             email.to_owned(),
             tenant,
             roles,
-            permissioned_roles,
             None,
             was_verified,
         ),

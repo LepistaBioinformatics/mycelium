@@ -14,18 +14,26 @@ readme.workspace = true
 
 [dependencies]
 
-myc-core = { version = "8.0.0", path = "../../core" }
-mycelium-base = { version = "8.0.0", path = "../../base" }
-mycelium-config = { version = "8.0.0", path = "../../config" }
-
+http.workspace = true
 serde.workspace = true
 shaku.workspace = true
 tracing.workspace = true
 uuid.workspace = true
 wildmatch.workspace = true
 
-actix-web = { version = "4", features = ["openssl"] }
 async-trait = "0.1"
+
+# ------------------------------------------------------------------------------
+# Mycelium packages
+# ------------------------------------------------------------------------------
+
+myc-core.workspace = true
+mycelium-base.workspace = true
+mycelium-config.workspace = true
+
+# ------------------------------------------------------------------------------
+# Dev dependencies
+# ------------------------------------------------------------------------------
 
 
 [lib]

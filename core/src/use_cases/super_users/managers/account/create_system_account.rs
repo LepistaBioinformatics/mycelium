@@ -1,9 +1,8 @@
 use crate::domain::{
     actors::SystemActor,
     dtos::{
-        account::{Account, Modifier},
-        native_error_codes::NativeErrorCodes,
-        profile::Profile,
+        account::Account, native_error_codes::NativeErrorCodes,
+        profile::Profile, written_by::WrittenBy,
     },
     entities::AccountRegistration,
 };
@@ -75,7 +74,7 @@ pub async fn create_system_account(
         name,
         actor,
         true,
-        Some(Modifier::new_from_account(profile.acc_id)),
+        Some(WrittenBy::new_from_account(profile.acc_id)),
     );
 
     unchecked_account.is_checked = true;

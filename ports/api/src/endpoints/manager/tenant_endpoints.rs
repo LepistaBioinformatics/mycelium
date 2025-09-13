@@ -83,6 +83,7 @@ pub struct ListTenantParams {
 /// Create a new tenant
 #[utoipa::path(
     post,
+    operation_id = "create_tenant",
     request_body = CreateTenantBody,
     responses(
         (
@@ -136,6 +137,7 @@ pub async fn create_tenant_url(
 /// List tenants
 #[utoipa::path(
     get,
+    operation_id = "list_tenants",
     params(
         ListTenantParams,
         PaginationParams,
@@ -224,6 +226,7 @@ pub async fn list_tenant_url(
 /// Delete a tenant
 #[utoipa::path(
     delete,
+    operation_id = "delete_tenant",
     params(
         ("id" = Uuid, Path, description = "The tenant primary key."),
     ),
@@ -280,6 +283,7 @@ pub async fn delete_tenant_url(
 ///
 #[utoipa::path(
     patch,
+    operation_id = "register_tenant_owner",
     params(
         ("id" = Uuid, Path, description = "The tenant primary key."),
     ),
@@ -334,6 +338,7 @@ pub async fn include_tenant_owner_url(
 ///
 #[utoipa::path(
     delete,
+    operation_id = "exclude_tenant_owner",
     params(
         ("id" = Uuid, Path, description = "The tenant primary key."),
     ),

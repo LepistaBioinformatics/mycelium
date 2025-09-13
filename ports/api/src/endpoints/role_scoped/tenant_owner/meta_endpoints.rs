@@ -54,6 +54,7 @@ pub struct DeleteTenantMetaBody {
 /// Register a tenant metadata
 #[utoipa::path(
     post,
+    operation_id = "register_tenant_meta",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -123,6 +124,7 @@ pub async fn create_tenant_meta_url(
 /// Delete a tenant metadata
 #[utoipa::path(
     delete,
+    operation_id = "delete_tenant_meta",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

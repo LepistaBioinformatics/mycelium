@@ -26,8 +26,9 @@ use myc_core::domain::{
 use mycelium_base::{
     dtos::Children,
     entities::{FetchManyResponseKind, FetchResponseKind},
-    utils::errors::{creation_err, fetching_err, MappedErrors},
+    utils::errors::{fetching_err, MappedErrors},
 };
+use serde_json::json;
 use shaku::Component;
 use std::{str::FromStr, sync::Arc};
 use uuid::Uuid;
@@ -48,7 +49,7 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
         related_accounts: RelatedAccounts,
     ) -> Result<FetchResponseKind<Account, Uuid>, MappedErrors> {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
-            creation_err(format!("Failed to get DB connection: {}", e))
+            fetching_err(format!("Failed to get DB connection: {}", e))
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
@@ -164,14 +165,40 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
                     .on(account_dsl::id.eq(account_tag_dsl::account_id)),
             );
 
+        let account_type_value = match serde_json::to_value(&account_type) {
+            Ok(json) => json,
+            Err(e) => {
+                return fetching_err(format!(
+                    "Failed to serialize account type: {e}"
+                ))
+                .as_error();
+            }
+        };
+
+        let parsed_account_type = match account_type {
+            //
+            // In the case of `RoleAssociated`, we only need the tenant ID
+            // to filter accounts.
+            //
+            AccountType::RoleAssociated { .. } => {
+                let tenant_id = json!({
+                    "tenantId": account_type_value["roleAssociated"]["tenantId"],
+                });
+
+                json!({
+                    "roleAssociated": tenant_id
+                })
+            }
+            _ => account_type_value,
+        };
+
         let account_type_dsl = sql::<diesel::sql_types::Bool>(&format!(
             "account_type::jsonb @> '{}'",
-            match serde_json::to_string(&account_type) {
+            match serde_json::to_string(&parsed_account_type) {
                 Ok(json) => json,
                 Err(e) => {
-                    return creation_err(format!(
-                        "Failed to serialize account type: {}",
-                        e
+                    return fetching_err(format!(
+                        "Failed to serialize account type: {e}"
                     ))
                     .as_error();
                 }

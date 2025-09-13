@@ -1,13 +1,14 @@
 use crate::middleware::{
     fetch_and_inject_email_to_forward,
-    fetch_and_inject_profile_from_connection_string_to_forward,
     fetch_and_inject_profile_from_token_to_forward,
 };
 
 use actix_web::HttpRequest;
 use awc::ClientRequest;
 use myc_core::domain::dtos::{route::Route, security_group::SecurityGroup};
-use myc_http_tools::responses::GatewayError;
+use myc_http_tools::{
+    responses::GatewayError, settings::MYCELIUM_SECURITY_GROUP,
+};
 use tracing::Instrument;
 
 /// Check the security group
@@ -15,7 +16,15 @@ use tracing::Instrument;
 /// This function checks the security group of the route and injects the
 /// appropriate headers into the request.
 ///
-#[tracing::instrument(name = "check_security_group", skip_all)]
+#[tracing::instrument(
+    name = "check_security_group",
+    fields(
+        request_path = format!("{} {}", req.method(), req.path()),
+        route_pattern = format!("'{}'", route.path),
+        security_group = %route.security_group.to_string(),
+    ),
+    skip(req, downstream_request, route)
+)]
 pub(super) async fn check_security_group(
     req: HttpRequest,
     mut downstream_request: ClientRequest,
@@ -23,11 +32,36 @@ pub(super) async fn check_security_group(
 ) -> Result<ClientRequest, GatewayError> {
     let span = tracing::Span::current();
 
-    match route.security_group.to_owned() {
+    let security_group = route.security_group.to_owned();
+
+    //
+    // Inject security group as header
+    //
+    let serialized_security_group = serde_json::to_string(&security_group)
+        .map_err(|e| {
+            tracing::error!("Failed to serialize security group: {e}");
+
+            GatewayError::BadGateway(
+                "Failed to build downstream request. Please try again later."
+                    .to_string(),
+            )
+        })?;
+
+    downstream_request = downstream_request
+        .insert_header((MYCELIUM_SECURITY_GROUP, serialized_security_group));
+
+    //
+    // Check requester permissions given the security group
+    //
+    match security_group {
         //
         // Public routes do not need any authentication or profile injection.
         //
         SecurityGroup::Public => (),
+        //
+        // Authenticated routes should include the user email into the request
+        // token
+        //
         SecurityGroup::Authenticated => {
             //
             // Try to extract user email from the request and inject it into the
@@ -52,7 +86,6 @@ pub(super) async fn check_security_group(
                     downstream_request,
                     None,
                     None,
-                    None,
                 )
                 .instrument(span.to_owned())
                 .await?;
@@ -72,67 +105,6 @@ pub(super) async fn check_security_group(
                     downstream_request,
                     None,
                     Some(roles),
-                    None,
-                )
-                .instrument(span.to_owned())
-                .await?;
-        }
-        //
-        // Protected routes should include the user profile filtered by roles
-        // and permissions into the header
-        //
-        SecurityGroup::ProtectedByPermissionedRoles { permissioned_roles } => {
-            //
-            // Try to populate profile from the request filtering licensed
-            // resources by roles and permissions
-            //
-            downstream_request =
-                fetch_and_inject_profile_from_token_to_forward(
-                    req,
-                    downstream_request,
-                    None,
-                    None,
-                    Some(permissioned_roles),
-                )
-                .instrument(span.to_owned())
-                .await?;
-        }
-        //
-        // Protected routes by service token should include the users role which
-        // the service token is associated
-        //
-        SecurityGroup::ProtectedByServiceTokenWithRole { roles } => {
-            //
-            // Try to populate profile from the request filtering licensed
-            // resources by roles and permissions
-            //
-            downstream_request =
-                fetch_and_inject_profile_from_connection_string_to_forward(
-                    req,
-                    downstream_request,
-                    Some(roles),
-                    None,
-                )
-                .instrument(span.to_owned())
-                .await?;
-        }
-        //
-        // Protected routes by service token should include the users role which
-        // the service token is associated
-        //
-        SecurityGroup::ProtectedByServiceTokenWithPermissionedRoles {
-            permissioned_roles,
-        } => {
-            //
-            // Try to populate profile from the request filtering licensed
-            // resources by roles and permissions
-            //
-            downstream_request =
-                fetch_and_inject_profile_from_connection_string_to_forward(
-                    req,
-                    downstream_request,
-                    None,
-                    Some(permissioned_roles),
                 )
                 .instrument(span.to_owned())
                 .await?;

@@ -31,6 +31,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 /// Fetch a user's profile.
 #[utoipa::path(
     post,
+    operation_id = "accept_invitation",
     params(
         ("account_id" = Uuid, Path, description = "The account primary key."),
         ("guest_role_name" = Uuid, Path, description = "The guest role unique name."),

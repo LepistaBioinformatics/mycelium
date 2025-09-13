@@ -184,7 +184,9 @@ diesel::table! {
         url -> Text,
         is_active -> Bool,
         created -> Timestamptz,
+        created_by -> Nullable<Jsonb>,
         updated -> Nullable<Timestamptz>,
+        updated_by -> Nullable<Jsonb>,
         secret -> Nullable<Jsonb>,
         #[max_length = 255]
         trigger -> Varchar,

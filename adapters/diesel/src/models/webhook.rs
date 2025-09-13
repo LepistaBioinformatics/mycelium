@@ -16,5 +16,7 @@ pub(crate) struct WebHook {
     pub secret: Option<JsonValue>,
     pub is_active: bool,
     pub created: NaiveDateTime,
+    pub created_by: Option<JsonValue>,
     pub updated: Option<NaiveDateTime>,
+    pub updated_by: Option<JsonValue>,
 }

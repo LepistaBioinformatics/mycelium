@@ -2,6 +2,307 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.0.1-beta.33] - 2025-09-03
+
+### 🚀 Features
+
+- Implements the single step account creation flow for verified accounts
+
+### 🚜 Refactor
+
+- Renamt the user account creation use-case to mirror their goal
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.0.1-beta.30] - 2025-08-26
+
+### 📚 Documentation
+
+- Fix operation id of all endpoints using openapi operation-id key
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.29] - 2025-08-25
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.28] - 2025-08-25
+
+### 🚀 Features
+
+- Include the account name at the role-related account creation
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.27] - 2025-08-25
+
+### 🐛 Bug Fixes
+
+- Remove redundancy in accounts creation by subscription account managers
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.26] - 2025-08-21
+
+### 🐛 Bug Fixes
+
+- Fix mcp dependencies broken from 8.0.1-beta.25 version
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.25] - 2025-08-21
+
+### 🚀 Features
+
+- Wip - try to solve authentication into the mcp call tool
+
+### 🐛 Bug Fixes
+
+- Replace the properties parameter by parameter word on define mcp tool
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.0.1-beta.23] - 2025-08-17
+
+### 🚀 Features
+
+- Insert comprehensive identifiers to the mycelium tokens
+- Include a restriction tag to filter mcp tools before routing it to mcp server
+
+### 🐛 Bug Fixes
+
+- Fix authorization endpoints to allow oidc discovery with self registration
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.0.1-beta.21] - 2025-08-11
+
+### 🚀 Features
+
+- Include the security group in downstream hequest header
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.20] - 2025-08-10
+
+### 🧪 Testing
+
+- Fix all non passing tests
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.0.1-beta.18] - 2025-07-31
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.17] - 2025-07-30
+
+### 🐛 Bug Fixes
+
+- Return to the previous state on filter permissions to be greater or equal to profile perms
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.16] - 2025-07-30
+
+### 🐛 Bug Fixes
+
+- Rollback the permission check on licensed-resources fetching
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.15] - 2025-07-30
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.14] - 2025-07-30
+
+### 🐛 Bug Fixes
+
+- *(roles filtering)* Review the profile injection cascade to empower the connection string filtration priority
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.13] - 2025-07-29
+
+### 🐛 Bug Fixes
+
+- *(profile-filtration)* Solve the profile filtration bug that completely remove the roles during connnection string usage
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.12] - 2025-07-29
+
+### 🐛 Bug Fixes
+
+- Fix tools listing on unwrap summary
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.11] - 2025-07-29
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.10] - 2025-07-29
+
+### 🚀 Features
+
+- *(role-assiciated-accounts)* Do implement features that allow the role-associated accounts to be managed
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.9] - 2025-07-28
+
+### 🚀 Features
+
+- Implements the basis for servces discovery and mcp integration
+- Wip - implements the basis for the mcp server management and connection
+- Resover mcp return for list tools to include request body
+- *(mcp-server)* Implements the basis for the mcp server execution
+- *(mcp)* Finish the mcp server implementation
+
+### 🐛 Bug Fixes
+
+- *(operation-id)* Update operation-id building to include method service name
+
+### 🚜 Refactor
+
+- *(main-api-config)* Review the api configuration to group close elements given their system importance
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.8] - 2025-07-14
+
+### 🐛 Bug Fixes
+
+- Create a new resolution step to try to solve references in a recursive mode
+- Update the operation-id to include a double underscore between service name and operation id to avoid conflicts
+
+### 💼 Other
+
+- Move the api dependencies from mycelium sibling packages to the workspace
+- Move all cross dependencies of the project to the workspace definition
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.7] - 2025-07-11
+
+### 🚜 Refactor
+
+- Remove unused functions from the fetch-profile-from-request-token middleware
+
+### ⚡ Performance
+
+- Review the components resolution to avoid overresolution of components not rendered to the final users
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.6] - 2025-07-10
+
+### 🐛 Bug Fixes
+
+- *(remove unused packages from actix-web and fix licensed resources fetching sql syntax)* N
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.5] - 2025-07-09
+
+### 🚀 Features
+
+- *(security-groups)* Reduce the security group options to include only up to the protected-by-role option
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.4] - 2025-07-09
+
+### 🚀 Features
+
+- *(operations-discovery)* Implements endpoints to perform operations discovery
+
+### 🚜 Refactor
+
+- *(libs)* Move auxiliary libs to a dedicated directory
+
+### ⚙️ Miscellaneous Tasks
+
+- Remove undesired println from the router module
+- Release
+- Release
+
+## [8.0.1-beta.2] - 2025-07-06
+
+### 🚀 Features
+
+- Implements an option co create role related accounts for spurious roles
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
+## [8.0.1-beta.1] - 2025-06-30
+
+### 🚀 Features
+
+- *(written-by)* Include the written by field into the webhooks model
+- *(tenant-wide-permissions)* Upgrade use-cases to use the tenant-wide permissions checker throug profile
+
+### ⚙️ Miscellaneous Tasks
+
+- *(connection-string)* Encode connection strings
+- Release
+
 ## [8.0.0] - 2025-06-27
 
 ### 🚀 Features
@@ -22,6 +323,10 @@ All notable changes to this project will be documented in this file.
 ### 🧪 Testing
 
 - *(test-service)* Update the test service to allow run integration tests at the gateway level
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [7.13.3] - 2025-06-22
 

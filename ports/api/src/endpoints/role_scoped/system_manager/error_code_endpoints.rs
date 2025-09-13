@@ -70,6 +70,7 @@ pub struct UpdateErrorCodeMessageAndDetailsBody {
 /// This action is restricted to manager users.
 #[utoipa::path(
     post,
+    operation_id = "register_error_code",
     request_body = CreateErrorCodeBody,
     responses(
         (
@@ -127,6 +128,7 @@ pub async fn register_error_code_url(
 ///
 #[utoipa::path(
     get,
+    operation_id = "list_error_codes",
     params(
         ListErrorCodesParams,
         PaginationParams,
@@ -187,6 +189,7 @@ pub async fn list_error_codes_url(
 ///
 #[utoipa::path(
     get,
+    operation_id = "get_error_code",
     params(
         ("prefix" = String, Path, description = "The error prefix."),
         ("code" = i32, Path, description = "The error code."),
@@ -252,6 +255,7 @@ pub async fn get_error_code_url(
 ///
 #[utoipa::path(
     patch,
+    operation_id = "update_error_code_message_and_details",
     params(
         ("prefix" = String, Path, description = "The error prefix."),
         ("code" = i32, Path, description = "The error code."),
@@ -316,6 +320,7 @@ pub async fn update_error_code_message_and_details_url(
 ///
 #[utoipa::path(
     delete,
+    operation_id = "delete_error_code",
     params(
         ("prefix" = String, Path, description = "The error prefix."),
         ("code" = i32, Path, description = "The error code."),

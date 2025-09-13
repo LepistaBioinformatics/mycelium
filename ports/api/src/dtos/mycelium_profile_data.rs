@@ -8,6 +8,7 @@ use futures::Future;
 use myc_core::domain::dtos::{
     account::VerboseStatus,
     profile::{LicensedResources, Owner, TenantsOwnership},
+    security_group::PermissionedRole,
 };
 use myc_http_tools::{
     responses::GatewayError,
@@ -114,7 +115,7 @@ impl FromRequest for MyceliumProfileData {
         //
         // Get the roles from the request
         //
-        let roles: Option<Vec<String>> =
+        let roles: Option<Vec<PermissionedRole>> =
             match req_clone.headers().get(DEFAULT_MYCELIUM_ROLE_KEY) {
                 Some(roles) => {
                     let roles: Option<Vec<String>> =
@@ -131,6 +132,14 @@ impl FromRequest for MyceliumProfileData {
                         if roles.is_empty() {
                             None
                         } else {
+                            let roles = roles
+                                .iter()
+                                .map(|r| PermissionedRole {
+                                    name: r.to_owned(),
+                                    permission: None,
+                                })
+                                .collect();
+
                             Some(roles)
                         }
                     } else {
@@ -150,7 +159,7 @@ impl FromRequest for MyceliumProfileData {
             if !connection_string.is_empty() {
                 return Box::pin(async move {
                     fetch_profile_from_request_connection_string(
-                        req_clone, tenant, roles, None,
+                        req_clone, tenant, roles,
                     )
                     .await
                 });
@@ -158,8 +167,7 @@ impl FromRequest for MyceliumProfileData {
         }
 
         Box::pin(async move {
-            fetch_profile_from_request_token(req_clone, tenant, roles, None)
-                .await
+            fetch_profile_from_request_token(req_clone, tenant, roles).await
         })
     }
 }

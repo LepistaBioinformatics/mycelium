@@ -6,7 +6,6 @@ use myc_core::domain::dtos::{
     tag, tenant, user, webhook, route, service as service_dtos, 
     http_secret
 };
-use myc_http_tools::providers::{azure_endpoints, google_endpoints};
 use myc_http_tools::{utils::HttpJsonResponse, SystemActor};
 use mycelium_base::dtos::{Children, Parent};
 use utoipa::OpenApi;
@@ -15,15 +14,14 @@ use utoipa::OpenApi;
 // ? DEFINE ENDPOINT GROUPS
 // ? ---------------------------------------------------------------------------
 
-use azure_endpoints as Auth__Azure;
-use google_endpoints as Auth__Google;
 use index::heath_check_endpoints as Index__Heath_Check;
 use manager::guest_role_endpoints as Managers__Guest_Role;
 use manager::tenant_endpoints as Managers__Tenants;
 use manager::account_endpoints as Managers__Accounts;
 use role_scoped::account_manager::guest_endpoints as Account_Manager__Guest;
-use role_scoped::gateway_manager::route_endpoints as GatewayManager__Route;
-use role_scoped::gateway_manager::service_endpoints as GatewayManager__Service;
+use role_scoped::gateway_manager::route_endpoints as Gateway_Manager__Route;
+use role_scoped::gateway_manager::service_endpoints as Gateway_Manager__Service;
+use role_scoped::gateway_manager::tools_endpoints as Gateway_Manager__Tools;
 use role_scoped::beginners::account_endpoints as Beginners__Account;
 use role_scoped::beginners::meta_endpoints as Beginners__Meta;
 use role_scoped::beginners::profile_endpoints as Beginners__Profile;
@@ -38,6 +36,7 @@ use role_scoped::subscriptions_manager::tag_endpoints as Subscriptions_Manager__
 use role_scoped::system_manager::error_code_endpoints as System_Manager__Error_Code;
 use role_scoped::system_manager::webhook_endpoints as System_Manager__Webhook;
 use role_scoped::tenant_manager::account_endpoints as Tenant_Manager__Account;
+use role_scoped::tenant_manager::guest_endpoints as Tenant_Manager__Guest;
 use role_scoped::tenant_manager::tag_endpoints as Tenant_Manager__Tag;
 use role_scoped::tenant_manager::tenant_endpoints as Tenant_Manager__Tenant;
 use role_scoped::tenant_owner::account_endpoints as Tenant_Owner__Account;
@@ -47,30 +46,6 @@ use role_scoped::tenant_owner::tenant_endpoints as Tenant_Owner__Tenant;
 use role_scoped::users_manager::account_endpoints as Users_Manager__Account;
 use service::tools_endpoints as Service__Tools;
 use staff::account_endpoints as Staffs__Accounts;
-
-/// Azure Auth Endpoints
-///
-#[derive(OpenApi)]
-#[openapi(
-    info(
-        title = "Auth | Azure Endpoints",
-        description = "Endpoints reserved for the application authentication using Azure",
-    ),
-    paths(Auth__Azure::login_url, Auth__Azure::token_url)
-)]
-struct AuthAzureApiDoc;
-
-/// Google Auth Endpoints
-///
-#[derive(OpenApi)]
-#[openapi(
-    info(
-        title = "Auth | Google Endpoints",
-        description = "Endpoints reserved for the application authentication using Google",
-    ),
-    paths(Auth__Google::google_callback_url)
-)]
-struct AuthGoogleApiDoc;
 
 /// Manager Endpoints for Account Management
 /// 
@@ -83,7 +58,7 @@ struct AuthGoogleApiDoc;
     paths(
         Managers__Accounts::create_system_account_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct ManagersAccountsApiDoc;
 
@@ -98,7 +73,7 @@ struct ManagersAccountsApiDoc;
     paths(
         Managers__Guest_Role::create_system_roles_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct ManagersGuestRoleApiDoc;
 
@@ -117,7 +92,7 @@ struct ManagersGuestRoleApiDoc;
         Managers__Tenants::include_tenant_owner_url,
         Managers__Tenants::exclude_tenant_owner_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct ManagersTenantsApiDoc;
 
@@ -133,7 +108,7 @@ struct ManagersTenantsApiDoc;
         Staffs__Accounts::upgrade_account_privileges_url,
         Staffs__Accounts::downgrade_account_privileges_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct StaffsAccountsApiDoc;
 
@@ -158,7 +133,7 @@ struct ServiceToolsApiDoc;
         description = "Endpoints reserved for the application account managers to manage guests",
     ),
     paths(Account_Manager__Guest::guest_to_children_account_url),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct AccountManagerGuestApiDoc;
 
@@ -176,7 +151,7 @@ struct AccountManagerGuestApiDoc;
         Beginners__Account::get_my_account_details_url,
         Beginners__Account::delete_my_account_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct BeginnersAccountApiDoc;
 
@@ -193,7 +168,7 @@ struct BeginnersAccountApiDoc;
         Beginners__Meta::update_account_meta_url,
         Beginners__Meta::delete_account_meta_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct BeginnersMetaApiDoc;
 
@@ -206,7 +181,7 @@ struct BeginnersMetaApiDoc;
         description = "Endpoints reserved for the beginner users to manage their profiles",
     ),
     paths(Beginners__Profile::fetch_profile_url),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct BeginnersProfileApiDoc;
 
@@ -242,7 +217,7 @@ struct BeginnersUserApiDoc;
         description = "Endpoints reserved for the beginner users to manage their tenants",
     ),
     paths(Beginners__Tenant::fetch_tenant_public_info_url),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct BeginnersTenantApiDoc;
 
@@ -257,7 +232,7 @@ struct BeginnersTenantApiDoc;
     paths(
         Beginners__Token::create_connection_string_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct BeginnersTokenApiDoc;
 
@@ -270,9 +245,9 @@ struct BeginnersTokenApiDoc;
         description = "Endpoints reserved for the application gateway managers to manage routes",
     ),
     paths(
-        GatewayManager__Route::list_routes_url,
+        Gateway_Manager__Route::list_routes_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct GatewayManagerRouteApiDoc;
 
@@ -285,11 +260,26 @@ struct GatewayManagerRouteApiDoc;
         description = "Endpoints reserved for the application gateway managers to manage services",
     ),
     paths(
-        GatewayManager__Service::list_services_url,
+        Gateway_Manager__Service::list_services_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct GatewayManagerServiceApiDoc;
+
+/// Role Scoped Endpoints for Gateway Manager for Tools Management
+///
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Gateway Manager | Tools Endpoints",
+        description = "Endpoints reserved for the application gateway managers to manage tools",
+    ),
+    paths(
+        Gateway_Manager__Tools::list_operations_url,
+    ),
+    security(("Bearer" = [], "ConnectionString" = []))
+)]
+struct GatewayManagerToolsApiDoc;
 
 /// Role Scoped Endpoints for Guest Manager for Guest Roles Management
 ///
@@ -308,7 +298,7 @@ struct GatewayManagerServiceApiDoc;
         Guest_Manager__Guest_Role::insert_role_child_url,
         Guest_Manager__Guest_Role::remove_role_child_url,
     ),
-    security(("Bearer" = []))
+    security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct GuestManagerGuestRoleApiDoc;
 
@@ -322,12 +312,13 @@ struct GuestManagerGuestRoleApiDoc;
     ),
     paths(
         Subscriptions_Manager__Account::create_subscription_account_url,
+        Subscriptions_Manager__Account::create_role_associated_account_url,
         Subscriptions_Manager__Account::update_account_name_and_flags_url,
         Subscriptions_Manager__Account::list_accounts_by_type_url,
         Subscriptions_Manager__Account::get_account_details_url,
         Subscriptions_Manager__Account::propagate_existing_subscription_account_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct SubscriptionsManagerAccountApiDoc;
 
@@ -344,7 +335,7 @@ struct SubscriptionsManagerAccountApiDoc;
         Subscriptions_Manager__Tag::update_account_tag_url,
         Subscriptions_Manager__Tag::delete_account_tag_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct SubscriptionsManagerTagApiDoc;
 
@@ -362,7 +353,7 @@ struct SubscriptionsManagerTagApiDoc;
         Subscriptions_Manager__Guest::uninvite_guest_url,
         Subscriptions_Manager__Guest::list_guest_on_subscription_account_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct SubscriptionsManagerGuestApiDoc;
 
@@ -378,7 +369,7 @@ struct SubscriptionsManagerGuestApiDoc;
         Subscriptions_Manager__Guest_Role::list_guest_roles_url,
         Subscriptions_Manager__Guest_Role::fetch_guest_role_details_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct SubscriptionsManagerGuestRoleApiDoc;
 
@@ -397,7 +388,7 @@ struct SubscriptionsManagerGuestRoleApiDoc;
         System_Manager__Error_Code::update_error_code_message_and_details_url,
         System_Manager__Error_Code::delete_error_code_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct SystemManagerErrorCodeApiDoc;
 
@@ -415,7 +406,7 @@ struct SystemManagerErrorCodeApiDoc;
         System_Manager__Webhook::list_webhooks_url,
         System_Manager__Webhook::update_webhook_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct SystemManagerWebhookApiDoc;
 
@@ -431,7 +422,7 @@ struct SystemManagerWebhookApiDoc;
         Tenant_Owner__Account::create_management_account_url,
         Tenant_Owner__Account::delete_tenant_manager_account_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct TenantOwnerAccountApiDoc;
 
@@ -447,7 +438,7 @@ struct TenantOwnerAccountApiDoc;
         Tenant_Owner__Meta::create_tenant_meta_url,
         Tenant_Owner__Meta::delete_tenant_meta_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct TenantOwnerMetaApiDoc;
 
@@ -463,7 +454,7 @@ struct TenantOwnerMetaApiDoc;
         Tenant_Owner__Owner::guest_tenant_owner_url,
         Tenant_Owner__Owner::revoke_tenant_owner_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct TenantOwnerOwnerApiDoc;
 
@@ -481,7 +472,7 @@ struct TenantOwnerOwnerApiDoc;
         Tenant_Owner__Tenant::update_tenant_trashing_status_url,
         Tenant_Owner__Tenant::update_tenant_verifying_status_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct TenantOwnerTenantApiDoc;
 
@@ -493,10 +484,29 @@ struct TenantOwnerTenantApiDoc;
         title = "Tenant Manager | Account Endpoints",
         description = "Endpoints reserved for the application tenant managers to manage accounts",
     ),
-    paths(Tenant_Manager__Account::delete_subscription_account_url),
-    security(("Bearer" = [])),
+    paths(
+        Tenant_Manager__Account::delete_subscription_account_url,
+        Tenant_Manager__Account::create_subscription_manager_account_url,
+    ),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct TenantManagerAccountApiDoc;
+
+/// Role Scoped Endpoints for Tenant Manager for Guest Management
+///
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Tenant Manager | Guest Endpoints",
+        description = "Endpoints reserved for the application tenant managers to manage guests",
+    ),
+    paths(
+        Tenant_Manager__Guest::guest_user_to_subscription_manager_account_url,
+        Tenant_Manager__Guest::revoke_user_guest_to_subscription_manager_account_url,
+    ),
+    security(("Bearer" = [], "ConnectionString" = [])),
+)]
+struct TenantManagerGuestApiDoc;
 
 /// Role Scoped Endpoints for Tenant Manager for Tag Management
 ///
@@ -511,7 +521,7 @@ struct TenantManagerAccountApiDoc;
         Tenant_Manager__Tag::update_tenant_tag_url,
         Tenant_Manager__Tag::delete_tenant_tag_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct TenantManagerTagApiDoc;
 
@@ -526,7 +536,7 @@ struct TenantManagerTagApiDoc;
     paths(
         Tenant_Manager__Tenant::get_tenant_details_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct TenantManagerTenantApiDoc;
 
@@ -546,7 +556,7 @@ struct TenantManagerTenantApiDoc;
         Users_Manager__Account::archive_account_url,
         Users_Manager__Account::unarchive_account_url,
     ),
-    security(("Bearer" = [])),
+    security(("Bearer" = [], "ConnectionString" = [])),
 )]
 struct UsersManagerAccountApiDoc;
 
@@ -566,71 +576,68 @@ struct UsersManagerAccountApiDoc;
     modifiers(&MyceliumSecurity),
     nest(
         //
-        // Auth Path
-        //
-        (path = "/adm/auth/azure", api = AuthAzureApiDoc),
-        (path = "/adm/auth/google", api = AuthGoogleApiDoc),
-        //
         // Super User endpoints
         //
-        (path = "/adm/su/staffs/accounts", api = StaffsAccountsApiDoc),
-        (path = "/adm/su/managers/accounts", api = ManagersAccountsApiDoc),
-        (path = "/adm/su/managers/tenants", api = ManagersTenantsApiDoc),
-        (path = "/adm/su/managers/guest-roles", api = ManagersGuestRoleApiDoc),
-        //
-        // Service endpoints
-        //
-        (path = "/adm/svc/tools", api = ServiceToolsApiDoc),
+        (path = "/_adm/staffs/accounts", api = StaffsAccountsApiDoc),
+        (path = "/_adm/managers/accounts", api = ManagersAccountsApiDoc),
+        (path = "/_adm/managers/tenants", api = ManagersTenantsApiDoc),
+        (path = "/_adm/managers/guest-roles", api = ManagersGuestRoleApiDoc),
         //
         // Beginner endpoints
         //
-        (path = "/adm/rs/beginners/accounts", api = BeginnersAccountApiDoc),
-        (path = "/adm/rs/beginners/meta", api = BeginnersMetaApiDoc),
-        (path = "/adm/rs/beginners/profile", api = BeginnersProfileApiDoc),
-        (path = "/adm/rs/beginners/users", api = BeginnersUserApiDoc),
-        (path = "/adm/rs/beginners/tenants", api = BeginnersTenantApiDoc),
-        (path = "/adm/rs/beginners/tokens", api = BeginnersTokenApiDoc),
+        (path = "/_adm/beginners/accounts", api = BeginnersAccountApiDoc),
+        (path = "/_adm/beginners/meta", api = BeginnersMetaApiDoc),
+        (path = "/_adm/beginners/profile", api = BeginnersProfileApiDoc),
+        (path = "/_adm/beginners/users", api = BeginnersUserApiDoc),
+        (path = "/_adm/beginners/tenants", api = BeginnersTenantApiDoc),
+        (path = "/_adm/beginners/tokens", api = BeginnersTokenApiDoc),
         // Account Manager endpoints
         //
-        (path = "/adm/rs/accounts-manager/guests", api = AccountManagerGuestApiDoc),
+        (path = "/_adm/accounts-manager/guests", api = AccountManagerGuestApiDoc),
         //
         // Gateway Manager endpoints
         //
-        (path = "/adm/rs/gateway-manager/routes", api = GatewayManagerRouteApiDoc),
-        (path = "/adm/rs/gateway-manager/services", api = GatewayManagerServiceApiDoc),
+        (path = "/_adm/gateway-manager/routes", api = GatewayManagerRouteApiDoc),
+        (path = "/_adm/gateway-manager/services", api = GatewayManagerServiceApiDoc),
+        (path = "/_adm/gateway-manager/tools", api = GatewayManagerToolsApiDoc),
         //
         // Guest Manager Endpoints
         //
-        (path = "/adm/rs/guests-manager/guest-roles", api = GuestManagerGuestRoleApiDoc),
+        (path = "/_adm/guests-manager/guest-roles", api = GuestManagerGuestRoleApiDoc),
         //
         // Subscriptions Manager Endpoints
         //
-        (path = "/adm/rs/subscriptions-manager/accounts", api = SubscriptionsManagerAccountApiDoc),
-        (path = "/adm/rs/subscriptions-manager/tags", api = SubscriptionsManagerTagApiDoc),
-        (path = "/adm/rs/subscriptions-manager/guests", api = SubscriptionsManagerGuestApiDoc),
-        (path = "/adm/rs/subscriptions-manager/guest-roles", api = SubscriptionsManagerGuestRoleApiDoc),
+        (path = "/_adm/subscriptions-manager/accounts", api = SubscriptionsManagerAccountApiDoc),
+        (path = "/_adm/subscriptions-manager/tags", api = SubscriptionsManagerTagApiDoc),
+        (path = "/_adm/subscriptions-manager/guests", api = SubscriptionsManagerGuestApiDoc),
+        (path = "/_adm/subscriptions-manager/guest-roles", api = SubscriptionsManagerGuestRoleApiDoc),
         //
         // System Manager Endpoints
         //
-        (path = "/adm/rs/system-manager/error-codes", api = SystemManagerErrorCodeApiDoc),
-        (path = "/adm/rs/system-manager/webhooks", api = SystemManagerWebhookApiDoc),
+        (path = "/_adm/system-manager/error-codes", api = SystemManagerErrorCodeApiDoc),
+        (path = "/_adm/system-manager/webhooks", api = SystemManagerWebhookApiDoc),
         //
         // Tenant Owner Endpoints
         //
-        (path = "/adm/rs/tenant-owner/accounts", api = TenantOwnerAccountApiDoc),
-        (path = "/adm/rs/tenant-owner/meta", api = TenantOwnerMetaApiDoc),
-        (path = "/adm/rs/tenant-owner/owners", api = TenantOwnerOwnerApiDoc),
-        (path = "/adm/rs/tenant-owner/tenants", api = TenantOwnerTenantApiDoc),
+        (path = "/_adm/tenant-owner/accounts", api = TenantOwnerAccountApiDoc),
+        (path = "/_adm/tenant-owner/meta", api = TenantOwnerMetaApiDoc),
+        (path = "/_adm/tenant-owner/owners", api = TenantOwnerOwnerApiDoc),
+        (path = "/_adm/tenant-owner/tenants", api = TenantOwnerTenantApiDoc),
         //
         // Tenant Manager Endpoints
         //
-        (path = "/adm/rs/tenant-manager/accounts", api = TenantManagerAccountApiDoc),
-        (path = "/adm/rs/tenant-manager/tags", api = TenantManagerTagApiDoc),
-        (path = "/adm/rs/tenant-manager/tenants", api = TenantManagerTenantApiDoc),
+        (path = "/_adm/tenant-manager/accounts", api = TenantManagerAccountApiDoc),
+        (path = "/_adm/tenant-manager/guests", api = TenantManagerGuestApiDoc),
+        (path = "/_adm/tenant-manager/tags", api = TenantManagerTagApiDoc),
+        (path = "/_adm/tenant-manager/tenants", api = TenantManagerTenantApiDoc),
         //
         // Users Manager Endpoints
         //
-        (path = "/adm/rs/users-manager/accounts", api = UsersManagerAccountApiDoc),
+        (path = "/_adm/users-manager/accounts", api = UsersManagerAccountApiDoc),
+        //
+        // Service endpoints
+        //
+        (path = "/tools", api = ServiceToolsApiDoc),
     ),
     paths(
         //
@@ -677,101 +684,98 @@ struct UsersManagerAccountApiDoc;
             //
             // MANAGER
             //
-            manager::account_endpoints::CreateSystemSubscriptionAccountBody,
-            manager::account_endpoints::ApiSystemActor,
-            manager::tenant_endpoints::CreateTenantBody,
-            manager::tenant_endpoints::ListTenantParams,
+            Managers__Accounts::CreateSystemSubscriptionAccountBody,
+            Managers__Accounts::ApiSystemActor,
+            Managers__Tenants::CreateTenantBody,
+            Managers__Tenants::ListTenantParams,
 
             //
             // ACCOUNT MANAGER
             //
-            role_scoped::account_manager::guest_endpoints::GuestUserToChildrenBody,
+            Account_Manager__Guest::GuestUserToChildrenBody,
 
             //
             // BEGINNERS
             //
-            role_scoped::beginners::account_endpoints::CreateDefaultAccountBody,
-            role_scoped::beginners::account_endpoints::UpdateOwnAccountNameAccountBody,
-            role_scoped::beginners::meta_endpoints::CreateAccountMetaBody,
-            role_scoped::beginners::meta_endpoints::DeleteAccountMetaParams,
-            role_scoped::beginners::user_endpoints::TotpUpdatingValidationBody,
-            role_scoped::beginners::user_endpoints::CreateDefaultUserBody,
-            role_scoped::beginners::user_endpoints::CheckTokenBody,
-            role_scoped::beginners::user_endpoints::StartPasswordResetBody,
-            role_scoped::beginners::user_endpoints::ResetPasswordBody,
-            role_scoped::beginners::user_endpoints::CheckUserCredentialsBody,
-            role_scoped::beginners::token_endpoints::CreateTokenBody,
+            Beginners__Account::CreateDefaultAccountBody,
+            Beginners__Account::UpdateOwnAccountNameAccountBody,
+            Beginners__Meta::CreateAccountMetaBody,
+            Beginners__Meta::DeleteAccountMetaParams,
+            Beginners__User::TotpUpdatingValidationBody,
+            Beginners__User::CreateDefaultUserBody,
+            Beginners__User::CheckTokenBody,
+            Beginners__User::StartPasswordResetBody,
+            Beginners__User::ResetPasswordBody,
+            Beginners__User::CheckUserCredentialsBody,
+            Beginners__Token::CreateTokenBody,
 
             //
             // GATEWAY MANAGER
             //
-            role_scoped::gateway_manager::route_endpoints::ListRoutesByServiceParams,
-            role_scoped::gateway_manager::service_endpoints::ListServicesParams,
+            Gateway_Manager__Route::ListRoutesByServiceParams,
+            Gateway_Manager__Service::ListServicesParams,
 
             //
             // GUEST MANAGER
             //
-            role_scoped::guest_manager::guest_role_endpoints::CreateGuestRoleBody,
-            role_scoped::guest_manager::guest_role_endpoints::UpdateGuestRoleNameAndDescriptionBody,
-            role_scoped::guest_manager::guest_role_endpoints::UpdateGuestRolePermissionsBody,
-            role_scoped::guest_manager::guest_role_endpoints::ListGuestRolesParams,
+            Guest_Manager__Guest_Role::CreateGuestRoleBody,
+            Guest_Manager__Guest_Role::UpdateGuestRoleNameAndDescriptionBody,
+            Guest_Manager__Guest_Role::UpdateGuestRolePermissionsBody,
+            Guest_Manager__Guest_Role::ListGuestRolesParams,
 
             //
             // SUBSCRIPTIONS MANAGER
             //
-            role_scoped::subscriptions_manager::account_endpoints::CreateSubscriptionAccountBody,
-            role_scoped::subscriptions_manager::account_endpoints::UpdateSubscriptionAccountNameAndFlagsBody,
-            role_scoped::subscriptions_manager::account_endpoints::APIAccountType,
-            role_scoped::subscriptions_manager::account_endpoints::ListSubscriptionAccountParams,
-            role_scoped::subscriptions_manager::guest_endpoints::GuestUserBody,
-            role_scoped::subscriptions_manager::guest_endpoints::ListLicensedAccountsOfEmailParams,
-            role_scoped::subscriptions_manager::tag_endpoints::CreateAccountTagBody,
-            role_scoped::subscriptions_manager::tag_endpoints::UpdateAccountTagBody,
-            role_scoped::subscriptions_manager::tag_endpoints::DeleteAccountTagParams,
+            Subscriptions_Manager__Account::CreateSubscriptionAccountBody,
+            Subscriptions_Manager__Account::CreateRoleAssociatedAccountBody,
+            Subscriptions_Manager__Account::UpdateSubscriptionAccountNameAndFlagsBody,
+            Subscriptions_Manager__Account::APIAccountType,
+            Subscriptions_Manager__Account::ListSubscriptionAccountParams,
+            Subscriptions_Manager__Guest::GuestUserBody,
+            Subscriptions_Manager__Guest::ListLicensedAccountsOfEmailParams,
+            Subscriptions_Manager__Tag::CreateAccountTagBody,
+            Subscriptions_Manager__Tag::UpdateAccountTagBody,
+            Subscriptions_Manager__Tag::DeleteAccountTagParams,
 
             //
             // SYSTEM MANAGER
             //
-            role_scoped::system_manager::error_code_endpoints::CreateErrorCodeBody,
-            role_scoped::system_manager::error_code_endpoints::ListErrorCodesParams,
-            role_scoped::system_manager::error_code_endpoints::UpdateErrorCodeMessageAndDetailsBody,
-            role_scoped::system_manager::webhook_endpoints::CreateWebHookBody,
-            role_scoped::system_manager::webhook_endpoints::UpdateWebHookBody,
-            role_scoped::system_manager::webhook_endpoints::ListWebHooksParams,
+            System_Manager__Error_Code::CreateErrorCodeBody,
+            System_Manager__Error_Code::ListErrorCodesParams,
+            System_Manager__Error_Code::UpdateErrorCodeMessageAndDetailsBody,
+            System_Manager__Webhook::CreateWebHookBody,
+            System_Manager__Webhook::UpdateWebHookBody,
+            System_Manager__Webhook::ListWebHooksParams,
 
             //
             // TENANT MANAGER
             //
-            role_scoped::tenant_manager::tag_endpoints::CreateTagBody,
+            Tenant_Manager__Tag::CreateTagBody,
+            Tenant_Manager__Guest::GuestUserToSubscriptionManagerAccountBody,
+            Tenant_Manager__Guest::RevokeUserGuestToSubscriptionManagerAccountParams,
 
             //
             // TENANT OWNER
             //
-            role_scoped::tenant_owner::meta_endpoints::CreateTenantMetaBody,
-            role_scoped::tenant_owner::meta_endpoints::DeleteTenantMetaBody,
-            role_scoped::tenant_owner::owner_endpoints::GuestTenantOwnerBody,
-            role_scoped::tenant_owner::tenant_endpoints::UpdateTenantNameAndDescriptionBody,
+            Tenant_Owner__Meta::CreateTenantMetaBody,
+            Tenant_Owner__Meta::DeleteTenantMetaBody,
+            Tenant_Owner__Owner::GuestTenantOwnerBody,
+            Tenant_Owner__Tenant::UpdateTenantNameAndDescriptionBody,
         ),
         responses(
             //
             // APPLICATION SCHEMAS
             //
             HttpJsonResponse,
-            
-            //
-            // IDENTITY PROVIDERS
-            //
-            azure_endpoints::AzureLoginResponse,
-            azure_endpoints::CallbackResponse,
 
             //
             // BEGINNERS
             //
-            role_scoped::beginners::user_endpoints::MyceliumLoginResponse,
-            role_scoped::beginners::user_endpoints::TotpActivationStartedResponse,
-            role_scoped::beginners::user_endpoints::TotpActivationFinishedResponse,
-            role_scoped::beginners::user_endpoints::CheckEmailStatusResponse,
-            role_scoped::beginners::token_endpoints::CreateTokenResponse,
+            Beginners__User::MyceliumLoginResponse,
+            Beginners__User::TotpActivationStartedResponse,
+            Beginners__User::TotpActivationFinishedResponse,
+            Beginners__User::CheckEmailStatusResponse,
+            Beginners__Token::CreateTokenResponse,
 
             //
             // SERVICE

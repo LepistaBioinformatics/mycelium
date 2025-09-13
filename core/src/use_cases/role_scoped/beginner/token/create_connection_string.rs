@@ -4,7 +4,7 @@ use crate::{
             email::Email,
             native_error_codes::NativeErrorCodes,
             profile::Profile,
-            security_group::PermissionedRoles,
+            security_group::PermissionedRole,
             token::{UserAccountConnectionString, UserAccountScope},
         },
         entities::{LocalMessageWrite, TokenRegistration},
@@ -34,10 +34,11 @@ use uuid::Uuid;
 )]
 pub async fn create_connection_string(
     profile: Profile,
+    name: String,
     expiration: i64,
     tenant_id: Option<Uuid>,
-    role: Option<String>,
-    permissioned_roles: Option<PermissionedRoles>,
+    subscription_account_id: Option<Uuid>,
+    roles: Option<Vec<PermissionedRole>>,
     life_cycle_settings: AccountLifeCycle,
     token_registration_repo: Box<&dyn TokenRegistration>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
@@ -63,9 +64,9 @@ pub async fn create_connection_string(
     let mut role_scope = UserAccountScope::new(
         profile.acc_id,
         expires_at,
-        role,
-        permissioned_roles,
+        roles,
         tenant_id,
+        subscription_account_id,
         life_cycle_settings.to_owned(),
     )
     .await?;
@@ -76,6 +77,7 @@ pub async fn create_connection_string(
             profile.acc_id,
             Email::from_string(owner.email.to_owned())?,
             life_cycle_settings.to_owned(),
+            Some(name),
         )
         .await?;
 
@@ -90,26 +92,18 @@ pub async fn create_connection_string(
         )
         .await?
     {
-        return use_case_err(msg).as_error();
+        tracing::error!("Unable to register connection string: {msg}");
+        return use_case_err("Unable to register token").as_error();
     };
 
     // ? -----------------------------------------------------------------------
     // ? Notify guest user
     // ? -----------------------------------------------------------------------
 
-    let parameters = vec![
-        //("tenant_id", tenant_id.to_string().to_uppercase()),
-        //("target_id", guest_role_id.to_string().to_uppercase()),
-        //(
-        //    "permissioned_roles",
-        //    permissioned_roles.iter().fold(
-        //        String::new(),
-        //        |acc, (role, permission)| {
-        //            acc + &format!("{}: {}\n", role, permission.to_string())
-        //        },
-        //    ),
-        //),
-    ];
+    let parameters = vec![(
+        "expires_in",
+        format_expiration_as_human_readable(expiration),
+    )];
 
     if let Err(err) = dispatch_notification(
         parameters,
@@ -121,7 +115,8 @@ pub async fn create_connection_string(
     )
     .await
     {
-        return use_case_err(format!("Unable to send email: {err}"))
+        tracing::error!("Unable to send email: {err}");
+        return use_case_err("Unable to notify user")
             .with_code(NativeErrorCodes::MYC00010)
             .as_error();
     };
@@ -131,4 +126,21 @@ pub async fn create_connection_string(
     // ? -----------------------------------------------------------------------
 
     Ok(role_scoped_connection_string.scope.to_string())
+}
+
+fn format_expiration_as_human_readable(expiration: i64) -> String {
+    let duration = Duration::seconds(expiration);
+    let days = duration.num_days();
+    let hours = duration.num_hours() % 24;
+    let minutes = duration.num_minutes() % 60;
+
+    if days > 0 {
+        return format!("{days}d");
+    }
+
+    if hours > 0 {
+        return format!("{hours}h");
+    }
+
+    format!("{minutes}m")
 }

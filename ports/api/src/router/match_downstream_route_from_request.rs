@@ -1,5 +1,5 @@
 use actix_web::{web, HttpRequest};
-use awc::http::uri::PathAndQuery;
+use http::uri::PathAndQuery;
 use myc_core::{
     domain::dtos::route::Route,
     use_cases::gateway::routes::match_forward_address,
@@ -35,17 +35,13 @@ use tracing::Instrument;
 )]
 pub(super) async fn match_downstream_route_from_request(
     req: HttpRequest,
-    gateway_base_path: &str,
     app_module: web::Data<MemDbAppModule>,
 ) -> Result<Route, GatewayError> {
     let span = tracing::Span::current();
 
     let uri_str = &req
         .uri()
-        .path()
-        .to_string()
-        .as_str()
-        .replace(gateway_base_path, "");
+        .path();
 
     let request_path = PathAndQuery::from_str(uri_str).map_err(|err| {
         tracing::warn!("{:?}", err);

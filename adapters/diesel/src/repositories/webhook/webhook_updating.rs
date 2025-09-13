@@ -3,8 +3,10 @@ use crate::{
         config::DbPoolProvider, webhook::WebHook as WebHookModel,
         webhook_execution::WebHookExecution as WebHookExecutionModel,
     },
-    schema::webhook as webhook_model,
-    schema::webhook_execution as webhook_execution_model,
+    repositories::parse_optional_written_by,
+    schema::{
+        webhook as webhook_model, webhook_execution as webhook_execution_model,
+    },
 };
 
 use async_trait::async_trait;
@@ -81,6 +83,7 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
             updated.url,
             updated.trigger.parse().unwrap(),
             updated.secret.map(|s| from_value(s).unwrap()),
+            parse_optional_written_by(updated.created_by),
         );
 
         webhook.id = Some(updated.id);
@@ -89,6 +92,7 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
         webhook.updated = updated
             .updated
             .map(|dt| dt.and_local_timezone(Local).unwrap());
+        webhook.updated_by = parse_optional_written_by(updated.updated_by);
 
         webhook.redact_secret_token();
 

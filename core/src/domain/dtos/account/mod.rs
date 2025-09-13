@@ -7,7 +7,7 @@ pub use verbose_status::{FlagResponse, VerboseStatus};
 use super::{
     account_type::AccountType, guest_user::GuestUser, tag::Tag, user::User,
 };
-use crate::domain::actors::SystemActor;
+use crate::domain::{actors::SystemActor, dtos::written_by::WrittenBy};
 
 use chrono::{DateTime, Local};
 use mycelium_base::dtos::Children;
@@ -18,44 +18,6 @@ use utoipa::{ToResponse, ToSchema};
 use uuid::Uuid;
 
 pub type AccountMeta = HashMap<AccountMetaKey, String>;
-
-#[derive(
-    Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema, ToResponse,
-)]
-#[serde(rename_all = "camelCase")]
-pub enum IDSource {
-    /// The ID source is the user ID
-    User,
-
-    /// The ID source is the system actor
-    Account,
-}
-
-#[derive(
-    Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema, ToResponse,
-)]
-#[serde(rename_all = "camelCase")]
-pub struct Modifier {
-    /// The ID of the user who created the account
-    pub id: Uuid,
-
-    /// The ID source
-    pub from: IDSource,
-}
-
-impl Modifier {
-    fn new(id: Uuid, from: IDSource) -> Self {
-        Self { id, from }
-    }
-
-    pub fn new_from_user(id: Uuid) -> Self {
-        Self::new(id, IDSource::User)
-    }
-
-    pub fn new_from_account(id: Uuid) -> Self {
-        Self::new(id, IDSource::Account)
-    }
-}
 
 #[derive(
     Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema, ToResponse,
@@ -122,7 +84,7 @@ pub struct Account {
     // Default account is the one that is created when the system is
     // initialized. Every user further created will be associated with this
     // account.
-    pub is_default: bool,
+    pub is_system_account: bool,
 
     /// The Account Owners
     ///
@@ -151,7 +113,7 @@ pub struct Account {
     /// The ID of the account that created the account. This is used for
     /// auditing purposes.
     ///
-    pub created_by: Option<Modifier>,
+    pub created_by: Option<WrittenBy>,
 
     /// The Account Updated Date
     #[serde(alias = "updated", skip_serializing_if = "Option::is_none")]
@@ -162,7 +124,7 @@ pub struct Account {
     /// The ID of the account that updated the account. This is used for
     /// auditing purposes.
     ///
-    pub updated_by: Option<Modifier>,
+    pub updated_by: Option<WrittenBy>,
 
     /// The Account Meta
     ///
@@ -184,7 +146,7 @@ impl Default for Account {
             is_archived: false,
             is_deleted: false,
             verbose_status: None,
-            is_default: false,
+            is_system_account: false,
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::User,
             guest_users: None,
@@ -204,7 +166,7 @@ impl Account {
     pub fn new_subscription_account(
         account_name: String,
         tenant_id: Uuid,
-        created_by: Option<Modifier>,
+        created_by: Option<WrittenBy>,
     ) -> Self {
         Self {
             id: None,
@@ -216,7 +178,7 @@ impl Account {
             is_archived: false,
             is_deleted: false,
             verbose_status: None,
-            is_default: false,
+            is_system_account: false,
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::Subscription { tenant_id },
             guest_users: None,
@@ -231,10 +193,11 @@ impl Account {
     pub fn new_role_related_account<T: ToString>(
         account_name: String,
         tenant_id: Uuid,
-        role_id: Uuid,
+        read_role_id: Uuid,
+        write_role_id: Uuid,
         role_name: T,
-        is_default: bool,
-        created_by: Option<Modifier>,
+        is_system_account: bool,
+        created_by: Option<WrittenBy>,
     ) -> Self {
         Self {
             id: None,
@@ -246,12 +209,13 @@ impl Account {
             is_archived: false,
             is_deleted: false,
             verbose_status: None,
-            is_default,
+            is_system_account,
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::RoleAssociated {
                 tenant_id,
-                role_id,
                 role_name: role_name.to_string(),
+                read_role_id,
+                write_role_id,
             },
             guest_users: None,
             created_at: Local::now(),
@@ -265,8 +229,8 @@ impl Account {
     pub fn new_actor_related_account(
         name: String,
         actor: SystemActor,
-        is_default: bool,
-        created_by: Option<Modifier>,
+        is_system_account: bool,
+        created_by: Option<WrittenBy>,
     ) -> Self {
         Self {
             id: None,
@@ -278,7 +242,7 @@ impl Account {
             is_archived: false,
             is_deleted: false,
             verbose_status: None,
-            is_default,
+            is_system_account,
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::ActorAssociated { actor },
             guest_users: None,
@@ -293,7 +257,7 @@ impl Account {
     pub fn new_tenant_management_account(
         account_name: String,
         tenant_id: Uuid,
-        created_by: Option<Modifier>,
+        created_by: Option<WrittenBy>,
     ) -> Self {
         Self {
             id: None,
@@ -305,7 +269,7 @@ impl Account {
             is_archived: false,
             is_deleted: false,
             verbose_status: None,
-            is_default: false,
+            is_system_account: false,
             owners: Children::Ids([].to_vec()),
             account_type: AccountType::TenantManager { tenant_id },
             guest_users: None,
@@ -326,7 +290,7 @@ impl Account {
         account_name: String,
         principal_owner: User,
         account_type: AccountType,
-        created_by: Option<Modifier>,
+        created_by: Option<WrittenBy>,
     ) -> Self {
         Self {
             id: None,
@@ -338,7 +302,7 @@ impl Account {
             is_archived: false,
             is_deleted: false,
             verbose_status: None,
-            is_default: false,
+            is_system_account: false,
             owners: Children::Records([principal_owner].to_vec()),
             account_type,
             guest_users: None,
@@ -375,7 +339,7 @@ mod tests {
             is_archived: false,
             is_deleted: false,
             verbose_status: None,
-            is_default: false,
+            is_system_account: false,
             owners: Children::Records([].to_vec()),
             account_type: AccountType::User,
             guest_users: None,
@@ -494,7 +458,7 @@ mod tests {
                         VerboseStatus::from_flags(
                             flags_response.is_active.unwrap(),
                             flags_response.is_checked.unwrap(),
-                            flags_response.is_archived.unwrap(),
+                            flags_response.is_archived.unwrap_or(is_archived),
                             flags_response.is_deleted.unwrap(),
                         ),
                         expected_value

@@ -4,6 +4,7 @@ use crate::{
         dtos::{
             account::Account,
             account_type::AccountType,
+            guest_role::Permission,
             native_error_codes::NativeErrorCodes,
             profile::Profile,
             webhook::{PayloadId, WebHookTrigger},
@@ -23,7 +24,10 @@ use uuid::Uuid;
 
 #[tracing::instrument(
     name = "update_account_name_and_flags",
-    fields(profile_id = %profile.acc_id),
+    fields(
+        profile_id = %profile.acc_id,
+        correspondence_id = tracing::field::Empty
+    ),
     skip_all
 )]
 pub async fn update_account_name_and_flags(
@@ -34,7 +38,7 @@ pub async fn update_account_name_and_flags(
     is_active: Option<bool>,
     is_checked: Option<bool>,
     is_archived: Option<bool>,
-    is_default: Option<bool>,
+    is_system_account: Option<bool>,
     account_fetching_repo: Box<&dyn AccountFetching>,
     account_updating_repo: Box<&dyn AccountUpdating>,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
@@ -62,7 +66,10 @@ pub async fn update_account_name_and_flags(
             SystemActor::TenantManager,
             SystemActor::SubscriptionsManager,
         ])
-        .get_related_accounts_or_tenant_or_error(tenant_id)?;
+        .get_related_accounts_or_tenant_wide_permission_or_error(
+            tenant_id,
+            Permission::Write,
+        )?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch account
@@ -98,7 +105,20 @@ pub async fn update_account_name_and_flags(
             _ => {}
         }
 
-        account.slug = slugify!(&name.as_str());
+        //
+        // If the account is not a role associated or tenant manager account,
+        // then we can update the slug. In both cases, the slug should be
+        // immutable.
+        //
+        if ![
+            matches!(account.account_type, AccountType::RoleAssociated { .. }),
+            matches!(account.account_type, AccountType::TenantManager { .. }),
+        ]
+        .iter()
+        .all(|t| *t)
+        {
+            account.slug = slugify!(&name.as_str());
+        }
     }
 
     if let Some(is_active) = is_active {
@@ -113,8 +133,8 @@ pub async fn update_account_name_and_flags(
         account.is_archived = is_archived;
     }
 
-    if let Some(is_default) = is_default {
-        account.is_default = is_default;
+    if let Some(is_system_account) = is_system_account {
+        account.is_system_account = is_system_account;
     }
 
     // ? -----------------------------------------------------------------------
@@ -168,11 +188,19 @@ mod tests {
         account
     }
 
-    struct MockAccountFetching;
+    struct MockAccountFetching {
+        account: Account,
+    }
 
     impl Default for MockAccountFetching {
         fn default() -> Self {
-            Self {}
+            Self { account: account() }
+        }
+    }
+
+    impl MockAccountFetching {
+        fn from_account(account: Account) -> Self {
+            Self { account }
         }
     }
 
@@ -183,7 +211,7 @@ mod tests {
             _: Uuid,
             _: RelatedAccounts,
         ) -> Result<FetchResponseKind<Account, Uuid>, MappedErrors> {
-            Ok(FetchResponseKind::Found(account()))
+            Ok(FetchResponseKind::Found(self.account.clone()))
         }
 
         async fn list(
@@ -205,11 +233,19 @@ mod tests {
             unimplemented!()
         }
     }
-    struct MockAccountUpdating;
+    struct MockAccountUpdating {
+        account: Account,
+    }
 
     impl Default for MockAccountUpdating {
         fn default() -> Self {
-            Self {}
+            Self { account: account() }
+        }
+    }
+
+    impl MockAccountUpdating {
+        fn from_account(account: Account) -> Self {
+            Self { account }
         }
     }
 
@@ -219,7 +255,7 @@ mod tests {
             &self,
             _: Account,
         ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
-            Ok(UpdatingResponseKind::Updated(Account::default()))
+            Ok(UpdatingResponseKind::Updated(self.account.clone()))
         }
 
         async fn update_own_account_name(
@@ -248,11 +284,22 @@ mod tests {
         }
     }
 
-    struct MockWebHookRegistration;
+    struct MockWebHookRegistration {
+        webhook: WebHook,
+    }
 
     impl Default for MockWebHookRegistration {
         fn default() -> Self {
-            Self {}
+            Self {
+                webhook: WebHook::new(
+                    "Test WebHook".to_string(),
+                    None,
+                    "https://example.com".to_string(),
+                    WebHookTrigger::SubscriptionAccountUpdated,
+                    None,
+                    None,
+                ),
+            }
         }
     }
 
@@ -262,14 +309,14 @@ mod tests {
             &self,
             _: WebHook,
         ) -> Result<CreateResponseKind<WebHook>, MappedErrors> {
-            unimplemented!()
+            Ok(CreateResponseKind::Created(self.webhook.clone()))
         }
 
         async fn register_execution_event(
             &self,
             _: WebHookPayloadArtifact,
         ) -> Result<CreateResponseKind<Uuid>, MappedErrors> {
-            unimplemented!()
+            Ok(CreateResponseKind::Created(Uuid::new_v4()))
         }
     }
 
@@ -323,5 +370,124 @@ mod tests {
         assert!(matches!(result, Err(_)));
         let error = result.unwrap_err();
         assert!(error.has_str_code(NativeErrorCodes::MYC00018.as_str()));
+    }
+
+    async fn execute_update_account_name_and_flags(
+        profile: Profile,
+        old_account: Account,
+        new_account: Account,
+        new_name: String,
+    ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
+        let fetching = MockAccountFetching::from_account(old_account.clone());
+        let updating = MockAccountUpdating::from_account(new_account.clone());
+        let webhook_registration = MockWebHookRegistration::default();
+
+        let account_fetching_repo = Box::new(&fetching as &dyn AccountFetching);
+        let account_updating_repo = Box::new(&updating as &dyn AccountUpdating);
+        let webhook_registration_repo =
+            Box::new(&webhook_registration as &dyn WebHookRegistration);
+
+        let result = update_account_name_and_flags(
+            profile,
+            old_account.id.unwrap(),
+            Uuid::new_v4(),
+            Some(new_name),
+            Some(true),
+            Some(true),
+            Some(false),
+            Some(false),
+            account_fetching_repo,
+            account_updating_repo,
+            webhook_registration_repo,
+        )
+        .await;
+
+        result
+    }
+
+    async fn assert_account_updated(
+        result: Result<UpdatingResponseKind<Account>, MappedErrors>,
+        expected_name: String,
+        expected_slug: String,
+    ) {
+        let updated_account = match result {
+            Ok(UpdatingResponseKind::Updated(account)) => account,
+            _ => panic!("Expected an updated account"),
+        };
+
+        assert_eq!(updated_account.name, expected_name);
+        assert_eq!(updated_account.slug, expected_slug);
+    }
+
+    ///
+    ///  Test slug immutability
+    ///
+    #[tokio::test]
+    async fn test_slug_immutability() {
+        let mut profile = Profile::default();
+        profile.is_staff = true;
+
+        let old_name = "old-name".to_string();
+        let new_name = "new-name".to_string();
+
+        let mut subscription_account = Account::new_subscription_account(
+            old_name.clone(),
+            Uuid::new_v4(),
+            None,
+        );
+
+        subscription_account.id = Some(Uuid::new_v4());
+
+        let mut role_associated_account = Account::new_role_related_account(
+            old_name.clone(),
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+            Uuid::new_v4(),
+            old_name.clone(),
+            false,
+            None,
+        );
+
+        role_associated_account.id = Some(Uuid::new_v4());
+
+        let subscription_account_result =
+            execute_update_account_name_and_flags(
+                profile.clone(),
+                subscription_account.clone(),
+                Account {
+                    name: new_name.clone(),
+                    slug: new_name.clone(),
+                    ..subscription_account
+                },
+                new_name.clone(),
+            )
+            .await;
+
+        let role_associated_account_result =
+            execute_update_account_name_and_flags(
+                profile.clone(),
+                role_associated_account.clone(),
+                Account {
+                    name: new_name.clone(),
+                    slug: old_name.clone(),
+                    ..role_associated_account
+                },
+                new_name.clone(),
+            )
+            .await;
+
+        assert_account_updated(
+            subscription_account_result,
+            new_name.clone(),
+            new_name.clone(),
+        )
+        .await;
+
+        assert_account_updated(
+            role_associated_account_result,
+            new_name.clone(),
+            old_name.clone(),
+        )
+        .await;
     }
 }

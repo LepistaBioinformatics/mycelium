@@ -19,3 +19,4 @@ pub mod tenant;
 pub mod token;
 pub mod user;
 pub mod webhook;
+pub mod written_by;

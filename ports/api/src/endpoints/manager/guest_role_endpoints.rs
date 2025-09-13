@@ -45,6 +45,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 ///
 #[utoipa::path(
     post,
+    operation_id = "create_system_level_guest_roles",
     responses(
         (
             status = 500,

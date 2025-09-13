@@ -3,6 +3,7 @@ use crate::{
         actors::SystemActor,
         dtos::{
             account_type::AccountType,
+            guest_role::Permission,
             profile::Profile,
             webhook::{PayloadId, WebHookTrigger},
         },
@@ -20,7 +21,10 @@ use uuid::Uuid;
 
 #[tracing::instrument(
     name = "delete_subscription_account",
-    fields(profile_id = %profile.acc_id),
+    fields(
+        profile_id = %profile.acc_id,
+        correspondence_id = tracing::field::Empty
+    ),
     skip(profile, account_deletion_repo, webhook_registration_repo)
 )]
 pub async fn delete_subscription_account(
@@ -47,10 +51,13 @@ pub async fn delete_subscription_account(
 
     let related_accounts = profile
         .on_tenant(tenant_id.to_owned())
+        .on_account(account_id)
         .with_system_accounts_access()
-        .with_write_access()
         .with_roles(vec![SystemActor::TenantManager])
-        .get_related_accounts_or_tenant_or_error(tenant_id)?;
+        .get_related_accounts_or_tenant_wide_permission_or_error(
+            tenant_id,
+            Permission::Write,
+        )?;
 
     // ? -----------------------------------------------------------------------
     // ? Delete account

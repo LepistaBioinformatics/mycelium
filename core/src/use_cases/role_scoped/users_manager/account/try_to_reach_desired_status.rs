@@ -127,7 +127,7 @@ mod tests {
             is_archived: false,
             is_deleted: false,
             verbose_status: None,
-            is_default: false,
+            is_system_account: false,
             owners: Children::Records([user].to_vec()),
             account_type: AccountType::User,
             guest_users: None,

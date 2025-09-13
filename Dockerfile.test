@@ -1,0 +1,50 @@
+# ? ----------------------------------------------------------------------------
+# ? Build stage/
+# ? ----------------------------------------------------------------------------
+
+FROM rust:latest AS builder
+
+WORKDIR /rust
+
+# ? The copy operations are performed in separate steps to allow caching layers
+# ? over building operations
+COPY lib /rust/lib
+COPY core /rust/core
+COPY adapters /rust/adapters
+COPY ports /rust/ports
+COPY test /rust/test
+COPY Cargo.toml /rust/Cargo.toml
+COPY Cargo.lock /rust/Cargo.lock
+
+RUN cargo build --release --bin myc-api-test-svc --package mycelium-api-test-svc
+
+# ? ----------------------------------------------------------------------------
+# ? Production stage
+# ? ----------------------------------------------------------------------------
+
+FROM rust:latest
+
+RUN apt-get update && apt-get install -y libpq-dev
+
+COPY --from=builder /rust/target/release/myc-api-test-svc /usr/local/bin/myc-api-test-svc
+
+COPY ports/api/src/api_docs/redoc.config.json /home/redoc.config.json
+COPY templates /home/templates
+
+ENV UTOIPA_REDOC_CONFIG_FILE=/home/redoc.config.json
+
+ARG TEMPLATES_DIR=/home/templates
+ENV TEMPLATES_DIR=${TEMPLATES_DIR}
+
+# Test if the templates directory exists
+RUN if [ ! -d "${TEMPLATES_DIR}" ]; then \
+    echo "Error: Templates directory not found at ${TEMPLATES_DIR}" && \
+    exit 1; \
+    fi
+
+ARG SERVICE_PORT=8080
+ENV SERVICE_PORT=${SERVICE_PORT}
+
+EXPOSE ${SERVICE_PORT}
+
+ENTRYPOINT ["myc-api"]

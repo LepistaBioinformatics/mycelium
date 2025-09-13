@@ -63,6 +63,13 @@ pub enum SystemActor {
     /// ❌ Wrong example:
     ///
     /// ```rust
+    /// use myc_core::domain::dtos::profile::Profile;
+    /// use myc_core::domain::actors::SystemActor;
+    /// use uuid::Uuid;
+    ///
+    /// let profile = Profile::default();
+    /// let tenant_id = Uuid::new_v4();
+    ///
     /// let related_accounts = profile
     ///     .on_tenant(tenant_id)
     ///     .with_system_accounts_access()
@@ -72,7 +79,7 @@ pub enum SystemActor {
     ///         SystemActor::TenantManager,
     ///         SystemActor::SubscriptionsManager,
     ///     ])
-    ///     .get_related_accounts_or_error()?;
+    ///     .get_related_account_or_error();
     /// ```
     ///
     /// This way should check if the profile has access to the tenant as a guest
@@ -82,6 +89,14 @@ pub enum SystemActor {
     /// ✅ Right example:
     ///
     /// ```rust
+    /// use myc_core::domain::dtos::profile::Profile;
+    /// use myc_core::domain::actors::SystemActor;
+    /// use myc_core::domain::dtos::guest_role::Permission;
+    /// use uuid::Uuid;
+    ///
+    /// let profile = Profile::default();
+    /// let tenant_id = Uuid::new_v4();
+    ///
     /// let related_accounts = profile
     ///     .on_tenant(tenant_id)
     ///     .with_system_accounts_access()
@@ -90,7 +105,7 @@ pub enum SystemActor {
     ///         SystemActor::TenantManager,
     ///         SystemActor::SubscriptionsManager,
     ///     ])
-    ///     .get_related_accounts_or_tenant_or_error(tenant_id)?;
+    ///     .get_related_accounts_or_tenant_wide_permission_or_error(tenant_id, Permission::Write);
     /// ```
     ///
     /// This way should check if the profile has ownership over the tenant.
@@ -141,15 +156,19 @@ impl FromStr for SystemActor {
 
     fn from_str(s: &str) -> Result<SystemActor, ()> {
         match s {
-            "beginner" | "no-role" => Ok(SystemActor::Beginner),
+            "beginners" | "beginner" | "no-role" => Ok(SystemActor::Beginner),
             "subscriptions-account-manager" | "subscriptions-manager" => {
                 Ok(SystemActor::SubscriptionsManager)
             }
             "users-account-manager" | "users-manager" => {
                 Ok(SystemActor::UsersManager)
             }
-            "account-manager" => Ok(SystemActor::AccountManager),
-            "guest-manager" => Ok(SystemActor::GuestsManager),
+            "accounts-manager" | "account-manager" => {
+                Ok(SystemActor::AccountManager)
+            }
+            "guests-manager" | "guest-manager" => {
+                Ok(SystemActor::GuestsManager)
+            }
             "gateway-manager" => Ok(SystemActor::GatewayManager),
             "system-manager" => Ok(SystemActor::SystemManager),
             "tenant-manager" => Ok(SystemActor::TenantManager),
@@ -163,6 +182,24 @@ impl FromStr for SystemActor {
                     Err(())
                 }
             }
+        }
+    }
+}
+
+impl SystemActor {
+    pub fn str(&self) -> &str {
+        match self {
+            SystemActor::CustomRole(role) => role,
+            SystemActor::Beginner => "beginners",
+            SystemActor::SubscriptionsManager => "subscriptions-manager",
+            SystemActor::UsersManager => "users-manager",
+            SystemActor::AccountManager => "accounts-manager",
+            SystemActor::GuestsManager => "guests-manager",
+            SystemActor::GatewayManager => "gateway-manager",
+            SystemActor::SystemManager => "system-manager",
+            SystemActor::TenantOwner => "tenant-owner",
+            SystemActor::TenantManager => "tenant-manager",
+            SystemActor::Service => "service",
         }
     }
 }

@@ -56,6 +56,7 @@ pub struct UpdateWebHookBody {
     name: Option<String>,
     description: Option<String>,
     secret: Option<HttpSecret>,
+    is_active: Option<bool>,
 }
 
 #[derive(Deserialize, ToSchema, IntoParams)]
@@ -72,6 +73,7 @@ pub struct ListWebHooksParams {
 /// Create a webhook
 #[utoipa::path(
     post,
+    operation_id = "create_webhook",
     request_body = CreateWebHookBody,
     responses(
         (
@@ -128,6 +130,7 @@ pub async fn crate_webhook_url(
 /// List webhooks
 #[utoipa::path(
     get,
+    operation_id = "list_webhooks",
     params(
         ListWebHooksParams,
     ),
@@ -183,6 +186,7 @@ pub async fn list_webhooks_url(
 /// Update a webhook
 #[utoipa::path(
     patch,
+    operation_id = "update_webhook",
     params(
         ("webhook_id" = Uuid, Path, description = "The webhook primary key."),
     ),
@@ -215,6 +219,7 @@ pub async fn update_webhook_url(
     body: web::Json<UpdateWebHookBody>,
     path: web::Path<Uuid>,
     profile: MyceliumProfileData,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     match update_webhook(
@@ -223,6 +228,8 @@ pub async fn update_webhook_url(
         body.name.to_owned(),
         body.description.to_owned(),
         body.secret.to_owned(),
+        life_cycle_settings.get_ref().to_owned(),
+        body.is_active.to_owned(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
@@ -236,6 +243,7 @@ pub async fn update_webhook_url(
 /// Delete a webhook
 #[utoipa::path(
     delete,
+    operation_id = "delete_webhook",
     params(
         ("webhook_id" = Uuid, Path, description = "The webhook primary key."),
     ),

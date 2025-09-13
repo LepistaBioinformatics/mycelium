@@ -1,4 +1,5 @@
 use crate::models::internal_error::InternalError;
+use crate::repositories::parse_optional_written_by;
 use crate::{
     models::{
         account::Account as AccountModel, config::DbPoolProvider,
@@ -14,14 +15,13 @@ use diesel::{
     prelude::*,
     result::{DatabaseErrorKind, Error},
 };
-use myc_core::domain::dtos::account::Modifier;
-use myc_core::domain::dtos::email::Email;
-use myc_core::domain::dtos::user::User;
 use myc_core::domain::{
     dtos::{
         account::{Account, AccountMetaKey, VerboseStatus},
         account_type::AccountType,
+        email::Email,
         native_error_codes::NativeErrorCodes,
+        user::User,
     },
     entities::AccountRegistration,
 };
@@ -31,7 +31,7 @@ use mycelium_base::{
     entities::{CreateResponseKind, GetOrCreateResponseKind},
     utils::errors::{creation_err, MappedErrors},
 };
-use serde_json::{from_value, json, to_value};
+use serde_json::{from_value, to_value};
 use shaku::Component;
 use std::{collections::HashMap, sync::Arc};
 use uuid::Uuid;
@@ -360,25 +360,27 @@ impl AccountRegistration for AccountRegistrationSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let (tenant_id, role_name, role_id) = match account.account_type.clone()
-        {
-            AccountType::RoleAssociated {
-                tenant_id,
-                role_name,
-                role_id,
-            } => (tenant_id, role_name, role_id),
-            _ => {
-                return creation_err(
-                    "Could not create account. Invalid account type.",
-                )
-                .as_error()
-            }
-        };
+        let (tenant_id, role_name, read_role_id, write_role_id) =
+            match account.account_type.clone() {
+                AccountType::RoleAssociated {
+                    tenant_id,
+                    role_name,
+                    read_role_id,
+                    write_role_id,
+                } => (tenant_id, role_name, read_role_id, write_role_id),
+                _ => {
+                    return creation_err(
+                        "Could not create account. Invalid account type.",
+                    )
+                    .as_error()
+                }
+            };
 
         let concrete_account_type = AccountType::RoleAssociated {
             tenant_id,
             role_name,
-            role_id,
+            read_role_id,
+            write_role_id,
         };
 
         // Check if account already exists
@@ -602,7 +604,7 @@ impl AccountRegistrationSqlDbRepository {
             is_active: account.is_active,
             is_checked: account.is_checked,
             is_archived: account.is_archived,
-            is_default: account.is_default,
+            is_default: account.is_system_account,
             is_deleted: account.is_deleted,
             created: Local::now().naive_utc(),
             created_by: account.created_by.map(|m| to_value(m).unwrap()),
@@ -627,29 +629,16 @@ impl AccountRegistrationSqlDbRepository {
                 model.is_archived,
                 model.is_deleted,
             )),
-            is_default: model.is_default,
+            is_system_account: model.is_default,
             owners: Children::Records(vec![]),
             account_type: from_value(model.account_type).unwrap(),
             guest_users: None,
             created_at: model.created.and_local_timezone(Local).unwrap(),
-            created_by: model.created_by.map(|m| from_value(m).unwrap()),
+            created_by: parse_optional_written_by(model.created_by),
             updated_at: model
                 .updated
                 .map(|dt| dt.and_local_timezone(Local).unwrap()),
-            updated_by: model
-                .updated_by
-                .map(|m| {
-                    //
-                    // Check if the Value is a empty object
-                    //
-                    if m == json!({}) {
-                        None
-                    } else {
-                        let modifier: Modifier = from_value(m).unwrap();
-                        Some(modifier)
-                    }
-                })
-                .flatten(),
+            updated_by: parse_optional_written_by(model.updated_by),
             meta: None,
         }
     }

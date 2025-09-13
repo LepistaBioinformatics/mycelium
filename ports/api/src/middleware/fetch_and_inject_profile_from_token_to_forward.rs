@@ -1,9 +1,15 @@
+use crate::middleware::fetch_profile_from_request_connection_string;
+
 use super::fetch_profile_from_request_token;
 
 use actix_web::HttpRequest;
 use awc::ClientRequest;
-use myc_core::domain::dtos::security_group::PermissionedRoles;
-use myc_http_tools::{responses::GatewayError, settings::DEFAULT_PROFILE_KEY};
+use myc_core::domain::dtos::security_group::PermissionedRole;
+use myc_http_tools::{
+    responses::GatewayError,
+    settings::{DEFAULT_CONNECTION_STRING_KEY, DEFAULT_PROFILE_KEY},
+};
+use opentelemetry::{global, KeyValue};
 use reqwest::header::{HeaderName, HeaderValue};
 use std::str::FromStr;
 use tracing::{warn, Instrument};
@@ -19,7 +25,7 @@ use uuid::Uuid;
 #[tracing::instrument(
     name = "fetch_and_inject_profile_from_token_to_forward", 
     skip_all,
-fields(
+    fields(
         //
         // User information
         //
@@ -35,21 +41,34 @@ pub async fn fetch_and_inject_profile_from_token_to_forward(
     req: HttpRequest,
     mut forwarded_req: ClientRequest,
     tenant: Option<Uuid>,
-    roles: Option<Vec<String>>,
-    permissioned_roles: Option<PermissionedRoles>,
+    roles: Option<Vec<PermissionedRole>>,
 ) -> Result<ClientRequest, GatewayError> {
     let span = tracing::Span::current();
 
     tracing::trace!("Injecting profile to forward");
 
-    let profile = fetch_profile_from_request_token(
-        req,
-        tenant,
-        roles.to_owned(),
-        permissioned_roles.to_owned(),
-    )
-    .instrument(span.to_owned())
-    .await?;
+    let profile = if req.headers().get(DEFAULT_CONNECTION_STRING_KEY).is_some()
+    {
+        //
+        // Try to fetch profile from connection string
+        //
+        fetch_profile_from_request_connection_string(
+            req,
+            None,
+            roles.to_owned(),
+        )
+        .instrument(span.to_owned())
+        .await?
+    } else {
+        //
+        // Try to fetch profile from token
+        //
+        fetch_profile_from_request_token(req, tenant, roles.to_owned())
+            .instrument(span.to_owned())
+            .await?
+    };
+
+    tracing::debug!("Profile: {:?}", profile);
 
     span.record("myc.router.profile_id", &Some(profile.acc_id.to_string()))
         .record("myc.router.is_staff", &Some(profile.is_staff))
@@ -64,20 +83,16 @@ pub async fn fetch_and_inject_profile_from_token_to_forward(
             &Some(profile.licensed_resources.is_some()),
         );
 
-    //
-    // Permissioned roles have priority over the roles. Them, it should be
-    // evaluated first.
-    //
-    if let Some(_) = permissioned_roles {
-        if profile.licensed_resources.is_none()
-            && (!profile.is_manager && !profile.is_staff)
-        {
-            return Err(GatewayError::Forbidden(
-                "User does not have permission to perform this action"
-                    .to_string(),
-            ));
-        }
-    }
+    // Get a meter
+    let meter = global::meter("router_counter");
+
+    // Create a metric
+    let counter = meter.u64_counter("router.requests_count").build();
+
+    counter.add(
+        1,
+        &[KeyValue::new("profile_id", profile.acc_id.to_string())],
+    );
 
     if let Some(_) = roles {
         if profile.licensed_resources.is_none()

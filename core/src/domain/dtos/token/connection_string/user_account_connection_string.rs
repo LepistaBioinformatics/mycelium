@@ -8,18 +8,18 @@
 use super::ConnectionStringBean;
 use crate::{
     domain::dtos::{
-        security_group::PermissionedRoles,
+        security_group::PermissionedRole,
         token::{HmacSha256, ScopedBehavior, ServiceAccountRelatedMeta},
     },
     models::AccountLifeCycle,
 };
 
+use base64::{engine::general_purpose, Engine};
 use chrono::{DateTime, Local};
 use hmac::Mac;
 use mycelium_base::utils::errors::{dto_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use std::fmt::Write;
-use tracing::error;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -37,9 +37,9 @@ impl UserAccountScope {
     pub async fn new(
         account_id: Uuid,
         expires_at: DateTime<Local>,
-        role: Option<String>,
-        permissioned_roles: Option<PermissionedRoles>,
+        roles: Option<Vec<PermissionedRole>>,
         tenant_id: Option<Uuid>,
+        subscription_account_id: Option<Uuid>,
         config: AccountLifeCycle,
     ) -> Result<Self, MappedErrors> {
         let mut beans = vec![
@@ -47,16 +47,16 @@ impl UserAccountScope {
             ConnectionStringBean::EDT(expires_at),
         ];
 
-        if let Some(role) = role {
-            beans.push(ConnectionStringBean::RL(role));
-        }
-
-        if let Some(permissioned_roles) = permissioned_roles {
-            beans.push(ConnectionStringBean::PR(permissioned_roles));
+        if let Some(roles) = roles {
+            beans.push(ConnectionStringBean::RLS(roles));
         }
 
         if let Some(tenant_id) = tenant_id {
             beans.push(ConnectionStringBean::TID(tenant_id));
+        }
+
+        if let Some(subscription_account_id) = subscription_account_id {
+            beans.push(ConnectionStringBean::SID(subscription_account_id));
         }
 
         let mut self_signed_scope = Self(beans);
@@ -99,11 +99,11 @@ impl UserAccountScope {
         })
     }
 
-    #[tracing::instrument(name = "get_role", skip(self))]
-    pub fn get_role(&self) -> Option<String> {
+    #[tracing::instrument(name = "get_roles", skip(self))]
+    pub fn get_roles(&self) -> Option<Vec<PermissionedRole>> {
         self.0.iter().find_map(|bean| {
-            if let ConnectionStringBean::RL(role) = bean {
-                return Some(role.clone());
+            if let ConnectionStringBean::RLS(roles) = bean {
+                return Some(roles.clone());
             }
 
             None
@@ -121,16 +121,26 @@ impl UserAccountScope {
         })
     }
 
-    #[tracing::instrument(name = "get_permissioned_roles", skip(self))]
-    pub fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
+    #[tracing::instrument(name = "get_service_account_id", skip(self))]
+    pub fn get_service_account_id(&self) -> Option<Uuid> {
         self.0.iter().find_map(|bean| {
-            if let ConnectionStringBean::PR(roles) = bean {
-                return Some(roles.clone());
+            if let ConnectionStringBean::SID(id) = bean {
+                return Some(id.clone());
             }
 
             None
         })
     }
+
+    //#[tracing::instrument(name = "get_permissioned_roles", skip(self))]
+    //pub fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
+    //    self.0.iter().find_map(|bean| {
+    //        if let ConnectionStringBean::PR(roles) = bean {
+    //            return Some(roles.clone());
+    //        }
+    //        None
+    //    })
+    //}
 }
 
 impl ScopedBehavior for UserAccountScope {
@@ -150,7 +160,7 @@ impl ScopedBehavior for UserAccountScope {
         let mut mac = match HmacSha256::new_from_slice(secret?.as_bytes()) {
             Ok(mac) => mac,
             Err(err) => {
-                error!("Could not create HMAC: {}", err);
+                tracing::error!("Could not create HMAC: {}", err);
                 return dto_err("Unable to sign token").as_error();
             }
         };
@@ -184,22 +194,63 @@ impl ScopedBehavior for UserAccountScope {
 }
 
 impl ToString for UserAccountScope {
+    /// Convert the UserAccountScope to a string
+    ///
+    /// This function generate a base64 representation of the scope beans
+    ///
     fn to_string(&self) -> String {
-        self.0
+        //
+        // Generate a raw string representation of the scope beans
+        //
+        let raw_string = self
+            .0
             .iter()
             .fold(String::new(), |acc, bean| {
                 format!("{}{};", acc, bean.to_string())
             })
             .trim_end_matches(';')
-            .to_string()
+            .to_string();
+
+        //
+        // Encode the raw string using base64
+        //
+        general_purpose::STANDARD.encode(raw_string)
     }
 }
 
 impl TryFrom<String> for UserAccountScope {
     type Error = ();
 
+    /// Try to convert a base64 encoded string into a UserAccountScope
+    ///
+    /// This function decodes the base64 string, converts it into a UTF-8 string
+    /// and then parses the string into individual ConnectionStringBeans. If any
+    /// step fails, it returns an empty error.
+    ///
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        let beans = value
+        //
+        // Decode the base64 encoded string resulting into a [u8] vector
+        //
+        let raw_decoded = match general_purpose::STANDARD.decode(value) {
+            Ok(decoded) => decoded,
+            Err(err) => {
+                tracing::error!("Failed to decode base64 string: {err}");
+                return Err(());
+            }
+        };
+
+        //
+        // Convert the raw bytes into a UTF-8 string
+        //
+        let decoded = String::from_utf8(raw_decoded).map_err(|_| {
+            tracing::error!("Failed to convert decoded bytes to UTF-8 string");
+            ()
+        })?;
+
+        //
+        // Parse the decoded string into individual beans
+        //
+        let beans = decoded
             .split(';')
             .map(|bean| ConnectionStringBean::try_from(bean.to_string()))
             .collect::<Result<Vec<ConnectionStringBean>, ()>>()?;
@@ -222,9 +273,9 @@ impl UserAccountConnectionString {
         self.scope.get_user_account_id()
     }
 
-    #[tracing::instrument(name = "get_role", skip(self))]
-    pub fn get_role(&self) -> Option<String> {
-        self.scope.get_role()
+    #[tracing::instrument(name = "get_roles", skip(self))]
+    pub fn get_roles(&self) -> Option<Vec<PermissionedRole>> {
+        self.scope.get_roles()
     }
 
     #[tracing::instrument(name = "get_tenant_id", skip(self))]
@@ -232,10 +283,15 @@ impl UserAccountConnectionString {
         self.scope.get_tenant_id()
     }
 
-    #[tracing::instrument(name = "get_permissioned_roles", skip(self))]
-    pub fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
-        self.scope.get_permissioned_roles()
+    #[tracing::instrument(name = "get_service_account_id", skip(self))]
+    pub fn get_service_account_id(&self) -> Option<Uuid> {
+        self.scope.get_service_account_id()
     }
+
+    //#[tracing::instrument(name = "get_permissioned_roles", skip(self))]
+    //pub fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
+    //    self.scope.get_permissioned_roles()
+    //}
 }
 
 #[cfg(test)]
@@ -290,6 +346,7 @@ mod tests {
                 user_id,
                 email,
                 config,
+                None,
             )
             .await;
 

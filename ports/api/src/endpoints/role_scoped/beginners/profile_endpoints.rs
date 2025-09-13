@@ -2,7 +2,9 @@ use crate::dtos::MyceliumProfileData;
 
 use actix_web::{get, web, HttpResponse, Responder};
 use myc_core::domain::dtos::profile::{LicensedResources, TenantsOwnership};
-use myc_http_tools::{utils::HttpJsonResponse, Profile};
+use myc_http_tools::{
+    settings::MYCELIUM_AI_AWARE, utils::HttpJsonResponse, Profile,
+};
 use serde::Deserialize;
 use utoipa::IntoParams;
 
@@ -30,6 +32,7 @@ pub struct ProfileParams {
 /// Fetch a user's profile.
 #[utoipa::path(
     get,
+    operation_id = "fetch_my_mycelium_profile",
     params(ProfileParams),
     responses(
         (
@@ -62,6 +65,7 @@ pub struct ProfileParams {
             body = Profile,
         ),
     ),
+    tag = MYCELIUM_AI_AWARE
 )]
 #[get("")]
 pub async fn fetch_profile_url(

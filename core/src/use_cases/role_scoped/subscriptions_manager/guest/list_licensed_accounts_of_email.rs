@@ -2,8 +2,9 @@ use crate::domain::{
     actors::SystemActor,
     dtos::{
         email::Email,
+        guest_role::Permission,
         profile::{LicensedResource, Profile},
-        security_group::PermissionedRoles,
+        security_group::PermissionedRole,
     },
     entities::LicensedResourcesFetching,
 };
@@ -25,9 +26,8 @@ pub async fn list_licensed_accounts_of_email(
     profile: Profile,
     tenant_id: Uuid,
     email: Email,
-    roles: Option<Vec<String>>,
+    roles: Option<Vec<PermissionedRole>>,
     was_verified: Option<bool>,
-    permissioned_roles: Option<PermissionedRoles>,
     licensed_resources_fetching_repo: Box<&dyn LicensedResourcesFetching>,
 ) -> Result<FetchManyResponseKind<LicensedResource>, MappedErrors> {
     // ? -----------------------------------------------------------------------
@@ -42,7 +42,10 @@ pub async fn list_licensed_accounts_of_email(
             SystemActor::TenantManager,
             SystemActor::SubscriptionsManager,
         ])
-        .get_related_accounts_or_tenant_or_error(tenant_id)?;
+        .get_related_accounts_or_tenant_wide_permission_or_error(
+            tenant_id,
+            Permission::Read,
+        )?;
 
     // ? -----------------------------------------------------------------------
     // ? Fetch subscriptions from email
@@ -53,7 +56,6 @@ pub async fn list_licensed_accounts_of_email(
             email,
             Some(tenant_id),
             roles,
-            permissioned_roles,
             Some(related_accounts),
             was_verified,
         )

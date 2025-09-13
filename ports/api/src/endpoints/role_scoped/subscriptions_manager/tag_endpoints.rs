@@ -68,6 +68,7 @@ pub struct DeleteAccountTagParams {
 /// Register a tag
 #[utoipa::path(
     post,
+    operation_id = "register_account_tag",
     params(
         (
             "account_id" = Uuid,
@@ -134,6 +135,7 @@ pub async fn register_account_tag_url(
 /// Update a tag
 #[utoipa::path(
     put,
+    operation_id = "update_account_tag",
     params(
         (
             "tag_id" = Uuid,
@@ -204,6 +206,7 @@ pub async fn update_account_tag_url(
 /// Delete a tag
 #[utoipa::path(
     delete,
+    operation_id = "delete_account_tag",
     params(
         (
             "tag_id" = Uuid,

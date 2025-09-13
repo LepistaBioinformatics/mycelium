@@ -1,8 +1,6 @@
-# MyceliumCore (also refereed as MycCore): The core part of the Mycelium tool
+# MyceliumCore (also refereed as MycCore): The core part of the Mycelium project
 
-`Mycelium` features allow users to build and check permissions into
-distributed systems. `MyceliumCore` contain domain features of the system.
+Here you can find business logic and domain types that are shared across the
+workspace.
 
-Check the Mycelium [repo](https://github.com/sgelias/mycelium) for details.
-
-___
+See the [Global README](../README.md) for more information.

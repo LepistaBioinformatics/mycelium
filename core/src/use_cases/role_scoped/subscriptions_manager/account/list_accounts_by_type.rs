@@ -1,7 +1,7 @@
 use crate::domain::{
     actors::SystemActor,
     dtos::{
-        account::Account, account_type::AccountType,
+        account::Account, account_type::AccountType, guest_role::Permission,
         native_error_codes::NativeErrorCodes, profile::Profile,
         related_accounts::RelatedAccounts,
     },
@@ -67,14 +67,14 @@ pub async fn list_accounts_by_type(
     // Check if the current account has sufficient privileges. Inclusive the
     // subscription account should be tested.
     //
-    let (filtered_profile, is_tenant_ownership) =
+    let (filtered_profile, has_tenant_wide_privileges) =
         check_user_privileges_given_account_type(
             &profile,
             Some(account_type.to_owned()),
             tenant_id,
         )?;
 
-    let related_accounts = if is_tenant_ownership {
+    let related_accounts = if has_tenant_wide_privileges {
         if let Some(tenant_id) = tenant_id {
             RelatedAccounts::HasTenantWidePrivileges(tenant_id)
         } else {
@@ -171,12 +171,15 @@ fn check_user_privileges_given_account_type(
     // If true, users must provide a tenant ID.
     //
     let is_tenant_dependent = match account_type.to_owned() {
-        Some(types) => types.is_tenant_dependent(),
+        Some(account_type) => account_type.is_tenant_dependent(),
         None => false,
     };
 
     if is_tenant_dependent {
         if let Some(tenant_id) = tenant_id {
+            //
+            // Check if the profile has tenant ownership
+            //
             if filtered_profile
                 .on_tenant(tenant_id)
                 .with_tenant_ownership_or_error(tenant_id)
@@ -185,7 +188,21 @@ fn check_user_privileges_given_account_type(
                 return Ok((filtered_profile, true));
             }
 
-            filtered_profile = filtered_profile.on_tenant(tenant_id);
+            //
+            // Check if the profile has tenant wide privileges by using the
+            // tenant manager role.
+            //
+            if filtered_profile
+                .on_tenant_as_manager(tenant_id, Permission::Read)
+                .get_ids_or_error()
+                .is_ok()
+            {
+                return Ok((filtered_profile, true));
+            }
+
+            filtered_profile = filtered_profile
+                .on_tenant_as_manager(tenant_id, Permission::Read)
+                .on_tenant(tenant_id);
         } else {
             return execution_err(
                 "tenant_id is required when listing accounts by type",

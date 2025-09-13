@@ -10,9 +10,9 @@ use myc_core::{
         dtos::{account::VerboseStatus, account_type::AccountType},
     },
     use_cases::role_scoped::subscriptions_manager::account::{
-        create_subscription_account, get_account_details,
-        list_accounts_by_type, propagate_existing_subscription_account,
-        update_account_name_and_flags,
+        create_role_associated_account, create_subscription_account,
+        get_account_details, list_accounts_by_type,
+        propagate_existing_subscription_account, update_account_name_and_flags,
     },
 };
 use myc_diesel::repositories::SqlAppModule;
@@ -24,6 +24,7 @@ use myc_http_tools::{
     },
     Account,
 };
+use mycelium_base::entities::GetOrCreateResponseKind;
 use serde::Deserialize;
 use shaku::HasComponent;
 use utoipa::{IntoParams, ToSchema};
@@ -36,6 +37,7 @@ use uuid::Uuid;
 pub fn configure(config: &mut web::ServiceConfig) {
     config
         .service(create_subscription_account_url)
+        .service(create_role_associated_account_url)
         .service(update_account_name_and_flags_url)
         .service(list_accounts_by_type_url)
         .service(get_account_details_url)
@@ -54,12 +56,20 @@ pub struct CreateSubscriptionAccountBody {
 
 #[derive(Deserialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
+pub struct CreateRoleAssociatedAccountBody {
+    account_name: String,
+    role_name: String,
+    role_description: String,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
 pub struct UpdateSubscriptionAccountNameAndFlagsBody {
     name: Option<String>,
     is_active: Option<bool>,
     is_checked: Option<bool>,
     is_archived: Option<bool>,
-    is_default: Option<bool>,
+    is_system_account: Option<bool>,
 }
 
 #[derive(Debug, Deserialize, ToSchema)]
@@ -69,17 +79,15 @@ pub(crate) enum APIAccountType {
     Manager,
     User,
     Subscription,
-    RoleAssociated,
     ActorAssociated,
     TenantManager,
+    RoleAssociated,
 }
 
 impl APIAccountType {
     fn into_account_type(
         &self,
         tenant_id: Option<Uuid>,
-        role_name: Option<String>,
-        role_id: Option<Uuid>,
         actor: Option<SystemActor>,
     ) -> Result<AccountType, HttpResponse> {
         match self {
@@ -114,29 +122,6 @@ impl APIAccountType {
                     ))
                 }
             }
-            APIAccountType::RoleAssociated => {
-                if role_name.is_none() || role_id.is_none() {
-                    return Err(HttpResponse::BadRequest().json(
-                        HttpJsonResponse::new_message(
-                            "Role name and role id are required.",
-                        ),
-                    ));
-                }
-
-                if let Some(tenant_id) = tenant_id {
-                    Ok(AccountType::RoleAssociated {
-                        tenant_id,
-                        role_name: SystemActor::CustomRole(role_name.unwrap())
-                            .to_string(),
-                        role_id: role_id.unwrap(),
-                    })
-                } else {
-                    Err(HttpResponse::BadRequest()
-                        .json(HttpJsonResponse::new_message(
-                        "Tenant ID is required for role associated accounts.",
-                    )))
-                }
-            }
 
             //
             // Actor related accounts
@@ -152,6 +137,26 @@ impl APIAccountType {
                     actor: actor.unwrap(),
                 })
             }
+
+            //
+            // Role associated accounts
+            //
+            APIAccountType::RoleAssociated => {
+                if let Some(tenant_id) = tenant_id {
+                    Ok(AccountType::RoleAssociated {
+                        tenant_id,
+                        role_name: String::new(),
+                        read_role_id: Uuid::nil(),
+                        write_role_id: Uuid::nil(),
+                    })
+                } else {
+                    Err(HttpResponse::BadRequest().json(
+                        HttpJsonResponse::new_message(
+                            "Tenant ID is required for subscription accounts.",
+                        ),
+                    ))
+                }
+            }
         }
     }
 }
@@ -164,8 +169,6 @@ pub struct ListSubscriptionAccountParams {
     account_type: Option<APIAccountType>,
     is_owner_active: Option<bool>,
     status: Option<VerboseStatus>,
-    role_name: Option<String>,
-    role_id: Option<Uuid>,
     actor: Option<SystemActor>,
 }
 
@@ -182,6 +185,7 @@ pub struct ListSubscriptionAccountParams {
 /// groups, but not real persons.
 #[utoipa::path(
     post,
+    operation_id = "create_subscription_account",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -239,6 +243,81 @@ pub async fn create_subscription_account_url(
     }
 }
 
+/// Create Role Associated Account
+///
+/// Role associated accounts mirrors the guest-roles used to connect peoples in
+/// non-personal accounts, like institutions, groups, etc.
+#[utoipa::path(
+    post,
+    operation_id = "create_role_associated_account",
+    params(
+        (
+            "x-mycelium-tenant-id" = Uuid,
+            Header,
+            description = "The tenant unique id."
+        ),
+    ),
+    request_body = CreateRoleAssociatedAccountBody,
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 400,
+            description = "Account already exists.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 201,
+            description = "Account created.",
+            body = Account,
+        ),
+    ),
+)]
+#[post("/role-associated")]
+pub async fn create_role_associated_account_url(
+    tenant: TenantData,
+    body: web::Json<CreateRoleAssociatedAccountBody>,
+    profile: MyceliumProfileData,
+    app_module: web::Data<SqlAppModule>,
+) -> impl Responder {
+    match create_role_associated_account(
+        profile.to_profile(),
+        tenant.tenant_id().to_owned(),
+        body.account_name.to_owned(),
+        body.role_name.to_owned(),
+        body.role_description.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
+    )
+    .await
+    {
+        Err(err) => handle_mapped_error(err),
+        Ok(account) => match account {
+            GetOrCreateResponseKind::Created(account) => {
+                HttpResponse::Created().json(account)
+            }
+            GetOrCreateResponseKind::NotCreated(account, msg) => {
+                tracing::warn!("{}", msg);
+
+                HttpResponse::Ok().json(account)
+            }
+        },
+    }
+}
+
 /// List account given an account-type
 ///
 /// Get a filtered (or not) list of accounts.
@@ -248,11 +327,12 @@ pub async fn create_subscription_account_url(
 ///
 #[utoipa::path(
     get,
+    operation_id = "list_accounts_by_type",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
             Header,
-            description = "The tenant unique id."
+            description = "The tenant unique id.",
         ),
         ListSubscriptionAccountParams,
         PaginationParams,
@@ -322,15 +402,12 @@ pub async fn list_accounts_by_type_url(
 
     let account_type = match &query.account_type {
         None => None,
-        Some(res) => match res.into_account_type(
-            tenant_id,
-            query.role_name.to_owned(),
-            query.role_id,
-            query.actor.to_owned(),
-        ) {
-            Ok(res) => Some(res),
-            Err(err) => return err,
-        },
+        Some(res) => {
+            match res.into_account_type(tenant_id, query.actor.to_owned()) {
+                Ok(res) => Some(res),
+                Err(err) => return err,
+            }
+        }
     };
 
     match list_accounts_by_type(
@@ -360,6 +437,7 @@ pub async fn list_accounts_by_type_url(
 /// Get a single subscription account.
 #[utoipa::path(
     get,
+    operation_id = "get_account_details",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -423,6 +501,7 @@ pub async fn get_account_details_url(
 /// groups, but not real persons.
 #[utoipa::path(
     patch,
+    operation_id = "update_account_name_and_flags",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,
@@ -478,7 +557,7 @@ pub async fn update_account_name_and_flags_url(
         body.is_active.to_owned(),
         body.is_checked.to_owned(),
         body.is_archived.to_owned(),
-        body.is_default.to_owned(),
+        body.is_system_account.to_owned(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
@@ -495,6 +574,7 @@ pub async fn update_account_name_and_flags_url(
 /// Propagate a single subscription account.
 #[utoipa::path(
     post,
+    operation_id = "propagate_existing_subscription_account",
     params(
         (
             "x-mycelium-tenant-id" = Uuid,

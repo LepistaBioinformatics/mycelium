@@ -8,7 +8,24 @@ WORKDIR /rust
 
 # ? The copy operations are performed in separate steps to allow caching layers
 # ? over building operations
-RUN cargo install mycelium-api --force
+
+ARG VERSION="latest"
+ENV VERSION=${VERSION}
+RUN echo "Building mycelium-api version: ${VERSION}"
+
+# ? If the VERSION is latest, instal using cargo install
+# ? Otherwise, install using the --version flag
+RUN if [ "${VERSION}" = "latest" ]; then \
+        echo "Installing mycelium-api from minor version"; \
+        cargo install mycelium-api; \
+        echo "mycelium-api installed successfully"; \
+        echo "Version: $(myc-api --version)"; \
+    else \
+        echo "Installing mycelium-api from specific version"; \
+        cargo install mycelium-api --version ${VERSION}; \
+        echo "mycelium-api installed successfully"; \
+        echo "Version: $(myc-api --version)"; \
+    fi
 
 # ? ----------------------------------------------------------------------------
 # ? Production stage

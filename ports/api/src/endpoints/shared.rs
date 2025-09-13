@@ -1,5 +1,3 @@
-use crate::settings::{ADMIN_API_SCOPE, ROLE_SCOPED_API_SCOPE};
-
 use actix_web::dev::ServiceRequest;
 use myc_http_tools::{settings::DEFAULT_MYCELIUM_ROLE_KEY, SystemActor};
 use oauth2::http::HeaderName;
@@ -66,7 +64,7 @@ pub(crate) fn build_actor_context(
     actor: SystemActor,
     group: UrlGroup,
 ) -> String {
-    group.with_scoped_actor(UrlScope::RoleScoped, actor)
+    group.with_scoped_actor(actor)
 }
 
 #[derive(Deserialize, IntoParams)]
@@ -77,8 +75,6 @@ pub struct PaginationParams {
 }
 
 pub enum UrlScope {
-    Health,
-    RoleScoped,
     Managers,
     Staffs,
 }
@@ -86,8 +82,6 @@ pub enum UrlScope {
 impl Display for UrlScope {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
-            UrlScope::Health => write!(f, "health"),
-            UrlScope::RoleScoped => write!(f, "{}", ROLE_SCOPED_API_SCOPE),
             UrlScope::Managers => write!(f, "managers"),
             UrlScope::Staffs => write!(f, "staffs"),
         }
@@ -95,8 +89,11 @@ impl Display for UrlScope {
 }
 
 impl UrlScope {
-    pub fn build_myc_path(&self) -> String {
-        format!("/{}/{}", ADMIN_API_SCOPE, self.to_owned())
+    pub fn str(&self) -> &str {
+        match self {
+            UrlScope::Managers => "managers",
+            UrlScope::Staffs => "staffs",
+        }
     }
 }
 
@@ -113,6 +110,7 @@ pub enum UrlGroup {
     Tags,
     Tenants,
     Tokens,
+    Tools,
     Users,
     Webhooks,
 }
@@ -132,6 +130,7 @@ impl Display for UrlGroup {
             UrlGroup::Tags => write!(f, "tags"),
             UrlGroup::Tenants => write!(f, "tenants"),
             UrlGroup::Tokens => write!(f, "tokens"),
+            UrlGroup::Tools => write!(f, "tools"),
             UrlGroup::Users => write!(f, "users"),
             UrlGroup::Webhooks => write!(f, "webhooks"),
         }
@@ -139,11 +138,27 @@ impl Display for UrlGroup {
 }
 
 impl UrlGroup {
-    pub fn with_scoped_actor(
-        &self,
-        scope: UrlScope,
-        actor: SystemActor,
-    ) -> String {
-        format!("{}/{}/{}", scope.build_myc_path(), actor, self.to_owned())
+    fn with_scoped_actor(&self, actor: SystemActor) -> String {
+        format!("{}/{}", actor, self.to_owned())
+    }
+
+    pub fn str(&self) -> &str {
+        match self {
+            UrlGroup::Accounts => "accounts",
+            UrlGroup::ErrorCodes => "error-codes",
+            UrlGroup::GuestRoles => "guest-roles",
+            UrlGroup::Guests => "guests",
+            UrlGroup::Meta => "meta",
+            UrlGroup::Owners => "owners",
+            UrlGroup::Profile => "profile",
+            UrlGroup::Routes => "routes",
+            UrlGroup::Services => "services",
+            UrlGroup::Tags => "tags",
+            UrlGroup::Tenants => "tenants",
+            UrlGroup::Tokens => "tokens",
+            UrlGroup::Tools => "tools",
+            UrlGroup::Users => "users",
+            UrlGroup::Webhooks => "webhooks",
+        }
     }
 }
