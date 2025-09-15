@@ -1,7 +1,7 @@
-{% extends "pt-br/email/base.jinja" %}
+{% extends "es/email/base.jinja" %}
 
 {% block title %}
-Convite de Colaboração
+Invitación de Colaboración
 {% endblock title %}
 
 {% block head %}
@@ -9,7 +9,7 @@ Convite de Colaboração
 {% endblock head %}
 
 {% block contenttitle %}
-Convite de Colaboração
+Invitación de Colaboración
 {% endblock contenttitle %}
 
 {% block contenttable %}
@@ -17,12 +17,12 @@ Convite de Colaboração
   <tr>
     <td align="left">
       <p>
-        Você foi convidado para colaborar com <strong>{{ account_name }}</strong>
+        Ha sido invitado a colaborar con <strong>{{ account_name }}</strong>
         como <strong>{{ role_name }}</strong>.
       </p>
 
       <p>
-        Permissões da função: {{ role_permissions }}
+        Permisos del rol: {{ role_permissions }}
       </p>
     </td>
   </tr>

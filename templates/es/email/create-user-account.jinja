@@ -1,7 +1,7 @@
-{% extends "pt-br/email/base.jinja" %}
+{% extends "es/email/base.jinja" %}
 
 {% block title %}
-Convite de Colaboração
+Nueva Cuenta
 {% endblock title %}
 
 {% block head %}
@@ -9,7 +9,7 @@ Convite de Colaboração
 {% endblock head %}
 
 {% block contenttitle %}
-Convite de Colaboração
+¡Bienvenido al equipo!
 {% endblock contenttitle %}
 
 {% block contenttable %}
@@ -17,12 +17,13 @@ Convite de Colaboração
   <tr>
     <td align="left">
       <p>
-        Você foi convidado para colaborar com <strong>{{ account_name }}</strong>
-        como <strong>{{ role_name }}</strong>.
+        Se ha creado una nueva cuenta para usted. Si no solicitó esta
+        cuenta, póngase en contacto con el administrador del sistema.
       </p>
 
       <p>
-        Permissões da função: {{ role_permissions }}
+        Nombre de usuario:<br />
+        {{ account_name }}
       </p>
     </td>
   </tr>
