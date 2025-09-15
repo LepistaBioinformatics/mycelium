@@ -1,7 +1,7 @@
 {% extends "en-us/email/base.jinja" %}
 
 {% block title %}
-New Connection String
+Nova Conta
 {% endblock title %}
 
 {% block head %}
@@ -9,7 +9,7 @@ New Connection String
 {% endblock head %}
 
 {% block contenttitle %}
-New Connection String
+Bem-vindo à equipe!
 {% endblock contenttitle %}
 
 {% block contenttable %}
@@ -17,11 +17,13 @@ New Connection String
   <tr>
     <td align="left">
       <p>
-        A new connection string was registered.
+        Uma nova conta foi criada para você. Se você não solicitou esta
+        conta, entre em contato com o administrador do sistema.
       </p>
 
       <p>
-        Expires in: {{ expires_in }}
+        Nome de usuário:<br />
+        {{ account_name }}
       </p>
     </td>
   </tr>
