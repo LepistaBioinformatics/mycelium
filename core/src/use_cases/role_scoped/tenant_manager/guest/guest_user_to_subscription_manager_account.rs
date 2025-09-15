@@ -154,7 +154,6 @@ pub async fn guest_user_to_subscription_manager_account(
     let parameters = vec![
         ("account_name", account.name.to_uppercase()),
         ("role_name", role_name.to_uppercase()),
-        ("role_description", role_name.to_uppercase()),
         ("role_permissions", permission.to_string()),
     ];
 

@@ -210,16 +210,11 @@ pub async fn guest_user_to_subscription_account(
     // ? Notify guest user
     // ? -----------------------------------------------------------------------
 
-    let mut parameters = vec![
+    let parameters = vec![
         ("account_name", target_account.name.to_uppercase()),
         ("role_name", target_role.name.to_uppercase()),
-        ("role_description", target_role.name.to_uppercase()),
         ("role_permissions", target_role.permission.to_string()),
     ];
-
-    if let Some(description) = target_role.description {
-        parameters.push(("role_description", description));
-    }
 
     if let Err(err) = dispatch_notification(
         parameters,

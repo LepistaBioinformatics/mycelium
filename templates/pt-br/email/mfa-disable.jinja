@@ -1,7 +1,7 @@
 {% extends "en-us/email/base.jinja" %}
 
 {% block title %}
-New Connection String
+MFA Desabilitado
 {% endblock title %}
 
 {% block head %}
@@ -9,7 +9,7 @@ New Connection String
 {% endblock head %}
 
 {% block contenttitle %}
-New Connection String
+Autenticação Multifator Desabilitada
 {% endblock contenttitle %}
 
 {% block contenttable %}
@@ -17,11 +17,7 @@ New Connection String
   <tr>
     <td align="left">
       <p>
-        A new connection string was registered.
-      </p>
-
-      <p>
-        Expires in: {{ expires_in }}
+        Você desabilitou com sucesso a autenticação multifator.
       </p>
     </td>
   </tr>
