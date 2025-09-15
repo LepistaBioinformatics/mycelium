@@ -1,7 +1,7 @@
-{% extends "pt-br/email/base.jinja" %}
+{% extends "es/email/base.jinja" %}
 
 {% block title %}
-MFA Desabilitado
+Nueva Cadena de Conexión
 {% endblock title %}
 
 {% block head %}
@@ -9,7 +9,7 @@ MFA Desabilitado
 {% endblock head %}
 
 {% block contenttitle %}
-Autenticação Multifator Desabilitada
+Nueva Cadena de Conexión
 {% endblock contenttitle %}
 
 {% block contenttable %}
@@ -17,7 +17,11 @@ Autenticação Multifator Desabilitada
   <tr>
     <td align="left">
       <p>
-        Você desabilitou com sucesso a autenticação multifator.
+        Se ha registrado una nueva cadena de conexión.
+      </p>
+
+      <p>
+        Expira en: {{ expires_in }}
       </p>
     </td>
   </tr>

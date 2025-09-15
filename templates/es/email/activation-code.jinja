@@ -1,7 +1,7 @@
-{% extends "pt-br/email/base.jinja" %}
+{% extends "es/email/base.jinja" %}
 
 {% block title %}
-Redefinição de Senha
+Validación de Email
 {% endblock title %}
 
 {% block head %}
@@ -9,18 +9,18 @@ Redefinição de Senha
 {% endblock head %}
 
 {% block contenttitle %}
-Redefinição de Senha
+Validación de Email
 {% endblock contenttitle %}
 
 {% block contenttable %}
 <tbody>
   <tr>
     <td align="left">
-
       <p>
-        Você está recebendo este e-mail porque foi solicitada uma redefinição de senha
-        para sua conta. Se você não solicitou uma redefinição de senha, por favor
-        ignore este e-mail.
+        Está recibiendo este correo electrónico porque se registró en
+        {{ domain_name }}. Para completar su registro, por favor use el
+        código de verificación a continuación para validar su dirección de correo electrónico. Si no
+        se registró en {{ domain_name }}, por favor ignore este correo electrónico.
       </p>
 
       <table
