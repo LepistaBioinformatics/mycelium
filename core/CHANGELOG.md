@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Create dedicated endpoints to account-maangers to list guest-users
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.1.1-beta.1] - 2025-09-16
 
 ### 🐛 Bug Fixes

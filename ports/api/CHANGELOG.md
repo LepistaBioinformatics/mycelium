@@ -2,11 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.1.1-beta.3] - 2025-09-16
+
+### 🐛 Bug Fixes
+
+- Replace the subscriptions manager by account-manager scoped use-cases on list guest-roles
+
 ## [8.1.1-beta.2] - 2025-09-16
 
 ### 🚀 Features
 
 - Create dedicated endpoints to account-maangers to list guest-users
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.1.1-beta.1] - 2025-09-16
 
