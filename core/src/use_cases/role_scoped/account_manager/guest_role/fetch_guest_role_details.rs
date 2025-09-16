@@ -23,7 +23,6 @@ pub async fn fetch_guest_role_details(
     // ? -----------------------------------------------------------------------
 
     profile
-        .with_system_accounts_access()
         .with_read_access()
         .with_roles(vec![SystemActor::AccountManager])
         .get_related_accounts_or_tenant_wide_permission_or_error(
