@@ -2,11 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.1.1-beta.2] - 2025-09-16
+
+### 🚀 Features
+
+- Create dedicated endpoints to account-maangers to list guest-users
+
 ## [8.1.1-beta.1] - 2025-09-16
 
 ### 🐛 Bug Fixes
 
 - Remove system needs to guest to children account
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.1.0] - 2025-09-13
 
