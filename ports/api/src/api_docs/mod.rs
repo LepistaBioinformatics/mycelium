@@ -19,6 +19,7 @@ use manager::guest_role_endpoints as Managers__Guest_Role;
 use manager::tenant_endpoints as Managers__Tenants;
 use manager::account_endpoints as Managers__Accounts;
 use role_scoped::account_manager::guest_endpoints as Account_Manager__Guest;
+use role_scoped::account_manager::guest_role_endpoints as Account_Manager__Guest_Role;
 use role_scoped::gateway_manager::route_endpoints as Gateway_Manager__Route;
 use role_scoped::gateway_manager::service_endpoints as Gateway_Manager__Service;
 use role_scoped::gateway_manager::tools_endpoints as Gateway_Manager__Tools;
@@ -136,6 +137,22 @@ struct ServiceToolsApiDoc;
     security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct AccountManagerGuestApiDoc;
+
+/// Account Manager Endpoints for Guest Roles Management
+///
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Account Manager | Guest Roles Endpoints",
+        description = "Endpoints reserved for the application account managers to manage guest roles",
+    ),
+    paths(
+        Account_Manager__Guest_Role::list_guest_roles_url,
+        Account_Manager__Guest_Role::fetch_guest_role_details_url,
+    ),
+    security(("Bearer" = [], "ConnectionString" = []))
+)]
+struct AccountManagerGuestRoleApiDoc;
 
 /// Role Scoped Endpoints for Beginner Users for Account Management
 ///
@@ -594,6 +611,7 @@ struct UsersManagerAccountApiDoc;
         // Account Manager endpoints
         //
         (path = "/_adm/accounts-manager/guests", api = AccountManagerGuestApiDoc),
+        (path = "/_adm/accounts-manager/guest-roles", api = AccountManagerGuestRoleApiDoc),
         //
         // Gateway Manager endpoints
         //

@@ -10,7 +10,10 @@ pub(crate) mod users_manager;
 
 use super::shared::{insert_role_header, UrlGroup};
 
-use account_manager::guest_endpoints as account_manager_guest_endpoints;
+use account_manager::{
+    guest_endpoints as account_manager_guest_endpoints,
+    guest_role_endpoints as account_manager_guest_role_endpoints,
+};
 use actix_web::{dev::Service, web};
 use beginners::{
     account_endpoints as beginners_account_endpoints,
@@ -228,7 +231,10 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                 .service(
                     web::scope(UrlGroup::Guests.str())
                         .configure(account_manager_guest_endpoints::configure),
-                ),
+                )
+                .service(web::scope(UrlGroup::GuestRoles.str()).configure(
+                    account_manager_guest_role_endpoints::configure,
+                )),
         )
         //
         // System Managers
