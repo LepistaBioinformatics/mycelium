@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Replace the subscriptions manager by account-manager scoped use-cases on list guest-roles
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.1.1-beta.2] - 2025-09-16
 
 ### 🚀 Features
