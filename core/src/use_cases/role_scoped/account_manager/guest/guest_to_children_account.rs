@@ -48,7 +48,7 @@ pub async fn guest_to_children_account(
 
     let related_accounts = profile
         .on_tenant(tenant_id)
-        .with_system_accounts_access()
+        .on_account(target_account_id)
         .with_write_access()
         .with_roles(vec![SystemActor::AccountManager])
         .get_related_account_or_error()?;
