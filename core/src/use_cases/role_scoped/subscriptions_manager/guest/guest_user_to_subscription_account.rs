@@ -95,8 +95,6 @@ pub async fn guest_user_to_subscription_account(
         }
     };
 
-    println!("account type: {:?}", target_account.account_type);
-
     match target_account.account_type {
         //
         // If the target account is an actor associated account, the user must

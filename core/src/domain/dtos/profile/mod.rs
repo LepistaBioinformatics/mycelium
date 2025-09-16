@@ -2,6 +2,8 @@ mod licensed_resources;
 mod owner;
 mod tenant_ownerships;
 
+use std::collections::HashMap;
+
 pub use licensed_resources::{LicensedResource, LicensedResources};
 pub use owner::Owner;
 pub use tenant_ownerships::{TenantOwnership, TenantsOwnership};
@@ -10,7 +12,10 @@ use super::{
     account::VerboseStatus, guest_role::Permission,
     native_error_codes::NativeErrorCodes, related_accounts::RelatedAccounts,
 };
-use crate::domain::{actors::SystemActor, dtos::email::Email};
+use crate::domain::{
+    actors::SystemActor,
+    dtos::{account::AccountMetaKey, email::Email},
+};
 
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use serde::{Deserialize, Serialize};
@@ -110,6 +115,13 @@ pub struct Profile {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub tenants_ownership: Option<TenantsOwnership>,
 
+    /// The Account Meta
+    ///
+    /// Store metadata about the account.
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub meta: Option<HashMap<AccountMetaKey, String>>,
+
     /// This argument stores the licensed resources state
     ///
     /// The licensed_resources_state should store the current filtering state.
@@ -203,6 +215,7 @@ impl Profile {
             licensed_resources,
             tenants_ownership,
             filtering_state: None,
+            meta: None,
         }
     }
 
@@ -729,6 +742,7 @@ mod tests {
             account_was_archived: false,
             account_was_deleted: false,
             verbose_status: None,
+            meta: None,
             licensed_resources: Some(LicensedResources::Records(vec![
                 LicensedResource {
                     acc_id: Uuid::new_v4(),
