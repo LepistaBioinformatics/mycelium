@@ -6,7 +6,7 @@ use crate::{
 use actix_web::{get, web, Responder};
 use myc_core::{
     domain::dtos::guest_role::GuestRole,
-    use_cases::role_scoped::subscriptions_manager::guest_role::{
+    use_cases::role_scoped::account_manager::guest_role::{
         fetch_guest_role_details, list_guest_roles,
     },
 };
