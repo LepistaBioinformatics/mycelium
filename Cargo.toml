@@ -30,7 +30,7 @@ resolver = "2"
 
 [workspace.package]
 
-version = "8.1.0"
+version = "8.1.1-beta.1"
 edition = "2021"
 authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
 license = "Apache-2.0"
@@ -122,17 +122,17 @@ wildmatch = "2.1"
 # Mycelium packages
 # ------------------------------------------------------------------------------
 
-myc-core = { version = "8.1.0", path = "core" }
-mycelium-base = { version = "8.1.0", path = "lib/base" }
-mycelium-config = { version = "8.1.0", path = "lib/config" }
-mycelium-openapi = { version = "8.1.0", path = "lib/openapi" }
-mycelium-http-tools = { version = "8.1.0", path = "lib/http_tools" }
-mycelium-memory-db = { version = "8.1.0", path = "adapters/mem_db" }
-mycelium-service = { version = "8.1.0", path = "adapters/service" }
-mycelium-diesel = { version = "8.1.0", path = "adapters/diesel" }
-mycelium-notifier = { version = "8.1.0", path = "adapters/notifier" }
-mycelium-adapters-shared-lib = { version = "8.1.0", path = "adapters/shared" }
-mycelium-key-value = { version = "8.1.0", path = "adapters/kv_db" }
+myc-core = { version = "8.1.1-beta.1", path = "core" }
+mycelium-base = { version = "8.1.1-beta.1", path = "lib/base" }
+mycelium-config = { version = "8.1.1-beta.1", path = "lib/config" }
+mycelium-openapi = { version = "8.1.1-beta.1", path = "lib/openapi" }
+mycelium-http-tools = { version = "8.1.1-beta.1", path = "lib/http_tools" }
+mycelium-memory-db = { version = "8.1.1-beta.1", path = "adapters/mem_db" }
+mycelium-service = { version = "8.1.1-beta.1", path = "adapters/service" }
+mycelium-diesel = { version = "8.1.1-beta.1", path = "adapters/diesel" }
+mycelium-notifier = { version = "8.1.1-beta.1", path = "adapters/notifier" }
+mycelium-adapters-shared-lib = { version = "8.1.1-beta.1", path = "adapters/shared" }
+mycelium-key-value = { version = "8.1.1-beta.1", path = "adapters/kv_db" }
 
 [workspace.metadata.release]
 

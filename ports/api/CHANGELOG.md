@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Remove the mcp scope from the application
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.0.1-beta.33] - 2025-09-03
 
 ### 🚀 Features
