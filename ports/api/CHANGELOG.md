@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Simplify the guesting process to share accounts with child roles
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.1.1-beta.4] - 2025-09-16
 
 ### ⚙️ Miscellaneous Tasks
