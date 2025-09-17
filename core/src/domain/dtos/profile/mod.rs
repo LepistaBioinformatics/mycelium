@@ -733,6 +733,7 @@ mod tests {
                 LicensedResource {
                     acc_id: Uuid::new_v4(),
                     tenant_id,
+                    role_id: Uuid::new_v4(),
                     acc_name: "Guest Account Name".to_string(),
                     sys_acc: false,
                     role: "service".to_string(),
@@ -742,6 +743,7 @@ mod tests {
                 LicensedResource {
                     acc_id: Uuid::new_v4(),
                     tenant_id,
+                    role_id: Uuid::new_v4(),
                     acc_name: "Guest Account Name".to_string(),
                     sys_acc: true,
                     role: "newbie".to_string(),
@@ -751,6 +753,7 @@ mod tests {
                 LicensedResource {
                     acc_id: Uuid::new_v4(),
                     tenant_id: Uuid::new_v4(),
+                    role_id: Uuid::new_v4(),
                     acc_name: "Guest Account Name".to_string(),
                     sys_acc: true,
                     role: "service".to_string(),
@@ -774,6 +777,7 @@ mod tests {
         let licensed_resource = LicensedResource {
             acc_id: Uuid::new_v4(),
             tenant_id: Uuid::new_v4(),
+            role_id: Uuid::new_v4(),
             acc_name: "Guest Account Name".to_string(),
             sys_acc: false,
             role: "service".to_string(),

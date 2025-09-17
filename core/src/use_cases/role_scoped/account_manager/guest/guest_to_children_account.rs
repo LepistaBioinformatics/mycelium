@@ -33,7 +33,6 @@ pub async fn guest_to_children_account(
     profile: Profile,
     tenant_id: Uuid,
     email: Email,
-    parent_role_id: Uuid,
     target_role_id: Uuid,
     target_account_id: Uuid,
     life_cycle_settings: AccountLifeCycle,
@@ -65,7 +64,11 @@ pub async fn guest_to_children_account(
     let (target_account_response, parent_role_response, target_role_response) =
         future::join3(
             account_fetching_repo.get(target_account_id, related_accounts),
-            guest_role_fetching_repo.get(parent_role_id),
+            //
+            // Get the parent role by child id to ensure the target role is a
+            // child of the parent role.
+            //
+            guest_role_fetching_repo.get_parent_by_child_id(target_role_id),
             guest_role_fetching_repo.get(target_role_id),
         )
         .await;
@@ -107,6 +110,10 @@ pub async fn guest_to_children_account(
         .as_error();
     }
 
+    //
+    // Use the parent role to verify if the user that perform this action has
+    // permission to access the child role.
+    //
     let parent_role = match parent_role_response? {
         FetchResponseKind::NotFound(id) => {
             return use_case_err(format!(
@@ -120,6 +127,9 @@ pub async fn guest_to_children_account(
         FetchResponseKind::Found(role) => role,
     };
 
+    //
+    // The target role must be a child of the parent role.
+    //
     let target_role = match target_role_response? {
         FetchResponseKind::NotFound(id) => {
             return use_case_err(format!(
@@ -133,6 +143,45 @@ pub async fn guest_to_children_account(
         FetchResponseKind::Found(role) => role,
     };
 
+    let parent_role_id = if let Some(id) = parent_role.id {
+        id
+    } else {
+        return use_case_err(
+                "Invalid parent role. Only roles with guest to collaborate can receive guesting",
+            )
+            .with_exp_true()
+            .with_code(NativeErrorCodes::MYC00013)
+            .as_error();
+    };
+
+    //
+    // Verify if the current role has guest to collaborate to the parent role
+    //
+    if let Some(resources) = profile.licensed_resources {
+        if !resources
+            .to_licenses_vector()
+            .iter()
+            .any(|i| i.role_id == parent_role_id)
+        {
+            return use_case_err(
+                    "You are not allowed to perform this action. You must be a guest to the parent role to collaborate to the child role.",
+                )
+                .with_exp_true()
+                .with_code(NativeErrorCodes::MYC00013)
+                .as_error();
+        }
+    } else {
+        return use_case_err(
+            "You are not allowed to perform this action. You must have a guest role to collaborate to the parent role.",
+        )
+        .with_exp_true()
+        .with_code(NativeErrorCodes::MYC00013)
+        .as_error();
+    }
+
+    //
+    // Verify if the target role is a child of the parent role.
+    //
     if let Some(children) = parent_role.children {
         let target_ids = match children {
             Children::Ids(ids) => ids,

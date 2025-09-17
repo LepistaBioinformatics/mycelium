@@ -48,6 +48,12 @@ pub struct LicensedResource {
     /// managed.
     pub role: String,
 
+    /// The Guest Role ID
+    ///
+    /// This is the ID of the guest role that is own of the resource to be
+    /// managed.
+    pub role_id: Uuid,
+
     /// The guest role permissions
     ///
     /// This is the list of permissions that the guest role has.
@@ -104,9 +110,10 @@ impl ToString for LicensedResource {
             general_purpose::STANDARD.encode(self.acc_name.as_bytes());
 
         format!(
-            "tid/{tenant_id}/aid/{acc_id}?pr={role}:{perm}&sys={is_acc_std}&v={verified}&name={acc_name}",
+            "tid/{tenant_id}/aid/{acc_id}/rid/{role_id}?pr={role}:{perm}&sys={is_acc_std}&v={verified}&name={acc_name}",
             tenant_id = self.tenant_id.to_string().replace("-", ""),
             acc_id = self.acc_id.to_string().replace("-", ""),
+            role_id = self.role_id.to_string().replace("-", ""),
             role = self.role,
             perm = self.perm.to_owned().to_i32(),
             is_acc_std = self.sys_acc as i8,
@@ -132,12 +139,17 @@ impl FromStr for LicensedResource {
         let segments: Vec<_> =
             url.path_segments().ok_or("Path not found")?.collect();
 
-        if segments.len() != 4 || segments[0] != "tid" || segments[2] != "aid" {
+        if segments.len() != 6
+            || segments[0] != "tid"
+            || segments[2] != "aid"
+            || segments[4] != "rid"
+        {
             return Err("Invalid path format".to_string());
         }
 
         let tenant_id = segments[1];
         let account_id = segments[3];
+        let role_id = segments[5];
 
         if !Self::is_uuid(tenant_id) {
             return Err("Invalid tenant UUID".to_string());
@@ -145,6 +157,10 @@ impl FromStr for LicensedResource {
 
         if !Self::is_uuid(account_id) {
             return Err("Invalid account UUID".to_string());
+        }
+
+        if !Self::is_uuid(role_id) {
+            return Err("Invalid role UUID".to_string());
         }
 
         //
@@ -220,6 +236,7 @@ impl FromStr for LicensedResource {
         Ok(Self {
             tenant_id: Uuid::from_str(tenant_id).unwrap(),
             acc_id: Uuid::from_str(account_id).unwrap(),
+            role_id: Uuid::from_str(role_id).unwrap(),
             role: role_name.to_string(),
             perm: Permission::from_i32(permission_code.parse::<i32>().unwrap()),
             sys_acc: sys,

@@ -144,6 +144,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             .into_iter()
             .map(|record| LicensedResource {
                 acc_id: record.acc_id,
+                role_id: record.gr_id,
                 tenant_id: record.tenant_id.unwrap_or_else(|| {
                     Uuid::parse_str("00000000-0000-0000-0000-000000000000")
                         .unwrap()
@@ -216,6 +217,8 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
 struct LicensedResourceRow {
     #[diesel(sql_type = diesel::sql_types::Uuid)]
     acc_id: Uuid,
+    #[diesel(sql_type = diesel::sql_types::Uuid)]
+    gr_id: Uuid,
     #[diesel(sql_type = Text)]
     acc_name: String,
     #[diesel(sql_type = Nullable<diesel::sql_types::Uuid>)]

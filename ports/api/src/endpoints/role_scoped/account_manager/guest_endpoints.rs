@@ -35,15 +35,6 @@ pub fn configure(config: &mut web::ServiceConfig) {
 pub struct GuestUserToChildrenBody {
     /// The email of the guest user
     email: String,
-
-    /// The parent role id
-    ///
-    /// The parent related to the guest role to be created. Example, if the
-    /// guest role is a child of the account manager role, the parent role id
-    /// should be this role id.
-    ///
-    /// The child role id should be passed as the `role_id` path argument.
-    parent_role_id: Uuid,
 }
 
 // ? ---------------------------------------------------------------------------
@@ -127,7 +118,6 @@ pub async fn guest_to_children_account_url(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         email,
-        body.parent_role_id.to_owned(),
         role_id,
         account_id,
         life_cycle_settings.get_ref().to_owned(),

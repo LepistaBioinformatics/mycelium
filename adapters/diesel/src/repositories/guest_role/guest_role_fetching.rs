@@ -74,6 +74,52 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
         Ok(FetchResponseKind::NotFound(Some(id)))
     }
 
+    #[tracing::instrument(name = "get_parent_by_child_id", skip_all)]
+    async fn get_parent_by_child_id(
+        &self,
+        id: Uuid,
+    ) -> Result<FetchResponseKind<GuestRole, Uuid>, MappedErrors> {
+        let conn = &mut self.db_config.get_pool().get().map_err(|e| {
+            fetching_err(format!("Failed to get DB connection: {}", e))
+                .with_code(NativeErrorCodes::MYC00001)
+        })?;
+
+        let parent_role = guest_role_model::table
+            .inner_join(
+                crate::schema::guest_role_children::table
+                    .on(crate::schema::guest_role_children::parent_id
+                        .eq(guest_role_model::id)),
+            )
+            .filter(crate::schema::guest_role_children::child_role_id.eq(id))
+            .select(GuestRoleModel::as_select())
+            .first::<GuestRoleModel>(conn)
+            .optional()
+            .map_err(|e| {
+                fetching_err(format!("Failed to fetch parent role: {}", e))
+            })?;
+
+        if let Some(role) = parent_role {
+            let children = GuestRoleChildrenModel::belonging_to(&role)
+                .select(GuestRoleChildrenModel::as_select())
+                .load::<GuestRoleChildrenModel>(conn)
+                .map_err(|e| {
+                    fetching_err(format!("Failed to fetch children: {}", e))
+                })?;
+            let mut role = map_model_to_dto(role);
+            role.children = if children.is_empty() {
+                None
+            } else {
+                Some(Children::Ids(
+                    children.into_iter().map(|c| c.child_role_id).collect(),
+                ))
+            };
+
+            return Ok(FetchResponseKind::Found(role));
+        }
+
+        Ok(FetchResponseKind::NotFound(Some(id)))
+    }
+
     #[tracing::instrument(name = "list_guest_roles", skip_all)]
     async fn list(
         &self,

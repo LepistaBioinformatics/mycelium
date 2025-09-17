@@ -15,6 +15,11 @@ pub trait GuestRoleFetching: Interface + Send + Sync {
         id: Uuid,
     ) -> Result<FetchResponseKind<GuestRole, Uuid>, MappedErrors>;
 
+    async fn get_parent_by_child_id(
+        &self,
+        id: Uuid,
+    ) -> Result<FetchResponseKind<GuestRole, Uuid>, MappedErrors>;
+
     async fn list(
         &self,
         name: Option<String>,
