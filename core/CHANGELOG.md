@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.1.1-beta.7] - 2025-09-17
+
+### 🐛 Bug Fixes
+
+- Fix the direction of the parent to children role selection
+
+## [8.1.1-beta.6] - 2025-09-17
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.1.1-beta.5] - 2025-09-17
 
 ### 🚀 Features
