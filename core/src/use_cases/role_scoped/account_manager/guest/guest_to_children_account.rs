@@ -143,6 +143,9 @@ pub async fn guest_to_children_account(
         FetchResponseKind::Found(role) => role,
     };
 
+    println!("target_role: {:?}", target_role);
+    println!("parent_role: {:?}", parent_role);
+
     let parent_role_id = if let Some(id) = parent_role.id {
         id
     } else {

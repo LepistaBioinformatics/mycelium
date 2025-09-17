@@ -87,7 +87,7 @@ impl GuestRoleFetching for GuestRoleFetchingSqlDbRepository {
         let parent_role = guest_role_model::table
             .inner_join(
                 crate::schema::guest_role_children::table
-                    .on(crate::schema::guest_role_children::child_role_id
+                    .on(crate::schema::guest_role_children::parent_id
                         .eq(guest_role_model::id)),
             )
             .filter(crate::schema::guest_role_children::child_role_id.eq(id))
