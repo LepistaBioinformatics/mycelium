@@ -14,6 +14,9 @@ pub enum AccountMetaKey {
     /// The WhatsApp User
     WhatsAppUser,
 
+    /// The account locale
+    Locale,
+
     /// To specify any other meta key
     ///
     /// Specify any other meta key that is not listed here.
@@ -26,6 +29,7 @@ impl Display for AccountMetaKey {
             AccountMetaKey::PhoneNumber => write!(f, "phone_number"),
             AccountMetaKey::TelegramUser => write!(f, "telegram_user"),
             AccountMetaKey::WhatsAppUser => write!(f, "whatsapp_user"),
+            AccountMetaKey::Locale => write!(f, "locale"),
             AccountMetaKey::Custom(key) => write!(f, "custom:{}", key),
         }
     }
@@ -43,6 +47,7 @@ impl FromStr for AccountMetaKey {
             "phone_number" => Ok(AccountMetaKey::PhoneNumber),
             "telegram_user" => Ok(AccountMetaKey::TelegramUser),
             "whatsapp_user" => Ok(AccountMetaKey::WhatsAppUser),
+            "locale" => Ok(AccountMetaKey::Locale),
             _ => Err(format!("Invalid key: {}", s)),
         }
     }

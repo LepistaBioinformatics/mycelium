@@ -1,7 +1,7 @@
-{% extends "en-us/email/base.jinja" %}
+{% extends "es/email/base.jinja" %}
 
 {% block title %}
-New Connection String
+Invitación de Colaboración
 {% endblock title %}
 
 {% block head %}
@@ -9,7 +9,7 @@ New Connection String
 {% endblock head %}
 
 {% block contenttitle %}
-New Connection String
+Invitación de Colaboración
 {% endblock contenttitle %}
 
 {% block contenttable %}
@@ -17,11 +17,12 @@ New Connection String
   <tr>
     <td align="left">
       <p>
-        A new connection string was registered.
+        Ha sido invitado a colaborar con <strong>{{ account_name }}</strong>
+        como <strong>{{ role_name }}</strong>.
       </p>
 
       <p>
-        Expires in: {{ expires_in }}
+        Permisos del rol: {{ role_permissions }}
       </p>
     </td>
   </tr>

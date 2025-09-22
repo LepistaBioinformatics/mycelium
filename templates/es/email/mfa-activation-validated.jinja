@@ -1,7 +1,7 @@
-{% extends "en-us/email/base.jinja" %}
+{% extends "es/email/base.jinja" %}
 
 {% block title %}
-New Connection String
+Activación de MFA Completada
 {% endblock title %}
 
 {% block head %}
@@ -9,7 +9,7 @@ New Connection String
 {% endblock head %}
 
 {% block contenttitle %}
-New Connection String
+Activación de Autenticación Multifactor Exitosa
 {% endblock contenttitle %}
 
 {% block contenttable %}
@@ -17,11 +17,7 @@ New Connection String
   <tr>
     <td align="left">
       <p>
-        A new connection string was registered.
-      </p>
-
-      <p>
-        Expires in: {{ expires_in }}
+        Ha activado exitosamente la autenticación multifactor.
       </p>
     </td>
   </tr>

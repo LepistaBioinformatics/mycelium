@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  {% block head %}
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}{% endblock title %} - {{ domain_name }}</title>
+  {% endblock head %}
+</head>
+
+<body>
+  <div id="content">
+    {% block content %}
+    <table
+      style="max-width: 555px; width: 100%; font-family: 'Open Sans', Segoe, 'Segoe UI', 'DejaVu Sans', 'Trebuchet MS', Verdana, sans-serif; background: #fff; font-size: 13px; color: #323232;"
+      cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+
+      <tbody>
+        <tr>
+          <td>
+            <h1 style="text-align: center; font-size: 15px;">
+              <strong style="font-size: 22px;">
+                {% block contenttitle %}{% endblock contenttitle %}
+              </strong>
+            </h1>
+          </td>
+        </tr>
+      </tbody>
+
+      {% block contenttable %}{% endblock contenttable %}
+
+    </table>
+    {% endblock content %}
+  </div>
+
+  <div id="footer">
+    {% if support_email %}
+    <table
+      style="max-width: 555px; width: 100%; font-family: 'Open Sans', arial, sans-serif; font-size: 13px; color: #323232;"
+      cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+      <tbody>
+        <tr>
+          <td height="10">&nbsp;</td>
+        </tr>
+        <tr>
+          <td align="left">
+            <p>
+              Si tiene alguna pregunta, póngase en contacto con nosotros en
+              <a href="mailto:{{ support_email }}">{{ support_email }}</a>.
+            </p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if domain_url %}
+    <table
+      style="max-width: 555px; width: 100%; font-family: 'Open Sans', arial, sans-serif; font-size: 13px; color: #323232;"
+      cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+      <tbody>
+        <tr>
+          <td height="10">&nbsp;</td>
+        </tr>
+        <tr>
+          <td align="left">
+            <p>
+              También puede visitar nuestro sitio web en
+              <a href="{{ domain_url }}">{{ domain_url }}</a>.
+            </p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+</body>
+
+</html>
