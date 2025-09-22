@@ -2,11 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.1.1-beta.9] - 2025-09-22
+
+### 🚀 Features
+
+- Implements email templates to portuguese
+- Wip - include metadata to the profile
+- Implements email templates to portuguese
+- Wip - include metadata to the profile
+
 ## [8.1.1-beta.8] - 2025-09-22
 
 ### 🐛 Bug Fixes
 
 - Remove header-based filtration of roles related to the account-manager endpoints
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.1.1-beta.7] - 2025-09-17
 

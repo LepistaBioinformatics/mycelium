@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Remove header-based filtration of roles related to the account-manager endpoints
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.1.1-beta.7] - 2025-09-17
 
 ### ⚙️ Miscellaneous Tasks
