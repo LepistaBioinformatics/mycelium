@@ -218,13 +218,13 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                 // Endpoints restricted to users with the role:
                 // - AccountManager
                 //
-                .wrap_fn(|req, srv| {
-                    let req = insert_role_header(
-                        req,
-                        vec![SystemActor::AccountManager],
-                    );
-                    srv.call(req)
-                })
+                //.wrap_fn(|req, srv| {
+                //    let req = insert_role_header(
+                //        req,
+                //        vec![SystemActor::AccountManager],
+                //    );
+                //    srv.call(req)
+                //})
                 //
                 // Configure the standard role endpoints
                 //
