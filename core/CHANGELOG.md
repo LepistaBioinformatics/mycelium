@@ -2,11 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.1.1-beta.8] - 2025-09-22
+
+### 🐛 Bug Fixes
+
+- Remove header-based filtration of roles related to the account-manager endpoints
+
 ## [8.1.1-beta.7] - 2025-09-17
 
 ### 🐛 Bug Fixes
 
 - Fix the direction of the parent to children role selection
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.1.1-beta.6] - 2025-09-17
 
