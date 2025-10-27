@@ -33,10 +33,14 @@ impl SharedClientImpl {
         redis_config: RedisConfig,
     ) -> Result<Arc<Self>, MappedErrors> {
         let redis_url = format!(
-            "{}://:{}@{}",
+            "{}://:{}@{}:{}",
             redis_config.protocol.async_get_or_error().await?,
             redis_config.password.async_get_or_error().await?,
-            redis_config.hostname.async_get_or_error().await?
+            redis_config.hostname.async_get_or_error().await?,
+            match redis_config.to_owned().port {
+                Some(port) => port.async_get_or_error().await?,
+                None => 6379,
+            }
         );
 
         let client = Client::open(redis_url).map_err(|err| {

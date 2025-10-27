@@ -14,6 +14,7 @@ pub(super) struct TmpConfig {
 pub struct RedisConfig {
     pub protocol: SecretResolver<String>,
     pub hostname: SecretResolver<String>,
+    pub port: Option<SecretResolver<u16>>,
     pub password: SecretResolver<String>,
 }
 
