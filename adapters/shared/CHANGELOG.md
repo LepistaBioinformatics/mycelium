@@ -2,10 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.1.1-beta.11] - 2025-10-27
+
+### 🐛 Bug Fixes
+
+- Include port in redis connection config
+
 ## [8.1.1-beta.10] - 2025-09-22
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 
 ## [8.1.1-beta.8] - 2025-09-22
