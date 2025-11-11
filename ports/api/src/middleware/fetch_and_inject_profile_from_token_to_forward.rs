@@ -1,18 +1,18 @@
-use crate::middleware::fetch_profile_from_request_connection_string;
-
 use super::fetch_profile_from_request_token;
+use crate::middleware::fetch_profile_from_request_connection_string;
 
 use actix_web::HttpRequest;
 use awc::ClientRequest;
 use myc_core::domain::dtos::security_group::PermissionedRole;
 use myc_http_tools::{
+    functions::compress_and_encode_profile_to_base64,
     responses::GatewayError,
     settings::{DEFAULT_CONNECTION_STRING_KEY, DEFAULT_PROFILE_KEY},
 };
 use opentelemetry::{global, KeyValue};
 use reqwest::header::{HeaderName, HeaderValue};
 use std::str::FromStr;
-use tracing::{warn, Instrument};
+use tracing::Instrument;
 use uuid::Uuid;
 
 /// Fetch profile from email and inject on client request
@@ -107,17 +107,10 @@ pub async fn fetch_and_inject_profile_from_token_to_forward(
 
     forwarded_req.headers_mut().insert(
         HeaderName::from_str(DEFAULT_PROFILE_KEY).unwrap(),
-        match HeaderValue::from_str(
-            &serde_json::to_string(&profile.to_profile()).unwrap(),
-        ) {
-            Err(err) => {
-                warn!("err: {:?}", err.to_string());
-                return Err(GatewayError::InternalServerError(format!(
-                    "{err}"
-                )));
-            }
-            Ok(res) => res,
-        },
+        HeaderValue::from_str(&compress_and_encode_profile_to_base64(
+            profile.to_profile(),
+        )?)
+        .unwrap(),
     );
 
     tracing::trace!("Profile injected to forward");

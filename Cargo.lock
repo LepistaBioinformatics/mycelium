@@ -2786,6 +2786,7 @@ dependencies = [
  "uuid",
  "wildmatch",
  "zip 2.4.2",
+ "zstd",
 ]
 
 [[package]]
@@ -2876,6 +2877,7 @@ dependencies = [
  "actix-web",
  "actix-web-httpauth",
  "awc",
+ "base64 0.22.1",
  "chrono",
  "derive_more 0.99.20",
  "futures",
@@ -2894,6 +2896,7 @@ dependencies = [
  "url",
  "utoipa",
  "uuid",
+ "zstd",
 ]
 
 [[package]]

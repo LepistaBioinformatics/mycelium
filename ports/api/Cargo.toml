@@ -49,6 +49,7 @@ utoipa-redoc.workspace = true
 utoipa-swagger-ui.workspace = true
 zip.workspace = true
 wildmatch.workspace = true
+zstd.workspace = true
 
 actix-cors = { version = "0.6.2" }
 actix-rt = "2.10"

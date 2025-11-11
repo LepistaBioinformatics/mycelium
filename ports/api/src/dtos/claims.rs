@@ -39,39 +39,3 @@ pub(crate) struct GenericAccessTokenClaims {
     #[serde(flatten)]
     pub(crate) fields: HashMap<String, Value>,
 }
-
-/// Generic claims
-///
-/// This struct is used to represent the generic claims of the token. It is
-/// needed to parse tokens from multiple identity providers.
-///
-#[derive(Debug, Serialize, Deserialize)]
-pub(crate) struct GenericIDTokenClaims {
-    // ? -----------------------------------------------------------------------
-    // ? Microsoft claim fields
-    // ? -----------------------------------------------------------------------
-    /// Field `upn` is the Microsoft email address
-    #[serde(rename = "upn")]
-    pub(crate) upn: Option<String>,
-
-    /// Field `unique_name` is the Microsoft name
-    #[serde(rename = "unique_name")]
-    pub(crate) unique_name: Option<String>,
-
-    // ? -----------------------------------------------------------------------
-    // ? Google claim fields
-    // ? -----------------------------------------------------------------------
-    /// Google email address
-    #[serde(rename = "email")]
-    pub(crate) email: Option<String>,
-
-    #[serde(rename = "aud")]
-    pub(crate) audience: Audience,
-
-    // ? -----------------------------------------------------------------------
-    // ? Other providers claim fields
-    // ? -----------------------------------------------------------------------
-
-    #[serde(flatten)]
-    pub(crate) fields: HashMap<String, Value>,
-}

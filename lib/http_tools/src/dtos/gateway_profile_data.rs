@@ -1,4 +1,5 @@
 use crate::{
+    functions::decode_and_decompress_profile_from_base64,
     middleware::fetch_profile_from_token, responses::GatewayError,
     settings::DEFAULT_PROFILE_KEY, Profile,
 };
@@ -6,11 +7,11 @@ use crate::{
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
 use myc_core::domain::dtos::{
-    account::VerboseStatus,
+    account::{AccountMetaKey, VerboseStatus},
     profile::{LicensedResources, Owner, TenantsOwnership},
 };
 use serde::Deserialize;
-use std::{pin::Pin, str};
+use std::{collections::HashMap, pin::Pin, str};
 use uuid::Uuid;
 
 /// The Profile data extractor from requests
@@ -34,6 +35,7 @@ pub struct GatewayProfileData {
     pub verbose_status: Option<VerboseStatus>,
     pub licensed_resources: Option<LicensedResources>,
     pub tenants_ownership: Option<TenantsOwnership>,
+    pub meta: Option<HashMap<AccountMetaKey, String>>,
 }
 
 impl GatewayProfileData {
@@ -52,11 +54,12 @@ impl GatewayProfileData {
             verbose_status: profile.verbose_status,
             licensed_resources: profile.licensed_resources,
             tenants_ownership: profile.tenants_ownership,
+            meta: profile.meta,
         }
     }
 
     pub fn to_profile(&self) -> Profile {
-        Profile::new(
+        let mut profile = Profile::new(
             self.owners.to_owned(),
             self.acc_id,
             self.is_subscription,
@@ -70,7 +73,11 @@ impl GatewayProfileData {
             self.verbose_status.to_owned(),
             self.licensed_resources.to_owned(),
             self.tenants_ownership.to_owned(),
-        )
+        );
+
+        profile.meta = self.meta.to_owned();
+
+        profile
     }
 }
 
@@ -88,8 +95,7 @@ impl FromRequest for GatewayProfileData {
                     Ok(res) => res,
                     Err(err) => {
                         tracing::warn!(
-                            "Unable to check user identity due: {}",
-                            err
+                            "Unable to check user identity due: {err}"
                         );
 
                         return Box::pin(async move {
@@ -100,16 +106,20 @@ impl FromRequest for GatewayProfileData {
                     }
                 };
 
-                match serde_json::from_str::<Self>(unwrapped_response) {
-                    Err(error) => {
+                match decode_and_decompress_profile_from_base64(
+                    unwrapped_response.to_string(),
+                ) {
+                    Ok(profile) => GatewayProfileData::from_profile(profile),
+                    Err(e) => {
+                        tracing::warn!(
+                            "Unable to decode and decompress profile due: {e}"
+                        );
+
                         return Box::pin(async move {
-                            Err(GatewayError::Unauthorized(format!(
-                                "Unable to check user identity due: {error}",
-                            )))
-                        })
+                            Err(GatewayError::Unauthorized("Unable to check user identity. Please contact administrators".to_string()))
+                        });
                     }
-                    Ok(res) => return Box::pin(async move { Ok(res) }),
-                }
+                };
             }
             None => (),
         };

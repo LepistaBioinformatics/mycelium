@@ -16,6 +16,7 @@ readme.workspace = true
 actix-web.workspace = true
 actix-web-httpauth.workspace = true
 awc.workspace = true
+base64.workspace = true
 chrono.workspace = true
 derive_more.workspace = true
 futures.workspace = true
@@ -30,6 +31,7 @@ lazy_static.workspace = true
 url.workspace = true
 uuid.workspace = true
 tracing.workspace = true
+zstd.workspace = true
 
 # ------------------------------------------------------------------------------
 # Mycelium packages

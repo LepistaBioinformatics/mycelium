@@ -16,10 +16,10 @@ use myc_http_tools::{
         DEFAULT_CONNECTION_STRING_KEY, DEFAULT_MYCELIUM_ROLE_KEY,
         DEFAULT_TENANT_ID_KEY,
     },
-    Profile,
+    AccountMetaKey, Profile,
 };
 use serde::Deserialize;
-use std::pin::Pin;
+use std::{collections::HashMap, pin::Pin};
 use tracing::{error, trace};
 use uuid::Uuid;
 
@@ -39,6 +39,7 @@ pub(crate) struct MyceliumProfileData {
     pub verbose_status: Option<VerboseStatus>,
     pub licensed_resources: Option<LicensedResources>,
     pub tenants_ownership: Option<TenantsOwnership>,
+    pub meta: Option<HashMap<AccountMetaKey, String>>,
 }
 
 impl MyceliumProfileData {
@@ -57,11 +58,12 @@ impl MyceliumProfileData {
             verbose_status: profile.verbose_status,
             licensed_resources: profile.licensed_resources,
             tenants_ownership: profile.tenants_ownership,
+            meta: profile.meta,
         }
     }
 
     pub(crate) fn to_profile(&self) -> Profile {
-        Profile::new(
+        let mut profile = Profile::new(
             self.owners.to_owned(),
             self.acc_id,
             self.is_subscription,
@@ -75,7 +77,11 @@ impl MyceliumProfileData {
             self.verbose_status.to_owned(),
             self.licensed_resources.to_owned(),
             self.tenants_ownership.to_owned(),
-        )
+        );
+
+        profile.meta = self.meta.to_owned();
+
+        profile
     }
 }
 
