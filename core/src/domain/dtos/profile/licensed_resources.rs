@@ -110,7 +110,7 @@ impl ToString for LicensedResource {
             general_purpose::STANDARD.encode(self.acc_name.as_bytes());
 
         format!(
-            "tid/{tenant_id}/aid/{acc_id}/rid/{role_id}?pr={role}:{perm}&sys={is_acc_std}&v={verified}&name={acc_name}",
+            "t/{tenant_id}/a/{acc_id}/r/{role_id}?p={role}:{perm}&s={is_acc_std}&v={verified}&n={acc_name}",
             tenant_id = self.tenant_id.to_string().replace("-", ""),
             acc_id = self.acc_id.to_string().replace("-", ""),
             role_id = self.role_id.to_string().replace("-", ""),
@@ -140,9 +140,9 @@ impl FromStr for LicensedResource {
             url.path_segments().ok_or("Path not found")?.collect();
 
         if segments.len() != 6
-            || segments[0] != "tid"
-            || segments[2] != "aid"
-            || segments[4] != "rid"
+            || segments[0] != "t"
+            || segments[2] != "a"
+            || segments[4] != "r"
         {
             return Err("Invalid path format".to_string());
         }
@@ -168,9 +168,9 @@ impl FromStr for LicensedResource {
         //
         let permissioned_role = url
             .query_pairs()
-            .find(|(key, _)| key == "pr")
+            .find(|(key, _)| key == "p")
             .map(|(_, value)| value)
-            .ok_or("Parameter pr not found")?;
+            .ok_or("Parameter permissions not found")?;
 
         let permissioned_role: Vec<_> = permissioned_role.split(':').collect();
 
@@ -183,7 +183,7 @@ impl FromStr for LicensedResource {
 
         let sys = match url
             .query_pairs()
-            .find(|(key, _)| key == "sys")
+            .find(|(key, _)| key == "s")
             .map(|(_, value)| value)
             .ok_or("Parameter sys not found")?
             .parse::<i8>()
@@ -221,7 +221,7 @@ impl FromStr for LicensedResource {
 
         let name_encoded = url
             .query_pairs()
-            .find(|(key, _)| key == "name")
+            .find(|(key, _)| key == "n")
             .map(|(_, value)| value)
             .ok_or("Parameter name not found")?;
 

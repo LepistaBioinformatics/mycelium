@@ -1,0 +1,1345 @@
+{
+    "owners": [
+        {
+            "id": "f8676832-b9bb-4ba7-b155-4e3006172cae",
+            "email": "user@biotrop.com.br",
+            "firstName": "User",
+            "lastName": "Family Name",
+            "username": "user",
+            "isPrincipal": true
+        }
+    ],
+    "accId": "5490dc55-60a2-4049-bfa3-8bedd21fd68a",
+    "isSubscription": false,
+    "isManager": true,
+    "isStaff": false,
+    "ownerIsActive": true,
+    "accountIsActive": true,
+    "accountWasApproved": false,
+    "accountWasArchived": false,
+    "accountWasDeleted": false,
+    "verboseStatus": "unverified",
+    "licensedResources": {
+        "records": [
+            {
+                "accId": "14f0fa09-24bb-4c0e-990e-4ece32a97131",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_001",
+                "role": "customer",
+                "roleId": "f89c7b1c-1558-4e3a-b9ac-c1374f4b412f",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "501ff827-6375-4852-bb02-417baa687891",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_002",
+                "role": "customer",
+                "roleId": "56241777-ed68-4bd0-be03-5435d15f696a",
+                "perm": "read",
+                "verified": false
+            },
+            {
+                "accId": "bd11ecea-da75-4f74-bc7c-f4e71563fdfa",
+                "sysAcc": true,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_003",
+                "role": "customer",
+                "roleId": "56241777-ed68-4bd0-be03-5435d15f696a",
+                "perm": "read",
+                "verified": false
+            },
+            {
+                "accId": "435ca3a8-fe76-4c36-91ec-af86e1dc9efb",
+                "sysAcc": true,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_004",
+                "role": "default-role",
+                "roleId": "490202ef-c265-4d64-86a4-a580500af41a",
+                "perm": "read",
+                "verified": false
+            },
+            {
+                "accId": "01efe6ea-3ded-4822-a4a6-f3204ad231d8",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_005",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "020f0b5c-646f-430b-8a0d-f49863754fbe",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_006",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "055ff1a1-ce69-437c-930b-6dd27218521c",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_007",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "0a59fba6-04cf-4571-a0e8-959ff14ef785",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_008",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "0cd74fb4-3499-4a3f-9915-118649b46f5c",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_009",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "0ec3cf85-81e3-4802-a7a7-715d41fc1650",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_010",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "100d805b-42bb-47a7-b82e-074c9cbb4eef",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_011",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "10252789-f5e2-46ee-940b-2e7942f2bbe7",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_012",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "1122e86e-7871-44da-863e-89749124c2fd",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_013",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "13a3c3cc-bc54-4077-bd0b-54d47ec9179e",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_014",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "19b02e7f-d307-4429-b5b1-4d342d1ae8ab",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_015",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "1c63545c-e623-4fee-a62c-6ad7c13e8e72",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_016",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "1da86eb5-4566-455f-8b3d-d8f9ab56bfb3",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_017",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "21f8965e-d974-4bb5-9a4f-b2f31ff9de61",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_018",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "223d6080-650d-4528-900b-5547d04f4255",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_019",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "23871318-7025-44f5-862c-47900b5ebd42",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_020",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "254d0076-ebe7-4a62-91ac-d373e00ac54a",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_021",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "2803f1c5-dad4-45d5-a33e-694e2028d6e3",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_022",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "283facda-933a-406d-96b9-44cab6947c71",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_023",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "2bb8c0b6-acaa-4559-a792-dded66ea4496",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_024",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "2cc00a5a-65ea-4d26-8d5a-13b12b45fb5e",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_025",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "2df85745-4121-4553-95de-168af8dbdfaf",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_026",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "3020b94a-5279-4c13-81e3-7a667bf580f8",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_027",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "30519cdc-d4c4-40c2-beb3-1737e33bdac6",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_028",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "323ee3d3-9ca6-4127-b55f-b50cee1cee19",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_029",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "34aa39b5-6a4e-4b5e-b4ac-c9348983769c",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_030",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "364d444b-b315-4ae3-b057-fc7dc2ad96ce",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_031",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "37107ccd-b3f3-4746-b5f6-7582482c2ac7",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_032",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "37b4b0aa-81bc-403c-9a1b-6f018168a6fd",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_033",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "37e5e9c2-e7e2-4b3a-82e2-9ce48f12268f",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_034",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "38ae6842-df70-405c-831c-174bdf1b6f55",
+                "sysAcc": false,
+                "tenantId": "5031185f-ea2f-46a3-be04-a0e50aad4256",
+                "accName": "FAKE_ACCOUNT_035",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "3b3f290a-69e1-4260-8b88-aa54630002ad",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_036",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "3c8bd7eb-dcf4-45ae-81d3-e4e36192dbc4",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_037",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "3e6d2b9c-4f2c-4afb-80b7-cc669bcd3614",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_038",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "40a82cd7-af57-495c-a140-5721cfcdad1d",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_039",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "40c74c51-5064-4343-87c1-18594862dc06",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_040",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "423c3f45-24dd-4e30-9e6d-c6965efc4645",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_041",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "42f1c78d-c4d5-429c-bcee-61b0576ea5e4",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_042",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "4e1b4235-b8a8-4f72-a29b-52346d830f21",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_043",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "4fb9ddc6-7c7e-465c-9901-885cdd11c899",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_044",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "501ff827-6375-4852-bb02-417baa687891",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_045",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "53746b03-428e-45a8-9e06-d5ae11d35d26",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_046",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "54ffbd64-2374-4412-97a2-b3dda93249ea",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_047",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "594cac9a-1344-47b1-9e42-5462fd6c4b7e",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_048",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "5b31b260-63b4-4879-a1ef-d466823caf1f",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_049",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "5ef95be2-534f-45e1-b56d-457104549ea3",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_050",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "609ce318-ad3f-4b1f-97f7-476f3b9e9b59",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_051",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "6103917e-c526-4d94-b9f4-c88d401788b8",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_052",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "62046295-7f0f-48a7-86c0-7df5c9887937",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_053",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "62cb47d2-30e1-4304-b7d5-8601f23e67fa",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_054",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "6300516f-4588-4251-86c5-64698fb36e07",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_055",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "655d1b32-b63c-4933-a939-e4464524e474",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_056",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "65e542fb-b72c-4ecc-b432-93cc0e30e4ce",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_057",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "667a841e-ed4d-4d5c-a89a-f668fd2df64d",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_058",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "675d8dc1-1d80-41b1-8e53-f570dc65a2de",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_059",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "67dd77f5-43ac-455a-9803-12306373815d",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_060",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "6b80fc3c-cca3-40c2-8d04-33dfff3f6edb",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_061",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "6cf170d4-992c-4727-8b94-11a953b6c54a",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_062",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "71e3b7d6-07cf-40cd-964f-8498a0eedbdd",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_063",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "781901af-02d9-498d-ac11-5d59a66ac42a",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_064",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "78255f72-ca51-4d3e-8e63-93faf36aed3b",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_065",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "7ee24f09-bc3f-4d0f-8609-18710952a66e",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_066",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "7f9088da-c4ad-47fd-96fe-dbc75c231177",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_067",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "7fb52ff9-cb26-43a5-a8f1-f4c423959577",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_068",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "80cd01c2-90b1-4876-825b-11924a91ed96",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_069",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "853e68dd-b897-404d-9220-9072eaeca39a",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_070",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "8698a406-4663-4d94-ad67-82a5f5fd1412",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_071",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "86e0b483-7058-4583-8ef1-c986704db5d9",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_072",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "8a68697d-39a0-432e-8f61-56471733cbb2",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_073",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "8b59d7d9-db39-4dad-b85d-cecbc26fcabc",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_074",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "983d3cbe-7826-4b3a-86c4-11e826dd5bb4",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_075",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "9c915078-69cb-4d71-ba7a-45b22fafb95f",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_076",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "a2fdd57e-6ffa-4f4a-8cb1-280281af1427",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_077",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "a3c59c5e-b18a-4340-aa93-1b9d309963d5",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_078",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "a4a2fb33-767c-46f4-8ebc-c36c2b72574a",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_079",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "a7096a8c-5ff9-4928-afa5-ef104f90c1e4",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_080",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "a71997e6-588e-43b4-b411-8d7c1c194169",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_081",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "aa96778a-7857-40fb-80d4-7c173766f7e4",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_082",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "ab144813-6b83-4d39-a0c1-7693f31015a3",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_083",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "afa346dd-299a-4698-b146-18e19ea06f0a",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_084",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "b2e38f53-40b4-4ddd-b2b8-b3f686b84ccf",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_085",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "b2f3a555-5671-4452-80d3-fcc0d99ed8f9",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_086",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "b4dbd349-e1be-4f9c-8164-ec45b2d82998",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_087",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "b91fedf5-1018-48a9-ad87-d3b60ea1af24",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_088",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "ba27ca8a-40d5-45f0-8568-8b07002fca95",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_089",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "bcf8ed15-1a16-4cf1-bc5a-6d2f8d6cf417",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_090",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "bf7ca327-475b-4780-80c6-460a675e3f1d",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_091",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "c146fc2d-a688-4d22-9749-fcb50cc13241",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_092",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "c1796eea-b5dc-4ef0-9775-2696e6c35e6a",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_093",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "c18835df-76ef-4282-bfbf-2f482dc0cce0",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_094",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "c2e99621-ea58-4c9d-ad89-ca910d1067ea",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_095",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "c848b361-4d09-4413-92f7-155c7553ca00",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_096",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "c9962f06-de7f-459a-8800-1f99ec1434a8",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_097",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "cb87f204-cdbe-4c1e-8996-9292e4d8b504",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_098",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "d1d24a9d-b0a4-42ee-96d9-603c256dd650",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_099",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "d2fa23c9-1ff1-47b5-9205-b54c7617bce4",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_100",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "d445d72f-6038-4d6d-a6e0-90b79abf604f",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_101",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "d4b9c725-e80f-4bc0-bb27-0557bef1e885",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_102",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "d6f75730-add7-4f6e-afce-f7fa932ff0aa",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_103",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "d7d5793d-4c5d-44d2-b0b1-38bd1e3a9c28",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_104",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "d8370051-9160-447c-b874-1a695d84d18c",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_105",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "d92e458d-912b-45eb-893b-e424b6e8a2c4",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_106",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "da4410c8-e05e-4e4a-80aa-fe4b073c4ba4",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_107",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "da9d3109-d633-4b64-a5be-5c876c4f8996",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_108",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "dbf51a0e-5b8c-41e8-9a63-536c6cf0bc8f",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_109",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "ddc9d38b-fe85-4a98-a144-95fcb566045a",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_110",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "df6260b0-b46c-467f-9ae6-e2667093e262",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_111",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "e38abad8-4c48-4703-b144-2a0bea7a078c",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_112",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "e8979edd-afd3-4437-9771-fdea260c7e57",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_113",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "ea0218c8-f398-45fe-8708-700d90feaddb",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_114",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "ea5ff548-e293-486f-831b-24dbf9febd4c",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_115",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "ea90e39e-8b4d-413f-81cb-96fce74ebf9b",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_116",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "eb7cc3d4-196f-4554-9b56-fc8001a320d4",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_117",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "ee260341-4fa6-4592-8154-7b235a63aa85",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_118",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "ef155833-4a6e-4992-88c4-b4a4b5e03d04",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_119",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "f269466a-1cde-401a-a015-848b2e28a449",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_120",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "f8ede200-d270-469e-945a-bb16cca02bc2",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_121",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "fa04c19d-3148-4ca1-b4a8-0d5607dd9b39",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_122",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "fbd0c515-9a80-4882-949e-5de1dcaa0bdf",
+                "sysAcc": false,
+                "tenantId": "5031185f-ea2f-46a3-be04-a0e50aad4256",
+                "accName": "FAKE_ACCOUNT_123",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "fc7dc64a-28f8-41e4-bc54-25141f76bf83",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_124",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "fd5d3783-a71d-4409-95ea-0f40e734e948",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_125",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "fdd4f658-a2bf-4c33-9a24-c6df27d19a3a",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_126",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "ffb7241e-acd6-43c6-816e-e6cab7174242",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_127",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "ffc5d1a4-c011-410a-827a-1c04047dc914",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_128",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "ffdc8e04-93ab-4850-a5b1-f8df23e01273",
+                "sysAcc": false,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_129",
+                "role": "results-expert",
+                "roleId": "2d395eb4-5d3f-4847-8ce8-48641ce58355",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "c0c91aa3-f028-479c-9911-1503904371c1",
+                "sysAcc": true,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_130",
+                "role": "subscriptions-manager",
+                "roleId": "51704dc5-1925-453d-b19b-5e3d729e73c6",
+                "perm": "write",
+                "verified": false
+            },
+            {
+                "accId": "8e7bdc61-599c-4a52-a0d8-aa17845694c4",
+                "sysAcc": true,
+                "tenantId": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "accName": "FAKE_ACCOUNT_131",
+                "role": "tenant-manager",
+                "roleId": "c968b6ec-f237-46ce-bd7b-e7f903071b6d",
+                "perm": "read",
+                "verified": false
+            }
+        ]
+    },
+    "tenantsOwnership": {
+        "records": [
+            {
+                "id": "17fe5508-462f-45f9-bcf0-8ddd80547833",
+                "name": "Tenant Name",
+                "since": "2025-08-15T17:19:23.200327Z"
+            }
+        ]
+    }
+}

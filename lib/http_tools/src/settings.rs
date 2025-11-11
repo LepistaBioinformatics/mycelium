@@ -1,5 +1,6 @@
 use lazy_static::lazy_static;
 use std::env::var_os;
+use zstd::DEFAULT_COMPRESSION_LEVEL as ZSTD_DEFAULT_COMPRESSION_LEVEL;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure default system constants
@@ -103,6 +104,13 @@ pub const MYCELIUM_PROVIDER_KEY: &str = "mycelium";
 
 /// The scope used to indicate MCP routes
 pub const MYCELIUM_AI_AWARE: &str = "mycelium-ai-aware";
+
+/// Default compression level
+///
+/// This is the default compression level used to compress the profile before
+/// encoding to Base64.
+///
+pub const DEFAULT_COMPRESSION_LEVEL: i32 = ZSTD_DEFAULT_COMPRESSION_LEVEL;
 
 // ? ---------------------------------------------------------------------------
 // ? Authentication and authorization
