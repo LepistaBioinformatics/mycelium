@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.1.1-rc.1] - 2025-11-11
+
+### 🚀 Features
+
+- Create a proof test to check the compression rate
+
+## [8.1.1-beta.11] - 2025-10-27
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.1.1-beta.10] - 2025-09-22
 
 ### 🚀 Features
