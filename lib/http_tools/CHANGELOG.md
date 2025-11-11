@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 - Implements the profile compression on send if by http header
 - Create a proof test to check the compression rate
 
+### 💼 Other
+
+- Upgrade changelogs to mirror the beta.11 version
+
 ## [8.1.1-beta.11] - 2025-10-27
 
 ### ⚙️ Miscellaneous Tasks
