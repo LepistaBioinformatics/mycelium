@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file.
 
 - Upgrade changelogs to mirror the beta.11 version
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.1.1-beta.11] - 2025-10-27
 
 ### ⚙️ Miscellaneous Tasks
