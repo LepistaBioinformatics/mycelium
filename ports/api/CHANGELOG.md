@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [8.1.1-rc.1] - 2025-11-11
+## [8.1.1-rc.2] - 2025-11-12
 
 ### 🚀 Features
 
@@ -11,9 +11,11 @@ All notable changes to this project will be documented in this file.
 ### 💼 Other
 
 - Upgrade changelogs to mirror the beta.11 version
+- Remove rust-mcp-sdk from the project
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 - Release
 - Release

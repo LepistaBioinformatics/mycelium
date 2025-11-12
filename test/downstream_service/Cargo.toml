@@ -17,7 +17,7 @@ readme.workspace = true
 
 [dependencies]
 anyhow = "1.0"
-mycelium-http-tools = { version = "8.1.1-rc.1", path = "../../lib/http_tools" }
+mycelium-http-tools = { version = "8.1.1-rc.2", path = "../../lib/http_tools" }
 
 actix-web.workspace = true
 serde.workspace = true

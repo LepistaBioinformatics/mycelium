@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - Release
 - Release
 - Release
+- Release
 
 ## [8.1.1-beta.11] - 2025-10-27
 
