@@ -82,7 +82,7 @@ rmcp = { version = "0.6", features = [
 #rmcp-actix-web = { version = "0.2.8", default-features = false, features = [
 #    "transport-streamable-http-server",
 #] }
-rust-mcp-sdk = "0.5.0"
+#rust-mcp-sdk = "0.5.0"
 tonic = { version = "0", features = ["tls", "tls-roots"] }
 tracing-appender = "0.2"
 tracing-opentelemetry = "0.30"
