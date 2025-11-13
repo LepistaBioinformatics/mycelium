@@ -8,8 +8,7 @@ use base64::{engine::general_purpose, Engine};
 use diesel::prelude::*;
 use myc_core::domain::{
     dtos::{
-        message::{Message, MessageSendingEvent},
-        native_error_codes::NativeErrorCodes,
+        message::MessageSendingEvent, native_error_codes::NativeErrorCodes,
     },
     entities::LocalMessageWrite,
 };
@@ -17,17 +16,9 @@ use mycelium_base::{
     entities::CreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
 };
-use serde::{Deserialize, Serialize};
 use shaku::Component;
 use std::sync::Arc;
 use uuid::Uuid;
-
-#[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub(crate) struct QueueMessage {
-    pub(crate) message: Message,
-    pub(crate) correspondence_key: Uuid,
-}
 
 #[derive(Component)]
 #[shaku(interface = LocalMessageWrite)]
