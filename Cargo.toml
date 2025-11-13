@@ -4,20 +4,9 @@
 
 [workspace]
 
-members = [
-    "core",
-    "lib/*",
-    "ports/*",
-    "adapters/*",
-    "test/downstream_service",
-]
+members = ["core", "lib/*", "ports/*", "adapters/*", "test/downstream_service"]
 
-default-members = [
-    "core",
-    "lib/*",
-    "ports/*",
-    "adapters/*",
-]
+default-members = ["core", "lib/*", "ports/*", "adapters/*"]
 
 exclude = ["test/downstream_service"]
 
