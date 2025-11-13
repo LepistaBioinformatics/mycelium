@@ -1,6 +1,6 @@
 services:
   - name: service-01
-    host: myc-test-service-devcontainer:8083
+    host: localhost:8083
     protocol: http
     discoverable: false
     healthCheckPath: /health

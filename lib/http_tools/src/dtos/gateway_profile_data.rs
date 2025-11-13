@@ -106,10 +106,12 @@ impl FromRequest for GatewayProfileData {
                     }
                 };
 
-                match decode_and_decompress_profile_from_base64(
+                return match decode_and_decompress_profile_from_base64(
                     unwrapped_response.to_string(),
                 ) {
-                    Ok(profile) => GatewayProfileData::from_profile(profile),
+                    Ok(profile) => Box::pin(async move {
+                        Ok(GatewayProfileData::from_profile(profile))
+                    }),
                     Err(e) => {
                         tracing::warn!(
                             "Unable to decode and decompress profile due: {e}"
