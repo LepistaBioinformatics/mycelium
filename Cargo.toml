@@ -54,6 +54,10 @@ openssl = ">=0.10.70"
 #
 ring = ">=0.17.12"
 #
+# - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/13
+#
+slab = "=0.4.11"
+#
 # - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/7
 #
 zip = "=2.4.2"
