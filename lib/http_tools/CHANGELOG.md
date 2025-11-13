@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.1.1-rc.3] - 2025-11-13
+
+### 🐛 Bug Fixes
+
+- Return the profile on fetch profile in gateway
+
+### 🧪 Testing
+
+- Implements the test for the profile decompression process
+
 ## [8.1.1-rc.2] - 2025-11-12
 
 ### 🚀 Features
@@ -15,6 +25,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 
 ## [8.1.1-beta.11] - 2025-10-27

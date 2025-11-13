@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.1.1-rc.3] - 2025-11-13
+
+### 🚜 Refactor
+
+- Remove unused queue structs
+
 ## [8.1.1-rc.2] - 2025-11-12
 
 ### 💼 Other
@@ -10,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 
 ## [8.1.1-beta.11] - 2025-10-27
