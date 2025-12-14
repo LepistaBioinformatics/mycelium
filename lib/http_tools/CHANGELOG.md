@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.1.1-rc.5] - 2025-12-14
+
+### 🚀 Features
+
+- Replace the deprecated serde_yaml package by toml
+
+### 🧪 Testing
+
+- Translate settings example to toml
+
 ## [8.1.1-rc.4] - 2025-11-13
 
 ### 🐛 Bug Fixes
@@ -14,6 +24,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 
 ## [8.1.1-rc.2] - 2025-11-12
