@@ -1,0 +1,258 @@
+# ------------------------------------------------------------------------------
+# VAULT CONFIGURATIONS
+# 
+# Example vault configuration:
+#
+# ```toml
+# [vault.enabled]
+# url = "http://myc-vault-devcontainer:8200"
+# versionWithNamespace = "v1/kv"
+# token = { env = "MYC_VAULT_TOKEN" }
+# ```
+#
+# ------------------------------------------------------------------------------
+[vault.enabled]
+url = "http://myc-vault-devcontainer:8200"
+versionWithNamespace = "v1/kv"
+token = { env = "MYC_VAULT_TOKEN" }
+
+# ------------------------------------------------------------------------------
+# CORE CONFIGURATIONS
+# 
+# Example vault configuration for accountLifeCycle:
+# vault = { path = "myc/core/accountLifeCycle", key = "tokenSecret" }
+# ------------------------------------------------------------------------------
+
+[core.accountLifeCycle]
+domainName = "Mycelium"
+domainUrl = "http://localhost.com"
+tokenExpiration = 3600                                                                # 1 hour
+noreplyName = "Samuel Galvão Elias"
+noreplyEmail = "elias.samuel.galvao@gmail.com"
+supportName = "Samuel Galvão Elias"
+supportEmail = "elias.samuel.galvao@gmail.com"
+locale = "en-us"
+tokenSecret = { vault = { path = "myc/core/accountLifeCycle", key = "tokenSecret" } }
+
+[core.webhook]
+acceptInvalidCertificates = true
+consumeIntervalInSecs = 30
+consumeBatchSize = 25
+maxAttempts = 5
+
+# ------------------------------------------------------------------------------
+# SQL DATABASE ADAPTER SETTINGS
+# 
+# Example vault configuration:
+# vault = { path = "myc/prisma", key = "databaseUrlDevContainer" }
+# ------------------------------------------------------------------------------
+
+[diesel]
+# ! Should be collected from vault or environment variable in production
+databaseUrl = { vault = { path = "myc/prisma", key = "databaseUrlDevContainer" } }
+
+# ------------------------------------------------------------------------------
+# NOTIFIER ADAPTER SETTINGS SETTINGS
+#
+# SMTP and QUEUE value should be set disabled or configured with the smtp host,
+# username, and password. Case the smtp is disabled, the email notification will
+# not be sent.
+#
+# Example vault configurations:
+# vault = { path = "myc/smtp", key = "username" }
+# vault = { path = "myc/smtp", key = "password" }
+# vault = { path = "myc/queue", key = "password" }
+#
+# ------------------------------------------------------------------------------
+
+[smtp]
+host = "smtp.gmail.com"
+# ! Should be collected from vault or environment variable in production
+username = { vault = { path = "myc/smtp", key = "username" } }
+# ! Should be collected from vault or environment variable in production
+password = { vault = { path = "myc/smtp", key = "password" } }
+
+[queue]
+emailQueueName = "emails"
+consumeIntervalInSecs = 15
+
+[redis]
+protocol = "redis"                                              # should be rediss for secure connection
+hostname = "myc-redis-devcontainer"
+password = { vault = { path = "myc/queue", key = "password" } }
+
+# ------------------------------------------------------------------------------
+# AUTHENTICATION SETTINGS
+#
+# Authentication settings are used to configure the authentication methods.
+# Default method is internal. It uses the database adapter plus the redis to
+# flow along the users life cycle. Case the internal flow is enabled, user
+# should configure the redis adapters using the adapters yaml file.
+#
+# It is possible to use third party authentication methods like google and azure
+# oauth providers.
+#
+# Internal authentication:
+# Internal authentication is the default authentication method. It uses the
+# database adapter plus the redis to flow along the users life cycle.
+# Example internal authentication configuration:
+# jwtExpiresIn = 43200  # 12 hours
+# tmpExpiresIn = 300  # 5 minutes
+# jwtSecret = { vault = { path = "myc/auth/internal", key = "jwtSecret" } }
+#
+# External authentication providers:
+# external = "disabled"  # Use this to disable external auth
+#
+# ------------------------------------------------------------------------------
+
+[auth]
+internal = "enabled"
+jwtExpiresIn = 43200                                                      # 12 hours
+tmpExpiresIn = 300                                                        # 5 minutes
+jwtSecret = { vault = { path = "myc/auth/internal", key = "jwtSecret" } }
+
+[[auth.external.define]]
+# Google
+issuer = "https://accounts.google.com"
+jwksUri = "https://www.googleapis.com/oauth2/v3/certs"
+userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo"
+audience = "account-name.apps.googleusercontent.com"
+
+# Microsoft 1.0
+[[auth.external.define]]
+issuer = "https://sts.windows.net/{tenantId}/"
+jwksUri = "https://login.microsoftonline.com/{tenantId}/discovery/keys"
+userInfoUrl = "https://graph.microsoft.com/oidc/userinfo"
+#
+# Audience values for Microsoft Graph:
+# - Use 00000002-0000-0000-c000-000000000000 for Azure Active Directory
+#   Graph
+# - Use 00000003-0000-0000-c000-000000000000 for Microsoft Graph
+#
+audience = "00000003-0000-0000-c000-000000000000"
+
+# Microsoft 2.0
+#[[auth.external.define]]
+#issuer = "https://login.microsoftonline.com/{tenantId}/v2.0"
+#jwksUri = "https://login.microsoftonline.com/{tenantId}/discovery/v2.0/keys"
+#userInfoUrl = "https://graph.microsoft.com/oidc/userinfo"
+#audience = "00000003-0000-0000-c000-000000000000"
+
+# Auth0
+[[auth.external.define]]
+issuer = "https://{app-name}.auth0.com/"
+jwksUri = "https://{app-name}.auth0.com/.well-known/jwks.json"
+userInfoUrl = "https://{app-name}.auth0.com/userinfo"
+#
+# Audience values for Auth0 of the Auth0 Application ID
+#
+audience = "https://{app-name}.auth0.com/api/v2/"
+
+# Google third party authentication. It uses the google oauth2 to authenticate
+# the user. It requires a valid client id and secret.
+google = "disabled"
+
+# Azure third party authentication. It uses the azure oauth2 to authenticate
+# the user. It does not require a valid client id and secret. Working only
+# with the azure active directory.
+azure = "disabled"
+
+# ------------------------------------------------------------------------------
+# API PORT SETTINGS SETTINGS
+# ------------------------------------------------------------------------------
+
+[api]
+# Service settings
+serviceIp = "0.0.0.0"
+servicePort = 8080
+serviceWorkers = 1
+
+# Timeout settings
+gatewayTimeout = 60
+
+# Health check settings
+healthCheckInterval = 120
+maxRetryCount = 3
+
+# Cache settings
+[api.cache]
+jwksTtl = 3600   # 1 hour
+emailTtl = 120   # 2 minutes
+profileTtl = 120 # 2 minutes
+
+# Allowed origins
+allowedOrigins = [
+    "http://localhost:8080",
+    "https://localhost:8080",
+    "http://localhost:3000",
+    "http://localhost:3000/",
+    "http://localhost:5173",
+]
+
+# ------------------------------------------------------------------------------
+# LOGGING SETTINGS
+#
+# Level: Possible values: trace, debug, info, warn, error or specific level for
+# each module.
+#
+# Format: Possible values: jsonl, ansi
+#
+# Target: Specify the log target. Possible values: stdout, file, or jaeger
+# Example with file target:
+# target = { file = { path = "logs/api.log" } }
+#
+# Example with jaeger target:
+# target = { collector = { name = "mycelium-api", host = "myc-otel-collector-devcontainer", protocol = "grpc", port = 4317 } }
+# Hostname of the otel collector
+# Allowed values:
+# - http
+# - https
+# - grpc
+# Use (for default ports for each protocol):
+#
+# Example with stdout target:
+# target = "stdout"
+#
+# ------------------------------------------------------------------------------
+[api.logging]
+level = "mycelium_base=trace,myc_api=trace,myc_diesel=trace,myc_config=trace,myc_core=trace,myc_http_tools=trace,actix_web=trace,myc_notifier=trace,myc_kv=trace,myc_adapters_shared_lib=trace"
+format = "ansi"
+target = "stdout"
+
+# ------------------------------------------------------------------------------
+# API GATEWAY TLS SETTINGS
+#
+# TLS settings are used to configure the api gateway tls. It is possible to
+# configure the tls using the tls_cert_path and tls_key_path. Case the tls
+# cert path and tls key path are not configured, the api gateway will not be
+# able to connect to secure forwarding routes.
+#
+# Example vault configuration:
+# [api.tls.enabled]
+# tlsCert = { vault = { path = "myc/api/tls", key = "tlsCert" } }
+# tlsKey = { vault = { path = "myc/api/tls", key = "tlsKey" } }
+#
+# ------------------------------------------------------------------------------
+tls = "disabled"
+#  tlsCert = { vault = { path = "myc/api/tls", key = "tlsCert" } }
+#  tlsKey = { vault = { path = "myc/api/tls", key = "tlsKey" } }
+
+# ------------------------------------------------------------------------------
+# API GATEWAY ROUTE CONFIGURATION
+#
+# Routes file should be used to configure the api gateway routes. Routes file
+# should contains the following structure:
+#
+# [api.services]
+# [[service-name]]
+# host = "example.com"
+# protocol = "https"
+# healthCheckPath = "/health"
+#
+# [[service-name.path]]
+# group = "public"
+# path = "/api"
+# methods = ["GET"]
+#
+# ------------------------------------------------------------------------------
+routes = []

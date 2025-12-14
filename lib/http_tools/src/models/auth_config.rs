@@ -11,7 +11,9 @@ use std::path::PathBuf;
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AuthConfig {
+    #[serde(default)]
     pub internal: OptionalConfig<InternalOauthConfig>,
+    #[serde(default)]
     pub external: OptionalConfig<Vec<ExternalProviderConfig>>,
 }
 
