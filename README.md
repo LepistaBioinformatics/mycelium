@@ -4,40 +4,97 @@
   alt="Mycelium Logo"
   src="docs/assets/logo-large.svg"
   width="200"
-  style="margin: 20px; background-color: #e2e8f0; border-radius: 10px; padding: 10px;"
+  style="margin: 20px; background-color: transparent; border-radius: 10px; padding: 10px; align-items: center; display: block; margin-left: auto; margin-right: auto;"
 />
 
-Welcome to **Mycelium API Gateway**, it is a modern, open-source platform for
-secure, flexible, and scalable API management. Designed with a multi-tenant
-architecture and a strong focus on security, Mycelium is ideal for organizations
-that need to manage multiple APIs and users in a structured and controlled way.
-With support for federated authentication, YAML-based RBAC, and integrations
-with tools like HashiCorp Vault, Redis, and Postgres, the gateway simplifies the
-orchestration of downstream APIs with both safety and efficiency. Its
-declarative and intuitive configuration makes it developer-friendly and easy to
-adopt by DevOps teams.
+Mycelium is an **open and free API Gateway**, designed to operate in
+modern, multi-tenant, and API-oriented environments. The project prioritizes
+architectural clarity, security, and extensibility, maintaining an explicit
+separation between technical concerns and organizational aspects of the project.
 
-## [📃 Visit the oficial documentation](https://lepistabioinformatics.github.io/mycelium-docs/)
+This repository documents the fundamentals of Mycelium, with special focus on its
+**authorization model**, which combines declarative controls at the gateway with
+contextual decisions close to the resource.
 
-## Key features include
+---
 
-* **AI-aware API Gateway**: Automatically discovers downstream services and
-  understands their capabilities to route requests accordingly.
-* **Authentication & Authorization**: Supports multiple identity providers,
-  detailed RBAC via YAML, and built-in two-factor authentication (2FA) with
-  TOTP.
-* **Multi-Tenant Architecture**: Create and manage tenants, invite users, and
-  assign roles for collaborative environments.
-* **Secure Secrets Management**: Integrates with Vault, supports environment
-  variables, and injects secrets dynamically into downstream APIs.
-* **API Routing & Webhooks**: Smart routing configuration and secure webhooks
-  with token-based authentication.
-* **YAML-Driven Configuration**: All gateway settings are managed through simple
-  and readable YAML files.
-* **Security-First Design**: Handles token management, passes security
-  credentials downstream automatically, and adheres to enterprise security best
-  practices.
+## Overview
 
-With a growing community and a modular, scalable design, Mycelium is the ideal
-choice for developers and teams looking for a powerful, extensible solution for
-modern API management.
+Mycelium acts as the entry layer for downstream services, being responsible for
+authentication, identity normalization, routing, and security policy
+enforcement. The gateway does not impose business logic, but provides
+**authorization primitives** that allow each service to evaluate permissions in
+an explicit, secure, and contextual manner.
+
+The project is maintained as open source software, with its continuity based on
+governance, community collaboration, and ecosystem funding and acceleration
+initiatives — aspects that are **independent of internal technical decisions**.
+
+---
+
+## Key Features
+
+* Modern and extensible API Gateway
+* Native support for multi-tenant environments
+* Authorization at multiple layers (gateway and downstream)
+* Identity context injection via Profile
+* Composable authorization primitives
+* Architecture compatible with market standards
+
+---
+
+## Authorization Model
+
+Mycelium's authorization model is one of its central pillars and is documented
+in detail in the file:
+
+👉 **[Authorization](./docs/book/src/01-authorization.md)**
+
+In summary:
+
+* The gateway applies **declarative controls per route** (coarse-grained)
+* Downstream services apply **contextual authorizations** (fine-grained)
+* The Profile acts as an active capability object, not just as an identity
+  payload
+
+---
+
+## Conceptual Structure
+
+```
+Client
+  ↓
+API Gateway (auth, routing, edge RBAC)
+  ↓
+Downstream Services (contextual FBAC)
+```
+
+This separation ensures low coupling, high expressiveness, and security
+decisions close to the resource.
+
+---
+
+## Project Governance and Sustainability
+
+Mycelium is an open and free project. Its maintenance and evolution are handled
+within the project's organizational scope, through:
+
+* Community collaboration
+* Institutional support
+* Funding and acceleration initiatives
+
+These aspects **do not influence or condition** the technical authorization
+model, which remains neutral, explicit, and verifiable.
+
+---
+
+## Project Status
+
+Mycelium is under active development and open to contributions. Architectural
+discussions, improvement proposals, and conceptual reviews are welcome.
+
+---
+
+## License
+
+See the [LICENSE](./LICENSE) file for details about the project's licensing.

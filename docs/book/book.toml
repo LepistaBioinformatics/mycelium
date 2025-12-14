@@ -1,0 +1,22 @@
+[book]
+authors = ["Samuel Galvão Elias <sgelias@outlook.com>"]
+language = "en"
+src = "src"
+title = "Mycelium Book"
+
+[build]
+default-theme = "dark"
+
+[preprocessor.index]
+
+[preprocessor.links]
+
+[output.html]
+#theme = "dark"
+#additional-css = ["custom.css"]
+
+[output.html.search]
+limit-results = 15
+
+[server]
+port = 3001

@@ -2,8 +2,8 @@
 target
 docs/*
 !docs/assets
+!docs/book
 !docs/draw.io
-!docs/insomnia
 !docs/openapi
 dist
 
