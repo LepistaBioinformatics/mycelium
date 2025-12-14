@@ -4,14 +4,14 @@
 # Example vault configuration:
 #
 # ```toml
-# [vault.enabled]
+# [vault.define]
 # url = "http://myc-vault:8200"
 # versionWithNamespace = "v1/kv"
 # token = { env = "MYC_VAULT_TOKEN" }
 # ```
 #
 # ------------------------------------------------------------------------------
-[vault.enabled]
+[vault.define]
 url = "http://myc-vault:8200"
 versionWithNamespace = "v1/kv"
 token = { env = "MYC_VAULT_TOKEN" }
@@ -131,14 +131,14 @@ userInfoUrl = "https://graph.microsoft.com/oidc/userinfo"
 audience = "00000003-0000-0000-c000-000000000000"
 
 # Microsoft 2.0
-#[[auth.external.enabled]]
+#[[auth.external.define]]
 #issuer = "https://login.microsoftonline.com/{tenantId}/v2.0"
 #jwksUri = "https://login.microsoftonline.com/{tenantId}/discovery/v2.0/keys"
 #userInfoUrl = "https://graph.microsoft.com/oidc/userinfo"
 #audience = "00000003-0000-0000-c000-000000000000"
 
 # Auth0
-[[auth.external.enabled]]
+[[auth.external.define]]
 issuer = "https://{app-name}.auth0.com/"
 jwksUri = "https://{app-name}.auth0.com/.well-known/jwks.json"
 userInfoUrl = "https://{app-name}.auth0.com/userinfo"
@@ -214,7 +214,7 @@ target = "stdout"
 # able to connect to secure forwarding routes.
 #
 # Example vault configuration:
-# [api.tls.enabled]
+# [api.tls.define]
 # tlsCert = { vault = { path = "myc/api/tls", key = "tlsCert" } }
 # tlsKey = { vault = { path = "myc/api/tls", key = "tlsKey" } }
 #

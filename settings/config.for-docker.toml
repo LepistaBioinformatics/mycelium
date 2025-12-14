@@ -4,14 +4,14 @@
 # Example vault configuration:
 #
 # ```toml
-# [vault.enabled]
+# [vault.define]
 # url = "http://myc-vault-devcontainer:8200"
 # versionWithNamespace = "v1/kv"
 # token = { env = "MYC_VAULT_TOKEN" }
 # ```
 #
 # ------------------------------------------------------------------------------
-[vault.enabled]
+[vault.define]
 url = "http://myc-vault-devcontainer:8200"
 versionWithNamespace = "v1/kv"
 token = { env = "MYC_VAULT_TOKEN" }
@@ -228,7 +228,7 @@ target = "stdout"
 # able to connect to secure forwarding routes.
 #
 # Example vault configuration:
-# [api.tls.enabled]
+# [api.tls.define]
 # tlsCert = { vault = { path = "myc/api/tls", key = "tlsCert" } }
 # tlsKey = { vault = { path = "myc/api/tls", key = "tlsKey" } }
 #
