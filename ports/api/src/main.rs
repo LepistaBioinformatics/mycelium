@@ -245,6 +245,10 @@ pub async fn main() -> std::io::Result<()> {
             .build(),
     );
 
+    for service in config.api.services.clone() {
+        trace!("Service: {:?}", service);
+    }
+
     let mem_module = Arc::new(
         MemDbAppModule::builder()
             .with_component_parameters::<MemDbPoolProvider>(

@@ -2543,6 +2543,7 @@ dependencies = [
  "shaku",
  "slugify",
  "tokio",
+ "toml",
  "tonic",
  "tracing",
  "tracing-actix-web",

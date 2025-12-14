@@ -106,7 +106,7 @@ services:
     image: mcr.microsoft.com/vscode/devcontainers/rust:latest
     command: sleep infinity
     environment:
-      - SETTINGS_PATH=settings/config.dev.for-docker.yaml
+      - SETTINGS_PATH=settings/config.dev.for-docker.toml
       - MYC_VAULT_TOKEN=${MYC_VAULT_TOKEN}
     volumes:
       - ../..:/workspaces:cached

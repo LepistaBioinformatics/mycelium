@@ -141,7 +141,7 @@ pub struct Service {
     ///
     /// The routes of the service.
     ///
-    #[serde(alias = "paths")]
+    #[serde(alias = "path")]
     pub routes: Vec<Route>,
 
     /// The health status of the service
@@ -208,7 +208,7 @@ pub struct Service {
     /// gateway at the downstream service. Individual routes can request a
     /// specific secret of this secrets vector.
     ///
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "secret")]
     pub secrets: Option<Vec<ServiceSecret>>,
 
     /// The allowed sources
