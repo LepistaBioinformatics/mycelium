@@ -42,9 +42,13 @@ exporters:
       insecure: true
 
 service:
+  telemetry:
+    metrics:
+      address: "0.0.0.0:8889"
   pipelines:
     metrics:
       receivers:
+        - otlp
         - prometheus
       processors:
         - batch

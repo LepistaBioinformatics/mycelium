@@ -87,7 +87,7 @@ services:
 
     image: prom/prometheus:v2.52.0
     volumes:
-      - ./otel/prometheus.dev.yml:/etc/prometheus/prometheus.dev.yml
+      - ./otel/prometheus.dev.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
 

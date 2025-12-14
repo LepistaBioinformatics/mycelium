@@ -56,13 +56,9 @@ actix-cors = { version = "0.6.2" }
 actix-rt = "2.10"
 actix-web-opentelemetry = "0.22.0"
 anyhow = "1.0"
-opentelemetry = { version = "0.29", default-features = false, features = [
-    "trace",
-    "metrics",
-    "logs",
-] }
-opentelemetry_sdk = { version = "0.29", features = ["rt-tokio"] }
-opentelemetry-otlp = { version = "0.29", features = [
+opentelemetry = { version = "0.31", features = ["trace", "metrics", "logs"] }
+opentelemetry_sdk = { version = "0.31", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.31", features = [
     "reqwest-client",
     "reqwest-rustls",
     "http-proto",
@@ -80,13 +76,9 @@ rmcp = { version = "0.6", features = [
     #"transport-io",
     "transport-streamable-http-server",
 ] }
-#rmcp-actix-web = { version = "0.2.8", default-features = false, features = [
-#    "transport-streamable-http-server",
-#] }
-#rust-mcp-sdk = "0.5.0"
 tonic = { version = "0", features = ["tls", "tls-roots"] }
 tracing-appender = "0.2"
-tracing-opentelemetry = "0.30"
+tracing-opentelemetry = "0.32"
 
 # ------------------------------------------------------------------------------
 # Mycelium packages

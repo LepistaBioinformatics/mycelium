@@ -1,14 +1,13 @@
 use crate::models::api_config::{LogFormat, LoggingConfig, LoggingTarget};
 
 use myc_core::domain::dtos::http::Protocol;
-use opentelemetry::{global, trace::TracerProvider};
-use opentelemetry_otlp::{WithExportConfig, WithHttpConfig, WithTonicConfig};
-use std::collections::HashMap;
+use opentelemetry::{global, trace::TracerProvider, KeyValue};
+use opentelemetry_otlp::WithExportConfig;
+use opentelemetry_sdk::Resource;
 use std::path::PathBuf;
 use std::str::FromStr;
-use tonic::metadata::{Ascii, MetadataKey, MetadataMap, MetadataValue};
 use tracing_appender::non_blocking::WorkerGuard;
-use tracing_subscriber::{fmt, layer::SubscriberExt, EnvFilter};
+use tracing_subscriber::{fmt, layer::SubscriberExt, EnvFilter, Layer};
 
 pub(super) fn initialize_otel(
     config: LoggingConfig,
@@ -60,33 +59,33 @@ pub(super) fn initialize_otel(
     }) = config.target
     {
         //
-        // Populate config from execution environment
-        //
-        std::env::set_var("OTEL_SERVICE_NAME", name.to_owned());
-        let headers = parse_otlp_headers_from_env();
-
-        //
         // Build external address
         //
-        let metrics_address =
-            format!("{}://{}:{}/v1/metrics", protocol, host, port);
+        let (metrics_address, traces_address) = match protocol {
+            Protocol::Grpc => (
+                format!("http://{}:{}", host, port),
+                format!("http://{}:{}", host, port),
+            ),
+            _ => (
+                format!("{}://{}:{}/v1/metrics", protocol, host, port),
+                format!("{}://{}:{}/v1/traces", protocol, host, port),
+            ),
+        };
 
-        let traces_address =
-            format!("{}://{}:{}/v1/traces", protocol, host, port);
+        // ---------------------------------------------------------------------
+        // Configure tracer
+        // ---------------------------------------------------------------------
 
-        //let logs_address = format!("{}://{}:{}/v1/logs", protocol, host, port);
+        let resource = Resource::builder()
+            .with_attributes(vec![KeyValue::new(
+                "service.name",
+                name.to_owned(),
+            )])
+            .build();
 
-        //
-        // Initialize providers
-        //
         let tracer_provider =
-            opentelemetry_sdk::trace::SdkTracerProvider::builder();
-
-        let meter_provider =
-            opentelemetry_sdk::metrics::SdkMeterProvider::builder();
-
-        //let logs_provider =
-        //    opentelemetry_sdk::logs::SdkLoggerProvider::builder();
+            opentelemetry_sdk::trace::SdkTracerProvider::builder()
+                .with_resource(resource);
 
         let tracer_provider = (match protocol {
             Protocol::Grpc => {
@@ -94,26 +93,50 @@ pub(super) fn initialize_otel(
                     opentelemetry_otlp::SpanExporter::builder()
                         .with_tonic()
                         .with_endpoint(traces_address)
-                        .with_metadata(metadata_from_headers(headers))
+                        .with_timeout(std::time::Duration::from_secs(10))
                         .build()
                         .expect("Failed to build gRPC exporter");
 
-                tracer_provider.with_simple_exporter(trace_exporter)
+                tracer_provider.with_batch_exporter(trace_exporter)
             }
             _ => {
                 let trace_exporter =
                     opentelemetry_otlp::SpanExporter::builder()
                         .with_http()
                         .with_endpoint(traces_address)
-                        .with_headers(headers)
+                        .with_timeout(std::time::Duration::from_secs(10))
                         .build()
                         .expect("Failed to build HTTP exporter");
 
-                tracer_provider.with_simple_exporter(trace_exporter)
+                tracer_provider.with_batch_exporter(trace_exporter)
             }
         })
-        .build()
-        .tracer(name);
+        .build();
+
+        let tracer = tracer_provider.tracer(name.to_owned());
+
+        global::set_tracer_provider(tracer_provider);
+
+        let otel_layer = tracing_opentelemetry::layer().with_tracer(tracer);
+
+        let subscriber = tracing_subscriber::Registry::default()
+            .with(otel_layer)
+            .with(
+                tracing_subscriber::fmt::layer()
+                    .with_writer(non_blocking)
+                    .with_filter(
+                        EnvFilter::from_str(config.level.as_str()).unwrap(),
+                    ),
+            );
+
+        let _ = tracing::subscriber::set_global_default(subscriber);
+
+        // ---------------------------------------------------------------------
+        // Configure meter
+        // ---------------------------------------------------------------------
+
+        let meter_provider =
+            opentelemetry_sdk::metrics::SdkMeterProvider::builder();
 
         let meter_provider = (match protocol {
             Protocol::Grpc => {
@@ -121,6 +144,7 @@ pub(super) fn initialize_otel(
                     opentelemetry_otlp::MetricExporter::builder()
                         .with_tonic()
                         .with_endpoint(metrics_address)
+                        .with_timeout(std::time::Duration::from_secs(10))
                         .build()
                         .expect("Failed to build gRPC exporter");
 
@@ -131,6 +155,7 @@ pub(super) fn initialize_otel(
                     opentelemetry_otlp::MetricExporter::builder()
                         .with_http()
                         .with_endpoint(metrics_address)
+                        .with_timeout(std::time::Duration::from_secs(10))
                         .build()
                         .expect("Failed to build HTTP exporter");
 
@@ -138,11 +163,6 @@ pub(super) fn initialize_otel(
             }
         })
         .build();
-
-        let tracing_layer =
-            tracing_opentelemetry::layer().with_tracer(tracer_provider);
-
-        tracing_subscriber::Registry::default().with(tracing_layer);
 
         global::set_meter_provider(meter_provider);
     } else {
@@ -172,47 +192,4 @@ pub(super) fn initialize_otel(
     };
 
     Ok(guard)
-}
-
-/// Parse headers from environment variable into MetadataMap
-///
-/// This function is used to parse headers from environment variable
-/// `OTEL_EXPORTER_OTLP_HEADERS` into MetadataMap. The headers are expected to
-/// be in the format `name1=value1,name2=value2,...`. The function will return a
-/// MetadataMap containing the headers.
-fn metadata_from_headers(headers: HashMap<String, String>) -> MetadataMap {
-    let mut metadata = MetadataMap::new();
-
-    headers.into_iter().for_each(|(name, value)| {
-        let value = value
-            .parse::<MetadataValue<Ascii>>()
-            .expect("Header value invalid");
-        metadata.insert(MetadataKey::from_str(&name).unwrap(), value);
-    });
-
-    metadata
-}
-
-/// Parse OTLP headers from environment variable
-///
-/// This function is used to parse headers from environment variable
-/// `OTEL_EXPORTER_OTLP_HEADERS` into a vector of tuples. The headers are
-/// expected to be in the format `name1=value1,name2=value2,...`. The function
-/// will return a vector of tuples containing the headers.
-fn parse_otlp_headers_from_env() -> HashMap<String, String> {
-    let mut metadata = HashMap::new();
-
-    if let Ok(hdrs) = std::env::var("OTEL_EXPORTER_OTLP_HEADERS") {
-        hdrs.split(',')
-            .map(|header| {
-                header
-                    .split_once('=')
-                    .expect("Header should contain '=' character")
-            })
-            .for_each(|(name, value)| {
-                metadata.insert(name.to_string(), value.to_string());
-            });
-    }
-
-    metadata
 }
