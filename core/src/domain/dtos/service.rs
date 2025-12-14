@@ -141,7 +141,6 @@ pub struct Service {
     ///
     /// The routes of the service.
     ///
-    #[serde(alias = "path")]
     pub routes: Vec<Route>,
 
     /// The health status of the service

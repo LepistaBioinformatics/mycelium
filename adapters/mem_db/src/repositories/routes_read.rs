@@ -5,11 +5,12 @@ use async_trait::async_trait;
 use http::uri::PathAndQuery;
 use myc_core::domain::{dtos::route::Route, entities::RoutesRead};
 use mycelium_base::{
+    dtos::Parent,
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{fetching_err, MappedErrors},
 };
 use shaku::Component;
-use std::sync::Arc;
+use std::{sync::Arc, vec};
 use uuid::Uuid;
 use wildmatch::WildMatch;
 
@@ -45,7 +46,23 @@ impl RoutesRead for RoutesReadMemDbRepo {
                 //
                 service.name == service_name
             })
-            .flat_map(|service| service.routes)
+            .map(|service| {
+                let mut tmp_service = service.clone();
+                let routes = service.routes.clone();
+                tmp_service.routes = vec![];
+
+                (tmp_service, routes)
+            })
+            .flat_map(|(service, routes)| {
+                routes
+                    .into_iter()
+                    .map(|route| {
+                        let mut tmp_route = route.clone();
+                        tmp_route.service = Parent::Record(service.clone());
+                        tmp_route
+                    })
+                    .collect::<Vec<Route>>()
+            })
             .filter(|route| {
                 //
                 // Check the match between the registered route and the
@@ -97,7 +114,23 @@ impl RoutesRead for RoutesReadMemDbRepo {
 
         let routes_db = db
             .into_iter()
-            .flat_map(|service| service.routes)
+            .map(|service| {
+                let mut tmp_service = service.clone();
+                let routes = service.routes.clone();
+                tmp_service.routes = vec![];
+
+                (tmp_service, routes)
+            })
+            .flat_map(|(service, routes)| {
+                routes
+                    .into_iter()
+                    .map(|route| {
+                        let mut tmp_route = route.clone();
+                        tmp_route.service = Parent::Record(service.clone());
+                        tmp_route
+                    })
+                    .collect::<Vec<Route>>()
+            })
             .collect::<Vec<Route>>();
 
         let mut binding_routes_db = routes_db.clone();
@@ -159,7 +192,23 @@ impl RoutesRead for RoutesReadMemDbRepo {
 
         let response = db
             .into_iter()
-            .flat_map(|service| service.routes)
+            .map(|service| {
+                let mut tmp_service = service.clone();
+                let routes = service.routes.clone();
+                tmp_service.routes = vec![];
+
+                (tmp_service, routes)
+            })
+            .flat_map(|(service, routes)| {
+                routes
+                    .into_iter()
+                    .map(|route| {
+                        let mut tmp_route = route.clone();
+                        tmp_route.service = Parent::Record(service.clone());
+                        tmp_route
+                    })
+                    .collect::<Vec<Route>>()
+            })
             .filter(|route| {
                 //
                 // Check the match between the registered route id and the

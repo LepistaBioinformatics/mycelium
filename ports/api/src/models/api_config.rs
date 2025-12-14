@@ -101,7 +101,7 @@ struct ServiceIntermediate {
     host: ServiceHost,
     #[serde(default = "default_service_protocol")]
     protocol: Protocol,
-    #[serde(alias = "paths", default)]
+    #[serde(alias = "path", default)]
     routes: Vec<Route>,
     #[serde(default = "default_service_health_status")]
     health_status: HealthStatus,
@@ -118,7 +118,7 @@ struct ServiceIntermediate {
     description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     openapi_path: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none", alias = "secret")]
     secrets: Option<Vec<ServiceSecret>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     allowed_sources: Option<Vec<String>>,
