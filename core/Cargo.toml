@@ -33,13 +33,13 @@ regex.workspace = true
 reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-serde_yaml.workspace = true
 shaku.workspace = true
 slugify.workspace = true
 utoipa.workspace = true
 uuid.workspace = true
 tracing.workspace = true
 tokio.workspace = true
+toml.workspace = true
 
 argon2 = "0.5"
 base32 = "0.4"

@@ -17,15 +17,6 @@ pub struct ServiceSecret {
     pub(crate) secret: SecretResolver<HttpSecret>,
 }
 
-impl ServiceSecret {
-    pub(crate) fn new(
-        name: String,
-        secret: SecretResolver<HttpSecret>,
-    ) -> Self {
-        Self { name, secret }
-    }
-}
-
 impl Serialize for ServiceSecret {
     /// Serialize the secret
     ///
@@ -121,6 +112,7 @@ pub struct Service {
     /// The id of the service. If the id is not provided, the service will be
     /// generated using the name of the service.
     ///
+    #[serde(default = "default_id")]
     pub id: Uuid,
 
     /// The service unique name
@@ -149,10 +141,12 @@ pub struct Service {
     ///
     /// The routes of the service.
     ///
+    #[serde(alias = "paths")]
     pub routes: Vec<Route>,
 
     /// The health status of the service
     ///
+    #[serde(default = "default_health_status")]
     pub health_status: HealthStatus,
 
     /// The service health check configuration
@@ -252,69 +246,15 @@ fn default_protocol() -> Protocol {
     Protocol::Http
 }
 
+fn default_id() -> Uuid {
+    Uuid::new_v4()
+}
+
+fn default_health_status() -> HealthStatus {
+    HealthStatus::Unknown
+}
+
 impl Service {
-    pub(crate) fn new(
-        id: Option<Uuid>,
-        name: String,
-        host: ServiceHost,
-        protocol: Protocol,
-        discoverable: Option<bool>,
-        description: Option<String>,
-        openapi_path: Option<String>,
-        health_check_path: String,
-        routes: Vec<Route>,
-        secrets: Option<Vec<ServiceSecret>>,
-        capabilities: Option<Vec<String>>,
-        service_type: Option<ServiceType>,
-        is_context_api: Option<bool>,
-        allowed_sources: Option<Vec<String>>,
-        proxy_address: Option<String>,
-    ) -> Self {
-        //
-        // If the service is discoverable, the description, health_check and
-        // openapi_path are required.
-        //
-        if Some(true) == discoverable {
-            for (name, param) in [
-                ("id", id.is_none()),
-                ("name", name.is_empty()),
-                ("description", description.is_none()),
-                ("openapiPath", openapi_path.is_none()),
-                ("capabilities", capabilities.is_none()),
-                ("serviceType", service_type.is_none()),
-                ("isContextApi", is_context_api.is_none()),
-            ] {
-                if param {
-                    panic!(
-                        "The parameter '{name}' is required for discoverable services",
-                    );
-                }
-            }
-        }
-
-        Self {
-            id: match id {
-                Some(id) => id,
-                None => Uuid::new_v3(&Uuid::NAMESPACE_DNS, name.as_bytes()),
-            },
-            name,
-            host,
-            protocol,
-            discoverable,
-            description,
-            capabilities,
-            service_type,
-            is_context_api,
-            openapi_path,
-            health_check_path,
-            routes,
-            secrets,
-            health_status: HealthStatus::Unknown,
-            allowed_sources,
-            proxy_address,
-        }
-    }
-
     pub fn update_health_status(&mut self, health_status: HealthStatus) {
         self.health_status = health_status;
     }

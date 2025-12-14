@@ -60,7 +60,7 @@ pub enum SecurityGroup {
     /// Protect the route with the user profile filtered by roles
     ///
     #[serde(rename_all = "camelCase")]
-    ProtectedByRoles { roles: Vec<PermissionedRole> },
+    ProtectedByRoles(Vec<PermissionedRole>),
 }
 
 impl ToString for SecurityGroup {
@@ -69,7 +69,7 @@ impl ToString for SecurityGroup {
             SecurityGroup::Public => "public".to_string(),
             SecurityGroup::Authenticated => "authenticated".to_string(),
             SecurityGroup::Protected => "protected".to_string(),
-            SecurityGroup::ProtectedByRoles { roles } => {
+            SecurityGroup::ProtectedByRoles(roles) => {
                 format!(
                     "protected_by_roles({})",
                     roles

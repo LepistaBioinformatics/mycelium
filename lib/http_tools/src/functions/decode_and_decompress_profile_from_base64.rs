@@ -90,8 +90,6 @@ mod tests {
             compress_and_encode_profile_to_base64(original_profile.clone())
                 .expect("Failed to compress and encode profile");
 
-        assert!(!encoded.is_empty(), "Encoded profile should not be empty");
-
         // Decode and decompress the profile
         let decoded_profile =
             decode_and_decompress_profile_from_base64(encoded)

@@ -327,13 +327,13 @@ impl FromStr for HttpSecret {
     ///
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let json_try = serde_json::from_str::<HttpSecret>(s);
-        let yaml_try = serde_yaml::from_str::<HttpSecret>(s);
+        let toml_try = toml::from_str::<HttpSecret>(s);
 
         if let Ok(secret) = json_try {
             return Ok(secret);
         }
 
-        if let Ok(secret) = yaml_try {
+        if let Ok(secret) = toml_try {
             return Ok(secret);
         }
 

@@ -103,10 +103,12 @@ pub async fn main() -> std::io::Result<()> {
         trace!("Error on get env `UTOIPA_REDOC_CONFIG_FILE`: {err}");
         info!("Env variable `UTOIPA_REDOC_CONFIG_FILE` not set. Setting default value");
 
-        std::env::set_var(
-            "UTOIPA_REDOC_CONFIG_FILE",
-            "ports/api/src/api_docs/redoc.config.json",
-        );
+        unsafe {
+            std::env::set_var(
+                "UTOIPA_REDOC_CONFIG_FILE",
+                "ports/api/src/api_docs/redoc.config.json",
+            );
+        }
     }
 
     // ? -----------------------------------------------------------------------
@@ -248,7 +250,7 @@ pub async fn main() -> std::io::Result<()> {
             .with_component_parameters::<MemDbPoolProvider>(
                 MemDbPoolProviderParameters {
                     services_db: Arc::new(Mutex::new(
-                        MemDbPoolProvider::new(config.api.routes.clone())
+                        MemDbPoolProvider::new(config.api.services.clone())
                             .await
                             .get_services_db(),
                     )),

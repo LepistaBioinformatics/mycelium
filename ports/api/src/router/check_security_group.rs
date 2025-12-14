@@ -94,7 +94,7 @@ pub(super) async fn check_security_group(
         // Protected routes should include the user profile filtered by roles
         // into the header
         //
-        SecurityGroup::ProtectedByRoles { roles } => {
+        SecurityGroup::ProtectedByRoles(roles) => {
             //
             // Try to populate profile from the request filtering licensed
             // resources by roles

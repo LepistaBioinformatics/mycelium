@@ -12,6 +12,10 @@ use serde::{Deserialize, Serialize};
 use utoipa::{ToResponse, ToSchema};
 use uuid::Uuid;
 
+fn default_service() -> Parent<Service, Uuid> {
+    Parent::Id(Uuid::nil())
+}
+
 #[derive(
     Debug, Clone, Deserialize, Serialize, ToSchema, ToResponse, PartialEq, Eq,
 )]
@@ -21,6 +25,7 @@ pub struct Route {
     pub id: Option<Uuid>,
 
     /// The route service
+    #[serde(default = "default_service")]
     pub service: Parent<Service, Uuid>,
 
     /// The route name

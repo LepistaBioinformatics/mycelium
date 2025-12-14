@@ -12,6 +12,7 @@ dist
 cert.pem
 key.pem
 config.dev*.yaml
+config.dev*.toml
 
 # Other
 *.drawio.bkp*

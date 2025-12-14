@@ -1,19 +1,22 @@
-use mycelium_base::utils::errors::MappedErrors;
+use mycelium_base::utils::errors::{dto_err, MappedErrors};
 use serde::Deserialize;
 use std::path::PathBuf;
+use toml::from_str;
 
-/// Load configuration from YAML file
+/// Load configuration from TOML file
 ///
-/// It is a generic function to read a configuration file from a YAML file.
+/// It is a generic function to read a configuration file from a TOML file.
 pub fn load_config_from_file<T>(file_path: PathBuf) -> Result<T, MappedErrors>
 where
     for<'a> T: Deserialize<'a>,
 {
-    let f = std::fs::File::open(file_path.as_path().to_str().unwrap())
-        .expect("Could not open config file");
+    let file_content =
+        std::fs::read_to_string(file_path.as_path().to_str().unwrap())
+            .expect("Could not read config file");
 
-    let config: T =
-        serde_yaml::from_reader(f).expect("Could not read config file");
+    let config: T = from_str(&file_content).map_err(|err| {
+        dto_err(format!("Could not parse config file: {err}"))
+    })?;
 
     Ok(config)
 }

@@ -2,7 +2,7 @@ use myc_config::{
     load_config_from_file, optional_config::OptionalConfig,
     secret_resolver::SecretResolver,
 };
-use myc_core::domain::dtos::http::Protocol;
+use myc_core::domain::dtos::{http::Protocol, service::Service};
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
 use serde::Deserialize;
 use std::path::PathBuf;
@@ -89,12 +89,12 @@ pub struct ApiConfig {
     pub service_workers: i32,
     pub gateway_timeout: u64,
     pub logging: LoggingConfig,
-    pub routes: Option<String>,
     pub tls: OptionalConfig<TlsConfig>,
     pub cache: Option<CacheConfig>,
     pub health_check_interval: Option<u64>,
     pub max_retry_count: Option<u32>,
     pub max_error_instances: Option<u32>,
+    pub services: Vec<Service>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
