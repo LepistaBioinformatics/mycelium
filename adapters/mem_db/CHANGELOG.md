@@ -2,11 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.2.0] - 2025-12-15
+
+### 🐛 Bug Fixes
+
+- Include services to routes
+
 ## [8.1.1-rc.5] - 2025-12-14
 
 ### 🚀 Features
 
 - Replace the deprecated serde_yaml package by toml
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.1.1-rc.4] - 2025-11-13
 

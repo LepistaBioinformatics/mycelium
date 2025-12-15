@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Replace the deprecated serde_yaml package by toml
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.1.1-rc.4] - 2025-11-13
 
 ### ⚙️ Miscellaneous Tasks
