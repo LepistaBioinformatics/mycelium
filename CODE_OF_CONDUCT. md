@@ -1,0 +1,49 @@
+# Code of Conduct — Mycelium
+
+1. Purpose
+
+Mycelium is an open and collaborative project designed to operate as a reliable, extensible, and long-term technological infrastructure. The sustainability of the project depends directly on the quality of the human interactions that shape it. This Code of Conduct establishes clear expectations for behavior for everyone participating in the community, fostering an environment that supports high-level technical collaboration, open knowledge exchange, and responsible decision-making.
+
+More than a set of rules, this document represents a collective commitment to professional practices, mutual respect, and a focus on technical merit. It exists to protect both individuals and the project itself, ensuring that discussions, contributions, and disagreements occur in a healthy and productive manner.
+
+2. Scope
+
+This Code of Conduct applies to all interactions related directly or indirectly to the Mycelium project. This includes, but is not limited to, code repositories, issues, pull requests, technical reviews, commit comments, forum discussions, chat channels, mailing lists, collaborative documentation, in-person or virtual events, and any other space officially maintained or moderated by the project community.
+
+The scope also covers interactions conducted in external contexts when they explicitly represent the project, its maintainers, or its community. In all such environments, participants are expected to act in accordance with the principles and guidelines established herein.
+
+3. Core Values
+
+The Mycelium community is guided by values that prioritize collective construction and technical excellence. Mutual respect is considered essential, regardless of each participant’s level of experience, background, origin, or role. Diversity of perspectives is understood as a strength of the project, provided it is channeled in a constructive manner.
+
+Open and transparent collaboration is another central pillar. Technical, architectural, and organizational decisions should be discussed clearly, recorded when possible, and made accessible to the community. Clear, objective, and professional communication is encouraged, as is individual accountability for one’s words, actions, and contributions within the project.
+
+4. Expected Behavior
+
+All participants in Mycelium are expected to act in a courteous, professional, and collaborative manner in all interactions. Technical feedback should be grounded in clear arguments, evidence, and recognized best practices, avoiding personal attacks or subjective judgments about individuals.
+
+Criticism is a natural part of software development and should be received with openness and maturity, with the goal of continuous improvement of the codebase, architecture, and processes. Participants are also expected to respect differing viewpoints, to disagree in a technical and constructive manner, and to follow the guidelines, coding standards, review processes, and established decisions of the project.
+
+5. Unacceptable Behavior
+
+Behaviors that undermine the integrity of the community or the project will not be tolerated. This includes any form of harassment, discrimination, or personal attack, whether direct or indirect, explicit or implicit. Offensive, demeaning, intimidating, or deliberately hostile language is considered incompatible with the objectives of Mycelium.
+
+Also deemed unacceptable are unproductive discussions that divert focus from technical merit, attempts to impose opinions through intimidation or abuse of position, as well as actions intended to silence, delegitimize, or embarrass other participants. The unauthorized sharing of private, confidential, or sensitive information of community members or related organizations is strictly prohibited.
+
+6. Enforcement
+
+Mycelium maintainers are responsible for interpreting and enforcing this Code of Conduct in a fair, consistent, and proportionate manner. Enforcement decisions will take into account the context, severity of the behavior, recurrence, and the impact on the community or the project.
+
+Corrective actions may range from private guidance and formal warnings to the removal of inappropriate content, temporary restrictions on participation, or, in more serious cases, permanent bans from the project’s official spaces. Whenever possible, the goal is to correct behavior and preserve a collaborative environment, without compromising the safety and integrity of the community.
+
+7. Reporting Incidents
+
+Situations that violate this Code of Conduct may and should be reported to the project maintainers through the official channels defined in the Mycelium repository or documentation. Reports will be handled with confidentiality and seriousness, respecting all parties involved.
+
+To facilitate proper review, reports should include an objective description of the incident, relevant context, approximate dates, and any available evidence, such as links, screenshots, or message logs.
+
+8. Community Commitment
+
+By contributing code, documentation, discussions, or any other form of participation in Mycelium, you agree to comply with this Code of Conduct and to act in alignment with the project’s values and objectives.
+
+This document reflects an ongoing commitment to building an ethical, professional, and technically excellent community. It may be revised and updated as the project evolves, always with the goal of preserving a healthy, collaborative, and high-quality environment.
