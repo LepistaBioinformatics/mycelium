@@ -122,8 +122,6 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    println!("route.service: {:?}", route.service);
-
     check_source_reliability(req.clone(), &route.service)
         .instrument(span.to_owned())
         .await?;

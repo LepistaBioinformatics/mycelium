@@ -85,7 +85,7 @@ pub(super) fn initialize_otel(
 
         let tracer_provider =
             opentelemetry_sdk::trace::SdkTracerProvider::builder()
-                .with_resource(resource);
+                .with_resource(resource.clone());
 
         let tracer_provider = (match protocol {
             Protocol::Grpc => {
@@ -136,7 +136,8 @@ pub(super) fn initialize_otel(
         // ---------------------------------------------------------------------
 
         let meter_provider =
-            opentelemetry_sdk::metrics::SdkMeterProvider::builder();
+            opentelemetry_sdk::metrics::SdkMeterProvider::builder()
+                .with_resource(resource.clone());
 
         let meter_provider = (match protocol {
             Protocol::Grpc => {

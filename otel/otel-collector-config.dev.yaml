@@ -32,9 +32,31 @@ processors:
         statements:
           - replace_match(name, "check_single_service_health", attributes["myc.hc.service_name"])
 
+  #
+  # Transform metrics to add service name and enrich router metrics
+  #
+  transform/router-metrics:
+    error_mode: propagate
+    metric_statements:
+      # Add service.name attribute to all metrics if not present
+      - context: metric
+        statements:
+          - set(attributes["service.name"], "mycelium-api") where name == "router.requests_count"
+
+      # Optionally rename or add labels to router metrics
+      - context: datapoint
+        statements:
+          - set(attributes["metric_type"], "counter") where name == "router.requests_count"
+
 exporters:
   prometheus:
     endpoint: "0.0.0.0:8889"
+    # Optional: Configure metric names and labels
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'router\.requests_count'
+        target_label: __name__
+        replacement: 'mycelium_router_requests_total'
 
   otlp:
     endpoint: "myc-jaeger-devcontainer:4317"
@@ -45,12 +67,14 @@ service:
   telemetry:
     metrics:
       address: "0.0.0.0:8889"
+
   pipelines:
     metrics:
       receivers:
         - otlp
         - prometheus
       processors:
+        - transform/router-metrics
         - batch
       exporters:
         - prometheus
