@@ -2,11 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.2.1-rc.2] - 2025-12-16
+
+### 🚀 Features
+
+- Persist webhook method to database instead infer from the trigger
+
 ## [8.2.1-rc.1] - 2025-12-16
 
 ### 🚀 Features
 
 - Upgrade notifications to use tenant information during communications
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.2.0] - 2025-12-15
 
