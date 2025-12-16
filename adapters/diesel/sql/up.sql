@@ -194,6 +194,7 @@ CREATE TABLE webhook (
     description VARCHAR(255),
     url VARCHAR NOT NULL,
     trigger VARCHAR(255) NOT NULL,
+    method VARCHAR(12) DEFAULT 'POST',
     is_active BOOLEAN DEFAULT TRUE,
     created TIMESTAMPTZ DEFAULT now(),
     created_by JSONB DEFAULT '{}'::JSONB,

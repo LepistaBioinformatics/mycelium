@@ -54,6 +54,7 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
             description: webhook.description.clone(),
             url: webhook.url.clone(),
             trigger: webhook.trigger.to_string(),
+            method: webhook.method.map(|m| m.to_string()),
             secret: webhook.get_secret().map(|s| to_value(s).unwrap()),
             is_active: webhook.is_active,
             created: Local::now().naive_utc(),
@@ -80,6 +81,7 @@ impl WebHookRegistration for WebHookRegistrationSqlDbRepository {
             created.description,
             created.url,
             created.trigger.parse().unwrap(),
+            created.method.map(|m| m.parse().unwrap()),
             created.secret.map(|s| from_value(s).unwrap()),
             parse_optional_written_by(created.created_by),
         );

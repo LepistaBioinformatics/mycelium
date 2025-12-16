@@ -13,6 +13,7 @@ pub(crate) struct WebHook {
     pub description: Option<String>,
     pub url: String,
     pub trigger: String,
+    pub method: Option<String>,
     pub secret: Option<JsonValue>,
     pub is_active: bool,
     pub created: NaiveDateTime,

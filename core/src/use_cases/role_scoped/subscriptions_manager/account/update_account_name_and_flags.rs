@@ -298,6 +298,7 @@ mod tests {
                     WebHookTrigger::SubscriptionAccountUpdated,
                     None,
                     None,
+                    None,
                 ),
             }
         }

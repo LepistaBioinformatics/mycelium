@@ -66,6 +66,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                     record.description,
                     record.url,
                     record.trigger.parse().unwrap(),
+                    record.method.map(|m| m.parse().unwrap()),
                     record.secret.map(|s| from_value(s).unwrap()),
                     parse_optional_written_by(record.created_by),
                 );
@@ -149,6 +150,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                     record.description,
                     record.url,
                     record.trigger.parse().unwrap(),
+                    record.method.map(|m| m.parse().unwrap()),
                     record.secret.map(|s| from_value(s).unwrap()),
                     parse_optional_written_by(record.created_by),
                 );
@@ -207,6 +209,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                     record.description,
                     record.url,
                     record.trigger.parse().unwrap(),
+                    record.method.map(|m| m.parse().unwrap()),
                     record.secret.map(|s| from_value(s).unwrap()),
                     parse_optional_written_by(record.created_by),
                 );

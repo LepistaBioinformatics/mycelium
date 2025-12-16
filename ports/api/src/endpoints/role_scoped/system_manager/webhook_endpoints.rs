@@ -3,8 +3,9 @@ use crate::{dtos::MyceliumProfileData, endpoints::shared::PaginationParams};
 use actix_web::{delete, get, patch, post, web, Responder};
 use myc_core::{
     domain::dtos::{
+        http::HttpMethod,
         http_secret::HttpSecret,
-        webhook::{WebHook, WebHookTrigger},
+        webhook::{deserialize_write_method, WebHook, WebHookTrigger},
     },
     models::AccountLifeCycle,
     use_cases::role_scoped::system_manager::webhook::{
@@ -47,6 +48,8 @@ pub struct CreateWebHookBody {
     description: Option<String>,
     url: String,
     trigger: WebHookTrigger,
+    #[serde(deserialize_with = "deserialize_write_method")]
+    method: Option<HttpMethod>,
     secret: Option<HttpSecret>,
 }
 
@@ -116,6 +119,7 @@ pub async fn crate_webhook_url(
         body.description.to_owned(),
         body.url.to_owned(),
         body.trigger.to_owned(),
+        body.method.to_owned(),
         body.secret.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*app_module.resolve_ref()),

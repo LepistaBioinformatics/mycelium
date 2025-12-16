@@ -82,6 +82,7 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
             updated.description,
             updated.url,
             updated.trigger.parse().unwrap(),
+            updated.method.map(|m| m.parse().unwrap()),
             updated.secret.map(|s| from_value(s).unwrap()),
             parse_optional_written_by(updated.created_by),
         );

@@ -190,6 +190,7 @@ diesel::table! {
         secret -> Nullable<Jsonb>,
         #[max_length = 255]
         trigger -> Varchar,
+        method -> Nullable<Varchar>,
     }
 }
 

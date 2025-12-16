@@ -1,6 +1,7 @@
 use crate::{
     domain::{
         dtos::{
+            http::HttpMethod,
             http_secret::HttpSecret,
             webhook::{
                 HookResponse, WebHook, WebHookExecutionStatus,
@@ -73,19 +74,6 @@ pub async fn dispatch_webhooks(
     tracing::info!("Found {} webhooks to dispatch", hooks.len());
 
     // ? -----------------------------------------------------------------------
-    // ? Adjust the HTTP method given the trigger
-    // ? -----------------------------------------------------------------------
-
-    let method = match trigger {
-        WebHookTrigger::SubscriptionAccountCreated
-        | WebHookTrigger::UserAccountCreated => "POST",
-        WebHookTrigger::SubscriptionAccountUpdated
-        | WebHookTrigger::UserAccountUpdated => "PUT",
-        WebHookTrigger::SubscriptionAccountDeleted
-        | WebHookTrigger::UserAccountDeleted => "DELETE",
-    };
-
-    // ? -----------------------------------------------------------------------
     // ? Build requests to the webhooks
     //
     // Request bodies contains the account object as a JSON. It should be parsed
@@ -116,10 +104,16 @@ pub async fn dispatch_webhooks(
             //
             // Build the request based on the method
             //
+            let method = match hook.method {
+                Some(method) => method,
+                None => HttpMethod::Post,
+            };
+
             let base_request = match method {
-                "POST" => base_request.post(hook.url.to_owned()),
-                "PUT" => base_request.put(hook.url.to_owned()),
-                "DELETE" => base_request.delete(match artifact.id {
+                HttpMethod::Post => base_request.post(hook.url.to_owned()),
+                HttpMethod::Put => base_request.put(hook.url.to_owned()),
+                HttpMethod::Patch => base_request.patch(hook.url.to_owned()),
+                HttpMethod::Delete => base_request.delete(match artifact.id {
                     None => hook.url.to_owned(),
                     Some(id) => format!("{}/{}", hook.url, id),
                 }),

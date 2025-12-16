@@ -1,13 +1,20 @@
-use crate::{domain::{
-    actors::SystemActor,
-    dtos::{
-        http_secret::HttpSecret, profile::Profile, written_by::WrittenBy, webhook::{WebHook, WebHookTrigger}
-    },
-    entities::WebHookRegistration,
-}, models::AccountLifeCycle};
+use crate::{
+    domain::{
+        actors::SystemActor,
+        dtos::{
+            http::HttpMethod, 
+            http_secret::HttpSecret, 
+            profile::Profile, 
+            written_by::WrittenBy, 
+            webhook::{WebHook, WebHookTrigger}
+        },
+        entities::WebHookRegistration,
+    }, 
+    models::AccountLifeCycle
+};
 
 use mycelium_base::{
-    entities::CreateResponseKind, utils::errors::MappedErrors,
+    entities::CreateResponseKind, utils::errors::{MappedErrors},
 };
 
 #[tracing::instrument(
@@ -21,6 +28,7 @@ pub async fn register_webhook(
     description: Option<String>,
     url: String,
     trigger: WebHookTrigger,
+    method: Option<HttpMethod>,
     secret: Option<HttpSecret>,
     config: AccountLifeCycle,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
@@ -44,6 +52,7 @@ pub async fn register_webhook(
         description,
         url,
         trigger,
+        method,
         secret,
         config,
         Some(WrittenBy::new_from_account(profile.acc_id)),
