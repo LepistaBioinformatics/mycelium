@@ -10,6 +10,7 @@ use crate::{
         entities::{LocalMessageWrite, TenantFetching, TokenRegistration},
     },
     models::AccountLifeCycle,
+    settings::DEFAULT_TENANT_ID_KEY,
     use_cases::support::dispatch_notification,
 };
 
@@ -101,10 +102,14 @@ pub async fn create_connection_string(
     // ? Notify guest user
     // ? -----------------------------------------------------------------------
 
-    let parameters = vec![(
+    let mut parameters = vec![(
         "expires_in",
         format_expiration_as_human_readable(expiration),
     )];
+
+    if let Some(t_id) = tenant_id {
+        parameters.push((DEFAULT_TENANT_ID_KEY, t_id.to_string()));
+    }
 
     if let Err(err) = dispatch_notification(
         parameters,

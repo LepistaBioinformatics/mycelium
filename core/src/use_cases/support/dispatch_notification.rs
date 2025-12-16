@@ -8,7 +8,7 @@ use crate::{
         entities::{LocalMessageWrite, TenantFetching},
     },
     models::AccountLifeCycle,
-    settings::TEMPLATES,
+    settings::{DEFAULT_TENANT_ID_KEY, TEMPLATES},
 };
 
 use mycelium_base::{
@@ -117,6 +117,7 @@ pub(crate) async fn dispatch_notification<T: ToString>(
         .await
 }
 
+#[tracing::instrument(name = "populate_tenant_info", skip_all)]
 async fn populate_tenant_info<T: ToString>(
     parameters: &Vec<(T, String)>,
     config: &AccountLifeCycle,
@@ -127,7 +128,7 @@ async fn populate_tenant_info<T: ToString>(
 
     if let Some((_, tenant_id)) = parameters
         .iter()
-        .find(|(key, _)| key.to_string() == "tenant_id")
+        .find(|(key, _)| key.to_string() == DEFAULT_TENANT_ID_KEY)
     {
         if let Ok(tenant_id) = tenant_id.parse::<Uuid>() {
             if let FetchResponseKind::Found(tenant) = tenant_fetching_repo
