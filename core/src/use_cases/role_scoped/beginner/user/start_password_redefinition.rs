@@ -5,7 +5,9 @@ use crate::{
             native_error_codes::NativeErrorCodes,
             token::{MultiTypeMeta, PasswordChangeTokenMeta},
         },
-        entities::{LocalMessageWrite, TokenRegistration, UserFetching},
+        entities::{
+            LocalMessageWrite, TenantFetching, TokenRegistration, UserFetching,
+        },
     },
     models::AccountLifeCycle,
     use_cases::support::dispatch_notification,
@@ -24,6 +26,7 @@ pub async fn start_password_redefinition(
     user_fetching_repo: Box<&dyn UserFetching>,
     token_registration_repo: Box<&dyn TokenRegistration>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
+    tenant_fetching_repo: Box<&dyn TenantFetching>,
 ) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch user from email
@@ -106,6 +109,7 @@ pub async fn start_password_redefinition(
         token_metadata.email,
         None,
         message_sending_repo,
+        tenant_fetching_repo,
     )
     .await
     {

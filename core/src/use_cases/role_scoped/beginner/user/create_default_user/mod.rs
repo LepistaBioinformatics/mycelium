@@ -8,7 +8,7 @@ use crate::{
             user::{PasswordHash, Provider, User},
         },
         entities::{
-            LocalMessageWrite, TokenRegistration, UserDeletion,
+            LocalMessageWrite, TenantFetching, TokenRegistration, UserDeletion,
             UserRegistration,
         },
     },
@@ -45,6 +45,7 @@ pub async fn create_default_user(
     token_registration_repo: Box<&dyn TokenRegistration>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
     user_deletion_repo: Box<&dyn UserDeletion>,
+    tenant_fetching_repo: Box<&dyn TenantFetching>,
 ) -> Result<Uuid, MappedErrors> {
     tracing::trace!("Creating user");
 
@@ -147,6 +148,7 @@ pub async fn create_default_user(
             token_registration_repo,
             message_sending_repo,
             user_deletion_repo,
+            tenant_fetching_repo,
         )
         .await?;
     }

@@ -7,7 +7,7 @@ use crate::{
             security_group::PermissionedRole,
             token::{UserAccountConnectionString, UserAccountScope},
         },
-        entities::{LocalMessageWrite, TokenRegistration},
+        entities::{LocalMessageWrite, TenantFetching, TokenRegistration},
     },
     models::AccountLifeCycle,
     use_cases::support::dispatch_notification,
@@ -42,6 +42,7 @@ pub async fn create_connection_string(
     life_cycle_settings: AccountLifeCycle,
     token_registration_repo: Box<&dyn TokenRegistration>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
+    tenant_fetching_repo: Box<&dyn TenantFetching>,
 ) -> Result<String, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Build the scoped account token
@@ -112,6 +113,7 @@ pub async fn create_connection_string(
         Email::from_string(owner.email.to_owned())?,
         None,
         message_sending_repo,
+        tenant_fetching_repo,
     )
     .await
     {

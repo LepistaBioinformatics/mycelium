@@ -5,7 +5,8 @@ use crate::{
             token::PasswordChangeTokenMeta, user::PasswordHash,
         },
         entities::{
-            LocalMessageWrite, TokenInvalidation, UserFetching, UserUpdating,
+            LocalMessageWrite, TenantFetching, TokenInvalidation, UserFetching,
+            UserUpdating,
         },
     },
     models::AccountLifeCycle,
@@ -27,6 +28,7 @@ pub async fn check_token_and_reset_password(
     user_updating_repo: Box<&dyn UserUpdating>,
     token_invalidation_repo: Box<&dyn TokenInvalidation>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
+    tenant_fetching_repo: Box<&dyn TenantFetching>,
 ) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch user from email
@@ -118,6 +120,7 @@ pub async fn check_token_and_reset_password(
         email,
         None,
         message_sending_repo,
+        tenant_fetching_repo,
     )
     .await
     {

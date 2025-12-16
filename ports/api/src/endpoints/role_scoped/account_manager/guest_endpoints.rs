@@ -125,6 +125,7 @@ pub async fn guest_to_children_account_url(
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
     )
     .await
     {

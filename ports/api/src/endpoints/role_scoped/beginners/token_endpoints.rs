@@ -123,6 +123,7 @@ pub async fn create_connection_string_url(
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
     )
     .await
     {

@@ -5,7 +5,10 @@ use crate::{
             guest_role::Permission, guest_user::GuestUser,
             native_error_codes::NativeErrorCodes, profile::Profile,
         },
-        entities::{AccountFetching, GuestUserRegistration, LocalMessageWrite},
+        entities::{
+            AccountFetching, GuestUserRegistration, LocalMessageWrite,
+            TenantFetching,
+        },
     },
     models::AccountLifeCycle,
     use_cases::support::dispatch_notification,
@@ -33,6 +36,7 @@ use uuid::Uuid;
         account_fetching_repo,
         guest_user_registration_repo,
         message_sending_repo,
+        tenant_fetching_repo,
     )
 )]
 pub async fn guest_user_to_subscription_manager_account(
@@ -45,6 +49,7 @@ pub async fn guest_user_to_subscription_manager_account(
     account_fetching_repo: Box<&dyn AccountFetching>,
     guest_user_registration_repo: Box<&dyn GuestUserRegistration>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
+    tenant_fetching_repo: Box<&dyn TenantFetching>,
 ) -> Result<GetOrCreateResponseKind<GuestUser>, MappedErrors> {
     let span: tracing::Span = tracing::Span::current();
 
@@ -164,6 +169,7 @@ pub async fn guest_user_to_subscription_manager_account(
         email,
         None,
         message_sending_repo,
+        tenant_fetching_repo,
     )
     .await
     {

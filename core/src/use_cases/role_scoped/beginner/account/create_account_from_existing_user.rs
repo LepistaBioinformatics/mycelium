@@ -10,8 +10,8 @@ use crate::{
             written_by::WrittenBy,
         },
         entities::{
-            AccountRegistration, LocalMessageWrite, UserFetching,
-            UserRegistration, WebHookRegistration,
+            AccountRegistration, LocalMessageWrite, TenantFetching,
+            UserFetching, UserRegistration, WebHookRegistration,
         },
     },
     models::AccountLifeCycle,
@@ -50,6 +50,7 @@ pub async fn create_user_account(
     account_registration_repo: Box<&dyn AccountRegistration>,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
+    tenant_fetching_repo: Box<&dyn TenantFetching>,
 ) -> Result<Account, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Initialize tracing span
@@ -154,6 +155,7 @@ pub async fn create_user_account(
             email,
             None,
             message_sending_repo,
+            tenant_fetching_repo,
         ),
         register_webhook_dispatching_event(
             correspondence_id,
