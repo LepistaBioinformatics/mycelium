@@ -141,12 +141,12 @@ async fn populate_tenant_info<T: ToString>(
 
                 if let Some(meta) = &tenant.meta {
                     //
-                    // Inject the tenant domain URL
+                    // Inject the tenant website URL
                     //
-                    if let Some(domain_url) =
-                        meta.get(&TenantMetaKey::DomainUrl)
+                    if let Some(website_url) =
+                        meta.get(&TenantMetaKey::WebsiteUrl)
                     {
-                        context.insert("domain_url", domain_url.as_str());
+                        context.insert("domain_url", website_url.as_str());
                     }
 
                     //

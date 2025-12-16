@@ -51,10 +51,10 @@ pub enum TenantMetaKey {
     /// The zip code of the tenant.
     ZipCode,
 
-    /// The Tenant URL
+    /// The Tenant Website URL
     ///
-    /// The URL of the tenant.
-    DomainUrl,
+    /// The website URL of the tenant.
+    WebsiteUrl,
 
     /// The Tenant Support Email
     ///
@@ -66,6 +66,25 @@ pub enum TenantMetaKey {
     /// The preferred locale of the tenant. This value should be used during
     /// communication with the tenant users.
     Locale,
+
+    /// The Legal Name
+    ///
+    /// The legal name or registered name of the tenant company/organization.
+    /// This is the official name registered with government authorities.
+    LegalName,
+
+    /// The Trading Name
+    ///
+    /// The trading name or "doing business as" (DBA) name of the tenant.
+    /// This is the name used for commercial purposes, which may differ from
+    /// the legal name.
+    TradingName,
+
+    /// The Contact Person
+    ///
+    /// The name of the primary contact person for the tenant. This person
+    /// is typically responsible for business communications and operations.
+    ContactPerson,
 
     /// To specify any other meta key
     ///
@@ -90,9 +109,12 @@ impl Display for TenantMetaKey {
             TenantMetaKey::Address1 => write!(f, "address1"),
             TenantMetaKey::Address2 => write!(f, "address2"),
             TenantMetaKey::ZipCode => write!(f, "zip_code"),
-            TenantMetaKey::DomainUrl => write!(f, "domain_url"),
+            TenantMetaKey::WebsiteUrl => write!(f, "website_url"),
             TenantMetaKey::SupportEmail => write!(f, "support_email"),
             TenantMetaKey::Locale => write!(f, "locale"),
+            TenantMetaKey::LegalName => write!(f, "legal_name"),
+            TenantMetaKey::TradingName => write!(f, "trading_name"),
+            TenantMetaKey::ContactPerson => write!(f, "contact_person"),
             TenantMetaKey::Custom(key) => write!(f, "{key}"),
         }
     }
@@ -116,9 +138,12 @@ impl FromStr for TenantMetaKey {
             "address1" => Ok(TenantMetaKey::Address1),
             "address2" => Ok(TenantMetaKey::Address2),
             "zip_code" => Ok(TenantMetaKey::ZipCode),
-            "domain_url" => Ok(TenantMetaKey::DomainUrl),
+            "website_url" => Ok(TenantMetaKey::WebsiteUrl),
             "support_email" => Ok(TenantMetaKey::SupportEmail),
             "locale" => Ok(TenantMetaKey::Locale),
+            "legal_name" => Ok(TenantMetaKey::LegalName),
+            "trading_name" => Ok(TenantMetaKey::TradingName),
+            "contact_person" => Ok(TenantMetaKey::ContactPerson),
             _ => Ok(TenantMetaKey::Custom(s.to_owned())),
         }
     }
@@ -213,9 +238,9 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_domain_url() {
-        let key = TenantMetaKey::from_str("domain_url").unwrap();
-        assert!(matches!(key, TenantMetaKey::DomainUrl));
+    fn test_parse_website_url() {
+        let key = TenantMetaKey::from_str("website_url").unwrap();
+        assert!(matches!(key, TenantMetaKey::WebsiteUrl));
         assert!(!matches!(key, TenantMetaKey::Custom(_)));
     }
 
@@ -230,6 +255,27 @@ mod tests {
     fn test_parse_locale() {
         let key = TenantMetaKey::from_str("locale").unwrap();
         assert!(matches!(key, TenantMetaKey::Locale));
+        assert!(!matches!(key, TenantMetaKey::Custom(_)));
+    }
+
+    #[test]
+    fn test_parse_legal_name() {
+        let key = TenantMetaKey::from_str("legal_name").unwrap();
+        assert!(matches!(key, TenantMetaKey::LegalName));
+        assert!(!matches!(key, TenantMetaKey::Custom(_)));
+    }
+
+    #[test]
+    fn test_parse_trading_name() {
+        let key = TenantMetaKey::from_str("trading_name").unwrap();
+        assert!(matches!(key, TenantMetaKey::TradingName));
+        assert!(!matches!(key, TenantMetaKey::Custom(_)));
+    }
+
+    #[test]
+    fn test_parse_contact_person() {
+        let key = TenantMetaKey::from_str("contact_person").unwrap();
+        assert!(matches!(key, TenantMetaKey::ContactPerson));
         assert!(!matches!(key, TenantMetaKey::Custom(_)));
     }
 
@@ -249,9 +295,12 @@ mod tests {
             "address1",
             "address2",
             "zip_code",
-            "domain_url",
+            "website_url",
             "support_email",
             "locale",
+            "legal_name",
+            "trading_name",
+            "contact_person",
         ];
 
         for key_str in default_keys {
@@ -355,9 +404,12 @@ mod tests {
             (TenantMetaKey::Address1, "address1"),
             (TenantMetaKey::Address2, "address2"),
             (TenantMetaKey::ZipCode, "zip_code"),
-            (TenantMetaKey::DomainUrl, "domain_url"),
+            (TenantMetaKey::WebsiteUrl, "website_url"),
             (TenantMetaKey::SupportEmail, "support_email"),
             (TenantMetaKey::Locale, "locale"),
+            (TenantMetaKey::LegalName, "legal_name"),
+            (TenantMetaKey::TradingName, "trading_name"),
+            (TenantMetaKey::ContactPerson, "contact_person"),
         ];
 
         for (key, expected) in test_cases {
@@ -434,9 +486,12 @@ mod tests {
             ("\"address1\"", TenantMetaKey::Address1),
             ("\"address2\"", TenantMetaKey::Address2),
             ("\"zip_code\"", TenantMetaKey::ZipCode),
-            ("\"domain_url\"", TenantMetaKey::DomainUrl),
+            ("\"website_url\"", TenantMetaKey::WebsiteUrl),
             ("\"support_email\"", TenantMetaKey::SupportEmail),
             ("\"locale\"", TenantMetaKey::Locale),
+            ("\"legal_name\"", TenantMetaKey::LegalName),
+            ("\"trading_name\"", TenantMetaKey::TradingName),
+            ("\"contact_person\"", TenantMetaKey::ContactPerson),
         ];
 
         for (json_str, expected_variant) in default_keys_json {
@@ -462,9 +517,12 @@ mod tests {
             TenantMetaKey::Address1,
             TenantMetaKey::Address2,
             TenantMetaKey::ZipCode,
-            TenantMetaKey::DomainUrl,
+            TenantMetaKey::WebsiteUrl,
             TenantMetaKey::SupportEmail,
             TenantMetaKey::Locale,
+            TenantMetaKey::LegalName,
+            TenantMetaKey::TradingName,
+            TenantMetaKey::ContactPerson,
         ];
 
         for original_key in default_keys {
@@ -594,8 +652,7 @@ mod tests {
     #[test]
     fn test_inequality_default_vs_custom() {
         let default_key = TenantMetaKey::from_str("country").unwrap();
-        // Test with a custom key that's different from default
-        let custom_key = TenantMetaKey::from_str("custom_country").unwrap();
+        let custom_key = TenantMetaKey::Custom("country".to_string());
         assert_ne!(default_key, custom_key);
     }
 
