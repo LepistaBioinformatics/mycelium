@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.2.0] - 2025-12-15
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.1.1-rc.5] - 2025-12-14
 
 ### 🚀 Features

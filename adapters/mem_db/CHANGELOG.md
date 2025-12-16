@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Include services to routes
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.1.1-rc.5] - 2025-12-14
 
 ### 🚀 Features

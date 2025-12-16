@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.2.1-rc.1] - 2025-12-16
+
+### 🚀 Features
+
+- Upgrade notifications to use tenant information during communications
+
 ## [8.2.0] - 2025-12-15
 
 ### 🚀 Features
@@ -12,6 +18,10 @@ All notable changes to this project will be documented in this file.
 
 - Include services to routes
 - Configure metrics exporter
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.1.1-rc.5] - 2025-12-14
 
