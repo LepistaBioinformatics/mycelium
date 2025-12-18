@@ -1,41 +1,17 @@
-use crate::domain::dtos::token::{Token, UserAccountScope};
+use crate::domain::dtos::token::{
+    PublicConnectionStringInfo, Token, UserAccountScope,
+};
 
 use async_trait::async_trait;
-use mycelium_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
+use mycelium_base::{
+    entities::{FetchManyResponseKind, FetchResponseKind},
+    utils::errors::MappedErrors,
+};
 use shaku::Interface;
+use uuid::Uuid;
 
 #[async_trait]
 pub trait TokenFetching: Interface + Send + Sync {
-    /// Get token by AccountWithPermissionedRolesScope scope
-    ///
-    /// This should be used to get connection strings filtering by scope
-    /// containing account with permissioned roles.
-    ///
-    //async fn get_connection_string_by_account_with_permissioned_roles_scope(
-    //    &self,
-    //    scope: ServiceAccountWithPermissionedRolesScope,
-    //) -> Result<FetchResponseKind<Token, String>, MappedErrors>;
-
-    /// Get token by RoleWithPermissionsScope scope
-    ///
-    /// This should be used to get connection strings filtering by scope
-    /// containing role with permissions.
-    ///
-    //async fn get_connection_string_by_role_with_permissioned_roles_scope(
-    //    &self,
-    //    scope: RoleWithPermissionsScope,
-    //) -> Result<FetchResponseKind<Token, String>, MappedErrors>;
-
-    /// Get token by TenantWithPermissionsScope scope
-    ///
-    /// This should be used to get connection strings filtering by scope
-    /// containing tenant with permissions.
-    ///
-    //async fn get_connection_string_by_tenant_with_permissioned_roles_scope(
-    //    &self,
-    //    scope: TenantWithPermissionsScope,
-    //) -> Result<FetchResponseKind<Token, String>, MappedErrors>;
-
     /// Get token by UserAccountWithPermissionedRolesScope scope
     ///
     /// This should be used to get connection strings filtering by scope
@@ -45,4 +21,14 @@ pub trait TokenFetching: Interface + Send + Sync {
         &self,
         scope: UserAccountScope,
     ) -> Result<FetchResponseKind<Token, String>, MappedErrors>;
+
+    /// List connection strings by account id
+    ///
+    /// This should be used to list all connection strings for a given account
+    /// id, filtering by the scope containing the account id.
+    ///
+    async fn list_connection_strings_by_account_id(
+        &self,
+        account_id: Uuid,
+    ) -> Result<FetchManyResponseKind<PublicConnectionStringInfo>, MappedErrors>;
 }

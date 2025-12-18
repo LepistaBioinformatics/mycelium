@@ -24,7 +24,7 @@ use myc_http_tools::{
     },
     Account,
 };
-use mycelium_base::entities::GetOrCreateResponseKind;
+use mycelium_base::{dtos::PaginatedRecord, entities::GetOrCreateResponseKind};
 use serde::Deserialize;
 use shaku::HasComponent;
 use utoipa::{IntoParams, ToSchema};
@@ -360,7 +360,7 @@ pub async fn create_role_associated_account_url(
         (
             status = 200,
             description = "Fetching success.",
-            body = [Account],
+            body = PaginatedRecord<Account>,
         ),
     ),
 )]

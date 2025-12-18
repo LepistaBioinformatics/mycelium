@@ -1,14 +1,21 @@
 use crate::dtos::MyceliumProfileData;
 
-use actix_web::{post, web, HttpResponse, Responder};
+use actix_web::{get, post, web, HttpResponse, Responder};
 use myc_core::{
-    domain::dtos::security_group::PermissionedRole, models::AccountLifeCycle,
-    use_cases::role_scoped::beginner::token::create_connection_string,
+    domain::dtos::{
+        security_group::PermissionedRole, token::PublicConnectionStringInfo,
+    },
+    models::AccountLifeCycle,
+    use_cases::role_scoped::beginner::token::{
+        create_connection_string, list_my_connection_strings,
+    },
 };
 use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
-    wrappers::default_response_to_http_response::handle_mapped_error,
+    wrappers::default_response_to_http_response::{
+        fetch_many_response_kind, handle_mapped_error,
+    },
 };
 use serde::{Deserialize, Serialize};
 use shaku::HasComponent;
@@ -20,7 +27,9 @@ use uuid::Uuid;
 // ? ---------------------------------------------------------------------------
 
 pub fn configure(config: &mut web::ServiceConfig) {
-    config.service(create_connection_string_url);
+    config
+        .service(create_connection_string_url)
+        .service(list_my_connection_strings_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -130,6 +139,52 @@ pub async fn create_connection_string_url(
         Ok(connection_string) => {
             HttpResponse::Ok().json(CreateTokenResponse { connection_string })
         }
+        Err(err) => handle_mapped_error(err),
+    }
+}
+
+/// List My Connection Strings
+///
+/// This action lists all connection strings for the current user.
+///
+#[utoipa::path(
+    get,
+    operation_id = "list_my_connection_strings",
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 200,
+            description = "Connection strings listed.",
+            body = [PublicConnectionStringInfo],
+        ),
+    ),
+)]
+#[get("")]
+pub async fn list_my_connection_strings_url(
+    profile: MyceliumProfileData,
+    sql_app_module: web::Data<SqlAppModule>,
+) -> impl Responder {
+    match list_my_connection_strings(
+        profile.to_profile(),
+        Box::new(&*sql_app_module.resolve_ref()),
+    )
+    .await
+    {
+        Ok(res) => fetch_many_response_kind(res),
         Err(err) => handle_mapped_error(err),
     }
 }

@@ -1,4 +1,11 @@
-use crate::models::{config::DbPoolProvider, token::Token as TokenModel};
+use crate::{
+    models::{
+        config::DbPoolProvider,
+        public_connection_string_info::PublicConnectionStringInfoModel,
+        token::Token as TokenModel,
+    },
+    repositories::token::shared::map_public_connection_string_info_model_to_dto,
+};
 
 use async_trait::async_trait;
 use chrono::Local;
@@ -7,20 +14,21 @@ use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
         token::{
-            ConnectionStringBean, MultiTypeMeta, Token,
-            UserAccountConnectionString, UserAccountScope,
+            ConnectionStringBean, MultiTypeMeta, PublicConnectionStringInfo,
+            Token, UserAccountConnectionString, UserAccountScope,
         },
     },
     entities::TokenFetching,
 };
 use mycelium_base::{
-    entities::FetchResponseKind,
+    entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{fetching_err, MappedErrors},
 };
 use serde_json::from_value;
 use shaku::Component;
 use std::sync::Arc;
 use tracing::error;
+use uuid::Uuid;
 
 #[derive(Component)]
 #[shaku(interface = TokenFetching)]
@@ -135,6 +143,57 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
             _ => fetching_err("Multiple tokens found")
                 .with_code(NativeErrorCodes::MYC00020)
                 .as_error(),
+        }
+    }
+
+    #[tracing::instrument(
+        name = "list_connection_strings_by_account_id",
+        skip_all
+    )]
+    async fn list_connection_strings_by_account_id(
+        &self,
+        account_id: Uuid,
+    ) -> Result<FetchManyResponseKind<PublicConnectionStringInfo>, MappedErrors>
+    {
+        let conn = &mut self.db_config.get_pool().get().map_err(|e| {
+            fetching_err(format!("Failed to get DB connection: {}", e))
+                .with_code(NativeErrorCodes::MYC00001)
+        })?;
+
+        let sql = format!(
+            r#"
+            SELECT id, "innerId", "accountId", email, name, expiration, "createdAt", scope
+            FROM public_connection_string_info
+            WHERE "accountId"::text = '"{}"'
+            ORDER BY id DESC
+            "#,
+            account_id
+        );
+
+        let rows = diesel::sql_query(sql)
+            .load::<PublicConnectionStringInfoModel>(conn)
+            .map_err(|e| {
+                fetching_err(format!(
+                    "Failed to fetch connection strings: {}",
+                    e
+                ))
+            })?;
+
+        if rows.is_empty() {
+            return Ok(FetchManyResponseKind::NotFound);
+        }
+
+        let connection_strings: Result<
+            Vec<PublicConnectionStringInfo>,
+            MappedErrors,
+        > = rows
+            .into_iter()
+            .map(map_public_connection_string_info_model_to_dto)
+            .collect();
+
+        match connection_strings {
+            Ok(items) => Ok(FetchManyResponseKind::Found(items)),
+            Err(e) => Err(e),
         }
     }
 }
