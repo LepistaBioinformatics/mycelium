@@ -4,7 +4,7 @@
   alt="Mycelium Logo"
   src="docs/assets/logo-large.svg"
   width="200"
-  style="margin: 20px; background-color: transparent; border-radius: 10px; padding: 10px; align-items: center; display: block; margin-left: auto; margin-right: auto;"
+  style="margin: 20px; background-color: transparent; border-radius: 20px; align-items: center; display: block; margin-left: auto; margin-right: auto;"
 />
 
 Mycelium is an **open and free API Gateway**, designed to operate in
@@ -60,6 +60,13 @@ In summary:
 ---
 
 ## Conceptual Structure
+
+<img
+  alt="Conceptual Structure"
+  src="docs/draw.io/authentication-authorization-model.drawio.png"
+  width="100%"
+  style="background-color: transparent; border-radius: 10px; align-items: center; display: block; margin: 0 auto;"
+/>
 
 ```
 Client
