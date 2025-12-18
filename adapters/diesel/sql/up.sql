@@ -352,6 +352,27 @@ WHERE
 ORDER BY
     gu_email, gr_slug, acc_id, gr_id;
 
+-- Public connection string info view
+CREATE OR REPLACE VIEW public_connection_string_info AS
+SELECT
+    id,
+    meta->'id' as innerId,
+    meta->'accountId' as accountId,
+    meta->'email' as email,
+    meta->'name' as name,
+    expiration,
+    meta->'createdAt' as createdAt,
+    meta->'scope' as scope
+FROM
+    token
+WHERE
+    meta ? 'token'
+AND
+    meta ? 'name'
+AND
+    meta ? 'id'
+ORDER BY id DESC;
+
 --------------------------------------------------------------------------------
 -- PERMISSIONS
 --------------------------------------------------------------------------------

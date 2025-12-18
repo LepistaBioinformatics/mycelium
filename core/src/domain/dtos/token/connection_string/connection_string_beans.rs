@@ -4,9 +4,10 @@ use crate::domain::dtos::{
 
 use chrono::{DateTime, Local, Timelike};
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, ToSchema)]
 #[serde(rename_all = "lowercase")]
 pub enum ConnectionStringBean {
     /// The signature

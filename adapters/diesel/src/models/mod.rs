@@ -9,6 +9,7 @@ pub(crate) mod identity_provider;
 pub(crate) mod internal_error;
 pub(crate) mod message;
 pub(crate) mod owner_on_tenant;
+pub(crate) mod public_connection_string_info;
 pub(crate) mod tenant;
 pub(crate) mod tenant_tag;
 pub(crate) mod token;

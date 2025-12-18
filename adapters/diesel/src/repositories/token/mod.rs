@@ -1,3 +1,4 @@
+mod shared;
 mod token_fetching;
 mod token_invalidation;
 mod token_registration;

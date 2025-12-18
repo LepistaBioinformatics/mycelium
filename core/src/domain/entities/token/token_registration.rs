@@ -29,22 +29,4 @@ pub trait TokenRegistration: Interface + Send + Sync {
         meta: UserAccountConnectionString,
         expires: DateTime<Local>,
     ) -> Result<CreateResponseKind<Token>, MappedErrors>;
-
-    /* async fn create_account_scoped_connection_string(
-        &self,
-        meta: ServiceAccountScopedConnectionString,
-        expires: DateTime<Local>,
-    ) -> Result<CreateResponseKind<Token>, MappedErrors>;
-
-    async fn create_role_scoped_connection_string(
-        &self,
-        meta: RoleScopedConnectionString,
-        expires: DateTime<Local>,
-    ) -> Result<CreateResponseKind<Token>, MappedErrors>;
-
-    async fn create_tenant_scoped_connection_string(
-        &self,
-        meta: TenantScopedConnectionString,
-        expires: DateTime<Local>,
-    ) -> Result<CreateResponseKind<Token>, MappedErrors>; */
 }

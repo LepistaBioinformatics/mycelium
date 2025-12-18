@@ -3,7 +3,7 @@ use crate::modifiers::security::MyceliumSecurity;
 
 use myc_core::domain::dtos::{
     account, account_type, email, error_code, guest_role, guest_user, profile,
-    tag, tenant, user, webhook, route, service as service_dtos, 
+    tag, token, tenant, user, webhook, route, service as service_dtos, 
     http_secret
 };
 use myc_http_tools::{utils::HttpJsonResponse, SystemActor};
@@ -248,6 +248,7 @@ struct BeginnersTenantApiDoc;
     ),
     paths(
         Beginners__Token::create_connection_string_url,
+        Beginners__Token::list_my_connection_strings_url,
     ),
     security(("Bearer" = [], "ConnectionString" = []))
 )]
@@ -695,6 +696,7 @@ struct UsersManagerAccountApiDoc;
             tenant::Tenant,
             tenant::TenantMetaKey,
             tenant::TenantStatus,
+            token::PublicConnectionStringInfo,
             user::User,
             webhook::WebHook,
             webhook::WebHookTrigger,
