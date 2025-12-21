@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.2.1-rc.4] - 2025-12-21
+
+### 🐛 Bug Fixes
+
+- Solve vulnerable dependencies
+
+## [8.2.1-rc.3] - 2025-12-18
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.2.1-rc.2] - 2025-12-16
 
 ### ⚙️ Miscellaneous Tasks

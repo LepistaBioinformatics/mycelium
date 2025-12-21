@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.2.1-rc.4] - 2025-12-21
+
+### 🧪 Testing
+
+- Update load-config-from-file test to load from toml file in replacement to yaml
+
+### ⚙️ Miscellaneous Tasks
+
+- Do implements the starter ci workflow of the project
+
+## [8.2.1-rc.3] - 2025-12-18
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.2.1-rc.2] - 2025-12-16
 
 ### ⚙️ Miscellaneous Tasks
