@@ -18,6 +18,14 @@ contextual decisions close to the resource.
 
 ---
 
+## 📖 Documentation
+
+**[📚 View Complete Documentation →](https://lepistabioinformatics.github.io/mycelium/)**
+
+Access the full documentation website with guides, tutorials, and API reference.
+
+---
+
 ## Quick Links
 
 📚 **[Complete Documentation](./docs/book/src/00-introduction.md)** - Full documentation guide
@@ -187,7 +195,9 @@ For detailed testing instructions including integration tests and benchmarks, se
 
 ## Documentation
 
-Complete documentation is available in the `docs/book/src/` directory:
+**📚 [Online Documentation](https://lepistabioinformatics.github.io/mycelium/)** - Browse the complete documentation website
+
+Alternatively, you can access documentation files directly in the `docs/book/src/` directory:
 
 - **[Introduction](./docs/book/src/00-introduction.md)** - Overview and key features
 - **[Installation](./docs/book/src/02-installation.md)** - Installation and setup
