@@ -280,32 +280,6 @@ hr {
 }
 
 /* ==========================================================================
-   Chapter Navigation
-   ========================================================================== */
-
-.nav-chapters {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 2rem;
-}
-
-.nav-chapters a {
-    padding: 0.8rem 1.5rem;
-    background-color: var(--mycelium-primary);
-    color: white !important;
-    border-radius: 6px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    border: none;
-}
-
-.nav-chapters a:hover {
-    background-color: var(--mycelium-secondary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
-}
-
-/* ==========================================================================
    Scrollbar Customization
    ========================================================================== */
 

@@ -1,9 +1,5 @@
 # Quick Start Guide
 
-[🏠 Home](/README.md)
-
-[📋 Summary](/docs/book/src/SUMMARY.md)
-
 This guide will help you get Mycelium API Gateway up and running in minutes with a minimal configuration.
 
 ## Prerequisites
@@ -246,10 +242,3 @@ Ensure:
 3. The protocol (http/https) matches the downstream service
 
 For more help, visit the [GitHub Issues](https://github.com/LepistaBioinformatics/mycelium/issues) page.
-
----
-
-<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
-  <a href="./02-installation.md" style="text-decoration: none; color: #0066cc;">◀️ Previous: Installation</a>
-  <a href="./04-configuration.md" style="text-decoration: none; color: #0066cc;">Next: Configuration ▶️</a>
-</div>

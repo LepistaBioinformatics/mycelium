@@ -1,7 +1,5 @@
 # Summary
 
-[🏠 Home](/README.md)
-
 [Introduction](./00-introduction.md)
 
 # Getting Started

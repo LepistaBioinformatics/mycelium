@@ -1,9 +1,5 @@
 # Mycelium Authorization Model
 
-[🏠 Home](/README.md)
-
-[📋 Summary](/docs/book/src/SUMMARY.md)
-
 This document describes the **Mycelium authorization model**, its principles, formal classification, and architectural decisions. It is strictly technical and does not address aspects of project governance or maintenance.
 
 ---
@@ -108,10 +104,3 @@ The current model allows incremental evolution to:
 ## Conclusion
 
 Mycelium implements a modern authorization model, combining declarative controls at the gateway with contextual decisions close to the resource. This design favors clarity, security, and scalability without introducing unnecessary dependencies.
-
----
-
-<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
-  <a href="./05-deploy-locally.md" style="text-decoration: none; color: #0066cc;">◀️ Previous: Deploy Locally</a>
-  <a href="./06-downstream-apis.md" style="text-decoration: none; color: #0066cc;">Next: Downstream APIs ▶️</a>
-</div>

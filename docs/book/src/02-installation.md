@@ -1,9 +1,5 @@
 # Installation Guide
 
-[🏠 Home](/README.md)
-
-[📋 Summary](/docs/book/src/SUMMARY.md)
-
 This guide will walk you through the steps to install Mycelium API Gateway on your local machine. Mycelium API Gateway package includes twelve libs and services, available in Crates.io. It should be installed using the cargo package manager.
 
 ## Prerequisites
@@ -223,10 +219,3 @@ Now that you have Mycelium installed, proceed to:
 - Solution: Ensure you have superuser privileges or use a user with sufficient permissions
 
 For more help, visit the [GitHub Issues](https://github.com/LepistaBioinformatics/mycelium/issues) page.
-
----
-
-<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
-  <a href="./00-introduction.md" style="text-decoration: none; color: #0066cc;">◀️ Previous: Introduction</a>
-  <a href="./03-quick-start.md" style="text-decoration: none; color: #0066cc;">Next: Quick Start ▶️</a>
-</div>

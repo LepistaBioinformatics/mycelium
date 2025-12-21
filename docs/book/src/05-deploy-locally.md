@@ -1,9 +1,5 @@
 # Deploy Locally with Docker Compose
 
-[🏠 Home](/README.md)
-
-[📋 Summary](/docs/book/src/SUMMARY.md)
-
 This guide explains how to deploy Mycelium API Gateway locally using Docker Compose. This is the recommended approach for development and testing, as it provides a complete environment with all dependencies.
 
 ## Prerequisites
@@ -389,10 +385,3 @@ docker-compose up -d
 - [Docker Compose Documentation](https://docs.docker.com/compose/)
 - [Mycelium GitHub Repository](https://github.com/LepistaBioinformatics/mycelium)
 - [Report Issues](https://github.com/LepistaBioinformatics/mycelium/issues)
-
----
-
-<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
-  <a href="./04-configuration.md" style="text-decoration: none; color: #0066cc;">◀️ Previous: Configuration</a>
-  <a href="./01-authorization.md" style="text-decoration: none; color: #0066cc;">Next: Authorization Model ▶️</a>
-</div>

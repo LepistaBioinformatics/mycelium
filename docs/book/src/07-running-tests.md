@@ -1,9 +1,5 @@
 # Running Tests
 
-[🏠 Home](/README.md)
-
-[📋 Summary](/docs/book/src/SUMMARY.md)
-
 This guide explains how to run the test suite for Mycelium API Gateway. Mycelium includes comprehensive unit tests, integration tests, and end-to-end tests to ensure code quality and reliability.
 
 ## Prerequisites
@@ -436,10 +432,3 @@ killall myc-api
 - [Rust Testing Guide](https://doc.rust-lang.org/book/ch11-00-testing.html)
 - [Tokio Testing](https://tokio.rs/tokio/topics/testing)
 - [GitHub Issues](https://github.com/LepistaBioinformatics/mycelium/issues) - Report test failures
-
----
-
-<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
-  <a href="./06-downstream-apis.md" style="text-decoration: none; color: #0066cc;">◀️ Previous: Downstream APIs</a>
-  <span></span>
-</div>

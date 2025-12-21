@@ -1,9 +1,5 @@
 # Configuration Guide
 
-[🏠 Home](/README.md)
-
-[📋 Summary](/docs/book/src/SUMMARY.md)
-
 This document describes the configurations of the TOML file used to set up the Mycelium API Gateway. An example configuration file can be found at `settings/config.example.toml` in the repository.
 
 ## Configuration File Location
@@ -418,10 +414,3 @@ SETTINGS_PATH=settings/config.toml myc-api --validate
 - Solution: Ensure Vault is running and unsealed, and the token is valid
 
 For more help, visit the [GitHub Issues](https://github.com/LepistaBioinformatics/mycelium/issues) page.
-
----
-
-<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
-  <a href="./03-quick-start.md" style="text-decoration: none; color: #0066cc;">◀️ Previous: Quick Start</a>
-  <a href="./05-deploy-locally.md" style="text-decoration: none; color: #0066cc;">Next: Deploy Locally ▶️</a>
-</div>

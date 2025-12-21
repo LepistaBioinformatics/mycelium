@@ -1,9 +1,5 @@
 # Downstream APIs Configuration
 
-[🏠 Home](/README.md)
-
-[📋 Summary](/docs/book/src/SUMMARY.md)
-
 Downstream services are configured directly in the main TOML configuration file. This guide explains how to configure routes, security groups, and authentication for your backend services.
 
 ## Configuration Location
@@ -450,10 +446,3 @@ curl -H "Authorization: ServiceToken tid=...;rid=...;r=admin;edt=...;sig=..." \
 - [Running Tests](./07-running-tests.md) - Test your setup
 
 For more help, visit the [GitHub Issues](https://github.com/LepistaBioinformatics/mycelium/issues) page.
-
----
-
-<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
-  <a href="./01-authorization.md" style="text-decoration: none; color: #0066cc;">◀️ Previous: Authorization Model</a>
-  <a href="./07-running-tests.md" style="text-decoration: none; color: #0066cc;">Next: Running Tests ▶️</a>
-</div>

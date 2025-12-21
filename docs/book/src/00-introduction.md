@@ -1,9 +1,5 @@
 # Introduction
 
-[🏠 Home](/README.md)
-
-[📋 Summary](/docs/book/src/SUMMARY.md)
-
 Welcome to **Mycelium API Gateway**, the ultimate solution for secure, flexible, and multi-tenant API management! Whether you're building a robust platform or enhancing your downstream APIs, our gateway is designed to provide you with everything you need for seamless authentication, authorization, and security.
 
 ## What is Mycelium?
@@ -82,10 +78,3 @@ This separation ensures low coupling, high expressiveness, and security decision
 ## License
 
 Mycelium API Gateway is licensed under the Apache 2.0 License. Additional restrictions for commercial use apply under the Commons Clause. See the [LICENSE](https://github.com/LepistaBioinformatics/mycelium/blob/main/LICENSE) file for details.
-
----
-
-<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #e0e0e0;">
-  <span></span>
-  <a href="./02-installation.md" style="text-decoration: none; color: #0066cc;">Next: Installation ▶️</a>
-</div>
