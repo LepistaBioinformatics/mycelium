@@ -231,10 +231,10 @@ impl MappedErrors {
         }
 
         if let ErrorCodes::Codes(inner_code) = &self.codes {
-            return inner_code.into_iter().any(|i| i.as_str() == code);
+            return inner_code.iter().any(|i| i.as_str() == code);
         };
 
-        return false;
+        false
     }
 
     pub fn is_in<T: ToString>(&self, codes: Vec<T>) -> bool {
@@ -244,7 +244,7 @@ impl MappedErrors {
             }
         }
 
-        return false;
+        false
     }
 
     // ? -----------------------------------------------------------------------
@@ -256,7 +256,7 @@ impl MappedErrors {
 
     /// Evoked when a Err return is desired.
     pub fn as_error<T>(self) -> Result<T, Self> {
-        if let true = self.expected {
+        if self.expected {
             debug!("{:?}", &self.to_string());
         } else {
             error!("{:?}", &self.to_string());
