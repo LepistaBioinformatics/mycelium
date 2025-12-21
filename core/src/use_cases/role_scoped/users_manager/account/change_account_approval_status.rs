@@ -68,7 +68,9 @@ on accounts with more privileges than himself.",
             }
         }
         _ => {
-            return use_case_err("Prohibited operation. Invalid account type".to_string())
+            return use_case_err(
+                "Prohibited operation. Invalid account type".to_string(),
+            )
             .as_error()
         }
     };

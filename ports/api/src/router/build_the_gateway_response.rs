@@ -5,11 +5,8 @@ use awc::error::HeaderValue;
 use myc_http_tools::{
     responses::GatewayError,
     settings::{
-        DEFAULT_PROFILE_KEY,
-        DEFAULT_REQUEST_ID_KEY,
-        FORWARDING_KEYS,
-        FORWARD_FOR_KEY,
-        MYCELIUM_SERVICE_NAME,
+        DEFAULT_PROFILE_KEY, DEFAULT_REQUEST_ID_KEY, FORWARDING_KEYS,
+        FORWARD_FOR_KEY, MYCELIUM_SERVICE_NAME,
     },
 };
 
@@ -18,8 +15,8 @@ use myc_http_tools::{
 /// This function builds the gateway response with the downstream response.
 ///
 #[tracing::instrument(
-    name = "build_the_gateway_response", 
-    skip_all, 
+    name = "build_the_gateway_response",
+    skip_all,
     fields(
         myc.router.res_size = tracing::field::Empty,
     )

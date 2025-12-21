@@ -127,11 +127,8 @@ impl Route {
             .build()
         {
             Err(err) => {
-                execution_err(format!(
-                    "Unexpected error on build URI: {}",
-                    err
-                ))
-                .as_error()
+                execution_err(format!("Unexpected error on build URI: {}", err))
+                    .as_error()
             }
             Ok(res) => Ok(res),
         }
@@ -166,11 +163,8 @@ impl Route {
             .build()
         {
             Err(err) => {
-                execution_err(format!(
-                    "Unexpected error on build URI: {}",
-                    err
-                ))
-                .as_error()
+                execution_err(format!("Unexpected error on build URI: {}", err))
+                    .as_error()
             }
             Ok(res) => Ok(res),
         }

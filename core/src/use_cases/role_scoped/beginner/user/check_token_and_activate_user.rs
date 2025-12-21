@@ -28,13 +28,10 @@ pub async fn check_token_and_activate_user(
         .await?
     {
         FetchResponseKind::NotFound(_) => {
-            return use_case_err(format!(
-                "User not found: {}",
-                email.email()
-            ))
-            .with_code(NativeErrorCodes::MYC00009)
-            .with_exp_true()
-            .as_error()
+            return use_case_err(format!("User not found: {}", email.email()))
+                .with_code(NativeErrorCodes::MYC00009)
+                .with_exp_true()
+                .as_error()
         }
         FetchResponseKind::Found(user) => user,
     };
@@ -84,8 +81,7 @@ pub async fn check_token_and_activate_user(
         UpdatingResponseKind::NotUpdated(_, msg) => {
             return use_case_err(format!(
                 "User with id {} could not be activated: {}",
-                user_id,
-                msg
+                user_id, msg
             ))
             .with_code(NativeErrorCodes::MYC00008)
             .with_exp_true()
