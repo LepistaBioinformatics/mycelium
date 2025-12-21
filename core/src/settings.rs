@@ -12,6 +12,8 @@ use tera::Tera;
 ///
 pub const DEFAULT_TOTP_DOMAIN: &str = "Mycelium";
 
+pub(crate) const DEFAULT_TENANT_ID_KEY: &str = "tenant_id";
+
 // ? ---------------------------------------------------------------------------
 // ? Templates
 // ? ---------------------------------------------------------------------------

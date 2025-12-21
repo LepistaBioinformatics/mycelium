@@ -259,10 +259,6 @@ impl Service {
     }
 
     pub fn is_context_api(&self) -> bool {
-        if let Some(is_context_api) = self.is_context_api {
-            is_context_api
-        } else {
-            false
-        }
+        self.is_context_api.unwrap_or_default()
     }
 }

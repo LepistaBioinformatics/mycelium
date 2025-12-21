@@ -4,7 +4,7 @@
   alt="Mycelium Logo"
   src="docs/assets/logo-large.svg"
   width="200"
-  style="margin: 20px; background-color: transparent; border-radius: 10px; padding: 10px; align-items: center; display: block; margin-left: auto; margin-right: auto;"
+  style="margin: 20px; background-color: transparent; border-radius: 20px; align-items: center; display: block; margin-left: auto; margin-right: auto;"
 />
 
 Mycelium is an **open and free API Gateway**, designed to operate in
@@ -15,6 +15,28 @@ separation between technical concerns and organizational aspects of the project.
 This repository documents the fundamentals of Mycelium, with special focus on its
 **authorization model**, which combines declarative controls at the gateway with
 contextual decisions close to the resource.
+
+---
+
+## 📖 Documentation
+
+**[📚 View Complete Documentation →](https://lepistabioinformatics.github.io/mycelium/)**
+
+Access the full documentation website with guides, tutorials, and API reference.
+
+---
+
+## Quick Links
+
+📚 **[Complete Documentation](./docs/book/src/00-introduction.md)** - Full documentation guide
+
+🚀 **[Installation Guide](./docs/book/src/02-installation.md)** - Get started with installation
+
+⚡ **[Quick Start](./docs/book/src/03-quick-start.md)** - Up and running in minutes
+
+⚙️ **[Configuration](./docs/book/src/04-configuration.md)** - Configure Mycelium
+
+🔐 **[Authorization Model](./docs/book/src/01-authorization.md)** - Deep dive into security
 
 ---
 
@@ -61,6 +83,13 @@ In summary:
 
 ## Conceptual Structure
 
+<img
+  alt="Conceptual Structure"
+  src="docs/draw.io/authentication-authorization-model.drawio.png"
+  width="100%"
+  style="background-color: transparent; border-radius: 10px; align-items: center; display: block; margin: 0 auto;"
+/>
+
 ```
 Client
   ↓
@@ -85,6 +114,99 @@ within the project's organizational scope, through:
 
 These aspects **do not influence or condition** the technical authorization
 model, which remains neutral, explicit, and verifiable.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+Before installing Mycelium, ensure you have:
+
+- **Rust** (version 1.70 or higher) - [Install Rust](https://rustup.rs/)
+- **Postgres** (version 14 or higher) - Database for tenant and user management
+- **Redis** (version 6 or higher) - Caching layer
+- **HashiCorp Vault** (optional) - Recommended for production secret management
+- **Docker** (optional) - For containerized deployment
+
+For detailed system dependencies and installation instructions, see the [Installation Guide](./docs/book/src/02-installation.md).
+
+### Installation
+
+Install Mycelium using Cargo:
+
+```bash
+cargo install mycelium-api
+```
+
+Or using Docker:
+
+```bash
+docker pull sgelias/mycelium-api:latest
+```
+
+For complete installation instructions including database setup and Vault configuration, see the [Installation Guide](./docs/book/src/02-installation.md).
+
+### Quick Start
+
+1. **Initialize the database:**
+   ```bash
+   psql postgres://postgres:postgres@localhost:5432/postgres \
+     -f postgres/sql/up.sql \
+     -v db_password='your-password'
+   ```
+
+2. **Configure Mycelium:**
+   ```bash
+   cp settings/config.example.toml settings/config.toml
+   # Edit config.toml with your settings
+   ```
+
+3. **Start Mycelium:**
+   ```bash
+   SETTINGS_PATH=settings/config.toml myc-api
+   ```
+
+4. **Verify it's running:**
+   ```bash
+   curl http://localhost:8080/health
+   ```
+
+For a complete quick start guide with minimal configuration, see [Quick Start Guide](./docs/book/src/03-quick-start.md).
+
+### Running Tests
+
+Execute the test suite:
+
+```bash
+# Run all tests
+cargo test
+
+# Run with coverage
+cargo tarpaulin --out Html
+
+# Run specific tests
+cargo test auth
+```
+
+For detailed testing instructions including integration tests and benchmarks, see [Running Tests](./docs/book/src/07-running-tests.md).
+
+---
+
+## Documentation
+
+**📚 [Online Documentation](https://lepistabioinformatics.github.io/mycelium/)** - Browse the complete documentation website
+
+Alternatively, you can access documentation files directly in the `docs/book/src/` directory:
+
+- **[Introduction](./docs/book/src/00-introduction.md)** - Overview and key features
+- **[Installation](./docs/book/src/02-installation.md)** - Installation and setup
+- **[Quick Start](./docs/book/src/03-quick-start.md)** - Get started quickly
+- **[Configuration](./docs/book/src/04-configuration.md)** - Configuration options
+- **[Deploy Locally](./docs/book/src/05-deploy-locally.md)** - Local deployment with Docker
+- **[Authorization Model](./docs/book/src/01-authorization.md)** - Security and authorization
+- **[Downstream APIs](./docs/book/src/06-downstream-apis.md)** - Configure routes and services
+- **[Running Tests](./docs/book/src/07-running-tests.md)** - Testing guide
 
 ---
 

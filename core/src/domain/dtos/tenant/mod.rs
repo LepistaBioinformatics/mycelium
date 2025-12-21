@@ -96,7 +96,7 @@ impl Tenant {
 
     pub fn tenant_string_or_error(&self) -> Result<String, MappedErrors> {
         if let Some(id) = self.id {
-            Ok(format!("tid/{}", id.to_string()))
+            Ok(format!("tid/{}", id))
         } else {
             dto_err("Unable to format owner name").as_error()
         }

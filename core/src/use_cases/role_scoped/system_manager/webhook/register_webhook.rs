@@ -1,18 +1,25 @@
-use crate::{domain::{
-    actors::SystemActor,
-    dtos::{
-        http_secret::HttpSecret, profile::Profile, written_by::WrittenBy, webhook::{WebHook, WebHookTrigger}
+use crate::{
+    domain::{
+        actors::SystemActor,
+        dtos::{
+            http::HttpMethod,
+            http_secret::HttpSecret,
+            profile::Profile,
+            webhook::{WebHook, WebHookTrigger},
+            written_by::WrittenBy,
+        },
+        entities::WebHookRegistration,
     },
-    entities::WebHookRegistration,
-}, models::AccountLifeCycle};
+    models::AccountLifeCycle,
+};
 
 use mycelium_base::{
     entities::CreateResponseKind, utils::errors::MappedErrors,
 };
 
 #[tracing::instrument(
-    name = "register_webhook", 
-    fields(profile_id = %profile.acc_id), 
+    name = "register_webhook",
+    fields(profile_id = %profile.acc_id),
     skip_all
 )]
 pub async fn register_webhook(
@@ -21,6 +28,7 @@ pub async fn register_webhook(
     description: Option<String>,
     url: String,
     trigger: WebHookTrigger,
+    method: Option<HttpMethod>,
     secret: Option<HttpSecret>,
     config: AccountLifeCycle,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
@@ -44,13 +52,12 @@ pub async fn register_webhook(
         description,
         url,
         trigger,
+        method,
         secret,
         config,
         Some(WrittenBy::new_from_account(profile.acc_id)),
     )
     .await?;
 
-    webhook_registration_repo
-        .create(webhook)
-        .await
+    webhook_registration_repo.create(webhook).await
 }

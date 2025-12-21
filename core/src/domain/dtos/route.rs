@@ -127,11 +127,8 @@ impl Route {
             .build()
         {
             Err(err) => {
-                return execution_err(format!(
-                    "Unexpected error on build URI: {}",
-                    err
-                ))
-                .as_error()
+                execution_err(format!("Unexpected error on build URI: {}", err))
+                    .as_error()
             }
             Ok(res) => Ok(res),
         }
@@ -148,10 +145,7 @@ impl Route {
         // Build parameters vector
         let params: &str = &vec![uri.query(), extension.query()]
             .into_iter()
-            .filter_map(|p| match p {
-                None => None,
-                Some(res) => Some(res),
-            })
+            .filter_map(|p| p.map(|res| res))
             .collect::<Vec<&str>>()
             .join("&")
             .to_owned();
@@ -169,11 +163,8 @@ impl Route {
             .build()
         {
             Err(err) => {
-                return execution_err(format!(
-                    "Unexpected error on build URI: {}",
-                    err
-                ))
-                .as_error()
+                execution_err(format!("Unexpected error on build URI: {}", err))
+                    .as_error()
             }
             Ok(res) => Ok(res),
         }

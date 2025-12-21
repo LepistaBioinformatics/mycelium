@@ -5,7 +5,9 @@ use crate::{
             native_error_codes::NativeErrorCodes,
             token::{EmailConfirmationTokenMeta, MultiTypeMeta},
         },
-        entities::{LocalMessageWrite, TokenRegistration, UserDeletion},
+        entities::{
+            LocalMessageWrite, TenantFetching, TokenRegistration, UserDeletion,
+        },
     },
     models::AccountLifeCycle,
     use_cases::{
@@ -29,6 +31,7 @@ pub(super) async fn register_token_and_notify_user(
     token_registration_repo: Box<&dyn TokenRegistration>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
     user_deletion_repo: Box<&dyn UserDeletion>,
+    tenant_fetching_repo: Box<&dyn TenantFetching>,
 ) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Register confirmation token
@@ -112,6 +115,7 @@ pub(super) async fn register_token_and_notify_user(
         token_metadata.email,
         None,
         message_sending_repo,
+        tenant_fetching_repo,
     )
     .await
     {

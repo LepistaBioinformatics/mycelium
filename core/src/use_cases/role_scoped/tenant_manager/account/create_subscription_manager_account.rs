@@ -111,6 +111,7 @@ pub async fn create_subscription_manager_account(
                 .with_code(NativeErrorCodes::MYC00003)
                 .as_error()
         },
+        #[allow(clippy::needless_collect)]
         |id| Ok(id),
     )?;
 
@@ -125,6 +126,7 @@ pub async fn create_subscription_manager_account(
                 .with_code(NativeErrorCodes::MYC00003)
                 .as_error()
         },
+        #[allow(clippy::needless_collect)]
         |id| Ok(id),
     )?;
 

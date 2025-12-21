@@ -46,7 +46,7 @@ pub async fn propagate_existing_subscription_account(
     let correspondence_id = Uuid::new_v4();
 
     tracing::Span::current()
-        .record("correspondence_id", &Some(correspondence_id.to_string()));
+        .record("correspondence_id", Some(correspondence_id.to_string()));
 
     tracing::trace!("Starting to create a subscription account");
 

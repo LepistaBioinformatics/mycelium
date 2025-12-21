@@ -30,7 +30,7 @@ pub async fn create_management_account(
     let correspondence_id = Uuid::new_v4();
 
     tracing::Span::current()
-        .record("correspondence_id", &Some(correspondence_id.to_string()));
+        .record("correspondence_id", Some(correspondence_id.to_string()));
 
     // ? -----------------------------------------------------------------------
     // ? Check if the profile is the owner of the tenant

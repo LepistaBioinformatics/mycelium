@@ -50,7 +50,7 @@ pub async fn get_tenant_details(
     // If the current account is a tenant manager, we need to fetch the tenant
     // details from the tenant manager account.
     //
-    if tenant_related_ids.len() > 0 {
+    if !tenant_related_ids.is_empty() {
         tenant_fetching_repo
             .get_tenants_by_manager_account(tenant_id, tenant_related_ids)
             .await

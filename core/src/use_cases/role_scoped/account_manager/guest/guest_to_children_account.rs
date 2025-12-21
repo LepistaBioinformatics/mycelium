@@ -8,10 +8,11 @@ use crate::{
         },
         entities::{
             AccountFetching, GuestRoleFetching, GuestUserRegistration,
-            LocalMessageWrite,
+            LocalMessageWrite, TenantFetching,
         },
     },
     models::AccountLifeCycle,
+    settings::DEFAULT_TENANT_ID_KEY,
     use_cases::support::dispatch_notification,
 };
 
@@ -40,6 +41,7 @@ pub async fn guest_to_children_account(
     guest_role_fetching_repo: Box<&dyn GuestRoleFetching>,
     guest_user_registration_repo: Box<&dyn GuestUserRegistration>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
+    tenant_fetching_repo: Box<&dyn TenantFetching>,
 ) -> Result<GetOrCreateResponseKind<GuestUser>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
@@ -241,19 +243,19 @@ pub async fn guest_to_children_account(
     // ? Notify guest user
     // ? -----------------------------------------------------------------------
 
-    let parameters = vec![
-        ("account_name", target_account.name.to_uppercase()),
-        ("role_name", target_role.name.to_uppercase()),
-        ("role_permissions", target_role.permission.to_string()),
-    ];
-
     if let Err(err) = dispatch_notification(
-        parameters,
+        vec![
+            ("account_name", target_account.name.to_uppercase()),
+            ("role_name", target_role.name.to_uppercase()),
+            ("role_permissions", target_role.permission.to_string()),
+            (DEFAULT_TENANT_ID_KEY, tenant_id.to_string()),
+        ],
         "email/guest-to-subscription-account",
         life_cycle_settings,
         email,
         None,
         message_sending_repo,
+        tenant_fetching_repo,
     )
     .await
     {

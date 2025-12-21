@@ -60,23 +60,23 @@ impl VerboseStatus {
         is_archived: bool,
         is_deleted: bool,
     ) -> Self {
-        if is_deleted == true {
+        if is_deleted {
             return VerboseStatus::Deleted;
         }
 
-        if is_active == false {
+        if !is_active {
             return VerboseStatus::Inactive;
         }
 
-        if is_checked == false {
+        if !is_checked {
             return VerboseStatus::Unverified;
         }
 
-        if is_archived == true {
+        if is_archived {
             return VerboseStatus::Archived;
         }
 
-        if is_archived == false {
+        if !is_archived {
             return VerboseStatus::Verified;
         }
 

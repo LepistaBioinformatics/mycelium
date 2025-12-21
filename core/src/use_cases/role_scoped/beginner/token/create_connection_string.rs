@@ -7,9 +7,10 @@ use crate::{
             security_group::PermissionedRole,
             token::{UserAccountConnectionString, UserAccountScope},
         },
-        entities::{LocalMessageWrite, TokenRegistration},
+        entities::{LocalMessageWrite, TenantFetching, TokenRegistration},
     },
     models::AccountLifeCycle,
+    settings::DEFAULT_TENANT_ID_KEY,
     use_cases::support::dispatch_notification,
 };
 
@@ -42,6 +43,7 @@ pub async fn create_connection_string(
     life_cycle_settings: AccountLifeCycle,
     token_registration_repo: Box<&dyn TokenRegistration>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
+    tenant_fetching_repo: Box<&dyn TenantFetching>,
 ) -> Result<String, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Build the scoped account token
@@ -100,10 +102,14 @@ pub async fn create_connection_string(
     // ? Notify guest user
     // ? -----------------------------------------------------------------------
 
-    let parameters = vec![(
+    let mut parameters = vec![(
         "expires_in",
         format_expiration_as_human_readable(expiration),
     )];
+
+    if let Some(t_id) = tenant_id {
+        parameters.push((DEFAULT_TENANT_ID_KEY, t_id.to_string()));
+    }
 
     if let Err(err) = dispatch_notification(
         parameters,
@@ -112,6 +118,7 @@ pub async fn create_connection_string(
         Email::from_string(owner.email.to_owned())?,
         None,
         message_sending_repo,
+        tenant_fetching_repo,
     )
     .await
     {

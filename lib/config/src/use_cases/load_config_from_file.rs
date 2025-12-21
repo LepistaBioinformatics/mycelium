@@ -46,7 +46,7 @@ mod tests {
         std::env::set_var("ENV_VAR", "env_value");
 
         let config: Config =
-            load_config_from_file(PathBuf::from("tests/config.yaml"))?;
+            load_config_from_file(PathBuf::from("tests/config.toml"))?;
 
         assert_eq!(config.name, "Name");
         assert_eq!(config.age, 99);

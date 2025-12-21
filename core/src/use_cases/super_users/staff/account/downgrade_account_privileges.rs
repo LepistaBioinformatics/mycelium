@@ -61,8 +61,7 @@ pub async fn downgrade_account_privileges(
     // ? Check if the account type if allowed
     // ? -----------------------------------------------------------------------
 
-    if !vec![AccountType::User, AccountType::Manager]
-        .contains(&target_account_type)
+    if ![AccountType::User, AccountType::Manager].contains(&target_account_type)
     {
         return use_case_err("Invalid downgrade target.")
             .with_exp_true()

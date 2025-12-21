@@ -59,7 +59,7 @@ impl GuestUser {
         match self.guest_role.to_owned() {
             Parent::Id(id) => Ok(format!("{}/{}", base_url, id)),
             Parent::Record(record) => match record.id {
-                Some(id) => Ok(format!("{}/{}", base_url, id.to_string())),
+                Some(id) => Ok(format!("{}/{}", base_url, id)),
                 None => Err(()),
             },
         }

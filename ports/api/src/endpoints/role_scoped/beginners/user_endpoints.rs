@@ -255,6 +255,7 @@ pub async fn create_default_user_url(
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
     )
     .await
     {
@@ -383,6 +384,7 @@ pub async fn start_password_redefinition_url(
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
     )
     .await
     {
@@ -446,6 +448,7 @@ pub async fn check_token_and_reset_password_url(
         email,
         body.new_password.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
@@ -666,6 +669,7 @@ pub async fn totp_start_activation_url(
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
     )
     .await
     {
@@ -734,6 +738,7 @@ pub async fn totp_finish_activation_url(
         email,
         body.token.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
@@ -880,6 +885,7 @@ pub async fn totp_disable_url(
         email,
         body.token.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),

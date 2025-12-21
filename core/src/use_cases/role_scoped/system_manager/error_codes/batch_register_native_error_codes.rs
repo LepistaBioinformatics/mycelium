@@ -49,9 +49,7 @@ pub async fn batch_register_native_error_codes(
             match response.unwrap() {
                 CreateResponseKind::NotCreated(error, msg) => {
                     unpersisted_errors.push(error);
-                    return error!(
-                        "Error detected on try to register error: {msg}"
-                    );
+                    error!("Error detected on try to register error: {msg}")
                 }
                 CreateResponseKind::Created(_) => {
                     persisted_errors += 1;

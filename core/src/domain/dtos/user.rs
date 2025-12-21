@@ -359,19 +359,15 @@ pub struct MultiFactorAuthentication {
 
 impl MultiFactorAuthentication {
     pub fn redact_secrets(&mut self) -> Self {
-        match &self.totp {
-            Totp::Enabled {
-                verified,
-                issuer,
-                secret: _,
-            } => {
-                self.totp = Totp::Enabled {
-                    verified: *verified,
-                    issuer: issuer.to_owned(),
-                    secret: Some("REDACTED".to_string()),
-                }
+        if let Totp::Enabled {
+            verified, issuer, ..
+        } = &self.totp
+        {
+            self.totp = Totp::Enabled {
+                verified: *verified,
+                issuer: issuer.to_owned(),
+                secret: Some("REDACTED".to_string()),
             }
-            _ => {}
         }
 
         self.to_owned()

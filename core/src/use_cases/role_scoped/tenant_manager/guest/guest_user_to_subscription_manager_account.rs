@@ -5,9 +5,13 @@ use crate::{
             guest_role::Permission, guest_user::GuestUser,
             native_error_codes::NativeErrorCodes, profile::Profile,
         },
-        entities::{AccountFetching, GuestUserRegistration, LocalMessageWrite},
+        entities::{
+            AccountFetching, GuestUserRegistration, LocalMessageWrite,
+            TenantFetching,
+        },
     },
     models::AccountLifeCycle,
+    settings::DEFAULT_TENANT_ID_KEY,
     use_cases::support::dispatch_notification,
 };
 
@@ -33,6 +37,7 @@ use uuid::Uuid;
         account_fetching_repo,
         guest_user_registration_repo,
         message_sending_repo,
+        tenant_fetching_repo,
     )
 )]
 pub async fn guest_user_to_subscription_manager_account(
@@ -45,6 +50,7 @@ pub async fn guest_user_to_subscription_manager_account(
     account_fetching_repo: Box<&dyn AccountFetching>,
     guest_user_registration_repo: Box<&dyn GuestUserRegistration>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
+    tenant_fetching_repo: Box<&dyn TenantFetching>,
 ) -> Result<GetOrCreateResponseKind<GuestUser>, MappedErrors> {
     let span: tracing::Span = tracing::Span::current();
 
@@ -151,19 +157,19 @@ pub async fn guest_user_to_subscription_manager_account(
     // ? Notify guest user
     // ? -----------------------------------------------------------------------
 
-    let parameters = vec![
-        ("account_name", account.name.to_uppercase()),
-        ("role_name", role_name.to_uppercase()),
-        ("role_permissions", permission.to_string()),
-    ];
-
     if let Err(err) = dispatch_notification(
-        parameters,
+        vec![
+            ("account_name", account.name.to_uppercase()),
+            ("role_name", role_name.to_uppercase()),
+            ("role_permissions", permission.to_string()),
+            (DEFAULT_TENANT_ID_KEY, tenant_id.to_string()),
+        ],
         "email/guest-to-subscription-account",
         life_cycle_settings,
         email,
         None,
         message_sending_repo,
+        tenant_fetching_repo,
     )
     .await
     {

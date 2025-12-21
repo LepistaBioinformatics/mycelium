@@ -235,7 +235,7 @@ impl Profile {
     }
 
     pub fn profile_string(&self) -> String {
-        format!("profile/{}", self.acc_id.to_string())
+        format!("profile/{}", self.acc_id)
     }
 
     /// Redacted profile string
@@ -247,7 +247,7 @@ impl Profile {
     pub fn profile_redacted(&self) -> String {
         format!(
             "profile/{} owners: [{}]",
-            self.acc_id.to_string(),
+            self.acc_id,
             self.owners
                 .iter()
                 .map(|i| Email::from_string(i.email.to_owned())
@@ -413,7 +413,7 @@ impl Profile {
                 let records: Vec<LicensedResource> = resources
                     .to_licenses_vector()
                     .iter()
-                    .filter(|i| i.sys_acc == true)
+                    .filter(|i| i.sys_acc)
                     .map(|i| i.to_owned())
                     .collect();
 
@@ -678,7 +678,7 @@ impl Profile {
             // The profile has more than one licensed resource and the profile
             // is not the owner of the account
             //
-            ids.len() > 0,
+            !ids.is_empty(),
             //
             // The profile has no staff privileges
             //
@@ -689,7 +689,7 @@ impl Profile {
             self.is_manager,
         ]
         .into_iter()
-        .any(|i| i == true)
+        .any(|i| i)
         {
             return execution_err(format!(
                 "Insufficient privileges to perform these action (no ids): {}",

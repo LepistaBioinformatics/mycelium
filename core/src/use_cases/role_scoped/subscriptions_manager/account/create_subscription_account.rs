@@ -5,8 +5,8 @@ use crate::{
             account::Account,
             native_error_codes::NativeErrorCodes,
             profile::Profile,
-            written_by::WrittenBy,
             webhook::{PayloadId, WebHookTrigger},
+            written_by::WrittenBy,
         },
         entities::{AccountRegistration, WebHookRegistration},
     },
@@ -45,7 +45,7 @@ pub async fn create_subscription_account(
     let correspondence_id = Uuid::new_v4();
 
     let span = tracing::Span::current();
-    span.record("correspondence_id", &Some(correspondence_id.to_string()));
+    span.record("correspondence_id", Some(correspondence_id.to_string()));
 
     tracing::trace!("Starting to create a subscription account");
 

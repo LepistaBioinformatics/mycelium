@@ -55,10 +55,10 @@ pub async fn accept_invitation(
         target_license.acc_id == account_id,
         target_license.perm == permission,
         target_license.role == role_name,
-        target_license.verified == false,
+        !target_license.verified,
     ]
     .iter()
-    .any(|&x| x == false)
+    .any(|&x| !x)
     {
         return use_case_err(
             "Invalid operation. License does not match the invitation parameters",

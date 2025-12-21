@@ -1,5 +1,0 @@
-name: Name
-age: 99
-var_with_env:
-  env: ENV_VAR
-var_without_env: value

@@ -4,8 +4,8 @@ use crate::domain::{
         account_type::AccountType,
         email::Email,
         native_error_codes::NativeErrorCodes,
-        written_by::WrittenBy,
         user::{PasswordHash, Provider, User},
+        written_by::WrittenBy,
     },
     entities::{AccountRegistration, UserRegistration},
 };

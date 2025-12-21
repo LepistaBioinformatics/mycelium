@@ -9,15 +9,11 @@ use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub enum Permission {
+    #[default]
     Read = 0,
     Write = 1,
-}
-
-impl Default for Permission {
-    fn default() -> Self {
-        Permission::Read
-    }
 }
 
 impl Permission {

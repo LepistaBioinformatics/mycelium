@@ -21,3 +21,4 @@ vault/*
 redis
 .devcontainer
 .vscode
+.cursor

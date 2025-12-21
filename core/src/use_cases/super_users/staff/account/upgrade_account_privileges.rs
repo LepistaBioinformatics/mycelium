@@ -49,7 +49,7 @@ pub async fn upgrade_account_privileges(
     // ? Check if the account type if allowed
     // ? -----------------------------------------------------------------------
 
-    if !vec![AccountType::Manager, AccountType::Staff]
+    if ![AccountType::Manager, AccountType::Staff]
         .contains(&target_account_type)
     {
         return use_case_err("Invalid upgrade target.")

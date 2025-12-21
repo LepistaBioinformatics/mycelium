@@ -41,7 +41,7 @@ pub async fn update_own_account_name(
     let correspondence_id = Uuid::new_v4();
 
     tracing::Span::current()
-        .record("correspondence_id", &Some(correspondence_id.to_string()));
+        .record("correspondence_id", Some(correspondence_id.to_string()));
 
     // ? -----------------------------------------------------------------------
     // ? Update and persist account name
@@ -58,7 +58,7 @@ pub async fn update_own_account_name(
             use_case_err("Account ID not found".to_string()).with_exp_true()
         })?;
 
-        if let Err(err) = register_webhook_dispatching_event(
+        register_webhook_dispatching_event(
             correspondence_id,
             WebHookTrigger::UserAccountUpdated,
             account.to_owned(),
@@ -66,10 +66,7 @@ pub async fn update_own_account_name(
             webhook_registration_repo,
         )
         .instrument(span)
-        .await
-        {
-            return Err(err);
-        };
+        .await?;
 
         tracing::trace!("Side effects dispatched");
     }

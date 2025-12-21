@@ -52,7 +52,7 @@ pub async fn update_account_name_and_flags(
     let correspondence_id = Uuid::new_v4();
 
     tracing::Span::current()
-        .record("correspondence_id", &Some(correspondence_id.to_string()));
+        .record("correspondence_id", Some(correspondence_id.to_string()));
 
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
@@ -296,6 +296,7 @@ mod tests {
                     None,
                     "https://example.com".to_string(),
                     WebHookTrigger::SubscriptionAccountUpdated,
+                    None,
                     None,
                     None,
                 ),

@@ -1,1 +1,2 @@
-
+[env]
+TEMPLATES_DIR = { value = "templates", relative = true }

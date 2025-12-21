@@ -31,7 +31,9 @@ pub struct Message {
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub enum MessageStatus {
+    #[default]
     Queued,
     Sent,
     Failed,
@@ -53,12 +55,6 @@ impl FromStr for MessageStatus {
             "failed" => Ok(MessageStatus::Failed),
             _ => Err(format!("Invalid message status: {}", s)),
         }
-    }
-}
-
-impl Default for MessageStatus {
-    fn default() -> Self {
-        MessageStatus::Queued
     }
 }
 
