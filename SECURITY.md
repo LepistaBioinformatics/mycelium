@@ -31,6 +31,8 @@ This project uses automated security scanning to detect vulnerabilities in depen
 - **Tool**: [cargo-audit](https://github.com/RustSec/rustsec/tree/main/cargo-audit)
 - **Workflow**: Dedicated [Security workflow](.github/workflows/security.yml)
 - **Frequency**:
+  - Every push to `main` and `develop` branches
+  - Every pull request to `main` and `develop`
   - Weekly scheduled scans (Sundays at midnight UTC)
   - Manual trigger available via GitHub Actions
 - **CI Enforcement**: Builds fail if any vulnerabilities are detected (strict policy)
