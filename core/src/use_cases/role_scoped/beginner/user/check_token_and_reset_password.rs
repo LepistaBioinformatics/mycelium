@@ -97,8 +97,7 @@ pub async fn check_token_and_reset_password(
     {
         let mut error = use_case_err(format!(
             "User with id {} could not be activated: {}",
-            user_id,
-            msg
+            user_id, msg
         ))
         .with_exp_true();
 

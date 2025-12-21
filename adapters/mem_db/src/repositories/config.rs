@@ -1,8 +1,11 @@
 use crate::models::config::DbPoolProvider;
 
-use myc_core::{domain::dtos::service::Service};
+use myc_core::domain::dtos::service::Service;
 use shaku::Component;
-use std::{mem::size_of_val, sync::{Arc, Mutex}};
+use std::{
+    mem::size_of_val,
+    sync::{Arc, Mutex},
+};
 
 #[derive(Component)]
 #[shaku(interface = DbPoolProvider)]

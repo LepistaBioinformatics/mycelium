@@ -2,19 +2,19 @@ use crate::{
     domain::{
         actors::SystemActor,
         dtos::{
-            http::HttpMethod, 
-            http_secret::HttpSecret, 
-            profile::Profile, 
-            written_by::WrittenBy, 
-            webhook::{WebHook, WebHookTrigger}
+            http::HttpMethod,
+            http_secret::HttpSecret,
+            profile::Profile,
+            webhook::{WebHook, WebHookTrigger},
+            written_by::WrittenBy,
         },
         entities::WebHookRegistration,
-    }, 
-    models::AccountLifeCycle
+    },
+    models::AccountLifeCycle,
 };
 
 use mycelium_base::{
-    entities::CreateResponseKind, utils::errors::{MappedErrors},
+    entities::CreateResponseKind, utils::errors::MappedErrors,
 };
 
 #[tracing::instrument(
@@ -59,7 +59,5 @@ pub async fn register_webhook(
     )
     .await?;
 
-    webhook_registration_repo
-        .create(webhook)
-        .await
+    webhook_registration_repo.create(webhook).await
 }

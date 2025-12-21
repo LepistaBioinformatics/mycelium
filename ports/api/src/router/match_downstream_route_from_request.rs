@@ -39,9 +39,7 @@ pub(super) async fn match_downstream_route_from_request(
 ) -> Result<Route, GatewayError> {
     let span = tracing::Span::current();
 
-    let uri_str = &req
-        .uri()
-        .path();
+    let uri_str = &req.uri().path();
 
     let request_path = PathAndQuery::from_str(uri_str).map_err(|err| {
         tracing::warn!("{:?}", err);

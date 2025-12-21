@@ -5,11 +5,8 @@ use awc::error::HeaderValue;
 use myc_http_tools::{
     responses::GatewayError,
     settings::{
-        DEFAULT_PROFILE_KEY,
-        DEFAULT_REQUEST_ID_KEY,
-        FORWARDING_KEYS,
-        FORWARD_FOR_KEY,
-        MYCELIUM_SERVICE_NAME,
+        DEFAULT_PROFILE_KEY, DEFAULT_REQUEST_ID_KEY, FORWARDING_KEYS,
+        FORWARD_FOR_KEY, MYCELIUM_SERVICE_NAME,
     },
 };
 

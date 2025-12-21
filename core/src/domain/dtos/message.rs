@@ -58,7 +58,6 @@ impl FromStr for MessageStatus {
     }
 }
 
-
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct MessageSendingEvent {

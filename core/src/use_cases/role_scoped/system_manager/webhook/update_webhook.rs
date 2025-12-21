@@ -3,7 +3,7 @@ use crate::{
         actors::SystemActor,
         dtos::{
             http_secret::HttpSecret, native_error_codes::NativeErrorCodes,
-            profile::Profile, written_by::WrittenBy, webhook::WebHook,
+            profile::Profile, webhook::WebHook, written_by::WrittenBy,
         },
         entities::{WebHookFetching, WebHookUpdating},
     },

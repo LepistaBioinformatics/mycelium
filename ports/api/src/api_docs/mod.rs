@@ -2,9 +2,9 @@ use crate::endpoints::{index, manager, role_scoped, service, staff};
 use crate::modifiers::security::MyceliumSecurity;
 
 use myc_core::domain::dtos::{
-    account, account_type, email, error_code, guest_role, guest_user, profile,
-    tag, token, tenant, user, webhook, route, service as service_dtos, 
-    http_secret
+    account, account_type, email, error_code, guest_role, guest_user,
+    http_secret, profile, route, service as service_dtos, tag, tenant, token,
+    user, webhook,
 };
 use myc_http_tools::{utils::HttpJsonResponse, SystemActor};
 use mycelium_base::dtos::{Children, Parent};
@@ -15,20 +15,20 @@ use utoipa::OpenApi;
 // ? ---------------------------------------------------------------------------
 
 use index::heath_check_endpoints as Index__Heath_Check;
+use manager::account_endpoints as Managers__Accounts;
 use manager::guest_role_endpoints as Managers__Guest_Role;
 use manager::tenant_endpoints as Managers__Tenants;
-use manager::account_endpoints as Managers__Accounts;
 use role_scoped::account_manager::guest_endpoints as Account_Manager__Guest;
 use role_scoped::account_manager::guest_role_endpoints as Account_Manager__Guest_Role;
-use role_scoped::gateway_manager::route_endpoints as Gateway_Manager__Route;
-use role_scoped::gateway_manager::service_endpoints as Gateway_Manager__Service;
-use role_scoped::gateway_manager::tools_endpoints as Gateway_Manager__Tools;
 use role_scoped::beginners::account_endpoints as Beginners__Account;
 use role_scoped::beginners::meta_endpoints as Beginners__Meta;
 use role_scoped::beginners::profile_endpoints as Beginners__Profile;
-use role_scoped::beginners::user_endpoints as Beginners__User;
 use role_scoped::beginners::tenant_endpoints as Beginners__Tenant;
 use role_scoped::beginners::token_endpoints as Beginners__Token;
+use role_scoped::beginners::user_endpoints as Beginners__User;
+use role_scoped::gateway_manager::route_endpoints as Gateway_Manager__Route;
+use role_scoped::gateway_manager::service_endpoints as Gateway_Manager__Service;
+use role_scoped::gateway_manager::tools_endpoints as Gateway_Manager__Tools;
 use role_scoped::guest_manager::guest_role_endpoints as Guest_Manager__Guest_Role;
 use role_scoped::subscriptions_manager::account_endpoints as Subscriptions_Manager__Account;
 use role_scoped::subscriptions_manager::guest_endpoints as Subscriptions_Manager__Guest;
@@ -49,7 +49,7 @@ use service::tools_endpoints as Service__Tools;
 use staff::account_endpoints as Staffs__Accounts;
 
 /// Manager Endpoints for Account Management
-/// 
+///
 #[derive(OpenApi)]
 #[openapi(
     info(
@@ -64,7 +64,7 @@ use staff::account_endpoints as Staffs__Accounts;
 struct ManagersAccountsApiDoc;
 
 /// Manager Endpoints for Guest Roles Management
-/// 
+///
 #[derive(OpenApi)]
 #[openapi(
     info(
@@ -173,7 +173,7 @@ struct AccountManagerGuestRoleApiDoc;
 struct BeginnersAccountApiDoc;
 
 /// Role Scoped Endpoints for Beginner Users for Meta Management
-/// 
+///
 #[derive(OpenApi)]
 #[openapi(
     info(
@@ -221,7 +221,7 @@ struct BeginnersProfileApiDoc;
         Beginners__User::totp_finish_activation_url,
         Beginners__User::totp_check_token_url,
         Beginners__User::totp_disable_url,
-    ),
+    )
 )]
 struct BeginnersUserApiDoc;
 
@@ -270,7 +270,7 @@ struct BeginnersTokenApiDoc;
 struct GatewayManagerRouteApiDoc;
 
 /// Role Scoped Endpoints for Gateway Manager for Services Management
-/// 
+///
 #[derive(OpenApi)]
 #[openapi(
     info(
