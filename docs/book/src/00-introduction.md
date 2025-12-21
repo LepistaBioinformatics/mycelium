@@ -10,18 +10,12 @@ Mycelium acts as the entry layer for downstream services, being responsible for 
 
 ## Key Features
 
-### AI-aware API Gateway
-
-- **Service Discovery**: Discover downstream APIs and their capabilities. Mycelium API Gateway is designed to be AI-aware, meaning it can understand the capabilities of the downstream APIs and use that information to route requests appropriately.
-- **Full control of downstream APIs**: Downstream APIs can control whether their routes should be discovered or not.
-- **Health Checks**: Downstream APIs can define health checks to indicate when they are ready to receive requests. Health status is automatically updated based on the health checks and informed during discovery.
-
 ### Authentication & Authorization
 
 - **OAuth2**: Support for any OAuth2 identity provider with a few lines of configuration.
 - **Two-Factor Authentication (2FA)**: Built-in support for TOTP to ensure an extra layer of security when users opt to use the internal authentication system.
 - **Federated Identity Support**: Integrate with external identity providers while maintaining full control over roles and permissions.
-- **Role-Based Access Control (RBAC)**: Define granular roles for both the gateway and downstream APIs using simple YAML configurations.
+- **Contextual Authorization (FBAC)**: Fine-grained, Feature-based Access Control with contextual evaluation at both gateway (RBAC for edge control) and downstream services (contextual FBAC for resource-level decisions).
 
 ### Multi-Tenant Architecture
 
@@ -34,8 +28,11 @@ Mycelium acts as the entry layer for downstream services, being responsible for 
 - **Flexible Configurations**: Use secrets stored in Vault, environment variables, or define them in YAML.
 - **Dynamic Secret Injection**: Automate secure secret delivery to downstream APIs.
 
-### API Routing & Webhooks
+### API Routing & Service Discovery
 
+- **Service Discovery**: Discover downstream APIs and their capabilities, allowing dynamic integration and routing based on available services.
+- **Full Control of Downstream APIs**: Downstream APIs can control whether their routes should be discovered or not, maintaining granular visibility control.
+- **Health Checks**: Downstream APIs can define health checks to indicate when they are ready to receive requests. Health status is automatically updated based on the health checks and informed during discovery.
 - **Smart API Routing**: Easily configure API routes with support for secure token-based authentication.
 - **Webhook Support**: Define webhooks with secrets for secure callbacks and notifications.
 
@@ -46,7 +43,8 @@ Mycelium acts as the entry layer for downstream services, being responsible for 
 
 ### Security-First Design
 
-- **Downstream Security**: Automatically pass role-based security credentials to downstream APIs.
+- **Layered Authorization**: Gateway applies declarative controls (RBAC) while downstream services use contextual FBAC for fine-grained decisions.
+- **Profile Injection**: Automatically inject identity context and capabilities to downstream APIs via Profile objects.
 - **Token Management**: Store and securely pass tokens in request headers.
 - **Compliance Ready**: Designed with modern security practices to meet enterprise compliance requirements.
 
@@ -54,7 +52,8 @@ Mycelium acts as the entry layer for downstream services, being responsible for 
 
 1. **Community-Driven and Open Source**: Leverage a growing community while benefiting from an open-source model.
 2. **Scalable and Modular**: Designed to grow with your needs, from startups to enterprise-scale applications.
-3. **Developer-Friendly**: TOML-based configurations, secure secret management, and role-based policies make it easy to get started.
+3. **Developer-Friendly**: TOML-based configurations, secure secret management, and contextual authorization model make it easy to get started.
+4. **Modern Authorization**: Combines declarative RBAC at the gateway with fine-grained contextual FBAC in downstream services for maximum flexibility and security.
 
 ## Conceptual Structure
 
