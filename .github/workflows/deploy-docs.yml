@@ -7,6 +7,11 @@ on:
     paths:
       - 'docs/**'
       - '.github/workflows/deploy-docs.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
 
 permissions:
