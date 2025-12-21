@@ -1,0 +1,355 @@
+/* ==========================================================================
+   Mycelium Documentation - Custom Styles
+   ========================================================================== */
+
+/* Brand Colors */
+:root {
+    --mycelium-primary: #0066cc;
+    --mycelium-secondary: #00a86b;
+    --mycelium-accent: #ff6b35;
+    --mycelium-dark: #1a1a1a;
+    --mycelium-light: #f5f5f5;
+}
+
+/* ==========================================================================
+   Navigation Styles
+   ========================================================================== */
+
+/* Style for navigation buttons at bottom of pages */
+div[style*="justify-content: space-between"] {
+    background: linear-gradient(to right, rgba(0, 102, 204, 0.05), rgba(0, 168, 107, 0.05));
+    border-radius: 8px;
+    padding: 1.5rem !important;
+    margin-top: 3rem !important;
+    border: 1px solid rgba(0, 102, 204, 0.2) !important;
+    transition: all 0.3s ease;
+}
+
+div[style*="justify-content: space-between"]:hover {
+    border-color: rgba(0, 102, 204, 0.4) !important;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.1);
+}
+
+div[style*="justify-content: space-between"] a {
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+div[style*="justify-content: space-between"] a:hover {
+    background-color: rgba(0, 102, 204, 0.1);
+    transform: translateX(0);
+}
+
+/* ==========================================================================
+   Header & Logo
+   ========================================================================== */
+
+.sidebar-scrollbox {
+    background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg) 100%);
+}
+
+.sidebar .sidebar-scrollbox .chapter {
+    padding: 0.3rem 0.8rem;
+}
+
+.sidebar .sidebar-scrollbox .chapter.expanded {
+    background-color: rgba(0, 102, 204, 0.05);
+}
+
+/* ==========================================================================
+   Code Blocks
+   ========================================================================== */
+
+pre {
+    border-radius: 8px;
+    border: 1px solid rgba(0, 102, 204, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+code {
+    background-color: rgba(0, 102, 204, 0.05);
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.9em;
+}
+
+pre > code {
+    background-color: transparent;
+    padding: 0;
+}
+
+/* Copy button styling */
+.buttons {
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.buttons:hover {
+    opacity: 1;
+}
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+table thead {
+    background: linear-gradient(135deg, var(--mycelium-primary) 0%, var(--mycelium-secondary) 100%);
+    color: white;
+}
+
+table thead th {
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+}
+
+table tbody tr {
+    border-bottom: 1px solid rgba(0, 102, 204, 0.1);
+    transition: background-color 0.2s ease;
+}
+
+table tbody tr:hover {
+    background-color: rgba(0, 102, 204, 0.03);
+}
+
+table tbody td {
+    padding: 0.8rem 1rem;
+}
+
+/* ==========================================================================
+   Blockquotes & Alerts
+   ========================================================================== */
+
+blockquote {
+    border-left: 4px solid var(--mycelium-primary);
+    background-color: rgba(0, 102, 204, 0.03);
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 4px;
+}
+
+blockquote p:first-child {
+    margin-top: 0;
+}
+
+blockquote p:last-child {
+    margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Links
+   ========================================================================== */
+
+a {
+    color: var(--mycelium-primary);
+    transition: all 0.2s ease;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+}
+
+a:hover {
+    border-bottom-color: var(--mycelium-primary);
+    opacity: 0.8;
+}
+
+/* ==========================================================================
+   Headings
+   ========================================================================== */
+
+h1, h2, h3, h4, h5, h6 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+h1 {
+    border-bottom: 3px solid var(--mycelium-primary);
+    padding-bottom: 0.5rem;
+}
+
+h2 {
+    border-bottom: 2px solid rgba(0, 102, 204, 0.3);
+    padding-bottom: 0.3rem;
+}
+
+h3 {
+    color: var(--mycelium-primary);
+}
+
+/* ==========================================================================
+   Home & Summary Links
+   ========================================================================== */
+
+a[href="/README.md"],
+a[href*="SUMMARY.md"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.1) 0%, rgba(0, 168, 107, 0.1) 100%);
+    border-radius: 6px;
+    border: 1px solid rgba(0, 102, 204, 0.2);
+    margin: 0.5rem 0.5rem 0.5rem 0;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+a[href="/README.md"]:hover,
+a[href*="SUMMARY.md"]:hover {
+    border-color: var(--mycelium-primary);
+    background: linear-gradient(135deg, rgba(0, 102, 204, 0.15) 0%, rgba(0, 168, 107, 0.15) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.2);
+}
+
+/* ==========================================================================
+   Horizontal Rules
+   ========================================================================== */
+
+hr {
+    border: none;
+    height: 2px;
+    background: linear-gradient(to right,
+        transparent,
+        var(--mycelium-primary),
+        transparent
+    );
+    margin: 2rem 0;
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+    div[style*="justify-content: space-between"] {
+        display: none;
+    }
+
+    a[href="/README.md"],
+    a[href*="SUMMARY.md"] {
+        display: none;
+    }
+}
+
+/* ==========================================================================
+   Mobile Responsiveness
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    div[style*="justify-content: space-between"] {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    div[style*="justify-content: space-between"] a {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* ==========================================================================
+   Dark Theme Adjustments
+   ========================================================================== */
+
+.navy {
+    --mycelium-primary: #4d9eff;
+    --mycelium-secondary: #00d68f;
+}
+
+/* ==========================================================================
+   Search Results
+   ========================================================================== */
+
+#searchresults mark {
+    background-color: var(--mycelium-accent);
+    color: white;
+    padding: 0.1rem 0.3rem;
+    border-radius: 2px;
+}
+
+/* ==========================================================================
+   Chapter Navigation
+   ========================================================================== */
+
+.nav-chapters {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+
+.nav-chapters a {
+    padding: 0.8rem 1.5rem;
+    background-color: var(--mycelium-primary);
+    color: white !important;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.nav-chapters a:hover {
+    background-color: var(--mycelium-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+}
+
+/* ==========================================================================
+   Scrollbar Customization
+   ========================================================================== */
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--mycelium-primary);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--mycelium-secondary);
+}
+
+/* ==========================================================================
+   Badges & Tags
+   ========================================================================== */
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 600;
+    margin: 0 0.25rem;
+}
+
+.badge-primary {
+    background-color: var(--mycelium-primary);
+    color: white;
+}
+
+.badge-success {
+    background-color: var(--mycelium-secondary);
+    color: white;
+}
+
+.badge-warning {
+    background-color: var(--mycelium-accent);
+    color: white;
+}
