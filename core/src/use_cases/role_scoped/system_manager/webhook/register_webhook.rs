@@ -18,8 +18,8 @@ use mycelium_base::{
 };
 
 #[tracing::instrument(
-    name = "register_webhook", 
-    fields(profile_id = %profile.acc_id), 
+    name = "register_webhook",
+    fields(profile_id = %profile.acc_id),
     skip_all
 )]
 pub async fn register_webhook(

@@ -15,8 +15,8 @@ use tracing::Instrument;
 ///
 /// This function matches the downstream route from the request.
 ///
-#[tracing::instrument(name 
-    = "match_downstream_route_from_request", 
+#[tracing::instrument(
+    name = "match_downstream_route_from_request",
     skip_all,
     fields(
         //

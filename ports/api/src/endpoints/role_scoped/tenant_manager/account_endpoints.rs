@@ -40,7 +40,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
     params(
         (
             "x-mycelium-tenant-id" = Uuid, 
-            Header, 
+            Header,
             description = "The tenant unique id."
         ),
     ),

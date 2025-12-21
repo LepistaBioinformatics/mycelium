@@ -15,8 +15,8 @@ use myc_http_tools::{
 /// This function builds the gateway response with the downstream response.
 ///
 #[tracing::instrument(
-    name = "build_the_gateway_response", 
-    skip_all, 
+    name = "build_the_gateway_response",
+    skip_all,
     fields(
         myc.router.res_size = tracing::field::Empty,
     )
