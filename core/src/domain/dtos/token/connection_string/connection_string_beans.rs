@@ -41,17 +41,17 @@ impl ToString for ConnectionStringBean {
             ConnectionStringBean::EDT(expiration_date) => {
                 format!(
                     "edt={}",
-                    expiration_date.format("%Y-%m-%dT%H:%M:%S%:z").to_string()
+                    expiration_date.format("%Y-%m-%dT%H:%M:%S%:z")
                 )
             }
             ConnectionStringBean::TID(tenant_id) => {
-                format!("tid={}", tenant_id.to_string())
+                format!("tid={}", tenant_id)
             }
             ConnectionStringBean::AID(account_id) => {
-                format!("aid={}", account_id.to_string())
+                format!("aid={}", account_id)
             }
             ConnectionStringBean::SID(subscription_account_id) => {
-                format!("sid={}", subscription_account_id.to_string())
+                format!("sid={}", subscription_account_id)
             }
             ConnectionStringBean::RLS(roles) => {
                 let roles = roles

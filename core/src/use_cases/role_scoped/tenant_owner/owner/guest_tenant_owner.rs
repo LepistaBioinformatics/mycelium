@@ -57,7 +57,7 @@ pub async fn guest_tenant_owner(
             .register_owner(
                 tenant_id,
                 id,
-                format!("account-id:{}", profile.acc_id.to_string()),
+                format!("account-id:{}", profile.acc_id),
             )
             .await
     } else {

@@ -35,7 +35,7 @@ pub async fn include_tenant_owner(
         .register_owner(
             tenant_id,
             owner_id,
-            format!("account-id:{}", profile.acc_id.to_string()),
+            format!("account-id:{}", profile.acc_id),
         )
         .await
 }

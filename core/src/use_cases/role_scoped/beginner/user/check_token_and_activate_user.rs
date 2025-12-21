@@ -84,7 +84,7 @@ pub async fn check_token_and_activate_user(
         UpdatingResponseKind::NotUpdated(_, msg) => {
             return use_case_err(format!(
                 "User with id {} could not be activated: {}",
-                user_id.to_string(),
+                user_id,
                 msg
             ))
             .with_code(NativeErrorCodes::MYC00008)

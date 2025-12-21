@@ -92,7 +92,7 @@ impl UserAccountScope {
     pub fn get_user_account_id(&self) -> Option<Uuid> {
         self.0.iter().find_map(|bean| {
             if let ConnectionStringBean::AID(id) = bean {
-                return Some(id.clone());
+                return Some(*id);
             }
 
             None
@@ -114,7 +114,7 @@ impl UserAccountScope {
     pub fn get_tenant_id(&self) -> Option<Uuid> {
         self.0.iter().find_map(|bean| {
             if let ConnectionStringBean::TID(id) = bean {
-                return Some(id.clone());
+                return Some(*id);
             }
 
             None
@@ -125,22 +125,12 @@ impl UserAccountScope {
     pub fn get_service_account_id(&self) -> Option<Uuid> {
         self.0.iter().find_map(|bean| {
             if let ConnectionStringBean::SID(id) = bean {
-                return Some(id.clone());
+                return Some(*id);
             }
 
             None
         })
     }
-
-    //#[tracing::instrument(name = "get_permissioned_roles", skip(self))]
-    //pub fn get_permissioned_roles(&self) -> Option<PermissionedRoles> {
-    //    self.0.iter().find_map(|bean| {
-    //        if let ConnectionStringBean::PR(roles) = bean {
-    //            return Some(roles.clone());
-    //        }
-    //        None
-    //    })
-    //}
 }
 
 impl ScopedBehavior for UserAccountScope {
@@ -244,7 +234,6 @@ impl TryFrom<String> for UserAccountScope {
         //
         let decoded = String::from_utf8(raw_decoded).map_err(|_| {
             tracing::error!("Failed to convert decoded bytes to UTF-8 string");
-            ()
         })?;
 
         //

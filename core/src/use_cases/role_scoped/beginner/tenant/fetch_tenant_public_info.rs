@@ -22,20 +22,14 @@ pub async fn fetch_tenant_public_info(
     // ? -----------------------------------------------------------------------
 
     let has_tenant_license =
-        match profile.on_tenant(tenant_id).get_ids_or_error() {
-            Ok(_) => true,
-            Err(_) => false,
-        };
+        profile.on_tenant(tenant_id).get_ids_or_error().is_ok();
 
     let has_tenant_ownership =
-        match profile.with_tenant_ownership_or_error(tenant_id) {
-            Ok(_) => true,
-            Err(_) => false,
-        };
+        profile.with_tenant_ownership_or_error(tenant_id).is_ok();
 
     if ![has_tenant_license, has_tenant_ownership]
         .iter()
-        .any(|&x| x == true)
+        .any(|&x| x)
     {
         return use_case_err("User does not have access to the tenant")
             .with_code(NativeErrorCodes::MYC00019)

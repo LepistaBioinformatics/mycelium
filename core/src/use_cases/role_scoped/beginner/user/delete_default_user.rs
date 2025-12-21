@@ -19,7 +19,7 @@ pub(super) async fn delete_default_user(
 
             use_case_err(format!(
                 "Unable to delete user: {}. Error: {}",
-                id.to_string(),
+                id,
                 msg
             ))
             .as_error()

@@ -49,7 +49,7 @@ pub async fn create_role_associated_account(
     let correspondence_id = Uuid::new_v4();
 
     let span = tracing::Span::current();
-    span.record("correspondence_id", &Some(correspondence_id.to_string()));
+    span.record("correspondence_id", Some(correspondence_id.to_string()));
 
     tracing::trace!("Starting to create a role associated account");
 
@@ -135,6 +135,7 @@ pub async fn create_role_associated_account(
                 .with_code(NativeErrorCodes::MYC00003)
                 .as_error()
         },
+        #[allow(clippy::needless_collect)]
         |id| Ok(id),
     )?;
 
@@ -149,6 +150,7 @@ pub async fn create_role_associated_account(
                 .with_code(NativeErrorCodes::MYC00003)
                 .as_error()
         },
+        #[allow(clippy::needless_collect)]
         |id| Ok(id),
     )?;
 

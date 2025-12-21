@@ -45,7 +45,7 @@ pub async fn create_tenant(
         FetchResponseKind::NotFound(_) => {
             return use_case_err(format!(
                 "User with ID {} not already registered",
-                tenant_owner_id.to_string()
+                tenant_owner_id
             ))
             .with_code(NativeErrorCodes::MYC00009)
             .as_error();
@@ -67,6 +67,6 @@ pub async fn create_tenant(
     // ? -----------------------------------------------------------------------
 
     tenant_registration_repo
-        .create(tenant, format!("account-id:{}", profile.acc_id.to_string()))
+        .create(tenant, format!("account-id:{}", profile.acc_id))
         .await
 }

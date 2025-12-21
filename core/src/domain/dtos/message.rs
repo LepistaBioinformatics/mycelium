@@ -31,7 +31,9 @@ pub struct Message {
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]
+#[derive(Default)]
 pub enum MessageStatus {
+    #[default]
     Queued,
     Sent,
     Failed,
@@ -56,11 +58,6 @@ impl FromStr for MessageStatus {
     }
 }
 
-impl Default for MessageStatus {
-    fn default() -> Self {
-        MessageStatus::Queued
-    }
-}
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
 #[serde(rename_all = "camelCase")]

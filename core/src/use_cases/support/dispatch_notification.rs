@@ -88,7 +88,7 @@ pub(crate) async fn dispatch_notification<T: ToString>(
         )
     );
 
-    let body = match TEMPLATES.render(&body_path.as_str(), &context) {
+    let body = match TEMPLATES.render(body_path.as_str(), &context) {
         Ok(res) => res,
         Err(err) => {
             return use_case_err(format!(
@@ -108,7 +108,7 @@ pub(crate) async fn dispatch_notification<T: ToString>(
     );
 
     let subject_ =
-        match TEMPLATES.render(&subject_path.as_str(), &Context::new()) {
+        match TEMPLATES.render(subject_path.as_str(), &Context::new()) {
             Ok(res) => res,
             Err(err) => {
                 return use_case_err(format!(

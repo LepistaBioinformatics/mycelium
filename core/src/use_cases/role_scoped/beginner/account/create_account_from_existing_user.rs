@@ -59,7 +59,7 @@ pub async fn create_user_account(
     let correspondence_id = Uuid::new_v4();
 
     tracing::Span::current()
-        .record("correspondence_id", &Some(correspondence_id.to_string()));
+        .record("correspondence_id", Some(correspondence_id.to_string()));
 
     tracing::trace!("Starting to create a user account");
 
@@ -208,7 +208,7 @@ async fn register_user_with_provider(
         GetOrCreateResponseKind::NotCreated(_, msg) => {
             tracing::error!("User not created: {msg}");
 
-            return use_case_err("User not created".to_string()).as_error();
+            use_case_err("User not created".to_string()).as_error()
         }
     }
 }

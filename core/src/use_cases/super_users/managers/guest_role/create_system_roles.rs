@@ -70,7 +70,7 @@ pub async fn create_system_roles(
         //
         let _actor = actor
             .to_string()
-            .split(|c| c == '-' || c == '_')
+            .split(['-', '_'])
             .map(|s| {
                 s.chars().next().unwrap().to_uppercase().to_string() + &s[1..]
             })

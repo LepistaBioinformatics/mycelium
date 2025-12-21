@@ -43,7 +43,7 @@ pub async fn delete_subscription_account(
     let correspondence_id = Uuid::new_v4();
 
     tracing::Span::current()
-        .record("correspondence_id", &Some(correspondence_id.to_string()));
+        .record("correspondence_id", Some(correspondence_id.to_string()));
 
     // ? -----------------------------------------------------------------------
     // ? Check the user permissions
