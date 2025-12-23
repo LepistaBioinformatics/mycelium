@@ -2,11 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.2.1-rc.4] - 2025-12-21
+
+### 🐛 Bug Fixes
+
+- Aplpy clippy suggests for core package
+
+### 🎨 Styling
+
+- Apply rust fmt where the github job not resolved
+
+### ⚙️ Miscellaneous Tasks
+
+- Do implements the starter ci workflow of the project
+
 ## [8.2.1-rc.3] - 2025-12-18
 
 ### 🚀 Features
 
 - Implements the connection string list
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.2.1-rc.2] - 2025-12-16
 

@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Implements the connection string list
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.2.1-rc.2] - 2025-12-16
 
 ### 🚀 Features

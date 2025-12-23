@@ -1,11 +1,25 @@
 # 🚀 Mycelium: The Ultimate API Gateway
 
+<div align="center">
+
+[![Crates.io](https://img.shields.io/crates/v/mycelium-api.svg)](https://crates.io/crates/mycelium-api)
+[![Downloads](https://img.shields.io/crates/d/mycelium-api.svg)](https://crates.io/crates/mycelium-api)
+[![Docs.rs](https://docs.rs/mycelium-api/badge.svg)](https://docs.rs/mycelium-api)
+[![CI](https://github.com/LepistaBioinformatics/mycelium/actions/workflows/ci.yml/badge.svg)](https://github.com/LepistaBioinformatics/mycelium/actions/workflows/ci.yml)
+[![Security](https://github.com/LepistaBioinformatics/mycelium/actions/workflows/security.yml/badge.svg)](https://github.com/LepistaBioinformatics/mycelium/actions/workflows/security.yml)
+[![Docker Pulls](https://img.shields.io/docker/pulls/sgelias/mycelium-api)](https://hub.docker.com/r/sgelias/mycelium-api)
+[![License](https://img.shields.io/crates/l/mycelium-api.svg)](./LICENSE)
+[![Rust Version](https://img.shields.io/badge/rust-1.70%2B-blue.svg)](https://www.rust-lang.org)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10181/badge)](https://www.bestpractices.dev/en/projects/10181)
+
 <img
   alt="Mycelium Logo"
   src="docs/assets/logo-large.svg"
   width="200"
-  style="margin: 20px; background-color: transparent; border-radius: 20px; align-items: center; display: block; margin-left: auto; margin-right: auto;"
+  style="margin: 20px; background-color: transparent; border-radius: 20px;"
 />
+
+</div>
 
 Mycelium is an **open and free API Gateway**, designed to operate in
 modern, multi-tenant, and API-oriented environments. The project prioritizes
