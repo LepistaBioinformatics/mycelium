@@ -68,14 +68,6 @@ opentelemetry-otlp = { version = "0.31", features = [
     "metrics",
     "logs",
 ] }
-rmcp = { version = "0.6", features = [
-    "auth",
-    "server",
-    #"transport-sse-server",
-    "transport-worker",
-    #"transport-io",
-    "transport-streamable-http-server",
-] }
 tonic = { version = "0", features = ["tls", "tls-roots"] }
 tracing-appender = "0.2"
 tracing-opentelemetry = "0.32"
