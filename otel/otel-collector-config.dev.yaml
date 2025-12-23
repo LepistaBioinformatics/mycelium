@@ -38,25 +38,21 @@ processors:
   transform/router-metrics:
     error_mode: propagate
     metric_statements:
-      # Add service.name attribute to all metrics if not present
+      # Rename router.requests_count to mycelium_router_requests_total
       - context: metric
         statements:
-          - set(attributes["service.name"], "mycelium-api") where name == "router.requests_count"
+          - replace_pattern(name, "router\\.requests_count", "mycelium_router_requests_total")
 
-      # Optionally rename or add labels to router metrics
+      # Add service.name attribute to renamed metric
       - context: datapoint
         statements:
-          - set(attributes["metric_type"], "counter") where name == "router.requests_count"
+          - set(attributes["service.name"], "mycelium-api")
+          - set(attributes["metric_type"], "counter")
 
 exporters:
   prometheus:
     endpoint: "0.0.0.0:8889"
-    # Optional: Configure metric names and labels
-    metric_relabel_configs:
-      - source_labels: [__name__]
-        regex: 'router\.requests_count'
-        target_label: __name__
-        replacement: 'mycelium_router_requests_total'
+    # Metric renaming is handled by transform/router-metrics processor
 
   otlp:
     endpoint: "myc-jaeger-devcontainer:4317"
@@ -66,7 +62,7 @@ exporters:
 service:
   telemetry:
     metrics:
-      address: "0.0.0.0:8889"
+      level: detailed
 
   pipelines:
     metrics:
