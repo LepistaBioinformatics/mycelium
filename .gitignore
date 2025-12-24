@@ -28,3 +28,4 @@ redis
 
 # Development
 .cursor
+.claude
