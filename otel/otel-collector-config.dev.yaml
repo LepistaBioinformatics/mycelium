@@ -1,4 +1,9 @@
 receivers:
+  #
+  # OTLP receiver for traces and metrics from both services:
+  # - mycelium-api: sends traces via OTLP (gRPC or HTTP) based on config
+  # - downstream_service (mycelium-api-test-svc): sends traces via OTLP gRPC to port 4317
+  #
   otlp:
     protocols:
       grpc:
@@ -48,12 +53,28 @@ processors:
         statements:
           - set(attributes["service.name"], "mycelium-api")
           - set(attributes["metric_type"], "counter")
+          - set(attributes["down_service_name"], attributes["down_service_name"])
+
+  #
+  # Group traces processor
+  # Attempts to group related traces from different services
+  # Note: This is a workaround. Proper distributed tracing requires
+  # trace context propagation via HTTP headers (traceparent, tracestate)
+  # which must be implemented in the application code.
+  #
+  groupbytrace:
+    wait_duration: 1s
+    num_traces: 10000
 
 exporters:
   prometheus:
     endpoint: "0.0.0.0:8889"
     # Metric renaming is handled by transform/router-metrics processor
 
+  #
+  # OTLP exporter to Jaeger
+  # Sends traces from both mycelium-api and downstream_service to Jaeger
+  #
   otlp:
     endpoint: "myc-jaeger-devcontainer:4317"
     tls:
@@ -75,10 +96,21 @@ service:
       exporters:
         - prometheus
 
+    #
+    # Traces pipeline
+    # Receives traces from both mycelium-api and downstream_service via OTLP receiver
+    # Processes and forwards to Jaeger via OTLP exporter
+    #
+    # IMPORTANT: For proper distributed tracing correlation, the application code
+    # must propagate trace context via HTTP headers (traceparent, tracestate).
+    # The groupbytrace processor helps group related traces but cannot create
+    # parent-child relationships without proper context propagation.
+    #
     traces:
       receivers:
         - otlp
       processors:
+        - groupbytrace
         - transform/rename-span
         - batch
       exporters:

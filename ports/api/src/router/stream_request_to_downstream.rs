@@ -23,51 +23,71 @@ pub(super) async fn stream_request_to_downstream(
     req: ClientRequest,
     payload: Payload,
 ) -> Result<DownstreamResponse, GatewayError> {
-    let downstream_response: DownstreamResponse =
-        match req.send_stream(payload).await {
-            Err(err) => match err {
-                SendRequestError::Connect(e) => {
-                    match e {
-                        ConnectError::SslIsNotSupported => {
-                            tracing::warn!("SSL is not supported");
+    let _ = tracing::Span::current();
 
-                            return Err(GatewayError::InternalServerError(
-                                "SSL is not supported".to_string(),
-                            ));
-                        }
-                        ConnectError::SslError(e) => {
-                            tracing::warn!("SSL error: {e}");
+    let downstream_response: DownstreamResponse = match req
+        .send_stream(payload)
+        .await
+    {
+        Err(err) => match err {
+            SendRequestError::Connect(e) => {
+                match e {
+                    ConnectError::SslIsNotSupported => {
+                        tracing::warn!("SSL is not supported");
 
-                            return Err(GatewayError::InternalServerError(
-                                "SSL error".to_string(),
-                            ));
-                        }
-                        _ => (),
+                        return Err(GatewayError::InternalServerError(
+                            "SSL is not supported".to_string(),
+                        ));
                     }
+                    ConnectError::SslError(e) => {
+                        tracing::warn!("SSL error: {e}");
 
-                    tracing::warn!("Error on route/connect to service: {e}");
-
-                    return Err(GatewayError::InternalServerError(
-                        String::from("Unexpected error on route request"),
-                    ));
+                        return Err(GatewayError::InternalServerError(
+                            "SSL error".to_string(),
+                        ));
+                    }
+                    _ => (),
                 }
-                SendRequestError::Url(e) => {
-                    tracing::warn!("Error on route/url to service: {e}");
 
-                    return Err(GatewayError::InternalServerError(
-                        String::from(format!("{e}")),
-                    ));
-                }
-                err => {
-                    tracing::warn!("Error on route/stream to service: {err}");
+                tracing::warn!("Error on route/connect to service: {e}");
 
-                    return Err(GatewayError::InternalServerError(
-                        String::from(format!("{err}")),
-                    ));
-                }
-            },
-            Ok(res) => res,
-        };
+                return Err(GatewayError::InternalServerError(String::from(
+                    "Unexpected error on route request",
+                )));
+            }
+            SendRequestError::Url(e) => {
+                tracing::warn!("Error on route/url to service: {e}");
+
+                return Err(GatewayError::InternalServerError(String::from(
+                    format!("{e}"),
+                )));
+            }
+            err => {
+                tracing::warn!("Error on route/stream to service: {err}");
+
+                return Err(GatewayError::InternalServerError(String::from(
+                    format!("{err}"),
+                )));
+            }
+        },
+        Ok(res) => {
+            let status = res.status();
+
+            if status.is_success() {
+                tracing::trace!(
+                    "Downstream response successfully received with status: {status}",
+                    status = status,
+                );
+            } else {
+                tracing::warn!(
+                    "Downstream response received with status: {status}",
+                    status = status
+                );
+            }
+
+            res
+        }
+    };
 
     Ok(downstream_response)
 }

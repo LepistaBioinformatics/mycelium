@@ -216,5 +216,7 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
+    tracing::trace!("Streaming response to the client");
+
     Ok(gateway_response.streaming(downstream_response))
 }

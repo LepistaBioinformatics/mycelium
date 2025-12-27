@@ -79,6 +79,19 @@ jwt = "0.16.0"
 lazy_static = "1.4"
 lettre = "0.11"
 oauth2 = "4.4"
+opentelemetry = { version = "0.31", features = ["trace", "metrics", "logs"] }
+opentelemetry_sdk = { version = "0.31", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.31", features = [
+    "reqwest-client",
+    "reqwest-rustls",
+    "http-proto",
+    "tls",
+    "grpc-tonic",
+    "trace",
+    "metrics",
+    "logs",
+] }
+tonic = { version = "0", features = ["tls", "tls-roots"] }
 rand = "0.8"
 redis = { version = "0.27", features = ["tokio-comp"] }
 regex = "1"
@@ -98,6 +111,7 @@ utoipa = { version = "5", features = [
     "uuid",
 ] }
 tracing = "0.1"
+tracing-appender = "0.2"
 tracing-actix-web = { version = "0.7", features = ["opentelemetry_0_29"] }
 tracing-subscriber = { version = "0.3.19", features = [
     "alloc",
@@ -106,6 +120,7 @@ tracing-subscriber = { version = "0.3.19", features = [
     "tracing-serde",
     "registry",
 ] }
+tracing-opentelemetry = "0.32"
 toml = "0.9"
 uuid = { version = "1.1", features = ["v3", "v4", "v7", "serde", "fast-rng"] }
 utoipa-redoc = { version = "5", features = ["actix-web"] }
