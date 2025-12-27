@@ -21,6 +21,8 @@ pub(super) async fn inject_downstream_secret(
     mut route_key: Option<String>,
     api_config: web::Data<ApiConfig>,
 ) -> Result<(ClientRequest, Option<String>), GatewayError> {
+    let _ = tracing::Span::current();
+
     let route_secret = match route.solve_secret().await {
         Err(err) => {
             tracing::warn!("{:?}", err);
