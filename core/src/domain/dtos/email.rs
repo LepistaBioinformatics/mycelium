@@ -1,3 +1,4 @@
+use base64::{engine::general_purpose, Engine};
 use mycelium_base::utils::errors::{invalid_arg_err, MappedErrors};
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -61,6 +62,14 @@ impl Email {
     ///
     pub fn redacted_email(&self) -> String {
         Self::redact_email(&self.email())
+    }
+
+    /// Get encoded email
+    ///
+    /// Return the email encoded in base64
+    ///
+    pub fn encoded_email(&self) -> String {
+        general_purpose::STANDARD.encode(self.email().as_bytes())
     }
 
     /// Effectively redact the email
