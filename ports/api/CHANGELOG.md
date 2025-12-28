@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - Release
+- Release
 
 ## [8.2.1-rc.4] - 2025-12-21
 
