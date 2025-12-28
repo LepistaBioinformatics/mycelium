@@ -16,6 +16,10 @@ All notable changes to this project will be documented in this file.
 
 - Remove unused code of rmcp and refactor the main api function to isolate the modules initialization into a external function
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.2.1-rc.4] - 2025-12-21
 
 ### 🎨 Styling
