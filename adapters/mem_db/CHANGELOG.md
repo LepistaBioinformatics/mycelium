@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - Do implements the starter ci workflow of the project
+- Release
 
 ## [8.2.1-rc.3] - 2025-12-18
 
