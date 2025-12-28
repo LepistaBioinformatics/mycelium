@@ -85,12 +85,17 @@ impl FromRequest for GatewayProfileData {
     type Error = GatewayError;
     type Future = Pin<Box<dyn Future<Output = Result<Self, Self::Error>>>>;
 
+    #[tracing::instrument(name = "gateway_profile_data_from_request", skip_all)]
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
+        let span = tracing::Span::current();
+
         //
         // Try to extract profile from header
         //
         match req.headers().get(DEFAULT_PROFILE_KEY) {
             Some(res) => {
+                tracing::trace!("Found profile in header");
+
                 let unwrapped_response = match str::from_utf8(res.as_bytes()) {
                     Ok(res) => res,
                     Err(err) => {
@@ -106,14 +111,23 @@ impl FromRequest for GatewayProfileData {
                     }
                 };
 
+                tracing::trace!("Response extracted from header");
+
                 return match decode_and_decompress_profile_from_base64(
                     unwrapped_response.to_string(),
                 ) {
                     Ok(profile) => Box::pin(async move {
+                        tracing::trace!("Profile decoded and decompressed");
+
+                        span.record(
+                            "myc.router.profile_id",
+                            &Some(profile.acc_id.to_string()),
+                        );
+
                         Ok(GatewayProfileData::from_profile(profile))
                     }),
                     Err(e) => {
-                        tracing::warn!(
+                        tracing::error!(
                             "Unable to decode and decompress profile due: {e}"
                         );
 
@@ -131,6 +145,8 @@ impl FromRequest for GatewayProfileData {
         //
         match req.headers().get("Authorization") {
             Some(res) => {
+                tracing::trace!("Found authorization token in header");
+
                 let token = res.to_str().unwrap().to_string();
 
                 return Box::pin(async move {
@@ -144,6 +160,8 @@ impl FromRequest for GatewayProfileData {
         // checked.
         //
         Box::pin(async move {
+            tracing::error!("Unable to check user identity");
+
             Err(GatewayError::Unauthorized(
                 "Unable to check user identity. Please contact administrators"
                     .to_string(),

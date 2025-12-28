@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.2.1-rc.5] - 2025-12-28
+
+### 🚀 Features
+
+- Upgrade api and http tools to be more verbose on take traces metrics and logs
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
+## [8.2.1-rc.4] - 2025-12-21
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.2.1-rc.3] - 2025-12-18
 
 ### ⚙️ Miscellaneous Tasks

@@ -2,7 +2,6 @@ mod api_docs;
 mod dispatchers;
 mod dtos;
 mod endpoints;
-//mod mcp;
 mod middleware;
 mod models;
 mod modifiers;
@@ -66,6 +65,7 @@ use myc_notifier::{
         NotifierAppModule, NotifierClientImpl, NotifierClientImplParameters,
     },
 };
+use mycelium_base::utils::errors::MappedErrors;
 use oauth2::http::HeaderName;
 use openssl::{
     pkey::PKey,
@@ -145,6 +145,7 @@ pub async fn main() -> std::io::Result<()> {
     //
     // ? -----------------------------------------------------------------------
     info!("Initializing Logging and Telemetry configuration");
+
     let _guard = initialize_otel(api_config.to_owned().logging)?;
 
     let span = tracing::Span::current();
@@ -157,7 +158,8 @@ pub async fn main() -> std::io::Result<()> {
     //
     // ? -----------------------------------------------------------------------
     info!("Initializing Vault configs");
-    init_vault_config_from_file(None, Some(config.vault))
+
+    init_vault_config_from_file(None, Some(config.vault.to_owned()))
         .instrument(span.to_owned())
         .await;
 
@@ -166,102 +168,14 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     info!("Initialize internal dependencies");
 
-    let sql_module = Arc::new(
-        SqlAppModule::builder()
-            .with_component_parameters::<DieselDbPoolProvider>(
-                DieselDbPoolProviderParameters {
-                    pool: DieselDbPoolProvider::new(
-                        &match config
-                            .diesel
-                            .database_url
-                            .async_get_or_error()
-                            .await
-                        {
-                            Ok(url) => url,
-                            Err(err) => {
-                                panic!("Error on get database url: {err}")
-                            }
-                        }
-                        .as_str(),
-                    ),
-                },
-            )
-            .build(),
-    );
+    let (sql_module, shared_module, notifier_module, kv_module, mem_module) =
+        initialize_modules(&config.to_owned())
+            .await
+            .map_err(|err| {
+                tracing::error!("Error initializing modules: {err}");
 
-    let shared_provider =
-        match SharedClientImpl::new(config.redis.to_owned()).await {
-            Ok(provider) => provider,
-            Err(err) => panic!("Error on initialize shared provider: {err}"),
-        };
-
-    let shared_module = Arc::new(
-        SharedAppModule::builder()
-            .with_component_parameters::<SharedClientImpl>(
-                SharedClientImplParameters {
-                    redis_client: shared_provider.get_redis_client(),
-                    redis_config: shared_provider.get_redis_config(),
-                },
-            )
-            .build(),
-    );
-
-    let notifier_provider = match NotifierClientImpl::new(
-        config.queue.to_owned(),
-        config.redis.to_owned(),
-        config.smtp.to_owned(),
-    )
-    .await
-    {
-        Ok(provider) => provider,
-        Err(err) => panic!("Error on initialize notifier provider: {err}"),
-    };
-
-    let notifier_module = Arc::new(
-        NotifierAppModule::builder()
-            .with_component_parameters::<SharedClientImpl>(
-                SharedClientImplParameters {
-                    redis_client: shared_provider.get_redis_client(),
-                    redis_config: shared_provider.get_redis_config(),
-                },
-            )
-            .with_component_parameters::<NotifierClientImpl>(
-                NotifierClientImplParameters {
-                    smtp_client: notifier_provider.get_smtp_client(),
-                    queue_config: notifier_provider.get_queue_config(),
-                },
-            )
-            .build(),
-    );
-
-    let kv_module = Arc::new(
-        KVAppModule::builder()
-            .with_component_parameters::<SharedClientImpl>(
-                SharedClientImplParameters {
-                    redis_client: shared_provider.get_redis_client(),
-                    redis_config: shared_provider.get_redis_config(),
-                },
-            )
-            .build(),
-    );
-
-    for service in config.api.services.clone() {
-        trace!("Service: {:?}", service);
-    }
-
-    let mem_module = Arc::new(
-        MemDbAppModule::builder()
-            .with_component_parameters::<MemDbPoolProvider>(
-                MemDbPoolProviderParameters {
-                    services_db: Arc::new(Mutex::new(
-                        MemDbPoolProvider::new(config.api.services.clone())
-                            .await
-                            .get_services_db(),
-                    )),
-                },
-            )
-            .build(),
-    );
+                std::io::Error::new(std::io::ErrorKind::Other, err)
+            })?;
 
     // ? -----------------------------------------------------------------------
     // ? INITIALIZE THE TOOLS REGISTRY
@@ -319,6 +233,7 @@ pub async fn main() -> std::io::Result<()> {
     //
     // ? -----------------------------------------------------------------------
     info!("Fire webhook dispatcher");
+
     webhook_dispatcher(config.core.to_owned(), sql_module.clone())
         .instrument(span.to_owned())
         .await;
@@ -331,6 +246,7 @@ pub async fn main() -> std::io::Result<()> {
     //
     // ? -----------------------------------------------------------------------
     info!("Fire services health dispatcher");
+
     services_health_dispatcher(config.api.clone(), mem_module.clone())
         .instrument(span.to_owned())
         .await;
@@ -339,6 +255,7 @@ pub async fn main() -> std::io::Result<()> {
     // ? CONFIGURE THE SERVER
     // ? -----------------------------------------------------------------------
     info!("Startup the server configuration");
+
     let server = HttpServer::new(move || {
         //
         // Here we should clone the config to avoid borrowing issues
@@ -647,4 +564,134 @@ pub async fn main() -> std::io::Result<()> {
         .workers(api_config.service_workers as usize)
         .run()
         .await
+}
+
+/// Initialize the modules for the application.
+///
+/// This function initializes the modules for the application based on the
+/// configuration provided. The modules are
+/// - SQL module
+/// - Shared module
+/// - Notifier module
+/// - KV module
+/// - MemDb module
+///
+/// The function returns a tuple of the initialized modules.
+///
+async fn initialize_modules(
+    config: &ConfigHandler,
+) -> Result<
+    (
+        Arc<SqlAppModule>,
+        Arc<SharedAppModule>,
+        Arc<NotifierAppModule>,
+        Arc<KVAppModule>,
+        Arc<MemDbAppModule>,
+    ),
+    MappedErrors,
+> {
+    let sql_module = Arc::new(
+        SqlAppModule::builder()
+            .with_component_parameters::<DieselDbPoolProvider>(
+                DieselDbPoolProviderParameters {
+                    pool: DieselDbPoolProvider::new(
+                        &match config
+                            .diesel
+                            .database_url
+                            .async_get_or_error()
+                            .await
+                        {
+                            Ok(url) => url,
+                            Err(err) => {
+                                panic!("Error on get database url: {err}")
+                            }
+                        }
+                        .as_str(),
+                    ),
+                },
+            )
+            .build(),
+    );
+
+    let shared_provider =
+        match SharedClientImpl::new(config.redis.to_owned()).await {
+            Ok(provider) => provider,
+            Err(err) => panic!("Error on initialize shared provider: {err}"),
+        };
+
+    let shared_module = Arc::new(
+        SharedAppModule::builder()
+            .with_component_parameters::<SharedClientImpl>(
+                SharedClientImplParameters {
+                    redis_client: shared_provider.get_redis_client(),
+                    redis_config: shared_provider.get_redis_config(),
+                },
+            )
+            .build(),
+    );
+
+    let notifier_provider = match NotifierClientImpl::new(
+        config.queue.to_owned(),
+        config.redis.to_owned(),
+        config.smtp.to_owned(),
+    )
+    .await
+    {
+        Ok(provider) => provider,
+        Err(err) => panic!("Error on initialize notifier provider: {err}"),
+    };
+
+    let notifier_module = Arc::new(
+        NotifierAppModule::builder()
+            .with_component_parameters::<SharedClientImpl>(
+                SharedClientImplParameters {
+                    redis_client: shared_provider.get_redis_client(),
+                    redis_config: shared_provider.get_redis_config(),
+                },
+            )
+            .with_component_parameters::<NotifierClientImpl>(
+                NotifierClientImplParameters {
+                    smtp_client: notifier_provider.get_smtp_client(),
+                    queue_config: notifier_provider.get_queue_config(),
+                },
+            )
+            .build(),
+    );
+
+    let kv_module = Arc::new(
+        KVAppModule::builder()
+            .with_component_parameters::<SharedClientImpl>(
+                SharedClientImplParameters {
+                    redis_client: shared_provider.get_redis_client(),
+                    redis_config: shared_provider.get_redis_config(),
+                },
+            )
+            .build(),
+    );
+
+    for service in config.api.services.clone() {
+        trace!("Service: {:?}", service);
+    }
+
+    let mem_module = Arc::new(
+        MemDbAppModule::builder()
+            .with_component_parameters::<MemDbPoolProvider>(
+                MemDbPoolProviderParameters {
+                    services_db: Arc::new(Mutex::new(
+                        MemDbPoolProvider::new(config.api.services.clone())
+                            .await
+                            .get_services_db(),
+                    )),
+                },
+            )
+            .build(),
+    );
+
+    Ok((
+        sql_module,
+        shared_module,
+        notifier_module,
+        kv_module,
+        mem_module,
+    ))
 }
