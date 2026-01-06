@@ -22,6 +22,21 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+#[derive(Clone, Debug)]
+pub(crate) struct Decision {}
+
+impl Decision {
+    #[tracing::instrument(name = "allow", skip_all)]
+    pub fn allow<T: ToString>(reason: T) {
+        tracing::trace!("AllowedBy: {}", reason.to_string());
+    }
+
+    #[tracing::instrument(name = "deny", skip_all)]
+    pub fn deny<T: ToString>(reason: T) {
+        tracing::warn!("DeniedBy: {}", reason.to_string());
+    }
+}
+
 /// This object should be used over the application layer operations.
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq)]
 #[serde(rename_all = "camelCase")]
@@ -266,15 +281,28 @@ impl Profile {
         self.is_staff || self.is_manager
     }
 
+    #[tracing::instrument(name = "has_admin_privileges_or_error", skip_all)]
     pub fn has_admin_privileges_or_error(&self) -> Result<(), MappedErrors> {
         match self.is_staff || self.is_manager {
-            false => execution_err(
-                "Current account has no administration privileges".to_string(),
-            )
-            .with_code(NativeErrorCodes::MYC00019)
-            .with_exp_true()
-            .as_error(),
-            true => Ok(()),
+            false => {
+                Decision::deny(
+                    "Current account has no administration privileges",
+                );
+
+                execution_err(
+                    "Current account has no administration privileges",
+                )
+                .with_code(NativeErrorCodes::MYC00019)
+                .with_exp_true()
+                .as_error()
+            }
+            true => {
+                Decision::allow(
+                    "Current account has administration privileges",
+                );
+
+                Ok(())
+            }
         }
     }
 
@@ -538,10 +566,14 @@ impl Profile {
         &self,
     ) -> Result<RelatedAccounts, MappedErrors> {
         if self.is_staff {
+            Decision::allow("Current account has staff privileges");
+
             return Ok(RelatedAccounts::HasStaffPrivileges);
         }
 
         if self.is_manager {
+            Decision::allow("Current account has manager privileges");
+
             return Ok(RelatedAccounts::HasManagerPrivileges);
         }
 
@@ -549,13 +581,20 @@ impl Profile {
             let records: Vec<LicensedResource> = resources.to_licenses_vector();
 
             if records.is_empty() {
+                Decision::deny(
+                    "No licensed resources found to perform these action",
+                );
+
                 return execution_err(
-                    "Insufficient licenses to perform these action".to_string(),
+                    "No licensed resources found to perform these action"
+                        .to_string(),
                 )
                 .with_code(NativeErrorCodes::MYC00019)
                 .with_exp_true()
                 .as_error();
             }
+
+            Decision::allow("Current account has enough licensed resources");
 
             return Ok(RelatedAccounts::AllowedAccounts(
                 records.iter().map(|i| i.acc_id).collect(),
@@ -589,6 +628,8 @@ impl Profile {
         // Check if the profile has staff privileges
         //
         if self.is_staff {
+            Decision::allow("Current account has staff privileges");
+
             return Ok(RelatedAccounts::HasStaffPrivileges);
         }
 
@@ -596,6 +637,8 @@ impl Profile {
         // Check if the profile has manager privileges
         //
         if self.is_manager {
+            Decision::allow("Current account has manager privileges");
+
             return Ok(RelatedAccounts::HasManagerPrivileges);
         }
 
@@ -606,6 +649,8 @@ impl Profile {
             let tenants = tenants.to_ownership_vector();
 
             if tenants.iter().any(|i| i.id == tenant_id) {
+                Decision::allow("Current account has tenant ownership");
+
                 return Ok(RelatedAccounts::HasTenantWidePrivileges(tenant_id));
             }
         }
@@ -619,8 +664,12 @@ impl Profile {
             .get_ids_or_error()
             .is_ok()
         {
+            Decision::allow("Current account has tenant wide privileges");
+
             return Ok(RelatedAccounts::HasTenantWidePrivileges(tenant_id));
         }
+
+        Decision::deny("Insufficient privileges to perform these action (no tenant wide permission)");
 
         execution_err(format!(
             "Insufficient privileges to perform these action (no tenant wide permission): {}",
@@ -651,12 +700,16 @@ impl Profile {
         if let Ok(related_accounts) =
             self.get_tenant_wide_permission_or_error(tenant_id, permission)
         {
+            Decision::allow("Current account has tenant wide privileges");
+
             return Ok(related_accounts);
         }
 
         //
         // Check if the profile has access to the account
         //
+        Decision::allow("Current account has access to the account");
+
         self.get_related_account_or_error()
     }
 
@@ -680,17 +733,17 @@ impl Profile {
             //
             !ids.is_empty(),
             //
-            // The profile has no staff privileges
+            // The profile has no admin privileges
             //
-            self.is_staff,
-            //
-            // The profile has no manager privileges
-            //
-            self.is_manager,
+            self.has_admin_privileges(),
         ]
         .into_iter()
         .any(|i| i)
         {
+            Decision::deny(
+                "Insufficient privileges to perform these action (no ids)",
+            );
+
             return execution_err(format!(
                 "Insufficient privileges to perform these action (no ids): {}",
                 self.filtering_state.to_owned().unwrap_or(vec![]).join(", ")
@@ -699,6 +752,8 @@ impl Profile {
             .with_exp_true()
             .as_error();
         }
+
+        Decision::allow("Current account has enough ids");
 
         Ok(ids)
     }

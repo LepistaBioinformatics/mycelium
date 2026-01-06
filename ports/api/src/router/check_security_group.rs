@@ -9,6 +9,7 @@ use myc_core::domain::dtos::{route::Route, security_group::SecurityGroup};
 use myc_http_tools::{
     responses::GatewayError, settings::MYCELIUM_SECURITY_GROUP,
 };
+use mycelium_base::dtos::Parent;
 use tracing::Instrument;
 
 /// Check the security group
@@ -50,6 +51,17 @@ pub(super) async fn check_security_group(
     downstream_request = downstream_request
         .insert_header((MYCELIUM_SECURITY_GROUP, serialized_security_group));
 
+    let service_name = match route.service {
+        Parent::Record(ref service) => service.name.to_owned(),
+        Parent::Id(_) => {
+            tracing::error!("Service not found");
+
+            return Err(GatewayError::InternalServerError(String::from(
+                "Service not found",
+            )));
+        }
+    };
+
     //
     // Check requester permissions given the security group
     //
@@ -67,10 +79,13 @@ pub(super) async fn check_security_group(
             // Try to extract user email from the request and inject it into the
             // request headers
             //
-            downstream_request =
-                fetch_and_inject_email_to_forward(req, downstream_request)
-                    .instrument(span.to_owned())
-                    .await?;
+            downstream_request = fetch_and_inject_email_to_forward(
+                req,
+                downstream_request,
+                service_name,
+            )
+            .instrument(span.to_owned())
+            .await?;
         }
         //
         // Protected routes should include the full qualified user profile into
@@ -86,6 +101,7 @@ pub(super) async fn check_security_group(
                     downstream_request,
                     None,
                     None,
+                    service_name,
                 )
                 .instrument(span.to_owned())
                 .await?;
@@ -105,6 +121,7 @@ pub(super) async fn check_security_group(
                     downstream_request,
                     None,
                     Some(roles),
+                    service_name,
                 )
                 .instrument(span.to_owned())
                 .await?;

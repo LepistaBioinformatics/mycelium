@@ -255,20 +255,6 @@ async fn get_email_from_external_provider(
     };
 
     //
-    // Decode token
-    //
-    let token_data = decode::<GenericAccessTokenClaims>(
-        &token,
-        &decoded_key,
-        &Validation::new(decoded_headers.alg),
-    )
-    .map_err(|err| {
-        tracing::error!("Error decoding token: {err}");
-
-        GatewayError::Unauthorized("Error on parse token".to_string())
-    })?;
-
-    //
     // Extract expected audience from issuer v2
     //
     let expected_audience =
@@ -276,6 +262,20 @@ async fn get_email_from_external_provider(
             tracing::error!("Error getting audience: {e}");
 
             GatewayError::Unauthorized("JWT audience not found".to_string())
+        })?;
+
+    //
+    // Decode token
+    //
+    let mut validation = Validation::new(decoded_headers.alg);
+    validation.set_audience(&[expected_audience.to_owned()]);
+
+    let token_data =
+        decode::<GenericAccessTokenClaims>(&token, &decoded_key, &validation)
+            .map_err(|err| {
+            tracing::error!("Error decoding token: {err}");
+
+            GatewayError::Unauthorized("Error on parse token".to_string())
         })?;
 
     //

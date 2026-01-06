@@ -9,6 +9,7 @@ use myc_notifier::models::{QueueConfig, SmtpConfig};
 use mycelium_base::utils::errors::MappedErrors;
 use std::path::PathBuf;
 
+#[derive(Clone)]
 pub struct ConfigHandler {
     pub core: CoreConfig,
     pub diesel: DieselConfig,

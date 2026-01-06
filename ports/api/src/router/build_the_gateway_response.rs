@@ -94,8 +94,15 @@ pub(super) async fn build_the_gateway_response(
         .get("content-length")
         .map(|h| h.to_str().unwrap_or("0").parse::<u64>().unwrap_or(0))
     {
+        // Add the response size to the metric
         span.record("myc.router.res_size", &Some(size));
     }
+
+    // Add the downstream response status to the metric
+    span.record(
+        "myc.router.res_status",
+        &Some(downstream_response.status().as_u16()),
+    );
 
     Ok(gateway_response)
 }

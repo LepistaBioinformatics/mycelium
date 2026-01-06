@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Solve vulnerable dependencies
 
+### ⚙️ Miscellaneous Tasks
+
+- Release
+
 ## [8.2.1-rc.3] - 2025-12-18
 
 ### ⚙️ Miscellaneous Tasks

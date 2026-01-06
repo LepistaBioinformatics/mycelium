@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.2.1-rc.5] - 2025-12-28
+
+### 🚀 Features
+
+- Upgrade api and http tools to be more verbose on take traces metrics and logs
+
+### 🐛 Bug Fixes
+
+- After jsonwebtoken upgrade the audience validation was broken
+
+### 🚜 Refactor
+
+- Remove unused code of rmcp and refactor the main api function to isolate the modules initialization into a external function
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
+
 ## [8.2.1-rc.4] - 2025-12-21
 
 ### 🎨 Styling
@@ -11,6 +30,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - Do implements the starter ci workflow of the project
+- Release
 
 ## [8.2.1-rc.3] - 2025-12-18
 

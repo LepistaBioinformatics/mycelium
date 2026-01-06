@@ -42,6 +42,7 @@ pub async fn fetch_and_inject_profile_from_token_to_forward(
     mut forwarded_req: ClientRequest,
     tenant: Option<Uuid>,
     roles: Option<Vec<PermissionedRole>>,
+    service_name: String,
 ) -> Result<ClientRequest, GatewayError> {
     let span = tracing::Span::current();
 
@@ -83,17 +84,6 @@ pub async fn fetch_and_inject_profile_from_token_to_forward(
             &Some(profile.licensed_resources.is_some()),
         );
 
-    // Get a meter
-    let meter = global::meter("router_counter");
-
-    // Create a metric
-    let counter = meter.u64_counter("router.requests_count").build();
-
-    counter.add(
-        1,
-        &[KeyValue::new("profile_id", profile.acc_id.to_string())],
-    );
-
     if let Some(_) = roles {
         if profile.licensed_resources.is_none()
             && (!profile.is_manager && !profile.is_staff)
@@ -104,6 +94,26 @@ pub async fn fetch_and_inject_profile_from_token_to_forward(
             ));
         }
     }
+
+    // Get a meter
+    let meter = global::meter("router_counter");
+
+    // Create a metric
+    let counter = meter.u64_counter("router.requests_count").build();
+
+    counter.add(
+        1,
+        &[
+            KeyValue::new(
+                "identifier",
+                format!(
+                    "profileId:{}",
+                    profile.acc_id.to_string().replace("-", "")
+                ),
+            ),
+            KeyValue::new("down_service_name", service_name),
+        ],
+    );
 
     forwarded_req.headers_mut().insert(
         HeaderName::from_str(DEFAULT_PROFILE_KEY).unwrap(),

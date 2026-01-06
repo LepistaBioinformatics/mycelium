@@ -13,8 +13,13 @@ use crate::{
 };
 
 use actix_web::{App, HttpServer};
+use opentelemetry::{global, trace::TracerProvider, KeyValue};
+use opentelemetry_otlp::WithExportConfig;
+use opentelemetry_sdk::Resource;
 use std::env::var_os;
+use std::str::FromStr;
 use tracing_actix_web::TracingLogger;
+use tracing_subscriber::{layer::SubscriberExt, EnvFilter, Layer};
 use utoipa::OpenApi;
 use utoipa_redoc::{FileConfig, Redoc, Servable};
 use utoipa_swagger_ui::SwaggerUi;
@@ -50,13 +55,63 @@ async fn main() -> std::io::Result<()> {
     );
 
     //
-    // Configure tracing
+    // Configure OpenTelemetry with hard coded values
     //
-    tracing_subscriber::fmt::init();
+    // Hard coded configuration values
+    let service_name = "mycelium-api-test-svc";
+    let otel_collector_host = "myc-otel-collector-devcontainer";
+    let otel_collector_port = 4317; // OTLP gRPC endpoint
+    let log_level = "info";
 
-    //
+    // Build OTLP endpoint for traces
+    let traces_address =
+        format!("grpc://{}:{}", otel_collector_host, otel_collector_port);
+
+    // Configure resource
+    let resource = Resource::builder()
+        .with_attributes(vec![KeyValue::new("service.name", service_name)])
+        .build();
+
+    // ---------------------------------------------------------------------
+    // Configure tracer
+    // ---------------------------------------------------------------------
+
+    let trace_exporter = opentelemetry_otlp::SpanExporter::builder()
+        .with_tonic()
+        .with_endpoint(traces_address)
+        .with_timeout(std::time::Duration::from_secs(10))
+        .build()
+        .expect("Failed to build gRPC trace exporter");
+
+    let tracer_provider =
+        opentelemetry_sdk::trace::SdkTracerProvider::builder()
+            .with_resource(resource)
+            .with_batch_exporter(trace_exporter)
+            .build();
+
+    let tracer = tracer_provider.tracer(service_name);
+
+    global::set_tracer_provider(tracer_provider);
+
+    // ---------------------------------------------------------------------
+    // Configure tracing subscriber with OpenTelemetry layer
+    // ---------------------------------------------------------------------
+
+    let (non_blocking, _) = tracing_appender::non_blocking(std::io::stderr());
+
+    let otel_layer = tracing_opentelemetry::layer().with_tracer(tracer);
+
+    let subscriber = tracing_subscriber::Registry::default()
+        .with(otel_layer)
+        .with(
+            tracing_subscriber::fmt::layer()
+                .with_writer(non_blocking)
+                .with_filter(EnvFilter::from_str(log_level).unwrap()),
+        );
+
+    let _ = tracing::subscriber::set_global_default(subscriber);
+
     // Fire up the server
-    //
     HttpServer::new(|| {
         App::new()
             .wrap(TracingLogger::default())

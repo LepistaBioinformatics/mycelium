@@ -7,7 +7,9 @@ use tracing::error;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema)]
+#[derive(
+    Clone, Debug, Deserialize, Serialize, Eq, PartialEq, ToSchema, Hash,
+)]
 #[serde(rename_all = "camelCase")]
 #[derive(Default)]
 pub enum Permission {
