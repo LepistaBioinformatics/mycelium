@@ -310,6 +310,7 @@ impl Profile {
     ///
     /// This method should be used to filter licensed resources to the tenant
     /// that the profile is currently working on.
+    #[tracing::instrument(name = "on_tenant", skip_all)]
     pub fn on_tenant(&self, tenant_id: Uuid) -> Self {
         //
         // Filter the licensed resources to the tenant
@@ -347,6 +348,7 @@ impl Profile {
     ///
     /// This method should be used to filter licensed resources to the tenant
     /// that the profile is currently working on.
+    #[tracing::instrument(name = "on_tenant_as_manager", skip_all)]
     pub fn on_tenant_as_manager(
         &self,
         tenant_id: Uuid,
@@ -371,6 +373,7 @@ impl Profile {
     ///
     /// This method should be used to filter licensed resources to the account
     /// that the profile is currently working on.
+    #[tracing::instrument(name = "on_account", skip_all)]
     pub fn on_account(&self, account_id: Uuid) -> Self {
         let licensed_resources =
             if let Some(resources) = self.licensed_resources.as_ref() {
@@ -399,6 +402,7 @@ impl Profile {
     }
 
     /// Filter the tenant ownership by the tenant
+    #[tracing::instrument(name = "with_tenant_ownership_or_error", skip_all)]
     pub fn with_tenant_ownership_or_error(
         &self,
         tenant_id: Uuid,
@@ -432,6 +436,7 @@ impl Profile {
 
     /// Filter the licensed resources to include only the standard system
     /// accounts
+    #[tracing::instrument(name = "with_system_accounts_access", skip_all)]
     pub fn with_system_accounts_access(&self) -> Self {
         //
         // Filter the licensed resources to the default accounts
@@ -466,11 +471,13 @@ impl Profile {
     }
 
     /// Filter the licensed resources to include only licenses with read access
+    #[tracing::instrument(name = "with_read_access", skip_all)]
     pub fn with_read_access(&self) -> Self {
         self.with_permission(Permission::Read)
     }
 
     /// Filter the licensed resources to include only licenses with write access
+    #[tracing::instrument(name = "with_write_access", skip_all)]
     pub fn with_write_access(&self) -> Self {
         self.with_permission(Permission::Write)
     }
@@ -480,6 +487,7 @@ impl Profile {
     /// This is an internal method that should be used to filter the licensed
     /// resources by permission.
     ///
+    #[tracing::instrument(name = "with_permission", skip_all)]
     fn with_permission(&self, permission: Permission) -> Self {
         //
         // Filter the licensed resources to the permission
@@ -516,6 +524,7 @@ impl Profile {
         }
     }
 
+    #[tracing::instrument(name = "with_roles", skip_all)]
     pub fn with_roles<T: ToString>(&self, roles: Vec<T>) -> Self {
         //
         // Filter the licensed resources to the roles
@@ -562,6 +571,7 @@ impl Profile {
         }
     }
 
+    #[tracing::instrument(name = "get_related_account_or_error", skip_all)]
     pub fn get_related_account_or_error(
         &self,
     ) -> Result<RelatedAccounts, MappedErrors> {
@@ -619,6 +629,10 @@ impl Profile {
     /// has no tenant wide permissions, the method will return the related
     /// accounts.
     ///
+    #[tracing::instrument(
+        name = "get_tenant_wide_permission_or_error",
+        skip_all
+    )]
     pub fn get_tenant_wide_permission_or_error(
         &self,
         tenant_id: Uuid,
@@ -689,6 +703,10 @@ impl Profile {
     /// has no tenant wide permissions, the method will return the related
     /// accounts.
     ///
+    #[tracing::instrument(
+        name = "get_related_accounts_or_tenant_wide_permission_or_error",
+        skip_all
+    )]
     pub fn get_related_accounts_or_tenant_wide_permission_or_error(
         &self,
         tenant_id: Uuid,
@@ -713,6 +731,7 @@ impl Profile {
         self.get_related_account_or_error()
     }
 
+    #[tracing::instrument(name = "get_ids_or_error", skip_all)]
     pub fn get_ids_or_error(&self) -> Result<Vec<Uuid>, MappedErrors> {
         let ids: Vec<Uuid> = self
             .licensed_resources
@@ -808,6 +827,8 @@ mod tests {
                     role: "service".to_string(),
                     perm: Permission::Write,
                     verified: true,
+                    permit_flags: None,
+                    deny_flags: None,
                 },
                 LicensedResource {
                     acc_id: Uuid::new_v4(),
@@ -818,6 +839,8 @@ mod tests {
                     role: "newbie".to_string(),
                     perm: Permission::Read,
                     verified: true,
+                    permit_flags: None,
+                    deny_flags: None,
                 },
                 LicensedResource {
                     acc_id: Uuid::new_v4(),
@@ -828,6 +851,8 @@ mod tests {
                     role: "service".to_string(),
                     perm: Permission::Write,
                     verified: true,
+                    permit_flags: None,
+                    deny_flags: None,
                 },
             ])),
             tenants_ownership: Some(TenantsOwnership::Records(vec![
@@ -852,6 +877,8 @@ mod tests {
             role: "service".to_string(),
             perm: Permission::Write,
             verified: true,
+            permit_flags: None,
+            deny_flags: None,
         };
 
         let licensed_resource_string = licensed_resource.to_string();
