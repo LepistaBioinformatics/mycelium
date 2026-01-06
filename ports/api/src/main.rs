@@ -45,16 +45,17 @@ use myc_adapters_shared_lib::models::{
 use myc_config::{
     init_vault_config_from_file, optional_config::OptionalConfig,
 };
-use myc_core::domain::entities::{
-    GuestRoleRegistration, LocalMessageReading, LocalMessageWrite,
-    RemoteMessageWrite,
+use myc_core::{
+    domain::entities::{
+        GuestRoleRegistration, LocalMessageReading, LocalMessageWrite,
+        RemoteMessageWrite, ServiceRead,
+    },
+    use_cases::gateway::guest_roles::propagate_declared_roles_to_sql_database,
 };
 use myc_diesel::repositories::{
     DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
 };
-use myc_http_tools::{
-    settings::DEFAULT_REQUEST_ID_KEY, GuestRole, SecurityGroup,
-};
+use myc_http_tools::settings::DEFAULT_REQUEST_ID_KEY;
 use myc_kv::repositories::KVAppModule;
 use myc_mem_db::{
     models::config::DbPoolProvider,
@@ -68,9 +69,7 @@ use myc_notifier::{
         NotifierAppModule, NotifierClientImpl, NotifierClientImplParameters,
     },
 };
-use mycelium_base::{
-    entities::GetOrCreateResponseKind, utils::errors::MappedErrors,
-};
+use mycelium_base::utils::errors::MappedErrors;
 use oauth2::http::HeaderName;
 use openssl::{
     pkey::PKey,
@@ -85,9 +84,8 @@ use reqwest::header::{
 use router::route_request;
 use settings::{ADMIN_API_SCOPE, TOOLS_API_SCOPE};
 use shaku::HasComponent;
-use std::collections::HashMap;
 use std::{path::PathBuf, str::FromStr, sync::Arc, sync::Mutex};
-use tracing::{error, info, trace, Instrument};
+use tracing::{info, trace, Instrument};
 use tracing_actix_web::TracingLogger;
 use utoipa::OpenApi;
 use utoipa_redoc::{FileConfig, Redoc, Servable};
@@ -193,8 +191,8 @@ pub async fn main() -> std::io::Result<()> {
     info!("Propagate declared roles to the SQL database");
 
     propagate_declared_roles_to_sql_database(
-        &mem_module.clone(),
-        &sql_module.clone(),
+        Box::new(mem_module.resolve_ref() as &dyn ServiceRead),
+        Box::new(sql_module.resolve_ref() as &dyn GuestRoleRegistration),
     )
     .instrument(span.to_owned())
     .await
@@ -723,72 +721,4 @@ async fn initialize_modules(
         kv_module,
         mem_module,
     ))
-}
-
-/// Propagate the declared roles to the SQL database.
-///
-/// This function propagates the declared roles to the SQL database. The roles
-/// are propagated to the SQL database to allow the downstream services to
-/// access the roles.
-///
-/// The function returns a tuple of the propagated roles.
-///
-async fn propagate_declared_roles_to_sql_database(
-    mem_module: &Arc<MemDbAppModule>,
-    sql_module: &Arc<SqlAppModule>,
-) -> Result<(), MappedErrors> {
-    let mem_module_resolved = mem_module.resolve_ref() as &dyn DbPoolProvider;
-    let guest_role_registration_repo =
-        sql_module.resolve_ref() as &dyn GuestRoleRegistration;
-
-    let unique_roles = mem_module_resolved
-        .get_services_db()
-        .iter()
-        .flat_map(|service| {
-            service.routes.iter().filter_map(|route| {
-                match &route.security_group {
-                    SecurityGroup::ProtectedByRoles(roles) => Some(roles),
-                    _ => None,
-                }
-            })
-        })
-        .flatten()
-        .map(|record| {
-            GuestRole::new(
-                None,
-                record.name.to_owned(),
-                None,
-                record.permission.clone().unwrap_or_default(),
-                None,
-                false,
-            )
-        })
-        .fold(HashMap::new(), |mut acc, role| {
-            let key = (role.slug.clone(), role.permission.clone());
-            acc.entry(key).or_insert(role);
-            acc
-        })
-        .into_values()
-        .collect::<Vec<GuestRole>>();
-
-    for role in unique_roles {
-        match guest_role_registration_repo
-            .get_or_create(role.to_owned())
-            .await
-        {
-            Ok(res) => match res {
-                GetOrCreateResponseKind::Created(role) => {
-                    info!("Role created: {:?}", role.slug);
-                }
-                GetOrCreateResponseKind::NotCreated(role, _) => {
-                    info!("Role already exists: {:?}", role.slug);
-                }
-            },
-            Err(err) => {
-                error!("Error creating role: {:?}", err);
-            }
-        }
-    }
-
-    Ok(())
 }

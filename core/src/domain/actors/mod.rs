@@ -13,8 +13,6 @@ use utoipa::ToSchema;
 #[derive(Debug, Clone, Deserialize, Serialize, ToSchema, Eq, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum SystemActor {
-    CustomRole(String),
-
     /// Beginner
     ///
     /// This actor is used when no role is assigned to the user.
@@ -121,12 +119,16 @@ pub enum SystemActor {
     ///
     /// This is a service entity.
     Service,
+
+    /// Custom role
+    #[serde(untagged)]
+    CustomRole(String),
 }
 
 impl Display for SystemActor {
     fn fmt(&self, f: &mut Formatter) -> FmtResult {
         match self {
-            SystemActor::CustomRole(role) => write!(f, "custom-role:{}", role),
+            SystemActor::CustomRole(role) => write!(f, "{}", role),
             SystemActor::Beginner => write!(f, "beginners"),
             SystemActor::SubscriptionsManager => {
                 write!(f, "subscriptions-manager")
@@ -175,13 +177,7 @@ impl FromStr for SystemActor {
             "tenant-owner" => Ok(SystemActor::TenantOwner),
             "service" => Ok(SystemActor::Service),
 
-            other => {
-                if other.starts_with("custom-role:") {
-                    Ok(SystemActor::CustomRole(other[11..].to_string()))
-                } else {
-                    Err(())
-                }
-            }
+            other => Ok(SystemActor::CustomRole(other.to_string())),
         }
     }
 }
