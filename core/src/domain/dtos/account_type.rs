@@ -145,7 +145,7 @@ mod tests {
 
         assert_eq!(
             json,
-            r#"{"roleAssociated":{"tenantId":"00000000-0000-0000-0000-000000000000","roleName":"custom-role:test","readRoleId":"00000000-0000-0000-0000-000000000000","writeRoleId":"00000000-0000-0000-0000-000000000000"}}"#
+            r#"{"roleAssociated":{"tenantId":"00000000-0000-0000-0000-000000000000","roleName":"test","readRoleId":"00000000-0000-0000-0000-000000000000","writeRoleId":"00000000-0000-0000-0000-000000000000"}}"#
         );
 
         let account_type: AccountType = serde_json::from_str(&json).unwrap();
