@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.2.1] - 2026-01-06
+
+### 🚀 Features
+
+- Do implements the roles propagation during the api initialization
+- Convert the declared roles propagation to a use-case and implements appropriate rules
+
+### 🚜 Refactor
+
+- Rename declared roles propagation use-case
+
 ## [8.2.1-rc.5] - 2025-12-28
 
 ### 🚀 Features
@@ -18,6 +29,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 - Release
 
