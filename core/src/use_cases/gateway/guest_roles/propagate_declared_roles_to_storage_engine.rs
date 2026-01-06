@@ -19,10 +19,10 @@ use std::{collections::HashMap, str::FromStr};
 /// The function returns a tuple of the propagated roles.
 ///
 #[tracing::instrument(
-    name = "propagate_declared_roles_to_sql_database",
+    name = "propagate_declared_roles_to_storage_engine",
     skip_all
 )]
-pub async fn propagate_declared_roles_to_sql_database(
+pub async fn propagate_declared_roles_to_storage_engine(
     services_fetching_repo: Box<&dyn ServiceRead>,
     guest_role_registration_repo: Box<&dyn GuestRoleRegistration>,
 ) -> Result<(), MappedErrors> {

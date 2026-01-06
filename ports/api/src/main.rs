@@ -50,7 +50,7 @@ use myc_core::{
         GuestRoleRegistration, LocalMessageReading, LocalMessageWrite,
         RemoteMessageWrite, ServiceRead,
     },
-    use_cases::gateway::guest_roles::propagate_declared_roles_to_sql_database,
+    use_cases::gateway::guest_roles::propagate_declared_roles_to_storage_engine,
 };
 use myc_diesel::repositories::{
     DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
@@ -190,7 +190,7 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     info!("Propagate declared roles to the SQL database");
 
-    propagate_declared_roles_to_sql_database(
+    propagate_declared_roles_to_storage_engine(
         Box::new(mem_module.resolve_ref() as &dyn ServiceRead),
         Box::new(sql_module.resolve_ref() as &dyn GuestRoleRegistration),
     )
