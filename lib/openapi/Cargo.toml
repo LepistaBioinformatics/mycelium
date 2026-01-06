@@ -2,7 +2,8 @@
 name = "mycelium-openapi"
 description = "Provide OpenAPI related elements to the mycelium project."
 
-version.workspace = true
+version = "8.2.1"
+
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
