@@ -2,7 +2,7 @@
 name = "mycelium-adapters-shared-lib"
 description = "Shared library for the mycelium adapters layer."
 
-version = "8.2.1"
+version = "8.2.2-beta.1"
 
 edition.workspace = true
 authors.workspace = true

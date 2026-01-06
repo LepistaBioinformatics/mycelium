@@ -2,7 +2,7 @@
 name = "mycelium-api-test-svc"
 description = "Mycelium API Test Service"
 
-version = "8.2.1"
+version = "8.2.2-beta.1"
 
 edition.workspace = true
 authors.workspace = true
@@ -18,7 +18,7 @@ readme.workspace = true
 
 [dependencies]
 anyhow = "1.0"
-mycelium-http-tools = { version = "8.2.1", path = "../../lib/http_tools" }
+mycelium-http-tools = { version = "8.2.2-beta.1", path = "../../lib/http_tools" }
 
 actix-web.workspace = true
 serde.workspace = true

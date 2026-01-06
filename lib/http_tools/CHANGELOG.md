@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.2.2-beta.1] - 2026-01-06
+
+### 💼 Other
+
+- Turn individual packages versions as fully independent
+
 ## [8.2.1] - 2026-01-06
 
 ### 🚀 Features
@@ -10,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release
 - Release
 
 ## [8.2.1-rc.4] - 2025-12-21
