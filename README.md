@@ -10,7 +10,6 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/sgelias/mycelium-api)](https://hub.docker.com/r/sgelias/mycelium-api)
 [![License](https://img.shields.io/crates/l/mycelium-api.svg)](./LICENSE)
 [![Rust Version](https://img.shields.io/badge/rust-1.70%2B-blue.svg)](https://www.rust-lang.org)
-![Crates.io Total Downloads](https://img.shields.io/crates/d/mycelium-api)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10181/badge?t=2)](https://www.bestpractices.dev/en/projects/10181)
 
 <img
