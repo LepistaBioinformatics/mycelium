@@ -121,7 +121,19 @@ To build a specific workspace member:
 cargo build -p myc-core
 ```
 
-### Run Tests
+### Testing Requirements
+
+- All major new features must include automated tests.
+- Bug fixes should include tests that prevent regression.
+- Tests should follow Rust's testing conventions as described in [The Rust
+  Book](https://doc.rust-lang.org/book/ch11-01-writing-tests.html).
+- Unit tests should be placed in the same file as the code being tested, within
+  a `#[cfg(test)]` module.
+- Integration tests should be placed in the `tests/` directory.
+- Run tests locally with `cargo test` before submitting pull requests.
+- Aim for maintaining or improving current code coverage.
+
+#### How to Run Tests
 
 Run all tests:
 
