@@ -20,3 +20,4 @@
 # Development
 
 - [Running Tests](./07-running-tests.md)
+- [Release Process](./08-release-process.md)

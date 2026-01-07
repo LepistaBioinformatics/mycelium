@@ -439,6 +439,235 @@ For significant features, please discuss the approach with maintainers before im
 - Is the code maintainable and clear?
 - Does it solve the stated problem?
 
+## Release Process
+
+Mycelium uses [`cargo-release`](https://github.com/crate-ci/cargo-release) to manage version releases and publishing. This section describes the release workflow and version management strategy.
+
+### Installing Required Tools
+
+First, install the required tools if you haven't already:
+
+```bash
+# Install cargo-release for version management
+cargo install cargo-release
+
+# Install git-cliff for changelog generation
+cargo install git-cliff
+```
+
+### Version Semantics
+
+Mycelium follows [Semantic Versioning](https://semver.org/) (SemVer):
+
+- **MAJOR** (`X.0.0`): Incompatible API changes or breaking changes
+- **MINOR** (`x.Y.0`): New functionality in a backward-compatible manner
+- **PATCH** (`x.y.Z`): Backward-compatible bug fixes
+
+### Pre-release Tags
+
+Pre-release versions follow a specific progression for testing and validation:
+
+1. **alpha** (`x.y.z-alpha.N`): Early development, unstable, frequent changes
+   - Used for initial testing of new features
+   - Not recommended for production use
+   - Example: `8.3.0-alpha.1`, `8.3.0-alpha.2`
+
+2. **beta** (`x.y.z-beta.N`): Feature complete, but may have bugs
+   - Used for wider testing and feedback
+   - API should be relatively stable
+   - Example: `8.3.0-beta.1`, `8.3.0-beta.2`
+
+3. **rc** (Release Candidate) (`x.y.z-rc.N`): Production-ready candidate
+   - Final testing before release
+   - Only critical bug fixes allowed
+   - Example: `8.3.0-rc.1`, `8.3.0-rc.2`
+
+4. **Stable Release** (`x.y.z`): Production-ready version
+   - Example: `8.3.0`
+
+### Release Workflow
+
+#### 1. Starting a New Development Cycle
+
+Create the first alpha release for testing:
+
+```bash
+# Create alpha.1 release
+cargo release alpha --execute
+
+# Subsequent alphas
+cargo release alpha --execute  # Creates alpha.2, alpha.3, etc.
+```
+
+#### 2. Moving to Beta
+
+When features are complete and ready for broader testing:
+
+```bash
+# Create beta.1 release
+cargo release beta --execute
+
+# Subsequent betas
+cargo release beta --execute  # Creates beta.2, beta.3, etc.
+```
+
+#### 3. Creating Release Candidates
+
+When the code is stable and ready for final validation:
+
+```bash
+# Create rc.1 release
+cargo release rc --execute
+
+# Subsequent release candidates (if needed)
+cargo release rc --execute  # Creates rc.2, rc.3, etc.
+```
+
+#### 4. Final Stable Release
+
+When all testing is complete and the release candidate is approved:
+
+```bash
+# Release the stable version
+cargo release release --execute
+```
+
+This removes the pre-release suffix and creates a stable version (e.g., `8.3.0-rc.2` → `8.3.0`).
+
+#### 5. Patch Releases
+
+For bug fixes on existing stable releases:
+
+```bash
+# Increment patch version (8.3.0 → 8.3.1)
+cargo release patch --execute
+```
+
+#### 6. Minor and Major Releases
+
+For new features or breaking changes:
+
+```bash
+# Increment minor version (8.3.1 → 8.4.0)
+cargo release minor --execute
+
+# Increment major version (8.4.0 → 9.0.0)
+cargo release major --execute
+```
+
+### Complete Release Cycle Example
+
+Here's a complete example of releasing version 8.3.0:
+
+```bash
+# Start with alpha releases
+cargo release alpha --execute        # 8.3.0-alpha.1
+cargo release alpha --execute        # 8.3.0-alpha.2
+
+# Move to beta after features are complete
+cargo release beta --execute         # 8.3.0-beta.1
+cargo release beta --execute         # 8.3.0-beta.2
+
+# Create release candidates
+cargo release rc --execute           # 8.3.0-rc.1
+cargo release rc --execute           # 8.3.0-rc.2
+
+# Final stable release
+cargo release release --execute      # 8.3.0
+
+# Later, for bug fixes
+cargo release patch --execute        # 8.3.1
+
+# For the next feature release
+cargo release minor --execute        # 8.4.0
+```
+
+### Dry Run (Recommended)
+
+Before executing any release, perform a dry run to preview changes:
+
+```bash
+# Dry run (default behavior)
+cargo release alpha
+
+# Review the output, then execute if everything looks correct
+cargo release alpha --execute
+```
+
+### Changelog Generation
+
+Mycelium uses [`git-cliff`](https://git-cliff.org/) to automatically generate changelogs from conventional commits. The configuration is in `cliff.toml` at the repository root.
+
+#### Generating Changelogs
+
+To update the CHANGELOG.md before a release:
+
+```bash
+# Generate changelog for unreleased changes
+git-cliff --unreleased --prepend CHANGELOG.md
+
+# Generate changelog for a specific version
+git-cliff --tag v8.3.0 --prepend CHANGELOG.md
+
+# Preview changelog without writing to file
+git-cliff --unreleased
+```
+
+#### Conventional Commit Format
+
+Git-cliff parses commits based on [Conventional Commits](https://www.conventionalcommits.org/). Use these prefixes:
+
+- `feat:` - New features (🚀 Features)
+- `fix:` - Bug fixes (🐛 Bug Fixes)
+- `docs:` - Documentation changes (📚 Documentation)
+- `perf:` - Performance improvements (⚡ Performance)
+- `refactor:` - Code refactoring (🚜 Refactor)
+- `style:` - Code style changes (🎨 Styling)
+- `test:` - Test additions or changes (🧪 Testing)
+- `chore:` - Maintenance tasks (⚙️ Miscellaneous Tasks)
+
+Example commit message:
+```
+feat(auth): add passwordless authentication
+
+Implements magic link authentication flow for users.
+
+Fixes #110
+```
+
+### Release Configuration
+
+The project's release configuration is defined in `release.toml` at the repository root. This file configures:
+- Pre-release hooks (tests, build verification)
+- Version bumping behavior
+- Git tag format
+- Changelog generation via git-cliff
+- Publishing settings
+
+### Best Practices
+
+1. **Always test before releasing**: Run `cargo test` and verify builds
+2. **Use dry runs**: Preview changes with `cargo release <level>` before using `--execute`
+3. **Follow the progression**: alpha → beta → rc → release
+4. **Use conventional commits**: Follow the commit format for automatic changelog generation
+5. **Update CHANGELOG.md**: Run `git-cliff` to generate changelog before each release
+6. **Tag releases**: `cargo-release` automatically creates Git tags
+7. **Coordinate with team**: For major releases, ensure all stakeholders are informed
+
+### Release Checklist
+
+Before creating a stable release:
+
+- [ ] All tests pass (`cargo test`)
+- [ ] Code is formatted (`cargo fmt`)
+- [ ] No security vulnerabilities (`cargo audit`)
+- [ ] Documentation is updated
+- [ ] All commits follow conventional commit format
+- [ ] CHANGELOG.md is updated with `git-cliff --unreleased --prepend CHANGELOG.md`
+- [ ] Release notes are prepared
+- [ ] All CI checks pass
+- [ ] Team review is complete (for major/minor releases)
+
 ## Resources
 
 ### Documentation

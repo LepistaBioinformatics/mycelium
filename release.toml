@@ -1,0 +1,117 @@
+# cargo-release configuration
+# Documentation: https://github.com/crate-ci/cargo-release/blob/master/docs/reference.md
+
+# Enable release for all workspace members
+[workspace]
+# Allow releasing all workspace members together
+allow-branch = ["main", "develop"]
+# Consolidate commits for all workspace members
+consolidate-commits = true
+# Push all tags together
+consolidate-pushes = true
+
+# General release configuration
+[release]
+# Ensure working directory is clean before release
+pre-release-commit-message = "chore(release): prepare for {{version}}"
+# Tag format for releases
+tag-name = "v{{version}}"
+tag-message = "Release {{version}}"
+# Enable signing tags (optional - remove if not using GPG)
+# sign-tag = true
+# Enable signing commits (optional - remove if not using GPG)
+# sign-commit = true
+# Push to remote
+push = true
+# Enable release on git
+enable-features = []
+enable-all-features = false
+# Publish to crates.io (set to false if private registry or not publishing)
+publish = false
+
+# Pre-release hook - run tests before any release
+[[pre-release-hook]]
+command = "cargo"
+args = ["test", "--workspace"]
+error-msg = "Tests failed. Please fix failing tests before releasing."
+
+# Pre-release hook - verify code formatting
+[[pre-release-hook]]
+command = "cargo"
+args = ["fmt", "--all", "--check"]
+error-msg = "Code is not formatted. Run 'cargo fmt' before releasing."
+
+# Pre-release hook - run security audit
+[[pre-release-hook]]
+command = "cargo"
+args = ["audit"]
+error-msg = """
+Security vulnerabilities found. Please address them before releasing.
+Run 'cargo audit' for details.
+"""
+
+# Pre-release hook - build all workspace members
+[[pre-release-hook]]
+command = "cargo"
+args = ["build", "--workspace", "--release"]
+error-msg = "Build failed. Please fix build errors before releasing."
+
+# Pre-release hook - generate/update CHANGELOG using git-cliff
+[[pre-release-hook]]
+command = "git-cliff"
+args = ["--unreleased", "--prepend", "CHANGELOG.md", "--tag", "v{{version}}"]
+error-msg = """
+Failed to generate changelog with git-cliff.
+Ensure git-cliff is installed: cargo install git-cliff
+"""
+
+# Pre-release hook - stage the updated CHANGELOG
+[[pre-release-hook]]
+command = "git"
+args = ["add", "CHANGELOG.md"]
+error-msg = "Failed to stage CHANGELOG.md"
+
+# Post-release hook - update unreleased section in CHANGELOG
+[[post-release-hook]]
+command = "git-cliff"
+args = ["--unreleased", "--prepend", "CHANGELOG.md"]
+error-msg = "Failed to update unreleased section in changelog"
+
+# Configuration for specific pre-release identifiers
+[release.metadata]
+# Additional metadata can be added here if needed
+
+# Alpha pre-release configuration
+[release.pre-release-replacements]
+
+# Update version references in README if needed
+# [[release.pre-release-replacements]]
+# file = "README.md"
+# search = "mycelium-.*?-v[0-9]+\\.[0-9]+\\.[0-9]+"
+# replace = "mycelium-{{crate_name}}-v{{version}}"
+
+# Beta configuration (inherits from release)
+# No special configuration needed - uses default behavior
+
+# RC configuration (inherits from release)
+# No special configuration needed - uses default behavior
+
+# Package-specific overrides
+# You can override settings for specific packages if needed
+
+# Example: Don't publish the test service
+# [package.mycelium-api-test-svc]
+# publish = false
+
+# Example: Custom configuration for API package
+# [package.mycelium-api]
+# publish = true
+# Custom pre-release hooks can be added here
+
+# Notes:
+# 1. All hooks run in order before the release is created
+# 2. If any hook fails, the release process stops
+# 3. The {{version}} placeholder is replaced with the actual version
+# 4. The {{crate_name}} placeholder is replaced with the crate name
+# 5. git-cliff integration automatically updates CHANGELOG.md based on conventional commits
+# 6. The configuration follows the progression: alpha → beta → rc → release
