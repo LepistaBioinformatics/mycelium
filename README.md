@@ -231,6 +231,28 @@ discussions, improvement proposals, and conceptual reviews are welcome.
 
 ---
 
+## Contributing
+
+We welcome contributions! Mycelium is an open-source project and we appreciate:
+
+- 🐛 Bug reports and fixes
+- ✨ Feature requests and implementations
+- 📝 Documentation improvements
+- 🔍 Code reviews
+- 💡 Ideas and discussions
+
+### Getting Started
+
+1. Read our **[Contributing Guide](./CONTRIBUTING.md)** for detailed guidelines
+2. Check out existing [issues](https://github.com/sgelias/mycelium/issues) or create a new one
+3. Fork the repository and create a feature branch
+4. Make your changes following our code standards
+5. Submit a pull request using our [PR template](.github/PULL_REQUEST_TEMPLATE.md)
+
+All pull requests automatically load our template with checklists for tests, code quality, and documentation.
+
+---
+
 ## License
 
 See the [LICENSE](./LICENSE) file for details about the project's licensing.

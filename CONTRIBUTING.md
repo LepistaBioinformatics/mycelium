@@ -291,6 +291,8 @@ git push origin develop
    ```
 
 2. Open a pull request on GitHub targeting the `develop` branch (not `main`)
+   - The PR will automatically load our [Pull Request Template](.github/PULL_REQUEST_TEMPLATE.md)
+   - Fill in all sections of the template
 
 3. Use a descriptive PR title following the format:
    - `[FEAT] Add new feature description`
@@ -305,23 +307,20 @@ git push origin develop
    - **Testing**: How you tested the changes
    - **Breaking Changes**: Any breaking changes and migration notes
 
-### PR Template Example
+### Pull Request Template
 
-```markdown
-## Related Issue
-Fixes #117
+When you create a new PR, GitHub will automatically load our [Pull Request
+Template](.github/PULL_REQUEST_TEMPLATE.md). The template includes:
 
-## Summary
-Creates CONTRIBUTING.md to document the contribution process for the Mycelium project.
+- **Summary**: Description of your changes
+- **Type of Change**: Classification of the PR (bug fix, feature, etc.)
+- **Changes Made**: Detailed list of modifications
+- **Related Issues**: Link to related issue(s)
+- **Checklist**: Including test requirements and code standards
+- **Testing**: How you verified the changes
+- **Screenshots/Logs**: Visual evidence if applicable
 
-## Testing
-- Verified markdown formatting
-- Checked all links
-- Reviewed content accuracy
-
-## Breaking Changes
-None
-```
+Make sure to fill out all relevant sections to help reviewers understand your changes.
 
 ### Review Process
 
