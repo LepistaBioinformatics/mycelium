@@ -310,17 +310,31 @@ git push origin develop
 ### Pull Request Template
 
 When you create a new PR, GitHub will automatically load our [Pull Request
-Template](.github/PULL_REQUEST_TEMPLATE.md). The template includes:
+Template](.github/PULL_REQUEST_TEMPLATE.md). The template is located at
+`.github/PULL_REQUEST_TEMPLATE.md` and becomes available to contributors once
+it's merged into the repository's default branch.
 
-- **Summary**: Description of your changes
-- **Type of Change**: Classification of the PR (bug fix, feature, etc.)
-- **Changes Made**: Detailed list of modifications
-- **Related Issues**: Link to related issue(s)
-- **Checklist**: Including test requirements and code standards
-- **Testing**: How you verified the changes
-- **Screenshots/Logs**: Visual evidence if applicable
+The template includes the following sections to ensure comprehensive PR documentation:
 
-Make sure to fill out all relevant sections to help reviewers understand your changes.
+- **Summary**: Brief description of your changes and their purpose
+- **Type of Change**: Classification of the PR (bug fix, feature, breaking change, etc.)
+- **Changes Made**: Detailed bullet-point list of modifications
+- **Related Issues**: Reference to related issue(s) using `#issue_number` format
+- **Checklist**: Quality gates including:
+  - Tests added for new functionality
+  - Existing tests pass
+  - Code follows style guidelines
+  - Documentation updated
+  - Conventional commit format followed
+- **Testing**: Detailed testing approach including:
+  - Test environment (OS, Rust version)
+  - Step-by-step test instructions
+- **Screenshots/Logs**: Visual evidence when applicable
+- **Additional Notes**: Any extra context for reviewers
+
+**Important**: Make sure to fill out all relevant sections thoroughly. Complete
+information helps reviewers understand your changes and speeds up the review
+process.
 
 ### Review Process
 
