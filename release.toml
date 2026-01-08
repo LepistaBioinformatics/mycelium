@@ -1,57 +1,30 @@
-# cargo-release configuration
-# Documentation: https://github.com/crate-ci/cargo-release/blob/master/docs/reference.md
-
-# Allow releasing from specific branches
 allow-branch = ["main", "develop"]
-
-# Consolidate commits for all workspace members
-consolidate-commits = true
-
-# Ensure working directory is clean before release
-pre-release-commit-message = "chore(release): prepare for {{version}}"
-
-# Tag format for releases
-tag-name = "v{{version}}"
-tag-message = "Release {{version}}"
-
-# Enable signing tags (optional - remove if not using GPG)
-# sign-tag = true
-
-# Enable signing commits (optional - remove if not using GPG)
-# sign-commit = true
-
-# Push to remote
+sign-commit = false
+sign-tag = false
+push-remote = "origin"
+release = true
+publish = true
+verify = true
+owners = []
 push = true
-
-# Enable release on git
+push-options = []
+shared-version = true
+consolidate-commits = true
+pre-release-commit-message = "chore: Release {{crate_name}} version {{version}}"
+pre-release-replacements = []
+pre-release-hook = ["git-cliff", "-o", "CHANGELOG.md", "--tag", "{{version}}"]
+tag-message = "Release {{version}}"
+tag-name = "{{version}}"
+tag = true
 enable-features = []
 enable-all-features = false
+dependent-version = "upgrade"
+metadata = "optional"
+certs-source = "webpki"
 
-# Publish to crates.io (set to false if private registry or not publishing)
-publish = false
+[unstable]
+workspace-publish = false
 
-# Update version references in README if needed
-# [[pre-release-replacements]]
-# file = "README.md"
-# search = "mycelium-.*?-v[0-9]+\\.[0-9]+\\.[0-9]+"
-# replace = "mycelium-{{crate_name}}-v{{version}}"
-
-# Package-specific overrides
-# You can override settings for specific packages if needed
-
-# Example: Don't publish the test service
-# [package.mycelium-api-test-svc]
-# publish = false
-
-# Example: Custom configuration for API package
-# [package.mycelium-api]
-# publish = true
-# Custom pre-release hooks can be added here
-
-# Notes:
-# 1. All hooks run in order before the release is created
-# 2. If any hook fails, the release process stops
-# 3. The {{version}} placeholder is replaced with the actual version
-# 4. The {{crate_name}} placeholder is replaced with the crate name
-# 5. git-cliff integration automatically updates CHANGELOG.md based on conventional commits
-# 6. The configuration follows the progression: alpha → beta → rc → release
+[rate-limit]
+new-packages = 5
+existing-packages = 30
