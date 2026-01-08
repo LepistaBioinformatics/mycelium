@@ -174,7 +174,9 @@ CREATE TABLE guest_user (
 CREATE TABLE guest_user_on_account (
     guest_user_id UUID NOT NULL,
     account_id UUID NOT NULL,
-    created TIMESTAMPTZ DEFAULT now()
+    created TIMESTAMPTZ DEFAULT now(),
+    permit_flags JSONB[],
+    deny_flags JSONB[]
 );
 
 -- Error code table
@@ -333,6 +335,8 @@ SELECT DISTINCT
 	gu.email AS gu_email,
 	gu.was_verified AS gu_verified,
 	ac.tenant_id AS tenant_id
+    ga.permit_flags AS permit_flags,
+    ga.deny_flags AS deny_flags,
 FROM
 	guest_user_on_account AS ga
 JOIN

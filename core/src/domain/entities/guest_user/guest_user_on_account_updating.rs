@@ -1,4 +1,6 @@
-use crate::domain::dtos::guest_role::Permission;
+use crate::domain::dtos::{
+    guest_role::Permission, guest_user_on_account::GuestUserOnAccount,
+};
 
 use async_trait::async_trait;
 use mycelium_base::{
@@ -15,4 +17,9 @@ pub trait GuestUserOnAccountUpdating: Interface + Send + Sync {
         account_id: Uuid,
         permission: Permission,
     ) -> Result<UpdatingResponseKind<(String, Uuid, Permission)>, MappedErrors>;
+
+    async fn update(
+        &self,
+        guest_user_on_account: GuestUserOnAccount,
+    ) -> Result<UpdatingResponseKind<GuestUserOnAccount>, MappedErrors>;
 }
