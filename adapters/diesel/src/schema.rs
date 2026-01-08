@@ -89,6 +89,8 @@ diesel::table! {
         guest_user_id -> Uuid,
         account_id -> Uuid,
         created -> Timestamptz,
+        permit_flags -> Nullable<Array<Text>>,
+        deny_flags -> Nullable<Array<Text>>,
     }
 }
 

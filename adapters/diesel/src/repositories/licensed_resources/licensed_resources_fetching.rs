@@ -141,10 +141,7 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             .map(|record| LicensedResource {
                 acc_id: record.acc_id,
                 role_id: record.gr_id,
-                tenant_id: record.tenant_id.unwrap_or_else(|| {
-                    Uuid::parse_str("00000000-0000-0000-0000-000000000000")
-                        .unwrap()
-                }),
+                tenant_id: record.tenant_id.unwrap_or_else(|| Uuid::nil()),
                 acc_name: record.acc_name,
                 sys_acc: record.is_acc_std,
                 role: record.gr_slug,
