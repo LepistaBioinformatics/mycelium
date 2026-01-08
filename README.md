@@ -10,7 +10,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/sgelias/mycelium-api)](https://hub.docker.com/r/sgelias/mycelium-api)
 [![License](https://img.shields.io/crates/l/mycelium-api.svg)](./LICENSE)
 [![Rust Version](https://img.shields.io/badge/rust-1.70%2B-blue.svg)](https://www.rust-lang.org)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10181/badge?t=1)](https://www.bestpractices.dev/en/projects/10181)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10181/badge?t=2)](https://www.bestpractices.dev/en/projects/10181)
 
 <img
   alt="Mycelium Logo"
@@ -228,6 +228,28 @@ Alternatively, you can access documentation files directly in the `docs/book/src
 
 Mycelium is under active development and open to contributions. Architectural
 discussions, improvement proposals, and conceptual reviews are welcome.
+
+---
+
+## Contributing
+
+We welcome contributions! Mycelium is an open-source project and we appreciate:
+
+- 🐛 Bug reports and fixes
+- ✨ Feature requests and implementations
+- 📝 Documentation improvements
+- 🔍 Code reviews
+- 💡 Ideas and discussions
+
+### Getting Started
+
+1. Read our **[Contributing Guide](./CONTRIBUTING.md)** for detailed guidelines
+2. Check out existing [issues](https://github.com/sgelias/mycelium/issues) or create a new one
+3. Fork the repository and create a feature branch
+4. Make your changes following our code standards
+5. Submit a pull request - our [PR template](.github/PULL_REQUEST_TEMPLATE.md) will be automatically loaded
+
+When you create a PR, GitHub automatically loads our pull request template with sections for summary, testing details, and a comprehensive checklist to ensure code quality and proper documentation.
 
 ---
 

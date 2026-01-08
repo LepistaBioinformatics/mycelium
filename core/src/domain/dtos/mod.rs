@@ -4,6 +4,7 @@ pub mod email;
 pub mod error_code;
 pub mod guest_role;
 pub mod guest_user;
+pub mod guest_user_on_account;
 pub mod health_check_info;
 pub mod http;
 pub mod http_secret;

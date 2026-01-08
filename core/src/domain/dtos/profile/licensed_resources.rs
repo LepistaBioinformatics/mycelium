@@ -66,6 +66,38 @@ pub struct LicensedResource {
     /// should be verified.
     ///
     pub verified: bool,
+
+    /// Permit Flags
+    ///
+    /// This is the list of flags that the guest role has.
+    ///
+    /// Example:
+    ///
+    /// ```json
+    /// [
+    ///   "managementScreen",
+    ///   "clickToActionButton",
+    /// ]
+    /// ```
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub permit_flags: Option<Vec<String>>,
+
+    /// Deny Flags
+    ///
+    /// This is the list of flags that the guest role does not have.
+    ///
+    /// Example:
+    ///
+    /// ```json
+    /// [
+    ///   "dashboardScreen",
+    ///   "viewTenantUrl",
+    /// ]
+    /// ```
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub deny_flags: Option<Vec<String>>,
 }
 
 impl LicensedResource {
@@ -109,7 +141,7 @@ impl ToString for LicensedResource {
         let encoded_account_name =
             general_purpose::STANDARD.encode(self.acc_name.as_bytes());
 
-        format!(
+        let mut result = format!(
             "t/{tenant_id}/a/{acc_id}/r/{role_id}?p={role}:{perm}&s={is_acc_std}&v={verified}&n={acc_name}",
             tenant_id = self.tenant_id.to_string().replace("-", ""),
             acc_id = self.acc_id.to_string().replace("-", ""),
@@ -119,7 +151,17 @@ impl ToString for LicensedResource {
             is_acc_std = self.sys_acc as i8,
             verified = self.verified as i8,
             acc_name = encoded_account_name,
-        )
+        );
+
+        if let Some(permit_flags) = &self.permit_flags {
+            result += &format!("&pf={}", permit_flags.join(","));
+        }
+
+        if let Some(deny_flags) = &self.deny_flags {
+            result += &format!("&df={}", deny_flags.join(","));
+        }
+
+        result
     }
 }
 
@@ -233,6 +275,34 @@ impl FromStr for LicensedResource {
                 }
             };
 
+        //
+        // Try to extract optional permit flags
+        //
+        let permit_flags = match url
+            .query_pairs()
+            .find(|(key, _)| key == "pf")
+            .map(|(_, value)| value)
+        {
+            Some(value) => {
+                Some(value.split(',').map(|i| i.to_string()).collect())
+            }
+            None => None,
+        };
+
+        //
+        // Try to extract optional deny flags
+        //
+        let deny_flags = match url
+            .query_pairs()
+            .find(|(key, _)| key == "df")
+            .map(|(_, value)| value)
+        {
+            Some(value) => {
+                Some(value.split(',').map(|i| i.to_string()).collect())
+            }
+            None => None,
+        };
+
         Ok(Self {
             tenant_id: Uuid::from_str(tenant_id).unwrap(),
             acc_id: Uuid::from_str(account_id).unwrap(),
@@ -242,6 +312,8 @@ impl FromStr for LicensedResource {
             sys_acc: sys,
             acc_name: String::from_utf8(name_decoded).unwrap(),
             verified,
+            permit_flags,
+            deny_flags,
         })
     }
 }

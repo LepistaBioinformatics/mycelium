@@ -1,6 +1,7 @@
 use super::account::Account;
 use super::guest_user::GuestUser;
 
+use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use uuid::Uuid;
 
@@ -15,4 +16,10 @@ pub struct GuestUserOnAccount {
     pub guest_user_id: Uuid,
     #[diesel(sql_type = diesel::sql_types::Uuid)]
     pub account_id: Uuid,
+    #[diesel(sql_type = diesel::sql_types::Timestamptz)]
+    pub created: NaiveDateTime,
+    #[diesel(sql_type = Nullable<Array<Text>>)]
+    pub permit_flags: Option<Vec<String>>,
+    #[diesel(sql_type = Nullable<Array<Text>>)]
+    pub deny_flags: Option<Vec<String>>,
 }

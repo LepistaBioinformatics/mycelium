@@ -368,6 +368,7 @@ struct SubscriptionsManagerTagApiDoc;
     paths(
         Subscriptions_Manager__Guest::list_licensed_accounts_of_email_url,
         Subscriptions_Manager__Guest::guest_user_url,
+        Subscriptions_Manager__Guest::update_flags_from_subscription_account_url,
         Subscriptions_Manager__Guest::uninvite_guest_url,
         Subscriptions_Manager__Guest::list_guest_on_subscription_account_url,
     ),
@@ -753,6 +754,7 @@ struct UsersManagerAccountApiDoc;
             Subscriptions_Manager__Account::ListSubscriptionAccountParams,
             Subscriptions_Manager__Guest::GuestUserBody,
             Subscriptions_Manager__Guest::ListLicensedAccountsOfEmailParams,
+            Subscriptions_Manager__Guest::UpdateFlagsFromSubscriptionAccountBody,
             Subscriptions_Manager__Tag::CreateAccountTagBody,
             Subscriptions_Manager__Tag::UpdateAccountTagBody,
             Subscriptions_Manager__Tag::DeleteAccountTagParams,

@@ -2,19 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
-## [8.2.1-rc.5] - 2025-12-28
+## [8.2.2-beta.1] - 2026-01-06
+
+### 💼 Other
+
+- Turn individual packages versions as fully independent
+
+## [8.2.1] - 2026-01-06
 
 ### 🚀 Features
 
 - Upgrade profile to trace the alow-deny decision on use fbac
+- Do implements the roles propagation during the api initialization
+- Convert the declared roles propagation to a use-case and implements appropriate rules
 
 ### 💼 Other
 
 - Upgrade lock file to upgrade restrict dependencies deprecated or unmantained
 
+### 🚜 Refactor
+
+- Rename declared roles propagation use-case
+
 ### 📚 Documentation
 
 - Upgrade core documentation to describe the structure and goal of the crate
+
+### 🧪 Testing
+
+- Fix the account-type test after refactor the custom role
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
+- Release
 
 ## [8.2.1-rc.4] - 2025-12-21
 

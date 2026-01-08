@@ -234,6 +234,11 @@ impl Profile {
         }
     }
 
+    /// Update the filtering state
+    ///
+    /// This method updates the filtering state with the new key and value.
+    ///
+    #[tracing::instrument(name = "update_state", skip_all)]
     fn update_state(&self, key: String, value: String) -> Self {
         let mut state = self.filtering_state.clone().unwrap_or_default();
 
@@ -249,16 +254,22 @@ impl Profile {
         }
     }
 
+    /// Profile string
+    ///
+    /// This method returns a string representation of the profile.
+    ///
+    #[tracing::instrument(name = "profile_string", skip_all)]
     pub fn profile_string(&self) -> String {
         format!("profile/{}", self.acc_id)
     }
 
-    /// Redacted profile string
+    /// Profile redacted string
     ///
     /// Print the profile using the profile_string struct method and a list of
     /// owners, using the `redacted_email` structural method of the email field
     /// present in owners.
     ///
+    #[tracing::instrument(name = "profile_redacted", skip_all)]
     pub fn profile_redacted(&self) -> String {
         format!(
             "profile/{} owners: [{}]",
@@ -273,14 +284,30 @@ impl Profile {
         )
     }
 
+    /// Get the owners ids
+    ///
+    /// This method returns the ids of the owners of the profile.
+    ///
+    #[tracing::instrument(name = "get_owners_ids", skip_all)]
     pub fn get_owners_ids(&self) -> Vec<Uuid> {
         self.owners.iter().map(|i| i.id).collect()
     }
 
+    /// Check if the profile has administration privileges
+    ///
+    /// This method checks if the profile has administration privileges. If the
+    /// profile has no administration privileges, it returns false.
+    ///
+    #[tracing::instrument(name = "has_admin_privileges", skip_all)]
     pub fn has_admin_privileges(&self) -> bool {
         self.is_staff || self.is_manager
     }
 
+    /// Check if the profile has administration privileges or return error
+    ///
+    /// This method checks if the profile has administration privileges. If the
+    /// profile has no administration privileges, it returns an error.
+    ///
     #[tracing::instrument(name = "has_admin_privileges_or_error", skip_all)]
     pub fn has_admin_privileges_or_error(&self) -> Result<(), MappedErrors> {
         match self.is_staff || self.is_manager {
@@ -306,10 +333,105 @@ impl Profile {
         }
     }
 
+    /// Filter the licensed resources by permit flags
+    ///
+    /// This method filters resources that have ALL the specified flags
+    /// present in their `permit_flags` field.
+    #[tracing::instrument(name = "has_permit_flags", skip_all)]
+    pub fn has_permit_flags<T: ToString>(&self, flags: Vec<T>) -> Self {
+        let flags: Vec<String> =
+            flags.into_iter().map(|f| f.to_string()).collect();
+
+        //
+        // Filter the licensed resources by permit flags
+        //
+        let licensed_resources =
+            if let Some(resources) = self.licensed_resources.as_ref() {
+                let records: Vec<LicensedResource> = resources
+                    .to_licenses_vector()
+                    .iter()
+                    .filter(|i| {
+                        if let Some(permit_flags) = &i.permit_flags {
+                            flags.iter().all(|f| permit_flags.contains(f))
+                        } else {
+                            false
+                        }
+                    })
+                    .map(|i| i.to_owned())
+                    .collect();
+
+                if records.is_empty() {
+                    None
+                } else {
+                    Some(LicensedResources::Records(records))
+                }
+            } else {
+                None
+            };
+
+        //
+        // Return the new profile
+        //
+        Self {
+            licensed_resources,
+            ..self
+                .update_state("permittedFlags".to_string(), flags.join(","))
+                .clone()
+        }
+    }
+
+    /// Filter the licensed resources by deny flags
+    ///
+    /// This method filters resources that do NOT have ANY of the specified
+    /// flags present in their `deny_flags` field.
+    #[tracing::instrument(name = "has_not_deny_flags", skip_all)]
+    pub fn has_not_deny_flags<T: ToString>(&self, flags: Vec<T>) -> Self {
+        let flags: Vec<String> =
+            flags.into_iter().map(|f| f.to_string()).collect();
+
+        //
+        // Filter the licensed resources by deny flags
+        //
+        let licensed_resources =
+            if let Some(resources) = self.licensed_resources.as_ref() {
+                let records: Vec<LicensedResource> = resources
+                    .to_licenses_vector()
+                    .iter()
+                    .filter(|i| {
+                        if let Some(deny_flags) = &i.deny_flags {
+                            !flags.iter().any(|f| deny_flags.contains(f))
+                        } else {
+                            true
+                        }
+                    })
+                    .map(|i| i.to_owned())
+                    .collect();
+
+                if records.is_empty() {
+                    None
+                } else {
+                    Some(LicensedResources::Records(records))
+                }
+            } else {
+                None
+            };
+
+        //
+        // Return the new profile
+        //
+        Self {
+            licensed_resources,
+            ..self
+                .update_state("deniedFlags".to_string(), flags.join(","))
+                .clone()
+        }
+    }
+
     /// Filter the licensed resources to the tenant
     ///
     /// This method should be used to filter licensed resources to the tenant
     /// that the profile is currently working on.
+    #[tracing::instrument(name = "on_tenant", skip_all)]
     pub fn on_tenant(&self, tenant_id: Uuid) -> Self {
         //
         // Filter the licensed resources to the tenant
@@ -347,6 +469,7 @@ impl Profile {
     ///
     /// This method should be used to filter licensed resources to the tenant
     /// that the profile is currently working on.
+    #[tracing::instrument(name = "on_tenant_as_manager", skip_all)]
     pub fn on_tenant_as_manager(
         &self,
         tenant_id: Uuid,
@@ -371,6 +494,7 @@ impl Profile {
     ///
     /// This method should be used to filter licensed resources to the account
     /// that the profile is currently working on.
+    #[tracing::instrument(name = "on_account", skip_all)]
     pub fn on_account(&self, account_id: Uuid) -> Self {
         let licensed_resources =
             if let Some(resources) = self.licensed_resources.as_ref() {
@@ -399,6 +523,7 @@ impl Profile {
     }
 
     /// Filter the tenant ownership by the tenant
+    #[tracing::instrument(name = "with_tenant_ownership_or_error", skip_all)]
     pub fn with_tenant_ownership_or_error(
         &self,
         tenant_id: Uuid,
@@ -417,9 +542,13 @@ impl Profile {
                         .clone()
                 };
 
+                Decision::allow("Current account has tenant ownership");
+
                 return Ok(profile);
             }
         }
+
+        Decision::deny("Current account has no tenant ownership");
 
         execution_err(format!(
             "Insufficient privileges to perform these action (no tenant ownership): {}",
@@ -432,6 +561,7 @@ impl Profile {
 
     /// Filter the licensed resources to include only the standard system
     /// accounts
+    #[tracing::instrument(name = "with_system_accounts_access", skip_all)]
     pub fn with_system_accounts_access(&self) -> Self {
         //
         // Filter the licensed resources to the default accounts
@@ -466,11 +596,13 @@ impl Profile {
     }
 
     /// Filter the licensed resources to include only licenses with read access
+    #[tracing::instrument(name = "with_read_access", skip_all)]
     pub fn with_read_access(&self) -> Self {
         self.with_permission(Permission::Read)
     }
 
     /// Filter the licensed resources to include only licenses with write access
+    #[tracing::instrument(name = "with_write_access", skip_all)]
     pub fn with_write_access(&self) -> Self {
         self.with_permission(Permission::Write)
     }
@@ -480,6 +612,7 @@ impl Profile {
     /// This is an internal method that should be used to filter the licensed
     /// resources by permission.
     ///
+    #[tracing::instrument(name = "with_permission", skip_all)]
     fn with_permission(&self, permission: Permission) -> Self {
         //
         // Filter the licensed resources to the permission
@@ -516,6 +649,12 @@ impl Profile {
         }
     }
 
+    /// Filter the licensed resources to include only the roles
+    ///
+    /// This method filters the licensed resources to include only the roles
+    /// that the profile has.
+    ///
+    #[tracing::instrument(name = "with_roles", skip_all)]
     pub fn with_roles<T: ToString>(&self, roles: Vec<T>) -> Self {
         //
         // Filter the licensed resources to the roles
@@ -562,6 +701,11 @@ impl Profile {
         }
     }
 
+    /// Get the related account or error
+    ///
+    /// This method returns the related account or error.
+    ///
+    #[tracing::instrument(name = "get_related_account_or_error", skip_all)]
     pub fn get_related_account_or_error(
         &self,
     ) -> Result<RelatedAccounts, MappedErrors> {
@@ -594,12 +738,14 @@ impl Profile {
                 .as_error();
             }
 
-            Decision::allow("Current account has enough licensed resources");
+            Decision::allow("Current account has licensed resources");
 
             return Ok(RelatedAccounts::AllowedAccounts(
                 records.iter().map(|i| i.acc_id).collect(),
             ));
         }
+
+        Decision::deny("Current account has no licensed resources");
 
         execution_err(format!(
             "Insufficient privileges to perform these action (no accounts): {}",
@@ -619,6 +765,10 @@ impl Profile {
     /// has no tenant wide permissions, the method will return the related
     /// accounts.
     ///
+    #[tracing::instrument(
+        name = "get_tenant_wide_permission_or_error",
+        skip_all
+    )]
     pub fn get_tenant_wide_permission_or_error(
         &self,
         tenant_id: Uuid,
@@ -689,6 +839,10 @@ impl Profile {
     /// has no tenant wide permissions, the method will return the related
     /// accounts.
     ///
+    #[tracing::instrument(
+        name = "get_related_accounts_or_tenant_wide_permission_or_error",
+        skip_all
+    )]
     pub fn get_related_accounts_or_tenant_wide_permission_or_error(
         &self,
         tenant_id: Uuid,
@@ -713,6 +867,11 @@ impl Profile {
         self.get_related_account_or_error()
     }
 
+    /// Get the ids or error
+    ///
+    /// This method returns the ids of the licensed resources or error.
+    ///
+    #[tracing::instrument(name = "get_ids_or_error", skip_all)]
     pub fn get_ids_or_error(&self) -> Result<Vec<Uuid>, MappedErrors> {
         let ids: Vec<Uuid> = self
             .licensed_resources
@@ -808,6 +967,8 @@ mod tests {
                     role: "service".to_string(),
                     perm: Permission::Write,
                     verified: true,
+                    permit_flags: None,
+                    deny_flags: None,
                 },
                 LicensedResource {
                     acc_id: Uuid::new_v4(),
@@ -818,6 +979,8 @@ mod tests {
                     role: "newbie".to_string(),
                     perm: Permission::Read,
                     verified: true,
+                    permit_flags: None,
+                    deny_flags: None,
                 },
                 LicensedResource {
                     acc_id: Uuid::new_v4(),
@@ -828,6 +991,8 @@ mod tests {
                     role: "service".to_string(),
                     perm: Permission::Write,
                     verified: true,
+                    permit_flags: None,
+                    deny_flags: None,
                 },
             ])),
             tenants_ownership: Some(TenantsOwnership::Records(vec![
@@ -852,6 +1017,8 @@ mod tests {
             role: "service".to_string(),
             perm: Permission::Write,
             verified: true,
+            permit_flags: None,
+            deny_flags: None,
         };
 
         let licensed_resource_string = licensed_resource.to_string();
@@ -1052,5 +1219,303 @@ mod tests {
 
         assert_eq!(account_ids.len(), licensed_resources_ids.len());
         assert!(!account_ids.contains(&profile.acc_id));
+    }
+
+    fn profile_with_flags() -> Profile {
+        let tenant_id = tenant_id();
+
+        Profile {
+            owners: vec![],
+            acc_id: Uuid::new_v4(),
+            is_subscription: false,
+            is_manager: false,
+            is_staff: false,
+            owner_is_active: true,
+            account_is_active: true,
+            account_was_approved: true,
+            account_was_archived: false,
+            account_was_deleted: false,
+            verbose_status: None,
+            meta: None,
+            licensed_resources: Some(LicensedResources::Records(vec![
+                LicensedResource {
+                    acc_id: Uuid::new_v4(),
+                    tenant_id,
+                    role_id: Uuid::new_v4(),
+                    acc_name: "Account with permit flags".to_string(),
+                    sys_acc: false,
+                    role: "admin".to_string(),
+                    perm: Permission::Write,
+                    verified: true,
+                    permit_flags: Some(vec![
+                        "dashboard".to_string(),
+                        "settings".to_string(),
+                        "reports".to_string(),
+                    ]),
+                    deny_flags: None,
+                },
+                LicensedResource {
+                    acc_id: Uuid::new_v4(),
+                    tenant_id,
+                    role_id: Uuid::new_v4(),
+                    acc_name: "Account with deny flags".to_string(),
+                    sys_acc: false,
+                    role: "viewer".to_string(),
+                    perm: Permission::Read,
+                    verified: true,
+                    permit_flags: Some(vec!["dashboard".to_string()]),
+                    deny_flags: Some(vec![
+                        "settings".to_string(),
+                        "admin_panel".to_string(),
+                    ]),
+                },
+                LicensedResource {
+                    acc_id: Uuid::new_v4(),
+                    tenant_id,
+                    role_id: Uuid::new_v4(),
+                    acc_name: "Account without flags".to_string(),
+                    sys_acc: false,
+                    role: "guest".to_string(),
+                    perm: Permission::Read,
+                    verified: true,
+                    permit_flags: None,
+                    deny_flags: None,
+                },
+                LicensedResource {
+                    acc_id: Uuid::new_v4(),
+                    tenant_id,
+                    role_id: Uuid::new_v4(),
+                    acc_name: "Account with all flags".to_string(),
+                    sys_acc: false,
+                    role: "superuser".to_string(),
+                    perm: Permission::Write,
+                    verified: true,
+                    permit_flags: Some(vec![
+                        "dashboard".to_string(),
+                        "settings".to_string(),
+                        "reports".to_string(),
+                        "admin_panel".to_string(),
+                    ]),
+                    deny_flags: Some(vec!["dangerous_action".to_string()]),
+                },
+            ])),
+            tenants_ownership: Some(TenantsOwnership::Records(vec![
+                TenantOwnership {
+                    id: tenant_id,
+                    name: "Tenant Name".to_string(),
+                    since: Local::now(),
+                },
+            ])),
+            filtering_state: None,
+        }
+    }
+
+    #[test]
+    fn test_has_permit_flags_single_flag() {
+        let profile = profile_with_flags();
+
+        // Filter by single flag "dashboard" - should match 3 resources
+        // (admin, viewer, superuser have dashboard)
+        let filtered = profile.has_permit_flags(vec!["dashboard"]);
+
+        assert_eq!(
+            3,
+            filtered
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+    }
+
+    #[test]
+    fn test_has_permit_flags_multiple_flags() {
+        let profile = profile_with_flags();
+
+        // Filter by multiple flags - should match only resources that have ALL
+        // flags (admin and superuser have dashboard + settings)
+        let filtered = profile.has_permit_flags(vec!["dashboard", "settings"]);
+
+        assert_eq!(
+            2,
+            filtered
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+    }
+
+    #[test]
+    fn test_has_permit_flags_all_three_flags() {
+        let profile = profile_with_flags();
+
+        // Filter by three flags - should match admin and superuser
+        let filtered =
+            profile.has_permit_flags(vec!["dashboard", "settings", "reports"]);
+
+        assert_eq!(
+            2,
+            filtered
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+    }
+
+    #[test]
+    fn test_has_permit_flags_no_match() {
+        let profile = profile_with_flags();
+
+        // Filter by flag that no one has
+        let filtered = profile.has_permit_flags(vec!["nonexistent_flag"]);
+
+        assert!(filtered.licensed_resources.is_none());
+    }
+
+    #[test]
+    fn test_has_permit_flags_updates_state() {
+        let profile = profile_with_flags();
+
+        let filtered = profile.has_permit_flags(vec!["dashboard", "settings"]);
+
+        assert!(filtered.filtering_state.is_some());
+        let state = filtered.filtering_state.unwrap();
+        assert!(state
+            .iter()
+            .any(|s| s.contains("permittedFlags:dashboard,settings")));
+    }
+
+    #[test]
+    fn test_has_not_deny_flags_single_flag() {
+        let profile = profile_with_flags();
+
+        // Filter out resources that have "settings" in deny_flags
+        // Should exclude viewer (has settings in deny_flags)
+        // Should keep: admin (no deny_flags), guest (no deny_flags), superuser
+        // (deny_flags doesn't contain settings)
+        let filtered = profile.has_not_deny_flags(vec!["settings"]);
+
+        assert_eq!(
+            3,
+            filtered
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+    }
+
+    #[test]
+    fn test_has_not_deny_flags_multiple_flags() {
+        let profile = profile_with_flags();
+
+        // Filter out resources that have "settings" OR "admin_panel" in
+        // deny_flags Should exclude viewer (has both)
+        // Should keep: admin (no deny_flags), guest (no deny_flags), superuser
+        // (deny_flags doesn't contain these)
+        let filtered =
+            profile.has_not_deny_flags(vec!["settings", "admin_panel"]);
+
+        assert_eq!(
+            3,
+            filtered
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+    }
+
+    #[test]
+    fn test_has_not_deny_flags_no_exclusion() {
+        let profile = profile_with_flags();
+
+        // Filter by flag that no one has in deny_flags
+        // Should keep all 4 resources
+        let filtered = profile.has_not_deny_flags(vec!["nonexistent_flag"]);
+
+        assert_eq!(
+            4,
+            filtered
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+    }
+
+    #[test]
+    fn test_has_not_deny_flags_exclude_all_with_deny() {
+        let profile = profile_with_flags();
+
+        // Filter by "dangerous_action" - should exclude superuser
+        // Should keep: admin, viewer, guest (3 resources)
+        let filtered = profile.has_not_deny_flags(vec!["dangerous_action"]);
+
+        assert_eq!(
+            3,
+            filtered
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+    }
+
+    #[test]
+    fn test_has_not_deny_flags_updates_state() {
+        let profile = profile_with_flags();
+
+        let filtered =
+            profile.has_not_deny_flags(vec!["settings", "admin_panel"]);
+
+        assert!(filtered.filtering_state.is_some());
+        let state = filtered.filtering_state.unwrap();
+        assert!(state
+            .iter()
+            .any(|s| s.contains("deniedFlags:settings,admin_panel")));
+    }
+
+    #[test]
+    fn test_combined_permit_and_deny_flags() {
+        let profile = profile_with_flags();
+
+        // First filter by permit_flags, then by deny_flags
+        let filtered = profile
+            .has_permit_flags(vec!["dashboard"])
+            .has_not_deny_flags(vec!["settings"]);
+
+        // dashboard: admin, viewer, superuser (3)
+        // then exclude settings in deny: viewer has it, so 2 remain
+        assert_eq!(
+            2,
+            filtered
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
+    }
+
+    #[test]
+    fn test_flags_with_tenant_filter() {
+        let tenant_id = tenant_id();
+        let profile = profile_with_flags();
+
+        // Combine tenant filter with flags filter
+        let filtered = profile
+            .on_tenant(tenant_id)
+            .has_permit_flags(vec!["dashboard", "settings"]);
+
+        assert_eq!(
+            2,
+            filtered
+                .licensed_resources
+                .unwrap()
+                .to_licenses_vector()
+                .len()
+        );
     }
 }

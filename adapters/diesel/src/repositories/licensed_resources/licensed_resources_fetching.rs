@@ -1,5 +1,5 @@
 use crate::{
-    models::config::DbPoolProvider,
+    models::{config::DbPoolProvider, licensed_resource::LicensedResourceRow},
     schema::{
         owner_on_tenant::dsl as owner_dsl, tenant::dsl as tenant_dsl,
         user::dsl as user_dsl,
@@ -8,11 +8,7 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::{Local, NaiveDateTime};
-use diesel::{
-    prelude::*,
-    sql_types::{Bool, Integer, Nullable, Text},
-    RunQueryDsl,
-};
+use diesel::{prelude::*, RunQueryDsl};
 use myc_core::domain::{
     dtos::{
         email::Email,
@@ -145,15 +141,14 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             .map(|record| LicensedResource {
                 acc_id: record.acc_id,
                 role_id: record.gr_id,
-                tenant_id: record.tenant_id.unwrap_or_else(|| {
-                    Uuid::parse_str("00000000-0000-0000-0000-000000000000")
-                        .unwrap()
-                }),
+                tenant_id: record.tenant_id.unwrap_or_else(|| Uuid::nil()),
                 acc_name: record.acc_name,
                 sys_acc: record.is_acc_std,
                 role: record.gr_slug,
                 perm: Permission::from_i32(record.gr_perm),
                 verified: record.gu_verified,
+                permit_flags: record.permit_flags,
+                deny_flags: record.deny_flags,
             })
             .collect::<Vec<LicensedResource>>();
 
@@ -211,24 +206,4 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 .collect(),
         ))
     }
-}
-
-#[derive(QueryableByName)]
-struct LicensedResourceRow {
-    #[diesel(sql_type = diesel::sql_types::Uuid)]
-    acc_id: Uuid,
-    #[diesel(sql_type = diesel::sql_types::Uuid)]
-    gr_id: Uuid,
-    #[diesel(sql_type = Text)]
-    acc_name: String,
-    #[diesel(sql_type = Nullable<diesel::sql_types::Uuid>)]
-    tenant_id: Option<Uuid>,
-    #[diesel(sql_type = Bool)]
-    is_acc_std: bool,
-    #[diesel(sql_type = Text)]
-    gr_slug: String,
-    #[diesel(sql_type = Integer)]
-    gr_perm: i32,
-    #[diesel(sql_type = Bool)]
-    gu_verified: bool,
 }

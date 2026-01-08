@@ -61,6 +61,7 @@ module! {
             GuestUserDeletionSqlDbRepository,
             GuestUserFetchingSqlDbRepository,
             GuestUserOnAccountUpdatingSqlDbRepository,
+            GuestUserOnAccountFetchingSqlDbRepository,
             GuestUserRegistrationSqlDbRepository,
             ProfileFetchingSqlDbRepository,
             LicensedResourcesFetchingSqlDbRepository,
