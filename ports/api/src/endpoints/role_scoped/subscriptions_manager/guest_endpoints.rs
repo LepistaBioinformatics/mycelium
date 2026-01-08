@@ -3,7 +3,7 @@ use crate::{
     endpoints::shared::PaginationParams,
 };
 
-use actix_web::{delete, get, post, web, HttpResponse, Responder};
+use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::dtos::{
         email::Email, guest_user::GuestUser, profile::LicensedResources,
@@ -14,6 +14,7 @@ use myc_core::{
         guest_user_to_subscription_account, list_guest_on_subscription_account,
         list_licensed_accounts_of_email,
         revoke_user_guest_to_subscription_account,
+        update_flags_from_subscription_account,
     },
 };
 use myc_diesel::repositories::SqlAppModule;
@@ -22,6 +23,7 @@ use myc_http_tools::{
     wrappers::default_response_to_http_response::{
         delete_response_kind, fetch_many_response_kind,
         get_or_create_response_kind, handle_mapped_error,
+        updating_response_kind,
     },
 };
 use mycelium_base::dtos::PaginatedRecord;
@@ -38,6 +40,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
     config
         .service(list_licensed_accounts_of_email_url)
         .service(guest_user_url)
+        .service(update_flags_from_subscription_account_url)
         .service(uninvite_guest_url)
         .service(list_guest_on_subscription_account_url);
 }
@@ -50,6 +53,13 @@ pub fn configure(config: &mut web::ServiceConfig) {
 #[serde(rename_all = "camelCase")]
 pub struct GuestUserBody {
     email: String,
+}
+
+#[derive(Deserialize, ToSchema, IntoParams)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateFlagsFromSubscriptionAccountBody {
+    permit_flags: Option<Vec<String>>,
+    deny_flags: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, ToSchema, IntoParams)]
@@ -228,6 +238,88 @@ pub async fn guest_user_url(
     .await
     {
         Ok(res) => get_or_create_response_kind(res),
+        Err(err) => handle_mapped_error(err),
+    }
+}
+
+/// Guest a user to work on account.
+///
+/// This action gives the ability of the target account (specified through
+/// the `account` argument) to perform actions specified in the `role`
+/// path argument.
+#[utoipa::path(
+    patch,
+    operation_id = "update_flags_from_subscription_account",
+    params(
+        (
+            "x-mycelium-tenant-id" = Uuid,
+            Header,
+            description = "The tenant unique id."
+        ),
+        ("account_id" = Uuid, Path, description = "The account primary key."),
+        ("role_id" = Uuid, Path, description = "The guest-role unique id."),
+    ),
+    request_body = UpdateFlagsFromSubscriptionAccountBody,
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 403,
+            description = "Forbidden.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Unauthorized.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 400,
+            description = "Bad request.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 201,
+            description = "Flags updated.",
+            body = GuestUser,
+        ),
+        (
+            status = 200,
+            description = "Flags already updated.",
+            body = GuestUser,
+        ),
+    ),
+)]
+#[patch("/accounts/{account_id}/roles/{role_id}")]
+pub async fn update_flags_from_subscription_account_url(
+    tenant: TenantData,
+    path: web::Path<(Uuid, Uuid)>,
+    body: web::Json<UpdateFlagsFromSubscriptionAccountBody>,
+    profile: MyceliumProfileData,
+    sql_app_module: web::Data<SqlAppModule>,
+) -> impl Responder {
+    let (account_id, role_id) = path.to_owned();
+
+    let permit_flags = body.permit_flags.to_owned().unwrap_or_default();
+    let deny_flags = body.deny_flags.to_owned().unwrap_or_default();
+
+    match update_flags_from_subscription_account(
+        profile.to_profile(),
+        tenant.tenant_id().to_owned(),
+        role_id,
+        account_id,
+        permit_flags,
+        deny_flags,
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+    )
+    .await
+    {
+        Ok(res) => updating_response_kind(res),
         Err(err) => handle_mapped_error(err),
     }
 }
