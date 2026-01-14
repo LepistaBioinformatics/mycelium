@@ -1,5 +1,6 @@
 pub mod account;
 pub mod account_type;
+pub mod callback;
 pub mod email;
 pub mod error_code;
 pub mod guest_role;
