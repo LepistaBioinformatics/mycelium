@@ -30,6 +30,8 @@ pub enum HttpMethod {
     Options,
     Trace,
     All,
+    Read,
+    Write,
     None,
 }
 
@@ -49,6 +51,44 @@ impl HttpMethod {
             _ => HttpMethod::None,
         }
     }
+
+    pub fn is_read_method(&self) -> bool {
+        matches!(
+            self,
+            HttpMethod::Get
+                | HttpMethod::Head
+                | HttpMethod::Options
+                | HttpMethod::Trace
+        )
+    }
+
+    pub fn is_write_method(&self) -> bool {
+        matches!(
+            self,
+            HttpMethod::Post
+                | HttpMethod::Put
+                | HttpMethod::Patch
+                | HttpMethod::Delete
+        )
+    }
+
+    pub fn get_read_methods(&self) -> Vec<HttpMethod> {
+        vec![
+            HttpMethod::Get,
+            HttpMethod::Head,
+            HttpMethod::Options,
+            HttpMethod::Trace,
+        ]
+    }
+
+    pub fn get_write_methods(&self) -> Vec<HttpMethod> {
+        vec![
+            HttpMethod::Post,
+            HttpMethod::Put,
+            HttpMethod::Patch,
+            HttpMethod::Delete,
+        ]
+    }
 }
 
 impl Display for HttpMethod {
@@ -65,6 +105,8 @@ impl Display for HttpMethod {
             HttpMethod::Trace => write!(f, "TRACE"),
             HttpMethod::All => write!(f, "ALL"),
             HttpMethod::None => write!(f, "NONE"),
+            HttpMethod::Read => write!(f, "READ"),
+            HttpMethod::Write => write!(f, "WRITE"),
         }
     }
 }
@@ -84,6 +126,8 @@ impl FromStr for HttpMethod {
             "OPTIONS" | "options" => Ok(HttpMethod::Options),
             "TRACE" | "trace" => Ok(HttpMethod::Trace),
             "ALL" | "all" => Ok(HttpMethod::All),
+            "READ" | "read" => Ok(HttpMethod::Read),
+            "WRITE" | "write" => Ok(HttpMethod::Write),
             "NONE" | "none" => Ok(HttpMethod::None),
             _ => Err(HttpMethod::None),
         }
@@ -106,23 +150,6 @@ impl From<HttpMethod> for Method {
         }
     }
 }
-
-//impl From<HttpMethod> for HttpCrateMethod {
-//    fn from(method: HttpMethod) -> Self {
-//        match method {
-//            HttpMethod::Get => HttpCrateMethod::GET,
-//            HttpMethod::Head => HttpCrateMethod::HEAD,
-//            HttpMethod::Patch => HttpCrateMethod::PATCH,
-//            HttpMethod::Post => HttpCrateMethod::POST,
-//            HttpMethod::Put => HttpCrateMethod::PUT,
-//            HttpMethod::Delete => HttpCrateMethod::DELETE,
-//            HttpMethod::Connect => HttpCrateMethod::CONNECT,
-//            HttpMethod::Options => HttpCrateMethod::OPTIONS,
-//            HttpMethod::Trace => HttpCrateMethod::TRACE,
-//            _ => HttpCrateMethod::GET,
-//        }
-//    }
-//}
 
 #[derive(
     Debug,

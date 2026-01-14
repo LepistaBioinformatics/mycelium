@@ -88,7 +88,22 @@ impl Route {
         }
     }
 
-    /// Check if a method is allowed.
+    /// Check if a method is allowed
+    ///
+    /// Rules:
+    /// - If the methods list includes None, nothing is allowed
+    /// - If the methods list includes All, all methods are allowed
+    /// - If the methods list includes Read, all read methods are allowed, like
+    ///   GET, HEAD, OPTIONS, TRACE.
+    /// - If the methods list includes Write, all write methods are allowed,
+    ///   like POST, PUT, PATCH, DELETE.
+    ///
+    /// Users can declared a combination of read and write methods to simplify
+    /// the declaration, like:
+    /// - ["GET", "POST"]
+    /// - ["READ", "POST"]
+    /// - ["WRITE", "GET"]
+    ///
     pub async fn allow_method(&self, method: HttpMethod) -> Option<HttpMethod> {
         if self.methods.contains(&HttpMethod::None) {
             return None;
@@ -98,6 +113,26 @@ impl Route {
             return Some(method);
         }
 
+        //
+        // Check if the method is a read method and the methods list includes
+        // Read. If so, return the method
+        //
+        if method.is_read_method() && self.methods.contains(&HttpMethod::Read) {
+            return Some(method);
+        }
+
+        //
+        // Check if the method is a write method and the methods list includes
+        // Write. If so, return the method
+        //
+        if method.is_write_method() && self.methods.contains(&HttpMethod::Write)
+        {
+            return Some(method);
+        }
+
+        //
+        // Check for a specific method in the methods list
+        //
         match self.methods.contains(&method) {
             true => Some(method),
             false => None,

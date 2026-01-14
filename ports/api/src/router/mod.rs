@@ -17,7 +17,7 @@
 /// - Inject spans to the request to be used by the tracing system.
 ///
 mod build_the_gateway_response;
-mod check_protocol_permission;
+mod check_method_permission;
 mod check_security_group;
 mod check_source_reliability;
 mod initialize_downstream_request;
@@ -26,7 +26,7 @@ mod match_downstream_route_from_request;
 mod stream_request_to_downstream;
 
 use build_the_gateway_response::*;
-use check_protocol_permission::*;
+use check_method_permission::*;
 use check_security_group::*;
 use check_source_reliability::*;
 use initialize_downstream_request::*;
@@ -134,7 +134,7 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    check_protocol_permission(req.clone(), &route)
+    check_method_permission(req.clone(), &route)
         .instrument(span.to_owned())
         .await?;
 
