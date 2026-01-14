@@ -226,6 +226,8 @@ pub struct ApiConfig {
     pub health_check_interval: Option<u64>,
     pub max_retry_count: Option<u32>,
     pub max_error_instances: Option<u32>,
+
+    //pub callbacks: Vec<CallbackConfig>,
     #[serde(deserialize_with = "deserialize_services")]
     pub services: Vec<Service>,
 }
