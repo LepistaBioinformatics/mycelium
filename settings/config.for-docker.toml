@@ -166,6 +166,7 @@ azure = "disabled"
 serviceIp = "0.0.0.0"
 servicePort = 8080
 serviceWorkers = 1
+callbackExecutionMode = "fireAndForget"  # possible values: parallel, sequential, fireAndForget
 
 # Timeout settings
 gatewayTimeout = 60
