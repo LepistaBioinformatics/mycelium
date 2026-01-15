@@ -240,6 +240,50 @@ tls = "disabled"
 # ------------------------------------------------------------------------------
 # API GATEWAY ROUTE CONFIGURATION
 # ------------------------------------------------------------------------------
+[api.callbacks]
+
+[[callback]]
+triggeringMethods = { oneof = ["GET"] }
+name = "print_metadata_callback_in_rhai"
+type = "rhai"
+script = """
+// Inline Rhai script in TOML config
+
+// Access variables
+log_info("RHAI CALLBACK SCRIPT EXECUTED");
+
+if status_code >= 500 {
+    log_error("Server error: " + status_code);
+} else if status_code >= 400 {
+    log_warn("Client error: " + status_code);
+}
+
+if duration_ms > 1000 {
+    log_warn("Slow response: " + duration_ms + "ms");
+}
+
+// Access headers
+let content_type = headers["content-type"];
+if content_type != "" {
+    log_info("Content-Type: " + content_type);
+}
+
+log_info("Callback completed");
+"""
+
+[[callback]]
+name = "print_metadata_callback_in_javascript"
+triggeringStatusCodes = { oneof = [200, 201] }
+type = "javascript"
+scriptPath = "test/callbacks/javascript_callback_script.js"
+
+[[callback]]
+name = "print_metadata_callback_in_python"
+type = "python"
+triggeringHeaders = { oneof = { "Contents-Type" = "text/plain" } }
+scriptPath = "test/callbacks/python_callback_script.py"
+
+
 [api.services]
 
 [[service-01]]
@@ -261,6 +305,11 @@ authorizationHeader = { name = "Authorization", prefix = "Bearer", token = "toke
 group = "public"
 path = "/public"
 methods = ["GET"]
+callbacks = [
+    "print_metadata_callback_in_rhai",
+    "print_metadata_callback_in_javascript",
+    "print_metadata_callback_in_python",
+]
 
 [[service-01.path]]
 group = "protected"

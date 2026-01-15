@@ -1,12 +1,12 @@
 use myc_core::domain::dtos::callback::{
-    CallbackContext, CallbackError, CallbackResponse,
+    CallbackContext, CallbackError, CallbackExecutor,
 };
 use shaku::Component;
 use std::path::PathBuf;
 use tokio::process::Command;
 
 #[derive(Component)]
-#[shaku(interface = CallbackResponse)]
+#[shaku(interface = CallbackExecutor)]
 pub struct JavaScriptCallback {
     script_path: PathBuf,
     node_path: String,
@@ -45,7 +45,7 @@ impl JavaScriptCallback {
 }
 
 #[async_trait::async_trait]
-impl CallbackResponse for JavaScriptCallback {
+impl CallbackExecutor for JavaScriptCallback {
     async fn execute(
         &self,
         context: &CallbackContext,

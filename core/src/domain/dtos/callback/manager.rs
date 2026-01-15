@@ -1,29 +1,29 @@
+use super::{CallbackContext, CallbackExecutor, ExecutionMode};
+
 use std::sync::Arc;
 
-use super::{CallbackContext, CallbackResponse, ExecutionMode};
-
 pub struct CallbackManager {
-    callbacks: Vec<Arc<dyn CallbackResponse>>,
-    execution_mode: ExecutionMode,
+    executors: Vec<Arc<dyn CallbackExecutor>>,
+    mode: ExecutionMode,
 }
 
 impl CallbackManager {
-    pub fn new(execution_mode: ExecutionMode) -> Self {
+    pub fn new(mode: ExecutionMode) -> Self {
         Self {
-            callbacks: Vec::new(),
-            execution_mode,
+            executors: Vec::new(),
+            mode,
         }
     }
 
-    pub fn register(&mut self, callback: Arc<dyn CallbackResponse>) {
-        self.callbacks.push(callback);
+    pub fn register(&mut self, callback: Arc<dyn CallbackExecutor>) {
+        self.executors.push(callback);
     }
 
     pub async fn execute_all(&self, context: &CallbackContext) {
-        match self.execution_mode {
+        match self.mode {
             ExecutionMode::Parallel => {
                 let futures: Vec<_> = self
-                    .callbacks
+                    .executors
                     .iter()
                     .map(|callback| {
                         let _callback = Arc::clone(callback);
@@ -45,7 +45,7 @@ impl CallbackManager {
                 }
             }
             ExecutionMode::Sequential => {
-                for callback in &self.callbacks {
+                for callback in &self.executors {
                     if let Err(e) = callback.execute(context).await {
                         tracing::error!(
                             "Callback {} failed: {e}",
@@ -55,7 +55,7 @@ impl CallbackManager {
                 }
             }
             ExecutionMode::FireAndForget => {
-                for callback in &self.callbacks {
+                for callback in &self.executors {
                     let _callback = Arc::clone(callback);
                     let ctx = context.clone();
 

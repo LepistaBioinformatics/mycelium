@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use shaku::Interface;
 
 #[async_trait]
-pub trait CallbackResponse: Interface + Send + Sync {
+pub trait CallbackExecutor: Interface + Send + Sync {
     async fn execute(
         &self,
         context: &CallbackContext,

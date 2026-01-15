@@ -1,7 +1,7 @@
 #![cfg(feature = "rhai")]
 
 use myc_core::domain::dtos::callback::{
-    CallbackContext, CallbackError, CallbackResponse,
+    CallbackContext, CallbackError, CallbackExecutor,
 };
 use rhai::{Dynamic, Engine, Map, Scope, AST};
 use shaku::Component;
@@ -9,7 +9,7 @@ use std::sync::Arc;
 use tonic::async_trait;
 
 #[derive(Component)]
-#[shaku(interface = CallbackResponse)]
+#[shaku(interface = CallbackExecutor)]
 pub struct RhaiCallback {
     engine: Arc<Engine>,
     script: AST,
@@ -49,7 +49,7 @@ impl RhaiCallback {
 }
 
 #[async_trait]
-impl CallbackResponse for RhaiCallback {
+impl CallbackExecutor for RhaiCallback {
     async fn execute(
         &self,
         context: &CallbackContext,

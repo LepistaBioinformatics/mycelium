@@ -49,6 +49,19 @@ pub struct Route {
     ///
     #[serde(skip_serializing_if = "Option::is_none")]
     pub accept_insecure_routing: Option<bool>,
+
+    /// Callbacks
+    ///
+    /// A vector of callback names to execute.
+    ///
+    /// Example:
+    ///
+    /// ```json
+    /// ["my_callback", "my_callback_2"]
+    /// ```
+    ///
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub callbacks: Option<Vec<String>>,
 }
 
 impl Route {
@@ -60,6 +73,7 @@ impl Route {
         path: String,
         secret_name: Option<String>,
         accept_insecure_routing: Option<bool>,
+        callbacks: Option<Vec<String>>,
     ) -> Self {
         Self {
             id: match id {
@@ -85,6 +99,7 @@ impl Route {
             path,
             secret_name,
             accept_insecure_routing,
+            callbacks,
         }
     }
 
@@ -308,6 +323,7 @@ mod tests {
             path: "/test".to_string(),
             secret_name: None,
             accept_insecure_routing: None,
+            callbacks: None,
         }
     }
 
@@ -553,6 +569,7 @@ mod tests {
             path: "/test".to_string(),
             secret_name,
             accept_insecure_routing: None,
+            callbacks: None,
         }
     }
 

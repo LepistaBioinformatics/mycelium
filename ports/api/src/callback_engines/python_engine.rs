@@ -1,12 +1,12 @@
 use myc_core::domain::dtos::callback::{
-    CallbackContext, CallbackError, CallbackResponse,
+    CallbackContext, CallbackError, CallbackExecutor,
 };
 use shaku::Component;
 use std::path::PathBuf;
 use tokio::process::Command;
 
 #[derive(Component)]
-#[shaku(interface = CallbackResponse)]
+#[shaku(interface = CallbackExecutor)]
 pub struct PythonCallback {
     script_path: PathBuf,
     python_path: String,
@@ -45,7 +45,7 @@ impl PythonCallback {
 }
 
 #[async_trait::async_trait]
-impl CallbackResponse for PythonCallback {
+impl CallbackExecutor for PythonCallback {
     async fn execute(
         &self,
         context: &CallbackContext,

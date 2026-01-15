@@ -1,21 +1,20 @@
 use myc_core::domain::dtos::callback::{
-    CallbackContext, CallbackError, CallbackResponse,
+    CallbackContext, CallbackError, CallbackExecutor,
 };
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use shaku::Component;
-use std::collections::HashMap;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct HttpCallbackConfig {
     pub url: String,
     pub method: String,
-    #[serde(default)]
-    pub headers: HashMap<String, String>,
     #[serde(default = "default_timeout")]
     pub timeout_ms: u64,
     #[serde(default)]
     pub retry_count: u32,
+    #[serde(default)]
+    pub retry_interval_ms: u64,
 }
 
 fn default_timeout() -> u64 {
@@ -23,7 +22,7 @@ fn default_timeout() -> u64 {
 }
 
 #[derive(Component)]
-#[shaku(interface = CallbackResponse)]
+#[shaku(interface = CallbackExecutor)]
 pub struct HttpCallback {
     config: HttpCallbackConfig,
     client: Client,
@@ -48,7 +47,7 @@ impl HttpCallback {
 }
 
 #[async_trait::async_trait]
-impl CallbackResponse for HttpCallback {
+impl CallbackExecutor for HttpCallback {
     async fn execute(
         &self,
         context: &CallbackContext,
@@ -65,29 +64,60 @@ impl CallbackResponse for HttpCallback {
             "client_ip": context.client_ip,
         });
 
-        let mut request = self
-            .client
-            .request(self.config.method.parse().unwrap(), &self.config.url)
-            .json(&payload);
+        // Total attempts = initial attempt + retry_count
+        let total_attempts = self.config.retry_count + 1;
+        let mut last_error: Option<CallbackError> = None;
+        let mut current_interval = self.config.retry_interval_ms;
 
-        for (key, value) in &self.config.headers {
-            request = request.header(key, value);
+        for attempt in 0..total_attempts {
+            // Try to send the request
+            let result = self
+                .client
+                .request(self.config.method.parse().unwrap(), &self.config.url)
+                .json(&payload)
+                .send()
+                .await;
+
+            match result {
+                Ok(response) => {
+                    if response.status().is_success() {
+                        return Ok(());
+                    } else {
+                        last_error = Some(CallbackError::HttpError(format!(
+                            "HTTP request returned status {}",
+                            response.status()
+                        )));
+                    }
+                }
+                Err(e) => {
+                    last_error = Some(CallbackError::HttpError(e.to_string()));
+                }
+            }
+
+            // If this is not the last attempt, wait before retrying with exponential backoff
+            if attempt < total_attempts - 1 {
+                tracing::warn!(
+                    "HTTP callback attempt {} failed, retrying in {}ms (exponential backoff)",
+                    attempt + 1,
+                    current_interval
+                );
+
+                tokio::time::sleep(tokio::time::Duration::from_millis(
+                    current_interval,
+                ))
+                .await;
+
+                // Double the interval for next retry (exponential backoff)
+                current_interval *= 2;
+            }
         }
 
-        let response = request
-            .send()
-            .await
-            .map_err(|e| CallbackError::HttpError(e.to_string()))?;
-
-        if !response.status().is_success() {
-            return Err(CallbackError::HttpError(format!(
-                "HTTP {} returned status {}",
-                self.config.url,
-                response.status()
-            )));
-        }
-
-        Ok(())
+        // All attempts failed - return the last error
+        Err(last_error.unwrap_or_else(|| {
+            CallbackError::HttpError(
+                "Unknown error during HTTP callback execution".to_string(),
+            )
+        }))
     }
 
     fn name(&self) -> &str {
