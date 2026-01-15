@@ -54,7 +54,7 @@ impl CallbackExecutor for HttpCallback {
     ) -> Result<(), CallbackError> {
         let payload = serde_json::json!({
             "status_code": context.status_code,
-            "headers": context.headers,
+            "headers": context.response_headers,
             "duration_ms": context.duration_ms,
             "upstream_path": context.upstream_path,
             "downstream_url": context.downstream_url,
