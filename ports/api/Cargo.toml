@@ -2,7 +2,7 @@
 name = "mycelium-api"
 description = "Provide API ports to the mycelium project."
 
-version = "8.2.2-beta.1"
+version = "8.2.2-beta.2"
 
 edition.workspace = true
 authors.workspace = true
@@ -12,6 +12,12 @@ keywords.workspace = true
 categories.workspace = true
 readme.workspace = true
 
+# ? ----------------------------------------------------------------------------
+# ? FEATURES
+# ? ----------------------------------------------------------------------------
+
+[features]
+rhai = ["dep:rhai"]
 
 # ? ----------------------------------------------------------------------------
 # ? DEPENDENCIES
@@ -63,6 +69,7 @@ actix-cors = { version = "0.6.2" }
 actix-rt = "2.10"
 actix-web-opentelemetry = "0.22.0"
 anyhow = "1.0"
+rhai = { version = "1.21", features = ["sync"], optional = true }
 
 # ------------------------------------------------------------------------------
 # Mycelium packages

@@ -2,11 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.2.2-beta.2] - 2026-01-08
+
+### 🚀 Features
+
+- Include additional fields for permit and deny flags
+- Implements structural methods to filter licensed resources by permit and deny flags
+- Wip - create initial files to declare flags registration before implements
+- Create use-case and associated codebase to update permit and deny flags
+
 ## [8.2.2-beta.1] - 2026-01-06
 
 ### 💼 Other
 
 - Turn individual packages versions as fully independent
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.2.1] - 2026-01-06
 

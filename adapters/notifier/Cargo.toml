@@ -2,7 +2,7 @@
 name = "mycelium-notifier"
 description = "Provide message adapters to the mycelium project."
 
-version = "8.2.2-beta.1"
+version = "8.2.2-beta.2"
 
 edition.workspace = true
 authors.workspace = true

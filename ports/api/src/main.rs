@@ -1,4 +1,5 @@
 mod api_docs;
+mod callback_engines;
 mod dispatchers;
 mod dtos;
 mod endpoints;
@@ -46,9 +47,12 @@ use myc_config::{
     init_vault_config_from_file, optional_config::OptionalConfig,
 };
 use myc_core::{
-    domain::entities::{
-        GuestRoleRegistration, LocalMessageReading, LocalMessageWrite,
-        RemoteMessageWrite, ServiceRead,
+    domain::{
+        dtos::callback::CallbackExecutor,
+        entities::{
+            GuestRoleRegistration, LocalMessageReading, LocalMessageWrite,
+            RemoteMessageWrite, ServiceRead,
+        },
     },
     use_cases::gateway::guest_roles::propagate_declared_roles_to_storage_engine,
 };
@@ -57,11 +61,8 @@ use myc_diesel::repositories::{
 };
 use myc_http_tools::settings::DEFAULT_REQUEST_ID_KEY;
 use myc_kv::repositories::KVAppModule;
-use myc_mem_db::{
-    models::config::DbPoolProvider,
-    repositories::{
-        MemDbAppModule, MemDbPoolProvider, MemDbPoolProviderParameters,
-    },
+use myc_mem_db::repositories::{
+    MemDbAppModule, MemDbPoolProvider, MemDbPoolProviderParameters,
 };
 use myc_notifier::{
     models::ClientProvider,
@@ -700,14 +701,48 @@ async fn initialize_modules(
         trace!("Service: {:?}", service);
     }
 
+    // ? -----------------------------------------------------------------------
+    // ? CREATE CALLBACK ENGINES FROM CONFIGURED CALLBACKS
+    //
+    // Convert callbacks configuration into executable engines that can be
+    // injected and executed later.
+    //
+    // ? -----------------------------------------------------------------------
+    let callbacks = config.api.to_owned().callbacks.clone().unwrap_or_default();
+
+    let mut engines: Vec<Arc<dyn CallbackExecutor>> = Vec::new();
+
+    for callback in &callbacks {
+        match callback_engines::create_engine_from_callback(callback) {
+            Ok(engine) => {
+                tracing::debug!(
+                    "Created engine for callback '{}' (type: {:?})",
+                    callback.name,
+                    callback.callback_type
+                );
+
+                engines.push(engine);
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "Failed to create engine for callback '{}': {e}",
+                    callback.name,
+                );
+            }
+        }
+    }
+
     let mem_module = Arc::new(
         MemDbAppModule::builder()
             .with_component_parameters::<MemDbPoolProvider>(
                 MemDbPoolProviderParameters {
                     services_db: Arc::new(Mutex::new(
-                        MemDbPoolProvider::new(config.api.services.clone())
-                            .await
-                            .get_services_db(),
+                        config.api.services.clone(),
+                    )),
+                    callbacks_db: Arc::new(Mutex::new(callbacks)),
+                    engines: Arc::new(Mutex::new(engines)),
+                    mode: Arc::new(Mutex::new(
+                        config.api.to_owned().callback_execution_mode.clone(),
                     )),
                 },
             )

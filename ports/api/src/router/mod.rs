@@ -17,7 +17,7 @@
 /// - Inject spans to the request to be used by the tracing system.
 ///
 mod build_the_gateway_response;
-mod check_protocol_permission;
+mod check_method_permission;
 mod check_security_group;
 mod check_source_reliability;
 mod initialize_downstream_request;
@@ -26,7 +26,7 @@ mod match_downstream_route_from_request;
 mod stream_request_to_downstream;
 
 use build_the_gateway_response::*;
-use check_protocol_permission::*;
+use check_method_permission::*;
 use check_security_group::*;
 use check_source_reliability::*;
 use initialize_downstream_request::*;
@@ -72,11 +72,11 @@ use tracing::Instrument;
     )
 )]
 pub(crate) async fn route_request(
-    req: HttpRequest,
+    upstream_request: HttpRequest,
     payload: web::Payload,
     client: web::Data<Client>,
     api_config: web::Data<ApiConfig>,
-    pp_module: web::Data<MemDbAppModule>,
+    app_module: web::Data<MemDbAppModule>,
 ) -> Result<HttpResponse, GatewayError> {
     // ? -----------------------------------------------------------------------
     // ? Initialize route span
@@ -84,15 +84,21 @@ pub(crate) async fn route_request(
 
     let span = tracing::Span::current();
 
-    span.record("myc.router.req_method", &Some(req.method().to_string()))
-        .record("myc.router.req_protocol", &Some(req.full_url().scheme()));
+    span.record(
+        "myc.router.req_method",
+        &Some(upstream_request.method().to_string()),
+    )
+    .record(
+        "myc.router.req_protocol",
+        &Some(upstream_request.full_url().scheme()),
+    );
 
     // ? -----------------------------------------------------------------------
     // ? Populate request id if exists
     // ? -----------------------------------------------------------------------
 
     let request_id = if let Some(request_id) =
-        req.headers().get(DEFAULT_REQUEST_ID_KEY)
+        upstream_request.headers().get(DEFAULT_REQUEST_ID_KEY)
     {
         span.record("myc.router.req_id", &Some(request_id.to_str().unwrap()));
 
@@ -108,10 +114,12 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    let route =
-        match_downstream_route_from_request(req.clone(), pp_module.clone())
-            .instrument(span.to_owned())
-            .await?;
+    let route = match_downstream_route_from_request(
+        upstream_request.clone(),
+        app_module.clone(),
+    )
+    .instrument(span.to_owned())
+    .await?;
 
     // ? -----------------------------------------------------------------------
     // ? Check if the source is allowed
@@ -122,7 +130,7 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    check_source_reliability(req.clone(), &route.service)
+    check_source_reliability(upstream_request.clone(), &route.service)
         .instrument(span.to_owned())
         .await?;
 
@@ -134,7 +142,7 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    check_protocol_permission(req.clone(), &route)
+    check_method_permission(upstream_request.clone(), &route)
         .instrument(span.to_owned())
         .await?;
 
@@ -146,7 +154,7 @@ pub(crate) async fn route_request(
     // ? -----------------------------------------------------------------------
 
     let mut downstream_request = initialize_downstream_request(
-        req.clone(),
+        upstream_request.clone(),
         &route,
         client.clone(),
         api_config.clone(),
@@ -162,10 +170,13 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    downstream_request =
-        check_security_group(req.clone(), downstream_request, route.clone())
-            .instrument(span.to_owned())
-            .await?;
+    downstream_request = check_security_group(
+        upstream_request.clone(),
+        downstream_request,
+        route.clone(),
+    )
+    .instrument(span.to_owned())
+    .await?;
 
     // ? -----------------------------------------------------------------------
     // ? Inject the downstream secret into the request
@@ -188,13 +199,20 @@ pub(crate) async fn route_request(
     // ? Submit downstream request
     //
     // Submit the request and stream the response to the downstream service.
+    // Also, extract callback names from the route configuration. These names
+    // will be used to filter and execute the appropriate engines.
     //
     // ? -----------------------------------------------------------------------
 
-    let downstream_response =
-        stream_request_to_downstream(downstream_request, payload)
-            .instrument(span.to_owned())
-            .await?;
+    let downstream_response = stream_request_to_downstream(
+        downstream_request,
+        &upstream_request,
+        payload,
+        route.callbacks.to_owned(),
+        &app_module,
+    )
+    .instrument(span.to_owned())
+    .await?;
 
     // ? -----------------------------------------------------------------------
     // ? Build the gateway response

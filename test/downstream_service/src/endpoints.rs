@@ -52,7 +52,10 @@ pub(crate) async fn health() -> impl Responder {
 pub(crate) async fn public() -> impl Responder {
     tracing::debug!("public");
 
-    HttpResponse::Ok().body("success")
+    // Insert headers to the response
+    HttpResponse::Ok()
+        .insert_header(("Content-Type", "text/plain"))
+        .body("success")
 }
 
 /// Protected endpoint

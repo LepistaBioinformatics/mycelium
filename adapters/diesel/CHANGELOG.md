@@ -2,11 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.2.2-beta.2] - 2026-01-08
+
+### 🚀 Features
+
+- Configure diesel adapter to retrieve allow and deny flags from database
+- Do implements the diesel adapter to fecth and update permit and deny flags
+
+### ⚙️ Miscellaneous Tasks
+
+- Release {{crate_name}} version 8.2.2-beta.2
+
 ## [8.2.2-beta.1] - 2026-01-06
 
 ### 💼 Other
 
 - Turn individual packages versions as fully independent
+
+### ⚙️ Miscellaneous Tasks
+
+- Release
 
 ## [8.2.1] - 2026-01-06
 

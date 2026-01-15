@@ -2,6 +2,7 @@ use myc_config::{
     optional_config::OptionalConfig, secret_resolver::SecretResolver,
 };
 use myc_core::domain::dtos::{
+    callback::{Callback, ExecutionMode},
     health_check_info::HealthStatus,
     http::Protocol,
     route::Route,
@@ -212,6 +213,68 @@ where
     deserializer.deserialize_map(ServicesVisitor)
 }
 
+/// Custom deserializer for callbacks that accepts the ergonomic format:
+/// [api.callbacks] followed by [[callback]]
+///
+/// After preprocessing, [[api.callbacks.callback]] creates
+/// api.callbacks.callback as an array of tables, so api.callbacks is a map
+/// where the key is "callback" and the value is Vec<Callback>
+fn deserialize_callbacks<'de, D>(
+    deserializer: D,
+) -> Result<Option<Vec<Callback>>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    struct CallbacksVisitor;
+
+    impl<'de> Visitor<'de> for CallbacksVisitor {
+        type Value = Option<Vec<Callback>>;
+
+        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+            formatter.write_str("a map of callback arrays")
+        }
+
+        // Handle map format: [api.callbacks] with [[callback]] entries
+        // After preprocessing, api.callbacks is a map where the key is "callback"
+        // and the value is Vec<Callback> (from array of tables)
+        fn visit_map<M>(self, mut map: M) -> Result<Self::Value, M::Error>
+        where
+            M: MapAccess<'de>,
+        {
+            let mut all_callbacks = Vec::new();
+            while let Some((_key, callbacks_vec)) =
+                map.next_entry::<String, Vec<Callback>>()?
+            {
+                // Each callback in the array
+                for callback in callbacks_vec {
+                    all_callbacks.push(callback);
+                }
+            }
+            if all_callbacks.is_empty() {
+                Ok(None)
+            } else {
+                Ok(Some(all_callbacks))
+            }
+        }
+
+        fn visit_none<E>(self) -> Result<Self::Value, E>
+        where
+            E: serde::de::Error,
+        {
+            Ok(None)
+        }
+
+        fn visit_some<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+        where
+            D: Deserializer<'de>,
+        {
+            deserializer.deserialize_map(CallbacksVisitor)
+        }
+    }
+
+    deserializer.deserialize_option(CallbacksVisitor)
+}
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ApiConfig {
@@ -226,6 +289,16 @@ pub struct ApiConfig {
     pub health_check_interval: Option<u64>,
     pub max_retry_count: Option<u32>,
     pub max_error_instances: Option<u32>,
+
+    #[serde(
+        deserialize_with = "deserialize_callbacks",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub callbacks: Option<Vec<Callback>>,
+
+    #[serde(default)]
+    pub callback_execution_mode: ExecutionMode,
+
     #[serde(deserialize_with = "deserialize_services")]
     pub services: Vec<Service>,
 }
@@ -238,9 +311,11 @@ struct TmpConfig {
 
 /// Pre-process TOML content to transform [[service-name]] into
 /// [[api.services.service-name]] when inside [api.services] context
+/// and [[callback]] into [[api.callbacks.callback]] when inside [api.callbacks] context
 fn preprocess_toml_services(content: &str) -> String {
     let mut result = String::new();
     let mut in_services_context = false;
+    let mut in_callbacks_context = false;
 
     for line in content.lines() {
         let trimmed = line.trim();
@@ -248,6 +323,16 @@ fn preprocess_toml_services(content: &str) -> String {
         // Check if we're entering [api.services] context
         if trimmed == "[api.services]" {
             in_services_context = true;
+            in_callbacks_context = false;
+            result.push_str(line);
+            result.push('\n');
+            continue;
+        }
+
+        // Check if we're entering [api.callbacks] context
+        if trimmed == "[api.callbacks]" {
+            in_callbacks_context = true;
+            in_services_context = false;
             result.push_str(line);
             result.push('\n');
             continue;
@@ -266,6 +351,19 @@ fn preprocess_toml_services(content: &str) -> String {
             }
         }
 
+        // Check if we're leaving the callbacks context (new top-level table)
+        if in_callbacks_context
+            && trimmed.starts_with('[')
+            && !trimmed.starts_with("[[")
+        {
+            // Check if it's not a sub-table of api.callbacks
+            if !trimmed.starts_with("[api.callbacks.")
+                && !trimmed.starts_with("[api.")
+            {
+                in_callbacks_context = false;
+            }
+        }
+
         // Transform [[service-name]] to [[api.services.service-name]] when in
         // context
         if in_services_context
@@ -281,6 +379,27 @@ fn preprocess_toml_services(content: &str) -> String {
                     let new_line = line.replace(
                         &format!("[[{}", service_name),
                         &format!("[[api.services.{}", service_name),
+                    );
+                    result.push_str(&new_line);
+                    result.push('\n');
+                    continue;
+                }
+            }
+        }
+
+        // Transform [[callback]] to [[api.callbacks.callback]] when in context
+        if in_callbacks_context
+            && trimmed.starts_with("[[")
+            && !trimmed.starts_with("[[api.callbacks.")
+        {
+            // Extract the callback name from [[callback]]
+            if let Some(start) = trimmed.find("[[") {
+                if let Some(end) = trimmed[start + 2..].find("]]") {
+                    let callback_name = &trimmed[start + 2..start + 2 + end];
+                    // Replace [[callback with [[api.callbacks.callback
+                    let new_line = line.replace(
+                        &format!("[[{}", callback_name),
+                        &format!("[[api.callbacks.{}", callback_name),
                     );
                     result.push_str(&new_line);
                     result.push('\n');

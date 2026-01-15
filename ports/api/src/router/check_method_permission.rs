@@ -8,8 +8,8 @@ use myc_http_tools::responses::GatewayError;
 /// service. If the protocol is not allowed, the request will be rejected with a
 /// 401 unauthorized error.
 ///
-#[tracing::instrument(name = "check_protocol_permission", skip_all)]
-pub(super) async fn check_protocol_permission(
+#[tracing::instrument(name = "check_method_permission", skip_all)]
+pub(super) async fn check_method_permission(
     req: HttpRequest,
     route: &Route,
 ) -> Result<(), GatewayError> {
