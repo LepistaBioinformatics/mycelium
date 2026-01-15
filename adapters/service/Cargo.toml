@@ -2,7 +2,7 @@
 name = "mycelium-service"
 description = "Provide smtp adapters to the mycelium project."
 
-version = "8.2.2-beta.2"
+version = "8.3.0+beta"
 
 edition.workspace = true
 authors.workspace = true

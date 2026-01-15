@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.0] - 2026-01-15
+
+### 🚀 Features
+
+- Include the read and write options to specify the allowed methods of router
+- Implements the basis for the callback execution in api port
+- Do implements the engine execution logic
+
 ## [8.2.2-beta.2] - 2026-01-08
 
 ### 🚀 Features
@@ -10,6 +18,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release {{crate_name}} version 8.2.2-beta.2
 - Release {{crate_name}} version 8.2.2-beta.2
 
 ## [8.2.2-beta.1] - 2026-01-06
