@@ -2,7 +2,7 @@
 name = "mycelium-key-value"
 description = "Provide key-value adapters to the mycelium project."
 
-version = "8.3.0+beta"
+version = "8.3.1-beta.1"
 
 edition.workspace = true
 authors.workspace = true

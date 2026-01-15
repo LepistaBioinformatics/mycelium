@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Do implements the engine execution logic
 
+### ⚙️ Miscellaneous Tasks
+
+- Release {{crate_name}} version 8.3.0
+
 ## [8.2.2-beta.2] - 2026-01-08
 
 ### ⚙️ Miscellaneous Tasks

@@ -2,7 +2,7 @@
 name = "mycelium-cli"
 description = "Provide CLI ports to the mycelium project."
 
-version = "8.3.0+beta"
+version = "8.3.1-beta.1"
 
 edition.workspace = true
 authors.workspace = true

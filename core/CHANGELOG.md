@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.1-beta.1] - 2026-01-15
+
+### 🐛 Bug Fixes
+
+- Review the information injection to sendo to callback scripts
+
 ## [8.3.0] - 2026-01-15
 
 ### 🚀 Features
@@ -21,6 +27,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - Release {{crate_name}} version 8.2.2-beta.2
+- Release {{crate_name}} version 8.3.0
 
 ## [8.2.2-beta.1] - 2026-01-06
 
