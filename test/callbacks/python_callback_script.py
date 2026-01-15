@@ -19,7 +19,7 @@ print(f"Path: {context['upstream_path']}")
 
 # Access headers
 print("\n=== Headers ===")
-for key, value in context['headers'].items():
+for key, value in context['response_headers'].items():
     print(f"{key}: {value}")
 
 # Custom logic

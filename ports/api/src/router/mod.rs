@@ -153,7 +153,7 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    let mut downstream_request = initialize_downstream_request(
+    let downstream_request = initialize_downstream_request(
         upstream_request.clone(),
         &route,
         client.clone(),
@@ -170,7 +170,7 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    downstream_request = check_security_group(
+    let (downstream_request, security_group, user_info) = check_security_group(
         upstream_request.clone(),
         downstream_request,
         route.clone(),
@@ -210,6 +210,8 @@ pub(crate) async fn route_request(
         payload,
         route.callbacks.to_owned(),
         &app_module,
+        user_info,
+        security_group,
     )
     .instrument(span.to_owned())
     .await?;

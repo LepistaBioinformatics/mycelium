@@ -5,6 +5,7 @@ mod error;
 mod execution_mode;
 mod executor;
 mod manager;
+mod user_info;
 
 pub use callback_filters::*;
 pub use callback_type::*;
@@ -13,6 +14,7 @@ pub use error::*;
 pub use execution_mode::*;
 pub use executor::*;
 pub use manager::*;
+pub use user_info::*;
 
 use crate::domain::dtos::http::HttpMethod;
 

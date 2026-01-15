@@ -12,11 +12,11 @@ use awc::{
 };
 use chrono::Utc;
 use myc_core::domain::dtos::{
-    callback::{CallbackContext, CallbackManager},
+    callback::{CallbackContext, CallbackManager, UserInfo},
     http::HttpMethod,
 };
 use myc_http_tools::{
-    responses::GatewayError, settings::DEFAULT_REQUEST_ID_KEY,
+    responses::GatewayError, settings::DEFAULT_REQUEST_ID_KEY, SecurityGroup,
 };
 use myc_mem_db::{
     models::config::DbPoolProvider, repositories::MemDbAppModule,
@@ -40,6 +40,8 @@ pub(super) async fn stream_request_to_downstream(
     payload: Payload,
     callback_names: Option<Vec<String>>,
     mem_module: &MemDbAppModule,
+    user_info: Option<UserInfo>,
+    security_group: SecurityGroup,
 ) -> Result<DownstreamResponse, GatewayError> {
     let _ = tracing::Span::current();
 
@@ -49,6 +51,14 @@ pub(super) async fn stream_request_to_downstream(
     // Extract downstream metadata from the request (before it's moved)
     let (downstream_url, downstream_method) =
         get_downstream_request_metadata(&downstream_request)?;
+
+    let mut downstream_response_headers = HashMap::<String, String>::new();
+    for (name, value) in downstream_request.headers() {
+        if let Ok(value_str) = value.to_str() {
+            downstream_response_headers
+                .insert(name.as_str().to_string(), value_str.to_string());
+        }
+    }
 
     // ? -----------------------------------------------------------------------
     // ? Get engines and execution mode from memory db
@@ -135,16 +145,14 @@ pub(super) async fn stream_request_to_downstream(
             let http_method = downstream_method;
 
             // Extract headers from downstream response
-            let mut response_headers = HashMap::<String, String>::new();
             for (name, value) in res.headers() {
                 if let Ok(value_str) = value.to_str() {
-                    response_headers.insert(
+                    downstream_response_headers.insert(
                         name.as_str().to_string(),
                         value_str.to_string(),
                     );
                 }
             }
-
             //
             // Filter engines based on callback triggering filters
             //
@@ -188,7 +196,7 @@ pub(super) async fn stream_request_to_downstream(
                         match callback.should_execute(
                             &http_method,
                             status_code,
-                            &response_headers,
+                            &downstream_response_headers,
                         ) {
                             Ok(()) => {
                                 callback_manager.register(engine);
@@ -200,7 +208,7 @@ pub(super) async fn stream_request_to_downstream(
                                     block_reason,
                                     http_method,
                                     status_code,
-                                    response_headers
+                                    downstream_response_headers
                                 );
                             }
                         }
@@ -224,7 +232,7 @@ pub(super) async fn stream_request_to_downstream(
             callback_manager
                 .execute_all(&CallbackContext::new(
                     status_code,
-                    response_headers,
+                    downstream_response_headers,
                     duration_ms,
                     upstream_path,
                     downstream_url.clone(),
@@ -232,6 +240,8 @@ pub(super) async fn stream_request_to_downstream(
                     Utc::now().format("%Y-%m-%d %H:%M:%S").to_string(),
                     request_id,
                     client_ip,
+                    user_info,
+                    security_group,
                 ))
                 .await;
 
