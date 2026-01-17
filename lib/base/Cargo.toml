@@ -2,7 +2,7 @@
 name = "mycelium-base"
 description = "A simple package with useful dependencies for Rust packages."
 
-version = "8.3.1-beta.1"
+version = "8.3.1-beta.2"
 
 edition.workspace = true
 authors.workspace = true

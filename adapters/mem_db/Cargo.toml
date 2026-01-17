@@ -2,7 +2,7 @@
 name = "mycelium-memory-db"
 description = "Provide memory database adapters to the mycelium project."
 
-version = "8.3.1-beta.1"
+version = "8.3.1-beta.2"
 
 edition.workspace = true
 authors.workspace = true
