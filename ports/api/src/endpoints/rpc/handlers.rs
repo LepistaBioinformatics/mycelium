@@ -1,0 +1,158 @@
+use super::dispatchers::dispatch_managers;
+use super::openrpc;
+use super::types::{self, JsonRpcRequest, JsonRpcResponse};
+use crate::dtos::MyceliumProfileData;
+
+use actix_web::{post, web, HttpResponse, Responder};
+use myc_diesel::repositories::SqlAppModule;
+use tracing::error;
+
+async fn process_single_request(
+    profile: &MyceliumProfileData,
+    app_module: &web::Data<SqlAppModule>,
+    openrpc_config: &web::Data<openrpc::OpenRpcSpecConfig>,
+    request: JsonRpcRequest,
+) -> JsonRpcResponse {
+    let id = request.id.clone();
+
+    if request.jsonrpc.as_deref() != Some(types::JSONRPC_VERSION) {
+        return types::error_response(
+            id,
+            types::JsonRpcError {
+                code: types::codes::INVALID_REQUEST,
+                message: "jsonrpc must be \"2.0\"".to_string(),
+                data: None,
+            },
+        );
+    }
+
+    if request.method == "rpc.discover" {
+        let spec = openrpc::generate_openrpc_spec(openrpc_config.get_ref());
+        return types::success_response(id, spec);
+    }
+
+    let result = dispatch_managers(
+        profile,
+        app_module,
+        &request.method,
+        request.params.clone(),
+    )
+    .await;
+
+    match result {
+        Ok(value) => types::success_response(id, value),
+        Err(err) => types::error_response(id, err),
+    }
+}
+
+#[post("")]
+pub async fn admin_jsonrpc_post(
+    body: web::Bytes,
+    profile: MyceliumProfileData,
+    app_module: web::Data<SqlAppModule>,
+    openrpc_config: web::Data<openrpc::OpenRpcSpecConfig>,
+) -> impl Responder {
+    let value: serde_json::Value = match serde_json::from_slice(&body) {
+        Ok(v) => v,
+        Err(e) => {
+            error!("JSON-RPC parse error: {}", e);
+            let response = types::error_response(
+                None,
+                types::JsonRpcError {
+                    code: types::codes::INVALID_REQUEST,
+                    message: format!("Invalid JSON: {}", e),
+                    data: None,
+                },
+            );
+            return HttpResponse::Ok().json(response);
+        }
+    };
+
+    if value.is_object() {
+        let request: JsonRpcRequest = match serde_json::from_value(value) {
+            Ok(r) => r,
+            Err(e) => {
+                let response = types::error_response(
+                    None,
+                    types::JsonRpcError {
+                        code: types::codes::INVALID_REQUEST,
+                        message: e.to_string(),
+                        data: None,
+                    },
+                );
+                return HttpResponse::Ok().json(response);
+            }
+        };
+        let response = process_single_request(
+            &profile,
+            &app_module,
+            &openrpc_config,
+            request,
+        )
+        .await;
+        return HttpResponse::Ok().json(response);
+    }
+
+    if value.is_array() {
+        let arr = value.as_array().unwrap();
+        if arr.is_empty() {
+            let response = types::error_response(
+                None,
+                types::JsonRpcError {
+                    code: types::codes::INVALID_REQUEST,
+                    message: "Batch array cannot be empty".to_string(),
+                    data: None,
+                },
+            );
+            return HttpResponse::Ok().json(response);
+        }
+
+        let mut responses = Vec::with_capacity(arr.len());
+        for item in arr {
+            let request: JsonRpcRequest =
+                match serde_json::from_value(item.clone()) {
+                    Ok(r) => r,
+                    Err(e) => {
+                        responses.push(types::error_response(
+                            item.get("id").cloned(),
+                            types::JsonRpcError {
+                                code: types::codes::INVALID_REQUEST,
+                                message: e.to_string(),
+                                data: None,
+                            },
+                        ));
+                        continue;
+                    }
+                };
+            if request.id.is_none() {
+                let _ = process_single_request(
+                    &profile,
+                    &app_module,
+                    &openrpc_config,
+                    request,
+                )
+                .await;
+                continue;
+            }
+            let response = process_single_request(
+                &profile,
+                &app_module,
+                &openrpc_config,
+                request,
+            )
+            .await;
+            responses.push(response);
+        }
+        return HttpResponse::Ok().json(responses);
+    }
+
+    let response = types::error_response(
+        None,
+        types::JsonRpcError {
+            code: types::codes::INVALID_REQUEST,
+            message: "Request must be an object or non-empty array".to_string(),
+            data: None,
+        },
+    );
+    HttpResponse::Ok().json(response)
+}

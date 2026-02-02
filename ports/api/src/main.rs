@@ -34,6 +34,7 @@ use endpoints::{
     },
     openid::well_known_endpoints,
     role_scoped::configure as configure_standard_endpoints,
+    rpc,
     service::tools_endpoints as service_tools_endpoints,
     shared::insert_role_header,
     staff::account_endpoints as staff_account_endpoints,
@@ -317,6 +318,12 @@ pub async fn main() -> std::io::Result<()> {
         trace!("Configured Cors: {:?}", cors);
 
         // ? -------------------------------------------------------------------
+        // ? OpenRPC discovery (server URLs from config / env)
+        // ? -------------------------------------------------------------------
+        let openrpc_spec_config =
+            endpoints::rpc::openrpc::OpenRpcSpecConfig::from_api_config(&config.api);
+
+        // ? -------------------------------------------------------------------
         // ? Create the basis for the application
         // ? -------------------------------------------------------------------
         let base_app = App::new()
@@ -336,6 +343,7 @@ pub async fn main() -> std::io::Result<()> {
             //
             // Inject configuration
             //
+            .app_data(web::Data::new(openrpc_spec_config))
             .app_data(web::Data::new(tools_registry_schema.clone()))
             .app_data(web::Data::new(token_config).clone())
             .app_data(web::Data::new(auth_config.to_owned()).clone())
@@ -471,6 +479,18 @@ pub async fn main() -> std::io::Result<()> {
                     .configure(manager_tenant_endpoints::configure)
                     .configure(manager_guest_role_endpoints::configure)
                     .configure(manager_account_endpoints::configure),
+            )
+            //
+            // JSON-RPC (single + batch at _adm/rpc)
+            //
+            .service(
+                web::scope("rpc")
+                    .wrap_fn(|req, srv| {
+                        let req = insert_role_header(req, vec![]);
+
+                        srv.call(req)
+                    })
+                    .configure(rpc::configure),
             )
             //
             // Role Scoped Endpoints
