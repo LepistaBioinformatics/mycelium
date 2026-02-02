@@ -1,4 +1,6 @@
-use super::dispatchers::{dispatch_beginners, dispatch_managers};
+use super::dispatchers::{
+    dispatch_account_manager, dispatch_beginners, dispatch_managers,
+};
 use super::openrpc;
 use super::types::{self, JsonRpcRequest, JsonRpcResponse};
 use crate::dtos::MyceliumProfileData;
@@ -52,6 +54,16 @@ async fn process_single_request(
             dispatch_managers(
                 profile,
                 app_module,
+                &request.method,
+                request.params.clone(),
+            )
+            .await
+        }
+        Some("accountManager") => {
+            dispatch_account_manager(
+                profile,
+                app_module,
+                life_cycle_settings,
                 &request.method,
                 request.params.clone(),
             )
