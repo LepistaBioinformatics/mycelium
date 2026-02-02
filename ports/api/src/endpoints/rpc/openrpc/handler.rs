@@ -1,5 +1,3 @@
-//! GET handler for the OpenRPC spec (e.g. _adm/rpc/openrpc.json).
-
 use super::config::OpenRpcSpecConfig;
 use super::spec;
 

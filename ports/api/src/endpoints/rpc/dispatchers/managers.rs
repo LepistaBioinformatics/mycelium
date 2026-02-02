@@ -1,6 +1,3 @@
-//! Dispatch of JSON-RPC methods for managers scope (managers.*).
-//! Scope/actor checks are performed inside the use cases.
-
 use super::super::errors::{
     invalid_params, mapped_errors_to_jsonrpc_error, params_required,
 };

@@ -1,27 +1,37 @@
-//! Dispatch of JSON-RPC methods for beginners scope (beginners.accounts.*, beginners.guests.*, beginners.meta.*, beginners.profile.*).
-//! Uses profile for get/update/delete; uses HttpRequest + credentials for createDefaultAccount.
-
-use std::str::FromStr;
-
-use super::super::errors::{
-    forbidden_owner_only, invalid_params, mapped_errors_to_jsonrpc_error,
-    params_required,
+use super::super::{
+    errors::{
+        forbidden_owner_only, invalid_params, mapped_errors_to_jsonrpc_error,
+        params_required,
+    },
+    params::{
+        AcceptInvitationParams, CheckEmailPasswordValidityParams,
+        CheckTokenAndActivateUserParams, CheckTokenAndResetPasswordParams,
+        CreateAccountMetaParams, CreateConnectionStringParams,
+        CreateDefaultAccountParams, CreateDefaultUserParams,
+        DeleteAccountMetaParams, DeleteMyAccountParams, FetchMyProfileParams,
+        FetchTenantPublicInfoParams, StartPasswordRedefinitionParams,
+        TotpCheckTokenParams, TotpDisableParams, TotpFinishActivationParams,
+        TotpStartActivationParams, UpdateAccountMetaParams,
+        UpdateOwnAccountNameParams,
+    },
+    types::{self, JsonRpcError},
 };
-use super::super::params::{
-    AcceptInvitationParams, CreateAccountMetaParams,
-    CreateDefaultAccountParams, DeleteAccountMetaParams, DeleteMyAccountParams,
-    FetchMyProfileParams, UpdateAccountMetaParams, UpdateOwnAccountNameParams,
+use crate::{
+    dtos::MyceliumProfileData,
+    middleware::{
+        check_credentials_with_multi_identity_provider,
+        parse_issuer_from_request,
+    },
 };
-use super::super::types::{self, JsonRpcError};
-use crate::dtos::MyceliumProfileData;
-use crate::middleware::check_credentials_with_multi_identity_provider;
 
 use actix_web::{web, HttpRequest};
 use myc_core::{
     domain::dtos::{
         account::AccountMetaKey,
+        email::Email,
         guest_role::Permission,
         profile::{LicensedResources, TenantsOwnership},
+        security_group::PermissionedRole,
     },
     models::AccountLifeCycle,
     use_cases::role_scoped::beginner::{
@@ -31,10 +41,20 @@ use myc_core::{
         },
         guest_user::accept_invitation,
         meta::{create_account_meta, delete_account_meta, update_account_meta},
+        tenant::fetch_tenant_public_info,
+        token::{create_connection_string, list_my_connection_strings},
+        user::{
+            check_email_password_validity, check_token_and_activate_user,
+            check_token_and_reset_password, create_default_user,
+            start_password_redefinition, totp_check_token, totp_disable,
+            totp_finish_activation, totp_start_activation,
+        },
     },
 };
 use myc_diesel::repositories::SqlAppModule;
+use myc_http_tools::responses::GatewayError;
 use shaku::HasComponent;
+use std::str::FromStr;
 use tracing::warn;
 
 pub async fn dispatch_beginners(
@@ -284,6 +304,325 @@ pub async fn dispatch_beginners(
                 }
             }
             serde_json::to_value(profile_data.to_profile()).map_err(|e| {
+                JsonRpcError {
+                    code: types::codes::INTERNAL_ERROR,
+                    message: e.to_string(),
+                    data: None,
+                }
+            })
+        }
+        "beginners.tenants.fetchTenantPublicInfo" => {
+            let p: FetchTenantPublicInfoParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let result = fetch_tenant_public_info(
+                profile.to_profile(),
+                p.tenant_id,
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            serde_json::to_value(result).map_err(|e| JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: e.to_string(),
+                data: None,
+            })
+        }
+        "beginners.tokens.createConnectionString" => {
+            let life_cycle = life_cycle_settings
+                .ok_or_else(|| invalid_params("Life cycle config required"))?
+                .get_ref();
+            let p: CreateConnectionStringParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let roles: Option<Vec<PermissionedRole>> = p.roles.map(|v| {
+                v.into_iter()
+                    .map(|r| PermissionedRole {
+                        name: r.name,
+                        permission: r.permission.map(Permission::from_i32),
+                    })
+                    .collect()
+            });
+            let result = create_connection_string(
+                profile.to_profile(),
+                p.name,
+                p.expiration,
+                p.tenant_id,
+                p.service_account_id,
+                roles,
+                life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            serde_json::to_value(
+                serde_json::json!({ "connectionString": result }),
+            )
+            .map_err(|e| JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: e.to_string(),
+                data: None,
+            })
+        }
+        "beginners.tokens.listMyConnectionStrings" => {
+            let result = list_my_connection_strings(
+                profile.to_profile(),
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            serde_json::to_value(result).map_err(|e| JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: e.to_string(),
+                data: None,
+            })
+        }
+        "beginners.users.createDefaultUser" => {
+            let req =
+                req.ok_or_else(|| invalid_params("Request context required"))?;
+            let life_cycle = life_cycle_settings
+                .ok_or_else(|| invalid_params("Life cycle config required"))?
+                .get_ref();
+            let provider = match parse_issuer_from_request(req.to_owned()).await
+            {
+                Err(GatewayError::Unauthorized(_)) => None,
+                Err(err) => {
+                    warn!("Invalid issuer: {:?}", err);
+                    return Err(JsonRpcError {
+                        code: types::codes::INVALID_REQUEST,
+                        message: "Invalid issuer.".to_string(),
+                        data: None,
+                    });
+                }
+                Ok((issuer, _)) => Some(issuer),
+            };
+            let p: CreateDefaultUserParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let _ = create_default_user(
+                p.email,
+                p.first_name,
+                p.last_name,
+                p.password,
+                provider,
+                life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            serde_json::to_value(
+                serde_json::json!({"message": "User created successfully"}),
+            )
+            .map_err(|e| JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: e.to_string(),
+                data: None,
+            })
+        }
+        "beginners.users.checkTokenAndActivateUser" => {
+            let p: CheckTokenAndActivateUserParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let email = Email::from_string(p.email.clone())
+                .map_err(|e| invalid_params(e.to_string()))?;
+            let result = check_token_and_activate_user(
+                p.token,
+                email,
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            serde_json::to_value(result).map_err(|e| JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: e.to_string(),
+                data: None,
+            })
+        }
+        "beginners.users.startPasswordRedefinition" => {
+            let life_cycle = life_cycle_settings
+                .ok_or_else(|| invalid_params("Life cycle config required"))?
+                .get_ref();
+            let p: StartPasswordRedefinitionParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let email = Email::from_string(p.email.clone())
+                .map_err(|e| invalid_params(e.to_string()))?;
+            let _ = start_password_redefinition(
+                email,
+                life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            serde_json::to_value(true).map_err(|e| JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: e.to_string(),
+                data: None,
+            })
+        }
+        "beginners.users.checkTokenAndResetPassword" => {
+            let life_cycle = life_cycle_settings
+                .ok_or_else(|| invalid_params("Life cycle config required"))?
+                .get_ref();
+            let p: CheckTokenAndResetPasswordParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let email = Email::from_string(p.email.clone())
+                .map_err(|e| invalid_params(e.to_string()))?;
+            let _ = check_token_and_reset_password(
+                p.token,
+                email,
+                p.new_password,
+                life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            serde_json::to_value(true).map_err(|e| JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: e.to_string(),
+                data: None,
+            })
+        }
+        "beginners.users.checkEmailPasswordValidity" => {
+            let p: CheckEmailPasswordValidityParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let email = Email::from_string(p.email.clone())
+                .map_err(|e| invalid_params(e.to_string()))?;
+            let (valid, user) = check_email_password_validity(
+                email,
+                p.password,
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            serde_json::to_value(serde_json::json!({
+                "valid": valid,
+                "user": user
+            }))
+            .map_err(|e| JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: e.to_string(),
+                data: None,
+            })
+        }
+        "beginners.users.totpStartActivation" => {
+            let life_cycle = life_cycle_settings
+                .ok_or_else(|| invalid_params("Life cycle config required"))?
+                .get_ref();
+            let p: TotpStartActivationParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let email = Email::from_string(p.email.clone())
+                .map_err(|e| invalid_params(e.to_string()))?;
+            let (totp_url, totp_secret) = totp_start_activation(
+                email,
+                p.qr_code,
+                life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            serde_json::to_value(serde_json::json!({
+                "totpUrl": totp_url,
+                "totpSecret": totp_secret
+            }))
+            .map_err(|e| JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: e.to_string(),
+                data: None,
+            })
+        }
+        "beginners.users.totpFinishActivation" => {
+            let life_cycle = life_cycle_settings
+                .ok_or_else(|| invalid_params("Life cycle config required"))?
+                .get_ref();
+            let p: TotpFinishActivationParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let email = Email::from_string(p.email.clone())
+                .map_err(|e| invalid_params(e.to_string()))?;
+            let _ = totp_finish_activation(
+                email,
+                p.token,
+                life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            serde_json::to_value(serde_json::json!({ "finished": true }))
+                .map_err(|e| JsonRpcError {
+                    code: types::codes::INTERNAL_ERROR,
+                    message: e.to_string(),
+                    data: None,
+                })
+        }
+        "beginners.users.totpCheckToken" => {
+            let life_cycle = life_cycle_settings
+                .ok_or_else(|| invalid_params("Life cycle config required"))?
+                .get_ref();
+            let p: TotpCheckTokenParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let email = Email::from_string(p.email.clone())
+                .map_err(|e| invalid_params(e.to_string()))?;
+            let user = totp_check_token(
+                email,
+                p.token,
+                life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            serde_json::to_value(user).map_err(|e| JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: e.to_string(),
+                data: None,
+            })
+        }
+        "beginners.users.totpDisable" => {
+            let life_cycle = life_cycle_settings
+                .ok_or_else(|| invalid_params("Life cycle config required"))?
+                .get_ref();
+            let p: TotpDisableParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let email = Email::from_string(p.email.clone())
+                .map_err(|e| invalid_params(e.to_string()))?;
+            let _ = totp_disable(
+                email,
+                p.token,
+                life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            serde_json::to_value(serde_json::json!({})).map_err(|e| {
                 JsonRpcError {
                     code: types::codes::INTERNAL_ERROR,
                     message: e.to_string(),

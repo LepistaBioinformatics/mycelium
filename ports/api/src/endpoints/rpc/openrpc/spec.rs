@@ -1,5 +1,3 @@
-//! Assembly of the OpenRPC spec document: servers, methods, info.
-
 use super::config::OpenRpcSpecConfig;
 use super::methods;
 

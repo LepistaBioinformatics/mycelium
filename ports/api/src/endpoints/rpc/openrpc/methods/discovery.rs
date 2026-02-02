@@ -1,5 +1,3 @@
-//! OpenRPC method: rpc.discover.
-
 pub fn method() -> serde_json::Value {
     serde_json::json!({
         "name": "rpc.discover",

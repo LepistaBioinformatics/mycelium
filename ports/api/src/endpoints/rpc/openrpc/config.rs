@@ -1,5 +1,3 @@
-//! OpenRPC spec config: server URLs (dev/prod) from ApiConfig and env.
-
 use crate::models::api_config::ApiConfig;
 
 use myc_config::optional_config::OptionalConfig;

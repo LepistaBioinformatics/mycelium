@@ -1,5 +1,3 @@
-//! OpenRPC method descriptors by scope: discovery, managers, beginners.
-
 mod beginners;
 mod discovery;
 mod managers;

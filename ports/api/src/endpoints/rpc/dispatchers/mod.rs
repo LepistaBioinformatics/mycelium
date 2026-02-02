@@ -1,5 +1,3 @@
-//! JSON-RPC method dispatchers by scope: beginners, managers.
-
 pub(crate) mod beginners;
 pub(crate) mod managers;
 

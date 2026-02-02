@@ -1,5 +1,3 @@
-//! OpenRPC method descriptors for managers scope (managers.*).
-
 use super::super::schema;
 use crate::endpoints::rpc::params;
 

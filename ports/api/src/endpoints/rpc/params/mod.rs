@@ -1,13 +1,16 @@
-//! JSON-RPC param DTOs with JSON Schema support for OpenRPC discovery.
-//! Grouped by scope: beginners, managers.
-
 pub(crate) mod beginners;
 pub(crate) mod managers;
 
 pub(crate) use beginners::{
-    AcceptInvitationParams, CreateAccountMetaParams,
-    CreateDefaultAccountParams, DeleteAccountMetaParams, DeleteMyAccountParams,
-    FetchMyProfileParams, UpdateAccountMetaParams, UpdateOwnAccountNameParams,
+    AcceptInvitationParams, CheckEmailPasswordValidityParams,
+    CheckTokenAndActivateUserParams, CheckTokenAndResetPasswordParams,
+    CreateAccountMetaParams, CreateConnectionStringParams,
+    CreateDefaultAccountParams, CreateDefaultUserParams,
+    DeleteAccountMetaParams, DeleteMyAccountParams, FetchMyProfileParams,
+    FetchTenantPublicInfoParams, StartPasswordRedefinitionParams,
+    TotpCheckTokenParams, TotpDisableParams, TotpFinishActivationParams,
+    TotpStartActivationParams, UpdateAccountMetaParams,
+    UpdateOwnAccountNameParams,
 };
 pub(crate) use managers::{
     CreateSystemAccountParams, CreateTenantParams, DeleteTenantParams,
