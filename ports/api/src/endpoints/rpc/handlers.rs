@@ -1,9 +1,10 @@
-use super::dispatchers::dispatch_managers;
+use super::dispatchers::{dispatch_beginners, dispatch_managers};
 use super::openrpc;
 use super::types::{self, JsonRpcRequest, JsonRpcResponse};
 use crate::dtos::MyceliumProfileData;
 
-use actix_web::{post, web, HttpResponse, Responder};
+use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
+use myc_core::models::AccountLifeCycle;
 use myc_diesel::repositories::SqlAppModule;
 use tracing::error;
 
@@ -11,6 +12,8 @@ async fn process_single_request(
     profile: &MyceliumProfileData,
     app_module: &web::Data<SqlAppModule>,
     openrpc_config: &web::Data<openrpc::OpenRpcSpecConfig>,
+    req: Option<&HttpRequest>,
+    life_cycle_settings: Option<&web::Data<AccountLifeCycle>>,
     request: JsonRpcRequest,
 ) -> JsonRpcResponse {
     let id = request.id.clone();
@@ -31,13 +34,35 @@ async fn process_single_request(
         return types::success_response(id, spec);
     }
 
-    let result = dispatch_managers(
-        profile,
-        app_module,
-        &request.method,
-        request.params.clone(),
-    )
-    .await;
+    let scope = request.method.split('.').next();
+
+    let result = match scope {
+        Some("beginners") => {
+            dispatch_beginners(
+                profile,
+                app_module,
+                req,
+                life_cycle_settings,
+                &request.method,
+                request.params.clone(),
+            )
+            .await
+        }
+        Some("managers") => {
+            dispatch_managers(
+                profile,
+                app_module,
+                &request.method,
+                request.params.clone(),
+            )
+            .await
+        }
+        _ => Err(types::JsonRpcError {
+            code: types::codes::METHOD_NOT_FOUND,
+            message: format!("Method not found: {}", request.method),
+            data: None,
+        }),
+    };
 
     match result {
         Ok(value) => types::success_response(id, value),
@@ -47,10 +72,12 @@ async fn process_single_request(
 
 #[post("")]
 pub async fn admin_jsonrpc_post(
+    req: HttpRequest,
     body: web::Bytes,
     profile: MyceliumProfileData,
     app_module: web::Data<SqlAppModule>,
     openrpc_config: web::Data<openrpc::OpenRpcSpecConfig>,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
 ) -> impl Responder {
     let value: serde_json::Value = match serde_json::from_slice(&body) {
         Ok(v) => v,
@@ -87,6 +114,8 @@ pub async fn admin_jsonrpc_post(
             &profile,
             &app_module,
             &openrpc_config,
+            Some(&req),
+            Some(&life_cycle_settings),
             request,
         )
         .await;
@@ -129,6 +158,8 @@ pub async fn admin_jsonrpc_post(
                     &profile,
                     &app_module,
                     &openrpc_config,
+                    Some(&req),
+                    Some(&life_cycle_settings),
                     request,
                 )
                 .await;
@@ -138,6 +169,8 @@ pub async fn admin_jsonrpc_post(
                 &profile,
                 &app_module,
                 &openrpc_config,
+                Some(&req),
+                Some(&life_cycle_settings),
                 request,
             )
             .await;

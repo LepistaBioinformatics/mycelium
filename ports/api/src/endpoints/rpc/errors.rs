@@ -1,6 +1,29 @@
 use super::types::{self, JsonRpcError};
 use mycelium_base::utils::errors::MappedErrors;
 
+/// Builds a JSON-RPC "invalid params" error (-32602).
+pub fn invalid_params(message: impl Into<String>) -> JsonRpcError {
+    JsonRpcError {
+        code: types::codes::INVALID_PARAMS,
+        message: message.into(),
+        data: None,
+    }
+}
+
+/// "params required" invalid params error.
+pub fn params_required() -> JsonRpcError {
+    invalid_params("params required")
+}
+
+/// Forbidden error for operations restricted to account owners.
+pub fn forbidden_owner_only() -> JsonRpcError {
+    JsonRpcError {
+        code: types::codes::FORBIDDEN,
+        message: "Invalid operation. Operation restricted to account owners.".to_string(),
+        data: None,
+    }
+}
+
 pub fn mapped_errors_to_jsonrpc_error(err: MappedErrors) -> JsonRpcError {
     let code_string = err.code().to_string();
     let message = err.to_string();

@@ -1,9 +1,14 @@
-use super::errors::mapped_errors_to_jsonrpc_error;
-use super::params::{
+//! Dispatch of JSON-RPC methods for managers scope (managers.*).
+//! Scope/actor checks are performed inside the use cases.
+
+use super::super::errors::{
+    invalid_params, mapped_errors_to_jsonrpc_error, params_required,
+};
+use super::super::params::{
     CreateSystemAccountParams, CreateTenantParams, DeleteTenantParams,
     ExcludeTenantOwnerParams, IncludeTenantOwnerParams, ListTenantParams,
 };
-use super::types::{self, JsonRpcError};
+use super::super::types::{self, JsonRpcError};
 use crate::dtos::MyceliumProfileData;
 
 use actix_web::web;
@@ -24,18 +29,6 @@ fn parse_system_actor(s: &str) -> Option<SystemActor> {
         "systemManager" => Some(SystemActor::SystemManager),
         _ => None,
     }
-}
-
-fn invalid_params(message: impl Into<String>) -> JsonRpcError {
-    JsonRpcError {
-        code: types::codes::INVALID_PARAMS,
-        message: message.into(),
-        data: None,
-    }
-}
-
-fn params_required() -> JsonRpcError {
-    invalid_params("params required")
 }
 
 pub async fn dispatch_managers(

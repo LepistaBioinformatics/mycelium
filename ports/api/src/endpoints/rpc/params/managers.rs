@@ -1,3 +1,5 @@
+//! JSON-RPC param DTOs for managers scope (managers.*).
+
 use schemars::JsonSchema;
 use serde::Deserialize;
 use uuid::Uuid;
