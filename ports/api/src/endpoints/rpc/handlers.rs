@@ -1,13 +1,16 @@
 use super::dispatchers::{
-    dispatch_account_manager, dispatch_beginners, dispatch_managers,
+    dispatch_account_manager, dispatch_beginners, dispatch_gateway_manager,
+    dispatch_managers,
 };
 use super::openrpc;
 use super::types::{self, JsonRpcRequest, JsonRpcResponse};
 use crate::dtos::MyceliumProfileData;
+use crate::openapi_processor::ServiceOpenApiSchema;
 
 use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
 use myc_core::models::AccountLifeCycle;
 use myc_diesel::repositories::SqlAppModule;
+use myc_mem_db::repositories::MemDbAppModule;
 use tracing::error;
 
 async fn process_single_request(
@@ -16,6 +19,8 @@ async fn process_single_request(
     openrpc_config: &web::Data<openrpc::OpenRpcSpecConfig>,
     req: Option<&HttpRequest>,
     life_cycle_settings: Option<&web::Data<AccountLifeCycle>>,
+    mem_module: Option<&web::Data<MemDbAppModule>>,
+    tools_schema: Option<&web::Data<ServiceOpenApiSchema>>,
     request: JsonRpcRequest,
 ) -> JsonRpcResponse {
     let id = request.id.clone();
@@ -69,6 +74,25 @@ async fn process_single_request(
             )
             .await
         }
+        Some("gatewayManager") => {
+            match (mem_module, tools_schema) {
+                (Some(mem), Some(tools)) => {
+                    dispatch_gateway_manager(
+                        profile,
+                        mem,
+                        tools,
+                        &request.method,
+                        request.params.clone(),
+                    )
+                    .await
+                }
+                _ => Err(types::JsonRpcError {
+                    code: types::codes::INTERNAL_ERROR,
+                    message: "MemDb or Tools schema not available".to_string(),
+                    data: None,
+                }),
+            }
+        }
         _ => Err(types::JsonRpcError {
             code: types::codes::METHOD_NOT_FOUND,
             message: format!("Method not found: {}", request.method),
@@ -90,6 +114,8 @@ pub async fn admin_jsonrpc_post(
     app_module: web::Data<SqlAppModule>,
     openrpc_config: web::Data<openrpc::OpenRpcSpecConfig>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
+    mem_module: web::Data<MemDbAppModule>,
+    tools_schema: web::Data<ServiceOpenApiSchema>,
 ) -> impl Responder {
     let value: serde_json::Value = match serde_json::from_slice(&body) {
         Ok(v) => v,
@@ -128,6 +154,8 @@ pub async fn admin_jsonrpc_post(
             &openrpc_config,
             Some(&req),
             Some(&life_cycle_settings),
+            Some(&mem_module),
+            Some(&tools_schema),
             request,
         )
         .await;
@@ -172,6 +200,8 @@ pub async fn admin_jsonrpc_post(
                     &openrpc_config,
                     Some(&req),
                     Some(&life_cycle_settings),
+                    Some(&mem_module),
+                    Some(&tools_schema),
                     request,
                 )
                 .await;
@@ -183,6 +213,8 @@ pub async fn admin_jsonrpc_post(
                 &openrpc_config,
                 Some(&req),
                 Some(&life_cycle_settings),
+                Some(&mem_module),
+                Some(&tools_schema),
                 request,
             )
             .await;

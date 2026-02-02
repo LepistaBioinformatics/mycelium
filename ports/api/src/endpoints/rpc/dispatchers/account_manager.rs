@@ -7,6 +7,10 @@ use super::super::params::{
     FetchGuestRoleDetailsParams, GuestToChildrenAccountParams,
     ListGuestRolesParams,
 };
+use super::super::response_kind::{
+    fetch_many_response_kind_to_result, fetch_response_kind_to_result,
+    get_or_create_response_kind_to_result,
+};
 use super::super::types::{self, JsonRpcError};
 use crate::dtos::MyceliumProfileData;
 
@@ -54,11 +58,7 @@ pub async fn dispatch_account_manager(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
-            serde_json::to_value(result).map_err(|e| JsonRpcError {
-                code: types::codes::INTERNAL_ERROR,
-                message: e.to_string(),
-                data: None,
-            })
+            get_or_create_response_kind_to_result(result)
         }
         "accountManager.guestRoles.listGuestRoles" => {
             let p: ListGuestRolesParams = params
@@ -78,11 +78,7 @@ pub async fn dispatch_account_manager(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
-            serde_json::to_value(result).map_err(|e| JsonRpcError {
-                code: types::codes::INTERNAL_ERROR,
-                message: e.to_string(),
-                data: None,
-            })
+            fetch_many_response_kind_to_result(result)
         }
         "accountManager.guestRoles.fetchGuestRoleDetails" => {
             let p: FetchGuestRoleDetailsParams =
@@ -96,11 +92,7 @@ pub async fn dispatch_account_manager(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
-            serde_json::to_value(result).map_err(|e| JsonRpcError {
-                code: types::codes::INTERNAL_ERROR,
-                message: e.to_string(),
-                data: None,
-            })
+            fetch_response_kind_to_result(result)
         }
         _ => Err(JsonRpcError {
             code: types::codes::METHOD_NOT_FOUND,

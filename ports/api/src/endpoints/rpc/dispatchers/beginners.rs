@@ -14,6 +14,11 @@ use super::super::{
         TotpStartActivationParams, UpdateAccountMetaParams,
         UpdateOwnAccountNameParams,
     },
+    response_kind::{
+        create_response_kind_to_result, delete_response_kind_to_result,
+        fetch_many_response_kind_to_result, fetch_response_kind_to_result,
+        updating_response_kind_to_result,
+    },
     types::{self, JsonRpcError},
 };
 use crate::{
@@ -128,11 +133,7 @@ pub async fn dispatch_beginners(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
-            serde_json::to_value(result).map_err(|e| JsonRpcError {
-                code: types::codes::INTERNAL_ERROR,
-                message: e.to_string(),
-                data: None,
-            })
+            fetch_response_kind_to_result(result)
         }
         "beginners.accounts.updateOwnAccountName" => {
             let p: UpdateOwnAccountNameParams =
@@ -153,11 +154,7 @@ pub async fn dispatch_beginners(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
-            serde_json::to_value(result).map_err(|e| JsonRpcError {
-                code: types::codes::INTERNAL_ERROR,
-                message: e.to_string(),
-                data: None,
-            })
+            updating_response_kind_to_result(result)
         }
         "beginners.accounts.deleteMyAccount" => {
             let p: DeleteMyAccountParams =
@@ -177,11 +174,7 @@ pub async fn dispatch_beginners(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
-            serde_json::to_value(result).map_err(|e| JsonRpcError {
-                code: types::codes::INTERNAL_ERROR,
-                message: e.to_string(),
-                data: None,
-            })
+            delete_response_kind_to_result(result)
         }
         "beginners.guests.acceptInvitation" => {
             let p: AcceptInvitationParams =
@@ -197,11 +190,7 @@ pub async fn dispatch_beginners(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
-            serde_json::to_value(result).map_err(|e| JsonRpcError {
-                code: types::codes::INTERNAL_ERROR,
-                message: e.to_string(),
-                data: None,
-            })
+            updating_response_kind_to_result(result)
         }
         "beginners.meta.createAccountMeta" => {
             let p: CreateAccountMetaParams =
@@ -217,11 +206,7 @@ pub async fn dispatch_beginners(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
-            serde_json::to_value(result).map_err(|e| JsonRpcError {
-                code: types::codes::INTERNAL_ERROR,
-                message: e.to_string(),
-                data: None,
-            })
+            create_response_kind_to_result(result)
         }
         "beginners.meta.updateAccountMeta" => {
             let p: UpdateAccountMetaParams =
@@ -237,11 +222,7 @@ pub async fn dispatch_beginners(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
-            serde_json::to_value(result).map_err(|e| JsonRpcError {
-                code: types::codes::INTERNAL_ERROR,
-                message: e.to_string(),
-                data: None,
-            })
+            updating_response_kind_to_result(result)
         }
         "beginners.meta.deleteAccountMeta" => {
             let p: DeleteAccountMetaParams =
@@ -322,11 +303,7 @@ pub async fn dispatch_beginners(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
-            serde_json::to_value(result).map_err(|e| JsonRpcError {
-                code: types::codes::INTERNAL_ERROR,
-                message: e.to_string(),
-                data: None,
-            })
+            fetch_response_kind_to_result(result)
         }
         "beginners.tokens.createConnectionString" => {
             let life_cycle = life_cycle_settings
@@ -373,11 +350,7 @@ pub async fn dispatch_beginners(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
-            serde_json::to_value(result).map_err(|e| JsonRpcError {
-                code: types::codes::INTERNAL_ERROR,
-                message: e.to_string(),
-                data: None,
-            })
+            fetch_many_response_kind_to_result(result)
         }
         "beginners.users.createDefaultUser" => {
             let req =

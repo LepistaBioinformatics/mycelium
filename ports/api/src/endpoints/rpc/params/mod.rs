@@ -1,5 +1,6 @@
 pub(crate) mod account_manager;
 pub(crate) mod beginners;
+pub(crate) mod gateway_manager;
 pub(crate) mod managers;
 
 pub(crate) use account_manager::{
@@ -16,6 +17,9 @@ pub(crate) use beginners::{
     TotpCheckTokenParams, TotpDisableParams, TotpFinishActivationParams,
     TotpStartActivationParams, UpdateAccountMetaParams,
     UpdateOwnAccountNameParams,
+};
+pub(crate) use gateway_manager::{
+    ListOperationsParams, ListRoutesParams, ListServicesParams,
 };
 pub(crate) use managers::{
     CreateSystemAccountParams, CreateTenantParams, DeleteTenantParams,
