@@ -5,7 +5,9 @@ pub(crate) mod beginners;
 pub(crate) mod managers;
 
 pub(crate) use beginners::{
-    CreateDefaultAccountParams, DeleteMyAccountParams, UpdateOwnAccountNameParams,
+    AcceptInvitationParams, CreateAccountMetaParams,
+    CreateDefaultAccountParams, DeleteAccountMetaParams, DeleteMyAccountParams,
+    FetchMyProfileParams, UpdateAccountMetaParams, UpdateOwnAccountNameParams,
 };
 pub(crate) use managers::{
     CreateSystemAccountParams, CreateTenantParams, DeleteTenantParams,
