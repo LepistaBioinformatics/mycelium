@@ -1,6 +1,6 @@
 use super::dispatchers::{
     dispatch_account_manager, dispatch_beginners, dispatch_gateway_manager,
-    dispatch_managers,
+    dispatch_guest_manager, dispatch_managers,
 };
 use super::openrpc;
 use super::types::{self, JsonRpcRequest, JsonRpcResponse};
@@ -74,24 +74,31 @@ async fn process_single_request(
             )
             .await
         }
-        Some("gatewayManager") => {
-            match (mem_module, tools_schema) {
-                (Some(mem), Some(tools)) => {
-                    dispatch_gateway_manager(
-                        profile,
-                        mem,
-                        tools,
-                        &request.method,
-                        request.params.clone(),
-                    )
-                    .await
-                }
-                _ => Err(types::JsonRpcError {
-                    code: types::codes::INTERNAL_ERROR,
-                    message: "MemDb or Tools schema not available".to_string(),
-                    data: None,
-                }),
+        Some("gatewayManager") => match (mem_module, tools_schema) {
+            (Some(mem), Some(tools)) => {
+                dispatch_gateway_manager(
+                    profile,
+                    mem,
+                    tools,
+                    &request.method,
+                    request.params.clone(),
+                )
+                .await
             }
+            _ => Err(types::JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: "MemDb or Tools schema not available".to_string(),
+                data: None,
+            }),
+        },
+        Some("guestManager") => {
+            dispatch_guest_manager(
+                profile,
+                app_module,
+                &request.method,
+                request.params.clone(),
+            )
+            .await
         }
         _ => Err(types::JsonRpcError {
             code: types::codes::METHOD_NOT_FOUND,

@@ -1,6 +1,7 @@
 pub(crate) mod account_manager;
 pub(crate) mod beginners;
 pub(crate) mod gateway_manager;
+pub(crate) mod guest_manager;
 pub(crate) mod managers;
 
 pub(crate) use account_manager::{
@@ -20,6 +21,12 @@ pub(crate) use beginners::{
 };
 pub(crate) use gateway_manager::{
     ListOperationsParams, ListRoutesParams, ListServicesParams,
+};
+pub(crate) use guest_manager::{
+    CreateGuestRoleParams, DeleteGuestRoleParams, InsertRoleChildParams,
+    ListGuestRolesParams as GuestManagerListGuestRolesParams,
+    RemoveRoleChildParams, UpdateGuestRoleNameAndDescriptionParams,
+    UpdateGuestRolePermissionParams,
 };
 pub(crate) use managers::{
     CreateSystemAccountParams, CreateTenantParams, DeleteTenantParams,

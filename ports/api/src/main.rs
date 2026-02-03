@@ -321,7 +321,9 @@ pub async fn main() -> std::io::Result<()> {
         // ? OpenRPC discovery (server URLs from config / env)
         // ? -------------------------------------------------------------------
         let openrpc_spec_config =
-            endpoints::rpc::openrpc::OpenRpcSpecConfig::from_api_config(&config.api);
+            endpoints::rpc::openrpc::OpenRpcSpecConfig::from_api_config(
+                &config.api,
+            );
 
         // ? -------------------------------------------------------------------
         // ? Create the basis for the application

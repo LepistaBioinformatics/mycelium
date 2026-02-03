@@ -1,11 +1,10 @@
-use super::super::errors::{invalid_params, mapped_errors_to_jsonrpc_error};
-use super::super::params::{
-    ListOperationsParams, ListRoutesParams, ListServicesParams,
+use super::super::{
+    errors::{invalid_params, mapped_errors_to_jsonrpc_error},
+    params::{ListOperationsParams, ListRoutesParams, ListServicesParams},
+    response_kind::fetch_many_response_kind_to_result,
+    types::{self, JsonRpcError},
 };
-use super::super::response_kind::fetch_many_response_kind_to_result;
-use super::super::types::{self, JsonRpcError};
-use crate::dtos::MyceliumProfileData;
-use crate::openapi_processor::list_operations;
+use crate::{dtos::MyceliumProfileData, openapi_processor::list_operations};
 
 use actix_web::web;
 use myc_core::use_cases::role_scoped::gateway_manager::{
