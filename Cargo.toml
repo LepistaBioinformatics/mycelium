@@ -143,6 +143,14 @@ mycelium-notifier = { version = "8.3.1-beta.2", path = "adapters/notifier" }
 mycelium-adapters-shared-lib = { version = "8.3.1-beta.2", path = "adapters/shared" }
 mycelium-key-value = { version = "8.3.1-beta.2", path = "adapters/kv_db" }
 
+#
+# RUSTSEC-2026-0007: force bytes >= 1.11.1 (Integer overflow in
+# BytesMut::reserve). Transitive via tower-http, tonic, tokio-util, etc.
+# Declaring in a workspace member forces the resolver to use this version in
+# every dependency graph.
+#
+bytes = "1.11.1"
+
 [workspace.metadata.release]
 
 shared-version = true
