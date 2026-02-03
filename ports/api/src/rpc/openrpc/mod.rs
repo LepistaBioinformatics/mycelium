@@ -14,11 +14,9 @@
 //! - [handler](handler): GET handler for openrpc.json
 
 pub(crate) mod config;
-pub(crate) mod handler;
 pub(crate) mod methods;
 pub(crate) mod schema;
 pub(crate) mod spec;
 
 pub use config::OpenRpcSpecConfig;
-pub use handler::openrpc_spec;
 pub use spec::generate_openrpc_spec;
