@@ -1,11 +1,17 @@
-use super::dispatchers::{
-    dispatch_account_manager, dispatch_beginners, dispatch_gateway_manager,
-    dispatch_guest_manager, dispatch_managers,
+use super::{
+    dispatchers::{
+        dispatch_account_manager, dispatch_beginners, dispatch_gateway_manager,
+        dispatch_guest_manager, dispatch_managers, dispatch_service,
+        dispatch_staff, dispatch_subscriptions_manager,
+        dispatch_system_manager, dispatch_tenant_manager,
+        dispatch_tenant_owner, dispatch_users_manager,
+    },
+    openrpc,
+    types::{self, JsonRpcRequest, JsonRpcResponse},
 };
-use super::openrpc;
-use super::types::{self, JsonRpcRequest, JsonRpcResponse};
-use crate::dtos::MyceliumProfileData;
-use crate::openapi_processor::ServiceOpenApiSchema;
+use crate::{
+    dtos::MyceliumProfileData, openapi_processor::ServiceOpenApiSchema,
+};
 
 use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
 use myc_core::models::AccountLifeCycle;
@@ -93,6 +99,79 @@ async fn process_single_request(
         },
         Some("guestManager") => {
             dispatch_guest_manager(
+                profile,
+                app_module,
+                &request.method,
+                request.params.clone(),
+            )
+            .await
+        }
+        Some("subscriptionsManager") => {
+            dispatch_subscriptions_manager(
+                profile,
+                app_module,
+                life_cycle_settings,
+                &request.method,
+                request.params.clone(),
+            )
+            .await
+        }
+        Some("systemManager") => {
+            dispatch_system_manager(
+                profile,
+                app_module,
+                life_cycle_settings,
+                &request.method,
+                request.params.clone(),
+            )
+            .await
+        }
+        Some("tenantManager") => {
+            dispatch_tenant_manager(
+                profile,
+                app_module,
+                life_cycle_settings,
+                &request.method,
+                request.params.clone(),
+            )
+            .await
+        }
+        Some("tenantOwner") => {
+            dispatch_tenant_owner(
+                profile,
+                app_module,
+                &request.method,
+                request.params.clone(),
+            )
+            .await
+        }
+        Some("userManager") => {
+            dispatch_users_manager(
+                profile,
+                app_module,
+                &request.method,
+                request.params.clone(),
+            )
+            .await
+        }
+        Some("service") => match mem_module {
+            Some(mem) => {
+                dispatch_service(
+                    profile,
+                    mem,
+                    &request.method,
+                    request.params.clone(),
+                )
+                .await
+            }
+            _ => Err(types::JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: "MemDb not available for service scope".to_string(),
+                data: None,
+            }),
+        },
+        Some("staff") => {
+            dispatch_staff(
                 profile,
                 app_module,
                 &request.method,
