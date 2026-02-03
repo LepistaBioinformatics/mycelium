@@ -1,12 +1,12 @@
 use super::super::schema;
-use crate::rpc::params;
+use crate::rpc::{method_names, params};
 
 pub fn methods() -> Vec<serde_json::Value> {
     let list_discoverable_services_schema =
         schema::param_schema_value::<params::ListDiscoverableServicesParams>();
 
     vec![serde_json::json!({
-        "name": "service.listDiscoverableServices",
+        "name": method_names::SERVICE_LIST_DISCOVERABLE_SERVICES,
         "summary": "List discoverable services",
         "description": "Lists public discoverable services (tools and contexts). Optional filters: id, name. Uses MemDb.",
         "tags": [{ "name": "service" }],

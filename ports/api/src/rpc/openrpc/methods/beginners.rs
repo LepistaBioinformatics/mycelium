@@ -1,5 +1,5 @@
 use super::super::schema;
-use crate::rpc::params;
+use crate::rpc::{method_names, params};
 
 pub fn methods() -> Vec<serde_json::Value> {
     let create_default_account_schema =
@@ -45,7 +45,7 @@ pub fn methods() -> Vec<serde_json::Value> {
 
     vec![
         serde_json::json!({
-            "name": "beginners.accounts.createDefaultAccount",
+            "name": method_names::BEGINNERS_ACCOUNTS_CREATE,
             "summary": "Create a user-related account",
             "description": "Creates an account for a physical person. Uses credentials from the request (multi-identity provider).",
             "tags": [{ "name": "beginners" }, { "name": "accounts" }],
@@ -54,7 +54,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32600, "message": "Invalid request" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.accounts.getMyAccountDetails",
+            "name": method_names::BEGINNERS_ACCOUNTS_GET,
             "summary": "Get my account details",
             "description": "Returns the details of the account associated with the current user.",
             "tags": [{ "name": "beginners" }, { "name": "accounts" }],
@@ -63,7 +63,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.accounts.updateOwnAccountName",
+            "name": method_names::BEGINNERS_ACCOUNTS_UPDATE_NAME,
             "summary": "Update account name",
             "description": "Updates the account name. Restricted to the account owner (accountId must match authenticated user's account).",
             "tags": [{ "name": "beginners" }, { "name": "accounts" }],
@@ -72,7 +72,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.accounts.deleteMyAccount",
+            "name": method_names::BEGINNERS_ACCOUNTS_DELETE,
             "summary": "Delete my account",
             "description": "Deletes the account associated with the current user. Restricted to the account owner (accountId must match authenticated user's account).",
             "tags": [{ "name": "beginners" }, { "name": "accounts" }],
@@ -81,7 +81,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.guests.acceptInvitation",
+            "name": method_names::BEGINNERS_GUESTS_ACCEPT_INVITATION,
             "summary": "Accept invitation",
             "description": "Accepts an invitation to join an account as a guest. License must match account_id, guest_role_name and permission.",
             "tags": [{ "name": "beginners" }, { "name": "guests" }],
@@ -90,7 +90,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.meta.createAccountMeta",
+            "name": method_names::BEGINNERS_META_CREATE,
             "summary": "Create account metadata",
             "description": "Registers a metadata key-value for the current account (e.g. phone_number, telegram_user, locale, custom:key).",
             "tags": [{ "name": "beginners" }, { "name": "meta" }],
@@ -99,7 +99,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.meta.updateAccountMeta",
+            "name": method_names::BEGINNERS_META_UPDATE,
             "summary": "Update account metadata",
             "description": "Updates a metadata key-value for the current account.",
             "tags": [{ "name": "beginners" }, { "name": "meta" }],
@@ -108,7 +108,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.meta.deleteAccountMeta",
+            "name": method_names::BEGINNERS_META_DELETE,
             "summary": "Delete account metadata",
             "description": "Deletes a metadata key for the current account.",
             "tags": [{ "name": "beginners" }, { "name": "meta" }],
@@ -117,7 +117,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.profile.fetchMyProfile",
+            "name": method_names::BEGINNERS_PROFILE_GET,
             "summary": "Fetch my profile",
             "description": "Returns the current user's Mycelium profile. Optionally expand licensed resources and tenants ownership as URL strings (withUrl, default true).",
             "tags": [{ "name": "beginners" }, { "name": "profile" }],
@@ -126,7 +126,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.tenants.fetchTenantPublicInfo",
+            "name": method_names::BEGINNERS_TENANTS_GET_PUBLIC_INFO,
             "summary": "Fetch tenant public info",
             "description": "Returns public info for a tenant. Profile must have tenant license or ownership.",
             "tags": [{ "name": "beginners" }, { "name": "tenants" }],
@@ -135,7 +135,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.tokens.createConnectionString",
+            "name": method_names::BEGINNERS_TOKENS_CREATE,
             "summary": "Create connection string",
             "description": "Creates a connection string for the user account. Optional tenant_id, service_account_id, roles to scope the token.",
             "tags": [{ "name": "beginners" }, { "name": "tokens" }],
@@ -144,7 +144,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.tokens.listMyConnectionStrings",
+            "name": method_names::BEGINNERS_TOKENS_LIST,
             "summary": "List my connection strings",
             "description": "Lists all connection strings for the current user.",
             "tags": [{ "name": "beginners" }, { "name": "tokens" }],
@@ -153,7 +153,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.users.createDefaultUser",
+            "name": method_names::BEGINNERS_USERS,
             "summary": "Create default user",
             "description": "Registers a new user. Optional Bearer token to register with provider; otherwise password required.",
             "tags": [{ "name": "beginners" }, { "name": "users" }],
@@ -162,7 +162,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32600, "message": "Invalid request" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.users.checkTokenAndActivateUser",
+            "name": method_names::BEGINNERS_USERS_CHECK_TOKEN_AND_ACTIVATE_USER,
             "summary": "Check token and activate user",
             "description": "Validates activation token and activates the user.",
             "tags": [{ "name": "beginners" }, { "name": "users" }],
@@ -171,7 +171,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.users.startPasswordRedefinition",
+            "name": method_names::BEGINNERS_USERS_START_PASSWORD_REDEFINITION,
             "summary": "Start password redefinition",
             "description": "Starts the password reset process for the given email.",
             "tags": [{ "name": "beginners" }, { "name": "users" }],
@@ -180,7 +180,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.users.checkTokenAndResetPassword",
+            "name": method_names::BEGINNERS_USERS_CHECK_TOKEN_AND_RESET_PASSWORD,
             "summary": "Check token and reset password",
             "description": "Validates reset token and sets new password.",
             "tags": [{ "name": "beginners" }, { "name": "users" }],
@@ -189,7 +189,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.users.checkEmailPasswordValidity",
+            "name": method_names::BEGINNERS_USERS_CHECK_EMAIL_PASSWORD_VALIDITY,
             "summary": "Check email and password validity",
             "description": "Validates email and password. Returns { valid, user? }. Does not issue JWT.",
             "tags": [{ "name": "beginners" }, { "name": "users" }],
@@ -198,7 +198,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.users.totpStartActivation",
+            "name": method_names::BEGINNERS_USERS_TOTP_START_ACTIVATION,
             "summary": "TOTP start activation",
             "description": "Starts TOTP activation for the user. Optional qrCode to get QR code URL.",
             "tags": [{ "name": "beginners" }, { "name": "users" }],
@@ -207,7 +207,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.users.totpFinishActivation",
+            "name": method_names::BEGINNERS_USERS_TOTP_FINISH_ACTIVATION,
             "summary": "TOTP finish activation",
             "description": "Finishes TOTP activation with the token from the authenticator app.",
             "tags": [{ "name": "beginners" }, { "name": "users" }],
@@ -216,7 +216,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.users.totpCheckToken",
+            "name": method_names::BEGINNERS_USERS_TOTP_CHECK_TOKEN,
             "summary": "TOTP check token",
             "description": "Validates TOTP token and returns the user.",
             "tags": [{ "name": "beginners" }, { "name": "users" }],
@@ -225,7 +225,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "beginners.users.totpDisable",
+            "name": method_names::BEGINNERS_USERS_TOTP_DISABLE,
             "summary": "TOTP disable",
             "description": "Disables TOTP for the user.",
             "tags": [{ "name": "beginners" }, { "name": "users" }],

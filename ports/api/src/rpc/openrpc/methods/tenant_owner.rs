@@ -1,5 +1,5 @@
 use super::super::schema;
-use crate::rpc::params;
+use crate::rpc::{method_names, params};
 
 pub fn methods() -> Vec<serde_json::Value> {
     let create_management_account_schema =
@@ -30,7 +30,7 @@ pub fn methods() -> Vec<serde_json::Value> {
 
     vec![
         serde_json::json!({
-            "name": "tenantOwner.accounts.createManagementAccount",
+            "name": method_names::TENANT_OWNER_ACCOUNTS_CREATE_MANAGEMENT_ACCOUNT,
             "summary": "Create management account",
             "description": "Creates a tenant-related management account. Requires TenantOwner privileges.",
             "tags": [{ "name": "tenantOwner" }, { "name": "accounts" }],
@@ -39,7 +39,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantOwner.accounts.deleteTenantManagerAccount",
+            "name": method_names::TENANT_OWNER_ACCOUNTS_DELETE_TENANT_MANAGER_ACCOUNT,
             "summary": "Delete tenant manager account",
             "description": "Soft deletes the tenant manager account. Requires TenantOwner privileges.",
             "tags": [{ "name": "tenantOwner" }, { "name": "accounts" }],
@@ -48,7 +48,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantOwner.meta.createTenantMeta",
+            "name": method_names::TENANT_OWNER_META_CREATE,
             "summary": "Create tenant meta",
             "description": "Registers tenant metadata (key/value). Key e.g. federal_revenue_register, locale, legal_name.",
             "tags": [{ "name": "tenantOwner" }, { "name": "meta" }],
@@ -57,7 +57,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantOwner.meta.deleteTenantMeta",
+            "name": method_names::TENANT_OWNER_META_DELETE,
             "summary": "Delete tenant meta",
             "description": "Deletes tenant metadata by key.",
             "tags": [{ "name": "tenantOwner" }, { "name": "meta" }],
@@ -66,7 +66,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantOwner.owner.guestTenantOwner",
+            "name": method_names::TENANT_OWNER_OWNER_GUEST,
             "summary": "Guest tenant owner",
             "description": "Adds a user (by email) as tenant owner.",
             "tags": [{ "name": "tenantOwner" }, { "name": "owner" }],
@@ -75,7 +75,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantOwner.owner.revokeTenantOwner",
+            "name": method_names::TENANT_OWNER_OWNER_REVOKE,
             "summary": "Revoke tenant owner",
             "description": "Revokes a user (by email) from tenant ownership.",
             "tags": [{ "name": "tenantOwner" }, { "name": "owner" }],
@@ -84,7 +84,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantOwner.tenant.updateTenantNameAndDescription",
+            "name": method_names::TENANT_OWNER_TENANT_UPDATE_AND_DESCRIPTION,
             "summary": "Update tenant name and description",
             "description": "Updates the name and/or description of a tenant.",
             "tags": [{ "name": "tenantOwner" }, { "name": "tenant" }],
@@ -93,7 +93,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantOwner.tenant.updateTenantArchivingStatus",
+            "name": method_names::TENANT_OWNER_TENANT_UPDATE_ARCHIVING_STATUS,
             "summary": "Update tenant archiving status",
             "description": "Sets the tenant as archived.",
             "tags": [{ "name": "tenantOwner" }, { "name": "tenant" }],
@@ -102,7 +102,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantOwner.tenant.updateTenantTrashingStatus",
+            "name": method_names::TENANT_OWNER_TENANT_UPDATE_TRASHING_STATUS,
             "summary": "Update tenant trashing status",
             "description": "Sets the tenant as trashed.",
             "tags": [{ "name": "tenantOwner" }, { "name": "tenant" }],
@@ -111,7 +111,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantOwner.tenant.updateTenantVerifyingStatus",
+            "name": method_names::TENANT_OWNER_TENANT_UPDATE_VERIFYING_STATUS,
             "summary": "Update tenant verifying status",
             "description": "Sets the tenant as verified.",
             "tags": [{ "name": "tenantOwner" }, { "name": "tenant" }],

@@ -1,5 +1,6 @@
 use super::super::{
     errors::{invalid_params, mapped_errors_to_jsonrpc_error, params_required},
+    method_names,
     params::{
         CreateSubscriptionManagerAccountParams,
         DeleteSubscriptionAccountParams, GetTenantDetailsParams,
@@ -39,7 +40,7 @@ pub async fn dispatch_tenant_manager(
     params: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, JsonRpcError> {
     match method {
-        "tenantManager.accounts.createSubscriptionManagerAccount" => {
+        method_names::TENANT_MANAGER_ACCOUNTS_CREATE_SUBSCRIPTION_MANAGER_ACCOUNT => {
             let p: CreateSubscriptionManagerAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -53,7 +54,7 @@ pub async fn dispatch_tenant_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             get_or_create_response_kind_to_result(result)
         }
-        "tenantManager.accounts.deleteSubscriptionAccount" => {
+        method_names::TENANT_MANAGER_ACCOUNTS_DELETE_SUBSCRIPTION_ACCOUNT => {
             let p: DeleteSubscriptionAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -68,7 +69,7 @@ pub async fn dispatch_tenant_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             delete_response_kind_to_result(result)
         }
-        "tenantManager.guests.guestUserToSubscriptionManagerAccount" => {
+        method_names::TENANT_MANAGER_GUESTS_GUEST_USER_TO_SUBSCRIPTION_MANAGER_ACCOUNT => {
             let life_cycle = life_cycle_settings
                 .ok_or_else(|| invalid_params("Life cycle config required"))?
                 .get_ref();
@@ -94,7 +95,7 @@ pub async fn dispatch_tenant_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             get_or_create_response_kind_to_result(result)
         }
-        "tenantManager.guests.revokeUserGuestToSubscriptionManagerAccount" => {
+        method_names::TENANT_MANAGER_GUESTS_REVOKE_USER_GUEST_TO_SUBSCRIPTION_MANAGER_ACCOUNT => {
             let p: RevokeUserGuestToSubscriptionManagerAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -112,7 +113,7 @@ pub async fn dispatch_tenant_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             delete_response_kind_to_result(result)
         }
-        "tenantManager.tags.registerTag" => {
+        method_names::TENANT_MANAGER_TAGS_CREATE => {
             let p: TenantManagerRegisterTagParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -128,7 +129,7 @@ pub async fn dispatch_tenant_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             get_or_create_response_kind_to_result(result)
         }
-        "tenantManager.tags.updateTag" => {
+        method_names::TENANT_MANAGER_TAGS_UPDATE => {
             let p: TenantManagerUpdateTagParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -147,7 +148,7 @@ pub async fn dispatch_tenant_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "tenantManager.tags.deleteTag" => {
+        method_names::TENANT_MANAGER_TAGS_DELETE => {
             let p: TenantManagerDeleteTagParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -161,7 +162,7 @@ pub async fn dispatch_tenant_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             delete_response_kind_to_result(result)
         }
-        "tenantManager.tenant.getTenantDetails" => {
+        method_names::TENANT_MANAGER_TENANT_GET => {
             let p: GetTenantDetailsParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;

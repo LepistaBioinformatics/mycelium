@@ -1,5 +1,5 @@
 use super::super::schema;
-use crate::rpc::params;
+use crate::rpc::{method_names, params};
 
 pub fn methods() -> Vec<serde_json::Value> {
     let upgrade_schema =
@@ -10,7 +10,7 @@ pub fn methods() -> Vec<serde_json::Value> {
 
     vec![
         serde_json::json!({
-            "name": "staff.accounts.upgradeAccountPrivileges",
+            "name": method_names::STAFF_ACCOUNTS_UPGRADE_PRIVILEGES,
             "summary": "Upgrade account privileges",
             "description": "Increases permissions of the account. Target type (to): Staff or Manager. Requires Staff privileges.",
             "tags": [{ "name": "staff" }, { "name": "accounts" }],
@@ -19,7 +19,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "staff.accounts.downgradeAccountPrivileges",
+            "name": method_names::STAFF_ACCOUNTS_DOWNGRADE_PRIVILEGES,
             "summary": "Downgrade account privileges",
             "description": "Decreases permissions of the account. Target type (to): Manager or User. Requires Staff privileges.",
             "tags": [{ "name": "staff" }, { "name": "accounts" }],

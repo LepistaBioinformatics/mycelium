@@ -1,5 +1,6 @@
 use super::super::{
     errors::{invalid_params, mapped_errors_to_jsonrpc_error, params_required},
+    method_names,
     params::UserManagerAccountIdParams,
     response_kind::updating_response_kind_to_result,
     types::{self, JsonRpcError},
@@ -21,7 +22,7 @@ pub async fn dispatch_users_manager(
     params: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, JsonRpcError> {
     match method {
-        "userManager.account.approveAccount" => {
+        method_names::USER_MANAGER_ACCOUNT_APPROVE => {
             let p: UserManagerAccountIdParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -36,7 +37,7 @@ pub async fn dispatch_users_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "userManager.account.disapproveAccount" => {
+        method_names::USER_MANAGER_ACCOUNT_DISAPPROVE => {
             let p: UserManagerAccountIdParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -51,7 +52,7 @@ pub async fn dispatch_users_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "userManager.account.activateAccount" => {
+        method_names::USER_MANAGER_ACCOUNT_ACTIVATE => {
             let p: UserManagerAccountIdParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -66,7 +67,7 @@ pub async fn dispatch_users_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "userManager.account.deactivateAccount" => {
+        method_names::USER_MANAGER_ACCOUNT_DEACTIVATE => {
             let p: UserManagerAccountIdParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -81,7 +82,7 @@ pub async fn dispatch_users_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "userManager.account.archiveAccount" => {
+        method_names::USER_MANAGER_ACCOUNT_ARCHIVE => {
             let p: UserManagerAccountIdParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -96,7 +97,7 @@ pub async fn dispatch_users_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "userManager.account.unarchiveAccount" => {
+        method_names::USER_MANAGER_ACCOUNT_UNARCHIVE => {
             let p: UserManagerAccountIdParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;

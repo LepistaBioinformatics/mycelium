@@ -1,5 +1,6 @@
 use super::super::{
     errors::{invalid_params, mapped_errors_to_jsonrpc_error, params_required},
+    method_names,
     params::{
         DowngradeAccountPrivilegesParams, UpgradeAccountPrivilegesParams,
     },
@@ -45,7 +46,7 @@ pub async fn dispatch_staff(
     params: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, JsonRpcError> {
     match method {
-        "staff.accounts.upgradeAccountPrivileges" => {
+        method_names::STAFF_ACCOUNTS_UPGRADE_PRIVILEGES => {
             let p: UpgradeAccountPrivilegesParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -60,7 +61,7 @@ pub async fn dispatch_staff(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "staff.accounts.downgradeAccountPrivileges" => {
+        method_names::STAFF_ACCOUNTS_DOWNGRADE_PRIVILEGES => {
             let p: DowngradeAccountPrivilegesParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;

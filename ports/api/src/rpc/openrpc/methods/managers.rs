@@ -1,5 +1,5 @@
 use super::super::schema;
-use crate::rpc::params;
+use crate::rpc::{method_names, params};
 
 pub fn methods() -> Vec<serde_json::Value> {
     let create_system_account_schema =
@@ -17,7 +17,7 @@ pub fn methods() -> Vec<serde_json::Value> {
 
     vec![
         serde_json::json!({
-            "name": "managers.accounts.createSystemAccount",
+            "name": method_names::MANAGERS_ACCOUNTS_CREATE_SYSTEM_ACCOUNT,
             "summary": "Create a system account",
             "description": "Creates a system account (gateway manager, guests manager, or system manager). Requires manager privileges.",
             "tags": [{ "name": "managers" }, { "name": "accounts" }],
@@ -26,7 +26,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "managers.guestRoles.createSystemRoles",
+            "name": method_names::MANAGERS_GUEST_ROLES_CREATE_SYSTEM_ROLES,
             "summary": "Create system guest roles",
             "description": "Creates all system guest roles (subscriptions, users, account, guest, gateway, system, tenant managers with read/write). Requires manager privileges.",
             "tags": [{ "name": "managers" }, { "name": "guest-roles" }],
@@ -35,7 +35,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "managers.tenants.createTenant",
+            "name": method_names::MANAGERS_TENANTS_CREATE,
             "summary": "Create a tenant",
             "description": "Creates a new tenant with the given owner. Requires manager privileges.",
             "tags": [{ "name": "managers" }, { "name": "tenants" }],
@@ -44,7 +44,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "managers.tenants.listTenant",
+            "name": method_names::MANAGERS_TENANTS_LIST,
             "summary": "List tenants",
             "description": "Lists tenants with optional filters (name, owner, metadata, tag) and pagination (pageSize, skip).",
             "tags": [{ "name": "managers" }, { "name": "tenants" }],
@@ -53,7 +53,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "managers.tenants.deleteTenant",
+            "name": method_names::MANAGERS_TENANTS_DELETE,
             "summary": "Delete a tenant",
             "description": "Deletes a tenant by ID. Requires manager privileges.",
             "tags": [{ "name": "managers" }, { "name": "tenants" }],
@@ -62,7 +62,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "managers.tenants.includeTenantOwner",
+            "name": method_names::MANAGERS_TENANTS_INCLUDE_TENANT_OWNER,
             "summary": "Include a tenant owner",
             "description": "Adds an owner to a tenant. Requires manager privileges.",
             "tags": [{ "name": "managers" }, { "name": "tenants" }],
@@ -71,7 +71,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "managers.tenants.excludeTenantOwner",
+            "name": method_names::MANAGERS_TENANTS_EXCLUDE_TENANT_OWNER,
             "summary": "Exclude a tenant owner",
             "description": "Removes an owner from a tenant. Requires manager privileges.",
             "tags": [{ "name": "managers" }, { "name": "tenants" }],

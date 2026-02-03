@@ -1,5 +1,6 @@
 pub(crate) mod dispatchers;
 pub(crate) mod errors;
+pub(crate) mod method_names;
 pub(crate) mod handlers;
 pub(crate) mod jsonrpc_endpoints;
 pub(crate) mod openrpc;

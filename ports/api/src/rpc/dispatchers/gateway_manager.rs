@@ -1,5 +1,6 @@
 use super::super::{
     errors::{invalid_params, mapped_errors_to_jsonrpc_error},
+    method_names,
     params::{ListOperationsParams, ListRoutesParams, ListServicesParams},
     response_kind::fetch_many_response_kind_to_result,
     types::{self, JsonRpcError},
@@ -21,7 +22,7 @@ pub async fn dispatch_gateway_manager(
     params: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, JsonRpcError> {
     match method {
-        "gatewayManager.routes.listRoutes" => {
+        method_names::GATEWAY_MANAGER_ROUTES_LIST => {
             let p: ListRoutesParams = params
                 .map(serde_json::from_value)
                 .transpose()
@@ -39,7 +40,7 @@ pub async fn dispatch_gateway_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_many_response_kind_to_result(result)
         }
-        "gatewayManager.services.listServices" => {
+        method_names::GATEWAY_MANAGER_SERVICES_LIST => {
             let p: ListServicesParams = params
                 .map(serde_json::from_value)
                 .transpose()
@@ -57,7 +58,7 @@ pub async fn dispatch_gateway_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_many_response_kind_to_result(result)
         }
-        "gatewayManager.tools.listOperations" => {
+        method_names::GATEWAY_MANAGER_TOOLS_LIST => {
             let p: ListOperationsParams = params
                 .map(serde_json::from_value)
                 .transpose()

@@ -1,5 +1,6 @@
 use super::super::{
     errors::{invalid_params, mapped_errors_to_jsonrpc_error},
+    method_names,
     params::ListDiscoverableServicesParams,
     types::{self, JsonRpcError},
 };
@@ -34,7 +35,7 @@ pub async fn dispatch_service(
     params: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, JsonRpcError> {
     match method {
-        "service.listDiscoverableServices" => {
+        method_names::SERVICE_LIST_DISCOVERABLE_SERVICES => {
             let p: ListDiscoverableServicesParams = params
                 .map(serde_json::from_value)
                 .transpose()

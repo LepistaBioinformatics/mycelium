@@ -1,5 +1,5 @@
 use super::super::schema;
-use crate::rpc::params;
+use crate::rpc::{method_names, params};
 
 pub fn methods() -> Vec<serde_json::Value> {
     let list_routes_schema =
@@ -11,7 +11,7 @@ pub fn methods() -> Vec<serde_json::Value> {
 
     vec![
         serde_json::json!({
-            "name": "gatewayManager.routes.listRoutes",
+            "name": method_names::GATEWAY_MANAGER_ROUTES_LIST,
             "summary": "List routes by service",
             "description": "Lists routes filtered by service ID or name. Restricted to GatewayManager users. Uses in-memory route storage.",
             "tags": [{ "name": "gatewayManager" }, { "name": "routes" }],
@@ -20,7 +20,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "gatewayManager.services.listServices",
+            "name": method_names::GATEWAY_MANAGER_SERVICES_LIST,
             "summary": "List services",
             "description": "Lists services filtered by ID or name. Restricted to GatewayManager users. Uses in-memory service storage.",
             "tags": [{ "name": "gatewayManager" }, { "name": "services" }],
@@ -29,7 +29,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "gatewayManager.tools.listOperations",
+            "name": method_names::GATEWAY_MANAGER_TOOLS_LIST,
             "summary": "List operations",
             "description": "Lists tool operations from downstream OpenAPI specs with optional search (query, method, scoreCutoff) and pagination. Restricted to GatewayManager users.",
             "tags": [{ "name": "gatewayManager" }, { "name": "tools" }],

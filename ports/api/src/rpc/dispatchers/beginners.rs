@@ -3,6 +3,7 @@ use super::super::{
         forbidden_owner_only, invalid_params, mapped_errors_to_jsonrpc_error,
         params_required,
     },
+    method_names,
     params::{
         AcceptInvitationParams, CheckEmailPasswordValidityParams,
         CheckTokenAndActivateUserParams, CheckTokenAndResetPasswordParams,
@@ -71,7 +72,7 @@ pub async fn dispatch_beginners(
     params: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, JsonRpcError> {
     match method {
-        "beginners.accounts.createDefaultAccount" => {
+        method_names::BEGINNERS_ACCOUNTS_CREATE => {
             let req =
                 req.ok_or_else(|| invalid_params("Request context required"))?;
             let life_cycle = life_cycle_settings
@@ -126,7 +127,7 @@ pub async fn dispatch_beginners(
                 data: None,
             })
         }
-        "beginners.accounts.getMyAccountDetails" => {
+        method_names::BEGINNERS_ACCOUNTS_GET => {
             let result = get_my_account_details(
                 profile.to_profile(),
                 Box::new(&*app_module.resolve_ref()),
@@ -135,7 +136,7 @@ pub async fn dispatch_beginners(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_response_kind_to_result(result)
         }
-        "beginners.accounts.updateOwnAccountName" => {
+        method_names::BEGINNERS_ACCOUNTS_UPDATE_NAME => {
             let p: UpdateOwnAccountNameParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -156,7 +157,7 @@ pub async fn dispatch_beginners(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "beginners.accounts.deleteMyAccount" => {
+        method_names::BEGINNERS_ACCOUNTS_DELETE => {
             let p: DeleteMyAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -176,7 +177,7 @@ pub async fn dispatch_beginners(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             delete_response_kind_to_result(result)
         }
-        "beginners.guests.acceptInvitation" => {
+        method_names::BEGINNERS_GUESTS_ACCEPT_INVITATION => {
             let p: AcceptInvitationParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -192,7 +193,7 @@ pub async fn dispatch_beginners(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "beginners.meta.createAccountMeta" => {
+        method_names::BEGINNERS_META_CREATE => {
             let p: CreateAccountMetaParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -208,7 +209,7 @@ pub async fn dispatch_beginners(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             create_response_kind_to_result(result)
         }
-        "beginners.meta.updateAccountMeta" => {
+        method_names::BEGINNERS_META_UPDATE => {
             let p: UpdateAccountMetaParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -224,7 +225,7 @@ pub async fn dispatch_beginners(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "beginners.meta.deleteAccountMeta" => {
+        method_names::BEGINNERS_META_DELETE => {
             let p: DeleteAccountMetaParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -243,7 +244,7 @@ pub async fn dispatch_beginners(
                 data: None,
             })
         }
-        "beginners.profile.fetchMyProfile" => {
+        method_names::BEGINNERS_PROFILE_GET => {
             let p: FetchMyProfileParams = params
                 .map(serde_json::from_value)
                 .transpose()
@@ -292,7 +293,7 @@ pub async fn dispatch_beginners(
                 }
             })
         }
-        "beginners.tenants.fetchTenantPublicInfo" => {
+        method_names::BEGINNERS_TENANTS_GET_PUBLIC_INFO => {
             let p: FetchTenantPublicInfoParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -305,7 +306,7 @@ pub async fn dispatch_beginners(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_response_kind_to_result(result)
         }
-        "beginners.tokens.createConnectionString" => {
+        method_names::BEGINNERS_TOKENS_CREATE => {
             let life_cycle = life_cycle_settings
                 .ok_or_else(|| invalid_params("Life cycle config required"))?
                 .get_ref();
@@ -343,7 +344,7 @@ pub async fn dispatch_beginners(
                 data: None,
             })
         }
-        "beginners.tokens.listMyConnectionStrings" => {
+        method_names::BEGINNERS_TOKENS_LIST => {
             let result = list_my_connection_strings(
                 profile.to_profile(),
                 Box::new(&*app_module.resolve_ref()),
@@ -352,7 +353,7 @@ pub async fn dispatch_beginners(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_many_response_kind_to_result(result)
         }
-        "beginners.users.createDefaultUser" => {
+        method_names::BEGINNERS_USERS => {
             let req =
                 req.ok_or_else(|| invalid_params("Request context required"))?;
             let life_cycle = life_cycle_settings
@@ -398,7 +399,7 @@ pub async fn dispatch_beginners(
                 data: None,
             })
         }
-        "beginners.users.checkTokenAndActivateUser" => {
+        method_names::BEGINNERS_USERS_CHECK_TOKEN_AND_ACTIVATE_USER => {
             let p: CheckTokenAndActivateUserParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -419,7 +420,7 @@ pub async fn dispatch_beginners(
                 data: None,
             })
         }
-        "beginners.users.startPasswordRedefinition" => {
+        method_names::BEGINNERS_USERS_START_PASSWORD_REDEFINITION => {
             let life_cycle = life_cycle_settings
                 .ok_or_else(|| invalid_params("Life cycle config required"))?
                 .get_ref();
@@ -444,7 +445,7 @@ pub async fn dispatch_beginners(
                 data: None,
             })
         }
-        "beginners.users.checkTokenAndResetPassword" => {
+        method_names::BEGINNERS_USERS_CHECK_TOKEN_AND_RESET_PASSWORD => {
             let life_cycle = life_cycle_settings
                 .ok_or_else(|| invalid_params("Life cycle config required"))?
                 .get_ref();
@@ -472,7 +473,7 @@ pub async fn dispatch_beginners(
                 data: None,
             })
         }
-        "beginners.users.checkEmailPasswordValidity" => {
+        method_names::BEGINNERS_USERS_CHECK_EMAIL_PASSWORD_VALIDITY => {
             let p: CheckEmailPasswordValidityParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -495,7 +496,7 @@ pub async fn dispatch_beginners(
                 data: None,
             })
         }
-        "beginners.users.totpStartActivation" => {
+        method_names::BEGINNERS_USERS_TOTP_START_ACTIVATION => {
             let life_cycle = life_cycle_settings
                 .ok_or_else(|| invalid_params("Life cycle config required"))?
                 .get_ref();
@@ -525,7 +526,7 @@ pub async fn dispatch_beginners(
                 data: None,
             })
         }
-        "beginners.users.totpFinishActivation" => {
+        method_names::BEGINNERS_USERS_TOTP_FINISH_ACTIVATION => {
             let life_cycle = life_cycle_settings
                 .ok_or_else(|| invalid_params("Life cycle config required"))?
                 .get_ref();
@@ -552,7 +553,7 @@ pub async fn dispatch_beginners(
                     data: None,
                 })
         }
-        "beginners.users.totpCheckToken" => {
+        method_names::BEGINNERS_USERS_TOTP_CHECK_TOKEN => {
             let life_cycle = life_cycle_settings
                 .ok_or_else(|| invalid_params("Life cycle config required"))?
                 .get_ref();
@@ -575,7 +576,7 @@ pub async fn dispatch_beginners(
                 data: None,
             })
         }
-        "beginners.users.totpDisable" => {
+        method_names::BEGINNERS_USERS_TOTP_DISABLE => {
             let life_cycle = life_cycle_settings
                 .ok_or_else(|| invalid_params("Life cycle config required"))?
                 .get_ref();

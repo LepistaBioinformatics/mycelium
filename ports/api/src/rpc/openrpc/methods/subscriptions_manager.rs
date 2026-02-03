@@ -1,5 +1,5 @@
 use super::super::schema;
-use crate::rpc::params::subscriptions_manager;
+use crate::rpc::{method_names, params::subscriptions_manager};
 
 pub fn methods() -> Vec<serde_json::Value> {
     let create_subscription_account_schema = schema::param_schema_value::<
@@ -52,7 +52,7 @@ pub fn methods() -> Vec<serde_json::Value> {
 
     vec![
         serde_json::json!({
-            "name": "subscriptionsManager.accounts.createSubscriptionAccount",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_ACCOUNTS_CREATE_SUBSCRIPTION_ACCOUNT,
             "summary": "Create subscription account",
             "description": "Creates a subscription account for the tenant. Requires SubscriptionsManager privileges.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "accounts" }],
@@ -61,7 +61,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "subscriptionsManager.accounts.createRoleAssociatedAccount",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_ACCOUNTS_CREATE_ROLE_ASSOCIATED_ACCOUNT,
             "summary": "Create role associated account",
             "description": "Creates or returns existing role-associated account. Requires SubscriptionsManager privileges.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "accounts" }],
@@ -70,7 +70,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "subscriptionsManager.accounts.listAccountsByType",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_ACCOUNTS_LIST,
             "summary": "List accounts by type",
             "description": "Lists accounts filtered by type (Staff, Manager, User, Subscription, TenantManager, ActorAssociated, RoleAssociated), status and pagination.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "accounts" }],
@@ -79,7 +79,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "subscriptionsManager.accounts.getAccountDetails",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_ACCOUNTS_GET,
             "summary": "Get account details",
             "description": "Returns a single subscription account by ID. Optional tenant ID to scope.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "accounts" }],
@@ -88,7 +88,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "subscriptionsManager.accounts.updateAccountNameAndFlags",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_ACCOUNTS_UPDATE_NAME_AND_FLAGS,
             "summary": "Update account name and flags",
             "description": "Updates name and flags (isActive, isChecked, isArchived, isSystemAccount) of a subscription account.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "accounts" }],
@@ -97,7 +97,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "subscriptionsManager.accounts.propagateSubscriptionAccount",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_ACCOUNTS_PROPAGATE_SUBSCRIPTION_ACCOUNT,
             "summary": "Propagate subscription account",
             "description": "Propagates a subscription account. Requires SubscriptionsManager privileges.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "accounts" }],
@@ -106,7 +106,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "subscriptionsManager.guests.listLicensedAccountsOfEmail",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_GUESTS_LIST_LICENSED_ACCOUNTS_OF_EMAIL,
             "summary": "List licensed accounts of email",
             "description": "Lists subscription accounts for which the given email is a guest. Optional roles filter.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "guests" }],
@@ -115,7 +115,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "subscriptionsManager.guests.guestUserToSubscriptionAccount",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_GUESTS_GUEST_USER_TO_SUBSCRIPTION_ACCOUNT,
             "summary": "Guest user to subscription account",
             "description": "Adds a guest user (by email) to a subscription account under the given role.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "guests" }],
@@ -124,7 +124,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "subscriptionsManager.guests.updateFlagsFromSubscriptionAccount",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_GUESTS_UPDATE_FLAGS_FROM_SUBSCRIPTION_ACCOUNT,
             "summary": "Update flags from subscription account",
             "description": "Updates permit/deny flags for a guest user on a subscription account.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "guests" }],
@@ -133,7 +133,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "subscriptionsManager.guests.revokeUserGuestToSubscriptionAccount",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_GUESTS_REVOKE_USER_GUEST_TO_SUBSCRIPTION_ACCOUNT,
             "summary": "Revoke user guest to subscription account",
             "description": "Revokes a guest user (by email) from a subscription account role.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "guests" }],
@@ -142,7 +142,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "subscriptionsManager.guests.listGuestOnSubscriptionAccount",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_GUESTS_LIST_GUEST_ON_SUBSCRIPTION_ACCOUNT,
             "summary": "List guest on subscription account",
             "description": "Lists guest users on a subscription account with optional pagination.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "guests" }],
@@ -151,7 +151,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "subscriptionsManager.guestRoles.listGuestRoles",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_GUEST_ROLES_LIST,
             "summary": "List guest roles",
             "description": "Lists guest roles with optional filters and pagination. Optional tenant ID to scope.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "guestRoles" }],
@@ -160,7 +160,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "subscriptionsManager.guestRoles.fetchGuestRoleDetails",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_GUEST_ROLES_GET,
             "summary": "Fetch guest role details",
             "description": "Returns details for a guest role by ID. Optional tenant ID to scope.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "guestRoles" }],
@@ -169,7 +169,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "subscriptionsManager.tags.registerTag",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_TAGS_CREATE,
             "summary": "Register tag",
             "description": "Registers a tag on a subscription account.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "tags" }],
@@ -178,7 +178,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "subscriptionsManager.tags.updateTag",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_TAGS_UPDATE,
             "summary": "Update tag",
             "description": "Updates a tag (value, meta) on a subscription account.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "tags" }],
@@ -187,7 +187,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "subscriptionsManager.tags.deleteTag",
+            "name": method_names::SUBSCRIPTIONS_MANAGER_TAGS_DELETE,
             "summary": "Delete tag",
             "description": "Deletes a tag from a subscription account.",
             "tags": [{ "name": "subscriptionsManager" }, { "name": "tags" }],

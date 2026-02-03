@@ -1,5 +1,5 @@
 use super::super::schema;
-use crate::rpc::params;
+use crate::rpc::{method_names, params};
 
 pub fn methods() -> Vec<serde_json::Value> {
     let create_subscription_manager_account_schema = schema::param_schema_value::<
@@ -24,7 +24,7 @@ pub fn methods() -> Vec<serde_json::Value> {
 
     vec![
         serde_json::json!({
-            "name": "tenantManager.accounts.createSubscriptionManagerAccount",
+            "name": method_names::TENANT_MANAGER_ACCOUNTS_CREATE_SUBSCRIPTION_MANAGER_ACCOUNT,
             "summary": "Create subscription manager account",
             "description": "Creates a tenant-related subscription manager account. Requires TenantManager privileges.",
             "tags": [{ "name": "tenantManager" }, { "name": "accounts" }],
@@ -33,7 +33,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantManager.accounts.deleteSubscriptionAccount",
+            "name": method_names::TENANT_MANAGER_ACCOUNTS_DELETE_SUBSCRIPTION_ACCOUNT,
             "summary": "Delete subscription account",
             "description": "Deletes a subscription account. Requires TenantManager privileges.",
             "tags": [{ "name": "tenantManager" }, { "name": "accounts" }],
@@ -42,7 +42,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantManager.guests.guestUserToSubscriptionManagerAccount",
+            "name": method_names::TENANT_MANAGER_GUESTS_GUEST_USER_TO_SUBSCRIPTION_MANAGER_ACCOUNT,
             "summary": "Guest user to subscription manager account",
             "description": "Adds a guest user (by email) to a subscription manager account with the given permission (0 = Read, 1 = Write).",
             "tags": [{ "name": "tenantManager" }, { "name": "guests" }],
@@ -51,7 +51,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantManager.guests.revokeUserGuestToSubscriptionManagerAccount",
+            "name": method_names::TENANT_MANAGER_GUESTS_REVOKE_USER_GUEST_TO_SUBSCRIPTION_MANAGER_ACCOUNT,
             "summary": "Revoke user guest to subscription manager account",
             "description": "Revokes a guest user (by email) from a subscription manager account role.",
             "tags": [{ "name": "tenantManager" }, { "name": "guests" }],
@@ -60,7 +60,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantManager.tags.registerTag",
+            "name": method_names::TENANT_MANAGER_TAGS_CREATE,
             "summary": "Register tenant tag",
             "description": "Registers a tag for the tenant (tenant-scoped, no account).",
             "tags": [{ "name": "tenantManager" }, { "name": "tags" }],
@@ -69,7 +69,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantManager.tags.updateTag",
+            "name": method_names::TENANT_MANAGER_TAGS_UPDATE,
             "summary": "Update tenant tag",
             "description": "Updates a tenant tag (value, meta).",
             "tags": [{ "name": "tenantManager" }, { "name": "tags" }],
@@ -78,7 +78,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantManager.tags.deleteTag",
+            "name": method_names::TENANT_MANAGER_TAGS_DELETE,
             "summary": "Delete tenant tag",
             "description": "Deletes a tenant tag.",
             "tags": [{ "name": "tenantManager" }, { "name": "tags" }],
@@ -87,7 +87,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "tenantManager.tenant.getTenantDetails",
+            "name": method_names::TENANT_MANAGER_TENANT_GET,
             "summary": "Get tenant details",
             "description": "Returns details for a tenant by ID. Requires TenantManager privileges on the tenant.",
             "tags": [{ "name": "tenantManager" }, { "name": "tenant" }],

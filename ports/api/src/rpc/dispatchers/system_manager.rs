@@ -1,5 +1,6 @@
 use super::super::{
     errors::{invalid_params, mapped_errors_to_jsonrpc_error, params_required},
+    method_names,
     params::{
         DeleteErrorCodeParams, DeleteWebhookParams, GetErrorCodeParams,
         ListErrorCodesParams, ListWebhooksParams, RegisterErrorCodeParams,
@@ -45,7 +46,7 @@ pub async fn dispatch_system_manager(
     params: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, JsonRpcError> {
     match method {
-        "systemManager.errorCodes.registerErrorCode" => {
+        method_names::SYSTEM_MANAGER_ERROR_CODES_CREATE => {
             let p: RegisterErrorCodeParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -65,7 +66,7 @@ pub async fn dispatch_system_manager(
                 data: None,
             })
         }
-        "systemManager.errorCodes.listErrorCodes" => {
+        method_names::SYSTEM_MANAGER_ERROR_CODES_LIST => {
             let p: ListErrorCodesParams = params
                 .map(serde_json::from_value)
                 .transpose()
@@ -84,7 +85,7 @@ pub async fn dispatch_system_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_many_response_kind_to_result(result)
         }
-        "systemManager.errorCodes.getErrorCode" => {
+        method_names::SYSTEM_MANAGER_ERROR_CODES_GET => {
             let p: GetErrorCodeParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -98,7 +99,7 @@ pub async fn dispatch_system_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_response_kind_to_result(result)
         }
-        "systemManager.errorCodes.updateErrorCodeMessageAndDetails" => {
+        method_names::SYSTEM_MANAGER_ERROR_CODES_UPDATE_MESSAGE_AND_DETAILS => {
             let p: UpdateErrorCodeMessageAndDetailsParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -119,7 +120,7 @@ pub async fn dispatch_system_manager(
                 data: None,
             })
         }
-        "systemManager.errorCodes.deleteErrorCode" => {
+        method_names::SYSTEM_MANAGER_ERROR_CODES_DELETE => {
             let p: DeleteErrorCodeParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -133,7 +134,7 @@ pub async fn dispatch_system_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             Ok(serde_json::Value::Null)
         }
-        "systemManager.webhooks.registerWebhook" => {
+        method_names::SYSTEM_MANAGER_WEBHOOKS_CREATE => {
             let life_cycle = life_cycle_settings
                 .ok_or_else(|| invalid_params("Life cycle config required"))?
                 .get_ref();
@@ -182,7 +183,7 @@ pub async fn dispatch_system_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             create_response_kind_to_result(result)
         }
-        "systemManager.webhooks.listWebhooks" => {
+        method_names::SYSTEM_MANAGER_WEBHOOKS_LIST => {
             let p: ListWebhooksParams = params
                 .map(serde_json::from_value)
                 .transpose()
@@ -207,7 +208,7 @@ pub async fn dispatch_system_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_many_response_kind_to_result(result)
         }
-        "systemManager.webhooks.updateWebhook" => {
+        method_names::SYSTEM_MANAGER_WEBHOOKS_UPDATE => {
             let life_cycle = life_cycle_settings
                 .ok_or_else(|| invalid_params("Life cycle config required"))?
                 .get_ref();
@@ -236,7 +237,7 @@ pub async fn dispatch_system_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "systemManager.webhooks.deleteWebhook" => {
+        method_names::SYSTEM_MANAGER_WEBHOOKS_DELETE => {
             let p: DeleteWebhookParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;

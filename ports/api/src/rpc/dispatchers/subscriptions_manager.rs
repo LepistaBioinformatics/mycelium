@@ -2,16 +2,18 @@
 
 use super::super::{
     errors::{invalid_params, mapped_errors_to_jsonrpc_error, params_required},
+    method_names,
     params::{
         CreateRoleAssociatedAccountParams, CreateSubscriptionAccountParams,
         DeleteTagParams, GetAccountDetailsParams,
-        ListAccountsByTypeParams, ListGuestOnSubscriptionAccountParams,
+        GuestUserToSubscriptionAccountParams, ListAccountsByTypeParams,
+        ListGuestOnSubscriptionAccountParams,
         ListLicensedAccountsOfEmailParams, PropagateSubscriptionAccountParams,
         RegisterTagParams, RevokeUserGuestToSubscriptionAccountParams,
         SubscriptionsManagerFetchGuestRoleDetailsParams,
         SubscriptionsManagerListGuestRolesParams,
-        UpdateAccountNameAndFlagsParams, UpdateFlagsFromSubscriptionAccountParams,
-        UpdateTagParams, GuestUserToSubscriptionAccountParams,
+        UpdateAccountNameAndFlagsParams,
+        UpdateFlagsFromSubscriptionAccountParams, UpdateTagParams,
     },
     response_kind::{
         delete_response_kind_to_result, fetch_many_response_kind_to_result,
@@ -27,12 +29,8 @@ use myc_core::{
     domain::{
         actors::SystemActor,
         dtos::{
-            account::VerboseStatus,
-            account_type::AccountType,
-            email::Email,
-            guest_role::Permission,
-            security_group::PermissionedRole,
-            tag::Tag,
+            account::VerboseStatus, account_type::AccountType, email::Email,
+            guest_role::Permission, security_group::PermissionedRole, tag::Tag,
         },
     },
     models::AccountLifeCycle,
@@ -40,10 +38,12 @@ use myc_core::{
         account::{
             create_role_associated_account, create_subscription_account,
             get_account_details, list_accounts_by_type,
-            propagate_existing_subscription_account, update_account_name_and_flags,
+            propagate_existing_subscription_account,
+            update_account_name_and_flags,
         },
         guest::{
-            guest_user_to_subscription_account, list_guest_on_subscription_account,
+            guest_user_to_subscription_account,
+            list_guest_on_subscription_account,
             list_licensed_accounts_of_email,
             revoke_user_guest_to_subscription_account,
             update_flags_from_subscription_account,
@@ -64,7 +64,8 @@ fn parse_actor(s: &str) -> Result<SystemActor, JsonRpcError> {
         "systemManager" => "system-manager",
         other => other,
     };
-    SystemActor::from_str(kebab).map_err(|_| invalid_params(format!("Unknown actor: {}", s)))
+    SystemActor::from_str(kebab)
+        .map_err(|_| invalid_params(format!("Unknown actor: {}", s)))
 }
 
 fn parse_account_type_from_params(
@@ -85,25 +86,29 @@ fn parse_account_type_from_params(
         "Manager" | "manager" => AccountType::Manager,
         "User" | "user" => AccountType::User,
         "Subscription" | "subscription" => {
-            let tid = tenant_id
-                .ok_or_else(|| invalid_params("tenant_id required for Subscription"))?;
+            let tid = tenant_id.ok_or_else(|| {
+                invalid_params("tenant_id required for Subscription")
+            })?;
             AccountType::Subscription { tenant_id: tid }
         }
         "TenantManager" | "tenantManager" | "tenant_manager" => {
-            let tid = tenant_id
-                .ok_or_else(|| invalid_params("tenant_id required for TenantManager"))?;
+            let tid = tenant_id.ok_or_else(|| {
+                invalid_params("tenant_id required for TenantManager")
+            })?;
             AccountType::TenantManager { tenant_id: tid }
         }
         "ActorAssociated" | "actorAssociated" | "actor_associated" => {
-            let actor = actor_str
-                .ok_or_else(|| invalid_params("actor required for ActorAssociated"))?;
+            let actor = actor_str.ok_or_else(|| {
+                invalid_params("actor required for ActorAssociated")
+            })?;
             AccountType::ActorAssociated {
                 actor: parse_actor(actor)?,
             }
         }
         "RoleAssociated" | "roleAssociated" | "role_associated" => {
-            let tid = tenant_id
-                .ok_or_else(|| invalid_params("tenant_id required for RoleAssociated"))?;
+            let tid = tenant_id.ok_or_else(|| {
+                invalid_params("tenant_id required for RoleAssociated")
+            })?;
             AccountType::RoleAssociated {
                 tenant_id: tid,
                 role_name,
@@ -111,7 +116,9 @@ fn parse_account_type_from_params(
                 write_role_id,
             }
         }
-        _ => return Err(invalid_params(format!("Unknown account_type: {}", s))),
+        _ => {
+            return Err(invalid_params(format!("Unknown account_type: {}", s)))
+        }
     };
     Ok(Some(account_type))
 }
@@ -119,12 +126,7 @@ fn parse_account_type_from_params(
 fn status_to_flags(
     status: Option<&String>,
 ) -> Result<
-    (
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-        Option<bool>,
-    ),
+    (Option<bool>, Option<bool>, Option<bool>, Option<bool>),
     JsonRpcError,
 > {
     let s = match status {
@@ -137,12 +139,7 @@ fn status_to_flags(
         ))
     })?;
     let f = v.to_flags().map_err(mapped_errors_to_jsonrpc_error)?;
-    Ok((
-        f.is_active,
-        f.is_checked,
-        f.is_archived,
-        f.is_deleted,
-    ))
+    Ok((f.is_active, f.is_checked, f.is_archived, f.is_deleted))
 }
 
 fn role_params_to_permissioned_roles(
@@ -166,7 +163,7 @@ pub async fn dispatch_subscriptions_manager(
     params: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, JsonRpcError> {
     match method {
-        "subscriptionsManager.accounts.createSubscriptionAccount" => {
+        method_names::SUBSCRIPTIONS_MANAGER_ACCOUNTS_CREATE_SUBSCRIPTION_ACCOUNT => {
             let p: CreateSubscriptionAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -185,7 +182,7 @@ pub async fn dispatch_subscriptions_manager(
                 data: None,
             })
         }
-        "subscriptionsManager.accounts.createRoleAssociatedAccount" => {
+        method_names::SUBSCRIPTIONS_MANAGER_ACCOUNTS_CREATE_ROLE_ASSOCIATED_ACCOUNT => {
             let p: CreateRoleAssociatedAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -202,7 +199,7 @@ pub async fn dispatch_subscriptions_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             get_or_create_response_kind_to_result(result)
         }
-        "subscriptionsManager.accounts.listAccountsByType" => {
+        method_names::SUBSCRIPTIONS_MANAGER_ACCOUNTS_LIST => {
             let p: ListAccountsByTypeParams = params
                 .map(serde_json::from_value)
                 .transpose()
@@ -230,7 +227,7 @@ pub async fn dispatch_subscriptions_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_many_response_kind_to_result(result)
         }
-        "subscriptionsManager.accounts.getAccountDetails" => {
+        method_names::SUBSCRIPTIONS_MANAGER_ACCOUNTS_GET => {
             let p: GetAccountDetailsParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -244,7 +241,7 @@ pub async fn dispatch_subscriptions_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_response_kind_to_result(result)
         }
-        "subscriptionsManager.accounts.updateAccountNameAndFlags" => {
+        method_names::SUBSCRIPTIONS_MANAGER_ACCOUNTS_UPDATE_NAME_AND_FLAGS => {
             let p: UpdateAccountNameAndFlagsParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -265,7 +262,7 @@ pub async fn dispatch_subscriptions_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "subscriptionsManager.accounts.propagateSubscriptionAccount" => {
+        method_names::SUBSCRIPTIONS_MANAGER_ACCOUNTS_PROPAGATE_SUBSCRIPTION_ACCOUNT => {
             let p: PropagateSubscriptionAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -284,7 +281,7 @@ pub async fn dispatch_subscriptions_manager(
                 data: None,
             })
         }
-        "subscriptionsManager.guests.listLicensedAccountsOfEmail" => {
+        method_names::SUBSCRIPTIONS_MANAGER_GUESTS_LIST_LICENSED_ACCOUNTS_OF_EMAIL => {
             let p: ListLicensedAccountsOfEmailParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -303,7 +300,7 @@ pub async fn dispatch_subscriptions_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_many_response_kind_to_result(result)
         }
-        "subscriptionsManager.guests.guestUserToSubscriptionAccount" => {
+        method_names::SUBSCRIPTIONS_MANAGER_GUESTS_GUEST_USER_TO_SUBSCRIPTION_ACCOUNT => {
             let life_cycle = life_cycle_settings
                 .ok_or_else(|| invalid_params("Life cycle config required"))?
                 .get_ref();
@@ -329,7 +326,7 @@ pub async fn dispatch_subscriptions_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             get_or_create_response_kind_to_result(result)
         }
-        "subscriptionsManager.guests.updateFlagsFromSubscriptionAccount" => {
+        method_names::SUBSCRIPTIONS_MANAGER_GUESTS_UPDATE_FLAGS_FROM_SUBSCRIPTION_ACCOUNT => {
             let p: UpdateFlagsFromSubscriptionAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -350,7 +347,7 @@ pub async fn dispatch_subscriptions_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "subscriptionsManager.guests.revokeUserGuestToSubscriptionAccount" => {
+        method_names::SUBSCRIPTIONS_MANAGER_GUESTS_REVOKE_USER_GUEST_TO_SUBSCRIPTION_ACCOUNT => {
             let p: RevokeUserGuestToSubscriptionAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -366,7 +363,7 @@ pub async fn dispatch_subscriptions_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             delete_response_kind_to_result(result)
         }
-        "subscriptionsManager.guests.listGuestOnSubscriptionAccount" => {
+        method_names::SUBSCRIPTIONS_MANAGER_GUESTS_LIST_GUEST_ON_SUBSCRIPTION_ACCOUNT => {
             let p: ListGuestOnSubscriptionAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -383,7 +380,7 @@ pub async fn dispatch_subscriptions_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_many_response_kind_to_result(result)
         }
-        "subscriptionsManager.guestRoles.listGuestRoles" => {
+        method_names::SUBSCRIPTIONS_MANAGER_GUEST_ROLES_LIST => {
             let p: SubscriptionsManagerListGuestRolesParams = params
                 .map(serde_json::from_value)
                 .transpose()
@@ -403,7 +400,7 @@ pub async fn dispatch_subscriptions_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_many_response_kind_to_result(result)
         }
-        "subscriptionsManager.guestRoles.fetchGuestRoleDetails" => {
+        method_names::SUBSCRIPTIONS_MANAGER_GUEST_ROLES_GET => {
             let p: SubscriptionsManagerFetchGuestRoleDetailsParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -417,7 +414,7 @@ pub async fn dispatch_subscriptions_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_response_kind_to_result(result)
         }
-        "subscriptionsManager.tags.registerTag" => {
+        method_names::SUBSCRIPTIONS_MANAGER_TAGS_CREATE => {
             let p: RegisterTagParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -434,7 +431,7 @@ pub async fn dispatch_subscriptions_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             get_or_create_response_kind_to_result(result)
         }
-        "subscriptionsManager.tags.updateTag" => {
+        method_names::SUBSCRIPTIONS_MANAGER_TAGS_UPDATE => {
             let p: UpdateTagParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -454,7 +451,7 @@ pub async fn dispatch_subscriptions_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "subscriptionsManager.tags.deleteTag" => {
+        method_names::SUBSCRIPTIONS_MANAGER_TAGS_DELETE => {
             let p: DeleteTagParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;

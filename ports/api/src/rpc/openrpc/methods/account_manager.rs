@@ -1,5 +1,5 @@
 use super::super::schema;
-use crate::rpc::params;
+use crate::rpc::{method_names, params};
 
 pub fn methods() -> Vec<serde_json::Value> {
     let guest_to_children_account_schema =
@@ -11,7 +11,7 @@ pub fn methods() -> Vec<serde_json::Value> {
 
     vec![
         serde_json::json!({
-            "name": "accountManager.guests.guestToChildrenAccount",
+            "name": method_names::ACCOUNT_MANAGER_GUESTS_GUEST_TO_CHILDREN_ACCOUNT,
             "summary": "Guest user to children account",
             "description": "Adds a guest user to an account under the given guest role (child role). Requires account manager privileges on the tenant. Tenant ID, account ID and role ID must be provided.",
             "tags": [{ "name": "accountManager" }, { "name": "guests" }],
@@ -20,7 +20,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "accountManager.guestRoles.listGuestRoles",
+            "name": method_names::ACCOUNT_MANAGER_GUEST_ROLES_LIST_GUEST_ROLES,
             "summary": "List guest roles",
             "description": "Lists guest roles with optional filters (name, slug, system) and pagination (pageSize, skip). Optional tenant ID to scope. Requires account manager privileges.",
             "tags": [{ "name": "accountManager" }, { "name": "guestRoles" }],
@@ -29,7 +29,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "accountManager.guestRoles.fetchGuestRoleDetails",
+            "name": method_names::ACCOUNT_MANAGER_GUEST_ROLES_FETCH_GUEST_ROLE_DETAILS,
             "summary": "Fetch guest role details",
             "description": "Returns details for a guest role by ID. Optional tenant ID to scope. Requires account manager privileges.",
             "tags": [{ "name": "accountManager" }, { "name": "guestRoles" }],

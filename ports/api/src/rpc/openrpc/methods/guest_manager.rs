@@ -1,7 +1,7 @@
 //! OpenRPC method descriptors for guest manager scope (guestRoles).
 
 use super::super::schema;
-use crate::rpc::params;
+use crate::rpc::{method_names, params};
 
 pub fn methods() -> Vec<serde_json::Value> {
     let create_guest_role_schema =
@@ -23,7 +23,7 @@ pub fn methods() -> Vec<serde_json::Value> {
 
     vec![
         serde_json::json!({
-            "name": "guestManager.guestRoles.createGuestRole",
+            "name": method_names::GUEST_MANAGER_GUEST_ROLES_CREATE,
             "summary": "Create guest role",
             "description": "Creates a guest role. Requires GuestsManager privileges. Permission: 0 = Read, 1 = Write.",
             "tags": [{ "name": "guestManager" }, { "name": "guestRoles" }],
@@ -32,7 +32,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "guestManager.guestRoles.listGuestRoles",
+            "name": method_names::GUEST_MANAGER_GUEST_ROLES_LIST,
             "summary": "List guest roles",
             "description": "Lists guest roles with optional filters (name, slug, system) and pagination (pageSize, skip). Requires GuestsManager privileges.",
             "tags": [{ "name": "guestManager" }, { "name": "guestRoles" }],
@@ -41,7 +41,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "guestManager.guestRoles.deleteGuestRole",
+            "name": method_names::GUEST_MANAGER_GUEST_ROLES_DELETE,
             "summary": "Delete guest role",
             "description": "Deletes a guest role by ID. Requires GuestsManager privileges.",
             "tags": [{ "name": "guestManager" }, { "name": "guestRoles" }],
@@ -50,7 +50,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "guestManager.guestRoles.updateGuestRoleNameAndDescription",
+            "name": method_names::GUEST_MANAGER_GUEST_ROLES_UPDATE_NAME_AND_DESCRIPTION,
             "summary": "Update guest role name and description",
             "description": "Updates name and/or description of a guest role. Requires GuestsManager privileges.",
             "tags": [{ "name": "guestManager" }, { "name": "guestRoles" }],
@@ -59,7 +59,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "guestManager.guestRoles.updateGuestRolePermission",
+            "name": method_names::GUEST_MANAGER_GUEST_ROLES_UPDATE_PERMISSION,
             "summary": "Update guest role permission",
             "description": "Updates permission of a guest role (0 = Read, 1 = Write). Requires GuestsManager privileges.",
             "tags": [{ "name": "guestManager" }, { "name": "guestRoles" }],
@@ -68,7 +68,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "guestManager.guestRoles.insertRoleChild",
+            "name": method_names::GUEST_MANAGER_GUEST_ROLES_INSERT_ROLE_CHILD,
             "summary": "Insert child role",
             "description": "Adds a child guest role to a parent role. Requires GuestsManager privileges.",
             "tags": [{ "name": "guestManager" }, { "name": "guestRoles" }],
@@ -77,7 +77,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "guestManager.guestRoles.removeRoleChild",
+            "name": method_names::GUEST_MANAGER_GUEST_ROLES_REMOVE_ROLE_CHILD,
             "summary": "Remove child role",
             "description": "Removes a child guest role from a parent role. Requires GuestsManager privileges.",
             "tags": [{ "name": "guestManager" }, { "name": "guestRoles" }],

@@ -1,5 +1,6 @@
 use super::super::{
     errors::{invalid_params, mapped_errors_to_jsonrpc_error, params_required},
+    method_names,
     params::{
         FetchGuestRoleDetailsParams, GuestToChildrenAccountParams,
         ListGuestRolesParams,
@@ -32,7 +33,7 @@ pub async fn dispatch_account_manager(
     params: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, JsonRpcError> {
     match method {
-        "accountManager.guests.guestToChildrenAccount" => {
+        method_names::ACCOUNT_MANAGER_GUESTS_GUEST_TO_CHILDREN_ACCOUNT => {
             let life_cycle = life_cycle_settings
                 .ok_or_else(|| invalid_params("Life cycle config required"))?
                 .get_ref();
@@ -58,7 +59,7 @@ pub async fn dispatch_account_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             get_or_create_response_kind_to_result(result)
         }
-        "accountManager.guestRoles.listGuestRoles" => {
+        method_names::ACCOUNT_MANAGER_GUEST_ROLES_LIST_GUEST_ROLES => {
             let p: ListGuestRolesParams = params
                 .map(serde_json::from_value)
                 .transpose()
@@ -78,7 +79,7 @@ pub async fn dispatch_account_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_many_response_kind_to_result(result)
         }
-        "accountManager.guestRoles.fetchGuestRoleDetails" => {
+        method_names::ACCOUNT_MANAGER_GUEST_ROLES_FETCH_GUEST_ROLE_DETAILS => {
             let p: FetchGuestRoleDetailsParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;

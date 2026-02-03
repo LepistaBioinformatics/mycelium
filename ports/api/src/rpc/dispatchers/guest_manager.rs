@@ -1,5 +1,6 @@
 use super::super::{
     errors::{invalid_params, mapped_errors_to_jsonrpc_error, params_required},
+    method_names,
     params::{
         CreateGuestRoleParams, DeleteGuestRoleParams,
         GuestManagerListGuestRolesParams, InsertRoleChildParams,
@@ -34,7 +35,7 @@ pub async fn dispatch_guest_manager(
     params: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, JsonRpcError> {
     match method {
-        "guestManager.guestRoles.createGuestRole" => {
+        method_names::GUEST_MANAGER_GUEST_ROLES_CREATE => {
             let p: CreateGuestRoleParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -51,7 +52,7 @@ pub async fn dispatch_guest_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             get_or_create_response_kind_to_result(result)
         }
-        "guestManager.guestRoles.listGuestRoles" => {
+        method_names::GUEST_MANAGER_GUEST_ROLES_LIST => {
             let p: GuestManagerListGuestRolesParams = params
                 .map(serde_json::from_value)
                 .transpose()
@@ -70,7 +71,7 @@ pub async fn dispatch_guest_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_many_response_kind_to_result(result)
         }
-        "guestManager.guestRoles.deleteGuestRole" => {
+        method_names::GUEST_MANAGER_GUEST_ROLES_DELETE => {
             let p: DeleteGuestRoleParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -83,7 +84,7 @@ pub async fn dispatch_guest_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             delete_response_kind_to_result(result)
         }
-        "guestManager.guestRoles.updateGuestRoleNameAndDescription" => {
+        method_names::GUEST_MANAGER_GUEST_ROLES_UPDATE_NAME_AND_DESCRIPTION => {
             let p: UpdateGuestRoleNameAndDescriptionParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -99,7 +100,7 @@ pub async fn dispatch_guest_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "guestManager.guestRoles.updateGuestRolePermission" => {
+        method_names::GUEST_MANAGER_GUEST_ROLES_UPDATE_PERMISSION => {
             let p: UpdateGuestRolePermissionParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -115,7 +116,7 @@ pub async fn dispatch_guest_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "guestManager.guestRoles.insertRoleChild" => {
+        method_names::GUEST_MANAGER_GUEST_ROLES_INSERT_ROLE_CHILD => {
             let p: InsertRoleChildParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -130,7 +131,7 @@ pub async fn dispatch_guest_manager(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "guestManager.guestRoles.removeRoleChild" => {
+        method_names::GUEST_MANAGER_GUEST_ROLES_REMOVE_ROLE_CHILD => {
             let p: RemoveRoleChildParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;

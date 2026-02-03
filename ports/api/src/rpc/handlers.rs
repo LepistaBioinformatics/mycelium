@@ -42,7 +42,7 @@ async fn process_single_request(
         );
     }
 
-    if request.method == "rpc.discover" {
+    if request.method == super::method_names::RPC_DISCOVER {
         let spec = openrpc::generate_openrpc_spec(openrpc_config.get_ref());
         return types::success_response(id, spec);
     }

@@ -1,5 +1,6 @@
 use super::super::{
     errors::{invalid_params, mapped_errors_to_jsonrpc_error, params_required},
+    method_names,
     params::{
         CreateSystemAccountParams, CreateTenantParams, DeleteTenantParams,
         ExcludeTenantOwnerParams, IncludeTenantOwnerParams, ListTenantParams,
@@ -40,7 +41,7 @@ pub async fn dispatch_managers(
     params: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, JsonRpcError> {
     match method {
-        "managers.accounts.createSystemAccount" => {
+        method_names::MANAGERS_ACCOUNTS_CREATE_SYSTEM_ACCOUNT => {
             let p: CreateSystemAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -59,7 +60,7 @@ pub async fn dispatch_managers(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             get_or_create_response_kind_to_result(result)
         }
-        "managers.guestRoles.createSystemRoles" => {
+        method_names::MANAGERS_GUEST_ROLES_CREATE_SYSTEM_ROLES => {
             let result = create_system_roles(
                 profile.to_profile(),
                 Box::new(&*app_module.resolve_ref()),
@@ -72,7 +73,7 @@ pub async fn dispatch_managers(
                 data: None,
             })
         }
-        "managers.tenants.createTenant" => {
+        method_names::MANAGERS_TENANTS_CREATE => {
             let p: CreateTenantParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -88,7 +89,7 @@ pub async fn dispatch_managers(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             create_response_kind_to_result(result)
         }
-        "managers.tenants.listTenant" => {
+        method_names::MANAGERS_TENANTS_LIST => {
             let p: ListTenantParams = params
                 .map(serde_json::from_value)
                 .transpose()
@@ -129,7 +130,7 @@ pub async fn dispatch_managers(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_many_response_kind_to_result(result)
         }
-        "managers.tenants.deleteTenant" => {
+        method_names::MANAGERS_TENANTS_DELETE => {
             let p: DeleteTenantParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -142,7 +143,7 @@ pub async fn dispatch_managers(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             delete_response_kind_to_result(result)
         }
-        "managers.tenants.includeTenantOwner" => {
+        method_names::MANAGERS_TENANTS_INCLUDE_TENANT_OWNER => {
             let p: IncludeTenantOwnerParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -156,7 +157,7 @@ pub async fn dispatch_managers(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             create_response_kind_to_result(result)
         }
-        "managers.tenants.excludeTenantOwner" => {
+        method_names::MANAGERS_TENANTS_EXCLUDE_TENANT_OWNER => {
             let p: ExcludeTenantOwnerParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;

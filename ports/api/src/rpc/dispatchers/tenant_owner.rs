@@ -1,5 +1,6 @@
 use super::super::{
     errors::{invalid_params, mapped_errors_to_jsonrpc_error, params_required},
+    method_names,
     params::{
         CreateManagementAccountParams, CreateTenantMetaParams,
         DeleteTenantManagerAccountParams, DeleteTenantMetaParams,
@@ -39,7 +40,7 @@ pub async fn dispatch_tenant_owner(
     params: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, JsonRpcError> {
     match method {
-        "tenantOwner.accounts.createManagementAccount" => {
+        method_names::TENANT_OWNER_ACCOUNTS_CREATE_MANAGEMENT_ACCOUNT => {
             let p: CreateManagementAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -52,7 +53,7 @@ pub async fn dispatch_tenant_owner(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             get_or_create_response_kind_to_result(result)
         }
-        "tenantOwner.accounts.deleteTenantManagerAccount" => {
+        method_names::TENANT_OWNER_ACCOUNTS_DELETE_TENANT_MANAGER_ACCOUNT => {
             let p: DeleteTenantManagerAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -66,7 +67,7 @@ pub async fn dispatch_tenant_owner(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             delete_response_kind_to_result(result)
         }
-        "tenantOwner.meta.createTenantMeta" => {
+        method_names::TENANT_OWNER_META_CREATE => {
             let p: CreateTenantMetaParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -83,7 +84,7 @@ pub async fn dispatch_tenant_owner(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             create_response_kind_to_result(result)
         }
-        "tenantOwner.meta.deleteTenantMeta" => {
+        method_names::TENANT_OWNER_META_DELETE => {
             let p: DeleteTenantMetaParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -99,7 +100,7 @@ pub async fn dispatch_tenant_owner(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             delete_response_kind_to_result(result)
         }
-        "tenantOwner.owner.guestTenantOwner" => {
+        method_names::TENANT_OWNER_OWNER_GUEST => {
             let p: GuestTenantOwnerParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -116,7 +117,7 @@ pub async fn dispatch_tenant_owner(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             create_response_kind_to_result(result)
         }
-        "tenantOwner.owner.revokeTenantOwner" => {
+        method_names::TENANT_OWNER_OWNER_REVOKE => {
             let p: RevokeTenantOwnerParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -133,7 +134,7 @@ pub async fn dispatch_tenant_owner(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             delete_response_kind_to_result(result)
         }
-        "tenantOwner.tenant.updateTenantNameAndDescription" => {
+        method_names::TENANT_OWNER_TENANT_UPDATE_AND_DESCRIPTION => {
             let p: UpdateTenantNameAndDescriptionParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -149,7 +150,7 @@ pub async fn dispatch_tenant_owner(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "tenantOwner.tenant.updateTenantArchivingStatus" => {
+        method_names::TENANT_OWNER_TENANT_UPDATE_ARCHIVING_STATUS => {
             let p: UpdateTenantArchivingStatusParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -163,7 +164,7 @@ pub async fn dispatch_tenant_owner(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "tenantOwner.tenant.updateTenantTrashingStatus" => {
+        method_names::TENANT_OWNER_TENANT_UPDATE_TRASHING_STATUS => {
             let p: UpdateTenantTrashingStatusParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
@@ -177,7 +178,7 @@ pub async fn dispatch_tenant_owner(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             updating_response_kind_to_result(result)
         }
-        "tenantOwner.tenant.updateTenantVerifyingStatus" => {
+        method_names::TENANT_OWNER_TENANT_UPDATE_VERIFYING_STATUS => {
             let p: UpdateTenantVerifyingStatusParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;

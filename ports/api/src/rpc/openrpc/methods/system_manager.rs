@@ -1,5 +1,5 @@
 use super::super::schema;
-use crate::rpc::params;
+use crate::rpc::{method_names, params};
 
 pub fn methods() -> Vec<serde_json::Value> {
     let register_error_code_schema =
@@ -24,7 +24,7 @@ pub fn methods() -> Vec<serde_json::Value> {
 
     vec![
         serde_json::json!({
-            "name": "systemManager.errorCodes.registerErrorCode",
+            "name": method_names::SYSTEM_MANAGER_ERROR_CODES_CREATE,
             "summary": "Register error code",
             "description": "Registers a new error code. Requires SystemManager privileges.",
             "tags": [{ "name": "systemManager" }, { "name": "errorCodes" }],
@@ -33,7 +33,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "systemManager.errorCodes.listErrorCodes",
+            "name": method_names::SYSTEM_MANAGER_ERROR_CODES_LIST,
             "summary": "List error codes",
             "description": "Lists error codes with optional filters (prefix, code, isInternal) and pagination.",
             "tags": [{ "name": "systemManager" }, { "name": "errorCodes" }],
@@ -42,7 +42,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "systemManager.errorCodes.getErrorCode",
+            "name": method_names::SYSTEM_MANAGER_ERROR_CODES_GET,
             "summary": "Get error code",
             "description": "Returns an error code by prefix and code.",
             "tags": [{ "name": "systemManager" }, { "name": "errorCodes" }],
@@ -51,7 +51,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "systemManager.errorCodes.updateErrorCodeMessageAndDetails",
+            "name": method_names::SYSTEM_MANAGER_ERROR_CODES_UPDATE_MESSAGE_AND_DETAILS,
             "summary": "Update error code message and details",
             "description": "Updates message and details of an error code.",
             "tags": [{ "name": "systemManager" }, { "name": "errorCodes" }],
@@ -60,7 +60,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "systemManager.errorCodes.deleteErrorCode",
+            "name": method_names::SYSTEM_MANAGER_ERROR_CODES_DELETE,
             "summary": "Delete error code",
             "description": "Deletes an error code by prefix and code.",
             "tags": [{ "name": "systemManager" }, { "name": "errorCodes" }],
@@ -69,7 +69,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "systemManager.webhooks.registerWebhook",
+            "name": method_names::SYSTEM_MANAGER_WEBHOOKS_CREATE,
             "summary": "Register webhook",
             "description": "Registers a webhook. Method must be POST, PUT, PATCH or DELETE. Requires SystemManager privileges.",
             "tags": [{ "name": "systemManager" }, { "name": "webhooks" }],
@@ -78,7 +78,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "systemManager.webhooks.listWebhooks",
+            "name": method_names::SYSTEM_MANAGER_WEBHOOKS_LIST,
             "summary": "List webhooks",
             "description": "Lists webhooks with optional filters (name, trigger) and pagination.",
             "tags": [{ "name": "systemManager" }, { "name": "webhooks" }],
@@ -87,7 +87,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "systemManager.webhooks.updateWebhook",
+            "name": method_names::SYSTEM_MANAGER_WEBHOOKS_UPDATE,
             "summary": "Update webhook",
             "description": "Updates a webhook (name, description, secret, isActive).",
             "tags": [{ "name": "systemManager" }, { "name": "webhooks" }],
@@ -96,7 +96,7 @@ pub fn methods() -> Vec<serde_json::Value> {
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({
-            "name": "systemManager.webhooks.deleteWebhook",
+            "name": method_names::SYSTEM_MANAGER_WEBHOOKS_DELETE,
             "summary": "Delete webhook",
             "description": "Deletes a webhook by ID.",
             "tags": [{ "name": "systemManager" }, { "name": "webhooks" }],
