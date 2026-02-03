@@ -2,13 +2,14 @@ mod api_docs;
 mod callback_engines;
 mod dispatchers;
 mod dtos;
-mod endpoints;
 mod middleware;
 mod models;
 mod modifiers;
 mod openapi_processor;
 mod otel;
+mod rest;
 mod router;
+mod rpc;
 mod settings;
 
 use crate::openapi_processor::initialize_tools_registry;
@@ -24,20 +25,6 @@ use api_docs::ApiDoc;
 use awc::{error::HeaderValue, Client};
 use dispatchers::{
     email_dispatcher, services_health_dispatcher, webhook_dispatcher,
-};
-use endpoints::{
-    index::heath_check_endpoints,
-    manager::{
-        account_endpoints as manager_account_endpoints,
-        guest_role_endpoints as manager_guest_role_endpoints,
-        tenant_endpoints as manager_tenant_endpoints,
-    },
-    openid::well_known_endpoints,
-    role_scoped::configure as configure_standard_endpoints,
-    rpc,
-    service::tools_endpoints as service_tools_endpoints,
-    shared::insert_role_header,
-    staff::account_endpoints as staff_account_endpoints,
 };
 use models::config_handler::ConfigHandler;
 use myc_adapters_shared_lib::models::{
@@ -82,6 +69,19 @@ use otel::initialize_otel;
 use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
+};
+use rest::{
+    index::heath_check_endpoints,
+    manager::{
+        account_endpoints as manager_account_endpoints,
+        guest_role_endpoints as manager_guest_role_endpoints,
+        tenant_endpoints as manager_tenant_endpoints,
+    },
+    openid::well_known_endpoints,
+    role_scoped::configure as configure_standard_endpoints,
+    service::tools_endpoints as service_tools_endpoints,
+    shared::insert_role_header,
+    staff::account_endpoints as staff_account_endpoints,
 };
 use router::route_request;
 use settings::{ADMIN_API_SCOPE, TOOLS_API_SCOPE};
@@ -321,9 +321,7 @@ pub async fn main() -> std::io::Result<()> {
         // ? OpenRPC discovery (server URLs from config / env)
         // ? -------------------------------------------------------------------
         let openrpc_spec_config =
-            endpoints::rpc::openrpc::OpenRpcSpecConfig::from_api_config(
-                &config.api,
-            );
+            rpc::openrpc::OpenRpcSpecConfig::from_api_config(&config.api);
 
         // ? -------------------------------------------------------------------
         // ? Create the basis for the application
@@ -438,7 +436,7 @@ pub async fn main() -> std::io::Result<()> {
             // managers.
             //
             .service(
-                web::scope(endpoints::shared::UrlScope::Staffs.str())
+                web::scope(rest::shared::UrlScope::Staffs.str())
                     //
                     // Inject a header to be collected by the
                     // MyceliumProfileData extractor.
@@ -461,7 +459,7 @@ pub async fn main() -> std::io::Result<()> {
             // Manager Users
             //
             .service(
-                web::scope(endpoints::shared::UrlScope::Managers.str())
+                web::scope(rest::shared::UrlScope::Managers.str())
                     //
                     // Inject a header to be collected by the
                     // MyceliumProfileData extractor.

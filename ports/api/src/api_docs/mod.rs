@@ -1,5 +1,5 @@
-use crate::endpoints::{index, manager, role_scoped, service, staff};
 use crate::modifiers::security::MyceliumSecurity;
+use crate::rest::{index, manager, role_scoped, service, staff};
 
 use myc_core::domain::dtos::{
     account, account_type, email, error_code, guest_role, guest_user,
