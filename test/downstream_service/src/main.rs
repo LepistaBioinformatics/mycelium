@@ -1,8 +1,7 @@
-mod api_docs;
 mod endpoints;
+mod openapi;
 
 use crate::{
-    api_docs::ApiDoc,
     endpoints::{
         account_created_webhook, account_deleted_webhook,
         account_updated_webhook, expects_headers, health, protected,
@@ -10,6 +9,7 @@ use crate::{
         protected_by_service_token_with_scope, public,
         test_authorization_header, test_query_parameter_token,
     },
+    openapi::ApiDoc,
 };
 
 use actix_web::{App, HttpServer};
@@ -35,7 +35,7 @@ async fn main() -> std::io::Result<()> {
 
         std::env::set_var(
             "UTOIPA_REDOC_CONFIG_FILE",
-            "ports/api/src/api_docs/redoc.config.json",
+            "ports/api/src/openapi/redoc.config.json",
         );
     }
 

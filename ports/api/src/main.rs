@@ -1,10 +1,10 @@
-mod api_docs;
 mod callback_engines;
 mod dispatchers;
 mod dtos;
 mod middleware;
 mod models;
 mod modifiers;
+mod openapi;
 mod openapi_processor;
 mod otel;
 mod rest;
@@ -21,7 +21,6 @@ use actix_web::{
     web, App, HttpServer,
 };
 use actix_web_opentelemetry::RequestTracing;
-use api_docs::ApiDoc;
 use awc::{error::HeaderValue, Client};
 use dispatchers::{
     email_dispatcher, services_health_dispatcher, webhook_dispatcher,
@@ -60,6 +59,7 @@ use myc_notifier::{
 };
 use mycelium_base::utils::errors::MappedErrors;
 use oauth2::http::HeaderName;
+use openapi::ApiDoc;
 use openssl::{
     pkey::PKey,
     ssl::{SslAcceptor, SslMethod},
@@ -112,7 +112,7 @@ pub async fn main() -> std::io::Result<()> {
         unsafe {
             std::env::set_var(
                 "UTOIPA_REDOC_CONFIG_FILE",
-                "ports/api/src/api_docs/redoc.config.json",
+                "ports/api/src/openapi/redoc.config.json",
             );
         }
     }

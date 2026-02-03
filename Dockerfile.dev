@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y libpq-dev
 
 COPY --from=builder /rust/target/release/myc-api /usr/local/bin/myc-api
 
-COPY ports/api/src/api_docs/redoc.config.json /home/redoc.config.json
+COPY ports/api/src/openapi/redoc.config.json /home/redoc.config.json
 COPY templates /home/templates
 
 ENV UTOIPA_REDOC_CONFIG_FILE=/home/redoc.config.json
