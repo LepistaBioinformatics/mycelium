@@ -301,6 +301,16 @@ pub struct ApiConfig {
 
     #[serde(deserialize_with = "deserialize_services")]
     pub services: Vec<Service>,
+
+    /// OpenRPC discovery: development server URL (e.g. http://localhost:8080/_adm/rpc).
+    /// Overridable by env MYCELIUM_OPENRPC_DEV_URL.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub openrpc_dev_url: Option<String>,
+
+    /// OpenRPC discovery: production (or public) server URL (e.g. https://api.mycelium.io/_adm/rpc).
+    /// Overridable by env MYCELIUM_OPENRPC_PROD_URL.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub openrpc_prod_url: Option<String>,
 }
 
 #[derive(Clone, Debug, Deserialize)]

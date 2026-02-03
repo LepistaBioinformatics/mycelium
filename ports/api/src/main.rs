@@ -1,14 +1,15 @@
-mod api_docs;
 mod callback_engines;
 mod dispatchers;
 mod dtos;
-mod endpoints;
 mod middleware;
 mod models;
 mod modifiers;
+mod openapi;
 mod openapi_processor;
 mod otel;
+mod rest;
 mod router;
+mod rpc;
 mod settings;
 
 use crate::openapi_processor::initialize_tools_registry;
@@ -20,23 +21,9 @@ use actix_web::{
     web, App, HttpServer,
 };
 use actix_web_opentelemetry::RequestTracing;
-use api_docs::ApiDoc;
 use awc::{error::HeaderValue, Client};
 use dispatchers::{
     email_dispatcher, services_health_dispatcher, webhook_dispatcher,
-};
-use endpoints::{
-    index::heath_check_endpoints,
-    manager::{
-        account_endpoints as manager_account_endpoints,
-        guest_role_endpoints as manager_guest_role_endpoints,
-        tenant_endpoints as manager_tenant_endpoints,
-    },
-    openid::well_known_endpoints,
-    role_scoped::configure as configure_standard_endpoints,
-    service::tools_endpoints as service_tools_endpoints,
-    shared::insert_role_header,
-    staff::account_endpoints as staff_account_endpoints,
 };
 use models::config_handler::ConfigHandler;
 use myc_adapters_shared_lib::models::{
@@ -72,6 +59,7 @@ use myc_notifier::{
 };
 use mycelium_base::utils::errors::MappedErrors;
 use oauth2::http::HeaderName;
+use openapi::ApiDoc;
 use openssl::{
     pkey::PKey,
     ssl::{SslAcceptor, SslMethod},
@@ -81,6 +69,19 @@ use otel::initialize_otel;
 use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
+};
+use rest::{
+    index::heath_check_endpoints,
+    manager::{
+        account_endpoints as manager_account_endpoints,
+        guest_role_endpoints as manager_guest_role_endpoints,
+        tenant_endpoints as manager_tenant_endpoints,
+    },
+    openid::well_known_endpoints,
+    role_scoped::configure as configure_standard_endpoints,
+    service::tools_endpoints as service_tools_endpoints,
+    shared::insert_role_header,
+    staff::account_endpoints as staff_account_endpoints,
 };
 use router::route_request;
 use settings::{ADMIN_API_SCOPE, TOOLS_API_SCOPE};
@@ -111,7 +112,7 @@ pub async fn main() -> std::io::Result<()> {
         unsafe {
             std::env::set_var(
                 "UTOIPA_REDOC_CONFIG_FILE",
-                "ports/api/src/api_docs/redoc.config.json",
+                "ports/api/src/openapi/redoc.config.json",
             );
         }
     }
@@ -317,6 +318,12 @@ pub async fn main() -> std::io::Result<()> {
         trace!("Configured Cors: {:?}", cors);
 
         // ? -------------------------------------------------------------------
+        // ? OpenRPC discovery (server URLs from config / env)
+        // ? -------------------------------------------------------------------
+        let openrpc_spec_config =
+            rpc::openrpc::OpenRpcSpecConfig::from_api_config(&config.api);
+
+        // ? -------------------------------------------------------------------
         // ? Create the basis for the application
         // ? -------------------------------------------------------------------
         let base_app = App::new()
@@ -336,6 +343,7 @@ pub async fn main() -> std::io::Result<()> {
             //
             // Inject configuration
             //
+            .app_data(web::Data::new(openrpc_spec_config))
             .app_data(web::Data::new(tools_registry_schema.clone()))
             .app_data(web::Data::new(token_config).clone())
             .app_data(web::Data::new(auth_config.to_owned()).clone())
@@ -428,7 +436,7 @@ pub async fn main() -> std::io::Result<()> {
             // managers.
             //
             .service(
-                web::scope(endpoints::shared::UrlScope::Staffs.str())
+                web::scope(rest::shared::UrlScope::Staffs.str())
                     //
                     // Inject a header to be collected by the
                     // MyceliumProfileData extractor.
@@ -451,7 +459,7 @@ pub async fn main() -> std::io::Result<()> {
             // Manager Users
             //
             .service(
-                web::scope(endpoints::shared::UrlScope::Managers.str())
+                web::scope(rest::shared::UrlScope::Managers.str())
                     //
                     // Inject a header to be collected by the
                     // MyceliumProfileData extractor.
@@ -471,6 +479,18 @@ pub async fn main() -> std::io::Result<()> {
                     .configure(manager_tenant_endpoints::configure)
                     .configure(manager_guest_role_endpoints::configure)
                     .configure(manager_account_endpoints::configure),
+            )
+            //
+            // JSON-RPC (single + batch at _adm/rpc)
+            //
+            .service(
+                web::scope("rpc")
+                    .wrap_fn(|req, srv| {
+                        let req = insert_role_header(req, vec![]);
+
+                        srv.call(req)
+                    })
+                    .configure(rpc::configure),
             )
             //
             // Role Scoped Endpoints

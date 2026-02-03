@@ -32,7 +32,7 @@ services:
       - 8080:8080
     volumes:
       - ./settings/config.for-docker.toml:/home/config.toml:ro
-      - ./ports/api/src/api_docs/redoc.config.json:/home/redoc.config.json:ro
+      - ./ports/api/src/openapi/redoc.config.json:/home/redoc.config.json:ro
     depends_on:
       - myc-vault
       - myc-postgres

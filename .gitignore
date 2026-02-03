@@ -29,3 +29,4 @@ redis
 # Development
 .cursor
 .claude
+*.log

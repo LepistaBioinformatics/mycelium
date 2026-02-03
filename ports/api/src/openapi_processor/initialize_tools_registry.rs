@@ -1,7 +1,7 @@
 use super::load_operations_from_downstream_services::load_operations_from_downstream_services;
 use crate::{
-    api_docs::ApiDoc,
     dtos::ServiceWrapper,
+    openapi::ApiDoc,
     openapi_processor::{
         load_operations_from_downstream_services::ServiceOpenApiSchema,
         load_paths_from_spec,
