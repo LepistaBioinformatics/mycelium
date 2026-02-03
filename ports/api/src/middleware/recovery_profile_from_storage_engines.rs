@@ -29,6 +29,11 @@ pub(crate) async fn recovery_profile_from_storage_engines(
     tenant: Option<Uuid>,
     roles: Option<Vec<PermissionedRole>>,
 ) -> Result<Profile, GatewayError> {
+    tracing::info!(
+        stage = "identity.profile",
+        "Resolving user profile"
+    );
+
     // ? -----------------------------------------------------------------------
     // ? Try to fetch profile from cache
     // ? -----------------------------------------------------------------------
@@ -39,6 +44,11 @@ pub(crate) async fn recovery_profile_from_storage_engines(
     if let Some(profile) =
         fetch_profile_from_cache(search_key.to_owned(), req.clone()).await
     {
+        tracing::info!(
+            stage = "identity.profile",
+            outcome = "from_cache",
+            "Profile obtained from cache"
+        );
         return Ok(profile);
     }
 
@@ -64,6 +74,12 @@ pub(crate) async fn recovery_profile_from_storage_engines(
     // ? -----------------------------------------------------------------------
 
     cache_profile(search_key, profile.clone(), req.clone()).await;
+
+    tracing::info!(
+        stage = "identity.profile",
+        outcome = "resolved",
+        "Profile resolved via datastore"
+    );
 
     // ? -----------------------------------------------------------------------
     // ? Return profile
@@ -162,7 +178,14 @@ async fn fetch_profile_from_cache(
         };
 
     let profile_base64 = match profile_response {
-        FetchResponseKind::NotFound(_) => return None,
+        FetchResponseKind::NotFound(_) => {
+            tracing::info!(
+                stage = "identity.profile.cache",
+                cache_hit = false,
+                "Profile cache: miss"
+            );
+            return None;
+        }
         FetchResponseKind::Found(payload) => payload,
     };
 
@@ -179,7 +202,12 @@ async fn fetch_profile_from_cache(
 
     match serde_json::from_slice::<Profile>(&profile_slice) {
         Ok(profile) => {
-            tracing::trace!("Cache profile: {:?}", profile.profile_redacted());
+            tracing::info!(
+                stage = "identity.profile.cache",
+                cache_hit = true,
+                "Profile cache: hit"
+            );
+            tracing::trace!("Cached profile: {:?}", profile.profile_redacted());
 
             Some(profile)
         }

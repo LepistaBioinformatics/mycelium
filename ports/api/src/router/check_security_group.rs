@@ -37,6 +37,12 @@ pub(super) async fn check_security_group(
 
     let security_group = route.security_group.to_owned();
 
+    tracing::info!(
+        stage = "router.check_security_group",
+        security_group = %security_group.to_string(),
+        "Security group check started"
+    );
+
     //
     // Inject security group as header
     //
@@ -56,6 +62,11 @@ pub(super) async fn check_security_group(
     let service_name = match route.service {
         Parent::Record(ref service) => service.name.to_owned(),
         Parent::Id(_) => {
+            tracing::info!(
+                stage = "router.check_security_group",
+                outcome = "error",
+                "Service not found; security group check aborted"
+            );
             tracing::error!("Service not found");
 
             return Err(GatewayError::InternalServerError(String::from(
@@ -71,16 +82,24 @@ pub(super) async fn check_security_group(
         //
         // Public routes do not need any authentication or profile injection.
         //
-        SecurityGroup::Public => (downstream_request, None),
+        SecurityGroup::Public => {
+            tracing::info!(
+                stage = "router.check_security_group",
+                security_group = "Public",
+                outcome = "ok",
+                "Public route; check completed"
+            );
+            (downstream_request, None)
+        }
         //
         // Authenticated routes should include the user email into the request
         // token
         //
         SecurityGroup::Authenticated => {
-            //
-            // Try to extract user email from the request and inject it into the
-            // request headers
-            //
+            tracing::info!(
+                stage = "router.identity_resolution",
+                "Identity (email) resolution started"
+            );
             let (mod_downstream_request, email) =
                 fetch_and_inject_email_to_forward(
                     req,
@@ -89,7 +108,11 @@ pub(super) async fn check_security_group(
                 )
                 .instrument(span.to_owned())
                 .await?;
-
+            tracing::info!(
+                stage = "router.identity_resolution",
+                outcome = "ok",
+                "Identity (email) resolution completed"
+            );
             (mod_downstream_request, Some(UserInfo::new_email(email)))
         }
         //
@@ -97,9 +120,10 @@ pub(super) async fn check_security_group(
         // the header
         //
         SecurityGroup::Protected => {
-            //
-            // Try to populate profile from the request
-            //
+            tracing::info!(
+                stage = "router.profile_resolution",
+                "Profile resolution started"
+            );
             let (mod_downstream_request, profile) =
                 fetch_and_inject_profile_from_token_to_forward(
                     req,
@@ -110,7 +134,11 @@ pub(super) async fn check_security_group(
                 )
                 .instrument(span.to_owned())
                 .await?;
-
+            tracing::info!(
+                stage = "router.profile_resolution",
+                outcome = "ok",
+                "Profile resolution completed"
+            );
             (mod_downstream_request, Some(UserInfo::new_profile(profile)))
         }
         //
@@ -118,10 +146,10 @@ pub(super) async fn check_security_group(
         // into the header
         //
         SecurityGroup::ProtectedByRoles(roles) => {
-            //
-            // Try to populate profile from the request filtering licensed
-            // resources by roles
-            //
+            tracing::info!(
+                stage = "router.profile_resolution",
+                "Profile resolution by roles started"
+            );
             let (mod_downstream_request, profile) =
                 fetch_and_inject_profile_from_token_to_forward(
                     req,
@@ -132,10 +160,21 @@ pub(super) async fn check_security_group(
                 )
                 .instrument(span.to_owned())
                 .await?;
-
+            tracing::info!(
+                stage = "router.profile_resolution",
+                outcome = "ok",
+                "Profile resolution by roles completed"
+            );
             (mod_downstream_request, Some(UserInfo::new_profile(profile)))
         }
     };
+
+    tracing::info!(
+        stage = "router.check_security_group",
+        outcome = "ok",
+        security_group = %security_group.to_string(),
+        "Security group check completed"
+    );
 
     Ok((new_downstream_request, security_group, user_info))
 }

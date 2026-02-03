@@ -17,7 +17,7 @@ use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
 use myc_core::models::AccountLifeCycle;
 use myc_diesel::repositories::SqlAppModule;
 use myc_mem_db::repositories::MemDbAppModule;
-use tracing::error;
+use tracing::{error, info, info_span};
 
 async fn process_single_request(
     profile: &MyceliumProfileData,
@@ -29,9 +29,16 @@ async fn process_single_request(
     tools_schema: Option<&web::Data<ServiceOpenApiSchema>>,
     request: JsonRpcRequest,
 ) -> JsonRpcResponse {
+    let method = request.method.as_str();
+    let span = info_span!("rpc_call", rpc.method = %method);
+    let _guard = span.enter();
+
+    info!(rpc.method = %method, "RPC request");
+
     let id = request.id.clone();
 
     if request.jsonrpc.as_deref() != Some(types::JSONRPC_VERSION) {
+        info!(rpc.method = %method, success = false, error = "invalid_jsonrpc_version", "RPC response");
         return types::error_response(
             id,
             types::JsonRpcError {
@@ -44,6 +51,7 @@ async fn process_single_request(
 
     if request.method == super::method_names::RPC_DISCOVER {
         let spec = openrpc::generate_openrpc_spec(openrpc_config.get_ref());
+        info!(rpc.method = %method, success = true, "RPC response");
         return types::success_response(id, spec);
     }
 
@@ -187,8 +195,20 @@ async fn process_single_request(
     };
 
     match result {
-        Ok(value) => types::success_response(id, value),
-        Err(err) => types::error_response(id, err),
+        Ok(value) => {
+            info!(rpc.method = %method, success = true, "RPC response");
+            types::success_response(id, value)
+        }
+        Err(err) => {
+            info!(
+                rpc.method = %method,
+                success = false,
+                error_code = err.code,
+                error_message = %err.message,
+                "RPC response"
+            );
+            types::error_response(id, err)
+        }
     }
 }
 
@@ -203,10 +223,13 @@ pub async fn admin_jsonrpc_post(
     mem_module: web::Data<MemDbAppModule>,
     tools_schema: web::Data<ServiceOpenApiSchema>,
 ) -> impl Responder {
+    let span = info_span!("adm_rpc", path = "_adm/rpc");
+    let _guard = span.enter();
+
     let value: serde_json::Value = match serde_json::from_slice(&body) {
         Ok(v) => v,
         Err(e) => {
-            error!("JSON-RPC parse error: {}", e);
+            error!(path = "_adm/rpc", "JSON-RPC parse error: {}", e);
             let response = types::error_response(
                 None,
                 types::JsonRpcError {
@@ -223,6 +246,7 @@ pub async fn admin_jsonrpc_post(
         let request: JsonRpcRequest = match serde_json::from_value(value) {
             Ok(r) => r,
             Err(e) => {
+                info!(path = "_adm/rpc", error = %e, "RPC invalid request body");
                 let response = types::error_response(
                     None,
                     types::JsonRpcError {
@@ -250,7 +274,9 @@ pub async fn admin_jsonrpc_post(
 
     if value.is_array() {
         let arr = value.as_array().unwrap();
+        info!(path = "_adm/rpc", batch_size = arr.len(), "RPC batch request");
         if arr.is_empty() {
+            info!(path = "_adm/rpc", error = "batch_empty", "RPC batch array cannot be empty");
             let response = types::error_response(
                 None,
                 types::JsonRpcError {
@@ -309,6 +335,7 @@ pub async fn admin_jsonrpc_post(
         return HttpResponse::Ok().json(responses);
     }
 
+    info!(path = "_adm/rpc", error = "invalid_request_shape", "RPC request must be object or non-empty array");
     let response = types::error_response(
         None,
         types::JsonRpcError {
