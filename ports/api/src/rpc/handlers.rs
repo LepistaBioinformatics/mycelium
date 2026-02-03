@@ -274,9 +274,17 @@ pub async fn admin_jsonrpc_post(
 
     if value.is_array() {
         let arr = value.as_array().unwrap();
-        info!(path = "_adm/rpc", batch_size = arr.len(), "RPC batch request");
+        info!(
+            path = "_adm/rpc",
+            batch_size = arr.len(),
+            "RPC batch request"
+        );
         if arr.is_empty() {
-            info!(path = "_adm/rpc", error = "batch_empty", "RPC batch array cannot be empty");
+            info!(
+                path = "_adm/rpc",
+                error = "batch_empty",
+                "RPC batch array cannot be empty"
+            );
             let response = types::error_response(
                 None,
                 types::JsonRpcError {
@@ -335,7 +343,11 @@ pub async fn admin_jsonrpc_post(
         return HttpResponse::Ok().json(responses);
     }
 
-    info!(path = "_adm/rpc", error = "invalid_request_shape", "RPC request must be object or non-empty array");
+    info!(
+        path = "_adm/rpc",
+        error = "invalid_request_shape",
+        "RPC request must be object or non-empty array"
+    );
     let response = types::error_response(
         None,
         types::JsonRpcError {

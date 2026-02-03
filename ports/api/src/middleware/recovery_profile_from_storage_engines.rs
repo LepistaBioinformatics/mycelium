@@ -29,10 +29,7 @@ pub(crate) async fn recovery_profile_from_storage_engines(
     tenant: Option<Uuid>,
     roles: Option<Vec<PermissionedRole>>,
 ) -> Result<Profile, GatewayError> {
-    tracing::info!(
-        stage = "identity.profile",
-        "Resolving user profile"
-    );
+    tracing::info!(stage = "identity.profile", "Resolving user profile");
 
     // ? -----------------------------------------------------------------------
     // ? Try to fetch profile from cache

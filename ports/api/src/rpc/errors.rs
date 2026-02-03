@@ -19,7 +19,8 @@ pub fn params_required() -> JsonRpcError {
 pub fn forbidden_owner_only() -> JsonRpcError {
     JsonRpcError {
         code: types::codes::FORBIDDEN,
-        message: "Invalid operation. Operation restricted to account owners.".to_string(),
+        message: "Invalid operation. Operation restricted to account owners."
+            .to_string(),
         data: None,
     }
 }
