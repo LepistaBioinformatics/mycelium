@@ -2,11 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.1-beta.3] - 2026-02-04
+
+### 🚀 Features
+
+- Mirror the manager enpoints to the rpc caller
+- Mirror the beginners enpoints to the rpc caller
+- Mirror the beginners-meta enpoints to the rpc caller
+- Mirror the beginners-rest enpoints to the rpc caller
+- Mirror the account-managers enpoints to the rpc caller
+- Standardize parsing methods of rpc returns to mirror the rest endpoints
+- Mirror the guest-managers enpoints to the rpc caller
+- Mirror the existing enpoints to the rpc caller
+- Allow the post and get to rpc discovery
+- Structure the identity collection logs
+
+### 🐛 Bug Fixes
+
+- Fix version fo bites to avoid integer overflow
+- Cargo fmt
+
+### 🚜 Refactor
+
+- Move the rpc to the api root folder and rename endpoints to rest
+- Move the api_docs to the openapi module
+- Move all rcp path declarations to a centralized module
+
 ## [8.3.1-beta.2] - 2026-01-17
 
 ### 🐛 Bug Fixes
 
 - Add the service name to downstream header using x-mycelium-service-name key
+
+### ⚙️ Miscellaneous Tasks
+
+- Release {{crate_name}} version 8.3.1-beta.2
 
 ## [8.3.1-beta.1] - 2026-01-15
 
