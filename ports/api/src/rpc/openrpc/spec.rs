@@ -1,5 +1,6 @@
 use super::config::OpenRpcSpecConfig;
 use super::methods;
+use super::schema;
 
 const OPENRPC_VERSION: &str = "1.2.6";
 const API_VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -22,7 +23,7 @@ pub fn generate_openrpc_spec(config: &OpenRpcSpecConfig) -> serde_json::Value {
 
     let methods = methods::all_methods();
 
-    serde_json::json!({
+    let mut spec = serde_json::json!({
         "openrpc": OPENRPC_VERSION,
         "info": {
             "title": "Mycelium Admin JSON-RPC API",
@@ -36,5 +37,8 @@ pub fn generate_openrpc_spec(config: &OpenRpcSpecConfig) -> serde_json::Value {
         "servers": servers,
         "methods": methods,
         "components": { "schemas": {} }
-    })
+    });
+
+    schema::ensure_schema_safe_for_openrpc_generator(&mut spec);
+    spec
 }
