@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.1-beta.4] - 2026-02-05
+
+### 🧪 Testing
+
+- Upgrade docker compose to allow disable vault and observability
+
 ## [8.3.1-beta.3] - 2026-02-04
 
 ### 🚀 Features
@@ -30,6 +36,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release version 8.3.1-beta.3
 - Release version 8.3.1-beta.3
 - Release version 8.3.1-beta.3
 - Release version 8.3.1-beta.3
