@@ -127,12 +127,16 @@ mod tests {
     #[test]
     fn test_get_email_works() {
         for (is_valid, email_string) in vec![
-            (true, "mycelium-default-users@biotrop.com.br".to_string()),
-            (true, "myceliumDefaultUsers@biotrop.com.br".to_string()),
-            (true, "mycelium-default-users@biotrop.com".to_string()),
-            (true, "myceliumDefaultUsers@biotrop.com".to_string()),
-            (false, "mycelium-default-users@biotrop".to_string()),
-            (false, "myceliumDefaultUsers@biotrop".to_string()),
+            (true, "mycelium-default-users@mycelium.com".to_string()),
+            (
+                true,
+                "mycelium-default-users+group@mycelium.com.br".to_string(),
+            ),
+            (true, "myceliumDefaultUsers@mycelium.com.br".to_string()),
+            (true, "mycelium-default-users@mycelium.com".to_string()),
+            (true, "myceliumDefaultUsers@mycelium.com".to_string()),
+            (false, "mycelium-default-users@mycelium".to_string()),
+            (false, "myceliumDefaultUsers@mycelium".to_string()),
         ] {
             let email = Email::from_string(email_string.to_owned());
 
