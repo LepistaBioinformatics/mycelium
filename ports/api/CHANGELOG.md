@@ -2,11 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.1-beta.5] - 2026-02-08
+
+### 🐛 Bug Fixes
+
+- Solve vulnerable dependencies of time crate and reqwest
+
 ## [8.3.1-beta.4] - 2026-02-05
 
 ### 🧪 Testing
 
 - Upgrade docker compose to allow disable vault and observability
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-beta.4
 
 ## [8.3.1-beta.3] - 2026-02-04
 
