@@ -1,13 +1,15 @@
-mod api_docs;
+mod callback_engines;
 mod dispatchers;
 mod dtos;
-mod endpoints;
 mod middleware;
 mod models;
 mod modifiers;
+mod openapi;
 mod openapi_processor;
 mod otel;
+mod rest;
 mod router;
+mod rpc;
 mod settings;
 
 use crate::openapi_processor::initialize_tools_registry;
@@ -19,12 +21,56 @@ use actix_web::{
     web, App, HttpServer,
 };
 use actix_web_opentelemetry::RequestTracing;
-use api_docs::ApiDoc;
 use awc::{error::HeaderValue, Client};
 use dispatchers::{
     email_dispatcher, services_health_dispatcher, webhook_dispatcher,
 };
-use endpoints::{
+use models::config_handler::ConfigHandler;
+use myc_adapters_shared_lib::models::{
+    SharedAppModule, SharedClientImpl, SharedClientImplParameters,
+    SharedClientProvider,
+};
+use myc_config::{
+    init_vault_config_from_file, optional_config::OptionalConfig,
+};
+use myc_core::{
+    domain::{
+        dtos::callback::CallbackExecutor,
+        entities::{
+            GuestRoleRegistration, LocalMessageReading, LocalMessageWrite,
+            RemoteMessageWrite, ServiceRead,
+        },
+    },
+    use_cases::gateway::guest_roles::propagate_declared_roles_to_storage_engine,
+};
+use myc_diesel::repositories::{
+    DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
+};
+use myc_http_tools::settings::DEFAULT_REQUEST_ID_KEY;
+use myc_kv::repositories::KVAppModule;
+use myc_mem_db::repositories::{
+    MemDbAppModule, MemDbPoolProvider, MemDbPoolProviderParameters,
+};
+use myc_notifier::{
+    models::ClientProvider,
+    repositories::{
+        NotifierAppModule, NotifierClientImpl, NotifierClientImplParameters,
+    },
+};
+use mycelium_base::utils::errors::MappedErrors;
+use oauth2::http::HeaderName;
+use openapi::ApiDoc;
+use openssl::{
+    pkey::PKey,
+    ssl::{SslAcceptor, SslMethod},
+    x509::X509,
+};
+use otel::initialize_otel;
+use reqwest::header::{
+    ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
+    ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
+};
+use rest::{
     index::heath_check_endpoints,
     manager::{
         account_endpoints as manager_account_endpoints,
@@ -36,50 +82,6 @@ use endpoints::{
     service::tools_endpoints as service_tools_endpoints,
     shared::insert_role_header,
     staff::account_endpoints as staff_account_endpoints,
-};
-use models::config_handler::ConfigHandler;
-use myc_adapters_shared_lib::models::{
-    SharedAppModule, SharedClientImpl, SharedClientImplParameters,
-    SharedClientProvider,
-};
-use myc_config::{
-    init_vault_config_from_file, optional_config::OptionalConfig,
-};
-use myc_core::{
-    domain::entities::{
-        GuestRoleRegistration, LocalMessageReading, LocalMessageWrite,
-        RemoteMessageWrite, ServiceRead,
-    },
-    use_cases::gateway::guest_roles::propagate_declared_roles_to_storage_engine,
-};
-use myc_diesel::repositories::{
-    DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
-};
-use myc_http_tools::settings::DEFAULT_REQUEST_ID_KEY;
-use myc_kv::repositories::KVAppModule;
-use myc_mem_db::{
-    models::config::DbPoolProvider,
-    repositories::{
-        MemDbAppModule, MemDbPoolProvider, MemDbPoolProviderParameters,
-    },
-};
-use myc_notifier::{
-    models::ClientProvider,
-    repositories::{
-        NotifierAppModule, NotifierClientImpl, NotifierClientImplParameters,
-    },
-};
-use mycelium_base::utils::errors::MappedErrors;
-use oauth2::http::HeaderName;
-use openssl::{
-    pkey::PKey,
-    ssl::{SslAcceptor, SslMethod},
-    x509::X509,
-};
-use otel::initialize_otel;
-use reqwest::header::{
-    ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
-    ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use router::route_request;
 use settings::{ADMIN_API_SCOPE, TOOLS_API_SCOPE};
@@ -110,7 +112,7 @@ pub async fn main() -> std::io::Result<()> {
         unsafe {
             std::env::set_var(
                 "UTOIPA_REDOC_CONFIG_FILE",
-                "ports/api/src/api_docs/redoc.config.json",
+                "ports/api/src/openapi/redoc.config.json",
             );
         }
     }
@@ -316,6 +318,12 @@ pub async fn main() -> std::io::Result<()> {
         trace!("Configured Cors: {:?}", cors);
 
         // ? -------------------------------------------------------------------
+        // ? OpenRPC discovery (server URLs from config / env)
+        // ? -------------------------------------------------------------------
+        let openrpc_spec_config =
+            rpc::openrpc::OpenRpcSpecConfig::from_api_config(&config.api);
+
+        // ? -------------------------------------------------------------------
         // ? Create the basis for the application
         // ? -------------------------------------------------------------------
         let base_app = App::new()
@@ -335,6 +343,7 @@ pub async fn main() -> std::io::Result<()> {
             //
             // Inject configuration
             //
+            .app_data(web::Data::new(openrpc_spec_config))
             .app_data(web::Data::new(tools_registry_schema.clone()))
             .app_data(web::Data::new(token_config).clone())
             .app_data(web::Data::new(auth_config.to_owned()).clone())
@@ -427,7 +436,7 @@ pub async fn main() -> std::io::Result<()> {
             // managers.
             //
             .service(
-                web::scope(endpoints::shared::UrlScope::Staffs.str())
+                web::scope(rest::shared::UrlScope::Staffs.str())
                     //
                     // Inject a header to be collected by the
                     // MyceliumProfileData extractor.
@@ -450,7 +459,7 @@ pub async fn main() -> std::io::Result<()> {
             // Manager Users
             //
             .service(
-                web::scope(endpoints::shared::UrlScope::Managers.str())
+                web::scope(rest::shared::UrlScope::Managers.str())
                     //
                     // Inject a header to be collected by the
                     // MyceliumProfileData extractor.
@@ -470,6 +479,18 @@ pub async fn main() -> std::io::Result<()> {
                     .configure(manager_tenant_endpoints::configure)
                     .configure(manager_guest_role_endpoints::configure)
                     .configure(manager_account_endpoints::configure),
+            )
+            //
+            // JSON-RPC (single + batch at _adm/rpc)
+            //
+            .service(
+                web::scope("rpc")
+                    .wrap_fn(|req, srv| {
+                        let req = insert_role_header(req, vec![]);
+
+                        srv.call(req)
+                    })
+                    .configure(rpc::configure),
             )
             //
             // Role Scoped Endpoints
@@ -700,14 +721,48 @@ async fn initialize_modules(
         trace!("Service: {:?}", service);
     }
 
+    // ? -----------------------------------------------------------------------
+    // ? CREATE CALLBACK ENGINES FROM CONFIGURED CALLBACKS
+    //
+    // Convert callbacks configuration into executable engines that can be
+    // injected and executed later.
+    //
+    // ? -----------------------------------------------------------------------
+    let callbacks = config.api.to_owned().callbacks.clone().unwrap_or_default();
+
+    let mut engines: Vec<Arc<dyn CallbackExecutor>> = Vec::new();
+
+    for callback in &callbacks {
+        match callback_engines::create_engine_from_callback(callback) {
+            Ok(engine) => {
+                tracing::debug!(
+                    "Created engine for callback '{}' (type: {:?})",
+                    callback.name,
+                    callback.callback_type
+                );
+
+                engines.push(engine);
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "Failed to create engine for callback '{}': {e}",
+                    callback.name,
+                );
+            }
+        }
+    }
+
     let mem_module = Arc::new(
         MemDbAppModule::builder()
             .with_component_parameters::<MemDbPoolProvider>(
                 MemDbPoolProviderParameters {
                     services_db: Arc::new(Mutex::new(
-                        MemDbPoolProvider::new(config.api.services.clone())
-                            .await
-                            .get_services_db(),
+                        config.api.services.clone(),
+                    )),
+                    callbacks_db: Arc::new(Mutex::new(callbacks)),
+                    engines: Arc::new(Mutex::new(engines)),
+                    mode: Arc::new(Mutex::new(
+                        config.api.to_owned().callback_execution_mode.clone(),
                     )),
                 },
             )

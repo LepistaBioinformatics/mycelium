@@ -17,12 +17,12 @@ RUN echo "Building mycelium-api version: ${VERSION}"
 # ? Otherwise, install using the --version flag
 RUN if [ "${VERSION}" = "latest" ]; then \
         echo "Installing mycelium-api from minor version"; \
-        cargo install mycelium-api; \
+        cargo install mycelium-api --features rhai; \
         echo "mycelium-api installed successfully"; \
         echo "Version: $(myc-api --version)"; \
     else \
         echo "Installing mycelium-api from specific version"; \
-        cargo install mycelium-api --version ${VERSION}; \
+        cargo install mycelium-api  --features rhai --version ${VERSION}; \
         echo "mycelium-api installed successfully"; \
         echo "Version: $(myc-api --version)"; \
     fi
@@ -35,7 +35,7 @@ FROM rust:latest
 
 COPY --from=builder /usr/local/cargo/bin/myc-api /usr/local/bin/myc-api
 
-COPY ports/api/src/api_docs/redoc.config.json /home/redoc.config.json
+COPY ports/api/src/openapi/redoc.config.json /home/redoc.config.json
 COPY templates /home/templates
 
 ENV UTOIPA_REDOC_CONFIG_FILE=/home/redoc.config.json

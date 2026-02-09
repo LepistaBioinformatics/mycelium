@@ -8,6 +8,7 @@ use myc_http_tools::{
     functions::compress_and_encode_profile_to_base64,
     responses::GatewayError,
     settings::{DEFAULT_CONNECTION_STRING_KEY, DEFAULT_PROFILE_KEY},
+    Profile,
 };
 use opentelemetry::{global, KeyValue};
 use reqwest::header::{HeaderName, HeaderValue};
@@ -43,10 +44,13 @@ pub async fn fetch_and_inject_profile_from_token_to_forward(
     tenant: Option<Uuid>,
     roles: Option<Vec<PermissionedRole>>,
     service_name: String,
-) -> Result<ClientRequest, GatewayError> {
+) -> Result<(ClientRequest, Profile), GatewayError> {
     let span = tracing::Span::current();
 
-    tracing::trace!("Injecting profile to forward");
+    tracing::info!(
+        stage = "router.profile_injection",
+        "Starting profile injection to downstream"
+    );
 
     let profile = if req.headers().get(DEFAULT_CONNECTION_STRING_KEY).is_some()
     {
@@ -123,7 +127,11 @@ pub async fn fetch_and_inject_profile_from_token_to_forward(
         .unwrap(),
     );
 
-    tracing::trace!("Profile injected to forward");
+    tracing::info!(
+        stage = "router.profile_injection",
+        outcome = "ok",
+        "Profile injected into downstream request"
+    );
 
-    Ok(forwarded_req)
+    Ok((forwarded_req, profile.to_profile()))
 }

@@ -79,6 +79,12 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
     if let Some(email) = optional_email_from_internal_provider {
         span.record("myc.router.email", &Some(email.redacted_email()));
 
+        tracing::info!(
+            stage = "identity.email",
+            outcome = "from_token",
+            "Email obtained from internal token"
+        );
+
         return Ok((email, None));
     }
 
@@ -121,6 +127,11 @@ async fn get_email_from_external_provider(
     token: &str,
     req: &HttpRequest,
 ) -> Result<Email, GatewayError> {
+    tracing::info!(
+        stage = "identity.external",
+        "Identity resolution via external provider started"
+    );
+
     // ? -----------------------------------------------------------------------
     // ? Collect public keys from provider
     //
@@ -330,6 +341,12 @@ async fn get_email_from_external_provider(
             )
         })?;
 
+        tracing::info!(
+            stage = "identity.external",
+            outcome = "ok",
+            "Identity via external provider completed"
+        );
+
         return Ok(parsed_email);
     };
 
@@ -369,6 +386,12 @@ async fn get_email_from_external_provider(
         .await?;
 
         if let Some(email) = email {
+            tracing::info!(
+                stage = "identity.external",
+                outcome = "ok",
+                "Identity via external provider completed"
+            );
+
             return Ok(email);
         }
     }
@@ -390,6 +413,12 @@ async fn get_email_from_external_provider(
             .await?;
 
             if let Some(email) = email {
+                tracing::info!(
+                    stage = "identity.external",
+                    outcome = "ok",
+                    "Identity via external provider completed"
+                );
+
                 return Ok(email);
             }
         }
@@ -410,6 +439,12 @@ async fn fetch_jwks(
     uri: &str,
     req: &HttpRequest,
 ) -> Result<JWKS, GatewayError> {
+    tracing::info!(
+        stage = "identity.jwks",
+        jwks_uri = %uri,
+        "Resolving JWKS"
+    );
+
     // ? -----------------------------------------------------------------------
     // ? Try to fetch JWKS cache
     // ? -----------------------------------------------------------------------
@@ -451,7 +486,15 @@ async fn fetch_jwks(
         };
 
         match serde_json::from_slice::<JWKS>(&jwks_slice) {
-            Ok(jwks) => return Ok(jwks),
+            Ok(jwks) => {
+                tracing::info!(
+                    stage = "identity.jwks",
+                    outcome = "from_cache",
+                    jwks_uri = %uri,
+                    "JWKS obtained from cache"
+                );
+                return Ok(jwks);
+            }
             Err(err) => {
                 tracing::error!("Unexpected error on parse JWKS: {err}");
 
@@ -483,6 +526,13 @@ async fn fetch_jwks(
     })?;
 
     set_jwks_in_cache(search_key, jwks.to_owned(), req).await;
+
+    tracing::info!(
+        stage = "identity.jwks",
+        outcome = "resolved",
+        jwks_uri = %uri,
+        "JWKS resolved via URI"
+    );
 
     return Ok(jwks);
 }
@@ -570,7 +620,14 @@ async fn fetch_email_from_cache(
     };
 
     let profile_base64 = match profile_response {
-        FetchResponseKind::NotFound(_) => return None,
+        FetchResponseKind::NotFound(_) => {
+            tracing::info!(
+                stage = "identity.email.cache",
+                cache_hit = false,
+                "Email cache: miss"
+            );
+            return None;
+        }
         FetchResponseKind::Found(payload) => payload,
     };
 
@@ -587,6 +644,11 @@ async fn fetch_email_from_cache(
 
     match serde_json::from_slice::<Email>(&profile_slice) {
         Ok(email) => {
+            tracing::info!(
+                stage = "identity.email.cache",
+                cache_hit = true,
+                "Email cache: hit"
+            );
             tracing::trace!("Cache email: {:?}", email.redacted_email());
 
             Some(email)
@@ -661,6 +723,12 @@ async fn get_user_info_from_url(
     token_identifier: String,
     req: &HttpRequest,
 ) -> Result<Option<Email>, GatewayError> {
+    tracing::info!(
+        stage = "identity.email",
+        user_info_url = %user_info_url,
+        "Resolving user email"
+    );
+
     // ? -----------------------------------------------------------------------
     // ? Try to fetch email from cache
     //
@@ -672,6 +740,11 @@ async fn get_user_info_from_url(
     let email = fetch_email_from_cache(token_identifier.to_owned(), req).await;
 
     if let Some(email) = email {
+        tracing::info!(
+            stage = "identity.email",
+            outcome = "from_cache",
+            "Email obtained from cache"
+        );
         return Ok(Some(email));
     }
 
@@ -722,6 +795,12 @@ async fn get_user_info_from_url(
     // ? -----------------------------------------------------------------------
 
     set_email_in_cache(token_identifier, parsed_email.to_owned(), req).await;
+
+    tracing::info!(
+        stage = "identity.email",
+        outcome = "resolved",
+        "Email resolved via userinfo"
+    );
 
     // ? -----------------------------------------------------------------------
     // ? Return email

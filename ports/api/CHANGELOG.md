@@ -2,6 +2,88 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.1-beta.5] - 2026-02-08
+
+### 🐛 Bug Fixes
+
+- Solve vulnerable dependencies of time crate and reqwest
+
+## [8.3.1-beta.4] - 2026-02-05
+
+### 🧪 Testing
+
+- Upgrade docker compose to allow disable vault and observability
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-beta.4
+
+## [8.3.1-beta.3] - 2026-02-04
+
+### 🚀 Features
+
+- Mirror the manager enpoints to the rpc caller
+- Mirror the beginners enpoints to the rpc caller
+- Mirror the beginners-meta enpoints to the rpc caller
+- Mirror the beginners-rest enpoints to the rpc caller
+- Mirror the account-managers enpoints to the rpc caller
+- Standardize parsing methods of rpc returns to mirror the rest endpoints
+- Mirror the guest-managers enpoints to the rpc caller
+- Mirror the existing enpoints to the rpc caller
+- Allow the post and get to rpc discovery
+- Structure the identity collection logs
+
+### 🐛 Bug Fixes
+
+- Fix version fo bites to avoid integer overflow
+- Cargo fmt
+
+### 🚜 Refactor
+
+- Move the rpc to the api root folder and rename endpoints to rest
+- Move the api_docs to the openapi module
+- Move all rcp path declarations to a centralized module
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-beta.3
+- Release version 8.3.1-beta.3
+- Release version 8.3.1-beta.3
+- Release version 8.3.1-beta.3
+
+## [8.3.1-beta.2] - 2026-01-17
+
+### 🐛 Bug Fixes
+
+- Add the service name to downstream header using x-mycelium-service-name key
+
+### ⚙️ Miscellaneous Tasks
+
+- Release {{crate_name}} version 8.3.1-beta.2
+
+## [8.3.1-beta.1] - 2026-01-15
+
+### 🐛 Bug Fixes
+
+- Review the information injection to sendo to callback scripts
+
+### ⚙️ Miscellaneous Tasks
+
+- Release {{crate_name}} version 8.3.1-beta.1
+- Release {{crate_name}} version 8.3.1-beta.1
+
+## [8.3.0] - 2026-01-15
+
+### 🚀 Features
+
+- Include the read and write options to specify the allowed methods of router
+- Implements the basis for the callback execution in api port
+- Do implements the engine execution logic
+
+### ⚙️ Miscellaneous Tasks
+
+- Release {{crate_name}} version 8.3.0
+
 ## [8.2.2-beta.2] - 2026-01-08
 
 ### 🚀 Features
@@ -10,6 +92,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release {{crate_name}} version 8.2.2-beta.2
 - Release {{crate_name}} version 8.2.2-beta.2
 
 ## [8.2.2-beta.1] - 2026-01-06

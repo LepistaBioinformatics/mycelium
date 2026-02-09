@@ -2,10 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.1-beta.4] - 2026-02-05
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-beta.4
+
+## [8.3.1-beta.3] - 2026-02-04
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-beta.3
+- Release version 8.3.1-beta.3
+- Release version 8.3.1-beta.3
+- Release version 8.3.1-beta.3
+
+## [8.3.1-beta.2] - 2026-01-17
+
+### ⚙️ Miscellaneous Tasks
+
+- Release {{crate_name}} version 8.3.1-beta.2
+
+## [8.3.1-beta.1] - 2026-01-15
+
+### ⚙️ Miscellaneous Tasks
+
+- Release {{crate_name}} version 8.3.1-beta.1
+- Release {{crate_name}} version 8.3.1-beta.1
+
+## [8.3.0] - 2026-01-15
+
+### ⚙️ Miscellaneous Tasks
+
+- Release {{crate_name}} version 8.3.0
+
 ## [8.2.2-beta.2] - 2026-01-08
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release {{crate_name}} version 8.2.2-beta.2
 - Release {{crate_name}} version 8.2.2-beta.2
 
 ## [8.2.2-beta.1] - 2026-01-06

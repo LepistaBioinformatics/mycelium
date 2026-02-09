@@ -146,12 +146,8 @@ pub(super) async fn initialize_downstream_request(
     // Inform to the downstream service about the target host, protocol and
     // port. Also, inform that the request is coming from the mycelium gateway.
     //
-    if let Some(_) = service.proxy_address.to_owned() {
-        downstream_request = downstream_request.insert_header((
-            MYCELIUM_SERVICE_NAME,
-            format!("{}", service.name),
-        ));
-    };
+    downstream_request = downstream_request
+        .insert_header((MYCELIUM_SERVICE_NAME, format!("{}", service.name)));
 
     Ok(downstream_request)
 }

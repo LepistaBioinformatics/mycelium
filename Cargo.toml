@@ -34,33 +34,6 @@ categories = ["development-tools", "web-programming::http-server"]
 
 [workspace.dependencies]
 
-#
-# Dependabot security vulnerabilities:
-#
-# - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/3
-#
-hashbrown = "0.15.2"
-#
-# - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/4
-#
-idna = ">=1.0.0"
-#
-# - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/5
-#
-openssl = ">=0.10.70"
-#
-# - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/6
-#
-ring = ">=0.17.12"
-#
-# - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/13
-#
-slab = "=0.4.11"
-#
-# - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/7
-#
-zip = "=2.4.2"
-
 actix-web = { version = "4", features = ["openssl"] }
 actix-web-httpauth = "0.8.0"
 async-trait = "0.1"
@@ -78,6 +51,7 @@ jwt = "0.16.0"
 lazy_static = "1.4"
 lettre = "0.11"
 oauth2 = "4.4"
+openssl = ">=0.10.70"
 opentelemetry = { version = "0.31", features = ["trace", "metrics", "logs"] }
 opentelemetry_sdk = { version = "0.31", features = ["rt-tokio"] }
 opentelemetry-otlp = { version = "0.31", features = [
@@ -94,7 +68,11 @@ tonic = { version = "0", features = ["tls", "tls-roots"] }
 rand = "0.8"
 redis = { version = "0.27", features = ["tokio-comp"] }
 regex = "1"
-reqwest = { version = "0.11", features = ["json"] }
+# Use native-tls only to avoid unmaintained rustls-pemfile (RUSTSEC-2025-0134).
+reqwest = { version = "0.11", default-features = false, features = [
+    "json",
+    "native-tls",
+] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 shaku = "0.6"
@@ -131,17 +109,35 @@ zstd = "0.13"
 # Mycelium packages
 # ------------------------------------------------------------------------------
 
-myc-core = { version = "8.2.2-beta.2", path = "core" }
-mycelium-base = { version = "8.2.2-beta.2", path = "lib/base" }
-mycelium-config = { version = "8.2.2-beta.2", path = "lib/config" }
-mycelium-openapi = { version = "8.2.2-beta.2", path = "lib/openapi" }
-mycelium-http-tools = { version = "8.2.2-beta.2", path = "lib/http_tools" }
-mycelium-memory-db = { version = "8.2.2-beta.2", path = "adapters/mem_db" }
-mycelium-service = { version = "8.2.2-beta.2", path = "adapters/service" }
-mycelium-diesel = { version = "8.2.2-beta.2", path = "adapters/diesel" }
-mycelium-notifier = { version = "8.2.2-beta.2", path = "adapters/notifier" }
-mycelium-adapters-shared-lib = { version = "8.2.2-beta.2", path = "adapters/shared" }
-mycelium-key-value = { version = "8.2.2-beta.2", path = "adapters/kv_db" }
+myc-core = { version = "8.3.1-beta.5", path = "core" }
+mycelium-base = { version = "8.3.1-beta.5", path = "lib/base" }
+mycelium-config = { version = "8.3.1-beta.5", path = "lib/config" }
+mycelium-openapi = { version = "8.3.1-beta.5", path = "lib/openapi" }
+mycelium-http-tools = { version = "8.3.1-beta.5", path = "lib/http_tools" }
+mycelium-memory-db = { version = "8.3.1-beta.5", path = "adapters/mem_db" }
+mycelium-service = { version = "8.3.1-beta.5", path = "adapters/service" }
+mycelium-diesel = { version = "8.3.1-beta.5", path = "adapters/diesel" }
+mycelium-notifier = { version = "8.3.1-beta.5", path = "adapters/notifier" }
+mycelium-adapters-shared-lib = { version = "8.3.1-beta.5", path = "adapters/shared" }
+mycelium-key-value = { version = "8.3.1-beta.5", path = "adapters/kv_db" }
+
+#
+# RUSTSEC-2026-0007: force bytes >= 1.11.1 (Integer overflow in
+# BytesMut::reserve). Transitive via tower-http, tonic, tokio-util, etc.
+# Declaring in a workspace member forces the resolver to use this version in
+# every dependency graph.
+#
+bytes = "1.11.1"
+#
+# RUSTSEC-2026-0009: force time >= 0.3.47 (Denial of Service via Stack
+# Exhaustion). Transitive via zip, tracing-appender, simple_asn1, cookie,
+# actix-web, pasetors.
+#
+time = "0.3.47"
+#
+# - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/7
+#
+zip = "2.4.2"
 
 [workspace.metadata.release]
 

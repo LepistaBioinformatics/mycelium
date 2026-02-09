@@ -2,7 +2,9 @@ use super::check_credentials_with_multi_identity_provider;
 
 use actix_web::HttpRequest;
 use awc::ClientRequest;
-use myc_http_tools::{responses::GatewayError, settings::DEFAULT_EMAIL_KEY};
+use myc_http_tools::{
+    responses::GatewayError, settings::DEFAULT_EMAIL_KEY, Email,
+};
 use opentelemetry::{global, KeyValue};
 use reqwest::header::{HeaderName, HeaderValue};
 use std::str::FromStr;
@@ -18,10 +20,13 @@ pub async fn fetch_and_inject_email_to_forward(
     req: HttpRequest,
     mut forwarded_req: ClientRequest,
     service_name: String,
-) -> Result<ClientRequest, GatewayError> {
+) -> Result<(ClientRequest, Email), GatewayError> {
     let span = tracing::Span::current();
 
-    tracing::trace!("Injecting email to forward");
+    tracing::info!(
+        stage = "router.identity_injection",
+        "Starting email injection to downstream"
+    );
 
     let (email, _) =
         check_credentials_with_multi_identity_provider(req.clone())
@@ -62,7 +67,11 @@ pub async fn fetch_and_inject_email_to_forward(
 
     span.record("myc.router.email", &Some(email.redacted_email()));
 
-    tracing::trace!("Email injected to forward");
+    tracing::info!(
+        stage = "router.identity_injection",
+        outcome = "ok",
+        "Email injected into downstream request"
+    );
 
-    Ok(forwarded_req)
+    Ok((forwarded_req, email))
 }

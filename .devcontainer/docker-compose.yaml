@@ -34,6 +34,9 @@ services:
     <<: *common-config
     container_name: myc-jaeger-devcontainer
 
+    profiles:
+      - observability
+
   myc-prometheus-devcontainer:
     extends:
       file: ../docker-compose.common.yaml
@@ -42,6 +45,9 @@ services:
     <<: *common-config
     container_name: myc-prometheus-devcontainer
 
+    profiles:
+      - observability
+
   myc-grafana-devcontainer:
     extends:
       file: ../docker-compose.common.yaml
@@ -49,6 +55,9 @@ services:
 
     <<: *common-config
     container_name: myc-grafana-devcontainer
+
+    profiles:
+      - observability
 
   myc-otel-collector-devcontainer:
     extends:
@@ -60,6 +69,9 @@ services:
     depends_on:
       - myc-jaeger-devcontainer
       - myc-prometheus-devcontainer
+
+    profiles:
+      - observability
 
   myc-redis-devcontainer:
     extends:
@@ -91,6 +103,9 @@ services:
 
     container_name: myc-vault-devcontainer
 
+    profiles:
+      - security
+
   myc-test-service-devcontainer:
     extends:
       file: ../docker-compose.common.yaml
@@ -113,8 +128,11 @@ services:
     ports:
       - 8080:8080
 
+    # Only services in the default profile (jaeger and vault are optional)
     depends_on:
-      - myc-postgres-devcontainer
-      - myc-jaeger-devcontainer
-      - myc-redis-devcontainer
-      - myc-vault-devcontainer
+      myc-postgres-devcontainer:
+        condition: service_started
+      myc-redis-devcontainer:
+        condition: service_started
+      myc-test-service-devcontainer:
+        condition: service_started

@@ -2,7 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
-## [8.2.2-beta.2] - 2026-01-08
+## [8.3.1-beta.5] - 2026-02-08
+
+### 🧪 Testing
+
+- Allow plus symbol to allow group emails
+
+## [8.3.1-beta.4] - 2026-02-05
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-beta.3
+- Release version 8.3.1-beta.3
+- Release version 8.3.1-beta.4
+
+## [8.3.1-beta.2] - 2026-01-17
+
+### 🐛 Bug Fixes
+
+- Review the information injection to sendo to callback scripts
+
+### ⚙️ Miscellaneous Tasks
+
+- Release {{crate_name}} version 8.3.1-beta.1
+- Release {{crate_name}} version 8.3.1-beta.2
+
+## [8.3.0] - 2026-01-15
 
 ### 🚀 Features
 
@@ -10,6 +35,18 @@ All notable changes to this project will be documented in this file.
 - Implements structural methods to filter licensed resources by permit and deny flags
 - Wip - create initial files to declare flags registration before implements
 - Create use-case and associated codebase to update permit and deny flags
+- Include the read and write options to specify the allowed methods of router
+- Create the callback dtos to be used in routes and services definitions
+- Do implements the engine execution logic
+
+### 🧪 Testing
+
+- Do implements tests for the route dto
+
+### ⚙️ Miscellaneous Tasks
+
+- Release {{crate_name}} version 8.2.2-beta.2
+- Release {{crate_name}} version 8.3.0
 
 ## [8.2.2-beta.1] - 2026-01-06
 
