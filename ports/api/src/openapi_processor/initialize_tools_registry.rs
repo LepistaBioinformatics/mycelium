@@ -23,7 +23,7 @@ use std::{collections::HashMap, sync::Arc};
 use tracing::Instrument;
 use utoipa::OpenApi;
 
-const MYCELIUM_SERVICE_NAME: &str = "MAG";
+const MYCELIUM_SERVICE_NAME: &str = "mag";
 
 #[tracing::instrument(name = "initialize_tools_registry", skip_all)]
 pub(crate) async fn initialize_tools_registry(

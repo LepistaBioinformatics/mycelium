@@ -28,9 +28,16 @@ pub fn configure(config: &mut web::ServiceConfig) {
 
 #[derive(Debug, Clone, Deserialize, Serialize, ToResponse, ToSchema)]
 #[serde(rename_all = "snake_case")]
+struct ProtectedResourceAuthServer {
+    issuer: String,
+    audience: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, ToResponse, ToSchema)]
+#[serde(rename_all = "snake_case")]
 struct ProtectedResource {
     resource: String,
-    authorization_servers: Vec<String>,
+    authorization_servers: Vec<ProtectedResourceAuthServer>,
     scopes_supported: Vec<String>,
     bearer_methods_supported: Vec<String>,
     resource_documentation: String,
@@ -102,14 +109,11 @@ pub async fn well_known_oauth_authorization_server(
             HttpResponse::InternalServerError().finish()
         }
         Ok(mut res) => {
-            let mut client_resp = HttpResponse::build(res.status());
-
-            for (h_name, h_value) in res.headers().iter() {
-                client_resp.append_header((h_name.clone(), h_value.clone()));
-            }
-
             let body = res.body().await.unwrap_or_else(|_| web::Bytes::new());
-            client_resp.body(body)
+
+            HttpResponse::build(res.status())
+                .content_type("application/json")
+                .body(body)
         }
     }
 }
@@ -127,11 +131,11 @@ pub async fn well_known_oauth_authorization_server(
 ///     "authorization_servers": [
 ///         {
 ///             "issuer": "https://auth0.example.com",
-///             "metadata": "https://auth0.example.com/.well-known/openid-configuration"
+///             "audience": "https://auth0.example.com/api/v2/"
 ///         },
 ///         {
 ///             "issuer": "https://accounts.google.com",
-///             "metadata": "https://accounts.google.com/.well-known/openid-configuration"
+///             "audience": "YOUR_CLIENT_ID"
 ///         }
 ///     ],
 ///     "scopes_supported": ["read", "write"],
@@ -162,7 +166,10 @@ pub async fn well_known_protected_resource(
         match get_authorization_providers(auth_config, None).await {
             Ok(providers) => providers
                 .iter()
-                .map(|p| p.issuer.clone())
+                .map(|p| ProtectedResourceAuthServer {
+                    issuer: p.issuer.clone(),
+                    audience: p.audience.clone(),
+                })
                 .collect::<Vec<_>>(),
             Err(error) => {
                 return error;

@@ -11,6 +11,7 @@ use utoipa::{ToResponse, ToSchema};
 pub(super) struct AuthorizationProvider {
     pub(super) issuer: String,
     pub(super) discovery_url: String,
+    pub(super) audience: String,
 }
 
 pub(super) async fn get_authorization_providers(
@@ -51,9 +52,12 @@ pub(super) async fn get_authorization_providers(
                     .body("Discovery URL is not configured"));
             };
 
+        let audience = provider.audience.async_get_or_error().await.unwrap();
+
         authorization_servers.push(AuthorizationProvider {
             issuer: provider.issuer.async_get_or_error().await.unwrap(),
             discovery_url,
+            audience,
         });
     }
 

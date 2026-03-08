@@ -1,6 +1,7 @@
 mod callback_engines;
 mod dispatchers;
 mod dtos;
+mod mcp;
 mod middleware;
 mod models;
 mod modifiers;
@@ -519,6 +520,18 @@ pub async fn main() -> std::io::Result<()> {
             // Configure admin routes
             //
             .service(admin_scope)
+            //
+            // Configure MCP server
+            //
+            // MCP (Model Context Protocol) exposes downstream service
+            // APIs as AI-agent-invocable tools via JSON-RPC 2.0.
+            // tools/call uses HTTP loopback through the gateway router
+            // so auth, RBAC, and secret injection are fully reused.
+            //
+            .service(
+                web::scope("/mcp")
+                    .configure(mcp::endpoints::configure),
+            )
             //
             // Configure gateway routes
             //
