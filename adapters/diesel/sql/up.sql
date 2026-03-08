@@ -334,9 +334,9 @@ SELECT DISTINCT
 	gr.permission AS gr_perm,
 	gu.email AS gu_email,
 	gu.was_verified AS gu_verified,
-	ac.tenant_id AS tenant_id
+	ac.tenant_id AS tenant_id,
     ga.permit_flags AS permit_flags,
-    ga.deny_flags AS deny_flags,
+    ga.deny_flags AS deny_flags
 FROM
 	guest_user_on_account AS ga
 JOIN
