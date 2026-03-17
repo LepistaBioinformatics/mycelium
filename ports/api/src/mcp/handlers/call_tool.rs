@@ -147,6 +147,15 @@ pub(crate) async fn handle_call_tool(
         }
     }
 
+    // Forward Connection String header from the original MCP request
+    if let Some(cs) = http_req.headers().get("x-mycelium-connection-string") {
+        if let Ok(cs_str) = cs.to_str() {
+            tracing::debug!(mcp.cs_header = %cs_str, "Forwarding Connection String header");
+            downstream = downstream
+                .insert_header(("x-mycelium-connection-string", cs_str));
+        }
+    }
+
     // ── Send ─────────────────────────────────────────────────────────────────
     let send_result = if let Some(body_val) = body {
         match serde_json::to_vec(&body_val) {
