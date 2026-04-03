@@ -13,9 +13,27 @@
     \quit
 \endif
 
-\set db_name 'mycelium-v7-dev'
-\set db_user 'mycelium-v7-user'
-\set db_role 'service-role-mycelium-v7'
+-- Set default values only if variables were not provided via -v
+\if :{?db_name}
+    \echo "Using provided database name: :'db_name'"
+\else
+    \set db_name 'mycelium-v7-dev'
+    \echo "Using default database name: :'db_name'"
+\endif
+
+\if :{?db_user}
+    \echo "Using provided database user: :'db_user'"
+\else
+    \set db_user 'mycelium-v7-user'
+    \echo "Using default database user: :'db_user'"
+\endif
+
+\if :{?db_role}
+    \echo "Using provided database role: :'db_role'"
+\else
+    \set db_role 'service-role-mycelium-v7'
+    \echo "Using default database role: :'db_role'"
+\endif
 
 --------------------------------------------------------------------------------
 -- DATABASE
