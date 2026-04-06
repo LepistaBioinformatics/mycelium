@@ -4,6 +4,7 @@ use super::{
 };
 
 use myc_config::secret_resolver::SecretResolver;
+use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use rand::seq::SliceRandom;
 use serde::{ser::SerializeStruct, Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -83,12 +84,15 @@ impl ServiceHost {
     /// If the host is a Hosts, the function will return a random host from the
     /// vector.
     ///
-    pub fn choose_host(&self) -> String {
+    pub fn choose_host(&self) -> Result<String, MappedErrors> {
         match self {
-            ServiceHost::Host(host) => host.clone(),
-            ServiceHost::Hosts(hosts) => {
-                hosts.choose(&mut rand::thread_rng()).unwrap().clone()
-            }
+            ServiceHost::Host(host) => Ok(host.clone()),
+            ServiceHost::Hosts(hosts) => hosts
+                .choose(&mut rand::thread_rng())
+                .map(|h| h.clone())
+                .ok_or_else(|| {
+                    execution_err("Service has no configured hosts")
+                }),
         }
     }
 }
@@ -260,5 +264,32 @@ impl Service {
 
     pub fn is_context_api(&self) -> bool {
         self.is_context_api.unwrap_or_default()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_choose_host_empty_hosts_returns_err() {
+        let host = ServiceHost::Hosts(vec![]);
+        let result = host.choose_host();
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_choose_host_single_host_returns_ok() {
+        let host = ServiceHost::Host("localhost:8080".to_string());
+        let result = host.choose_host();
+        assert_eq!(result.unwrap(), "localhost:8080");
+    }
+
+    #[test]
+    fn test_choose_host_multiple_hosts_returns_one() {
+        let hosts = vec!["host1:8080".to_string(), "host2:8080".to_string()];
+        let host = ServiceHost::Hosts(hosts.clone());
+        let result = host.choose_host().unwrap();
+        assert!(hosts.contains(&result));
     }
 }
