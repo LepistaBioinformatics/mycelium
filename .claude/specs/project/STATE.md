@@ -79,7 +79,7 @@ include them in scope.
 
 ## Todos
 
-- [ ] Initialize PROJECT.md + ROADMAP.md
+_(none)_
 
 ---
 
