@@ -89,6 +89,49 @@
 - Single binary, zero infra: ideal for local dev, edge deployments, and small teams
 - Activated via config flag `mode = "standalone"`
 
+**Messaging Platform Identity Providers (WhatsApp + Telegram)** - PLANNED
+
+WhatsApp and Telegram as identity sources for Mycelium accounts. Scoped to accounts (not
+user-level). Credentials configurable per tenant.
+
+_Identity linking (one-time per account)_
+
+- Telegram: Mini App submits `initData` to `POST /auth/telegram/link`; Mycelium verifies
+  HMAC-SHA256 locally using the tenant bot token; stores `from.id` + `from.username` in
+  `AccountMetaKey::TelegramUser`
+- WhatsApp: user initiates from Mycelium UI; receives a short-lived code; sends it to the
+  tenant WhatsApp Business number; Mycelium webhook validates `X-Hub-Signature-256` on the
+  raw body and stores `wa_id` in `AccountMetaKey::WhatsAppUser`
+- Both: identity stored only after platform-verified challenge — never self-declared
+
+_Telegram Mini App login (direct session, optional)_
+
+- Mini App submits `initData` to `POST /auth/telegram/login`
+- Mycelium verifies HMAC-SHA256, resolves account by `from.id`, issues session token
+- WhatsApp has no Mini App equivalent — no direct login path for WA
+
+_Webhook ingestion and body-based identity resolution_
+
+- Mycelium exposes public webhook endpoints per tenant:
+  `POST /webhooks/telegram/{tenant_id}` and `POST /webhooks/whatsapp/{tenant_id}`
+- Incoming payloads validated at the edge via platform signature before any processing:
+  Telegram via `X-Telegram-Bot-Api-Secret-Token`; WhatsApp via `X-Hub-Signature-256`
+- After validation, `from.id` (Telegram) or `wa_id` (WhatsApp) is extracted from the body
+  and used to resolve the account — same lookup used for linking
+- Routes can declare `identity_source: telegram | whatsapp`; when set, `check_security_group`
+  extracts identity from the request body instead of expecting a JWT; the rest of the gateway
+  pipeline (profile injection, downstream secret, routing) runs unchanged
+
+_Infrastructure_
+
+- New per-tenant config: Telegram bot token + webhook secret; WA app secret + phone number ID
+  — stored via `SecretResolver`
+- GIN index on `account.meta` for `telegram_user` and `whatsapp_user` key lookups
+- HMAC-SHA256 verification utility in `lib/http_tools` (shared by Telegram initData and WA
+  body signature verification)
+- New `identity_source` field on `Route` DTO and corresponding branch in `check_security_group`
+- `AccountMetaKey::TelegramUser` and `AccountMetaKey::WhatsAppUser` already exist
+
 ---
 
 ## M4 — Gateway Policy

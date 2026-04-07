@@ -71,7 +71,15 @@ include them in scope.
 
 ## Deferred Ideas
 
-- [ ] Audit remaining `unwrap()` calls across the full codebase (test code excluded) — Captured during: fix-notifier-panics
+- [x] Audit remaining `unwrap()` calls across the full codebase (test code excluded) — **Audited 2026-04-06**
+  - Systemic issue: Diesel ORM layer uses `unwrap()` pervasively for type conversions from DB records
+  - ~215 JSON serde (`from_value`/`to_value` on JSONB columns) — medium risk, panics on corrupt DB data
+  - ~174 timestamp (`and_local_timezone(Local).unwrap()`) — low risk, only on DST ambiguity
+  - ~47 DB string parse (`Uuid::from_str`, `Email::from_string`, `.parse()` on DB values) — medium risk
+  - ~30 `Mutex::lock().unwrap()` — low risk, only on lock poisoning
+  - ~99 static literal `from_str("...")` — zero risk, compile-time safe
+  - ~8 SSL/startup fail-fast in `main.rs` — acceptable
+  - Recommended: create a dedicated M1/M2 feature to harden the Diesel adapter layer with proper `?`-propagation
 - [ ] Email address validation in the DTO layer (not just at send time) — Captured during: fix-notifier-panics
 - [ ] Hot-reloading Tera templates (ops/config concern) — Captured during: fix-notifier-panics
 
