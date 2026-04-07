@@ -1,5 +1,11 @@
 # Mycelium — Claude Code Instructions
 
+## Rules
+
+Rules are defined in the monorepo's `.claude/rules/` directory with path-scoping to `modules/mycelium-api-gateway/**`.
+
+---
+
 ## Skill: tlc-spec-driven
 
 When running the `tlc-spec-driven` skill, use `.claude/specs/` as the root specs directory
