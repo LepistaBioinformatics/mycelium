@@ -72,13 +72,17 @@
 
 ### Features
 
-**Magic Link (Passwordless Login)** - PLANNED
+**Magic Link (Passwordless Login)** - SPECIFIED
 
-- Generate time-limited, single-use tokens stored in Redis (or in-memory for standalone)
-- Send token via email using the existing notifier adapter
-- New endpoints: `POST /auth/magic-link/request` and `GET /auth/magic-link/verify?token=`
-- Token verified → session issued identically to password-based login
-- Configurable TTL and domain allowlist
+Spec: `.claude/specs/features/magic-link-auth/`
+
+- Two-secret design: UUID token (in email link) + 6-digit code (shown on gateway HTML page)
+- Token single-use on display; code single-use on verify
+- `POST /_adm/beginners/users/magic-link/request` — sends email with display link
+- `GET /_adm/beginners/users/magic-link/display?token&email` — gateway-rendered HTML page with code
+- `POST /_adm/beginners/users/magic-link/verify { email, code }` — issues JWT
+- JWT identical to password-based login (`iss: "mycelium"`, HS512)
+- Fix: `BEGINNERS_ACCOUNTS_CREATE` RPC dispatcher accepts internal provider
 
 **Standalone Mode** - PLANNED
 

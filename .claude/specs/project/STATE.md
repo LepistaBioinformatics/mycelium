@@ -1,7 +1,7 @@
 # State
 
-**Last Updated:** 2026-04-06
-**Current Work:** Idle — `fix-notifier-panics` complete
+**Last Updated:** 2026-04-07
+**Current Work:** M3 — Magic Link Auth (specified, not started)
 
 ---
 
@@ -68,6 +68,22 @@ include them in scope.
 | 001 | fix-notifier-panics (medium) | 2026-04-06 | `b41b381c` | ✅ Done |
 
 ---
+
+## Current Focus
+
+**M3 — Magic Link Auth** (spec complete, not started)
+
+Spec: `.claude/specs/features/magic-link-auth/` — 8 tasks (GT0–GT7)
+
+Key decisions made:
+- Two-secret design: UUID token (in email link, single-use for display) + 6-digit code (shown on gateway HTML page, single-use for verify)
+- Phase 1 — display: `GET /magic-link/display?token&email` → renders Tera HTML page with code, invalidates token
+- Phase 2 — verify: `POST /magic-link/verify { email, code }` → validates code, issues JWT (HS512, `iss:"mycelium"`)
+- Storage: one `MagicLinkTokenMeta { email, token: Option<String>, code: String }` record in existing `token` table (JSONB)
+- Display step sets `token = None`; verify step deletes the record
+- If no User exists for email on verify → auto-create minimal active User
+- RPC fix: `BEGINNERS_ACCOUNTS_CREATE` dispatcher must accept internal provider (GT7)
+- Two new Tera templates: `email/magic-link-request` and `web/magic-link-display`
 
 ## Deferred Ideas
 
