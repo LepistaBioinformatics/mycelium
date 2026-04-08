@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ app_name }} — Login Code</title>
+  <style>
+    body {
+      font-family: 'Open Sans', Arial, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 48px 40px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 {
+      font-size: 22px;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+    }
+    p {
+      color: #555;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .code {
+      display: inline-block;
+      background: hsla(199, 69%, 84%, 1);
+      border-radius: 6px;
+      padding: 16px 40px;
+      font-size: 36px;
+      font-weight: bold;
+      letter-spacing: 0.18em;
+      color: #1a1a1a;
+      margin-bottom: 24px;
+    }
+    .note {
+      font-size: 12px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Your {{ app_name }} Login Code</h1>
+    <p>
+      Enter the code below in the app to complete your login.<br/>
+      This code expires in {{ expires_in_minutes }} minutes and can only be used once.
+    </p>
+    <div class="code">{{ code }}</div>
+    <p class="note">
+      If you did not request this code, you can safely close this page.
+    </p>
+  </div>
+</body>
+</html>

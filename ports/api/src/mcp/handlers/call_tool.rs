@@ -6,8 +6,7 @@ use crate::{
     models::api_config::ApiConfig,
     openapi_processor::ServiceOpenApiSchema,
     rpc::types::{
-        self, error_response, success_response, JsonRpcRequest,
-        JsonRpcResponse,
+        self, error_response, success_response, JsonRpcRequest, JsonRpcResponse,
     },
 };
 
@@ -111,7 +110,9 @@ pub(crate) async fn handle_call_tool(
                 .extend_pairs(obj.iter().map(|(k, v)| {
                     let val = match v {
                         Value::String(s) => s.clone(),
-                        other => other.to_string().trim_matches('"').to_string(),
+                        other => {
+                            other.to_string().trim_matches('"').to_string()
+                        }
                     };
                     (k.as_str(), val)
                 }))
@@ -136,14 +137,14 @@ pub(crate) async fn handle_call_tool(
         _ => client.get(&url),
     };
 
-    downstream = downstream.timeout(Duration::from_secs(config.gateway_timeout));
+    downstream =
+        downstream.timeout(Duration::from_secs(config.gateway_timeout));
 
     // Forward Authorization header from the original MCP request
     if let Some(auth) = http_req.headers().get("Authorization") {
         if let Ok(auth_str) = auth.to_str() {
             tracing::debug!(mcp.auth_header = %auth_str, "Forwarding Authorization header");
-            downstream =
-                downstream.insert_header(("Authorization", auth_str));
+            downstream = downstream.insert_header(("Authorization", auth_str));
         }
     }
 

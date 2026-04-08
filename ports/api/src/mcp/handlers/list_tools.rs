@@ -1,6 +1,6 @@
 use crate::{
     dtos::ToolOperation,
-    mcp::dtos::{McpTool},
+    mcp::dtos::McpTool,
     openapi_processor::ServiceOpenApiSchema,
     rpc::types::{success_response, JsonRpcRequest, JsonRpcResponse},
 };
@@ -96,12 +96,11 @@ fn build_input_schema(
     docs: &HashMap<String, OpenApiSchema>,
 ) -> Value {
     // Attempt full $ref resolution via the OpenAPI doc
-    let resolved_op =
-        op.operation.operation_id.as_deref().and_then(|op_id| {
-            docs.get(&op.service.name)?
-                .resolve_input_refs_from_operation_id(op_id)
-                .ok()
-        });
+    let resolved_op = op.operation.operation_id.as_deref().and_then(|op_id| {
+        docs.get(&op.service.name)?
+            .resolve_input_refs_from_operation_id(op_id)
+            .ok()
+    });
 
     let mut path_props = serde_json::Map::new();
     let mut query_props = serde_json::Map::new();
@@ -161,8 +160,10 @@ fn build_input_schema(
 
         // ── Request body ─────────────────────────────────────────────────────
         if let Some(rb) = resolved.get("requestBody") {
-            let required =
-                rb.get("required").and_then(|r| r.as_bool()).unwrap_or(false);
+            let required = rb
+                .get("required")
+                .and_then(|r| r.as_bool())
+                .unwrap_or(false);
 
             if let Some(schema) = rb
                 .get("content")

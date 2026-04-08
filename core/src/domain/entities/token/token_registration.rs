@@ -1,6 +1,6 @@
 use crate::domain::dtos::token::{
-    EmailConfirmationTokenMeta, PasswordChangeTokenMeta, Token,
-    UserAccountConnectionString,
+    EmailConfirmationTokenMeta, MagicLinkTokenMeta, PasswordChangeTokenMeta,
+    Token, UserAccountConnectionString,
 };
 
 use async_trait::async_trait;
@@ -27,6 +27,12 @@ pub trait TokenRegistration: Interface + Send + Sync {
     async fn create_connection_string(
         &self,
         meta: UserAccountConnectionString,
+        expires: DateTime<Local>,
+    ) -> Result<CreateResponseKind<Token>, MappedErrors>;
+
+    async fn create_magic_link_token(
+        &self,
+        meta: MagicLinkTokenMeta,
         expires: DateTime<Local>,
     ) -> Result<CreateResponseKind<Token>, MappedErrors>;
 }

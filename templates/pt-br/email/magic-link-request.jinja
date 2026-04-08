@@ -1,0 +1,64 @@
+{% extends "pt-br/email/base.jinja" %}
+
+{% block title %}
+Seu Link de Acesso
+{% endblock title %}
+
+{% block head %}
+{{ super() }}
+{% endblock head %}
+
+{% block contenttitle %}
+Seu Link de Acesso
+{% endblock contenttitle %}
+
+{% block contenttable %}
+<tbody>
+  <tr>
+    <td align="left">
+
+      <p>
+        Clique no link abaixo para entrar no {{ app_name }}. O link exibirá
+        um código de 6 dígitos que você deverá inserir no aplicativo. Ele
+        expira em 15 minutos e só pode ser usado uma vez.
+      </p>
+
+      <table
+        style="max-width: 555px; width: 100%; font-family: 'Open Sans', arial, sans-serif; font-size: 13px; color: #323232;"
+        cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+        <tbody>
+          <tr>
+            <td height="10">&nbsp;</td>
+          </tr>
+          <tr>
+            <td style="text-align: center">
+              <a href="{{ magic_link_url }}"
+                style="color: #fff; background-color: hsla(199, 69%, 84%, 1); width: 320px; font-size: 16px; border-radius: 3px; line-height: 44px; height: 44px; font-family: 'Open Sans', Arial, helvetica, sans-serif; text-align: center; text-decoration: none; display: inline-block;">
+                <span style="color: #000000">
+                  <strong>Abrir Página de Login</strong>
+                </span>
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td height="10">&nbsp;</td>
+          </tr>
+          <tr>
+            <td style="text-align: center; font-size: 11px; color: #888888;">
+              Se o botão acima não funcionar, copie e cole este endereço no
+              seu navegador:<br/>
+              {{ magic_link_url }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="font-size: 11px; color: #888888;">
+        Se você não solicitou este link, pode ignorar este e-mail com
+        segurança.
+      </p>
+
+    </td>
+  </tr>
+</tbody>
+{% endblock contenttable %}

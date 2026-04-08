@@ -50,15 +50,16 @@ mod tests {
 
     #[test]
     fn test_tera_malformed_template_does_not_panic() {
-        let tmp_dir =
-            std::env::temp_dir().join("mycelium_test_tera_malformed");
+        let tmp_dir = std::env::temp_dir().join("mycelium_test_tera_malformed");
         fs::create_dir_all(&tmp_dir).unwrap();
         let bad_tpl = tmp_dir.join("bad.html");
         fs::write(&bad_tpl, "{% this is not valid tera syntax %").unwrap();
 
-        let result =
-            Tera::new(&format!("{}/**/*", tmp_dir.to_string_lossy()));
-        assert!(result.is_err(), "expected Tera to fail on malformed template");
+        let result = Tera::new(&format!("{}/**/*", tmp_dir.to_string_lossy()));
+        assert!(
+            result.is_err(),
+            "expected Tera to fail on malformed template"
+        );
 
         // Previously this arm called panic! — now it returns Tera::default()
         let tera = match result {

@@ -6,7 +6,7 @@ Legend: ⬜ not started · 🔄 in progress · ✅ done · 🔴 blocked
 
 ## GT0 — `MagicLinkTokenMeta` DTO + `MultiTypeMeta` variant
 
-**Status:** ⬜
+**Status:** ✅
 
 **What:**
 1. Add `MagicLinkTokenMeta { email: Email, token: Option<String>, code: String }` to
@@ -25,7 +25,7 @@ Legend: ⬜ not started · 🔄 in progress · ✅ done · 🔴 blocked
 
 ## GT1 — Port methods
 
-**Status:** ⬜
+**Status:** ✅
 
 **Depends on:** GT0
 
@@ -61,7 +61,7 @@ Legend: ⬜ not started · 🔄 in progress · ✅ done · 🔴 blocked
 
 ## GT2 — Diesel adapter: registration
 
-**Status:** ⬜
+**Status:** ✅
 
 **Depends on:** GT1
 
@@ -82,7 +82,7 @@ Implement `create_magic_link_token`:
 
 ## GT3 — Diesel adapter: invalidation
 
-**Status:** ⬜
+**Status:** ✅
 
 **Depends on:** GT1
 
@@ -115,7 +115,7 @@ verify is attempted. If the display was never opened (token not consumed), verif
 
 ## GT4 — Use case: `request_magic_link`
 
-**Status:** ⬜
+**Status:** ✅
 
 **Depends on:** GT1
 
@@ -155,7 +155,7 @@ Register in `core/src/use_cases/role_scoped/beginner/user/mod.rs`.
 
 ## GT5 — Use case: `verify_magic_link`
 
-**Status:** ⬜
+**Status:** ✅
 
 **Depends on:** GT1
 
@@ -196,7 +196,7 @@ Register in `mod.rs`.
 
 ## GT6 — REST endpoints + templates
 
-**Status:** ⬜
+**Status:** ✅
 
 **Depends on:** GT2, GT3, GT4, GT5
 
@@ -253,7 +253,7 @@ cargo test --workspace --all
 
 ## GT7 — RPC dispatcher fix
 
-**Status:** ⬜
+**Status:** ✅
 
 **What:**
 `ports/api/src/rpc/dispatchers/beginners.rs` — `BEGINNERS_ACCOUNTS_CREATE` arm:

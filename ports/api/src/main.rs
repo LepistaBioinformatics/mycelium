@@ -528,10 +528,7 @@ pub async fn main() -> std::io::Result<()> {
             // tools/call uses HTTP loopback through the gateway router
             // so auth, RBAC, and secret injection are fully reused.
             //
-            .service(
-                web::scope("/mcp")
-                    .configure(mcp::endpoints::configure),
-            )
+            .service(web::scope("/mcp").configure(mcp::endpoints::configure))
             //
             // Configure gateway routes
             //

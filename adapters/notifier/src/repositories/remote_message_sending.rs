@@ -37,14 +37,13 @@ impl RemoteMessageWrite for RemoteMessageSendingRepository {
             FromEmail::NamedEmail(named_email) => named_email,
         })
         .parse()
-        .map_err(|e| creation_err(format!("Invalid from email address: {e}")))?;
+        .map_err(|e| {
+            creation_err(format!("Invalid from email address: {e}"))
+        })?;
 
-        let to_addr = message
-            .to_owned()
-            .to
-            .email()
-            .parse()
-            .map_err(|e| creation_err(format!("Invalid to email address: {e}")))?;
+        let to_addr = message.to_owned().to.email().parse().map_err(|e| {
+            creation_err(format!("Invalid to email address: {e}"))
+        })?;
 
         let email = LettreMessage::builder()
             .from(from_addr)
@@ -52,7 +51,9 @@ impl RemoteMessageWrite for RemoteMessageSendingRepository {
             .subject(message.to_owned().subject)
             .header(ContentType::TEXT_HTML)
             .body(message.to_owned().body)
-            .map_err(|e| creation_err(format!("Could not build email message: {e}")))?;
+            .map_err(|e| {
+                creation_err(format!("Could not build email message: {e}"))
+            })?;
 
         match connection.send(&email) {
             Ok(_) => Ok(CreateResponseKind::Created(None)),
@@ -71,8 +72,8 @@ mod tests {
     fn test_malformed_from_email_parse_returns_err() {
         let result: Result<lettre::Address, _> = "not@@an-email".parse();
         assert!(result.is_err());
-        let mapped =
-            result.map_err(|e| creation_err(format!("Invalid from email: {e}")));
+        let mapped = result
+            .map_err(|e| creation_err(format!("Invalid from email: {e}")));
         assert!(mapped.is_err());
     }
 

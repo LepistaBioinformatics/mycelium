@@ -49,9 +49,7 @@ async fn mcp_endpoint(
     }
 
     // ── MCP notifications (no id) ────────────────────────────────────────────
-    if request.id.is_none()
-        && request.method.starts_with("notifications/")
-    {
+    if request.id.is_none() && request.method.starts_with("notifications/") {
         return HttpResponse::Ok().finish();
     }
 
@@ -75,10 +73,7 @@ async fn mcp_endpoint(
             request.id.clone(),
             types::JsonRpcError {
                 code: types::codes::METHOD_NOT_FOUND,
-                message: format!(
-                    "Method not found: {}",
-                    request.method
-                ),
+                message: format!("Method not found: {}", request.method),
                 data: None,
             },
         ),

@@ -31,6 +31,8 @@ use crate::{
 };
 
 use actix_web::{web, HttpRequest};
+use myc_http_tools::settings::MYCELIUM_PROVIDER_KEY;
+
 use myc_core::{
     domain::dtos::{
         account::AccountMetaKey,
@@ -102,7 +104,7 @@ pub async fn dispatch_beginners(
                     }
                 }
             } else {
-                return Err(invalid_params("Invalid provider"));
+                MYCELIUM_PROVIDER_KEY.to_string()
             };
             let p: CreateDefaultAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)

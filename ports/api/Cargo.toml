@@ -71,6 +71,7 @@ actix-cors = { version = "0.6.2" }
 actix-rt = "2.10"
 actix-web-opentelemetry = "0.22.0"
 anyhow = "1.0"
+tera = "1"
 rhai = { version = "1.21", features = ["sync"], optional = true }
 schemars = { version = "1.2.1", features = ["uuid1"] }
 

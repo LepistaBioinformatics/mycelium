@@ -2584,6 +2584,7 @@ dependencies = [
  "serde_json",
  "shaku",
  "slugify",
+ "tera",
  "time",
  "tokio",
  "toml",

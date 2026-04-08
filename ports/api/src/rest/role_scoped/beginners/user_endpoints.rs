@@ -12,13 +12,16 @@ use myc_core::{
     domain::{
         actors::SystemActor,
         dtos::user::{Totp, User},
+        entities::TokenInvalidation,
     },
     models::AccountLifeCycle,
+    settings::TEMPLATES,
     use_cases::role_scoped::beginner::user::{
         check_email_password_validity, check_token_and_activate_user,
         check_token_and_reset_password, create_default_user,
-        start_password_redefinition, totp_check_token, totp_disable,
-        totp_finish_activation, totp_start_activation,
+        request_magic_link, start_password_redefinition, totp_check_token,
+        totp_disable, totp_finish_activation, totp_start_activation,
+        verify_magic_link,
     },
 };
 use myc_diesel::repositories::SqlAppModule;
@@ -27,10 +30,12 @@ use myc_http_tools::{
     responses::GatewayError, utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::handle_mapped_error, Email,
 };
+use mycelium_base::entities::FetchResponseKind;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize, Serializer};
 use serde_json::json;
 use shaku::HasComponent;
+use tera::Context as TeraContext;
 use tracing::warn;
 use utoipa::{IntoParams, ToResponse, ToSchema};
 
@@ -49,7 +54,10 @@ pub fn configure(config: &mut web::ServiceConfig) {
         .service(totp_start_activation_url)
         .service(totp_finish_activation_url)
         .service(totp_check_token_url)
-        .service(totp_disable_url);
+        .service(totp_disable_url)
+        .service(request_magic_link_url)
+        .service(display_magic_link_url)
+        .service(verify_magic_link_url);
 }
 
 // ? ---------------------------------------------------------------------------
@@ -109,6 +117,32 @@ pub struct TotpActivationFinishedResponse {
 #[serde(rename_all = "camelCase")]
 pub struct TotpUpdatingValidationBody {
     token: String,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct MagicLinkRequestBody {
+    email: String,
+}
+
+#[derive(Serialize, ToResponse, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct MagicLinkRequestResponse {
+    sent: bool,
+}
+
+#[derive(Deserialize, IntoParams, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct MagicLinkDisplayParams {
+    token: String,
+    email: String,
+}
+
+#[derive(Deserialize, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct MagicLinkVerifyBody {
+    email: String,
+    code: String,
 }
 
 #[derive(Deserialize, ToSchema)]
@@ -894,5 +928,224 @@ pub async fn totp_disable_url(
     {
         Ok(_) => HttpResponse::NoContent().finish(),
         Err(err) => handle_mapped_error(err),
+    }
+}
+
+/// Request magic link
+///
+/// Sends a magic link email to the given address. Always returns
+/// `{ "sent": true }` regardless of whether the email is registered
+/// (prevents user enumeration).
+///
+#[utoipa::path(
+    post,
+    operation_id = "request_magic_link",
+    request_body = MagicLinkRequestBody,
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 200,
+            description = "Magic link email dispatched.",
+            body = MagicLinkRequestResponse,
+        ),
+    ),
+    security(()),
+)]
+#[post("/magic-link/request")]
+pub async fn request_magic_link_url(
+    body: web::Json<MagicLinkRequestBody>,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
+    sql_app_module: web::Data<SqlAppModule>,
+) -> impl Responder {
+    let email = match Email::from_string(body.email.to_owned()) {
+        Err(err) => {
+            warn!("Invalid email: {}", err);
+            return HttpResponse::BadRequest().json(
+                HttpJsonResponse::new_message(
+                    "Invalid email address.".to_string(),
+                ),
+            );
+        }
+        Ok(email) => email,
+    };
+
+    // Always respond with sent:true to prevent user enumeration.
+    // Log errors but do not propagate them to the caller.
+    if let Err(err) = request_magic_link(
+        email,
+        life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
+    )
+    .await
+    {
+        warn!("request_magic_link error (suppressed): {:?}", err);
+    }
+
+    HttpResponse::Ok().json(MagicLinkRequestResponse { sent: true })
+}
+
+/// Display magic link code
+///
+/// Single-use gateway-rendered HTML page that shows the 6-digit code.
+/// Consumes the display token on first visit; subsequent visits render an
+/// error page.
+///
+#[utoipa::path(
+    get,
+    operation_id = "display_magic_link",
+    params(MagicLinkDisplayParams),
+    responses(
+        (
+            status = 200,
+            description = "HTML page with the 6-digit code.",
+            content_type = "text/html",
+        ),
+        (
+            status = 401,
+            description = "Link invalid or already used.",
+            content_type = "text/html",
+        ),
+    ),
+    security(()),
+)]
+#[get("/magic-link/display")]
+pub async fn display_magic_link_url(
+    query: web::Query<MagicLinkDisplayParams>,
+    sql_app_module: web::Data<SqlAppModule>,
+) -> impl Responder {
+    let email = match Email::from_string(query.email.to_owned()) {
+        Err(err) => {
+            warn!("Invalid email in magic link display: {}", err);
+            return render_magic_link_error_page();
+        }
+        Ok(email) => email,
+    };
+
+    let token_repo: &dyn TokenInvalidation = &*sql_app_module.resolve_ref();
+    let code = match token_repo
+        .get_code_and_invalidate_display_token(&email, &query.token)
+        .await
+    {
+        Ok(FetchResponseKind::Found(code)) => code,
+        _ => return render_magic_link_error_page(),
+    };
+
+    let mut context = TeraContext::new();
+    context.insert("code", &code);
+    context.insert("app_name", "Mycelium");
+    context.insert("expires_in_minutes", &15u32);
+
+    match TEMPLATES.render("web/magic-link-display.html", &context) {
+        Ok(html) => HttpResponse::Ok()
+            .content_type("text/html; charset=utf-8")
+            .body(html),
+        Err(err) => {
+            warn!("Failed to render magic-link-display template: {}", err);
+            HttpResponse::InternalServerError().finish()
+        }
+    }
+}
+
+fn render_magic_link_error_page() -> HttpResponse {
+    let mut context = TeraContext::new();
+    context.insert("app_name", "Mycelium");
+
+    match TEMPLATES.render("web/magic-link-display-error.html", &context) {
+        Ok(html) => HttpResponse::Unauthorized()
+            .content_type("text/html; charset=utf-8")
+            .body(html),
+        Err(err) => {
+            warn!(
+                "Failed to render magic-link-display-error template: {}",
+                err
+            );
+            HttpResponse::Unauthorized().finish()
+        }
+    }
+}
+
+/// Verify magic link code and issue JWT
+///
+/// Validates `email` + `code`. On success returns a JWT in the same
+/// `MyceliumLoginResponse` shape as the password login endpoint.
+///
+#[utoipa::path(
+    post,
+    operation_id = "verify_magic_link",
+    request_body = MagicLinkVerifyBody,
+    responses(
+        (
+            status = 500,
+            description = "Unknown internal server error.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 401,
+            description = "Invalid or expired code.",
+            body = HttpJsonResponse,
+        ),
+        (
+            status = 200,
+            description = "Code valid — JWT issued.",
+            body = MyceliumLoginResponse,
+        ),
+    ),
+    security(()),
+)]
+#[post("/magic-link/verify")]
+pub async fn verify_magic_link_url(
+    body: web::Json<MagicLinkVerifyBody>,
+    app_module: web::Data<SqlAppModule>,
+    auth_config: web::Data<InternalOauthConfig>,
+    core_config: web::Data<AccountLifeCycle>,
+) -> impl Responder {
+    let email = match Email::from_string(body.email.to_owned()) {
+        Err(err) => {
+            warn!("Invalid email: {}", err);
+            return HttpResponse::BadRequest().json(
+                HttpJsonResponse::new_message(
+                    "Invalid email address.".to_string(),
+                ),
+            );
+        }
+        Ok(email) => email,
+    };
+
+    let user = match verify_magic_link(
+        email,
+        body.code.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
+    )
+    .await
+    {
+        Ok(user) => user,
+        Err(err) => return handle_mapped_error(err),
+    };
+
+    match encode_jwt(
+        user.to_owned(),
+        auth_config.get_ref().to_owned(),
+        core_config.get_ref().to_owned(),
+        false,
+    )
+    .await
+    {
+        Err(err) => err,
+        Ok((token, duration)) => {
+            HttpResponse::Ok().json(MyceliumLoginResponse {
+                token,
+                duration,
+                totp_required: false,
+                user,
+            })
+        }
     }
 }

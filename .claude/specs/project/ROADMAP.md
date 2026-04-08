@@ -72,7 +72,7 @@
 
 ### Features
 
-**Magic Link (Passwordless Login)** - SPECIFIED
+**Magic Link (Passwordless Login)** - COMPLETE
 
 Spec: `.claude/specs/features/magic-link-auth/`
 
