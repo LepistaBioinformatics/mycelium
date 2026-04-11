@@ -4,6 +4,7 @@ use crate::{
         parse_issuer_from_request,
     },
     rest::shared::{build_actor_context, UrlGroup},
+    settings::ADMIN_API_SCOPE,
 };
 
 use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
@@ -973,10 +974,40 @@ pub async fn request_magic_link_url(
         Ok(email) => email,
     };
 
+    // Resolve the base display URL here in the port layer — the use-case
+    // must not know about HTTP routes or the API scope prefix.
+    let display_base_url = match life_cycle_settings.domain_url.clone() {
+        None => {
+            warn!("domain_url not configured; suppressing magic link request");
+            return HttpResponse::Ok()
+                .json(MagicLinkRequestResponse { sent: true });
+        }
+        Some(resolver) => match resolver.async_get_or_error().await {
+            Err(err) => {
+                warn!(
+                    "domain_url resolution failed (suppressed): {:?}",
+                    err
+                );
+                return HttpResponse::Ok()
+                    .json(MagicLinkRequestResponse { sent: true });
+            }
+            Ok(url) => format!(
+                "{}/{}/{}/magic-link/display",
+                url.trim_end_matches('/'),
+                ADMIN_API_SCOPE,
+                build_actor_context(
+                    SystemActor::Beginner,
+                    UrlGroup::Users,
+                ),
+            ),
+        },
+    };
+
     // Always respond with sent:true to prevent user enumeration.
     // Log errors but do not propagate them to the caller.
     if let Err(err) = request_magic_link(
         email,
+        display_base_url,
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),

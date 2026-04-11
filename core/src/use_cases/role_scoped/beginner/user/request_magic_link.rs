@@ -20,6 +20,10 @@ use mycelium_base::{
 #[tracing::instrument(name = "request_magic_link", skip_all)]
 pub async fn request_magic_link(
     email: Email,
+    // Base URL for the display page (no query params). Must be built by
+    // the caller (port layer) — e.g.
+    // "https://example.com/_adm/beginners/users/magic-link/display".
+    display_base_url: String,
     life_cycle_settings: AccountLifeCycle,
     token_registration_repo: Box<&dyn TokenRegistration>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
@@ -76,22 +80,14 @@ pub async fn request_magic_link(
         }
     };
 
-    let domain_url = life_cycle_settings
-        .domain_url
-        .clone()
-        .ok_or_else(|| {
-            use_case_err("domain_url is not configured in AccountLifeCycle")
-                .with_code(NativeErrorCodes::MYC00010)
-        })?
-        .async_get_or_error()
-        .await?;
-
-    // Percent-encode '@' in the email for use in URL query parameter
+    // Percent-encode '@' in the email for use in URL query parameter.
+    // The base URL is provided by the caller (port layer) — this use-case
+    // only appends the token and email query parameters.
     let encoded_email = email.email().replace('@', "%40");
 
     let display_url = format!(
-        "{}/_adm/beginners/users/magic-link/display?token={}&email={}",
-        domain_url.trim_end_matches('/'),
+        "{}?token={}&email={}",
+        display_base_url.trim_end_matches('/'),
         display_token,
         encoded_email,
     );

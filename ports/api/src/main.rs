@@ -11,7 +11,7 @@ mod otel;
 mod rest;
 mod router;
 mod rpc;
-mod settings;
+pub(crate) mod settings;
 
 use crate::openapi_processor::initialize_tools_registry;
 
