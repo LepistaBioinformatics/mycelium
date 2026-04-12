@@ -3,8 +3,7 @@ use crate::models::config::DbPoolProvider;
 use async_trait::async_trait;
 use myc_core::domain::{dtos::service::Service, entities::ServiceRead};
 use mycelium_base::{
-    entities::FetchManyResponseKind,
-    utils::errors::{fetching_err, MappedErrors},
+    entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Component;
 use std::sync::Arc;
@@ -30,7 +29,7 @@ impl ServiceRead for ServiceReadMemDbRepo {
         let db = self.db_config.get_services_db();
 
         if db.len() == 0 {
-            return fetching_err("Routes already not initialized.").as_error();
+            return Ok(FetchManyResponseKind::NotFound);
         }
 
         let page_size = page_size.unwrap_or(10) as i64;
@@ -104,7 +103,7 @@ impl ServiceRead for ServiceReadMemDbRepo {
         let db = self.db_config.get_services_db();
 
         if db.len() == 0 {
-            return fetching_err("Routes already not initialized.").as_error();
+            return Ok(FetchManyResponseKind::NotFound);
         }
 
         let response = db
@@ -154,5 +153,102 @@ impl ServiceRead for ServiceReadMemDbRepo {
         }
 
         Ok(FetchManyResponseKind::Found(response))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use myc_core::domain::dtos::{
+        callback::{Callback, CallbackExecutor, ExecutionMode},
+        service::Service,
+    };
+    use std::sync::Arc;
+
+    // ? -----------------------------------------------------------------------
+    // ? Minimal DbPoolProvider stub for testing
+    // ? -----------------------------------------------------------------------
+
+    struct StubDbPool {
+        services: Vec<Service>,
+    }
+
+    impl DbPoolProvider for StubDbPool {
+        fn get_services_db(&self) -> Vec<Service> {
+            self.services.clone()
+        }
+
+        fn get_services_db_mut(&self) -> Vec<Service> {
+            self.services.clone()
+        }
+
+        fn set_services_db(&self, _db: Vec<Service>) {}
+
+        fn get_callbacks_db(&self) -> Vec<Callback> {
+            vec![]
+        }
+
+        fn get_engines(&self) -> Vec<Arc<dyn CallbackExecutor>> {
+            vec![]
+        }
+
+        fn get_engines_by_names(
+            &self,
+            _callback_names: &[String],
+        ) -> Vec<Arc<dyn CallbackExecutor>> {
+            vec![]
+        }
+
+        fn get_execution_mode(&self) -> ExecutionMode {
+            ExecutionMode::default()
+        }
+    }
+
+    fn repo_with_empty_db() -> ServiceReadMemDbRepo {
+        ServiceReadMemDbRepo {
+            db_config: Arc::new(StubDbPool { services: vec![] }),
+        }
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? list_services
+    // ? -----------------------------------------------------------------------
+
+    #[tokio::test]
+    async fn test_list_services_returns_not_found_when_db_is_empty(
+    ) -> Result<(), MappedErrors> {
+        let repo = repo_with_empty_db();
+
+        let result = repo.list_services(None, None, None).await?;
+
+        assert!(
+            matches!(result, FetchManyResponseKind::NotFound),
+            "expected NotFound when service DB is empty, got {:?}",
+            result
+        );
+
+        Ok(())
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? list_services_paginated
+    // ? -----------------------------------------------------------------------
+
+    #[tokio::test]
+    async fn test_list_services_paginated_returns_not_found_when_db_is_empty(
+    ) -> Result<(), MappedErrors> {
+        let repo = repo_with_empty_db();
+
+        let result = repo
+            .list_services_paginated(None, None, None, None, None)
+            .await?;
+
+        assert!(
+            matches!(result, FetchManyResponseKind::NotFound),
+            "expected NotFound when service DB is empty, got {:?}",
+            result
+        );
+
+        Ok(())
     }
 }

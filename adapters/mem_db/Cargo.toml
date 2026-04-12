@@ -36,6 +36,8 @@ mycelium-config.workspace = true
 # Dev dependencies
 # ------------------------------------------------------------------------------
 
+[dev-dependencies]
+tokio.workspace = true
 
 [lib]
 name = "myc_mem_db"

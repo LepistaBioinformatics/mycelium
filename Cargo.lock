@@ -2751,6 +2751,7 @@ dependencies = [
  "mycelium-config",
  "serde",
  "shaku",
+ "tokio",
  "tracing",
  "uuid",
  "wildmatch",

@@ -34,7 +34,7 @@ pub async fn propagate_declared_roles_to_storage_engine(
         .await?
     {
         FetchManyResponseKind::Found(services) => services,
-        _ => return use_case_err("No services found").as_error(),
+        _ => return Ok(()),
     }
     .iter()
     .flat_map(|service| {
@@ -105,4 +105,78 @@ pub async fn propagate_declared_roles_to_storage_engine(
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::domain::dtos::{guest_role::GuestRole, service::Service};
+    use async_trait::async_trait;
+    use mycelium_base::{
+        entities::{FetchManyResponseKind, GetOrCreateResponseKind},
+        utils::errors::MappedErrors,
+    };
+    use uuid::Uuid;
+
+    // ? -----------------------------------------------------------------------
+    // ? Minimal stubs
+    // ? -----------------------------------------------------------------------
+
+    struct EmptyServiceRead;
+
+    #[async_trait]
+    impl ServiceRead for EmptyServiceRead {
+        async fn list_services_paginated(
+            &self,
+            _id: Option<Uuid>,
+            _name: Option<String>,
+            _discoverable: Option<bool>,
+            _page_size: Option<i32>,
+            _skip: Option<i32>,
+        ) -> Result<FetchManyResponseKind<Service>, MappedErrors> {
+            Ok(FetchManyResponseKind::NotFound)
+        }
+
+        async fn list_services(
+            &self,
+            _id: Option<Uuid>,
+            _name: Option<String>,
+            _discoverable: Option<bool>,
+        ) -> Result<FetchManyResponseKind<Service>, MappedErrors> {
+            Ok(FetchManyResponseKind::NotFound)
+        }
+    }
+
+    struct UnreachableGuestRoleRegistration;
+
+    #[async_trait]
+    impl GuestRoleRegistration for UnreachableGuestRoleRegistration {
+        async fn get_or_create(
+            &self,
+            _guest_role: GuestRole,
+        ) -> Result<GetOrCreateResponseKind<GuestRole>, MappedErrors> {
+            panic!(
+                "get_or_create should not be called when there are no services"
+            );
+        }
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? Tests
+    // ? -----------------------------------------------------------------------
+
+    #[tokio::test]
+    async fn test_propagate_returns_ok_when_no_services_configured(
+    ) -> Result<(), MappedErrors> {
+        let service_read = EmptyServiceRead;
+        let guest_role_reg = UnreachableGuestRoleRegistration;
+
+        propagate_declared_roles_to_storage_engine(
+            Box::new(&service_read as &dyn ServiceRead),
+            Box::new(&guest_role_reg as &dyn GuestRoleRegistration),
+        )
+        .await?;
+
+        Ok(())
+    }
 }
