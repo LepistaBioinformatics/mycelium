@@ -47,7 +47,7 @@ pub(crate) async fn initialize_tools_registry(
         .await?
     {
         FetchManyResponseKind::Found(services) => services,
-        _ => return execution_err("Failed to fetch services").as_error(),
+        _ => vec![],
     };
 
     let downstream_operations =
