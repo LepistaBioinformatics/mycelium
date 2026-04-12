@@ -38,6 +38,21 @@ lazy_static! {
             }
         };
 
+        let template_count = _tera.get_template_names().count();
+        if template_count == 0 {
+            tracing::warn!(
+                "No templates loaded from '{}'. \
+                 Ensure the directory exists and contains .jinja/.subject files.",
+                template_dir
+            );
+        } else {
+            tracing::info!(
+                "Loaded {} templates from '{}'",
+                template_count,
+                template_dir
+            );
+        }
+
         _tera.autoescape_on(vec![".jinja", ".subject"]);
         _tera
     };
