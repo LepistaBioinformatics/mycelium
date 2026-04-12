@@ -5,6 +5,7 @@ use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use awc::http::header::Header;
 use jsonwebtoken::errors::ErrorKind;
 use myc_config::optional_config::OptionalConfig;
+use myc_core::models::AccountLifeCycle;
 use myc_http_tools::{
     functions::decode_jwt_hs512,
     models::{
@@ -160,6 +161,34 @@ async fn extract_email_from_internal_provider(
         }
     };
     //
+    // Resolve the expected audience from AccountLifeCycle (domain_url or
+    // domain_name fallback) — must match what encode_jwt wrote into aud.
+    //
+    let core_config = match req.app_data::<web::Data<AccountLifeCycle>>() {
+        Some(c) => c.get_ref().to_owned(),
+        None => {
+            return Err(GatewayError::InternalServerError(
+                "Core config not available in request.".to_string(),
+            ))
+        }
+    };
+    let audience = match core_config.domain_url {
+        Some(url) => url.async_get_or_error().await.map_err(|e| {
+            GatewayError::InternalServerError(format!(
+                "Could not resolve domain_url for audience: {e}"
+            ))
+        })?,
+        None => core_config
+            .domain_name
+            .async_get_or_error()
+            .await
+            .map_err(|e| {
+                GatewayError::InternalServerError(format!(
+                    "Could not resolve domain_name for audience: {e}"
+                ))
+            })?,
+    };
+    //
     // Extract the bearer from the request. If the bearer is not available
     // returns a Unauthorized response.
     //
@@ -182,7 +211,7 @@ async fn extract_email_from_internal_provider(
     // Decode the JWT token. If the token is not valid returns a
     // Unauthorized response.
     //
-    match decode_jwt_hs512(token, jwt_token) {
+    match decode_jwt_hs512(token, jwt_token, &audience) {
         Err(err) => match err.kind() {
             ErrorKind::ExpiredSignature => {
                 return Err(GatewayError::Unauthorized(format!(

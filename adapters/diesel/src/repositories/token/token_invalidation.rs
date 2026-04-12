@@ -257,7 +257,7 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
 
                 let sql = format!(
                     r#"
-                    SELECT id, meta
+                    SELECT id, expiration, meta
                     FROM token
                     WHERE meta->>'token' = '{token}'
                     AND meta->'email'->>'username' = '{username}'
@@ -351,7 +351,7 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
 
                 let sql = format!(
                     r#"
-                    SELECT id, meta
+                    SELECT id, expiration, meta
                     FROM token
                     WHERE meta->>'code' = '{code}'
                     AND meta->'email'->>'username' = '{username}'
