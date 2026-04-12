@@ -1,5 +1,5 @@
 -- Example usage:
--- psql -v db_password='myc-password' -f create_tables.sql
+-- psql -v db_password='myc-password' -f up.sql
 
 --------------------------------------------------------------------------------
 -- EXTERNAL VALUES
@@ -17,21 +17,21 @@
 \if :{?db_name}
     \echo "Using provided database name: :'db_name'"
 \else
-    \set db_name 'mycelium-v7-dev'
+    \set db_name 'mycelium-dev'
     \echo "Using default database name: :'db_name'"
 \endif
 
 \if :{?db_user}
     \echo "Using provided database user: :'db_user'"
 \else
-    \set db_user 'mycelium-v7-user'
+    \set db_user 'mycelium-user'
     \echo "Using default database user: :'db_user'"
 \endif
 
 \if :{?db_role}
     \echo "Using provided database role: :'db_role'"
 \else
-    \set db_role 'service-role-mycelium-v7'
+    \set db_role 'service-role-mycelium'
     \echo "Using default database role: :'db_role'"
 \endif
 

@@ -984,10 +984,7 @@ pub async fn request_magic_link_url(
         }
         Some(resolver) => match resolver.async_get_or_error().await {
             Err(err) => {
-                warn!(
-                    "domain_url resolution failed (suppressed): {:?}",
-                    err
-                );
+                warn!("domain_url resolution failed (suppressed): {:?}", err);
                 return HttpResponse::Ok()
                     .json(MagicLinkRequestResponse { sent: true });
             }
@@ -995,10 +992,7 @@ pub async fn request_magic_link_url(
                 "{}/{}/{}/magic-link/display",
                 url.trim_end_matches('/'),
                 ADMIN_API_SCOPE,
-                build_actor_context(
-                    SystemActor::Beginner,
-                    UrlGroup::Users,
-                ),
+                build_actor_context(SystemActor::Beginner, UrlGroup::Users,),
             ),
         },
     };
