@@ -70,17 +70,21 @@ task — log in STATE.md as a known concern.
 
 ## Fix Plan — Addendum
 
-A third call site was found after initial fix:
+Additional call sites found after initial fix:
 
 | # | File | Location | Change |
 |---|---|---|---|
 | 4 | `ports/api/src/openapi_processor/initialize_tools_registry.rs` | `list_services` match arm, line 50 | Replace `execution_err("Failed to fetch services")` with `vec![]` — no downstream services means tools registry initializes with gateway-only operations |
+| 5 | `adapters/mem_db/src/repositories/routes_read.rs` | `match_single_path_or_error`, line 33 | Replace `fetching_err` with `Ok(FetchResponseKind::NotFound(None))` |
+| 6 | `adapters/mem_db/src/repositories/routes_read.rs` | `list_routes_paginated`, line 107 | Replace `fetching_err` with `Ok(FetchManyResponseKind::NotFound)` |
+| 7 | `adapters/mem_db/src/repositories/routes_read.rs` | `list_routes`, line 188 | Replace `fetching_err` with `Ok(FetchManyResponseKind::NotFound)` |
 
 ## Done When
 
 - [x] Gateway boots successfully with `[api.services]` absent from config
 - [x] `propagate_declared_roles_to_storage_engine` returns `Ok(())` when DB is empty
 - [x] `initialize_tools_registry` skips downstream services gracefully when none configured
+- [x] `routes_read` returns `NotFound` instead of error when DB is empty
 - [x] Unit tests for empty-DB paths in `service_read` and `propagate_declared_roles`
 - [x] `cargo build --workspace` passes
 - [x] `cargo test --workspace` passes

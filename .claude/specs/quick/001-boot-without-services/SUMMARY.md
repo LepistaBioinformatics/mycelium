@@ -24,15 +24,19 @@ instead of a valid "no services configured" state.
 - `NotFound` from `list_services` now yields an empty `services` vec instead of `execution_err`
 - Tools registry proceeds to load gateway-only operations normally
 
+### `adapters/mem_db/src/repositories/routes_read.rs`
+- `match_single_path_or_error`: empty DB returns `Ok(NotFound(None))` instead of `fetching_err`
+- `list_routes_paginated`: empty DB returns `Ok(NotFound)` instead of `fetching_err`
+- `list_routes`: empty DB returns `Ok(NotFound)` instead of `fetching_err`
+- These were initially deferred as "not in the boot path" but turned out to be triggered by
+  `load_paths_from_spec` → `match_forward_address` during tools registry initialization
+
 ## Commits
 - `b6a0d2c2` — fix(boot): support starting gateway without downstream services configured
 - `8404c9ee` — fix(boot): skip downstream services in tools registry when none configured
+- `cee201b3` — fix(boot): return NotFound instead of error in routes_read when DB is empty
 
 ## Gate checks
 - `cargo fmt --all -- --check` ✓
 - `cargo build --workspace` ✓
 - `cargo test --workspace --all` ✓
-
-## Known concern (out of scope)
-`adapters/mem_db/src/repositories/routes_read.rs` has the same `db.len() == 0 → fetching_err`
-pattern at lines 34, 108, 189. Not in the boot path — deferred.
