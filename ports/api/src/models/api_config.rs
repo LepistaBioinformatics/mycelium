@@ -299,7 +299,7 @@ pub struct ApiConfig {
     #[serde(default)]
     pub callback_execution_mode: ExecutionMode,
 
-    #[serde(deserialize_with = "deserialize_services")]
+    #[serde(default, deserialize_with = "deserialize_services")]
     pub services: Vec<Service>,
 
     /// OpenRPC discovery: development server URL (e.g. http://localhost:8080/_adm/rpc).
