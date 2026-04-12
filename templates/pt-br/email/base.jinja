@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 
 <head>
   {% block head %}
@@ -9,10 +9,23 @@
 </head>
 
 <body>
+  <!-- Brand header -->
+  <table
+    style="max-width: 555px; width: 100%; font-family: 'Open Sans', Arial, Helvetica, sans-serif; background: #fff; font-size: 13px; color: #323232; border-bottom: 3px solid #bae6fd;"
+    cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+    <tbody>
+      <tr>
+        <td style="padding: 20px 24px 16px;">
+          <span style="font-size: 20px; font-weight: 700; color: #8b5cf6; letter-spacing: -0.01em;">Mycelium</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
   <div id="content">
     {% block content %}
     <table
-      style="max-width: 555px; width: 100%; font-family: 'Open Sans', Segoe, 'Segoe UI', 'DejaVu Sans', 'Trebuchet MS', Verdana, sans-serif; background: #fff; font-size: 13px; color: #323232;"
+      style="max-width: 555px; width: 100%; font-family: 'Open Sans', Arial, Helvetica, sans-serif; background: #fff; font-size: 13px; color: #323232;"
       cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
 
       <tbody>
@@ -36,7 +49,7 @@
   <div id="footer">
     {% if support_email %}
     <table
-      style="max-width: 555px; width: 100%; font-family: 'Open Sans', arial, sans-serif; font-size: 13px; color: #323232;"
+      style="max-width: 555px; width: 100%; font-family: 'Open Sans', Arial, Helvetica, sans-serif; font-size: 13px; color: #323232;"
       cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
       <tbody>
         <tr>
@@ -56,7 +69,7 @@
 
     {% if domain_url %}
     <table
-      style="max-width: 555px; width: 100%; font-family: 'Open Sans', arial, sans-serif; font-size: 13px; color: #323232;"
+      style="max-width: 555px; width: 100%; font-family: 'Open Sans', Arial, Helvetica, sans-serif; font-size: 13px; color: #323232;"
       cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
       <tbody>
         <tr>
@@ -73,6 +86,23 @@
       </tbody>
     </table>
     {% endif %}
+
+    <table
+      style="max-width: 555px; width: 100%; font-family: 'Open Sans', Arial, Helvetica, sans-serif; font-size: 12px; color: #888;"
+      cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+      <tbody>
+        <tr>
+          <td height="10">&nbsp;</td>
+        </tr>
+        <tr>
+          <td align="center">
+            <p>
+              Desenvolvido por <a href="https://lepista.com.br" style="color: #8b5cf6; text-decoration: none;">LepistaBioinformatics</a>
+            </p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </body>
 

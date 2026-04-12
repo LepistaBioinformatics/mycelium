@@ -4,10 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{ app_name }} — Login Code</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
   <style>
     body {
-      font-family: 'Open Sans', Arial, sans-serif;
-      background: #f5f5f5;
+      font-family: 'Inter', 'Open Sans', Arial, sans-serif;
+      background: #f5f3ff;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -16,16 +19,24 @@
     }
     .card {
       background: #fff;
-      border-radius: 8px;
+      border-radius: 12px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.08);
       padding: 48px 40px;
       max-width: 420px;
       width: 100%;
       text-align: center;
     }
+    .brand {
+      font-size: 13px;
+      font-weight: 600;
+      color: #8b5cf6;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
     h1 {
       font-size: 22px;
-      color: #1a1a1a;
+      color: #4c1d95;
       margin-bottom: 8px;
     }
     p {
@@ -36,9 +47,10 @@
     }
     .code {
       display: inline-block;
-      background: hsla(199, 69%, 84%, 1);
+      background: #bae6fd;
       border-radius: 6px;
       padding: 16px 40px;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
       font-size: 36px;
       font-weight: bold;
       letter-spacing: 0.18em;
@@ -53,6 +65,7 @@
 </head>
 <body>
   <div class="card">
+    <div class="brand">Mycelium</div>
     <h1>Your {{ app_name }} Login Code</h1>
     <p>
       Enter the code below in the app to complete your login.<br/>
