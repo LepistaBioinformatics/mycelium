@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.1-rc.1] - 2026-04-14
+
+### 🚀 Features
+
+- *(auth)* Implement magic link passwordless login (M3 GT0–GT7)
+- *(tokens)* Add delete and revoke connection string use cases; refresh email templates
+
+### 🐛 Bug Fixes
+
+- Solve sql syntax error in licensed resources view
+- Upgrade up.sql to solve all basic db parametes initialization
+- *(auth)* Add audience validation to JWT decoding and expiration to token queries
+- *(auth)* Ensure new users are created as principal and persisted correctly
+
+### ⚙️ Miscellaneous Tasks
+
+- Apply cargo fmt and update sql default db names
+
+## [8.3.1-beta.5] - 2026-02-08
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-beta.5
+
 ## [8.3.1-beta.4] - 2026-02-05
 
 ### ⚙️ Miscellaneous Tasks

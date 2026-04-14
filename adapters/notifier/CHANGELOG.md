@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.1-rc.1] - 2026-04-14
+
+### 🚀 Features
+
+- *(auth)* Implement magic link passwordless login (M3 GT0–GT7)
+
+### 🐛 Bug Fixes
+
+- Replace panics with MappedErrors propagation in notifier, settings, and service routing
+
+## [8.3.1-beta.5] - 2026-02-08
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-beta.5
+
 ## [8.3.1-beta.4] - 2026-02-05
 
 ### ⚙️ Miscellaneous Tasks

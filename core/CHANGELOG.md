@@ -2,11 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.1-rc.1] - 2026-04-14
+
+### 🚀 Features
+
+- *(auth)* Implement magic link passwordless login (M3 GT0–GT7)
+- *(tokens)* Add delete and revoke connection string use cases; refresh email templates
+
+### 🐛 Bug Fixes
+
+- Replace panics with MappedErrors propagation in notifier, settings, and service routing
+- *(boot)* Support starting gateway without downstream services configured
+- Replace app_name with domain_name in magic-link email templates
+- *(rpc)* Allow unauthenticated and unregistered users to reach public dispatchers
+- *(auth)* Ensure new users are created as principal and persisted correctly
+
+### 🚜 Refactor
+
+- *(arch)* Move display URL construction out of use-case into port layer
+
 ## [8.3.1-beta.5] - 2026-02-08
 
 ### 🧪 Testing
 
 - Allow plus symbol to allow group emails
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-beta.5
 
 ## [8.3.1-beta.4] - 2026-02-05
 
