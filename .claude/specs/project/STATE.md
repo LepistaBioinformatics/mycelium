@@ -43,6 +43,50 @@ _(none)_
 
 ---
 
+## RPC ↔ REST Audit (2026-04-13)
+
+Full audit of all 12 RPC dispatcher files (88 methods total) against their REST equivalents.
+REST is the reference — it is validated; RPC is what may diverge.
+
+### Fixed
+
+**`beginners.accounts.create` (`BEGINNERS_ACCOUNTS_CREATE`)** — resolved in this session.
+
+- REST `create_default_account_url` does not use `MyceliumProfileData` extractor; it calls
+  `check_credentials_with_multi_identity_provider` directly from `req`.
+- RPC `admin_jsonrpc_post` was extracting `profile: MyceliumProfileData` as an Actix extractor,
+  which returned HTTP 403 before the handler body ran for users with a valid JWT but no account.
+- Fix: profile extraction moved inside the handler body; `GatewayError::Forbidden` falls back to
+  an anonymous profile (struct literal with `Uuid::nil()`), allowing the dispatcher to be reached.
+  The dispatcher already re-validates credentials independently.
+- File changed: `ports/api/src/rpc/handlers.rs` only.
+
+### Remaining divergences
+
+_(none — all resolved)_
+
+**`service.listDiscoverableServices`** — resolved in this session.
+
+- REST `GET /services/tools` is fully public (`security(())`; no `MyceliumProfileData`).
+- RPC was blocking unauthenticated callers with `GatewayError::Unauthorized` before the dispatcher
+  ran.
+- Fix: added `GatewayError::Unauthorized(_)` alongside `GatewayError::Forbidden(_)` in the
+  anonymous-profile fallback in `admin_jsonrpc_post`. Both now fall through to the dispatcher.
+  Protected methods remain secure via internal dispatcher checks (`profile.acc_id`, `is_manager`,
+  `is_staff`, etc.).
+
+**Decision:** RPC must mirror REST visibility. If a REST endpoint is public, the equivalent RPC
+method must also be reachable without authentication.
+
+### Clean scopes (no divergences)
+
+`managers`, `accountManager`, `guestManager`, `subscriptionsManager`, `systemManager`,
+`tenantManager`, `tenantOwner`, `usersManager`, `staff`, `gatewayManager`, `service` — all 88
+methods have consistent profile requirements, credential extraction patterns, and authorization
+checks between RPC and REST.
+
+---
+
 ## Lessons Learned
 
 ### L-001: Signature changes in domain DTOs ripple to call sites outside the feature scope (2026-04-06)

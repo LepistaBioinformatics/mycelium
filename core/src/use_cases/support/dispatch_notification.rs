@@ -107,16 +107,15 @@ pub(crate) async fn dispatch_notification<T: ToString>(
         )
     );
 
-    let subject_ =
-        match TEMPLATES.render(subject_path.as_str(), &context) {
-            Ok(res) => res,
-            Err(err) => {
-                return use_case_err(format!(
-                    "Unable to render email subject: {err}"
-                ))
-                .as_error();
-            }
-        };
+    let subject_ = match TEMPLATES.render(subject_path.as_str(), &context) {
+        Ok(res) => res,
+        Err(err) => {
+            return use_case_err(format!(
+                "Unable to render email subject: {err}"
+            ))
+            .as_error();
+        }
+    };
 
     let from_email =
         Email::from_string(config.noreply_email.async_get_or_error().await?)?;

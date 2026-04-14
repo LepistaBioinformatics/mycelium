@@ -31,8 +31,6 @@ use crate::{
 };
 
 use actix_web::{web, HttpRequest};
-use myc_http_tools::settings::MYCELIUM_PROVIDER_KEY;
-
 use myc_core::{
     domain::dtos::{
         account::AccountMetaKey,
@@ -61,6 +59,7 @@ use myc_core::{
 };
 use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::responses::GatewayError;
+use myc_http_tools::settings::MYCELIUM_PROVIDER_KEY;
 use shaku::HasComponent;
 use std::str::FromStr;
 use tracing::warn;

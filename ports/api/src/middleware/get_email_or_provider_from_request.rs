@@ -172,22 +172,23 @@ async fn extract_email_from_internal_provider(
             ))
         }
     };
-    let audience = match core_config.domain_url {
-        Some(url) => url.async_get_or_error().await.map_err(|e| {
-            GatewayError::InternalServerError(format!(
-                "Could not resolve domain_url for audience: {e}"
-            ))
-        })?,
-        None => core_config
-            .domain_name
-            .async_get_or_error()
-            .await
-            .map_err(|e| {
+    let audience =
+        match core_config.domain_url {
+            Some(url) => url.async_get_or_error().await.map_err(|e| {
                 GatewayError::InternalServerError(format!(
-                    "Could not resolve domain_name for audience: {e}"
+                    "Could not resolve domain_url for audience: {e}"
                 ))
             })?,
-    };
+            None => {
+                core_config.domain_name.async_get_or_error().await.map_err(
+                    |e| {
+                        GatewayError::InternalServerError(format!(
+                            "Could not resolve domain_name for audience: {e}"
+                        ))
+                    },
+                )?
+            }
+        };
     //
     // Extract the bearer from the request. If the bearer is not available
     // returns a Unauthorized response.
