@@ -9,9 +9,11 @@ use super::super::{
         CheckTokenAndActivateUserParams, CheckTokenAndResetPasswordParams,
         CreateAccountMetaParams, CreateConnectionStringParams,
         CreateDefaultAccountParams, CreateDefaultUserParams,
-        DeleteAccountMetaParams, DeleteMyAccountParams, FetchMyProfileParams,
-        FetchTenantPublicInfoParams, StartPasswordRedefinitionParams,
-        TotpCheckTokenParams, TotpDisableParams, TotpFinishActivationParams,
+        DeleteAccountMetaParams, DeleteConnectionStringParams,
+        DeleteMyAccountParams, FetchMyProfileParams,
+        FetchTenantPublicInfoParams, RevokeConnectionStringParams,
+        StartPasswordRedefinitionParams, TotpCheckTokenParams,
+        TotpDisableParams, TotpFinishActivationParams,
         TotpStartActivationParams, UpdateAccountMetaParams,
         UpdateOwnAccountNameParams,
     },
@@ -48,7 +50,10 @@ use myc_core::{
         guest_user::accept_invitation,
         meta::{create_account_meta, delete_account_meta, update_account_meta},
         tenant::fetch_tenant_public_info,
-        token::{create_connection_string, list_my_connection_strings},
+        token::{
+            create_connection_string, delete_connection_string,
+            list_my_connection_strings, revoke_connection_string,
+        },
         user::{
             check_email_password_validity, check_token_and_activate_user,
             check_token_and_reset_password, create_default_user,
@@ -353,6 +358,32 @@ pub async fn dispatch_beginners(
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_many_response_kind_to_result(result)
+        }
+        method_names::BEGINNERS_TOKENS_REVOKE => {
+            let p: RevokeConnectionStringParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let result = revoke_connection_string(
+                profile.to_profile(),
+                p.token_id,
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            delete_response_kind_to_result(result)
+        }
+        method_names::BEGINNERS_TOKENS_DELETE => {
+            let p: DeleteConnectionStringParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let result = delete_connection_string(
+                profile.to_profile(),
+                p.token_id,
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            delete_response_kind_to_result(result)
         }
         method_names::BEGINNERS_USERS => {
             let req =

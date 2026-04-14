@@ -1,25 +1,30 @@
 {% extends "es/email/base.jinja" %}
 
-{% block title %}
-Activación de MFA Completada
-{% endblock title %}
+{% block title %}Autenticación de Dos Factores Activa{% endblock title %}
 
-{% block head %}
-{{ super() }}
-{% endblock head %}
-
-{% block contenttitle %}
-Activación de Autenticación Multifactor Exitosa
-{% endblock contenttitle %}
+{% block contenttitle %}Autenticación de Dos Factores Activa{% endblock contenttitle %}
 
 {% block contenttable %}
-<tbody>
-  <tr>
-    <td align="left">
-      <p>
-        Ha activado exitosamente la autenticación multifactor.
-      </p>
-    </td>
-  </tr>
-</tbody>
+<tr>
+  <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; color: #3f3f46; line-height: 1.6; padding-bottom: 20px;">
+    La autenticación de dos factores está activa en su cuenta de {{ domain_name }}.
+    Su cuenta está bien protegida.
+  </td>
+</tr>
+<tr>
+  <td>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td width="3" bgcolor="#7c3aed"
+          style="background-color: #7c3aed; width: 3px; font-size: 0; line-height: 0;">&#8203;</td>
+        <td bgcolor="#faf5ff"
+          style="background-color: #faf5ff; padding: 10px 14px;">
+          <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; color: #6d28d9;">
+            ¿No fue usted? Contacte al soporte de inmediato.
+          </span>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
 {% endblock contenttable %}

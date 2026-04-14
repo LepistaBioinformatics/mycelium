@@ -162,9 +162,9 @@ impl TokenFetching for TokenFetchingSqlDbRepository {
 
         let sql = format!(
             r#"
-            SELECT id, "innerId", "accountId", email, name, expiration, "createdAt", scope
+            SELECT id, innerid, accountid, email, name, expiration, createdat, scope
             FROM public_connection_string_info
-            WHERE "accountId"::text = '"{}"'
+            WHERE accountid::text = '"{}"'
             ORDER BY id DESC
             "#,
             account_id

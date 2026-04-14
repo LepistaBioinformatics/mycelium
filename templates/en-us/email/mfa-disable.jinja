@@ -1,25 +1,30 @@
 {% extends "en-us/email/base.jinja" %}
 
-{% block title %}
-MFA Disabled
-{% endblock title %}
+{% block title %}2FA Turned Off{% endblock title %}
 
-{% block head %}
-{{ super() }}
-{% endblock head %}
-
-{% block contenttitle %}
-Multi-Factor Authentication Disabled
-{% endblock contenttitle %}
+{% block contenttitle %}Two-Factor Authentication Turned Off{% endblock contenttitle %}
 
 {% block contenttable %}
-<tbody>
-  <tr>
-    <td align="left">
-      <p>
-        You have successfully disabled multi-factor authentication.
-      </p>
-    </td>
-  </tr>
-</tbody>
+<tr>
+  <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; color: #3f3f46; line-height: 1.6; padding-bottom: 20px;">
+    Two-factor authentication was disabled on your {{ domain_name }} account.
+  </td>
+</tr>
+<tr>
+  <td>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td width="3" bgcolor="#f59e0b"
+          style="background-color: #f59e0b; width: 3px; font-size: 0; line-height: 0;">&#8203;</td>
+        <td bgcolor="#fff7ed"
+          style="background-color: #fff7ed; padding: 10px 14px;">
+          <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; color: #92400e;">
+            Your account is less protected without 2FA. If this wasn't you,
+            re-enable it right away and contact support.
+          </span>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
 {% endblock contenttable %}

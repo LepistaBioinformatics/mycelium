@@ -1,65 +1,62 @@
 {% extends "es/email/base.jinja" %}
 
-{% block title %}
-Su Enlace de Acceso
-{% endblock title %}
+{% block title %}Su Enlace de Acceso{% endblock title %}
 
-{% block head %}
-{{ super() }}
-{% endblock head %}
-
-{% block contenttitle %}
-Su Enlace de Acceso
-{% endblock contenttitle %}
+{% block contenttitle %}Su Enlace de Acceso{% endblock contenttitle %}
 
 {% block contenttable %}
-<tbody>
-  <tr>
-    <td align="left">
-
-      <p>
-        Haga clic en el enlace a continuación para iniciar sesión en
-        {{ domain_name }}. El enlace mostrará un código de 6 dígitos que deberá
-        ingresar en la aplicación. Expira en 15 minutos y solo puede usarse
-        una vez.
-      </p>
-
-      <table
-        style="max-width: 555px; width: 100%; font-family: 'Open Sans', arial, sans-serif; font-size: 13px; color: #323232;"
-        cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
-        <tbody>
-          <tr>
-            <td height="10">&nbsp;</td>
-          </tr>
-          <tr>
-            <td style="text-align: center">
-              <a href="{{ magic_link_url }}"
-                style="color: #fff; background-color: hsla(199, 69%, 84%, 1); width: 320px; font-size: 16px; border-radius: 3px; line-height: 44px; height: 44px; font-family: 'Open Sans', Arial, helvetica, sans-serif; text-align: center; text-decoration: none; display: inline-block;">
-                <span style="color: #000000">
-                  <strong>Abrir Página de Inicio de Sesión</strong>
-                </span>
-              </a>
-            </td>
-          </tr>
-          <tr>
-            <td height="10">&nbsp;</td>
-          </tr>
-          <tr>
-            <td style="text-align: center; font-size: 11px; color: #888888;">
-              Si el botón anterior no funciona, copie y pegue esta URL en su
-              navegador:<br/>
-              {{ magic_link_url }}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <p style="font-size: 11px; color: #888888;">
-        Si usted no solicitó este enlace, puede ignorar este correo
-        electrónico de forma segura.
-      </p>
-
-    </td>
-  </tr>
-</tbody>
+<tr>
+  <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; color: #3f3f46; line-height: 1.6; padding-bottom: 20px;">
+    Aquí está su enlace de acceso para {{ domain_name }}. Haga clic en el botón y verá un código
+    de 6 dígitos para ingresar en la aplicación — válido por
+    <strong style="color: #18181b;">15 minutos</strong>, un solo uso.
+  </td>
+</tr>
+<tr>
+  <td style="padding-bottom: 24px;">
+    <table cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td bgcolor="#7c3aed" style="background-color: #7c3aed;">
+          <a href="{{ magic_link_url }}"
+            style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 600; color: #ffffff; text-decoration: none; display: inline-block; padding: 12px 32px; text-transform: uppercase;">
+            Ver código de inicio de sesión
+          </a>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+  <td style="padding-bottom: 20px;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; color: #71717a; padding-bottom: 6px;">
+          ¿El botón no funcionó? Copie y pegue esta URL en su navegador:
+        </td>
+      </tr>
+      <tr>
+        <td bgcolor="#f4f4f5"
+          style="background-color: #f4f4f5; border: 1px solid #e4e4e7; padding: 12px 16px;">
+          <span style="font-family: 'Courier New', Courier, monospace; font-size: 12px; color: #18181b; word-break: break-all;">{{ magic_link_url }}</span>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+  <td>
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td width="3" bgcolor="#7c3aed"
+          style="background-color: #7c3aed; width: 3px; font-size: 0; line-height: 0;">&#8203;</td>
+        <td bgcolor="#faf5ff"
+          style="background-color: #faf5ff; padding: 10px 14px;">
+          <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; color: #6d28d9;">
+            ¿No fue usted? Ignórelo — nada cambiará en su cuenta.
+          </span>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
 {% endblock contenttable %}

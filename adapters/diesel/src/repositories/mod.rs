@@ -74,6 +74,7 @@ module! {
             TenantTagDeletionSqlDbRepository,
             TenantTagRegistrationSqlDbRepository,
             TenantTagUpdatingSqlDbRepository,
+            TokenDeletionSqlDbRepository,
             TokenFetchingSqlDbRepository,
             TokenInvalidationSqlDbRepository,
             TokenRegistrationSqlDbRepository,

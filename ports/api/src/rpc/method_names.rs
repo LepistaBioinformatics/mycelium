@@ -42,7 +42,9 @@ pub const BEGINNERS_PROFILE_GET: &str = "beginners.profile.get";
 pub const BEGINNERS_TENANTS_GET_PUBLIC_INFO: &str =
     "beginners.tenants.getPublicInfo";
 pub const BEGINNERS_TOKENS_CREATE: &str = "beginners.tokens.create";
+pub const BEGINNERS_TOKENS_DELETE: &str = "beginners.tokens.delete";
 pub const BEGINNERS_TOKENS_LIST: &str = "beginners.tokens.list";
+pub const BEGINNERS_TOKENS_REVOKE: &str = "beginners.tokens.revoke";
 pub const BEGINNERS_USERS: &str = "beginners.users.create";
 pub const BEGINNERS_USERS_CHECK_TOKEN_AND_ACTIVATE_USER: &str =
     "beginners.users.checkTokenAndActivateUser";
