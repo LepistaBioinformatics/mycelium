@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.1-rc.1] - 2026-04-14
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.1
+
 ## [8.3.1-beta.5] - 2026-02-08
 
 ### ⚙️ Miscellaneous Tasks

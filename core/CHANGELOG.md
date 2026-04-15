@@ -21,6 +21,10 @@ All notable changes to this project will be documented in this file.
 
 - *(arch)* Move display URL construction out of use-case into port layer
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.1
+
 ## [8.3.1-beta.5] - 2026-02-08
 
 ### 🧪 Testing

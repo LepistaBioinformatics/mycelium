@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - *(auth)* Add audience validation to JWT decoding and expiration to token queries
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.1
+
 ## [8.3.1-beta.5] - 2026-02-08
 
 ### ⚙️ Miscellaneous Tasks

@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - Apply cargo fmt and update sql default db names
+- Release version 8.3.1-rc.1
 
 ## [8.3.1-beta.5] - 2026-02-08
 
