@@ -2,7 +2,7 @@
 
 **Milestone:** M3 — Auth Evolution
 **Scope:** Gateway (Rust)
-**Status:** Specified
+**Status:** Implemented
 
 ---
 
