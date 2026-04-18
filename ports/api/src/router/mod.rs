@@ -50,12 +50,8 @@ use tracing::Instrument;
 /// service name exists and the current user has enough permissions to perform
 /// the desired action.
 ///
-/// TODO: This forwarded implementation is incomplete as it only handles the
-/// TODO: unofficial X-Forwarded-For header but not the official Forwarded
-/// TODO: one.
-///
 #[tracing::instrument(
-    name = "route_request", 
+    name = "route_request",
     skip_all,
     fields(
         //

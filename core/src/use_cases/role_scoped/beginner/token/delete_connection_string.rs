@@ -1,6 +1,4 @@
-use crate::domain::{
-    dtos::profile::Profile, entities::TokenDeletion,
-};
+use crate::domain::{dtos::profile::Profile, entities::TokenDeletion};
 
 use mycelium_base::{
     entities::DeletionResponseKind, utils::errors::MappedErrors,

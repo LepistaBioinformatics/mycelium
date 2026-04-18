@@ -56,12 +56,20 @@ pub const DEFAULT_CONNECTION_STRING_KEY: &str = "x-mycelium-connection-string";
 ///
 pub const DEFAULT_TENANT_ID_KEY: &str = "x-mycelium-tenant-id";
 
-/// Default forward header key
+/// Default forward header key (unofficial, pre-RFC 7239)
 ///
 /// This is the default key used to store the forward header in the request
 /// headers and send it to the gateway downstream services.
 ///
 pub const FORWARD_FOR_KEY: &str = "x-forwarded-for";
+
+/// RFC 7239 standard Forwarded header key
+///
+/// The standard `Forwarded` header as defined in RFC 7239. Takes priority
+/// over `X-Forwarded-For` when present. The gateway parses the `for=`
+/// directive from this header to resolve the original client IP.
+///
+pub const RFC7239_FORWARDED_KEY: &str = "forwarded";
 
 /// Default forwarded keys
 ///

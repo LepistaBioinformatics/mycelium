@@ -23,10 +23,7 @@ pub struct TokenDeletionSqlDbRepository {
 
 #[async_trait]
 impl TokenDeletion for TokenDeletionSqlDbRepository {
-    #[tracing::instrument(
-        name = "revoke_connection_string",
-        skip_all
-    )]
+    #[tracing::instrument(name = "revoke_connection_string", skip_all)]
     async fn revoke_connection_string(
         &self,
         account_id: Uuid,
@@ -51,15 +48,10 @@ impl TokenDeletion for TokenDeletionSqlDbRepository {
             account_id = account_id,
         );
 
-        let affected = diesel::sql_query(sql)
-            .execute(conn)
-            .map_err(|e| {
-                error!("Error revoking connection string: {}", e);
-                deletion_err(format!(
-                    "Failed to revoke connection string: {}",
-                    e
-                ))
-            })?;
+        let affected = diesel::sql_query(sql).execute(conn).map_err(|e| {
+            error!("Error revoking connection string: {}", e);
+            deletion_err(format!("Failed to revoke connection string: {}", e))
+        })?;
 
         if affected == 0 {
             return Ok(DeletionResponseKind::NotDeleted(
@@ -71,10 +63,7 @@ impl TokenDeletion for TokenDeletionSqlDbRepository {
         Ok(DeletionResponseKind::Deleted)
     }
 
-    #[tracing::instrument(
-        name = "delete_connection_string",
-        skip_all
-    )]
+    #[tracing::instrument(name = "delete_connection_string", skip_all)]
     async fn delete_connection_string(
         &self,
         account_id: Uuid,
@@ -98,15 +87,10 @@ impl TokenDeletion for TokenDeletionSqlDbRepository {
             account_id = account_id,
         );
 
-        let affected = diesel::sql_query(sql)
-            .execute(conn)
-            .map_err(|e| {
-                error!("Error deleting connection string: {}", e);
-                deletion_err(format!(
-                    "Failed to delete connection string: {}",
-                    e
-                ))
-            })?;
+        let affected = diesel::sql_query(sql).execute(conn).map_err(|e| {
+            error!("Error deleting connection string: {}", e);
+            deletion_err(format!("Failed to delete connection string: {}", e))
+        })?;
 
         if affected == 0 {
             return Ok(DeletionResponseKind::NotDeleted(
