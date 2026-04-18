@@ -1,7 +1,7 @@
 # State
 
-**Last Updated:** 2026-04-07
-**Current Work:** M3 — Magic Link Auth (GT0–GT7 complete)
+**Last Updated:** 2026-04-18
+**Current Work:** M1 — Stability & Safety (Forwarded header done; JWT secret validation, middleware tests, mTLS pending)
 
 ---
 
@@ -107,17 +107,26 @@ include them in scope.
 
 ## Quick Tasks Completed
 
-| #   | Description                  | Date       | Commit     | Status  |
-| --- | ---------------------------- | ---------- | ---------- | ------- |
-| 001 | fix-notifier-panics (medium) | 2026-04-06 | `b41b381c` | ✅ Done |
+| #   | Description                             | Date       | Commit       | Status  |
+| --- | --------------------------------------- | ---------- | ------------ | ------- |
+| 001 | fix-notifier-panics (medium)            | 2026-04-06 | `b41b381c`   | ✅ Done |
+| 002 | RFC 7239 Forwarded header compliance    | 2026-04-18 | `6faa212f`   | ✅ Done |
 
 ---
 
 ## Current Focus
 
-**M3 — Magic Link Auth ✅ Complete**
+**M3 — Magic Link Auth ✅ Complete** — GT0–GT7 implemented. Spec updated to `Status: Implemented` (2026-04-18).
 
-All GT0–GT7 implemented and gate checks pass.
+**M1 — Stability & Safety (in progress)**
+
+| Item | Status |
+|---|---|
+| Panic elimination (notifier + boot) | ✅ Complete |
+| RFC 7239 Forwarded header compliance | ✅ Complete (`6faa212f`) |
+| JWT secret validation at startup | Planned |
+| Router & auth middleware tests | Planned |
+| mTLS client certificate auth | Planned |
 
 ### Implementation notes
 
