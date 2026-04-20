@@ -1,7 +1,7 @@
 # State
 
 **Last Updated:** 2026-04-20
-**Current Work:** Post-T19 cleanup complete — BodyIdpResolver trait, screaming-architecture rule, docs updated
+**Current Work:** Alternative IdPs documentation complete — `10-alternative-idps.md` with real-world journeys, JWT vs connection-string disambiguation
 
 ---
 
@@ -130,6 +130,22 @@ personal account, not a subscription account. Subscription accounts are inherent
 
 ---
 
+### L-003: JWT Bearer vs connection string — different headers, never interchangeable (2026-04-20)
+
+**Context:** Documentation for Telegram IdP used `Authorization: Bearer <connection_string>`, which
+is wrong. Magic-link issues a JWT sent as `Authorization: Bearer <jwt>`. Telegram login issues a
+connection string (`acc=...;tid=...;sig=...`) sent as `x-mycelium-connection-string: <string>`.
+
+**Rule:** Never mix the two. A connection string sent as `Authorization: Bearer` fails JWT signature
+validation and returns 401. The gateway checks `x-mycelium-connection-string` first, falls back to
+Bearer only if absent — but the fallback is for JWT, not for connection strings.
+
+**How to apply:** In documentation and client code, always use `Authorization: Bearer` for JWTs
+(magic-link, email+password) and `x-mycelium-connection-string` for connection strings (Telegram
+login, service tokens).
+
+---
+
 ### L-001: Signature changes in domain DTOs ripple to call sites outside the feature scope (2026-04-06)
 
 **Context:** The `fix-notifier-panics` spec listed 3 target files. Changing `choose_host()` to
@@ -170,11 +186,14 @@ include them in scope.
 | Encrypted config — POST /tenant-owner/telegram/config | ✅ Done | `12f80f53` |
 | Fix: personal-account model (OQ-2b superseded) | ✅ Done | `ef8a707e` |
 | T19 — Mode B routing (identity_source on Route) | ✅ Done | `735ddaf` |
-| Post-T19 — BodyIdpResolver trait + TelegramIdpResolver | ✅ Done | pending commit |
-| Post-T19 — Screaming-architecture rule (`.claude/rules/`) | ✅ Done | pending commit |
-| Post-T19 — `IdentitySource` moved to `identity_source.rs` | ✅ Done | pending commit |
-| Post-T19 — `prepare_body_idp_context` pipeline module | ✅ Done | pending commit |
-| Post-T19 — `06-downstream-apis.md` docs (`allowedSources`, `identitySource`, CORS clarification) | ✅ Done | pending commit |
+| Post-T19 — BodyIdpResolver trait + TelegramIdpResolver | ✅ Done | `afa5b915` |
+| Post-T19 — Screaming-architecture rule (`.claude/rules/`) | ✅ Done | `afa5b915` |
+| Post-T19 — `IdentitySource` moved to `identity_source.rs` | ✅ Done | `afa5b915` |
+| Post-T19 — `prepare_body_idp_context` pipeline module | ✅ Done | `afa5b915` |
+| Post-T19 — `06-downstream-apis.md` docs (`allowedSources`, `identitySource`, CORS clarification) | ✅ Done | `c2dd1251` |
+| Docs — `10-alternative-idps.md` (admin + user journeys, real-world examples) | ✅ Done | `3f373249` |
+| Docs — tenant config scope clarification (what works without config) | ✅ Done | `912fbfd2` |
+| Docs — JWT vs connection-string disambiguation | ✅ Done | `64c8d866` |
 
 **Key decisions:**
 - Secrets stored as AES-256-GCM ciphertext (`base64(nonce‖ct‖tag)`) — not plain text, not Vault ref
