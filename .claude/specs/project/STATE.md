@@ -23,6 +23,29 @@ at call sites.
 
 ---
 
+### AD-003: Per-tenant secrets use AES-256-GCM encrypted at rest, not SecretResolver (2026-04-19)
+
+**Decision:** Secrets that vary per tenant (Telegram bot token, webhook secret) are stored as
+`base64(nonce ‖ AES-256-GCM ciphertext ‖ tag)` in the `tenant.meta` JSONB column. The encryption
+key is derived from `AccountLifeCycle::token_secret` via SHA-256 (`derive_key_from_uuid`).
+`SecretResolver<String>` is not used for this class of secrets.
+
+**Reason:** `SecretResolver` requires the operator to format the stored value as JSON
+(`"\"plain-token\""` for plain text, `{"env":"VAR"}` for env, `{"vault":{…}}` for Vault).
+This is not documented in the field names and causes silent failures at runtime when the format
+is wrong. Encrypted at rest gives a uniform, operator-friendly write path (plain string in,
+ciphertext stored) with no format ambiguity.
+
+**Trade-off:** If `AccountLifeCycle::token_secret` rotates, all per-tenant secrets encrypted
+under the old key must be re-submitted via the config endpoint. No automatic re-encryption.
+
+**Pattern to follow for future per-tenant secrets:**
+- Write: call `encrypt_string(&plain, &config)` from `core::domain::utils` in the use case
+- Read: call `decrypt_string(&ciphertext_b64, &config)` in the adapter constructor (eagerly)
+- Store under a `TenantMetaKey` variant with a descriptive name (no `Ref` suffix)
+
+---
+
 ### AD-002: Propagate `choose_host()` error at call sites (2026-04-06)
 
 **Decision:** Changed `choose_host()` signature to return `Result<String, MappedErrors>` and updated
@@ -169,6 +192,7 @@ Branch: `feat/messaging-platform-idp/telegram` — commit `12f80f53`.
   - ~99 static literal `from_str("...")` — zero risk, compile-time safe
   - ~8 SSL/startup fail-fast in `main.rs` — acceptable
   - Recommended: create a dedicated M1/M2 feature to harden the Diesel adapter layer with proper `?`-propagation
+- [ ] `TelegramConfig` trait está em `core/domain/entities` mas nenhum use case do core a usa — apenas o port handler a consome diretamente via shaku. Isso viola o espírito da arquitetura hexagonal (traits no core deveriam ser portas para use cases, não para ports). Opções: mover o trait para `adapters/service` como tipo concreto, ou criar um use case de "resolve config" que o port chame. Capturado durante: Telegram IdP (2026-04-19)
 - [ ] Email address validation in the DTO layer (not just at send time) — Captured during: fix-notifier-panics
 - [ ] Hot-reloading Tera templates (ops/config concern) — Captured during: fix-notifier-panics
 
