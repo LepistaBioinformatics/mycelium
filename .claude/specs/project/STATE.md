@@ -1,7 +1,7 @@
 # State
 
-**Last Updated:** 2026-04-18
-**Current Work:** M1 — Stability & Safety (Forwarded header done; JWT secret validation, middleware tests, mTLS pending)
+**Last Updated:** 2026-04-19
+**Current Work:** Telegram IdP feature pushed to `feat/messaging-platform-idp/telegram`; M1 items pending
 
 ---
 
@@ -115,6 +115,26 @@ include them in scope.
 ---
 
 ## Current Focus
+
+**Telegram IdP ✅ Complete** — T13–T18 + encrypted storage implemented and pushed (2026-04-19).
+Branch: `feat/messaging-platform-idp/telegram` — commit `12f80f53`.
+
+| Task | Status |
+|---|---|
+| T13 — TelegramUser DTO + AccountMeta key | ✅ Done |
+| T14 — TenantMeta keys + TelegramConfig trait | ✅ Done |
+| T15 — POST /auth/telegram/link | ✅ Done |
+| T16 — DELETE /auth/telegram/link | ✅ Done |
+| T17 — POST /auth/telegram/login/{tenant_id} | ✅ Done |
+| T18 — POST /auth/telegram/webhook/{tenant_id} | ✅ Done |
+| Encrypted config — POST /tenant-owner/telegram/config | ✅ Done |
+| T19 — Mode B routing (identity_source on Route) | Planned |
+
+**Key decisions:**
+- Secrets stored as AES-256-GCM ciphertext (`base64(nonce‖ct‖tag)`) — not plain text, not Vault ref
+- Key derived from `AccountLifeCycle::token_secret` (same pattern as `HttpSecret`)
+- `TelegramBotTokenRef` / `TelegramWebhookSecretRef` renamed to `TelegramBotToken` / `TelegramWebhookSecret`
+- `TelegramConfigSvcRepo::from_tenant_meta` is now `async`, decrypts eagerly
 
 **M3 — Magic Link Auth ✅ Complete** — GT0–GT7 implemented. Spec updated to `Status: Implemented` (2026-04-18).
 
