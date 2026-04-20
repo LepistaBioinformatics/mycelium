@@ -1,7 +1,7 @@
 # State
 
 **Last Updated:** 2026-04-20
-**Current Work:** T19 (Mode B routing) complete — gate checks pass, awaiting commit
+**Current Work:** Post-T19 cleanup complete — BodyIdpResolver trait, screaming-architecture rule, docs updated
 
 ---
 
@@ -169,7 +169,12 @@ include them in scope.
 | T18 — POST /auth/telegram/webhook/{tenant_id} | ✅ Done | `12f80f53` |
 | Encrypted config — POST /tenant-owner/telegram/config | ✅ Done | `12f80f53` |
 | Fix: personal-account model (OQ-2b superseded) | ✅ Done | `ef8a707e` |
-| T19 — Mode B routing (identity_source on Route) | ✅ Done | pending commit |
+| T19 — Mode B routing (identity_source on Route) | ✅ Done | `735ddaf` |
+| Post-T19 — BodyIdpResolver trait + TelegramIdpResolver | ✅ Done | pending commit |
+| Post-T19 — Screaming-architecture rule (`.claude/rules/`) | ✅ Done | pending commit |
+| Post-T19 — `IdentitySource` moved to `identity_source.rs` | ✅ Done | pending commit |
+| Post-T19 — `prepare_body_idp_context` pipeline module | ✅ Done | pending commit |
+| Post-T19 — `06-downstream-apis.md` docs (`allowedSources`, `identitySource`, CORS clarification) | ✅ Done | pending commit |
 
 **Key decisions:**
 - Secrets stored as AES-256-GCM ciphertext (`base64(nonce‖ct‖tag)`) — not plain text, not Vault ref

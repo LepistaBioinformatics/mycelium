@@ -47,6 +47,12 @@ Services are defined using TOML's array of tables syntax (`[[service-name]]`). E
 **`isContextApi`**: Whether this is a context API
 **`proxyAddress`**: Proxy server address (if using a proxy)
 
+**`allowedSources`**: Array of allowed caller hostnames (with wildcard support)
+- Controls which `Host` headers are accepted for this service
+- Supports wildcards: `"*.telegram.org"`, `"10.0.0.*"`
+- **Required** when any route on this service uses `identitySource`
+- Example: `allowedSources = ["api.telegram.org"]`
+
 ### Basic Service Example
 
 ```toml
@@ -190,6 +196,11 @@ Routes define how requests are matched and secured. Each route is defined as `[[
 **`secretName`**: Reference to a secret defined at service level
 **`acceptInsecureRouting`**: Allow self-signed certificates (default: `false`)
 
+**`identitySource`**: Body-based identity provider for webhook routes
+- Extracts caller identity from the request body instead of a JWT
+- **Requires `allowedSources`** to be set on the parent service
+- Supported values: `"telegram"`
+
 ## Security Groups
 
 Mycelium supports seven security groups for route protection:
@@ -309,6 +320,41 @@ path = "/service-data/*"
 methods = ["GET", "POST"]
 ```
 
+## Body-Based Identity Providers (Webhook Routes)
+
+Some integrations (e.g. Telegram bots) do not send a Bearer JWT. Instead, the caller's
+identity is embedded in the request body. Set `identitySource` on the route and
+`allowedSources` on the service to enable this flow.
+
+**How it works:**
+
+1. `allowedSources` verifies the `Host` header before body parsing (source reliability check)
+2. `identitySource` tells the gateway which IdP to use to extract identity from the body
+3. The gateway resolves the caller's Mycelium profile and injects it as `x-mycelium-profile`
+
+**`allowedOrigins` vs `allowedSources`** — these are independent and never conflict:
+
+| | `allowedOrigins` | `allowedSources` |
+|---|---|---|
+| Scope | Gateway-wide | Per service |
+| Checks header | `Origin` (browser CORS) | `Host` (caller hostname) |
+| Relevant for webhooks? | No — server-to-server calls never send `Origin` | Yes — mandatory for body IdP routes |
+
+**Telegram webhook example:**
+
+```toml
+[[telegram-bot]]
+host = "my-bot-service:3000"
+protocol = "http"
+allowedSources = ["api.telegram.org"]
+
+[[telegram-bot.path]]
+group = "protected"
+path = "/telegram/webhook"
+methods = ["POST"]
+identitySource = "telegram"
+```
+
 ## Complete Example
 
 Here's a complete configuration with multiple services:
@@ -385,6 +431,18 @@ path = "/legacy/*"
 methods = ["GET"]
 secretName = "legacy-token"
 acceptInsecureRouting = true
+
+# Telegram webhook (body-based IdP)
+[[telegram-bot]]
+host = "bot-service:3000"
+protocol = "http"
+allowedSources = ["api.telegram.org"]
+
+[[telegram-bot.path]]
+group = "protected"
+path = "/telegram/webhook"
+methods = ["POST"]
+identitySource = "telegram"
 ```
 
 ## Header Injection
