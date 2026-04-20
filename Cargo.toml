@@ -142,6 +142,12 @@ time = "0.3.47"
 # - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/7
 #
 zip = "2.4.2"
+#
+# RUSTSEC-2026-0044 / RUSTSEC-2026-0048: force aws-lc-sys >= 0.39.0
+# (X.509 Name Constraints Bypass and CRL scope check logic error).
+# Transitive via aws-lc-rs → jsonwebtoken.
+#
+aws-lc-sys = "0.39.0"
 
 [workspace.metadata.release]
 
