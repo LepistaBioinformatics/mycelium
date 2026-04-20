@@ -18,7 +18,11 @@ pub(super) async fn prepare_body_idp_context(
     route: &Route,
     payload: web::Payload,
 ) -> Result<
-    (Option<BodyIdpContext>, Option<web::Bytes>, Option<web::Payload>),
+    (
+        Option<BodyIdpContext>,
+        Option<web::Bytes>,
+        Option<web::Payload>,
+    ),
     GatewayError,
 > {
     let Some(ref source) = route.identity_source else {

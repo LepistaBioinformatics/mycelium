@@ -1,16 +1,12 @@
 use crate::middleware::{
-    fetch_and_inject_email_to_forward,
-    fetch_and_inject_profile_from_body_idp,
-    fetch_and_inject_profile_from_token_to_forward,
-    BodyIdpContext,
+    fetch_and_inject_email_to_forward, fetch_and_inject_profile_from_body_idp,
+    fetch_and_inject_profile_from_token_to_forward, BodyIdpContext,
 };
 
 use actix_web::HttpRequest;
 use awc::ClientRequest;
 use myc_core::domain::dtos::{
-    callback::UserInfo,
-    route::Route,
-    security_group::SecurityGroup,
+    callback::UserInfo, route::Route, security_group::SecurityGroup,
     service::Service,
 };
 use myc_http_tools::{

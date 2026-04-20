@@ -1,10 +1,7 @@
 use actix_web::{web, web::Bytes, HttpRequest};
 use async_trait::async_trait;
 use myc_core::domain::{
-    dtos::{
-        related_accounts::RelatedAccounts,
-        telegram::TelegramUserId,
-    },
+    dtos::{related_accounts::RelatedAccounts, telegram::TelegramUserId},
     entities::AccountFetching,
 };
 use myc_diesel::repositories::SqlAppModule;

@@ -37,8 +37,10 @@ pub(crate) async fn fetch_and_inject_profile_from_body_idp(
     enforce_mandatory_allowlist(service)?;
 
     let roles = extract_roles(security_group);
-    let email =
-        body_idp.resolver.resolve_email(&body_idp.user_id, &req).await?;
+    let email = body_idp
+        .resolver
+        .resolve_email(&body_idp.user_id, &req)
+        .await?;
 
     let profile =
         recovery_profile_from_storage_engines(req, email, None, roles.clone())
