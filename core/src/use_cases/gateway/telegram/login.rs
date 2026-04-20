@@ -28,15 +28,13 @@ pub async fn login_via_telegram(
     account_fetching: Box<&dyn AccountFetching>,
     config: AccountLifeCycle,
 ) -> Result<(UserAccountScope, chrono::DateTime<Local>), MappedErrors> {
-    let account = resolve_account_by_telegram_id(
-        telegram_user.id,
-        tenant_id,
-        account_fetching,
-    )
-    .await
-    .map_err(|e| {
-        use_case_err(format!("telegram_id_not_linked: {e}")).with_exp_true()
-    })?;
+    let account =
+        resolve_account_by_telegram_id(telegram_user.id, account_fetching)
+            .await
+            .map_err(|e| {
+                use_case_err(format!("telegram_id_not_linked: {e}"))
+                    .with_exp_true()
+            })?;
 
     let account_id = account.id.ok_or_else(|| {
         use_case_err("Account has no id — data integrity error")

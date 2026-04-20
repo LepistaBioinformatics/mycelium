@@ -22,7 +22,9 @@ pub async fn unlink_telegram_identity(
     let account = match account_fetching
         .get(
             account_id,
-            crate::domain::dtos::related_accounts::RelatedAccounts::AllowedAccounts(vec![]),
+            crate::domain::dtos::related_accounts::RelatedAccounts::AllowedAccounts(
+                vec![account_id],
+            ),
         )
         .await?
     {

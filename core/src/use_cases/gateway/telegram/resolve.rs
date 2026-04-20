@@ -7,23 +7,20 @@ use mycelium_base::{
     entities::FetchResponseKind,
     utils::errors::{fetching_err, MappedErrors},
 };
-use uuid::Uuid;
 
-/// Find the account linked to a Telegram identity within a tenant.
+/// Find the personal account linked to a Telegram identity.
 ///
-/// Always requires `tenant_id` — lookup without tenant scope is a bug (see
-/// spec OQ-2b: same from.id may exist in multiple tenants).
+/// Global lookup — a Telegram ID maps to at most one personal account.
 #[tracing::instrument(
     name = "resolve_account_by_telegram_id",
     skip(account_fetching)
 )]
 pub async fn resolve_account_by_telegram_id(
     telegram_user_id: TelegramUserId,
-    tenant_id: Uuid,
     account_fetching: Box<&dyn AccountFetching>,
 ) -> Result<Account, MappedErrors> {
     match account_fetching
-        .get_by_telegram_id(telegram_user_id, tenant_id)
+        .get_by_telegram_id(telegram_user_id)
         .await?
     {
         FetchResponseKind::Found(account) => Ok(account),

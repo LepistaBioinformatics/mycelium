@@ -353,7 +353,6 @@ mod tests {
         async fn get_by_telegram_id(
             &self,
             _: TelegramUserId,
-            _: Uuid,
         ) -> Result<FetchResponseKind<Account, i64>, MappedErrors> {
             unimplemented!()
         }

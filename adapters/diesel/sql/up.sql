@@ -404,12 +404,13 @@ ORDER BY id DESC;
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_account_meta_gin
 ON account USING GIN (meta jsonb_path_ops);
 
--- Unique index: one Telegram from.id per tenant. The same from.id can be linked
--- to accounts in different tenants (multi-tenant allowed per design decision
--- OQ-2b), but not to two accounts within the same tenant.
+-- Unique index: one Telegram from.id globally. Telegram identity links to a
+-- personal account (user/manager/staff), which has no tenant_id. A Telegram ID
+-- maps to at most one personal account across all tenants.
+DROP INDEX CONCURRENTLY IF EXISTS idx_account_meta_telegram_user_id_per_tenant;
 CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS
-    idx_account_meta_telegram_user_id_per_tenant
-ON account ((meta -> 'telegram_user' ->> 'id'), tenant_id)
+    idx_account_meta_telegram_user_id_global
+ON account ((meta -> 'telegram_user' ->> 'id'))
 WHERE meta ? 'telegram_user';
 
 -- Audit trail for all Telegram identity lifecycle events.

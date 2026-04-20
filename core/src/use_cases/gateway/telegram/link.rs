@@ -9,28 +9,33 @@ use mycelium_base::{
 };
 use uuid::Uuid;
 
-/// Link a verified Telegram identity to an authenticated Mycelium account.
+/// Link a verified Telegram identity to a personal Mycelium account.
 ///
 /// Cryptographic verification (HMAC) is performed by the port handler before
 /// calling this use-case — it receives an already-verified `TelegramUser`.
 ///
 /// Steps:
-/// 1. Check account already linked → 409 (already_linked).
-/// 2. Check telegram_id linked to another account in tenant → 409 (telegram_id_already_used).
-/// 3. Write telegram_user to account.meta.
+/// 1. Fetch the personal account — 404 if not found.
+/// 2. Check account already linked → 409 (already_linked).
+/// 3. Check telegram_id linked to any other account globally → 409 (telegram_id_already_used).
+/// 4. Write telegram_user to account.meta.
 #[tracing::instrument(
     name = "link_telegram_identity",
     skip(account_fetching, account_updating)
 )]
 pub async fn link_telegram_identity(
     account_id: Uuid,
-    tenant_id: Uuid,
     telegram_user: TelegramUser,
     account_fetching: Box<&dyn AccountFetching>,
     account_updating: Box<&dyn AccountUpdating>,
 ) -> Result<(), MappedErrors> {
     let account = account_fetching
-        .get(account_id, crate::domain::dtos::related_accounts::RelatedAccounts::AllowedAccounts(vec![]))
+        .get(
+            account_id,
+            crate::domain::dtos::related_accounts::RelatedAccounts::AllowedAccounts(
+                vec![account_id],
+            ),
+        )
         .await?;
 
     let account = match account {
@@ -50,7 +55,7 @@ pub async fn link_telegram_identity(
     }
 
     match account_fetching
-        .get_by_telegram_id(telegram_user.id.clone(), tenant_id)
+        .get_by_telegram_id(telegram_user.id.clone())
         .await?
     {
         FetchResponseKind::Found(_) => {

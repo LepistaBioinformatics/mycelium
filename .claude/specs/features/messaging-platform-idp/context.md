@@ -14,7 +14,7 @@ Telegram (and future WhatsApp) as Identity Providers in Mycelium. Users link the
 - `AccountMetaKey::TelegramUser` / `::WhatsAppUser` already exist — reused
 - Mycelium receives webhooks **directly** from platforms (not via n8n)
 - Trust comes from platform signatures, not from intermediaries
-- Same Telegram `from.id` can be linked to one account **per tenant** (multi-tenant allowed)
+- A Telegram `from.id` links to exactly **one personal account globally** — the same person logs into any tenant they belong to using that one linked identity
 
 ---
 

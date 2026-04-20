@@ -18,7 +18,7 @@
 | Mutable username | Username changes between link and lookup | `from.id` is the canonical identity. `from.username` is stored for display only. Lookup and linking always use `from.id`. |
 | Stolen bot token | Attacker forges any `initData` | Bot token lives only in Vault. Never logged, never serialized into response. Explicitly excluded in all `#[tracing::instrument(skip(...))]`. |
 | Cross-tenant link | Attacker supplies a different `tenant_id` in URL | Linking requires an active authenticated Mycelium session (JWT). The session's tenant must match the URL `tenant_id`. |
-| Double-link | Two accounts link the same Telegram `from.id` within one tenant | Unique functional index on `account.meta` JSONB for `telegram_user.id` scoped per `tenant_id`. Reject with 409 at DB level, surface as a domain error. |
+| Double-link | Two accounts link the same Telegram `from.id` | Unique functional index on `account.meta` JSONB for `telegram_user.id` — global scope. Reject with 409 at DB level, surface as a domain error. |
 | Account enumeration via webhook | Probe `tenant_id` values to discover valid tenants | Rate-limit per `tenant_id` before DB lookup. Respond with 200 OK to Telegram regardless of resolution outcome (Telegram requires 200 within 5 s). |
 | Compromised n8n (Leg 2) | n8n sends forged body with arbitrary `from.id` | Routes that accept `identity_source: Telegram` must have source reliability (IP allowlist) enforced. Body is not trusted as the sole control: n8n must be in the allowlist AND the `from.id` must resolve to an existing linked account. |
 | Oversized webhook body | DoS via huge request | Body size cap: 512 KB. Enforced at the endpoint extractor before any parsing. |
@@ -186,18 +186,19 @@ ON account USING GIN (meta jsonb_path_ops);
 
 Run `CONCURRENTLY` — zero downtime on existing tables.
 
-### 5.2 Unique functional index for Telegram identity (per tenant)
+### 5.2 Unique functional index for Telegram identity (global)
 
-Prevents double-linking the same `from.id` to multiple accounts **within the same tenant**. The same `from.id` may exist in different tenants — this is intentional (see OQ-2b).
+Prevents double-linking the same `from.id` to more than one account. Telegram identity links to a **personal account** (user/manager/staff type), which has no `tenant_id` column — the constraint must therefore be global, not per-tenant.
 
 ```sql
+DROP INDEX CONCURRENTLY IF EXISTS idx_account_meta_telegram_user_id_per_tenant;
 CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS
-    idx_account_meta_telegram_user_id_per_tenant
-ON account ((meta -> 'telegram_user' ->> 'id'), tenant_id)
+    idx_account_meta_telegram_user_id_global
+ON account ((meta -> 'telegram_user' ->> 'id'))
 WHERE meta ? 'telegram_user';
 ```
 
-**Invariant enforced:** `(from.id, tenant_id)` is unique. `from.id` alone is not.
+**Invariant enforced:** `from.id` is globally unique across all accounts.
 
 ### 5.3 Audit table
 
@@ -254,7 +255,7 @@ Key: `telegram_user` (serialized `AccountMetaKey::TelegramUser`)
 4. Call `verify_init_data(init_data, bot_token, Utc::now())`. If error → 401.
 5. Extract `TelegramUserId` from verified result.
 6. Check if this account already has a `telegram_user` meta key. If yes → 409 (`already_linked`).
-7. Check if `TelegramUserId` is already linked to any account in this tenant (DB query). If yes → 409 (`telegram_id_already_used`).
+7. Check if `TelegramUserId` is already linked to any account globally (DB query). If yes → 409 (`telegram_id_already_used`).
 8. Write `telegram_user: { id, username }` to `account.meta`.
 9. Write audit record: `event=linked`.
 10. Return 204.
@@ -269,7 +270,7 @@ Key: `telegram_user` (serialized `AccountMetaKey::TelegramUser`)
 | `expired_init_data` | 401 | `auth_date` outside window |
 | `tenant_mismatch` | 403 | JWT tenant ≠ request tenant |
 | `already_linked` | 409 | Account already has a Telegram identity |
-| `telegram_id_already_used` | 409 | `from.id` linked to another account in this tenant |
+| `telegram_id_already_used` | 409 | `from.id` linked to another account globally |
 
 ---
 
@@ -307,7 +308,7 @@ Key: `telegram_user` (serialized `AccountMetaKey::TelegramUser`)
 1. Load `BotToken` for `tenant_id` via `TelegramConfigPort`.
 2. Call `verify_init_data(...)`. If error → 401.
 3. Extract `TelegramUserId`.
-4. Reverse-lookup: query `account.meta` for `{ telegram_user: { id: <TelegramUserId> } }` within `tenant_id` using the GIN index.
+4. Reverse-lookup: query `account.meta` for `{ telegram_user: { id: <TelegramUserId> } }` using the GIN index (global — personal accounts have no `tenant_id`).
 5. If not found → 401 (`telegram_id_not_linked`). Do not reveal whether the tenant exists.
 6. Load the account and build a `Profile`.
 7. Issue a `UserAccountScope` connection string (HMAC-signed, Base64-encoded) via the existing `UserAccountScope::new(...)` constructor in `core/src/domain/dtos/token/connection_string/user_account_connection_string.rs`. Expiry: configurable via `AccountLifeCycle` config, defaulting to the standard token TTL.
@@ -349,7 +350,7 @@ Key: `telegram_user` (serialized `AccountMetaKey::TelegramUser`)
 6. Extract `update_id` (`TelegramUpdateId`). Check KV for key `telegram:dedup:{tenant_id}:{update_id}`. If exists → return 200 (idempotent, do not forward).
 7. Store `telegram:dedup:{tenant_id}:{update_id}` in KV with TTL = 86400 s (24 h).
 8. Extract `from.id` from `message.from` or `callback_query.from`. If not present → return 200 (bot messages, channel posts, etc. are silently ignored).
-9. Reverse-lookup account by `from.id` within `tenant_id` using GIN index.
+9. Reverse-lookup personal account by `from.id` using GIN index (global — no `tenant_id` filter).
 10. If not found → return 200. Log `INFO` (`telegram_id_not_linked`). Do not forward.
 11. Build `Profile` for the resolved account.
 12. Inject profile headers and route to the tenant's configured n8n downstream via the existing gateway pipeline (callback engines / `inject_downstream_secret`).
@@ -438,13 +439,17 @@ if route.identity_source == Some(IdentitySource::Telegram):
 
 **Decision:** Manual. The tenant admin calls the Telegram API directly (`api.telegram.org/setWebhook`) outside of Mycelium. Mycelium only stores the bot token and webhook secret in Vault and acts as a passive receiver. No `setWebhook` automation, no outbound HTTP to Telegram from Mycelium.
 
-### OQ-2b — Can the same Telegram user be linked to multiple tenants? ✅ RESOLVED
+### OQ-2b — Can the same Telegram user be linked to multiple tenants? ✅ SUPERSEDED
 
-**Decision:** Yes. A `TelegramUserId` is unique **per tenant**, not globally. The unique index on `(telegram_user.id, tenant_id)` enforces this: the same `from.id` can be linked to one account per tenant, but not to two accounts within the same tenant.
+**Original decision (2026-04-19):** Per-tenant uniqueness — same `from.id` could link to different accounts in different tenants.
 
-**Implication for the unique index:** the constraint defined in §5.2 already handles this correctly — it is scoped to `(telegram_user.id, tenant_id)`, not just `telegram_user.id`.
+**Revised decision (2026-04-19):** Global uniqueness. Telegram identity links to a **personal account** (user/manager/staff), not a subscription account. Personal accounts have no `tenant_id` column, so per-tenant deduplication is impossible and semantically wrong.
 
-**Implication for reverse-lookup:** all queries that resolve a `TelegramUserId` to an account must always include `tenant_id` as a filter. A lookup without `tenant_id` is a bug.
+A `TelegramUserId` maps to exactly **one personal account globally**. Multi-tenant access is handled by the account's guest memberships — the same person can call `POST /auth/telegram/login/{tenant_id}` for any tenant they belong to, receiving a connection string scoped to that tenant.
+
+**Implication for the unique index:** global constraint on `from.id` only — see revised §5.2.
+
+**Implication for reverse-lookup:** `get_by_telegram_id` takes no `tenant_id`. The `tenant_id` is used only when issuing the scoped connection string after the account is found.
 
 ### OQ-3 — Bot token rotation procedure? ✅ RESOLVED
 

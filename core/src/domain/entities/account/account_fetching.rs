@@ -36,13 +36,13 @@ pub trait AccountFetching: Interface + Send + Sync {
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Account>, MappedErrors>;
 
-    /// Find an account linked to a Telegram identity within a tenant.
+    /// Find the personal account linked to a Telegram identity.
     ///
+    /// Global lookup — personal accounts (user, manager, staff) have no
+    /// `tenant_id`. A Telegram ID maps to at most one account globally.
     /// Uses the GIN index on `account.meta` for the JSONB containment query.
-    /// Always scoped to `tenant_id` — lookup without tenant scope is invalid.
     async fn get_by_telegram_id(
         &self,
         telegram_user_id: TelegramUserId,
-        tenant_id: Uuid,
     ) -> Result<FetchResponseKind<Account, i64>, MappedErrors>;
 }

@@ -180,7 +180,6 @@ pub async fn link_telegram_url(
 
     match link_telegram_identity(
         profile.acc_id,
-        tenant_id,
         telegram_user,
         Box::new(&*sql_app_module.resolve_ref() as &dyn AccountFetching),
         Box::new(&*sql_app_module.resolve_ref() as &dyn AccountUpdating),

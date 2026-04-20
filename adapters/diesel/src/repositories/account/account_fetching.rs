@@ -384,7 +384,6 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
     async fn get_by_telegram_id(
         &self,
         telegram_user_id: TelegramUserId,
-        tenant_id: Uuid,
     ) -> Result<FetchResponseKind<Account, i64>, MappedErrors> {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
             fetching_err(format!("Failed to get DB connection: {}", e))
@@ -397,13 +396,10 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
 
         let record = account_model::table
             .filter(
-                account_dsl::tenant_id
-                    .eq(tenant_id)
-                    .and(account_dsl::is_deleted.eq(false))
-                    .and(
-                        sql::<diesel::sql_types::Bool>("meta @> ")
-                            .bind::<diesel::sql_types::Jsonb, _>(containment),
-                    ),
+                account_dsl::is_deleted.eq(false).and(
+                    sql::<diesel::sql_types::Bool>("meta @> ")
+                        .bind::<diesel::sql_types::Jsonb, _>(containment),
+                ),
             )
             .select(AccountModel::as_select())
             .first::<AccountModel>(conn)
