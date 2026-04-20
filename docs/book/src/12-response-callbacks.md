@@ -27,19 +27,42 @@ Callbacks execute
 Callbacks are defined in `config.toml` under `[api.callbacks]`, then referenced by name on
 individual routes.
 
-### HTTP callback — POST the response context to a URL
+### Rhai callback — inline script
+
+Rhai is an embedded scripting language. Write the script directly in the config file. No
+external files or interpreters required.
 
 ```toml
 [api.callbacks]
 
 [[callback]]
+name = "error-monitor"
+type = "rhai"
+script = """
+if status_code >= 500 {
+    log_error("Server error: " + status_code);
+}
+if duration_ms > 1000 {
+    log_warn("Slow response: " + duration_ms + "ms");
+}
+"""
+timeoutMs = 1000
+```
+
+Available variables inside the script: `status_code`, `duration_ms`, `headers` (map),
+`method`, `upstream_path`. Logging functions: `log_info`, `log_warn`, `log_error`.
+
+### HTTP callback — POST the response context to a URL
+
+```toml
+[[callback]]
 name = "audit-log"
 type = "http"
 url = "https://audit.internal/events"
 method = "POST"          # default
-timeout_ms = 3000
-retry_count = 3
-retry_interval_ms = 1000
+timeoutMs = 3000
+retryCount = 3
+retryIntervalMs = 1000
 ```
 
 ### Python callback — run a script
@@ -48,9 +71,9 @@ retry_interval_ms = 1000
 [[callback]]
 name = "metrics-push"
 type = "python"
-script_path = "/opt/mycelium/callbacks/push_metrics.py"
-python_path = "/usr/bin/python3.12"
-timeout_ms = 5000
+scriptPath = "/opt/mycelium/callbacks/push_metrics.py"
+pythonPath = "/usr/bin/python3.12"
+timeoutMs = 5000
 ```
 
 ### JavaScript callback — run a Node.js script
@@ -59,9 +82,9 @@ timeout_ms = 5000
 [[callback]]
 name = "slack-notify"
 type = "javascript"
-script_path = "/opt/mycelium/callbacks/notify_slack.js"
-node_path = "/usr/bin/node"
-timeout_ms = 3000
+scriptPath = "/opt/mycelium/callbacks/notify_slack.js"
+nodePath = "/usr/bin/node"
+timeoutMs = 3000
 ```
 
 ---
@@ -99,22 +122,19 @@ type = "http"
 url = "https://alerts.internal/errors"
 
 # Only trigger on 5xx responses
-[callback.triggering_status_codes]
-oneOf = [500, 502, 503, 504]
+triggeringStatusCodes = { oneof = [500, 502, 503, 504] }
 
 # Only trigger on POST and DELETE
-[callback.triggering_methods]
-oneOf = ["POST", "DELETE"]
+triggeringMethods = { oneof = ["POST", "DELETE"] }
 
 # Only trigger if the response has a specific header
-[callback.triggering_headers.oneOf]
-"X-Error-Code" = "PAYMENT_FAILED"
+triggeringHeaders = { oneof = { "X-Error-Code" = "PAYMENT_FAILED" } }
 ```
 
-Filter types:
-- **`oneOf`** — at least one value must match
-- **`allOf`** — all values must match
-- **`noneOf`** — none of the values may match
+Filter statement types:
+- **`oneof`** — at least one value must match
+- **`allof`** — all values must match
+- **`noneof`** — none of the values may match
 
 ---
 
@@ -158,20 +178,25 @@ Each callback receives a **context object** with information about the completed
 
 For **HTTP callbacks**, this context is sent as a JSON POST body.
 For **Python / JavaScript callbacks**, the context is passed as a JSON-serialized argument.
+For **Rhai callbacks**, these fields are available as global variables in the script.
 
 ---
 
 ## Reference — callback fields
 
-| Field | Type | Description |
-|---|---|---|
-| `name` | string | Unique name — used to reference the callback from routes |
-| `type` | `http` / `python` / `javascript` | Callback engine |
-| `timeout_ms` | integer | Max execution time in ms (default: 5000). Ignored in `fireAndForget` mode |
-| `retry_count` | integer | How many times to retry on failure (default: 3) |
-| `retry_interval_ms` | integer | Wait between retries in ms (default: 1000) |
-| `url` | string | HTTP only — target URL |
-| `method` | string | HTTP only — `POST`, `PUT`, `PATCH`, or `DELETE` (default: `POST`) |
-| `script_path` | path | Python / JavaScript only — path to script file |
-| `python_path` | path | Python only — interpreter path (default: system `python3`) |
-| `node_path` | path | JavaScript only — Node.js path (default: system `node`) |
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | string | Yes | Unique name — used to reference the callback from routes |
+| `type` | `rhai` / `http` / `python` / `javascript` | Yes | Callback engine |
+| `timeoutMs` | integer | No | Max execution time in ms (default: 5000). Ignored in `fireAndForget` mode |
+| `retryCount` | integer | No | How many times to retry on failure (default: 3) |
+| `retryIntervalMs` | integer | No | Wait between retries in ms (default: 1000) |
+| `script` | string | Rhai only | Inline Rhai script source |
+| `url` | string | HTTP only | Target URL |
+| `method` | string | HTTP only | `POST`, `PUT`, `PATCH`, or `DELETE` (default: `POST`) |
+| `scriptPath` | path | Python / JavaScript only | Path to script file |
+| `pythonPath` | path | Python only | Interpreter path (default: system `python3`) |
+| `nodePath` | path | JavaScript only | Node.js path (default: system `node`) |
+| `triggeringMethods` | object | No | Filter by HTTP method (`oneof`, `allof`, `noneof`) |
+| `triggeringStatusCodes` | object | No | Filter by response status code |
+| `triggeringHeaders` | object | No | Filter by response header key/value |

@@ -174,7 +174,7 @@ to be, because it is signed with the bot token.
 The Mini App sends (using Maria's JWT from her original magic-link login):
 
 ```http
-POST /_adm/auth/telegram/link
+POST /auth/telegram/link
 Authorization: Bearer <maria-jwt>
 x-mycelium-tenant-id: a3f1e2d0-1234-4abc-8def-000000000001
 Content-Type: application/json
@@ -199,7 +199,7 @@ tenants she belongs to.
 To remove the link later:
 
 ```http
-DELETE /_adm/auth/telegram/link
+DELETE /auth/telegram/link
 Authorization: Bearer <maria-jwt>
 ```
 
@@ -229,7 +229,7 @@ Maria opens the Mini App inside @AcmeHRBot on her phone
   ▼
 Mini App calls the login endpoint (no credentials needed — it's public):
 
-  POST /_adm/auth/telegram/login/a3f1e2d0-1234-4abc-8def-000000000001
+  POST /auth/telegram/login/a3f1e2d0-1234-4abc-8def-000000000001
   { "initData": "query_id=AAH...&user=...&hash=abc123..." }
   │
   │  Mycelium:
@@ -268,7 +268,7 @@ Mini App displays: "You have 12 vacation days remaining."
 #### Login endpoint reference
 
 ```http
-POST /_adm/auth/telegram/login/{tenant_id}
+POST /auth/telegram/login/{tenant_id}
 Content-Type: application/json
 
 {
@@ -335,7 +335,7 @@ Customer (Maria) sends "my order hasn't arrived" to @AcmeSupportBot
   │  Telegram servers POST the update to Mycelium:
   │
   ▼
-POST /_adm/auth/telegram/webhook/a3f1e2d0-1234-4abc-8def-000000000001
+POST /auth/telegram/webhook/a3f1e2d0-1234-4abc-8def-000000000001
 X-Telegram-Bot-Api-Secret-Token: 4b9c2e1a8f3d7e0c5b2a9f6e3d1c8b5a
 {
   "update_id": 100000001,
@@ -504,4 +504,4 @@ the admin provisioning step.
   with `Host: api.telegram.org`. `Origin` is a browser header sent by CORS preflight requests
   — Telegram never sends it. CORS (`allowedOrigins`) is completely independent and irrelevant
   for webhook routes. See
-  [Downstream APIs](./06-downstream-apis.md#body-based-identity-providers-webhook-routes).
+  [Downstream APIs](./06-downstream-apis.md#webhook-routes--identity-from-request-body).

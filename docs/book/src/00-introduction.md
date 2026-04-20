@@ -50,8 +50,12 @@ without doing its own authentication.
 **Tenant** — A company or organization within your Mycelium installation. Users belong to
 tenants, and access controls are applied per tenant.
 
-**Account** — A user's identity inside Mycelium. A person can belong to multiple tenants with
-different roles in each.
+**Account** — The unit of identity in Mycelium. There are several account types: `User`
+(human end users), `Staff` / `Manager` (platform administrators), `Subscription`
+(tenant-scoped services or bots), `TenantManager` (delegated tenant admins), and others.
+A `User` account joins a tenant by being *guested* into a `Subscription` account with a
+specific role and permission level. See [Account Types and Roles](./15-account-types.md)
+for the full model.
 
 **Profile** — A snapshot of the authenticated user's identity at the time of the request: their
 account, tenant memberships, roles, and access levels. Injected into every downstream request.

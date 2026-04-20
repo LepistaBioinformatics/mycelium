@@ -96,22 +96,6 @@ path = "/content/view/*"
 methods = ["GET"]
 ```
 
-### `protectedByServiceTokenWithRole` — Service-to-service authentication
-
-For machine-to-machine calls. The caller must present a service token with the right role.
-
-```toml
-[[my-service.path]]
-group = { protectedByServiceTokenWithRole = { roles = ["service-admin"] } }
-path = "/internal/*"
-methods = ["ALL"]
-```
-
-Service token format:
-```
-tid=<uuid>;rid=<uuid>;r=<role>;edt=<datetime>;sig=<hmac>
-```
-
 ---
 
 ## Multiple routes on one service
@@ -241,7 +225,6 @@ serviceType = "rest-api"
 | `authenticated` | Yes | No |
 | `protected` | Yes | Yes |
 | `protectedByRoles` | Yes | Yes |
-| `protectedByServiceToken*` | No | Yes |
 
 The `x-mycelium-profile` value is a Base64-encoded, ZSTD-compressed JSON object. Use the
 [Python SDK](https://github.com/LepistaBioinformatics/mycelium-sdk-py) or decode it manually

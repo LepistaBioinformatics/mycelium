@@ -31,7 +31,6 @@ to a **security group** that defines the minimum requirements:
 | `authenticated` | Valid JWT or connection string |
 | `protected` | Valid token + resolved profile |
 | `protectedByRoles` | Valid token + user has one of the listed roles |
-| `protectedByServiceToken` | Request carries a valid service-to-service token |
 
 If the check passes, Mycelium forwards the request to your service and injects the user's
 identity as HTTP headers.
