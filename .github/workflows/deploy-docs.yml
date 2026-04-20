@@ -32,10 +32,28 @@ jobs:
         with:
           mdbook-version: 'latest'
 
-      - name: Build documentation
+      - name: Cache cargo bin
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin
+          key: cargo-bin-mdbook-i18n-helpers-0.4.0
+
+      - name: Install mdbook-i18n-helpers
+        run: |
+          if ! command -v mdbook-gettext &> /dev/null; then
+            cargo install mdbook-i18n-helpers --version 0.4.0 --locked
+          fi
+
+      - name: Build English documentation
         run: |
           cd docs/book
           mdbook build
+
+      - name: Build Portuguese (pt-BR) documentation
+        run: |
+          cd docs/book
+          MDBOOK_BOOK__LANGUAGE=pt-BR mdbook build --dest-dir /tmp/book-pt-br
+          mv /tmp/book-pt-br docs/book/book/pt-BR
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
