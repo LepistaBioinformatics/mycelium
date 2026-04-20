@@ -53,7 +53,7 @@ jobs:
         run: |
           cd docs/book
           MDBOOK_BOOK__LANGUAGE=pt-BR mdbook build --dest-dir /tmp/book-pt-br
-          mv /tmp/book-pt-br docs/book/book/pt-BR
+          mv /tmp/book-pt-br book/pt-BR
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
