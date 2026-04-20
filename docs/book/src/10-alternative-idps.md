@@ -34,6 +34,11 @@ Subscription accounts (tenant-scoped) cannot hold IdP links.
 Some IdPs (Telegram) require per-tenant credentials (bot token, webhook secret). These are stored
 encrypted in the tenant metadata. The tenant owner is responsible for provisioning them.
 
+This configuration is **required only for operations that verify Telegram credentials**:
+linking a new identity and logging in. It is **not required** for body-based identity
+resolution in webhook routes — that lookup is global (see
+[What works without tenant config](#what-works-without-tenant-config) below).
+
 ---
 
 ## Telegram
@@ -89,10 +94,44 @@ accepting any update.
 
 ---
 
+### What works without tenant config
+
+The table below shows exactly which operations require the tenant to have Telegram configured
+(admin Step 1 completed) and which do not.
+
+| Operation | Requires tenant config? | Why |
+|---|---|---|
+| Link Telegram identity (`POST /auth/telegram/link`) | **Yes** | Verifies `initData` HMAC against the tenant's bot token |
+| Login via Telegram (`POST /auth/telegram/login/{tenant_id}`) | **Yes** | Same — HMAC verification against tenant bot token |
+| Webhook route profile resolution (`identitySource = "telegram"`) | **No** | Global lookup by Telegram user ID; no tenant credential involved |
+
+**Consequence for multi-tenant setups:**
+
+A user who linked their Telegram identity in *any* tenant that has Telegram configured holds
+a global link (stored on their personal account). That link is valid across all tenants they
+belong to — including tenants with no Telegram configuration at all.
+
+```
+Tenant A  (Telegram configured)      Tenant B  (no Telegram config)
+   │                                      │
+   │  User links via Tenant A's bot       │  Webhook route uses identitySource
+   │  → link stored on personal account  │  → gateway resolves profile globally
+   │                                      │  → x-mycelium-profile injected ✓
+   │  User cannot link via Tenant B ✗    │
+   │  User cannot login via Tenant B ✗   │
+```
+
+In other words: **link once via any configured tenant; the identity is then available
+everywhere for webhook resolution.** The login flow is always tenant-specific because it
+issues a connection string scoped to a particular tenant.
+
+---
+
 ### User Journey: Linking a Telegram Identity
 
 Each user must link their Telegram account before they can authenticate via it.
-This is done through a **Telegram Mini App** that runs inside the bot's chat.
+Linking requires going through a tenant that has Telegram configured (admin Step 1).
+This is done through a **Telegram Mini App** that runs inside that tenant's bot chat.
 
 The Mini App obtains `initData` from the Telegram Web App context
 (`window.Telegram.WebApp.initData`) and sends it to the link endpoint:
@@ -109,8 +148,9 @@ Content-Type: application/json
 ```
 
 - Response: `204 No Content` on success.
-- The `initData` HMAC is verified against the bot token configured for the tenant.
-- The Telegram user ID is written to the authenticated Mycelium account's metadata.
+- The `initData` HMAC is verified against the bot token configured for the supplied tenant.
+- The Telegram user ID is written to the authenticated Mycelium **personal account** metadata.
+  This link is global — valid for all tenants the user belongs to.
 - Returns `409` if the account already has a Telegram link, or if the Telegram ID is already
   linked to another account globally.
 - Returns `422` if the tenant has not completed admin Step 1.
@@ -275,9 +315,10 @@ identitySource = "telegram"
 |---|---|---|
 | **Who calls Mycelium** | Your Mini App / AI agent | Telegram's servers |
 | **Authentication mechanism** | `initData` exchanged for a JWT | Webhook secret + body identity extraction |
+| **Tenant Telegram config required** | Yes — for every tenant used for login | No — identity lookup is global |
 | **Gateway config required** | Standard `authenticated`/`protected` routes | `allowedSources` + `identitySource = "telegram"` |
 | **Webhook registration with Telegram** | Not required | Required (`setWebhook`) |
-| **User journey** | Must link identity first | Must link identity first |
+| **User must have linked identity** | Yes — via any configured tenant | Yes — via any configured tenant |
 | **Connection string issued** | Yes — reused for multiple calls | No — each request is re-verified |
 | **Typical use** | Mini App calling your API | Bot receiving user messages in a downstream handler |
 
@@ -286,7 +327,15 @@ identitySource = "telegram"
 ### Troubleshooting
 
 **`422 telegram_not_configured_for_tenant`**
-: Admin has not called `POST /tenant-owner/telegram/config`. Complete admin Step 1.
+: Applies to linking and login only. Admin has not called `POST /tenant-owner/telegram/config`
+  for this tenant. Complete admin Step 1. Note: webhook route identity resolution does **not**
+  require tenant config — if you are seeing this on a webhook route, the request reached the
+  wrong endpoint.
+
+**User is a guest in a tenant with no Telegram config — what still works?**
+: Webhook routes with `identitySource = "telegram"` still work if the user previously linked
+  their Telegram identity via any other tenant. Login and re-linking via the unconfigured tenant
+  are not possible until the tenant owner completes admin Step 1.
 
 **`401 invalid_telegram_init_data`**
 : The `initData` HMAC check failed. Causes: wrong bot token in config, expired initData
