@@ -396,6 +396,40 @@ AND
 ORDER BY id DESC;
 
 --------------------------------------------------------------------------------
+-- TELEGRAM IDP
+--------------------------------------------------------------------------------
+
+-- GIN index on account.meta for fast JSONB reverse-lookup (used by Telegram IdP
+-- and any future platform IdP that stores identity in account.meta).
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_account_meta_gin
+ON account USING GIN (meta jsonb_path_ops);
+
+-- Unique index: one Telegram from.id per tenant. The same from.id can be linked
+-- to accounts in different tenants (multi-tenant allowed per design decision
+-- OQ-2b), but not to two accounts within the same tenant.
+CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS
+    idx_account_meta_telegram_user_id_per_tenant
+ON account ((meta -> 'telegram_user' ->> 'id'), tenant_id)
+WHERE meta ? 'telegram_user';
+
+-- Audit trail for all Telegram identity lifecycle events.
+CREATE TABLE IF NOT EXISTS telegram_identity_audit (
+    id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id   UUID        NOT NULL,
+    account_id  UUID        NOT NULL,
+    event       TEXT        NOT NULL CHECK (event IN ('linked', 'unlinked', 'login_ok', 'login_fail')),
+    telegram_id BIGINT,
+    ip          INET,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_telegram_audit_tenant_account
+    ON telegram_identity_audit (tenant_id, account_id);
+
+CREATE INDEX IF NOT EXISTS idx_telegram_audit_created_at
+    ON telegram_identity_audit (created_at);
+
+--------------------------------------------------------------------------------
 -- PERMISSIONS
 --------------------------------------------------------------------------------
 

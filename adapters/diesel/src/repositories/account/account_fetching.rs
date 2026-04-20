@@ -19,7 +19,8 @@ use myc_core::domain::{
     dtos::{
         account::Account, account_type::AccountType, email::Email,
         native_error_codes::NativeErrorCodes,
-        related_accounts::RelatedAccounts, tag::Tag, user::User,
+        related_accounts::RelatedAccounts, tag::Tag, telegram::TelegramUserId,
+        user::User,
     },
     entities::AccountFetching,
 };
@@ -377,5 +378,47 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             size: Some(page_size),
             records: accounts,
         })
+    }
+
+    #[tracing::instrument(name = "get_account_by_telegram_id", skip_all)]
+    async fn get_by_telegram_id(
+        &self,
+        telegram_user_id: TelegramUserId,
+        tenant_id: Uuid,
+    ) -> Result<FetchResponseKind<Account, i64>, MappedErrors> {
+        let conn = &mut self.db_config.get_pool().get().map_err(|e| {
+            fetching_err(format!("Failed to get DB connection: {}", e))
+                .with_code(NativeErrorCodes::MYC00001)
+        })?;
+
+        let containment = serde_json::json!({
+            "telegram_user": { "id": telegram_user_id.0 }
+        });
+
+        let record = account_model::table
+            .filter(
+                account_dsl::tenant_id
+                    .eq(tenant_id)
+                    .and(account_dsl::is_deleted.eq(false))
+                    .and(
+                        sql::<diesel::sql_types::Bool>("meta @> ")
+                            .bind::<diesel::sql_types::Jsonb, _>(containment),
+                    ),
+            )
+            .select(AccountModel::as_select())
+            .first::<AccountModel>(conn)
+            .optional()
+            .map_err(|e| {
+                fetching_err(format!(
+                    "Failed to fetch account by telegram_id: {e}"
+                ))
+            })?;
+
+        match record {
+            None => Ok(FetchResponseKind::NotFound(Some(telegram_user_id.0))),
+            Some(model) => {
+                Ok(FetchResponseKind::Found(map_account_model_to_dto(model)))
+            }
+        }
     }
 }

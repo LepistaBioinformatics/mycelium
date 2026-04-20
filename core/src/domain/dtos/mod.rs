@@ -17,6 +17,7 @@ pub mod route;
 pub mod security_group;
 pub mod service;
 pub mod tag;
+pub mod telegram;
 pub mod tenant;
 pub mod token;
 pub mod user;

@@ -33,6 +33,11 @@ url.workspace = true
 uuid.workspace = true
 tracing.workspace = true
 zstd.workspace = true
+hex.workspace = true
+hmac.workspace = true
+sha2.workspace = true
+secrecy.workspace = true
+subtle.workspace = true
 
 # ------------------------------------------------------------------------------
 # Mycelium packages

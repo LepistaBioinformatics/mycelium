@@ -3,6 +3,21 @@ use super::{
     service::Service,
 };
 
+/// Declares the source platform from which the request identity is extracted
+/// when a route operates in body-passthrough mode (Mode B).
+///
+/// When set on a route, `check_security_group` extracts the platform identity
+/// from the request body instead of expecting a JWT or connection string. Source
+/// reliability (IP allowlist) is mandatory and enforced before extraction.
+#[derive(
+    Debug, Clone, Deserialize, Serialize, PartialEq, Eq, ToSchema, ToResponse,
+)]
+#[serde(rename_all = "camelCase")]
+pub enum IdentitySource {
+    /// Identity resolved from `from.id` in the Telegram update JSON body.
+    Telegram,
+}
+
 use http::{uri::PathAndQuery, Uri};
 use mycelium_base::{
     dtos::Parent,
@@ -62,6 +77,14 @@ pub struct Route {
     ///
     #[serde(skip_serializing_if = "Option::is_none")]
     pub callbacks: Option<Vec<String>>,
+
+    /// Identity source for body-passthrough authentication (Mode B).
+    ///
+    /// When set, `check_security_group` resolves the caller's identity from the
+    /// platform body instead of a JWT. Source reliability (IP allowlist) is
+    /// enforced before any identity extraction.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub identity_source: Option<IdentitySource>,
 }
 
 impl Route {
@@ -74,6 +97,7 @@ impl Route {
         secret_name: Option<String>,
         accept_insecure_routing: Option<bool>,
         callbacks: Option<Vec<String>>,
+        identity_source: Option<IdentitySource>,
     ) -> Self {
         Self {
             id: match id {
@@ -100,6 +124,7 @@ impl Route {
             secret_name,
             accept_insecure_routing,
             callbacks,
+            identity_source,
         }
     }
 
@@ -324,6 +349,7 @@ mod tests {
             secret_name: None,
             accept_insecure_routing: None,
             callbacks: None,
+            identity_source: None,
         }
     }
 
@@ -570,6 +596,7 @@ mod tests {
             secret_name,
             accept_insecure_routing: None,
             callbacks: None,
+            identity_source: None,
         }
     }
 

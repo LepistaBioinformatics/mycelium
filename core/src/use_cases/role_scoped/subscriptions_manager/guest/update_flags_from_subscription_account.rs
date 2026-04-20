@@ -199,6 +199,7 @@ mod tests {
             guest_role::Permission,
             profile::{LicensedResource, LicensedResources, Profile},
             related_accounts::RelatedAccounts,
+            telegram::TelegramUserId,
         },
         entities::{AccountFetching, GuestUserOnAccountFetching},
     };
@@ -346,6 +347,14 @@ mod tests {
             _: Option<i32>,
             _: Option<i32>,
         ) -> Result<FetchManyResponseKind<Account>, MappedErrors> {
+            unimplemented!()
+        }
+
+        async fn get_by_telegram_id(
+            &self,
+            _: TelegramUserId,
+            _: Uuid,
+        ) -> Result<FetchResponseKind<Account, i64>, MappedErrors> {
             unimplemented!()
         }
     }

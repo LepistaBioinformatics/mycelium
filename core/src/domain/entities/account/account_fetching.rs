@@ -1,6 +1,6 @@
 use crate::domain::dtos::{
     account::Account, account_type::AccountType,
-    related_accounts::RelatedAccounts,
+    related_accounts::RelatedAccounts, telegram::TelegramUserId,
 };
 
 use async_trait::async_trait;
@@ -35,4 +35,14 @@ pub trait AccountFetching: Interface + Send + Sync {
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Account>, MappedErrors>;
+
+    /// Find an account linked to a Telegram identity within a tenant.
+    ///
+    /// Uses the GIN index on `account.meta` for the JSONB containment query.
+    /// Always scoped to `tenant_id` — lookup without tenant scope is invalid.
+    async fn get_by_telegram_id(
+        &self,
+        telegram_user_id: TelegramUserId,
+        tenant_id: Uuid,
+    ) -> Result<FetchResponseKind<Account, i64>, MappedErrors>;
 }

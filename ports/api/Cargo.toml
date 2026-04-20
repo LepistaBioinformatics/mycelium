@@ -90,6 +90,7 @@ mycelium-diesel.workspace = true
 mycelium-notifier.workspace = true
 mycelium-adapters-shared-lib.workspace = true
 mycelium-key-value.workspace = true
+secrecy.workspace = true
 
 # ------------------------------------------------------------------------------
 # Build dependencies
