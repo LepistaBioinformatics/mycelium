@@ -16,6 +16,7 @@
 
 - [Authorization Model](./01-authorization.md)
 - [Downstream APIs](./06-downstream-apis.md)
+- [Alternative Identity Providers](./10-alternative-idps.md)
 
 # Development
 
