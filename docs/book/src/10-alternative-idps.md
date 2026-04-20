@@ -9,6 +9,32 @@ the identity source is irrelevant: a user is a user.
 
 ---
 
+## Authentication tokens in Mycelium
+
+Before diving into alternative IdPs, it is important to understand that Mycelium has **two
+different token types**, each sent in a different header.
+
+### JWT — `Authorization: Bearer <jwt>`
+
+Issued by email+password login and magic-link verification. A standard JSON Web Token.
+Clients send it as `Authorization: Bearer <jwt>`. The gateway verifies the JWT signature
+to extract the caller's email, then resolves the full profile.
+
+### Connection string — `x-mycelium-connection-string: <string>`
+
+A Mycelium-native token with the format `acc=<uuid>;tid=<uuid>;r=<role>;edt=<datetime>;sig=<hmac>`.
+Issued by Telegram login (and service token generation). Clients send it as the custom header
+`x-mycelium-connection-string: <string>`. The gateway fetches the token from the database and
+resolves the profile from the stored scope.
+
+**Both token types are accepted** on all admin endpoints and downstream routing rules. The gateway
+checks for `x-mycelium-connection-string` first; if absent, it falls back to `Authorization: Bearer`.
+
+Do not mix them up: a connection string sent as `Authorization: Bearer` will fail JWT signature
+validation and return `401`.
+
+---
+
 ## How it works — the big picture
 
 Before a user can authenticate via an alternative IdP, two things must be true:
@@ -89,11 +115,11 @@ Mycelium so the gateway can use them.
 
 #### Step 1 — Store bot credentials in Mycelium
 
-Carlos calls this endpoint using his tenant-owner connection string:
+Carlos calls this endpoint using his JWT (issued when he logged in via magic-link):
 
 ```http
 POST /_adm/tenant-owner/telegram/config
-Authorization: Bearer <carlos-connection-string>
+Authorization: Bearer <carlos-jwt>
 x-mycelium-tenant-id: a3f1e2d0-1234-4abc-8def-000000000001
 Content-Type: application/json
 
@@ -145,11 +171,11 @@ it, the app reads the cryptographically signed `initData` that Telegram injects 
 session. This `initData` proves to Mycelium that the Telegram user opening the app is who they claim
 to be, because it is signed with the bot token.
 
-The Mini App sends:
+The Mini App sends (using Maria's JWT from her original magic-link login):
 
 ```http
 POST /_adm/auth/telegram/link
-Authorization: Bearer <maria-connection-string>
+Authorization: Bearer <maria-jwt>
 x-mycelium-tenant-id: a3f1e2d0-1234-4abc-8def-000000000001
 Content-Type: application/json
 
@@ -174,7 +200,7 @@ To remove the link later:
 
 ```http
 DELETE /_adm/auth/telegram/link
-Authorization: Bearer <maria-connection-string>
+Authorization: Bearer <maria-jwt>
 ```
 
 ---
@@ -188,8 +214,9 @@ their profile into every request. The Mini App cannot ask Maria to type her emai
 she's already inside Telegram. Telegram is the identity.
 
 **The solution:** The Mini App exchanges Telegram's `initData` for a Mycelium connection string.
-That connection string is used as a Bearer token for all subsequent API calls. The backend API sees
-a normal authenticated request and never knows the user logged in via Telegram.
+That connection string is sent in the `x-mycelium-connection-string` header for all subsequent
+API calls. The backend API sees a normal authenticated request and never knows the user logged
+in via Telegram.
 
 #### Full journey
 
@@ -220,7 +247,7 @@ Mini App calls the login endpoint (no credentials needed — it's public):
 Mini App calls the HR API:
 
   GET /hr-api/vacation-balance
-  Authorization: Bearer acc=...;tid=...;sig=...
+  x-mycelium-connection-string: acc=...;tid=...;sig=...
   │
   │  Mycelium gateway:
   │    - Validates the connection string
@@ -367,7 +394,7 @@ Two fields are required:
 
 - **`identitySource = "telegram"`** — tells Mycelium to extract the sender's identity from the
   body (via `message.from.id` or the equivalent field in other update types) instead of looking
-  for a Bearer token.
+  for an `Authorization` or `x-mycelium-connection-string` header.
 
 If `allowedSources` is missing and `identitySource` is set, the gateway rejects the request.
 
