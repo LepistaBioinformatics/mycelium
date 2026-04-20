@@ -12,10 +12,17 @@
 
 - [Deploy Locally](./05-deploy-locally.md)
 
-# Advanced Topics
+# Core Concepts
 
 - [Authorization Model](./01-authorization.md)
+- [Authentication Flows](./11-authentication-flows.md)
 - [Downstream APIs](./06-downstream-apis.md)
+
+# Advanced Topics
+
+- [Response Callbacks](./12-response-callbacks.md)
+- [Alternative Identity Providers](./10-alternative-idps.md)
+- [AI Agent Integration (MCP)](./13-mcp.md)
 
 # Development
 

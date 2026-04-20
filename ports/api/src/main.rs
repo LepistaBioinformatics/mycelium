@@ -83,6 +83,7 @@ use rest::{
     service::tools_endpoints as service_tools_endpoints,
     shared::insert_role_header,
     staff::account_endpoints as staff_account_endpoints,
+    telegram::configure as configure_telegram_endpoints,
 };
 use router::route_request;
 use settings::{ADMIN_API_SCOPE, TOOLS_API_SCOPE};
@@ -529,6 +530,13 @@ pub async fn main() -> std::io::Result<()> {
             // so auth, RBAC, and secret injection are fully reused.
             //
             .service(web::scope("/mcp").configure(mcp::endpoints::configure))
+            //
+            // Telegram auth endpoints (public — no Mycelium profile required)
+            //
+            .service(
+                web::scope("/auth/telegram")
+                    .configure(configure_telegram_endpoints),
+            )
             //
             // Configure gateway routes
             //

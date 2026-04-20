@@ -1,106 +1,95 @@
-# Mycelium Authorization Model
+# Authorization Model
 
-This document describes the **Mycelium authorization model**, its principles, formal classification, and architectural decisions. It is strictly technical and does not address aspects of project governance or maintenance.
-
----
-
-## Overview
-
-Mycelium adopts a **contextual authorization model**, designed for multi-tenant and API-oriented environments. Unlike approaches based exclusively on roles (RBAC), Mycelium evaluates identity attributes, resource scope, and request context at execution time.
-
-Formally, the model fits as **FBAC (Fine-grained / Feature-based Access Control)**, using RBAC only as a complementary primitive.
+This page explains how Mycelium decides whether a request is allowed to proceed.
 
 ---
 
-## Design Principles
+## The short version
 
-* Clear separation between authentication, identity enrichment, and authorization
-* Explicit access decision close to the resource
-* Progressive reduction of capabilities
-* Composable and deterministic primitives
-* Avoid rigid global policies
+Mycelium uses a **two-layer** approach:
 
----
+1. **Gateway layer** — coarse checks at the route level ("is this user logged in? do they have
+   the right role?"). If the check fails, the request is rejected before reaching your service.
 
-## Layered Authorization
+2. **Downstream layer** — fine-grained checks inside your service, using the identity that
+   Mycelium injects ("does this user have write access to *this specific resource*?").
 
-### Gateway (Coarse-grained)
-
-At the gateway, Mycelium applies declarative controls per route, such as:
-
-* Public or protected group
-* Minimum required roles
-* Permissions associated with roles
-
-These checks determine whether the request can or cannot be routed to the downstream service.
+Think of it like a building: Mycelium is the security desk at the entrance (checks your ID
+and badge before letting you through the door). Your service is the room inside — it gets
+to decide what the person can do once they're in.
 
 ---
 
-### Downstream (Fine-grained)
+## The gateway layer
 
-In downstream services, authorization is done in a contextual and explicit manner, using the **Profile** injected by the gateway.
+When a request arrives, Mycelium matches it against the configured route. Each route belongs
+to a **security group** that defines the minimum requirements:
 
-Conceptual example:
+| Security group | What Mycelium checks |
+|---|---|
+| `public` | Nothing — anyone can pass |
+| `authenticated` | Valid JWT or connection string |
+| `protected` | Valid token + resolved profile |
+| `protectedByRoles` | Valid token + user has one of the listed roles |
+| `protectedByServiceToken` | Request carries a valid service-to-service token |
 
-```rust
+If the check passes, Mycelium forwards the request to your service and injects the user's
+identity as HTTP headers.
+
+---
+
+## What gets injected
+
+Depending on the security group, your service receives:
+
+| Header | When injected | Contains |
+|---|---|---|
+| `x-mycelium-email` | `authenticated` or higher | The authenticated user's email |
+| `x-mycelium-profile` | `protected` or higher | Full identity context (see below) |
+
+The profile is a compressed JSON object carrying: account ID, tenant memberships, roles, and
+access scopes. Your service reads it and can make resource-level decisions without querying
+the gateway or doing its own authentication.
+
+---
+
+## The downstream layer
+
+Once a request is inside your service, you use the profile to decide what the user can do
+with a specific resource. The profile exposes a fluent API for narrowing the access context:
+
+```
 profile
-  .on_tenant(tenant_id)
-  .on_account(account_id)
-  .with_write_access()
-  .with_roles(vec![SystemActor::AccountManager])
-  .get_related_account_or_error()?;
+  .on_tenant(tenant_id)     # focus on this tenant
+  .on_account(account_id)   # focus on this account
+  .with_write_access()      # must have write permission
+  .with_roles(["manager"])  # must have manager role
+  .get_related_account_or_error()  # returns error if no match
 ```
 
-Each call reduces the set of available capabilities, never expands it.
+Each step narrows — never expands — the set of permissions. If any step finds no match, the
+chain returns an error and you return 403 to your caller.
+
+This design means:
+- Access decisions are explicit and auditable.
+- No implicit "superuser" paths that bypass checks.
+- Your service never needs to call Mycelium again to validate permissions.
 
 ---
 
-## The Profile
+## Reference
 
-The Profile represents the complete identity context at the time of the request and acts as an **active authorization object**.
+### Formal classification
 
-It can contain:
+Mycelium's model spans three standard paradigms:
 
-* Identity
-* Related tenants and accounts
-* Roles
-* Scopes and access levels
+- **RBAC** (Role-Based Access Control) — used declaratively at the gateway level (security groups with role lists).
+- **ABAC** (Attribute-Based Access Control) — the profile carries attributes (tenant, account, scope) used in downstream decisions.
+- **FBAC** (Feature-Based Access Control) — the dominant model; access decisions are made close to the resource using the full contextual chain.
 
-The Profile exposes primitives such as `on_tenant`, `on_account`, and `with_roles`, which enable deterministic and auditable decisions.
+### Design principles
 
----
-
-## Formal Classification
-
-* RBAC: used partially and declaratively at the gateway
-* ABAC: present in explicit use of attributes
-* FBAC: dominant model, contextual and resource-oriented
-
----
-
-## Auditing and Observability
-
-Each authorization decision can be treated as a logical event containing:
-
-* Resource
-* Action
-* Applied context
-* Decision result
-
-This model is compatible with distributed observability and deterministic auditing.
-
----
-
-## Model Evolution
-
-The current model allows incremental evolution to:
-
-* Declarative policy DSL
-* Decision caching
-* Integration with external engines (optional)
-
----
-
-## Conclusion
-
-Mycelium implements a modern authorization model, combining declarative controls at the gateway with contextual decisions close to the resource. This design favors clarity, security, and scalability without introducing unnecessary dependencies.
+- Authentication, identity enrichment, and authorization are strictly separated.
+- Capabilities are progressively reduced — the chain never grants more than the token allows.
+- No global policies that silently override explicit checks.
+- Each authorization decision is a discrete, loggable event (resource, action, context, outcome).

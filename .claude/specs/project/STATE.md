@@ -1,7 +1,7 @@
 # State
 
-**Last Updated:** 2026-04-18
-**Current Work:** M1 — Stability & Safety (Forwarded header done; JWT secret validation, middleware tests, mTLS pending)
+**Last Updated:** 2026-04-20
+**Current Work:** Alternative IdPs documentation complete — `10-alternative-idps.md` with real-world journeys, JWT vs connection-string disambiguation
 
 ---
 
@@ -20,6 +20,29 @@ was considered but rejected — it hides the init failure too silently.
 at call sites.
 
 **Impact:** All template-render call sites must propagate errors via `?` or explicit match.
+
+---
+
+### AD-003: Per-tenant secrets use AES-256-GCM encrypted at rest, not SecretResolver (2026-04-19)
+
+**Decision:** Secrets that vary per tenant (Telegram bot token, webhook secret) are stored as
+`base64(nonce ‖ AES-256-GCM ciphertext ‖ tag)` in the `tenant.meta` JSONB column. The encryption
+key is derived from `AccountLifeCycle::token_secret` via SHA-256 (`derive_key_from_uuid`).
+`SecretResolver<String>` is not used for this class of secrets.
+
+**Reason:** `SecretResolver` requires the operator to format the stored value as JSON
+(`"\"plain-token\""` for plain text, `{"env":"VAR"}` for env, `{"vault":{…}}` for Vault).
+This is not documented in the field names and causes silent failures at runtime when the format
+is wrong. Encrypted at rest gives a uniform, operator-friendly write path (plain string in,
+ciphertext stored) with no format ambiguity.
+
+**Trade-off:** If `AccountLifeCycle::token_secret` rotates, all per-tenant secrets encrypted
+under the old key must be re-submitted via the config endpoint. No automatic re-encryption.
+
+**Pattern to follow for future per-tenant secrets:**
+- Write: call `encrypt_string(&plain, &config)` from `core::domain::utils` in the use case
+- Read: call `decrypt_string(&ciphertext_b64, &config)` in the adapter constructor (eagerly)
+- Store under a `TenantMetaKey` variant with a descriptive name (no `Ref` suffix)
 
 ---
 
@@ -89,6 +112,40 @@ checks between RPC and REST.
 
 ## Lessons Learned
 
+### L-002: Personal accounts vs subscription accounts — Telegram IdP model (2026-04-19)
+
+**Context:** The original Telegram IdP spec (OQ-2b) stored identity on subscription accounts
+(tenant-scoped, `account.tenant_id IS NOT NULL`). This was wrong: only personal accounts
+(user/manager/staff, `account.tenant_id IS NULL`) can own cross-tenant identities.
+
+**Problem:** `get_by_telegram_id` filtered `WHERE account.tenant_id = tenant_id`, which could
+never find personal accounts. The per-tenant unique index `(telegram_user.id, tenant_id)` also
+failed silently because `tenant_id` was NULL.
+
+**Fix:** Global lookup (no `tenant_id` filter). Global unique index on `telegram_user.id` alone.
+Login still scopes the issued connection string with the requested `tenant_id`.
+
+**Rule:** Any identity or credential that must be valid across multiple tenants belongs on a
+personal account, not a subscription account. Subscription accounts are inherently tenant-scoped.
+
+---
+
+### L-003: JWT Bearer vs connection string — different headers, never interchangeable (2026-04-20)
+
+**Context:** Documentation for Telegram IdP used `Authorization: Bearer <connection_string>`, which
+is wrong. Magic-link issues a JWT sent as `Authorization: Bearer <jwt>`. Telegram login issues a
+connection string (`acc=...;tid=...;sig=...`) sent as `x-mycelium-connection-string: <string>`.
+
+**Rule:** Never mix the two. A connection string sent as `Authorization: Bearer` fails JWT signature
+validation and returns 401. The gateway checks `x-mycelium-connection-string` first, falls back to
+Bearer only if absent — but the fallback is for JWT, not for connection strings.
+
+**How to apply:** In documentation and client code, always use `Authorization: Bearer` for JWTs
+(magic-link, email+password) and `x-mycelium-connection-string` for connection strings (Telegram
+login, service tokens).
+
+---
+
 ### L-001: Signature changes in domain DTOs ripple to call sites outside the feature scope (2026-04-06)
 
 **Context:** The `fix-notifier-panics` spec listed 3 target files. Changing `choose_host()` to
@@ -115,6 +172,36 @@ include them in scope.
 ---
 
 ## Current Focus
+
+**Telegram IdP — implementation complete, conceptual fix applied** — branch `feat/messaging-platform-idp/telegram`.
+
+| Task | Status | Commit |
+|---|---|---|
+| T13 — TelegramUser DTO + AccountMeta key | ✅ Done | `12f80f53` |
+| T14 — TenantMeta keys + TelegramConfig trait | ✅ Done | `12f80f53` |
+| T15 — POST /auth/telegram/link | ✅ Done | `12f80f53` |
+| T16 — DELETE /auth/telegram/link | ✅ Done | `12f80f53` |
+| T17 — POST /auth/telegram/login/{tenant_id} | ✅ Done | `12f80f53` |
+| T18 — POST /auth/telegram/webhook/{tenant_id} | ✅ Done | `12f80f53` |
+| Encrypted config — POST /tenant-owner/telegram/config | ✅ Done | `12f80f53` |
+| Fix: personal-account model (OQ-2b superseded) | ✅ Done | `ef8a707e` |
+| T19 — Mode B routing (identity_source on Route) | ✅ Done | `735ddaf` |
+| Post-T19 — BodyIdpResolver trait + TelegramIdpResolver | ✅ Done | `afa5b915` |
+| Post-T19 — Screaming-architecture rule (`.claude/rules/`) | ✅ Done | `afa5b915` |
+| Post-T19 — `IdentitySource` moved to `identity_source.rs` | ✅ Done | `afa5b915` |
+| Post-T19 — `prepare_body_idp_context` pipeline module | ✅ Done | `afa5b915` |
+| Post-T19 — `06-downstream-apis.md` docs (`allowedSources`, `identitySource`, CORS clarification) | ✅ Done | `c2dd1251` |
+| Docs — `10-alternative-idps.md` (admin + user journeys, real-world examples) | ✅ Done | `3f373249` |
+| Docs — tenant config scope clarification (what works without config) | ✅ Done | `912fbfd2` |
+| Docs — JWT vs connection-string disambiguation | ✅ Done | `64c8d866` |
+
+**Key decisions:**
+- Secrets stored as AES-256-GCM ciphertext (`base64(nonce‖ct‖tag)`) — not plain text, not Vault ref
+- Key derived from `AccountLifeCycle::token_secret` (same pattern as `HttpSecret`)
+- `TelegramBotTokenRef` / `TelegramWebhookSecretRef` renamed to `TelegramBotToken` / `TelegramWebhookSecret`
+- `TelegramConfigSvcRepo::from_tenant_meta` is now `async`, decrypts eagerly
+- **OQ-2b superseded (2026-04-19):** Telegram identity links to personal accounts (user/manager/staff), not subscription accounts. Personal accounts have no `tenant_id` column. `get_by_telegram_id` is a global lookup. The unique DB index is now global (`idx_account_meta_telegram_user_id_global`). Login still scopes the connection string to the requested tenant.
+- `AllowedAccounts(vec![])` bug fixed in `link_telegram_identity` and `unlink_telegram_identity` — was generating `WHERE id IN ()` (always false)
 
 **M3 — Magic Link Auth ✅ Complete** — GT0–GT7 implemented. Spec updated to `Status: Implemented` (2026-04-18).
 
@@ -149,6 +236,7 @@ include them in scope.
   - ~99 static literal `from_str("...")` — zero risk, compile-time safe
   - ~8 SSL/startup fail-fast in `main.rs` — acceptable
   - Recommended: create a dedicated M1/M2 feature to harden the Diesel adapter layer with proper `?`-propagation
+- [ ] `TelegramConfig` trait está em `core/domain/entities` mas nenhum use case do core a usa — apenas o port handler a consome diretamente via shaku. Isso viola o espírito da arquitetura hexagonal (traits no core deveriam ser portas para use cases, não para ports). Opções: mover o trait para `adapters/service` como tipo concreto, ou criar um use case de "resolve config" que o port chame. Capturado durante: Telegram IdP (2026-04-19)
 - [ ] Email address validation in the DTO layer (not just at send time) — Captured during: fix-notifier-panics
 - [ ] Hot-reloading Tera templates (ops/config concern) — Captured during: fix-notifier-panics
 

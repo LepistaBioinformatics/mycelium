@@ -4,6 +4,7 @@ pub mod middleware;
 pub mod models;
 pub mod responses;
 pub mod settings;
+pub mod telegram;
 pub mod utils;
 pub mod wrappers;
 

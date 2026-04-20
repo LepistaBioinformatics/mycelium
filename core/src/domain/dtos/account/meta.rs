@@ -9,6 +9,11 @@ pub enum AccountMetaKey {
     PhoneNumber,
 
     /// The Telegram User
+    ///
+    /// Stored JSON shape: `{ "id": <i64>, "username": <string|null> }`.
+    /// `id` is the canonical identity (from.id) — immutable, used for all
+    /// lookups. `username` is display-only and must never be used as a lookup
+    /// key.
     TelegramUser,
 
     /// The WhatsApp User

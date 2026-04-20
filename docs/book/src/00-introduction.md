@@ -1,79 +1,80 @@
 # Introduction
 
-Welcome to **Mycelium API Gateway**, the ultimate solution for secure, flexible, and multi-tenant API management! Whether you're building a robust platform or enhancing your downstream APIs, our gateway is designed to provide you with everything you need for seamless authentication, authorization, and security.
+**Mycelium API Gateway** sits in front of your backend services and handles authentication,
+authorization, and routing — so your services don't have to.
 
-## What is Mycelium?
+---
 
-Mycelium is an **open and free API Gateway**, designed to operate in modern, multi-tenant, and API-oriented environments. The project prioritizes architectural clarity, security, and extensibility, maintaining an explicit separation between technical concerns and organizational aspects of the project.
+## Who is this for?
 
-Mycelium acts as the entry layer for downstream services, being responsible for authentication, identity normalization, routing, and security policy enforcement. The gateway does not impose business logic, but provides **authorization primitives** that allow each service to evaluate permissions in an explicit, secure, and contextual manner.
+This documentation is written for three types of readers:
 
-## Key Features
+**Operator** — You're deploying Mycelium for an organization. You'll configure tenants, users,
+and which backend services are reachable through the gateway. Start with
+[Installation](./02-installation.md) and [Quick Start](./03-quick-start.md).
 
-### Authentication & Authorization
+**Backend developer** — You're building a service that sits behind Mycelium. The gateway
+will handle authentication and then inject the user's identity into your requests via
+headers. Start with [Downstream APIs](./06-downstream-apis.md).
 
-- **OAuth2**: Support for any OAuth2 identity provider with a few lines of configuration.
-- **Two-Factor Authentication (2FA)**: Built-in support for TOTP to ensure an extra layer of security when users opt to use the internal authentication system.
-- **Federated Identity Support**: Integrate with external identity providers while maintaining full control over roles and permissions.
-- **Contextual Authorization (FBAC)**: Fine-grained, Feature-based Access Control with contextual evaluation at both gateway (RBAC for edge control) and downstream services (contextual FBAC for resource-level decisions).
+**End user** — You're using a product built on Mycelium. You'll authenticate via email magic
+link, or through an alternative identity provider like Telegram. Your experience depends on
+how the operator has configured their instance.
 
-### Multi-Tenant Architecture
+---
 
-- **Tenant Management**: Create and manage tenants with subscription-based accounts.
-- **Role Assignment**: Invite users to join tenants and assign them specific roles to streamline collaboration.
-
-### Secure Secrets Management
-
-- **Vault Integration**: Leverage HashiCorp Vault for secure storage of secrets.
-- **Flexible Configurations**: Use secrets stored in Vault, environment variables, or define them in YAML.
-- **Dynamic Secret Injection**: Automate secure secret delivery to downstream APIs.
-
-### API Routing & Service Discovery
-
-- **Service Discovery**: Discover downstream APIs and their capabilities, allowing dynamic integration and routing based on available services.
-- **Full Control of Downstream APIs**: Downstream APIs can control whether their routes should be discovered or not, maintaining granular visibility control.
-- **Health Checks**: Downstream APIs can define health checks to indicate when they are ready to receive requests. Health status is automatically updated based on the health checks and informed during discovery.
-- **Smart API Routing**: Easily configure API routes with support for secure token-based authentication.
-- **Webhook Support**: Define webhooks with secrets for secure callbacks and notifications.
-
-### TOML-Driven Configuration
-
-- **Simple and Intuitive**: Manage all configurations (tenants, roles, permissions, routes, and security) with easy-to-read TOML files.
-- **Environment Flexibility**: Combine TOML definitions with environment variables for maximum flexibility.
-
-### Security-First Design
-
-- **Layered Authorization**: Gateway applies declarative controls (RBAC) while downstream services use contextual FBAC for fine-grained decisions.
-- **Profile Injection**: Automatically inject identity context and capabilities to downstream APIs via Profile objects.
-- **Token Management**: Store and securely pass tokens in request headers.
-- **Compliance Ready**: Designed with modern security practices to meet enterprise compliance requirements.
-
-## Why Choose Mycelium API Gateway?
-
-1. **Community-Driven and Open Source**: Leverage a growing community while benefiting from an open-source model.
-2. **Scalable and Modular**: Designed to grow with your needs, from startups to enterprise-scale applications.
-3. **Developer-Friendly**: TOML-based configurations, secure secret management, and contextual authorization model make it easy to get started.
-4. **Modern Authorization**: Combines declarative RBAC at the gateway with fine-grained contextual FBAC in downstream services for maximum flexibility and security.
-
-## Conceptual Structure
+## What does Mycelium do?
 
 ```
-Client
-  ↓
-API Gateway (auth, routing, edge RBAC)
-  ↓
-Downstream Services (contextual FBAC)
+Your users
+    ↓
+Mycelium API Gateway   ← handles login, token validation, and routing decisions
+    ↓
+Your backend services  ← receive authenticated requests with user identity in headers
 ```
 
-This separation ensures low coupling, high expressiveness, and security decisions close to the resource.
+When a request arrives, Mycelium checks:
 
-## Next Steps
+1. **Who are you?** (authentication — via magic link, OAuth2, Telegram, etc.)
+2. **Are you allowed here?** (coarse authorization — role checks at the route level)
+3. **Where should this go?** (routing — forwards to the right downstream service)
 
-- [Installation Guide](./02-installation.md) - Learn how to install Mycelium
-- [Quick Start](./03-quick-start.md) - Get up and running in minutes
-- [Configuration](./04-configuration.md) - Understand configuration options
-- [Authorization Model](./01-authorization.md) - Deep dive into the authorization system
+Your backend service receives the request with the user's identity already resolved and
+injected as an HTTP header (`x-mycelium-profile`). It can then make fine-grained decisions
+without doing its own authentication.
 
-## License
+---
 
-Mycelium API Gateway is licensed under the Apache 2.0 License. Additional restrictions for commercial use apply under the Commons Clause. See the [LICENSE](https://github.com/LepistaBioinformatics/mycelium/blob/main/LICENSE) file for details.
+## Key concepts
+
+**Tenant** — A company or organization within your Mycelium installation. Users belong to
+tenants, and access controls are applied per tenant.
+
+**Account** — A user's identity inside Mycelium. A person can belong to multiple tenants with
+different roles in each.
+
+**Profile** — A snapshot of the authenticated user's identity at the time of the request: their
+account, tenant memberships, roles, and access levels. Injected into every downstream request.
+
+**Security group** — A label on each route that tells Mycelium what level of authentication is
+required. Options range from `public` (anyone) to `protectedByRoles` (specific roles only).
+
+---
+
+## How authentication works
+
+Mycelium ships with built-in email + magic-link login. No passwords required — the user enters
+their email, receives a one-time link, and gets a JWT token.
+
+You can also connect external OAuth2 providers (Google, Microsoft, Auth0) or alternative identity
+providers like Telegram. See [Alternative Identity Providers](./10-alternative-idps.md) for details.
+
+---
+
+## Next steps
+
+- [Installation](./02-installation.md) — Install the gateway binary or Docker image
+- [Quick Start](./03-quick-start.md) — Get a running instance in minutes
+- [Configuration](./04-configuration.md) — Full configuration reference
+- [Downstream APIs](./06-downstream-apis.md) — Register your backend services
+- [Authorization Model](./01-authorization.md) — Understand how access decisions are made

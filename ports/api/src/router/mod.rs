@@ -23,6 +23,7 @@ mod check_source_reliability;
 mod initialize_downstream_request;
 mod inject_downstream_secret;
 mod match_downstream_route_from_request;
+mod prepare_body_idp_context;
 mod stream_request_to_downstream;
 
 use build_the_gateway_response::*;
@@ -32,6 +33,7 @@ use check_source_reliability::*;
 use initialize_downstream_request::*;
 use inject_downstream_secret::*;
 use match_downstream_route_from_request::*;
+use prepare_body_idp_context::*;
 use stream_request_to_downstream::*;
 
 use crate::models::api_config::ApiConfig;
@@ -159,6 +161,15 @@ pub(crate) async fn route_request(
     .await?;
 
     // ? -----------------------------------------------------------------------
+    // ? Buffer payload and build body IdP context
+    // ? -----------------------------------------------------------------------
+
+    let (body_idp_ctx, pre_buffered_body, payload) =
+        prepare_body_idp_context(&route, payload)
+            .instrument(span.to_owned())
+            .await?;
+
+    // ? -----------------------------------------------------------------------
     // ? Check authentication and get permissions
     //
     // Inject the email, profile, and role scoped connection string into the
@@ -170,6 +181,7 @@ pub(crate) async fn route_request(
         upstream_request.clone(),
         downstream_request,
         route.clone(),
+        body_idp_ctx,
     )
     .instrument(span.to_owned())
     .await?;
@@ -204,6 +216,7 @@ pub(crate) async fn route_request(
         downstream_request,
         &upstream_request,
         payload,
+        pre_buffered_body,
         route.callbacks.to_owned(),
         &app_module,
         user_info,
