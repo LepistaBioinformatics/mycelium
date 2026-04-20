@@ -380,7 +380,7 @@ pub async fn login_via_telegram_url(
 /// immediately — Telegram retries on any other status code.
 ///
 /// The update payload is accepted and validated here; forwarding to downstream
-/// handlers is wired in T19 (Mode B routing).
+/// handlers uses Telegram update auth (`identity_source: Telegram` on the route).
 ///
 #[utoipa::path(
     post,

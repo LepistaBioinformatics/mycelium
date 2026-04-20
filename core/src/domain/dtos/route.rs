@@ -1,23 +1,9 @@
+pub use super::identity_source::IdentitySource;
+
 use super::{
     http::HttpMethod, http_secret::HttpSecret, security_group::SecurityGroup,
     service::Service,
 };
-
-/// Declares the source platform from which the request identity is extracted
-/// when a route operates in body-passthrough mode (Mode B).
-///
-/// When set on a route, `check_security_group` extracts the platform identity
-/// from the request body instead of expecting a JWT or connection string. Source
-/// reliability (IP allowlist) is mandatory and enforced before extraction.
-#[derive(
-    Debug, Clone, Deserialize, Serialize, PartialEq, Eq, ToSchema, ToResponse,
-)]
-#[serde(rename_all = "camelCase")]
-pub enum IdentitySource {
-    /// Identity resolved from `from.id` in the Telegram update JSON body.
-    Telegram,
-}
-
 use http::{uri::PathAndQuery, Uri};
 use mycelium_base::{
     dtos::Parent,

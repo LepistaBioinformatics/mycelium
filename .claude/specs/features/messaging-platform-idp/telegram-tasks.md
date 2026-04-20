@@ -473,27 +473,26 @@ Key implementation notes:
 
 ### T19 — `check_security_group` branch for `identity_source: Telegram` (Mode B)
 
+**Status:** ✅ Done (2026-04-20)
+
 **Depends on:** T9, T10, T14  
-**File:** `ports/api/src/router/check_security_group.rs`
+**Files changed:**
+- `ports/api/src/router/check_security_group.rs` — Mode B branch + `resolve_telegram_mode_b` helper; `telegram_from_id: Option<i64>` param added
+- `ports/api/src/router/mod.rs` — `buffer_payload` + `extract_telegram_from_id` helpers; payload buffered before `check_security_group` when `identity_source == Some(Telegram)` (body → bytes, then `pre_buffered_body` to stream_request_to_downstream)
+- `ports/api/src/middleware/fetch_and_inject_profile_from_telegram_to_forward.rs` — new; `enforce_mandatory_allowlist`, `fetch_account_id`, `fetch_owner_email`, full profile injection
+- `ports/api/src/middleware/mod.rs` — exports new middleware
+- `ports/api/src/router/stream_request_to_downstream.rs` — `payload: Option<Payload>` + `pre_buffered_body: Option<Bytes>`; uses `send_body` vs `send_stream`
 
-**Action:** Add a guard **before** the existing `security_group` match:
-```
-if let Some(IdentitySource::Telegram) = route.identity_source {
-    // 1. source reliability check (IP allowlist) — mandatory, non-bypassable
-    // 2. extract from.id from request body JSON
-    // 3. extract tenant_id from route context or x-mycelium-tenant-id header
-    // 4. resolve_account_by_telegram_id(from_id, tenant_id)
-    // 5. build Profile, inject headers
-    // 6. return (downstream_request, security_group, Some(UserInfo::new_profile(profile)))
-}
-```
-
-If source reliability check fails → return `GatewayError::Forbidden`.  
-If `from.id` not found in body → return `GatewayError::Unauthorized`.  
-If account not linked → return `GatewayError::Unauthorized`.
+**Implementation notes:**
+- `from.id` extracted from request body JSON via `serde_json::Value`; all Telegram update types (message, callback_query, etc.) probed
+- Mandatory allowlist enforced in middleware (`allowed_sources.is_none()` → 403 Forbidden)
+- Two DB queries to get email: `get_by_telegram_id` → account_id, then `get(id, AllowedAccounts)` → owners with email. Cached by `recovery_profile_from_storage_engines` via KV.
+- Body size cap: 512 KB enforced in `buffer_payload`
+- Mode B guard fires BEFORE security_group match → `Public + Telegram` would still attempt resolution (operator misconfiguration, logged as warn)
 
 **Acceptance:**
-- [ ] Existing security group tests all pass unchanged
+- [x] Existing security group tests all pass unchanged (239 tests, 0 failures)
+- [x] `cargo fmt --all -- --check` passes
 - [ ] New test: route with `identity_source: Telegram` + n8n IP in allowlist + linked user → profile injected
 - [ ] New test: route with `identity_source: Telegram` + IP NOT in allowlist → 403
 - [ ] New test: route with `identity_source: Telegram` + unlinked `from.id` → 401

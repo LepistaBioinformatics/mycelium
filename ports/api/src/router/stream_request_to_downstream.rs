@@ -3,7 +3,7 @@ use std::time::Instant;
 
 use actix_web::{
     dev::{Decompress, Payload as DevPayload},
-    web::Payload,
+    web::{Bytes, Payload},
     HttpRequest,
 };
 use awc::{
@@ -37,7 +37,8 @@ pub(super) type DownstreamResponse = ClientResponse<Decompress<DevPayload>>;
 pub(super) async fn stream_request_to_downstream(
     downstream_request: ClientRequest,
     upstream_request: &HttpRequest,
-    payload: Payload,
+    payload: Option<Payload>,
+    pre_buffered_body: Option<Bytes>,
     callback_names: Option<Vec<String>>,
     mem_module: &MemDbAppModule,
     user_info: Option<UserInfo>,
@@ -80,10 +81,17 @@ pub(super) async fn stream_request_to_downstream(
     // Get callbacks for filter checking
     let callbacks = db_provider.get_callbacks_db();
 
-    let downstream_response: DownstreamResponse = match downstream_request
-        .send_stream(payload)
-        .await
-    {
+    let send_result = if let Some(body) = pre_buffered_body {
+        downstream_request.send_body(body).await
+    } else {
+        downstream_request
+            .send_stream(
+                payload.expect("payload required when body not pre-buffered"),
+            )
+            .await
+    };
+
+    let downstream_response: DownstreamResponse = match send_result {
         Err(err) => match err {
             SendRequestError::Connect(e) => {
                 match e {

@@ -13,6 +13,7 @@ pub mod message;
 pub mod native_error_codes;
 pub mod profile;
 pub mod related_accounts;
+pub mod identity_source;
 pub mod route;
 pub mod security_group;
 pub mod service;

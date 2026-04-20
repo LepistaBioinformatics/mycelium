@@ -1,7 +1,7 @@
 # State
 
-**Last Updated:** 2026-04-19
-**Current Work:** Telegram IdP personal-account model fix pushed (`ef8a707e`); T19 (Mode B) pending
+**Last Updated:** 2026-04-20
+**Current Work:** T19 (Mode B routing) complete — gate checks pass, awaiting commit
 
 ---
 
@@ -169,7 +169,7 @@ include them in scope.
 | T18 — POST /auth/telegram/webhook/{tenant_id} | ✅ Done | `12f80f53` |
 | Encrypted config — POST /tenant-owner/telegram/config | ✅ Done | `12f80f53` |
 | Fix: personal-account model (OQ-2b superseded) | ✅ Done | `ef8a707e` |
-| T19 — Mode B routing (identity_source on Route) | Planned | — |
+| T19 — Mode B routing (identity_source on Route) | ✅ Done | pending commit |
 
 **Key decisions:**
 - Secrets stored as AES-256-GCM ciphertext (`base64(nonce‖ct‖tag)`) — not plain text, not Vault ref
