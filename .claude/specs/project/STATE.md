@@ -1,7 +1,7 @@
 # State
 
 **Last Updated:** 2026-04-19
-**Current Work:** Telegram IdP feature pushed to `feat/messaging-platform-idp/telegram`; M1 items pending
+**Current Work:** Telegram IdP personal-account model fix pushed (`ef8a707e`); T19 (Mode B) pending
 
 ---
 
@@ -112,6 +112,24 @@ checks between RPC and REST.
 
 ## Lessons Learned
 
+### L-002: Personal accounts vs subscription accounts — Telegram IdP model (2026-04-19)
+
+**Context:** The original Telegram IdP spec (OQ-2b) stored identity on subscription accounts
+(tenant-scoped, `account.tenant_id IS NOT NULL`). This was wrong: only personal accounts
+(user/manager/staff, `account.tenant_id IS NULL`) can own cross-tenant identities.
+
+**Problem:** `get_by_telegram_id` filtered `WHERE account.tenant_id = tenant_id`, which could
+never find personal accounts. The per-tenant unique index `(telegram_user.id, tenant_id)` also
+failed silently because `tenant_id` was NULL.
+
+**Fix:** Global lookup (no `tenant_id` filter). Global unique index on `telegram_user.id` alone.
+Login still scopes the issued connection string with the requested `tenant_id`.
+
+**Rule:** Any identity or credential that must be valid across multiple tenants belongs on a
+personal account, not a subscription account. Subscription accounts are inherently tenant-scoped.
+
+---
+
 ### L-001: Signature changes in domain DTOs ripple to call sites outside the feature scope (2026-04-06)
 
 **Context:** The `fix-notifier-panics` spec listed 3 target files. Changing `choose_host()` to
@@ -139,25 +157,27 @@ include them in scope.
 
 ## Current Focus
 
-**Telegram IdP ✅ Complete** — T13–T18 + encrypted storage implemented and pushed (2026-04-19).
-Branch: `feat/messaging-platform-idp/telegram` — commit `12f80f53`.
+**Telegram IdP — implementation complete, conceptual fix applied** — branch `feat/messaging-platform-idp/telegram`.
 
-| Task | Status |
-|---|---|
-| T13 — TelegramUser DTO + AccountMeta key | ✅ Done |
-| T14 — TenantMeta keys + TelegramConfig trait | ✅ Done |
-| T15 — POST /auth/telegram/link | ✅ Done |
-| T16 — DELETE /auth/telegram/link | ✅ Done |
-| T17 — POST /auth/telegram/login/{tenant_id} | ✅ Done |
-| T18 — POST /auth/telegram/webhook/{tenant_id} | ✅ Done |
-| Encrypted config — POST /tenant-owner/telegram/config | ✅ Done |
-| T19 — Mode B routing (identity_source on Route) | Planned |
+| Task | Status | Commit |
+|---|---|---|
+| T13 — TelegramUser DTO + AccountMeta key | ✅ Done | `12f80f53` |
+| T14 — TenantMeta keys + TelegramConfig trait | ✅ Done | `12f80f53` |
+| T15 — POST /auth/telegram/link | ✅ Done | `12f80f53` |
+| T16 — DELETE /auth/telegram/link | ✅ Done | `12f80f53` |
+| T17 — POST /auth/telegram/login/{tenant_id} | ✅ Done | `12f80f53` |
+| T18 — POST /auth/telegram/webhook/{tenant_id} | ✅ Done | `12f80f53` |
+| Encrypted config — POST /tenant-owner/telegram/config | ✅ Done | `12f80f53` |
+| Fix: personal-account model (OQ-2b superseded) | ✅ Done | `ef8a707e` |
+| T19 — Mode B routing (identity_source on Route) | Planned | — |
 
 **Key decisions:**
 - Secrets stored as AES-256-GCM ciphertext (`base64(nonce‖ct‖tag)`) — not plain text, not Vault ref
 - Key derived from `AccountLifeCycle::token_secret` (same pattern as `HttpSecret`)
 - `TelegramBotTokenRef` / `TelegramWebhookSecretRef` renamed to `TelegramBotToken` / `TelegramWebhookSecret`
 - `TelegramConfigSvcRepo::from_tenant_meta` is now `async`, decrypts eagerly
+- **OQ-2b superseded (2026-04-19):** Telegram identity links to personal accounts (user/manager/staff), not subscription accounts. Personal accounts have no `tenant_id` column. `get_by_telegram_id` is a global lookup. The unique DB index is now global (`idx_account_meta_telegram_user_id_global`). Login still scopes the connection string to the requested tenant.
+- `AllowedAccounts(vec![])` bug fixed in `link_telegram_identity` and `unlink_telegram_identity` — was generating `WHERE id IN ()` (always false)
 
 **M3 — Magic Link Auth ✅ Complete** — GT0–GT7 implemented. Spec updated to `Status: Implemented` (2026-04-18).
 
