@@ -3,7 +3,8 @@ use myc_core::domain::dtos::webhook::WebHookExecutionStatus;
 use myc_core::domain::entities::WebHookUpdating;
 use myc_core::models::CoreConfig;
 use myc_core::{
-    domain::entities::WebHookFetching, use_cases::dispatch_webhooks,
+    domain::entities::{EncryptionKeyFetching, WebHookFetching},
+    use_cases::dispatch_webhooks,
 };
 use myc_diesel::repositories::SqlAppModule;
 use mycelium_base::entities::FetchManyResponseKind;
@@ -28,8 +29,11 @@ pub(crate) async fn webhook_dispatcher(
         let webhook_config = config.webhook.clone();
         let read_repo: &dyn WebHookFetching = app_modules.resolve_ref();
         let write_repo: &dyn WebHookUpdating = app_modules.resolve_ref();
+        let enc_key_repo: &dyn EncryptionKeyFetching =
+            app_modules.resolve_ref();
         let child_read_repo = Box::new(read_repo);
         let child_write_repo = Box::new(write_repo);
+        let child_enc_key_repo = Box::new(enc_key_repo);
         let mut interval =
             actix_rt::time::interval(Duration::from_secs(match webhook_config
                 .consume_interval_in_secs
@@ -140,6 +144,7 @@ pub(crate) async fn webhook_dispatcher(
                             config.clone(),
                             child_read_repo.clone(),
                             child_write_repo.clone(),
+                            child_enc_key_repo.clone(),
                         )
                     }))
                     .await;

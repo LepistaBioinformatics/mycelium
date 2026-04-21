@@ -136,7 +136,9 @@ pub async fn link_telegram_url(
 
     let config_repo = match TelegramConfigSvcRepo::from_tenant_meta(
         &meta,
+        tenant_id,
         life_cycle_settings.get_ref().clone(),
+        &*sql_app_module.resolve_ref(),
     )
     .await
     {
@@ -313,7 +315,9 @@ pub async fn login_via_telegram_url(
 
     let config_repo = match TelegramConfigSvcRepo::from_tenant_meta(
         &meta,
+        tenant_id,
         life_cycle_settings.get_ref().clone(),
+        &*sql_app_module.resolve_ref(),
     )
     .await
     {
@@ -445,7 +449,9 @@ pub async fn webhook_url(
 
     let config_repo = match TelegramConfigSvcRepo::from_tenant_meta(
         &meta,
+        tenant_id,
         life_cycle_settings.get_ref().clone(),
+        &*sql_app_module.resolve_ref(),
     )
     .await
     {

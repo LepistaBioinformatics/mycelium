@@ -3,6 +3,7 @@ use shaku::module;
 mod account;
 mod account_tag;
 mod config;
+mod encryption_key;
 mod error_code;
 mod guest_role;
 mod guest_user;
@@ -18,6 +19,7 @@ mod webhook;
 
 use account::*;
 use account_tag::*;
+use encryption_key::*;
 use error_code::*;
 use guest_role::*;
 use guest_user::*;
@@ -50,6 +52,7 @@ module! {
             AccountTagDeletionSqlDbRepository,
             AccountTagRegistrationSqlDbRepository,
             AccountTagUpdatingSqlDbRepository,
+            EncryptionKeyFetchingSqlDbRepository,
             ErrorCodeDeletionSqlDbRepository,
             ErrorCodeFetchingSqlDbRepository,
             ErrorCodeRegistrationSqlDbRepository,

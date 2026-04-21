@@ -5,7 +5,8 @@ use crate::{
             http_secret::HttpSecret, native_error_codes::NativeErrorCodes,
             profile::Profile, webhook::WebHook, written_by::WrittenBy,
         },
-        entities::{WebHookFetching, WebHookUpdating},
+        entities::{EncryptionKeyFetching, WebHookFetching, WebHookUpdating},
+        utils::{build_aad, AAD_FIELD_HTTP_SECRET},
     },
     models::AccountLifeCycle,
 };
@@ -27,6 +28,7 @@ use uuid::Uuid;
         config,
         webhook_fetching_repo,
         webhook_updating_repo,
+        encryption_key_fetching_repo,
     ),
 )]
 pub async fn update_webhook(
@@ -39,6 +41,7 @@ pub async fn update_webhook(
     is_active: Option<bool>,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
     webhook_updating_repo: Box<&dyn WebHookUpdating>,
+    encryption_key_fetching_repo: Box<&dyn EncryptionKeyFetching>,
 ) -> Result<UpdatingResponseKind<WebHook>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
@@ -79,13 +82,17 @@ pub async fn update_webhook(
     }
 
     if let Some(secret) = secret {
-        webhook
-            .set_secret(
-                secret,
-                config,
-                Some(WrittenBy::new_from_account(profile.acc_id)),
-            )
+        let kek = config.derive_kek_bytes().await?;
+        let dek = encryption_key_fetching_repo
+            .get_or_provision_dek(None, &kek)
             .await?;
+        let aad = build_aad(None, AAD_FIELD_HTTP_SECRET);
+        webhook.set_secret(
+            secret,
+            &dek,
+            &aad,
+            Some(WrittenBy::new_from_account(profile.acc_id)),
+        )?;
     }
 
     if let Some(is_active) = is_active {

@@ -95,6 +95,7 @@ pub async fn set_telegram_config_url(
         body.webhook_secret.clone(),
         life_cycle_settings.get_ref().clone(),
         Box::new(&*app_module.resolve_ref() as &dyn TenantRegistration),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

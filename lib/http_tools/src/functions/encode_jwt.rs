@@ -95,6 +95,21 @@ pub async fn encode_jwt(
         }
     };
 
+    // HS512 requires at least 32 bytes of key material to be meaningful.
+    // Shorter secrets are trivially brute-forceable regardless of algorithm.
+    if secret.len() < 32 {
+        error!(
+            "JWT secret is too short ({} bytes); minimum is 32",
+            secret.len()
+        );
+        return Err(HttpResponse::InternalServerError().json(
+            HttpJsonResponse::new_message(
+                "JWT secret does not meet minimum length requirements."
+                    .to_string(),
+            ),
+        ));
+    }
+
     match encode(
         &header,
         &claims,

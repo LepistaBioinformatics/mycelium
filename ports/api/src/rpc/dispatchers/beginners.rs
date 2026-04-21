@@ -540,7 +540,9 @@ pub async fn dispatch_beginners(
             let (totp_url, totp_secret) = totp_start_activation(
                 email,
                 p.qr_code,
+                None,
                 life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
@@ -570,7 +572,9 @@ pub async fn dispatch_beginners(
             let _ = totp_finish_activation(
                 email,
                 p.token,
+                None,
                 life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
@@ -597,7 +601,9 @@ pub async fn dispatch_beginners(
             let user = totp_check_token(
                 email,
                 p.token,
+                None,
                 life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
             .await
@@ -620,7 +626,9 @@ pub async fn dispatch_beginners(
             let _ = totp_disable(
                 email,
                 p.token,
+                None,
                 life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),

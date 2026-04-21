@@ -700,7 +700,9 @@ pub async fn totp_start_activation_url(
     match totp_start_activation(
         email,
         query.qr_code,
+        None,
         life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
@@ -772,7 +774,9 @@ pub async fn totp_finish_activation_url(
     match totp_finish_activation(
         email,
         body.token.to_owned(),
+        None,
         life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
@@ -839,7 +843,9 @@ pub async fn totp_check_token_url(
     match totp_check_token(
         email,
         body.token.to_owned(),
+        None,
         life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await
@@ -919,7 +925,9 @@ pub async fn totp_disable_url(
     match totp_disable(
         email,
         body.token.to_owned(),
+        None,
         life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),

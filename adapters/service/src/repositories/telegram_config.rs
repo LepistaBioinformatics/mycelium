@@ -2,7 +2,10 @@ use async_trait::async_trait;
 use myc_core::{
     domain::{
         dtos::tenant::{TenantMeta, TenantMetaKey},
-        entities::TelegramConfig,
+        entities::{EncryptionKeyFetching, TelegramConfig},
+        utils::{
+            AAD_FIELD_TELEGRAM_BOT_TOKEN, AAD_FIELD_TELEGRAM_WEBHOOK_SECRET,
+        },
     },
     models::AccountLifeCycle,
     use_cases::gateway::telegram::decrypt_telegram_secret,
@@ -24,7 +27,9 @@ pub struct TelegramConfigSvcRepo {
 impl TelegramConfigSvcRepo {
     pub async fn from_tenant_meta(
         meta: &TenantMeta,
+        tenant_id: Uuid,
         config: AccountLifeCycle,
+        encryption_key_fetching_repo: &dyn EncryptionKeyFetching,
     ) -> Result<Self, MappedErrors> {
         let bot_token_enc = meta
             .get(&TenantMetaKey::TelegramBotToken)
@@ -42,11 +47,23 @@ impl TelegramConfigSvcRepo {
                     .with_exp_true()
             })?;
 
-        let bot_token =
-            decrypt_telegram_secret(&bot_token_enc, config.clone()).await?;
+        let bot_token = decrypt_telegram_secret(
+            &bot_token_enc,
+            tenant_id,
+            config.clone(),
+            encryption_key_fetching_repo,
+            AAD_FIELD_TELEGRAM_BOT_TOKEN,
+        )
+        .await?;
 
-        let webhook_secret =
-            decrypt_telegram_secret(&webhook_secret_enc, config).await?;
+        let webhook_secret = decrypt_telegram_secret(
+            &webhook_secret_enc,
+            tenant_id,
+            config,
+            encryption_key_fetching_repo,
+            AAD_FIELD_TELEGRAM_WEBHOOK_SECRET,
+        )
+        .await?;
 
         Ok(Self {
             bot_token,

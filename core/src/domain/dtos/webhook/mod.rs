@@ -5,10 +5,7 @@ pub use responses::*;
 pub use trigger::*;
 
 use super::http_secret::HttpSecret;
-use crate::{
-    domain::dtos::{http::HttpMethod, written_by::WrittenBy},
-    models::AccountLifeCycle,
-};
+use crate::domain::dtos::{http::HttpMethod, written_by::WrittenBy};
 
 use chrono::{DateTime, Local};
 use mycelium_base::utils::errors::{use_case_err, MappedErrors};
@@ -92,7 +89,8 @@ where
     if let Some(ref m) = method {
         if !WebHook::is_write_method(m) {
             return Err(serde::de::Error::custom(format!(
-                "HTTP method '{method}' is not allowed. Only POST, PUT, PATCH and DELETE are allowed.",
+                "HTTP method '{method}' is not allowed. Only POST, PUT, PATCH \
+                 and DELETE are allowed.",
                 method = m
             )));
         }
@@ -114,7 +112,8 @@ impl WebHook {
         if let Some(ref m) = method {
             if !WebHook::is_write_method(m) {
                 panic!(
-                    "HTTP method '{method}' is not allowed. Only POST, PUT, PATCH and DELETE are allowed.",
+                    "HTTP method '{method}' is not allowed. Only POST, PUT, \
+                     PATCH and DELETE are allowed.",
                     method = m
                 );
             }
@@ -136,20 +135,23 @@ impl WebHook {
         }
     }
 
-    pub async fn new_encrypted(
+    /// Create a new webhook with the secret encrypted using the system DEK.
+    pub fn new_encrypted(
         name: String,
         description: Option<String>,
         url: String,
         trigger: WebHookTrigger,
         method: Option<HttpMethod>,
         secret: Option<HttpSecret>,
-        config: AccountLifeCycle,
+        dek: &[u8; 32],
+        aad: &[u8],
         created_by: Option<WrittenBy>,
     ) -> Result<Self, MappedErrors> {
         if let Some(ref m) = method {
             if !WebHook::is_write_method(m) {
                 return use_case_err(format!(
-                    "HTTP method '{method}' is not allowed. Only POST, PUT, PATCH and DELETE are allowed.",
+                    "HTTP method '{method}' is not allowed. Only POST, PUT, \
+                     PATCH and DELETE are allowed.",
                     method = m
                 ))
                 .as_error();
@@ -158,7 +160,7 @@ impl WebHook {
 
         let encrypted_secret = match secret {
             None => None,
-            Some(secret) => Some(secret.encrypt_me(config).await?),
+            Some(s) => Some(s.encrypt_me(dek, aad)?),
         };
 
         Ok(Self {
@@ -187,13 +189,14 @@ impl WebHook {
         self.secret.clone()
     }
 
-    pub async fn set_secret(
+    pub fn set_secret(
         &mut self,
         secret: HttpSecret,
-        config: AccountLifeCycle,
+        dek: &[u8; 32],
+        aad: &[u8],
         updated_by: Option<WrittenBy>,
     ) -> Result<(), MappedErrors> {
-        self.secret = Some(secret.encrypt_me(config).await?);
+        self.secret = Some(secret.encrypt_me(dek, aad)?);
         self.updated_by = updated_by;
         Ok(())
     }
