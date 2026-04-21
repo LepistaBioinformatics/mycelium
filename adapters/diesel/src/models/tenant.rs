@@ -15,4 +15,6 @@ pub(crate) struct Tenant {
     pub status: Option<Vec<JsonValue>>,
     pub created: NaiveDateTime,
     pub updated: Option<NaiveDateTime>,
+    pub encrypted_dek: Option<String>,
+    pub kek_version: i32,
 }

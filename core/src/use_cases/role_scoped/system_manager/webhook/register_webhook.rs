@@ -8,7 +8,8 @@ use crate::{
             webhook::{WebHook, WebHookTrigger},
             written_by::WrittenBy,
         },
-        entities::WebHookRegistration,
+        entities::{EncryptionKeyFetching, WebHookRegistration},
+        utils::{build_aad, AAD_FIELD_HTTP_SECRET},
     },
     models::AccountLifeCycle,
 };
@@ -32,6 +33,7 @@ pub async fn register_webhook(
     secret: Option<HttpSecret>,
     config: AccountLifeCycle,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
+    encryption_key_fetching_repo: Box<&dyn EncryptionKeyFetching>,
 ) -> Result<CreateResponseKind<WebHook>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Check if the current account has sufficient privileges
@@ -44,6 +46,17 @@ pub async fn register_webhook(
         .get_ids_or_error()?;
 
     // ? -----------------------------------------------------------------------
+    // ? Fetch the system DEK (webhooks are global, no tenant)
+    // ? -----------------------------------------------------------------------
+
+    let kek = config.derive_kek_bytes().await?;
+    let dek = encryption_key_fetching_repo
+        .get_or_provision_dek(None, &kek)
+        .await?;
+
+    let aad = build_aad(None, AAD_FIELD_HTTP_SECRET);
+
+    // ? -----------------------------------------------------------------------
     // ? Register webhook
     // ? -----------------------------------------------------------------------
 
@@ -54,10 +67,10 @@ pub async fn register_webhook(
         trigger,
         method,
         secret,
-        config,
+        &dek,
+        &aad,
         Some(WrittenBy::new_from_account(profile.acc_id)),
-    )
-    .await?;
+    )?;
 
     webhook_registration_repo.create(webhook).await
 }

@@ -6,8 +6,10 @@ use crate::{
             user::{MultiFactorAuthentication, Totp},
         },
         entities::{
-            LocalMessageWrite, TenantFetching, UserFetching, UserUpdating,
+            EncryptionKeyFetching, LocalMessageWrite, TenantFetching,
+            UserFetching, UserUpdating,
         },
+        utils::{build_aad, AAD_FIELD_TOTP_SECRET},
     },
     models::AccountLifeCycle,
     settings::DEFAULT_TOTP_DOMAIN,
@@ -19,16 +21,19 @@ use mycelium_base::{
     utils::errors::{use_case_err, MappedErrors},
 };
 use totp_rs::{Algorithm, Secret, TOTP};
+use uuid::Uuid;
 
 #[tracing::instrument(name = "totp_finish_activation", skip_all)]
 pub async fn totp_finish_activation(
     email: Email,
     token: String,
+    tenant_id: Option<Uuid>,
     life_cycle_settings: AccountLifeCycle,
     user_fetching_repo: Box<&dyn UserFetching>,
     user_updating_repo: Box<&dyn UserUpdating>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
     tenant_fetching_repo: Box<&dyn TenantFetching>,
+    encryption_key_fetching_repo: Box<&dyn EncryptionKeyFetching>,
 ) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch user from email
@@ -72,10 +77,21 @@ pub async fn totp_finish_activation(
         .as_error();
     }
 
+    // ? -----------------------------------------------------------------------
+    // ? Fetch the tenant DEK
+    // ? -----------------------------------------------------------------------
+
+    let kek = life_cycle_settings.derive_kek_bytes().await?;
+    let dek = encryption_key_fetching_repo
+        .get_or_provision_dek(tenant_id, &kek)
+        .await?;
+
+    let aad: Vec<u8> = build_aad(tenant_id, AAD_FIELD_TOTP_SECRET);
+
     let encrypted_user_totp = user.mfa().totp.clone();
 
     let decrypted_user_totp = encrypted_user_totp
-        .decrypt_me(life_cycle_settings.to_owned())
+        .decrypt_me(&dek, &life_cycle_settings, &aad)
         .await?;
 
     let user_secret_option = match decrypted_user_totp {

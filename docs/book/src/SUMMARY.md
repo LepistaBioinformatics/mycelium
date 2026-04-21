@@ -35,6 +35,8 @@
 
 # Development
 
+- [Encryption Inventory](./20-encryption-inventory.md)
+- [Envelope Encryption Migration Guide](./21-envelope-encryption-migration.md)
 - [Running Tests](./07-running-tests.md)
 - [Release Process](./08-release-process.md)
 - [Log Tests for Cache and Identity Flow](./09-log-cache-tests.md)

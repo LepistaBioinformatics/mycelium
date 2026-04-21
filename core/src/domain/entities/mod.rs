@@ -1,5 +1,6 @@
 mod account;
 mod account_tag;
+mod encryption_key_fetching;
 mod error_code;
 mod guest_role;
 mod guest_user;
@@ -19,6 +20,7 @@ mod webhook;
 
 pub use account::*;
 pub use account_tag::*;
+pub use encryption_key_fetching::*;
 pub use error_code::*;
 pub use guest_role::*;
 pub use guest_user::*;

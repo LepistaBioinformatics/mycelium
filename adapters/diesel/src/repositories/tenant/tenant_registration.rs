@@ -102,6 +102,8 @@ impl TenantRegistration for TenantRegistrationSqlDbRepository {
             ),
             created: Local::now().naive_utc(),
             updated: None,
+            encrypted_dek: None,
+            kek_version: 1,
         };
 
         let created = conn

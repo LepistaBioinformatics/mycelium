@@ -123,6 +123,7 @@ pub async fn crate_webhook_url(
         body.secret.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -234,6 +235,7 @@ pub async fn update_webhook_url(
         body.secret.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
         body.is_active.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )

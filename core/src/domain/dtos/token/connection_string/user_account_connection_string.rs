@@ -139,6 +139,13 @@ impl ScopedBehavior for UserAccountScope {
     /// Add or replace a signature to self with the HMAC of the data and the
     /// secret
     ///
+    /// The HMAC key is `AccountLifeCycle::token_secret` — the same secret
+    /// used to derive the envelope-encryption KEK. Rotating `token_secret`
+    /// therefore invalidates every signature previously produced here, and
+    /// there is no re-signing path (signatures carry user-facing tokens
+    /// that are already in circulation). See
+    /// `AccountLifeCycle::derive_kek_bytes` for the full list of
+    /// `token_secret` consumers and rotation caveats.
     #[tracing::instrument(name = "sign_token", skip(self, config))]
     async fn sign_token(
         &mut self,

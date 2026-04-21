@@ -135,6 +135,8 @@ diesel::table! {
         status -> Nullable<Array<Jsonb>>,
         created -> Timestamptz,
         updated -> Nullable<Timestamptz>,
+        encrypted_dek -> Nullable<Text>,
+        kek_version -> Integer,
     }
 }
 
