@@ -446,6 +446,7 @@ mod tests {
                 "support@test.com".to_string(),
             ),
             token_secret: SecretResolver::Value("test-secret".to_string()),
+            hmac_secret: None,
         }
     }
 

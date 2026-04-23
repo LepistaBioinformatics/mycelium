@@ -97,12 +97,24 @@ source. Its bytes are also consumed directly by non-envelope code paths:
 | `encrypt_string::build_aes_key` (v1 legacy path) | KEK for ciphertexts written before Phase 1 | Stays readable only while `token_secret` is unchanged; migrate to v2 before rotating. |
 | `HttpSecret::decrypt_me` (v1 branch) | Indirect — routes through the legacy path | Same as above. |
 | `Totp::decrypt_me` (v1 branch) | Indirect — routes through the legacy path | Same as above. |
-| `UserAccountScope::sign_token` | HMAC-SHA512 key for connection-string signatures | **No re-signing path.** All currently-issued connection strings are invalidated on rotation — treat as revoked. |
+| `UserAccountScope::sign_token` | HMAC-SHA512 key for connection-string signatures — now consumes `hmac_secret` with fallback to `token_secret` when `hmac_secret` is unset | **No re-signing path.** While the fallback is active, rotating `token_secret` invalidates every live connection-string signature — treat as revoked. Configure `hmac_secret` separately to decouple this from KEK rotation. |
 
 Rotate `token_secret` only after:
 
 1. `migrate-dek --dry-run` reports zero `v1` fields remaining, **and**
-2. The operational impact of invalidating every live connection-string signature is understood and accepted.
+2. The operational impact of invalidating every live connection-string signature is understood and accepted — or `hmac_secret` is configured separately so connection strings no longer depend on `token_secret`.
+
+### HMAC rotation rollout — Etapa 1 (non-breaking)
+
+Etapa 1 adds the optional `hmacSecret` field to `AccountLifeCycle`. When
+set, `UserAccountScope::sign_token` uses it as the HMAC key; when unset,
+the signer falls back to `token_secret` and logs a structured
+`hmac_secret_missing_fallback_to_token_secret=true` warning per call.
+Existing deployments keep working unchanged because the field is optional
+and the fallback preserves prior behaviour byte-for-byte. Etapa 3 will
+remove the fallback and require an explicit `hmacPrimaryVersion` +
+`hmacSecrets` set, so operators should start populating `hmacSecret` now
+to smooth that transition.
 
 ---
 

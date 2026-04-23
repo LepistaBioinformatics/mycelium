@@ -539,6 +539,7 @@ mod tests {
             token_secret: SecretResolver::Value(
                 "ab4c0550-310b-4218-9edf-58edc87979b9".to_string(),
             ),
+            hmac_secret: None,
         }
     }
 

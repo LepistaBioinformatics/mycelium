@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-04-21T18:19:19-03:00\n"
+"POT-Creation-Date: 2026-04-23T12:51:17-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -7847,13 +7847,17 @@ msgid "`UserAccountScope::sign_token`"
 msgstr ""
 
 #: src/20-encryption-inventory.md:100
-msgid "HMAC-SHA512 key for connection-string signatures"
+msgid ""
+"HMAC-SHA512 key for connection-string signatures — now consumes "
+"`hmac_secret` with fallback to `token_secret` when `hmac_secret` is unset"
 msgstr ""
 
 #: src/20-encryption-inventory.md:100
 msgid ""
-"**No re-signing path.** All currently-issued connection strings are "
-"invalidated on rotation — treat as revoked."
+"**No re-signing path.** While the fallback is active, rotating "
+"`token_secret` invalidates every live connection-string signature — treat as "
+"revoked. Configure `hmac_secret` separately to decouple this from KEK "
+"rotation."
 msgstr ""
 
 #: src/20-encryption-inventory.md:102
@@ -7867,10 +7871,28 @@ msgstr ""
 #: src/20-encryption-inventory.md:105
 msgid ""
 "The operational impact of invalidating every live connection-string "
-"signature is understood and accepted."
+"signature is understood and accepted — or `hmac_secret` is configured "
+"separately so connection strings no longer depend on `token_secret`."
+msgstr ""
+
+#: src/20-encryption-inventory.md:107
+msgid "HMAC rotation rollout — Etapa 1 (non-breaking)"
 msgstr ""
 
 #: src/20-encryption-inventory.md:109
+msgid ""
+"Etapa 1 adds the optional `hmacSecret` field to `AccountLifeCycle`. When "
+"set, `UserAccountScope::sign_token` uses it as the HMAC key; when unset, the "
+"signer falls back to `token_secret` and logs a structured "
+"`hmac_secret_missing_fallback_to_token_secret=true` warning per call. "
+"Existing deployments keep working unchanged because the field is optional "
+"and the fallback preserves prior behaviour byte-for-byte. Etapa 3 will "
+"remove the fallback and require an explicit `hmacPrimaryVersion` + "
+"`hmacSecrets` set, so operators should start populating `hmacSecret` now to "
+"smooth that transition."
+msgstr ""
+
+#: src/20-encryption-inventory.md:121
 msgid ""
 "See [Envelope Encryption Migration Guide](./21-envelope-encryption-migration."
 "md) for step-by-step operator instructions."

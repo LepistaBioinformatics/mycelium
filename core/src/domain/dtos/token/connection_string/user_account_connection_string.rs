@@ -131,6 +131,63 @@ impl UserAccountScope {
             None
         })
     }
+
+    /// Verify that the scope's `SIG` bean matches the HMAC of the other
+    /// beans under the currently-configured HMAC key.
+    ///
+    /// Etapa 1 wires the HMAC key resolver (with fallback to
+    /// `token_secret`); Etapa 3 will upgrade the key lookup to per-version
+    /// (KVR) and add an anti-downgrade guarantee. The method is added now
+    /// so the verification path exists as a no-op shim — the request
+    /// middleware will start calling it in Etapa 3.
+    #[tracing::instrument(name = "verify_signature", skip_all)]
+    pub async fn verify_signature(
+        &self,
+        config: &AccountLifeCycle,
+    ) -> Result<(), MappedErrors> {
+        let Some(stored_hex) = self.get_signature() else {
+            return dto_err("missing signature").as_error();
+        };
+
+        let expected = hex::decode(stored_hex.as_bytes()).map_err(|err| {
+            dto_err(format!("invalid signature encoding: {err}"))
+        })?;
+
+        let payload = serialize_beans_for_hmac(&self.0);
+        let key_bytes = config.hmac_signing_key_bytes().await?;
+
+        let mut mac =
+            HmacSha256::new_from_slice(&key_bytes).map_err(|err| {
+                tracing::error!("Could not create HMAC: {err}");
+                dto_err("Unable to verify signature")
+            })?;
+
+        mac.update(payload.as_bytes());
+
+        mac.verify_slice(&expected)
+            .map_err(|_| dto_err("signature mismatch"))?;
+
+        Ok(())
+    }
+}
+
+/// Serialise a bean list for HMAC input.
+///
+/// Filters the `SIG` bean out (so signing and verification agree on the
+/// payload) and then applies the same base64-of-joined-pairs encoding as
+/// `UserAccountScope::to_string`. Both `sign_token` and `verify_signature`
+/// must route through this helper so the two paths stay in lock-step.
+fn serialize_beans_for_hmac(beans: &[ConnectionStringBean]) -> String {
+    let raw_string = beans
+        .iter()
+        .filter(|bean| !matches!(bean, ConnectionStringBean::SIG(_)))
+        .fold(String::new(), |acc, bean| {
+            format!("{}{};", acc, bean.to_string())
+        })
+        .trim_end_matches(';')
+        .to_string();
+
+    general_purpose::STANDARD.encode(raw_string)
 }
 
 impl ScopedBehavior for UserAccountScope {
@@ -139,11 +196,11 @@ impl ScopedBehavior for UserAccountScope {
     /// Add or replace a signature to self with the HMAC of the data and the
     /// secret
     ///
-    /// The HMAC key is `AccountLifeCycle::token_secret` — the same secret
-    /// used to derive the envelope-encryption KEK. Rotating `token_secret`
-    /// therefore invalidates every signature previously produced here, and
-    /// there is no re-signing path (signatures carry user-facing tokens
-    /// that are already in circulation). See
+    /// The HMAC key is `AccountLifeCycle::hmac_secret`, falling back to
+    /// `token_secret` when `hmac_secret` is not configured (Etapa 1+2 of
+    /// the HMAC rotation rollout). While the fallback is active, rotating
+    /// `token_secret` also invalidates every signature previously produced
+    /// here, and there is no re-signing path. See
     /// `AccountLifeCycle::derive_kek_bytes` for the full list of
     /// `token_secret` consumers and rotation caveats.
     #[tracing::instrument(name = "sign_token", skip(self, config))]
@@ -152,9 +209,9 @@ impl ScopedBehavior for UserAccountScope {
         config: AccountLifeCycle,
         extra_data: Option<String>,
     ) -> Result<String, MappedErrors> {
-        let secret = config.token_secret.async_get_or_error().await;
+        let key_bytes = config.hmac_signing_key_bytes().await?;
 
-        let mut mac = match HmacSha256::new_from_slice(secret?.as_bytes()) {
+        let mut mac = match HmacSha256::new_from_slice(&key_bytes) {
             Ok(mac) => mac,
             Err(err) => {
                 tracing::error!("Could not create HMAC: {}", err);
@@ -162,7 +219,7 @@ impl ScopedBehavior for UserAccountScope {
             }
         };
 
-        mac.update(self.to_string().as_bytes());
+        mac.update(serialize_beans_for_hmac(&self.0).as_bytes());
         let result = mac.finalize();
 
         let hmac_bytes = result.into_bytes();
@@ -297,14 +354,12 @@ mod tests {
 
     use myc_config::secret_resolver::SecretResolver;
 
-    /// Test new signed token
-    ///
-    /// Test the creation of a new signed token with the
-    /// AccountScopedConnectionStringMeta struct and test if the signature and
-    /// the further password check are correct
-    #[tokio::test]
-    async fn test_new_signed_token() {
-        let config = AccountLifeCycle {
+    // ? -----------------------------------------------------------------
+    // ? Helpers
+    // ? -----------------------------------------------------------------
+
+    fn base_config() -> AccountLifeCycle {
+        AccountLifeCycle {
             domain_url: None,
             domain_name: SecretResolver::Value("test".to_string()),
             locale: None,
@@ -313,8 +368,90 @@ mod tests {
             noreply_email: SecretResolver::Value("test".to_string()),
             support_name: None,
             support_email: SecretResolver::Value("test".to_string()),
-            token_secret: SecretResolver::Value("test".to_string()),
-        };
+            token_secret: SecretResolver::Value(
+                "fallback-token-secret".to_string(),
+            ),
+            hmac_secret: None,
+        }
+    }
+
+    async fn issue_scope(
+        config: AccountLifeCycle,
+    ) -> Result<UserAccountScope, MappedErrors> {
+        UserAccountScope::new(
+            Uuid::new_v4(),
+            Local::now(),
+            None,
+            None,
+            None,
+            config,
+        )
+        .await
+    }
+
+    // ? -----------------------------------------------------------------
+    // ? Etapa 1 — sign / verify / fallback coverage
+    // ? -----------------------------------------------------------------
+
+    #[tokio::test]
+    async fn test_sign_then_verify_with_hmac_secret_present(
+    ) -> Result<(), MappedErrors> {
+        let mut config = base_config();
+        config.hmac_secret =
+            Some(SecretResolver::Value("dedicated-hmac-secret".to_string()));
+
+        let scope = issue_scope(config.clone()).await?;
+        scope.verify_signature(&config).await?;
+
+        assert!(scope.get_signature().is_some());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_sign_then_verify_falls_back_to_token_secret(
+    ) -> Result<(), MappedErrors> {
+        let config = base_config();
+        assert!(config.hmac_secret.is_none());
+
+        let scope = issue_scope(config.clone()).await?;
+        scope.verify_signature(&config).await?;
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_verify_rejects_tampered_payload() -> Result<(), MappedErrors>
+    {
+        let config = base_config();
+        let scope = issue_scope(config.clone()).await?;
+
+        let mut tampered_beans = scope.get_scope_beans();
+        let mut aid_swapped = false;
+        for bean in tampered_beans.iter_mut() {
+            if let ConnectionStringBean::AID(_) = bean {
+                *bean = ConnectionStringBean::AID(Uuid::new_v4());
+                aid_swapped = true;
+                break;
+            }
+        }
+        assert!(aid_swapped, "expected AID bean in issued scope");
+
+        let tampered_scope = UserAccountScope(tampered_beans);
+
+        let outcome = tampered_scope.verify_signature(&config).await;
+        assert!(outcome.is_err(), "tampered scope must fail verification");
+
+        Ok(())
+    }
+
+    /// Test new signed token
+    ///
+    /// Test the creation of a new signed token with the
+    /// AccountScopedConnectionStringMeta struct and test if the signature and
+    /// the further password check are correct
+    #[tokio::test]
+    async fn test_new_signed_token() {
+        let config = base_config();
 
         let account_scope = UserAccountScope::new(
             Uuid::new_v4(),

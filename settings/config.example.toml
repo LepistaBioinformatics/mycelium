@@ -33,6 +33,8 @@ supportName = "Samuel Galvão Elias"
 supportEmail = "elias.samuel.galvao@gmail.com"
 locale = "en-us"
 tokenSecret = { vault = { path = "myc/core/accountLifeCycle", key = "tokenSecret" } }
+# Optional during Etapa 1+2; will become required in Etapa 3.
+# hmacSecret = { vault = { path = "myc/core/accountLifeCycle", key = "hmacSecret" } }
 
 [core.webhook]
 acceptInvalidCertificates = true
