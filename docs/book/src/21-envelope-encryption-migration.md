@@ -155,5 +155,67 @@ manual action is required.
 
 ---
 
+## KEK Rotation (`myc-cli kek rotate-kek`)
+
+`rotate-kek` rewraps every tenant's Data Encryption Key (DEK) under a new Key
+Encryption Key (KEK) without touching any user-data ciphertext. Because the
+DEKs themselves are unchanged, existing `v2:`-prefixed ciphertexts stay
+readable after rotation.
+
+### Precondition
+
+Run `migrate-dek --dry-run` and confirm zero remaining `v1` rows. Any `v1`
+ciphertext encountered after a KEK rotation is unrecoverable: it is pinned to
+the old `token_secret` and not protected by a DEK at all.
+
+### Step-by-step
+
+1. **Keep the old `token_secret` reachable.** Export it under the
+   `MYC_OLD_TOKEN_SECRET` environment variable before invoking the CLI. It is
+   used to unwrap each tenant's stored DEK.
+2. **Set the new `token_secret`** in `settings/config.toml` (or the
+   backing Vault secret). This is the KEK that every rewrapped DEK will be
+   bound to.
+3. **Dry-run first:**
+   ```bash
+   MYC_OLD_TOKEN_SECRET=<old-uuid> \
+     myc-cli kek rotate-kek --from-version 1 --to-version 2 --dry-run
+   ```
+   Inspect the counters. `Migrated` should equal the number of tenants on
+   `kek_version == 1` with an `encrypted_dek` set; `Skipped` should be zero
+   unless some rows are intentionally on a different generation.
+4. **Run live:**
+   ```bash
+   MYC_OLD_TOKEN_SECRET=<old-uuid> \
+     myc-cli kek rotate-kek --from-version 1 --to-version 2
+   ```
+5. **Verify** that the gateway starts cleanly under the new `token_secret`
+   and that authenticated traffic still reaches tenant-scoped features
+   (Telegram bot tokens, TOTP verification, webhook secrets).
+6. **Discard** the old `token_secret` from Vault / env only after the live
+   run is confirmed.
+
+### Connection strings stay valid
+
+`rotate-kek` does **not** touch the HMAC key used to sign user-facing
+connection strings — see the dedicated HMAC Key Rotation guide (Etapa 3)
+for that procedure. Issued connection strings remain usable across a KEK
+rotation as long as `hmac_secret` (or the Etapa-1 fallback to the previous
+`token_secret` value) is kept available.
+
+### Idempotence and rollback
+
+Re-running `rotate-kek` with the same `--from-version` / `--to-version`
+reports the already-rotated rows as `Already done` and is safe to run
+repeatedly.
+
+The rewrap itself is **irreversible per row** — once a tenant's
+`encrypted_dek` is persisted under the new KEK, unwrapping requires the new
+`token_secret`. Keep both old and new secrets resolvable (Vault versioning,
+dual env vars, or a short overlap in config) until you have confirmed the
+rotation end-to-end.
+
+---
+
 See [Encryption Inventory](./20-encryption-inventory.md) for the complete field
 classification table.

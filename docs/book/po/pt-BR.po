@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-04-23T12:51:17-03:00\n"
+"POT-Creation-Date: 2026-04-23T13:14:09-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -8147,6 +8147,115 @@ msgid ""
 msgstr ""
 
 #: src/21-envelope-encryption-migration.md:158
+msgid "KEK Rotation (`myc-cli kek rotate-kek`)"
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:160
+msgid ""
+"`rotate-kek` rewraps every tenant's Data Encryption Key (DEK) under a new "
+"Key Encryption Key (KEK) without touching any user-data ciphertext. Because "
+"the DEKs themselves are unchanged, existing `v2:`\\-prefixed ciphertexts "
+"stay readable after rotation."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:165
+#, fuzzy
+msgid "Precondition"
+msgstr "Configuração por tenant"
+
+#: src/21-envelope-encryption-migration.md:167
+msgid ""
+"Run `migrate-dek --dry-run` and confirm zero remaining `v1` rows. Any `v1` "
+"ciphertext encountered after a KEK rotation is unrecoverable: it is pinned "
+"to the old `token_secret` and not protected by a DEK at all."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:171
+msgid "Step-by-step"
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:173
+msgid ""
+"**Keep the old `token_secret` reachable.** Export it under the "
+"`MYC_OLD_TOKEN_SECRET` environment variable before invoking the CLI. It is "
+"used to unwrap each tenant's stored DEK."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:176
+msgid ""
+"**Set the new `token_secret`** in `settings/config.toml` (or the backing "
+"Vault secret). This is the KEK that every rewrapped DEK will be bound to."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:179
+msgid "**Dry-run first:**"
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:181
+#: src/21-envelope-encryption-migration.md:189
+msgid "<old-uuid>"
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:184
+msgid ""
+"Inspect the counters. `Migrated` should equal the number of tenants on "
+"`kek_version == 1` with an `encrypted_dek` set; `Skipped` should be zero "
+"unless some rows are intentionally on a different generation."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:187
+msgid "**Run live:**"
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:192
+msgid ""
+"**Verify** that the gateway starts cleanly under the new `token_secret` and "
+"that authenticated traffic still reaches tenant-scoped features (Telegram "
+"bot tokens, TOTP verification, webhook secrets)."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:195
+msgid ""
+"**Discard** the old `token_secret` from Vault / env only after the live run "
+"is confirmed."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:198
+#, fuzzy
+msgid "Connection strings stay valid"
+msgstr "**Connection string emitida**"
+
+#: src/21-envelope-encryption-migration.md:200
+msgid ""
+"`rotate-kek` does **not** touch the HMAC key used to sign user-facing "
+"connection strings — see the dedicated HMAC Key Rotation guide (Etapa 3) for "
+"that procedure. Issued connection strings remain usable across a KEK "
+"rotation as long as `hmac_secret` (or the Etapa-1 fallback to the previous "
+"`token_secret` value) is kept available."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:206
+#, fuzzy
+msgid "Idempotence and rollback"
+msgstr "Callbacks de Resposta"
+
+#: src/21-envelope-encryption-migration.md:208
+msgid ""
+"Re-running `rotate-kek` with the same `--from-version` / `--to-version` "
+"reports the already-rotated rows as `Already done` and is safe to run "
+"repeatedly."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:212
+msgid ""
+"The rewrap itself is **irreversible per row** — once a tenant's "
+"`encrypted_dek` is persisted under the new KEK, unwrapping requires the new "
+"`token_secret`. Keep both old and new secrets resolvable (Vault versioning, "
+"dual env vars, or a short overlap in config) until you have confirmed the "
+"rotation end-to-end."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:220
 msgid ""
 "See [Encryption Inventory](./20-encryption-inventory.md) for the complete "
 "field classification table."

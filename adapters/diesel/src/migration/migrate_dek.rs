@@ -1,3 +1,4 @@
+use super::tenant_iteration::{acquire_conn, load_tenants};
 use crate::{
     models::{
         config::DbPool, tenant::Tenant as TenantModel, user::User as UserModel,
@@ -48,9 +49,7 @@ pub async fn migrate_dek(
     dry_run: bool,
 ) -> Result<MigrateDekReport, MappedErrors> {
     let kek = life_cycle.derive_kek_bytes().await?;
-    let conn = &mut pool.get().map_err(|e| {
-        execution_err(format!("Failed to get DB connection: {e}"))
-    })?;
+    let conn = &mut acquire_conn(pool)?;
 
     let mut report = MigrateDekReport {
         tenants_scanned: 0,
@@ -64,21 +63,7 @@ pub async fn migrate_dek(
     // ? Load tenants to process
     // ? -----------------------------------------------------------------------
 
-    let tenants: Vec<TenantModel> = match tenant_id {
-        Some(tid) => tenant_dsl::tenant
-            .filter(tenant_model::id.eq(tid))
-            .select(TenantModel::as_select())
-            .load::<TenantModel>(conn)
-            .map_err(|e| {
-                execution_err(format!("Failed to load tenant: {e}"))
-            })?,
-        None => tenant_dsl::tenant
-            .select(TenantModel::as_select())
-            .load::<TenantModel>(conn)
-            .map_err(|e| {
-                execution_err(format!("Failed to load tenants: {e}"))
-            })?,
-    };
+    let tenants = load_tenants(conn, tenant_id)?;
 
     report.tenants_scanned = tenants.len();
 

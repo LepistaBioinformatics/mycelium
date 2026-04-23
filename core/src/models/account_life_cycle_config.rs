@@ -126,6 +126,19 @@ impl AccountLifeCycle {
     /// legacy shared secret. The fallback path exists only during
     /// Etapa 1 and Etapa 2 of the HMAC rotation rollout; Etapa 3 removes
     /// it.
+    /// Return a clone of this config with `token_secret` replaced by the
+    /// supplied literal value.
+    ///
+    /// Used by `myc-cli rotate-kek` to construct the **old** KEK's
+    /// resolver from an operator-supplied env var while keeping the
+    /// **new** KEK's resolver in the normal config file. All other fields
+    /// are unchanged.
+    pub fn with_token_secret_override(&self, token_secret: String) -> Self {
+        let mut clone = self.clone();
+        clone.token_secret = SecretResolver::Value(token_secret);
+        clone
+    }
+
     #[tracing::instrument(name = "hmac_signing_key_bytes", skip_all)]
     pub(crate) async fn hmac_signing_key_bytes(
         &self,
