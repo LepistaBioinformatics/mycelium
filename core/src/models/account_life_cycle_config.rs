@@ -1,4 +1,4 @@
-use crate::domain::utils::derive_key_from_uuid;
+use crate::{domain::utils::derive_key_from_uuid, models::HmacSecretSet};
 
 use myc_config::secret_resolver::SecretResolver;
 use mycelium_base::utils::errors::{dto_err, MappedErrors};
@@ -45,14 +45,15 @@ pub struct AccountLifeCycle {
     /// Toke secret is used to sign tokens
     pub(crate) token_secret: SecretResolver<String>,
 
-    /// HMAC secret used to sign connection-string tokens.
-    ///
-    /// Optional during Etapa 1+2 of the HMAC key rotation rollout: when
-    /// absent, `hmac_signing_key_bytes` falls back to `token_secret` and
-    /// emits a structured `warn!` line so operators can audit deployments
-    /// still running on the legacy shared secret. Will become required in
-    /// Etapa 3.
-    pub(crate) hmac_secret: Option<SecretResolver<String>>,
+    /// Version of the HMAC key used to sign every newly-issued
+    /// connection string. Must be present in `hmac_secrets` — enforced by
+    /// `validate_hmac_config` at startup.
+    pub(crate) hmac_primary_version: u32,
+
+    /// Versioned set of HMAC keys. All entries are available for
+    /// verification; only the entry matching `hmac_primary_version` is
+    /// used for signing.
+    pub(crate) hmac_secrets: HmacSecretSet,
 }
 
 impl AccountLifeCycle {
@@ -88,10 +89,11 @@ impl AccountLifeCycle {
     /// - `core/src/domain/dtos/user.rs` (`Totp::decrypt_me`) — v1 legacy
     ///   decrypt path.
     /// - `core/src/domain/dtos/token/connection_string/user_account_connection_string.rs`
-    ///   — HMAC signing consumes `hmac_secret` (with fallback to
-    ///   `token_secret` when `hmac_secret` is unset). While a deployment
-    ///   still relies on the fallback, rotating `token_secret` also
-    ///   invalidates every active connection-string signature.
+    ///   — HMAC signing consumes `hmac_secrets[hmac_primary_version]`
+    ///   (no fallback to `token_secret`). Rotating `token_secret`
+    ///   therefore no longer invalidates connection strings; HMAC key
+    ///   rotation is a separate, versioned procedure documented in
+    ///   `docs/book/src/22-hmac-key-rotation.md`.
     ///
     /// # KEK rotation (not yet implemented — planned as `myc-cli rotate-kek`)
     ///
@@ -117,15 +119,6 @@ impl AccountLifeCycle {
         Ok(derive_key_from_uuid(&key_uuid))
     }
 
-    /// Return the raw HMAC signing key bytes used for connection-string
-    /// signatures.
-    ///
-    /// Reads `hmac_secret` when it is configured. When it is absent, falls
-    /// back to `token_secret` and emits a single structured `warn!` line
-    /// per call so operators can audit deployments still riding the
-    /// legacy shared secret. The fallback path exists only during
-    /// Etapa 1 and Etapa 2 of the HMAC rotation rollout; Etapa 3 removes
-    /// it.
     /// Return a clone of this config with `token_secret` replaced by the
     /// supplied literal value.
     ///
@@ -139,21 +132,45 @@ impl AccountLifeCycle {
         clone
     }
 
-    #[tracing::instrument(name = "hmac_signing_key_bytes", skip_all)]
-    pub(crate) async fn hmac_signing_key_bytes(
+    /// Return the HMAC signing-key bytes for a specific version.
+    ///
+    /// Used by `verify_signature` to locate the key matching the `KVR`
+    /// bean carried by the connection string — including tokens issued
+    /// under a previous primary that has not yet been retired.
+    #[tracing::instrument(name = "hmac_signing_key_for_version", skip_all)]
+    pub(crate) async fn hmac_signing_key_for_version(
         &self,
+        version: u32,
     ) -> Result<Vec<u8>, MappedErrors> {
-        let Some(resolver) = self.hmac_secret.as_ref() else {
-            tracing::warn!(
-                hmac_secret_missing_fallback_to_token_secret = true,
-                "hmac_secret not configured; falling back to token_secret \
-                 for connection-string signing",
-            );
-            let secret = self.token_secret.async_get_or_error().await?;
-            return Ok(secret.into_bytes());
+        let Some(entry) = self.hmac_secrets.lookup(version) else {
+            return dto_err(format!(
+                "hmac_key_version_not_configured: {version}",
+            ))
+            .as_error();
         };
 
-        let secret = resolver.async_get_or_error().await?;
+        let secret = entry.secret.async_get_or_error().await?;
         Ok(secret.into_bytes())
+    }
+
+    /// Return the current primary `(version, key_bytes)` used for
+    /// signing. `sign_token` consumes this so the KVR bean and the HMAC
+    /// key stay aligned.
+    #[tracing::instrument(name = "hmac_primary_signing_key", skip_all)]
+    pub(crate) async fn hmac_primary_signing_key(
+        &self,
+    ) -> Result<(u32, Vec<u8>), MappedErrors> {
+        let version = self.hmac_primary_version;
+        let key = self.hmac_signing_key_for_version(version).await?;
+        Ok((version, key))
+    }
+
+    /// Check that `hmac_primary_version` is present in `hmac_secrets` and
+    /// that the set is internally consistent.
+    ///
+    /// Invoked during config load; a failure aborts startup so the gateway
+    /// never runs without a reachable primary HMAC key.
+    pub fn validate_hmac_config(&self) -> Result<(), MappedErrors> {
+        self.hmac_secrets.validate(self.hmac_primary_version)
     }
 }

@@ -446,7 +446,13 @@ mod tests {
                 "support@test.com".to_string(),
             ),
             token_secret: SecretResolver::Value("test-secret".to_string()),
-            hmac_secret: None,
+            hmac_primary_version: 1,
+            hmac_secrets: crate::models::HmacSecretSet::new(vec![
+                crate::models::HmacSecretEntry {
+                    version: 1,
+                    secret: SecretResolver::Value("test-hmac".to_string()),
+                },
+            ]),
         }
     }
 

@@ -8,6 +8,7 @@
 use super::ConnectionStringBean;
 use crate::{
     domain::dtos::{
+        native_error_codes::NativeErrorCodes,
         security_group::PermissionedRole,
         token::{HmacSha256, ScopedBehavior, ServiceAccountRelatedMeta},
     },
@@ -58,6 +59,8 @@ impl UserAccountScope {
         if let Some(subscription_account_id) = subscription_account_id {
             beans.push(ConnectionStringBean::SID(subscription_account_id));
         }
+
+        beans.push(ConnectionStringBean::KVR(config.hmac_primary_version));
 
         let mut self_signed_scope = Self(beans);
 
@@ -132,40 +135,83 @@ impl UserAccountScope {
         })
     }
 
+    /// Return the HMAC key version (KVR bean) carried by the scope, if
+    /// any.
+    #[tracing::instrument(name = "get_kvr", skip(self))]
+    fn get_kvr(&self) -> Option<u32> {
+        self.0.iter().find_map(|bean| {
+            if let ConnectionStringBean::KVR(version) = bean {
+                return Some(*version);
+            }
+
+            None
+        })
+    }
+
     /// Verify that the scope's `SIG` bean matches the HMAC of the other
-    /// beans under the currently-configured HMAC key.
+    /// beans under the HMAC key identified by the `KVR` bean.
     ///
-    /// Etapa 1 wires the HMAC key resolver (with fallback to
-    /// `token_secret`); Etapa 3 will upgrade the key lookup to per-version
-    /// (KVR) and add an anti-downgrade guarantee. The method is added now
-    /// so the verification path exists as a no-op shim — the request
-    /// middleware will start calling it in Etapa 3.
+    /// Failure modes map to native error codes so callers (middleware,
+    /// audit logs) can discriminate reasons:
+    ///
+    /// - `MYC00030` — the token is missing the `KVR` bean.
+    /// - `MYC00031` — the version referenced by `KVR` is not in the
+    ///   configured key set (retired or never provisioned).
+    /// - `MYC00032` — HMAC recomputation does not match the stored `SIG`.
+    ///
+    /// The KVR value is part of the HMAC input (via
+    /// `serialize_beans_for_hmac`), so tampering with it yields
+    /// `MYC00032` rather than a false success.
     #[tracing::instrument(name = "verify_signature", skip_all)]
     pub async fn verify_signature(
         &self,
         config: &AccountLifeCycle,
     ) -> Result<(), MappedErrors> {
         let Some(stored_hex) = self.get_signature() else {
-            return dto_err("missing signature").as_error();
+            return dto_err("connection_string_missing_signature")
+                .with_code(NativeErrorCodes::MYC00030)
+                .with_exp_true()
+                .as_error();
+        };
+
+        let Some(version) = self.get_kvr() else {
+            return dto_err("connection_string_missing_key_version")
+                .with_code(NativeErrorCodes::MYC00030)
+                .with_exp_true()
+                .as_error();
         };
 
         let expected = hex::decode(stored_hex.as_bytes()).map_err(|err| {
-            dto_err(format!("invalid signature encoding: {err}"))
+            dto_err(format!("invalid_signature_encoding: {err}"))
+                .with_code(NativeErrorCodes::MYC00032)
+                .with_exp_true()
         })?;
 
+        let key_bytes = config
+            .hmac_signing_key_for_version(version)
+            .await
+            .map_err(|_| {
+                dto_err(format!("hmac_key_version_not_configured: {version}",))
+                    .with_code(NativeErrorCodes::MYC00031)
+                    .with_exp_true()
+            })?;
+
         let payload = serialize_beans_for_hmac(&self.0);
-        let key_bytes = config.hmac_signing_key_bytes().await?;
 
         let mut mac =
             HmacSha256::new_from_slice(&key_bytes).map_err(|err| {
                 tracing::error!("Could not create HMAC: {err}");
-                dto_err("Unable to verify signature")
+                dto_err("unable_to_verify_signature")
+                    .with_code(NativeErrorCodes::MYC00032)
             })?;
 
         mac.update(payload.as_bytes());
 
-        mac.verify_slice(&expected)
-            .map_err(|_| dto_err("signature mismatch"))?;
+        mac.verify_slice(&expected).map_err(|_| {
+            dto_err("connection_string_signature_mismatch")
+                .with_code(NativeErrorCodes::MYC00032)
+                .with_exp_true()
+        })?;
 
         Ok(())
     }
@@ -194,22 +240,21 @@ impl ScopedBehavior for UserAccountScope {
     /// Sign the token with secret and data
     ///
     /// Add or replace a signature to self with the HMAC of the data and the
-    /// secret
+    /// secret.
     ///
-    /// The HMAC key is `AccountLifeCycle::hmac_secret`, falling back to
-    /// `token_secret` when `hmac_secret` is not configured (Etapa 1+2 of
-    /// the HMAC rotation rollout). While the fallback is active, rotating
-    /// `token_secret` also invalidates every signature previously produced
-    /// here, and there is no re-signing path. See
-    /// `AccountLifeCycle::derive_kek_bytes` for the full list of
-    /// `token_secret` consumers and rotation caveats.
+    /// The HMAC key is read from `AccountLifeCycle::hmac_primary_signing_key`,
+    /// which returns the `(version, key_bytes)` pair tied to the current
+    /// `hmac_primary_version`. `UserAccountScope::new` pushes a matching
+    /// `KVR` bean **before** this method runs so the version is included in
+    /// the HMAC input (anti-downgrade guarantee — see
+    /// `docs/book/src/22-hmac-key-rotation.md`).
     #[tracing::instrument(name = "sign_token", skip(self, config))]
     async fn sign_token(
         &mut self,
         config: AccountLifeCycle,
         extra_data: Option<String>,
     ) -> Result<String, MappedErrors> {
-        let key_bytes = config.hmac_signing_key_bytes().await?;
+        let (_version, key_bytes) = config.hmac_primary_signing_key().await?;
 
         let mut mac = match HmacSha256::new_from_slice(&key_bytes) {
             Ok(mac) => mac,
@@ -350,7 +395,10 @@ impl UserAccountConnectionString {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::dtos::email::Email;
+    use crate::{
+        domain::dtos::email::Email,
+        models::{HmacSecretEntry, HmacSecretSet},
+    };
 
     use myc_config::secret_resolver::SecretResolver;
 
@@ -358,7 +406,17 @@ mod tests {
     // ? Helpers
     // ? -----------------------------------------------------------------
 
-    fn base_config() -> AccountLifeCycle {
+    fn make_entry(version: u32, value: &str) -> HmacSecretEntry {
+        HmacSecretEntry {
+            version,
+            secret: SecretResolver::Value(value.to_string()),
+        }
+    }
+
+    fn base_config_with_versions(
+        primary: u32,
+        entries: Vec<HmacSecretEntry>,
+    ) -> AccountLifeCycle {
         AccountLifeCycle {
             domain_url: None,
             domain_name: SecretResolver::Value("test".to_string()),
@@ -369,10 +427,15 @@ mod tests {
             support_name: None,
             support_email: SecretResolver::Value("test".to_string()),
             token_secret: SecretResolver::Value(
-                "fallback-token-secret".to_string(),
+                "ab4c0550-310b-4218-9edf-58edc87979b9".to_string(),
             ),
-            hmac_secret: None,
+            hmac_primary_version: primary,
+            hmac_secrets: HmacSecretSet::new(entries),
         }
+    }
+
+    fn base_config() -> AccountLifeCycle {
+        base_config_with_versions(1, vec![make_entry(1, "k-v1")])
     }
 
     async fn issue_scope(
@@ -390,57 +453,105 @@ mod tests {
     }
 
     // ? -----------------------------------------------------------------
-    // ? Etapa 1 — sign / verify / fallback coverage
+    // ? Etapa 3 — KVR contract coverage
     // ? -----------------------------------------------------------------
 
     #[tokio::test]
-    async fn test_sign_then_verify_with_hmac_secret_present(
-    ) -> Result<(), MappedErrors> {
-        let mut config = base_config();
-        config.hmac_secret =
-            Some(SecretResolver::Value("dedicated-hmac-secret".to_string()));
+    async fn signs_with_primary_then_verifies() -> Result<(), MappedErrors> {
+        let config = base_config_with_versions(
+            2,
+            vec![make_entry(1, "k-v1"), make_entry(2, "k-v2")],
+        );
 
         let scope = issue_scope(config.clone()).await?;
         scope.verify_signature(&config).await?;
 
+        assert_eq!(
+            scope.get_kvr(),
+            Some(2),
+            "issued scope must carry KVR=primary",
+        );
         assert!(scope.get_signature().is_some());
         Ok(())
     }
 
     #[tokio::test]
-    async fn test_sign_then_verify_falls_back_to_token_secret(
-    ) -> Result<(), MappedErrors> {
-        let config = base_config();
-        assert!(config.hmac_secret.is_none());
+    async fn verifies_non_primary_known_version() -> Result<(), MappedErrors> {
+        let issuing_config =
+            base_config_with_versions(1, vec![make_entry(1, "k-v1")]);
 
-        let scope = issue_scope(config.clone()).await?;
-        scope.verify_signature(&config).await?;
+        let scope = issue_scope(issuing_config).await?;
+        assert_eq!(scope.get_kvr(), Some(1));
 
+        let rotated_config = base_config_with_versions(
+            2,
+            vec![make_entry(1, "k-v1"), make_entry(2, "k-v2")],
+        );
+
+        scope.verify_signature(&rotated_config).await?;
         Ok(())
     }
 
     #[tokio::test]
-    async fn test_verify_rejects_tampered_payload() -> Result<(), MappedErrors>
-    {
+    async fn rejects_unknown_version() -> Result<(), MappedErrors> {
+        let issuing_config = base_config_with_versions(
+            2,
+            vec![make_entry(1, "k-v1"), make_entry(2, "k-v2")],
+        );
+        let scope = issue_scope(issuing_config).await?;
+        assert_eq!(scope.get_kvr(), Some(2));
+
+        let retired_config =
+            base_config_with_versions(1, vec![make_entry(1, "k-v1")]);
+
+        let outcome = scope.verify_signature(&retired_config).await;
+        let err = outcome.expect_err("retired key must fail verification");
+        assert_eq!(err.code().to_string(), "MYC00031");
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn rejects_missing_kvr() -> Result<(), MappedErrors> {
         let config = base_config();
         let scope = issue_scope(config.clone()).await?;
 
-        let mut tampered_beans = scope.get_scope_beans();
-        let mut aid_swapped = false;
-        for bean in tampered_beans.iter_mut() {
-            if let ConnectionStringBean::AID(_) = bean {
-                *bean = ConnectionStringBean::AID(Uuid::new_v4());
-                aid_swapped = true;
-                break;
-            }
-        }
-        assert!(aid_swapped, "expected AID bean in issued scope");
+        let stripped: Vec<ConnectionStringBean> = scope
+            .get_scope_beans()
+            .into_iter()
+            .filter(|bean| !matches!(bean, ConnectionStringBean::KVR(_)))
+            .collect();
 
-        let tampered_scope = UserAccountScope(tampered_beans);
+        let scope_without_kvr = UserAccountScope(stripped);
+        let outcome = scope_without_kvr.verify_signature(&config).await;
 
+        let err = outcome.expect_err("missing KVR must fail verification");
+        assert_eq!(err.code().to_string(), "MYC00030");
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn rejects_tampered_kvr_anti_downgrade() -> Result<(), MappedErrors> {
+        let config = base_config_with_versions(
+            2,
+            vec![make_entry(1, "k-v1"), make_entry(2, "k-v2")],
+        );
+        let scope = issue_scope(config.clone()).await?;
+
+        let tampered: Vec<ConnectionStringBean> = scope
+            .get_scope_beans()
+            .into_iter()
+            .map(|bean| match bean {
+                ConnectionStringBean::KVR(_) => ConnectionStringBean::KVR(1),
+                other => other,
+            })
+            .collect();
+
+        let tampered_scope = UserAccountScope(tampered);
         let outcome = tampered_scope.verify_signature(&config).await;
-        assert!(outcome.is_err(), "tampered scope must fail verification");
 
+        let err =
+            outcome.expect_err("downgrade attempt must fail verification");
+        assert_eq!(err.code().to_string(), "MYC00032");
         Ok(())
     }
 

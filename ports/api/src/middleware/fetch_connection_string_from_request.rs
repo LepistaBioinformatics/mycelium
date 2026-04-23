@@ -1,9 +1,12 @@
 use crate::dtos::MyceliumConnectionStringData;
 
 use actix_web::{web, HttpRequest};
-use myc_core::domain::{
-    dtos::token::{MultiTypeMeta, UserAccountScope},
-    entities::TokenFetching,
+use myc_core::{
+    domain::{
+        dtos::token::{MultiTypeMeta, UserAccountScope},
+        entities::TokenFetching,
+    },
+    models::AccountLifeCycle,
 };
 use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
@@ -11,7 +14,7 @@ use myc_http_tools::{
 };
 use mycelium_base::entities::FetchResponseKind;
 use shaku::HasComponent;
-use tracing::error;
+use tracing::{error, warn};
 
 #[tracing::instrument(name = "fetch_connection_string_from_request", skip_all)]
 pub async fn fetch_connection_string_from_request(
@@ -57,6 +60,40 @@ pub async fn fetch_connection_string_from_request(
             ))
         }
     };
+
+    // ? -----------------------------------------------------------------------
+    // ? Verify HMAC before touching the database
+    //
+    // Reject forged or downgraded tokens up-front. Native error codes
+    // MYC00030 / MYC00031 / MYC00032 are carried through so logs can be
+    // searched by reason. See `22-hmac-key-rotation.md` for the contract.
+    //
+    // ? -----------------------------------------------------------------------
+
+    let life_cycle = match req.app_data::<web::Data<AccountLifeCycle>>() {
+        Some(value) => value,
+        None => {
+            error!(
+                "AccountLifeCycle is not registered as app data; cannot \
+                 verify connection-string signature",
+            );
+            return Err(GatewayError::InternalServerError(
+                "Server misconfiguration: HMAC key set unavailable".to_string(),
+            ));
+        }
+    };
+
+    if let Err(err) = scope.verify_signature(life_cycle.get_ref()).await {
+        warn!(
+            connection_string_verification_failed = true,
+            code = %err.code(),
+            "Rejecting connection string: {err}",
+        );
+        return Err(GatewayError::Unauthorized(format!(
+            "Invalid connection string: {}",
+            err.code(),
+        )));
+    }
 
     // ? -----------------------------------------------------------------------
     // ? Build dependencies

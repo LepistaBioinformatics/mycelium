@@ -33,8 +33,38 @@ supportName = "Samuel Galvão Elias"
 supportEmail = "elias.samuel.galvao@gmail.com"
 locale = "en-us"
 tokenSecret = { vault = { path = "myc/core/accountLifeCycle", key = "tokenSecret" } }
-# Optional during Etapa 1+2; will become required in Etapa 3.
-# hmacSecret = { vault = { path = "myc/core/accountLifeCycle", key = "hmacSecret" } }
+
+# ------------------------------------------------------------------------------
+# !!!!!! DEPLOYMENT WARNING — HMAC key set is now MANDATORY !!!!!!
+#
+# Every newly-issued connection string is signed with the HMAC key at
+# `hmacPrimaryVersion`. Verification reads the version from the token's KVR
+# bean; if the version is missing (older tokens) or retired, the token is
+# rejected with a native error code (MYC00030 / MYC00031 / MYC00032).
+#
+# DEPLOYING THIS VERSION INVALIDATES EVERY CONNECTION STRING ISSUED BEFORE
+# THE DEPLOY. Users must re-authenticate. Pick a maintenance window before
+# rolling out.
+#
+# The gateway REFUSES TO START if `hmacPrimaryVersion` is not present in
+# `hmacSecrets` or if the set is empty — this is enforced by the startup
+# config validator.
+#
+# See docs/book/src/22-hmac-key-rotation.md for the rotation procedure.
+# ------------------------------------------------------------------------------
+
+hmacPrimaryVersion = 1
+
+[[core.accountLifeCycle.hmacSecrets]]
+version = 1
+secret = { vault = { path = "myc/core/accountLifeCycle", key = "hmacSecretV1" } }
+
+# When rotating, uncomment and populate the next version; then bump
+# `hmacPrimaryVersion` once the new secret is known to every replica.
+#
+# [[core.accountLifeCycle.hmacSecrets]]
+# version = 2
+# secret = { vault = { path = "myc/core/accountLifeCycle", key = "hmacSecretV2" } }
 
 [core.webhook]
 acceptInvalidCertificates = true
