@@ -48,22 +48,15 @@ pub(crate) fn map_public_connection_string_info_model_to_dto(
         }
     };
 
-    // Parse email from JSONB
-    let email_str = match model.email {
-        Some(JsonValue::String(s)) => s,
-        Some(v) => {
-            return fetching_err(format!(
-                "Invalid email format: expected string, got {:?}",
-                v
-            ))
-            .as_error();
-        }
+    // Parse email from JSONB — stored as {"username":…,"domain":…}
+    let email = match model.email {
+        Some(v) => from_value::<Email>(v).map_err(|e| {
+            fetching_err(format!("Failed to parse email: {}", e))
+        })?,
         None => {
             return fetching_err("email is required but was null").as_error();
         }
     };
-    let email = Email::from_string(email_str)
-        .map_err(|e| fetching_err(format!("Failed to parse email: {}", e)))?;
 
     // Parse name from JSONB
     let name = match model.name {

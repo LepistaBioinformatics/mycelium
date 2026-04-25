@@ -1,16 +1,12 @@
-use crate::{domain::utils::derive_key_from_uuid, models::AccountLifeCycle};
-
-use base64::{engine::general_purpose, Engine};
-use mycelium_base::utils::errors::{dto_err, MappedErrors};
-use ring::{
-    aead::{Aad, LessSafeKey, Nonce, UnboundKey, AES_256_GCM},
-    rand::{SecureRandom, SystemRandom},
+use crate::{
+    domain::utils::{decrypt_string_with_dek, encrypt_with_dek},
+    models::AccountLifeCycle,
 };
+
+use mycelium_base::utils::errors::{dto_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
-use tracing::error;
 use utoipa::ToSchema;
-use uuid::Uuid;
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -62,30 +58,6 @@ pub enum HttpSecret {
         ///
         token: String,
     },
-    //
-    // TODO: Implement client certificate authentication
-    //
-    //#[serde(rename_all = "camelCase")]
-    //ClientCertificate {
-    //    /// The certificate
-    //    ///
-    //    /// The certificate is the client certificate in PEM format.
-    //    ///
-    //    cert_pem: String,
-    //
-    //    /// The private key
-    //    ///
-    //    /// The private key is the client private key in PEM format.
-    //    ///
-    //    key_pem: String,
-    //
-    //    /// The certificate version
-    //    ///
-    //    /// The certificate version is the version of the certificate.
-    //    ///
-    //    cert_version: Option<String>,
-    //},
-    //
 }
 
 pub fn default_authorization_key() -> Option<String> {
@@ -93,204 +65,71 @@ pub fn default_authorization_key() -> Option<String> {
 }
 
 impl HttpSecret {
+    /// Encrypt the token with the system DEK (v2 format).
     #[tracing::instrument(name = "encrypt_me", skip_all)]
-    pub(crate) async fn encrypt_me(
+    pub(crate) fn encrypt_me(
         &self,
-        config: AccountLifeCycle,
+        dek: &[u8; 32],
+        aad: &[u8],
     ) -> Result<Self, MappedErrors> {
-        //
-        // Create a key from the account's secret
-        //
-        let encryption_key = config.token_secret.async_get_or_error().await;
-        let encryption_key_uuid = match Uuid::parse_str(&encryption_key?) {
-            Ok(uuid) => uuid,
-            Err(err) => {
-                error!("Failed to parse encryption key: {:?}", err);
-                return dto_err("Failed to parse encryption key").as_error();
-            }
+        let plain_token = match self {
+            Self::AuthorizationHeader { token, .. } => token.as_str(),
+            Self::QueryParameter { token, .. } => token.as_str(),
         };
 
-        let key_bytes = derive_key_from_uuid(&encryption_key_uuid);
+        let encrypted_string = encrypt_with_dek(plain_token, dek, aad)?;
 
-        let unbound_key = match UnboundKey::new(&AES_256_GCM, &key_bytes) {
-            Ok(key) => key,
-            Err(err) => {
-                error!("Failed to create unbound key: {:?}", err);
-                return dto_err("Failed to create unbound key").as_error();
-            }
-        };
-
-        let key = LessSafeKey::new(unbound_key);
-
-        //
-        // Generate a nonce
-        //
-        let rand = SystemRandom::new();
-        let mut nonce_bytes = [0u8; 12];
-        match rand.fill(&mut nonce_bytes) {
-            Ok(_) => {}
-            Err(err) => {
-                error!("Failed to generate nonce: {:?}", err);
-                return dto_err("Failed to generate nonce").as_error();
-            }
-        };
-
-        let nonce = Nonce::assume_unique_for_key(nonce_bytes);
-
-        //
-        // Prepare secret data to encrypt
-        //
-        let mut in_out = (match self {
-            Self::AuthorizationHeader { token, .. } => token,
-            Self::QueryParameter { token, .. } => token,
-        })
-        .as_bytes()
-        .to_vec();
-
-        //
-        // Encrypt in-place and append the authentication tag
-        //
-        match key.seal_in_place_append_tag(nonce, Aad::empty(), &mut in_out) {
-            Ok(_) => {}
-            Err(err) => {
-                error!("Failed to encrypt data: {:?}", err);
-                return dto_err("Failed to encrypt data").as_error();
-            }
-        };
-
-        //
-        // Combine nonce and ciphertext for storage
-        //
-        let mut encrypted_data = nonce_bytes.to_vec();
-
-        encrypted_data.extend_from_slice(&in_out);
-
-        let encrypted_string = general_purpose::STANDARD.encode(encrypted_data);
-
-        //
-        // Return encrypted TOTP instance
-        //
-        let self_encrypted = match self {
+        Ok(match self {
             Self::AuthorizationHeader {
                 header_name,
                 prefix,
                 ..
             } => Self::AuthorizationHeader {
-                token: encrypted_string.to_owned(),
+                token: encrypted_string,
                 header_name: header_name.to_owned(),
                 prefix: prefix.to_owned(),
             },
             Self::QueryParameter { name, .. } => Self::QueryParameter {
-                token: encrypted_string.to_owned(),
+                token: encrypted_string,
                 name: name.to_owned(),
             },
-        };
-
-        Ok(self_encrypted)
+        })
     }
 
+    /// Decrypt the token.
+    ///
+    /// Detects v1 (no prefix) or v2 (`v2:` prefix) automatically. v2 uses the
+    /// supplied `dek`; v1 falls back to the legacy KEK path via `config`.
+    ///
+    /// The v1 fallback derives the KEK directly from
+    /// `AccountLifeCycle::token_secret`. This ties any webhook secret still
+    /// in v1 format to the current `token_secret` value — rotation of
+    /// `token_secret` before running `migrate-dek` will make those
+    /// ciphertexts unreadable. See
+    /// `AccountLifeCycle::derive_kek_bytes` for the full list of
+    /// `token_secret` consumers and rotation caveats.
     #[tracing::instrument(name = "decrypt_me", skip_all)]
     pub(crate) async fn decrypt_me(
         &self,
-        config: AccountLifeCycle,
+        dek: &[u8; 32],
+        config: &AccountLifeCycle,
+        aad: &[u8],
     ) -> Result<Self, MappedErrors> {
-        //
-        // Create a key from the account's secret
-        //
-        let encryption_key = config.token_secret.async_get_or_error().await;
-
-        let encryption_key_uuid = match Uuid::parse_str(&encryption_key?) {
-            Ok(uuid) => uuid,
-            Err(err) => {
-                error!("Failed to parse encryption key: {:?}", err);
-                return dto_err("Failed to parse encryption key").as_error();
-            }
+        let token = match self {
+            Self::AuthorizationHeader { token, .. } => token.as_str(),
+            Self::QueryParameter { token, .. } => token.as_str(),
         };
 
-        let key_bytes = derive_key_from_uuid(&encryption_key_uuid);
+        let decrypted_secret =
+            decrypt_string_with_dek(token, config, dek, aad).await?;
 
-        let unbound_key = match UnboundKey::new(&AES_256_GCM, &key_bytes) {
-            Ok(key) => key,
-            Err(err) => {
-                error!("Failed to create unbound key: {:?}", err);
-                return dto_err("Failed to create unbound key").as_error();
-            }
-        };
-
-        let key = LessSafeKey::new(unbound_key);
-
-        //
-        // Extract and decode the encrypted secret
-        //
-        let secret = match self {
-            Self::AuthorizationHeader { token, .. } => token,
-            Self::QueryParameter { token, .. } => token,
-        };
-
-        let encrypted = match general_purpose::STANDARD.decode(secret) {
-            Ok(encrypted) => encrypted,
-            Err(err) => {
-                error!("Failed to decode encrypted data: {:?}", err);
-                return dto_err("Failed to decode encrypted data").as_error();
-            }
-        };
-
-        //
-        // Verify that the encrypted data is long enough to contain the nonce
-        //
-        if encrypted.len() < 12 {
-            return dto_err("Encrypted data is too short").as_error();
-        }
-
-        //
-        // Split encrypted data into nonce and ciphertext
-        //
-        let (nonce_bytes, ciphertext) = encrypted.split_at(12);
-
-        let nonce = match Nonce::try_assume_unique_for_key(nonce_bytes) {
-            Ok(nonce) => nonce,
-            Err(_) => {
-                return dto_err("Invalid nonce").as_error();
-            }
-        };
-
-        let mut in_out = ciphertext.to_vec();
-
-        match key.open_in_place(nonce, Aad::empty(), &mut in_out) {
-            Ok(_) => {}
-            Err(err) => {
-                error!("Failed to decrypt data: {:?}", err);
-                return dto_err("Failed to decrypt data").as_error();
-            }
-        };
-
-        let in_out_slice = if in_out.len() > 16 {
-            in_out.truncate(in_out.len() - 16);
-            in_out
-        } else {
-            in_out
-        };
-
-        //
-        // Convert decrypted data from UTF-8 to String
-        //
-        let decrypted_secret = match String::from_utf8(in_out_slice) {
-            Ok(secret) => secret,
-            Err(err) => {
-                return dto_err(format!(
-                    "Failed to convert decrypted data to string: {err}"
-                ))
-                .as_error();
-            }
-        };
-
-        let self_decrypted = match self {
+        Ok(match self {
             Self::AuthorizationHeader {
                 header_name,
                 prefix,
                 ..
             } => Self::AuthorizationHeader {
-                token: decrypted_secret.to_owned(),
+                token: decrypted_secret,
                 header_name: header_name.to_owned(),
                 prefix: prefix.to_owned(),
             },
@@ -298,9 +137,7 @@ impl HttpSecret {
                 token: decrypted_secret,
                 name: name.to_owned(),
             },
-        };
-
-        Ok(self_decrypted)
+        })
     }
 
     #[tracing::instrument(name = "redact_token", skip_all)]

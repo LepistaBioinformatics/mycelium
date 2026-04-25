@@ -1,6 +1,6 @@
 use crate::domain::dtos::{
     account::Account, account_type::AccountType,
-    related_accounts::RelatedAccounts,
+    related_accounts::RelatedAccounts, telegram::TelegramUserId,
 };
 
 use async_trait::async_trait;
@@ -35,4 +35,14 @@ pub trait AccountFetching: Interface + Send + Sync {
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Account>, MappedErrors>;
+
+    /// Find the personal account linked to a Telegram identity.
+    ///
+    /// Global lookup — personal accounts (user, manager, staff) have no
+    /// `tenant_id`. A Telegram ID maps to at most one account globally.
+    /// Uses the GIN index on `account.meta` for the JSONB containment query.
+    async fn get_by_telegram_id(
+        &self,
+        telegram_user_id: TelegramUserId,
+    ) -> Result<FetchResponseKind<Account, i64>, MappedErrors>;
 }

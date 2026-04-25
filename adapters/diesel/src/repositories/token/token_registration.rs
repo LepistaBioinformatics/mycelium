@@ -10,8 +10,8 @@ use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
         token::{
-            EmailConfirmationTokenMeta, MultiTypeMeta, PasswordChangeTokenMeta,
-            Token, UserAccountConnectionString,
+            EmailConfirmationTokenMeta, MagicLinkTokenMeta, MultiTypeMeta,
+            PasswordChangeTokenMeta, Token, UserAccountConnectionString,
         },
     },
     entities::TokenRegistration,
@@ -183,6 +183,50 @@ impl TokenRegistration for TokenRegistrationSqlDbRepository {
             Some(token.id),
             token.expiration.and_local_timezone(Local).unwrap(),
             MultiTypeMeta::UserAccountConnectionString(meta),
+        )))
+    }
+
+    #[tracing::instrument(name = "create_magic_link_token", skip_all)]
+    async fn create_magic_link_token(
+        &self,
+        meta: MagicLinkTokenMeta,
+        expires: DateTime<Local>,
+    ) -> Result<CreateResponseKind<Token>, MappedErrors> {
+        let conn = &mut self.db_config.get_pool().get().map_err(|e| {
+            creation_err(format!("Failed to get DB connection: {}", e))
+                .with_code(NativeErrorCodes::MYC00001)
+        })?;
+
+        // No encryption needed — token is a UUID, code is not secret
+        // once displayed; the DB is the source of truth for validity.
+        let meta_value = match to_value(meta.clone()) {
+            Ok(value) => value,
+            Err(_) => {
+                return creation_err("Could not serialize the meta data")
+                    .as_error()
+            }
+        };
+
+        let token = diesel::insert_into(token_model::table)
+            .values((
+                token_model::meta.eq(meta_value),
+                token_model::expiration.eq(expires.naive_utc()),
+            ))
+            .returning(TokenModel::as_returning())
+            .get_result::<TokenModel>(conn)
+            .map_err(|e| {
+                creation_err(format!(
+                    "Unexpected error detected on create record: {}",
+                    e
+                ))
+            })?;
+
+        let meta: MagicLinkTokenMeta = from_value(token.meta).unwrap();
+
+        Ok(CreateResponseKind::Created(Token::new(
+            Some(token.id),
+            token.expiration.and_local_timezone(Local).unwrap(),
+            MultiTypeMeta::MagicLink(meta),
         )))
     }
 }

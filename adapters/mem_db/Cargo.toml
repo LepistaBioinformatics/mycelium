@@ -2,7 +2,7 @@
 name = "mycelium-memory-db"
 description = "Provide memory database adapters to the mycelium project."
 
-version = "8.3.1-beta.5"
+version = "8.3.1-rc.1"
 
 edition.workspace = true
 authors.workspace = true
@@ -36,6 +36,8 @@ mycelium-config.workspace = true
 # Dev dependencies
 # ------------------------------------------------------------------------------
 
+[dev-dependencies]
+tokio.workspace = true
 
 [lib]
 name = "myc_mem_db"

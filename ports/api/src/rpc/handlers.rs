@@ -13,11 +13,16 @@ use crate::{
     dtos::MyceliumProfileData, openapi_processor::ServiceOpenApiSchema,
 };
 
-use actix_web::{post, web, HttpRequest, HttpResponse, Responder};
+use actix_web::{
+    dev::Payload, error::ResponseError, post, web, FromRequest, HttpRequest,
+    HttpResponse, Responder,
+};
 use myc_core::models::AccountLifeCycle;
 use myc_diesel::repositories::SqlAppModule;
+use myc_http_tools::responses::GatewayError;
 use myc_mem_db::repositories::MemDbAppModule;
 use tracing::{error, info, info_span};
+use uuid::Uuid;
 
 async fn process_single_request(
     profile: &MyceliumProfileData,
@@ -216,7 +221,6 @@ async fn process_single_request(
 pub async fn admin_jsonrpc_post(
     req: HttpRequest,
     body: web::Bytes,
-    profile: MyceliumProfileData,
     app_module: web::Data<SqlAppModule>,
     openrpc_config: web::Data<openrpc::OpenRpcSpecConfig>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
@@ -225,6 +229,37 @@ pub async fn admin_jsonrpc_post(
 ) -> impl Responder {
     let span = info_span!("adm_rpc", path = "_adm/rpc");
     let _guard = span.enter();
+
+    // Mirror the REST pattern for account creation: profile extraction is
+    // best-effort. Authenticated users without an account yet receive
+    // GatewayError::Forbidden — we let them through with an anonymous
+    // profile so that `beginners.accounts.create` (which re-validates
+    // credentials on its own) can still be reached. Any other error (e.g.
+    // invalid/missing token) is a real auth failure and is returned as-is.
+    let profile =
+        match MyceliumProfileData::from_request(&req, &mut Payload::None).await
+        {
+            Ok(p) => p,
+            Err(GatewayError::Forbidden(_) | GatewayError::Unauthorized(_)) => {
+                MyceliumProfileData {
+                    owners: vec![],
+                    acc_id: Uuid::nil(),
+                    is_subscription: false,
+                    is_manager: false,
+                    is_staff: false,
+                    owner_is_active: false,
+                    account_is_active: false,
+                    account_was_approved: false,
+                    account_was_archived: false,
+                    account_was_deleted: false,
+                    verbose_status: None,
+                    licensed_resources: None,
+                    tenants_ownership: None,
+                    meta: None,
+                }
+            }
+            Err(err) => return err.error_response(),
+        };
 
     let value: serde_json::Value = match serde_json::from_slice(&body) {
         Ok(v) => v,

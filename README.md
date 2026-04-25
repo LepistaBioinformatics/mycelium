@@ -14,7 +14,7 @@
 
 <img
   alt="Mycelium Logo"
-  src="docs/assets/logo-large.svg"
+  src="https://raw.githubusercontent.com/LepistaBioinformatics/mycelium-webapp/main/public/logo-color.png"
   width="200"
   style="margin: 20px; background-color: transparent; border-radius: 20px;"
 />

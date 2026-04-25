@@ -61,12 +61,14 @@ impl UserUpdating for UserUpdatingSqlDbRepository {
             updating_err("Unable to update user. Invalid record ID")
         })?;
 
+        let is_principal = user.is_principal();
         let updated = diesel::update(user_model::table.find(user_id))
             .set((
                 user_model::username.eq(user.username),
                 user_model::first_name.eq(user.first_name.unwrap()),
                 user_model::last_name.eq(user.last_name.unwrap()),
                 user_model::is_active.eq(user.is_active),
+                user_model::is_principal.eq(is_principal),
                 user_model::updated.eq(Some(Local::now().naive_utc())),
             ))
             .returning(UserModel::as_returning())

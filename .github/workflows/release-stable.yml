@@ -1,0 +1,64 @@
+name: Release stable
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: Stable release type
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      dry_run:
+        description: Dry run (no changes committed or pushed)
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Bump ${{ inputs.release_type }}
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.RELEASE_TOKEN }}
+          fetch-depth: 0
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-release
+        run: cargo install cargo-release --locked
+
+      - name: Install git-cliff
+        run: cargo install git-cliff --locked
+
+      - name: Configure git identity
+        run: |
+          git config user.name "Samuel Galvão Elias"
+          git config user.email "sgelias@outlook.com"
+
+      - name: Run release (dry run)
+        if: inputs.dry_run == true
+        run: |
+          cargo release ${{ inputs.release_type }} --no-publish
+          echo "Dry-run complete — no changes were committed or pushed."
+
+      - name: Run release
+        if: inputs.dry_run == false
+        run: |
+          cargo release ${{ inputs.release_type }} --no-publish --execute --no-confirm
+          echo "Release complete."

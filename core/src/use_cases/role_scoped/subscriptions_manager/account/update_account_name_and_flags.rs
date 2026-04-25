@@ -173,6 +173,7 @@ mod tests {
         dtos::{
             account::{AccountMeta, AccountMetaKey},
             related_accounts::RelatedAccounts,
+            telegram::TelegramUserId,
             webhook::{WebHook, WebHookPayloadArtifact},
         },
         entities::AccountFetching,
@@ -230,6 +231,13 @@ mod tests {
             _: Option<i32>,
             _: Option<i32>,
         ) -> Result<FetchManyResponseKind<Account>, MappedErrors> {
+            unimplemented!()
+        }
+
+        async fn get_by_telegram_id(
+            &self,
+            _: TelegramUserId,
+        ) -> Result<FetchResponseKind<Account, i64>, MappedErrors> {
             unimplemented!()
         }
     }

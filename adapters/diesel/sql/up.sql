@@ -1,5 +1,5 @@
 -- Example usage:
--- psql -v db_password='myc-password' -f create_tables.sql
+-- psql -v db_password='myc-password' -f up.sql
 
 --------------------------------------------------------------------------------
 -- EXTERNAL VALUES
@@ -13,9 +13,27 @@
     \quit
 \endif
 
-\set db_name 'mycelium-v7-dev'
-\set db_user 'mycelium-v7-user'
-\set db_role 'service-role-mycelium-v7'
+-- Set default values only if variables were not provided via -v
+\if :{?db_name}
+    \echo "Using provided database name: :'db_name'"
+\else
+    \set db_name 'mycelium-dev'
+    \echo "Using default database name: :'db_name'"
+\endif
+
+\if :{?db_user}
+    \echo "Using provided database user: :'db_user'"
+\else
+    \set db_user 'mycelium-user'
+    \echo "Using default database user: :'db_user'"
+\endif
+
+\if :{?db_role}
+    \echo "Using provided database role: :'db_role'"
+\else
+    \set db_role 'service-role-mycelium'
+    \echo "Using default database role: :'db_role'"
+\endif
 
 --------------------------------------------------------------------------------
 -- DATABASE
@@ -334,9 +352,9 @@ SELECT DISTINCT
 	gr.permission AS gr_perm,
 	gu.email AS gu_email,
 	gu.was_verified AS gu_verified,
-	ac.tenant_id AS tenant_id
+	ac.tenant_id AS tenant_id,
     ga.permit_flags AS permit_flags,
-    ga.deny_flags AS deny_flags,
+    ga.deny_flags AS deny_flags
 FROM
 	guest_user_on_account AS ga
 JOIN
@@ -376,6 +394,41 @@ AND
 AND
     meta ? 'id'
 ORDER BY id DESC;
+
+--------------------------------------------------------------------------------
+-- TELEGRAM IDP
+--------------------------------------------------------------------------------
+
+-- GIN index on account.meta for fast JSONB reverse-lookup (used by Telegram IdP
+-- and any future platform IdP that stores identity in account.meta).
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_account_meta_gin
+ON account USING GIN (meta jsonb_path_ops);
+
+-- Unique index: one Telegram from.id globally. Telegram identity links to a
+-- personal account (user/manager/staff), which has no tenant_id. A Telegram ID
+-- maps to at most one personal account across all tenants.
+DROP INDEX CONCURRENTLY IF EXISTS idx_account_meta_telegram_user_id_per_tenant;
+CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS
+    idx_account_meta_telegram_user_id_global
+ON account ((meta -> 'telegram_user' ->> 'id'))
+WHERE meta ? 'telegram_user';
+
+-- Audit trail for all Telegram identity lifecycle events.
+CREATE TABLE IF NOT EXISTS telegram_identity_audit (
+    id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id   UUID        NOT NULL,
+    account_id  UUID        NOT NULL,
+    event       TEXT        NOT NULL CHECK (event IN ('linked', 'unlinked', 'login_ok', 'login_fail')),
+    telegram_id BIGINT,
+    ip          INET,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_telegram_audit_tenant_account
+    ON telegram_identity_audit (tenant_id, account_id);
+
+CREATE INDEX IF NOT EXISTS idx_telegram_audit_created_at
+    ON telegram_identity_audit (created_at);
 
 --------------------------------------------------------------------------------
 -- PERMISSIONS

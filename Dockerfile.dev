@@ -26,6 +26,8 @@ FROM rust:latest
 
 RUN apt-get update && apt-get install -y libpq-dev
 
+WORKDIR /home
+
 COPY --from=builder /rust/target/release/myc-api /usr/local/bin/myc-api
 
 COPY ports/api/src/openapi/redoc.config.json /home/redoc.config.json

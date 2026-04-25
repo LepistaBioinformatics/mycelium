@@ -1,12 +1,13 @@
 use crate::middleware::{
-    fetch_and_inject_email_to_forward,
-    fetch_and_inject_profile_from_token_to_forward,
+    fetch_and_inject_email_to_forward, fetch_and_inject_profile_from_body_idp,
+    fetch_and_inject_profile_from_token_to_forward, BodyIdpContext,
 };
 
 use actix_web::HttpRequest;
 use awc::ClientRequest;
 use myc_core::domain::dtos::{
     callback::UserInfo, route::Route, security_group::SecurityGroup,
+    service::Service,
 };
 use myc_http_tools::{
     responses::GatewayError, settings::MYCELIUM_SECURITY_GROUP,
@@ -26,12 +27,13 @@ use tracing::Instrument;
         route_pattern = format!("'{}'", route.path),
         security_group = %route.security_group.to_string(),
     ),
-    skip(req, downstream_request, route)
+    skip(req, downstream_request, route, body_idp)
 )]
 pub(super) async fn check_security_group(
     req: HttpRequest,
     mut downstream_request: ClientRequest,
     route: Route,
+    body_idp: Option<BodyIdpContext>,
 ) -> Result<(ClientRequest, SecurityGroup, Option<UserInfo>), GatewayError> {
     let span = tracing::Span::current();
 
@@ -74,6 +76,22 @@ pub(super) async fn check_security_group(
             )));
         }
     };
+
+    // ? -----------------------------------------------------------------------
+    // ? Body-based IdP auth — identity resolved from request body
+    // ? -----------------------------------------------------------------------
+
+    if let Some(ctx) = body_idp {
+        return authenticate_from_body_idp(
+            req,
+            downstream_request,
+            security_group,
+            ctx,
+            &route.service,
+        )
+        .instrument(span)
+        .await;
+    }
 
     //
     // Check requester permissions given the security group
@@ -177,4 +195,55 @@ pub(super) async fn check_security_group(
     );
 
     Ok((new_downstream_request, security_group, user_info))
+}
+
+#[tracing::instrument(
+    name = "authenticate_from_body_idp",
+    skip_all,
+    fields(user_id = ctx.user_id.as_str())
+)]
+async fn authenticate_from_body_idp(
+    req: HttpRequest,
+    downstream_request: ClientRequest,
+    security_group: SecurityGroup,
+    ctx: BodyIdpContext,
+    service: &Parent<Service, uuid::Uuid>,
+) -> Result<(ClientRequest, SecurityGroup, Option<UserInfo>), GatewayError> {
+    let service_record = match service {
+        Parent::Record(ref s) => s,
+        Parent::Id(_) => {
+            return Err(GatewayError::InternalServerError(
+                "Service not loaded for body IdP identity resolution"
+                    .to_string(),
+            ))
+        }
+    };
+
+    tracing::info!(
+        stage = "router.body_idp_auth",
+        user_id = ctx.user_id.as_str(),
+        "Resolving profile from body IdP user_id"
+    );
+
+    let (new_downstream_request, profile) =
+        fetch_and_inject_profile_from_body_idp(
+            req,
+            downstream_request,
+            ctx,
+            service_record,
+            &security_group,
+        )
+        .await?;
+
+    tracing::info!(
+        stage = "router.body_idp_auth",
+        outcome = "ok",
+        "Body IdP auth: profile injected"
+    );
+
+    Ok((
+        new_downstream_request,
+        security_group,
+        Some(UserInfo::new_profile(profile)),
+    ))
 }

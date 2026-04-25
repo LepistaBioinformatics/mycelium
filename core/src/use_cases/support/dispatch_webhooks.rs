@@ -8,7 +8,8 @@ use crate::{
                 WebHookPayloadArtifact, WebHookTrigger,
             },
         },
-        entities::{WebHookFetching, WebHookUpdating},
+        entities::{EncryptionKeyFetching, WebHookFetching, WebHookUpdating},
+        utils::{build_aad, AAD_FIELD_HTTP_SECRET},
     },
     models::CoreConfig,
 };
@@ -24,7 +25,8 @@ use reqwest::Client;
 #[tracing::instrument(
     name = "dispatch_webhooks",
     fields(trigger = %trigger, artifact_id = %artifact.id.unwrap_or_default()),
-    skip(config, artifact, webhook_fetching_repo, webhook_updating_repo)
+    skip(config, artifact, webhook_fetching_repo, webhook_updating_repo,
+         encryption_key_fetching_repo)
 )]
 pub async fn dispatch_webhooks(
     trigger: WebHookTrigger,
@@ -32,6 +34,7 @@ pub async fn dispatch_webhooks(
     config: CoreConfig,
     webhook_fetching_repo: Box<&dyn WebHookFetching>,
     webhook_updating_repo: Box<&dyn WebHookUpdating>,
+    encryption_key_fetching_repo: Box<&dyn EncryptionKeyFetching>,
 ) -> Result<WebHookPayloadArtifact, MappedErrors> {
     let mut artifact = artifact.decode_payload()?;
 
@@ -53,9 +56,6 @@ pub async fn dispatch_webhooks(
     let hooks: Vec<WebHook> = match hooks_fetching_response {
         FetchManyResponseKind::Found(records) => records,
         FetchManyResponseKind::NotFound => {
-            //
-            // Update the artifact with the status of the event
-            //
             artifact.status = Some(WebHookExecutionStatus::Skipped);
             artifact.attempts = Some(artifact.attempts.unwrap_or(0) + 1);
 
@@ -74,11 +74,47 @@ pub async fn dispatch_webhooks(
     tracing::info!("Found {} webhooks to dispatch", hooks.len());
 
     // ? -----------------------------------------------------------------------
+    // ? Pre-fetch the system DEK once for all webhook secrets
+    // ? -----------------------------------------------------------------------
+
+    let kek = config.account_life_cycle.derive_kek_bytes().await?;
+    let system_dek = encryption_key_fetching_repo
+        .get_or_provision_dek(None, &kek)
+        .await?;
+
+    let system_aad = build_aad(None, AAD_FIELD_HTTP_SECRET);
+
+    // ? -----------------------------------------------------------------------
+    // ? Decrypt all webhook secrets up-front (async, before the sync map)
+    // ? -----------------------------------------------------------------------
+
+    let mut decrypted_secrets: Vec<Option<HttpSecret>> =
+        Vec::with_capacity(hooks.len());
+
+    for hook in &hooks {
+        let decrypted = match &hook.get_secret() {
+            Some(secret) => {
+                let ds = secret
+                    .decrypt_me(
+                        &system_dek,
+                        &config.account_life_cycle,
+                        &system_aad,
+                    )
+                    .await
+                    .map_err(|err| {
+                        use_case_err(format!(
+                            "Error on decrypting secret: {err}"
+                        ))
+                    })?;
+                Some(ds)
+            }
+            None => None,
+        };
+        decrypted_secrets.push(decrypted);
+    }
+
+    // ? -----------------------------------------------------------------------
     // ? Build requests to the webhooks
-    //
-    // Request bodies contains the account object as a JSON. It should be parsed
-    // by upstream urls.
-    //
     // ? -----------------------------------------------------------------------
 
     let client = Client::builder()
@@ -96,78 +132,59 @@ pub async fn dispatch_webhooks(
 
     let bodies: Vec<_> = hooks
         .iter()
-        .map(|hook| async {
-            //
-            // Create a base request to the webhook url
-            //
-            let base_request = client.clone();
-            //
-            // Build the request based on the method
-            //
-            let method = match hook.method {
-                Some(method) => method,
-                None => HttpMethod::Post,
-            };
+        .zip(decrypted_secrets.iter())
+        .map(|(hook, decrypted_secret)| {
+            let client = client.clone();
+            let payload = artifact.payload.to_owned();
+            let artifact_id = artifact.id;
 
-            let base_request = match method {
-                HttpMethod::Post => base_request.post(hook.url.to_owned()),
-                HttpMethod::Put => base_request.put(hook.url.to_owned()),
-                HttpMethod::Patch => base_request.patch(hook.url.to_owned()),
-                HttpMethod::Delete => base_request.delete(match artifact.id {
-                    None => hook.url.to_owned(),
-                    Some(id) => format!("{}/{}", hook.url, id),
-                }),
-                _ => {
-                    tracing::error!("Unknown method: {method}");
-                    base_request.post(hook.url.to_owned())
-                }
-            };
-            //
-            // Attach the secret to the request if it exists
-            //
-            (match &hook.get_secret() {
-                Some(secret) => {
-                    let decrypted_secret = match secret
-                        .decrypt_me(config.account_life_cycle.to_owned())
-                        .await
-                    {
-                        Ok(secret) => secret,
-                        Err(err) => {
-                            panic!("Error on decrypting secret: {:?}", err);
+            async move {
+                let method = match hook.method {
+                    Some(method) => method,
+                    None => HttpMethod::Post,
+                };
+
+                let base_request = match method {
+                    HttpMethod::Post => client.post(hook.url.to_owned()),
+                    HttpMethod::Put => client.put(hook.url.to_owned()),
+                    HttpMethod::Patch => client.patch(hook.url.to_owned()),
+                    HttpMethod::Delete => client.delete(match artifact_id {
+                        None => hook.url.to_owned(),
+                        Some(id) => {
+                            format!("{}/{}", hook.url, id)
                         }
-                    };
-
-                    match decrypted_secret {
-                        HttpSecret::AuthorizationHeader {
-                            header_name,
-                            prefix,
-                            token,
-                        } => {
-                            let credential_key = header_name
-                                .to_owned()
-                                .unwrap_or("Authorization".to_string());
-
-                            let credential_value = if let Some(prefix) = prefix
-                            {
-                                format!("{} {}", prefix, token)
-                            } else {
-                                token.to_owned()
-                            };
-
-                            base_request
-                                .header(credential_key, credential_value)
-                        }
-                        HttpSecret::QueryParameter { name, token } => {
-                            base_request
-                                .query(&[(name.to_owned(), token.to_owned())])
-                        }
+                    }),
+                    _ => {
+                        tracing::error!("Unknown method: {method}");
+                        client.post(hook.url.to_owned())
                     }
-                }
-                None => base_request,
-            })
-            .body(artifact.payload.to_owned())
-            .header("Content-Type", "application/json")
-            .send()
+                };
+
+                (match decrypted_secret {
+                    Some(HttpSecret::AuthorizationHeader {
+                        header_name,
+                        prefix,
+                        token,
+                    }) => {
+                        let key = header_name
+                            .clone()
+                            .unwrap_or_else(|| "Authorization".to_string());
+                        let value = match prefix {
+                            Some(p) => format!("{} {}", p, token),
+                            None => token.to_owned(),
+                        };
+                        base_request.header(key, value)
+                    }
+                    Some(HttpSecret::QueryParameter { name, token }) => {
+                        base_request.query(&[(name, token)])
+                    }
+                    None => base_request,
+                })
+                .body(payload)
+                .header("Content-Type", "application/json")
+                .send()
+                .await
+            }
         })
         .collect();
 
@@ -175,15 +192,11 @@ pub async fn dispatch_webhooks(
 
     // ? -----------------------------------------------------------------------
     // ? Propagate responses
-    //
-    // Propagation responses are collected and returned as a response. Users can
-    // check if the propagation was successful.
-    //
     // ? -----------------------------------------------------------------------
 
     let mut responses = Vec::<HookResponse>::new();
     for hook_future in join_all(bodies).await {
-        let hook_res = match hook_future.await {
+        let hook_res = match hook_future {
             Ok(res) => res,
             Err(err) => {
                 let url = match err.url() {
@@ -255,8 +268,7 @@ pub async fn dispatch_webhooks(
     {
         UpdatingResponseKind::NotUpdated(_, msg) => {
             tracing::error!("Error on updating webhook: {msg}");
-
-            return use_case_err("Error on updating webhook").as_error();
+            use_case_err("Error on updating webhook").as_error()
         }
         UpdatingResponseKind::Updated(artifact) => Ok(artifact),
     }

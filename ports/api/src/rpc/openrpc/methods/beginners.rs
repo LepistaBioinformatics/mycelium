@@ -22,6 +22,10 @@ pub fn methods() -> Vec<serde_json::Value> {
         schema::param_schema_value::<params::FetchTenantPublicInfoParams>();
     let create_connection_string_schema =
         schema::param_schema_value::<params::CreateConnectionStringParams>();
+    let revoke_connection_string_schema =
+        schema::param_schema_value::<params::RevokeConnectionStringParams>();
+    let delete_connection_string_schema =
+        schema::param_schema_value::<params::DeleteConnectionStringParams>();
     let create_default_user_schema =
         schema::param_schema_value::<params::CreateDefaultUserParams>();
     let check_token_and_activate_user_schema =
@@ -150,6 +154,24 @@ pub fn methods() -> Vec<serde_json::Value> {
             "tags": [{ "name": "beginners" }, { "name": "tokens" }],
             "params": [],
             "result": { "name": "result", "description": "List of PublicConnectionStringInfo", "schema": { "type": "array" } },
+            "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
+        }),
+        serde_json::json!({
+            "name": method_names::BEGINNERS_TOKENS_REVOKE,
+            "summary": "Revoke connection string",
+            "description": "Sets the token expiration to now, making it immediately invalid while keeping it visible in the listing.",
+            "tags": [{ "name": "beginners" }, { "name": "tokens" }],
+            "params": [{ "name": "params", "required": true, "schema": revoke_connection_string_schema }],
+            "result": { "name": "result", "description": "Deletion result (DeletionResponseKind)", "schema": { "type": "object" } },
+            "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
+        }),
+        serde_json::json!({
+            "name": method_names::BEGINNERS_TOKENS_DELETE,
+            "summary": "Delete connection string",
+            "description": "Permanently removes a connection string row owned by the current account.",
+            "tags": [{ "name": "beginners" }, { "name": "tokens" }],
+            "params": [{ "name": "params", "required": true, "schema": delete_connection_string_schema }],
+            "result": { "name": "result", "description": "Deletion result (DeletionResponseKind)", "schema": { "type": "object" } },
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
         serde_json::json!({

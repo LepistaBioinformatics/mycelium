@@ -31,7 +31,10 @@ impl CoreConfig {
         }
 
         match load_config_from_file::<TmpConfig>(file) {
-            Ok(config) => Ok(config.core),
+            Ok(config) => {
+                config.core.account_life_cycle.validate_hmac_config()?;
+                Ok(config.core)
+            }
             Err(err) => Err(err),
         }
     }

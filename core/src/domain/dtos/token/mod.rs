@@ -27,6 +27,9 @@ pub enum MultiTypeMeta {
 
     /// This is the user account token
     UserAccountConnectionString(UserAccountConnectionString),
+
+    /// This is the magic link (passwordless) login token
+    MagicLink(MagicLinkTokenMeta),
 }
 
 // ? ---------------------------------------------------------------------------

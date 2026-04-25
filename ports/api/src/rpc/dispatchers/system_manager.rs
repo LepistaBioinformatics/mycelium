@@ -178,6 +178,7 @@ pub async fn dispatch_system_manager(
                 secret,
                 life_cycle.to_owned(),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -230,6 +231,7 @@ pub async fn dispatch_system_manager(
                 secret,
                 life_cycle.to_owned(),
                 p.is_active,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )

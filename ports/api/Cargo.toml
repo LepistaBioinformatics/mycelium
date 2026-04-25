@@ -2,7 +2,7 @@
 name = "mycelium-api"
 description = "Provide API ports to the mycelium project."
 
-version = "8.3.1-beta.5"
+version = "8.3.1-rc.1"
 
 edition.workspace = true
 authors.workspace = true
@@ -71,6 +71,7 @@ actix-cors = { version = "0.6.2" }
 actix-rt = "2.10"
 actix-web-opentelemetry = "0.22.0"
 anyhow = "1.0"
+tera = "1"
 rhai = { version = "1.21", features = ["sync"], optional = true }
 schemars = { version = "1.2.1", features = ["uuid1"] }
 
@@ -89,6 +90,7 @@ mycelium-diesel.workspace = true
 mycelium-notifier.workspace = true
 mycelium-adapters-shared-lib.workspace = true
 mycelium-key-value.workspace = true
+secrecy.workspace = true
 
 # ------------------------------------------------------------------------------
 # Build dependencies

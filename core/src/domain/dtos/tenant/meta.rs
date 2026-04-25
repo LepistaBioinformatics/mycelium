@@ -86,6 +86,20 @@ pub enum TenantMetaKey {
     /// is typically responsible for business communications and operations.
     ContactPerson,
 
+    /// The Telegram Bot Token (encrypted at rest)
+    ///
+    /// Stores `base64(nonce ‖ AES-256-GCM ciphertext ‖ tag)` produced by
+    /// `encrypt_string()`. The plain bot token is never stored directly.
+    /// Decrypted at request time using `AccountLifeCycle::token_secret`.
+    TelegramBotToken,
+
+    /// The Telegram Webhook Secret (encrypted at rest)
+    ///
+    /// Same format as `TelegramBotToken`. Contains the secret passed to
+    /// Telegram's `setWebhook` call, verified against
+    /// `X-Telegram-Bot-Api-Secret-Token` on incoming webhook requests.
+    TelegramWebhookSecret,
+
     /// To specify any other meta key
     ///
     /// Specify any other meta key that is not listed here.
@@ -115,6 +129,12 @@ impl Display for TenantMetaKey {
             TenantMetaKey::LegalName => write!(f, "legal_name"),
             TenantMetaKey::TradingName => write!(f, "trading_name"),
             TenantMetaKey::ContactPerson => write!(f, "contact_person"),
+            TenantMetaKey::TelegramBotToken => {
+                write!(f, "telegram_bot_token")
+            }
+            TenantMetaKey::TelegramWebhookSecret => {
+                write!(f, "telegram_webhook_secret")
+            }
             TenantMetaKey::Custom(key) => write!(f, "{key}"),
         }
     }
@@ -144,6 +164,10 @@ impl FromStr for TenantMetaKey {
             "legal_name" => Ok(TenantMetaKey::LegalName),
             "trading_name" => Ok(TenantMetaKey::TradingName),
             "contact_person" => Ok(TenantMetaKey::ContactPerson),
+            "telegram_bot_token" => Ok(TenantMetaKey::TelegramBotToken),
+            "telegram_webhook_secret" => {
+                Ok(TenantMetaKey::TelegramWebhookSecret)
+            }
             _ => Ok(TenantMetaKey::Custom(s.to_owned())),
         }
     }

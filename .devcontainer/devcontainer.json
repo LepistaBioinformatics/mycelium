@@ -22,7 +22,8 @@
         "vscode": {
             "extensions": [
                 "rust-lang.rust-analyzer",
-                "streetsidesoftware.code-spell-checker"
+                "streetsidesoftware.code-spell-checker",
+                "anthropic.claude-code"
             ],
             "settings": {
                 "terminal.integrated.defaultProfile.linux": "bash"

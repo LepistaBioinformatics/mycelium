@@ -27,6 +27,6 @@ vault/*
 redis
 
 # Development
-.cursor
-.claude
+.claude/plans
+.claude/settings.local.json
 *.log

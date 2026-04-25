@@ -2,11 +2,75 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### 💥 BREAKING
+
+- *(hmac-rotation)* **Connection-string signing is now versioned (KVR).**
+  Every newly-issued connection string carries a `kvr` bean and is signed
+  with `hmacSecrets[hmacPrimaryVersion]`. Verification rejects tokens
+  missing `kvr` (MYC00030), citing an unconfigured version (MYC00031),
+  or failing HMAC comparison (MYC00032).
+
+  **Deploying this release invalidates every connection string issued
+  before the deploy.** Tokens issued pre-KVR carry no `kvr` bean and are
+  rejected with MYC00030. Users must re-authenticate. Pick a maintenance
+  window before rolling out.
+
+  The gateway **refuses to start** if `hmacPrimaryVersion` is not listed
+  in `hmacSecrets` or the set is empty — enforced at config load.
+
+  See [docs/book/src/22-hmac-key-rotation.md](../docs/book/src/22-hmac-key-rotation.md)
+  for the rotation procedure, anti-downgrade guarantee, and native error
+  code reference.
+
+### 🚀 Features
+
+- *(hmac-rotation)* Add `HmacSecretSet`/`HmacSecretEntry` models with
+  versioned lookup and startup validation.
+- *(hmac-rotation)* Wire HMAC verification into the connection-string
+  middleware so forged tokens are rejected before any DB round-trip.
+
+### 🐛 Bug Fixes
+
+### 🚜 Refactor
+
+## [8.3.1-rc.1] - 2026-04-15
+
+### 🚀 Features
+
+- *(auth)* Implement magic link passwordless login (M3 GT0–GT7)
+- *(tokens)* Add delete and revoke connection string use cases; refresh email templates
+
+### 🐛 Bug Fixes
+
+- Replace panics with MappedErrors propagation in notifier, settings, and service routing
+- *(boot)* Support starting gateway without downstream services configured
+- Replace app_name with domain_name in magic-link email templates
+- *(rpc)* Allow unauthenticated and unregistered users to reach public dispatchers
+- *(auth)* Ensure new users are created as principal and persisted correctly
+
+### 🚜 Refactor
+
+- *(arch)* Move display URL construction out of use-case into port layer
+
+### 📚 Documentation
+
+- Track changelog for version v8.3.1-rc.1
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.1
+
 ## [8.3.1-beta.5] - 2026-02-08
 
 ### 🧪 Testing
 
 - Allow plus symbol to allow group emails
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-beta.5
 
 ## [8.3.1-beta.4] - 2026-02-05
 

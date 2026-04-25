@@ -1,79 +1,146 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es">
 
 <head>
   {% block head %}
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}{% endblock title %} - {{ domain_name }}</title>
+  <meta name="x-apple-disable-message-reformatting" />
+  <title>{% block title %}{% endblock title %} — {{ domain_name }}</title>
+  <style type="text/css">
+    body, table, td, p, a, span { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; border-collapse: collapse; }
+    img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+    body { margin: 0 !important; padding: 0 !important; background-color: #f4f4f5; }
+  </style>
   {% endblock head %}
 </head>
 
-<body>
-  <div id="content">
-    {% block content %}
-    <table
-      style="max-width: 555px; width: 100%; font-family: 'Open Sans', Segoe, 'Segoe UI', 'DejaVu Sans', 'Trebuchet MS', Verdana, sans-serif; background: #fff; font-size: 13px; color: #323232;"
-      cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
+<body style="margin: 0; padding: 0; background-color: #f4f4f5;">
 
-      <tbody>
+<!-- Outer wrapper -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f4f4f5"
+  style="background-color: #f4f4f5;">
+  <tr>
+    <td align="center" style="padding: 40px 16px;">
+
+      <!-- Card: 600px max -->
+      <table width="600" cellpadding="0" cellspacing="0" border="0"
+        style="max-width: 600px; width: 100%;">
+
+        <!-- ── HEADER ── -->
         <tr>
-          <td>
-            <h1 style="text-align: center; font-size: 15px;">
-              <strong style="font-size: 22px;">
-                {% block contenttitle %}{% endblock contenttitle %}
-              </strong>
-            </h1>
+          <td bgcolor="#18181b" style="background-color: #18181b; padding: 0;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <!-- Violet accent bar -->
+                <td width="4" bgcolor="#7c3aed"
+                  style="background-color: #7c3aed; width: 4px; font-size: 0; line-height: 0;">&#8203;</td>
+                <!-- Wordmark -->
+                <td style="padding: 24px 32px;">
+                  <span
+                    style="font-family: Georgia, 'Times New Roman', Times, serif; font-size: 22px; font-weight: bold; color: #ffffff; letter-spacing: -0.02em;">Mycelium</span>
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
-      </tbody>
 
-      {% block contenttable %}{% endblock contenttable %}
-
-    </table>
-    {% endblock content %}
-  </div>
-
-  <div id="footer">
-    {% if support_email %}
-    <table
-      style="max-width: 555px; width: 100%; font-family: 'Open Sans', arial, sans-serif; font-size: 13px; color: #323232;"
-      cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
-      <tbody>
+        <!-- ── CONTENT ── -->
         <tr>
-          <td height="10">&nbsp;</td>
-        </tr>
-        <tr>
-          <td align="left">
-            <p>
-              Si tiene alguna pregunta, póngase en contacto con nosotros en
-              <a href="mailto:{{ support_email }}">{{ support_email }}</a>.
-            </p>
+          <td bgcolor="#ffffff"
+            style="background-color: #ffffff; border-left: 1px solid #e4e4e7; border-right: 1px solid #e4e4e7;">
+
+            {% block content %}
+            <!-- Inner padding cell -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding: 36px 40px 0;">
+
+                  <!-- Title -->
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td>
+                        <h1
+                          style="margin: 0; font-family: Georgia, 'Times New Roman', Times, serif; font-size: 20px; font-weight: bold; color: #18181b; letter-spacing: -0.01em; line-height: 1.3;">
+                          {% block contenttitle %}{% endblock contenttitle %}
+                        </h1>
+                      </td>
+                    </tr>
+                    <!-- Violet underline (table row, not CSS border) -->
+                    <tr>
+                      <td height="2" bgcolor="#7c3aed"
+                        style="background-color: #7c3aed; height: 2px; font-size: 0; line-height: 0; padding-top: 12px;">&#8203;</td>
+                    </tr>
+                    <tr>
+                      <td height="28" style="font-size: 0; line-height: 0;">&nbsp;</td>
+                    </tr>
+                  </table>
+
+                  <!-- Body content -->
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    {% block contenttable %}{% endblock contenttable %}
+                  </table>
+
+                </td>
+              </tr>
+              <tr>
+                <td height="40" style="font-size: 0; line-height: 0;">&nbsp;</td>
+              </tr>
+            </table>
+            {% endblock content %}
+
           </td>
         </tr>
-      </tbody>
-    </table>
-    {% endif %}
 
-    {% if domain_url %}
-    <table
-      style="max-width: 555px; width: 100%; font-family: 'Open Sans', arial, sans-serif; font-size: 13px; color: #323232;"
-      cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" align="center">
-      <tbody>
+        <!-- ── FOOTER ── -->
         <tr>
-          <td height="10">&nbsp;</td>
-        </tr>
-        <tr>
-          <td align="left">
-            <p>
-              También puede visitar nuestro sitio web en
-              <a href="{{ domain_url }}">{{ domain_url }}</a>.
-            </p>
+          <td bgcolor="#f4f4f5"
+            style="background-color: #f4f4f5; padding: 20px 40px; border: 1px solid #e4e4e7; border-top: none;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+
+              {% if support_email %}
+              <tr>
+                <td
+                  style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; color: #71717a; line-height: 1.6; padding-bottom: 4px;">
+                  &#191;Preguntas?&#32;<a href="mailto:{{ support_email }}"
+                    style="color: #7c3aed; text-decoration: none;">{{ support_email }}</a>
+                </td>
+              </tr>
+              {% endif %}
+
+              {% if domain_url %}
+              <tr>
+                <td
+                  style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 12px; color: #71717a; line-height: 1.6; padding-bottom: 12px;">
+                  <a href="{{ domain_url }}" style="color: #7c3aed; text-decoration: none;">{{ domain_url }}</a>
+                </td>
+              </tr>
+              {% endif %}
+
+              <tr>
+                <td height="1" bgcolor="#e4e4e7"
+                  style="background-color: #e4e4e7; height: 1px; font-size: 0; line-height: 0;">&#8203;</td>
+              </tr>
+              <tr>
+                <td height="12" style="font-size: 0; line-height: 0;">&nbsp;</td>
+              </tr>
+              <tr>
+                <td
+                  style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 11px; color: #a1a1aa; line-height: 1.5;">
+                  Desarrollado por&#32;<a href="https://lepista.com.br"
+                    style="color: #a1a1aa; text-decoration: none;">LepistaBioinformatics</a>
+                </td>
+              </tr>
+
+            </table>
           </td>
         </tr>
-      </tbody>
-    </table>
-    {% endif %}
-  </div>
+
+      </table>
+    </td>
+  </tr>
+</table>
+
 </body>
-
 </html>

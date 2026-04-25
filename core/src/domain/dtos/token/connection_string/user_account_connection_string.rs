@@ -8,6 +8,7 @@
 use super::ConnectionStringBean;
 use crate::{
     domain::dtos::{
+        native_error_codes::NativeErrorCodes,
         security_group::PermissionedRole,
         token::{HmacSha256, ScopedBehavior, ServiceAccountRelatedMeta},
     },
@@ -58,6 +59,8 @@ impl UserAccountScope {
         if let Some(subscription_account_id) = subscription_account_id {
             beans.push(ConnectionStringBean::SID(subscription_account_id));
         }
+
+        beans.push(ConnectionStringBean::KVR(config.hmac_primary_version));
 
         let mut self_signed_scope = Self(beans);
 
@@ -131,23 +134,129 @@ impl UserAccountScope {
             None
         })
     }
+
+    /// Return the HMAC key version (KVR bean) carried by the scope, if
+    /// any.
+    #[tracing::instrument(name = "get_kvr", skip(self))]
+    fn get_kvr(&self) -> Option<u32> {
+        self.0.iter().find_map(|bean| {
+            if let ConnectionStringBean::KVR(version) = bean {
+                return Some(*version);
+            }
+
+            None
+        })
+    }
+
+    /// Verify that the scope's `SIG` bean matches the HMAC of the other
+    /// beans under the HMAC key identified by the `KVR` bean.
+    ///
+    /// Failure modes map to native error codes so callers (middleware,
+    /// audit logs) can discriminate reasons:
+    ///
+    /// - `MYC00030` — the token is missing the `KVR` bean.
+    /// - `MYC00031` — the version referenced by `KVR` is not in the
+    ///   configured key set (retired or never provisioned).
+    /// - `MYC00032` — HMAC recomputation does not match the stored `SIG`.
+    ///
+    /// The KVR value is part of the HMAC input (via
+    /// `serialize_beans_for_hmac`), so tampering with it yields
+    /// `MYC00032` rather than a false success.
+    #[tracing::instrument(name = "verify_signature", skip_all)]
+    pub async fn verify_signature(
+        &self,
+        config: &AccountLifeCycle,
+    ) -> Result<(), MappedErrors> {
+        let Some(stored_hex) = self.get_signature() else {
+            return dto_err("connection_string_missing_signature")
+                .with_code(NativeErrorCodes::MYC00030)
+                .with_exp_true()
+                .as_error();
+        };
+
+        let Some(version) = self.get_kvr() else {
+            return dto_err("connection_string_missing_key_version")
+                .with_code(NativeErrorCodes::MYC00030)
+                .with_exp_true()
+                .as_error();
+        };
+
+        let expected = hex::decode(stored_hex.as_bytes()).map_err(|err| {
+            dto_err(format!("invalid_signature_encoding: {err}"))
+                .with_code(NativeErrorCodes::MYC00032)
+                .with_exp_true()
+        })?;
+
+        let key_bytes = config
+            .hmac_signing_key_for_version(version)
+            .await
+            .map_err(|_| {
+                dto_err(format!("hmac_key_version_not_configured: {version}",))
+                    .with_code(NativeErrorCodes::MYC00031)
+                    .with_exp_true()
+            })?;
+
+        let payload = serialize_beans_for_hmac(&self.0);
+
+        let mut mac =
+            HmacSha256::new_from_slice(&key_bytes).map_err(|err| {
+                tracing::error!("Could not create HMAC: {err}");
+                dto_err("unable_to_verify_signature")
+                    .with_code(NativeErrorCodes::MYC00032)
+            })?;
+
+        mac.update(payload.as_bytes());
+
+        mac.verify_slice(&expected).map_err(|_| {
+            dto_err("connection_string_signature_mismatch")
+                .with_code(NativeErrorCodes::MYC00032)
+                .with_exp_true()
+        })?;
+
+        Ok(())
+    }
+}
+
+/// Serialise a bean list for HMAC input.
+///
+/// Filters the `SIG` bean out (so signing and verification agree on the
+/// payload) and then applies the same base64-of-joined-pairs encoding as
+/// `UserAccountScope::to_string`. Both `sign_token` and `verify_signature`
+/// must route through this helper so the two paths stay in lock-step.
+fn serialize_beans_for_hmac(beans: &[ConnectionStringBean]) -> String {
+    let raw_string = beans
+        .iter()
+        .filter(|bean| !matches!(bean, ConnectionStringBean::SIG(_)))
+        .fold(String::new(), |acc, bean| {
+            format!("{}{};", acc, bean.to_string())
+        })
+        .trim_end_matches(';')
+        .to_string();
+
+    general_purpose::STANDARD.encode(raw_string)
 }
 
 impl ScopedBehavior for UserAccountScope {
     /// Sign the token with secret and data
     ///
     /// Add or replace a signature to self with the HMAC of the data and the
-    /// secret
+    /// secret.
     ///
+    /// The HMAC key is read from `AccountLifeCycle::hmac_primary_signing_key`,
+    /// which returns the `(version, key_bytes)` pair tied to the current
+    /// `hmac_primary_version`. `UserAccountScope::new` pushes a matching
+    /// `KVR` bean **before** this method runs so the version is included in
+    /// the HMAC input (anti-downgrade guarantee — see
+    /// `docs/book/src/22-hmac-key-rotation.md`).
     #[tracing::instrument(name = "sign_token", skip(self, config))]
     async fn sign_token(
         &mut self,
         config: AccountLifeCycle,
         extra_data: Option<String>,
     ) -> Result<String, MappedErrors> {
-        let secret = config.token_secret.async_get_or_error().await;
+        let (_version, key_bytes) = config.hmac_primary_signing_key().await?;
 
-        let mut mac = match HmacSha256::new_from_slice(secret?.as_bytes()) {
+        let mut mac = match HmacSha256::new_from_slice(&key_bytes) {
             Ok(mac) => mac,
             Err(err) => {
                 tracing::error!("Could not create HMAC: {}", err);
@@ -155,7 +264,7 @@ impl ScopedBehavior for UserAccountScope {
             }
         };
 
-        mac.update(self.to_string().as_bytes());
+        mac.update(serialize_beans_for_hmac(&self.0).as_bytes());
         let result = mac.finalize();
 
         let hmac_bytes = result.into_bytes();
@@ -286,18 +395,29 @@ impl UserAccountConnectionString {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::dtos::email::Email;
+    use crate::{
+        domain::dtos::email::Email,
+        models::{HmacSecretEntry, HmacSecretSet},
+    };
 
     use myc_config::secret_resolver::SecretResolver;
 
-    /// Test new signed token
-    ///
-    /// Test the creation of a new signed token with the
-    /// AccountScopedConnectionStringMeta struct and test if the signature and
-    /// the further password check are correct
-    #[tokio::test]
-    async fn test_new_signed_token() {
-        let config = AccountLifeCycle {
+    // ? -----------------------------------------------------------------
+    // ? Helpers
+    // ? -----------------------------------------------------------------
+
+    fn make_entry(version: u32, value: &str) -> HmacSecretEntry {
+        HmacSecretEntry {
+            version,
+            secret: SecretResolver::Value(value.to_string()),
+        }
+    }
+
+    fn base_config_with_versions(
+        primary: u32,
+        entries: Vec<HmacSecretEntry>,
+    ) -> AccountLifeCycle {
+        AccountLifeCycle {
             domain_url: None,
             domain_name: SecretResolver::Value("test".to_string()),
             locale: None,
@@ -306,8 +426,143 @@ mod tests {
             noreply_email: SecretResolver::Value("test".to_string()),
             support_name: None,
             support_email: SecretResolver::Value("test".to_string()),
-            token_secret: SecretResolver::Value("test".to_string()),
-        };
+            token_secret: SecretResolver::Value(
+                "ab4c0550-310b-4218-9edf-58edc87979b9".to_string(),
+            ),
+            hmac_primary_version: primary,
+            hmac_secrets: HmacSecretSet::new(entries),
+        }
+    }
+
+    fn base_config() -> AccountLifeCycle {
+        base_config_with_versions(1, vec![make_entry(1, "k-v1")])
+    }
+
+    async fn issue_scope(
+        config: AccountLifeCycle,
+    ) -> Result<UserAccountScope, MappedErrors> {
+        UserAccountScope::new(
+            Uuid::new_v4(),
+            Local::now(),
+            None,
+            None,
+            None,
+            config,
+        )
+        .await
+    }
+
+    // ? -----------------------------------------------------------------
+    // ? Etapa 3 — KVR contract coverage
+    // ? -----------------------------------------------------------------
+
+    #[tokio::test]
+    async fn signs_with_primary_then_verifies() -> Result<(), MappedErrors> {
+        let config = base_config_with_versions(
+            2,
+            vec![make_entry(1, "k-v1"), make_entry(2, "k-v2")],
+        );
+
+        let scope = issue_scope(config.clone()).await?;
+        scope.verify_signature(&config).await?;
+
+        assert_eq!(
+            scope.get_kvr(),
+            Some(2),
+            "issued scope must carry KVR=primary",
+        );
+        assert!(scope.get_signature().is_some());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn verifies_non_primary_known_version() -> Result<(), MappedErrors> {
+        let issuing_config =
+            base_config_with_versions(1, vec![make_entry(1, "k-v1")]);
+
+        let scope = issue_scope(issuing_config).await?;
+        assert_eq!(scope.get_kvr(), Some(1));
+
+        let rotated_config = base_config_with_versions(
+            2,
+            vec![make_entry(1, "k-v1"), make_entry(2, "k-v2")],
+        );
+
+        scope.verify_signature(&rotated_config).await?;
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn rejects_unknown_version() -> Result<(), MappedErrors> {
+        let issuing_config = base_config_with_versions(
+            2,
+            vec![make_entry(1, "k-v1"), make_entry(2, "k-v2")],
+        );
+        let scope = issue_scope(issuing_config).await?;
+        assert_eq!(scope.get_kvr(), Some(2));
+
+        let retired_config =
+            base_config_with_versions(1, vec![make_entry(1, "k-v1")]);
+
+        let outcome = scope.verify_signature(&retired_config).await;
+        let err = outcome.expect_err("retired key must fail verification");
+        assert_eq!(err.code().to_string(), "MYC00031");
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn rejects_missing_kvr() -> Result<(), MappedErrors> {
+        let config = base_config();
+        let scope = issue_scope(config.clone()).await?;
+
+        let stripped: Vec<ConnectionStringBean> = scope
+            .get_scope_beans()
+            .into_iter()
+            .filter(|bean| !matches!(bean, ConnectionStringBean::KVR(_)))
+            .collect();
+
+        let scope_without_kvr = UserAccountScope(stripped);
+        let outcome = scope_without_kvr.verify_signature(&config).await;
+
+        let err = outcome.expect_err("missing KVR must fail verification");
+        assert_eq!(err.code().to_string(), "MYC00030");
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn rejects_tampered_kvr_anti_downgrade() -> Result<(), MappedErrors> {
+        let config = base_config_with_versions(
+            2,
+            vec![make_entry(1, "k-v1"), make_entry(2, "k-v2")],
+        );
+        let scope = issue_scope(config.clone()).await?;
+
+        let tampered: Vec<ConnectionStringBean> = scope
+            .get_scope_beans()
+            .into_iter()
+            .map(|bean| match bean {
+                ConnectionStringBean::KVR(_) => ConnectionStringBean::KVR(1),
+                other => other,
+            })
+            .collect();
+
+        let tampered_scope = UserAccountScope(tampered);
+        let outcome = tampered_scope.verify_signature(&config).await;
+
+        let err =
+            outcome.expect_err("downgrade attempt must fail verification");
+        assert_eq!(err.code().to_string(), "MYC00032");
+        Ok(())
+    }
+
+    /// Test new signed token
+    ///
+    /// Test the creation of a new signed token with the
+    /// AccountScopedConnectionStringMeta struct and test if the signature and
+    /// the further password check are correct
+    #[tokio::test]
+    async fn test_new_signed_token() {
+        let config = base_config();
 
         let account_scope = UserAccountScope::new(
             Uuid::new_v4(),

@@ -35,10 +35,11 @@ pub(super) async fn load_operations_from_downstream_services(
             continue;
         }
 
+        let host = service.host.choose_host()?;
         let absolute_path = format!(
             "{protocol}://{host}/{path}",
             protocol = service.protocol.to_string(),
-            host = service.host.choose_host(),
+            host = host,
             path = service
                 .openapi_path
                 .ok_or(execution_err("OpenAPI path is not set"))?

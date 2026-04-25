@@ -32,20 +32,28 @@ impl RemoteMessageWrite for RemoteMessageSendingRepository {
     ) -> Result<CreateResponseKind<Option<Uuid>>, MappedErrors> {
         let connection = self.client.get_smtp_client().as_ref().clone();
 
+        let from_addr = (match message.to_owned().from {
+            FromEmail::Email(email) => email.email(),
+            FromEmail::NamedEmail(named_email) => named_email,
+        })
+        .parse()
+        .map_err(|e| {
+            creation_err(format!("Invalid from email address: {e}"))
+        })?;
+
+        let to_addr = message.to_owned().to.email().parse().map_err(|e| {
+            creation_err(format!("Invalid to email address: {e}"))
+        })?;
+
         let email = LettreMessage::builder()
-            .from(
-                (match message.to_owned().from {
-                    FromEmail::Email(email) => email.email(),
-                    FromEmail::NamedEmail(named_email) => named_email,
-                })
-                .parse()
-                .unwrap(),
-            )
-            .to(message.to_owned().to.email().parse().unwrap())
+            .from(from_addr)
+            .to(to_addr)
             .subject(message.to_owned().subject)
             .header(ContentType::TEXT_HTML)
             .body(message.to_owned().body)
-            .unwrap();
+            .map_err(|e| {
+                creation_err(format!("Could not build email message: {e}"))
+            })?;
 
         match connection.send(&email) {
             Ok(_) => Ok(CreateResponseKind::Created(None)),
@@ -53,5 +61,34 @@ impl RemoteMessageWrite for RemoteMessageSendingRepository {
                 creation_err(format!("Could not send email: {err}")).as_error()
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use mycelium_base::utils::errors::creation_err;
+
+    #[test]
+    fn test_malformed_from_email_parse_returns_err() {
+        let result: Result<lettre::Address, _> = "not@@an-email".parse();
+        assert!(result.is_err());
+        let mapped = result
+            .map_err(|e| creation_err(format!("Invalid from email: {e}")));
+        assert!(mapped.is_err());
+    }
+
+    #[test]
+    fn test_malformed_to_email_parse_returns_err() {
+        let result: Result<lettre::Address, _> = "also@@invalid".parse();
+        assert!(result.is_err());
+        let mapped =
+            result.map_err(|e| creation_err(format!("Invalid to email: {e}")));
+        assert!(mapped.is_err());
+    }
+
+    #[test]
+    fn test_valid_email_parse_returns_ok() {
+        let result: Result<lettre::Address, _> = "user@example.com".parse();
+        assert!(result.is_ok());
     }
 }

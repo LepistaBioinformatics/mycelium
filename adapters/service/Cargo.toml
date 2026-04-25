@@ -2,7 +2,7 @@
 name = "mycelium-service"
 description = "Provide smtp adapters to the mycelium project."
 
-version = "8.3.1-beta.5"
+version = "8.3.1-rc.1"
 
 edition.workspace = true
 authors.workspace = true
@@ -29,7 +29,9 @@ tracing.workspace = true
 # Mycelium packages
 # ------------------------------------------------------------------------------
 
+mycelium-config.workspace = true
 myc-core.workspace = true
+uuid.workspace = true
 mycelium-base.workspace = true
 
 

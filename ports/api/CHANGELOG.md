@@ -2,11 +2,46 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.1-rc.1] - 2026-04-15
+
+### 🚀 Features
+
+- Wip - implements the mcp server
+- *(auth)* Implement magic link passwordless login (M3 GT0–GT7)
+- *(tokens)* Add delete and revoke connection string use cases; refresh email templates
+
+### 🐛 Bug Fixes
+
+- Add support to connection-string on route requests from mcp to downstream services
+- Replace panics with MappedErrors propagation in notifier, settings, and service routing
+- *(config)* Allow gateway to start without downstream services configured
+- *(boot)* Skip downstream services in tools registry when none configured
+- *(auth)* Add audience validation to JWT decoding and expiration to token queries
+- *(rpc)* Allow unauthenticated and unregistered users to reach public dispatchers
+- *(auth)* Ensure new users are created as principal and persisted correctly
+
+### 🚜 Refactor
+
+- *(arch)* Move display URL construction out of use-case into port layer
+
+### 📚 Documentation
+
+- Track changelog for version v8.3.1-rc.1
+
+### ⚙️ Miscellaneous Tasks
+
+- Apply cargo fmt and update sql default db names
+- Release version 8.3.1-rc.1
+
 ## [8.3.1-beta.5] - 2026-02-08
 
 ### 🐛 Bug Fixes
 
 - Solve vulnerable dependencies of time crate and reqwest
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-beta.5
 
 ## [8.3.1-beta.4] - 2026-02-05
 

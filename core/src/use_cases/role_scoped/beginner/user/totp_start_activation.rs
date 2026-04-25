@@ -6,8 +6,10 @@ use crate::{
             user::{MultiFactorAuthentication, Totp},
         },
         entities::{
-            LocalMessageWrite, TenantFetching, UserFetching, UserUpdating,
+            EncryptionKeyFetching, LocalMessageWrite, TenantFetching,
+            UserFetching, UserUpdating,
         },
+        utils::{build_aad, AAD_FIELD_TOTP_SECRET},
     },
     models::AccountLifeCycle,
     settings::DEFAULT_TOTP_DOMAIN,
@@ -21,16 +23,19 @@ use mycelium_base::{
 use rand::Rng;
 use totp_rs::{Algorithm, Secret, TOTP};
 use tracing::error;
+use uuid::Uuid;
 
 #[tracing::instrument(name = "totp_start_activation", skip_all)]
 pub async fn totp_start_activation(
     email: Email,
     with_qr_code: Option<bool>,
+    tenant_id: Option<Uuid>,
     life_cycle_settings: AccountLifeCycle,
     user_fetching_repo: Box<&dyn UserFetching>,
     user_updating_repo: Box<&dyn UserUpdating>,
     message_sending_repo: Box<&dyn LocalMessageWrite>,
     tenant_fetching_repo: Box<&dyn TenantFetching>,
+    encryption_key_fetching_repo: Box<&dyn EncryptionKeyFetching>,
 ) -> Result<(Option<String>, Option<String>), MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Fetch user from email
@@ -63,6 +68,17 @@ pub async fn totp_start_activation(
             .as_error();
         }
     }
+
+    // ? -----------------------------------------------------------------------
+    // ? Fetch the tenant DEK
+    // ? -----------------------------------------------------------------------
+
+    let kek = life_cycle_settings.derive_kek_bytes().await?;
+    let dek = encryption_key_fetching_repo
+        .get_or_provision_dek(tenant_id, &kek)
+        .await?;
+
+    let aad: Vec<u8> = build_aad(tenant_id, AAD_FIELD_TOTP_SECRET);
 
     // ? -----------------------------------------------------------------------
     // ? Build totp configs
@@ -105,8 +121,7 @@ pub async fn totp_start_activation(
         issuer: issuer.to_owned(),
         secret: Some(otp_base32),
     }
-    .encrypt_me(life_cycle_settings.to_owned())
-    .await?;
+    .encrypt_me(&dek, &aad)?;
 
     user.with_mfa(MultiFactorAuthentication {
         totp: totp.to_owned(),
@@ -150,7 +165,6 @@ pub async fn totp_start_activation(
             Ok(qr_code) => qr_code,
             Err(err) => {
                 error!("Error during TOTP activation: {err}");
-
                 "Error during TOTP activation".to_string()
             }
         };
@@ -161,7 +175,10 @@ pub async fn totp_start_activation(
     };
 
     Ok((
-        Some(totp.build_auth_url(email, life_cycle_settings).await?),
+        Some(
+            totp.build_auth_url(email, &dek, &life_cycle_settings, &aad)
+                .await?,
+        ),
         qr_code,
     ))
 }

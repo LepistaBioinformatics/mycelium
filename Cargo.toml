@@ -45,18 +45,22 @@ env_logger = "0.10"
 futures = "0.3"
 futures-util = "0.3"
 hex = "0.4.3"
+hmac = "0.12"
+sha2 = "0.10"
+secrecy = "0.8"
+subtle = "2"
 http = "1.3"
 jsonwebtoken = { version = "10", features = ["aws_lc_rs"] }
 jwt = "0.16.0"
 lazy_static = "1.4"
 lettre = "0.11"
-oauth2 = "4.4"
+# Use native-tls to avoid rustls-webpki 0.101.x (RUSTSEC-2026-0098/0099).
+oauth2 = { version = "4.4", default-features = false, features = ["reqwest", "native-tls"] }
 openssl = ">=0.10.70"
 opentelemetry = { version = "0.31", features = ["trace", "metrics", "logs"] }
 opentelemetry_sdk = { version = "0.31", features = ["rt-tokio"] }
 opentelemetry-otlp = { version = "0.31", features = [
     "reqwest-client",
-    "reqwest-rustls",
     "http-proto",
     "tls",
     "grpc-tonic",
@@ -109,17 +113,17 @@ zstd = "0.13"
 # Mycelium packages
 # ------------------------------------------------------------------------------
 
-myc-core = { version = "8.3.1-beta.5", path = "core" }
-mycelium-base = { version = "8.3.1-beta.5", path = "lib/base" }
-mycelium-config = { version = "8.3.1-beta.5", path = "lib/config" }
-mycelium-openapi = { version = "8.3.1-beta.5", path = "lib/openapi" }
-mycelium-http-tools = { version = "8.3.1-beta.5", path = "lib/http_tools" }
-mycelium-memory-db = { version = "8.3.1-beta.5", path = "adapters/mem_db" }
-mycelium-service = { version = "8.3.1-beta.5", path = "adapters/service" }
-mycelium-diesel = { version = "8.3.1-beta.5", path = "adapters/diesel" }
-mycelium-notifier = { version = "8.3.1-beta.5", path = "adapters/notifier" }
-mycelium-adapters-shared-lib = { version = "8.3.1-beta.5", path = "adapters/shared" }
-mycelium-key-value = { version = "8.3.1-beta.5", path = "adapters/kv_db" }
+myc-core = { version = "8.3.1-rc.1", path = "core" }
+mycelium-base = { version = "8.3.1-rc.1", path = "lib/base" }
+mycelium-config = { version = "8.3.1-rc.1", path = "lib/config" }
+mycelium-openapi = { version = "8.3.1-rc.1", path = "lib/openapi" }
+mycelium-http-tools = { version = "8.3.1-rc.1", path = "lib/http_tools" }
+mycelium-memory-db = { version = "8.3.1-rc.1", path = "adapters/mem_db" }
+mycelium-service = { version = "8.3.1-rc.1", path = "adapters/service" }
+mycelium-diesel = { version = "8.3.1-rc.1", path = "adapters/diesel" }
+mycelium-notifier = { version = "8.3.1-rc.1", path = "adapters/notifier" }
+mycelium-adapters-shared-lib = { version = "8.3.1-rc.1", path = "adapters/shared" }
+mycelium-key-value = { version = "8.3.1-rc.1", path = "adapters/kv_db" }
 
 #
 # RUSTSEC-2026-0007: force bytes >= 1.11.1 (Integer overflow in
@@ -138,6 +142,18 @@ time = "0.3.47"
 # - https://github.com/LepistaBioinformatics/mycelium/security/dependabot/7
 #
 zip = "2.4.2"
+#
+# RUSTSEC-2026-0044 / RUSTSEC-2026-0048: force aws-lc-sys >= 0.39.0
+# (X.509 Name Constraints Bypass and CRL scope check logic error).
+# Transitive via aws-lc-rs → jsonwebtoken.
+#
+aws-lc-sys = "0.39.0"
+#
+# RUSTSEC-2026-0104: force rustls-webpki >= 0.103.13 (Reachable panic in
+# certificate revocation list parsing). Transitive via rustls → tokio-rustls
+# → tonic → opentelemetry-otlp.
+#
+rustls-webpki = "0.103.13"
 
 [workspace.metadata.release]
 

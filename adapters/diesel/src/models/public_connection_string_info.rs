@@ -8,9 +8,9 @@ use serde_json::Value as JsonValue;
 pub struct PublicConnectionStringInfoModel {
     #[diesel(sql_type = Integer, column_name = "id")]
     pub id: i32,
-    #[diesel(sql_type = Nullable<Jsonb>, column_name = "innerId")]
+    #[diesel(sql_type = Nullable<Jsonb>, column_name = "innerid")]
     pub inner_id: Option<JsonValue>,
-    #[diesel(sql_type = Nullable<Jsonb>, column_name = "accountId")]
+    #[diesel(sql_type = Nullable<Jsonb>, column_name = "accountid")]
     pub account_id: Option<JsonValue>,
     #[diesel(sql_type = Nullable<Jsonb>, column_name = "email")]
     pub email: Option<JsonValue>,
@@ -18,7 +18,7 @@ pub struct PublicConnectionStringInfoModel {
     pub name: Option<JsonValue>,
     #[diesel(sql_type = Timestamptz, column_name = "expiration")]
     pub expiration: NaiveDateTime,
-    #[diesel(sql_type = Nullable<Jsonb>, column_name = "createdAt")]
+    #[diesel(sql_type = Nullable<Jsonb>, column_name = "createdat")]
     pub created_at: Option<JsonValue>,
     #[diesel(sql_type = Nullable<Jsonb>, column_name = "scope")]
     pub scope: Option<JsonValue>,

@@ -1,6 +1,7 @@
 mod callback_engines;
 mod dispatchers;
 mod dtos;
+mod mcp;
 mod middleware;
 mod models;
 mod modifiers;
@@ -10,7 +11,7 @@ mod otel;
 mod rest;
 mod router;
 mod rpc;
-mod settings;
+pub(crate) mod settings;
 
 use crate::openapi_processor::initialize_tools_registry;
 
@@ -82,6 +83,7 @@ use rest::{
     service::tools_endpoints as service_tools_endpoints,
     shared::insert_role_header,
     staff::account_endpoints as staff_account_endpoints,
+    telegram::configure as configure_telegram_endpoints,
 };
 use router::route_request;
 use settings::{ADMIN_API_SCOPE, TOOLS_API_SCOPE};
@@ -519,6 +521,22 @@ pub async fn main() -> std::io::Result<()> {
             // Configure admin routes
             //
             .service(admin_scope)
+            //
+            // Configure MCP server
+            //
+            // MCP (Model Context Protocol) exposes downstream service
+            // APIs as AI-agent-invocable tools via JSON-RPC 2.0.
+            // tools/call uses HTTP loopback through the gateway router
+            // so auth, RBAC, and secret injection are fully reused.
+            //
+            .service(web::scope("/mcp").configure(mcp::endpoints::configure))
+            //
+            // Telegram auth endpoints (public — no Mycelium profile required)
+            //
+            .service(
+                web::scope("/auth/telegram")
+                    .configure(configure_telegram_endpoints),
+            )
             //
             // Configure gateway routes
             //

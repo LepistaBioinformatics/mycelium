@@ -130,6 +130,20 @@ pub struct CreateConnectionStringParams {
     pub roles: Option<Vec<RoleParam>>,
 }
 
+#[derive(Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct RevokeConnectionStringParams {
+    #[schemars(description = "Token ID to revoke (set expiration to now)")]
+    pub token_id: u32,
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct DeleteConnectionStringParams {
+    #[schemars(description = "Token ID to permanently delete")]
+    pub token_id: u32,
+}
+
 // ---------------------------------------------------------------------------
 // Users (create default user, token activation, password reset, TOTP)
 // ---------------------------------------------------------------------------

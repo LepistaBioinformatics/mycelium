@@ -9,9 +9,11 @@ use super::super::{
         CheckTokenAndActivateUserParams, CheckTokenAndResetPasswordParams,
         CreateAccountMetaParams, CreateConnectionStringParams,
         CreateDefaultAccountParams, CreateDefaultUserParams,
-        DeleteAccountMetaParams, DeleteMyAccountParams, FetchMyProfileParams,
-        FetchTenantPublicInfoParams, StartPasswordRedefinitionParams,
-        TotpCheckTokenParams, TotpDisableParams, TotpFinishActivationParams,
+        DeleteAccountMetaParams, DeleteConnectionStringParams,
+        DeleteMyAccountParams, FetchMyProfileParams,
+        FetchTenantPublicInfoParams, RevokeConnectionStringParams,
+        StartPasswordRedefinitionParams, TotpCheckTokenParams,
+        TotpDisableParams, TotpFinishActivationParams,
         TotpStartActivationParams, UpdateAccountMetaParams,
         UpdateOwnAccountNameParams,
     },
@@ -48,7 +50,10 @@ use myc_core::{
         guest_user::accept_invitation,
         meta::{create_account_meta, delete_account_meta, update_account_meta},
         tenant::fetch_tenant_public_info,
-        token::{create_connection_string, list_my_connection_strings},
+        token::{
+            create_connection_string, delete_connection_string,
+            list_my_connection_strings, revoke_connection_string,
+        },
         user::{
             check_email_password_validity, check_token_and_activate_user,
             check_token_and_reset_password, create_default_user,
@@ -59,6 +64,7 @@ use myc_core::{
 };
 use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::responses::GatewayError;
+use myc_http_tools::settings::MYCELIUM_PROVIDER_KEY;
 use shaku::HasComponent;
 use std::str::FromStr;
 use tracing::warn;
@@ -102,7 +108,7 @@ pub async fn dispatch_beginners(
                     }
                 }
             } else {
-                return Err(invalid_params("Invalid provider"));
+                MYCELIUM_PROVIDER_KEY.to_string()
             };
             let p: CreateDefaultAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
@@ -353,6 +359,32 @@ pub async fn dispatch_beginners(
             .map_err(mapped_errors_to_jsonrpc_error)?;
             fetch_many_response_kind_to_result(result)
         }
+        method_names::BEGINNERS_TOKENS_REVOKE => {
+            let p: RevokeConnectionStringParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let result = revoke_connection_string(
+                profile.to_profile(),
+                p.token_id,
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            delete_response_kind_to_result(result)
+        }
+        method_names::BEGINNERS_TOKENS_DELETE => {
+            let p: DeleteConnectionStringParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let result = delete_connection_string(
+                profile.to_profile(),
+                p.token_id,
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            delete_response_kind_to_result(result)
+        }
         method_names::BEGINNERS_USERS => {
             let req =
                 req.ok_or_else(|| invalid_params("Request context required"))?;
@@ -508,7 +540,9 @@ pub async fn dispatch_beginners(
             let (totp_url, totp_secret) = totp_start_activation(
                 email,
                 p.qr_code,
+                None,
                 life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
@@ -538,7 +572,9 @@ pub async fn dispatch_beginners(
             let _ = totp_finish_activation(
                 email,
                 p.token,
+                None,
                 life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
@@ -565,7 +601,9 @@ pub async fn dispatch_beginners(
             let user = totp_check_token(
                 email,
                 p.token,
+                None,
                 life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
             .await
@@ -588,7 +626,9 @@ pub async fn dispatch_beginners(
             let _ = totp_disable(
                 email,
                 p.token,
+                None,
                 life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),

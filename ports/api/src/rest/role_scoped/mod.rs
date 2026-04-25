@@ -51,6 +51,7 @@ use tenant_owner::{
     account_endpoints as tenant_owner_account_endpoints,
     meta_endpoints as tenant_owner_meta_endpoints,
     owner_endpoints as tenant_owner_owner_endpoints,
+    telegram_config_endpoints as tenant_owner_telegram_config_endpoints,
     tenant_endpoints as tenant_owner_tenant_endpoints,
 };
 use users_manager::account_endpoints as user_manager_account_endpoints;
@@ -328,6 +329,9 @@ pub(crate) fn configure(config: &mut web::ServiceConfig) {
                     web::scope(UrlGroup::Owners.str())
                         .configure(tenant_owner_owner_endpoints::configure),
                 )
+                .service(web::scope("/telegram/config").configure(
+                    tenant_owner_telegram_config_endpoints::configure,
+                ))
                 .service(
                     web::scope(UrlGroup::Tenants.str())
                         .configure(tenant_owner_tenant_endpoints::configure),

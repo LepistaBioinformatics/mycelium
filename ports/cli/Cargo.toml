@@ -2,7 +2,7 @@
 name = "mycelium-cli"
 description = "Provide CLI ports to the mycelium project."
 
-version = "8.3.1-beta.5"
+version = "8.3.1-rc.1"
 
 edition.workspace = true
 authors.workspace = true
@@ -26,6 +26,7 @@ tokio.workspace = true
 tracing.workspace = true
 
 clap = { version = "4", features = ["derive"] }
+uuid.workspace = true
 rpassword = "7.3.0"
 
 # ------------------------------------------------------------------------------

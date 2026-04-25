@@ -31,8 +31,7 @@ impl RoutesRead for RoutesReadMemDbRepo {
         let db = self.db_config.get_services_db();
 
         if db.len() == 0 {
-            return fetching_err("Routes already not initialized.".to_string())
-                .as_error();
+            return Ok(FetchResponseKind::NotFound(None));
         }
 
         let (service_name, rest) = extract_path_parts(path);
@@ -105,8 +104,7 @@ impl RoutesRead for RoutesReadMemDbRepo {
         let db = self.db_config.get_services_db();
 
         if db.len() == 0 {
-            return fetching_err("Routes already not initialized.".to_string())
-                .as_error();
+            return Ok(FetchManyResponseKind::NotFound);
         }
 
         let page_size = page_size.unwrap_or(10) as i64;
@@ -186,8 +184,7 @@ impl RoutesRead for RoutesReadMemDbRepo {
         let db = self.db_config.get_services_db();
 
         if db.len() == 0 {
-            return fetching_err("Routes already not initialized.".to_string())
-                .as_error();
+            return Ok(FetchManyResponseKind::NotFound);
         }
 
         let response = db
