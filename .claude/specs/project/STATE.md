@@ -1,11 +1,41 @@
 # State
 
-**Last Updated:** 2026-04-20
-**Current Work:** Alternative IdPs documentation complete — `10-alternative-idps.md` with real-world journeys, JWT vs connection-string disambiguation
+**Last Updated:** 2026-04-25
+**Current Work:** HMAC Key Rotation **shipped** — PR #151 merged into `develop` (gateway HEAD `aae89c96`). Monorepo pointer `e955f50` on `main`.
 
 ---
 
 ## Recent Decisions (Last 60 days)
+
+### AD-004: HMAC signing key decoupled from `token_secret`; KVR-versioned, no legacy fallback (2026-04-25)
+
+**Decision:** Connection-string HMAC signing now uses a dedicated `hmac_secret` set keyed by
+explicit version (`hmacPrimaryVersion` + `[[hmacSecrets]]`). The `KVR(u32)` bean is part of
+the HMAC input (anti-downgrade). Tokens missing or carrying an unknown KVR are rejected
+(`MYC00030` / `MYC00031`); there is **no implicit "missing KVR = v1"** fallback.
+
+**Reason:** `token_secret` previously played two roles — KEK source (envelope encryption) and
+HMAC signing key for connection strings. Rotating it atomically revoked every live connection
+string, which is unacceptable when operators want to rotate the KEK or the signing key
+independently. Versioning the HMAC key set makes rotation a routine operation: add a new
+version, bump primary, wait for TTL drain, retire the old version.
+
+**Trade-off:** **BREAKING.** Etapa 3 deploy permanently invalidates connection strings issued
+under the old single-secret scheme — every active user must re-authenticate on next request.
+The deployment warning is reproduced in three places: `settings/config.example.toml`, the
+operator runbook (`docs/book/src/22-hmac-key-rotation.md`), and the changelog entry. Operator
+must plan the rollout during a window where full re-auth is tolerable.
+
+**Impact:** New CLI command `myc-cli rotate-kek` lets operators rotate the KEK without
+touching connection strings (re-wraps every DEK in place; idempotent). Verification runs
+**before** the DB lookup in `fetch_connection_string_from_request` middleware via
+`Mac::verify_slice` (constant-time). New error codes: `MYC00030` (MissingKeyVersion),
+`MYC00031` (UnknownKeyVersion), `MYC00032` (SignatureMismatch).
+
+**PR:** #151 merged 2026-04-25 (4 commits: `d4e21e94`, `2a6ebfbf`, `b2d4685f`, `39151012`).
+Spec at monorepo `.claude/specs/features/hmac-key-rotation/`.
+
+---
 
 ### AD-001: Use `OnceLock<Result<Tera, String>>` instead of `lazy_static! + panic!` (2026-04-06)
 
@@ -168,10 +198,31 @@ include them in scope.
 | --- | --------------------------------------- | ---------- | ------------ | ------- |
 | 001 | fix-notifier-panics (medium)            | 2026-04-06 | `b41b381c`   | ✅ Done |
 | 002 | RFC 7239 Forwarded header compliance    | 2026-04-18 | `6faa212f`   | ✅ Done |
+| 003 | RUSTSEC-2026-0104 rustls-webpki pin     | 2026-04-25 | `39151012`   | ✅ Done |
 
 ---
 
 ## Current Focus
+
+**HMAC Key Rotation — shipped** (2026-04-25). Spec `.claude/specs/features/hmac-key-rotation/`
+at the monorepo root. PR #151 merged into `develop` (gateway HEAD `aae89c96`); monorepo
+pointer `e955f50` on `main`.
+
+| Etapa | Scope | Status | Commit |
+|---|---|---|---|
+| E1 | Decouple `hmac_secret` from `token_secret` (additive, fallback warn) | ✅ Done | `d4e21e94` |
+| E2 | `myc-cli rotate-kek` (re-wrap DEKs, no token invalidation) | ✅ Done | `2a6ebfbf` |
+| E3 | KVR versioned signing — **BREAKING** (no fallback) | ✅ Done | `b2d4685f` |
+| Hotfix | RUSTSEC-2026-0104 pin (`rustls-webpki >= 0.103.13`) | ✅ Done | `39151012` |
+
+**Open follow-ups:**
+- **E2-T4** (Postgres integration test for `rotate-kek`) — deferred to roadmap M2 "Database
+  Integration Tests" (no Postgres test scaffold in repo yet). Migrator covered by helper-layer
+  unit tests.
+- **Operator deployment of Etapa 3** — separate coordination required. Etapa 3 invalidates
+  every connection string issued before deploy; plan the rollout during a re-auth-tolerant window.
+
+---
 
 **Telegram IdP — implementation complete, conceptual fix applied** — branch `feat/messaging-platform-idp/telegram`.
 
