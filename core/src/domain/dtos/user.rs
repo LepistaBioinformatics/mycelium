@@ -523,7 +523,10 @@ check if user is internal or not. The user provider is None.",
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{domain::utils::generate_dek, models::AccountLifeCycle};
+    use crate::{
+        domain::utils::generate_dek,
+        models::{AccountLifeCycle, HmacSecretEntry, HmacSecretSet},
+    };
     use myc_config::secret_resolver::SecretResolver;
 
     fn make_config() -> AccountLifeCycle {
@@ -539,6 +542,11 @@ mod tests {
             token_secret: SecretResolver::Value(
                 "ab4c0550-310b-4218-9edf-58edc87979b9".to_string(),
             ),
+            hmac_primary_version: 1,
+            hmac_secrets: HmacSecretSet::new(vec![HmacSecretEntry {
+                version: 1,
+                secret: SecretResolver::Value("test-hmac".to_string()),
+            }]),
         }
     }
 

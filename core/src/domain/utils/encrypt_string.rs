@@ -157,7 +157,10 @@ async fn build_aes_key(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::utils::envelope::{encrypt_with_dek, generate_dek};
+    use crate::{
+        domain::utils::envelope::{encrypt_with_dek, generate_dek},
+        models::{HmacSecretEntry, HmacSecretSet},
+    };
     use myc_config::secret_resolver::SecretResolver;
 
     fn make_config() -> AccountLifeCycle {
@@ -177,6 +180,11 @@ mod tests {
             token_secret: SecretResolver::Value(
                 "550e8400-e29b-41d4-a716-446655440000".to_string(),
             ),
+            hmac_primary_version: 1,
+            hmac_secrets: HmacSecretSet::new(vec![HmacSecretEntry {
+                version: 1,
+                secret: SecretResolver::Value("test-hmac".to_string()),
+            }]),
         }
     }
 

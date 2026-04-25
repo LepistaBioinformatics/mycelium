@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### 💥 BREAKING
+
+- *(hmac-rotation)* **Connection-string signing is now versioned (KVR).**
+  Every newly-issued connection string carries a `kvr` bean and is signed
+  with `hmacSecrets[hmacPrimaryVersion]`. Verification rejects tokens
+  missing `kvr` (MYC00030), citing an unconfigured version (MYC00031),
+  or failing HMAC comparison (MYC00032).
+
+  **Deploying this release invalidates every connection string issued
+  before the deploy.** Tokens issued pre-KVR carry no `kvr` bean and are
+  rejected with MYC00030. Users must re-authenticate. Pick a maintenance
+  window before rolling out.
+
+  The gateway **refuses to start** if `hmacPrimaryVersion` is not listed
+  in `hmacSecrets` or the set is empty — enforced at config load.
+
+  See [docs/book/src/22-hmac-key-rotation.md](../docs/book/src/22-hmac-key-rotation.md)
+  for the rotation procedure, anti-downgrade guarantee, and native error
+  code reference.
+
+### 🚀 Features
+
+- *(hmac-rotation)* Add `HmacSecretSet`/`HmacSecretEntry` models with
+  versioned lookup and startup validation.
+- *(hmac-rotation)* Wire HMAC verification into the connection-string
+  middleware so forged tokens are rejected before any DB round-trip.
+
+### 🐛 Bug Fixes
+
+### 🚜 Refactor
+
 ## [8.3.1-rc.1] - 2026-04-15
 
 ### 🚀 Features

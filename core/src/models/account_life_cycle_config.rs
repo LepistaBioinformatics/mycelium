@@ -1,4 +1,4 @@
-use crate::domain::utils::derive_key_from_uuid;
+use crate::{domain::utils::derive_key_from_uuid, models::HmacSecretSet};
 
 use myc_config::secret_resolver::SecretResolver;
 use mycelium_base::utils::errors::{dto_err, MappedErrors};
@@ -44,6 +44,16 @@ pub struct AccountLifeCycle {
     ///
     /// Toke secret is used to sign tokens
     pub(crate) token_secret: SecretResolver<String>,
+
+    /// Version of the HMAC key used to sign every newly-issued
+    /// connection string. Must be present in `hmac_secrets` — enforced by
+    /// `validate_hmac_config` at startup.
+    pub(crate) hmac_primary_version: u32,
+
+    /// Versioned set of HMAC keys. All entries are available for
+    /// verification; only the entry matching `hmac_primary_version` is
+    /// used for signing.
+    pub(crate) hmac_secrets: HmacSecretSet,
 }
 
 impl AccountLifeCycle {
@@ -79,7 +89,11 @@ impl AccountLifeCycle {
     /// - `core/src/domain/dtos/user.rs` (`Totp::decrypt_me`) — v1 legacy
     ///   decrypt path.
     /// - `core/src/domain/dtos/token/connection_string/user_account_connection_string.rs`
-    ///   — HMAC signing (no migration path; signatures get invalidated).
+    ///   — HMAC signing consumes `hmac_secrets[hmac_primary_version]`
+    ///   (no fallback to `token_secret`). Rotating `token_secret`
+    ///   therefore no longer invalidates connection strings; HMAC key
+    ///   rotation is a separate, versioned procedure documented in
+    ///   `docs/book/src/22-hmac-key-rotation.md`.
     ///
     /// # KEK rotation (not yet implemented — planned as `myc-cli rotate-kek`)
     ///
@@ -103,5 +117,60 @@ impl AccountLifeCycle {
             dto_err(format!("failed_to_parse_token_secret_as_uuid: {err}"))
         })?;
         Ok(derive_key_from_uuid(&key_uuid))
+    }
+
+    /// Return a clone of this config with `token_secret` replaced by the
+    /// supplied literal value.
+    ///
+    /// Used by `myc-cli rotate-kek` to construct the **old** KEK's
+    /// resolver from an operator-supplied env var while keeping the
+    /// **new** KEK's resolver in the normal config file. All other fields
+    /// are unchanged.
+    pub fn with_token_secret_override(&self, token_secret: String) -> Self {
+        let mut clone = self.clone();
+        clone.token_secret = SecretResolver::Value(token_secret);
+        clone
+    }
+
+    /// Return the HMAC signing-key bytes for a specific version.
+    ///
+    /// Used by `verify_signature` to locate the key matching the `KVR`
+    /// bean carried by the connection string — including tokens issued
+    /// under a previous primary that has not yet been retired.
+    #[tracing::instrument(name = "hmac_signing_key_for_version", skip_all)]
+    pub(crate) async fn hmac_signing_key_for_version(
+        &self,
+        version: u32,
+    ) -> Result<Vec<u8>, MappedErrors> {
+        let Some(entry) = self.hmac_secrets.lookup(version) else {
+            return dto_err(format!(
+                "hmac_key_version_not_configured: {version}",
+            ))
+            .as_error();
+        };
+
+        let secret = entry.secret.async_get_or_error().await?;
+        Ok(secret.into_bytes())
+    }
+
+    /// Return the current primary `(version, key_bytes)` used for
+    /// signing. `sign_token` consumes this so the KVR bean and the HMAC
+    /// key stay aligned.
+    #[tracing::instrument(name = "hmac_primary_signing_key", skip_all)]
+    pub(crate) async fn hmac_primary_signing_key(
+        &self,
+    ) -> Result<(u32, Vec<u8>), MappedErrors> {
+        let version = self.hmac_primary_version;
+        let key = self.hmac_signing_key_for_version(version).await?;
+        Ok((version, key))
+    }
+
+    /// Check that `hmac_primary_version` is present in `hmac_secrets` and
+    /// that the set is internally consistent.
+    ///
+    /// Invoked during config load; a failure aborts startup so the gateway
+    /// never runs without a reachable primary HMAC key.
+    pub fn validate_hmac_config(&self) -> Result<(), MappedErrors> {
+        self.hmac_secrets.validate(self.hmac_primary_version)
     }
 }

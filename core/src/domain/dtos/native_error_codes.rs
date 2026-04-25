@@ -222,6 +222,33 @@ pub enum NativeErrorCodes {
     /// is_native: true
     ///
     MYC00023,
+
+    ///
+    /// code: "MYC00030",
+    /// message: "Connection string is missing the HMAC key version (KVR).",
+    /// details: "Dispatched when a connection string parses but does not carry a KVR bean; the signature cannot be located without a key version.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00030,
+
+    ///
+    /// code: "MYC00031",
+    /// message: "Connection string references an unknown HMAC key version.",
+    /// details: "Dispatched when the KVR bean points to a version that is not listed in the configured HMAC key set (key retired or never provisioned).",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00031,
+
+    ///
+    /// code: "MYC00032",
+    /// message: "Connection string signature mismatch.",
+    /// details: "Dispatched when HMAC verification fails: the stored SIG does not match the recomputed signature under the version-selected HMAC key.",
+    /// is_internal: false,
+    /// is_native: true
+    ///
+    MYC00032,
 }
 
 impl NativeErrorCodes {
@@ -268,6 +295,9 @@ impl NativeErrorCodes {
             Self::MYC00021 => "MYC00021",
             Self::MYC00022 => "MYC00022",
             Self::MYC00023 => "MYC00023",
+            Self::MYC00030 => "MYC00030",
+            Self::MYC00031 => "MYC00031",
+            Self::MYC00032 => "MYC00032",
         }
     }
 
@@ -415,6 +445,24 @@ impl NativeErrorCodes {
                 "Totp Token invalid".to_string(),
                 true,
             )?.with_details("Indicates that the TOTP token is invalid.".to_string())),
+            Self::MYC00030 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                30,
+                "Connection string is missing the HMAC key version (KVR).".to_string(),
+                true,
+            )?.with_details("Dispatched when a connection string parses but does not carry a KVR bean; the signature cannot be located without a key version.".to_string())),
+            Self::MYC00031 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                31,
+                "Connection string references an unknown HMAC key version.".to_string(),
+                true,
+            )?.with_details("Dispatched when the KVR bean points to a version that is not listed in the configured HMAC key set (key retired or never provisioned).".to_string())),
+            Self::MYC00032 => Ok(ErrorCode::new_external_error(
+                "MYC".to_string(),
+                32,
+                "Connection string signature mismatch.".to_string(),
+                true,
+            )?.with_details("Dispatched when HMAC verification fails: the stored SIG does not match the recomputed signature under the version-selected HMAC key.".to_string())),
         }
     }
 

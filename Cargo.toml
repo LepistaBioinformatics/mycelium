@@ -148,6 +148,12 @@ zip = "2.4.2"
 # Transitive via aws-lc-rs → jsonwebtoken.
 #
 aws-lc-sys = "0.39.0"
+#
+# RUSTSEC-2026-0104: force rustls-webpki >= 0.103.13 (Reachable panic in
+# certificate revocation list parsing). Transitive via rustls → tokio-rustls
+# → tonic → opentelemetry-otlp.
+#
+rustls-webpki = "0.103.13"
 
 [workspace.metadata.release]
 

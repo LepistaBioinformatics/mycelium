@@ -97,14 +97,20 @@ source. Its bytes are also consumed directly by non-envelope code paths:
 | `encrypt_string::build_aes_key` (v1 legacy path) | KEK for ciphertexts written before Phase 1 | Stays readable only while `token_secret` is unchanged; migrate to v2 before rotating. |
 | `HttpSecret::decrypt_me` (v1 branch) | Indirect — routes through the legacy path | Same as above. |
 | `Totp::decrypt_me` (v1 branch) | Indirect — routes through the legacy path | Same as above. |
-| `UserAccountScope::sign_token` | HMAC-SHA512 key for connection-string signatures | **No re-signing path.** All currently-issued connection strings are invalidated on rotation — treat as revoked. |
+| `UserAccountScope::sign_token` | Independent — consumes `hmacSecrets[hmacPrimaryVersion]`, no longer routes through `token_secret` | Decoupled from KEK rotation. Rotate via the separate versioned procedure documented in [HMAC Key Rotation](./22-hmac-key-rotation.md). |
 
 Rotate `token_secret` only after:
 
 1. `migrate-dek --dry-run` reports zero `v1` fields remaining, **and**
-2. The operational impact of invalidating every live connection-string signature is understood and accepted.
+2. A `rotate-kek` pass (see the Envelope Encryption Migration Guide) has
+   re-wrapped every tenant's DEK under the new KEK. HMAC-protected
+   connection strings are **no longer tied to `token_secret`** — rotating
+   the HMAC key is a separate, versioned procedure (see
+   [HMAC Key Rotation](./22-hmac-key-rotation.md)).
 
 ---
 
 See [Envelope Encryption Migration Guide](./21-envelope-encryption-migration.md)
-for step-by-step operator instructions.
+for step-by-step operator instructions on KEK rotation.
+See [HMAC Key Rotation](./22-hmac-key-rotation.md) for the connection-string
+signing-key rotation procedure.

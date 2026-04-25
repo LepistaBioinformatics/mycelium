@@ -30,6 +30,12 @@ pub enum ConnectionStringBean {
 
     /// The endpoint URL
     URL(String),
+
+    /// The HMAC key version used to sign the token (Key Version for
+    /// Rotation). Present in every token issued at/after Etapa 3 of the
+    /// HMAC rotation rollout; required by `verify_signature` to locate
+    /// the right HMAC key for constant-time comparison.
+    KVR(u32),
 }
 
 impl ToString for ConnectionStringBean {
@@ -74,6 +80,9 @@ impl ToString for ConnectionStringBean {
             }
             ConnectionStringBean::URL(endpoint) => {
                 format!("url={}", endpoint)
+            }
+            ConnectionStringBean::KVR(version) => {
+                format!("kvr={}", version)
             }
         }
     }
@@ -151,6 +160,10 @@ impl TryFrom<String> for ConnectionStringBean {
                 Ok(ConnectionStringBean::RLS(roles))
             }
             "URL" | "url" => Ok(ConnectionStringBean::URL(value.to_string())),
+            "KVR" | "kvr" => {
+                let version = value.parse::<u32>().map_err(|_| ())?;
+                Ok(ConnectionStringBean::KVR(version))
+            }
             _ => Err(()),
         }
     }
@@ -256,5 +269,39 @@ mod tests {
             ConnectionStringBean::try_from(url_bean.to_string()).unwrap(),
             url_bean
         );
+    }
+
+    #[test]
+    fn test_kvr_to_string() {
+        assert_eq!(ConnectionStringBean::KVR(0).to_string(), "kvr=0");
+        assert_eq!(ConnectionStringBean::KVR(7).to_string(), "kvr=7");
+    }
+
+    #[test]
+    fn test_kvr_try_from() {
+        assert_eq!(
+            ConnectionStringBean::try_from(
+                ConnectionStringBean::KVR(7).to_string()
+            )
+            .unwrap(),
+            ConnectionStringBean::KVR(7),
+        );
+        assert_eq!(
+            ConnectionStringBean::try_from("KVR=42".to_string()).unwrap(),
+            ConnectionStringBean::KVR(42),
+        );
+        assert!(ConnectionStringBean::try_from("kvr=abc".to_string()).is_err());
+        assert!(ConnectionStringBean::try_from("kvr=-1".to_string()).is_err());
+    }
+
+    #[test]
+    fn test_kvr_serde_roundtrip() {
+        let bean = ConnectionStringBean::KVR(7);
+        let json = serde_json::to_string(&bean).unwrap();
+        assert_eq!(json, "{\"kvr\":7}");
+
+        let decoded: ConnectionStringBean =
+            serde_json::from_str(&json).unwrap();
+        assert_eq!(decoded, bean);
     }
 }

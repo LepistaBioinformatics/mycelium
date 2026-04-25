@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-04-21T18:19:19-03:00\n"
+"POT-Creation-Date: 2026-04-23T13:28:45-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -115,15 +115,19 @@ msgstr ""
 msgid "Envelope Encryption Migration Guide"
 msgstr ""
 
-#: src/SUMMARY.md:40 src/07-running-tests.md:1
+#: src/SUMMARY.md:40 src/22-hmac-key-rotation.md:1
+msgid "HMAC Key Rotation"
+msgstr ""
+
+#: src/SUMMARY.md:41 src/07-running-tests.md:1
 msgid "Running Tests"
 msgstr "Executando Testes"
 
-#: src/SUMMARY.md:41 src/08-release-process.md:1
+#: src/SUMMARY.md:42 src/08-release-process.md:1
 msgid "Release Process"
 msgstr "Processo de Lançamento"
 
-#: src/SUMMARY.md:42 src/09-log-cache-tests.md:1
+#: src/SUMMARY.md:43 src/09-log-cache-tests.md:1
 msgid "Log Tests for Cache and Identity Flow"
 msgstr "Testes de Log para Cache e Fluxo de Identidade"
 
@@ -5501,7 +5505,7 @@ msgstr ""
 "Downstream services and client SDKs can `switch` on `code` rather than "
 "parsing the `message` string."
 
-#: src/17-error-codes.md:27
+#: src/17-error-codes.md:27 src/22-hmac-key-rotation.md:113
 msgid "Native error codes"
 msgstr "Códigos de erro nativos"
 
@@ -6866,11 +6870,11 @@ msgstr ""
 msgid "Standard error codes:"
 msgstr "Códigos de erro padrão:"
 
-#: src/14-json-rpc.md:370
+#: src/14-json-rpc.md:370 src/22-hmac-key-rotation.md:115
 msgid "Code"
 msgstr ""
 
-#: src/14-json-rpc.md:370
+#: src/14-json-rpc.md:370 src/22-hmac-key-rotation.md:115
 msgid "Meaning"
 msgstr ""
 
@@ -7847,13 +7851,15 @@ msgid "`UserAccountScope::sign_token`"
 msgstr ""
 
 #: src/20-encryption-inventory.md:100
-msgid "HMAC-SHA512 key for connection-string signatures"
+msgid ""
+"Independent — consumes `hmacSecrets[hmacPrimaryVersion]`, no longer routes "
+"through `token_secret`"
 msgstr ""
 
 #: src/20-encryption-inventory.md:100
 msgid ""
-"**No re-signing path.** All currently-issued connection strings are "
-"invalidated on rotation — treat as revoked."
+"Decoupled from KEK rotation. Rotate via the separate versioned procedure "
+"documented in [HMAC Key Rotation](./22-hmac-key-rotation.md)."
 msgstr ""
 
 #: src/20-encryption-inventory.md:102
@@ -7866,14 +7872,19 @@ msgstr ""
 
 #: src/20-encryption-inventory.md:105
 msgid ""
-"The operational impact of invalidating every live connection-string "
-"signature is understood and accepted."
+"A `rotate-kek` pass (see the Envelope Encryption Migration Guide) has re-"
+"wrapped every tenant's DEK under the new KEK. HMAC-protected connection "
+"strings are **no longer tied to `token_secret`** — rotating the HMAC key is "
+"a separate, versioned procedure (see [HMAC Key Rotation](./22-hmac-key-"
+"rotation.md))."
 msgstr ""
 
-#: src/20-encryption-inventory.md:109
+#: src/20-encryption-inventory.md:113
 msgid ""
 "See [Envelope Encryption Migration Guide](./21-envelope-encryption-migration."
-"md) for step-by-step operator instructions."
+"md) for step-by-step operator instructions on KEK rotation. See [HMAC Key "
+"Rotation](./22-hmac-key-rotation.md) for the connection-string signing-key "
+"rotation procedure."
 msgstr ""
 
 #: src/21-envelope-encryption-migration.md:3
@@ -8125,9 +8136,365 @@ msgid ""
 msgstr ""
 
 #: src/21-envelope-encryption-migration.md:158
+msgid "KEK Rotation (`myc-cli kek rotate-kek`)"
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:160
+msgid ""
+"`rotate-kek` rewraps every tenant's Data Encryption Key (DEK) under a new "
+"Key Encryption Key (KEK) without touching any user-data ciphertext. Because "
+"the DEKs themselves are unchanged, existing `v2:`\\-prefixed ciphertexts "
+"stay readable after rotation."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:165
+#, fuzzy
+msgid "Precondition"
+msgstr "Configuração por tenant"
+
+#: src/21-envelope-encryption-migration.md:167
+msgid ""
+"Run `migrate-dek --dry-run` and confirm zero remaining `v1` rows. Any `v1` "
+"ciphertext encountered after a KEK rotation is unrecoverable: it is pinned "
+"to the old `token_secret` and not protected by a DEK at all."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:171
+msgid "Step-by-step"
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:173
+msgid ""
+"**Keep the old `token_secret` reachable.** Export it under the "
+"`MYC_OLD_TOKEN_SECRET` environment variable before invoking the CLI. It is "
+"used to unwrap each tenant's stored DEK."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:176
+msgid ""
+"**Set the new `token_secret`** in `settings/config.toml` (or the backing "
+"Vault secret). This is the KEK that every rewrapped DEK will be bound to."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:179
+msgid "**Dry-run first:**"
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:181
+#: src/21-envelope-encryption-migration.md:189
+msgid "<old-uuid>"
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:184
+msgid ""
+"Inspect the counters. `Migrated` should equal the number of tenants on "
+"`kek_version == 1` with an `encrypted_dek` set; `Skipped` should be zero "
+"unless some rows are intentionally on a different generation."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:187
+msgid "**Run live:**"
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:192
+msgid ""
+"**Verify** that the gateway starts cleanly under the new `token_secret` and "
+"that authenticated traffic still reaches tenant-scoped features (Telegram "
+"bot tokens, TOTP verification, webhook secrets)."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:195
+msgid ""
+"**Discard** the old `token_secret` from Vault / env only after the live run "
+"is confirmed."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:198
+#, fuzzy
+msgid "Connection strings stay valid"
+msgstr "**Connection string emitida**"
+
+#: src/21-envelope-encryption-migration.md:200
+msgid ""
+"`rotate-kek` does **not** touch the HMAC key used to sign user-facing "
+"connection strings — see the dedicated HMAC Key Rotation guide (Etapa 3) for "
+"that procedure. Issued connection strings remain usable across a KEK "
+"rotation as long as `hmac_secret` (or the Etapa-1 fallback to the previous "
+"`token_secret` value) is kept available."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:206
+#, fuzzy
+msgid "Idempotence and rollback"
+msgstr "Callbacks de Resposta"
+
+#: src/21-envelope-encryption-migration.md:208
+msgid ""
+"Re-running `rotate-kek` with the same `--from-version` / `--to-version` "
+"reports the already-rotated rows as `Already done` and is safe to run "
+"repeatedly."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:212
+msgid ""
+"The rewrap itself is **irreversible per row** — once a tenant's "
+"`encrypted_dek` is persisted under the new KEK, unwrapping requires the new "
+"`token_secret`. Keep both old and new secrets resolvable (Vault versioning, "
+"dual env vars, or a short overlap in config) until you have confirmed the "
+"rotation end-to-end."
+msgstr ""
+
+#: src/21-envelope-encryption-migration.md:220
 msgid ""
 "See [Encryption Inventory](./20-encryption-inventory.md) for the complete "
 "field classification table."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:3
+msgid ""
+"`UserAccountScope` connection strings are signed with an HMAC key. Starting "
+"from the deploy that introduces this document, the gateway manages signing "
+"keys as a **versioned set** and embeds the key version inside every token "
+"(the `kvr` bean). Verification picks the key by version, so multiple keys "
+"can coexist during rotation."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:9
+msgid "**!!!!!! DEPLOYMENT WARNING !!!!!!**"
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:11
+msgid ""
+"Deploying the HMAC key-rotation release **invalidates every connection "
+"string issued before the deploy**. Pre-existing tokens carry no `kvr` bean; "
+"verification fails with `MYC00030` (MissingKeyVersion) and users must re-"
+"authenticate. Plan a maintenance window."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:16
+msgid ""
+"The gateway **refuses to start** when `hmacPrimaryVersion` is absent from "
+"`hmacSecrets` or when the set is empty. This is enforced at config load."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:22
+msgid "Why versioned keys"
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:24
+msgid ""
+"Prior to this release, the HMAC signing key was tied to the global "
+"`token_secret`. Rotating `token_secret` for any reason (KEK rotation, "
+"compliance refresh) invalidated every connection string in circulation "
+"because there was no way to verify tokens under the previous key while the "
+"new one was active."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:30
+msgid "A versioned key set decouples rotation from invalidation:"
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:32
+msgid "New tokens are signed with the **primary** version."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:33
+msgid ""
+"Verification looks up the key by the `kvr` bean, so tokens signed with a "
+"still-listed previous version stay valid until the operator removes the "
+"entry."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:36
+msgid ""
+"Tampering with the `kvr` bean does not help an attacker: the HMAC is "
+"computed over the `kvr` value (anti-downgrade), so changing it after "
+"issuance yields `MYC00032` (SignatureMismatch)."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:42
+#, fuzzy
+msgid "Configuration reference"
+msgstr "Configuração"
+
+#: src/22-hmac-key-rotation.md:44
+msgid ""
+"```toml\n"
+"[core.accountLifeCycle]\n"
+"# …other fields…\n"
+"tokenSecret = { vault = { path = \"myc/core/accountLifeCycle\", key = "
+"\"tokenSecret\" } }\n"
+"\n"
+"# Version of the HMAC key used to sign new connection strings.\n"
+"# MUST match a `version` listed in `hmacSecrets` below.\n"
+"hmacPrimaryVersion = 2\n"
+"\n"
+"[[core.accountLifeCycle.hmacSecrets]]\n"
+"version = 1\n"
+"secret = { vault = { path = \"myc/core/accountLifeCycle\", key = "
+"\"hmacSecretV1\" } }\n"
+"\n"
+"[[core.accountLifeCycle.hmacSecrets]]\n"
+"version = 2\n"
+"secret = { vault = { path = \"myc/core/accountLifeCycle\", key = "
+"\"hmacSecretV2\" } }\n"
+"```"
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:62
+msgid ""
+"Validation rules (checked at startup, gateway refuses to boot on failure):"
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:65
+msgid "`hmacSecrets` must be non-empty."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:66
+msgid "No two entries may share the same `version`."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:67
+msgid "`hmacPrimaryVersion` must equal one of the `version` values."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:69
+msgid ""
+"Key material is resolved through `SecretResolver`, so Vault, env vars and "
+"literal values are all supported — follow the same operational practices you "
+"already use for `tokenSecret`."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:75
+msgid "Rotation procedure"
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:77
+msgid ""
+"The goal is to introduce a new signing key, let the fleet pick it up, switch "
+"signing to it, let old tokens age out, then retire the old key."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:80
+msgid "**Provision the new secret** (e.g. as `hmacSecretV2` in Vault)."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:81
+msgid ""
+"**Add a new `[[hmacSecrets]]` entry** to every config replica. Keep "
+"`hmacPrimaryVersion` pointing at the **old** version for now; the gateway "
+"will start verifying new tokens carrying either version. Roll out the config."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:85
+msgid ""
+"**Bump `hmacPrimaryVersion`** to the new version once every replica has the "
+"new entry loaded. From this point, freshly-issued tokens carry `kvr=<new>`."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:88
+msgid ""
+"**Wait for the connection-string TTL** (`tokenExpiration`) so that every "
+"token issued under the old version has naturally expired."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:90
+msgid ""
+"**Remove the old `[[hmacSecrets]]` entry** and the corresponding secret. "
+"Tokens still citing that version will now fail with `MYC00031` "
+"(UnknownKeyVersion); this is the desired retirement outcome."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:95
+msgid ""
+"Reverse the procedure (un-bump primary, then remove the new entry) if you "
+"need to roll back before step 4."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:100
+msgid "Anti-downgrade"
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:102
+msgid ""
+"The `kvr` bean is part of the HMAC input — not an out-of-band hint. An "
+"attacker who intercepts a token signed under `kvr=2` cannot rewrite the bean "
+"to `kvr=1` and have verification succeed, because the recomputed HMAC over "
+"the rewritten payload no longer matches the stored `SIG`. Verification "
+"returns `MYC00032` in that case, not a silent fallback."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:108
+msgid ""
+"Similarly, stripping the `kvr` bean yields `MYC00030` rather than a guess at "
+"the default version."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:115
+#, fuzzy
+msgid "Typical cause"
+msgstr "Escopo típico"
+
+#: src/22-hmac-key-rotation.md:117
+msgid "`MYC00030`"
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:117
+msgid "Connection string is missing the HMAC key version (`kvr` bean)."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:117
+msgid "Pre-rotation token, or tampering."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:118
+msgid "`MYC00031`"
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:118
+msgid "Connection string references an unknown HMAC key version."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:118
+msgid "Retired key, misconfigured replica, or tampering."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:119
+msgid "`MYC00032`"
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:119
+#, fuzzy
+msgid "Connection string signature mismatch."
+msgstr "**Connection string emitida**"
+
+#: src/22-hmac-key-rotation.md:119
+msgid ""
+"Tampering (including `kvr` downgrade) or wrong key provisioned for the "
+"version."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:121
+msgid ""
+"All three are surfaced verbatim in `Unauthorized` responses from the "
+"connection-string middleware, and structured-logged with "
+"`connection_string_verification_failed=true` for operator audit."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:127
+msgid "See also:"
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:129
+msgid ""
+"[Envelope Encryption Migration Guide](./21-envelope-encryption-migration.md) "
+"for KEK rotation (different key, different procedure)."
+msgstr ""
+
+#: src/22-hmac-key-rotation.md:131
+msgid ""
+"[Encryption Inventory](./20-encryption-inventory.md) for the full list of "
+"`token_secret` consumers."
 msgstr ""
 
 #: src/07-running-tests.md:3
