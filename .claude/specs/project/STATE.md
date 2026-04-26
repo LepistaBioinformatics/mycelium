@@ -1,7 +1,7 @@
 # State
 
-**Last Updated:** 2026-04-25
-**Current Work:** HMAC Key Rotation **shipped** — PR #151 merged into `develop` (gateway HEAD `aae89c96`). Monorepo pointer `e955f50` on `main`.
+**Last Updated:** 2026-04-26
+**Current Work:** M1 — Stability & Safety
 
 ---
 
@@ -290,6 +290,43 @@ pointer `e955f50` on `main`.
 - [ ] `TelegramConfig` trait está em `core/domain/entities` mas nenhum use case do core a usa — apenas o port handler a consome diretamente via shaku. Isso viola o espírito da arquitetura hexagonal (traits no core deveriam ser portas para use cases, não para ports). Opções: mover o trait para `adapters/service` como tipo concreto, ou criar um use case de "resolve config" que o port chame. Capturado durante: Telegram IdP (2026-04-19)
 - [ ] Email address validation in the DTO layer (not just at send time) — Captured during: fix-notifier-panics
 - [ ] Hot-reloading Tera templates (ops/config concern) — Captured during: fix-notifier-panics
+
+---
+
+## Release Automation (2026-04-26)
+
+### Completed
+
+| Item | Status | Detail |
+|---|---|---|
+| `release-prerelease.yml` | ✅ Done | `workflow_dispatch` on `develop` — bumps `beta` / `rc` via `cargo release` |
+| `release-stable.yml` | ✅ Done | `workflow_dispatch` on `main` — bumps `patch` / `minor` / `major` via `cargo release` |
+| `docker-release.yml` | ✅ Done | Triggers on tag push + `workflow_dispatch`; builds from `Dockerfile.dev`; pushes to `ghcr.io/LepistaBioinformatics/mycelium` |
+| First pre-release image | ✅ Done | `8.3.1-rc.2` built and pushed to GHCR manually (tag push webhook missed) |
+
+### crates.io publish — ✅ Complete (2026-04-26)
+
+All 13 workspace crates confirmed to exist on crates.io (no name conflicts). Workflows updated:
+- `release-prerelease.yml` and `release-stable.yml`: removed `--no-publish` from execute step, added `CARGO_REGISTRY_TOKEN` env at job level
+- `docker-release.yml`: switched `file: Dockerfile.dev` → `file: Dockerfile`, added `build-args: VERSION=${{ steps.tag.outputs.version }}`
+
+**Remaining manual step:** Add `CARGO_REGISTRY_TOKEN` secret to the GitHub repository settings before triggering the next release.
+
+
+### Branch semantics
+
+| Branch | Allowed release types | Notes |
+|---|---|---|
+| `develop` | `beta`, `rc` | Pre-release ladder |
+| `main` | `patch`, `minor`, `major` | Stable only; `rc → stable` graduation runs here after PR merge |
+
+### Image tagging strategy (GHCR)
+
+| Tag format | Images produced |
+|---|---|
+| `8.3.2` (stable) | `:8.3.2`, `:latest` |
+| `8.3.2-rc.1` | `:8.3.2-rc.1`, `:rc` |
+| `8.3.2-beta.1` | `:8.3.2-beta.1`, `:beta` |
 
 ---
 

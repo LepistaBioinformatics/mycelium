@@ -32,7 +32,7 @@ brew install openssl pkg-config postgresql
 ## Option A — Docker (fastest)
 
 ```bash
-docker pull sgelias/mycelium-api:latest
+docker pull ghcr.io/LepistaBioinformatics/mycelium:latest
 ```
 
 For a full local environment with PostgreSQL and Redis already wired up, see
