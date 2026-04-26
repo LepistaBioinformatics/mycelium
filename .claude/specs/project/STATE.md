@@ -1,7 +1,7 @@
 # State
 
-**Last Updated:** 2026-04-20
-**Current Work:** Alternative IdPs documentation complete — `10-alternative-idps.md` with real-world journeys, JWT vs connection-string disambiguation
+**Last Updated:** 2026-04-26
+**Current Work:** Release automation — GitHub Actions for version bumping (cargo-release) and Docker image publishing to GHCR
 
 ---
 
@@ -239,6 +239,50 @@ include them in scope.
 - [ ] `TelegramConfig` trait está em `core/domain/entities` mas nenhum use case do core a usa — apenas o port handler a consome diretamente via shaku. Isso viola o espírito da arquitetura hexagonal (traits no core deveriam ser portas para use cases, não para ports). Opções: mover o trait para `adapters/service` como tipo concreto, ou criar um use case de "resolve config" que o port chame. Capturado durante: Telegram IdP (2026-04-19)
 - [ ] Email address validation in the DTO layer (not just at send time) — Captured during: fix-notifier-panics
 - [ ] Hot-reloading Tera templates (ops/config concern) — Captured during: fix-notifier-panics
+
+---
+
+## Release Automation (2026-04-26)
+
+### Completed
+
+| Item | Status | Detail |
+|---|---|---|
+| `release-prerelease.yml` | ✅ Done | `workflow_dispatch` on `develop` — bumps `beta` / `rc` via `cargo release` |
+| `release-stable.yml` | ✅ Done | `workflow_dispatch` on `main` — bumps `patch` / `minor` / `major` via `cargo release` |
+| `docker-release.yml` | ✅ Done | Triggers on tag push + `workflow_dispatch`; builds from `Dockerfile.dev`; pushes to `ghcr.io/LepistaBioinformatics/mycelium` |
+| First pre-release image | ✅ Done | `8.3.1-rc.2` built and pushed to GHCR manually (tag push webhook missed) |
+
+### Next immediate step
+
+**Enable crates.io publish and switch Docker build to use production `Dockerfile`.**
+
+Current state: `release.toml` has `publish = true` but all release workflows pass `--no-publish`, and `docker-release.yml` builds from `Dockerfile.dev` (compiles from source).
+
+Target cycle:
+1. Release workflow runs `cargo release` **without** `--no-publish` → all crates pushed to crates.io
+2. Docker workflow builds with production `Dockerfile` (not `Dockerfile.dev`) passing `VERSION=${{ tag }}` → installs `mycelium-api` from crates.io → leaner, faster image build
+
+Steps required:
+- [ ] Ensure all workspace crates are registered on crates.io (or create them on first publish)
+- [ ] Add `CARGO_REGISTRY_TOKEN` secret to the repository
+- [ ] Remove `--no-publish` from both `release-prerelease.yml` and `release-stable.yml`
+- [ ] Update `docker-release.yml` to use `file: Dockerfile` and pass `build-arg: VERSION=${{ steps.tag.outputs.version }}`
+
+### Branch semantics
+
+| Branch | Allowed release types | Notes |
+|---|---|---|
+| `develop` | `beta`, `rc` | Pre-release ladder |
+| `main` | `patch`, `minor`, `major` | Stable only; `rc → stable` graduation runs here after PR merge |
+
+### Image tagging strategy (GHCR)
+
+| Tag format | Images produced |
+|---|---|
+| `8.3.2` (stable) | `:8.3.2`, `:latest` |
+| `8.3.2-rc.1` | `:8.3.2-rc.1`, `:rc` |
+| `8.3.2-beta.1` | `:8.3.2-beta.1`, `:beta` |
 
 ---
 
