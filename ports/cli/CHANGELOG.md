@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.1-rc.2] - 2026-04-26
+
+### 🚀 Features
+
+- *(encryption)* Envelope encryption with per-tenant DEKs (v2 format)
+- *(hmac-rotation)* Add myc-cli rotate-kek command (Etapa 2)
+
 ## [8.3.1-rc.1] - 2026-04-15
 
 ### 📚 Documentation
@@ -10,6 +17,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release version 8.3.1-rc.1
 - Release version 8.3.1-rc.1
 
 ## [8.3.1-beta.5] - 2026-02-08
@@ -642,340 +650,6 @@ All notable changes to this project will be documented in this file.
 
 ## [7.5.0] - 2025-02-16
 
-### 🐛 Bug Fixes
-
-- Fix the rpassword package name
-
-### 💼 Other
-
-- 7.4.0 → 7.5.0 [skip-ci]
-
-## [7.4.0] - 2025-02-10
-
-### 💼 Other
-
-- 7.3.0 → 7.4.0 [skip-ci]
-
-## [7.3.0] - 2025-02-09
-
-### 💼 Other
-
-- 7.2.0 → 7.3.0 [skip-ci]
-
-## [7.2.0] - 2025-02-05
-
-### 🐛 Bug Fixes
-
-- Remove log crate from the project
-
-### 💼 Other
-
-- 7.1.0 → 7.2.0 [skip-ci]
-
-## [7.1.0] - 2025-01-31
-
-### 💼 Other
-
-- 7.0.0 → 7.1.0 [skip-ci]
-
-## [7.0.0] - 2025-01-27
-
-### 🐛 Bug Fixes
-
-- Fix the tenant fetching process
-- Review the error code life cycle
-
-### 💼 Other
-
-- 6.6.0 → 7.0.0 [skip-ci]
-
-### 🚜 Refactor
-
-- Remove prisma client adapter
-
-## [6.6.0] - 2025-01-07
-
-### 💼 Other
-
-- 6.5.0 → 6.6.0 [skip-ci]
-
-## [6.5.0] - 2025-01-02
-
-### 💼 Other
-
-- 6.4.0 → 6.5.0 [skip-ci]
-
-## [6.4.0] - 2025-01-02
-
-### 💼 Other
-
-- 6.3.0 → 6.4.0 [skip-ci]
-
-## [6.3.0] - 2024-12-31
-
-### 💼 Other
-
-- 6.2.0 → 6.3.0 [skip-ci]
-
-### 🚜 Refactor
-
-- Rename the use-cases to mirror the application roles
-- Remove the role submodule and move chindren modules to the root parent
-
-## [6.2.0] - 2024-12-01
-
-### 💼 Other
-
-- 6.1.0 → 6.2.0 [skip-ci]
-
-## [6.1.0] - 2024-11-24
-
-### 💼 Other
-
-- 6.0.0 → 6.1.0 [skip-ci]
-
-## [6.0.0] - 2024-11-13
-
-### 🚀 Features
-
-- Re-include the myc-cli crate on the project after fixing
-
-### 💼 Other
-
-- 5.0.8 → 6.0.0 [skip-ci]
-
-### 🚜 Refactor
-
-- Refactor the mycelium smtp to be a general purpose notifier
-
-## [5.0.8] - 2024-04-25
-
-### 💼 Other
-
-- 5.0.7 → 5.0.8 [skip-ci]
-
-## [5.0.7] - 2024-04-12
-
-### 💼 Other
-
-- 5.0.6 → 5.0.7 [skip-ci]
-
-## [5.0.6] - 2024-04-10
-
-### 💼 Other
-
-- 5.0.5 → 5.0.6 [skip-ci]
-
-## [5.0.5] - 2024-04-10
-
-### 💼 Other
-
-- 5.0.4 → 5.0.5 [skip-ci]
-
-## [5.0.4] - 2024-04-09
-
-### 💼 Other
-
-- 5.0.3 → 5.0.4 [skip-ci]
-
-## [5.0.3] - 2024-04-08
-
-### 💼 Other
-
-- 5.0.2 → 5.0.3 [skip-ci]
-
-## [5.0.2] - 2024-03-21
-
-### 💼 Other
-
-- 5.0.1 → 5.0.2 [skip-ci]
-
-## [5.0.1] - 2024-03-11
-
-### 💼 Other
-
-- 5.0.0 → 5.0.1 [skip-ci]
-
-## [5.0.0] - 2024-03-09
-
-### 💼 Other
-
-- 4.16.0 → 5.0.0 [skip-ci]
-
-## [4.16.0] - 2024-02-26
-
-### 💼 Other
-
-- 4.15.3 → 4.16.0 [skip-ci]
-
-## [4.15.3] - 2024-02-22
-
-### 💼 Other
-
-- 4.15.2 → 4.15.3 [skip-ci]
-
-## [4.15.2] - 2024-02-21
-
-### 💼 Other
-
-- 4.15.1 → 4.15.2 [skip-ci]
-
-## [4.15.1] - 2024-02-15
-
-### 🚀 Features
-
-- Implements the new base package to replace the clean-base package
-
-### 🐛 Bug Fixes
-
-- Orient all internal paths dependencies to the project path instead to use directly into the workspace
-
-### 💼 Other
-
-- 4.15.0 → 4.15.1 [skip-ci]
-
-### 🚜 Refactor
-
-- Refactor the cargo dependencies to import shared dependencies from the workspace
-
-### ⚙️ Miscellaneous Tasks
-
-- Replace all workspace reference to a single line notation
-
-## [4.7.5] - 2023-12-17
-
-### 💼 Other
-
-- 4.7.4 → 4.7.5 [skip-ci]
-
-## [4.7.4] - 2023-12-17
-
-### 💼 Other
-
-- 4.7.3 → 4.7.4 [skip-ci]
-
-## [4.7.3] - 2023-12-17
-
-### 💼 Other
-
-- 4.7.2 → 4.7.3 [skip-ci]
-
-## [4.7.2] - 2023-12-17
-
-### 💼 Other
-
-- 4.7.1 → 4.7.2 [skip-ci]
-
-## [4.7.1] - 2023-12-17
-
-### 💼 Other
-
-- 4.7.0 → 4.7.1 [skip-ci]
-
-## [4.7.0] - 2023-12-14
-
-### 💼 Other
-
-- 4.6.1 → 4.7.0 [skip-ci]
-
-## [4.6.1] - 2023-12-07
-
-### 💼 Other
-
-- 4.6.0 → 4.6.1 [skip-ci]
-
-## [4.6.0] - 2023-12-06
-
-### 💼 Other
-
-- 4.5.1 → 4.6.0 [skip-ci]
-
-## [4.5.1] - 2023-12-04
-
-### 💼 Other
-
-- 4.5.0 → 4.5.1 [skip-ci]
-
-## [4.5.0] - 2023-12-04
-
-### 💼 Other
-
-- 4.4.0 → 4.5.0 [skip-ci]
-
-## [4.4.0] - 2023-12-04
-
-### 🚀 Features
-
-- Refactores standard and managers endpoints to mirror the new actors system
-
-### 💼 Other
-
-- 4.3.0 → 4.4.0 [skip-ci]
-
-## [4.3.0] - 2023-12-03
-
-### 💼 Other
-
-- 4.2.0 → 4.3.0 [skip-ci]
-
-## [4.2.0] - 2023-10-25
-
-### 🐛 Bug Fixes
-
-- Upgrade staff account creation flow to include password and hash into data persistence modules
-- Remove unused commitizen from redis cardo toml
-
-## [4.1.1] - 2023-09-19
-
-### 🚀 Features
-
-- Upgrade router to allow http2 service as downstream url for apis management
-
-### 🐛 Bug Fixes
-
-- Upgrade account creation use-cases to include or not profile information during accounts initializations
-
-### 💼 Other
-
-- Synchronize package sub versions
-- Upgrade from 3 to 4 the major package version
-- Partial increment package versions
-- 4.1.0 → 4.1.1 [skip-ci]
-
-## [4.0.0] - 2023-09-07
-
-### 🚀 Features
-
-- [**breaking**] Upgrade the account model to include multiple owners allowing to work with multi-user accounts with the same real world identity
-
-### 🐛 Bug Fixes
-
-- Extend previous commit
-
-## [3.0.1] - 2023-07-29
-
-### 💼 Other
-
-- 3.0.0 → 3.0.1 [skip-ci]
-
-## [3.0.0] - 2023-06-18
-
-### 💼 Other
-
-- 2.0.0 → 3.0.0 [skip-ci]
-
-## [2.0.0] - 2023-06-18
-
-### 💼 Other
-
-- 1.0.0 → 2.0.0 [skip-ci]
-
-### ⚙️ Miscellaneous Tasks
-
-- Manual upgrade all versions of the mycelium package
-
-## [1.0.0] - 2023-06-18
-
 ### 🚀 Features
 
 - Implements the account updating prisma repository
@@ -991,11 +665,25 @@ All notable changes to this project will be documented in this file.
 - Implements the api endpoints for error-codes management
 - Implements the batch creation of the native error persistence
 - [**breaking**] Wip - implements the app interface for management and create the commitizen file for auto versioning
+- [**breaking**] Upgrade the account model to include multiple owners allowing to work with multi-user accounts with the same real world identity
+- Upgrade router to allow http2 service as downstream url for apis management
+- Refactores standard and managers endpoints to mirror the new actors system
+- Implements the new base package to replace the clean-base package
+- Re-include the myc-cli crate on the project after fixing
 
 ### 🐛 Bug Fixes
 
 - Upgrade version of clean-base and utoipa to fix downgrade dependencies
 - Create a code field to present the concatenated prefix and error_number as the code
+- Extend previous commit
+- Upgrade account creation use-cases to include or not profile information during accounts initializations
+- Upgrade staff account creation flow to include password and hash into data persistence modules
+- Remove unused commitizen from redis cardo toml
+- Orient all internal paths dependencies to the project path instead to use directly into the workspace
+- Fix the tenant fetching process
+- Review the error code life cycle
+- Remove log crate from the project
+- Fix the rpassword package name
 
 ### 💼 Other
 
@@ -1004,6 +692,51 @@ All notable changes to this project will be documented in this file.
 - Update the project version and add badges to the main readme file
 - Update all package versions
 - Upgrade overall package versions before tag
+- 1.0.0 → 2.0.0 [skip-ci]
+- 2.0.0 → 3.0.0 [skip-ci]
+- 3.0.0 → 3.0.1 [skip-ci]
+- Synchronize package sub versions
+- Upgrade from 3 to 4 the major package version
+- Partial increment package versions
+- 4.1.0 → 4.1.1 [skip-ci]
+- 4.2.0 → 4.3.0 [skip-ci]
+- 4.3.0 → 4.4.0 [skip-ci]
+- 4.4.0 → 4.5.0 [skip-ci]
+- 4.5.0 → 4.5.1 [skip-ci]
+- 4.5.1 → 4.6.0 [skip-ci]
+- 4.6.0 → 4.6.1 [skip-ci]
+- 4.6.1 → 4.7.0 [skip-ci]
+- 4.7.0 → 4.7.1 [skip-ci]
+- 4.7.1 → 4.7.2 [skip-ci]
+- 4.7.2 → 4.7.3 [skip-ci]
+- 4.7.3 → 4.7.4 [skip-ci]
+- 4.7.4 → 4.7.5 [skip-ci]
+- 4.15.0 → 4.15.1 [skip-ci]
+- 4.15.1 → 4.15.2 [skip-ci]
+- 4.15.2 → 4.15.3 [skip-ci]
+- 4.15.3 → 4.16.0 [skip-ci]
+- 4.16.0 → 5.0.0 [skip-ci]
+- 5.0.0 → 5.0.1 [skip-ci]
+- 5.0.1 → 5.0.2 [skip-ci]
+- 5.0.2 → 5.0.3 [skip-ci]
+- 5.0.3 → 5.0.4 [skip-ci]
+- 5.0.4 → 5.0.5 [skip-ci]
+- 5.0.5 → 5.0.6 [skip-ci]
+- 5.0.6 → 5.0.7 [skip-ci]
+- 5.0.7 → 5.0.8 [skip-ci]
+- 5.0.8 → 6.0.0 [skip-ci]
+- 6.0.0 → 6.1.0 [skip-ci]
+- 6.1.0 → 6.2.0 [skip-ci]
+- 6.2.0 → 6.3.0 [skip-ci]
+- 6.3.0 → 6.4.0 [skip-ci]
+- 6.4.0 → 6.5.0 [skip-ci]
+- 6.5.0 → 6.6.0 [skip-ci]
+- 6.6.0 → 7.0.0 [skip-ci]
+- 7.0.0 → 7.1.0 [skip-ci]
+- 7.1.0 → 7.2.0 [skip-ci]
+- 7.2.0 → 7.3.0 [skip-ci]
+- 7.3.0 → 7.4.0 [skip-ci]
+- 7.4.0 → 7.5.0 [skip-ci]
 
 ### 🚜 Refactor
 
@@ -1013,10 +746,20 @@ All notable changes to this project will be documented in this file.
 - Fix paths of myc-core entities imports after upgrade the myc-core version
 - Update ports to adequate to the use-cases refactoring from the previous commits
 - Replace the default error imports from clean-base in use-case module to the new error factory import
+- Refactor the cargo dependencies to import shared dependencies from the workspace
+- Refactor the mycelium smtp to be a general purpose notifier
+- Rename the use-cases to mirror the application roles
+- Remove the role submodule and move chindren modules to the root parent
+- Remove prisma client adapter
 
 ### 📚 Documentation
 
 - Includes package metadata in all subpackages of this project
 - Update packages category slugs to match valid crate categories
+
+### ⚙️ Miscellaneous Tasks
+
+- Manual upgrade all versions of the mycelium package
+- Replace all workspace reference to a single line notation
 
 <!-- generated by git-cliff -->

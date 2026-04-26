@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.1-rc.2] - 2026-04-26
+
+### 🚀 Features
+
+- *(router)* Add RFC 7239 Forwarded header compliance alongside X-Forwarded-For
+- *(telegram)* Add Telegram IdP — link, login, webhook, encrypted config
+- *(encryption)* Envelope encryption with per-tenant DEKs (v2 format)
+
 ## [8.3.1-rc.1] - 2026-04-15
 
 ### 🐛 Bug Fixes
@@ -14,6 +22,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Release version 8.3.1-rc.1
 - Release version 8.3.1-rc.1
 
 ## [8.3.1-beta.5] - 2026-02-08
