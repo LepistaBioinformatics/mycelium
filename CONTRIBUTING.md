@@ -38,7 +38,7 @@ Contributions can take many forms:
 
 When opening a new issue, **always use the appropriate issue template**:
 
-1. Go to [New Issue](https://github.com/sgelias/mycelium/issues/new/choose)
+1. Go to [New Issue](https://github.com/LepistaBioinformatics/mycelium/issues/new/choose)
 2. Select the appropriate template:
    - **Bug report** - For reporting bugs
    - **Feature request** - For suggesting new features
@@ -65,7 +65,7 @@ The easiest way to get started is using the provided DevContainer configuration:
 2. Install the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
 3. Clone the repository:
    ```bash
-   git clone https://github.com/sgelias/mycelium.git
+   git clone https://github.com/LepistaBioinformatics/mycelium.git
    cd mycelium
    ```
 4. Open the project in VS Code
@@ -94,7 +94,7 @@ If you prefer to develop locally without DevContainer:
 
 2. Clone the repository:
    ```bash
-   git clone https://github.com/sgelias/mycelium.git
+   git clone https://github.com/LepistaBioinformatics/mycelium.git
    cd mycelium
    ```
 
@@ -224,7 +224,7 @@ cargo audit
    ```
 3. Add the upstream repository:
    ```bash
-   git remote add upstream https://github.com/sgelias/mycelium.git
+   git remote add upstream https://github.com/LepistaBioinformatics/mycelium.git
    ```
 4. Create a feature branch from `develop` using the issue type and number:
    ```bash
@@ -349,7 +349,7 @@ process.
 
 ### Before Reporting
 
-- Check existing [issues](https://github.com/sgelias/mycelium/issues) to avoid duplicates
+- Check existing [issues](https://github.com/LepistaBioinformatics/mycelium/issues) to avoid duplicates
 - Verify the bug exists in the latest version
 - Gather relevant information about your environment
 
@@ -357,7 +357,7 @@ process.
 
 When creating a new bug report, **use the Bug Report template** available in the issue creation form:
 
-1. Go to [New Issue](https://github.com/sgelias/mycelium/issues/new/choose)
+1. Go to [New Issue](https://github.com/LepistaBioinformatics/mycelium/issues/new/choose)
 2. Select **"Bug report"** template
 3. Fill in all required sections:
    - **Describe the bug**: Clear description of what the bug is
@@ -382,7 +382,7 @@ We welcome feature suggestions! Here's how to propose new functionality:
 
 When suggesting a new feature, **use the Feature Request template** available in the issue creation form:
 
-1. Go to [New Issue](https://github.com/sgelias/mycelium/issues/new/choose)
+1. Go to [New Issue](https://github.com/LepistaBioinformatics/mycelium/issues/new/choose)
 2. Select **"Feature request"** template
 3. Fill in all required sections:
    - **Is your feature request related to a problem?**: Describe the problem
@@ -400,10 +400,10 @@ The template ensures your feature request includes all necessary context for eva
 ### Related EPICs
 
 When suggesting features, check if they relate to existing EPICs:
-- [#90 - Downstream Services Discoverability](https://github.com/sgelias/mycelium/issues/90)
-- [#79 - Max Coverage of Tests](https://github.com/sgelias/mycelium/issues/79)
-- [#62 - Open-source MAG in Compliance with OSI Guidelines](https://github.com/sgelias/mycelium/issues/62)
-- [#61 - MAG in Compliance with OpenSSF Specifications](https://github.com/sgelias/mycelium/issues/61)
+- [#90 - Downstream Services Discoverability](https://github.com/LepistaBioinformatics/mycelium/issues/90)
+- [#79 - Max Coverage of Tests](https://github.com/LepistaBioinformatics/mycelium/issues/79)
+- [#62 - Open-source MAG in Compliance with OSI Guidelines](https://github.com/LepistaBioinformatics/mycelium/issues/62)
+- [#61 - MAG in Compliance with OpenSSF Specifications](https://github.com/LepistaBioinformatics/mycelium/issues/61)
 
 ### Discussion First
 
@@ -680,13 +680,13 @@ Before creating a stable release:
 
 ### Development
 
-- [Project Repository](https://github.com/sgelias/mycelium)
-- [Issue Tracker](https://github.com/sgelias/mycelium/issues)
-- [Pull Requests](https://github.com/sgelias/mycelium/pulls)
+- [Project Repository](https://github.com/LepistaBioinformatics/mycelium)
+- [Issue Tracker](https://github.com/LepistaBioinformatics/mycelium/issues)
+- [Pull Requests](https://github.com/LepistaBioinformatics/mycelium/pulls)
 
 ### Community
 
-- For questions, open a [GitHub Discussion](https://github.com/sgelias/mycelium/discussions) or issue
+- For questions, open a [GitHub Discussion](https://github.com/LepistaBioinformatics/mycelium/discussions) or issue
 - Follow our [Code of Conduct](./CODE_OF_CONDUCT.md) in all interactions
 
 ---

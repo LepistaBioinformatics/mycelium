@@ -1,7 +1,7 @@
 # State
 
 **Last Updated:** 2026-04-26
-**Current Work:** Release automation — GitHub Actions for version bumping (cargo-release) and Docker image publishing to GHCR
+**Current Work:** M1 — Stability & Safety
 
 ---
 
@@ -253,21 +253,14 @@ include them in scope.
 | `docker-release.yml` | ✅ Done | Triggers on tag push + `workflow_dispatch`; builds from `Dockerfile.dev`; pushes to `ghcr.io/LepistaBioinformatics/mycelium` |
 | First pre-release image | ✅ Done | `8.3.1-rc.2` built and pushed to GHCR manually (tag push webhook missed) |
 
-### Next immediate step
+### crates.io publish — ✅ Complete (2026-04-26)
 
-**Enable crates.io publish and switch Docker build to use production `Dockerfile`.**
+All 13 workspace crates confirmed to exist on crates.io (no name conflicts). Workflows updated:
+- `release-prerelease.yml` and `release-stable.yml`: removed `--no-publish` from execute step, added `CARGO_REGISTRY_TOKEN` env at job level
+- `docker-release.yml`: switched `file: Dockerfile.dev` → `file: Dockerfile`, added `build-args: VERSION=${{ steps.tag.outputs.version }}`
 
-Current state: `release.toml` has `publish = true` but all release workflows pass `--no-publish`, and `docker-release.yml` builds from `Dockerfile.dev` (compiles from source).
+**Remaining manual step:** Add `CARGO_REGISTRY_TOKEN` secret to the GitHub repository settings before triggering the next release.
 
-Target cycle:
-1. Release workflow runs `cargo release` **without** `--no-publish` → all crates pushed to crates.io
-2. Docker workflow builds with production `Dockerfile` (not `Dockerfile.dev`) passing `VERSION=${{ tag }}` → installs `mycelium-api` from crates.io → leaner, faster image build
-
-Steps required:
-- [ ] Ensure all workspace crates are registered on crates.io (or create them on first publish)
-- [ ] Add `CARGO_REGISTRY_TOKEN` secret to the repository
-- [ ] Remove `--no-publish` from both `release-prerelease.yml` and `release-stable.yml`
-- [ ] Update `docker-release.yml` to use `file: Dockerfile` and pass `build-arg: VERSION=${{ steps.tag.outputs.version }}`
 
 ### Branch semantics
 

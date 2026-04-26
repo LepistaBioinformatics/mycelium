@@ -7,7 +7,7 @@
 [![Docs.rs](https://docs.rs/mycelium-api/badge.svg)](https://docs.rs/mycelium-api)
 [![CI](https://github.com/LepistaBioinformatics/mycelium/actions/workflows/ci.yml/badge.svg)](https://github.com/LepistaBioinformatics/mycelium/actions/workflows/ci.yml)
 [![Security](https://github.com/LepistaBioinformatics/mycelium/actions/workflows/security.yml/badge.svg)](https://github.com/LepistaBioinformatics/mycelium/actions/workflows/security.yml)
-[![Docker Pulls](https://img.shields.io/docker/pulls/sgelias/mycelium-api)](https://hub.docker.com/r/sgelias/mycelium-api)
+[![Docker](https://img.shields.io/badge/docker-ghcr.io-blue)](https://github.com/LepistaBioinformatics/mycelium/pkgs/container/mycelium)
 [![License](https://img.shields.io/crates/l/mycelium-api.svg)](./LICENSE)
 [![Rust Version](https://img.shields.io/badge/rust-1.70%2B-blue.svg)](https://www.rust-lang.org)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/10181/badge?t=3)](https://www.bestpractices.dev/en/projects/10181)
@@ -156,7 +156,7 @@ cargo install mycelium-api
 Or using Docker:
 
 ```bash
-docker pull sgelias/mycelium-api:latest
+docker pull ghcr.io/LepistaBioinformatics/mycelium:latest
 ```
 
 For complete installation instructions including database setup and Vault configuration, see the [Installation Guide](./docs/book/src/02-installation.md).
@@ -244,7 +244,7 @@ We welcome contributions! Mycelium is an open-source project and we appreciate:
 ### Getting Started
 
 1. Read our **[Contributing Guide](./CONTRIBUTING.md)** for detailed guidelines
-2. Check out existing [issues](https://github.com/sgelias/mycelium/issues) or create a new one
+2. Check out existing [issues](https://github.com/LepistaBioinformatics/mycelium/issues) or create a new one
 3. Fork the repository and create a feature branch
 4. Make your changes following our code standards
 5. Submit a pull request - our [PR template](.github/PULL_REQUEST_TEMPLATE.md) will be automatically loaded

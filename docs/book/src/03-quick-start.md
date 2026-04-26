@@ -91,7 +91,7 @@ docker run -d \
   -p 8080:8080 \
   -v $(pwd)/settings:/app/settings \
   -e SETTINGS_PATH=settings/config.toml \
-  sgelias/mycelium-api:latest
+  ghcr.io/LepistaBioinformatics/mycelium:latest
 ```
 
 ---
