@@ -1,0 +1,46 @@
+name: Publish crates
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Dry run (no crates published)
+        required: false
+        type: boolean
+        default: true
+
+concurrency:
+  group: publish-crates
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish workspace crates
+    runs-on: ubuntu-latest
+    env:
+      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-release
+        run: cargo install cargo-release --locked
+
+      - name: Publish (dry run)
+        if: inputs.dry_run == true
+        run: |
+          cargo release publish --no-confirm
+          echo "Dry-run complete — no crates were published."
+
+      - name: Publish
+        if: inputs.dry_run == false
+        run: |
+          cargo release publish --execute --no-confirm
+          echo "Publish complete."

@@ -210,4 +210,4 @@
 - **Edition**: 2021
 - **Authors**: Samuel Galvão Elias <sgelias@outlook.com>
 - **License**: Apache-2.0
-- **Repository**: https://github.com/sgelias/mycelium
+- **Repository**: https://github.com/LepistaBioinformatics/mycelium
