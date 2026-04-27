@@ -42,10 +42,10 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Install cargo-release
-        run: cargo install cargo-release --locked
+        run: cargo install cargo-release --locked --force
 
       - name: Install git-cliff
-        run: cargo install git-cliff --locked
+        run: cargo install git-cliff --locked --force
 
       - name: Configure git identity
         run: |
