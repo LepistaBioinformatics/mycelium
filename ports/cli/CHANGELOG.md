@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 - *(encryption)* Envelope encryption with per-tenant DEKs (v2 format)
 - *(hmac-rotation)* Add myc-cli rotate-kek command (Etapa 2)
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.2
+
 ## [8.3.1-rc.1] - 2026-04-15
 
 ### 📚 Documentation

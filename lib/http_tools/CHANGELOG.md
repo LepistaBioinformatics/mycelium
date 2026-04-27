@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 - *(telegram)* Add Telegram IdP — link, login, webhook, encrypted config
 - *(encryption)* Envelope encryption with per-tenant DEKs (v2 format)
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.2
+
 ## [8.3.1-rc.1] - 2026-04-15
 
 ### 🐛 Bug Fixes

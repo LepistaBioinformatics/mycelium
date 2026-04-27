@@ -22,6 +22,10 @@ All notable changes to this project will be documented in this file.
 
 - *(router)* Generalize body-based IdP with BodyIdpResolver trait
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.2
+
 ## [8.3.1-rc.1] - 2026-04-15
 
 ### 🚀 Features
