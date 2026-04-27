@@ -10,7 +10,7 @@ use myc_core::domain::dtos::{
 };
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
 use serde::{
-    de::{MapAccess, Visitor},
+    de::{MapAccess, SeqAccess, Visitor},
     Deserialize, Deserializer,
 };
 use std::{fmt, path::PathBuf};
@@ -257,6 +257,21 @@ where
             }
         }
 
+        // Handle inline array format: callbacks = [] or callbacks = [{ ... }]
+        fn visit_seq<S>(self, mut seq: S) -> Result<Self::Value, S::Error>
+        where
+            S: SeqAccess<'de>,
+        {
+            let mut all_callbacks = Vec::new();
+            while let Some(callback) = seq.next_element::<Callback>()? {
+                all_callbacks.push(callback);
+            }
+            if all_callbacks.is_empty() {
+                return Ok(None);
+            }
+            Ok(Some(all_callbacks))
+        }
+
         fn visit_none<E>(self) -> Result<Self::Value, E>
         where
             E: serde::de::Error,
@@ -268,7 +283,7 @@ where
         where
             D: Deserializer<'de>,
         {
-            deserializer.deserialize_map(CallbacksVisitor)
+            deserializer.deserialize_any(CallbacksVisitor)
         }
     }
 
@@ -291,6 +306,7 @@ pub struct ApiConfig {
     pub max_error_instances: Option<u32>,
 
     #[serde(
+        default,
         deserialize_with = "deserialize_callbacks",
         skip_serializing_if = "Option::is_none"
     )]
