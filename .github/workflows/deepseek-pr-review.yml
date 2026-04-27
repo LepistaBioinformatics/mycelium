@@ -1,0 +1,67 @@
+name: DeepSeek PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR diff
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr diff "$PR_NUMBER" > pr.diff
+
+      - name: Review with DeepSeek
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: |
+          DIFF=$(cat pr.diff)
+          PAYLOAD=$(jq -n \
+            --arg diff "$DIFF" \
+            '{
+              model: "deepseek-reasoner",
+              max_tokens: 8192,
+              messages: [
+                {
+                  role: "system",
+                  content: "You are a senior Rust engineer reviewing a pull request on a clean-architecture Rust gateway (Actix-Web, Diesel, Redis). Focus on: correctness, safety, hexagonal architecture violations, missing error handling, performance issues, and serde/TOML config correctness. Be concise and direct. Format your response in Markdown with sections: **Summary**, **Issues** (blocking vs. advisory), **Suggestions**. Skip praise."
+                },
+                {
+                  role: "user",
+                  content: ("Review this PR diff:\n\n```diff\n" + $diff + "\n```")
+                }
+              ]
+            }')
+
+          RESPONSE=$(curl -s https://api.deepseek.com/v1/chat/completions \
+            -H "Authorization: Bearer $DEEPSEEK_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD")
+
+          REVIEW=$(echo "$RESPONSE" | jq -r '.choices[0].message.content // "DeepSeek returned no content."')
+
+          {
+            echo "## DeepSeek Code Review"
+            echo ""
+            echo "$REVIEW"
+          } > review_comment.md
+
+      - name: Post review comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr comment "$PR_NUMBER" --body-file review_comment.md
