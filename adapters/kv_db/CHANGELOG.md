@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.1-rc.3] - 2026-04-27
+
+### ⚙️ Miscellaneous Tasks
+
+- Merge develop — release automation, crates.io publish, GHCR Docker workflow
+- Release version 8.3.1-rc.3
+
 ## [8.3.1-rc.2] - 2026-04-26
 
 ### ⚙️ Miscellaneous Tasks
@@ -612,6 +619,18 @@ All notable changes to this project will be documented in this file.
 
 ## [7.5.0] - 2025-02-16
 
+### 💼 Other
+
+- 7.4.0 → 7.5.0 [skip-ci]
+
+## [7.4.0] - 2025-02-10
+
+### 💼 Other
+
+- 7.3.0 → 7.4.0 [skip-ci]
+
+## [7.3.0] - 2025-02-09
+
 ### 🚀 Features
 
 - Refactor the mycelium notifier to move the redis config init to a shared module
@@ -622,8 +641,6 @@ All notable changes to this project will be documented in this file.
 
 - Include kv and shared adapter as commitizen tracked
 - 7.2.0 → 7.3.0 [skip-ci]
-- 7.3.0 → 7.4.0 [skip-ci]
-- 7.4.0 → 7.5.0 [skip-ci]
 
 ### 🚜 Refactor
 

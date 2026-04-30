@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [8.3.1-rc.3] - 2026-04-27
+
+### ⚙️ Miscellaneous Tasks
+
+- Merge develop — release automation, crates.io publish, GHCR Docker workflow
+- Release version 8.3.1-rc.3
+
 ## [8.3.1-rc.2] - 2026-04-26
 
 ### 🚀 Features
@@ -805,6 +812,34 @@ All notable changes to this project will be documented in this file.
 
 ## [7.5.0] - 2025-02-16
 
+### 💼 Other
+
+- 7.4.0 → 7.5.0 [skip-ci]
+
+## [7.4.0] - 2025-02-10
+
+### 💼 Other
+
+- 7.3.0 → 7.4.0 [skip-ci]
+
+## [7.3.0] - 2025-02-09
+
+### 💼 Other
+
+- 7.2.0 → 7.3.0 [skip-ci]
+
+## [7.2.0] - 2025-02-05
+
+### 🐛 Bug Fixes
+
+- Remove log crate from the project
+
+### 💼 Other
+
+- 7.1.0 → 7.2.0 [skip-ci]
+
+## [7.1.0] - 2025-01-31
+
 ### 🚀 Features
 
 - Implements diesel models to mirror the sql implementation for the prisma adapter
@@ -845,16 +880,11 @@ All notable changes to this project will be documented in this file.
 - Fix the guest to children account
 - Fix the meta endpoints for account meta management
 - Fix the webhook async dispatch to avoid updates of the payload package and mirror important changes to database
-- Remove log crate from the project
 
 ### 💼 Other
 
 - Include diesel adapter as a commitizen tracked file
 - 7.0.0 → 7.1.0 [skip-ci]
-- 7.1.0 → 7.2.0 [skip-ci]
-- 7.2.0 → 7.3.0 [skip-ci]
-- 7.3.0 → 7.4.0 [skip-ci]
-- 7.4.0 → 7.5.0 [skip-ci]
 
 ### 🚜 Refactor
 
