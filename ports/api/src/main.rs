@@ -72,7 +72,7 @@ use reqwest::header::{
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use rest::{
-    index::heath_check_endpoints,
+    index::{app_public_config_endpoints, heath_check_endpoints},
     manager::{
         account_endpoints as manager_account_endpoints,
         guest_role_endpoints as manager_guest_role_endpoints,
@@ -365,6 +365,10 @@ pub async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/health")
                     .configure(heath_check_endpoints::configure),
+            )
+            .service(
+                web::scope("/app-config")
+                    .configure(app_public_config_endpoints::configure),
             )
             //
             // The well known openid configuration path

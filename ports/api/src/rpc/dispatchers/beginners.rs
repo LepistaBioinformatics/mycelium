@@ -644,6 +644,34 @@ pub async fn dispatch_beginners(
                 }
             })
         }
+        method_names::BEGINNERS_APP_CONFIG_GET_PUBLIC_INFO => {
+            let life_cycle = life_cycle_settings
+                .ok_or_else(|| invalid_params("Life cycle config required"))?
+                .get_ref();
+            let domain_name = life_cycle
+                .domain_name
+                .async_get_or_error()
+                .await
+                .map_err(mapped_errors_to_jsonrpc_error)?;
+            let domain_url = match &life_cycle.domain_url {
+                Some(r) => r.async_get_or_error().await.ok(),
+                None => None,
+            };
+            let locale = match &life_cycle.locale {
+                Some(r) => r.async_get_or_error().await.ok(),
+                None => None,
+            };
+            serde_json::to_value(serde_json::json!({
+                "domainName": domain_name,
+                "domainUrl": domain_url,
+                "locale": locale,
+            }))
+            .map_err(|e| JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: e.to_string(),
+                data: None,
+            })
+        }
         _ => Err(JsonRpcError {
             code: types::codes::METHOD_NOT_FOUND,
             message: format!("Method not found: {}", method),
