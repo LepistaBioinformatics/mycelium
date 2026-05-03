@@ -28,6 +28,8 @@ pub const GATEWAY_MANAGER_SERVICES_LIST: &str = "gatewayManager.services.list";
 pub const GATEWAY_MANAGER_TOOLS_LIST: &str = "gatewayManager.tools.list";
 
 // Beginners
+pub const BEGINNERS_APP_CONFIG_GET_PUBLIC_INFO: &str =
+    "beginners.appConfig.getPublicInfo";
 pub const BEGINNERS_ACCOUNTS_CREATE: &str = "beginners.accounts.create";
 pub const BEGINNERS_ACCOUNTS_GET: &str = "beginners.accounts.get";
 pub const BEGINNERS_ACCOUNTS_UPDATE_NAME: &str =

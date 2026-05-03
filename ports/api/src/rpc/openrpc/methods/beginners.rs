@@ -49,6 +49,27 @@ pub fn methods() -> Vec<serde_json::Value> {
 
     vec![
         serde_json::json!({
+            "name": method_names::BEGINNERS_APP_CONFIG_GET_PUBLIC_INFO,
+            "summary": "Get public application configuration",
+            "description": "Returns the application's public branding and locale settings (domainName, domainUrl, locale). No authentication required.",
+            "tags": [{ "name": "beginners" }, { "name": "appConfig" }],
+            "params": [],
+            "result": {
+                "name": "result",
+                "description": "Public config with domainName, domainUrl and locale",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "domainName": { "type": "string" },
+                        "domainUrl": { "type": ["string", "null"] },
+                        "locale": { "type": ["string", "null"] }
+                    },
+                    "required": ["domainName"]
+                }
+            },
+            "errors": [{ "code": -32603, "message": "Internal error" }]
+        }),
+        serde_json::json!({
             "name": method_names::BEGINNERS_ACCOUNTS_CREATE,
             "summary": "Create a user-related account",
             "description": "Creates an account for a physical person. Uses credentials from the request (multi-identity provider).",
