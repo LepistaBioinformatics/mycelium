@@ -251,8 +251,9 @@ tasks land.
 | Execute — SM-T3 (sqlite feature on `myc-diesel`; backend isolation verified) | ✅ Done (committed `4d36fc94`) |
 | Execute — SM-T4/T5/T6 (sqlite scaffolding: pool+pragmas, schema+migrations, type helpers) | ✅ Done, verified |
 | Execute — SM-T7 (account + account_tag SQLite repos, block 1/3) | ✅ Done (committed `5721c643`) |
-| Execute — SM-T8 (tenant + tenant_tag SQLite repos, block 2/3) | ✅ Done, verified |
-| Execute — SM-T9 (user, block 3/3 — closes block 1) | ⏳ Next |
+| Execute — SM-T8 (tenant + tenant_tag SQLite repos, block 2/3) | ✅ Done (committed `34300a06`) |
+| Execute — SM-T9 (user, block 3/3 — closes block 1) | ✅ Done, verified |
+| Execute — SM-T10… (block 2: token/session_token/guest_role/guest_user) | ⏳ Next |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
@@ -279,13 +280,18 @@ confirmation. Following the pattern already established and accepted earlier in 
 committing at each verified step rather than batching everything into one giant uncommitted diff —
 easier to review/bisect. Never skip the build/test gate regardless.
 
-**Next action:** SM-T9 (user — UserRegistration/Fetching/Updating/Deletion) to close block 1
-("account + tenant + user"). Then continue solo through blocks 2+ (SM-T10 token/session_token,
-SM-T11 guest_role/guest_user, SM-T12 message, SM-T13 webhook, SM-T14 error_code, SM-T15
-licensed_resource, SM-T16 encryption_key, SM-T17 SqlAppModule wiring) then G3-G8 (moka, email,
-secrets, config wiring, packaging, docs) per user's "continue to completion" directive. Build gate
-every step: full `cargo test --workspace` (postgres) + `cargo test -p mycelium-diesel
---no-default-features --features sqlite` + `cargo fmt --all -- --check`.
+**Block 1 (account + tenant + user) is done** — 17 repo impls, ~2,900 lines, 3 end-to-end lifecycle
+tests (see tasks.md SM-T9 result for the full summary and reusable patterns established).
+
+**Next action:** SM-T10 (token + session_token + `TokenInvalidation`, incl. magic-link
+`jsonb_set`→`json_set` per OC-4) — the first entity requiring a genuine JSON1 mutation rewrite, not
+just extraction. Then SM-T11 (guest_role/guest_user, incl. `permit_flags`/`deny_flags Array<Text>` —
+first real use of `string_array_to_text`/`from_text`), SM-T12 (message), SM-T13 (webhook), SM-T14
+(error_code), SM-T15 (licensed_resource + ProfileFetching), SM-T16 (encryption_key), SM-T17
+(SqlAppModule sqlite wiring — barrier, needs T7-T16 all done). Then G3-G8 (moka, email, secrets,
+config wiring, packaging, docs) per user's "continue to completion" directive. Build gate every step:
+full `cargo test --workspace` (postgres) + `cargo test -p mycelium-diesel --no-default-features
+--features sqlite` + `cargo fmt --all -- --check` + standalone binary build.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).

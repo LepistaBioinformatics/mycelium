@@ -106,7 +106,7 @@ Each task implements the SQLite variant of that group's `core` port traits, mapp
 
 - **SM-T7 [P]** — account + account_tag (`AccountRegistration/Fetching/Updating/Deletion`, tag traits) — ✅ Done (verified, pending commit)
 - **SM-T8 [P]** — tenant + tenant_tag (incl. `status Array<Jsonb>` → JSON TEXT) — ✅ Done (verified, pending commit)
-- **SM-T9 [P]** — user (`UserRegistration/Fetching/Updating/Deletion`, `mfa` JSONB)
+- **SM-T9 [P]** — user (`UserRegistration/Fetching/Updating/Deletion`, `mfa` JSONB) — ✅ Done (verified, pending commit) — closes block 1 (account+tenant+user)
 - **SM-T10 [P]** — token + session_token + `TokenInvalidation` (incl. magic-link `jsonb_set`→`json_set`)
 - **SM-T11 [P]** — guest_role + guest_user (+ on-account) (incl. `permit_flags/deny_flags Array<Text>`)
 - **SM-T12 [P]** — message: `LocalMessageWrite` / `LocalMessageReading` (feeds email_dispatcher)
@@ -182,6 +182,23 @@ owners) → update name/description → update status (append) → tag → delet
 
 Verified: 11/11 sqlite tests green, fmt clean, full-mode build/test unaffected (0 failed), standalone
 binary builds. Not committed yet.
+
+**SM-T9 result — closes Block 1 (account + tenant + user):** `sqlite/{models,repositories}/{user,
+identity_provider}`. `UserFetching`'s three methods (`get_user_by_email`, `get_user_by_id`,
+`get_not_redacted_user_by_email`) differ only in whether MFA secrets are redacted — DRY'd into one
+`shared::map_user_row_to_dto(user, provider, redact_mfa: bool)` instead of tripling the mapping logic
+(the pg version duplicates it 3x). `user_registration.rs` mirrors the pg quirk that neither the
+"already exists" nor "created" response populates `provider` on the returned DTO (by design, not a
+bug — kept identical). New `user_lifecycle_round_trips_through_sqlite` test: create → duplicate-email
+no-op → fetch by id → fetch by email (redacted) → update → update_password → update_mfa → delete →
+post-delete NotFound. 12/12 sqlite tests green, fmt clean, full-mode unaffected (0 failed), standalone
+binary builds. Not committed yet.
+
+**Block 1 summary:** account, account_tag, tenant, tenant_tag, user, identity_provider — 17 repository
+impls across 3 entities, ~2,900 lines of new SQLite code, 3 end-to-end lifecycle tests. Established
+reusable patterns for blocks 2-3: `created_at_from_text` (naive-timestamp reinterpretation),
+`json_array_to_text`/`from_text` (Array<Jsonb> columns), `returning_clauses_for_sqlite_3_35`,
+per-entity `shared.rs` DTO mapper, `test_support::setup_temp_db()`.
 
 ---
 
