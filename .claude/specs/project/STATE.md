@@ -269,8 +269,8 @@ end-to-end.
 | Execute — SM-T14 (error_code) | ✅ Done (committed `978df130`) |
 | Execute — SM-T15 (licensed_resource + ProfileFetching) | ✅ Done (committed `46904cfc`) |
 | Execute — SM-T16 (encryption_key — closes G2 per-entity repos) | ✅ Done, verified |
-| Architectural correction — extract SQLite adapter into `adapters/diesel_sqlite` (own crate, not nested in `mycelium-diesel`) | ✅ Done, verified |
-| Execute — SM-T17 (SqlAppModule sqlite wiring — barrier) | ⏳ Next |
+| Architectural correction — extract SQLite adapter into `adapters/diesel_sqlite` (own crate, not nested in `mycelium-diesel`); `adapters/diesel` renamed `diesel_postgres` | ✅ Done (committed `c79c1f5d`) |
+| Execute — SM-T17 (SqlAppModule sqlite wiring — barrier, closes G2) | ✅ Done, verified |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
@@ -345,16 +345,23 @@ check for server-side defaults before writing a SQLite insert**).
 **G2 per-entity repos are all done** (SM-T7..T16 — 14 entity groups, ~44 postgres repo impls now
 have SQLite equivalents; `session_token` excluded as dead code).
 
-**Next action:** SM-T17 — `SqlAppModule` (sqlite) shaku wiring, the barrier task assembling every
-`repositories::*` component built so far into one shaku module (mirroring postgres's `SqlAppModule`
-in `adapters/diesel_postgres/src/repositories/mod.rs`), now authored in
-`adapters/diesel_sqlite/src/repositories/mod.rs` — plain module, no cfg-gating (own crate). This
-closes G2. Then G3 (SM-T18/19 — moka cache, **its own sibling crate under `adapters/`**), G4
-(SM-T20/21 — local email transport), G5 (SM-T22 — autogen secrets), G6 (SM-T23/24 — standalone
-config + cfg-gated `initialize_modules`, finally wiring `mycelium-diesel-sqlite` into `ports/api`),
-G7 (SM-T25/26 — Dockerfile + E2E smoke), G8 (SM-T27 — docs), per user's "continue to completion"
-directive. Build gate every step: full `cargo build --workspace` + `cargo test --workspace --all` +
-`cargo fmt --all -- --check` + standalone binary build.
+**SM-T17 result — closes G2:** `SqlAppModule` shaku module added to
+`adapters/diesel_sqlite/src/repositories/mod.rs`, mirroring postgres's `SqlAppModule` 1:1 (44
+components: `DieselSqliteDbPoolProvider` + 43 repos across all 10 entity groups). Own crate, no
+cfg-gating needed. Compiled clean first try. 22/22 sqlite tests + full workspace build/test (0
+failed) + fmt clean + standalone binary unaffected. Not committed yet.
+
+**Next action:** G3 (SM-T18/19 — moka cache, **its own sibling crate under `adapters/`**, per the
+adapter-crate-separation rule established earlier), then G4 (SM-T20/21 — local email transport), G5 (SM-T22 —
+autogen secrets), G6 (SM-T23/24 — standalone config + cfg-gated `initialize_modules`, finally wiring
+`mycelium-diesel-sqlite` into `ports/api` — **the real risk point**: the compile-time
+`postgres-backend`/`standalone` swap must select between two different `SqlAppModule` types at the
+`initialize_modules` call site, so any downstream code naming the concrete module type needs
+cfg-gating too; also verify whether `mycelium-diesel`'s `crate-type = ["staticlib", "lib"]` — absent
+on `diesel_sqlite` — actually matters for linking), G7 (SM-T25/26 — Dockerfile + E2E smoke), G8
+(SM-T27 — docs), per user's "continue to completion" directive. Build gate every step: full `cargo
+build --workspace` + `cargo test --workspace --all` + `cargo fmt --all -- --check` + standalone
+binary build.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).

@@ -135,7 +135,7 @@ Each task implements the SQLite variant of that group's `core` port traits, mapp
 - **SM-T14 [P]** — error_code — ✅ Done
 - **SM-T15 [P]** — licensed_resource + `LicensedResourcesFetching` + `ProfileFetching` — ✅ Done
 - **SM-T16 [P]** — encryption_key (`EncryptionKeyFetching`) — envelope-encryption support — ✅ Done
-- **SM-T17** — `SqlAppModule` (sqlite) shaku registration wiring all the above (barrier: needs T7–T16)
+- **SM-T17** — `SqlAppModule` (sqlite) shaku registration wiring all the above (barrier: needs T7–T16) — ✅ Done (verified, pending commit)
 - **Where (all):** `adapters/diesel_sqlite/src/repositories/<entity>/*`, `repositories/mod.rs`.
 - **Depends on:** SM-T6 (T7–T16 parallel); SM-T17 depends on T7–T16.
 - **Reuses:** SM-T6 helpers; existing Postgres impls as behavioral reference.
@@ -358,6 +358,17 @@ SQLite equivalents across 10 entity groups (account, account_tag, tenant, tenant
 guest_role, guest_user, message, webhook, error_code, licensed_resource, profile, encryption_key;
 `session_token` excluded as dead code). Only `SM-T17` (the `SqlAppModule` sqlite shaku wiring — a
 barrier task needing everything above) remains to close out G2.
+
+**SM-T17 result — `SqlAppModule` (sqlite) shaku wiring, closes G2:** Added the `shaku::module!` block
+to `adapters/diesel_sqlite/src/repositories/mod.rs`, mirroring postgres's `SqlAppModule` in
+`adapters/diesel_postgres/src/repositories/mod.rs` component-for-component (44 components:
+`DieselSqliteDbPoolProvider` + 43 repository structs across all 10 entity groups), with **no
+cfg-gating** — unlike the original (pre-refactor) plan, this lives unconditionally in its own crate
+now, so there's nothing to gate. Compiled on the first attempt (all repo structs were already
+correctly `pub`-exported per-entity from SM-T7..T16). 22/22 sqlite tests still green, full
+`cargo build --workspace` + `cargo test --workspace --all` (0 failed) + `cargo fmt --all -- --check`
+clean, standalone `mycelium-api` binary unaffected. **This closes G2** — the SQLite backend now has a
+single importable shaku module ready to be wired into `ports/api`'s `initialize_modules` in SM-T24.
 
 ---
 
