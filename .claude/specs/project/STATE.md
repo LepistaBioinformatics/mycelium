@@ -255,8 +255,9 @@ tasks land.
 | Execute — SM-T9 (user, block 3/3 — closes block 1) | ✅ Done (committed `2f7ad14a`) |
 | Execute — SM-T10 (token; session_token confirmed dead code, skipped) | ✅ Done (committed `7a050e83`) |
 | Execute — SM-T11 (guest_role + guest_user + guest_user_on_account) | ✅ Done (committed `7504af86`) |
-| Execute — SM-T12 (message) | ✅ Done, verified |
-| Execute — SM-T13… (webhook) | ⏳ Next |
+| Execute — SM-T12 (message) | ✅ Done (committed `a8c47288`) |
+| Execute — SM-T13 (webhook + webhook_execution) | ✅ Done, verified |
+| Execute — SM-T14… (error_code) | ⏳ Next |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,

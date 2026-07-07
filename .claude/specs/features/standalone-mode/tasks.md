@@ -110,7 +110,7 @@ Each task implements the SQLite variant of that group's `core` port traits, mapp
 - **SM-T10 [P]** — token + session_token + `TokenInvalidation` (incl. magic-link `jsonb_set`→`json_set`) — ✅ Done (verified, pending commit)
 - **SM-T11 [P]** — guest_role + guest_user (+ on-account) (incl. `permit_flags/deny_flags Array<Text>`) — ✅ Done (verified, pending commit)
 - **SM-T12 [P]** — message: `LocalMessageWrite` / `LocalMessageReading` (feeds email_dispatcher) — ✅ Done
-- **SM-T13 [P]** — webhook (`propagations`, `headers` JSONB)
+- **SM-T13 [P]** — webhook (`propagations`, `headers` JSONB) — ✅ Done
 - **SM-T14 [P]** — error_code
 - **SM-T15 [P]** — licensed_resource + `LicensedResourcesFetching` + `ProfileFetching`
 - **SM-T16 [P]** — encryption_key (`EncryptionKeyFetching`) — envelope-encryption support
@@ -281,6 +281,18 @@ after `guest_user`). This feeds the existing in-process `email_dispatcher` backg
 New `message_queue_round_trips_through_sqlite` test: queue → appears under `Queued` filter → mark
 `Sent` → disappears from `Queued`, appears under `Sent` → delete → gone. 17/17 sqlite tests green,
 fmt clean, full-mode unaffected, standalone binary builds. Not committed yet.
+
+**SM-T13 result — webhook + webhook_execution:** `sqlite/{models,repositories}/{webhook,
+webhook_execution}`. DRY'd the 4x-duplicated postgres model→DTO mapping (`get`/`list`/
+`list_by_trigger`/`create`/`update` each independently rebuilt `WebHook` inline) into one
+`shared::map_model_to_dto(model, redact: bool)`. Preserved an intentional postgres asymmetry:
+`get`/`list`/`create`/`update` redact the webhook secret, but `list_by_trigger` (used internally by
+the dispatcher to sign outgoing payloads) does not — the `redact` flag makes this explicit instead of
+relying on 4 near-identical inline blocks to happen to differ correctly.
+New `webhook_lifecycle_round_trips_through_sqlite` test: create → fetch → update → `list_by_trigger`
+finds it → register execution event → `fetch_execution_event` (Pending) finds it → mark Success via
+`update_execution_event` → Pending query now empty → delete webhook. 18/18 sqlite tests green, fmt
+clean, full-mode unaffected, standalone binary builds. Not committed yet.
 
 ---
 
