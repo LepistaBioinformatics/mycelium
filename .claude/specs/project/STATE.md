@@ -267,8 +267,9 @@ end-to-end.
 | Execute — SM-T12 (message) | ✅ Done (committed `a8c47288`) |
 | Execute — SM-T13 (webhook + webhook_execution) | ✅ Done (committed `4093da0e`) |
 | Execute — SM-T14 (error_code) | ✅ Done (committed `978df130`) |
-| Execute — SM-T15 (licensed_resource + ProfileFetching) | ✅ Done, verified |
-| Execute — SM-T16… (encryption_key) | ⏳ Next |
+| Execute — SM-T15 (licensed_resource + ProfileFetching) | ✅ Done (committed `46904cfc`) |
+| Execute — SM-T16 (encryption_key — closes G2 per-entity repos) | ✅ Done, verified |
+| Execute — SM-T17 (SqlAppModule sqlite wiring — barrier) | ⏳ Next |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
@@ -320,14 +321,18 @@ postgres server-side defaults (`created`) with no SQLite equivalent — explicit
 insert into these tables (growing list since SM-T7's `manager_account_on_tenant` finding: **always
 check for server-side defaults before writing a SQLite insert**).
 
-**Next action:** SM-T12 (message — `LocalMessageWrite`/`LocalMessageReading`, feeds the existing
-`email_dispatcher` background task). Then SM-T13 (webhook), SM-T14 (error_code), SM-T15
-(licensed_resource + ProfileFetching), SM-T16 (encryption_key), SM-T17 (SqlAppModule sqlite wiring —
-barrier, needs T7-T16 all done; T10's session_token exclusion means the sqlite module binds one fewer
-component than postgres's, which is correct since nothing resolves it). Then G3-G8 (moka, email,
-secrets, config wiring, packaging, docs) per user's "continue to completion" directive. Build gate
-every step: full `cargo test --workspace` (postgres) + `cargo test -p mycelium-diesel
---no-default-features --features sqlite` + `cargo fmt --all -- --check` + standalone binary build.
+**G2 per-entity repos are all done** (SM-T7..T16 — 14 entity groups, ~44 postgres repo impls now
+have SQLite equivalents; `session_token` excluded as dead code).
+
+**Next action:** SM-T17 — `SqlAppModule` (sqlite) shaku wiring, the barrier task assembling every
+`sqlite::repositories::*` component built so far into one shaku module (mirroring postgres's
+`SqlAppModule` in `adapters/diesel/src/repositories/mod.rs`), gated `#[cfg(feature="sqlite")]`. This
+closes G2. Then G3 (SM-T18/19 — moka cache), G4 (SM-T20/21 — local email transport), G5 (SM-T22 —
+autogen secrets), G6 (SM-T23/24 — standalone config + cfg-gated `initialize_modules`, finally wiring
+sqlite into `ports/api`), G7 (SM-T25/26 — Dockerfile + E2E smoke), G8 (SM-T27 — docs), per user's
+"continue to completion" directive. Build gate every step: full `cargo test --workspace` (postgres) +
+`cargo test -p mycelium-diesel --no-default-features --features sqlite` + `cargo fmt --all --
+--check` + standalone binary build.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).

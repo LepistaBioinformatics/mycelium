@@ -113,7 +113,7 @@ Each task implements the SQLite variant of that group's `core` port traits, mapp
 - **SM-T13 [P]** — webhook (`propagations`, `headers` JSONB) — ✅ Done
 - **SM-T14 [P]** — error_code — ✅ Done
 - **SM-T15 [P]** — licensed_resource + `LicensedResourcesFetching` + `ProfileFetching` — ✅ Done
-- **SM-T16 [P]** — encryption_key (`EncryptionKeyFetching`) — envelope-encryption support
+- **SM-T16 [P]** — encryption_key (`EncryptionKeyFetching`) — envelope-encryption support — ✅ Done
 - **SM-T17** — `SqlAppModule` (sqlite) shaku registration wiring all the above (barrier: needs T7–T16)
 - **Where (all):** `adapters/diesel/src/repositories/<entity>/*` (cfg-gated bodies), `repositories/mod.rs`.
 - **Depends on:** SM-T6 (T7–T16 parallel); SM-T17 depends on T7–T16.
@@ -320,6 +320,23 @@ role filter needed the slug, not the display name — same shape of mistake as t
 correction in SM-T11 (verify the *actual* stored value, don't assume the input string is what's
 persisted). 21/21 sqlite tests green, fmt clean, full-mode unaffected, standalone binary builds. Not
 committed yet.
+
+**SM-T16 result — encryption_key (closes G2's per-entity repo work):** `sqlite/repositories/
+encryption_key.rs` (no dedicated model — reuses the SM-T8 `tenant` model/schema; `EncryptionKeyFetching`
+stores the wrapped DEK in `tenant.encrypted_dek`). Straightforward, single-file port: fetch the tenant
+row (system tenant via `SYSTEM_TENANT_ID = Uuid::nil()` when no tenant is given), unwrap the existing
+DEK if present, else generate+wrap+persist a new one. The envelope-crypto primitives
+(`generate_dek`/`wrap_dek`/`unwrap_dek`) live in `myc-core::domain::utils` and are already
+backend-agnostic — no rewrite needed there. New `get_or_provision_dek_round_trips_through_sqlite`
+test: seed the system tenant row → first call provisions and persists a wrapped DEK → second call
+unwraps the same persisted DEK (`first_dek == second_dek`). 22/22 sqlite tests green, fmt clean,
+full-mode unaffected, standalone binary builds. Not committed yet.
+
+**G2 per-entity repository work is now complete** — all ~44 postgres repository impls now have
+SQLite equivalents across 10 entity groups (account, account_tag, tenant, tenant_tag, user, token,
+guest_role, guest_user, message, webhook, error_code, licensed_resource, profile, encryption_key;
+`session_token` excluded as dead code). Only `SM-T17` (the `SqlAppModule` sqlite shaku wiring — a
+barrier task needing everything above) remains to close out G2.
 
 ---
 
