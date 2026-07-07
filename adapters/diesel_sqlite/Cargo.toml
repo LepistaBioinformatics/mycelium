@@ -1,0 +1,59 @@
+[package]
+name = "mycelium-diesel-sqlite"
+description = "Provide SQLite diesel adapters to the mycelium project (standalone mode)."
+
+version = "8.3.1-rc.5"
+
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+readme.workspace = true
+
+
+[dependencies]
+
+# `returning_clauses_for_sqlite_3_35` enables `RETURNING` on insert/update
+# statements (SQLite >= 3.35, satisfied by the bundled version) so
+# repositories can read back generated/updated rows the same way the
+# postgres adapter does. `libsqlite3-sys` `bundled` compiles SQLite into the
+# binary -- no system libsqlite runtime dependency.
+diesel = { version = "2", features = [
+    "sqlite",
+    "returning_clauses_for_sqlite_3_35",
+    "uuid",
+    "serde_json",
+    "chrono",
+    "r2d2",
+] }
+libsqlite3-sys = { version = "0.30", features = ["bundled"] }
+diesel_migrations = { version = "2" }
+
+async-trait.workspace = true
+base64.workspace = true
+chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+shaku.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+
+# ------------------------------------------------------------------------------
+# Mycelium packages
+# ------------------------------------------------------------------------------
+
+myc-core.workspace = true
+mycelium-base.workspace = true
+mycelium-config.workspace = true
+
+# ------------------------------------------------------------------------------
+# Dev dependencies
+# ------------------------------------------------------------------------------
+
+
+[lib]
+name = "myc_diesel_sqlite"
+path = "src/lib.rs"

@@ -187,7 +187,7 @@ Each requirement has a traceable ID for design/tasks.
   size it and decide code-sharing strategy (feature-gated modules vs sibling crate).
 - **OC-4** — Query-level Postgres-isms (distinct axis from column types): the diesel repository bodies
   use Postgres-only *SQL operations* that TEXT column-mapping alone will not fix. Verified counts in
-  `adapters/diesel/src`: `jsonb_set` ×1 (magic-link token invalidation, per STATE), JSON `->>`/`->`
+  `adapters/diesel_postgres/src`: `jsonb_set` ×1 (magic-link token invalidation, per STATE), JSON `->>`/`->`
   ×17, JSONB containment `@>` ×8, `diesel::pg`/`::pg::` ×17, raw `sql`/`sql_query` ×18. Each needs a
   SQLite equivalent (`json_set`, JSON1 `->>`, JSON1 functions, backend-agnostic DSL). This reinforces
   that the SQLite backend is close to a **second repository-layer implementation**, not a type swap.

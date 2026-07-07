@@ -82,7 +82,7 @@ schema.rs and parallel model structs**, selected by feature. This is the dominan
 Keep a single crate; gate backend-specific modules:
 
 ```
-adapters/diesel/src/
+adapters/diesel_postgres/src/
   schema.rs                     ← #[cfg(feature="postgres")]  (existing, unchanged)
   schema_sqlite.rs              ← #[cfg(feature="sqlite")]     (new: TEXT-based types)
   models/…                      ← split or cfg-gated per backend where types differ
@@ -98,7 +98,7 @@ majority of the ~44 impls to need a SQLite body (OC-3).
 **Two independent portability axes (do not conflate):**
 1. *Column types* — §2.3 maps `Uuid`/`Jsonb`/`Array`/`Timestamptz` → `TEXT`.
 2. *Query operations* — the bodies also use Postgres-only SQL that TEXT-typing does **not** fix
-   (OC-4). Verified in `adapters/diesel/src`: `jsonb_set` ×1 (magic-link invalidation → SQLite
+   (OC-4). Verified in `adapters/diesel_postgres/src`: `jsonb_set` ×1 (magic-link invalidation → SQLite
    `json_set`), JSON `->>`/`->` ×17, JSONB `@>` ×8, `diesel::pg`/`::pg::` ×17, raw `sql`/`sql_query`
    ×18. Each site needs a SQLite (JSON1) equivalent or a backend-agnostic rewrite. This is why the
    SQLite backend is closer to a second repository-layer implementation than a type swap.

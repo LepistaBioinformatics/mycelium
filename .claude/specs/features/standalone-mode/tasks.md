@@ -47,6 +47,26 @@ Legend for each task: **What / Where / Depends on / Reuses / Done when / Tests**
 
 ## G2 — SQLite persistence (dominant effort — OC-3/OC-4)
 
+> **Architectural correction (post SM-T16, pre SM-T17):** SM-T3–T16 were originally built as a
+> `#[cfg(feature="sqlite")]`-gated `sqlite/` submodule nested inside `mycelium-diesel` (the Postgres
+> adapter crate). The user flagged this as a structural error — adapters must be independent sibling
+> crates under `adapters/`, never nested inside another adapter's crate, matching the existing
+> `kv_db`/`mem_db`/`notifier`/`service`/`shared` pattern. The SQLite adapter was extracted into its own
+> crate: **`adapters/diesel_sqlite`** (package `mycelium-diesel-sqlite`, lib `myc_diesel_sqlite`), with
+> `mycelium-diesel` (`adapters/diesel`) reverted to a plain, unconditional Postgres-only crate (no
+> features, no cfg-gating). `adapters/diesel` was then also renamed to **`adapters/diesel_postgres`**
+> to mirror the `diesel_sqlite` naming (package/lib names unchanged: `mycelium-diesel`/`myc_diesel`),
+> and `adapters/diesel_sqlite/migrations_sqlite/` was renamed to **`adapters/diesel_sqlite/migrations/`**
+> (updating the `embed_migrations!("migrations")` literal accordingly). All `adapters/diesel/src/
+> sqlite/...` paths and `#[cfg(feature="sqlite")]` gates below are **historical** — read them as
+> `adapters/diesel_sqlite/src/...` with no cfg-gating, and any bare `adapters/diesel/...` as
+> `adapters/diesel_postgres/...`. Verified after extraction and rename: `cargo build`/`test -p
+> mycelium-diesel-sqlite` (22 tests green), `cargo build -p mycelium-diesel` (postgres, clean), full
+> `cargo build --workspace` + `cargo test --workspace --all` (0 failed) + `cargo fmt --all -- --check`
+> clean, and the standalone `mycelium-api` binary (`--no-default-features --features standalone`)
+> unaffected. This same rule applies to every future adapter (e.g. SM-T18's cache crate must also be
+> its own sibling crate, not a submodule of an existing one).
+
 ### SM-T3 — SQLite deps behind `sqlite` feature on `myc-diesel` — ✅ Done (verified, pending commit)
 - **What:** Add `diesel` `sqlite` feature, `libsqlite3-sys` (`bundled`), `diesel_migrations`, gated by
   a `sqlite` feature on the crate. Keep `postgres` as default feature. No models yet.
@@ -60,43 +80,44 @@ Legend for each task: **What / Where / Depends on / Reuses / Done when / Tests**
   optional. Existing schema/models/migration/repositories gated behind `#[cfg(feature="postgres")]`
   in `lib.rs` so sqlite-only compiles empty. **Verified via `cargo tree`:** sqlite build pulls
   `libsqlite3-sys` and NO `pq-sys` (no libpq); postgres build pulls `pq-sys`. Full-mode
-  build/test/fmt all green.
+  build/test/fmt all green. **Superseded:** see architectural-correction note above — `sqlite`
+  feature/deps now live unconditionally in `adapters/diesel_sqlite/Cargo.toml`.
 
 ### SM-T4 — SQLite pool provider + connection pragmas — ✅ Done (verified, pending commit)
 - **What:** `Pool<ConnectionManager<SqliteConnection>>` provider mirroring `DieselDbPoolProvider`;
   `CustomizeConnection` setting `journal_mode=WAL`, `foreign_keys=ON`, `busy_timeout=5000`. cfg-gated.
-- **Where:** `adapters/diesel/src/sqlite/config.rs` (new `sqlite/` module tree).
+- **Where:** `adapters/diesel_sqlite/src/config.rs`.
 - **Depends on:** SM-T3.
 - **Reuses:** existing r2d2 pattern (sync — C-6).
 - **Done when:** provider builds a pool against a temp file; pragmas verified via a query.
 - **Tests:** unit — open temp DB, assert `journal_mode=wal`.
-- **Result:** `sqlite/config.rs` — `SqliteDbPool`, `SqliteDbPoolProvider` trait, `DieselSqliteDbPoolProvider`
+- **Result:** `config.rs` — `SqliteDbPool`, `SqliteDbPoolProvider` trait, `DieselSqliteDbPoolProvider`
   shaku Component, `SqlitePragmas` customizer (WAL/foreign_keys/busy_timeout). Test green.
 
 ### SM-T5 — `schema_sqlite.rs` + embedded migrations — ✅ Done (verified, pending commit)
 - **What:** Author `schema_sqlite.rs` (all tables, TEXT-based per §2.3) and `migrations_sqlite/` DDL
   mirroring `sql/up.sql` with SQLite types; wire `embed_migrations!` to auto-provision on boot.
-- **Where:** `adapters/diesel/src/sqlite/schema.rs`, `adapters/diesel/migrations_sqlite/`.
+- **Where:** `adapters/diesel_sqlite/src/schema.rs`, `adapters/diesel_sqlite/migrations/`.
 - **Depends on:** SM-T3.
 - **Reuses:** `schema.rs` (authoritative, post-migrations) as the source of truth.
 - **Done when:** running embedded migrations on an empty temp DB creates every table; `diesel` compiles
   queries against `schema_sqlite` for a smoke table.
 - **Tests:** unit — migrate temp DB, assert table set matches Postgres schema.
-- **Result:** `sqlite/schema.rs` mirrors all 18 diesel tables (Uuid/Jsonb/Array/Timestamptz → Text).
-  `migrations_sqlite/2026-07-06-000000_init/{up,down}.sql` creates all tables + `licensed_resources`
+- **Result:** `schema.rs` mirrors all 18 diesel tables (Uuid/Jsonb/Array/Timestamptz → Text).
+  `migrations/2026-07-06-000000_init/{up,down}.sql` creates all tables + `licensed_resources`
   and `public_connection_string_info` views (pg JSON `->`/`?` rewritten to JSON1 `json_extract`).
-  `sqlite/migration.rs` embeds them via `embed_migrations!` + `run_pending_migrations`. Test asserts
+  `migration.rs` embeds them via `embed_migrations!` + `run_pending_migrations`. Test asserts
   all 18 tables created. **Note:** `telegram_identity_audit` (pg raw-SQL/INET path) deferred — not in
   diesel `schema.rs`; standalone Telegram audit is a later concern.
 
 ### SM-T6 — Type-mapping helpers + round-trip tests (SM-R4) — ✅ Done (verified, pending commit)
 - **What:** Encode/decode helpers: `Uuid↔TEXT`, `Timestamptz↔RFC3339 UTC`, `Jsonb↔TEXT`,
   `Array<Text>↔JSON`, `Array<Jsonb>↔JSON`. Central module reused by all sqlite repos.
-- **Where:** `adapters/diesel/src/sqlite/types.rs` (new).
+- **Where:** `adapters/diesel_sqlite/src/types.rs`.
 - **Depends on:** SM-T5.
 - **Done when:** each helper round-trips (write→read == original), incl. NULL and empty-array cases.
 - **Tests:** unit — property/round-trip per type (the SM-R15 requirement).
-- **Result:** `sqlite/types.rs` — `{uuid,timestamp,json,string_array,json_array}_{to,from}_text`,
+- **Result:** `types.rs` — `{uuid,timestamp,json,string_array,json_array}_{to,from}_text`,
   errors via `dto_err`. 6 round-trip tests (incl. empty array, garbage-UUID rejection, UTC
   normalization). All green.
 
@@ -115,30 +136,30 @@ Each task implements the SQLite variant of that group's `core` port traits, mapp
 - **SM-T15 [P]** — licensed_resource + `LicensedResourcesFetching` + `ProfileFetching` — ✅ Done
 - **SM-T16 [P]** — encryption_key (`EncryptionKeyFetching`) — envelope-encryption support — ✅ Done
 - **SM-T17** — `SqlAppModule` (sqlite) shaku registration wiring all the above (barrier: needs T7–T16)
-- **Where (all):** `adapters/diesel/src/repositories/<entity>/*` (cfg-gated bodies), `repositories/mod.rs`.
+- **Where (all):** `adapters/diesel_sqlite/src/repositories/<entity>/*`, `repositories/mod.rs`.
 - **Depends on:** SM-T6 (T7–T16 parallel); SM-T17 depends on T7–T16.
 - **Reuses:** SM-T6 helpers; existing Postgres impls as behavioral reference.
 - **Done when (each):** trait methods compile+pass under sqlite; CRUD round-trips on a temp DB.
 - **Tests (each):** unit CRUD + the group's pg-ism-specific path (e.g. magic-link invalidation for T10).
 
-**SM-T7 result:** New `adapters/diesel/src/sqlite/{models,repositories}/` trees (models: `account`,
+**SM-T7 result:** New `adapters/diesel_sqlite/src/{models,repositories}/` trees (models: `account`,
 `account_tag`, `user`; repositories: `account/{shared,account_registration,account_fetching,
 account_updating,account_deletion}.rs`, `account_tag/{account_tag_registration,account_tag_updating,
-account_tag_deletion}.rs`), all `#[cfg(feature="sqlite")]`. Duplicated tiny backend-agnostic helpers
-(`internal_error.rs`, `optional_written_by_parser.rs`) into the sqlite tree — the postgres originals
-live under a `#[cfg(feature="postgres")]`-gated module and can't be shared without breaking sqlite-only
-builds. Added `sqlite/test_support.rs` (temp DB + migrations helper, reusable by later blocks).
+account_tag_deletion}.rs`). Duplicated tiny backend-agnostic helpers (`internal_error.rs`,
+`optional_written_by_parser.rs`) into the sqlite crate — the postgres originals live in the
+`mycelium-diesel` crate and can't be shared across crates without a common base. Added
+`test_support.rs` (temp DB + migrations helper, reusable by later blocks).
 
 **Landmines resolved during implementation (beyond the advisor's initial two):**
 - Diesel's SQLite backend needs the `returning_clauses_for_sqlite_3_35` feature enabled explicitly —
-  unlike postgres, `.get_result()` on insert/update does not imply `RETURNING *`. Added to the `sqlite`
-  feature bundle in `adapters/diesel/Cargo.toml`.
+  unlike postgres, `.get_result()` on insert/update does not imply `RETURNING *`. Added to
+  `adapters/diesel_sqlite/Cargo.toml`.
 - `account_type::jsonb @>` pg-isms are NOT uniformly "full equality" — `list()`'s `RoleAssociated`
   branch needs a genuine partial JSON-path match (`json_extract(account_type,
   '$.roleAssociated.tenantId')`) since sibling rows share a tenant but differ in role_name/read_role_id/
   write_role_id; every other variant/call-site is full-value equality on the canonical JSON string.
 - `NaiveDateTime`'s `Display`/`FromStr` are NOT symmetric (space vs `T` separator) — added an explicit
-  `naive_timestamp_to_text`/`from_text` pair (RFC3339-shaped, no offset) to `sqlite/types.rs`, preserving
+  `naive_timestamp_to_text`/`from_text` pair (RFC3339-shaped, no offset) to `adapters/diesel_sqlite/src/types.rs`, preserving
   the postgres repos' `Local::now().naive_utc()` → `.and_local_timezone(Local)` reinterpretation exactly
   (not "fixed" — that quirk is existing behavior other code may depend on).
 - Tables relying on Postgres's `DEFAULT gen_random_uuid()` (e.g. `manager_account_on_tenant`) have no
@@ -158,8 +179,8 @@ migrations) exercises create → fetch → update → tag → soft-delete end-to
 binary (`--no-default-features --features standalone`) still builds. Not committed yet (awaiting user
 test/approval).
 
-**SM-T8 result:** `sqlite/{models,repositories}/{tenant,tenant_tag}` trees; also added the missing
-`owner_on_tenant -> user (owner_id)` `joinable!` to `sqlite/schema.rs` (present in postgres, missed in
+**SM-T8 result:** `adapters/diesel_sqlite/src/{models,repositories}/{tenant,tenant_tag}` trees; also added the missing
+`owner_on_tenant -> user (owner_id)` `joinable!` to `adapters/diesel_sqlite/src/schema.rs` (present in postgres, missed in
 the SM-T5 scaffolding — needed for `TenantFetching`'s owner-hydration join). New
 `tenant_lifecycle_round_trips_through_sqlite` test: create (with owner) → fetch (owned-by-me, hydrated
 owners) → update name/description → update status (append) → tag → delete owner → delete tenant.
@@ -183,7 +204,7 @@ owners) → update name/description → update status (append) → tag → delet
 Verified: 11/11 sqlite tests green, fmt clean, full-mode build/test unaffected (0 failed), standalone
 binary builds. Not committed yet.
 
-**SM-T9 result — closes Block 1 (account + tenant + user):** `sqlite/{models,repositories}/{user,
+**SM-T9 result — closes Block 1 (account + tenant + user):** `adapters/diesel_sqlite/src/{models,repositories}/{user,
 identity_provider}`. `UserFetching`'s three methods (`get_user_by_email`, `get_user_by_id`,
 `get_not_redacted_user_by_email`) differ only in whether MFA secrets are redacted — DRY'd into one
 `shared::map_user_row_to_dto(user, provider, redact_mfa: bool)` instead of tripling the mapping logic
@@ -200,7 +221,7 @@ reusable patterns for blocks 2-3: `created_at_from_text` (naive-timestamp reinte
 `json_array_to_text`/`from_text` (Array<Jsonb> columns), `returning_clauses_for_sqlite_3_35`,
 per-entity `shared.rs` DTO mapper, `test_support::setup_temp_db()`.
 
-**SM-T10 result — token (block 2, entity 1/N):** `sqlite/{models,repositories}/{token,
+**SM-T10 result — token (block 2, entity 1/N):** `adapters/diesel_sqlite/src/{models,repositories}/{token,
 public_connection_string_info}`. **`session_token` is NOT implemented** — verified via grep that
 `SessionTokenRegistration`/`Fetching`/`Deletion` (core traits) have **zero implementations anywhere**
 in the codebase (not in postgres, not wired into `SqlAppModule`, not consumed by any use-case). This
@@ -234,10 +255,10 @@ follow-up test if time allows before G7's E2E smoke.
 Not committed yet.
 
 **SM-T11 result — guest_role + guest_user + guest_user_on_account:**
-`sqlite/{models,repositories}/{guest_role,guest_role_children,guest_user,guest_user_on_account}`.
+`adapters/diesel_sqlite/src/{models,repositories}/{guest_role,guest_role_children,guest_user,guest_user_on_account}`.
 
 - **First real `Array<Text>` use** (`permit_flags`/`deny_flags`): `string_array_to_text`/`from_text`
-  (already in `sqlite/types.rs` since SM-T6, unused until now) round-trip a `Vec<String>` through a
+  (already in `adapters/diesel_sqlite/src/types.rs` since SM-T6, unused until now) round-trip a `Vec<String>` through a
   single JSON-array TEXT column.
 - **Mixed timestamp conventions within one feature, confirmed by re-reading the postgres models**:
   `guest_role`/`guest_role_children`/`guest_user_on_account` use `NaiveDateTime` + the
@@ -272,7 +293,7 @@ asserted the wrong thing; fixed the test, not the (correct) implementation.
 16/16 sqlite tests green, fmt clean, full-mode unaffected (0 failed), standalone binary builds.
 Not committed yet.
 
-**SM-T12 result — message:** `sqlite/{models,repositories}/message` (`LocalMessageWrite`/
+**SM-T12 result — message:** `adapters/diesel_sqlite/src/{models,repositories}/message` (`LocalMessageWrite`/
 `LocalMessageReading`). Confirmed `message_queue.created`/`attempted` are ANOTHER genuine
 timezone-aware round trip (`Local.from_utc_datetime(&naive)` on the postgres read side, not the
 reinterpretation trick) — used `timestamp_to_text`/`from_text` again (third table with this pattern,
@@ -282,7 +303,7 @@ New `message_queue_round_trips_through_sqlite` test: queue → appears under `Qu
 `Sent` → disappears from `Queued`, appears under `Sent` → delete → gone. 17/17 sqlite tests green,
 fmt clean, full-mode unaffected, standalone binary builds. Not committed yet.
 
-**SM-T13 result — webhook + webhook_execution:** `sqlite/{models,repositories}/{webhook,
+**SM-T13 result — webhook + webhook_execution:** `adapters/diesel_sqlite/src/{models,repositories}/{webhook,
 webhook_execution}`. DRY'd the 4x-duplicated postgres model→DTO mapping (`get`/`list`/
 `list_by_trigger`/`create`/`update` each independently rebuilt `WebHook` inline) into one
 `shared::map_model_to_dto(model, redact: bool)`. Preserved an intentional postgres asymmetry:
@@ -294,7 +315,7 @@ finds it → register execution event → `fetch_execution_event` (Pending) find
 `update_execution_event` → Pending query now empty → delete webhook. 18/18 sqlite tests green, fmt
 clean, full-mode unaffected, standalone binary builds. Not committed yet.
 
-**SM-T14 result — error_code:** `sqlite/{models,repositories}/error_code`. Simplest entity so far —
+**SM-T14 result — error_code:** `adapters/diesel_sqlite/src/{models,repositories}/error_code`. Simplest entity so far —
 no timestamps at all, composite PK (`prefix`, `code`), and `code` (postgres `SERIAL`) is always
 supplied explicitly by the domain layer on create (no server-side-default landmine here, unlike
 `manager_account_on_tenant`/`guest_role_children`/`guest_user_on_account`). New
@@ -302,7 +323,7 @@ supplied explicitly by the domain layer on create (no server-side-default landmi
 list (paginated) → delete → post-delete NotFound. 19/19 sqlite tests green, fmt clean, full-mode
 unaffected, standalone binary builds. Not committed yet.
 
-**SM-T15 result — licensed_resource + ProfileFetching:** `sqlite/{models,repositories}/
+**SM-T15 result — licensed_resource + ProfileFetching:** `adapters/diesel_sqlite/src/{models,repositories}/
 {licensed_resource,licensed_resources,profile}`. `list_licensed_resources` builds a dynamic raw SQL
 query against the `licensed_resources` view (dynamic filter count/type defeats diesel's static
 `.bind()` chain) — postgres interpolates every value (including user-controlled email/role name)
@@ -321,7 +342,7 @@ correction in SM-T11 (verify the *actual* stored value, don't assume the input s
 persisted). 21/21 sqlite tests green, fmt clean, full-mode unaffected, standalone binary builds. Not
 committed yet.
 
-**SM-T16 result — encryption_key (closes G2's per-entity repo work):** `sqlite/repositories/
+**SM-T16 result — encryption_key (closes G2's per-entity repo work):** `adapters/diesel_sqlite/src/repositories/
 encryption_key.rs` (no dedicated model — reuses the SM-T8 `tenant` model/schema; `EncryptionKeyFetching`
 stores the wrapped DEK in `tenant.encrypted_dek`). Straightforward, single-file port: fetch the tenant
 row (system tenant via `SYSTEM_TENANT_ID = Uuid::nil()` when no tenant is given), unwrap the existing

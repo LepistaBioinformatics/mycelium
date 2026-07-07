@@ -16,8 +16,8 @@
 ### Database
 - **PostgreSQL** (primary data store via Diesel)
 - **Diesel** (ORM framework)
-  - With custom schema definitions (`adapters/diesel/src/schema`)
-  - SQL migrations (`adapters/diesel/sql/up.sql`)
+  - With custom schema definitions (`adapters/diesel_postgres/src/schema`)
+  - SQL migrations (`adapters/diesel_postgres/sql/up.sql`)
   - Connection pooling via `DieselDbPoolProvider`
   - Version: 8.3.1-beta.5
 

@@ -269,20 +269,41 @@ end-to-end.
 | Execute — SM-T14 (error_code) | ✅ Done (committed `978df130`) |
 | Execute — SM-T15 (licensed_resource + ProfileFetching) | ✅ Done (committed `46904cfc`) |
 | Execute — SM-T16 (encryption_key — closes G2 per-entity repos) | ✅ Done, verified |
+| Architectural correction — extract SQLite adapter into `adapters/diesel_sqlite` (own crate, not nested in `mycelium-diesel`) | ✅ Done, verified |
 | Execute — SM-T17 (SqlAppModule sqlite wiring — barrier) | ⏳ Next |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
 and the both-features failure. `fmt --check` clean. Not committed yet (awaiting user test/approval).
 
-**SM-T7 result:** `adapters/diesel/src/sqlite/{models,repositories}/` account + account_tag trees
-(details + landmines in tasks.md SM-T7 result block). Key reusable lessons for T8+: enable
-`diesel/returning_clauses_for_sqlite_3_35`; `account_type::jsonb @>` needs case-by-case full-equality
-vs. `json_extract` partial-match analysis, don't assume uniform rewrite; `NaiveDateTime` Display/FromStr
-aren't symmetric (use the new `naive_timestamp_{to,from}_text` pair); tables with
-`DEFAULT gen_random_uuid()` on postgres need the app to supply the id explicitly on sqlite inserts.
-Integration test pattern established: `sqlite/test_support.rs` (temp DB + migrations) +
-per-entity lifecycle test. Not committed yet (awaiting user test/approval).
+**SM-T7 result:** `adapters/diesel_sqlite/src/{models,repositories}/` account + account_tag trees
+(details + landmines in tasks.md SM-T7 result block; path shown post architectural-correction — see
+below). Key reusable lessons for T8+: enable `diesel/returning_clauses_for_sqlite_3_35`;
+`account_type::jsonb @>` needs case-by-case full-equality vs. `json_extract` partial-match analysis,
+don't assume uniform rewrite; `NaiveDateTime` Display/FromStr aren't symmetric (use the new
+`naive_timestamp_{to,from}_text` pair); tables with `DEFAULT gen_random_uuid()` on postgres need the
+app to supply the id explicitly on sqlite inserts. Integration test pattern established:
+`test_support.rs` (temp DB + migrations) + per-entity lifecycle test. Not committed yet (awaiting user
+test/approval).
+
+**Architectural correction (post SM-T16):** the user flagged that SM-T3..T16 were built as a
+`#[cfg(feature="sqlite")]`-gated `sqlite/` submodule nested inside `mycelium-diesel` — a structural
+error, since every other adapter (`kv_db`, `mem_db`, `notifier`, `service`, `shared`) is its own
+sibling crate under `adapters/`. Extracted the SQLite adapter into a new crate **`adapters/diesel_sqlite`**
+(package `mycelium-diesel-sqlite`, lib `myc_diesel_sqlite`): moved all `sqlite/*` source + migrations,
+flattened `crate::sqlite::` → `crate::` across 68 files, reverted `mycelium-diesel`
+(`adapters/diesel`, later renamed to `adapters/diesel_postgres` to mirror `diesel_sqlite`'s naming —
+package/lib names unchanged: `mycelium-diesel`/`myc_diesel`) to a plain unconditional Postgres-only
+crate (no features, no cfg-gating), added
+`mycelium-diesel-sqlite = { path = "adapters/diesel_sqlite" }` to the workspace
+`[workspace.dependencies]` (picked up automatically by the `adapters/*` members glob). Verified:
+`cargo build`/`test -p mycelium-diesel-sqlite` (22 tests green), `cargo build -p mycelium-diesel`
+clean, `cargo build --workspace` clean, `cargo test --workspace --all` (0 failed across all crates),
+`cargo fmt --all -- --check` clean (after `cargo fmt --all` reflowed the shortened `crate::` paths),
+and `cargo build -p mycelium-api --no-default-features --features standalone` unaffected. **Standing
+rule for all future adapter work in this codebase: new backend adapters are always separate sibling
+crates under `adapters/`, never a feature-gated submodule nested inside an existing adapter crate**
+(applies to SM-T18's future cache crate too). Not committed yet (awaiting user test/approval).
 
 **SM-T8 result:** tenant + tenant_tag SQLite repos, reusing `account/shared.rs::created_at_from_text`
 and `json_array_to_text`/`from_text`. Found and fixed a missing `joinable!(owner_on_tenant -> user
@@ -325,14 +346,15 @@ check for server-side defaults before writing a SQLite insert**).
 have SQLite equivalents; `session_token` excluded as dead code).
 
 **Next action:** SM-T17 — `SqlAppModule` (sqlite) shaku wiring, the barrier task assembling every
-`sqlite::repositories::*` component built so far into one shaku module (mirroring postgres's
-`SqlAppModule` in `adapters/diesel/src/repositories/mod.rs`), gated `#[cfg(feature="sqlite")]`. This
-closes G2. Then G3 (SM-T18/19 — moka cache), G4 (SM-T20/21 — local email transport), G5 (SM-T22 —
-autogen secrets), G6 (SM-T23/24 — standalone config + cfg-gated `initialize_modules`, finally wiring
-sqlite into `ports/api`), G7 (SM-T25/26 — Dockerfile + E2E smoke), G8 (SM-T27 — docs), per user's
-"continue to completion" directive. Build gate every step: full `cargo test --workspace` (postgres) +
-`cargo test -p mycelium-diesel --no-default-features --features sqlite` + `cargo fmt --all --
---check` + standalone binary build.
+`repositories::*` component built so far into one shaku module (mirroring postgres's `SqlAppModule`
+in `adapters/diesel_postgres/src/repositories/mod.rs`), now authored in
+`adapters/diesel_sqlite/src/repositories/mod.rs` — plain module, no cfg-gating (own crate). This
+closes G2. Then G3 (SM-T18/19 — moka cache, **its own sibling crate under `adapters/`**), G4
+(SM-T20/21 — local email transport), G5 (SM-T22 — autogen secrets), G6 (SM-T23/24 — standalone
+config + cfg-gated `initialize_modules`, finally wiring `mycelium-diesel-sqlite` into `ports/api`),
+G7 (SM-T25/26 — Dockerfile + E2E smoke), G8 (SM-T27 — docs), per user's "continue to completion"
+directive. Build gate every step: full `cargo build --workspace` + `cargo test --workspace --all` +
+`cargo fmt --all -- --check` + standalone binary build.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).

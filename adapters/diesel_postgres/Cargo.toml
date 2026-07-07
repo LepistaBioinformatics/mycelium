@@ -1,0 +1,55 @@
+[package]
+name = "mycelium-diesel"
+description = "Provide diesel adapters to the mycelium project."
+
+version = "8.3.1-rc.5"
+
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+readme.workspace = true
+
+
+[dependencies]
+
+diesel = { version = "2", features = [
+    "postgres",
+    "uuid",
+    "serde_json",
+    "chrono",
+    "r2d2",
+] }
+
+async-trait.workspace = true
+base64.workspace = true
+chrono.workspace = true
+env_logger.workspace = true
+futures.workspace = true
+lazy_static.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+shaku.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+
+# ------------------------------------------------------------------------------
+# Mycelium packages
+# ------------------------------------------------------------------------------
+
+myc-core.workspace = true
+mycelium-base.workspace = true
+mycelium-config.workspace = true
+
+# ------------------------------------------------------------------------------
+# Dev dependencies
+# ------------------------------------------------------------------------------
+
+
+[lib]
+name = "myc_diesel"
+path = "src/lib.rs"
+crate-type = ["staticlib", "lib"]

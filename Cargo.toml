@@ -120,7 +120,8 @@ mycelium-openapi = { version = "8.3.1-rc.5", path = "lib/openapi" }
 mycelium-http-tools = { version = "8.3.1-rc.5", path = "lib/http_tools" }
 mycelium-memory-db = { version = "8.3.1-rc.5", path = "adapters/mem_db" }
 mycelium-service = { version = "8.3.1-rc.5", path = "adapters/service" }
-mycelium-diesel = { version = "8.3.1-rc.5", path = "adapters/diesel" }
+mycelium-diesel = { version = "8.3.1-rc.5", path = "adapters/diesel_postgres" }
+mycelium-diesel-sqlite = { version = "8.3.1-rc.5", path = "adapters/diesel_sqlite" }
 mycelium-notifier = { version = "8.3.1-rc.5", path = "adapters/notifier" }
 mycelium-adapters-shared-lib = { version = "8.3.1-rc.5", path = "adapters/shared" }
 mycelium-key-value = { version = "8.3.1-rc.5", path = "adapters/kv_db" }

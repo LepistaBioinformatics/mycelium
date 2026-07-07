@@ -30,7 +30,7 @@ Separation of responsibility into single-trait files:
 
 Observed in:
 - `core/src/domain/entities/user/` (trait definitions)
-- `adapters/diesel/src/repositories/user/` (implementations)
+- `adapters/diesel_postgres/src/repositories/user/` (implementations)
 - `adapters/notifier/src/repositories/` (email implementations)
 
 ### Directory Hierarchy
@@ -173,7 +173,7 @@ Found in:
 4. **Adapter/library imports** (shaku, traits)
 5. **Standard library imports**
 
-Example from `adapters/diesel/src/repositories/user/user_registration.rs`:
+Example from `adapters/diesel_postgres/src/repositories/user/user_registration.rs`:
 ```rust
 use crate::{                          // Adapter-local
     models::{...},
@@ -214,7 +214,7 @@ Example:
 pub use user_registration::*;    // Public export
 pub use user_fetching::*;
 
-// adapters/diesel/src/repositories/user/mod.rs
+// adapters/diesel_postgres/src/repositories/user/mod.rs
 pub(super) use user_registration::*;  // Only visible to parent (repositories/)
 pub(super) use user_fetching::*;
 ```

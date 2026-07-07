@@ -2747,10 +2747,29 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "diesel",
- "diesel_migrations",
  "env_logger 0.10.2",
  "futures",
  "lazy_static",
+ "myc-core",
+ "mycelium-base",
+ "mycelium-config",
+ "serde",
+ "serde_json",
+ "shaku",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "mycelium-diesel-sqlite"
+version = "8.3.1-rc.5"
+dependencies = [
+ "async-trait",
+ "base64 0.22.1",
+ "chrono",
+ "diesel",
+ "diesel_migrations",
  "libsqlite3-sys",
  "myc-core",
  "mycelium-base",
