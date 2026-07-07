@@ -47,13 +47,20 @@ Legend for each task: **What / Where / Depends on / Reuses / Done when / Tests**
 
 ## G2 — SQLite persistence (dominant effort — OC-3/OC-4)
 
-### SM-T3 — SQLite deps behind `sqlite` feature on `myc-diesel`
+### SM-T3 — SQLite deps behind `sqlite` feature on `myc-diesel` — ✅ Done (verified, pending commit)
 - **What:** Add `diesel` `sqlite` feature, `libsqlite3-sys` (`bundled`), `diesel_migrations`, gated by
   a `sqlite` feature on the crate. Keep `postgres` as default feature. No models yet.
 - **Where:** `adapters/diesel/Cargo.toml`.
 - **Depends on:** SM-T1.
 - **Done when:** crate builds under `--features sqlite` and (default) `--features postgres` independently.
 - **Tests:** compile-only both features.
+- **Result:** `myc-diesel` features `default=["postgres"]`, `postgres=["diesel/postgres"]`,
+  `sqlite=["diesel/sqlite","libsqlite3-sys/bundled","dep:diesel_migrations"]`. `diesel` now declares
+  only backend-agnostic features; `libsqlite3-sys 0.30 (bundled)` + `diesel_migrations 2` added as
+  optional. Existing schema/models/migration/repositories gated behind `#[cfg(feature="postgres")]`
+  in `lib.rs` so sqlite-only compiles empty. **Verified via `cargo tree`:** sqlite build pulls
+  `libsqlite3-sys` and NO `pq-sys` (no libpq); postgres build pulls `pq-sys`. Full-mode
+  build/test/fmt all green.
 
 ### SM-T4 — SQLite pool provider + connection pragmas
 - **What:** `Pool<ConnectionManager<SqliteConnection>>` provider mirroring `DieselDbPoolProvider`;

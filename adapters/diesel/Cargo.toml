@@ -13,15 +13,23 @@ categories.workspace = true
 readme.workspace = true
 
 
+[features]
+default = ["postgres"]
+
+# Full mode: PostgreSQL backend (links libpq).
+postgres = ["diesel/postgres"]
+
+# Standalone mode: SQLite backend with libsqlite3 compiled into the binary
+# (no system libsqlite runtime dep) + embedded migrations for auto-provisioning.
+sqlite = ["diesel/sqlite", "libsqlite3-sys/bundled", "dep:diesel_migrations"]
+
 [dependencies]
 
-diesel = { version = "2", features = [
-    "postgres",
-    "uuid",
-    "serde_json",
-    "chrono",
-    "r2d2",
-] }
+# Backend features (postgres/sqlite) are selected via this crate's own features
+# above; keep only backend-agnostic diesel features enabled unconditionally.
+diesel = { version = "2", features = ["uuid", "serde_json", "chrono", "r2d2"] }
+libsqlite3-sys = { version = "0.30", features = ["bundled"], optional = true }
+diesel_migrations = { version = "2", optional = true }
 
 async-trait.workspace = true
 base64.workspace = true

@@ -247,16 +247,17 @@ tasks land.
 | Design (design.md — compile-time feature, SQLite/moka/email/secrets/docker) | ✅ Done |
 | Tasks (tasks.md — 27 tasks, 8 groups; critical path G2 SQLite) | ✅ Done |
 | Execute — SM-T1 (feature scheme + guards) | ✅ Done (committed `ce493b53`) |
-| Execute — SM-T2 (CI builds both targets) | ✅ Done, verified |
-| Execute — SM-T3… (G2 SQLite critical path) | ⏳ Next |
+| Execute — SM-T2 (CI builds both targets) | ✅ Done (committed `4f7f9354`) |
+| Execute — SM-T3 (sqlite feature on `myc-diesel`; backend isolation verified) | ✅ Done, verified |
+| Execute — SM-T4… (SQLite pool provider) | ⏳ Next |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
 and the both-features failure. `fmt --check` clean. Not committed yet (awaiting user test/approval).
 
-**Next action:** SM-T3 (G2 critical path) — add SQLite deps behind a `sqlite` feature on `myc-diesel`
-(`libsqlite3-sys` bundled, `diesel_migrations`), keeping `postgres` default. Build gate from G1 on:
-also `cargo build -p mycelium-api --no-default-features --features standalone`.
+**Next action:** SM-T4 — SQLite pool provider (`Pool<ConnectionManager<SqliteConnection>>`) +
+`CustomizeConnection` pragmas (WAL, foreign_keys, busy_timeout), gated `#[cfg(feature="sqlite")]` in
+`myc-diesel`. Build gate from G1 on: also `cargo build -p mycelium-api --no-default-features --features standalone`.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).
