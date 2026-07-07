@@ -84,25 +84,37 @@ Spec: `.claude/specs/features/magic-link-auth/`
 - JWT identical to password-based login (`iss: "mycelium"`, HS512)
 - Fix: `BEGINNERS_ACCOUNTS_CREATE` RPC dispatcher accepts internal provider
 
-**Standalone Mode** - SPECIFIED
+**Standalone Mode** - IMPLEMENTED (SM-T1..T25 done; SM-T26's full E2E scenario partially covered)
 
-Spec: `.claude/specs/features/standalone-mode/` (spec.md + design.md, 2026-07-06)
+Spec: `.claude/specs/features/standalone-mode/` (spec.md + design.md + tasks.md, 2026-07-06/07)
+Docs: `docs/book/src/23-standalone-mode.md`. Tracking issue: #159.
 
-- Run Mycelium with zero external runtime deps: no PostgreSQL, no Redis, no SMTP, no Vault
-  (note: today there are **three** hard boot deps — Postgres + Redis + SMTP — not "single dependency")
-- Auto-provision a local SQLite database via the Diesel `sqlite` backend (embedded migrations,
-  `libsqlite3-sys` bundled). Requires a **parallel SQLite schema + model set** — all tables use
-  Postgres-only Diesel types (`Uuid`, `Timestamptz`, `Jsonb`, `Array`).
-- In-process cache replaces Redis via a **new `moka` adapter** implementing `KVArtifactRead`/`Write`.
-  (Correction: `mem_db` does **not** implement the KV traits — it is a service-catalog cache — so it
-  cannot be "wired" for this; a new adapter is required.)
-- Secrets **auto-generated on first boot and persisted** (OS keyring preferred, encrypted local-file
-  fallback — keyring is usually absent on the container/air-gapped/edge targets).
-- Email falls back to lettre StubTransport (default, logs magic-link URL) or FileTransport (`.eml`).
-- Selected at **compile time** via a `standalone` cargo feature (separate binary/image). Full mode is
-  the default build and stays unchanged. (Correction: a runtime `mode = "standalone"` flag is not
-  feasible — the Postgres-only column types cannot compile against the SQLite backend in one binary.)
-- Single binary, zero infra: ideal for local dev, edge deployments, and small teams
+- Run Mycelium with zero external runtime deps: no PostgreSQL, no Redis, no SMTP, no Vault —
+  **verified end-to-end**, not just built: the standalone binary boots against an empty working dir,
+  auto-provisions its SQLite database, and serves `/health`, confirmed across real process restarts
+  and a real `docker build`/`docker run`/`docker restart` cycle.
+- SQLite backend lives in its own sibling crate, `adapters/diesel_sqlite` (not a feature on the
+  Postgres adapter) — a parallel schema + model set was required, since every table uses
+  Postgres-only Diesel types (`Uuid`, `Timestamptz`, `Jsonb`, `Array`), each mapped to SQLite TEXT
+  with dedicated encode/decode helpers.
+- In-process cache replaces Redis via a new sibling crate, `adapters/moka_cache`, implementing
+  `KVArtifactRead`/`Write` with true per-key TTL (a `moka::Expiry` impl, not the crate's uniform
+  `time_to_live`).
+- Secrets **auto-generated on first boot and persisted** (OS keyring preferred, encrypted
+  AES-256-GCM local-file fallback — keyring is usually absent on container/air-gapped/edge targets;
+  verified this is exactly what happens in a real Docker container).
+- Email falls back to lettre `StubTransport` (default, logs the magic-link URL) or `FileTransport`
+  (`.eml`); SMTP config for standalone builds is a documented fast-follow (currently always resolves
+  to stub).
+- Selected at **compile time** via a `standalone` cargo feature (separate binary/image) — mutually
+  exclusive with the default `postgres-backend` feature via a `compile_error!` guard. A runtime
+  `mode = "standalone"` flag was rejected early: Postgres-only column types cannot compile against
+  the SQLite backend in one binary.
+- Single binary, zero infra: ideal for local dev, edge deployments, and small teams.
+- **Known gap:** internal (database-backed) JWT auth is disabled in the shipped example config —
+  `jwtSecret` isn't yet wired into the autogen-secrets flow the way `tokenSecret`/HMAC are. Extending
+  that, then scripting the full magic-link → add-route → proxy smoke test, is the next slice of work
+  on this feature.
 
 **Messaging Platform Identity Providers (WhatsApp + Telegram)** - PLANNED
 

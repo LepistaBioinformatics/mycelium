@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-04-23T13:28:45-03:00\n"
+"POT-Creation-Date: 2026-07-07T20:50:36-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -43,91 +43,96 @@ msgstr "Implantação"
 msgid "Deploy Locally"
 msgstr "Implantação Local"
 
-#: src/SUMMARY.md:15
+#: src/SUMMARY.md:14 src/23-standalone-mode.md:1
+#, fuzzy
+msgid "Standalone Mode"
+msgstr "Códigos de erro padrão:"
+
+#: src/SUMMARY.md:16
 msgid "Core Concepts"
 msgstr "Conceitos Fundamentais"
 
-#: src/SUMMARY.md:17 src/01-authorization.md:1
+#: src/SUMMARY.md:18 src/01-authorization.md:1
 msgid "Authorization Model"
 msgstr "Modelo de Autorização"
 
-#: src/SUMMARY.md:18 src/11-authentication-flows.md:1
+#: src/SUMMARY.md:19 src/11-authentication-flows.md:1
 msgid "Authentication Flows"
 msgstr "Fluxos de Autenticação"
 
-#: src/SUMMARY.md:19 src/15-account-types.md:1
+#: src/SUMMARY.md:20 src/15-account-types.md:1
 msgid "Account Types and Roles"
 msgstr "Tipos de Conta e Papéis"
 
-#: src/SUMMARY.md:20 src/06-downstream-apis.md:1
+#: src/SUMMARY.md:21 src/06-downstream-apis.md:1
 msgid "Downstream APIs"
 msgstr "APIs Downstream"
 
-#: src/SUMMARY.md:22
+#: src/SUMMARY.md:23
 msgid "Advanced Topics"
 msgstr "Tópicos Avançados"
 
-#: src/SUMMARY.md:24 src/10-alternative-idps.md:1
+#: src/SUMMARY.md:25 src/10-alternative-idps.md:1
 msgid "Alternative Identity Providers"
 msgstr "Provedores de Identidade Alternativos"
 
-#: src/SUMMARY.md:25 src/12-response-callbacks.md:1
+#: src/SUMMARY.md:26 src/12-response-callbacks.md:1
 msgid "Response Callbacks"
 msgstr "Callbacks de Resposta"
 
-#: src/SUMMARY.md:26 src/16-webhooks.md:1
+#: src/SUMMARY.md:27 src/16-webhooks.md:1
 msgid "Outbound Webhooks"
 msgstr "Webhooks de Saída"
 
-#: src/SUMMARY.md:27 src/17-error-codes.md:1
+#: src/SUMMARY.md:28 src/17-error-codes.md:1
 msgid "Error Codes"
 msgstr "Códigos de Erro"
 
-#: src/SUMMARY.md:28
+#: src/SUMMARY.md:29
 msgid "AI Agent Integration (MCP)"
 msgstr "Integração com Agentes de IA (MCP)"
 
-#: src/SUMMARY.md:29 src/14-json-rpc.md:1
+#: src/SUMMARY.md:30 src/14-json-rpc.md:1
 msgid "JSON-RPC Interface"
 msgstr "Interface JSON-RPC"
 
-#: src/SUMMARY.md:31
+#: src/SUMMARY.md:32
 msgid "Integrations"
 msgstr "Integrações"
 
-#: src/SUMMARY.md:33 src/19-sdk.md:1
+#: src/SUMMARY.md:34 src/19-sdk.md:1
 msgid "SDK Integration Guide"
 msgstr "Guia de Integração do SDK"
 
-#: src/SUMMARY.md:34 src/18-cli.md:1
+#: src/SUMMARY.md:35 src/18-cli.md:1
 msgid "CLI Reference"
 msgstr "Referência da CLI"
 
-#: src/SUMMARY.md:36
+#: src/SUMMARY.md:37
 msgid "Development"
 msgstr "Desenvolvimento"
 
-#: src/SUMMARY.md:38 src/20-encryption-inventory.md:1
+#: src/SUMMARY.md:39 src/20-encryption-inventory.md:1
 msgid "Encryption Inventory"
 msgstr ""
 
-#: src/SUMMARY.md:39 src/21-envelope-encryption-migration.md:1
+#: src/SUMMARY.md:40 src/21-envelope-encryption-migration.md:1
 msgid "Envelope Encryption Migration Guide"
 msgstr ""
 
-#: src/SUMMARY.md:40 src/22-hmac-key-rotation.md:1
+#: src/SUMMARY.md:41 src/22-hmac-key-rotation.md:1
 msgid "HMAC Key Rotation"
 msgstr ""
 
-#: src/SUMMARY.md:41 src/07-running-tests.md:1
+#: src/SUMMARY.md:42 src/07-running-tests.md:1
 msgid "Running Tests"
 msgstr "Executando Testes"
 
-#: src/SUMMARY.md:42 src/08-release-process.md:1
+#: src/SUMMARY.md:43 src/08-release-process.md:1
 msgid "Release Process"
 msgstr "Processo de Lançamento"
 
-#: src/SUMMARY.md:43 src/09-log-cache-tests.md:1
+#: src/SUMMARY.md:44 src/09-log-cache-tests.md:1
 msgid "Log Tests for Cache and Identity Flow"
 msgstr "Testes de Log para Cache e Fluxo de Identidade"
 
@@ -1446,6 +1451,238 @@ msgstr ""
 msgid "[Configuration](./04-configuration.md) — Full config reference"
 msgstr ""
 "[Configuração](./04-configuration.md) — Referência completa de configuração"
+
+#: src/23-standalone-mode.md:3
+msgid ""
+"Standalone mode runs Mycelium with **zero external runtime dependencies**: "
+"no PostgreSQL, no Redis, no SMTP server, no HashiCorp Vault. It is a "
+"separate build of the same gateway, selected at **compile time**, aimed at "
+"local development, edge deployments, and small teams that don't want to run "
+"four services just to try Mycelium out."
+msgstr ""
+
+#: src/23-standalone-mode.md:10
+#, fuzzy
+msgid "What changes"
+msgstr "Mudanças em testes"
+
+#: src/23-standalone-mode.md:12
+#, fuzzy
+msgid "Full mode"
+msgstr "Jornada completa"
+
+#: src/23-standalone-mode.md:12
+#, fuzzy
+msgid "Standalone mode"
+msgstr "Códigos de erro padrão:"
+
+#: src/23-standalone-mode.md:14
+msgid "PostgreSQL (`adapters/diesel_postgres`)"
+msgstr ""
+
+#: src/23-standalone-mode.md:14
+msgid "SQLite, auto-provisioned on first boot (`adapters/diesel_sqlite`)"
+msgstr ""
+
+#: src/23-standalone-mode.md:15
+msgid "Redis-backed cache (`adapters/kv_db`)"
+msgstr ""
+
+#: src/23-standalone-mode.md:15
+msgid ""
+"In-process cache via [moka](https://docs.rs/moka) (`adapters/moka_cache`)"
+msgstr ""
+
+#: src/23-standalone-mode.md:16
+msgid "SMTP (`lettre` `SmtpTransport`)"
+msgstr ""
+
+#: src/23-standalone-mode.md:16
+msgid "Stub transport (logs to stdout) or file transport (`.eml` files)"
+msgstr ""
+
+#: src/23-standalone-mode.md:17
+msgid "HashiCorp Vault"
+msgstr ""
+
+#: src/23-standalone-mode.md:17
+#, fuzzy
+msgid "Not used"
+msgstr "Não obrigatório"
+
+#: src/23-standalone-mode.md:18
+msgid "Operator-provided `tokenSecret`/HMAC secrets"
+msgstr ""
+
+#: src/23-standalone-mode.md:18
+msgid ""
+"Auto-generated on first boot, persisted (keyring or an encrypted local file)"
+msgstr ""
+
+#: src/23-standalone-mode.md:20
+msgid ""
+"Everything else — the REST/JSON-RPC API, authentication flows, webhooks, MCP "
+"integration — is identical. The two builds share the same `core` domain "
+"logic; only the adapters wired in `ports/api/src/main.rs`'s "
+"`initialize_modules` differ."
+msgstr ""
+
+#: src/23-standalone-mode.md:26
+#, fuzzy
+msgid "Building and running"
+msgstr "Agrupamento e ordenação"
+
+#: src/23-standalone-mode.md:32
+msgid ""
+"`--no-default-features` is required — Cargo features are additive, and the "
+"default `postgres-backend` feature would otherwise stay enabled and trip a "
+"`compile_error!` guard (the two are mutually exclusive; a single binary "
+"cannot link both Postgres-only and SQLite-only Diesel column types)."
+msgstr ""
+
+#: src/23-standalone-mode.md:37
+msgid ""
+"Copy `settings/config.standalone.example.toml` and point `SETTINGS_PATH` at "
+"your copy:"
+msgstr ""
+
+#: src/23-standalone-mode.md:40
+#, fuzzy
+msgid "./config.toml"
+msgstr "settings/config.toml"
+
+#: src/23-standalone-mode.md:43
+msgid ""
+"A minimal standalone config needs only `[core.accountLifeCycle]`, "
+"`[sqlite]`, `[queue]`, `[auth]`, and `[api]` — no `[redis]`, `[smtp]`, or "
+"`[vault]` sections exist in standalone builds at all (the corresponding Rust "
+"types aren't even compiled in)."
+msgstr ""
+
+#: src/23-standalone-mode.md:47
+#, fuzzy
+msgid "Docker"
+msgstr "Com Docker:"
+
+#: src/23-standalone-mode.md:54
+msgid ""
+"The image bakes in `settings/config.standalone.example.toml` as its default "
+"config, with `[sqlite] path` resolving under the mounted `/data` volume — "
+"`docker run` with no extra flags boots out of the box. Mount your own config "
+"with `-e SETTINGS_PATH=/path -v /host/path:/path` for a real deployment."
+msgstr ""
+
+#: src/23-standalone-mode.md:61
+#, fuzzy
+msgid "Secrets"
+msgstr "`tokenSecret`"
+
+#: src/23-standalone-mode.md:63
+msgid ""
+"`tokenSecret` (the envelope-encryption key derivation source) and the "
+"primary HMAC signing key are resolved on every boot in this order:"
+msgstr ""
+
+#: src/23-standalone-mode.md:66
+msgid ""
+"An explicit value in the config file (`{ env = \"...\" }` or a literal) — "
+"same as full mode."
+msgstr ""
+
+#: src/23-standalone-mode.md:67
+msgid "The OS keyring, if a backend is available."
+msgstr ""
+
+#: src/23-standalone-mode.md:68
+msgid ""
+"An encrypted local file next to the SQLite database (`<sqlite-dir>/.secrets/"
+"`), `0600` permissions."
+msgstr ""
+
+#: src/23-standalone-mode.md:69
+msgid ""
+"If none of the above has a value yet: **generate** a new secret and persist "
+"it (keyring first, falling back to the file)."
+msgstr ""
+
+#: src/23-standalone-mode.md:72
+msgid ""
+"Most containers, air-gapped hosts, and CI runners have no keyring/Secret-"
+"Service daemon, so step 3 is the de-facto primary path in practice — this is "
+"expected, not a degraded mode."
+msgstr ""
+
+#: src/23-standalone-mode.md:75
+msgid ""
+"**Back up `.secrets`.** Losing this directory (with no keyring copy) means "
+"losing the ability to decrypt everything the KEK protects and to verify "
+"previously-signed connection strings. Treat it like you would a database "
+"backup."
+msgstr ""
+
+#: src/23-standalone-mode.md:79
+msgid ""
+"Internal (database-backed) JWT authentication is **disabled by default** in "
+"the shipped example config, since it needs its own `jwtSecret` which isn't "
+"yet wired into this autogeneration flow. Enable `[auth.internal]` the same "
+"way you would in full mode once you've configured a secret source for it."
+msgstr ""
+
+#: src/23-standalone-mode.md:86
+msgid "Known limitations"
+msgstr ""
+
+#: src/23-standalone-mode.md:88
+msgid ""
+"**No distributed session tracking.** Not a regression today (full mode "
+"doesn't have this either), but future gateway-level rate limiting or retry-"
+"loop detection that needs shared state won't work across multiple standalone "
+"processes."
+msgstr ""
+
+#: src/23-standalone-mode.md:91
+msgid ""
+"**Single instance only — no replication.** The SQLite file and the in-"
+"process cache are node-local. Don't run standalone behind a load balancer "
+"with multiple replicas."
+msgstr ""
+
+#: src/23-standalone-mode.md:93
+msgid ""
+"**The cache does not persist across restarts.** Token _invalidation_ is "
+"durable (it's in SQLite), but the TTL'd profile/JWKS cache starts cold after "
+"a restart and repopulates on demand — a brief cache-miss window, not a "
+"correctness problem."
+msgstr ""
+
+#: src/23-standalone-mode.md:96
+msgid ""
+"**SQLite write concurrency is limited** to one writer at a time (WAL mode is "
+"enabled). Fine for single-instance, low-to-moderate write volume; a "
+"bottleneck under heavy concurrent writes."
+msgstr ""
+
+#: src/23-standalone-mode.md:98
+msgid ""
+"**Email is not actually delivered** in stub mode (the default) — read the "
+"magic-link URL from stdout. File mode writes a `.eml` per message to a "
+"configured directory instead of sending it."
+msgstr ""
+
+#: src/23-standalone-mode.md:100
+msgid ""
+"**The secrets file holds key material in the clear (to the process)** at "
+"rest, protected only by filesystem permissions plus a locally-derived "
+"wrapping key. Protect and back it up (see above)."
+msgstr ""
+
+#: src/23-standalone-mode.md:103
+msgid ""
+"Standalone mode is not a smaller version of full mode's guarantees dressed "
+"up differently — it makes different, documented trade-offs in exchange for "
+"zero external dependencies. Pick the mode that matches your deployment's "
+"actual needs."
+msgstr ""
 
 #: src/01-authorization.md:3
 msgid ""

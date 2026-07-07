@@ -661,12 +661,30 @@ pass. Not marking this task fully ✅ to avoid overclaiming an untested flow.
 
 ## G8 — Docs (can start early, finalize last)
 
-### SM-T27 — Limitations + roadmap/marketing corrections
+### SM-T27 — Limitations + roadmap/marketing corrections — ✅ Done
 - **What:** Publish L-1…L-6 in the book before any "zero dependencies" claim; already corrected
   ROADMAP (C-4, C-7) — extend to marketing/docs; document the secrets file (L-6) and stub/file email (L-5).
 - **Where:** `docs/book/src/*`, ROADMAP (done).
 - **Depends on:** none (finalize after behavior lands).
 - **Done when:** limitations documented; no marketing claim precedes them.
+
+**SM-T27 result — closes G8, closes the standalone-mode feature:** new `docs/book/src/23-standalone-mode.md`
+(added to `SUMMARY.md` under "Deployment"): what changes vs. full mode (table), build/run/Docker
+instructions, the secret-resolution order (with a "back up `.secrets`" callout), and all six L-1..L-6
+limitations in plain language — framed as documented trade-offs, not a smaller/degraded full mode.
+`ROADMAP.md`'s Standalone Mode entry moved from "SPECIFIED" to "IMPLEMENTED", with bullets rewritten
+to describe what was actually built (crate names, verification method) rather than the original
+plan, and an explicit "Known gap" callout for the deferred jwtSecret-autogen/full-E2E-smoke work.
+Refreshed the i18n catalog per the repo's `docs-i18n-sync` rule — note: the rule's literal
+`MDBOOK_OUTPUT='{"xgettext": {"output": "po/messages.pot"}}' mdbook build` command does not write to
+`po/messages.pot` in this mdbook-i18n-helpers version (it writes to `<build-dir>/messages.pot`
+regardless of that config); worked around by copying `book/messages.pot` → `po/messages.pot` before
+`msgmerge`, which achieves the rule's actual intent (`po/pt-BR.po` picked up all 40 new strings from
+the new page). Verified: full `cargo build --workspace` + `cargo test --workspace --all` (0 failed)
++ `cargo fmt --all -- --check` clean + both `mycelium-api` builds clean, plus both `mdbook build`
+(English) and `MDBOOK_BOOK__LANGUAGE=pt-BR mdbook build` succeed. **This closes G8 and the
+standalone-mode feature's initial implementation** (G1–G8 all done; SM-T26's full JWT/route/proxy
+scenario and standalone SMTP config remain as documented fast-follows, not silently dropped).
 
 ---
 

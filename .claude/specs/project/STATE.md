@@ -278,6 +278,7 @@ end-to-end.
 | Execute — SM-T24 (cfg-gated `initialize_modules` + `main()`, autogen secrets wired in) | ✅ Done, verified end-to-end (real boot test, 2 restarts) — closes G6 |
 | Execute — SM-T25 (`Dockerfile.standalone`) | ✅ Done, verified with real `docker build`/`docker run`/`docker restart` |
 | Execute — SM-T26 (zero-config E2E smoke) | ⚠️ Partial — boot+health covered; full JWT/route/proxy flow deferred (needs jwtSecret autogen) |
+| Execute — SM-T27 (docs: `23-standalone-mode.md`, ROADMAP → IMPLEMENTED, i18n sync) | ✅ Done — closes G8 and the feature's initial implementation |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
@@ -484,10 +485,29 @@ disabled since `jwtSecret` isn't yet wired into the autogen-secrets flow (`token
 are; `jwtSecret` would need the same `with_*_override` treatment). Documented as a fast-follow rather
 than silently claimed done.
 
-**Next action:** G8 (SM-T27 — docs: limitations L-1..L-6, roadmap/marketing corrections, document the
-secrets file and stub/file email, note the deferred jwtSecret-autogen/full-E2E-smoke fast-follow),
-per user's "continue to completion" directive. Build gate every step: full `cargo build --workspace`
-+ `cargo test --workspace --all` + `cargo fmt --all -- --check` + standalone binary build.
+**SM-T27 result — closes G8 and the feature:** new `docs/book/src/23-standalone-mode.md` (added to
+`SUMMARY.md`) covers what changes vs. full mode, build/run/Docker instructions, the secret
+resolution order with a backup callout, and all six L-1..L-6 limitations framed as trade-offs, not a
+degraded full mode. `ROADMAP.md`'s entry moved SPECIFIED → IMPLEMENTED with a "Known gap" callout for
+the deferred jwtSecret/full-E2E work. i18n catalog refreshed per the `docs-i18n-sync` rule — found
+that the rule's literal `mdbook`/`MDBOOK_OUTPUT` command doesn't write to `po/messages.pot` in this
+mdbook-i18n-helpers version (writes to `<build-dir>/messages.pot` instead); worked around by copying
+that file into place before `msgmerge`, achieving the rule's actual intent (40 new strings picked up
+in `pt-BR.po`). Verified: full workspace build/test (0 failed), fmt clean, both `mycelium-api` builds
+clean, both English and `pt-BR` `mdbook build` succeed.
+
+**Standalone Mode feature status: G1 through G8 all done.** The zero-external-dependencies gateway
+genuinely boots, auto-provisions its database, and serves requests — verified across bare-metal
+restarts and a real Docker build/run/restart cycle, not just compiled. Two honestly-scoped gaps
+remain as documented fast-follows, not silently dropped: (1) standalone builds have no SMTP config
+surface, so email always resolves to the stub transport; (2) internal JWT auth is disabled by
+default since `jwtSecret` isn't yet wired into the autogen-secrets flow the way `tokenSecret`/HMAC
+are — extending that plus scripting the full magic-link → route → proxy E2E smoke (SM-T26's full
+scenario) is the natural next slice of work if/when needed.
+
+**Next action:** none pending from the standing "continue to completion" directive — the
+standalone-mode feature as scoped in tasks.md is complete. Await user direction on the two documented
+fast-follows or the next feature.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).
