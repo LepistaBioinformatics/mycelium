@@ -84,14 +84,25 @@ Spec: `.claude/specs/features/magic-link-auth/`
 - JWT identical to password-based login (`iss: "mycelium"`, HS512)
 - Fix: `BEGINNERS_ACCOUNTS_CREATE` RPC dispatcher accepts internal provider
 
-**Standalone Mode** - PLANNED
+**Standalone Mode** - SPECIFIED
 
-- Run Mycelium with zero external dependencies: no PostgreSQL, no Redis, no Vault
-- Auto-provision a local SQLite database via a new `sqlite` Diesel adapter
-- In-memory KV store replaces Redis (`mem_db` adapter already exists — wire it)
-- Secrets loaded from local encrypted file instead of Vault
+Spec: `.claude/specs/features/standalone-mode/` (spec.md + design.md, 2026-07-06)
+
+- Run Mycelium with zero external runtime deps: no PostgreSQL, no Redis, no SMTP, no Vault
+  (note: today there are **three** hard boot deps — Postgres + Redis + SMTP — not "single dependency")
+- Auto-provision a local SQLite database via the Diesel `sqlite` backend (embedded migrations,
+  `libsqlite3-sys` bundled). Requires a **parallel SQLite schema + model set** — all tables use
+  Postgres-only Diesel types (`Uuid`, `Timestamptz`, `Jsonb`, `Array`).
+- In-process cache replaces Redis via a **new `moka` adapter** implementing `KVArtifactRead`/`Write`.
+  (Correction: `mem_db` does **not** implement the KV traits — it is a service-catalog cache — so it
+  cannot be "wired" for this; a new adapter is required.)
+- Secrets **auto-generated on first boot and persisted** (OS keyring preferred, encrypted local-file
+  fallback — keyring is usually absent on the container/air-gapped/edge targets).
+- Email falls back to lettre StubTransport (default, logs magic-link URL) or FileTransport (`.eml`).
+- Selected at **compile time** via a `standalone` cargo feature (separate binary/image). Full mode is
+  the default build and stays unchanged. (Correction: a runtime `mode = "standalone"` flag is not
+  feasible — the Postgres-only column types cannot compile against the SQLite backend in one binary.)
 - Single binary, zero infra: ideal for local dev, edge deployments, and small teams
-- Activated via config flag `mode = "standalone"`
 
 **Messaging Platform Identity Providers (WhatsApp + Telegram)** - PLANNED
 

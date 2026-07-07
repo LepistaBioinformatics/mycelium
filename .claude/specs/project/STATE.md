@@ -1,11 +1,41 @@
 # State
 
-**Last Updated:** 2026-04-26
-**Current Work:** M1 — Stability & Safety
+**Last Updated:** 2026-07-06
+**Current Work:** M3 — Standalone Mode (specified; branch `feat/standalone-mode`). M1 ongoing.
 
 ---
 
 ## Recent Decisions (Last 60 days)
+
+### AD-005: Standalone mode is a compile-time feature, not a runtime `mode` flag (2026-07-06)
+
+**Decision:** Standalone (SQLite + moka + stub/file email + autogen secrets) is selected by a
+`standalone` cargo feature, mutually exclusive with the default `postgres-backend`, producing a
+separate binary/image. The roadmap's original `mode = "standalone"` runtime flag is rejected.
+
+**Reason:** Every table's schema uses Postgres-only Diesel SQL types (`Uuid`, `Timestamptz`, `Jsonb`,
+`Array<Text>`, `Array<Jsonb>`). These do not compile against Diesel's SQLite backend. A single
+runtime-switchable binary would require storing them as TEXT in Postgres too, changing full mode
+(violates "don't break full"). `MultiConnection` (Diesel 2.3.7) cannot span `Array`/`Jsonb` either.
+
+**Trade-off:** Two binaries to build/ship; a parallel SQLite schema + model set + SQLite variants of
+~44 repository impls (the dominant cost — close to a second repository-layer implementation).
+
+**Corrections captured in spec:** (a) no Redis pub/sub exists — the only queue is an LPUSH email
+list; (b) no rate-limiting / AI-retry-loop detection exists (brief limitation #1 is moot); (c) token
+invalidation is DB-backed, not Redis (limitation #3 overstated); (d) `mem_db` does not implement the
+KV traits, so a new `moka` adapter is required; (e) today there are 3 hard boot deps (PG+Redis+SMTP),
+not "single dependency (PostgreSQL)".
+
+**Secrets:** auto-generate once and persist (keyring-preferred, encrypted-file fallback). Regenerating
+`token_secret` per restart would rotate the KEK and invalidate all connection strings (see AD-004).
+Open concern: keyring is usually unavailable on the container/air-gapped/edge targets, so the file
+fallback is the de-facto primary path.
+
+**Spec:** `.claude/specs/features/standalone-mode/` (spec.md + design.md + tasks.md — 27 tasks in 8
+groups; critical path is G2 SQLite backend). No implementation yet. All work is on the dedicated
+branch **`feat/standalone-mode`** (gateway submodule) — never `develop` (user instruction 2026-07-06).
+
 
 ### AD-004: HMAC signing key decoupled from `token_secret`; KVR-versioned, no legacy fallback (2026-04-25)
 
@@ -204,6 +234,30 @@ include them in scope.
 
 ## Current Focus
 
+**Standalone Mode — specified, ready for execution** (2026-07-06). Branch **`feat/standalone-mode`**
+(gateway submodule) — NEVER work on `develop` for this feature (user instruction). Spec at
+`.claude/specs/features/standalone-mode/` (spec.md + design.md + tasks.md). See AD-005 for rationale.
+
+| Phase | Status |
+|---|---|
+| Specify (spec.md — requirements + brief corrections C-1…C-7) | ✅ Done |
+| Design (design.md — compile-time feature, SQLite/moka/email/secrets/docker) | ✅ Done |
+| Tasks (tasks.md — 27 tasks, 8 groups; critical path G2 SQLite) | ✅ Done |
+| Execute | ⏳ Not started |
+
+**Next action:** SM-T1 (feature scaffolding + `compile_error!` mutual-exclusion guard) — low risk, no
+behavior change. Build gate from G1 on: also `cargo build --no-default-features --features standalone`.
+
+**Needs / reminders to resume:**
+- Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).
+- G2 (SQLite backend) is the dominant cost — ~44 repo impls, two portability axes (types + JSON1
+  pg-isms per OC-4). Land per-entity groups incrementally, full mode green throughout.
+- Secrets must be generated once and persisted (regenerating rotates the KEK — see AD-004); keyring
+  usually absent on targets → encrypted-file fallback is primary (OC-2).
+- Commit-validation rule stands: no code commit until the user tests and approves.
+
+---
+
 **HMAC Key Rotation — shipped** (2026-04-25). Spec `.claude/specs/features/hmac-key-rotation/`
 at the monorepo root. PR #151 merged into `develop` (gateway HEAD `aae89c96`); monorepo
 pointer `e955f50` on `main`.
@@ -332,7 +386,8 @@ All 13 workspace crates confirmed to exist on crates.io (no name conflicts). Wor
 
 ## Todos
 
-_(none)_
+- **Release pipeline hardening** — spec at `features/release-pipeline-hardening/spec.md` (2026-07-06). Root cause of GHCR↔GitHub-Release desync: no workflow creates GitHub Releases (only tags). Spec also covers crates.io Trusted Publishing (OIDC, drop long-lived `CARGO_REGISTRY_TOKEN`), image provenance + cosign signing, `workflow_dispatch` ref bug, and `v`-prefix naming drift. Next: Design → Tasks.
+- Retroactively create GitHub Releases for `8.3.0`+ tags and publish/discard the stale `8.3.1-rc.2` Draft.
 
 ---
 
