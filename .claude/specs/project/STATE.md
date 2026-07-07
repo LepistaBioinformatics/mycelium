@@ -253,8 +253,9 @@ tasks land.
 | Execute — SM-T7 (account + account_tag SQLite repos, block 1/3) | ✅ Done (committed `5721c643`) |
 | Execute — SM-T8 (tenant + tenant_tag SQLite repos, block 2/3) | ✅ Done (committed `34300a06`) |
 | Execute — SM-T9 (user, block 3/3 — closes block 1) | ✅ Done (committed `2f7ad14a`) |
-| Execute — SM-T10 (token; session_token confirmed dead code, skipped) | ✅ Done, verified |
-| Execute — SM-T11… (guest_role/guest_user) | ⏳ Next |
+| Execute — SM-T10 (token; session_token confirmed dead code, skipped) | ✅ Done (committed `7a050e83`) |
+| Execute — SM-T11 (guest_role + guest_user + guest_user_on_account) | ✅ Done, verified |
+| Execute — SM-T12… (message) | ⏳ Next |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
@@ -294,15 +295,26 @@ two-phase-consumption test. Also closed a latent SQL-injection gap: postgres's t
 token_deletion build raw SQL via inconsistent string interpolation (2 of 4 methods escape quotes, 2
 don't); the SQLite port binds all parameters uniformly instead.
 
-**Next action:** SM-T11 (guest_role/guest_user + guest_user_on_account, incl.
-`permit_flags`/`deny_flags Array<Text>` — first real use of `string_array_to_text`/`from_text`).
-Then SM-T12 (message), SM-T13 (webhook), SM-T14 (error_code), SM-T15 (licensed_resource +
-ProfileFetching), SM-T16 (encryption_key), SM-T17 (SqlAppModule sqlite wiring — barrier, needs
-T7-T16 all done, T10's session_token exclusion means the sqlite module binds one fewer component
-than postgres's, which is correct since nothing resolves it). Then G3-G8 (moka, email, secrets,
-config wiring, packaging, docs) per user's "continue to completion" directive. Build gate every step:
-full `cargo test --workspace` (postgres) + `cargo test -p mycelium-diesel --no-default-features
---features sqlite` + `cargo fmt --all -- --check` + standalone binary build.
+**SM-T11 result:** guest_role + guest_user + guest_user_on_account done. Key lesson (see tasks.md
+SM-T11 result for full detail): **timestamp convention is per-table, not per-feature** — `guest_user`'s
+own table uses genuine `DateTime<Local>` round-trip (needs `timestamp_to_text`/`from_text`), while
+`guest_role`/`guest_role_children`/`guest_user_on_account` use the naive-reinterpretation convention
+(needs `naive_timestamp_to_text`/`from_text`) — always check the postgres model field type
+(`NaiveDateTime` vs `DateTime<Local>`) before picking a helper, never assume uniformity across a
+whole feature. Also: Diesel's `.nulls_last()` is postgres-only — use `ORDER BY (col IS NULL), col
+DESC` instead. Confirmed `guest_role_children`/`guest_user_on_account` are two more tables relying on
+postgres server-side defaults (`created`) with no SQLite equivalent — explicit `created` on every
+insert into these tables (growing list since SM-T7's `manager_account_on_tenant` finding: **always
+check for server-side defaults before writing a SQLite insert**).
+
+**Next action:** SM-T12 (message — `LocalMessageWrite`/`LocalMessageReading`, feeds the existing
+`email_dispatcher` background task). Then SM-T13 (webhook), SM-T14 (error_code), SM-T15
+(licensed_resource + ProfileFetching), SM-T16 (encryption_key), SM-T17 (SqlAppModule sqlite wiring —
+barrier, needs T7-T16 all done; T10's session_token exclusion means the sqlite module binds one fewer
+component than postgres's, which is correct since nothing resolves it). Then G3-G8 (moka, email,
+secrets, config wiring, packaging, docs) per user's "continue to completion" directive. Build gate
+every step: full `cargo test --workspace` (postgres) + `cargo test -p mycelium-diesel
+--no-default-features --features sqlite` + `cargo fmt --all -- --check` + standalone binary build.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).

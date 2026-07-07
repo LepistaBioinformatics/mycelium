@@ -108,7 +108,7 @@ Each task implements the SQLite variant of that group's `core` port traits, mapp
 - **SM-T8 [P]** — tenant + tenant_tag (incl. `status Array<Jsonb>` → JSON TEXT) — ✅ Done (verified, pending commit)
 - **SM-T9 [P]** — user (`UserRegistration/Fetching/Updating/Deletion`, `mfa` JSONB) — ✅ Done (verified, pending commit) — closes block 1 (account+tenant+user)
 - **SM-T10 [P]** — token + session_token + `TokenInvalidation` (incl. magic-link `jsonb_set`→`json_set`) — ✅ Done (verified, pending commit)
-- **SM-T11 [P]** — guest_role + guest_user (+ on-account) (incl. `permit_flags/deny_flags Array<Text>`)
+- **SM-T11 [P]** — guest_role + guest_user (+ on-account) (incl. `permit_flags/deny_flags Array<Text>`) — ✅ Done (verified, pending commit)
 - **SM-T12 [P]** — message: `LocalMessageWrite` / `LocalMessageReading` (feeds email_dispatcher)
 - **SM-T13 [P]** — webhook (`propagations`, `headers` JSONB)
 - **SM-T14 [P]** — error_code
@@ -231,6 +231,45 @@ integration-tested this pass (lower risk — no JSON-mutation rewrite, only extr
 follow-up test if time allows before G7's E2E smoke.
 
 14/14 sqlite tests green, fmt clean, full-mode unaffected (0 failed), standalone binary builds.
+Not committed yet.
+
+**SM-T11 result — guest_role + guest_user + guest_user_on_account:**
+`sqlite/{models,repositories}/{guest_role,guest_role_children,guest_user,guest_user_on_account}`.
+
+- **First real `Array<Text>` use** (`permit_flags`/`deny_flags`): `string_array_to_text`/`from_text`
+  (already in `sqlite/types.rs` since SM-T6, unused until now) round-trip a `Vec<String>` through a
+  single JSON-array TEXT column.
+- **Mixed timestamp conventions within one feature, confirmed by re-reading the postgres models**:
+  `guest_role`/`guest_role_children`/`guest_user_on_account` use `NaiveDateTime` + the
+  naive-reinterpretation trick (same as blocks 1-2) — but `guest_user`'s own table uses
+  `DateTime<Local>` directly on the model (a genuine postgres TIMESTAMPTZ→Local conversion via
+  diesel's chrono support, confirmed because `guest_user/shared.rs`'s `map_model_to_dto` copies
+  `model.created`/`updated` straight through with **no** `.and_local_timezone()` call — unlike every
+  other entity's mapper). The SQLite port uses `timestamp_to_text`/`timestamp_from_text` (the
+  `DateTime<Utc>`-based, RFC3339-with-offset pair) for `guest_user` only, and
+  `naive_timestamp_to_text`/`from_text` for the other three tables. **Lesson for remaining blocks:
+  always check whether the postgres model field is `NaiveDateTime` or `DateTime<Local>` before
+  picking a timestamp helper — do not assume uniformity.**
+- **Diesel's `.nulls_last()` is postgres-family only**: `guest_role_fetching.rs::list()`'s
+  `ORDER BY updated DESC NULLS LAST` is expressed portably as `ORDER BY (updated IS NULL), updated
+  DESC` (false=0 sorts before true=1, achieving the same "nulls last" effect without a
+  backend-specific combinator).
+- **Another `DEFAULT gen_random_uuid()`/`DEFAULT now()`-reliant insert found**: `guest_role_children`
+  and `guest_user_on_account` both rely on postgres server-side defaults for `created` (and
+  implicitly no `id` column on `guest_role_children`, which uses a composite PK); the SQLite
+  inserts supply `created` explicitly (join the growing list from SM-T7's `manager_account_on_tenant`
+  finding — **treat "does this table have a server-side default in postgres" as a mandatory check
+  before every SQLite insert**, not just an occasional gotcha).
+
+New tests: `guest_role_lifecycle_round_trips_through_sqlite` (create parent+child → fetch → update →
+insert_role_child → verify via both `get` and `get_parent_by_child_id` → remove_role_child → delete)
+and `guest_user_lifecycle_round_trips_through_sqlite` (seed account → create role → create guest user
+→ list → update permit/deny flags → verify via `list_by_guest_role_id` → delete → list again).
+One test-authoring correction: `GuestUserFetching::list()` has **no empty-result guard** in postgres
+either (always `FoundPaginated`, never `NotFound`, even with zero records) — the test initially
+asserted the wrong thing; fixed the test, not the (correct) implementation.
+
+16/16 sqlite tests green, fmt clean, full-mode unaffected (0 failed), standalone binary builds.
 Not committed yet.
 
 ---
