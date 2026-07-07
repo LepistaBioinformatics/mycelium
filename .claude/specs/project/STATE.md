@@ -276,6 +276,8 @@ end-to-end.
 | Execute — SM-T22 (autogen secrets: keyring + encrypted-file fallback) | ✅ Done (committed `a7732274`) — closes G5 |
 | Execute — SM-T23 (standalone config shape) | ✅ Done (committed `fcc08f08`) |
 | Execute — SM-T24 (cfg-gated `initialize_modules` + `main()`, autogen secrets wired in) | ✅ Done, verified end-to-end (real boot test, 2 restarts) — closes G6 |
+| Execute — SM-T25 (`Dockerfile.standalone`) | ✅ Done, verified with real `docker build`/`docker run`/`docker restart` |
+| Execute — SM-T26 (zero-config E2E smoke) | ⚠️ Partial — boot+health covered; full JWT/route/proxy flow deferred (needs jwtSecret autogen) |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
@@ -461,11 +463,31 @@ paths — also booted clean and served, confirming persistence holds across a re
 within one test process. Full workspace build/test (0 failed everywhere), fmt clean, both
 `mycelium-api` builds (default + standalone) clean with zero warnings. Not committed yet.
 
-**Next action:** G7 (SM-T25 — Dockerfile.standalone; SM-T26's smoke-test intent is already
-substantially covered by SM-T24's boot verification above, so T26 should mostly formalize/automate
-what was done manually here), G8 (SM-T27 — docs/limitations/roadmap updates), per user's "continue to
-completion" directive. Build gate every step: full `cargo build --workspace` + `cargo test
---workspace --all` + `cargo fmt --all -- --check` + standalone binary build.
+**SM-T25 result — Dockerfile.standalone, verified with a real Docker daemon (available in this
+environment):** multi-stage build, builder from local source (not `cargo install` — the published
+crate has no `standalone` feature), runtime `debian:bookworm-slim` + `ca-certificates` only, `/data`
+volume, config baked in as the zero-args default. **Real bug caught by an actual build+run**:
+`rust:latest` (builder) produces a binary linked against a newer glibc than `debian:bookworm-slim`
+(runtime) ships — `GLIBC_2.38'/2.39' not found` at container startup. Fixed by pinning the builder to
+`rust:bookworm`. After the fix: `docker build` succeeded (52MB image), `docker run` with a mounted
+volume booted clean, auto-provisioned the SQLite DB, and served `/health`. Because a container
+genuinely has no keyring backend (unlike this session's bare-metal test earlier), the secret resolver
+exercised the **encrypted-file fallback for the first time end-to-end** — `token_secret.secret`/
+`hmac_secret.secret` appeared under `/data/.secrets` with correct `0600` perms, exactly OC-2's
+anticipated primary path. A full `docker restart` (genuine container restart) still served `/health`
+afterward. Test image/container removed post-verification.
+
+**SM-T26 status — partially covered, not fully claimed:** the boot+health portion is solidly covered
+by SM-T24 (2 bare-metal boots) + SM-T25 (Docker boot + restart) above. The full scenario (issue a JWT
+via magic-link, add a route, proxy a request) needs internal auth, which the shipped config leaves
+disabled since `jwtSecret` isn't yet wired into the autogen-secrets flow (`token_secret`/`hmac_secret`
+are; `jwtSecret` would need the same `with_*_override` treatment). Documented as a fast-follow rather
+than silently claimed done.
+
+**Next action:** G8 (SM-T27 — docs: limitations L-1..L-6, roadmap/marketing corrections, document the
+secrets file and stub/file email, note the deferred jwtSecret-autogen/full-E2E-smoke fast-follow),
+per user's "continue to completion" directive. Build gate every step: full `cargo build --workspace`
++ `cargo test --workspace --all` + `cargo fmt --all -- --check` + standalone binary build.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).

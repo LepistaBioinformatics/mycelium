@@ -607,7 +607,7 @@ be sufficient evidence for this task).
 
 ## G7 — Packaging & E2E
 
-### SM-T25 — `Dockerfile.standalone`
+### SM-T25 — `Dockerfile.standalone` — ✅ Done (verified with real `docker build`/`docker run`)
 - **What:** Build `--no-default-features --features standalone`; minimal runtime base (distroless/cc or
   debian-slim) with only binary + templates + `ca-certificates`; NO `libpq-dev`; `/data` volume.
 - **Where:** `Dockerfile.standalone` (+ optionally `docker-release.yml`).
@@ -615,13 +615,47 @@ be sufficient evidence for this task).
 - **Done when:** image builds; `ldd` shows no libpq/libsqlite system deps.
 - **Tests:** image build; `docker run` starts.
 
-### SM-T26 — Zero-config E2E smoke (SM-R13)
+**SM-T25 result:** Multi-stage `Dockerfile.standalone` — builder: `cargo build --release
+--no-default-features --features standalone -p mycelium-api` from local source (not `cargo install`
+like the full-mode `Dockerfile`, since the published crate doesn't carry the `standalone` feature);
+runtime: `debian:bookworm-slim` + `ca-certificates` only, binary + templates + redoc config +
+`settings/config.standalone.example.toml` baked in as the zero-args default (`SETTINGS_PATH` env
+points at it), `/data` volume for the SQLite file + `.secrets` fallback.
+
+**Real bug caught by an actual `docker build` + `docker run`, not just a Dockerfile review**: the
+first build (builder = `rust:latest`) produced a binary that failed to start in the
+`debian:bookworm-slim` runtime with `GLIBC_2.38'/GLIBC_2.39' not found` — `rust:latest` tracks a
+newer Debian release than `bookworm`, so the two stages' glibc versions diverged. Fixed by pinning
+the builder to `rust:bookworm` to match the runtime's glibc.
+
+**Verified end-to-end with the Docker daemon available in this environment** (not simulated):
+`docker build` succeeded (52MB compressed image); `docker run -v <host-dir>:/data -p 18098:8080`
+booted cleanly, auto-provisioned the SQLite database (18 tables) directly under the mounted volume,
+and `GET /health` returned success. Because the container genuinely has no keyring/D-Bus backend
+(unlike this session's bare-metal boot test earlier, which had one), the secret resolver correctly
+exercised the **encrypted-file fallback path** for the first time end-to-end: `token_secret.secret`
+and `hmac_secret.secret` appeared under `/data/.secrets` with `0600` permissions — the exact OC-2
+scenario the design anticipated as the primary real-world path. A full `docker restart` (genuine
+container/process restart, same volume) still booted clean and served `/health`, confirming
+persistence holds. Test image and container removed after verification.
+
+### SM-T26 — Zero-config E2E smoke (SM-R13) — Partially covered; full scenario deferred
 - **What:** `docker run <standalone-image>` with no config → health OK, issue a JWT (magic-link, see URL
   in stdout), add a downstream route, proxy a request.
 - **Where:** test script / docs.
 - **Depends on:** SM-T25.
 - **Done when:** the full onboarding path works under 2 min from a clean run.
 - **Tests:** scripted smoke.
+
+**Status:** the "boot + health OK" portion of this task is now solidly covered by SM-T24/T25's
+verification above (bare-metal boot ×2, Docker boot + restart ×1, all serving `/health`). The
+remaining scenario — **issue a JWT via magic-link, add a downstream route, proxy a request** —
+requires internal auth (`[auth] internal`), which the shipped `config.standalone.example.toml`
+deliberately leaves `"disabled"` (SM-T23's note: internal auth needs its own `jwtSecret`, not yet
+wired into the SM-T22 autogen-secrets flow). Extending `resolve_or_generate_standalone_secret` +
+`with_*_override` to cover `jwtSecret` the same way `token_secret`/`hmac_secret` are handled, then
+scripting the full magic-link → route → proxy flow, is a well-scoped fast-follow — not done in this
+pass. Not marking this task fully ✅ to avoid overclaiming an untested flow.
 
 ---
 
