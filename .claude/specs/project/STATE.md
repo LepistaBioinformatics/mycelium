@@ -271,7 +271,8 @@ end-to-end.
 | Execute — SM-T16 (encryption_key — closes G2 per-entity repos) | ✅ Done, verified |
 | Architectural correction — extract SQLite adapter into `adapters/diesel_sqlite` (own crate, not nested in `mycelium-diesel`); `adapters/diesel` renamed `diesel_postgres` | ✅ Done (committed `c79c1f5d`) |
 | Execute — SM-T17 (SqlAppModule sqlite wiring — barrier, closes G2) | ✅ Done (committed `f1f02d2b`) |
-| Execute — SM-T18/T19 (moka cache: `adapters/moka_cache` crate, KVAppModule, per-key TTL) | ✅ Done, verified — closes G3 |
+| Execute — SM-T18/T19 (moka cache: `adapters/moka_cache` crate, KVAppModule, per-key TTL) | ✅ Done (committed `a341089d`) — closes G3 |
+| Execute — SM-T20/T21 (notifier `local-transport` feature: stub + file transport, SMTP precedence) | ✅ Done, verified — closes G4 |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
@@ -365,18 +366,39 @@ convention as `diesel_sqlite`'s `pub(crate) pool`). `KVAppModule` shaku module n
 3 tests: round trip, `NotFound` on miss, and a **real-time** TTL-expiry test (ttl=1s, sleep 1.2s,
 assert evicted) — not just a compile-time claim that `PerKeyExpiry` works. `moka 0.12.15` resolved
 and compiled clean from crates.io on the first attempt. Verified: 3/3 moka tests, full workspace
-build/test (0 failed), fmt clean, standalone binary unaffected, `kv_db` untouched. Not committed yet.
+build/test (0 failed), fmt clean, standalone binary unaffected, `kv_db` untouched. Committed `a341089d`.
 
-**Next action:** G4 (SM-T20/21 — local email transport via `lettre`'s `local-transport` feature on
-`adapters/notifier` — this one **is** a feature-flag on an *existing* crate, not a new backend, so it
-does not trigger the adapter-crate-separation rule), G5 (SM-T22 — autogen secrets), G6 (SM-T23/24 —
-standalone config + cfg-gated `initialize_modules`, finally wiring `mycelium-diesel-sqlite` and
-`mycelium-moka-cache` into `ports/api` — **the real risk point**: the compile-time
-`postgres-backend`/`standalone` swap must select between two different `SqlAppModule` types AND two
-different `KVAppModule` types at the `initialize_modules` call site, so any downstream code naming
-either concrete module type needs cfg-gating too; also verify whether `mycelium-diesel`'s
-`crate-type = ["staticlib", "lib"]` — absent on `diesel_sqlite`/`moka_cache` — actually matters for
-linking), G7 (SM-T25/26 — Dockerfile + E2E smoke), G8 (SM-T27 — docs), per user's "continue to
+**SM-T20/T21 result — closes G4:** `local-transport` Cargo feature added to the *existing*
+`mycelium-notifier` crate (not a new sibling crate — this is a feature on one crate, one port
+(`RemoteMessageWrite`), not a second storage backend nested in another adapter, so the
+adapter-crate-separation rule doesn't apply here). Correction versus the design doc: lettre 0.11 has
+no `stub-transport` feature — `StubTransport` is always compiled; only `file-transport` needed
+enabling. Extracted `repositories/shared.rs::build_lettre_message` from the existing
+`remote_message_sending.rs` so the new code doesn't duplicate the from/to/builder logic. New
+`local_transport_sending.rs`: `LocalTransportKind` enum wrapping the real `SmtpTransport`/
+`FileTransport`/`StubTransport`, `select_local_transport(smtp, file_dir)` — a pure function
+implementing the SMTP→file→stub precedence (SM-R8) — and one `LocalTransportMessageSendingRepository`
+`RemoteMessageWrite` impl covering all three transports, so SM-T24's DI wiring only ever swaps a
+single component type, matching the two-`SqlAppModule`/two-`KVAppModule` pattern. Wired into a new,
+separate `LocalNotifierAppModule` (cfg-gated) rather than into the existing `NotifierAppModule` —
+shaku doesn't support two components for the same interface in one module, and this keeps full mode's
+module completely untouched (SM-R14). Tests: 3 precedence unit tests, one capturing real `tracing`
+output (custom `MakeWriter`) to prove the stub path logs subject/recipient/body, one sending through a
+real `FileTransport` and reading the `.eml` back to assert it's parseable. Verified: 8/8 notifier
+tests under `--features local-transport`, 3/3 unchanged under default (byte-identical), full
+`cargo build --workspace` + `cargo test --workspace --all` (0 failed) + `fmt` clean, standalone binary
+unaffected. Not committed yet.
+
+**Next action:** G5 (SM-T22 — autogen secrets: keyring + encrypted-file fallback), G6 (SM-T23/24 —
+standalone config + cfg-gated `initialize_modules`, finally wiring `mycelium-diesel-sqlite`,
+`mycelium-moka-cache`, and `mycelium-notifier`'s `LocalNotifierAppModule` into `ports/api` — **the
+real risk point**: the compile-time `postgres-backend`/`standalone` swap must select between two
+different `SqlAppModule` types, two different `KVAppModule` types, AND `NotifierAppModule` vs
+`LocalNotifierAppModule` at the `initialize_modules` call site, so any downstream code naming a
+concrete module type needs cfg-gating too; also verify whether `mycelium-diesel`'s
+`crate-type = ["staticlib", "lib"]` — absent on `diesel_sqlite`/`moka_cache`/unaffected on `notifier`
+— actually matters for linking), G7 (SM-T25/26 — Dockerfile + E2E smoke), G8 (SM-T27 — docs), per
+user's "continue to
 completion" directive. Build gate every step: full `cargo build --workspace` + `cargo test
 --workspace --all` + `cargo fmt --all -- --check` + standalone binary build.
 

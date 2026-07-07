@@ -425,7 +425,7 @@ G3.**
 
 ## G4 — Local email transport
 
-### SM-T20 — lettre `local-transport` feature + StubTransport impl (SM-R7)
+### SM-T20 — lettre `local-transport` feature + StubTransport impl (SM-R7) — ✅ Done (verified, pending commit)
 - **What:** Enable lettre `stub-transport`/`file-transport` under a `local-transport` feature on
   `notifier`. Stub `RemoteMessageWrite` that renders the message and `tracing::info!`s subject,
   recipient, and any magic-link URL.
@@ -435,13 +435,41 @@ G3.**
 - **Done when:** stub impl compiles under `local-transport`; logs contain the magic-link URL.
 - **Tests:** unit — stub send captures/logs body incl. URL.
 
-### SM-T21 — FileTransport impl + transport selection (SM-R8)
+### SM-T21 — FileTransport impl + transport selection (SM-R8) — ✅ Done (verified, pending commit)
 - **What:** File `RemoteMessageWrite` (`.eml` to configured dir). Selection: SMTP if `[smtp]` present →
   else `file` if configured → else stub.
 - **Where:** `adapters/notifier/src/repositories/*`, notifier config.
 - **Depends on:** SM-T20.
 - **Done when:** file mode writes a parseable `.eml`; SMTP still used when configured.
 - **Tests:** unit — file written; selection precedence.
+
+**SM-T20/T21 result — closes G4:** Note on the crate-separation rule: this is a Cargo **feature** on
+an *existing* crate (`local-transport` on `mycelium-notifier`), not a nested backend implementation —
+it doesn't trigger the adapter-crate-separation rule established during G2/G3, because it's not a
+second *storage backend* hidden inside another adapter's crate; it's an additional in-crate transport
+option for the same `RemoteMessageWrite` port, analogous to how `diesel`'s own `postgres` feature was
+always fine (one crate, one backend, no nested submodule). Concretely: `lettre`'s `stub` transport
+module needs no extra feature (always compiled); `file-transport` was the only feature actually
+needed (there is no `stub-transport` feature in lettre 0.11 — the design doc's sketch was slightly
+off, corrected here). Added `adapters/notifier/src/repositories/shared.rs::build_lettre_message`,
+factored out of the existing `remote_message_sending.rs` so the new local-transport repo doesn't
+duplicate the from/to parsing + builder logic. New `local_transport_sending.rs`
+(`#[cfg(feature = "local-transport")]`): `LocalTransportKind` enum (`Smtp`/`File`/`Stub`, wrapping the
+real lettre transport structs), `select_local_transport(smtp, file_dir)` implementing the precedence
+(SMTP → file → stub) as a pure, independently-tested function, and
+`LocalTransportMessageSendingRepository` — one `RemoteMessageWrite` impl for all three lettre
+transports, so DI wiring (SM-T24) only ever swaps a single component type per mode, same pattern as
+the two `SqlAppModule`s and two `KVAppModule`s. Wired into a **separate** `LocalNotifierAppModule`
+shaku module (cfg-gated), not into the existing `NotifierAppModule` — shaku doesn't support two
+components binding the same interface within one module, and this keeps full-mode's
+`NotifierAppModule` completely untouched (SM-R14). 5 new tests: 3 precedence-selection unit tests,
+one capturing real `tracing` output via a custom `MakeWriter` to prove the stub path actually logs
+subject/recipient/body (not just a compile-time claim), and one that sends through a real
+`FileTransport` and reads the `.eml` back off disk to assert it's parseable (contains `Subject:` and
+the body). Verified: 8/8 notifier tests under `--features local-transport`, 3/3 unchanged under
+default (byte-identical full mode — same 3 tests, same behavior), full `cargo build --workspace` +
+`cargo test --workspace --all` (0 failed) + `cargo fmt --all -- --check` clean, standalone
+`mycelium-api` binary unaffected. **This closes G4.**
 
 ---
 

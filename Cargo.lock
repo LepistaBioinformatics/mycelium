@@ -2372,6 +2372,7 @@ dependencies = [
  "socket2 0.6.3",
  "tokio",
  "url",
+ "uuid",
 ]
 
 [[package]]
@@ -2946,6 +2947,7 @@ dependencies = [
  "shaku",
  "tokio",
  "tracing",
+ "tracing-subscriber",
  "uuid",
 ]
 
