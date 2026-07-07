@@ -516,13 +516,32 @@ task. **This closes G5.**
 
 ## G6 — Config + DI wiring
 
-### SM-T23 — Standalone config shape (SM-R10)
+### SM-T23 — Standalone config shape (SM-R10) — ✅ Done (verified, pending commit)
 - **What:** Under `standalone`, make `redis`/`smtp`/`queue`/`vault` optional/absent; interpret DB as a
   SQLite file path (`[sqlite] path` or reused `[diesel]`). Ship `settings/config.standalone.example.toml`.
 - **Where:** `ports/api/src/models/config_handler.rs` (cfg-gated), `settings/`.
 - **Depends on:** SM-T1.
 - **Done when:** standalone parses a minimal TOML; full-mode `ConfigHandler` parsing is unchanged.
 - **Tests:** unit — parse minimal standalone config; full-mode config test still passes.
+
+**SM-T23 result:** `ConfigHandler`'s `diesel`/`smtp`/`queue`/`redis`/`vault` fields (and their
+`init_from_file` loaders) are now `#[cfg(feature = "postgres-backend")]`; `core`/`api`/`auth` stay
+unconditional (identical in both modes — confirmed by grep: nothing outside `main.rs` touches
+`config.diesel`/`.redis`/`.smtp`/`.queue`/`.vault`, so no other file needed changes). Added `sqlite:
+SqliteConfig` under `#[cfg(feature = "standalone")]`, backed by a new `SqliteConfig` type in
+`adapters/diesel_sqlite/src/config.rs` (`path: SecretResolver<String>`, parsed from a dedicated
+`[sqlite]` TOML section rather than overloading `[diesel]`, mirroring `DieselConfig`'s own
+`from_default_config_file` pattern exactly). Shipped `settings/config.standalone.example.toml`: no
+`[smtp]`/`[redis]`/`[queue]`/`[vault]` sections, `[sqlite] path`, `[auth] internal = "disabled"`
+(internal auth needs its own `jwtSecret`, not yet covered by the autogen-secrets flow — deferred, not
+required for the SM-T24/T26 boot/smoke scope), and placeholder `tokenSecret`/`hmacSecrets[].secret`
+values documented as ignored — standalone boot overrides them with the real
+keyring/file-resolved-or-generated secret from SM-T22 immediately after config load (SM-T24), reusing
+`AccountLifeCycle::with_token_secret_override` (already existed, built for `myc-cli rotate-kek`) plus
+a new equivalent for HMAC. Verified: `mycelium-diesel-sqlite`'s new
+`sqlite_config_parses_a_minimal_toml_section` test, full `cargo build --workspace` + `cargo test
+--workspace --all` (0 failed — full-mode `ConfigHandler` parsing genuinely unchanged, not just
+compiling), `cargo fmt --all -- --check` clean, `mycelium-api` (default features) still builds.
 
 ### SM-T24 — cfg-gated `initialize_modules` for standalone (SM-R7 boot, wiring)
 - **What:** Standalone `initialize_modules`: sqlite pool (auto-migrate) → SqlAppModule; moka → KVAppModule;

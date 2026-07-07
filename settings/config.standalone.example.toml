@@ -1,0 +1,87 @@
+# ------------------------------------------------------------------------------
+# STANDALONE MODE CONFIGURATION
+#
+# Zero external runtime dependencies: SQLite instead of Postgres, an
+# in-process moka cache instead of Redis, and a stub/file email transport
+# instead of SMTP. No Vault, no `[redis]`, no `[smtp]`, no `[queue]` section --
+# those adapters are compiled out of the `standalone` binary entirely.
+#
+# Build with: cargo build -p mycelium-api --no-default-features --features standalone
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# CORE CONFIGURATIONS
+#
+# `tokenSecret` and `hmacSecrets[].secret` below are placeholders: standalone
+# mode ignores them and instead resolves (or generates, on first boot) real
+# secrets via the OS keyring / an encrypted local file next to the SQLite
+# database (see SM-R9). The values are never read -- keep them present only
+# because the config file format requires the keys to exist.
+# ------------------------------------------------------------------------------
+
+[core.accountLifeCycle]
+domainName = "Mycelium (standalone)"
+domainUrl = "http://localhost:8080"
+tokenExpiration = 3600                                                # 1 hour
+noreplyName = "Mycelium"
+noreplyEmail = "noreply@localhost"
+supportName = "Mycelium"
+supportEmail = "support@localhost"
+locale = "en-us"
+tokenSecret = "replaced-at-boot-by-standalone-secret-resolution"
+
+hmacPrimaryVersion = 1
+
+[[core.accountLifeCycle.hmacSecrets]]
+version = 1
+secret = "replaced-at-boot-by-standalone-secret-resolution"
+
+[core.webhook]
+acceptInvalidCertificates = true
+consumeIntervalInSecs = 30
+consumeBatchSize = 25
+maxAttempts = 5
+
+# ------------------------------------------------------------------------------
+# SQLITE DATABASE ADAPTER SETTINGS
+#
+# Path to the SQLite database file. Created and migrated automatically on
+# first boot if it does not exist.
+# ------------------------------------------------------------------------------
+
+[sqlite]
+path = "./data/mycelium.db"
+
+# ------------------------------------------------------------------------------
+# AUTHENTICATION SETTINGS
+#
+# Disabled by default so a minimal standalone boot needs no additional
+# secret (internal auth requires its own `jwtSecret`, not yet covered by the
+# standalone autogen-secrets flow). Enable the same way as in full mode --
+# `[auth.internal]` with `jwtExpiresIn`/`tmpExpiresIn`/`jwtSecret` -- once a
+# secret source is configured for it.
+# ------------------------------------------------------------------------------
+
+[auth]
+internal = "disabled"
+
+# ------------------------------------------------------------------------------
+# API PORT SETTINGS
+# ------------------------------------------------------------------------------
+
+[api]
+serviceIp = "0.0.0.0"
+servicePort = 8080
+serviceWorkers = 1
+gatewayTimeout = 60
+
+allowedOrigins = ["http://localhost:8080"]
+
+[api.logging]
+level = "mycelium_base=info,myc_api=info,myc_config=info,myc_core=info,myc_http_tools=info,actix_web=info,myc_notifier=info,myc_diesel_sqlite=info,myc_moka_cache=info"
+format = "ansi"
+target = "stdout"
+
+tls = "disabled"
+
+routes = []

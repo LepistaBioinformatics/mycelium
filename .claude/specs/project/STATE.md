@@ -402,20 +402,46 @@ invalidates every persisted connection string). Fixed by verifying every keyring
 immediate read-back before trusting it; falls through to the file otherwise. 8 tests, including the
 full first-boot-generate/second-boot-reuse lifecycle re-run 5x to confirm the fix isn't flaky.
 Verified: 8/8 config tests, full workspace build/test (0 failed), fmt clean, standalone binary
-unaffected. `ports/api` wiring is SM-T24, not this task. Not committed yet.
+unaffected. Committed `a7732274`.
 
-**Next action:** G6 (SM-T23/24 —
-standalone config + cfg-gated `initialize_modules`, finally wiring `mycelium-diesel-sqlite`,
-`mycelium-moka-cache`, and `mycelium-notifier`'s `LocalNotifierAppModule` into `ports/api` — **the
-real risk point**: the compile-time `postgres-backend`/`standalone` swap must select between two
-different `SqlAppModule` types, two different `KVAppModule` types, AND `NotifierAppModule` vs
-`LocalNotifierAppModule` at the `initialize_modules` call site, so any downstream code naming a
-concrete module type needs cfg-gating too; also verify whether `mycelium-diesel`'s
-`crate-type = ["staticlib", "lib"]` — absent on `diesel_sqlite`/`moka_cache`/unaffected on `notifier`
-— actually matters for linking), G7 (SM-T25/26 — Dockerfile + E2E smoke), G8 (SM-T27 — docs), per
-user's "continue to
-completion" directive. Build gate every step: full `cargo build --workspace` + `cargo test
---workspace --all` + `cargo fmt --all -- --check` + standalone binary build.
+**Refactor before SM-T23/24 — `active_backend_modules` indirection (committed `6ecfeeec`):** the
+advisor flagged SM-T24 as the real risk point — 46 files reference `SqlAppModule` directly, 3
+reference `KVAppModule`, all via `req.app_data::<web::Data<X>>()`/`.resolve_ref()` (pure shaku
+resolution, no construction logic). Introduced
+`ports/api/src/models/active_backend_modules.rs` as a single cfg-gated re-export point and redirected
+every one of those files to import from it instead of the concrete adapter crate. `NotifierAppModule`
+and `SharedAppModule` are referenced ONLY from `main.rs` (confirmed by grep), so they need no such
+indirection — `main.rs` can cfg-branch its own imports directly. `MemDbAppModule` (13 files) is
+backend-agnostic and untouched in both modes. This step alone is a pure refactor (postgres branch
+only, so far) — verified full-mode byte-identical (all tests, same counts, before/after).
+
+**SM-T23 result (committed pending):** see tasks.md SM-T23 result for full detail. `ConfigHandler`
+cfg-gated (`diesel`/`smtp`/`queue`/`redis`/`vault` under `postgres-backend`, new `sqlite: SqliteConfig`
+under `standalone`); new `SqliteConfig` type in `adapters/diesel_sqlite/src/config.rs`; shipped
+`settings/config.standalone.example.toml` (no smtp/redis/queue/vault, `[sqlite] path`, `[auth]
+internal = "disabled"` for now, placeholder token/hmac secrets documented as boot-time-overridden).
+Also registered `mycelium-diesel-sqlite`/`mycelium-moka-cache` as optional deps on `ports/api` gated
+by `standalone`, and wired `standalone` to enable `mycelium-notifier/local-transport` +
+`mycelium-config/standalone-secrets`.
+
+**Next action:** SM-T24 — the actual `initialize_modules`/`main()` cfg-split: build the SQLite pool
+(auto-migrate on boot) → `SqlAppModule`; moka → `KVAppModule` (needs
+`.with_component_parameters::<MokaCacheProviderImpl>(...)` since that field has no `#[shaku(default)]`);
+`LocalNotifierAppModule` (no `SharedClientImpl`/Redis needed for it); drop `SharedAppModule`/`shared_module`
+entirely for standalone builds (nothing else references it); resolve token_secret + hmac secret via
+`resolve_or_generate_standalone_secret` and inject via `AccountLifeCycle::with_token_secret_override`
+(already exists, built for `myc-cli rotate-kek`) + a new equivalent `with_hmac_secret_override` (small,
+additive, non-breaking addition to `core` — mirrors the existing method). Every `config.queue`/
+`config.redis`/`config.smtp`/`config.vault`/`init_vault_config_from_file`/`SharedClientImpl` touch
+point inside `main()` (not just `initialize_modules`) needs cfg-gating in the same pass — already
+enumerated via grep. **Compiling is not the finish line**: SM-T24's actual "done when" is booting
+against an empty working dir with no external services — plan to actually run the standalone binary
+(minimal TOML, empty dir) and confirm it boots, auto-migrates the SQLite file, and serves, folding
+SM-T26's E2E smoke verification forward rather than treating a green compile as sufficient. If the
+sandbox can't run a long-lived server process, say so explicitly and mark T24 "compiles + wired, boot
+unverified" rather than claiming done. Then G7 (SM-T25 Dockerfile), G8 (SM-T27 docs), per user's
+"continue to completion" directive. Build gate every step: full `cargo build --workspace` + `cargo
+test --workspace --all` + `cargo fmt --all -- --check` + standalone binary build.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).

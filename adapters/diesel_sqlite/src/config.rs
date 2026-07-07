@@ -3,7 +3,46 @@ use diesel::r2d2::{
     ConnectionManager, CustomizeConnection, Error as R2d2Error, Pool,
 };
 use diesel::SqliteConnection;
+use myc_config::{load_config_from_file, secret_resolver::SecretResolver};
+use mycelium_base::utils::errors::{creation_err, MappedErrors};
+use serde::Deserialize;
 use shaku::{Component, Interface};
+use std::path::PathBuf;
+
+/// Standalone-mode equivalent of the postgres adapter's `DieselConfig`: a
+/// filesystem path to the SQLite database file instead of a connection URL.
+/// Parsed from a `[sqlite]` TOML section (kept separate from `[diesel]`
+/// rather than overloading it, so full-mode config parsing is unaffected).
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SqliteConfig {
+    pub path: SecretResolver<String>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TmpConfig {
+    sqlite: SqliteConfig,
+}
+
+impl SqliteConfig {
+    pub fn from_default_config_file(
+        file: PathBuf,
+    ) -> Result<Self, MappedErrors> {
+        if !file.exists() {
+            return creation_err(format!(
+                "Could not find config file: {}",
+                file.to_str().unwrap()
+            ))
+            .as_error();
+        }
+
+        match load_config_from_file::<TmpConfig>(file) {
+            Ok(config) => Ok(config.sqlite),
+            Err(err) => Err(err),
+        }
+    }
+}
 
 pub type SqliteDbPool = Pool<ConnectionManager<SqliteConnection>>;
 
@@ -90,5 +129,27 @@ mod tests {
         let _ = std::fs::remove_file(&path);
         let _ = std::fs::remove_file(path.with_extension("db-wal"));
         let _ = std::fs::remove_file(path.with_extension("db-shm"));
+    }
+
+    #[test]
+    fn sqlite_config_parses_a_minimal_toml_section() {
+        let path = std::env::temp_dir()
+            .join(format!("myc_sqlite_config_{}.toml", std::process::id()));
+
+        std::fs::write(
+            &path,
+            r#"
+            [sqlite]
+            path = "./data/mycelium.db"
+            "#,
+        )
+        .unwrap();
+
+        let config =
+            SqliteConfig::from_default_config_file(path.clone()).unwrap();
+
+        assert_eq!(config.path.get_or_error().unwrap(), "./data/mycelium.db");
+
+        let _ = std::fs::remove_file(&path);
     }
 }
