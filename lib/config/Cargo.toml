@@ -17,6 +17,13 @@ readme.workspace = true
 # ? DEPENDENCIES
 # ? ----------------------------------------------------------------------------
 
+[features]
+
+# Autogen + persisted secrets for standalone mode (SM-R9, DEC-2): OS keyring
+# preferred, encrypted local file as fallback. Full mode is unaffected --
+# `SecretResolver::Env`/`Value` cover the explicit-secret path already.
+standalone-secrets = ["dep:keyring", "dep:ring", "dep:uuid"]
+
 [dependencies]
 
 lazy_static.workspace = true
@@ -25,6 +32,10 @@ serde.workspace = true
 tracing.workspace = true
 toml.workspace = true
 utoipa.workspace = true
+
+keyring = { version = "3", features = ["sync-secret-service", "vendored"], optional = true }
+ring = { version = "0.17", optional = true }
+uuid = { workspace = true, optional = true }
 
 # ------------------------------------------------------------------------------
 # Mycelium packages

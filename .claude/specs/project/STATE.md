@@ -272,7 +272,8 @@ end-to-end.
 | Architectural correction — extract SQLite adapter into `adapters/diesel_sqlite` (own crate, not nested in `mycelium-diesel`); `adapters/diesel` renamed `diesel_postgres` | ✅ Done (committed `c79c1f5d`) |
 | Execute — SM-T17 (SqlAppModule sqlite wiring — barrier, closes G2) | ✅ Done (committed `f1f02d2b`) |
 | Execute — SM-T18/T19 (moka cache: `adapters/moka_cache` crate, KVAppModule, per-key TTL) | ✅ Done (committed `a341089d`) — closes G3 |
-| Execute — SM-T20/T21 (notifier `local-transport` feature: stub + file transport, SMTP precedence) | ✅ Done, verified — closes G4 |
+| Execute — SM-T20/T21 (notifier `local-transport` feature: stub + file transport, SMTP precedence) | ✅ Done (committed `f325212e`) — closes G4 |
+| Execute — SM-T22 (autogen secrets: keyring + encrypted-file fallback) | ✅ Done, verified — closes G5 |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
@@ -387,9 +388,23 @@ output (custom `MakeWriter`) to prove the stub path logs subject/recipient/body,
 real `FileTransport` and reading the `.eml` back to assert it's parseable. Verified: 8/8 notifier
 tests under `--features local-transport`, 3/3 unchanged under default (byte-identical), full
 `cargo build --workspace` + `cargo test --workspace --all` (0 failed) + `fmt` clean, standalone binary
-unaffected. Not committed yet.
+unaffected. Committed `f325212e`.
 
-**Next action:** G5 (SM-T22 — autogen secrets: keyring + encrypted-file fallback), G6 (SM-T23/24 —
+**SM-T22 result — closes G5:** New `standalone-secrets` feature on `mycelium-config`
+(`dep:keyring`/`dep:ring`/`dep:uuid`, all optional). `resolve_or_generate_standalone_secret(service,
+secrets_dir, name)`: keyring → encrypted file (0600, AES-256-GCM via the same `ring` crate `core`
+already uses for envelope encryption, no new crypto dep) → generate-and-persist, called only when no
+explicit secret was configured (upstream `SecretResolver::Env`/`Value` path unchanged). **Real bug
+caught during testing, not just a hypothetical**: this sandbox's D-Bus secret-service backend returned
+success from `set_password` without durably persisting the value — a naive implementation would have
+silently regenerated `token_secret` on every boot, which AD-004 says is catastrophic (rotates the KEK,
+invalidates every persisted connection string). Fixed by verifying every keyring write with an
+immediate read-back before trusting it; falls through to the file otherwise. 8 tests, including the
+full first-boot-generate/second-boot-reuse lifecycle re-run 5x to confirm the fix isn't flaky.
+Verified: 8/8 config tests, full workspace build/test (0 failed), fmt clean, standalone binary
+unaffected. `ports/api` wiring is SM-T24, not this task. Not committed yet.
+
+**Next action:** G6 (SM-T23/24 —
 standalone config + cfg-gated `initialize_modules`, finally wiring `mycelium-diesel-sqlite`,
 `mycelium-moka-cache`, and `mycelium-notifier`'s `LocalNotifierAppModule` into `ports/api` — **the
 real risk point**: the compile-time `postgres-backend`/`standalone` swap must select between two

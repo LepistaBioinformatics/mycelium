@@ -475,7 +475,7 @@ default (byte-identical full mode — same 3 tests, same behavior), full `cargo 
 
 ## G5 — Autogen secrets
 
-### SM-T22 — Standalone secret source (keyring + encrypted-file fallback) (SM-R9, DEC-2)
+### SM-T22 — Standalone secret source (keyring + encrypted-file fallback) (SM-R9, DEC-2) — ✅ Done (verified, pending commit)
 - **What:** Resolve `token_secret` + JWT/HMAC secrets: explicit(env/config) → OS keyring → encrypted
   local file → generate-once-and-persist. Keyring failure (no backend) degrades gracefully to file
   (OC-2). Never regenerate if already persisted (protects KEK/HMAC — AD-004).
@@ -485,6 +485,32 @@ default (byte-identical full mode — same 3 tests, same behavior), full `cargo 
 - **Done when:** first boot generates+persists; second boot reuses (same secret); keyring-absent falls
   back to file without panic.
 - **Tests:** unit — generate/persist/reload identity; simulated keyring-absent fallback.
+
+**SM-T22 result — closes G5:** New `standalone-secrets` feature on `mycelium-config` (`dep:keyring`,
+`dep:ring`, `dep:uuid`, all optional — full mode unaffected). `use_cases/resolve_or_generate_standalone_secret/`:
+`resolve_or_generate_standalone_secret(keyring_service, secrets_dir, name)` — the orchestrator called
+only when no explicit secret was configured (the env/`Value` path is unchanged, handled upstream by
+`SecretResolver`). `keyring_store.rs`: thin wrapper over the `keyring` crate (`keyring = { version =
+"3", features = ["sync-secret-service", "vendored"] }` — `vendored` compiles dbus+openssl from source,
+so no system libdbus-dev is required); every keyring error (including "no backend", the expected
+OC-2 case) degrades to `None`/`false` rather than propagating. `encrypted_file_store.rs`: AES-256-GCM
+(reusing the `ring` crate already used by `core`'s envelope-encryption code, no new crypto dependency)
+over a locally-derived wrapping key, file restricted to 0600 on Unix. `derive_local_wrapping_key.rs`:
+SHA-256 over `/etc/machine-id` (falling back to `/var/lib/dbus/machine-id`, then hostname env vars) —
+explicitly documented as defense-in-depth, not a substitute for the keyring; the 0600 permission is
+the primary protection. **Landmine found during testing:** the sandbox's D-Bus secret-service backend
+reported `set_password` as successful without durably persisting the value (likely an ephemeral/
+session-only collection) — a naive "write once, trust it" implementation would have silently
+regenerated the secret on every single boot, which AD-004 flags as catastrophic (rotates the KEK,
+invalidates every persisted connection string). Fixed by verifying every keyring write with an
+immediate read-back before treating it as authoritative; only falls through to the file if that
+read-back doesn't match. 8 tests: wrapping-key determinism, file store round-trip + missing-file +
+permission bits, keyring read doesn't panic with no backend, and the full first-boot-generates/
+second-boot-reuses lifecycle (run 5x in a row to rule out the keyring flakiness recurring). Verified:
+8/8 config tests under `--features standalone-secrets`, full `cargo build --workspace` + `cargo test
+--workspace --all` (0 failed) + `cargo fmt --all -- --check` clean, standalone `mycelium-api` binary
+unaffected. `ports/api` wiring (actually calling this from `initialize_modules`) is SM-T24, not this
+task. **This closes G5.**
 
 ---
 
