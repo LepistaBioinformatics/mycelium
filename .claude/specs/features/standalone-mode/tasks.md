@@ -62,32 +62,43 @@ Legend for each task: **What / Where / Depends on / Reuses / Done when / Tests**
   `libsqlite3-sys` and NO `pq-sys` (no libpq); postgres build pulls `pq-sys`. Full-mode
   build/test/fmt all green.
 
-### SM-T4 — SQLite pool provider + connection pragmas
+### SM-T4 — SQLite pool provider + connection pragmas — ✅ Done (verified, pending commit)
 - **What:** `Pool<ConnectionManager<SqliteConnection>>` provider mirroring `DieselDbPoolProvider`;
   `CustomizeConnection` setting `journal_mode=WAL`, `foreign_keys=ON`, `busy_timeout=5000`. cfg-gated.
-- **Where:** `adapters/diesel/src/repositories/config.rs` (or a `config_sqlite.rs`).
+- **Where:** `adapters/diesel/src/sqlite/config.rs` (new `sqlite/` module tree).
 - **Depends on:** SM-T3.
 - **Reuses:** existing r2d2 pattern (sync — C-6).
 - **Done when:** provider builds a pool against a temp file; pragmas verified via a query.
 - **Tests:** unit — open temp DB, assert `journal_mode=wal`.
+- **Result:** `sqlite/config.rs` — `SqliteDbPool`, `SqliteDbPoolProvider` trait, `DieselSqliteDbPoolProvider`
+  shaku Component, `SqlitePragmas` customizer (WAL/foreign_keys/busy_timeout). Test green.
 
-### SM-T5 — `schema_sqlite.rs` + embedded migrations
+### SM-T5 — `schema_sqlite.rs` + embedded migrations — ✅ Done (verified, pending commit)
 - **What:** Author `schema_sqlite.rs` (all tables, TEXT-based per §2.3) and `migrations_sqlite/` DDL
   mirroring `sql/up.sql` with SQLite types; wire `embed_migrations!` to auto-provision on boot.
-- **Where:** `adapters/diesel/src/schema_sqlite.rs`, `adapters/diesel/migrations_sqlite/`.
+- **Where:** `adapters/diesel/src/sqlite/schema.rs`, `adapters/diesel/migrations_sqlite/`.
 - **Depends on:** SM-T3.
-- **Reuses:** `sql/up.sql` as the source of truth for tables/columns.
+- **Reuses:** `schema.rs` (authoritative, post-migrations) as the source of truth.
 - **Done when:** running embedded migrations on an empty temp DB creates every table; `diesel` compiles
   queries against `schema_sqlite` for a smoke table.
 - **Tests:** unit — migrate temp DB, assert table set matches Postgres schema.
+- **Result:** `sqlite/schema.rs` mirrors all 18 diesel tables (Uuid/Jsonb/Array/Timestamptz → Text).
+  `migrations_sqlite/2026-07-06-000000_init/{up,down}.sql` creates all tables + `licensed_resources`
+  and `public_connection_string_info` views (pg JSON `->`/`?` rewritten to JSON1 `json_extract`).
+  `sqlite/migration.rs` embeds them via `embed_migrations!` + `run_pending_migrations`. Test asserts
+  all 18 tables created. **Note:** `telegram_identity_audit` (pg raw-SQL/INET path) deferred — not in
+  diesel `schema.rs`; standalone Telegram audit is a later concern.
 
-### SM-T6 — Type-mapping helpers + round-trip tests (SM-R4)
+### SM-T6 — Type-mapping helpers + round-trip tests (SM-R4) — ✅ Done (verified, pending commit)
 - **What:** Encode/decode helpers: `Uuid↔TEXT`, `Timestamptz↔RFC3339 UTC`, `Jsonb↔TEXT`,
   `Array<Text>↔JSON`, `Array<Jsonb>↔JSON`. Central module reused by all sqlite repos.
-- **Where:** `adapters/diesel/src/sqlite_types.rs` (new).
+- **Where:** `adapters/diesel/src/sqlite/types.rs` (new).
 - **Depends on:** SM-T5.
 - **Done when:** each helper round-trips (write→read == original), incl. NULL and empty-array cases.
 - **Tests:** unit — property/round-trip per type (the SM-R15 requirement).
+- **Result:** `sqlite/types.rs` — `{uuid,timestamp,json,string_array,json_array}_{to,from}_text`,
+  errors via `dto_err`. 6 round-trip tests (incl. empty array, garbage-UUID rejection, UTC
+  normalization). All green.
 
 ### SM-T7..T17 — SQLite repository impls per entity group `[P]` (after SM-T6)
 Each task implements the SQLite variant of that group's `core` port traits, mapping pg-isms
