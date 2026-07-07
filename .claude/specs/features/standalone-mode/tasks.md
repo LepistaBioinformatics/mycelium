@@ -374,22 +374,52 @@ single importable shaku module ready to be wired into `ports/api`'s `initialize_
 
 ## G3 — In-process cache (moka)
 
-### SM-T18 — `adapters/cache` crate with redis + moka features
-- **What:** New crate `myc-cache` housing the Redis impl (moved from/aliasing `kv_db`) and a moka impl,
-  behind `redis` / `moka` features. `core` unchanged. (Alternative: `moka` feature on `kv_db`.)
-- **Where:** `adapters/cache/` (new) or `adapters/kv_db/`.
-- **Depends on:** SM-T1.
-- **Done when:** crate builds under each feature; full mode still resolves the Redis impl identically.
-- **Tests:** compile-only both features.
+> **Note (post architectural correction):** the original plan below considered one `adapters/cache`
+> crate housing both the Redis and moka impls behind `redis`/`moka` features. Per the
+> adapter-crate-separation rule established during G2 (SM-T7..T17 rework), that would repeat the same
+> mistake — two backends in one crate, gated by a feature. Corrected plan: a new sibling crate
+> **`adapters/moka_cache`** (package `mycelium-moka-cache`, lib `myc_moka_cache`) implementing only the
+> moka backend; `adapters/kv_db` (`mycelium-key-value`/`myc_kv`, Redis) is left completely untouched.
 
-### SM-T19 — moka `KVArtifactRead`/`KVArtifactWrite` with per-key TTL (SM-R5)
-- **What:** Implement both traits over `moka::future::Cache<String, String>` with an `Expiry` impl so
-  the per-call `ttl` is honored per entry (not a global TTL).
-- **Where:** `adapters/cache/src/moka_*.rs`.
+### SM-T18 — `adapters/moka_cache` crate scaffold + shaku `KVAppModule` — ✅ Done (verified, pending commit)
+- **What:** New crate `mycelium-moka-cache` (`myc_moka_cache`) with a `moka::future::Cache`-backed
+  provider (mirroring `kv_db`'s `SharedClientProvider`/`SharedClientImpl` pattern) and a `KVAppModule`
+  shaku module wiring it plus the two repository components. `core` unchanged.
+- **Where:** `adapters/moka_cache/` (new).
+- **Depends on:** SM-T1.
+- **Done when:** crate builds standalone; `adapters/kv_db` unaffected.
+- **Tests:** compile-only.
+
+### SM-T19 — moka `KVArtifactRead`/`KVArtifactWrite` with per-key TTL (SM-R5) — ✅ Done (verified, pending commit)
+- **What:** Implement both traits over `moka::future::Cache<String, (String, Duration)>` with an
+  `Expiry` impl so the per-call `ttl` is honored per entry (not a global TTL).
+- **Where:** `adapters/moka_cache/src/repositories/{kv_artifact_read,kv_artifact_write}.rs`,
+  `adapters/moka_cache/src/config.rs`.
 - **Depends on:** SM-T18.
 - **Reuses:** verified trait signatures (`get_encoded_artifact`, `set_encoded_artifact(key,value,ttl)`).
 - **Done when:** set→get returns value; entry expires after its ttl; missing key → `NotFound`.
 - **Tests:** unit — TTL expiry (advance/await), NotFound path.
+
+**SM-T18/T19 result — closes G3:** New crate `adapters/moka_cache` (`mycelium-moka-cache`/
+`myc_moka_cache`), sibling to `adapters/kv_db`, untouched. `config.rs`: `MokaCacheProvider` trait +
+`MokaCacheProviderImpl` component wrapping `Arc<Cache<String, (String, Duration)>>`
+(`ArtifactCache` alias), built via `Cache::builder().expire_after(PerKeyExpiry).build()` — `PerKeyExpiry`
+implements `moka::Expiry::expire_after_create` returning the tuple's stored `Duration`, so each
+entry's TTL is exactly what the caller passed to `set_encoded_artifact`, not a cache-wide uniform TTL.
+`repositories/{kv_artifact_read,kv_artifact_write}.rs`: `KVArtifactReadRepository`/
+`KVArtifactWriteRepository`, both `#[shaku(inject)] provider: Arc<dyn MokaCacheProvider>`
+(`pub(crate)` field, mirroring `diesel_sqlite`'s `pub(crate) pool` convention so tests can construct
+repos directly without going through the shaku builder). `repositories/mod.rs`: `KVAppModule` shaku
+module (`MokaCacheProviderImpl`, `KVArtifactReadRepository`, `KVArtifactWriteRepository`) — same name
+as `kv_db`'s `KVAppModule`, since the two are never linked together (selected at compile time in
+SM-T24, same pattern as the two `SqlAppModule`s). 3 unit tests: set→get round trip, missing key →
+`NotFound`, and a real-time TTL-expiry test (`ttl=1`, sleep 1.2s, then assert `NotFound`) proving
+`PerKeyExpiry` actually evicts on schedule rather than only documenting intent. `moka 0.12.15`
+resolved and compiled clean via crates.io on the first attempt — no API surprises versus the design
+doc's sketch. Verified: 3/3 moka tests, full `cargo build --workspace` + `cargo test --workspace --all`
+(all crates 0 failed) + `cargo fmt --all -- --check` clean, standalone `mycelium-api` binary
+unaffected, `adapters/kv_db` (Redis) crate untouched and still builds/tests identically. **This closes
+G3.**
 
 ---
 

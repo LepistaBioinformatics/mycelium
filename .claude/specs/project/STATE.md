@@ -270,7 +270,8 @@ end-to-end.
 | Execute — SM-T15 (licensed_resource + ProfileFetching) | ✅ Done (committed `46904cfc`) |
 | Execute — SM-T16 (encryption_key — closes G2 per-entity repos) | ✅ Done, verified |
 | Architectural correction — extract SQLite adapter into `adapters/diesel_sqlite` (own crate, not nested in `mycelium-diesel`); `adapters/diesel` renamed `diesel_postgres` | ✅ Done (committed `c79c1f5d`) |
-| Execute — SM-T17 (SqlAppModule sqlite wiring — barrier, closes G2) | ✅ Done, verified |
+| Execute — SM-T17 (SqlAppModule sqlite wiring — barrier, closes G2) | ✅ Done (committed `f1f02d2b`) |
+| Execute — SM-T18/T19 (moka cache: `adapters/moka_cache` crate, KVAppModule, per-key TTL) | ✅ Done, verified — closes G3 |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
@@ -349,19 +350,35 @@ have SQLite equivalents; `session_token` excluded as dead code).
 `adapters/diesel_sqlite/src/repositories/mod.rs`, mirroring postgres's `SqlAppModule` 1:1 (44
 components: `DieselSqliteDbPoolProvider` + 43 repos across all 10 entity groups). Own crate, no
 cfg-gating needed. Compiled clean first try. 22/22 sqlite tests + full workspace build/test (0
-failed) + fmt clean + standalone binary unaffected. Not committed yet.
+failed) + fmt clean + standalone binary unaffected. Committed `f1f02d2b`.
 
-**Next action:** G3 (SM-T18/19 — moka cache, **its own sibling crate under `adapters/`**, per the
-adapter-crate-separation rule established earlier), then G4 (SM-T20/21 — local email transport), G5 (SM-T22 —
-autogen secrets), G6 (SM-T23/24 — standalone config + cfg-gated `initialize_modules`, finally wiring
-`mycelium-diesel-sqlite` into `ports/api` — **the real risk point**: the compile-time
-`postgres-backend`/`standalone` swap must select between two different `SqlAppModule` types at the
-`initialize_modules` call site, so any downstream code naming the concrete module type needs
-cfg-gating too; also verify whether `mycelium-diesel`'s `crate-type = ["staticlib", "lib"]` — absent
-on `diesel_sqlite` — actually matters for linking), G7 (SM-T25/26 — Dockerfile + E2E smoke), G8
-(SM-T27 — docs), per user's "continue to completion" directive. Build gate every step: full `cargo
-build --workspace` + `cargo test --workspace --all` + `cargo fmt --all -- --check` + standalone
-binary build.
+**SM-T18/T19 result — closes G3:** New sibling crate `adapters/moka_cache`
+(`mycelium-moka-cache`/`myc_moka_cache`) — corrected from the design doc's original "one `adapters/
+cache` crate with `redis`/`moka` features" sketch, per the same adapter-crate-separation rule applied
+to G2; `adapters/kv_db` (Redis) is untouched. `MokaCacheProvider` + `MokaCacheProviderImpl` wrap
+`Arc<Cache<String, (String, Duration)>>` built with a `PerKeyExpiry: moka::Expiry` impl that returns
+each entry's own stored `Duration` from `expire_after_create` — gives true per-key TTL (SM-R5), not
+moka's uniform `time_to_live`. `KVArtifactRead`/`WriteRepository` mirror `kv_db`'s shape exactly
+(`#[shaku(inject)] provider`), with `pub(crate)` fields so tests construct repos directly (same
+convention as `diesel_sqlite`'s `pub(crate) pool`). `KVAppModule` shaku module named identically to
+`kv_db`'s (never linked together — compile-time selection in SM-T24, same as the two `SqlAppModule`s).
+3 tests: round trip, `NotFound` on miss, and a **real-time** TTL-expiry test (ttl=1s, sleep 1.2s,
+assert evicted) — not just a compile-time claim that `PerKeyExpiry` works. `moka 0.12.15` resolved
+and compiled clean from crates.io on the first attempt. Verified: 3/3 moka tests, full workspace
+build/test (0 failed), fmt clean, standalone binary unaffected, `kv_db` untouched. Not committed yet.
+
+**Next action:** G4 (SM-T20/21 — local email transport via `lettre`'s `local-transport` feature on
+`adapters/notifier` — this one **is** a feature-flag on an *existing* crate, not a new backend, so it
+does not trigger the adapter-crate-separation rule), G5 (SM-T22 — autogen secrets), G6 (SM-T23/24 —
+standalone config + cfg-gated `initialize_modules`, finally wiring `mycelium-diesel-sqlite` and
+`mycelium-moka-cache` into `ports/api` — **the real risk point**: the compile-time
+`postgres-backend`/`standalone` swap must select between two different `SqlAppModule` types AND two
+different `KVAppModule` types at the `initialize_modules` call site, so any downstream code naming
+either concrete module type needs cfg-gating too; also verify whether `mycelium-diesel`'s
+`crate-type = ["staticlib", "lib"]` — absent on `diesel_sqlite`/`moka_cache` — actually matters for
+linking), G7 (SM-T25/26 — Dockerfile + E2E smoke), G8 (SM-T27 — docs), per user's "continue to
+completion" directive. Build gate every step: full `cargo build --workspace` + `cargo test
+--workspace --all` + `cargo fmt --all -- --check` + standalone binary build.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).

@@ -125,6 +125,7 @@ mycelium-diesel-sqlite = { version = "8.3.1-rc.5", path = "adapters/diesel_sqlit
 mycelium-notifier = { version = "8.3.1-rc.5", path = "adapters/notifier" }
 mycelium-adapters-shared-lib = { version = "8.3.1-rc.5", path = "adapters/shared" }
 mycelium-key-value = { version = "8.3.1-rc.5", path = "adapters/kv_db" }
+mycelium-moka-cache = { version = "8.3.1-rc.5", path = "adapters/moka_cache" }
 
 #
 # RUSTSEC-2026-0007: force bytes >= 1.11.1 (Integer overflow in
