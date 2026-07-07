@@ -112,7 +112,7 @@ Each task implements the SQLite variant of that group's `core` port traits, mapp
 - **SM-T12 [P]** — message: `LocalMessageWrite` / `LocalMessageReading` (feeds email_dispatcher) — ✅ Done
 - **SM-T13 [P]** — webhook (`propagations`, `headers` JSONB) — ✅ Done
 - **SM-T14 [P]** — error_code — ✅ Done
-- **SM-T15 [P]** — licensed_resource + `LicensedResourcesFetching` + `ProfileFetching`
+- **SM-T15 [P]** — licensed_resource + `LicensedResourcesFetching` + `ProfileFetching` — ✅ Done
 - **SM-T16 [P]** — encryption_key (`EncryptionKeyFetching`) — envelope-encryption support
 - **SM-T17** — `SqlAppModule` (sqlite) shaku registration wiring all the above (barrier: needs T7–T16)
 - **Where (all):** `adapters/diesel/src/repositories/<entity>/*` (cfg-gated bodies), `repositories/mod.rs`.
@@ -301,6 +301,25 @@ supplied explicitly by the domain layer on create (no server-side-default landmi
 `error_code_lifecycle_round_trips_through_sqlite` test: create → duplicate no-op → fetch → update →
 list (paginated) → delete → post-delete NotFound. 19/19 sqlite tests green, fmt clean, full-mode
 unaffected, standalone binary builds. Not committed yet.
+
+**SM-T15 result — licensed_resource + ProfileFetching:** `sqlite/{models,repositories}/
+{licensed_resource,licensed_resources,profile}`. `list_licensed_resources` builds a dynamic raw SQL
+query against the `licensed_resources` view (dynamic filter count/type defeats diesel's static
+`.bind()` chain) — postgres interpolates every value (including user-controlled email/role name)
+directly into the string with only a log-time redaction; the SQLite port adds a `sql_quote()` helper
+that escapes single quotes for free-form strings (email, role slug) and relies on `Display`-safety
+for numeric/bool/UUID values, closing the same latent-injection class fixed in SM-T10. Postgres's
+`= ANY(array[...])` becomes a plain `IN (...)` list of quoted UUIDs. `permit_flags`/`deny_flags`
+decode via `string_array_from_text` (view column is a JSON-array TEXT value, not a native array).
+New tests: `list_licensed_resources_and_tenant_ownership_through_sqlite` (seed tenant+account+
+guest_role+guest_user via existing repos, verify `list_licensed_resources` and
+`list_tenants_ownership` both find the right rows) and `get_profile_from_email_round_trips_through_sqlite`
+(found + not-found paths). One test-authoring bug caught before it looked like an implementation
+bug: `GuestRole::new` slugifies the display name (`"Collaborator"` → `"collaborator"`), so the test's
+role filter needed the slug, not the display name — same shape of mistake as the `GuestUserFetching`
+correction in SM-T11 (verify the *actual* stored value, don't assume the input string is what's
+persisted). 21/21 sqlite tests green, fmt clean, full-mode unaffected, standalone binary builds. Not
+committed yet.
 
 ---
 

@@ -266,8 +266,9 @@ end-to-end.
 | Execute — SM-T11 (guest_role + guest_user + guest_user_on_account) | ✅ Done (committed `7504af86`) |
 | Execute — SM-T12 (message) | ✅ Done (committed `a8c47288`) |
 | Execute — SM-T13 (webhook + webhook_execution) | ✅ Done (committed `4093da0e`) |
-| Execute — SM-T14 (error_code) | ✅ Done, verified |
-| Execute — SM-T15… (licensed_resource + ProfileFetching) | ⏳ Next |
+| Execute — SM-T14 (error_code) | ✅ Done (committed `978df130`) |
+| Execute — SM-T15 (licensed_resource + ProfileFetching) | ✅ Done, verified |
+| Execute — SM-T16… (encryption_key) | ⏳ Next |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
