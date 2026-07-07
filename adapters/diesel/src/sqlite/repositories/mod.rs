@@ -5,6 +5,7 @@ pub mod account;
 pub mod account_tag;
 pub mod guest_role;
 pub mod guest_user;
+pub mod message;
 pub mod tenant;
 pub mod tenant_tag;
 pub mod token;

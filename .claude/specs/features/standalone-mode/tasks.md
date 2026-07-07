@@ -109,7 +109,7 @@ Each task implements the SQLite variant of that group's `core` port traits, mapp
 - **SM-T9 [P]** — user (`UserRegistration/Fetching/Updating/Deletion`, `mfa` JSONB) — ✅ Done (verified, pending commit) — closes block 1 (account+tenant+user)
 - **SM-T10 [P]** — token + session_token + `TokenInvalidation` (incl. magic-link `jsonb_set`→`json_set`) — ✅ Done (verified, pending commit)
 - **SM-T11 [P]** — guest_role + guest_user (+ on-account) (incl. `permit_flags/deny_flags Array<Text>`) — ✅ Done (verified, pending commit)
-- **SM-T12 [P]** — message: `LocalMessageWrite` / `LocalMessageReading` (feeds email_dispatcher)
+- **SM-T12 [P]** — message: `LocalMessageWrite` / `LocalMessageReading` (feeds email_dispatcher) — ✅ Done
 - **SM-T13 [P]** — webhook (`propagations`, `headers` JSONB)
 - **SM-T14 [P]** — error_code
 - **SM-T15 [P]** — licensed_resource + `LicensedResourcesFetching` + `ProfileFetching`
@@ -271,6 +271,16 @@ asserted the wrong thing; fixed the test, not the (correct) implementation.
 
 16/16 sqlite tests green, fmt clean, full-mode unaffected (0 failed), standalone binary builds.
 Not committed yet.
+
+**SM-T12 result — message:** `sqlite/{models,repositories}/message` (`LocalMessageWrite`/
+`LocalMessageReading`). Confirmed `message_queue.created`/`attempted` are ANOTHER genuine
+timezone-aware round trip (`Local.from_utc_datetime(&naive)` on the postgres read side, not the
+reinterpretation trick) — used `timestamp_to_text`/`from_text` again (third table with this pattern,
+after `guest_user`). This feeds the existing in-process `email_dispatcher` background task
+(`ports/api/src/dispatchers/`) — no new consumer needed, per OC-1's resolution in design.md.
+New `message_queue_round_trips_through_sqlite` test: queue → appears under `Queued` filter → mark
+`Sent` → disappears from `Queued`, appears under `Sent` → delete → gone. 17/17 sqlite tests green,
+fmt clean, full-mode unaffected, standalone binary builds. Not committed yet.
 
 ---
 
