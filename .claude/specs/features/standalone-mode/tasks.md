@@ -107,7 +107,7 @@ Each task implements the SQLite variant of that group's `core` port traits, mapp
 - **SM-T7 [P]** — account + account_tag (`AccountRegistration/Fetching/Updating/Deletion`, tag traits) — ✅ Done (verified, pending commit)
 - **SM-T8 [P]** — tenant + tenant_tag (incl. `status Array<Jsonb>` → JSON TEXT) — ✅ Done (verified, pending commit)
 - **SM-T9 [P]** — user (`UserRegistration/Fetching/Updating/Deletion`, `mfa` JSONB) — ✅ Done (verified, pending commit) — closes block 1 (account+tenant+user)
-- **SM-T10 [P]** — token + session_token + `TokenInvalidation` (incl. magic-link `jsonb_set`→`json_set`)
+- **SM-T10 [P]** — token + session_token + `TokenInvalidation` (incl. magic-link `jsonb_set`→`json_set`) — ✅ Done (verified, pending commit)
 - **SM-T11 [P]** — guest_role + guest_user (+ on-account) (incl. `permit_flags/deny_flags Array<Text>`)
 - **SM-T12 [P]** — message: `LocalMessageWrite` / `LocalMessageReading` (feeds email_dispatcher)
 - **SM-T13 [P]** — webhook (`propagations`, `headers` JSONB)
@@ -199,6 +199,39 @@ impls across 3 entities, ~2,900 lines of new SQLite code, 3 end-to-end lifecycle
 reusable patterns for blocks 2-3: `created_at_from_text` (naive-timestamp reinterpretation),
 `json_array_to_text`/`from_text` (Array<Jsonb> columns), `returning_clauses_for_sqlite_3_35`,
 per-entity `shared.rs` DTO mapper, `test_support::setup_temp_db()`.
+
+**SM-T10 result — token (block 2, entity 1/N):** `sqlite/{models,repositories}/{token,
+public_connection_string_info}`. **`session_token` is NOT implemented** — verified via grep that
+`SessionTokenRegistration`/`Fetching`/`Deletion` (core traits) have **zero implementations anywhere**
+in the codebase (not in postgres, not wired into `SqlAppModule`, not consumed by any use-case). This
+is vestigial/dead trait code, not a gap — nothing to port. Removed from remaining scope.
+
+First real JSON1 *mutation* rewrite: postgres's `jsonb_set(meta, '{token}', 'null'::jsonb)` (magic-link
+phase-1 consumption) → SQLite `json_set(meta, '$.token', json('null'))` — the `json()` wrapper is
+required so the stored value is a genuine JSON null, not the string `"null"`. Also rewrote a JSON
+array-membership query (`jsonb_array_elements(meta->'scope')` matching `elem->>'aid'`/`elem->>'sig'`)
+via SQLite's `json_each(meta, '$.scope')` table-valued function + `json_extract`.
+
+**Security improvement (not a behavior change):** the postgres `token_invalidation.rs` and
+`token_deletion.rs` build raw SQL via `format!()` string interpolation of user/email/token values —
+two of the four methods manually escape single quotes, two do not (a latent SQL-injection surface).
+The SQLite port uses bound parameters (`.bind::<Text,_>(...)`) uniformly across all methods instead
+of any string interpolation — this closes the gap rather than replicating it, since parameter binding
+doesn't change matching semantics for well-formed input.
+
+DRY'd the 4 postgres `TokenRegistration` methods (identical insert+reserialize shape, differing only
+in the meta type) into one generic `insert<M: Serialize>` helper.
+
+New tests: `email_confirmation_token_round_trips_through_sqlite` (create → wrong-token rejected →
+correct-token found+invalidated → single-use enforced) and
+`magic_link_two_phase_consumption_round_trips_through_sqlite` (create → phase 1 display consumes
+token, returns code → re-open fails → phase 2 code verify deletes → reuse fails). Connection-string
+methods (`get_connection_string`, `revoke/delete_connection_string`) are compile-verified but not
+integration-tested this pass (lower risk — no JSON-mutation rewrite, only extraction) — flagged for a
+follow-up test if time allows before G7's E2E smoke.
+
+14/14 sqlite tests green, fmt clean, full-mode unaffected (0 failed), standalone binary builds.
+Not committed yet.
 
 ---
 

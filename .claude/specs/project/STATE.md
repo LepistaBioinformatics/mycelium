@@ -252,8 +252,9 @@ tasks land.
 | Execute — SM-T4/T5/T6 (sqlite scaffolding: pool+pragmas, schema+migrations, type helpers) | ✅ Done, verified |
 | Execute — SM-T7 (account + account_tag SQLite repos, block 1/3) | ✅ Done (committed `5721c643`) |
 | Execute — SM-T8 (tenant + tenant_tag SQLite repos, block 2/3) | ✅ Done (committed `34300a06`) |
-| Execute — SM-T9 (user, block 3/3 — closes block 1) | ✅ Done, verified |
-| Execute — SM-T10… (block 2: token/session_token/guest_role/guest_user) | ⏳ Next |
+| Execute — SM-T9 (user, block 3/3 — closes block 1) | ✅ Done (committed `2f7ad14a`) |
+| Execute — SM-T10 (token; session_token confirmed dead code, skipped) | ✅ Done, verified |
+| Execute — SM-T11… (guest_role/guest_user) | ⏳ Next |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
@@ -283,12 +284,22 @@ easier to review/bisect. Never skip the build/test gate regardless.
 **Block 1 (account + tenant + user) is done** — 17 repo impls, ~2,900 lines, 3 end-to-end lifecycle
 tests (see tasks.md SM-T9 result for the full summary and reusable patterns established).
 
-**Next action:** SM-T10 (token + session_token + `TokenInvalidation`, incl. magic-link
-`jsonb_set`→`json_set` per OC-4) — the first entity requiring a genuine JSON1 mutation rewrite, not
-just extraction. Then SM-T11 (guest_role/guest_user, incl. `permit_flags`/`deny_flags Array<Text>` —
-first real use of `string_array_to_text`/`from_text`), SM-T12 (message), SM-T13 (webhook), SM-T14
-(error_code), SM-T15 (licensed_resource + ProfileFetching), SM-T16 (encryption_key), SM-T17
-(SqlAppModule sqlite wiring — barrier, needs T7-T16 all done). Then G3-G8 (moka, email, secrets,
+**SM-T10 result:** token repos done (registration/fetching/invalidation/deletion). Confirmed via grep
+that `session_token` (core traits `SessionTokenRegistration`/`Fetching`/`Deletion`) has **zero
+implementations anywhere in the codebase** — not postgres, not wired into any shaku module, not
+consumed by any use-case. Vestigial dead trait code; removed from the standalone scope, nothing to
+port. First genuine JSON1 *mutation*: `jsonb_set(meta,'{token}','null'::jsonb)` → `json_set(meta,
+'$.token', json('null'))` (magic-link phase-1 consumption) — verified end-to-end via the new
+two-phase-consumption test. Also closed a latent SQL-injection gap: postgres's token_invalidation/
+token_deletion build raw SQL via inconsistent string interpolation (2 of 4 methods escape quotes, 2
+don't); the SQLite port binds all parameters uniformly instead.
+
+**Next action:** SM-T11 (guest_role/guest_user + guest_user_on_account, incl.
+`permit_flags`/`deny_flags Array<Text>` — first real use of `string_array_to_text`/`from_text`).
+Then SM-T12 (message), SM-T13 (webhook), SM-T14 (error_code), SM-T15 (licensed_resource +
+ProfileFetching), SM-T16 (encryption_key), SM-T17 (SqlAppModule sqlite wiring — barrier, needs
+T7-T16 all done, T10's session_token exclusion means the sqlite module binds one fewer component
+than postgres's, which is correct since nothing resolves it). Then G3-G8 (moka, email, secrets,
 config wiring, packaging, docs) per user's "continue to completion" directive. Build gate every step:
 full `cargo test --workspace` (postgres) + `cargo test -p mycelium-diesel --no-default-features
 --features sqlite` + `cargo fmt --all -- --check` + standalone binary build.
