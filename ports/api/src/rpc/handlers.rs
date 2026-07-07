@@ -13,12 +13,12 @@ use crate::{
     dtos::MyceliumProfileData, openapi_processor::ServiceOpenApiSchema,
 };
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{
     dev::Payload, error::ResponseError, post, web, FromRequest, HttpRequest,
     HttpResponse, Responder,
 };
 use myc_core::models::AccountLifeCycle;
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::responses::GatewayError;
 use myc_mem_db::repositories::MemDbAppModule;
 use tracing::{error, info, info_span};

@@ -1,11 +1,11 @@
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{patch, web, Responder};
 use myc_core::use_cases::role_scoped::tenant_owner::{
     update_tenant_archiving_status, update_tenant_name_and_description,
     update_tenant_trashing_status, update_tenant_verifying_status,
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{

@@ -24,6 +24,7 @@ use super::super::{
 };
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::web;
 use myc_core::{
     domain::{
@@ -52,7 +53,6 @@ use myc_core::{
         tag::{delete_tag, register_tag, update_tag},
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use shaku::HasComponent;
 use std::str::FromStr;
 use uuid::Uuid;

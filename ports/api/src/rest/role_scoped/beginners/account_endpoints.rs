@@ -3,6 +3,7 @@ use crate::{
     middleware::check_credentials_with_multi_identity_provider,
 };
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{
     delete, get, patch, post, web, HttpRequest, HttpResponse, Responder,
 };
@@ -13,7 +14,6 @@ use myc_core::{
         update_own_account_name,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     settings::MYCELIUM_AI_AWARE,
     utils::HttpJsonResponse,

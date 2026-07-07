@@ -1,5 +1,6 @@
 use crate::{dtos::MyceliumProfileData, rest::shared::PaginationParams};
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{delete, get, patch, post, web, Responder};
 use myc_core::{
     domain::dtos::{
@@ -12,7 +13,6 @@ use myc_core::{
         delete_webhook, list_webhooks, register_webhook, update_webhook,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{

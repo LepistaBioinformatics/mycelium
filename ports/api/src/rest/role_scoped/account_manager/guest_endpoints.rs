@@ -1,11 +1,11 @@
 use crate::dtos::{MyceliumProfileData, TenantData};
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{post, web, HttpResponse, Responder};
 use myc_core::{
     domain::dtos::guest_user::GuestUser, models::AccountLifeCycle,
     use_cases::role_scoped::account_manager::guest::guest_to_children_account,
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{

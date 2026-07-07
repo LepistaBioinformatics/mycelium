@@ -1,11 +1,11 @@
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{patch, web, Responder};
 use myc_core::use_cases::role_scoped::users_manager::account::{
     change_account_activation_status, change_account_approval_status,
     change_account_archival_status,
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{

@@ -3,6 +3,7 @@ use crate::{
     rest::shared::PaginationParams,
 };
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
@@ -15,7 +16,6 @@ use myc_core::{
         propagate_existing_subscription_account, update_account_name_and_flags,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{

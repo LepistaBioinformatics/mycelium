@@ -7,6 +7,7 @@ use crate::{
     settings::ADMIN_API_SCOPE,
 };
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
 use chrono::Duration;
 use myc_core::{
@@ -25,7 +26,6 @@ use myc_core::{
         verify_magic_link,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     functions::encode_jwt, models::internal_auth_config::InternalOauthConfig,
     responses::GatewayError, utils::HttpJsonResponse,

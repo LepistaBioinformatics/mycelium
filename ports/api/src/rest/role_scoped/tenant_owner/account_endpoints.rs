@@ -1,10 +1,10 @@
 use crate::dtos::{MyceliumProfileData, TenantData};
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{delete, post, web, Responder};
 use myc_core::use_cases::role_scoped::tenant_owner::{
     create_management_account, delete_tenant_manager_account,
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{

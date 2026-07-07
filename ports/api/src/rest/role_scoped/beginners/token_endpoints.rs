@@ -1,5 +1,6 @@
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{get, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::dtos::{
@@ -10,7 +11,6 @@ use myc_core::{
         create_connection_string, list_my_connection_strings,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{

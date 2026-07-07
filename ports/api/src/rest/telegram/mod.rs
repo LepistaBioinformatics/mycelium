@@ -1,5 +1,6 @@
 use crate::dtos::{MyceliumProfileData, TenantData};
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{delete, post, web, HttpRequest, HttpResponse, Responder};
 use chrono::Utc;
 use myc_core::{
@@ -12,7 +13,6 @@ use myc_core::{
         link_telegram_identity, login_via_telegram, unlink_telegram_identity,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     telegram::{
         types::{BotToken, InitData, WebhookSecret},
