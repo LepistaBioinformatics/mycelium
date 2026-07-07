@@ -105,7 +105,7 @@ Each task implements the SQLite variant of that group's `core` port traits, mapp
 (`jsonb_set`→`json_set`, `->>`/`@>`→JSON1, drop `diesel::pg` DSL) per OC-4. Same trait signatures.
 
 - **SM-T7 [P]** — account + account_tag (`AccountRegistration/Fetching/Updating/Deletion`, tag traits) — ✅ Done (verified, pending commit)
-- **SM-T8 [P]** — tenant + tenant_tag (incl. `status Array<Jsonb>` → JSON TEXT)
+- **SM-T8 [P]** — tenant + tenant_tag (incl. `status Array<Jsonb>` → JSON TEXT) — ✅ Done (verified, pending commit)
 - **SM-T9 [P]** — user (`UserRegistration/Fetching/Updating/Deletion`, `mfa` JSONB)
 - **SM-T10 [P]** — token + session_token + `TokenInvalidation` (incl. magic-link `jsonb_set`→`json_set`)
 - **SM-T11 [P]** — guest_role + guest_user (+ on-account) (incl. `permit_flags/deny_flags Array<Text>`)
@@ -157,6 +157,31 @@ migrations) exercises create → fetch → update → tag → soft-delete end-to
 `cargo build --workspace` + `cargo test --workspace --all` unaffected (0 failed); standalone `mycelium-api`
 binary (`--no-default-features --features standalone`) still builds. Not committed yet (awaiting user
 test/approval).
+
+**SM-T8 result:** `sqlite/{models,repositories}/{tenant,tenant_tag}` trees; also added the missing
+`owner_on_tenant -> user (owner_id)` `joinable!` to `sqlite/schema.rs` (present in postgres, missed in
+the SM-T5 scaffolding — needed for `TenantFetching`'s owner-hydration join). New
+`tenant_lifecycle_round_trips_through_sqlite` test: create (with owner) → fetch (owned-by-me, hydrated
+owners) → update name/description → update status (append) → tag → delete owner → delete tenant.
+
+**Discoveries (concerns, not fixed — behavior preserved or reasoned equivalent chosen):**
+- **Postgres `tenant_registration.rs::create()` has a latent write-path bug**: `tenant.status
+  .into_iter()` iterates the *outer* `Option<Vec<TenantStatus>>` (0-or-1 items = the whole inner Vec),
+  not each status, producing a doubly-nested JSON array that every read site (`tenant_fetching.rs`,
+  `tenant_updating.rs`, `map_tenant_model_to_dto`) would fail to deserialize per-element. **Dormant**
+  because tenants are always created with `status: None`. My SQLite version does not replicate this —
+  the single-TEXT-column storage shape (`json_array_to_text`/`from_text`) makes the *correct*
+  per-element semantics (matching every read site) the natural implementation, not a special case.
+- Two postgres JSON filters in `filter_tenants_as_manager` don't have exact SQLite equivalents:
+  the `tag: (String,String)` filter (`tenant_tag.meta.contains(to_value(meta_key))`) compares a whole
+  JSON object column against a bare string scalar — never matches real data on postgres either, kept
+  as a same-shape no-op; the `metadata: (TenantMetaKey,String)` filter (`LOWER(meta::text)::jsonb @>
+  LOWER(...)::jsonb`) is reimplemented as `LOWER(json_extract(meta,'$.key')) = LOWER(?)`, which serves
+  the practical intent (case-insensitive value match on one key) without replicating the whole-document
+  lowercase-and-reparse mechanism.
+
+Verified: 11/11 sqlite tests green, fmt clean, full-mode build/test unaffected (0 failed), standalone
+binary builds. Not committed yet.
 
 ---
 

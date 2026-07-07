@@ -250,8 +250,9 @@ tasks land.
 | Execute — SM-T2 (CI builds both targets) | ✅ Done (committed `4f7f9354`) |
 | Execute — SM-T3 (sqlite feature on `myc-diesel`; backend isolation verified) | ✅ Done (committed `4d36fc94`) |
 | Execute — SM-T4/T5/T6 (sqlite scaffolding: pool+pragmas, schema+migrations, type helpers) | ✅ Done, verified |
-| Execute — SM-T7 (account + account_tag SQLite repos, block 1/3) | ✅ Done, verified |
-| Execute — SM-T8/T9 (tenant + tenant_tag, user — block 1/3 remainder) | ⏳ Next |
+| Execute — SM-T7 (account + account_tag SQLite repos, block 1/3) | ✅ Done (committed `5721c643`) |
+| Execute — SM-T8 (tenant + tenant_tag SQLite repos, block 2/3) | ✅ Done, verified |
+| Execute — SM-T9 (user, block 3/3 — closes block 1) | ⏳ Next |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
@@ -266,12 +267,25 @@ aren't symmetric (use the new `naive_timestamp_{to,from}_text` pair); tables wit
 Integration test pattern established: `sqlite/test_support.rs` (temp DB + migrations) +
 per-entity lifecycle test. Not committed yet (awaiting user test/approval).
 
-**Next action:** SM-T8 (tenant + tenant_tag) then SM-T9 (user) to close out block 1 ("account + tenant +
-user"), per user's block-by-block execution choice. Reuse `sqlite/repositories/account/shared.rs`'s
-`created_at_from_text` pattern; tenant's `status: Array<Jsonb>` needs a JSON-array TEXT helper
-(`json_array_to_text`/`from_text`, already in `sqlite/types.rs`) — first real use of it. Build gate: full
-`cargo test --workspace` (postgres) + `cargo test -p mycelium-diesel --no-default-features --features
-sqlite` + `cargo fmt --all -- --check`.
+**SM-T8 result:** tenant + tenant_tag SQLite repos, reusing `account/shared.rs::created_at_from_text`
+and `json_array_to_text`/`from_text`. Found and fixed a missing `joinable!(owner_on_tenant -> user
+(owner_id))` in sqlite/schema.rs (present in postgres, missed in SM-T5). Discovered (not fixed, see
+tasks.md SM-T8 result) a dormant postgres write-path bug in tenant status serialization, and two
+JSON filters in `filter_tenants_as_manager` needing SQLite-specific (non-byte-identical but
+practically-equivalent) rewrites. User directive: "pode seguir até terminar a implementação da
+feature" — continue through all remaining tasks (SM-T9..T27) without stopping for per-task
+confirmation. Following the pattern already established and accepted earlier in this session
+(commit after each task once fully gate-checked: fmt + full-mode build/test + sqlite tests), continue
+committing at each verified step rather than batching everything into one giant uncommitted diff —
+easier to review/bisect. Never skip the build/test gate regardless.
+
+**Next action:** SM-T9 (user — UserRegistration/Fetching/Updating/Deletion) to close block 1
+("account + tenant + user"). Then continue solo through blocks 2+ (SM-T10 token/session_token,
+SM-T11 guest_role/guest_user, SM-T12 message, SM-T13 webhook, SM-T14 error_code, SM-T15
+licensed_resource, SM-T16 encryption_key, SM-T17 SqlAppModule wiring) then G3-G8 (moka, email,
+secrets, config wiring, packaging, docs) per user's "continue to completion" directive. Build gate
+every step: full `cargo test --workspace` (postgres) + `cargo test -p mycelium-diesel
+--no-default-features --features sqlite` + `cargo fmt --all -- --check`.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).

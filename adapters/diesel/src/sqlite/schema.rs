@@ -236,6 +236,7 @@ diesel::joinable!(identity_provider -> user (user_id));
 diesel::joinable!(manager_account_on_tenant -> account (account_id));
 diesel::joinable!(manager_account_on_tenant -> tenant (tenant_id));
 diesel::joinable!(owner_on_tenant -> tenant (tenant_id));
+diesel::joinable!(owner_on_tenant -> user (owner_id));
 diesel::joinable!(tenant_tag -> tenant (tenant_id));
 diesel::joinable!(user -> account (account_id));
 
