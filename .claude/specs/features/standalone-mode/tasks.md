@@ -111,7 +111,7 @@ Each task implements the SQLite variant of that group's `core` port traits, mapp
 - **SM-T11 [P]** — guest_role + guest_user (+ on-account) (incl. `permit_flags/deny_flags Array<Text>`) — ✅ Done (verified, pending commit)
 - **SM-T12 [P]** — message: `LocalMessageWrite` / `LocalMessageReading` (feeds email_dispatcher) — ✅ Done
 - **SM-T13 [P]** — webhook (`propagations`, `headers` JSONB) — ✅ Done
-- **SM-T14 [P]** — error_code
+- **SM-T14 [P]** — error_code — ✅ Done
 - **SM-T15 [P]** — licensed_resource + `LicensedResourcesFetching` + `ProfileFetching`
 - **SM-T16 [P]** — encryption_key (`EncryptionKeyFetching`) — envelope-encryption support
 - **SM-T17** — `SqlAppModule` (sqlite) shaku registration wiring all the above (barrier: needs T7–T16)
@@ -293,6 +293,14 @@ New `webhook_lifecycle_round_trips_through_sqlite` test: create → fetch → up
 finds it → register execution event → `fetch_execution_event` (Pending) finds it → mark Success via
 `update_execution_event` → Pending query now empty → delete webhook. 18/18 sqlite tests green, fmt
 clean, full-mode unaffected, standalone binary builds. Not committed yet.
+
+**SM-T14 result — error_code:** `sqlite/{models,repositories}/error_code`. Simplest entity so far —
+no timestamps at all, composite PK (`prefix`, `code`), and `code` (postgres `SERIAL`) is always
+supplied explicitly by the domain layer on create (no server-side-default landmine here, unlike
+`manager_account_on_tenant`/`guest_role_children`/`guest_user_on_account`). New
+`error_code_lifecycle_round_trips_through_sqlite` test: create → duplicate no-op → fetch → update →
+list (paginated) → delete → post-delete NotFound. 19/19 sqlite tests green, fmt clean, full-mode
+unaffected, standalone binary builds. Not committed yet.
 
 ---
 

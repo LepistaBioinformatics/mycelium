@@ -1,5 +1,6 @@
 pub(crate) mod account;
 pub(crate) mod account_tag;
+pub(crate) mod error_code;
 pub(crate) mod guest_role;
 pub(crate) mod guest_role_children;
 pub(crate) mod guest_user;

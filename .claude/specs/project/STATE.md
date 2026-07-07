@@ -238,8 +238,17 @@ include them in scope.
 (gateway submodule) — NEVER work on `develop` for this feature (user instruction). Spec at
 `.claude/specs/features/standalone-mode/` (spec.md + design.md + tasks.md). See AD-005 for rationale.
 **Tracking epic: GitHub issue [#159](https://github.com/LepistaBioinformatics/mycelium/issues/159)**
-(labels epic+enhancement; 27-task checklist, SM-T1 checked). Keep the issue checkboxes in sync as
-tasks land.
+— reformatted 2026-07-07 per user request to follow the org's feature-request draft pattern (see
+project #5 item "Harden the release pipeline..." as the reference example): title `[FEAT] ...`,
+sections "Is your feature request related to a problem?" / "Describe the solution you'd like" /
+"Describe alternatives you've considered" / "Additional context", plus an **Acceptance checklist**
+using requirement IDs (`SM-R1..R15`) phrased as WHEN/THEN clauses (only check a criterion when it is
+genuinely, fully satisfied — not partially). The granular 27-task implementation checklist
+(`SM-T1..T27`) is kept as a separate section below the acceptance checklist for day-to-day tracking.
+Local copy of the current issue body: `/tmp/standalone-issue.md` (regenerate via `gh issue view 159
+--json body -q .body` if lost). Keep both the task checkboxes AND the acceptance checklist in sync
+as work lands — task checkbox ≠ requirement satisfied; check `SM-Rn` only when its WHEN/THEN holds
+end-to-end.
 
 | Phase | Status |
 |---|---|
@@ -256,8 +265,9 @@ tasks land.
 | Execute — SM-T10 (token; session_token confirmed dead code, skipped) | ✅ Done (committed `7a050e83`) |
 | Execute — SM-T11 (guest_role + guest_user + guest_user_on_account) | ✅ Done (committed `7504af86`) |
 | Execute — SM-T12 (message) | ✅ Done (committed `a8c47288`) |
-| Execute — SM-T13 (webhook + webhook_execution) | ✅ Done, verified |
-| Execute — SM-T14… (error_code) | ⏳ Next |
+| Execute — SM-T13 (webhook + webhook_execution) | ✅ Done (committed `4093da0e`) |
+| Execute — SM-T14 (error_code) | ✅ Done, verified |
+| Execute — SM-T15… (licensed_resource + ProfileFetching) | ⏳ Next |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
