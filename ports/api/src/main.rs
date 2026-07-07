@@ -13,6 +13,26 @@ mod router;
 mod rpc;
 pub(crate) mod settings;
 
+// ? ----------------------------------------------------------------------------
+// ? Backend feature guards
+// ?
+// ? Exactly one persistence backend must be selected. `postgres-backend` is the
+// ? default (full mode); `standalone` swaps in SQLite + moka + local email and
+// ? must be built with `--no-default-features --features standalone`.
+// ? ----------------------------------------------------------------------------
+
+#[cfg(all(feature = "standalone", feature = "postgres-backend"))]
+compile_error!(
+    "features `standalone` and `postgres-backend` are mutually exclusive; build \
+     standalone with `--no-default-features --features standalone`"
+);
+
+#[cfg(not(any(feature = "standalone", feature = "postgres-backend")))]
+compile_error!(
+    "no persistence backend selected; enable `postgres-backend` (default) or \
+     build with `--no-default-features --features standalone`"
+);
+
 use crate::openapi_processor::initialize_tools_registry;
 
 use actix_cors::Cors;

@@ -17,6 +17,17 @@ readme.workspace = true
 # ? ----------------------------------------------------------------------------
 
 [features]
+default = ["postgres-backend"]
+
+# Full mode (PostgreSQL + Redis + SMTP). No-op marker for now; adapter selection
+# is wired in later standalone-mode tasks.
+postgres-backend = []
+
+# Standalone mode (SQLite + moka + stub/file email + autogen secrets). No-op
+# marker for now; implementations land in later standalone-mode tasks. Build with
+# `--no-default-features --features standalone`.
+standalone = []
+
 rhai = ["dep:rhai"]
 
 # ? ----------------------------------------------------------------------------

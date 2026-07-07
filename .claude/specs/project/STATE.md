@@ -243,10 +243,15 @@ include them in scope.
 | Specify (spec.md — requirements + brief corrections C-1…C-7) | ✅ Done |
 | Design (design.md — compile-time feature, SQLite/moka/email/secrets/docker) | ✅ Done |
 | Tasks (tasks.md — 27 tasks, 8 groups; critical path G2 SQLite) | ✅ Done |
-| Execute | ⏳ Not started |
+| Execute — SM-T1 (feature scheme + guards) | ✅ Done, verified, pending commit |
+| Execute — SM-T2… | ⏳ Not started |
 
-**Next action:** SM-T1 (feature scaffolding + `compile_error!` mutual-exclusion guard) — low risk, no
-behavior change. Build gate from G1 on: also `cargo build --no-default-features --features standalone`.
+**SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
+`compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
+and the both-features failure. `fmt --check` clean. Not committed yet (awaiting user test/approval).
+
+**Next action:** SM-T2 (CI builds both targets), then G2 critical path starting SM-T3 (SQLite deps on
+`myc-diesel`). Build gate from G1 on: also `cargo build --no-default-features --features standalone`.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).

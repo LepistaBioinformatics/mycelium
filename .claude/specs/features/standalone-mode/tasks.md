@@ -17,7 +17,7 @@ Legend for each task: **What / Where / Depends on / Reuses / Done when / Tests**
 
 ## G1 — Feature scaffolding & build guards
 
-### SM-T1 — Workspace feature scheme + mutual-exclusion guard
+### SM-T1 — Workspace feature scheme + mutual-exclusion guard — ✅ Done (verified, pending commit)
 - **What:** Add `postgres-backend` (default) and `standalone` features to `ports/api`; wire them to
   per-crate features (created in later tasks, initially no-op). Add
   `#[cfg(all(feature="standalone", feature="postgres-backend"))] compile_error!(...)` in `main.rs`.
@@ -27,6 +27,10 @@ Legend for each task: **What / Where / Depends on / Reuses / Done when / Tests**
 - **Done when:** `cargo build` (default) unchanged; `cargo build --no-default-features --features standalone`
   compiles (even if it produces the full behavior for now); building with both features errors with the guard message.
 - **Tests:** compile-only (both feature configs build).
+- **Result:** `default = ["postgres-backend"]`; empty no-op `postgres-backend`/`standalone` markers;
+  two `compile_error!` guards (both-features + neither-feature). Verified: `cargo check -p mycelium-api`
+  (default) OK · `--no-default-features --features standalone` OK · `--features standalone` fails with
+  the guard message. `cargo fmt --check` clean.
 
 ### SM-T2 — CI builds both targets
 - **What:** Add a CI step building `--no-default-features --features standalone` alongside the default.
