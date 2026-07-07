@@ -15,3 +15,13 @@ pub mod models;
 pub mod repositories;
 #[cfg(feature = "postgres")]
 mod schema;
+
+// ? ----------------------------------------------------------------------------
+// ? SQLite backend (standalone mode)
+// ?
+// ? Parallel module tree mirroring the Postgres one, with SQLite-compatible
+// ? types (TEXT-backed Uuid/Json/Array/Timestamp) and embedded migrations.
+// ? ----------------------------------------------------------------------------
+
+#[cfg(feature = "sqlite")]
+pub mod sqlite;
