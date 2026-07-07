@@ -14,7 +14,7 @@ pub trait MokaCacheProvider: Interface + Send + Sync {
 #[shaku(interface = MokaCacheProvider)]
 #[derive(Clone)]
 pub struct MokaCacheProviderImpl {
-    pub(crate) cache: Arc<ArtifactCache>,
+    pub cache: Arc<ArtifactCache>,
 }
 
 impl MokaCacheProvider for MokaCacheProviderImpl {

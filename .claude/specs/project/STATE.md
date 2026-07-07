@@ -273,7 +273,9 @@ end-to-end.
 | Execute — SM-T17 (SqlAppModule sqlite wiring — barrier, closes G2) | ✅ Done (committed `f1f02d2b`) |
 | Execute — SM-T18/T19 (moka cache: `adapters/moka_cache` crate, KVAppModule, per-key TTL) | ✅ Done (committed `a341089d`) — closes G3 |
 | Execute — SM-T20/T21 (notifier `local-transport` feature: stub + file transport, SMTP precedence) | ✅ Done (committed `f325212e`) — closes G4 |
-| Execute — SM-T22 (autogen secrets: keyring + encrypted-file fallback) | ✅ Done, verified — closes G5 |
+| Execute — SM-T22 (autogen secrets: keyring + encrypted-file fallback) | ✅ Done (committed `a7732274`) — closes G5 |
+| Execute — SM-T23 (standalone config shape) | ✅ Done (committed `fcc08f08`) |
+| Execute — SM-T24 (cfg-gated `initialize_modules` + `main()`, autogen secrets wired in) | ✅ Done, verified end-to-end (real boot test, 2 restarts) — closes G6 |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
@@ -424,24 +426,46 @@ Also registered `mycelium-diesel-sqlite`/`mycelium-moka-cache` as optional deps 
 by `standalone`, and wired `standalone` to enable `mycelium-notifier/local-transport` +
 `mycelium-config/standalone-secrets`.
 
-**Next action:** SM-T24 — the actual `initialize_modules`/`main()` cfg-split: build the SQLite pool
-(auto-migrate on boot) → `SqlAppModule`; moka → `KVAppModule` (needs
-`.with_component_parameters::<MokaCacheProviderImpl>(...)` since that field has no `#[shaku(default)]`);
-`LocalNotifierAppModule` (no `SharedClientImpl`/Redis needed for it); drop `SharedAppModule`/`shared_module`
-entirely for standalone builds (nothing else references it); resolve token_secret + hmac secret via
-`resolve_or_generate_standalone_secret` and inject via `AccountLifeCycle::with_token_secret_override`
-(already exists, built for `myc-cli rotate-kek`) + a new equivalent `with_hmac_secret_override` (small,
-additive, non-breaking addition to `core` — mirrors the existing method). Every `config.queue`/
-`config.redis`/`config.smtp`/`config.vault`/`init_vault_config_from_file`/`SharedClientImpl` touch
-point inside `main()` (not just `initialize_modules`) needs cfg-gating in the same pass — already
-enumerated via grep. **Compiling is not the finish line**: SM-T24's actual "done when" is booting
-against an empty working dir with no external services — plan to actually run the standalone binary
-(minimal TOML, empty dir) and confirm it boots, auto-migrates the SQLite file, and serves, folding
-SM-T26's E2E smoke verification forward rather than treating a green compile as sufficient. If the
-sandbox can't run a long-lived server process, say so explicitly and mark T24 "compiles + wired, boot
-unverified" rather than claiming done. Then G7 (SM-T25 Dockerfile), G8 (SM-T27 docs), per user's
-"continue to completion" directive. Build gate every step: full `cargo build --workspace` + `cargo
-test --workspace --all` + `cargo fmt --all -- --check` + standalone binary build.
+**SM-T24 result — closes G6, standalone genuinely boots:** split `initialize_modules` into two
+`#[cfg]`-gated bodies sharing a new `build_mem_db_module` helper (the service/callback registry is
+backend-agnostic). Standalone: `provision_database(&sqlite_path)` (new `diesel_sqlite::migration`
+function: creates parent dir, establishes a connection, runs embedded migrations) → `SqlAppModule`;
+`KVAppModule` via `MokaCacheProviderImplParameters { cache: MokaCacheProviderImpl::new().cache }`
+(required bumping that field from `pub(crate)` to `pub` for cross-crate construction, same for
+notifier's `LocalTransportKind` field); `LocalNotifierAppModule` via `select_local_transport(None,
+None)` (standalone has no SMTP config surface yet, so always resolves to stub — documented
+limitation, doesn't block the zero-external-services boot requirement). Dropped
+`SharedAppModule`/`shared_module` entirely for standalone (confirmed nothing outside `main.rs` ever
+resolves it). `main()`: vault init + the `initialize_modules()` destructuring (5-tuple vs 4-tuple) are
+cfg-gated; `shared_module`'s `app_data` registration became its own cfg-gated `let base_app =
+base_app.app_data(...)` rebind (mid-chain `#[cfg]` on a single `.app_data()` call isn't legal Rust).
+Token/HMAC secrets resolved right after config load via `resolve_or_generate_standalone_secret`
+(secrets dir = sqlite path's parent + `.secrets`) and injected via the existing
+`with_token_secret_override` plus a new, small, additive `with_hmac_secret_override` on
+`core::AccountLifeCycle` (mirrors the existing method; core now 203/203 green with the new test).
+
+**Two real bugs found via actual boot testing, not just compilation:**
+1. TOML table-ordering bug in `config.standalone.example.toml` — `tls`/`routes` placed after
+   `[api.logging]` got silently attributed to that sub-table instead of `[api]` (TOML semantics), so
+   deserialization failed with "missing field `tls`". Fixed by reordering + a comment explaining why.
+2. Genuine pre-existing coupling bug in `mycelium-notifier`: `QueueConfig`/`SmtpConfig` shared one
+   private `TmpConfig { smtp, queue }`, so loading `[queue]` alone (now unconditional on
+   `ConfigHandler` since it's backend-agnostic dispatcher-polling config, not Redis-specific) always
+   required `[smtp]` too. Fixed by splitting into two module-local `TmpConfig` structs and deleting
+   the shared file — no public API change, full-mode `[smtp]` still required, 3/3 notifier tests green.
+
+**Verified end-to-end:** ran the real `myc-api` binary (`--no-default-features --features standalone`)
+against a minimal TOML + empty temp dir. First boot: auto-provisioned SQLite (18 tables), served
+`GET /health` successfully. **Second boot** — a genuinely separate OS process against the same
+paths — also booted clean and served, confirming persistence holds across a real restart, not just
+within one test process. Full workspace build/test (0 failed everywhere), fmt clean, both
+`mycelium-api` builds (default + standalone) clean with zero warnings. Not committed yet.
+
+**Next action:** G7 (SM-T25 — Dockerfile.standalone; SM-T26's smoke-test intent is already
+substantially covered by SM-T24's boot verification above, so T26 should mostly formalize/automate
+what was done manually here), G8 (SM-T27 — docs/limitations/roadmap updates), per user's "continue to
+completion" directive. Build gate every step: full `cargo build --workspace` + `cargo test
+--workspace --all` + `cargo fmt --all -- --check` + standalone binary build.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).

@@ -53,6 +53,17 @@ maxAttempts = 5
 path = "./data/mycelium.db"
 
 # ------------------------------------------------------------------------------
+# EMAIL DISPATCHER POLLING SETTINGS
+#
+# Not Redis-specific -- just how often the in-process email dispatcher polls
+# the `message` table for pending sends. Shared by both backends.
+# ------------------------------------------------------------------------------
+
+[queue]
+emailQueueName = "emails"
+consumeIntervalInSecs = 15
+
+# ------------------------------------------------------------------------------
 # AUTHENTICATION SETTINGS
 #
 # Disabled by default so a minimal standalone boot needs no additional
@@ -77,11 +88,14 @@ gatewayTimeout = 60
 
 allowedOrigins = ["http://localhost:8080"]
 
+# NOTE: `tls`/`routes` must come before any `[api.*]` sub-table (`logging`
+# below) -- TOML attributes a bare `key = value` line to the most recently
+# opened table header, so placing them after `[api.logging]` would silently
+# attach them to `api.logging` instead of `api` and fail to deserialize.
+tls = "disabled"
+routes = []
+
 [api.logging]
 level = "mycelium_base=info,myc_api=info,myc_config=info,myc_core=info,myc_http_tools=info,actix_web=info,myc_notifier=info,myc_diesel_sqlite=info,myc_moka_cache=info"
 format = "ansi"
 target = "stdout"
-
-tls = "disabled"
-
-routes = []

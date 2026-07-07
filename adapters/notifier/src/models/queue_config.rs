@@ -1,5 +1,3 @@
-use super::tmp_config::TmpConfig;
-
 use myc_config::{load_config_from_file, secret_resolver::SecretResolver};
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
 use serde::Deserialize;
@@ -10,6 +8,15 @@ use std::path::PathBuf;
 pub struct QueueConfig {
     pub email_queue_name: SecretResolver<String>,
     pub consume_interval_in_secs: SecretResolver<u64>,
+}
+
+// Loaded on its own -- not bundled with `SmtpConfig` -- so standalone mode
+// (which has no `[smtp]` section) can still load `[queue]`, the polling
+// config the email dispatcher needs regardless of backend.
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TmpConfig {
+    queue: QueueConfig,
 }
 
 impl QueueConfig {

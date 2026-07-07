@@ -1,5 +1,3 @@
-use super::tmp_config::TmpConfig;
-
 use myc_config::{load_config_from_file, secret_resolver::SecretResolver};
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
 use serde::Deserialize;
@@ -15,6 +13,15 @@ pub struct SmtpConfig {
 }
 
 unsafe impl Send for SmtpConfig {}
+
+// Loaded on its own -- not bundled with `QueueConfig` -- so postgres-backend
+// (the only mode where SMTP applies) doesn't force standalone's `[queue]`
+// loader to also require a `[smtp]` section it has no use for.
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TmpConfig {
+    smtp: SmtpConfig,
+}
 
 impl SmtpConfig {
     pub fn from_default_config_file(

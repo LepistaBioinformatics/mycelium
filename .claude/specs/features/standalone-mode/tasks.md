@@ -543,7 +543,7 @@ a new equivalent for HMAC. Verified: `mycelium-diesel-sqlite`'s new
 --workspace --all` (0 failed — full-mode `ConfigHandler` parsing genuinely unchanged, not just
 compiling), `cargo fmt --all -- --check` clean, `mycelium-api` (default features) still builds.
 
-### SM-T24 — cfg-gated `initialize_modules` for standalone (SM-R7 boot, wiring)
+### SM-T24 — cfg-gated `initialize_modules` for standalone (SM-R7 boot, wiring) — ✅ Done (verified, pending commit)
 - **What:** Standalone `initialize_modules`: sqlite pool (auto-migrate) → SqlAppModule; moka → KVAppModule;
   stub/file notifier → NotifierModule; autogen secrets; spawn existing `email_dispatcher` (reads from
   sqlite). No hard-fail/panic on missing Redis/SMTP/Vault (those paths cfg-excluded).
@@ -552,6 +552,56 @@ compiling), `cargo fmt --all -- --check` clean, `mycelium-api` (default features
 - **Reuses:** existing `email_dispatcher`, shaku module types (OC-1 resolved — no new consumer).
 - **Done when:** standalone binary boots against an empty working dir with no external services.
 - **Tests:** integration — boot standalone, hit health endpoint.
+
+**SM-T24 result:** `initialize_modules` split into two `#[cfg]`-gated bodies (postgres-backend
+unchanged; standalone new) sharing a `build_mem_db_module` helper for the backend-agnostic
+service/callback registry. Standalone body: `provision_database(&sqlite_path)` (new
+`adapters/diesel_sqlite::migration::provision_database` — creates the parent dir, establishes a
+one-off connection, runs embedded migrations) → `SqlAppModule` via
+`DieselSqliteDbPoolProviderParameters`; `KVAppModule` via
+`MokaCacheProviderImplParameters { cache: MokaCacheProviderImpl::new().cache }`; `LocalNotifierAppModule`
+via `LocalTransportMessageSendingRepositoryParameters { transport: select_local_transport(None, None) }`
+— standalone has no SMTP config surface yet, so it always resolves the stub transport for now
+(documented limitation, not a blocker for SM-R7's zero-external-services boot requirement). Drops
+`SharedAppModule`/`shared_module` entirely for standalone (confirmed by grep: nothing outside
+`main.rs` ever resolves it — it only ever existed to carry a Redis client). `main()`: vault init and
+the `initialize_modules()` destructuring (different tuple arity — 5 full-mode, 4 standalone) are
+cfg-gated; the `shared_module` `app_data` registration is a separate cfg-gated rebind
+(`let base_app = base_app.app_data(...)`) rather than a mid-chain `#[cfg]` (not legal Rust). Token/HMAC
+secrets: right after config load, standalone resolves both via
+`resolve_or_generate_standalone_secret` (secrets dir = sqlite path's parent + `.secrets`) and injects
+them into `config.core.account_life_cycle` via the existing `with_token_secret_override` (built for
+`myc-cli rotate-kek`) plus a new, small, additive `with_hmac_secret_override` on
+`core::models::AccountLifeCycle` (mirrors the existing method exactly; 1 new core test, core still
+203/203 green).
+
+**Two real bugs found and fixed during actual boot testing (not just compilation) — this is why "compiles"
+was treated as insufficient:**
+1. **TOML table-ordering bug in `settings/config.standalone.example.toml`**: `tls`/`routes` were placed
+   *after* the `[api.logging]` sub-table, so TOML attributed them to `api.logging` instead of `api`,
+   failing deserialization with "missing field `tls`". Fixed by moving them before `[api.logging]`,
+   with a comment explaining the TOML rule so it doesn't regress.
+2. **Genuine coupling bug in `mycelium-notifier`**: `QueueConfig::from_default_config_file` and
+   `SmtpConfig::from_default_config_file` shared one private `TmpConfig { smtp, queue }`, so loading
+   `[queue]` alone (needed by standalone, which made `queue` unconditional on `ConfigHandler` since
+   it's genuinely backend-agnostic dispatcher-polling config, not Redis-specific) always required
+   `[smtp]` to also be present — even though queue loading has nothing to do with SMTP. Fixed by
+   splitting into two module-local `TmpConfig` structs, one per loader, and deleting the shared
+   `tmp_config.rs`. No public API change; full-mode `[smtp]` config still required and unaffected (3/3
+   notifier tests still green).
+
+**Verified end-to-end, not just compiled:** ran the actual `myc-api` binary
+(`--no-default-features --features standalone`) against a real minimal standalone TOML pointing at an
+empty temp directory. First boot: auto-provisioned the SQLite file (all 18 tables via embedded
+migrations, confirmed via `ls`), started cleanly, `GET /health` returned success. **Second boot** (a
+genuinely separate OS process against the same paths) also started cleanly and served `/health` --
+confirming the persisted-secret/persisted-database story holds across a real restart, not just two
+calls within one test process. Full `cargo build --workspace` + `cargo test --workspace --all` (0
+failed across every crate) + `cargo fmt --all -- --check` clean + both `mycelium-api` builds
+(default and standalone) clean with zero warnings. **This closes G6 — standalone mode is now a
+genuinely bootable server**, satisfying SM-R7's core boot requirement ahead of schedule (folded
+SM-T26's smoke-test intent forward per the advisor's suggestion, since "compiles" was never going to
+be sufficient evidence for this task).
 
 ---
 

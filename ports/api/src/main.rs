@@ -46,14 +46,18 @@ use awc::{error::HeaderValue, Client};
 use dispatchers::{
     email_dispatcher, services_health_dispatcher, webhook_dispatcher,
 };
+use models::active_backend_modules::{KVAppModule, SqlAppModule};
 use models::config_handler::ConfigHandler;
+#[cfg(feature = "postgres-backend")]
 use myc_adapters_shared_lib::models::{
     SharedAppModule, SharedClientImpl, SharedClientImplParameters,
     SharedClientProvider,
 };
-use myc_config::{
-    init_vault_config_from_file, optional_config::OptionalConfig,
-};
+#[cfg(feature = "postgres-backend")]
+use myc_config::init_vault_config_from_file;
+use myc_config::optional_config::OptionalConfig;
+#[cfg(feature = "standalone")]
+use myc_config::resolve_or_generate_standalone_secret;
 use myc_core::{
     domain::{
         dtos::callback::CallbackExecutor,
@@ -64,14 +68,32 @@ use myc_core::{
     },
     use_cases::gateway::guest_roles::propagate_declared_roles_to_storage_engine,
 };
+#[cfg(feature = "postgres-backend")]
 use myc_diesel::repositories::{
-    DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
+    DieselDbPoolProvider, DieselDbPoolProviderParameters,
+};
+#[cfg(feature = "standalone")]
+use myc_diesel_sqlite::{
+    config::{
+        DieselSqliteDbPoolProvider, DieselSqliteDbPoolProviderParameters,
+    },
+    migration::provision_database,
 };
 use myc_http_tools::settings::DEFAULT_REQUEST_ID_KEY;
-use myc_kv::repositories::KVAppModule;
 use myc_mem_db::repositories::{
     MemDbAppModule, MemDbPoolProvider, MemDbPoolProviderParameters,
 };
+#[cfg(feature = "standalone")]
+use myc_moka_cache::config::{
+    MokaCacheProviderImpl, MokaCacheProviderImplParameters,
+};
+#[cfg(feature = "standalone")]
+use myc_notifier::repositories::{
+    select_local_transport, LocalNotifierAppModule,
+    LocalTransportMessageSendingRepository,
+    LocalTransportMessageSendingRepositoryParameters,
+};
+#[cfg(feature = "postgres-backend")]
 use myc_notifier::{
     models::ClientProvider,
     repositories::{
@@ -159,6 +181,56 @@ pub async fn main() -> std::io::Result<()> {
             Err(err) => panic!("Error on init config: {err}"),
         };
 
+    // ? -----------------------------------------------------------------------
+    // ? STANDALONE SECRET RESOLUTION (SM-R9)
+    //
+    // The config file's `tokenSecret`/`hmacSecrets` are placeholders in
+    // standalone mode (see settings/config.standalone.example.toml) --
+    // resolve (or generate, on first boot) the real secrets from the OS
+    // keyring / an encrypted local file next to the SQLite database, and
+    // override the config in place before anything reads it.
+    // ? -----------------------------------------------------------------------
+    #[cfg(feature = "standalone")]
+    let config = {
+        let mut config = config;
+
+        let sqlite_path = match config.sqlite.path.async_get_or_error().await {
+            Ok(path) => path,
+            Err(err) => panic!("Error on get sqlite path: {err}"),
+        };
+
+        let secrets_dir = std::path::Path::new(&sqlite_path)
+            .parent()
+            .map(|parent| parent.join(".secrets"))
+            .unwrap_or_else(|| PathBuf::from(".secrets"));
+
+        let token_secret = match resolve_or_generate_standalone_secret(
+            "mycelium-standalone",
+            &secrets_dir,
+            "token_secret",
+        ) {
+            Ok(secret) => secret,
+            Err(err) => panic!("Error resolving token secret: {err}"),
+        };
+
+        let hmac_secret = match resolve_or_generate_standalone_secret(
+            "mycelium-standalone",
+            &secrets_dir,
+            "hmac_secret",
+        ) {
+            Ok(secret) => secret,
+            Err(err) => panic!("Error resolving hmac secret: {err}"),
+        };
+
+        config.core.account_life_cycle = config
+            .core
+            .account_life_cycle
+            .with_token_secret_override(token_secret)
+            .with_hmac_secret_override(hmac_secret);
+
+        config
+    };
+
     let api_config = config.api.clone();
 
     // ? -----------------------------------------------------------------------
@@ -182,21 +254,36 @@ pub async fn main() -> std::io::Result<()> {
     // ? INITIALIZE VAULT CONFIGURATION
     //
     // The vault configuration should be initialized before the server starts.
-    // Vault configurations should be used to store sensitive data.
+    // Vault configurations should be used to store sensitive data. Standalone
+    // mode has no Vault at all (SM-R9).
     //
     // ? -----------------------------------------------------------------------
-    info!("Initializing Vault configs");
+    #[cfg(feature = "postgres-backend")]
+    {
+        info!("Initializing Vault configs");
 
-    init_vault_config_from_file(None, Some(config.vault.to_owned()))
-        .instrument(span.to_owned())
-        .await;
+        init_vault_config_from_file(None, Some(config.vault.to_owned()))
+            .instrument(span.to_owned())
+            .await;
+    }
 
     // ? -----------------------------------------------------------------------
     // ? CONFIGURE INTERNAL DEPENDENCIES
     // ? -----------------------------------------------------------------------
     info!("Initialize internal dependencies");
 
+    #[cfg(feature = "postgres-backend")]
     let (sql_module, shared_module, notifier_module, kv_module, mem_module) =
+        initialize_modules(&config.to_owned())
+            .await
+            .map_err(|err| {
+                tracing::error!("Error initializing modules: {err}");
+
+                std::io::Error::new(std::io::ErrorKind::Other, err)
+            })?;
+
+    #[cfg(feature = "standalone")]
+    let (sql_module, notifier_module, kv_module, mem_module) =
         initialize_modules(&config.to_owned())
             .await
             .map_err(|err| {
@@ -373,10 +460,18 @@ pub async fn main() -> std::io::Result<()> {
             // Inject modules
             //
             .app_data(web::Data::from(sql_module.clone()))
-            .app_data(web::Data::from(shared_module.clone()))
             .app_data(web::Data::from(notifier_module.clone()))
             .app_data(web::Data::from(kv_module.clone()))
-            .app_data(web::Data::from(mem_module.clone()))
+            .app_data(web::Data::from(mem_module.clone()));
+
+        // `SharedAppModule` carries the Redis client and is only meaningful
+        // in full mode; nothing resolves it from `app_data` anywhere in this
+        // crate, but it's registered for parity/future use.
+        #[cfg(feature = "postgres-backend")]
+        let base_app =
+            base_app.app_data(web::Data::from(shared_module.clone()));
+
+        let base_app = base_app
             //
             // Index endpoints
             //
@@ -656,7 +751,67 @@ pub async fn main() -> std::io::Result<()> {
         .await
 }
 
-/// Initialize the modules for the application.
+/// Build the backend-agnostic in-memory service/callback registry module.
+///
+/// Identical in both `postgres-backend` and `standalone` builds -- the
+/// service catalog and callback engines have nothing to do with the
+/// persistence/cache/notifier backend selection.
+async fn build_mem_db_module(config: &ConfigHandler) -> Arc<MemDbAppModule> {
+    for service in config.api.services.clone() {
+        trace!("Service: {:?}", service);
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? CREATE CALLBACK ENGINES FROM CONFIGURED CALLBACKS
+    //
+    // Convert callbacks configuration into executable engines that can be
+    // injected and executed later.
+    //
+    // ? -----------------------------------------------------------------------
+    let callbacks = config.api.to_owned().callbacks.clone().unwrap_or_default();
+
+    let mut engines: Vec<Arc<dyn CallbackExecutor>> = Vec::new();
+
+    for callback in &callbacks {
+        match callback_engines::create_engine_from_callback(callback) {
+            Ok(engine) => {
+                tracing::debug!(
+                    "Created engine for callback '{}' (type: {:?})",
+                    callback.name,
+                    callback.callback_type
+                );
+
+                engines.push(engine);
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "Failed to create engine for callback '{}': {e}",
+                    callback.name,
+                );
+            }
+        }
+    }
+
+    Arc::new(
+        MemDbAppModule::builder()
+            .with_component_parameters::<MemDbPoolProvider>(
+                MemDbPoolProviderParameters {
+                    services_db: Arc::new(Mutex::new(
+                        config.api.services.clone(),
+                    )),
+                    callbacks_db: Arc::new(Mutex::new(callbacks)),
+                    engines: Arc::new(Mutex::new(engines)),
+                    mode: Arc::new(Mutex::new(
+                        config.api.to_owned().callback_execution_mode.clone(),
+                    )),
+                },
+            )
+            .build(),
+    )
+}
+
+/// Initialize the modules for the application (full mode: PostgreSQL +
+/// Redis + SMTP).
 ///
 /// This function initializes the modules for the application based on the
 /// configuration provided. The modules are
@@ -668,6 +823,7 @@ pub async fn main() -> std::io::Result<()> {
 ///
 /// The function returns a tuple of the initialized modules.
 ///
+#[cfg(feature = "postgres-backend")]
 async fn initialize_modules(
     config: &ConfigHandler,
 ) -> Result<
@@ -759,57 +915,7 @@ async fn initialize_modules(
             .build(),
     );
 
-    for service in config.api.services.clone() {
-        trace!("Service: {:?}", service);
-    }
-
-    // ? -----------------------------------------------------------------------
-    // ? CREATE CALLBACK ENGINES FROM CONFIGURED CALLBACKS
-    //
-    // Convert callbacks configuration into executable engines that can be
-    // injected and executed later.
-    //
-    // ? -----------------------------------------------------------------------
-    let callbacks = config.api.to_owned().callbacks.clone().unwrap_or_default();
-
-    let mut engines: Vec<Arc<dyn CallbackExecutor>> = Vec::new();
-
-    for callback in &callbacks {
-        match callback_engines::create_engine_from_callback(callback) {
-            Ok(engine) => {
-                tracing::debug!(
-                    "Created engine for callback '{}' (type: {:?})",
-                    callback.name,
-                    callback.callback_type
-                );
-
-                engines.push(engine);
-            }
-            Err(e) => {
-                tracing::warn!(
-                    "Failed to create engine for callback '{}': {e}",
-                    callback.name,
-                );
-            }
-        }
-    }
-
-    let mem_module = Arc::new(
-        MemDbAppModule::builder()
-            .with_component_parameters::<MemDbPoolProvider>(
-                MemDbPoolProviderParameters {
-                    services_db: Arc::new(Mutex::new(
-                        config.api.services.clone(),
-                    )),
-                    callbacks_db: Arc::new(Mutex::new(callbacks)),
-                    engines: Arc::new(Mutex::new(engines)),
-                    mode: Arc::new(Mutex::new(
-                        config.api.to_owned().callback_execution_mode.clone(),
-                    )),
-                },
-            )
-            .build(),
-    );
+    let mem_module = build_mem_db_module(config).await;
 
     Ok((
         sql_module,
@@ -818,4 +924,73 @@ async fn initialize_modules(
         kv_module,
         mem_module,
     ))
+}
+
+/// Initialize the modules for the application (standalone mode: SQLite +
+/// in-process moka cache + stub/file email, no external services).
+///
+/// Mirrors the full-mode function's role but with no `SharedAppModule` --
+/// nothing else in `ports/api` resolves it, since it exists only to carry a
+/// Redis client, and standalone has no Redis.
+#[cfg(feature = "standalone")]
+async fn initialize_modules(
+    config: &ConfigHandler,
+) -> Result<
+    (
+        Arc<SqlAppModule>,
+        Arc<LocalNotifierAppModule>,
+        Arc<KVAppModule>,
+        Arc<MemDbAppModule>,
+    ),
+    MappedErrors,
+> {
+    let sqlite_path = match config.sqlite.path.async_get_or_error().await {
+        Ok(path) => path,
+        Err(err) => panic!("Error on get sqlite path: {err}"),
+    };
+
+    if let Err(err) = provision_database(&sqlite_path) {
+        panic!("Error provisioning SQLite database: {err}");
+    }
+
+    let sql_module = Arc::new(
+        SqlAppModule::builder()
+            .with_component_parameters::<DieselSqliteDbPoolProvider>(
+                DieselSqliteDbPoolProviderParameters {
+                    pool: DieselSqliteDbPoolProvider::new(&sqlite_path),
+                },
+            )
+            .build(),
+    );
+
+    let kv_module = Arc::new(
+        KVAppModule::builder()
+            .with_component_parameters::<MokaCacheProviderImpl>(
+                MokaCacheProviderImplParameters {
+                    cache: MokaCacheProviderImpl::new().cache,
+                },
+            )
+            .build(),
+    );
+
+    // ? -----------------------------------------------------------------------
+    // ? LOCAL EMAIL TRANSPORT
+    //
+    // Standalone mode has no SMTP config surface yet (L-6-style documented
+    // limitation): every standalone build resolves the stub (log-only)
+    // transport. File-transport configuration wiring is a fast-follow.
+    // ? -----------------------------------------------------------------------
+    let notifier_module = Arc::new(
+        LocalNotifierAppModule::builder()
+            .with_component_parameters::<LocalTransportMessageSendingRepository>(
+                LocalTransportMessageSendingRepositoryParameters {
+                    transport: select_local_transport(None, None),
+                },
+            )
+            .build(),
+    );
+
+    let mem_module = build_mem_db_module(config).await;
+
+    Ok((sql_module, notifier_module, kv_module, mem_module))
 }

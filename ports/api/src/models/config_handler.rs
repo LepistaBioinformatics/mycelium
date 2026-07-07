@@ -10,8 +10,9 @@ use myc_diesel::models::config::DieselConfig;
 #[cfg(feature = "standalone")]
 use myc_diesel_sqlite::config::SqliteConfig;
 use myc_http_tools::models::auth_config::AuthConfig;
+use myc_notifier::models::QueueConfig;
 #[cfg(feature = "postgres-backend")]
-use myc_notifier::models::{QueueConfig, SmtpConfig};
+use myc_notifier::models::SmtpConfig;
 use mycelium_base::utils::errors::MappedErrors;
 use std::path::PathBuf;
 
@@ -20,13 +21,14 @@ pub struct ConfigHandler {
     pub core: CoreConfig,
     pub api: ApiConfig,
     pub auth: AuthConfig,
+    // `QueueConfig` is just dispatcher polling behavior (queue name +
+    // interval), not Redis-specific -- shared by both backends.
+    pub queue: QueueConfig,
 
     #[cfg(feature = "postgres-backend")]
     pub diesel: DieselConfig,
     #[cfg(feature = "postgres-backend")]
     pub smtp: SmtpConfig,
-    #[cfg(feature = "postgres-backend")]
-    pub queue: QueueConfig,
     #[cfg(feature = "postgres-backend")]
     pub redis: RedisConfig,
     #[cfg(feature = "postgres-backend")]
@@ -48,6 +50,9 @@ impl ConfigHandler {
             // Auth configuration should be used by the web server into the
             // ports.
             auth: AuthConfig::from_default_config_file(file.clone())?,
+            // Queue configuration drives the email dispatcher's polling
+            // behavior in both backends.
+            queue: QueueConfig::from_default_config_file(file.clone())?,
             // Database configurations serves the database connector, which is
             // responsible for the communication with the database into the
             // adapters layer.
@@ -57,10 +62,6 @@ impl ConfigHandler {
             // managements into the adapters layer.
             #[cfg(feature = "postgres-backend")]
             smtp: SmtpConfig::from_default_config_file(file.clone())?,
-            // Queue configuration should be used by the queue repository
-            // managements into the adapters layer.
-            #[cfg(feature = "postgres-backend")]
-            queue: QueueConfig::from_default_config_file(file.clone())?,
             // Redis configuration should be used by the redis repository
             // managements into the adapters layer.
             #[cfg(feature = "postgres-backend")]

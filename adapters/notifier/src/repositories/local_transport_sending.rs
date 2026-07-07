@@ -45,7 +45,7 @@ pub fn select_local_transport(
 #[derive(Component)]
 #[shaku(interface = RemoteMessageWrite)]
 pub struct LocalTransportMessageSendingRepository {
-    pub(crate) transport: LocalTransportKind,
+    pub transport: LocalTransportKind,
 }
 
 #[async_trait]
