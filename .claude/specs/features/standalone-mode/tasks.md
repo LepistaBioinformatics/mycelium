@@ -32,12 +32,16 @@ Legend for each task: **What / Where / Depends on / Reuses / Done when / Tests**
   (default) OK · `--no-default-features --features standalone` OK · `--features standalone` fails with
   the guard message. `cargo fmt --check` clean.
 
-### SM-T2 — CI builds both targets
+### SM-T2 — CI builds both targets — ✅ Done (verified, pending commit)
 - **What:** Add a CI step building `--no-default-features --features standalone` alongside the default.
 - **Where:** `.github/workflows/*` (gateway).
 - **Depends on:** SM-T1.
 - **Done when:** CI matrix builds default + standalone; standalone cannot rot silently.
 - **Tests:** CI green on a no-op standalone build.
+- **Result:** Added `standalone-build` job to `.github/workflows/ci.yml`
+  (`cargo build -p mycelium-api --no-default-features --features standalone`). Scoped to `-p mycelium-api`
+  because `--no-default-features --workspace` would break crates relying on default features. YAML
+  validated; command verified locally. Runs on PR to main/develop.
 
 ---
 

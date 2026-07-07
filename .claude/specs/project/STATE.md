@@ -237,21 +237,26 @@ include them in scope.
 **Standalone Mode — specified, ready for execution** (2026-07-06). Branch **`feat/standalone-mode`**
 (gateway submodule) — NEVER work on `develop` for this feature (user instruction). Spec at
 `.claude/specs/features/standalone-mode/` (spec.md + design.md + tasks.md). See AD-005 for rationale.
+**Tracking epic: GitHub issue [#159](https://github.com/LepistaBioinformatics/mycelium/issues/159)**
+(labels epic+enhancement; 27-task checklist, SM-T1 checked). Keep the issue checkboxes in sync as
+tasks land.
 
 | Phase | Status |
 |---|---|
 | Specify (spec.md — requirements + brief corrections C-1…C-7) | ✅ Done |
 | Design (design.md — compile-time feature, SQLite/moka/email/secrets/docker) | ✅ Done |
 | Tasks (tasks.md — 27 tasks, 8 groups; critical path G2 SQLite) | ✅ Done |
-| Execute — SM-T1 (feature scheme + guards) | ✅ Done, verified, pending commit |
-| Execute — SM-T2… | ⏳ Not started |
+| Execute — SM-T1 (feature scheme + guards) | ✅ Done (committed `ce493b53`) |
+| Execute — SM-T2 (CI builds both targets) | ✅ Done, verified |
+| Execute — SM-T3… (G2 SQLite critical path) | ⏳ Next |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
 and the both-features failure. `fmt --check` clean. Not committed yet (awaiting user test/approval).
 
-**Next action:** SM-T2 (CI builds both targets), then G2 critical path starting SM-T3 (SQLite deps on
-`myc-diesel`). Build gate from G1 on: also `cargo build --no-default-features --features standalone`.
+**Next action:** SM-T3 (G2 critical path) — add SQLite deps behind a `sqlite` feature on `myc-diesel`
+(`libsqlite3-sys` bundled, `diesel_migrations`), keeping `postgres` default. Build gate from G1 on:
+also `cargo build -p mycelium-api --no-default-features --features standalone`.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).
