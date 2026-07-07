@@ -4,7 +4,7 @@
 //! types, so those columns are stored as TEXT. These helpers centralize the
 //! encode/decode so the repository layer round-trips values faithfully.
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use mycelium_base::utils::errors::{dto_err, MappedErrors};
 use serde_json::Value;
 use uuid::Uuid;
@@ -36,6 +36,30 @@ pub fn timestamp_from_text(value: &str) -> Result<DateTime<Utc>, MappedErrors> {
     })?;
 
     Ok(parsed.with_timezone(&Utc))
+}
+
+// ? ----------------------------------------------------------------------------
+// ? NaiveDateTime <-> TEXT
+// ?
+// ? The postgres repositories store `Local::now().naive_utc()` and read it back
+// ? via `.and_local_timezone(Local).unwrap()` -- reinterpreting the naive UTC
+// ? instant as if it were already in the local zone. That round-trip (not a true
+// ? UTC->Local conversion) is preserved here so domain-visible timestamps behave
+// ? identically between backends.
+// ? ----------------------------------------------------------------------------
+
+const NAIVE_TIMESTAMP_FORMAT: &str = "%Y-%m-%dT%H:%M:%S%.f";
+
+pub fn naive_timestamp_to_text(moment: &NaiveDateTime) -> String {
+    moment.format(NAIVE_TIMESTAMP_FORMAT).to_string()
+}
+
+pub fn naive_timestamp_from_text(
+    value: &str,
+) -> Result<NaiveDateTime, MappedErrors> {
+    NaiveDateTime::parse_from_str(value, NAIVE_TIMESTAMP_FORMAT).map_err(
+        |err| dto_err(format!("Invalid naive timestamp in SQLite row: {err}")),
+    )
 }
 
 // ? ----------------------------------------------------------------------------
@@ -111,6 +135,14 @@ mod tests {
         let decoded = timestamp_from_text(&timestamp_to_text(&now)).unwrap();
         // RFC3339 preserves down to the encoded precision; compare timestamps.
         assert_eq!(decoded.timestamp_micros(), now.timestamp_micros());
+    }
+
+    #[test]
+    fn naive_timestamp_round_trips() {
+        let now = chrono::Local::now().naive_utc();
+        let decoded =
+            naive_timestamp_from_text(&naive_timestamp_to_text(&now)).unwrap();
+        assert_eq!(decoded, now);
     }
 
     #[test]

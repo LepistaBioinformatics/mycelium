@@ -15,7 +15,7 @@ pub trait SqliteDbPoolProvider: Interface + Send + Sync {
 #[shaku(interface = SqliteDbPoolProvider)]
 #[derive(Debug, Clone)]
 pub struct DieselSqliteDbPoolProvider {
-    pool: SqliteDbPool,
+    pub(crate) pool: SqliteDbPool,
 }
 
 impl SqliteDbPoolProvider for DieselSqliteDbPoolProvider {

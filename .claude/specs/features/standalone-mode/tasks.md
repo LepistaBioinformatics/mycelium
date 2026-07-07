@@ -104,7 +104,7 @@ Legend for each task: **What / Where / Depends on / Reuses / Done when / Tests**
 Each task implements the SQLite variant of that group's `core` port traits, mapping pg-isms
 (`jsonb_set`→`json_set`, `->>`/`@>`→JSON1, drop `diesel::pg` DSL) per OC-4. Same trait signatures.
 
-- **SM-T7 [P]** — account + account_tag (`AccountRegistration/Fetching/Updating/Deletion`, tag traits)
+- **SM-T7 [P]** — account + account_tag (`AccountRegistration/Fetching/Updating/Deletion`, tag traits) — ✅ Done (verified, pending commit)
 - **SM-T8 [P]** — tenant + tenant_tag (incl. `status Array<Jsonb>` → JSON TEXT)
 - **SM-T9 [P]** — user (`UserRegistration/Fetching/Updating/Deletion`, `mfa` JSONB)
 - **SM-T10 [P]** — token + session_token + `TokenInvalidation` (incl. magic-link `jsonb_set`→`json_set`)
@@ -120,6 +120,43 @@ Each task implements the SQLite variant of that group's `core` port traits, mapp
 - **Reuses:** SM-T6 helpers; existing Postgres impls as behavioral reference.
 - **Done when (each):** trait methods compile+pass under sqlite; CRUD round-trips on a temp DB.
 - **Tests (each):** unit CRUD + the group's pg-ism-specific path (e.g. magic-link invalidation for T10).
+
+**SM-T7 result:** New `adapters/diesel/src/sqlite/{models,repositories}/` trees (models: `account`,
+`account_tag`, `user`; repositories: `account/{shared,account_registration,account_fetching,
+account_updating,account_deletion}.rs`, `account_tag/{account_tag_registration,account_tag_updating,
+account_tag_deletion}.rs`), all `#[cfg(feature="sqlite")]`. Duplicated tiny backend-agnostic helpers
+(`internal_error.rs`, `optional_written_by_parser.rs`) into the sqlite tree — the postgres originals
+live under a `#[cfg(feature="postgres")]`-gated module and can't be shared without breaking sqlite-only
+builds. Added `sqlite/test_support.rs` (temp DB + migrations helper, reusable by later blocks).
+
+**Landmines resolved during implementation (beyond the advisor's initial two):**
+- Diesel's SQLite backend needs the `returning_clauses_for_sqlite_3_35` feature enabled explicitly —
+  unlike postgres, `.get_result()` on insert/update does not imply `RETURNING *`. Added to the `sqlite`
+  feature bundle in `adapters/diesel/Cargo.toml`.
+- `account_type::jsonb @>` pg-isms are NOT uniformly "full equality" — `list()`'s `RoleAssociated`
+  branch needs a genuine partial JSON-path match (`json_extract(account_type,
+  '$.roleAssociated.tenantId')`) since sibling rows share a tenant but differ in role_name/read_role_id/
+  write_role_id; every other variant/call-site is full-value equality on the canonical JSON string.
+- `NaiveDateTime`'s `Display`/`FromStr` are NOT symmetric (space vs `T` separator) — added an explicit
+  `naive_timestamp_to_text`/`from_text` pair (RFC3339-shaped, no offset) to `sqlite/types.rs`, preserving
+  the postgres repos' `Local::now().naive_utc()` → `.and_local_timezone(Local)` reinterpretation exactly
+  (not "fixed" — that quirk is existing behavior other code may depend on).
+- Tables relying on Postgres's `DEFAULT gen_random_uuid()` (e.g. `manager_account_on_tenant`) have no
+  such default in the SQLite migration — the app must generate and supply the id explicitly. Handled in
+  `account_registration.rs`; **flag this for every future block that inserts into such a table.**
+- `ILIKE` has no SQLite equivalent; used `.like()`, relying on SQLite's default ASCII case-insensitivity
+  (documented limitation for non-ASCII terms, not a correctness regression for the common case).
+- `get_or_create_tenant_management_account`'s `#[shaku(inject)] db_config` field needed
+  `DieselSqliteDbPoolProvider.pool` widened from private to `pub(crate)` so cross-module test code can
+  construct a provider directly (shaku's derive macro has same-module access; hand-written test code
+  doesn't).
+
+**Verification:** new `account_lifecycle_round_trips_through_sqlite` integration test (temp DB +
+migrations) exercises create → fetch → update → tag → soft-delete end-to-end, including the `account`→
+`tenant` FK. All 10 sqlite tests green; `cargo fmt --all -- --check` clean; full-mode
+`cargo build --workspace` + `cargo test --workspace --all` unaffected (0 failed); standalone `mycelium-api`
+binary (`--no-default-features --features standalone`) still builds. Not committed yet (awaiting user
+test/approval).
 
 ---
 

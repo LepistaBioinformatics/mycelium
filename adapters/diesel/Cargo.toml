@@ -21,7 +21,15 @@ postgres = ["diesel/postgres"]
 
 # Standalone mode: SQLite backend with libsqlite3 compiled into the binary
 # (no system libsqlite runtime dep) + embedded migrations for auto-provisioning.
-sqlite = ["diesel/sqlite", "libsqlite3-sys/bundled", "dep:diesel_migrations"]
+# `returning_clauses_for_sqlite_3_35` enables `RETURNING` on insert/update
+# statements (SQLite >= 3.35, satisfied by the bundled version) so repositories
+# can read back generated/updated rows the same way the postgres ones do.
+sqlite = [
+    "diesel/sqlite",
+    "diesel/returning_clauses_for_sqlite_3_35",
+    "libsqlite3-sys/bundled",
+    "dep:diesel_migrations",
+]
 
 [dependencies]
 

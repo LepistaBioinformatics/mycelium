@@ -250,17 +250,28 @@ tasks land.
 | Execute — SM-T2 (CI builds both targets) | ✅ Done (committed `4f7f9354`) |
 | Execute — SM-T3 (sqlite feature on `myc-diesel`; backend isolation verified) | ✅ Done (committed `4d36fc94`) |
 | Execute — SM-T4/T5/T6 (sqlite scaffolding: pool+pragmas, schema+migrations, type helpers) | ✅ Done, verified |
-| Execute — SM-T7… (per-entity repo impls) | ⏳ Next |
+| Execute — SM-T7 (account + account_tag SQLite repos, block 1/3) | ✅ Done, verified |
+| Execute — SM-T8/T9 (tenant + tenant_tag, user — block 1/3 remainder) | ⏳ Next |
 
 **SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
 and the both-features failure. `fmt --check` clean. Not committed yet (awaiting user test/approval).
 
-**Next action:** SM-T7… — per-entity SQLite repository impls (start with account + account_tag),
-reusing `sqlite/types.rs` helpers and `sqlite/schema.rs`; mirror the postgres repos' behavior, map
-pg-isms to JSON1. SQLite scaffolding (`sqlite/{config,schema,migration,types}.rs`) is in place. Build
-gate: full `cargo test --workspace` (postgres) + `cargo test -p mycelium-diesel --no-default-features
---features sqlite`.
+**SM-T7 result:** `adapters/diesel/src/sqlite/{models,repositories}/` account + account_tag trees
+(details + landmines in tasks.md SM-T7 result block). Key reusable lessons for T8+: enable
+`diesel/returning_clauses_for_sqlite_3_35`; `account_type::jsonb @>` needs case-by-case full-equality
+vs. `json_extract` partial-match analysis, don't assume uniform rewrite; `NaiveDateTime` Display/FromStr
+aren't symmetric (use the new `naive_timestamp_{to,from}_text` pair); tables with
+`DEFAULT gen_random_uuid()` on postgres need the app to supply the id explicitly on sqlite inserts.
+Integration test pattern established: `sqlite/test_support.rs` (temp DB + migrations) +
+per-entity lifecycle test. Not committed yet (awaiting user test/approval).
+
+**Next action:** SM-T8 (tenant + tenant_tag) then SM-T9 (user) to close out block 1 ("account + tenant +
+user"), per user's block-by-block execution choice. Reuse `sqlite/repositories/account/shared.rs`'s
+`created_at_from_text` pattern; tenant's `status: Array<Jsonb>` needs a JSON-array TEXT helper
+(`json_array_to_text`/`from_text`, already in `sqlite/types.rs`) — first real use of it. Build gate: full
+`cargo test --workspace` (postgres) + `cargo test -p mycelium-diesel --no-default-features --features
+sqlite` + `cargo fmt --all -- --check`.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).
