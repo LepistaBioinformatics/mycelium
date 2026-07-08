@@ -44,6 +44,11 @@ A minimal standalone config needs only `[core.accountLifeCycle]`, `[sqlite]`, `[
 and `[api]` — no `[redis]`, `[smtp]`, or `[vault]` sections exist in standalone builds at all (the
 corresponding Rust types aren't even compiled in).
 
+Since a fresh local install rarely has a real domain to put in `noreplyEmail`/`supportEmail`,
+Mycelium's email validation accepts `localhost` as a domain in addition to the usual dotted form
+(`user@localhost` is valid; `user@example` without a TLD still is not) — this applies in both build
+modes, not just standalone.
+
 ### Docker
 
 ```bash
@@ -60,10 +65,12 @@ deployment.
 
 ## Secrets
 
-`tokenSecret` (the envelope-encryption key derivation source) and the primary HMAC signing key are
+`tokenSecret`, the primary HMAC signing key, and (if internal auth is enabled) `jwtSecret` are each
 resolved on every boot in this order:
 
-1. An explicit value in the config file (`{ env = "..." }` or a literal) — same as full mode.
+1. **An operator-supplied `{ env = "MY_VAR" }` resolver** — treated as explicit, same as full mode.
+   A bare literal in the config file (what the shipped example ships) does **not** count as explicit
+   — it's the documented placeholder, and standalone mode ignores it in favor of step 2.
 2. The OS keyring, if a backend is available.
 3. An encrypted local file next to the SQLite database (`<sqlite-dir>/.secrets/`), `0600` permissions.
 4. If none of the above has a value yet: **generate** a new secret and persist it (keyring first,
@@ -76,10 +83,19 @@ is the de-facto primary path in practice — this is expected, not a degraded mo
 > decrypt everything the KEK protects and to verify previously-signed connection strings. Treat it
 > like you would a database backup.
 
-Internal (database-backed) JWT authentication is **disabled by default** in the shipped example
-config, since it needs its own `jwtSecret` which isn't yet wired into this autogeneration flow.
-Enable `[auth.internal]` the same way you would in full mode once you've configured a secret source
-for it.
+Internal (database-backed) JWT authentication is **opt-in** via `[auth.internal.define]` — note the
+table shape: `internal = "enabled"` alone does **not** work, since `OptionalConfig`'s `Enabled`
+variant is a newtype wrapping a table, not a bare string:
+
+```toml
+[auth.internal.define]
+jwtExpiresIn = 43200                                            # 12 hours
+tmpExpiresIn = 300                                               # 5 minutes
+jwtSecret = "any-placeholder-value"                       # resolved per the order above
+```
+
+When enabled this way, `jwtSecret` follows the exact same resolution order as `tokenSecret`/HMAC —
+including honoring an explicit `{ env = "..." }` value.
 
 ---
 

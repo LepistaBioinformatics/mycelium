@@ -66,15 +66,19 @@ consumeIntervalInSecs = 15
 # ------------------------------------------------------------------------------
 # AUTHENTICATION SETTINGS
 #
-# Disabled by default so a minimal standalone boot needs no additional
-# secret (internal auth requires its own `jwtSecret`, not yet covered by the
-# standalone autogen-secrets flow). Enable the same way as in full mode --
-# `[auth.internal]` with `jwtExpiresIn`/`tmpExpiresIn`/`jwtSecret` -- once a
-# secret source is configured for it.
+# `jwtSecret` below is a placeholder, same treatment as `tokenSecret`/
+# `hmacSecrets[].secret` above: standalone mode ignores it and resolves (or
+# generates, on first boot) the real secret via the OS keyring / encrypted
+# local file. Note the `[auth.internal.define]` table shape -- `internal =
+# "enabled"` alone does NOT work (`OptionalConfig`'s `Enabled` variant is a
+# newtype, not a bare string); it must wrap a table via the `define` (or
+# `enabled`/`set`) key.
 # ------------------------------------------------------------------------------
 
-[auth]
-internal = "disabled"
+[auth.internal.define]
+jwtExpiresIn = 43200                                                  # 12 hours
+tmpExpiresIn = 300                                                    # 5 minutes
+jwtSecret = "replaced-at-boot-by-standalone-secret-resolution"
 
 # ------------------------------------------------------------------------------
 # API PORT SETTINGS

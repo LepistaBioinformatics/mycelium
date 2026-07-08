@@ -58,6 +58,8 @@ use myc_config::init_vault_config_from_file;
 use myc_config::optional_config::OptionalConfig;
 #[cfg(feature = "standalone")]
 use myc_config::resolve_or_generate_standalone_secret;
+#[cfg(feature = "standalone")]
+use myc_config::secret_resolver::SecretResolver;
 use myc_core::{
     domain::{
         dtos::callback::CallbackExecutor,
@@ -79,6 +81,8 @@ use myc_diesel_sqlite::{
     },
     migration::provision_database,
 };
+#[cfg(feature = "standalone")]
+use myc_http_tools::models::internal_auth_config::InternalOauthConfig;
 use myc_http_tools::settings::DEFAULT_REQUEST_ID_KEY;
 use myc_mem_db::repositories::{
     MemDbAppModule, MemDbPoolProvider, MemDbPoolProviderParameters,
@@ -184,11 +188,12 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     // ? STANDALONE SECRET RESOLUTION (SM-R9)
     //
-    // The config file's `tokenSecret`/`hmacSecrets` are placeholders in
-    // standalone mode (see settings/config.standalone.example.toml) --
-    // resolve (or generate, on first boot) the real secrets from the OS
-    // keyring / an encrypted local file next to the SQLite database, and
-    // override the config in place before anything reads it.
+    // `tokenSecret`/`hmacSecrets`/`jwtSecret` resolve in this order: an
+    // operator-supplied `{ env = "..." }` resolver (explicit, same as full
+    // mode) first; otherwise the config file's literal is treated as the
+    // shipped placeholder (see settings/config.standalone.example.toml) and
+    // the real secret is resolved (or generated, on first boot) from the OS
+    // keyring / an encrypted local file next to the SQLite database.
     // ? -----------------------------------------------------------------------
     #[cfg(feature = "standalone")]
     let config = {
@@ -204,20 +209,29 @@ pub async fn main() -> std::io::Result<()> {
             .map(|parent| parent.join(".secrets"))
             .unwrap_or_else(|| PathBuf::from(".secrets"));
 
-        let token_secret = match resolve_or_generate_standalone_secret(
+        let token_secret = match resolve_standalone_secret(
+            Some(config.core.account_life_cycle.token_secret_resolver()),
             "mycelium-standalone",
             &secrets_dir,
             "token_secret",
-        ) {
+        )
+        .await
+        {
             Ok(secret) => secret,
             Err(err) => panic!("Error resolving token secret: {err}"),
         };
 
-        let hmac_secret = match resolve_or_generate_standalone_secret(
+        let hmac_secret = match resolve_standalone_secret(
+            config
+                .core
+                .account_life_cycle
+                .primary_hmac_secret_resolver(),
             "mycelium-standalone",
             &secrets_dir,
             "hmac_secret",
-        ) {
+        )
+        .await
+        {
             Ok(secret) => secret,
             Err(err) => panic!("Error resolving hmac secret: {err}"),
         };
@@ -227,6 +241,31 @@ pub async fn main() -> std::io::Result<()> {
             .account_life_cycle
             .with_token_secret_override(token_secret)
             .with_hmac_secret_override(hmac_secret);
+
+        // Internal (database-backed) JWT auth is opt-in via
+        // `[auth.internal.define]` in the config file -- only resolve/
+        // override its `jwtSecret` when the operator has actually enabled
+        // it; leave it untouched if disabled.
+        if let OptionalConfig::Enabled(internal) = &config.auth.internal {
+            let jwt_secret = match resolve_standalone_secret(
+                Some(&internal.jwt_secret),
+                "mycelium-standalone",
+                &secrets_dir,
+                "jwt_secret",
+            )
+            .await
+            {
+                Ok(secret) => secret,
+                Err(err) => panic!("Error resolving jwt secret: {err}"),
+            };
+
+            config.auth.internal =
+                OptionalConfig::Enabled(InternalOauthConfig {
+                    jwt_secret: SecretResolver::Value(jwt_secret),
+                    jwt_expires_in: internal.jwt_expires_in.clone(),
+                    tmp_expires_in: internal.tmp_expires_in.clone(),
+                });
+        }
 
         config
     };
@@ -749,6 +788,26 @@ pub async fn main() -> std::io::Result<()> {
         .workers(api_config.service_workers as usize)
         .run()
         .await
+}
+
+/// Resolve one standalone secret (SM-R9), honoring an operator-supplied
+/// `Env` resolver as the explicit override -- same precedence full mode
+/// gives `SecretResolver::Env`/`Value` -- before falling back to the
+/// keyring/file/generate flow. A bare `Value(...)` resolver (the shipped
+/// example config's placeholder) is treated as "not configured", not as an
+/// explicit secret.
+#[cfg(feature = "standalone")]
+async fn resolve_standalone_secret(
+    existing: Option<&SecretResolver<String>>,
+    keyring_service: &str,
+    secrets_dir: &std::path::Path,
+    name: &str,
+) -> Result<String, MappedErrors> {
+    if let Some(resolver @ SecretResolver::Env(_)) = existing {
+        return resolver.async_get_or_error().await;
+    }
+
+    resolve_or_generate_standalone_secret(keyring_service, secrets_dir, name)
 }
 
 /// Build the backend-agnostic in-memory service/callback registry module.

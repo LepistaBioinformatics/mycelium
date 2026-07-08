@@ -135,6 +135,27 @@ impl AccountLifeCycle {
         clone
     }
 
+    /// Read-only access to the configured `token_secret` resolver.
+    ///
+    /// Used by standalone mode to tell an operator-supplied `Env` resolver
+    /// (an explicit secret, per SM-R9's resolution order) apart from the
+    /// literal placeholder the shipped example config carries, before
+    /// falling back to the keyring/file/generate flow.
+    pub fn token_secret_resolver(&self) -> &SecretResolver<String> {
+        &self.token_secret
+    }
+
+    /// Read-only access to the resolver for the current primary HMAC key
+    /// (`hmac_primary_version`), if configured. Same purpose as
+    /// `token_secret_resolver`.
+    pub fn primary_hmac_secret_resolver(
+        &self,
+    ) -> Option<&SecretResolver<String>> {
+        self.hmac_secrets
+            .lookup(self.hmac_primary_version)
+            .map(|entry| &entry.secret)
+    }
+
     /// Return a clone of this config with a single HMAC key (version 1)
     /// replaced by the supplied literal value, and `hmac_primary_version`
     /// set to match.
@@ -235,5 +256,30 @@ mod tests {
         assert_eq!(key, b"generated-hmac-secret".to_vec());
 
         Ok(())
+    }
+
+    #[test]
+    fn token_secret_resolver_exposes_the_configured_value() {
+        let config = base_config();
+        assert_eq!(
+            config.token_secret_resolver(),
+            &SecretResolver::Value("placeholder".to_string()),
+        );
+    }
+
+    #[test]
+    fn primary_hmac_secret_resolver_looks_up_the_primary_version() {
+        let config = base_config();
+        assert_eq!(
+            config.primary_hmac_secret_resolver(),
+            Some(&SecretResolver::Value("placeholder".to_string())),
+        );
+    }
+
+    #[test]
+    fn primary_hmac_secret_resolver_is_none_when_version_not_present() {
+        let mut config = base_config();
+        config.hmac_primary_version = 2;
+        assert_eq!(config.primary_hmac_secret_resolver(), None);
     }
 }

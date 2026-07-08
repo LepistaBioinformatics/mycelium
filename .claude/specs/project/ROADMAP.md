@@ -111,10 +111,16 @@ Docs: `docs/book/src/23-standalone-mode.md`. Tracking issue: #159.
   `mode = "standalone"` flag was rejected early: Postgres-only column types cannot compile against
   the SQLite backend in one binary.
 - Single binary, zero infra: ideal for local dev, edge deployments, and small teams.
-- **Known gap:** internal (database-backed) JWT auth is disabled in the shipped example config —
-  `jwtSecret` isn't yet wired into the autogen-secrets flow the way `tokenSecret`/HMAC are. Extending
-  that, then scripting the full magic-link → add-route → proxy smoke test, is the next slice of work
-  on this feature.
+- Internal (database-backed) JWT auth is enabled by default (`[auth.internal.define]`) with
+  `jwtSecret` wired into the same autogen-secrets flow as `tokenSecret`/HMAC — verified end-to-end
+  with a real magic-link request through a running standalone instance. All three secrets now also
+  honor an operator-supplied `{ env = "..." }` value as an explicit override before falling back to
+  keyring/file/generate, matching SM-R9's original resolution order.
+- Mycelium's email validation accepts `localhost` as a domain (in both build modes), so a fresh
+  standalone install doesn't need a placeholder real-looking domain for `noreplyEmail`/`supportEmail`.
+- **Known gap:** the full scripted E2E smoke (magic-link → add a downstream route → proxy a request)
+  is still a fast-follow — the underlying pieces (auth, routing) all work, but the scenario hasn't
+  been scripted as a repeatable test yet.
 
 **Messaging Platform Identity Providers (WhatsApp + Telegram)** - PLANNED
 
