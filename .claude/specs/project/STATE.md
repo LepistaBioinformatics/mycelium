@@ -498,16 +498,34 @@ clean, both English and `pt-BR` `mdbook build` succeed.
 
 **Standalone Mode feature status: G1 through G8 all done.** The zero-external-dependencies gateway
 genuinely boots, auto-provisions its database, and serves requests — verified across bare-metal
-restarts and a real Docker build/run/restart cycle, not just compiled. Two honestly-scoped gaps
-remain as documented fast-follows, not silently dropped: (1) standalone builds have no SMTP config
-surface, so email always resolves to the stub transport; (2) internal JWT auth is disabled by
-default since `jwtSecret` isn't yet wired into the autogen-secrets flow the way `tokenSecret`/HMAC
-are — extending that plus scripting the full magic-link → route → proxy E2E smoke (SM-T26's full
-scenario) is the natural next slice of work if/when needed.
+restarts and a real Docker build/run/restart cycle, not just compiled.
 
-**Next action:** none pending from the standing "continue to completion" directive — the
-standalone-mode feature as scoped in tasks.md is complete. Await user direction on the two documented
-fast-follows or the next feature.
+**Post-G8 follow-up (2026-07-07, user-driven):** the user asked what was actually missing for JWT to
+work, prompting a closer look that found and fixed real gaps rather than just answering the question:
+- `[auth.internal.define]` is the correct TOML shape to enable internal auth — `internal = "enabled"`
+  alone does not work (`OptionalConfig::Enabled` is a newtype, not a bare string). Discovered the
+  repo's own `settings/config.for-docker.toml` has this exact latent bug (pre-existing, unrelated to
+  standalone work, not fixed — out of scope), confirmed by an empirical parse test.
+- Wired `jwtSecret` into the same autogen-secrets flow as `tokenSecret`/HMAC (opt-in via
+  `[auth.internal.define]`; verified end-to-end with a real magic-link request through a running
+  standalone instance — health check, `POST magic-link/request`, stub transport logging the link).
+- **Found and fixed a real correctness bug while verifying the docs**: `tokenSecret`/`hmacSecrets`/
+  `jwtSecret` were always overridden unconditionally in standalone, ignoring any operator-supplied
+  `{ env = "..." }` value — contradicting SM-R9's own resolution order. Fixed with two small
+  read-only accessors on `core::AccountLifeCycle` (`token_secret_resolver`,
+  `primary_hmac_secret_resolver`) so `ports/api` can distinguish an explicit `Env` resolver from the
+  shipped placeholder literal before falling back to keyring/file/generate.
+- Extended `Email::from_string`'s regex to accept `localhost` as a domain (both build modes), per
+  user request, so `noreplyEmail`/`supportEmail` don't need a fake real-looking domain.
+- Committed `5e6a74df`. Full workspace build/test (0 failed, 206 core tests), fmt clean, both
+  `mycelium-api` builds clean, real boot test with the full magic-link flow working, both English and
+  `pt-BR` `mdbook build`.
+
+**Next action:** none pending. The standalone-mode feature is complete and the JWT gap raised by the
+user is now closed. Remaining fast-follows, still honestly scoped and not silently dropped: (1)
+standalone has no SMTP config surface (always resolves to stub transport); (2) SM-T26's full scripted
+E2E smoke (magic-link → add a route → proxy a request) isn't automated as a repeatable test yet,
+though the underlying auth/routing pieces are now verified working. Await user direction.
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).
