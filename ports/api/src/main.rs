@@ -1035,15 +1035,28 @@ async fn initialize_modules(
     // ? -----------------------------------------------------------------------
     // ? LOCAL EMAIL TRANSPORT
     //
-    // Standalone mode has no SMTP config surface yet (L-6-style documented
-    // limitation): every standalone build resolves the stub (log-only)
-    // transport. File-transport configuration wiring is a fast-follow.
+    // Real SMTP is opt-in in standalone (SM-R8): if `[smtp]` is configured,
+    // resolve a real `SmtpTransport` and let `select_local_transport`'s
+    // existing SMTP > file > stub precedence pick it up; otherwise (the
+    // common zero-config case) it falls through to the stub (log-only)
+    // transport, same as before. File-transport configuration wiring remains
+    // a documented fast-follow.
     // ? -----------------------------------------------------------------------
+    let smtp_transport = match config.smtp.to_owned() {
+        OptionalConfig::Enabled(smtp_config) => {
+            match smtp_config.build_transport().await {
+                Ok(transport) => Some(transport),
+                Err(err) => panic!("Error building SMTP transport: {err}"),
+            }
+        }
+        OptionalConfig::Disabled => None,
+    };
+
     let notifier_module = Arc::new(
         LocalNotifierAppModule::builder()
             .with_component_parameters::<LocalTransportMessageSendingRepository>(
                 LocalTransportMessageSendingRepositoryParameters {
-                    transport: select_local_transport(None, None),
+                    transport: select_local_transport(smtp_transport, None),
                 },
             )
             .build(),

@@ -3,8 +3,10 @@
 #
 # Zero external runtime dependencies: SQLite instead of Postgres, an
 # in-process moka cache instead of Redis, and a stub/file email transport
-# instead of SMTP. No Vault, no `[redis]`, no `[smtp]`, no `[queue]` section --
-# those adapters are compiled out of the `standalone` binary entirely.
+# instead of SMTP (unless you opt in -- see the `[smtp]` section below). No
+# Vault, no `[redis]` -- those adapters are compiled out of the `standalone`
+# binary entirely. `[queue]` is still required (dispatcher-polling config,
+# not Redis-specific -- shared by both backends).
 #
 # Build with: cargo build -p mycelium-api --no-default-features --features standalone
 # ------------------------------------------------------------------------------
@@ -62,6 +64,23 @@ path = "./data/mycelium.db"
 [queue]
 emailQueueName = "emails"
 consumeIntervalInSecs = 15
+
+# ------------------------------------------------------------------------------
+# SMTP SETTINGS (optional -- opt-in real email delivery)
+#
+# Absent by default: the standalone build then falls back to the stub
+# transport (logs subject/recipient/body, including the magic-link URL, to
+# stdout) or the file transport (`.eml` files), same as before. Uncomment and
+# fill in to send real email from a standalone build without needing full
+# mode's Postgres/Redis/Vault. `port`/`host`/`username`/`password` accept the
+# same secret-resolver shapes as full mode (plain value, `{ env = "..." }`).
+# ------------------------------------------------------------------------------
+
+# [smtp]
+# host = "smtp.example.com"
+# username = "apikey"
+# password = { env = "MYC_SMTP_PASSWORD" }
+# port = 587
 
 # ------------------------------------------------------------------------------
 # AUTHENTICATION SETTINGS

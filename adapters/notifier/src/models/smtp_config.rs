@@ -1,5 +1,9 @@
-use myc_config::{load_config_from_file, secret_resolver::SecretResolver};
-use mycelium_base::utils::errors::{creation_err, MappedErrors};
+use lettre::{transport::smtp::authentication::Credentials, SmtpTransport};
+use myc_config::{
+    load_config_from_file, optional_config::OptionalConfig,
+    secret_resolver::SecretResolver,
+};
+use mycelium_base::utils::errors::{creation_err, execution_err, MappedErrors};
 use serde::Deserialize;
 use std::path::PathBuf;
 
@@ -23,6 +27,15 @@ struct TmpConfig {
     smtp: SmtpConfig,
 }
 
+// Standalone's `[smtp]` is opt-in -- defaults to `Disabled` when the section
+// is absent, so standalone builds don't need a config change at all.
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct OptionalTmpConfig {
+    #[serde(default)]
+    smtp: OptionalConfig<SmtpConfig>,
+}
+
 impl SmtpConfig {
     pub fn from_default_config_file(
         file: PathBuf,
@@ -39,5 +52,45 @@ impl SmtpConfig {
             Ok(config) => Ok(config.smtp),
             Err(err) => Err(err),
         }
+    }
+
+    /// Load `[smtp]` as optional -- used by the `standalone` build, where
+    /// real SMTP is opt-in (SM-R8): if absent, `select_local_transport`
+    /// falls through to file/stub instead.
+    pub fn from_optional_config_file(
+        file: PathBuf,
+    ) -> Result<OptionalConfig<Self>, MappedErrors> {
+        if !file.exists() {
+            return creation_err(format!(
+                "Could not find config file: {}",
+                file.to_str().unwrap()
+            ))
+            .as_error();
+        }
+
+        match load_config_from_file::<OptionalTmpConfig>(file) {
+            Ok(config) => Ok(config.smtp),
+            Err(err) => Err(err),
+        }
+    }
+
+    /// Build a real `SmtpTransport` from this config. Shared by full mode's
+    /// `NotifierClientImpl` and standalone's opt-in SMTP wiring (SM-R8), so
+    /// the connection-building logic exists in exactly one place.
+    pub async fn build_transport(&self) -> Result<SmtpTransport, MappedErrors> {
+        let host = self.host.async_get_or_error().await?;
+        let username = self.username.async_get_or_error().await?;
+        let password = self.password.async_get_or_error().await?;
+        let port = self.port.async_get_or_error().await?;
+
+        let transport = SmtpTransport::relay(&host)
+            .map_err(|err| {
+                execution_err(format!("Failed to connect to SMTP: {err}"))
+            })?
+            .credentials(Credentials::new(username, password))
+            .port(port)
+            .build();
+
+        Ok(transport)
     }
 }

@@ -13,7 +13,7 @@ run four services just to try Mycelium out.
 |---|---|
 | PostgreSQL (`adapters/diesel_postgres`) | SQLite, auto-provisioned on first boot (`adapters/diesel_sqlite`) |
 | Redis-backed cache (`adapters/kv_db`) | In-process cache via [moka](https://docs.rs/moka) (`adapters/moka_cache`) |
-| SMTP (`lettre` `SmtpTransport`) | Stub transport (logs to stdout) or file transport (`.eml` files) |
+| SMTP (`lettre` `SmtpTransport`) | Stub transport (default, logs to stdout) or file transport (`.eml` files); real SMTP also works if you opt in with `[smtp]` |
 | HashiCorp Vault | Not used |
 | Operator-provided `tokenSecret`/HMAC secrets | Auto-generated on first boot, persisted (keyring or an encrypted local file) |
 
@@ -41,8 +41,10 @@ SETTINGS_PATH=./config.toml myc-api
 ```
 
 A minimal standalone config needs only `[core.accountLifeCycle]`, `[sqlite]`, `[queue]`, `[auth]`,
-and `[api]` — no `[redis]`, `[smtp]`, or `[vault]` sections exist in standalone builds at all (the
-corresponding Rust types aren't even compiled in).
+and `[api]` — `[redis]` and `[vault]` don't exist in standalone builds at all (the corresponding
+Rust types aren't even compiled in). `[smtp]` is optional and opt-in: absent by default (falls
+back to stub/file transport), but if present, standalone sends real email through it exactly like
+full mode does — see [Email transport](#email-transport) below.
 
 Since a fresh local install rarely has a real domain to put in `noreplyEmail`/`supportEmail`,
 Mycelium's email validation accepts `localhost` as a domain in addition to the usual dotted form
@@ -60,6 +62,30 @@ The image bakes in `settings/config.standalone.example.toml` as its default conf
 path` resolving under the mounted `/data` volume — `docker run` with no extra flags boots
 out of the box. Mount your own config with `-e SETTINGS_PATH=/path -v /host/path:/path` for a real
 deployment.
+
+---
+
+## Email transport
+
+By default, standalone builds don't deliver email — outbound mail goes to a **stub transport**
+(logs subject, recipient, and any magic-link URL to `tracing`/stdout) so you can complete flows
+like magic-link login without setting up anything. An opt-in **file transport** writes a `.eml`
+per message to a configured directory instead.
+
+If you want real delivery without running full mode's Postgres/Redis/Vault stack, configure
+`[smtp]` — same shape as full mode:
+
+```toml
+[smtp]
+host = "smtp.example.com"
+username = "apikey"
+password = { env = "MYC_SMTP_PASSWORD" }
+port = 587
+```
+
+When present, standalone resolves a real `SmtpTransport` and uses it (SMTP takes precedence over
+file, which takes precedence over stub — the same selection logic full mode's local-transport
+tests already cover). When absent, behavior is unchanged from before: stub by default.
 
 ---
 
@@ -113,6 +139,7 @@ including honoring an explicit `{ env = "..." }` value.
   single-instance, low-to-moderate write volume; a bottleneck under heavy concurrent writes.
 - **Email is not actually delivered** in stub mode (the default) — read the magic-link URL from
   stdout. File mode writes a `.eml` per message to a configured directory instead of sending it.
+  Configure `[smtp]` (see [Email transport](#email-transport)) for real delivery.
 - **The secrets file holds key material in the clear (to the process)** at rest, protected only by
   filesystem permissions plus a locally-derived wrapping key. Protect and back it up (see above).
 

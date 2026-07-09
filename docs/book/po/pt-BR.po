@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-07-07T21:21:26-03:00\n"
+"POT-Creation-Date: 2026-07-08T23:07:06-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -1498,7 +1498,9 @@ msgid "SMTP (`lettre` `SmtpTransport`)"
 msgstr ""
 
 #: src/23-standalone-mode.md:16
-msgid "Stub transport (logs to stdout) or file transport (`.eml` files)"
+msgid ""
+"Stub transport (default, logs to stdout) or file transport (`.eml` files); "
+"real SMTP also works if you opt in with `[smtp]`"
 msgstr ""
 
 #: src/23-standalone-mode.md:17
@@ -1554,12 +1556,15 @@ msgstr "settings/config.toml"
 #: src/23-standalone-mode.md:43
 msgid ""
 "A minimal standalone config needs only `[core.accountLifeCycle]`, "
-"`[sqlite]`, `[queue]`, `[auth]`, and `[api]` — no `[redis]`, `[smtp]`, or "
-"`[vault]` sections exist in standalone builds at all (the corresponding Rust "
-"types aren't even compiled in)."
+"`[sqlite]`, `[queue]`, `[auth]`, and `[api]` — `[redis]` and `[vault]` don't "
+"exist in standalone builds at all (the corresponding Rust types aren't even "
+"compiled in). `[smtp]` is optional and opt-in: absent by default (falls back "
+"to stub/file transport), but if present, standalone sends real email through "
+"it exactly like full mode does — see [Email transport](#email-transport) "
+"below."
 msgstr ""
 
-#: src/23-standalone-mode.md:47
+#: src/23-standalone-mode.md:49
 msgid ""
 "Since a fresh local install rarely has a real domain to put in "
 "`noreplyEmail`/`supportEmail`, Mycelium's email validation accepts "
@@ -1568,12 +1573,12 @@ msgid ""
 "this applies in both build modes, not just standalone."
 msgstr ""
 
-#: src/23-standalone-mode.md:52
+#: src/23-standalone-mode.md:54
 #, fuzzy
 msgid "Docker"
 msgstr "Com Docker:"
 
-#: src/23-standalone-mode.md:59
+#: src/23-standalone-mode.md:61
 msgid ""
 "The image bakes in `settings/config.standalone.example.toml` as its default "
 "config, with `[sqlite] path` resolving under the mounted `/data` volume — "
@@ -1581,18 +1586,56 @@ msgid ""
 "with `-e SETTINGS_PATH=/path -v /host/path:/path` for a real deployment."
 msgstr ""
 
-#: src/23-standalone-mode.md:66
+#: src/23-standalone-mode.md:68
+msgid "Email transport"
+msgstr ""
+
+#: src/23-standalone-mode.md:70
+msgid ""
+"By default, standalone builds don't deliver email — outbound mail goes to a "
+"**stub transport** (logs subject, recipient, and any magic-link URL to "
+"`tracing`/stdout) so you can complete flows like magic-link login without "
+"setting up anything. An opt-in **file transport** writes a `.eml` per "
+"message to a configured directory instead."
+msgstr ""
+
+#: src/23-standalone-mode.md:75
+msgid ""
+"If you want real delivery without running full mode's Postgres/Redis/Vault "
+"stack, configure `[smtp]` — same shape as full mode:"
+msgstr ""
+
+#: src/23-standalone-mode.md:78
+msgid ""
+"```toml\n"
+"[smtp]\n"
+"host = \"smtp.example.com\"\n"
+"username = \"apikey\"\n"
+"password = { env = \"MYC_SMTP_PASSWORD\" }\n"
+"port = 587\n"
+"```"
+msgstr ""
+
+#: src/23-standalone-mode.md:86
+msgid ""
+"When present, standalone resolves a real `SmtpTransport` and uses it (SMTP "
+"takes precedence over file, which takes precedence over stub — the same "
+"selection logic full mode's local-transport tests already cover). When "
+"absent, behavior is unchanged from before: stub by default."
+msgstr ""
+
+#: src/23-standalone-mode.md:92
 #, fuzzy
 msgid "Secrets"
 msgstr "`tokenSecret`"
 
-#: src/23-standalone-mode.md:68
+#: src/23-standalone-mode.md:94
 msgid ""
 "`tokenSecret`, the primary HMAC signing key, and (if internal auth is "
 "enabled) `jwtSecret` are each resolved on every boot in this order:"
 msgstr ""
 
-#: src/23-standalone-mode.md:71
+#: src/23-standalone-mode.md:97
 msgid ""
 "**An operator-supplied `{ env = \"MY_VAR\" }` resolver** — treated as "
 "explicit, same as full mode. A bare literal in the config file (what the "
@@ -1600,30 +1643,30 @@ msgid ""
 "placeholder, and standalone mode ignores it in favor of step 2."
 msgstr ""
 
-#: src/23-standalone-mode.md:74
+#: src/23-standalone-mode.md:100
 msgid "The OS keyring, if a backend is available."
 msgstr ""
 
-#: src/23-standalone-mode.md:75
+#: src/23-standalone-mode.md:101
 msgid ""
 "An encrypted local file next to the SQLite database (`<sqlite-dir>/.secrets/"
 "`), `0600` permissions."
 msgstr ""
 
-#: src/23-standalone-mode.md:76
+#: src/23-standalone-mode.md:102
 msgid ""
 "If none of the above has a value yet: **generate** a new secret and persist "
 "it (keyring first, falling back to the file)."
 msgstr ""
 
-#: src/23-standalone-mode.md:79
+#: src/23-standalone-mode.md:105
 msgid ""
 "Most containers, air-gapped hosts, and CI runners have no keyring/Secret-"
 "Service daemon, so step 3 is the de-facto primary path in practice — this is "
 "expected, not a degraded mode."
 msgstr ""
 
-#: src/23-standalone-mode.md:82
+#: src/23-standalone-mode.md:108
 msgid ""
 "**Back up `.secrets`.** Losing this directory (with no keyring copy) means "
 "losing the ability to decrypt everything the KEK protects and to verify "
@@ -1631,7 +1674,7 @@ msgid ""
 "backup."
 msgstr ""
 
-#: src/23-standalone-mode.md:86
+#: src/23-standalone-mode.md:112
 msgid ""
 "Internal (database-backed) JWT authentication is **opt-in** via `[auth."
 "internal.define]` — note the table shape: `internal = \"enabled\"` alone "
@@ -1639,7 +1682,7 @@ msgid ""
 "wrapping a table, not a bare string:"
 msgstr ""
 
-#: src/23-standalone-mode.md:90
+#: src/23-standalone-mode.md:116
 msgid ""
 "```toml\n"
 "[auth.internal.define]\n"
@@ -1651,18 +1694,18 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/23-standalone-mode.md:97
+#: src/23-standalone-mode.md:123
 msgid ""
 "When enabled this way, `jwtSecret` follows the exact same resolution order "
 "as `tokenSecret`/HMAC — including honoring an explicit `{ env = \"...\" }` "
 "value."
 msgstr ""
 
-#: src/23-standalone-mode.md:102
+#: src/23-standalone-mode.md:128
 msgid "Known limitations"
 msgstr ""
 
-#: src/23-standalone-mode.md:104
+#: src/23-standalone-mode.md:130
 msgid ""
 "**No distributed session tracking.** Not a regression today (full mode "
 "doesn't have this either), but future gateway-level rate limiting or retry-"
@@ -1670,14 +1713,14 @@ msgid ""
 "processes."
 msgstr ""
 
-#: src/23-standalone-mode.md:107
+#: src/23-standalone-mode.md:133
 msgid ""
 "**Single instance only — no replication.** The SQLite file and the in-"
 "process cache are node-local. Don't run standalone behind a load balancer "
 "with multiple replicas."
 msgstr ""
 
-#: src/23-standalone-mode.md:109
+#: src/23-standalone-mode.md:135
 msgid ""
 "**The cache does not persist across restarts.** Token _invalidation_ is "
 "durable (it's in SQLite), but the TTL'd profile/JWKS cache starts cold after "
@@ -1685,28 +1728,29 @@ msgid ""
 "correctness problem."
 msgstr ""
 
-#: src/23-standalone-mode.md:112
+#: src/23-standalone-mode.md:138
 msgid ""
 "**SQLite write concurrency is limited** to one writer at a time (WAL mode is "
 "enabled). Fine for single-instance, low-to-moderate write volume; a "
 "bottleneck under heavy concurrent writes."
 msgstr ""
 
-#: src/23-standalone-mode.md:114
+#: src/23-standalone-mode.md:140
 msgid ""
 "**Email is not actually delivered** in stub mode (the default) — read the "
 "magic-link URL from stdout. File mode writes a `.eml` per message to a "
-"configured directory instead of sending it."
+"configured directory instead of sending it. Configure `[smtp]` (see [Email "
+"transport](#email-transport)) for real delivery."
 msgstr ""
 
-#: src/23-standalone-mode.md:116
+#: src/23-standalone-mode.md:143
 msgid ""
 "**The secrets file holds key material in the clear (to the process)** at "
 "rest, protected only by filesystem permissions plus a locally-derived "
 "wrapping key. Protect and back it up (see above)."
 msgstr ""
 
-#: src/23-standalone-mode.md:119
+#: src/23-standalone-mode.md:146
 msgid ""
 "Standalone mode is not a smaller version of full mode's guarantees dressed "
 "up differently — it makes different, documented trade-offs in exchange for "

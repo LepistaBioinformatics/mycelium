@@ -2,6 +2,8 @@ use super::api_config::ApiConfig;
 
 #[cfg(feature = "postgres-backend")]
 use myc_adapters_shared_lib::models::RedisConfig;
+#[cfg(feature = "standalone")]
+use myc_config::optional_config::OptionalConfig;
 #[cfg(feature = "postgres-backend")]
 use myc_config::{optional_config::OptionalConfig, VaultConfig};
 use myc_core::models::CoreConfig;
@@ -10,9 +12,7 @@ use myc_diesel::models::config::DieselConfig;
 #[cfg(feature = "standalone")]
 use myc_diesel_sqlite::config::SqliteConfig;
 use myc_http_tools::models::auth_config::AuthConfig;
-use myc_notifier::models::QueueConfig;
-#[cfg(feature = "postgres-backend")]
-use myc_notifier::models::SmtpConfig;
+use myc_notifier::models::{QueueConfig, SmtpConfig};
 use mycelium_base::utils::errors::MappedErrors;
 use std::path::PathBuf;
 
@@ -36,6 +36,10 @@ pub struct ConfigHandler {
 
     #[cfg(feature = "standalone")]
     pub sqlite: SqliteConfig,
+    // Real SMTP is opt-in in standalone (SM-R8): absent by default, falls
+    // through to file/stub transport (`select_local_transport`).
+    #[cfg(feature = "standalone")]
+    pub smtp: OptionalConfig<SmtpConfig>,
 }
 
 impl ConfigHandler {
@@ -73,6 +77,10 @@ impl ConfigHandler {
             // SQLite configuration points at the standalone database file.
             #[cfg(feature = "standalone")]
             sqlite: SqliteConfig::from_default_config_file(file.clone())?,
+            // Real SMTP is opt-in in standalone -- absent `[smtp]` resolves
+            // to `OptionalConfig::Disabled`, not a load error.
+            #[cfg(feature = "standalone")]
+            smtp: SmtpConfig::from_optional_config_file(file.clone())?,
         })
     }
 }
