@@ -111,14 +111,39 @@ gatewayTimeout = 60
 
 allowedOrigins = ["http://localhost:8080"]
 
-# NOTE: `tls`/`routes` must come before any `[api.*]` sub-table (`logging`
-# below) -- TOML attributes a bare `key = value` line to the most recently
-# opened table header, so placing them after `[api.logging]` would silently
-# attach them to `api.logging` instead of `api` and fail to deserialize.
+# NOTE: `tls` must come before any `[api.*]` sub-table (`logging` below) --
+# TOML attributes a bare `key = value` line to the most recently opened
+# table header, so placing it after `[api.logging]` would silently attach
+# it to `api.logging` instead of `api` and fail to deserialize.
 tls = "disabled"
-routes = []
 
 [api.logging]
 level = "mycelium_base=info,myc_api=info,myc_config=info,myc_core=info,myc_http_tools=info,actix_web=info,myc_notifier=info,myc_diesel_sqlite=info,myc_moka_cache=info"
 format = "ansi"
 target = "stdout"
+
+# ------------------------------------------------------------------------------
+# API GATEWAY ROUTE CONFIGURATION
+#
+# Downstream routes are declared here, not via a REST call -- there is no
+# "create route" endpoint. `[api.services]` is a map: each `[[service-name]]`
+# array-of-tables entry is a service (the TOML key becomes its name), and
+# each `[[service-name.path]]` entry under it is one of its routes. See
+# `settings/config.dev.for-docker.toml` for the full reference example this
+# is adapted from (there is no functional `routes = [...]` key on `[api]` --
+# it does not exist on `ApiConfig` and is silently ignored by the parser).
+#
+# ------------------------------------------------------------------------------
+
+#[api.services]
+#
+#[[service-01]]
+#host = "127.0.0.1:8083"
+#protocol = "http"
+#healthCheckPath = "/health"
+#
+## Example of public route
+#[[service-01.path]]
+#group = "public"
+#path = "/public"
+#methods = ["GET"]
