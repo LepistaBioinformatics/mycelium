@@ -521,11 +521,34 @@ work, prompting a closer look that found and fixed real gaps rather than just an
   `mycelium-api` builds clean, real boot test with the full magic-link flow working, both English and
   `pt-BR` `mdbook build`.
 
-**Next action:** none pending. The standalone-mode feature is complete and the JWT gap raised by the
-user is now closed. Remaining fast-follows, still honestly scoped and not silently dropped: (1)
-standalone has no SMTP config surface (always resolves to stub transport); (2) SM-T26's full scripted
-E2E smoke (magic-link → add a route → proxy a request) isn't automated as a repeatable test yet,
-though the underlying auth/routing pieces are now verified working. Await user direction.
+**G9 — post-issue-audit follow-ups (2026-07-08/09):** auditing GitHub issue #159's acceptance
+checklist against the actual code found the checklist itself had drifted (several already-satisfied
+requirements left unchecked — corrected directly on the issue), plus three genuine gaps closed here:
+- **SM-T28** — corrected `SM-R10`'s wording: `[queue]` is required-but-backend-agnostic in
+  standalone (not "optional/irrelevant" like `[redis]`/`[smtp]`/`[vault]`, which are genuinely
+  absent). Doc-only, `spec.md` updated.
+- **SM-T29 — closes `SM-R8`:** real SMTP is now opt-in in standalone via an optional `[smtp]`
+  section (`OptionalConfig<SmtpConfig>`, same pattern as `[vault]`). Extracted
+  `SmtpConfig::build_transport()` so full mode's `NotifierClientImpl` and standalone's new wiring
+  share one construction path instead of duplicating it. Absent `[smtp]` → byte-identical stub
+  fallback as before.
+- **SM-T30 — closes `SM-R13`, completes `SM-T26`:** new `scripts/standalone-e2e-smoke.sh` drives the
+  full zero-config flow end-to-end and repeatably (ran twice, both green): health → magic-link
+  request → display → verify (JWT issued) → downstream route (config-driven, not REST — confirmed
+  by reading `ApiConfig::deserialize_services`) → proxy through it, reusing the repo's own
+  `test/downstream_service` as the target. Two real integration issues found only by running it live:
+  the email dispatcher's polling means the stub-transport log line appears asynchronously (script
+  polls for it); Tera auto-escapes the rendered email HTML (`/`→`&#x2F;`, `&`→`&amp;` inside
+  `href="..."`), so extraction decodes the escaped form.
+
+Verified: full workspace gate (`cargo fmt --all -- --check`, `cargo build --workspace` — clean,
+`cargo test --workspace --all` — 206 core tests + all other crates, 0 failed) and
+`cargo build -p mycelium-api --no-default-features --features standalone` all green after G9.
+Docs (`23-standalone-mode.md` + i18n) and GitHub issue #159 updated to match. **Not committed yet
+(awaiting user test/approval per commit-validation rule).**
+
+**Next action:** none pending — G9 closes the last three open items from the issue audit
+(`SM-R8`/`SM-R10`/`SM-R13`). Await user direction (test + approve for commit, or further review).
 
 **Needs / reminders to resume:**
 - Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).

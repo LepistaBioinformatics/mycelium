@@ -688,6 +688,109 @@ scenario and standalone SMTP config remain as documented fast-follows, not silen
 
 ---
 
+## G9 — Post-issue-audit follow-ups (2026-07-08)
+
+> Opened after auditing the GitHub issue #159 acceptance checklist against the actual code state:
+> `SM-R1`, `SM-R2`, `SM-R3`, `SM-R4`, `SM-R15`, and the limitations item were verified satisfied but
+> left unchecked (checklist drift, corrected directly on the issue). `SM-R8`, `SM-R10`, `SM-R13` were
+> confirmed as genuine gaps. This group closes them.
+
+### SM-T28 — Correct `SM-R10` wording (no code change) — ✅ Done
+- **What:** `SM-R10`'s text claims `[queue]` is "optional/irrelevant" in standalone alongside
+  `[redis]`/`[smtp]`/`[vault]`. Verified false: `queue: QueueConfig` on `ConfigHandler` is
+  unconditional (not `#[cfg]`-gated), because it's dispatcher-polling config, not Redis-specific —
+  `email_dispatcher` needs it in both builds. `[redis]`/`[smtp]`/`[vault]` are genuinely absent
+  (not just optional) in standalone. Requirement wording corrected to match reality; no code changes.
+- **Where:** `.claude/specs/features/standalone-mode/spec.md` (SM-R10 row).
+- **Depends on:** none.
+- **Reuses:** n/a.
+- **Done when:** `SM-R10`'s text accurately describes `queue` as required-but-backend-agnostic, and
+  `redis`/`smtp`/`vault` as absent (compiled out), not "optional".
+- **Tests:** none (doc-only).
+
+### SM-T29 — Opt-in real SMTP for standalone (closes `SM-R8`) — ✅ Done
+- **What:** `select_local_transport(smtp, file_dir)` already supports and tests real-SMTP-takes-
+  precedence (SM-T20/T21), but standalone's `initialize_modules` hardcoded
+  `select_local_transport(None, None)` — no config surface ever fed it a real `SmtpTransport`. Add an
+  optional `[smtp]` section to the standalone config shape and wire it through.
+- **Where:**
+  - `adapters/notifier/src/models/smtp_config.rs` — new `SmtpConfig::from_optional_config_file`
+    (mirrors `VaultConfig::from_default_config_file`'s `OptionalConfig<T>` pattern) and new
+    `SmtpConfig::build_transport()` (extracted from `NotifierClientImpl::new`, now shared).
+  - `adapters/notifier/src/repositories/config.rs` — `NotifierClientImpl::new` calls
+    `smtp_config.build_transport().await?` instead of duplicating the construction logic.
+  - `ports/api/src/models/config_handler.rs` — new `#[cfg(feature = "standalone")] pub smtp:
+    OptionalConfig<SmtpConfig>` field + loader call.
+  - `ports/api/src/main.rs` — standalone `initialize_modules` resolves `config.smtp` into
+    `Option<SmtpTransport>` and passes it to `select_local_transport` instead of a hardcoded `None`.
+  - `settings/config.standalone.example.toml`, `docs/book/src/23-standalone-mode.md` — document the
+    optional `[smtp]` section; correct "no `[smtp]` section exists in standalone" claims.
+- **Depends on:** SM-T20/T21 (transport selection, already done).
+- **Reuses:** `select_local_transport`'s existing SMTP > file > stub precedence and its test coverage.
+- **Done when:** with `[smtp]` configured in a standalone build, `initialize_modules` resolves a real
+  `SmtpTransport` and passes it to the transport selector; with `[smtp]` absent, behavior is
+  byte-identical to before (falls through to stub). Full-mode `NotifierClientImpl` behavior
+  unchanged (SM-R14).
+- **Tests:** existing `select_local_transport` precedence tests still pass; full workspace gate.
+- **Gate:** `cargo fmt --all -- --check` + `cargo build --workspace` + `cargo test --workspace --all`
+  + `cargo build -p mycelium-api --no-default-features --features standalone`.
+
+**SM-T29 result:** `SmtpConfig::build_transport()` extracted from `NotifierClientImpl::new` (full
+mode now calls it too — one construction path, not two). `SmtpConfig::from_optional_config_file`
+mirrors `VaultConfig`'s `OptionalConfig<T>` loader exactly. `ConfigHandler.smtp` is
+`#[cfg(feature="standalone")] OptionalConfig<SmtpConfig>`; standalone's `initialize_modules` matches
+on it and only builds a real `SmtpTransport` when `Enabled`, otherwise `None` (byte-identical to the
+prior hardcoded behavior). Verified: both `cargo build --workspace` and
+`cargo build -p mycelium-api --no-default-features --features standalone` compile clean on the first
+real attempt; `cargo test -p mycelium-notifier` (3/3, unaffected) and `cargo fmt --all -- --check`
+clean. Documented in `settings/config.standalone.example.toml` (commented-out `[smtp]` block) and
+`docs/book/src/23-standalone-mode.md` (new "Email transport" section + corrected comparison table
+and "no `[smtp]`" claim); i18n catalog refreshed per `docs-i18n-sync` (same `book/messages.pot` →
+`po/messages.pot` copy workaround as SM-T27, both English and `pt-BR` `mdbook build` verified).
+
+### SM-T30 — Automated E2E smoke script (closes `SM-R13`, completes `SM-T26`) — ✅ Done
+- **What:** `SM-T26` was left "partial" — health + JWT issuance were verified manually in a prior
+  session, but "add a downstream route and proxy a request" was never actually exercised, and
+  nothing was scripted/repeatable. Write a shell script that boots the real standalone binary
+  against an empty temp dir and drives the full flow: health → magic-link request → display →
+  verify (JWT) → add a downstream route via config → proxy a request through it.
+- **Where:** `scripts/standalone-e2e-smoke.sh` (new).
+- **Depends on:** SM-T24 (standalone boot), SM-T29 (not required, but shares the same boot harness).
+- **Reuses:** the same manual verification steps already proven in STATE.md's post-G8 notes; the
+  `[api.services]`/`[[service-name]]` ergonomic config format already implemented in
+  `ApiConfig::deserialize_services` (ports/api/src/models/api_config.rs) — confirmed empirically by
+  actually booting the binary with a candidate config against a local stub HTTP server, not assumed
+  from reading code alone.
+- **Done when:** the script exits 0 end-to-end against a throwaway temp dir and a local stub HTTP
+  server, and fails loudly (non-zero, clear message) if any step breaks.
+- **Tests:** the script itself is the test; run manually (not wired into CI in this pass — CI wiring
+  is a natural fast-follow, not required to close `SM-R13`'s literal WHEN/THEN).
+
+**SM-T30 result — closes G9, `SM-R13` genuinely verified end-to-end:** downstream route
+registration turned out to be config-driven (`[api.services]`/`[[service-name]]`, populated into
+`mem_db` at boot via `build_mem_db_module`), not a REST-managed resource — confirmed by reading
+`ApiConfig`/`main.rs`, not assumed. Reused the repo's own `test/downstream_service`
+(`mycelium-api-test-svc`, already used by the dev docker-compose stack) as the proxied target
+instead of a throwaway stub, since it has known `/health` and `/public` endpoints. Two real
+integration issues found only by actually running the script, not by reading code:
+1. The email dispatcher polls on an interval (`[queue] consumeIntervalInSecs`); the stub-transport
+   log line appears asynchronously after the request returns, not synchronously — the script polls
+   for it (up to 20s) instead of checking once, and the test config uses `consumeIntervalInSecs = 1`
+   to keep the run fast.
+2. Tera auto-escapes the rendered email HTML — `/` and `&` in the magic-link URL come through as
+   `&#x2F;`/`&amp;` inside the `href="..."` attribute, not literal characters. The extraction regex
+   matches the escaped form and decodes it before curling.
+Ran twice back to back to rule out flakiness — both runs passed all five assertions (downstream
+service health, gateway health, JWT issuance via the full magic-link request→display→verify chain,
+and a proxied request through the config-declared route returning the real downstream body).
+`scripts/standalone-e2e-smoke.sh` is self-contained (temp dir, auto-cleanup via `trap`, explicit
+`fail()` on any broken step) and takes both binary paths as optional args. Verified: full workspace
+gate (`cargo fmt --all -- --check`, `cargo build --workspace`, `cargo test --workspace --all` — 206
+core tests + all other crates 0 failed, `cargo build -p mycelium-api --no-default-features --features
+standalone`) all green after the SM-T29 changes plus this new script. **This closes G9.**
+
+---
+
 ## Execution order summary
 
 ```

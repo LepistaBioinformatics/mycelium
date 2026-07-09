@@ -84,7 +84,7 @@ Spec: `.claude/specs/features/magic-link-auth/`
 - JWT identical to password-based login (`iss: "mycelium"`, HS512)
 - Fix: `BEGINNERS_ACCOUNTS_CREATE` RPC dispatcher accepts internal provider
 
-**Standalone Mode** - IMPLEMENTED (SM-T1..T25 done; SM-T26's full E2E scenario partially covered)
+**Standalone Mode** - IMPLEMENTED (SM-T1..T30 done, including the full scripted E2E smoke)
 
 Spec: `.claude/specs/features/standalone-mode/` (spec.md + design.md + tasks.md, 2026-07-06/07)
 Docs: `docs/book/src/23-standalone-mode.md`. Tracking issue: #159.
@@ -104,8 +104,8 @@ Docs: `docs/book/src/23-standalone-mode.md`. Tracking issue: #159.
   AES-256-GCM local-file fallback — keyring is usually absent on container/air-gapped/edge targets;
   verified this is exactly what happens in a real Docker container).
 - Email falls back to lettre `StubTransport` (default, logs the magic-link URL) or `FileTransport`
-  (`.eml`); SMTP config for standalone builds is a documented fast-follow (currently always resolves
-  to stub).
+  (`.eml`); real SMTP is also available, opt-in via an optional `[smtp]` config section (same
+  precedence logic and construction path as full mode).
 - Selected at **compile time** via a `standalone` cargo feature (separate binary/image) — mutually
   exclusive with the default `postgres-backend` feature via a `compile_error!` guard. A runtime
   `mode = "standalone"` flag was rejected early: Postgres-only column types cannot compile against
@@ -118,9 +118,10 @@ Docs: `docs/book/src/23-standalone-mode.md`. Tracking issue: #159.
   keyring/file/generate, matching SM-R9's original resolution order.
 - Mycelium's email validation accepts `localhost` as a domain (in both build modes), so a fresh
   standalone install doesn't need a placeholder real-looking domain for `noreplyEmail`/`supportEmail`.
-- **Known gap:** the full scripted E2E smoke (magic-link → add a downstream route → proxy a request)
-  is still a fast-follow — the underlying pieces (auth, routing) all work, but the scenario hasn't
-  been scripted as a repeatable test yet.
+- The full scripted E2E smoke (magic-link → add a downstream route → proxy a request) is automated
+  and repeatable: `scripts/standalone-e2e-smoke.sh` boots a real standalone binary against an empty
+  temp dir and asserts every step, including a config-declared downstream route proxied through the
+  gateway (routes are config-driven — `[api.services]`/`[[service-name]]` — not REST-managed).
 
 **Messaging Platform Identity Providers (WhatsApp + Telegram)** - PLANNED
 
