@@ -20,7 +20,9 @@ readme.workspace = true
 # repositories can read back generated/updated rows the same way the
 # postgres adapter does. `libsqlite3-sys` `bundled` compiles SQLite into the
 # binary -- no system libsqlite runtime dependency.
-diesel = { version = "2", features = [
+# RUSTSEC-2026-0136 / RUSTSEC-2026-0137: force diesel >= 2.3.8 (command
+# injection in COPY FROM/TO; unaligned access in SqliteAggregate impls).
+diesel = { version = "2.3.8", features = [
     "sqlite",
     "returning_clauses_for_sqlite_3_35",
     "uuid",
