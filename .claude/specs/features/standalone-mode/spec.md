@@ -116,9 +116,16 @@ Each requirement has a traceable ID for design/tasks.
   auto-generates `token_secret`, the JWT/HMAC secret set, and any other required secrets on first
   boot and **persists them** (keyring-preferred, encrypted-file fallback per DEC-2), reusing them on
   subsequent boots.
-- **SM-R10** — The standalone config MUST make `[diesel]`(→sqlite path), `[redis]`, `[smtp]`,
-  `[queue]`, `[vault]` sections **optional/irrelevant**, replaced by a minimal standalone config
-  surface. Full-mode config parsing MUST be unaffected.
+- **SM-R10** — The standalone config MUST replace `[diesel]` with `[sqlite]` (path), and MUST
+  compile out `[redis]`/`[vault]` entirely (not present in the standalone `ConfigHandler` at all —
+  stronger than "optional"). `[smtp]` MUST be genuinely optional in standalone (opt-in via
+  `OptionalConfig`, defaulting to absent — see SM-R8). **Correction (2026-07-08, post-issue-audit):**
+  `[queue]` is *not* optional/irrelevant in standalone — `QueueConfig` is dispatcher-polling behavior
+  (queue name + poll interval), not Redis-specific, and `email_dispatcher` requires it in **both**
+  builds; `ConfigHandler.queue` is intentionally unconditional (not `#[cfg]`-gated). The original
+  wording lumping `queue` in with `redis`/`smtp`/`vault` was inaccurate. Full-mode config parsing
+  MUST be unaffected (verified: `ConfigHandler`'s `postgres-backend`-gated fields are byte-identical
+  to before).
 
 ### Build / packaging
 
