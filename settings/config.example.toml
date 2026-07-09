@@ -259,19 +259,60 @@ tls = "disabled"
 # ------------------------------------------------------------------------------
 # API GATEWAY ROUTE CONFIGURATION
 #
-# Routes file should be used to configure the api gateway routes. Routes file
-# should contains the following structure:
-#
-# [api.services]
-# [[service-name]]
-# host = "example.com"
-# protocol = "https"
-# healthCheckPath = "/health"
-#
-# [[service-name.path]]
-# group = "public"
-# path = "/api"
-# methods = ["GET"]
+# Downstream routes are declared here, not via a REST call -- there is no
+# "create route" endpoint. `[api.services]` is a map: each `[[service-name]]`
+# array-of-tables entry is a service (the TOML key becomes its name), and
+# each `[[service-name.path]]` entry under it is one of its routes. There is
+# no functional `routes = [...]` key on `[api]` -- it does not exist on
+# `ApiConfig` and is silently ignored by the parser.
 #
 # ------------------------------------------------------------------------------
-routes = []
+
+#[api.services]
+#
+#[[service-01]]
+#host = "example.com:8083"
+#protocol = "https"
+#discoverable = false
+#healthCheckPath = "/health"
+#
+#[[service-01.secret]]
+#name = "service-01-query-token"
+#queryParameter = { name = "token", token = "token-by-query-parameter" }
+#
+#[[service-01.secret]]
+#name = "service-01-authorization-header"
+#authorizationHeader = { name = "Authorization", prefix = "Bearer", token = "token-by-authorization-header" }
+#
+## Example of public route
+#[[service-01.path]]
+#group = "public"
+#path = "/public"
+#methods = ["GET"]
+#
+#[[service-01.path]]
+#group = "protected"
+#path = "/protected"
+#methods = ["GET"]
+#
+## Test for role protected route: only users with the `newbies` role reach it
+#[[service-01.path]]
+#path = "/protected/roles/newbies"
+#methods = ["GET"]
+#group = { protectedByRoles = [{ slug = "newbies", permission = "read" }] }
+#
+## Test for secret injection as query parameter
+#[[service-01.path]]
+#group = "public"
+#path = "/secrets/query-parameter-token"
+#secretName = "service-01-query-token"
+#acceptInsecureRouting = true
+#methods = ["GET"]
+#
+## Test for secret injection as authorization header
+#[[service-01.path]]
+#group = "public"
+#path = "/secrets/authorization-header"
+#secretName = "service-01-authorization-header"
+#acceptInsecureRouting = true
+#methods = ["GET"]

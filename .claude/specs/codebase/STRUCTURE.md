@@ -243,8 +243,8 @@ mycelium/
 - **shared/** → Common client provider infrastructure
 
 **Key Files**:
-- `adapters/diesel/src/repositories/user/user_registration.rs` — DB implementation
-- `adapters/diesel/sql/up.sql` — DDL migrations (CREATE TABLE)
+- `adapters/diesel_postgres/src/repositories/user/user_registration.rs` — DB implementation
+- `adapters/diesel_postgres/sql/up.sql` — DDL migrations (CREATE TABLE)
 - `adapters/notifier/src/repositories/remote_message_sending.rs` — SMTP sending
 
 ### `lib/` — Shared Utilities
@@ -296,10 +296,10 @@ mycelium/
 - Downstream forwarding: `ports/api/src/router/stream_request_to_downstream.rs`
 
 ### Database & Migrations
-- DDL: `adapters/diesel/sql/up.sql` (single file with all CREATE TABLE statements)
-- Schema: `adapters/diesel/src/schema.rs` (Diesel schema definitions)
-- Models: `adapters/diesel/src/models/` (Diesel row structs)
-- Repositories: `adapters/diesel/src/repositories/` (CRUD per entity)
+- DDL: `adapters/diesel_postgres/sql/up.sql` (single file with all CREATE TABLE statements)
+- Schema: `adapters/diesel_postgres/src/schema.rs` (Diesel schema definitions)
+- Models: `adapters/diesel_postgres/src/models/` (Diesel row structs)
+- Repositories: `adapters/diesel_postgres/src/repositories/` (CRUD per entity)
 
 ### Configuration & Secrets
 - Loading: `lib/config/src/use_cases/load_config_from_file.rs`

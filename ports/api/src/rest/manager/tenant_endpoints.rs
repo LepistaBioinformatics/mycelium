@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use crate::{dtos::MyceliumProfileData, rest::shared::PaginationParams};
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
@@ -13,7 +14,6 @@ use myc_core::{
         include_tenant_owner, list_tenant,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{

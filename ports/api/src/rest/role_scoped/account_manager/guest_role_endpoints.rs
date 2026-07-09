@@ -3,6 +3,7 @@ use crate::{
     rest::shared::PaginationParams,
 };
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{get, web, Responder};
 use myc_core::{
     domain::dtos::guest_role::GuestRole,
@@ -10,7 +11,6 @@ use myc_core::{
         fetch_guest_role_details, list_guest_roles,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{

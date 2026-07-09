@@ -1,11 +1,41 @@
 # State
 
-**Last Updated:** 2026-04-26
-**Current Work:** M1 — Stability & Safety
+**Last Updated:** 2026-07-06
+**Current Work:** M3 — Standalone Mode (specified; branch `feat/standalone-mode`). M1 ongoing.
 
 ---
 
 ## Recent Decisions (Last 60 days)
+
+### AD-005: Standalone mode is a compile-time feature, not a runtime `mode` flag (2026-07-06)
+
+**Decision:** Standalone (SQLite + moka + stub/file email + autogen secrets) is selected by a
+`standalone` cargo feature, mutually exclusive with the default `postgres-backend`, producing a
+separate binary/image. The roadmap's original `mode = "standalone"` runtime flag is rejected.
+
+**Reason:** Every table's schema uses Postgres-only Diesel SQL types (`Uuid`, `Timestamptz`, `Jsonb`,
+`Array<Text>`, `Array<Jsonb>`). These do not compile against Diesel's SQLite backend. A single
+runtime-switchable binary would require storing them as TEXT in Postgres too, changing full mode
+(violates "don't break full"). `MultiConnection` (Diesel 2.3.7) cannot span `Array`/`Jsonb` either.
+
+**Trade-off:** Two binaries to build/ship; a parallel SQLite schema + model set + SQLite variants of
+~44 repository impls (the dominant cost — close to a second repository-layer implementation).
+
+**Corrections captured in spec:** (a) no Redis pub/sub exists — the only queue is an LPUSH email
+list; (b) no rate-limiting / AI-retry-loop detection exists (brief limitation #1 is moot); (c) token
+invalidation is DB-backed, not Redis (limitation #3 overstated); (d) `mem_db` does not implement the
+KV traits, so a new `moka` adapter is required; (e) today there are 3 hard boot deps (PG+Redis+SMTP),
+not "single dependency (PostgreSQL)".
+
+**Secrets:** auto-generate once and persist (keyring-preferred, encrypted-file fallback). Regenerating
+`token_secret` per restart would rotate the KEK and invalidate all connection strings (see AD-004).
+Open concern: keyring is usually unavailable on the container/air-gapped/edge targets, so the file
+fallback is the de-facto primary path.
+
+**Spec:** `.claude/specs/features/standalone-mode/` (spec.md + design.md + tasks.md — 27 tasks in 8
+groups; critical path is G2 SQLite backend). No implementation yet. All work is on the dedicated
+branch **`feat/standalone-mode`** (gateway submodule) — never `develop` (user instruction 2026-07-06).
+
 
 ### AD-004: HMAC signing key decoupled from `token_secret`; KVR-versioned, no legacy fallback (2026-04-25)
 
@@ -204,6 +234,332 @@ include them in scope.
 
 ## Current Focus
 
+**Standalone Mode — specified, ready for execution** (2026-07-06). Branch **`feat/standalone-mode`**
+(gateway submodule) — NEVER work on `develop` for this feature (user instruction). Spec at
+`.claude/specs/features/standalone-mode/` (spec.md + design.md + tasks.md). See AD-005 for rationale.
+**Tracking epic: GitHub issue [#159](https://github.com/LepistaBioinformatics/mycelium/issues/159)**
+— reformatted 2026-07-07 per user request to follow the org's feature-request draft pattern (see
+project #5 item "Harden the release pipeline..." as the reference example): title `[FEAT] ...`,
+sections "Is your feature request related to a problem?" / "Describe the solution you'd like" /
+"Describe alternatives you've considered" / "Additional context", plus an **Acceptance checklist**
+using requirement IDs (`SM-R1..R15`) phrased as WHEN/THEN clauses (only check a criterion when it is
+genuinely, fully satisfied — not partially). The granular 27-task implementation checklist
+(`SM-T1..T27`) is kept as a separate section below the acceptance checklist for day-to-day tracking.
+Local copy of the current issue body: `/tmp/standalone-issue.md` (regenerate via `gh issue view 159
+--json body -q .body` if lost). Keep both the task checkboxes AND the acceptance checklist in sync
+as work lands — task checkbox ≠ requirement satisfied; check `SM-Rn` only when its WHEN/THEN holds
+end-to-end.
+
+| Phase | Status |
+|---|---|
+| Specify (spec.md — requirements + brief corrections C-1…C-7) | ✅ Done |
+| Design (design.md — compile-time feature, SQLite/moka/email/secrets/docker) | ✅ Done |
+| Tasks (tasks.md — 27 tasks, 8 groups; critical path G2 SQLite) | ✅ Done |
+| Execute — SM-T1 (feature scheme + guards) | ✅ Done (committed `ce493b53`) |
+| Execute — SM-T2 (CI builds both targets) | ✅ Done (committed `4f7f9354`) |
+| Execute — SM-T3 (sqlite feature on `myc-diesel`; backend isolation verified) | ✅ Done (committed `4d36fc94`) |
+| Execute — SM-T4/T5/T6 (sqlite scaffolding: pool+pragmas, schema+migrations, type helpers) | ✅ Done, verified |
+| Execute — SM-T7 (account + account_tag SQLite repos, block 1/3) | ✅ Done (committed `5721c643`) |
+| Execute — SM-T8 (tenant + tenant_tag SQLite repos, block 2/3) | ✅ Done (committed `34300a06`) |
+| Execute — SM-T9 (user, block 3/3 — closes block 1) | ✅ Done (committed `2f7ad14a`) |
+| Execute — SM-T10 (token; session_token confirmed dead code, skipped) | ✅ Done (committed `7a050e83`) |
+| Execute — SM-T11 (guest_role + guest_user + guest_user_on_account) | ✅ Done (committed `7504af86`) |
+| Execute — SM-T12 (message) | ✅ Done (committed `a8c47288`) |
+| Execute — SM-T13 (webhook + webhook_execution) | ✅ Done (committed `4093da0e`) |
+| Execute — SM-T14 (error_code) | ✅ Done (committed `978df130`) |
+| Execute — SM-T15 (licensed_resource + ProfileFetching) | ✅ Done (committed `46904cfc`) |
+| Execute — SM-T16 (encryption_key — closes G2 per-entity repos) | ✅ Done, verified |
+| Architectural correction — extract SQLite adapter into `adapters/diesel_sqlite` (own crate, not nested in `mycelium-diesel`); `adapters/diesel` renamed `diesel_postgres` | ✅ Done (committed `c79c1f5d`) |
+| Execute — SM-T17 (SqlAppModule sqlite wiring — barrier, closes G2) | ✅ Done (committed `f1f02d2b`) |
+| Execute — SM-T18/T19 (moka cache: `adapters/moka_cache` crate, KVAppModule, per-key TTL) | ✅ Done (committed `a341089d`) — closes G3 |
+| Execute — SM-T20/T21 (notifier `local-transport` feature: stub + file transport, SMTP precedence) | ✅ Done (committed `f325212e`) — closes G4 |
+| Execute — SM-T22 (autogen secrets: keyring + encrypted-file fallback) | ✅ Done (committed `a7732274`) — closes G5 |
+| Execute — SM-T23 (standalone config shape) | ✅ Done (committed `fcc08f08`) |
+| Execute — SM-T24 (cfg-gated `initialize_modules` + `main()`, autogen secrets wired in) | ✅ Done, verified end-to-end (real boot test, 2 restarts) — closes G6 |
+| Execute — SM-T25 (`Dockerfile.standalone`) | ✅ Done, verified with real `docker build`/`docker run`/`docker restart` |
+| Execute — SM-T26 (zero-config E2E smoke) | ⚠️ Partial — boot+health covered; full JWT/route/proxy flow deferred (needs jwtSecret autogen) |
+| Execute — SM-T27 (docs: `23-standalone-mode.md`, ROADMAP → IMPLEMENTED, i18n sync) | ✅ Done — closes G8 and the feature's initial implementation |
+
+**SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
+`compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
+and the both-features failure. `fmt --check` clean. Not committed yet (awaiting user test/approval).
+
+**SM-T7 result:** `adapters/diesel_sqlite/src/{models,repositories}/` account + account_tag trees
+(details + landmines in tasks.md SM-T7 result block; path shown post architectural-correction — see
+below). Key reusable lessons for T8+: enable `diesel/returning_clauses_for_sqlite_3_35`;
+`account_type::jsonb @>` needs case-by-case full-equality vs. `json_extract` partial-match analysis,
+don't assume uniform rewrite; `NaiveDateTime` Display/FromStr aren't symmetric (use the new
+`naive_timestamp_{to,from}_text` pair); tables with `DEFAULT gen_random_uuid()` on postgres need the
+app to supply the id explicitly on sqlite inserts. Integration test pattern established:
+`test_support.rs` (temp DB + migrations) + per-entity lifecycle test. Not committed yet (awaiting user
+test/approval).
+
+**Architectural correction (post SM-T16):** the user flagged that SM-T3..T16 were built as a
+`#[cfg(feature="sqlite")]`-gated `sqlite/` submodule nested inside `mycelium-diesel` — a structural
+error, since every other adapter (`kv_db`, `mem_db`, `notifier`, `service`, `shared`) is its own
+sibling crate under `adapters/`. Extracted the SQLite adapter into a new crate **`adapters/diesel_sqlite`**
+(package `mycelium-diesel-sqlite`, lib `myc_diesel_sqlite`): moved all `sqlite/*` source + migrations,
+flattened `crate::sqlite::` → `crate::` across 68 files, reverted `mycelium-diesel`
+(`adapters/diesel`, later renamed to `adapters/diesel_postgres` to mirror `diesel_sqlite`'s naming —
+package/lib names unchanged: `mycelium-diesel`/`myc_diesel`) to a plain unconditional Postgres-only
+crate (no features, no cfg-gating), added
+`mycelium-diesel-sqlite = { path = "adapters/diesel_sqlite" }` to the workspace
+`[workspace.dependencies]` (picked up automatically by the `adapters/*` members glob). Verified:
+`cargo build`/`test -p mycelium-diesel-sqlite` (22 tests green), `cargo build -p mycelium-diesel`
+clean, `cargo build --workspace` clean, `cargo test --workspace --all` (0 failed across all crates),
+`cargo fmt --all -- --check` clean (after `cargo fmt --all` reflowed the shortened `crate::` paths),
+and `cargo build -p mycelium-api --no-default-features --features standalone` unaffected. **Standing
+rule for all future adapter work in this codebase: new backend adapters are always separate sibling
+crates under `adapters/`, never a feature-gated submodule nested inside an existing adapter crate**
+(applies to SM-T18's future cache crate too). Not committed yet (awaiting user test/approval).
+
+**SM-T8 result:** tenant + tenant_tag SQLite repos, reusing `account/shared.rs::created_at_from_text`
+and `json_array_to_text`/`from_text`. Found and fixed a missing `joinable!(owner_on_tenant -> user
+(owner_id))` in sqlite/schema.rs (present in postgres, missed in SM-T5). Discovered (not fixed, see
+tasks.md SM-T8 result) a dormant postgres write-path bug in tenant status serialization, and two
+JSON filters in `filter_tenants_as_manager` needing SQLite-specific (non-byte-identical but
+practically-equivalent) rewrites. User directive: "pode seguir até terminar a implementação da
+feature" — continue through all remaining tasks (SM-T9..T27) without stopping for per-task
+confirmation. Following the pattern already established and accepted earlier in this session
+(commit after each task once fully gate-checked: fmt + full-mode build/test + sqlite tests), continue
+committing at each verified step rather than batching everything into one giant uncommitted diff —
+easier to review/bisect. Never skip the build/test gate regardless.
+
+**Block 1 (account + tenant + user) is done** — 17 repo impls, ~2,900 lines, 3 end-to-end lifecycle
+tests (see tasks.md SM-T9 result for the full summary and reusable patterns established).
+
+**SM-T10 result:** token repos done (registration/fetching/invalidation/deletion). Confirmed via grep
+that `session_token` (core traits `SessionTokenRegistration`/`Fetching`/`Deletion`) has **zero
+implementations anywhere in the codebase** — not postgres, not wired into any shaku module, not
+consumed by any use-case. Vestigial dead trait code; removed from the standalone scope, nothing to
+port. First genuine JSON1 *mutation*: `jsonb_set(meta,'{token}','null'::jsonb)` → `json_set(meta,
+'$.token', json('null'))` (magic-link phase-1 consumption) — verified end-to-end via the new
+two-phase-consumption test. Also closed a latent SQL-injection gap: postgres's token_invalidation/
+token_deletion build raw SQL via inconsistent string interpolation (2 of 4 methods escape quotes, 2
+don't); the SQLite port binds all parameters uniformly instead.
+
+**SM-T11 result:** guest_role + guest_user + guest_user_on_account done. Key lesson (see tasks.md
+SM-T11 result for full detail): **timestamp convention is per-table, not per-feature** — `guest_user`'s
+own table uses genuine `DateTime<Local>` round-trip (needs `timestamp_to_text`/`from_text`), while
+`guest_role`/`guest_role_children`/`guest_user_on_account` use the naive-reinterpretation convention
+(needs `naive_timestamp_to_text`/`from_text`) — always check the postgres model field type
+(`NaiveDateTime` vs `DateTime<Local>`) before picking a helper, never assume uniformity across a
+whole feature. Also: Diesel's `.nulls_last()` is postgres-only — use `ORDER BY (col IS NULL), col
+DESC` instead. Confirmed `guest_role_children`/`guest_user_on_account` are two more tables relying on
+postgres server-side defaults (`created`) with no SQLite equivalent — explicit `created` on every
+insert into these tables (growing list since SM-T7's `manager_account_on_tenant` finding: **always
+check for server-side defaults before writing a SQLite insert**).
+
+**G2 per-entity repos are all done** (SM-T7..T16 — 14 entity groups, ~44 postgres repo impls now
+have SQLite equivalents; `session_token` excluded as dead code).
+
+**SM-T17 result — closes G2:** `SqlAppModule` shaku module added to
+`adapters/diesel_sqlite/src/repositories/mod.rs`, mirroring postgres's `SqlAppModule` 1:1 (44
+components: `DieselSqliteDbPoolProvider` + 43 repos across all 10 entity groups). Own crate, no
+cfg-gating needed. Compiled clean first try. 22/22 sqlite tests + full workspace build/test (0
+failed) + fmt clean + standalone binary unaffected. Committed `f1f02d2b`.
+
+**SM-T18/T19 result — closes G3:** New sibling crate `adapters/moka_cache`
+(`mycelium-moka-cache`/`myc_moka_cache`) — corrected from the design doc's original "one `adapters/
+cache` crate with `redis`/`moka` features" sketch, per the same adapter-crate-separation rule applied
+to G2; `adapters/kv_db` (Redis) is untouched. `MokaCacheProvider` + `MokaCacheProviderImpl` wrap
+`Arc<Cache<String, (String, Duration)>>` built with a `PerKeyExpiry: moka::Expiry` impl that returns
+each entry's own stored `Duration` from `expire_after_create` — gives true per-key TTL (SM-R5), not
+moka's uniform `time_to_live`. `KVArtifactRead`/`WriteRepository` mirror `kv_db`'s shape exactly
+(`#[shaku(inject)] provider`), with `pub(crate)` fields so tests construct repos directly (same
+convention as `diesel_sqlite`'s `pub(crate) pool`). `KVAppModule` shaku module named identically to
+`kv_db`'s (never linked together — compile-time selection in SM-T24, same as the two `SqlAppModule`s).
+3 tests: round trip, `NotFound` on miss, and a **real-time** TTL-expiry test (ttl=1s, sleep 1.2s,
+assert evicted) — not just a compile-time claim that `PerKeyExpiry` works. `moka 0.12.15` resolved
+and compiled clean from crates.io on the first attempt. Verified: 3/3 moka tests, full workspace
+build/test (0 failed), fmt clean, standalone binary unaffected, `kv_db` untouched. Committed `a341089d`.
+
+**SM-T20/T21 result — closes G4:** `local-transport` Cargo feature added to the *existing*
+`mycelium-notifier` crate (not a new sibling crate — this is a feature on one crate, one port
+(`RemoteMessageWrite`), not a second storage backend nested in another adapter, so the
+adapter-crate-separation rule doesn't apply here). Correction versus the design doc: lettre 0.11 has
+no `stub-transport` feature — `StubTransport` is always compiled; only `file-transport` needed
+enabling. Extracted `repositories/shared.rs::build_lettre_message` from the existing
+`remote_message_sending.rs` so the new code doesn't duplicate the from/to/builder logic. New
+`local_transport_sending.rs`: `LocalTransportKind` enum wrapping the real `SmtpTransport`/
+`FileTransport`/`StubTransport`, `select_local_transport(smtp, file_dir)` — a pure function
+implementing the SMTP→file→stub precedence (SM-R8) — and one `LocalTransportMessageSendingRepository`
+`RemoteMessageWrite` impl covering all three transports, so SM-T24's DI wiring only ever swaps a
+single component type, matching the two-`SqlAppModule`/two-`KVAppModule` pattern. Wired into a new,
+separate `LocalNotifierAppModule` (cfg-gated) rather than into the existing `NotifierAppModule` —
+shaku doesn't support two components for the same interface in one module, and this keeps full mode's
+module completely untouched (SM-R14). Tests: 3 precedence unit tests, one capturing real `tracing`
+output (custom `MakeWriter`) to prove the stub path logs subject/recipient/body, one sending through a
+real `FileTransport` and reading the `.eml` back to assert it's parseable. Verified: 8/8 notifier
+tests under `--features local-transport`, 3/3 unchanged under default (byte-identical), full
+`cargo build --workspace` + `cargo test --workspace --all` (0 failed) + `fmt` clean, standalone binary
+unaffected. Committed `f325212e`.
+
+**SM-T22 result — closes G5:** New `standalone-secrets` feature on `mycelium-config`
+(`dep:keyring`/`dep:ring`/`dep:uuid`, all optional). `resolve_or_generate_standalone_secret(service,
+secrets_dir, name)`: keyring → encrypted file (0600, AES-256-GCM via the same `ring` crate `core`
+already uses for envelope encryption, no new crypto dep) → generate-and-persist, called only when no
+explicit secret was configured (upstream `SecretResolver::Env`/`Value` path unchanged). **Real bug
+caught during testing, not just a hypothetical**: this sandbox's D-Bus secret-service backend returned
+success from `set_password` without durably persisting the value — a naive implementation would have
+silently regenerated `token_secret` on every boot, which AD-004 says is catastrophic (rotates the KEK,
+invalidates every persisted connection string). Fixed by verifying every keyring write with an
+immediate read-back before trusting it; falls through to the file otherwise. 8 tests, including the
+full first-boot-generate/second-boot-reuse lifecycle re-run 5x to confirm the fix isn't flaky.
+Verified: 8/8 config tests, full workspace build/test (0 failed), fmt clean, standalone binary
+unaffected. Committed `a7732274`.
+
+**Refactor before SM-T23/24 — `active_backend_modules` indirection (committed `6ecfeeec`):** the
+advisor flagged SM-T24 as the real risk point — 46 files reference `SqlAppModule` directly, 3
+reference `KVAppModule`, all via `req.app_data::<web::Data<X>>()`/`.resolve_ref()` (pure shaku
+resolution, no construction logic). Introduced
+`ports/api/src/models/active_backend_modules.rs` as a single cfg-gated re-export point and redirected
+every one of those files to import from it instead of the concrete adapter crate. `NotifierAppModule`
+and `SharedAppModule` are referenced ONLY from `main.rs` (confirmed by grep), so they need no such
+indirection — `main.rs` can cfg-branch its own imports directly. `MemDbAppModule` (13 files) is
+backend-agnostic and untouched in both modes. This step alone is a pure refactor (postgres branch
+only, so far) — verified full-mode byte-identical (all tests, same counts, before/after).
+
+**SM-T23 result (committed pending):** see tasks.md SM-T23 result for full detail. `ConfigHandler`
+cfg-gated (`diesel`/`smtp`/`queue`/`redis`/`vault` under `postgres-backend`, new `sqlite: SqliteConfig`
+under `standalone`); new `SqliteConfig` type in `adapters/diesel_sqlite/src/config.rs`; shipped
+`settings/config.standalone.example.toml` (no smtp/redis/queue/vault, `[sqlite] path`, `[auth]
+internal = "disabled"` for now, placeholder token/hmac secrets documented as boot-time-overridden).
+Also registered `mycelium-diesel-sqlite`/`mycelium-moka-cache` as optional deps on `ports/api` gated
+by `standalone`, and wired `standalone` to enable `mycelium-notifier/local-transport` +
+`mycelium-config/standalone-secrets`.
+
+**SM-T24 result — closes G6, standalone genuinely boots:** split `initialize_modules` into two
+`#[cfg]`-gated bodies sharing a new `build_mem_db_module` helper (the service/callback registry is
+backend-agnostic). Standalone: `provision_database(&sqlite_path)` (new `diesel_sqlite::migration`
+function: creates parent dir, establishes a connection, runs embedded migrations) → `SqlAppModule`;
+`KVAppModule` via `MokaCacheProviderImplParameters { cache: MokaCacheProviderImpl::new().cache }`
+(required bumping that field from `pub(crate)` to `pub` for cross-crate construction, same for
+notifier's `LocalTransportKind` field); `LocalNotifierAppModule` via `select_local_transport(None,
+None)` (standalone has no SMTP config surface yet, so always resolves to stub — documented
+limitation, doesn't block the zero-external-services boot requirement). Dropped
+`SharedAppModule`/`shared_module` entirely for standalone (confirmed nothing outside `main.rs` ever
+resolves it). `main()`: vault init + the `initialize_modules()` destructuring (5-tuple vs 4-tuple) are
+cfg-gated; `shared_module`'s `app_data` registration became its own cfg-gated `let base_app =
+base_app.app_data(...)` rebind (mid-chain `#[cfg]` on a single `.app_data()` call isn't legal Rust).
+Token/HMAC secrets resolved right after config load via `resolve_or_generate_standalone_secret`
+(secrets dir = sqlite path's parent + `.secrets`) and injected via the existing
+`with_token_secret_override` plus a new, small, additive `with_hmac_secret_override` on
+`core::AccountLifeCycle` (mirrors the existing method; core now 203/203 green with the new test).
+
+**Two real bugs found via actual boot testing, not just compilation:**
+1. TOML table-ordering bug in `config.standalone.example.toml` — `tls`/`routes` placed after
+   `[api.logging]` got silently attributed to that sub-table instead of `[api]` (TOML semantics), so
+   deserialization failed with "missing field `tls`". Fixed by reordering + a comment explaining why.
+2. Genuine pre-existing coupling bug in `mycelium-notifier`: `QueueConfig`/`SmtpConfig` shared one
+   private `TmpConfig { smtp, queue }`, so loading `[queue]` alone (now unconditional on
+   `ConfigHandler` since it's backend-agnostic dispatcher-polling config, not Redis-specific) always
+   required `[smtp]` too. Fixed by splitting into two module-local `TmpConfig` structs and deleting
+   the shared file — no public API change, full-mode `[smtp]` still required, 3/3 notifier tests green.
+
+**Verified end-to-end:** ran the real `myc-api` binary (`--no-default-features --features standalone`)
+against a minimal TOML + empty temp dir. First boot: auto-provisioned SQLite (18 tables), served
+`GET /health` successfully. **Second boot** — a genuinely separate OS process against the same
+paths — also booted clean and served, confirming persistence holds across a real restart, not just
+within one test process. Full workspace build/test (0 failed everywhere), fmt clean, both
+`mycelium-api` builds (default + standalone) clean with zero warnings. Not committed yet.
+
+**SM-T25 result — Dockerfile.standalone, verified with a real Docker daemon (available in this
+environment):** multi-stage build, builder from local source (not `cargo install` — the published
+crate has no `standalone` feature), runtime `debian:bookworm-slim` + `ca-certificates` only, `/data`
+volume, config baked in as the zero-args default. **Real bug caught by an actual build+run**:
+`rust:latest` (builder) produces a binary linked against a newer glibc than `debian:bookworm-slim`
+(runtime) ships — `GLIBC_2.38'/2.39' not found` at container startup. Fixed by pinning the builder to
+`rust:bookworm`. After the fix: `docker build` succeeded (52MB image), `docker run` with a mounted
+volume booted clean, auto-provisioned the SQLite DB, and served `/health`. Because a container
+genuinely has no keyring backend (unlike this session's bare-metal test earlier), the secret resolver
+exercised the **encrypted-file fallback for the first time end-to-end** — `token_secret.secret`/
+`hmac_secret.secret` appeared under `/data/.secrets` with correct `0600` perms, exactly OC-2's
+anticipated primary path. A full `docker restart` (genuine container restart) still served `/health`
+afterward. Test image/container removed post-verification.
+
+**SM-T26 status — partially covered, not fully claimed:** the boot+health portion is solidly covered
+by SM-T24 (2 bare-metal boots) + SM-T25 (Docker boot + restart) above. The full scenario (issue a JWT
+via magic-link, add a route, proxy a request) needs internal auth, which the shipped config leaves
+disabled since `jwtSecret` isn't yet wired into the autogen-secrets flow (`token_secret`/`hmac_secret`
+are; `jwtSecret` would need the same `with_*_override` treatment). Documented as a fast-follow rather
+than silently claimed done.
+
+**SM-T27 result — closes G8 and the feature:** new `docs/book/src/23-standalone-mode.md` (added to
+`SUMMARY.md`) covers what changes vs. full mode, build/run/Docker instructions, the secret
+resolution order with a backup callout, and all six L-1..L-6 limitations framed as trade-offs, not a
+degraded full mode. `ROADMAP.md`'s entry moved SPECIFIED → IMPLEMENTED with a "Known gap" callout for
+the deferred jwtSecret/full-E2E work. i18n catalog refreshed per the `docs-i18n-sync` rule — found
+that the rule's literal `mdbook`/`MDBOOK_OUTPUT` command doesn't write to `po/messages.pot` in this
+mdbook-i18n-helpers version (writes to `<build-dir>/messages.pot` instead); worked around by copying
+that file into place before `msgmerge`, achieving the rule's actual intent (40 new strings picked up
+in `pt-BR.po`). Verified: full workspace build/test (0 failed), fmt clean, both `mycelium-api` builds
+clean, both English and `pt-BR` `mdbook build` succeed.
+
+**Standalone Mode feature status: G1 through G8 all done.** The zero-external-dependencies gateway
+genuinely boots, auto-provisions its database, and serves requests — verified across bare-metal
+restarts and a real Docker build/run/restart cycle, not just compiled.
+
+**Post-G8 follow-up (2026-07-07, user-driven):** the user asked what was actually missing for JWT to
+work, prompting a closer look that found and fixed real gaps rather than just answering the question:
+- `[auth.internal.define]` is the correct TOML shape to enable internal auth — `internal = "enabled"`
+  alone does not work (`OptionalConfig::Enabled` is a newtype, not a bare string). Discovered the
+  repo's own `settings/config.for-docker.toml` has this exact latent bug (pre-existing, unrelated to
+  standalone work, not fixed — out of scope), confirmed by an empirical parse test.
+- Wired `jwtSecret` into the same autogen-secrets flow as `tokenSecret`/HMAC (opt-in via
+  `[auth.internal.define]`; verified end-to-end with a real magic-link request through a running
+  standalone instance — health check, `POST magic-link/request`, stub transport logging the link).
+- **Found and fixed a real correctness bug while verifying the docs**: `tokenSecret`/`hmacSecrets`/
+  `jwtSecret` were always overridden unconditionally in standalone, ignoring any operator-supplied
+  `{ env = "..." }` value — contradicting SM-R9's own resolution order. Fixed with two small
+  read-only accessors on `core::AccountLifeCycle` (`token_secret_resolver`,
+  `primary_hmac_secret_resolver`) so `ports/api` can distinguish an explicit `Env` resolver from the
+  shipped placeholder literal before falling back to keyring/file/generate.
+- Extended `Email::from_string`'s regex to accept `localhost` as a domain (both build modes), per
+  user request, so `noreplyEmail`/`supportEmail` don't need a fake real-looking domain.
+- Committed `5e6a74df`. Full workspace build/test (0 failed, 206 core tests), fmt clean, both
+  `mycelium-api` builds clean, real boot test with the full magic-link flow working, both English and
+  `pt-BR` `mdbook build`.
+
+**G9 — post-issue-audit follow-ups (2026-07-08/09):** auditing GitHub issue #159's acceptance
+checklist against the actual code found the checklist itself had drifted (several already-satisfied
+requirements left unchecked — corrected directly on the issue), plus three genuine gaps closed here:
+- **SM-T28** — corrected `SM-R10`'s wording: `[queue]` is required-but-backend-agnostic in
+  standalone (not "optional/irrelevant" like `[redis]`/`[smtp]`/`[vault]`, which are genuinely
+  absent). Doc-only, `spec.md` updated.
+- **SM-T29 — closes `SM-R8`:** real SMTP is now opt-in in standalone via an optional `[smtp]`
+  section (`OptionalConfig<SmtpConfig>`, same pattern as `[vault]`). Extracted
+  `SmtpConfig::build_transport()` so full mode's `NotifierClientImpl` and standalone's new wiring
+  share one construction path instead of duplicating it. Absent `[smtp]` → byte-identical stub
+  fallback as before.
+- **SM-T30 — closes `SM-R13`, completes `SM-T26`:** new `scripts/standalone-e2e-smoke.sh` drives the
+  full zero-config flow end-to-end and repeatably (ran twice, both green): health → magic-link
+  request → display → verify (JWT issued) → downstream route (config-driven, not REST — confirmed
+  by reading `ApiConfig::deserialize_services`) → proxy through it, reusing the repo's own
+  `test/downstream_service` as the target. Two real integration issues found only by running it live:
+  the email dispatcher's polling means the stub-transport log line appears asynchronously (script
+  polls for it); Tera auto-escapes the rendered email HTML (`/`→`&#x2F;`, `&`→`&amp;` inside
+  `href="..."`), so extraction decodes the escaped form.
+
+Verified: full workspace gate (`cargo fmt --all -- --check`, `cargo build --workspace` — clean,
+`cargo test --workspace --all` — 206 core tests + all other crates, 0 failed) and
+`cargo build -p mycelium-api --no-default-features --features standalone` all green after G9.
+Docs (`23-standalone-mode.md` + i18n) and GitHub issue #159 updated to match. **Not committed yet
+(awaiting user test/approval per commit-validation rule).**
+
+**Next action:** none pending — G9 closes the last three open items from the issue audit
+(`SM-R8`/`SM-R10`/`SM-R13`). Await user direction (test + approve for commit, or further review).
+
+**Needs / reminders to resume:**
+- Work only on `feat/standalone-mode`; keep full mode byte-identical after every task (SM-R14).
+- G2 (SQLite backend) is the dominant cost — ~44 repo impls, two portability axes (types + JSON1
+  pg-isms per OC-4). Land per-entity groups incrementally, full mode green throughout.
+- Secrets must be generated once and persisted (regenerating rotates the KEK — see AD-004); keyring
+  usually absent on targets → encrypted-file fallback is primary (OC-2).
+- Commit-validation rule stands: no code commit until the user tests and approves.
+
+---
+
 **HMAC Key Rotation — shipped** (2026-04-25). Spec `.claude/specs/features/hmac-key-rotation/`
 at the monorepo root. PR #151 merged into `develop` (gateway HEAD `aae89c96`); monorepo
 pointer `e955f50` on `main`.
@@ -332,7 +688,8 @@ All 13 workspace crates confirmed to exist on crates.io (no name conflicts). Wor
 
 ## Todos
 
-_(none)_
+- **Release pipeline hardening** — spec at `features/release-pipeline-hardening/spec.md` (2026-07-06). Root cause of GHCR↔GitHub-Release desync: no workflow creates GitHub Releases (only tags). Spec also covers crates.io Trusted Publishing (OIDC, drop long-lived `CARGO_REGISTRY_TOKEN`), image provenance + cosign signing, `workflow_dispatch` ref bug, and `v`-prefix naming drift. Next: Design → Tasks.
+- Retroactively create GitHub Releases for `8.3.0`+ tags and publish/discard the stale `8.3.1-rc.2` Draft.
 
 ---
 

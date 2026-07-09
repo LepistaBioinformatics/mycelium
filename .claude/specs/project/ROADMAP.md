@@ -84,14 +84,44 @@ Spec: `.claude/specs/features/magic-link-auth/`
 - JWT identical to password-based login (`iss: "mycelium"`, HS512)
 - Fix: `BEGINNERS_ACCOUNTS_CREATE` RPC dispatcher accepts internal provider
 
-**Standalone Mode** - PLANNED
+**Standalone Mode** - IMPLEMENTED (SM-T1..T30 done, including the full scripted E2E smoke)
 
-- Run Mycelium with zero external dependencies: no PostgreSQL, no Redis, no Vault
-- Auto-provision a local SQLite database via a new `sqlite` Diesel adapter
-- In-memory KV store replaces Redis (`mem_db` adapter already exists — wire it)
-- Secrets loaded from local encrypted file instead of Vault
-- Single binary, zero infra: ideal for local dev, edge deployments, and small teams
-- Activated via config flag `mode = "standalone"`
+Spec: `.claude/specs/features/standalone-mode/` (spec.md + design.md + tasks.md, 2026-07-06/07)
+Docs: `docs/book/src/23-standalone-mode.md`. Tracking issue: #159.
+
+- Run Mycelium with zero external runtime deps: no PostgreSQL, no Redis, no SMTP, no Vault —
+  **verified end-to-end**, not just built: the standalone binary boots against an empty working dir,
+  auto-provisions its SQLite database, and serves `/health`, confirmed across real process restarts
+  and a real `docker build`/`docker run`/`docker restart` cycle.
+- SQLite backend lives in its own sibling crate, `adapters/diesel_sqlite` (not a feature on the
+  Postgres adapter) — a parallel schema + model set was required, since every table uses
+  Postgres-only Diesel types (`Uuid`, `Timestamptz`, `Jsonb`, `Array`), each mapped to SQLite TEXT
+  with dedicated encode/decode helpers.
+- In-process cache replaces Redis via a new sibling crate, `adapters/moka_cache`, implementing
+  `KVArtifactRead`/`Write` with true per-key TTL (a `moka::Expiry` impl, not the crate's uniform
+  `time_to_live`).
+- Secrets **auto-generated on first boot and persisted** (OS keyring preferred, encrypted
+  AES-256-GCM local-file fallback — keyring is usually absent on container/air-gapped/edge targets;
+  verified this is exactly what happens in a real Docker container).
+- Email falls back to lettre `StubTransport` (default, logs the magic-link URL) or `FileTransport`
+  (`.eml`); real SMTP is also available, opt-in via an optional `[smtp]` config section (same
+  precedence logic and construction path as full mode).
+- Selected at **compile time** via a `standalone` cargo feature (separate binary/image) — mutually
+  exclusive with the default `postgres-backend` feature via a `compile_error!` guard. A runtime
+  `mode = "standalone"` flag was rejected early: Postgres-only column types cannot compile against
+  the SQLite backend in one binary.
+- Single binary, zero infra: ideal for local dev, edge deployments, and small teams.
+- Internal (database-backed) JWT auth is enabled by default (`[auth.internal.define]`) with
+  `jwtSecret` wired into the same autogen-secrets flow as `tokenSecret`/HMAC — verified end-to-end
+  with a real magic-link request through a running standalone instance. All three secrets now also
+  honor an operator-supplied `{ env = "..." }` value as an explicit override before falling back to
+  keyring/file/generate, matching SM-R9's original resolution order.
+- Mycelium's email validation accepts `localhost` as a domain (in both build modes), so a fresh
+  standalone install doesn't need a placeholder real-looking domain for `noreplyEmail`/`supportEmail`.
+- The full scripted E2E smoke (magic-link → add a downstream route → proxy a request) is automated
+  and repeatable: `scripts/standalone-e2e-smoke.sh` boots a real standalone binary against an empty
+  temp dir and asserts every step, including a config-declared downstream route proxied through the
+  gateway (routes are config-driven — `[api.services]`/`[[service-name]]` — not REST-managed).
 
 **Messaging Platform Identity Providers (WhatsApp + Telegram)** - PLANNED
 

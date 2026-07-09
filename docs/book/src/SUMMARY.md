@@ -11,6 +11,7 @@
 # Deployment
 
 - [Deploy Locally](./05-deploy-locally.md)
+- [Standalone Mode](./23-standalone-mode.md)
 
 # Core Concepts
 

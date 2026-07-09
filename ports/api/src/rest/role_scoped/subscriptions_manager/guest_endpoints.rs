@@ -3,6 +3,7 @@ use crate::{
     rest::shared::PaginationParams,
 };
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::dtos::{
@@ -17,7 +18,6 @@ use myc_core::{
         update_flags_from_subscription_account,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{

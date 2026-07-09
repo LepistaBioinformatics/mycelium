@@ -1,5 +1,7 @@
 use crate::models::api_config::{ApiConfig, CacheConfig};
 
+use crate::models::active_backend_modules::KVAppModule;
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{web, HttpRequest};
 use base64::{engine::general_purpose, Engine};
 use hex;
@@ -10,9 +12,7 @@ use myc_core::{
     },
     use_cases::service::profile::{fetch_profile_from_email, ProfileResponse},
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{responses::GatewayError, Email, Profile};
-use myc_kv::repositories::KVAppModule;
 use mycelium_base::entities::FetchResponseKind;
 use openssl::sha::Sha256;
 use shaku::HasComponent;

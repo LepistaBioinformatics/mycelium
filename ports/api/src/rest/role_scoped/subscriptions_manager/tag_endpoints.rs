@@ -1,5 +1,6 @@
 use crate::dtos::{MyceliumProfileData, TenantData};
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{delete, post, put, web, Responder};
 use myc_core::{
     domain::dtos::tag::Tag,
@@ -7,7 +8,6 @@ use myc_core::{
         delete_tag, register_tag, update_tag,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{

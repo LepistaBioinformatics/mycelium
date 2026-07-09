@@ -1,5 +1,6 @@
 use crate::{dtos::MyceliumProfileData, rest::shared::PaginationParams};
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{delete, get, patch, post, web, Responder};
 use myc_core::{
     domain::dtos::guest_role::{GuestRole, Permission},
@@ -9,7 +10,6 @@ use myc_core::{
         update_guest_role_name_and_description, update_guest_role_permission,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{

@@ -16,6 +16,7 @@ use super::super::{
 };
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::web;
 use myc_core::{
     domain::dtos::guest_role::Permission,
@@ -25,7 +26,6 @@ use myc_core::{
         update_guest_role_name_and_description, update_guest_role_permission,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use shaku::HasComponent;
 
 pub async fn dispatch_guest_manager(
