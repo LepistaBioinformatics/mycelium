@@ -118,7 +118,7 @@ allowedOrigins = ["http://localhost:8080"]
 tls = "disabled"
 
 [api.logging]
-level = "mycelium_base=info,myc_api=info,myc_config=info,myc_core=info,myc_http_tools=info,actix_web=info,myc_notifier=info,myc_diesel_sqlite=info,myc_moka_cache=info"
+level = "warn,mycelium_base=info,myc_api=info,myc_config=info,myc_core=info,myc_http_tools=info,actix_web=info,myc_notifier=info,myc_diesel_sqlite=info,myc_moka_cache=info"
 format = "ansi"
 target = "stdout"
 
@@ -135,15 +135,20 @@ target = "stdout"
 #
 # ------------------------------------------------------------------------------
 
-#[api.services]
-#
-#[[service-01]]
-#host = "127.0.0.1:8083"
-#protocol = "http"
-#healthCheckPath = "/health"
-#
-## Example of public route
-#[[service-01.path]]
-#group = "public"
-#path = "/public"
-#methods = ["GET"]
+[api.services]
+
+[[picoclaw]]
+host = "127.0.0.1:8787"
+protocol = "http"
+healthCheckPath = "/v1/models"
+
+[[picoclaw.secret]]
+name = "picoclaw-authorization-header"
+authorizationHeader = { name = "Authorization", prefix = "Bearer", token = "replace-me-by-in-env-token" }
+
+[[picoclaw.path]]
+group = "public"
+path = "/v1/chat/completions"
+secretName = "picoclaw-authorization-header"
+acceptInsecureRouting = true
+methods = ["ALL"]
