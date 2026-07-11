@@ -19,6 +19,8 @@ postgres/volume*
 vault/*
 !vault/docker
 redis
+standalone
+mycelium.db*
 .devcontainer
 .vscode
 .cursor

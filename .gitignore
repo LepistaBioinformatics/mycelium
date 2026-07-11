@@ -25,6 +25,8 @@ postgres/volume*
 vault/*
 !vault/docker
 redis
+standalone
+mycelium.db*
 
 # Development
 .claude/plans

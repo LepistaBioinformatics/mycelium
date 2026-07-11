@@ -10,32 +10,80 @@ x-common-mycelium: &common-config
   env_file:
     - .devcontainer/.env
 
+# Fields identical across every myc-api variant below. Only container-level
+# scalars belong here -- list keys (environment, volumes, depends_on) are not
+# additive on merge, so each variant restates its own in full.
+x-myc-api-common: &myc-api-common
+  <<: *common-config
+  container_name: myc-api
+  restart: on-failure
+  ports:
+    - 8080:8080
+  volumes:
+    - ./ports/api/src/openapi/redoc.config.json:/home/redoc.config.json:ro
+
 # ? ----------------------------------------------------------------------------
 # ? SERVICES DEFINITION
 # ? ----------------------------------------------------------------------------
 services:
+  # Full docker mode: every dependency (Vault, Postgres, Redis, test-service)
+  # runs in Docker; secrets are resolved from Vault via config.for-docker.toml.
+  # Reserved for "just run everything through docker" -- use myc-api-full
+  # instead when you want Vault out of the loop.
   myc-api:
-    # Inject all shared configs
-    <<: *common-config
-
-    container_name: myc-api
+    <<: *myc-api-common
     build:
       context: .
       dockerfile: Dockerfile.dev
       no_cache: true
-    restart: on-failure
     environment:
-      - SETTINGS_PATH=/home/config.yaml
-      - MYC_VAULT_TOKEN=${MYC_VAULT_TOKEN}
+      - SETTINGS_PATH=/home/config.toml
+      - MYC_VAULT_TOKEN=${MYC_VAULT_TOKEN:-}
       - UTOIPA_REDOC_CONFIG_FILE=/home/redoc.config.json
-    ports:
-      - 8080:8080
     volumes:
-      - ./settings/config.for-docker.toml:/home/config.toml:ro
-      - ./ports/api/src/openapi/redoc.config.json:/home/redoc.config.json:ro
+      - ./settings/config.dev.for-docker.toml:/home/config.toml:ro
     depends_on:
-      - myc-vault
+      - myc-postgres
+    profiles:
+      - base
+
+  # config.dev.for-docker.toml sets `vault = "disabled"` and inlines
+  # plaintext secrets, so this variant only needs Postgres + Redis + the
+  # test service -- no Vault dependency at all.
+  myc-api-full:
+    <<: *myc-api-common
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      no_cache: true
+    environment:
+      - SETTINGS_PATH=/home/config.toml
+      - UTOIPA_REDOC_CONFIG_FILE=/home/redoc.config.json
+    volumes:
+      - ./settings/config.dev.for-docker.toml:/home/config.toml:ro
+    depends_on:
       - myc-postgres
       - myc-redis
-      - myc-jaeger
       - myc-test-service
+    profiles:
+      - redis
+
+  # Standalone mode ships zero external runtime deps (SQLite + moka + stub
+  # email + autogen secrets), so it gets its own build (Dockerfile.standalone)
+  # and config (config.standalone.example.toml) instead of a depends_on list --
+  # Compose requires a depends_on target's profile to be part of the active
+  # set, so keeping this profile dependency-free needs its own service block.
+  myc-api-standalone:
+    <<: *myc-api-common
+    build:
+      context: .
+      dockerfile: Dockerfile.standalone
+      no_cache: true
+    environment:
+      - SETTINGS_PATH=/home/config.toml
+      - UTOIPA_REDOC_CONFIG_FILE=/home/redoc.config.json
+    volumes:
+      - ./settings/config.standalone.example.toml:/home/config.toml:ro
+      - ./standalone/data:/data
+    profiles:
+      - standalone
