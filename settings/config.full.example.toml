@@ -1,0 +1,439 @@
+# ------------------------------------------------------------------------------
+# MYCELIUM API GATEWAY -- FULL MODE EXAMPLE CONFIGURATION
+#
+# This is the reference config for "full mode" (the default build): Postgres
+# for persistence, Redis for caching, SMTP for real email delivery, and
+# (optionally) HashiCorp Vault for secrets. To get started:
+#
+#   1. Copy this file to settings/config.toml (or any path of your choosing).
+#   2. Fill in the values marked "required" below with your own secrets/hosts.
+#   3. Point the gateway at it: SETTINGS_PATH=settings/config.toml cargo run
+#
+# Every section below explains what it configures and whether each field is
+# required or optional. Optional fields are shown commented-out at their
+# built-in default value -- uncomment and edit only the ones you want to
+# change.
+#
+# Looking for the zero-external-dependencies build (SQLite + in-process
+# cache, no Postgres/Redis/Vault)? See config.standalone.example.toml instead.
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# VAULT -- OPTIONAL SECRET STORE
+#
+# HashiCorp Vault lets you keep secrets (DB passwords, SMTP credentials, JWT
+# signing keys, ...) out of this file entirely: instead of a literal value,
+# any secret field below can be written as
+#   fieldName = { vault = { path = "some/vault/path", key = "someKey" } }
+# and the gateway will fetch it from Vault at startup.
+#
+# Vault itself is entirely optional. If you don't use it, replace the
+# `[vault.define]` table below with a single line:
+#   vault = "disabled"
+# and write every secret as a literal value or `{ env = "SOME_ENV_VAR" }`
+# instead of `{ vault = { ... } }`.
+# ------------------------------------------------------------------------------
+
+[vault.define]
+url = "http://myc-vault:8200"                 # required -- base URL of your Vault server
+versionWithNamespace = "v1/kv"                 # required -- KV engine version + mount path
+token = { env = "MYC_VAULT_TOKEN" }            # required -- auth token, read from an env var
+
+# ------------------------------------------------------------------------------
+# CORE -- ACCOUNT LIFE CYCLE
+#
+# Identity of your deployment (domain, support contact) and the secrets used
+# to sign tokens and connection strings.
+# ------------------------------------------------------------------------------
+
+[core.accountLifeCycle]
+domainName = "Mycelium"                        # required -- display name, used in emails/UI
+domainUrl = "http://localhost.com"             # required -- public base URL, used to build links in emails (e.g. magic-link URLs)
+
+# The display name shown as the sender for lifecycle emails (invites,
+# magic links). Optional -- if omitted, no display name is sent, only the
+# address below.
+# noreplyName = "Mycelium"
+
+noreplyEmail = "noreply@example.com"           # required -- "from" address for lifecycle emails
+
+# The display name shown as the sender for support-related emails.
+# Optional -- same behavior as noreplyName above if omitted.
+# supportName = "Mycelium Support"
+
+supportEmail = "support@example.com"           # required -- "from" address for support emails
+
+# Language used for lifecycle email templates. Optional -- if omitted, the
+# gateway's own fallback locale is used.
+# locale = "en-us"
+
+# Time in seconds before a signup/verification token expires. Optional --
+# defaults to 3600 (1 hour) if omitted.
+# tokenExpiration = 3600
+
+# Signs the JWT/KEK used to encrypt tenant secrets (Telegram bot tokens,
+# TOTP secrets, ...). Never store this as a literal in a committed file --
+# use Vault or an env var in any real deployment.
+tokenSecret = { vault = { path = "myc/core/accountLifeCycle", key = "tokenSecret" } } # required -- secret
+
+# ------------------------------------------------------------------------------
+# !!!!!! DEPLOYMENT WARNING -- HMAC key set is now MANDATORY !!!!!!
+#
+# Every newly-issued connection string is signed with the HMAC key at
+# `hmacPrimaryVersion`. Verification reads the version from the token's KVR
+# bean; if the version is missing (older tokens) or retired, the token is
+# rejected with a native error code (MYC00030 / MYC00031 / MYC00032).
+#
+# DEPLOYING THIS VERSION INVALIDATES EVERY CONNECTION STRING ISSUED BEFORE
+# THE DEPLOY. Users must re-authenticate. Pick a maintenance window before
+# rolling out.
+#
+# The gateway REFUSES TO START if `hmacPrimaryVersion` is not present in
+# `hmacSecrets` or if the set is empty -- this is enforced by the startup
+# config validator.
+#
+# See docs/book/src/22-hmac-key-rotation.md for the rotation procedure.
+# ------------------------------------------------------------------------------
+
+# Which entry in `hmacSecrets` below is currently used to sign new
+# connection strings. Optional -- defaults to 1 if omitted (still requires
+# `hmacSecrets` to contain a matching `version = 1` entry).
+# hmacPrimaryVersion = 1
+
+# At least one entry is required -- this is the actual signing key material,
+# never a placeholder-free default.
+[[core.accountLifeCycle.hmacSecrets]]
+version = 1
+secret = { vault = { path = "myc/core/accountLifeCycle", key = "hmacSecretV1" } }
+
+# When rotating, uncomment and populate the next version; then bump
+# `hmacPrimaryVersion` once the new secret is known to every replica.
+#
+# [[core.accountLifeCycle.hmacSecrets]]
+# version = 2
+# secret = { vault = { path = "myc/core/accountLifeCycle", key = "hmacSecretV2" } }
+
+# ------------------------------------------------------------------------------
+# CORE -- WEBHOOK DISPATCHER
+#
+# Controls how the gateway retries delivery of outgoing webhooks (account
+# created/updated/deleted, etc.) to subscriber URLs. The `[core.webhook]`
+# table itself is required (even empty), but every field inside it is
+# optional -- shown here at its built-in default value.
+# ------------------------------------------------------------------------------
+
+[core.webhook]
+
+# Whether to accept self-signed/invalid TLS certificates on webhook target
+# URLs. Optional -- defaults to true if omitted (convenient for local dev;
+# consider setting this to false in production).
+# acceptInvalidCertificates = true
+
+# How often (in seconds) the webhook dispatcher polls for pending
+# deliveries. Optional -- defaults to 30 if omitted.
+# consumeIntervalInSecs = 30
+
+# How many pending webhooks are picked up per poll cycle. Optional --
+# defaults to 25 if omitted.
+# consumeBatchSize = 25
+
+# How many delivery attempts before a webhook is given up on. Optional --
+# defaults to 5 if omitted.
+# maxAttempts = 5
+
+# ------------------------------------------------------------------------------
+# SQL DATABASE (POSTGRES) ADAPTER SETTINGS
+#
+# Connection string for the primary Postgres database. Required -- full mode
+# has no built-in fallback.
+# ------------------------------------------------------------------------------
+
+[diesel]
+# ! Should be collected from vault or an environment variable in production
+databaseUrl = { vault = { path = "myc/prisma", key = "databaseUrl" } }
+
+# ------------------------------------------------------------------------------
+# NOTIFIER (SMTP) ADAPTER SETTINGS
+#
+# Full mode always sends real email via SMTP -- every field below is
+# required. (The zero-config standalone build makes this section optional
+# instead; see config.standalone.example.toml.)
+# ------------------------------------------------------------------------------
+
+[smtp]
+host = "smtp.gmail.com"                                              # required -- SMTP server hostname
+# ! Should be collected from vault or an environment variable in production
+username = { vault = { path = "myc/smtp", key = "username" } }       # required
+# ! Should be collected from vault or an environment variable in production
+password = { vault = { path = "myc/smtp", key = "password" } }       # required
+port = 465                                                           # required -- SMTP submission port (465 for implicit TLS, 587 for STARTTLS)
+
+# ------------------------------------------------------------------------------
+# EMAIL DISPATCHER POLLING SETTINGS
+#
+# Not SMTP-specific -- just how often the in-process email dispatcher polls
+# for pending sends. Both fields below are optional -- shown here at their
+# built-in default values.
+# ------------------------------------------------------------------------------
+
+[queue]
+# Name of the internal queue/table used to track pending email sends.
+# Optional -- defaults to "emails" if omitted.
+# emailQueueName = "emails"
+
+# How often (in seconds) the email dispatcher polls for pending sends.
+# Optional -- defaults to 15 if omitted.
+# consumeIntervalInSecs = 15
+
+# ------------------------------------------------------------------------------
+# REDIS ADAPTER SETTINGS
+#
+# Redis backs both the response cache and the internal user-session flow.
+# Required in full mode -- there is no built-in fallback.
+# ------------------------------------------------------------------------------
+
+[redis]
+protocol = "redis"                                              # required -- "redis" or "rediss" (TLS)
+hostname = "myc-redis"                                           # required -- Redis server hostname
+# Redis port. Optional -- if omitted, the client library's own default
+# (6379) is used.
+# port = 6379
+password = { vault = { path = "myc/queue", key = "password" } }  # required
+
+# ------------------------------------------------------------------------------
+# AUTHENTICATION SETTINGS
+#
+# Two independent, both-optional authentication methods:
+#
+# - Internal: the gateway's own username/password + magic-link flow, backed
+#   by Postgres. Disabled unless you provide `[auth.internal.define]`.
+# - External: third-party OIDC/OAuth2 providers (Google, Microsoft, Auth0,
+#   ...). Disabled unless you provide one or more `[[auth.external.define]]`
+#   entries.
+#
+# You can enable either, both, or neither.
+# ------------------------------------------------------------------------------
+
+[auth]
+
+# Internal authentication. Optional -- omit entirely (or set
+# `internal = "disabled"`) to disable it. To enable, replace the line above
+# with a `[auth.internal.define]` table:
+#
+# [auth.internal.define]
+# jwtSecret = { vault = { path = "myc/auth/internal", key = "jwtSecret" } }  # required -- secret
+#
+# # How long an issued session JWT is valid, in seconds. Optional --
+# # defaults to 43200 (12 hours) if omitted.
+# # jwtExpiresIn = 43200
+#
+# # How long a magic-link/temporary token is valid, in seconds. Optional --
+# # defaults to 300 (5 minutes) if omitted.
+# # tmpExpiresIn = 300
+internal = "disabled"
+
+# External authentication providers. Each `[[auth.external.define]]` entry
+# below is one provider. `issuer`/`jwksUri`/`audience` are required per
+# entry; `discoveryUrl`/`userInfoUrl` are optional. Delete or comment out any
+# provider you don't need -- `external` only activates once at least one
+# entry is present.
+
+[[auth.external.define]]
+# Google
+issuer = "https://accounts.google.com"
+jwksUri = "https://www.googleapis.com/oauth2/v3/certs"
+userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo"
+audience = "account-name.apps.googleusercontent.com"
+
+[[auth.external.define]]
+# Microsoft 1.0
+issuer = "https://sts.windows.net/{tenantId}/"
+jwksUri = "https://login.microsoftonline.com/{tenantId}/discovery/keys"
+userInfoUrl = "https://graph.microsoft.com/oidc/userinfo"
+#
+# Audience values for Microsoft Graph:
+# - Use 00000002-0000-0000-c000-000000000000 for Azure Active Directory Graph
+# - Use 00000003-0000-0000-c000-000000000000 for Microsoft Graph
+#
+audience = "00000003-0000-0000-c000-000000000000"
+
+# Microsoft 2.0
+# [[auth.external.define]]
+# issuer = "https://login.microsoftonline.com/{tenantId}/v2.0"
+# jwksUri = "https://login.microsoftonline.com/{tenantId}/discovery/v2.0/keys"
+# userInfoUrl = "https://graph.microsoft.com/oidc/userinfo"
+# audience = "00000003-0000-0000-c000-000000000000"
+
+[[auth.external.define]]
+# Auth0
+issuer = "https://{app-name}.auth0.com/"
+jwksUri = "https://{app-name}.auth0.com/.well-known/jwks.json"
+userInfoUrl = "https://{app-name}.auth0.com/userinfo"
+#
+# Audience value: the Auth0 Application's API identifier.
+#
+audience = "https://{app-name}.auth0.com/api/v2/"
+
+# ------------------------------------------------------------------------------
+# API PORT SETTINGS
+#
+# Everything below is optional -- shown here at its built-in default value,
+# except `allowedOrigins`, which has no useful default (it starts empty, so
+# no browser origin can call the gateway until you list one).
+# ------------------------------------------------------------------------------
+
+[api]
+# Network interface the HTTP server binds to. Optional -- defaults to
+# "0.0.0.0" (all interfaces) if omitted.
+# serviceIp = "0.0.0.0"
+
+# Port the HTTP server listens on. Optional -- defaults to 8080 if omitted.
+# servicePort = 8080
+
+# Number of actix-web worker threads. Optional -- defaults to 1 if omitted.
+# serviceWorkers = 1
+
+# How long (in seconds) the gateway waits for a downstream service to
+# respond before giving up. Optional -- defaults to 60 if omitted.
+# gatewayTimeout = 60
+
+# Origins allowed to call the gateway from a browser (CORS). Required in
+# practice -- defaults to an empty list, which blocks every browser-based
+# client.
+allowedOrigins = [
+    "http://localhost:8080",
+    "https://localhost:8080",
+    "http://localhost:3000",
+    "http://localhost:3000/",
+    "http://localhost:5173",
+    "http://localhost:5174",
+]
+
+# ------------------------------------------------------------------------------
+# API GATEWAY TLS SETTINGS
+#
+# Terminate TLS directly in the gateway process. Optional -- most
+# deployments instead terminate TLS at a reverse proxy/load balancer and
+# leave this disabled.
+# ------------------------------------------------------------------------------
+
+# Optional -- defaults to "disabled" if omitted. To enable, replace with a
+# `[api.tls.define]` table:
+#
+# [api.tls.define]
+# tlsCert = { vault = { path = "myc/api/tls", key = "tlsCert" } }
+# tlsKey = { vault = { path = "myc/api/tls", key = "tlsKey" } }
+tls = "disabled"
+
+# ------------------------------------------------------------------------------
+# API RESPONSE CACHE SETTINGS
+#
+# In-memory TTLs (in seconds) for a few hot lookups (JWKS, email-to-profile,
+# profile-by-id). All three fields are optional -- shown here at their
+# built-in default values. Uncomment the whole `[api.cache]` table to
+# override any of them.
+# ------------------------------------------------------------------------------
+
+# [api.cache]
+# jwksTtl = 43200    # 12 hours
+# emailTtl = 600     # 10 minutes
+# profileTtl = 600   # 10 minutes
+
+# ------------------------------------------------------------------------------
+# LOGGING SETTINGS
+#
+# All three fields below are optional.
+# ------------------------------------------------------------------------------
+
+# Per-module log level. Format: comma-separated `crate=level` pairs (or a
+# single bare level to apply everywhere), where level is one of trace,
+# debug, info, warn, error. Optional -- omitting this falls back to a
+# built-in default tuned for the *standalone* build's crates
+# (`myc_diesel_sqlite`, `myc_moka_cache`); full mode's crates differ
+# slightly (`myc_diesel`, `myc_kv` below), so it's spelled out explicitly
+# here instead of relying on that default.
+# level = "mycelium_base=info,myc_api=info,myc_diesel=info,myc_config=info,myc_core=info,myc_http_tools=info,actix_web=info,myc_notifier=info,myc_kv=info,myc_adapters_shared_lib=info"
+
+[api.logging]
+level = "mycelium_base=info,myc_api=info,myc_diesel=info,myc_config=info,myc_core=info,myc_http_tools=info,actix_web=info,myc_notifier=info,myc_kv=info,myc_adapters_shared_lib=info"
+
+# Log output format: "ansi" (human-readable, colorized) or "jsonl"
+# (machine-readable, one JSON object per line). Optional -- defaults to
+# "ansi" if omitted.
+# format = "ansi"
+
+# Where logs are written: "stdout", `{ file = { path = "..." } }`, or
+# `{ collector = { ... } }` (send to an OpenTelemetry collector, e.g.
+# Jaeger). Optional -- defaults to "stdout" if omitted.
+# target = "stdout"
+#
+# Example with a file target:
+# target = { file = { path = "logs/api.log" } }
+#
+# Example with an OpenTelemetry collector target (protocol is one of http,
+# https, grpc):
+# target = { collector = { name = "mycelium-api", host = "localhost", protocol = "grpc", port = 4317 } }
+
+# ------------------------------------------------------------------------------
+# API GATEWAY ROUTE CONFIGURATION
+#
+# Downstream routes are declared here, not via a REST call -- there is no
+# "create route" endpoint. `[api.services]` is a map: each `[[service-name]]`
+# array-of-tables entry is a service (the TOML key becomes its name), and
+# each `[[service-name.path]]` entry under it is one of its routes. There is
+# no functional `routes = [...]` key on `[api]` -- it does not exist on
+# `ApiConfig` and is silently ignored by the parser.
+#
+# Everything in this section is optional and commented out below -- a
+# gateway with no `[api.services]` at all still boots, it just has nothing
+# to proxy to yet.
+# ------------------------------------------------------------------------------
+
+#[api.services]
+#
+#[[service-01]]
+#host = "example.com:8083"
+#protocol = "https"
+#discoverable = false
+#healthCheckPath = "/health"
+#
+#[[service-01.secret]]
+#name = "service-01-query-token"
+#queryParameter = { name = "token", token = "token-by-query-parameter" }
+#
+#[[service-01.secret]]
+#name = "service-01-authorization-header"
+#authorizationHeader = { name = "Authorization", prefix = "Bearer", token = "token-by-authorization-header" }
+#
+## Example of public route
+#[[service-01.path]]
+#group = "public"
+#path = "/public"
+#methods = ["GET"]
+#
+#[[service-01.path]]
+#group = "protected"
+#path = "/protected"
+#methods = ["GET"]
+#
+## Test for role protected route: only users with the `newbies` role reach it
+#[[service-01.path]]
+#path = "/protected/roles/newbies"
+#methods = ["GET"]
+#group = { protectedByRoles = [{ slug = "newbies", permission = "read" }] }
+#
+## Test for secret injection as query parameter
+#[[service-01.path]]
+#group = "public"
+#path = "/secrets/query-parameter-token"
+#secretName = "service-01-query-token"
+#acceptInsecureRouting = true
+#methods = ["GET"]
+#
+## Test for secret injection as authorization header
+#[[service-01.path]]
+#group = "public"
+#path = "/secrets/authorization-header"
+#secretName = "service-01-authorization-header"
+#acceptInsecureRouting = true
+#methods = ["GET"]

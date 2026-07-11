@@ -6,8 +6,18 @@ use std::path::PathBuf;
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueueConfig {
+    #[serde(default = "default_email_queue_name")]
     pub email_queue_name: SecretResolver<String>,
+    #[serde(default = "default_consume_interval_in_secs")]
     pub consume_interval_in_secs: SecretResolver<u64>,
+}
+
+fn default_email_queue_name() -> SecretResolver<String> {
+    SecretResolver::Value("emails".to_string())
+}
+
+fn default_consume_interval_in_secs() -> SecretResolver<u64> {
+    SecretResolver::Value(15)
 }
 
 // Loaded on its own -- not bundled with `SmtpConfig` -- so standalone mode
@@ -35,5 +45,21 @@ impl QueueConfig {
             Ok(config) => Ok(config.queue),
             Err(err) => Err(err),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn queue_config_defaults_when_fields_absent() {
+        let config: QueueConfig = toml::from_str("").unwrap();
+
+        assert_eq!(
+            config.email_queue_name,
+            SecretResolver::Value("emails".to_string())
+        );
+        assert_eq!(config.consume_interval_in_secs, SecretResolver::Value(15));
     }
 }

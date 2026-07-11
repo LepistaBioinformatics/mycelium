@@ -1,18 +1,29 @@
 # ------------------------------------------------------------------------------
-# STANDALONE MODE CONFIGURATION
+# MYCELIUM API GATEWAY -- STANDALONE MODE EXAMPLE CONFIGURATION
 #
 # Zero external runtime dependencies: SQLite instead of Postgres, an
 # in-process moka cache instead of Redis, and a stub/file email transport
 # instead of SMTP (unless you opt in -- see the `[smtp]` section below). No
 # Vault, no `[redis]` -- those adapters are compiled out of the `standalone`
-# binary entirely. `[queue]` is still required (dispatcher-polling config,
-# not Redis-specific -- shared by both backends).
+# binary entirely.
 #
-# Build with: cargo build -p mycelium-api --no-default-features --features standalone
+# To get started:
+#   1. Copy this file to settings/config.toml (or any path of your choosing).
+#   2. Nothing else is strictly required -- every field below is either
+#      pre-filled with a working value or has a built-in default.
+#   3. Build and run:
+#        cargo build -p mycelium-api --no-default-features --features standalone
+#        SETTINGS_PATH=settings/config.toml cargo run --no-default-features --features standalone --bin myc-api
+#
+# Looking for the full-mode build (Postgres, Redis, SMTP, optional Vault)?
+# See config.full.example.toml instead.
 # ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
-# CORE CONFIGURATIONS
+# CORE -- ACCOUNT LIFE CYCLE
+#
+# Identity of your deployment (domain, support contact) and the secrets used
+# to sign tokens and connection strings.
 #
 # `tokenSecret` and `hmacSecrets[].secret` below are placeholders: standalone
 # mode ignores them and instead resolves (or generates, on first boot) real
@@ -22,33 +33,79 @@
 # ------------------------------------------------------------------------------
 
 [core.accountLifeCycle]
-domainName = "Mycelium (standalone)"
-domainUrl = "http://localhost:8080"
-tokenExpiration = 3600                                                # 1 hour
+domainName = "Mycelium (standalone)"           # required -- display name, used in emails/UI
+domainUrl = "http://localhost:8080"            # required -- public base URL, used to build links in emails (e.g. magic-link URLs)
+
+# The display name shown as the sender for lifecycle emails (invites,
+# magic links). Optional -- if omitted, no display name is sent, only the
+# address below.
 noreplyName = "Mycelium"
-noreplyEmail = "noreply@localhost"
+
+noreplyEmail = "noreply@localhost"             # required -- "from" address for lifecycle emails
+
+# The display name shown as the sender for support-related emails.
+# Optional -- same behavior as noreplyName above if omitted.
 supportName = "Mycelium"
-supportEmail = "support@localhost"
+
+supportEmail = "support@localhost"             # required -- "from" address for support emails
+
+# Language used for lifecycle email templates. Optional -- if omitted, the
+# gateway's own fallback locale is used.
 locale = "en-us"
+
+# Time in seconds before a signup/verification token expires. Optional --
+# defaults to 3600 (1 hour) if omitted.
+# tokenExpiration = 3600
+
+# Placeholder -- standalone mode resolves the real secret itself (see the
+# note above), this value is never read. Still a required key.
 tokenSecret = "replaced-at-boot-by-standalone-secret-resolution"
 
-hmacPrimaryVersion = 1
+# Which entry in `hmacSecrets` below is currently used to sign new
+# connection strings. Optional -- defaults to 1 if omitted (still requires
+# `hmacSecrets` to contain a matching `version = 1` entry).
+# hmacPrimaryVersion = 1
 
+# At least one entry is required -- placeholder here too, same reason as
+# `tokenSecret` above.
 [[core.accountLifeCycle.hmacSecrets]]
 version = 1
 secret = "replaced-at-boot-by-standalone-secret-resolution"
 
+# ------------------------------------------------------------------------------
+# CORE -- WEBHOOK DISPATCHER
+#
+# Controls how the gateway retries delivery of outgoing webhooks (account
+# created/updated/deleted, etc.) to subscriber URLs. The `[core.webhook]`
+# table itself is required (even empty), but every field inside it is
+# optional -- shown here at its built-in default value.
+# ------------------------------------------------------------------------------
+
 [core.webhook]
-acceptInvalidCertificates = true
-consumeIntervalInSecs = 30
-consumeBatchSize = 25
-maxAttempts = 5
+
+# Whether to accept self-signed/invalid TLS certificates on webhook target
+# URLs. Optional -- defaults to true if omitted (convenient for local dev;
+# consider setting this to false in production).
+# acceptInvalidCertificates = true
+
+# How often (in seconds) the webhook dispatcher polls for pending
+# deliveries. Optional -- defaults to 30 if omitted.
+# consumeIntervalInSecs = 30
+
+# How many pending webhooks are picked up per poll cycle. Optional --
+# defaults to 25 if omitted.
+# consumeBatchSize = 25
+
+# How many delivery attempts before a webhook is given up on. Optional --
+# defaults to 5 if omitted.
+# maxAttempts = 5
 
 # ------------------------------------------------------------------------------
 # SQLITE DATABASE ADAPTER SETTINGS
 #
 # Path to the SQLite database file. Created and migrated automatically on
-# first boot if it does not exist.
+# first boot if it does not exist. Required -- standalone mode has no
+# built-in fallback path.
 # ------------------------------------------------------------------------------
 
 [sqlite]
@@ -58,22 +115,31 @@ path = "./data/mycelium.db"
 # EMAIL DISPATCHER POLLING SETTINGS
 #
 # Not Redis-specific -- just how often the in-process email dispatcher polls
-# the `message` table for pending sends. Shared by both backends.
+# for pending sends. Shared by both backends. The `[queue]` table itself is
+# required (even empty), but both fields inside it are optional -- shown
+# here at their built-in default values.
 # ------------------------------------------------------------------------------
 
 [queue]
-emailQueueName = "emails"
-consumeIntervalInSecs = 15
+
+# Name of the internal queue/table used to track pending email sends.
+# Optional -- defaults to "emails" if omitted.
+# emailQueueName = "emails"
+
+# How often (in seconds) the email dispatcher polls for pending sends.
+# Optional -- defaults to 15 if omitted.
+# consumeIntervalInSecs = 15
 
 # ------------------------------------------------------------------------------
 # SMTP SETTINGS (optional -- opt-in real email delivery)
 #
 # Absent by default: the standalone build then falls back to the stub
 # transport (logs subject/recipient/body, including the magic-link URL, to
-# stdout) or the file transport (`.eml` files), same as before. Uncomment and
-# fill in to send real email from a standalone build without needing full
-# mode's Postgres/Redis/Vault. `port`/`host`/`username`/`password` accept the
-# same secret-resolver shapes as full mode (plain value, `{ env = "..." }`).
+# stdout) or the file transport (`.eml` files). Uncomment and fill in to send
+# real email from a standalone build without needing full mode's
+# Postgres/Redis/Vault. `port`/`host`/`username`/`password` accept the same
+# secret-resolver shapes as full mode (plain value, `{ env = "..." }`). All
+# four fields are required once you enable this section.
 # ------------------------------------------------------------------------------
 
 # [smtp]
@@ -95,32 +161,91 @@ consumeIntervalInSecs = 15
 # ------------------------------------------------------------------------------
 
 [auth.internal.define]
-jwtExpiresIn = 43200                                                  # 12 hours
-tmpExpiresIn = 300                                                    # 5 minutes
+
+# How long an issued session JWT is valid, in seconds. Optional --
+# defaults to 43200 (12 hours) if omitted.
+# jwtExpiresIn = 43200
+
+# How long a magic-link/temporary token is valid, in seconds. Optional --
+# defaults to 300 (5 minutes) if omitted.
+# tmpExpiresIn = 300
+
+# Placeholder -- standalone mode resolves the real secret itself (see the
+# note above), this value is never read. Still a required key.
 jwtSecret = "replaced-at-boot-by-standalone-secret-resolution"
 
 # ------------------------------------------------------------------------------
 # API PORT SETTINGS
+#
+# Everything below is optional -- shown here at its built-in default value,
+# except `allowedOrigins`, which has no useful default (it starts empty, so
+# no browser origin can call the gateway until you list one).
 # ------------------------------------------------------------------------------
 
 [api]
-serviceIp = "0.0.0.0"
-servicePort = 8080
-serviceWorkers = 1
-gatewayTimeout = 60
+# Network interface the HTTP server binds to. Optional -- defaults to
+# "0.0.0.0" (all interfaces) if omitted.
+# serviceIp = "0.0.0.0"
 
+# Port the HTTP server listens on. Optional -- defaults to 8080 if omitted.
+# servicePort = 8080
+
+# Number of actix-web worker threads. Optional -- defaults to 1 if omitted.
+# serviceWorkers = 1
+
+# How long (in seconds) the gateway waits for a downstream service to
+# respond before giving up. Optional -- defaults to 60 if omitted.
+# gatewayTimeout = 60
+
+# Origins allowed to call the gateway from a browser (CORS). Required in
+# practice -- defaults to an empty list, which blocks every browser-based
+# client.
 allowedOrigins = ["http://localhost:8080"]
 
-# NOTE: `tls` must come before any `[api.*]` sub-table (`logging` below) --
-# TOML attributes a bare `key = value` line to the most recently opened
-# table header, so placing it after `[api.logging]` would silently attach
-# it to `api.logging` instead of `api` and fail to deserialize.
-tls = "disabled"
+# Optional -- defaults to "disabled" if omitted. To enable, replace with a
+# `[api.tls.define]` table (see config.full.example.toml for the shape).
+# tls = "disabled"
+
+# ------------------------------------------------------------------------------
+# API RESPONSE CACHE SETTINGS
+#
+# In-memory TTLs (in seconds) for a few hot lookups (JWKS, email-to-profile,
+# profile-by-id). All three fields are optional -- shown here at their
+# built-in default values. Uncomment the whole `[api.cache]` table to
+# override any of them.
+# ------------------------------------------------------------------------------
+
+# [api.cache]
+# jwksTtl = 43200    # 12 hours
+# emailTtl = 600     # 10 minutes
+# profileTtl = 600   # 10 minutes
+
+# ------------------------------------------------------------------------------
+# LOGGING SETTINGS
+#
+# The `[api.logging]` table itself is required (even empty), but all three
+# fields inside it are optional.
+# ------------------------------------------------------------------------------
 
 [api.logging]
+
+# Per-module log level. Format: comma-separated `crate=level` pairs (or a
+# single bare level to apply everywhere), where level is one of trace,
+# debug, info, warn, error. Optional -- defaults to
+# "mycelium_base=info,myc_api=info,myc_config=info,myc_core=info,myc_http_tools=info,actix_web=info,myc_notifier=info,myc_diesel_sqlite=info,myc_moka_cache=info"
+# if omitted. Set explicitly below with a leading "warn" fallback level for
+# any crate not listed (differs from the plain default, kept intentional).
 level = "warn,mycelium_base=info,myc_api=info,myc_config=info,myc_core=info,myc_http_tools=info,actix_web=info,myc_notifier=info,myc_diesel_sqlite=info,myc_moka_cache=info"
-format = "ansi"
-target = "stdout"
+
+# Log output format: "ansi" (human-readable, colorized) or "jsonl"
+# (machine-readable, one JSON object per line). Optional -- defaults to
+# "ansi" if omitted.
+# format = "ansi"
+
+# Where logs are written: "stdout", `{ file = { path = "..." } }`, or
+# `{ collector = { ... } }` (send to an OpenTelemetry collector). Optional --
+# defaults to "stdout" if omitted.
+# target = "stdout"
 
 # ------------------------------------------------------------------------------
 # API GATEWAY ROUTE CONFIGURATION
@@ -129,10 +254,14 @@ target = "stdout"
 # "create route" endpoint. `[api.services]` is a map: each `[[service-name]]`
 # array-of-tables entry is a service (the TOML key becomes its name), and
 # each `[[service-name.path]]` entry under it is one of its routes. See
-# `settings/config.dev.for-docker.toml` for the full reference example this
-# is adapted from (there is no functional `routes = [...]` key on `[api]` --
-# it does not exist on `ApiConfig` and is silently ignored by the parser).
+# config.full.example.toml for a more complete reference example (secret
+# injection, role-protected routes, ...) -- there is no functional
+# `routes = [...]` key on `[api]`; it does not exist on `ApiConfig` and is
+# silently ignored by the parser.
 #
+# Everything in this section is optional and commented out below -- a
+# gateway with no `[api.services]` at all still boots, it just has nothing
+# to proxy to yet.
 # ------------------------------------------------------------------------------
 
 [api.services]

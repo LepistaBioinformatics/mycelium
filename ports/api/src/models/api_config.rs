@@ -38,6 +38,12 @@ pub enum LogFormat {
     Jsonl,
 }
 
+impl Default for LogFormat {
+    fn default() -> Self {
+        LogFormat::Ansi
+    }
+}
+
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum LoggingTarget {
@@ -56,9 +62,23 @@ pub enum LoggingTarget {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoggingConfig {
+    #[serde(default = "default_logging_level")]
     pub level: String,
+    #[serde(default)]
     pub format: LogFormat,
+    #[serde(default = "default_logging_target")]
     pub target: Option<LoggingTarget>,
+}
+
+fn default_logging_level() -> String {
+    "mycelium_base=info,myc_api=info,myc_config=info,myc_core=info,\
+     myc_http_tools=info,actix_web=info,myc_notifier=info,\
+     myc_diesel_sqlite=info,myc_moka_cache=info"
+        .to_string()
+}
+
+fn default_logging_target() -> Option<LoggingTarget> {
+    Some(LoggingTarget::Stdout)
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -293,14 +313,21 @@ where
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ApiConfig {
+    #[serde(default = "default_service_ip")]
     pub service_ip: String,
+    #[serde(default = "default_service_port")]
     pub service_port: u16,
+    #[serde(default)]
     pub allowed_origins: Vec<String>,
+    #[serde(default = "default_service_workers")]
     pub service_workers: i32,
+    #[serde(default = "default_gateway_timeout")]
     pub gateway_timeout: u64,
     pub logging: LoggingConfig,
+    #[serde(default)]
     pub tls: OptionalConfig<TlsConfig>,
-    pub cache: Option<CacheConfig>,
+    #[serde(default)]
+    pub cache: CacheConfig,
     pub health_check_interval: Option<u64>,
     pub max_retry_count: Option<u32>,
     pub max_error_instances: Option<u32>,
@@ -327,6 +354,22 @@ pub struct ApiConfig {
     /// Overridable by env MYCELIUM_OPENRPC_PROD_URL.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub openrpc_prod_url: Option<String>,
+}
+
+fn default_service_ip() -> String {
+    "0.0.0.0".to_string()
+}
+
+fn default_service_port() -> u16 {
+    8080
+}
+
+fn default_service_workers() -> i32 {
+    1
+}
+
+fn default_gateway_timeout() -> u64 {
+    60
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -468,5 +511,45 @@ impl ApiConfig {
             })?;
 
         Ok(config.api)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn api_config_tuning_fields_default_when_absent() {
+        let toml = r#"
+            [logging]
+        "#;
+        let config: ApiConfig = toml::from_str(toml).unwrap();
+
+        assert_eq!(config.service_ip, "0.0.0.0");
+        assert_eq!(config.service_port, 8080);
+        assert_eq!(config.service_workers, 1);
+        assert_eq!(config.gateway_timeout, 60);
+        assert_eq!(config.allowed_origins, Vec::<String>::new());
+        assert!(matches!(config.tls, OptionalConfig::Disabled));
+        assert_eq!(config.cache.jwks_ttl, CacheConfig::default().jwks_ttl);
+        assert_eq!(config.cache.email_ttl, CacheConfig::default().email_ttl);
+        assert_eq!(
+            config.cache.profile_ttl,
+            CacheConfig::default().profile_ttl
+        );
+    }
+
+    #[test]
+    fn logging_config_defaults_when_fields_absent() {
+        let config: LoggingConfig = toml::from_str("").unwrap();
+
+        assert_eq!(
+            config.level,
+            "mycelium_base=info,myc_api=info,myc_config=info,myc_core=info,\
+             myc_http_tools=info,actix_web=info,myc_notifier=info,\
+             myc_diesel_sqlite=info,myc_moka_cache=info"
+        );
+        assert!(matches!(config.format, LogFormat::Ansi));
+        assert!(matches!(config.target, Some(LoggingTarget::Stdout)));
     }
 }
