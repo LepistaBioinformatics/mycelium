@@ -13,57 +13,91 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 concurrency:
   group: docker-${{ github.ref_name }}
   cancel-in-progress: false
 
 jobs:
-  docker:
+  image:
     name: Build and push ${{ github.ref_name }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write # REL-13: cosign keyless signing
+      attestations: write # REL-12: build provenance
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
+      prerelease: ${{ steps.tag.outputs.prerelease }}
+    env:
+      # workflow_dispatch's `tag` input is operator-provided free text --
+      # routed through an env var instead of interpolated directly into a
+      # `run:` block (workflow-injection hardening).
+      INPUT_TAG: ${{ inputs.tag }}
 
     steps:
+      # Defense in depth: workflow_dispatch's `tag` is operator-typed free
+      # text (requires repo write access to trigger, but validate the shape
+      # anyway before it's used as a checkout `ref:`).
+      - name: Validate tag input
+        if: inputs.tag != ''
+        run: |
+          if ! echo "$INPUT_TAG" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-z]+\.[0-9]+)?$'; then
+            echo "::error::tag input '$INPUT_TAG' doesn't look like a release version (X.Y.Z or X.Y.Z-stage.N)."
+            exit 1
+          fi
+
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ inputs.tag || github.ref_name }} # REL-09/10: THE FIX -- was missing entirely, workflow_dispatch built from whatever branch triggered it
 
       - name: Classify tag
         id: tag
         run: |
-          TAG="${{ inputs.tag || github.ref_name }}"
-          echo "version=${TAG}" >> $GITHUB_OUTPUT
+          TAG="${INPUT_TAG:-$GITHUB_REF_NAME}"
+          echo "version=${TAG}" >> "$GITHUB_OUTPUT"
           if echo "${TAG}" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+-'; then
-            echo "prerelease=true" >> $GITHUB_OUTPUT
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
             TYPE=$(echo "${TAG}" | sed -E 's/^[0-9]+\.[0-9]+\.[0-9]+-([a-z]+)\..*/\1/')
-            echo "prerelease_type=${TYPE}" >> $GITHUB_OUTPUT
+            echo "prerelease_type=${TYPE}" >> "$GITHUB_OUTPUT"
           else
-            echo "prerelease=false" >> $GITHUB_OUTPUT
-            echo "prerelease_type=" >> $GITHUB_OUTPUT
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+            echo "prerelease_type=" >> "$GITHUB_OUTPUT"
           fi
+
+      # `github.repository` is case-preserved ("LepistaBioinformatics/mycelium").
+      # docker/metadata-action lowercases internally (why builds work today),
+      # but cosign and attest-build-provenance below do NOT -- GHCR/OCI image
+      # refs must be all-lowercase or both steps fail. Compute it once here.
+      - name: Lowercase image name
+        id: image
+        run: echo "name=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ${{ steps.image.outputs.name }}
           tags: |
             type=raw,value=${{ steps.tag.outputs.version }}
             type=raw,value=latest,enable=${{ steps.tag.outputs.prerelease == 'false' }}
             type=raw,value=${{ steps.tag.outputs.prerelease_type }},enable=${{ steps.tag.outputs.prerelease == 'true' }}
 
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        id: push
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
         with:
           context: .
           file: Dockerfile
@@ -73,3 +107,67 @@ jobs:
           build-args: VERSION=${{ steps.tag.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # REL-12
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@92c65d2898f1f53cfdc910b962cecff86e7f8fcc # v1
+        with:
+          subject-name: ${{ steps.image.outputs.name }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
+
+      # REL-13
+      - name: Install cosign
+        uses: sigstore/cosign-installer@f713795cb21599bc4e5c4b58cbad1da852d7eeb9 # v3
+
+      - name: Sign image (keyless)
+        run: cosign sign --yes "${{ steps.image.outputs.name }}@${{ steps.push.outputs.digest }}"
+
+  github-release:
+    name: Create GitHub Release for ${{ needs.image.outputs.version }}
+    needs: image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ needs.image.outputs.version }}
+      IS_PRERELEASE: ${{ needs.image.outputs.prerelease }}
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ needs.image.outputs.version }}
+          fetch-depth: 0 # git-cliff needs full history to generate notes
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
+
+      - name: Install git-cliff
+        run: cargo install git-cliff --locked
+
+      - name: Generate release notes
+        run: |
+          git-cliff --latest --strip header -o /tmp/notes.md
+          # git-cliff can legitimately produce an empty file for a version
+          # with no conventional-commit-tagged changes -- never fail the
+          # Release for that, ship a minimal body instead (REL-01 edge case).
+          if [ ! -s /tmp/notes.md ]; then
+            echo "Release ${TAG}." > /tmp/notes.md
+          fi
+
+      # REL-01..04: idempotent -- `gh release create` errors if the tag
+      # already has a Release, so fall back to `edit` instead of failing the
+      # job (safe to re-run this workflow for the same tag).
+      - name: Create or update GitHub Release
+        run: |
+          PRERELEASE_FLAG=""
+          if [ "$IS_PRERELEASE" = "true" ]; then
+            PRERELEASE_FLAG="--prerelease"
+          fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --notes-file /tmp/notes.md $PRERELEASE_FLAG
+          else
+            gh release create "$TAG" --title "$TAG" --notes-file /tmp/notes.md $PRERELEASE_FLAG
+          fi
