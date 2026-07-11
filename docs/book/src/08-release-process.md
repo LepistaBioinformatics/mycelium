@@ -1,26 +1,29 @@
 # Release Process
 
-This guide explains how to create and manage releases for Mycelium using `cargo-release` and `git-cliff`.
+This guide explains how Mycelium releases are cut, using `cargo-release` and `git-cliff`,
+orchestrated by GitHub Actions.
 
 ## Overview
 
-Mycelium follows [Semantic Versioning](https://semver.org/) and uses automated tools to manage releases:
+Mycelium follows [Semantic Versioning](https://semver.org/). Releases are **not** run by hand
+locally — they run through GitHub Actions `workflow_dispatch` jobs, because two pieces of the
+pipeline only work inside CI:
 
-- **cargo-release**: Manages version bumping, tagging, and publishing
-- **git-cliff**: Generates changelogs from conventional commits
+- **`RELEASE_TOKEN`** (a PAT/App token) is what makes a pushed tag *cascade* to the
+  tag-triggered `docker-release.yml` workflow — the built-in `GITHUB_TOKEN` would not.
+- **crates.io Trusted Publishing (OIDC)** — the short-lived crates.io token is exchanged via
+  GitHub's OIDC identity, which only exists inside an Actions run.
 
-## Prerequisites
+A local `cargo release <level>` (no `--execute`) dry-run is still the right way to preview a bump
+before dispatching the real workflow — it needs no credentials and touches nothing.
 
-Install the required tools:
-
-```bash
-cargo install cargo-release
-cargo install git-cliff
-```
+Tools involved:
+- **cargo-release**: version bumping, changelog hook, tagging, publishing.
+- **git-cliff**: generates changelog notes from conventional commits — used both for
+  `CHANGELOG.md` and as the body of the GitHub Release `docker-release.yml`'s `github-release`
+  job creates for every tag.
 
 ## Version Semantics
-
-Mycelium follows Semantic Versioning (SemVer):
 
 | Version Type | Format | When to Use | Example |
 |--------------|--------|-------------|---------|
@@ -28,155 +31,107 @@ Mycelium follows Semantic Versioning (SemVer):
 | **MINOR** | `x.Y.0` | New features (backward-compatible) | `8.3.0` → `8.4.0` |
 | **PATCH** | `x.y.Z` | Bug fixes (backward-compatible) | `8.3.0` → `8.3.1` |
 
+**Tag naming:** no `v` prefix — tags and image tags are `8.3.1`, `8.3.1-rc.1`, never `v8.3.1`.
+Historical `v*` tags (pre-`8.3.0`) are left as-is, never renamed.
+
+## The Automated Pipeline
+
+Dispatching `release-prerelease.yml` (from `develop`) or `release-stable.yml` (from `main`) runs,
+in one job: **bump → commit (local) → publish (OIDC, rate-limited) → tag → push.** Nothing is
+pushed to the branch or to crates.io until the step that does it succeeds; if `publish` fails, the
+job simply ends and the remote is untouched — see [Publish Failures & Retry](#publish-failures--retry)
+below.
+
+Once the tag is pushed, `docker-release.yml` fires automatically:
+1. **`image` job** — builds from that exact tag (fixed ref bug, see below), pushes to GHCR, attests
+   build provenance, and signs the image keylessly with cosign.
+2. **`github-release` job** — creates (or updates, idempotently) a GitHub Release for the tag, with
+   `git-cliff` notes and the correct `prerelease` flag.
+
+You can also trigger `docker-release.yml` manually via `workflow_dispatch` with a `tag` input — for
+example to rebuild an older tag. It checks out that exact tag's source (not whatever branch the
+dispatch happened to run from), so the rebuilt image's content always matches its version label.
+
 ## Pre-release Workflow
 
-Pre-releases follow a specific progression through stages:
+Pre-releases progress through `beta` → `rc` stages (dispatch `release-prerelease.yml` from
+`develop`, choosing `release_type`). `cargo-release` also supports an `alpha` level, but it isn't
+wired into either workflow's dropdown today — use `custom_version` (see below) if you ever need it.
 
-### 1. Alpha Stage
+**Example progression**: `8.3.0-beta.1` → `8.3.0-beta.2` → `8.3.0-rc.1` → `8.3.0-rc.2`
 
-**Purpose**: Early development and testing
+### Promoting to stable
 
-**Characteristics**:
-- Unstable, frequent changes
-- Used for initial feature testing
-- Not recommended for production
+Dispatch `release-stable.yml` from `main` with `release_type: patch|minor|major` — cargo-release's
+`release` level (`X.Y.Z-rc.N` → `X.Y.Z`, dropping the pre-release suffix) is available locally for
+a dry-run preview, but isn't exposed as a `release-stable.yml` dropdown option; the stable workflow
+always bumps from `main`'s current version, so merge the release branch into `main` first, then
+dispatch with the level matching what the pre-release cycle was for (a `9.0.0-rc.N` line promotes
+via `major` from the last stable tag once `main` is on the rc's commit — see the 9.0.0 walkthrough
+below for the concrete case).
 
-**Creating an alpha release**:
+## Publish Failures & Retry
 
-```bash
-# First alpha
-cargo release alpha --execute  # Creates x.y.z-alpha.1
+If the **publish** step fails partway (crates.io throttling despite `release.toml`'s
+`[rate-limit]`, a network blip, or a single crate's own issue), recovery depends on what kind of
+bump it was — nothing was pushed, so the remote branch and tags are exactly as they were before
+you dispatched:
 
-# Subsequent alphas
-cargo release alpha --execute  # Creates x.y.z-alpha.2, etc.
-```
+- **`patch` / `minor` / `major` / `release`** (deterministic target version): just **re-dispatch
+  the same workflow**. It recomputes the identical target version, and `cargo release publish`
+  already skips crates that succeeded in the previous attempt — the retry only publishes what's
+  left, then proceeds to tag+push normally.
+- **`beta` / `rc`** (relative bump): re-dispatching increments again (`rc.1` → `rc.2`), it does
+  **not** retry `rc.1`. Treat the partial `rc.N`/`beta.N` as abandoned — the handful of crates that
+  did publish at that version are harmless orphans on crates.io (untagged, unreferenced, nothing
+  depends on that exact version existing) — and dispatch the workflow again for the **next**
+  rc/beta number.
+- **`publish-crates.yml`** is also available any time as a standalone re-publish pass (same OIDC
+  auth), with an `unpublished_only` input (`cargo release publish --unpublished`) to scope it to
+  just the packages not yet published at their current `Cargo.toml` version — useful if you want to
+  retry only the publish step without touching bump/tag/push.
 
-**Example progression**: `8.3.0-alpha.1` → `8.3.0-alpha.2` → `8.3.0-alpha.3`
+## Major Version Bump via Release Candidates (9.0.0 walkthrough)
 
-### 2. Beta Stage
+Going from the `8.3.x` line to `9.0.0` is a routine major bump with no breaking changes planned —
+release it as a series of RCs first, same as any other release, with one wrinkle: cargo-release's
+`major` LEVEL alone jumps straight to a **stable** `9.0.0`, and its `--metadata`/`-m` flag sets
+semver *build* metadata after a `+` (e.g. `9.0.0+rc.1`), **not** a pre-release identifier — neither
+composes "major" with "rc" the way you'd want. The fix is `release-prerelease.yml`'s
+`custom_version` input, which accepts an explicit target version string (cargo-release's other
+accepted form of its `[LEVEL|VERSION]` argument):
 
-**Purpose**: Feature-complete version ready for broader testing
+1. Dispatch `release-prerelease.yml` from `develop` with `custom_version: 9.0.0-rc.1` (leave
+   `release_type` blank). Do a `dry_run: true` pass first and review the diff.
+2. Every subsequent RC uses the normal `release_type: rc` dropdown again — `9.0.0-rc.1` → `rc` →
+   `9.0.0-rc.2`, etc. Verify each RC end-to-end (install the RC crate, boot the RC image) before
+   cutting the next one.
+3. Before cutting `9.0.0-rc.1`, make sure crates.io Trusted Publishing is configured for every
+   workspace crate (see below) — this is the first real end-to-end exercise of OIDC publishing;
+   keep `CARGO_REGISTRY_TOKEN` as a fallback until this cycle proves it works.
+4. Once satisfied, merge to `main` and dispatch `release-stable.yml` with `release_type: major` to
+   drop the `-rc.N` suffix and cut `9.0.0` stable.
 
-**Characteristics**:
-- Features are complete
-- API should be relatively stable
-- May still have bugs
-- Used for wider testing and feedback
+## crates.io Trusted Publishing setup (one-time, per crate)
 
-**Moving to beta**:
+OIDC-based publishing (no long-lived `CARGO_REGISTRY_TOKEN`) requires configuring **Trusted
+Publishing** individually for each of this workspace's ~15 published crates, on crates.io itself —
+this can't be done from workflow YAML:
 
-```bash
-# First beta
-cargo release beta --execute   # Creates x.y.z-beta.1
-
-# Subsequent betas
-cargo release beta --execute   # Creates x.y.z-beta.2, etc.
-```
-
-**Example progression**: `8.3.0-beta.1` → `8.3.0-beta.2` → `8.3.0-beta.3`
-
-### 3. Release Candidate (RC) Stage
-
-**Purpose**: Production-ready candidate for final validation
-
-**Characteristics**:
-- Final testing before stable release
-- Only critical bug fixes allowed
-- Ready for production testing
-- Last chance to catch issues
-
-**Creating release candidates**:
-
-```bash
-# First RC
-cargo release rc --execute     # Creates x.y.z-rc.1
-
-# Subsequent RCs (if needed)
-cargo release rc --execute     # Creates x.y.z-rc.2, etc.
-```
-
-**Example progression**: `8.3.0-rc.1` → `8.3.0-rc.2`
-
-### 4. Stable Release
-
-**Purpose**: Production-ready version
-
-**Creating the stable release**:
-
-```bash
-cargo release release --execute  # Creates x.y.z
-```
-
-**Example**: `8.3.0-rc.2` → `8.3.0`
-
-## Version Increment Commands
-
-### Patch Release
-
-For bug fixes on existing stable releases:
-
-```bash
-cargo release patch --execute
-```
-
-**Example**: `8.3.0` → `8.3.1`
-
-### Minor Release
-
-For new features (backward-compatible):
-
-```bash
-cargo release minor --execute
-```
-
-**Example**: `8.3.1` → `8.4.0`
-
-### Major Release
-
-For breaking changes:
-
-```bash
-cargo release major --execute
-```
-
-**Example**: `8.4.0` → `9.0.0`
-
-## Complete Release Cycle Example
-
-Here's a complete example of releasing version 8.3.0:
-
-```bash
-# Alpha stage - initial testing
-cargo release alpha --execute        # 8.3.0-alpha.1
-# ... make changes, test ...
-cargo release alpha --execute        # 8.3.0-alpha.2
-# ... more changes, testing ...
-cargo release alpha --execute        # 8.3.0-alpha.3
-
-# Beta stage - features complete
-cargo release beta --execute         # 8.3.0-beta.1
-# ... wider testing, bug fixes ...
-cargo release beta --execute         # 8.3.0-beta.2
-
-# Release candidate - final validation
-cargo release rc --execute           # 8.3.0-rc.1
-# ... production testing ...
-cargo release rc --execute           # 8.3.0-rc.2
-
-# Stable release
-cargo release release --execute      # 8.3.0
-
-# Later patch releases
-cargo release patch --execute        # 8.3.1
-cargo release patch --execute        # 8.3.2
-
-# Next minor release
-cargo release minor --execute        # 8.4.0
-```
+1. For each crate: crates.io → the crate's page → Settings → Publishing → add a GitHub Actions
+   trusted publisher pointing at `LepistaBioinformatics/mycelium` and the workflow filename
+   (`release-prerelease.yml`, `release-stable.yml`, or `publish-crates.yml` — add all three, since
+   any of them may run the publish step).
+2. Until every crate has this configured, publish steps fall back to the `CARGO_REGISTRY_TOKEN`
+   repository secret automatically.
+3. Once every crate is confirmed working via OIDC (ideally proven by a full RC cycle), remove the
+   `CARGO_REGISTRY_TOKEN` secret from the repository.
 
 ## Changelog Management
 
-Mycelium uses `git-cliff` to automatically generate changelogs from conventional commits.
+Mycelium uses `git-cliff` to automatically generate changelogs from conventional commits — both
+`CHANGELOG.md` (via `release.toml`'s `pre-release-hook`) and each tag's GitHub Release body (via
+`docker-release.yml`'s `github-release` job).
 
 ### Conventional Commit Format
 
@@ -228,20 +183,18 @@ See migration guide for details.
 Fixes #150"
 ```
 
-### Generating Changelogs
-
-Before creating a release, update the changelog:
+### Previewing changelogs locally
 
 ```bash
 # Preview unreleased changes
 git-cliff --unreleased
 
-# Update CHANGELOG.md with unreleased changes
-git-cliff --unreleased --prepend CHANGELOG.md
-
-# Generate changelog for a specific version
-git-cliff --tag v8.3.0 --prepend CHANGELOG.md
+# Notes for a specific already-tagged version (what the GitHub Release job runs)
+git-cliff --latest --strip header
 ```
+
+`CHANGELOG.md` itself is updated automatically by `release.toml`'s `pre-release-hook` as part of
+the bump step — you don't need to run this by hand as part of a normal release.
 
 ### Changelog Configuration
 
@@ -253,125 +206,69 @@ The changelog format is configured in `cliff.toml` at the repository root. This 
 
 ## Dry Run (Recommended)
 
-Always preview release changes before executing:
+Always preview a release locally before dispatching the real workflow:
 
 ```bash
-# Dry run (default - no --execute flag)
-cargo release alpha
+# Dry run (default -- no --execute flag). Needs no credentials, touches nothing.
+cargo release rc
 
 # Review the output carefully:
 # - Version changes
 # - Files that will be modified
 # - Git commands that will run
 # - Tags that will be created
-
-# If everything looks correct, execute
-cargo release alpha --execute
 ```
+
+Every release workflow also has its own `dry_run` input (`--no-publish --no-tag --no-push`) for
+the same preview, run inside CI.
 
 ## Release Checklist
 
-Use this checklist before creating a stable release:
+Use this checklist before dispatching a stable release:
 
-- [ ] All tests pass: `cargo test`
-- [ ] Code is properly formatted: `cargo fmt`
+- [ ] All tests pass: `cargo test --workspace --all`
+- [ ] Code is properly formatted: `cargo fmt --all -- --check`
 - [ ] No security vulnerabilities: `cargo audit`
 - [ ] Documentation is up-to-date
 - [ ] All commits follow conventional commit format
-- [ ] Changelog is updated: `git-cliff --unreleased --prepend CHANGELOG.md`
-- [ ] All CI checks pass
+- [ ] All CI checks pass on the branch being released
 - [ ] Team review is complete (for major/minor releases)
-- [ ] Release notes are prepared
-- [ ] Dry run reviewed: `cargo release <level>`
+- [ ] Local dry run reviewed: `cargo release <level>`
+- [ ] Workflow `dry_run: true` dispatch reviewed
 
 ## Release Configuration
 
 The project's release behavior is configured in `release.toml` at the repository root.
 
 Key configurations include:
-- **Pre-release hooks**: Run tests and builds before releasing
-- **Version bumping**: Control how versions are incremented
-- **Git operations**: Tag format, commit messages
-- **Changelog integration**: Automatic changelog generation with git-cliff
-- **Publishing**: Control what gets published and where
+- **Pre-release hooks**: regenerate `CHANGELOG.md` via `git-cliff` before tagging
+- **`[rate-limit]`**: paces crates.io publishes (`new-packages`/`existing-packages`) to stay under
+  crates.io's documented limits — see [Publish Failures & Retry](#publish-failures--retry) for what
+  happens if it still isn't enough
+- **Version bumping**: `shared-version = true` — all workspace crates move together
+- **Git operations**: `tag-name = "{{version}}"` (no `v` prefix), commit/tag message templates
+- **Publishing**: `publish = true`, consumed by the `publish` step of the staged pipeline
 
 ## Best Practices
 
-1. **Test thoroughly**: Run full test suite before any release
-2. **Use dry runs**: Always preview changes before executing
-3. **Follow the progression**: Don't skip stages (alpha → beta → rc → release)
-4. **Write good commits**: Use conventional commits for automatic changelog generation
-5. **Update changelog**: Generate changelog before each release
-6. **Coordinate releases**: Communicate with team for major/minor releases
-7. **Tag properly**: Let cargo-release handle tagging automatically
-8. **Document changes**: Include migration guides for breaking changes
-
-## Common Workflows
-
-### Hotfix Release
-
-For urgent bug fixes on a stable release:
-
-```bash
-# On main branch with stable release 8.3.0
-git checkout -b hotfix/critical-bug
-# ... fix the bug ...
-git commit -m "fix: resolve critical security issue"
-
-# Merge to main
-git checkout main
-git merge hotfix/critical-bug
-
-# Create patch release
-git-cliff --unreleased --prepend CHANGELOG.md
-git add CHANGELOG.md
-git commit -m "docs: update changelog for 8.3.1"
-cargo release patch --execute  # 8.3.0 → 8.3.1
-```
-
-### Feature Release
-
-For a new feature release:
-
-```bash
-# On develop branch
-git checkout -b feature/new-capability
-# ... implement feature ...
-git commit -m "feat: add new capability"
-
-# Merge to develop
-git checkout develop
-git merge feature/new-capability
-
-# Start pre-release cycle
-cargo release alpha --execute    # 8.4.0-alpha.1
-# ... test, fix, repeat ...
-cargo release beta --execute     # 8.4.0-beta.1
-# ... wider testing ...
-cargo release rc --execute       # 8.4.0-rc.1
-# ... final validation ...
-
-# Merge to main and release
-git checkout main
-git merge develop
-git-cliff --unreleased --prepend CHANGELOG.md
-git add CHANGELOG.md
-git commit -m "docs: update changelog for 8.4.0"
-cargo release release --execute  # 8.4.0
-```
+1. **Test thoroughly**: run the full test suite before any release.
+2. **Use dry runs**: both the local `cargo release <level>` preview and each workflow's `dry_run`
+   input.
+3. **Follow the progression**: don't skip stages (beta → rc → stable) for anything but a hotfix
+   patch.
+4. **Write good commits**: use conventional commits — they drive both `CHANGELOG.md` and every
+   tag's GitHub Release notes.
+5. **Coordinate releases**: communicate with the team for major/minor releases.
+6. **Never publish crates.io by hand**: always go through a workflow (OIDC token only exists in
+   CI); a stray local `cargo publish` bypasses the pipeline entirely and won't produce a tag, image,
+   or Release.
 
 ## Troubleshooting
 
-### Release fails due to uncommitted changes
+### Workflow fails: "Either release_type or custom_version must be set"
 
-```bash
-# Ensure working directory is clean
-git status
-
-# Commit or stash changes
-git add .
-git commit -m "chore: prepare for release"
-```
+`release-prerelease.yml` requires one of the two — leave `release_type` on its default `beta`/`rc`
+choice unless you specifically need `custom_version` (see the 9.0.0 walkthrough above).
 
 ### Changelog not generating correctly
 
@@ -386,16 +283,23 @@ git-cliff --unreleased
 cat cliff.toml
 ```
 
+### A GitHub Release didn't get created for a tag
+
+`docker-release.yml`'s `github-release` job depends on the `image` job succeeding first
+(`needs: image`) — check the `image` job's logs (build, provenance attestation, cosign signing) for
+the actual failure; the Release step itself is idempotent and safe to re-run via `workflow_dispatch`
+with that tag once the underlying issue is fixed.
+
 ### Wrong version incremented
 
 ```bash
-# Use dry run first to verify
-cargo release <level>
-
-# If wrong level used, manually fix:
-# Edit Cargo.toml files
-# Delete incorrect git tag: git tag -d vX.Y.Z
-# Try again with correct level
+# Use a local dry run first to verify: cargo release <level>
+# If a workflow already ran with the wrong level and nothing was pushed yet
+# (publish failed before tag+push), just re-dispatch with the correct level --
+# no cleanup needed, nothing reached the remote.
+# If it DID reach the remote (tag pushed), coordinate a fix manually --
+# do not delete/force-push a tag that crates.io/GHCR/a Release already reference
+# without understanding the full blast radius first.
 ```
 
 ## Additional Resources
@@ -404,4 +308,5 @@ cargo release <level>
 - [Conventional Commits Specification](https://www.conventionalcommits.org/)
 - [cargo-release Documentation](https://github.com/crate-ci/cargo-release)
 - [git-cliff Documentation](https://git-cliff.org/)
+- [crates.io Trusted Publishing](https://crates.io/docs/trusted-publishing)
 - [Contributing Guide](../../CONTRIBUTING.md#release-process)

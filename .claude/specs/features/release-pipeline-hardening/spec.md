@@ -199,25 +199,29 @@ Release) run **after**, triggered by the tag, and are re-runnable.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| REL-01 | P1: Auto GitHub Release | Design | Pending |
-| REL-02 | P1: pre-release vs stable flagging | Design | Pending |
-| REL-03 | P1: changelog notes in Release | Design | Pending |
-| REL-04 | P1: idempotent Release creation | Design | Pending |
-| REL-05 | P2: OIDC Trusted Publishing auth | Design | Pending |
-| REL-06 | P2: token from action, not secret | Design | Pending |
-| REL-07 | P2: remove stored CARGO_REGISTRY_TOKEN | Design | Pending |
-| REL-08 | P2: publish-before-tag ordering | Design | Pending |
-| REL-09 | P2: image built from correct tag ref | Design | Pending |
-| REL-10 | P2: workflow_dispatch ref fix | Design | Pending |
-| REL-11 | P2: documented image tag strategy | Design | Pending |
-| REL-12 | P2: build provenance attestation | Design | Pending |
-| REL-13 | P2: cosign keyless signing | Design | Pending |
-| REL-14 | P3: consistent tag/version naming | Design | Pending |
-| REL-15 | P3: naming documented in STATE/docs | Design | Pending |
+| REL-01 | P1: Auto GitHub Release | Tasks | Implemented (`docker-release.yml` `github-release` job) |
+| REL-02 | P1: pre-release vs stable flagging | Tasks | Implemented |
+| REL-03 | P1: changelog notes in Release | Tasks | Implemented (`git-cliff --latest`) |
+| REL-04 | P1: idempotent Release creation | Tasks | Implemented (`gh release view` → `edit`/`create`) |
+| REL-05 | P2: OIDC Trusted Publishing auth | Tasks | Implemented in workflow; **blocked** on REL-T11 (crates.io UI, external) |
+| REL-06 | P2: token from action, not secret | Tasks | Implemented (`CARGO_REGISTRY_TOKEN` falls back to the secret until REL-T11) |
+| REL-07 | P2: remove stored CARGO_REGISTRY_TOKEN | Tasks | Not yet — deliberately sequenced last, after an RC proves OIDC works (REL-T13) |
+| REL-08 | P2: publish-before-tag ordering | Tasks | Implemented (already cargo-release's default; preserved, not changed) |
+| REL-09 | P2: image built from correct tag ref | Tasks | Implemented (`ref:` was missing entirely — real bug, now fixed) |
+| REL-10 | P2: workflow_dispatch ref fix | Tasks | Implemented (same fix as REL-09) |
+| REL-11 | P2: documented image tag strategy | Tasks | Implemented (`docs/book/src/08-release-process.md`) |
+| REL-12 | P2: build provenance attestation | Tasks | Implemented (`actions/attest-build-provenance`) |
+| REL-13 | P2: cosign keyless signing | Tasks | Implemented (`sigstore/cosign-installer` + `cosign sign`) |
+| REL-14 | P3: consistent tag/version naming | Tasks | Implemented — no code change needed, already the convention |
+| REL-15 | P3: naming documented in STATE/docs | Tasks | Implemented (`STATE.md`, `08-release-process.md`) |
+| REL-16 | (new) crates.io publish retry/backoff runbook | Tasks | Implemented (staged workflow + documented recovery per bump kind) |
+| REL-17 | (new) 9.0.0 major bump via RCs | Tasks | Implemented (`custom_version` input + runbook); cutting the actual RC is REL-T14 |
 
 **ID format:** `REL-[NUMBER]`
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
-**Coverage:** 15 total, 0 mapped to tasks, 15 unmapped ⚠️ (Tasks phase pending)
+**Coverage:** 17 total (15 original + 2 user-driven additions), 17 mapped to tasks, 13 code-complete,
+2 blocked on external/manual prerequisites (REL-05/06 pending REL-T11), 1 deliberately deferred
+(REL-07 pending a proven OIDC cycle). See `tasks.md` for the full breakdown.
 
 ---
 

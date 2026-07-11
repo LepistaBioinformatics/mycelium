@@ -684,11 +684,18 @@ All 13 workspace crates confirmed to exist on crates.io (no name conflicts). Wor
 | `8.3.2-rc.1` | `:8.3.2-rc.1`, `:rc` |
 | `8.3.2-beta.1` | `:8.3.2-beta.1`, `:beta` |
 
+### Tag/version naming convention (REL-14/15, 2026-07-11)
+
+Git tags and image tags use **no `v` prefix** (`8.3.2`, not `v8.3.2`) — this is what
+`release.toml`'s `tag-name = "{{version}}"` and every current image tag already produce; this
+section just makes the convention explicit. Historical `v*` tags/Releases (pre-`8.3.0`) are left
+as-is, never renamed. See `docs/book/src/08-release-process.md` for the full release process.
+
 ---
 
 ## Todos
 
-- **Release pipeline hardening** — spec at `features/release-pipeline-hardening/spec.md` (2026-07-06). Root cause of GHCR↔GitHub-Release desync: no workflow creates GitHub Releases (only tags). Spec also covers crates.io Trusted Publishing (OIDC, drop long-lived `CARGO_REGISTRY_TOKEN`), image provenance + cosign signing, `workflow_dispatch` ref bug, and `v`-prefix naming drift. Next: Design → Tasks.
+- **Release pipeline hardening** — spec/design/tasks at `features/release-pipeline-hardening/` (2026-07-06, design 2026-07-11). Workflow YAML implemented: GitHub Release automation (`docker-release.yml`'s new `github-release` job), OIDC Trusted Publishing wiring (`rust-lang/crates-io-auth-action`, `CARGO_REGISTRY_TOKEN` kept as fallback), the `workflow_dispatch` ref bug (`docker-release.yml` checkout had no `ref:` at all), build provenance attestation + cosign keyless signing, third-party actions pinned to commit SHA, and a `custom_version` input on `release-prerelease.yml` for the 9.0.0-rc.1 major-bump edge case cargo-release's LEVEL keywords can't express. **Still open (external, can't be done from code):** configure crates.io Trusted Publishing per-crate (15 crates), create the GitHub `release` Environment with required reviewers, remove `CARGO_REGISTRY_TOKEN` only after an RC proves OIDC works end-to-end. See `tasks.md` for the full 🤖/🧑 split.
 - Retroactively create GitHub Releases for `8.3.0`+ tags and publish/discard the stale `8.3.1-rc.2` Draft.
 
 ---
