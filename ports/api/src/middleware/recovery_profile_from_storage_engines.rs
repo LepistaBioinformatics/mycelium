@@ -1,4 +1,4 @@
-use crate::models::api_config::{ApiConfig, CacheConfig};
+use crate::models::api_config::ApiConfig;
 
 use crate::models::active_backend_modules::KVAppModule;
 use crate::models::active_backend_modules::SqlAppModule;
@@ -285,11 +285,7 @@ async fn cache_profile(search_key: String, profile: Profile, req: HttpRequest) {
     };
 
     let ttl = if let Some(api_config) = req.app_data::<web::Data<ApiConfig>>() {
-        let default_cache_config = CacheConfig::default();
-        let cache_config =
-            api_config.cache.as_ref().unwrap_or(&default_cache_config);
-
-        cache_config.profile_ttl.unwrap_or(60)
+        api_config.cache.profile_ttl.unwrap_or(60)
     } else {
         60
     };

@@ -1,7 +1,7 @@
 use crate::{
     dtos::{Audience, GenericAccessTokenClaims, JWKS},
     middleware::get_email_or_provider_from_request,
-    models::api_config::{ApiConfig, CacheConfig},
+    models::api_config::ApiConfig,
 };
 
 use crate::models::active_backend_modules::KVAppModule;
@@ -551,11 +551,7 @@ async fn set_jwks_in_cache(search_key: String, jwks: JWKS, req: &HttpRequest) {
     };
 
     let ttl = if let Some(api_config) = req.app_data::<web::Data<ApiConfig>>() {
-        let default_cache_config = CacheConfig::default();
-        let cache_config =
-            api_config.cache.as_ref().unwrap_or(&default_cache_config);
-
-        cache_config.jwks_ttl.unwrap_or(60)
+        api_config.cache.jwks_ttl.unwrap_or(60)
     } else {
         60
     };
@@ -681,11 +677,7 @@ async fn set_email_in_cache(
     };
 
     let ttl = if let Some(api_config) = req.app_data::<web::Data<ApiConfig>>() {
-        let default_cache_config = CacheConfig::default();
-        let cache_config =
-            api_config.cache.as_ref().unwrap_or(&default_cache_config);
-
-        cache_config.email_ttl.unwrap_or(60)
+        api_config.cache.email_ttl.unwrap_or(60)
     } else {
         60
     };

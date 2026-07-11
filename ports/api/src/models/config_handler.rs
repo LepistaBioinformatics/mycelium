@@ -84,3 +84,26 @@ impl ConfigHandler {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[cfg(feature = "postgres-backend")]
+    #[test]
+    fn config_full_example_toml_parses_into_config_handler() {
+        let file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../settings/config.full.example.toml");
+
+        ConfigHandler::init_from_file(file).unwrap();
+    }
+
+    #[cfg(feature = "standalone")]
+    #[test]
+    fn config_standalone_example_toml_parses_into_config_handler() {
+        let file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../settings/config.standalone.example.toml");
+
+        ConfigHandler::init_from_file(file).unwrap();
+    }
+}

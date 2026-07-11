@@ -29,6 +29,7 @@ pub struct AccountLifeCycle {
     ///
     /// This information is used to calculate the lifetime for new user
     /// registration
+    #[serde(default = "default_token_expiration")]
     pub token_expiration: SecretResolver<i64>,
 
     /// General Purpose email name
@@ -51,12 +52,21 @@ pub struct AccountLifeCycle {
     /// Version of the HMAC key used to sign every newly-issued
     /// connection string. Must be present in `hmac_secrets` — enforced by
     /// `validate_hmac_config` at startup.
+    #[serde(default = "default_hmac_primary_version")]
     pub(crate) hmac_primary_version: u32,
 
     /// Versioned set of HMAC keys. All entries are available for
     /// verification; only the entry matching `hmac_primary_version` is
     /// used for signing.
     pub(crate) hmac_secrets: HmacSecretSet,
+}
+
+fn default_token_expiration() -> SecretResolver<i64> {
+    SecretResolver::Value(3600)
+}
+
+fn default_hmac_primary_version() -> u32 {
+    1
 }
 
 impl AccountLifeCycle {
@@ -281,5 +291,24 @@ mod tests {
         let mut config = base_config();
         config.hmac_primary_version = 2;
         assert_eq!(config.primary_hmac_secret_resolver(), None);
+    }
+
+    #[test]
+    fn token_expiration_and_hmac_primary_version_default_when_absent() {
+        let toml = r#"
+            domainName = "example.com"
+            noreplyEmail = "noreply@example.com"
+            supportEmail = "support@example.com"
+            tokenSecret = "placeholder"
+
+            [[hmacSecrets]]
+            version = 1
+            secret = "placeholder"
+        "#;
+
+        let config: AccountLifeCycle = toml::from_str(toml).unwrap();
+
+        assert_eq!(config.token_expiration, SecretResolver::Value(3600));
+        assert_eq!(config.hmac_primary_version, 1);
     }
 }

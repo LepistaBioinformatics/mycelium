@@ -49,6 +49,7 @@ mycelium-adapters-shared-lib.workspace = true
 
 [dev-dependencies]
 tokio.workspace = true
+toml.workspace = true
 tracing-subscriber.workspace = true
 
 # ------------------------------------------------------------------------------

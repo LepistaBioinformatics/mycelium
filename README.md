@@ -172,7 +172,7 @@ For complete installation instructions including database setup and Vault config
 
 2. **Configure Mycelium:**
    ```bash
-   cp settings/config.example.toml settings/config.toml
+   cp settings/config.full.example.toml settings/config.toml
    # Edit config.toml with your settings
    ```
 
