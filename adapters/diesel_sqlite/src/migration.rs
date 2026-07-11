@@ -1,4 +1,4 @@
-use diesel::{Connection, SqliteConnection};
+use diesel::{connection::SimpleConnection, Connection, SqliteConnection};
 use diesel_migrations::{
     embed_migrations, EmbeddedMigrations, MigrationHarness,
 };
@@ -42,6 +42,19 @@ pub fn provision_database(url: &str) -> Result<(), MappedErrors> {
             "Failed to establish SQLite connection at {url}: {err}"
         ))
     })?;
+
+    // This connection bypasses `DieselSqliteDbPoolProvider`'s pool
+    // customizer (`SqlitePragmas`), so `busy_timeout` defaults to 0 --
+    // `SQLITE_BUSY` ("database is locked") fails instantly with no retry.
+    // That matters here specifically: this runs on every boot, and a
+    // previous instance (container restart, Ctrl+C) can still be mid
+    // shutdown and briefly holding the file. Match the pool's timeout so
+    // this one-off connection retries too instead of failing the first
+    // time it races a still-exiting previous process.
+    conn.batch_execute("PRAGMA busy_timeout = 5000;")
+        .map_err(|err| {
+            creation_err(format!("Failed to set busy_timeout: {err}"))
+        })?;
 
     run_pending_migrations(&mut conn)
 }
@@ -102,6 +115,54 @@ mod tests {
         }
 
         let _ = std::fs::remove_file(&path);
+    }
+
+    /// Reproduces the real failure: `provision_database` runs on every boot,
+    /// including a restart that races a still-shutting-down previous
+    /// process. Holds an exclusive write lock on a background thread (a
+    /// stand-in for that lingering process) and asserts `provision_database`
+    /// retries and eventually succeeds instead of failing instantly with
+    /// `SQLITE_BUSY` ("database is locked") -- which it did before this
+    /// connection had `busy_timeout` set (default is 0, no retry).
+    #[test]
+    fn provision_database_retries_when_transiently_locked() {
+        let path = std::env::temp_dir().join(format!(
+            "myc_sqlite_provision_locked_{}_{}",
+            std::process::id(),
+            uuid::Uuid::new_v4()
+        ));
+        let url = path.to_str().unwrap().to_string();
+
+        provision_database(&url).unwrap();
+
+        let holder_url = url.clone();
+        let holder = std::thread::spawn(move || {
+            let mut conn = SqliteConnection::establish(&holder_url).unwrap();
+            conn.batch_execute("BEGIN EXCLUSIVE;").unwrap();
+            std::thread::sleep(std::time::Duration::from_millis(1500));
+            conn.batch_execute("COMMIT;").unwrap();
+        });
+
+        // Give the holder thread time to acquire the exclusive lock first.
+        std::thread::sleep(std::time::Duration::from_millis(200));
+
+        let start = std::time::Instant::now();
+        provision_database(&url).unwrap();
+        let waited = start.elapsed();
+
+        holder.join().unwrap();
+
+        assert!(
+            waited >= std::time::Duration::from_millis(1000),
+            "expected provision_database to block on the held lock and \
+             retry via busy_timeout, but it returned after {waited:?} -- \
+             either the lock wasn't actually held, or busy_timeout isn't \
+             applied",
+        );
+
+        let _ = std::fs::remove_file(&path);
+        let _ = std::fs::remove_file(format!("{url}-wal"));
+        let _ = std::fs::remove_file(format!("{url}-shm"));
     }
 
     #[test]

@@ -40,7 +40,7 @@ pub(crate) async fn load_paths_from_spec(
         //
         // Collect the security group from the path
         //
-        let composed_path = format!("{}/{}", service_name, stripped_path);
+        let composed_path = format!("/{}/{}", service_name, stripped_path);
 
         let path_and_query = PathAndQuery::try_from(composed_path)
             .map_err(|e| execution_err(format!("Invalid path: {}", e)))?;

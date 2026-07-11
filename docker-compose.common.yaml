@@ -51,6 +51,10 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    profiles:
+      - base
+      - redis
+      - vault
 
   myc-otel-collector:
     # Inject all shared configs
@@ -64,6 +68,8 @@ services:
       - 4317:4317 # OTLP gRPC
       - 4318:4318 # OTLP HTTP
       - 8889:8889 # Prometheus metrics endpoint
+    profiles:
+      - observability
 
   myc-jaeger:
     # Inject all shared configs
@@ -80,6 +86,8 @@ services:
       - 16686:16686 # Jaeger UI
       - 14268:14268 # HTTP ingress for OpenTelemetry traces
       - 14250:14250 # gRPC ingress
+    profiles:
+      - observability
 
   myc-prometheus:
     # Inject all shared configs
@@ -90,6 +98,8 @@ services:
       - ./otel/prometheus.dev.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
+    profiles:
+      - observability
 
   myc-grafana:
     # Inject all shared configs
@@ -102,6 +112,8 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
+    profiles:
+      - observability
 
   myc-redis:
     # Inject all shared configs
@@ -112,9 +124,12 @@ services:
     restart: on-failure
     ports:
       - '6379:6379'
-    command: redis-server --save 20 1 --loglevel warning --requirepass ${MYC_REDIS_PASS}
+    command: redis-server --save 20 1 --loglevel warning --requirepass ${MYC_REDIS_PASS:-}
     volumes:
       - ./redis:/data
+    profiles:
+      - redis
+      - vault
 
   myc-vault:
     # Inject network
@@ -139,6 +154,8 @@ services:
     restart: on-failure
     cap_add:
       - IPC_LOCK
+    profiles:
+      - vault
 
   myc-test-service:
     # Inject all shared configs
@@ -153,3 +170,6 @@ services:
       no_cache: true
       args:
         SERVICE_PORT: 8083
+    profiles:
+      - base
+      - redis

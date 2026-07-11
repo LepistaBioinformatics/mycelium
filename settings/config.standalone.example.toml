@@ -231,10 +231,11 @@ allowedOrigins = ["http://localhost:8080"]
 
 # Per-module log level. Format: comma-separated `crate=level` pairs (or a
 # single bare level to apply everywhere), where level is one of trace,
-# debug, info, warn, error. Optional -- defaults to the string below
-# (tuned for standalone's own crates, `myc_diesel_sqlite`/`myc_moka_cache`)
-# if omitted.
-# level = "mycelium_base=info,myc_api=info,myc_config=info,myc_core=info,myc_http_tools=info,actix_web=info,myc_notifier=info,myc_diesel_sqlite=info,myc_moka_cache=info"
+# debug, info, warn, error. Optional -- defaults to
+# "mycelium_base=info,myc_api=info,myc_config=info,myc_core=info,myc_http_tools=info,actix_web=info,myc_notifier=info,myc_diesel_sqlite=info,myc_moka_cache=info"
+# if omitted. Set explicitly below with a leading "warn" fallback level for
+# any crate not listed (differs from the plain default, kept intentional).
+level = "warn,mycelium_base=info,myc_api=info,myc_config=info,myc_core=info,myc_http_tools=info,actix_web=info,myc_notifier=info,myc_diesel_sqlite=info,myc_moka_cache=info"
 
 # Log output format: "ansi" (human-readable, colorized) or "jsonl"
 # (machine-readable, one JSON object per line). Optional -- defaults to
@@ -263,15 +264,20 @@ allowedOrigins = ["http://localhost:8080"]
 # to proxy to yet.
 # ------------------------------------------------------------------------------
 
-#[api.services]
-#
-#[[service-01]]
-#host = "127.0.0.1:8083"
-#protocol = "http"
-#healthCheckPath = "/health"
-#
-## Example of public route
-#[[service-01.path]]
-#group = "public"
-#path = "/public"
-#methods = ["GET"]
+[api.services]
+
+[[picoclaw]]
+host = "127.0.0.1:8787"
+protocol = "http"
+healthCheckPath = "/v1/models"
+
+[[picoclaw.secret]]
+name = "picoclaw-authorization-header"
+authorizationHeader = { name = "Authorization", prefix = "Bearer", token = "replace-me-by-in-env-token" }
+
+[[picoclaw.path]]
+group = "public"
+path = "/v1/chat/completions"
+secretName = "picoclaw-authorization-header"
+acceptInsecureRouting = true
+methods = ["ALL"]
