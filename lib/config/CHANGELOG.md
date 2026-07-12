@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - *(standalone-mode)* Add autogen secrets with keyring/file fallback (SM-T22)
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.1
+
 ## [8.3.1-rc.5] - 2026-05-03
 
 ### ⚙️ Miscellaneous Tasks

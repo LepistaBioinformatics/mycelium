@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0-rc.2] - 2026-07-12
+
+### 🐛 Bug Fixes
+
+- *(http-secret)* Support field-level env/vault resolution for token
+
 ## [9.0.0-rc.1] - 2026-07-12
 
 ### 🚀 Features
@@ -20,6 +26,10 @@ All notable changes to this project will be documented in this file.
 ### 🚜 Refactor
 
 - *(ports/api)* Indirect SqlAppModule/KVAppModule through active_backend_modules
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.1
 
 ## [8.3.1-rc.5] - 2026-05-03
 

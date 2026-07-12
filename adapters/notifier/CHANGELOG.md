@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 - *(standalone-mode)* Opt-in real SMTP for standalone (SM-T29, closes SM-R8)
 - *(config)* Add sane defaults to tuning knobs, rewrite example configs for beginners
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.1
+
 ## [8.3.1-rc.5] - 2026-05-03
 
 ### ⚙️ Miscellaneous Tasks
