@@ -3,6 +3,7 @@ use crate::{
     models::AccountLifeCycle,
 };
 
+use myc_config::secret_resolver::SecretResolver;
 use mycelium_base::utils::errors::{dto_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
@@ -39,7 +40,7 @@ pub enum HttpSecret {
         /// The token is the value of the header. For example, if the token is
         /// `1234`, the header will be `Authorization Bearer: 123
         ///
-        token: String,
+        token: SecretResolver<String>,
     },
 
     #[serde(rename_all = "camelCase")]
@@ -56,7 +57,7 @@ pub enum HttpSecret {
         /// The value of the query parameter. For example, if the value is `1234`,
         /// the query parameter will be `?token=1234`.
         ///
-        token: String,
+        token: SecretResolver<String>,
     },
 }
 
@@ -66,18 +67,27 @@ pub fn default_authorization_key() -> Option<String> {
 
 impl HttpSecret {
     /// Encrypt the token with the system DEK (v2 format).
+    ///
+    /// Only `SecretResolver::Value` tokens hold a plaintext secret at rest —
+    /// `Env`/`Vault` tokens are resolved externally on each use and pass
+    /// through untouched.
     #[tracing::instrument(name = "encrypt_me", skip_all)]
     pub(crate) fn encrypt_me(
         &self,
         dek: &[u8; 32],
         aad: &[u8],
     ) -> Result<Self, MappedErrors> {
-        let plain_token = match self {
-            Self::AuthorizationHeader { token, .. } => token.as_str(),
-            Self::QueryParameter { token, .. } => token.as_str(),
+        let token = match self {
+            Self::AuthorizationHeader { token, .. } => token,
+            Self::QueryParameter { token, .. } => token,
+        };
+
+        let SecretResolver::Value(plain_token) = token else {
+            return Ok(self.to_owned());
         };
 
         let encrypted_string = encrypt_with_dek(plain_token, dek, aad)?;
+        let token = SecretResolver::Value(encrypted_string);
 
         Ok(match self {
             Self::AuthorizationHeader {
@@ -85,12 +95,12 @@ impl HttpSecret {
                 prefix,
                 ..
             } => Self::AuthorizationHeader {
-                token: encrypted_string,
+                token,
                 header_name: header_name.to_owned(),
                 prefix: prefix.to_owned(),
             },
             Self::QueryParameter { name, .. } => Self::QueryParameter {
-                token: encrypted_string,
+                token,
                 name: name.to_owned(),
             },
         })
@@ -116,12 +126,17 @@ impl HttpSecret {
         aad: &[u8],
     ) -> Result<Self, MappedErrors> {
         let token = match self {
-            Self::AuthorizationHeader { token, .. } => token.as_str(),
-            Self::QueryParameter { token, .. } => token.as_str(),
+            Self::AuthorizationHeader { token, .. } => token,
+            Self::QueryParameter { token, .. } => token,
+        };
+
+        let SecretResolver::Value(encrypted_token) = token else {
+            return Ok(self.to_owned());
         };
 
         let decrypted_secret =
-            decrypt_string_with_dek(token, config, dek, aad).await?;
+            decrypt_string_with_dek(encrypted_token, config, dek, aad).await?;
+        let token = SecretResolver::Value(decrypted_secret);
 
         Ok(match self {
             Self::AuthorizationHeader {
@@ -129,12 +144,12 @@ impl HttpSecret {
                 prefix,
                 ..
             } => Self::AuthorizationHeader {
-                token: decrypted_secret,
+                token,
                 header_name: header_name.to_owned(),
                 prefix: prefix.to_owned(),
             },
             Self::QueryParameter { name, .. } => Self::QueryParameter {
-                token: decrypted_secret,
+                token,
                 name: name.to_owned(),
             },
         })
@@ -142,16 +157,16 @@ impl HttpSecret {
 
     #[tracing::instrument(name = "redact_token", skip_all)]
     pub(crate) fn redact_token(&mut self) {
-        let redacted_word = "REDACTED".to_string();
+        let token = match self {
+            Self::AuthorizationHeader { token, .. } => token,
+            Self::QueryParameter { token, .. } => token,
+        };
 
-        match self {
-            Self::AuthorizationHeader { token, .. } => {
-                *token = redacted_word;
-            }
-            Self::QueryParameter { token, .. } => {
-                *token = redacted_word;
-            }
-        }
+        let SecretResolver::Value(_) = token else {
+            return;
+        };
+
+        *token = SecretResolver::Value("REDACTED".to_string());
     }
 }
 
@@ -175,5 +190,99 @@ impl FromStr for HttpSecret {
         }
 
         dto_err("Failed to parse secret").as_error()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_authorization_header_token_env_variant_parses() {
+        let toml = r#"
+            authorizationHeader = { headerName = "Authorization", prefix = "Bearer", token = { env = "MY_TOKEN_VAR" } }
+        "#;
+
+        let secret: HttpSecret = toml::from_str(toml).unwrap();
+
+        match secret {
+            HttpSecret::AuthorizationHeader { token, .. } => {
+                assert_eq!(token, SecretResolver::Env("MY_TOKEN_VAR".into()));
+            }
+            other => panic!("Expected AuthorizationHeader, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_query_parameter_token_vault_variant_parses() {
+        let toml = r#"
+            queryParameter = { name = "token", token = { vault = { path = "myc/services/api", key = "token" } } }
+        "#;
+
+        let secret: HttpSecret = toml::from_str(toml).unwrap();
+
+        match secret {
+            HttpSecret::QueryParameter { token, .. } => {
+                assert_eq!(
+                    token,
+                    SecretResolver::Vault {
+                        path: "myc/services/api".into(),
+                        key: "token".into(),
+                    }
+                );
+            }
+            other => panic!("Expected QueryParameter, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_authorization_header_token_literal_parses_as_value() {
+        let toml = r#"
+            authorizationHeader = { headerName = "Authorization", prefix = "Bearer", token = "literal-token" }
+        "#;
+
+        let secret: HttpSecret = toml::from_str(toml).unwrap();
+
+        match secret {
+            HttpSecret::AuthorizationHeader { token, .. } => {
+                assert_eq!(
+                    token,
+                    SecretResolver::Value("literal-token".to_string())
+                );
+            }
+            other => panic!("Expected AuthorizationHeader, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_encrypt_me_passes_through_env_token_untouched() {
+        let secret = HttpSecret::AuthorizationHeader {
+            header_name: None,
+            prefix: None,
+            token: SecretResolver::Env("MY_TOKEN_VAR".to_string()),
+        };
+
+        let dek = [0u8; 32];
+        let aad = b"aad";
+        let encrypted = secret.encrypt_me(&dek, aad).unwrap();
+
+        assert_eq!(encrypted, secret);
+    }
+
+    #[test]
+    fn test_redact_token_ignores_env_token() {
+        let mut secret = HttpSecret::QueryParameter {
+            name: "token".to_string(),
+            token: SecretResolver::Env("MY_TOKEN_VAR".to_string()),
+        };
+
+        secret.redact_token();
+
+        match secret {
+            HttpSecret::QueryParameter { token, .. } => {
+                assert_eq!(token, SecretResolver::Env("MY_TOKEN_VAR".into()));
+            }
+            other => panic!("Expected QueryParameter, got {other:?}"),
+        }
     }
 }
