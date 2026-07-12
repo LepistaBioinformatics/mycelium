@@ -657,7 +657,7 @@ mod tests {
         let secret = HttpSecret::AuthorizationHeader {
             header_name: Some("Authorization".to_string()),
             prefix: Some("Bearer".to_string()),
-            token: "token123".to_string(),
+            token: SecretResolver::Value("token123".to_string()),
         };
 
         let service_secrets = vec![ServiceSecret {
@@ -686,7 +686,7 @@ mod tests {
         let secret = HttpSecret::AuthorizationHeader {
             header_name: Some("Authorization".to_string()),
             prefix: Some("Bearer".to_string()),
-            token: "token123".to_string(),
+            token: SecretResolver::Value("token123".to_string()),
         };
 
         let service_secrets = vec![ServiceSecret {
@@ -713,12 +713,12 @@ mod tests {
         let secret1 = HttpSecret::AuthorizationHeader {
             header_name: Some("Authorization".to_string()),
             prefix: Some("Bearer".to_string()),
-            token: "token1".to_string(),
+            token: SecretResolver::Value("token1".to_string()),
         };
 
         let secret2 = HttpSecret::QueryParameter {
             name: "api_key".to_string(),
-            token: "key123".to_string(),
+            token: SecretResolver::Value("key123".to_string()),
         };
 
         let service_secrets = vec![
@@ -750,7 +750,7 @@ mod tests {
 
         let secret = HttpSecret::QueryParameter {
             name: "api_key".to_string(),
-            token: "key123".to_string(),
+            token: SecretResolver::Value("key123".to_string()),
         };
 
         let service_secrets = vec![ServiceSecret {

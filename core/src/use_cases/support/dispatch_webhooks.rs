@@ -2,7 +2,7 @@ use crate::{
     domain::{
         dtos::{
             http::HttpMethod,
-            http_secret::HttpSecret,
+            resolved_http_secret::ResolvedHttpSecret,
             webhook::{
                 HookResponse, WebHook, WebHookExecutionStatus,
                 WebHookPayloadArtifact, WebHookTrigger,
@@ -88,7 +88,7 @@ pub async fn dispatch_webhooks(
     // ? Decrypt all webhook secrets up-front (async, before the sync map)
     // ? -----------------------------------------------------------------------
 
-    let mut decrypted_secrets: Vec<Option<HttpSecret>> =
+    let mut decrypted_secrets: Vec<Option<ResolvedHttpSecret>> =
         Vec::with_capacity(hooks.len());
 
     for hook in &hooks {
@@ -106,7 +106,16 @@ pub async fn dispatch_webhooks(
                             "Error on decrypting secret: {err}"
                         ))
                     })?;
-                Some(ds)
+
+                let resolved = ResolvedHttpSecret::from_http_secret(ds)
+                    .await
+                    .map_err(|err| {
+                    use_case_err(format!(
+                        "Error on resolving secret token: {err}"
+                    ))
+                })?;
+
+                Some(resolved)
             }
             None => None,
         };
@@ -161,7 +170,7 @@ pub async fn dispatch_webhooks(
                 };
 
                 (match decrypted_secret {
-                    Some(HttpSecret::AuthorizationHeader {
+                    Some(ResolvedHttpSecret::AuthorizationHeader {
                         header_name,
                         prefix,
                         token,
@@ -175,9 +184,10 @@ pub async fn dispatch_webhooks(
                         };
                         base_request.header(key, value)
                     }
-                    Some(HttpSecret::QueryParameter { name, token }) => {
-                        base_request.query(&[(name, token)])
-                    }
+                    Some(ResolvedHttpSecret::QueryParameter {
+                        name,
+                        token,
+                    }) => base_request.query(&[(name, token)]),
                     None => base_request,
                 })
                 .body(payload)
