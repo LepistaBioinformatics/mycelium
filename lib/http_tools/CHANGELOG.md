@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0-rc.1] - 2026-07-12
+
+### 🚀 Features
+
+- *(config)* Add sane defaults to tuning knobs, rewrite example configs for beginners
+
+## [8.3.1-rc.5] - 2026-05-03
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.5
+
 ## [8.3.1-rc.4] - 2026-04-30
 
 ### ⚙️ Miscellaneous Tasks

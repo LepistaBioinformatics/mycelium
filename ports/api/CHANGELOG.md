@@ -2,11 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0-rc.1] - 2026-07-12
+
+### 🚀 Features
+
+- *(standalone)* Add backend feature scheme + mutual-exclusion guards (SM-T1)
+- *(standalone-mode)* Standalone config shape (SM-T23)
+- *(standalone-mode)* Wire standalone initialize_modules end-to-end (SM-T24)
+- *(standalone-mode)* Wire internal JWT auth into the autogen-secrets flow
+- *(standalone-mode)* Opt-in real SMTP for standalone (SM-T29, closes SM-R8)
+- *(config)* Add sane defaults to tuning knobs, rewrite example configs for beginners
+
+### 🐛 Bug Fixes
+
+- *(gateway)* Add leading slash when composing downstream route paths
+
+### 🚜 Refactor
+
+- *(ports/api)* Indirect SqlAppModule/KVAppModule through active_backend_modules
+
 ## [8.3.1-rc.5] - 2026-05-03
 
 ### 🚀 Features
 
 - Expose public app config and replace hardcoded brand name in templates
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.5
 
 ## [8.3.1-rc.4] - 2026-04-30
 
