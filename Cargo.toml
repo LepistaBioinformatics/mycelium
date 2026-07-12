@@ -115,19 +115,19 @@ zstd = "0.13"
 # Mycelium packages
 # ------------------------------------------------------------------------------
 
-myc-core = { version = "9.0.0-rc.2", path = "core" }
-mycelium-base = { version = "9.0.0-rc.2", path = "lib/base" }
-mycelium-config = { version = "9.0.0-rc.2", path = "lib/config" }
-mycelium-openapi = { version = "9.0.0-rc.2", path = "lib/openapi" }
-mycelium-http-tools = { version = "9.0.0-rc.2", path = "lib/http_tools" }
-mycelium-memory-db = { version = "9.0.0-rc.2", path = "adapters/mem_db" }
-mycelium-service = { version = "9.0.0-rc.2", path = "adapters/service" }
-mycelium-diesel = { version = "9.0.0-rc.2", path = "adapters/diesel_postgres" }
-mycelium-diesel-sqlite = { version = "9.0.0-rc.2", path = "adapters/diesel_sqlite" }
-mycelium-notifier = { version = "9.0.0-rc.2", path = "adapters/notifier" }
-mycelium-adapters-shared-lib = { version = "9.0.0-rc.2", path = "adapters/shared" }
-mycelium-key-value = { version = "9.0.0-rc.2", path = "adapters/kv_db" }
-mycelium-moka-cache = { version = "9.0.0-rc.2", path = "adapters/moka_cache" }
+myc-core = { version = "9.0.0-rc.3", path = "core" }
+mycelium-base = { version = "9.0.0-rc.3", path = "lib/base" }
+mycelium-config = { version = "9.0.0-rc.3", path = "lib/config" }
+mycelium-openapi = { version = "9.0.0-rc.3", path = "lib/openapi" }
+mycelium-http-tools = { version = "9.0.0-rc.3", path = "lib/http_tools" }
+mycelium-memory-db = { version = "9.0.0-rc.3", path = "adapters/mem_db" }
+mycelium-service = { version = "9.0.0-rc.3", path = "adapters/service" }
+mycelium-diesel = { version = "9.0.0-rc.3", path = "adapters/diesel_postgres" }
+mycelium-diesel-sqlite = { version = "9.0.0-rc.3", path = "adapters/diesel_sqlite" }
+mycelium-notifier = { version = "9.0.0-rc.3", path = "adapters/notifier" }
+mycelium-adapters-shared-lib = { version = "9.0.0-rc.3", path = "adapters/shared" }
+mycelium-key-value = { version = "9.0.0-rc.3", path = "adapters/kv_db" }
+mycelium-moka-cache = { version = "9.0.0-rc.3", path = "adapters/moka_cache" }
 
 #
 # RUSTSEC-2026-0007: force bytes >= 1.11.1 (Integer overflow in

@@ -2,11 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0-rc.3] - 2026-07-12
+
+### 🚀 Features
+
+- *(account-meta)* Add emergency contact and job title meta keys
+
 ## [9.0.0-rc.2] - 2026-07-12
 
 ### 🐛 Bug Fixes
 
 - *(http-secret)* Support field-level env/vault resolution for token
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.2
 
 ## [9.0.0-rc.1] - 2026-07-12
 

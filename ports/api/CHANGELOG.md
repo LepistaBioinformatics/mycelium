@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - *(http-secret)* Support field-level env/vault resolution for token
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.2
+
 ## [9.0.0-rc.1] - 2026-07-12
 
 ### 🚀 Features
