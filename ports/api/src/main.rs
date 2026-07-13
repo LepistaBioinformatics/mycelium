@@ -44,7 +44,8 @@ use actix_web::{
 use actix_web_opentelemetry::RequestTracing;
 use awc::{error::HeaderValue, Client};
 use dispatchers::{
-    email_dispatcher, services_health_dispatcher, webhook_dispatcher,
+    email_dispatcher, resource_audit_log_dispatcher,
+    services_health_dispatcher, webhook_dispatcher,
 };
 use models::active_backend_modules::{KVAppModule, SqlAppModule};
 use models::config_handler::ConfigHandler;
@@ -62,7 +63,10 @@ use myc_config::resolve_or_generate_standalone_secret;
 use myc_config::secret_resolver::SecretResolver;
 use myc_core::{
     domain::{
-        dtos::callback::CallbackExecutor,
+        dtos::{
+            callback::CallbackExecutor,
+            resource_audit_log::NewResourceAuditLogEvent,
+        },
         entities::{
             GuestRoleRegistration, InstanceSettingsFetching,
             LocalMessageReading, LocalMessageWrite, RemoteMessageWrite,
@@ -78,6 +82,8 @@ use myc_core::{
 #[cfg(feature = "postgres-backend")]
 use myc_diesel::repositories::{
     DieselDbPoolProvider, DieselDbPoolProviderParameters,
+    ResourceAuditLogRegistrationSqlDbRepository,
+    ResourceAuditLogRegistrationSqlDbRepositoryParameters,
 };
 #[cfg(feature = "standalone")]
 use myc_diesel_sqlite::{
@@ -85,6 +91,10 @@ use myc_diesel_sqlite::{
         DieselSqliteDbPoolProvider, DieselSqliteDbPoolProviderParameters,
     },
     migration::provision_database,
+    repositories::resource_audit_log::{
+        ResourceAuditLogRegistrationSqlDbRepository,
+        ResourceAuditLogRegistrationSqlDbRepositoryParameters,
+    },
 };
 #[cfg(feature = "standalone")]
 use myc_http_tools::models::internal_auth_config::InternalOauthConfig;
@@ -123,6 +133,7 @@ use reqwest::header::{
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use rest::{
+    audit::resource_audit_trail_endpoints as audit_resource_audit_trail_endpoints,
     index::{app_public_config_endpoints, heath_check_endpoints},
     instance as instance_endpoints,
     manager::{
@@ -318,24 +329,35 @@ pub async fn main() -> std::io::Result<()> {
     info!("Initialize internal dependencies");
 
     #[cfg(feature = "postgres-backend")]
-    let (sql_module, shared_module, notifier_module, kv_module, mem_module) =
-        initialize_modules(&config.to_owned())
-            .await
-            .map_err(|err| {
-                tracing::error!("Error initializing modules: {err}");
+    let (
+        sql_module,
+        shared_module,
+        notifier_module,
+        kv_module,
+        mem_module,
+        resource_audit_log_rx,
+    ) = initialize_modules(&config.to_owned())
+        .await
+        .map_err(|err| {
+            tracing::error!("Error initializing modules: {err}");
 
-                std::io::Error::new(std::io::ErrorKind::Other, err)
-            })?;
+            std::io::Error::new(std::io::ErrorKind::Other, err)
+        })?;
 
     #[cfg(feature = "standalone")]
-    let (sql_module, notifier_module, kv_module, mem_module) =
-        initialize_modules(&config.to_owned())
-            .await
-            .map_err(|err| {
-                tracing::error!("Error initializing modules: {err}");
+    let (
+        sql_module,
+        notifier_module,
+        kv_module,
+        mem_module,
+        resource_audit_log_rx,
+    ) = initialize_modules(&config.to_owned())
+        .await
+        .map_err(|err| {
+            tracing::error!("Error initializing modules: {err}");
 
-                std::io::Error::new(std::io::ErrorKind::Other, err)
-            })?;
+            std::io::Error::new(std::io::ErrorKind::Other, err)
+        })?;
 
     // ? -----------------------------------------------------------------------
     // ? PROPAGATE DECLARED ROLES TO THE SQL DATABASE
@@ -418,6 +440,20 @@ pub async fn main() -> std::io::Result<()> {
     info!("Fire webhook dispatcher");
 
     webhook_dispatcher(config.core.to_owned(), sql_module.clone())
+        .instrument(span.to_owned())
+        .await;
+
+    // ? -----------------------------------------------------------------------
+    // ? FIRE THE RESOURCE AUDIT LOG DISPATCHER
+    //
+    // The resource audit log dispatcher should be fired to allow resource
+    // audit log events to be persisted. Dispatching will occur in a separate
+    // thread.
+    //
+    // ? -----------------------------------------------------------------------
+    info!("Fire resource audit log dispatcher");
+
+    resource_audit_log_dispatcher(sql_module.clone(), resource_audit_log_rx)
         .instrument(span.to_owned())
         .await;
 
@@ -683,6 +719,17 @@ pub async fn main() -> std::io::Result<()> {
                         srv.call(req)
                     })
                     .configure(rpc::configure),
+            )
+            //
+            // Resource audit trail (shared, not role scoped -- staff,
+            // tenant owners/managers, and personal-account owners all call
+            // this same route; permission branching happens inside
+            // `fetch_resource_audit_trail`. No `wrap_fn`/role header, same
+            // as `tenant-owner` and `rpc` above.)
+            //
+            .service(
+                web::scope("audit")
+                    .configure(audit_resource_audit_trail_endpoints::configure),
             )
             //
             // Role Scoped Endpoints
@@ -994,9 +1041,13 @@ async fn initialize_modules(
         Arc<NotifierAppModule>,
         Arc<KVAppModule>,
         Arc<MemDbAppModule>,
+        tokio::sync::mpsc::Receiver<NewResourceAuditLogEvent>,
     ),
     MappedErrors,
 > {
+    let (resource_audit_log_tx, resource_audit_log_rx) =
+        tokio::sync::mpsc::channel::<NewResourceAuditLogEvent>(2048);
+
     let sql_module = Arc::new(
         SqlAppModule::builder()
             .with_component_parameters::<DieselDbPoolProvider>(
@@ -1015,6 +1066,11 @@ async fn initialize_modules(
                         }
                         .as_str(),
                     ),
+                },
+            )
+            .with_component_parameters::<ResourceAuditLogRegistrationSqlDbRepository>(
+                ResourceAuditLogRegistrationSqlDbRepositoryParameters {
+                    sender: resource_audit_log_tx,
                 },
             )
             .build(),
@@ -1084,6 +1140,7 @@ async fn initialize_modules(
         notifier_module,
         kv_module,
         mem_module,
+        resource_audit_log_rx,
     ))
 }
 
@@ -1102,6 +1159,7 @@ async fn initialize_modules(
         Arc<LocalNotifierAppModule>,
         Arc<KVAppModule>,
         Arc<MemDbAppModule>,
+        tokio::sync::mpsc::Receiver<NewResourceAuditLogEvent>,
     ),
     MappedErrors,
 > {
@@ -1114,11 +1172,19 @@ async fn initialize_modules(
         panic!("Error provisioning SQLite database: {err}");
     }
 
+    let (resource_audit_log_tx, resource_audit_log_rx) =
+        tokio::sync::mpsc::channel::<NewResourceAuditLogEvent>(2048);
+
     let sql_module = Arc::new(
         SqlAppModule::builder()
             .with_component_parameters::<DieselSqliteDbPoolProvider>(
                 DieselSqliteDbPoolProviderParameters {
                     pool: DieselSqliteDbPoolProvider::new(&sqlite_path),
+                },
+            )
+            .with_component_parameters::<ResourceAuditLogRegistrationSqlDbRepository>(
+                ResourceAuditLogRegistrationSqlDbRepositoryParameters {
+                    sender: resource_audit_log_tx,
                 },
             )
             .build(),
@@ -1166,5 +1232,11 @@ async fn initialize_modules(
 
     let mem_module = build_mem_db_module(config).await;
 
-    Ok((sql_module, notifier_module, kv_module, mem_module))
+    Ok((
+        sql_module,
+        notifier_module,
+        kv_module,
+        mem_module,
+        resource_audit_log_rx,
+    ))
 }

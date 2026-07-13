@@ -12,6 +12,7 @@ mod licensed_resources;
 mod message;
 mod optional_written_by_parser;
 mod profile;
+mod resource_audit_log;
 mod tenant;
 mod tenant_tag;
 mod token;
@@ -36,6 +37,7 @@ use user::*;
 use webhook::*;
 
 pub use config::*;
+pub use resource_audit_log::*;
 
 module! {
     pub SqlAppModule {
@@ -74,6 +76,8 @@ module! {
             LicensedResourcesFetchingSqlDbRepository,
             LocalMessageReadSqlDbRepository,
             LocalMessageWriteSqlDbRepository,
+            ResourceAuditLogFetchingSqlDbRepository,
+            ResourceAuditLogRegistrationSqlDbRepository,
             TenantDeletionSqlDbRepository,
             TenantFetchingSqlDbRepository,
             TenantRegistrationSqlDbRepository,

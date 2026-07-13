@@ -145,6 +145,7 @@ pub async fn create_default_account_url(
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
     )
     .await
     {
@@ -271,6 +272,7 @@ pub async fn update_own_account_name_url(
         body.name.to_owned(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -317,6 +319,7 @@ pub async fn delete_my_account_url(
 
     match delete_my_account(
         profile.to_profile(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )

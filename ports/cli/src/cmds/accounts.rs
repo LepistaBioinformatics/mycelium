@@ -5,7 +5,8 @@ use myc_core::{
     domain::{
         dtos::{instance_settings::STAFF_BOOTSTRAP_KEY, written_by::WrittenBy},
         entities::{
-            AccountRegistration, InstanceSettingsRegistration, UserRegistration,
+            AccountRegistration, InstanceSettingsRegistration,
+            ResourceAuditLogRegistration, UserRegistration,
         },
     },
     use_cases::super_users::staff::account::create_seed_staff_account,
@@ -66,6 +67,7 @@ pub(crate) async fn create_seed_staff_account_cmd(
 
     let user_repo: &dyn UserRegistration = module.resolve_ref();
     let account_repo: &dyn AccountRegistration = module.resolve_ref();
+    let audit_repo: &dyn ResourceAuditLogRegistration = module.resolve_ref();
 
     //
     // Create the seed staff account
@@ -78,6 +80,7 @@ pub(crate) async fn create_seed_staff_account_cmd(
         password,
         Box::new(user_repo),
         Box::new(account_repo),
+        Box::new(audit_repo),
     )
     .await
     {

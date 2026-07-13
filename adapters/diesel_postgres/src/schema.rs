@@ -259,6 +259,19 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    resource_audit_log (id) {
+        id -> Uuid,
+        resource_type -> Text,
+        resource_id -> Uuid,
+        tenant_id -> Nullable<Uuid>,
+        event -> Text,
+        performed_by -> Jsonb,
+        metadata -> Jsonb,
+        created_at -> Timestamptz,
+    }
+}
+
 diesel::joinable!(account -> tenant (tenant_id));
 diesel::joinable!(account_tag -> account (account_id));
 diesel::joinable!(guest_user -> guest_role (guest_role_id));

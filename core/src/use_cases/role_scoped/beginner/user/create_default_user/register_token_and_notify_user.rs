@@ -6,7 +6,8 @@ use crate::{
             token::{EmailConfirmationTokenMeta, MultiTypeMeta},
         },
         entities::{
-            LocalMessageWrite, TenantFetching, TokenRegistration, UserDeletion,
+            LocalMessageWrite, ResourceAuditLogRegistration, TenantFetching,
+            TokenRegistration, UserDeletion,
         },
     },
     models::AccountLifeCycle,
@@ -32,6 +33,7 @@ pub(super) async fn register_token_and_notify_user(
     message_sending_repo: Box<&dyn LocalMessageWrite>,
     user_deletion_repo: Box<&dyn UserDeletion>,
     tenant_fetching_repo: Box<&dyn TenantFetching>,
+    audit_repo: Box<&dyn ResourceAuditLogRegistration>,
 ) -> Result<(), MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Register confirmation token
@@ -72,8 +74,12 @@ pub(super) async fn register_token_and_notify_user(
                 //
                 // ? -----------------------------------------------------------
 
-                delete_default_user(user_id, user_deletion_repo.to_owned())
-                    .await?;
+                delete_default_user(
+                    user_id,
+                    user_deletion_repo.to_owned(),
+                    audit_repo,
+                )
+                .await?;
                 return use_case_err(msg).as_error();
             }
         },
@@ -86,7 +92,12 @@ pub(super) async fn register_token_and_notify_user(
             //
             // ? ---------------------------------------------------------------
 
-            delete_default_user(user_id, user_deletion_repo.to_owned()).await?;
+            delete_default_user(
+                user_id,
+                user_deletion_repo.to_owned(),
+                audit_repo,
+            )
+            .await?;
             return Err(err);
         }
     };
@@ -97,7 +108,12 @@ pub(super) async fn register_token_and_notify_user(
             // ? ---------------------------------------------------------------
             // ? Delete the user
             // ? ---------------------------------------------------------------
-            delete_default_user(user_id, user_deletion_repo.to_owned()).await?;
+            delete_default_user(
+                user_id,
+                user_deletion_repo.to_owned(),
+                audit_repo,
+            )
+            .await?;
             return use_case_err("Invalid token type").as_error();
         }
     };

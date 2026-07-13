@@ -16,6 +16,7 @@ pub mod native_error_codes;
 pub mod profile;
 pub mod related_accounts;
 pub mod resolved_http_secret;
+pub mod resource_audit_log;
 pub mod route;
 pub mod security_group;
 pub mod service;

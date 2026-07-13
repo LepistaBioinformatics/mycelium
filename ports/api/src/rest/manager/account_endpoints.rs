@@ -100,6 +100,7 @@ pub async fn create_system_account_url(
         body.name.to_owned(),
         body.actor.to_system_actor(),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {

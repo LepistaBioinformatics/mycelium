@@ -124,6 +124,7 @@ pub async fn dispatch_beginners(
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -158,6 +159,7 @@ pub async fn dispatch_beginners(
                 p.name,
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -176,6 +178,7 @@ pub async fn dispatch_beginners(
             }
             let result = delete_my_account(
                 profile.to_profile(),
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
@@ -210,6 +213,7 @@ pub async fn dispatch_beginners(
                 key,
                 p.value,
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -226,6 +230,7 @@ pub async fn dispatch_beginners(
                 key,
                 p.value,
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -240,6 +245,7 @@ pub async fn dispatch_beginners(
             let result = delete_account_meta(
                 profile.to_profile(),
                 key,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
             .await
@@ -414,6 +420,7 @@ pub async fn dispatch_beginners(
                 p.password,
                 provider,
                 life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),

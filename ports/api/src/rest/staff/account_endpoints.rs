@@ -122,6 +122,7 @@ pub async fn upgrade_account_privileges_url(
             UpgradeTargetAccountType::Staff => AccountType::Staff,
         },
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -182,6 +183,7 @@ pub async fn downgrade_account_privileges_url(
             DowngradeTargetAccountType::Manager => AccountType::Manager,
             DowngradeTargetAccountType::User => AccountType::User,
         },
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

@@ -49,6 +49,7 @@ pub async fn dispatch_tenant_manager(
                 p.tenant_id,
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -62,6 +63,7 @@ pub async fn dispatch_tenant_manager(
                 profile.to_profile(),
                 p.tenant_id,
                 p.account_id,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )

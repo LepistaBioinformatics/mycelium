@@ -47,6 +47,7 @@ pub async fn dispatch_guest_manager(
                 permission,
                 p.system,
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -79,6 +80,7 @@ pub async fn dispatch_guest_manager(
                 profile.to_profile(),
                 p.guest_role_id,
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -93,6 +95,7 @@ pub async fn dispatch_guest_manager(
                 p.name,
                 p.description,
                 p.guest_role_id,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
@@ -111,6 +114,7 @@ pub async fn dispatch_guest_manager(
                 permission,
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -126,6 +130,7 @@ pub async fn dispatch_guest_manager(
                 p.child_id,
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -139,6 +144,7 @@ pub async fn dispatch_guest_manager(
                 profile.to_profile(),
                 p.guest_role_id,
                 p.child_id,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
             .await

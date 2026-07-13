@@ -235,6 +235,7 @@ pub async fn create_subscription_account_url(
         body.name.to_owned(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -299,6 +300,7 @@ pub async fn create_role_associated_account_url(
         body.account_name.to_owned(),
         body.role_name.to_owned(),
         body.role_description.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
@@ -558,6 +560,7 @@ pub async fn update_account_name_and_flags_url(
         body.is_checked.to_owned(),
         body.is_archived.to_owned(),
         body.is_system_account.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),

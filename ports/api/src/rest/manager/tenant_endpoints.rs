@@ -126,6 +126,7 @@ pub async fn create_tenant_url(
         body.owner_id,
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -268,6 +269,7 @@ pub async fn delete_tenant_url(
         profile.to_profile(),
         path.into_inner(),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -323,6 +325,7 @@ pub async fn include_tenant_owner_url(
         tenant_id,
         owner_id,
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -376,6 +379,7 @@ pub async fn exclude_tenant_owner_url(
         profile.to_profile(),
         tenant_id,
         owner_id,
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

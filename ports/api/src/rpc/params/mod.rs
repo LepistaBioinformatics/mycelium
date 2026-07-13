@@ -1,4 +1,5 @@
 pub(crate) mod account_manager;
+pub(crate) mod audit;
 pub(crate) mod beginners;
 pub(crate) mod gateway_manager;
 pub(crate) mod guest_manager;
@@ -15,6 +16,7 @@ pub(crate) use account_manager::{
     FetchGuestRoleDetailsParams, GuestToChildrenAccountParams,
     ListGuestRolesParams,
 };
+pub(crate) use audit::FetchResourceAuditTrailParams;
 pub(crate) use beginners::{
     AcceptInvitationParams, CheckEmailPasswordValidityParams,
     CheckTokenAndActivateUserParams, CheckTokenAndResetPasswordParams,

@@ -1,3 +1,4 @@
+pub(crate) mod audit;
 pub(crate) mod index;
 pub(crate) mod instance;
 pub(crate) mod manager;

@@ -173,6 +173,7 @@ pub async fn dispatch_subscriptions_manager(
                 p.name,
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -192,6 +193,7 @@ pub async fn dispatch_subscriptions_manager(
                 p.account_name,
                 p.role_name,
                 p.role_description,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
@@ -254,6 +256,7 @@ pub async fn dispatch_subscriptions_manager(
                 p.is_checked,
                 p.is_archived,
                 p.is_system_account,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
