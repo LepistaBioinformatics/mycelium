@@ -52,9 +52,15 @@ postgres-only port would break the `standalone` feature build.
 dispatches (foundation → adapters/dispatcher/main.rs wiring → 7 instrumentation lanes + REST/RPC
 endpoint). Final gate, all green: `cargo fmt --all -- --check`, `cargo build --workspace`,
 `cargo build -p mycelium-api --no-default-features --features standalone`, `cargo test --workspace
---all` (331 `myc-core` tests + all other crates, 0 failed). Not committed — awaiting user manual
-test/approval per `commit-validation.md`. Currently on branch `feat/staff-bootstrap` (pre-existing
-checkout, not changed by this work).
+--all` (331 `myc-core` tests + all other crates, 0 failed).
+
+**Committed and PR opened as draft, 2026-07-13** (user explicitly authorized commit): new branch
+`feat/resource-audit-log` off `origin/develop` (the working tree was on `feat/staff-bootstrap`,
+which turned out to already be fully merged into `develop` via PR #168 — created a clean new
+branch instead of stacking on an already-merged one). Commit `ff88a951`, 122 files, +11473/-218.
+PR **#170** → `develop`, draft: https://github.com/LepistaBioinformatics/mycelium/pull/170.
+Monorepo submodule pointer NOT updated yet — deliberately deferred until the PR is out of draft/
+merged, per the usual pointer-update-after-merge convention.
 
 **Correctness fix found and applied mid-execution:** the spec's edge case "only confirmed
 successful mutations are audited" was violated in 5 of the 41 instrumented use cases (all in the
