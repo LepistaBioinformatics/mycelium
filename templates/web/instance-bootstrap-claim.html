@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ domain_name }} — Staff Bootstrap</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', 'Open Sans', Arial, sans-serif;
+      background: #f5f3ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 48px 40px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+    .brand {
+      font-size: 13px;
+      font-weight: 600;
+      color: #8b5cf6;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 22px;
+      color: #4c1d95;
+      margin-bottom: 8px;
+    }
+    p {
+      color: #555;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .steps {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .step-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: 80px;
+    }
+    .step-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      background: #ede9fe;
+      color: #a78bfa;
+      border: 1.5px solid #ddd6fe;
+    }
+    .step-dot.active {
+      background: #8b5cf6;
+      color: #fff;
+      border-color: #8b5cf6;
+    }
+    .step-label {
+      font-size: 11px;
+      color: #a78bfa;
+      font-weight: 600;
+    }
+    .step-label.active {
+      color: #6d28d9;
+    }
+    .step-line {
+      width: 28px;
+      height: 1.5px;
+      background: #ddd6fe;
+      margin-top: 10px;
+    }
+    .step-line.active {
+      background: #8b5cf6;
+    }
+    .stakes {
+      text-align: left;
+      background: #f0f9ff;
+      border-left: 3px solid #7dd3fc;
+      color: #4c1d95;
+      font-size: 12.5px;
+      line-height: 1.5;
+      padding: 10px 12px;
+      border-radius: 4px;
+      margin-bottom: 24px;
+    }
+    label {
+      display: block;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 6px;
+    }
+    input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      margin-bottom: 16px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: 'Inter', 'Open Sans', Arial, sans-serif;
+      font-size: 14px;
+    }
+    input[name="code"] {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      letter-spacing: 0.12em;
+      text-align: center;
+    }
+    .field-wrap {
+      position: relative;
+    }
+    .field-wrap input {
+      padding-right: 38px;
+    }
+    .toggle-visibility {
+      position: absolute;
+      top: 8px;
+      right: 6px;
+      width: auto;
+      background: none;
+      border: none;
+      padding: 4px;
+      color: #999;
+      cursor: pointer;
+    }
+    .toggle-visibility:hover {
+      color: #6d28d9;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #8b5cf6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #c4b5fd;
+      cursor: default;
+    }
+    .note {
+      font-size: 12px;
+      color: #999;
+      margin-top: 16px;
+      margin-bottom: 0;
+    }
+    .feedback {
+      font-size: 13px;
+      margin-bottom: 16px;
+      min-height: 18px;
+    }
+    .feedback.error { color: #ef4444; }
+    .feedback.info { color: #555; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">{{ domain_name }}</div>
+    <h1>Claim the Initial Staff Account</h1>
+
+    <div class="steps">
+      <div class="step-col">
+        <div class="step-dot active" id="step-dot-1">1</div>
+        <div class="step-label active" id="step-label-1">Request code</div>
+      </div>
+      <div class="step-line" id="step-line"></div>
+      <div class="step-col">
+        <div class="step-dot" id="step-dot-2">2</div>
+        <div class="step-label" id="step-label-2">Confirm</div>
+      </div>
+    </div>
+
+    <p>
+      Enter the bootstrap secret you configured for this deployment and the
+      email address that should become the first Staff account.
+    </p>
+
+    <div class="stakes">
+      This claims the first Staff account for this deployment. It can only be
+      done once — make sure this is the deployment you intend to bootstrap.
+    </div>
+
+    <div id="feedback" class="feedback"></div>
+
+    <form id="request-form">
+      <label for="secret">Bootstrap secret</label>
+      <div class="field-wrap">
+        <input type="password" id="secret" name="secret" autocomplete="off" required />
+        <button type="button" class="toggle-visibility" id="toggle-secret" aria-label="Show secret">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M2 12S5.5 5 12 5s10 7 10 7-3.5 7-10 7-10-7-10-7z" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </button>
+      </div>
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" autocomplete="off" required />
+      <button type="submit" id="request-button">Send login code</button>
+    </form>
+
+    <form id="complete-form" class="hidden">
+      <label for="code">Login code</label>
+      <input type="text" id="code" name="code" inputmode="numeric" maxlength="6" autocomplete="off" required />
+      <button type="submit" id="complete-button">Claim staff account</button>
+    </form>
+
+    <p class="note">
+      After submitting, check the inbox for {{ domain_name }} and open the
+      login link — it shows a 6-digit code. Enter that code above to finish.
+    </p>
+  </div>
+
+  <script>
+    (function () {
+      var feedback = document.getElementById('feedback');
+      var requestForm = document.getElementById('request-form');
+      var completeForm = document.getElementById('complete-form');
+      var requestButton = document.getElementById('request-button');
+      var completeButton = document.getElementById('complete-button');
+
+      var state = { secret: '', email: '' };
+
+      function setFeedback(message, kind) {
+        feedback.textContent = message || '';
+        feedback.className = 'feedback' + (kind ? ' ' + kind : '');
+      }
+
+      function advanceToStepTwo() {
+        document.getElementById('step-dot-2').classList.add('active');
+        document.getElementById('step-label-2').classList.add('active');
+        document.getElementById('step-line').classList.add('active');
+      }
+
+      document.getElementById('toggle-secret').addEventListener('click', function () {
+        var input = document.getElementById('secret');
+        var revealing = input.type === 'password';
+        input.type = revealing ? 'text' : 'password';
+        this.setAttribute('aria-label', revealing ? 'Hide secret' : 'Show secret');
+      });
+
+      requestForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        setFeedback('', '');
+        requestButton.disabled = true;
+
+        state.secret = document.getElementById('secret').value;
+        state.email = document.getElementById('email').value;
+
+        fetch('/_adm/instance/bootstrap/request-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ secret: state.secret, email: state.email }),
+        })
+          .then(function (response) {
+            if (!response.ok) {
+              throw new Error('request-failed');
+            }
+            return response.json();
+          })
+          .then(function () {
+            setFeedback(
+              'Code requested. Check your email, then enter the code below.',
+              'info'
+            );
+            requestForm.classList.add('hidden');
+            completeForm.classList.remove('hidden');
+            advanceToStepTwo();
+          })
+          .catch(function () {
+            setFeedback(
+              'Could not request a code. Check the secret and try again.',
+              'error'
+            );
+            requestButton.disabled = false;
+          });
+      });
+
+      completeForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        setFeedback('', '');
+        completeButton.disabled = true;
+
+        var code = document.getElementById('code').value;
+
+        fetch('/_adm/instance/bootstrap/complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            secret: state.secret,
+            email: state.email,
+            code: code,
+          }),
+        })
+          .then(function (response) {
+            if (!response.ok) {
+              throw new Error('complete-failed');
+            }
+            return response.json();
+          })
+          .then(function () {
+            completeForm.classList.add('hidden');
+            setFeedback(
+              'Staff account claimed. You can now log in normally.',
+              'info'
+            );
+          })
+          .catch(function () {
+            setFeedback(
+              'Could not verify the code. It may have expired — request a new one.',
+              'error'
+            );
+            completeButton.disabled = false;
+          });
+      });
+    })();
+  </script>
+</body>
+</html>

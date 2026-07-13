@@ -2,12 +2,18 @@ use crate::functions::try_to_resolve_database_url;
 
 use clap::Parser;
 use myc_core::{
-    domain::entities::{AccountRegistration, UserRegistration},
+    domain::{
+        dtos::{instance_settings::STAFF_BOOTSTRAP_KEY, written_by::WrittenBy},
+        entities::{
+            AccountRegistration, InstanceSettingsRegistration, UserRegistration,
+        },
+    },
     use_cases::super_users::staff::account::create_seed_staff_account,
 };
 use myc_diesel::repositories::{
     DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
 };
+use mycelium_base::dtos::Children;
 use mycelium_base::entities::GetOrCreateResponseKind;
 use shaku::HasComponent;
 use std::sync::Arc;
@@ -97,7 +103,69 @@ pub(crate) async fn create_seed_staff_account_cmd(
                     args.last_name,
                     account.name,
                 );
+
+                close_staff_bootstrap_best_effort(&account, &module).await;
             }
         },
     };
+}
+
+/// Best-effort: close the web staff-bootstrap flow (feature staff-bootstrap,
+/// spec SB-R9) when the manual CLI path is used instead. Never fails the CLI
+/// command -- `instance_settings` bookkeeping is secondary to the seed
+/// account itself, which is already the source of truth at this point.
+async fn close_staff_bootstrap_best_effort(
+    account: &myc_core::domain::dtos::account::Account,
+    module: &Arc<SqlAppModule>,
+) {
+    let Children::Records(owners) = &account.owners else {
+        tracing::warn!(
+            "Could not close staff bootstrap: account owners were not \
+             returned as records"
+        );
+        return;
+    };
+
+    let Some(owner) = owners.first() else {
+        tracing::warn!(
+            "Could not close staff bootstrap: no owner user available"
+        );
+        return;
+    };
+
+    let Some(user_id) = owner.id else {
+        tracing::warn!(
+            "Could not close staff bootstrap: no owner user id available"
+        );
+        return;
+    };
+
+    let instance_settings_repo: &dyn InstanceSettingsRegistration =
+        module.resolve_ref();
+
+    let created_by =
+        WrittenBy::new_from_user_with_email(user_id, &owner.email.email());
+
+    match instance_settings_repo
+        .get_or_create(
+            STAFF_BOOTSTRAP_KEY.to_string(),
+            serde_json::json!({}),
+            Some(created_by),
+        )
+        .await
+    {
+        Ok(GetOrCreateResponseKind::Created(_)) => {
+            tracing::info!(
+                "Staff bootstrap closed (claimed via manual CLI path)"
+            );
+        }
+        Ok(GetOrCreateResponseKind::NotCreated(..)) => {
+            // Already claimed (e.g. the web flow got there first) -- fine.
+        }
+        Err(err) => {
+            tracing::warn!(
+                "Could not close staff bootstrap (non-fatal): {err}"
+            );
+        }
+    }
 }

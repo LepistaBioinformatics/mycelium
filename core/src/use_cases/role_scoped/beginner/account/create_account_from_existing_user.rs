@@ -114,13 +114,17 @@ pub async fn create_user_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
+    let user_id = user.id.ok_or_else(|| {
+        use_case_err("User ID not found".to_string()).with_exp_true()
+    })?;
+    let created_by =
+        WrittenBy::new_from_user_with_email(user_id, &user.email.email());
+
     let mut base_account = Account::new(
         account_name.to_owned(),
         user.clone(),
         AccountType::User,
-        Some(WrittenBy::new_from_user(user.id.ok_or_else(|| {
-            use_case_err("User ID not found".to_string()).with_exp_true()
-        })?)),
+        Some(created_by),
     );
 
     base_account.slug = slugify!(user.email.email().as_str());

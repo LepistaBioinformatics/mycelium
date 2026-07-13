@@ -7,6 +7,7 @@ mod encryption_key;
 mod error_code;
 mod guest_role;
 mod guest_user;
+mod instance_settings;
 mod licensed_resources;
 mod message;
 mod optional_written_by_parser;
@@ -23,6 +24,7 @@ use encryption_key::*;
 use error_code::*;
 use guest_role::*;
 use guest_user::*;
+use instance_settings::*;
 use licensed_resources::*;
 use message::*;
 use optional_written_by_parser::*;
@@ -66,6 +68,8 @@ module! {
             GuestUserOnAccountUpdatingSqlDbRepository,
             GuestUserOnAccountFetchingSqlDbRepository,
             GuestUserRegistrationSqlDbRepository,
+            InstanceSettingsFetchingSqlDbRepository,
+            InstanceSettingsRegistrationSqlDbRepository,
             ProfileFetchingSqlDbRepository,
             LicensedResourcesFetchingSqlDbRepository,
             LocalMessageReadSqlDbRepository,

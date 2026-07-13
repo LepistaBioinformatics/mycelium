@@ -64,11 +64,16 @@ use myc_core::{
     domain::{
         dtos::callback::CallbackExecutor,
         entities::{
-            GuestRoleRegistration, LocalMessageReading, LocalMessageWrite,
-            RemoteMessageWrite, ServiceRead,
+            GuestRoleRegistration, InstanceSettingsFetching,
+            LocalMessageReading, LocalMessageWrite, RemoteMessageWrite,
+            ServiceRead,
         },
     },
-    use_cases::gateway::guest_roles::propagate_declared_roles_to_storage_engine,
+    models::AccountLifeCycle,
+    use_cases::{
+        gateway::guest_roles::propagate_declared_roles_to_storage_engine,
+        super_users::staff::bootstrap::staff_bootstrap_is_pending,
+    },
 };
 #[cfg(feature = "postgres-backend")]
 use myc_diesel::repositories::{
@@ -119,6 +124,7 @@ use reqwest::header::{
 };
 use rest::{
     index::{app_public_config_endpoints, heath_check_endpoints},
+    instance as instance_endpoints,
     manager::{
         account_endpoints as manager_account_endpoints,
         guest_role_endpoints as manager_guest_role_endpoints,
@@ -429,6 +435,24 @@ pub async fn main() -> std::io::Result<()> {
         .await;
 
     // ? -----------------------------------------------------------------------
+    // ? STAFF BOOTSTRAP — CHECK CLAIM STATE
+    //
+    // Checks whether the `STAFF_BOOTSTRAP_KEY` row exists in the generalized
+    // `instance_settings` table -- its presence alone means already claimed,
+    // no pre-created row needed. Non-fatal: a missing table (operator
+    // upgraded without applying the migration yet) must not abort boot --
+    // this backs an optional, opt-in feature, unlike Postgres/Redis/SMTP.
+    // ? -----------------------------------------------------------------------
+    info!("Checking staff bootstrap state");
+
+    announce_staff_bootstrap_status(
+        &sql_module,
+        &config.core.account_life_cycle,
+    )
+    .instrument(span.to_owned())
+    .await;
+
+    // ? -----------------------------------------------------------------------
     // ? CONFIGURE THE SERVER
     // ? -----------------------------------------------------------------------
     info!("Startup the server configuration");
@@ -641,6 +665,14 @@ pub async fn main() -> std::io::Result<()> {
                     .configure(manager_account_endpoints::configure),
             )
             //
+            // Instance (public, unauthenticated staff bootstrap flow --
+            // feature staff-bootstrap. No `wrap_fn`/role header: these
+            // routes must work before any Staff account exists.)
+            //
+            .service(
+                web::scope("instance").configure(instance_endpoints::configure),
+            )
+            //
             // JSON-RPC (single + batch at _adm/rpc)
             //
             .service(
@@ -808,6 +840,76 @@ async fn resolve_standalone_secret(
     }
 
     resolve_or_generate_standalone_secret(keyring_service, secrets_dir, name)
+}
+
+/// Checks whether the staff bootstrap is still pending and, if the feature
+/// is enabled (`staff_bootstrap_secret` configured), logs a reminder with
+/// the claim URL -- never the secret itself, since the operator already
+/// holds it from their own config.
+///
+/// Non-fatal by design: any failure (e.g. the migration hasn't been applied
+/// yet -- see feature staff-bootstrap design.md SB-R12) is logged and
+/// swallowed. This backs an optional, opt-in feature and must never abort
+/// boot the way missing Postgres/Redis/SMTP does.
+async fn announce_staff_bootstrap_status(
+    sql_module: &SqlAppModule,
+    account_life_cycle: &AccountLifeCycle,
+) {
+    let is_pending = match staff_bootstrap_is_pending(Box::new(
+        sql_module.resolve_ref() as &dyn InstanceSettingsFetching,
+    ))
+    .await
+    {
+        Ok(is_pending) => is_pending,
+        Err(err) => {
+            tracing::error!(
+                %err,
+                "staff bootstrap unavailable this boot (instance_settings \
+                 table missing or unreachable) -- gateway continues without it"
+            );
+            return;
+        }
+    };
+
+    if !is_pending {
+        return;
+    }
+
+    let Some(secret_resolver) =
+        account_life_cycle.staff_bootstrap_secret.as_ref()
+    else {
+        return;
+    };
+
+    if secret_resolver.async_get_or_error().await.is_err() {
+        tracing::error!(
+            "staff_bootstrap_secret is configured but failed to resolve"
+        );
+        return;
+    }
+
+    let claim_url = match account_life_cycle.domain_url.clone() {
+        Some(resolver) => resolver.async_get_or_error().await.ok().map(|url| {
+            format!(
+                "{}/{}/instance/bootstrap",
+                url.trim_end_matches('/'),
+                ADMIN_API_SCOPE,
+            )
+        }),
+        None => None,
+    };
+
+    match claim_url {
+        Some(url) => info!(
+            claim_url = %url,
+            "staff bootstrap pending -- visit this URL with your configured \
+             bootstrap secret to claim the initial staff account"
+        ),
+        None => info!(
+            "staff bootstrap pending -- configure `domainUrl` to see the \
+             full claim URL logged here"
+        ),
+    }
 }
 
 /// Build the backend-agnostic in-memory service/callback registry module.

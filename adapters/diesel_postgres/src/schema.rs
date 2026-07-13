@@ -247,6 +247,18 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    instance_settings (key) {
+        #[max_length = 255]
+        key -> Varchar,
+        value -> Jsonb,
+        created_by -> Nullable<Jsonb>,
+        updated_by -> Nullable<Jsonb>,
+        created -> Timestamptz,
+        updated -> Nullable<Timestamptz>,
+    }
+}
+
 diesel::joinable!(account -> tenant (tenant_id));
 diesel::joinable!(account_tag -> account (account_id));
 diesel::joinable!(guest_user -> guest_role (guest_role_id));

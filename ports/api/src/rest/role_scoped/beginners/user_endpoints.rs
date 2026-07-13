@@ -87,13 +87,13 @@ where
 #[derive(Serialize, ToResponse, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct MyceliumLoginResponse {
-    token: String,
+    pub token: String,
     #[serde(serialize_with = "serialize_duration")]
-    duration: Duration,
-    totp_required: bool,
+    pub duration: Duration,
+    pub totp_required: bool,
 
     #[serde(flatten)]
-    user: User,
+    pub user: User,
 }
 
 #[derive(Deserialize, ToSchema, IntoParams)]

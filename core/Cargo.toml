@@ -50,6 +50,7 @@ sha2.workspace = true
 tera = "1"
 pasetors = "0.6"
 ring = "0.17"
+subtle.workspace = true
 totp-rs = { version = "^5.0", features = ["otpauth", "qr"] }
 
 # ------------------------------------------------------------------------------

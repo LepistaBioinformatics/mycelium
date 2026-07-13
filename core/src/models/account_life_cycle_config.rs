@@ -59,6 +59,11 @@ pub struct AccountLifeCycle {
     /// verification; only the entry matching `hmac_primary_version` is
     /// used for signing.
     pub(crate) hmac_secrets: HmacSecretSet,
+
+    /// Operator-supplied secret gating the one-time staff bootstrap web flow
+    /// (`/_adm/instance/bootstrap*`). Absent by default — bootstrap stays
+    /// fully disabled (404) until the operator opts in by setting this.
+    pub staff_bootstrap_secret: Option<SecretResolver<String>>,
 }
 
 fn default_token_expiration() -> SecretResolver<i64> {
@@ -250,6 +255,7 @@ mod tests {
                 version: 1,
                 secret: SecretResolver::Value("placeholder".to_string()),
             }]),
+            staff_bootstrap_secret: None,
         }
     }
 

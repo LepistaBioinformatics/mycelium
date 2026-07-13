@@ -83,18 +83,21 @@ pub async fn create_seed_staff_account(
     // The account are registered using the already created user.
     // ? -----------------------------------------------------------------------
 
+    let new_user_id = new_user.id.ok_or_else(|| {
+        use_case_err("User ID not found".to_string()).with_exp_true()
+    })?;
+    let created_by = WrittenBy::new_from_user_with_email(
+        new_user_id,
+        &new_user.email.email(),
+    );
+
     account_registration_repo
         .get_or_create_user_account(
             Account::new(
                 account_name,
                 new_user.to_owned(),
                 AccountType::Staff,
-                Some(WrittenBy::new_from_user(new_user.id.ok_or_else(
-                    || {
-                        use_case_err("User ID not found".to_string())
-                            .with_exp_true()
-                    },
-                )?)),
+                Some(created_by),
             ),
             true,
             false,
