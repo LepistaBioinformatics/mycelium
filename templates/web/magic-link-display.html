@@ -45,6 +45,9 @@
       line-height: 1.6;
       margin-bottom: 32px;
     }
+    .check-badge {
+      margin-bottom: 16px;
+    }
     .code {
       display: inline-block;
       background: #bae6fd;
@@ -55,7 +58,25 @@
       font-weight: bold;
       letter-spacing: 0.18em;
       color: #1a1a1a;
+      margin-bottom: 16px;
+    }
+    .copy-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: transparent;
+      border: 1px solid #ddd6fe;
+      color: #6d28d9;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-family: 'Inter', 'Open Sans', Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
       margin-bottom: 24px;
+    }
+    .copy-button:hover {
+      background: #f5f3ff;
     }
     .note {
       font-size: 12px;
@@ -66,15 +87,42 @@
 <body>
   <div class="card">
     <div class="brand">{{ domain_name }}</div>
+    <svg class="check-badge" width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" stroke="#8b5cf6" stroke-width="1.5"/>
+      <path d="M8 12.5L10.5 15L16 9" stroke="#8b5cf6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
     <h1>Your {{ domain_name }} Login Code</h1>
     <p>
       Enter the code below in the app to complete your login.<br/>
       This code expires in {{ expires_in_minutes }} minutes and can only be used once.
     </p>
-    <div class="code">{{ code }}</div>
+    <div class="code" id="login-code">{{ code }}</div>
+    <br/>
+    <button type="button" class="copy-button" id="copy-button" onclick="copyCode()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect x="9" y="9" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M6 15H4.5a1.5 1.5 0 0 1-1.5-1.5V4.5A1.5 1.5 0 0 1 4.5 3H13.5A1.5 1.5 0 0 1 15 4.5V6" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      <span id="copy-label">Copy code</span>
+    </button>
     <p class="note">
       If you did not request this code, you can safely close this page.
     </p>
   </div>
+  <script>
+    function copyCode() {
+      var code = document.getElementById('login-code').textContent.trim();
+      var label = document.getElementById('copy-label');
+      var reset = function () { label.textContent = 'Copy code'; };
+      try {
+        navigator.clipboard.writeText(code).then(function () {
+          label.textContent = 'Copied';
+          setTimeout(reset, 1500);
+        });
+      } catch (err) {
+        // Clipboard API unavailable — the code is still visible and selectable.
+      }
+    }
+  </script>
 </body>
 </html>

@@ -98,6 +98,7 @@ mod tests {
             "guest_user_on_account",
             "healthcheck_logs",
             "identity_provider",
+            "instance_settings",
             "manager_account_on_tenant",
             "owner_on_tenant",
             "tenant",

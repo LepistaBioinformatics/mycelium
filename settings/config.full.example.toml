@@ -76,6 +76,14 @@ supportEmail = "support@example.com"           # required -- "from" address for 
 # use Vault or an env var in any real deployment.
 tokenSecret = { vault = { path = "myc/core/accountLifeCycle", key = "tokenSecret" } } # required -- secret
 
+# Gates the one-time staff bootstrap web flow (`/_adm/instance/bootstrap*`),
+# used to create the initial Staff account on a fresh autonomous deploy
+# without shelling into the container. Optional -- absent by default, which
+# keeps every bootstrap endpoint returning 404 unconditionally (opt-in).
+# Set this to enable the flow, then visit {domainUrl}/_adm/instance/bootstrap
+# with the same secret and the intended staff email.
+# staffBootstrapSecret = { vault = { path = "myc/core/accountLifeCycle", key = "staffBootstrapSecret" } }
+
 # ------------------------------------------------------------------------------
 # !!!!!! DEPLOYMENT WARNING -- HMAC key set is now MANDATORY !!!!!!
 #

@@ -10,6 +10,7 @@ pub mod health_check_info;
 pub mod http;
 pub mod http_secret;
 pub mod identity_source;
+pub mod instance_settings;
 pub mod message;
 pub mod native_error_codes;
 pub mod profile;

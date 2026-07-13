@@ -431,6 +431,7 @@ mod tests {
             ),
             hmac_primary_version: primary,
             hmac_secrets: HmacSecretSet::new(entries),
+            staff_bootstrap_secret: None,
         }
     }
 

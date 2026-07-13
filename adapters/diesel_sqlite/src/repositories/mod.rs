@@ -7,6 +7,7 @@ pub mod encryption_key;
 pub mod error_code;
 pub mod guest_role;
 pub mod guest_user;
+pub mod instance_settings;
 pub mod licensed_resources;
 pub mod message;
 pub mod profile;
@@ -24,6 +25,7 @@ use encryption_key::*;
 use error_code::*;
 use guest_role::*;
 use guest_user::*;
+use instance_settings::*;
 use licensed_resources::*;
 use message::*;
 use optional_written_by_parser::*;
@@ -67,6 +69,8 @@ module! {
             GuestUserOnAccountUpdatingSqlDbRepository,
             GuestUserOnAccountFetchingSqlDbRepository,
             GuestUserRegistrationSqlDbRepository,
+            InstanceSettingsFetchingSqlDbRepository,
+            InstanceSettingsRegistrationSqlDbRepository,
             ProfileFetchingSqlDbRepository,
             LicensedResourcesFetchingSqlDbRepository,
             LocalMessageReadSqlDbRepository,

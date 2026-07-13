@@ -1,4 +1,5 @@
 pub(crate) mod index;
+pub(crate) mod instance;
 pub(crate) mod manager;
 pub(crate) mod openid;
 pub(crate) mod role_scoped;

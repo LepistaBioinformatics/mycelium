@@ -61,6 +61,12 @@ locale = "en-us"
 # note above), this value is never read. Still a required key.
 tokenSecret = "replaced-at-boot-by-standalone-secret-resolution"
 
+# Gates the one-time staff bootstrap web flow (`/_adm/instance/bootstrap*`).
+# Optional -- absent by default, which keeps every bootstrap endpoint
+# returning 404 unconditionally (opt-in). Uncomment to test the flow
+# locally; a plain literal is fine for local/dev use.
+# staffBootstrapSecret = "dev-bootstrap-secret"
+
 # Which entry in `hmacSecrets` below is currently used to sign new
 # connection strings. Optional -- defaults to 1 if omitted (still requires
 # `hmacSecrets` to contain a matching `version = 1` entry).

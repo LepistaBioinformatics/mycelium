@@ -226,6 +226,17 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    instance_settings (key) {
+        key -> Text,
+        value -> Text,
+        created_by -> Nullable<Text>,
+        updated_by -> Nullable<Text>,
+        created -> Text,
+        updated -> Nullable<Text>,
+    }
+}
+
 diesel::joinable!(account -> tenant (tenant_id));
 diesel::joinable!(account_tag -> account (account_id));
 diesel::joinable!(guest_user -> guest_role (guest_role_id));
