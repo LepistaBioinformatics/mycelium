@@ -34,6 +34,16 @@
       text-transform: uppercase;
       margin-bottom: 20px;
     }
+    .error-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #fef2f2;
+      margin: 0 auto 16px;
+    }
     h1 {
       font-size: 22px;
       color: #ef4444;
@@ -49,6 +59,12 @@
 <body>
   <div class="card">
     <div class="brand">{{ domain_name }}</div>
+    <div class="error-badge">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="12" cy="12" r="8.5" stroke="#ef4444" stroke-width="1.6"/>
+        <path d="M12 8v4.5l3 2" stroke="#ef4444" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
     <h1>Link Invalid or Expired</h1>
     <p>
       This login link is invalid, has already been used, or has expired.<br/><br/>
