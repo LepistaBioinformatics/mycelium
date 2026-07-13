@@ -55,6 +55,7 @@ pub async fn dispatch_managers(
                 p.name,
                 actor,
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -82,6 +83,7 @@ pub async fn dispatch_managers(
                 p.name,
                 p.description,
                 p.owner_id,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
@@ -138,6 +140,7 @@ pub async fn dispatch_managers(
                 profile.to_profile(),
                 p.id,
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -152,6 +155,7 @@ pub async fn dispatch_managers(
                 p.id,
                 p.owner_id,
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -165,6 +169,7 @@ pub async fn dispatch_managers(
                 profile.to_profile(),
                 p.id,
                 p.owner_id,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
             .await

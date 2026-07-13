@@ -291,6 +291,7 @@ pub async fn create_default_user_url(
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
+        Box::new(&*sql_app_module.resolve_ref()),
     )
     .await
     {

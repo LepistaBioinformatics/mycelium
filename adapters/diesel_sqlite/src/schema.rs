@@ -118,6 +118,19 @@ diesel::table! {
 }
 
 diesel::table! {
+    resource_audit_log (id) {
+        id -> Text,
+        resource_type -> Text,
+        resource_id -> Text,
+        tenant_id -> Nullable<Text>,
+        event -> Text,
+        performed_by -> Text,
+        metadata -> Text,
+        created_at -> Text,
+    }
+}
+
+diesel::table! {
     tenant (id) {
         id -> Text,
         name -> Text,
@@ -263,6 +276,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     identity_provider,
     manager_account_on_tenant,
     owner_on_tenant,
+    resource_audit_log,
     tenant,
     tenant_tag,
     token,

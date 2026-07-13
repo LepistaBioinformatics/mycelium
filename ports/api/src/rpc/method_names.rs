@@ -14,6 +14,9 @@ pub const MANAGERS_TENANTS_INCLUDE_TENANT_OWNER: &str =
 pub const MANAGERS_TENANTS_EXCLUDE_TENANT_OWNER: &str =
     "managers.tenants.excludeTenantOwner";
 
+// Audit (shared, not role scoped)
+pub const AUDIT_RESOURCE_TRAIL_FETCH: &str = "audit.resourceTrail.fetch";
+
 // Account manager
 pub const ACCOUNT_MANAGER_GUESTS_GUEST_TO_CHILDREN_ACCOUNT: &str =
     "accountManager.guests.guestToChildrenAccount";

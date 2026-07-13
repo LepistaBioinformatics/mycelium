@@ -113,6 +113,7 @@ pub async fn create_tenant_meta_url(
         key.to_owned(),
         body.value.to_owned(),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -180,6 +181,7 @@ pub async fn delete_tenant_meta_url(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         key.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

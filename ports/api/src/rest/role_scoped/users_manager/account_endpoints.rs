@@ -87,6 +87,7 @@ pub async fn approve_account_url(
         true,
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -143,6 +144,7 @@ pub async fn disapprove_account_url(
         profile.to_profile(),
         path.to_owned(),
         false,
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
@@ -203,6 +205,7 @@ pub async fn activate_account_url(
         true,
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -259,6 +262,7 @@ pub async fn deactivate_account_url(
         profile.to_profile(),
         path.to_owned(),
         false,
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
@@ -318,6 +322,7 @@ pub async fn archive_account_url(
         true,
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -373,6 +378,7 @@ pub async fn unarchive_account_url(
         profile.to_profile(),
         path.to_owned(),
         false,
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )

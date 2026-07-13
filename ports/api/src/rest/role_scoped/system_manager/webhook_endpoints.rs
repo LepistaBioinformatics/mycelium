@@ -124,6 +124,7 @@ pub async fn crate_webhook_url(
         life_cycle_settings.get_ref().to_owned(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -238,6 +239,7 @@ pub async fn update_webhook_url(
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -289,6 +291,7 @@ pub async fn delete_webhook_url(
     match delete_webhook(
         profile.to_profile(),
         path.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

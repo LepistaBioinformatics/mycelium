@@ -1,4 +1,5 @@
 mod account_manager;
+mod audit;
 mod beginners;
 mod discovery;
 mod gateway_manager;
@@ -12,12 +13,13 @@ mod tenant_manager;
 mod tenant_owner;
 mod users_manager;
 
-/// All methods in order: discovery, managers, accountManager, gatewayManager,
-/// guestManager, subscriptionsManager, systemManager, tenantManager,
-/// tenantOwner, userManager, service, staff, beginners.
+/// All methods in order: discovery, managers, audit, accountManager,
+/// gatewayManager, guestManager, subscriptionsManager, systemManager,
+/// tenantManager, tenantOwner, userManager, service, staff, beginners.
 pub fn all_methods() -> Vec<serde_json::Value> {
     let mut out = vec![discovery::method()];
     out.extend(managers::methods());
+    out.extend(audit::methods());
     out.extend(account_manager::methods());
     out.extend(gateway_manager::methods());
     out.extend(guest_manager::methods());

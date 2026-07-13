@@ -1,11 +1,77 @@
 # State
 
-**Last Updated:** 2026-07-06
-**Current Work:** M3 — Standalone Mode (specified; branch `feat/standalone-mode`). M1 ongoing.
+**Last Updated:** 2026-07-13
+**Current Work:** Resource Audit Log — spec/design/tasks written 2026-07-13, awaiting user
+go-ahead to Execute (see block below). Standalone Mode G1-G9 done, not committed yet (awaiting
+user test/approval). M1 ongoing.
 
 ---
 
 ## Recent Decisions (Last 60 days)
+
+### AD-006: Resource Audit Log — scope, permission model, async mechanism (2026-07-13)
+
+**Decision:** New immutable `resource_audit_log` table records every create/update/delete on
+mycelium's own resources (**all domains except `error_code`**, confirmed with the user): `account`
+(covers every `AccountType` subtype including subscription/role-associated/tenant-manager —
+"subscription account" is not a separate resource_type, it's an `account` row with `tenant_id`
+populated), `account_meta`, `user`, `tenant`, `tenant_meta`, `guest_role`, `webhook`. Never audits
+downstream-service traffic (gateway-proxied requests) — mycelium-internal events only.
+
+**Read permission rule:** staff always; tenant-scoped resources → tenant owner/manager; personal
+resources → the resource's own account owner; global resources (`webhook`, no tenant/owner) →
+staff only. Confirmed explicitly with the user rather than assumed.
+
+**Async write mechanism:** bounded `tokio::sync::mpsc::channel` + a single background consumer
+task (new `resource_audit_log_dispatcher`, spawned in `main.rs` next to the existing
+`webhook_dispatcher`), not spawn-per-event. The port's `create()` does a non-blocking `try_send`
+and always returns `Ok(())` — audit failures are only traced, never propagated to the caller.
+Chosen over spawn-per-event specifically to preserve insertion order and avoid audit writes
+competing with request-path code for the same r2d2 pool.
+
+**Immutability:** two independent layers — no `Updating`/`Deletion` port exists in code (only
+`ResourceAuditLogRegistration` + `ResourceAuditLogFetching`), AND a DB trigger rejects
+`UPDATE`/`DELETE` regardless of who connects (code-only enforcement is bypassable via direct DB
+access, and the app's DB role likely owns the table so `REVOKE` alone would be illusory).
+
+**Index for the dominant read** (`WHERE resource_id = ? ORDER BY created_at DESC`):
+`(resource_id, created_at DESC)` — deliberately NOT led by `resource_type`, since `resource_id`
+(a UUID) alone already narrows correctly; `telegram_identity_audit`
+(`adapters/diesel_postgres/sql/up.sql:417-431`) is the closest existing schema/index precedent,
+though it's dead SQL today (no Diesel model/consumer).
+
+**Backend parity requirement:** both `myc_diesel` (Postgres) and `myc_diesel_sqlite` (standalone)
+need the port implementation — `active_backend_modules.rs` cfg-gates between them, so a
+postgres-only port would break the `standalone` feature build.
+
+**Spec:** `.claude/specs/features/audit-log/` (spec.md + design.md + tasks.md — 52 tasks; P1 =
+`account` domain vertical slice, P2 = `tenant`+`guest_role`, P3 = `user`+`webhook`+
+`account_meta`+`tenant_meta`).
+
+**Execute — done, 2026-07-13.** All 52 tasks implemented via ~20 parallel/sequential subagent
+dispatches (foundation → adapters/dispatcher/main.rs wiring → 7 instrumentation lanes + REST/RPC
+endpoint). Final gate, all green: `cargo fmt --all -- --check`, `cargo build --workspace`,
+`cargo build -p mycelium-api --no-default-features --features standalone`, `cargo test --workspace
+--all` (331 `myc-core` tests + all other crates, 0 failed). Not committed — awaiting user manual
+test/approval per `commit-validation.md`. Currently on branch `feat/staff-bootstrap` (pre-existing
+checkout, not changed by this work).
+
+**Correctness fix found and applied mid-execution:** the spec's edge case "only confirmed
+successful mutations are audited" was violated in 5 of the 41 instrumented use cases (all in the
+`*_meta` domains) — `emit_resource_audit_event` was called unconditionally after `?`, so an
+`Ok(NotCreated/NotUpdated/NotDeleted)` response (the write did NOT happen) still logged a
+`Created`/`Updated`/`Deleted` event. Fixed by gating the emit call inside the genuine success match
+arm only; a dedicated sweep confirmed all other 36 files were already correct.
+
+**Incident found and resolved mid-execution:** one of ~10 concurrently-dispatched subagents ran
+`git stash` on this shared (non-worktree) working tree to "isolate" its own testing, hiding ~4000
+lines of 5 other lanes' uncommitted work. Diagnosed via `git diff stash@{N} -- <file>` per file;
+24/26 stashed files were byte-identical to the working tree (redundant, safely dropped), 3 files
+(user lane) were genuinely reverted and restored via `git checkout stash@{N} -- <file>`, 2 files
+(guest_role/webhook) had independently-recreated duplicate instrumentation and the working-tree
+version was kept. Stash dropped once fully reconciled. **Standing rule going forward: any
+multi-agent dispatch that edits a shared working tree must explicitly forbid `git stash`/`checkout
+--`/`reset` in every agent prompt** — see auto-memory `feedback_no_git_stash_in_parallel_agents`.
 
 ### AD-005: Standalone mode is a compile-time feature, not a runtime `mode` flag (2026-07-06)
 

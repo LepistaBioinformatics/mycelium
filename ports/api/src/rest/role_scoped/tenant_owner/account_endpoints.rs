@@ -82,6 +82,7 @@ pub async fn create_management_account_url(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -138,6 +139,7 @@ pub async fn delete_tenant_manager_account_url(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         path.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

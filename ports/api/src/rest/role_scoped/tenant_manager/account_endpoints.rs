@@ -78,6 +78,7 @@ pub async fn create_subscription_manager_account_url(
         tenant.tenant_id().to_owned(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -141,6 +142,7 @@ pub async fn delete_subscription_account_url(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
         account_id,
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )

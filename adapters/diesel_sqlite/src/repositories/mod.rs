@@ -11,6 +11,7 @@ pub mod instance_settings;
 pub mod licensed_resources;
 pub mod message;
 pub mod profile;
+pub mod resource_audit_log;
 pub mod tenant;
 pub mod tenant_tag;
 pub mod token;
@@ -30,6 +31,7 @@ use licensed_resources::*;
 use message::*;
 use optional_written_by_parser::*;
 use profile::*;
+use resource_audit_log::*;
 use tenant::*;
 use tenant_tag::*;
 use token::*;
@@ -75,6 +77,8 @@ module! {
             LicensedResourcesFetchingSqlDbRepository,
             LocalMessageReadSqlDbRepository,
             LocalMessageWriteSqlDbRepository,
+            ResourceAuditLogFetchingSqlDbRepository,
+            ResourceAuditLogRegistrationSqlDbRepository,
             TenantDeletionSqlDbRepository,
             TenantFetchingSqlDbRepository,
             TenantRegistrationSqlDbRepository,

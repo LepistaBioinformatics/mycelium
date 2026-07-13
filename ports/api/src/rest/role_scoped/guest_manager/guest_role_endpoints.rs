@@ -125,6 +125,7 @@ pub async fn crate_guest_role_url(
         json.permission.to_owned(),
         json.system,
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -236,6 +237,7 @@ pub async fn delete_guest_role_url(
         profile.to_profile(),
         path.to_owned(),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -296,6 +298,7 @@ pub async fn update_guest_role_name_and_description_url(
         path.to_owned(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -353,6 +356,7 @@ pub async fn update_guest_role_permissions_url(
         profile.to_profile(),
         path.to_owned(),
         body.permission.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
@@ -416,6 +420,7 @@ pub async fn insert_role_child_url(
         child_id,
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -475,6 +480,7 @@ pub async fn remove_role_child_url(
         profile.to_profile(),
         guest_role_id,
         child_id,
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

@@ -179,6 +179,7 @@ pub async fn dispatch_system_manager(
                 life_cycle.to_owned(),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -234,6 +235,7 @@ pub async fn dispatch_system_manager(
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -246,6 +248,7 @@ pub async fn dispatch_system_manager(
             let result = delete_webhook(
                 profile.to_profile(),
                 p.webhook_id,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
             .await
