@@ -103,12 +103,36 @@ fn provision_and_persist_dek(
     let aad = tid.as_bytes();
     let wrapped = wrap_dek(&dek, kek, aad)?;
 
-    diesel::update(tenant_dsl::tenant.filter(tenant_model::id.eq(tid)))
-        .set(tenant_model::encrypted_dek.eq(&wrapped))
-        .execute(conn)
+    // Only the first concurrent caller wins provisioning: the NULL guard makes
+    // a racing second caller a no-op instead of rekeying (and thus orphaning)
+    // an already-provisioned DEK.
+    let updated = diesel::update(
+        tenant_dsl::tenant
+            .filter(tenant_model::id.eq(tid))
+            .filter(tenant_model::encrypted_dek.is_null()),
+    )
+    .set(tenant_model::encrypted_dek.eq(&wrapped))
+    .execute(conn)
+    .map_err(|e| {
+        updating_err(format!("Failed to persist DEK for tenant {tid}: {e}"))
+    })?;
+
+    if updated == 1 {
+        return Ok(dek);
+    }
+
+    // A concurrent caller already provisioned (or the row vanished): read and
+    // unwrap the authoritative persisted key rather than returning ours.
+    let wrapped_existing = tenant_dsl::tenant
+        .filter(tenant_model::id.eq(tid))
+        .select(tenant_model::encrypted_dek)
+        .first::<Option<String>>(conn)
         .map_err(|e| {
-            updating_err(format!("Failed to persist DEK for tenant {tid}: {e}"))
+            fetching_err(format!("Failed to re-fetch tenant DEK row: {e}"))
+        })?
+        .ok_or_else(|| {
+            fetching_err(format!("Tenant not found: {tid}")).with_exp_true()
         })?;
 
-    Ok(dek)
+    unwrap_dek(&wrapped_existing, kek, aad)
 }

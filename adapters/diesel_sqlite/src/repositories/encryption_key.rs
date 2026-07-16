@@ -112,14 +112,38 @@ fn provision_and_persist_dek(
     let aad = tid.as_bytes();
     let wrapped = wrap_dek(&dek, kek, aad)?;
 
-    diesel::update(tenant_dsl::tenant.filter(tenant::id.eq(tid_text)))
-        .set(tenant::encrypted_dek.eq(&wrapped))
-        .execute(conn)
+    // Only the first concurrent caller wins provisioning: the NULL guard makes
+    // a racing second caller a no-op instead of rekeying (and thus orphaning)
+    // an already-provisioned DEK.
+    let updated = diesel::update(
+        tenant_dsl::tenant
+            .filter(tenant::id.eq(tid_text))
+            .filter(tenant::encrypted_dek.is_null()),
+    )
+    .set(tenant::encrypted_dek.eq(&wrapped))
+    .execute(conn)
+    .map_err(|e| {
+        updating_err(format!("Failed to persist DEK for tenant {tid}: {e}"))
+    })?;
+
+    if updated == 1 {
+        return Ok(dek);
+    }
+
+    // A concurrent caller already provisioned (or the row vanished): read and
+    // unwrap the authoritative persisted key rather than returning ours.
+    let wrapped_existing = tenant_dsl::tenant
+        .filter(tenant::id.eq(tid_text))
+        .select(tenant::encrypted_dek)
+        .first::<Option<String>>(conn)
         .map_err(|e| {
-            updating_err(format!("Failed to persist DEK for tenant {tid}: {e}"))
+            fetching_err(format!("Failed to re-fetch tenant DEK row: {e}"))
+        })?
+        .ok_or_else(|| {
+            fetching_err(format!("Tenant not found: {tid}")).with_exp_true()
         })?;
 
-    Ok(dek)
+    unwrap_dek(&wrapped_existing, kek, aad)
 }
 
 // ? ---------------------------------------------------------------------------
@@ -199,6 +223,39 @@ mod tests {
         // The DEK is stable across calls once provisioned.
         let second_dek = fetching.get_or_provision_dek(None, &kek).await?;
         assert_eq!(first_dek, second_dek);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn provision_and_persist_dek_does_not_overwrite_existing(
+    ) -> Result<(), MappedErrors> {
+        // A second provisioning attempt (e.g. a concurrent caller) must not
+        // rekey an already-provisioned DEK -- it re-reads and returns the
+        // persisted one.
+        let db = setup_temp_db();
+        let kek = [5u8; 32];
+        let tid_text = uuid_to_text(&SYSTEM_TENANT_ID);
+
+        let conn = &mut db.provider.get_pool().get().unwrap();
+        diesel::insert_into(tenant::table)
+            .values((
+                tenant::id.eq(&tid_text),
+                tenant::name.eq(SYSTEM_TENANT_NAME),
+                tenant::created.eq(naive_timestamp_to_text(
+                    &chrono::Utc::now().naive_utc(),
+                )),
+                tenant::kek_version.eq(1),
+            ))
+            .execute(conn)
+            .unwrap();
+
+        let first =
+            provision_and_persist_dek(conn, &tid_text, SYSTEM_TENANT_ID, &kek)?;
+        let second =
+            provision_and_persist_dek(conn, &tid_text, SYSTEM_TENANT_ID, &kek)?;
+
+        assert_eq!(first, second);
 
         Ok(())
     }
