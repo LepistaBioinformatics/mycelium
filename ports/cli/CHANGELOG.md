@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - *(audit)* Add immutable resource audit log for mycelium-internal writes
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.5
+
 ## [9.0.0-rc.4] - 2026-07-13
 
 ### 🚀 Features

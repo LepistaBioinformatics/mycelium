@@ -2,11 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0-rc.6] - 2026-07-16
+
+### 🐛 Bug Fixes
+
+- *(encryption)* Self-heal missing system tenant DEK row
+- *(encryption)* Make DEK provisioning idempotent under concurrency
+- *(encryption)* Set created explicitly on Postgres system tenant insert
+
 ## [9.0.0-rc.5] - 2026-07-13
 
 ### 🚀 Features
 
 - *(audit)* Add immutable resource audit log for mycelium-internal writes
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.5
 
 ## [9.0.0-rc.4] - 2026-07-13
 
