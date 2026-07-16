@@ -82,6 +82,7 @@ fn provision_missing_tenant_dek(
         .values((
             tenant_model::id.eq(tid),
             tenant_model::name.eq(SYSTEM_TENANT_NAME),
+            tenant_model::created.eq(chrono::Utc::now()),
             tenant_model::kek_version.eq(1),
         ))
         .on_conflict(tenant_model::id)
