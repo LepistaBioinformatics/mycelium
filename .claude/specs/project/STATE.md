@@ -1,6 +1,6 @@
 # State
 
-**Last Updated:** 2026-07-13
+**Last Updated:** 2026-07-16
 **Current Work:** Resource Audit Log — spec/design/tasks written 2026-07-13, awaiting user
 go-ahead to Execute (see block below). Standalone Mode G1-G9 done, not committed yet (awaiting
 user test/approval). M1 ongoing.
@@ -767,6 +767,19 @@ as-is, never renamed. See `docs/book/src/08-release-process.md` for the full rel
 
 ## Todos
 
+- **Tenant-scoped webhook dispatch** — spec written 2026-07-16 at
+  `features/webhook-tenant-scope/spec.md` (Specify phase only; Design/Tasks pending). Fixes a
+  cross-tenant leak: today webhooks have **no** tenant association (`WebHook` DTO, Diesel model,
+  `webhook` table — none carry `tenant_id`), and `dispatch_webhooks`→`list_by_trigger` filters only
+  by trigger+is_active, so a `SubscriptionAccount*` event for tenant A reaches every tenant's hooks.
+  User decisions: (1) nullable `tenant_id` coexistence (NULL = global, current behavior preserved);
+  (2) tenant owner/manager + staff can register (owners/managers forced to own tenant, staff
+  unrestricted); (3) existing hooks → global, zero backfill; (4) only the three `SubscriptionAccount*`
+  triggers get tenant-aware dispatch — `UserAccount*` dispatch to **global-only** hooks (leak-safe).
+  Two schema migrations per backend: `webhook.tenant_id` AND `webhook_execution.tenant_id` (the async
+  artifact must persist its scoping tenant — `trigger` is already a real column on both, precedent
+  followed). 14 requirements (WTS-01..14); P1 = dispatch isolation, P2 = owner/manager self-service +
+  leak-guard validation, P3 = observability.
 - **Release pipeline hardening** — spec/design/tasks at `features/release-pipeline-hardening/` (2026-07-06, design 2026-07-11). Workflow YAML implemented: GitHub Release automation (`docker-release.yml`'s new `github-release` job), OIDC Trusted Publishing wiring (`rust-lang/crates-io-auth-action`, `CARGO_REGISTRY_TOKEN` kept as fallback), the `workflow_dispatch` ref bug (`docker-release.yml` checkout had no `ref:` at all), build provenance attestation + cosign keyless signing, third-party actions pinned to commit SHA, and a `custom_version` input on `release-prerelease.yml` for the 9.0.0-rc.1 major-bump edge case cargo-release's LEVEL keywords can't express. **Still open (external, can't be done from code):** configure crates.io Trusted Publishing per-crate (15 crates), create the GitHub `release` Environment with required reviewers, remove `CARGO_REGISTRY_TOKEN` only after an RC proves OIDC works end-to-end. See `tasks.md` for the full 🤖/🧑 split.
 - Retroactively create GitHub Releases for `8.3.0`+ tags and publish/discard the stale `8.3.1-rc.2` Draft.
 
