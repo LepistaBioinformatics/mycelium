@@ -8,7 +8,10 @@ use diesel::prelude::*;
 use myc_core::domain::{
     dtos::native_error_codes::NativeErrorCodes,
     entities::EncryptionKeyFetching,
-    utils::{generate_dek, unwrap_dek, wrap_dek, SYSTEM_TENANT_ID},
+    utils::{
+        generate_dek, unwrap_dek, wrap_dek, SYSTEM_TENANT_ID,
+        SYSTEM_TENANT_NAME,
+    },
 };
 use mycelium_base::utils::errors::{fetching_err, updating_err, MappedErrors};
 use shaku::Component;
@@ -43,10 +46,11 @@ impl EncryptionKeyFetching for EncryptionKeyFetchingSqlDbRepository {
             .optional()
             .map_err(|e| {
                 fetching_err(format!("Failed to fetch tenant DEK row: {e}"))
-            })?
-            .ok_or_else(|| {
-                fetching_err(format!("Tenant not found: {tid}")).with_exp_true()
             })?;
+
+        let Some(record) = record else {
+            return provision_missing_tenant_dek(conn, tid, kek);
+        };
 
         if let Some(wrapped) = record.encrypted_dek {
             let aad = tid.as_bytes();
@@ -55,6 +59,40 @@ impl EncryptionKeyFetching for EncryptionKeyFetchingSqlDbRepository {
 
         provision_and_persist_dek(conn, tid, kek)
     }
+}
+
+/// Provision a DEK for a tenant row that was not found.
+///
+/// The system tenant (`Uuid::nil`) is an infrastructure sentinel that stores
+/// the DEK used to encrypt tenant-less secrets (e.g. webhook secrets). It is
+/// not seeded by any migration, so on a fresh database it is created here on
+/// first use. A missing *real* tenant remains a genuine error.
+fn provision_missing_tenant_dek(
+    conn: &mut diesel::PgConnection,
+    tid: Uuid,
+    kek: &[u8; 32],
+) -> Result<[u8; 32], MappedErrors> {
+    if tid != SYSTEM_TENANT_ID {
+        return fetching_err(format!("Tenant not found: {tid}"))
+            .with_exp_true()
+            .as_error();
+    }
+
+    diesel::insert_into(tenant_dsl::tenant)
+        .values((
+            tenant_model::id.eq(tid),
+            tenant_model::name.eq(SYSTEM_TENANT_NAME),
+            tenant_model::created.eq(chrono::Utc::now()),
+            tenant_model::kek_version.eq(1),
+        ))
+        .on_conflict(tenant_model::id)
+        .do_nothing()
+        .execute(conn)
+        .map_err(|e| {
+            updating_err(format!("Failed to seed system tenant row: {e}"))
+        })?;
+
+    provision_and_persist_dek(conn, tid, kek)
 }
 
 fn provision_and_persist_dek(
@@ -66,12 +104,36 @@ fn provision_and_persist_dek(
     let aad = tid.as_bytes();
     let wrapped = wrap_dek(&dek, kek, aad)?;
 
-    diesel::update(tenant_dsl::tenant.filter(tenant_model::id.eq(tid)))
-        .set(tenant_model::encrypted_dek.eq(&wrapped))
-        .execute(conn)
+    // Only the first concurrent caller wins provisioning: the NULL guard makes
+    // a racing second caller a no-op instead of rekeying (and thus orphaning)
+    // an already-provisioned DEK.
+    let updated = diesel::update(
+        tenant_dsl::tenant
+            .filter(tenant_model::id.eq(tid))
+            .filter(tenant_model::encrypted_dek.is_null()),
+    )
+    .set(tenant_model::encrypted_dek.eq(&wrapped))
+    .execute(conn)
+    .map_err(|e| {
+        updating_err(format!("Failed to persist DEK for tenant {tid}: {e}"))
+    })?;
+
+    if updated == 1 {
+        return Ok(dek);
+    }
+
+    // A concurrent caller already provisioned (or the row vanished): read and
+    // unwrap the authoritative persisted key rather than returning ours.
+    let wrapped_existing = tenant_dsl::tenant
+        .filter(tenant_model::id.eq(tid))
+        .select(tenant_model::encrypted_dek)
+        .first::<Option<String>>(conn)
         .map_err(|e| {
-            updating_err(format!("Failed to persist DEK for tenant {tid}: {e}"))
+            fetching_err(format!("Failed to re-fetch tenant DEK row: {e}"))
+        })?
+        .ok_or_else(|| {
+            fetching_err(format!("Tenant not found: {tid}")).with_exp_true()
         })?;
 
-    Ok(dek)
+    unwrap_dek(&wrapped_existing, kek, aad)
 }
