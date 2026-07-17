@@ -82,4 +82,29 @@ mod tests {
 
         let _ = fs::remove_dir_all(&base);
     }
+
+    // Guards the exact `[localEmail.define]` shape documented in the example
+    // config against future serde-tag surprises (`OptionalConfig`'s `Enabled`
+    // is aliased to `define`/`set`, not a bare table).
+    #[test]
+    fn define_table_shape_resolves_to_enabled() {
+        use std::io::Write;
+
+        let file = std::env::temp_dir()
+            .join(format!("myc_local_email_cfg_{}.toml", Uuid::new_v4()));
+        let mut handle = fs::File::create(&file).unwrap();
+        handle
+            .write_all(b"[localEmail.define]\ndir = \"/tmp/myc-emails\"\n")
+            .unwrap();
+
+        let resolved =
+            LocalEmailConfig::from_optional_config_file(file.clone()).unwrap();
+
+        let OptionalConfig::Enabled(config) = resolved else {
+            panic!("[localEmail.define] should resolve to Enabled");
+        };
+        assert_eq!(config.dir, PathBuf::from("/tmp/myc-emails"));
+
+        let _ = fs::remove_file(&file);
+    }
 }

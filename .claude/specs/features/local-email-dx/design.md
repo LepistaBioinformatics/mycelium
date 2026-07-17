@@ -73,10 +73,12 @@ stdout — the `send` path just `println!`s its return value.
 
 ### Config shape (DEC-4)
 
-New `[localEmail]` table in standalone config, one optional field:
+New `[localEmail]` table in standalone config, one optional field. Because it resolves to an
+`OptionalConfig` (externally tagged, `Enabled` aliased to `define`/`set`), the directory lives
+under the `.define` sub-table — same convention as `[auth.internal.define]`:
 
 ```toml
-[localEmail]
+[localEmail.define]
 dir = "./data/emails"
 ```
 
@@ -139,7 +141,7 @@ Update the "documented fast-follow" comment to reflect that file wiring now exis
 
 ### Tests (FT)
 
-- `config_handler.rs` standalone test: a config with `[localEmail] dir = ...` → `init_from_file`
+- `config_handler.rs` standalone test: a config with `[localEmail.define] dir = ...` → `init_from_file`
   → `local_email` is `Enabled` → `select_local_transport(None, Some(dir))` is
   `LocalTransportKind::File`. (FT-R6 / DEC-5.)
 - Existing `config_standalone_example_toml_parses_into_config_handler` must still pass with the

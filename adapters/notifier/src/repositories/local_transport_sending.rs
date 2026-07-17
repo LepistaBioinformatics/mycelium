@@ -1,6 +1,6 @@
 #![cfg(feature = "local-transport")]
 
-use crate::repositories::render_stub_email_for_terminal::render_stub_email_for_terminal;
+use crate::rendering::render_stub_email_for_terminal;
 use crate::repositories::shared::build_lettre_message;
 
 use async_trait::async_trait;
