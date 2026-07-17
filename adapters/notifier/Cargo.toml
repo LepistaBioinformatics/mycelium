@@ -19,12 +19,13 @@ readme.workspace = true
 # (always available, no extra lettre feature) and `FileTransport` (write
 # `.eml` files, requires lettre's `file-transport`). Full mode keeps `lettre`
 # featureless and unchanged (SM-R14).
-local-transport = ["lettre/file-transport"]
+local-transport = ["lettre/file-transport", "dep:html2text"]
 
 [dependencies]
 
 async-trait.workspace = true
 chrono.workspace = true
+html2text = { workspace = true, optional = true }
 lazy_static.workspace = true
 lettre.workspace = true
 redis.workspace = true

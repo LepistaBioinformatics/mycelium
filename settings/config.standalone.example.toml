@@ -139,9 +139,10 @@ path = "./data/mycelium.db"
 # ------------------------------------------------------------------------------
 # SMTP SETTINGS (optional -- opt-in real email delivery)
 #
-# Absent by default: the standalone build then falls back to the stub
-# transport (logs subject/recipient/body, including the magic-link URL, to
-# stdout) or the file transport (`.eml` files). Uncomment and fill in to send
+# Absent by default: the standalone build then falls back to the file
+# transport (see `[localEmail]` below) or, if that is also absent, the stub
+# transport, which renders each email (subject/recipient/links/body, including
+# the magic-link URL) human-readably to stdout. Uncomment and fill in to send
 # real email from a standalone build without needing full mode's
 # Postgres/Redis/Vault. `port`/`host`/`username`/`password` accept the same
 # secret-resolver shapes as full mode (plain value, `{ env = "..." }`). All
@@ -153,6 +154,22 @@ path = "./data/mycelium.db"
 # username = "apikey"
 # password = { env = "MYC_SMTP_PASSWORD" }
 # port = 587
+
+# ------------------------------------------------------------------------------
+# LOCAL FILE EMAIL DELIVERY (optional -- opt-in `.eml` files)
+#
+# Absent by default. When set, undelivered mail is written as one `.eml` file
+# per message under `dir` (created if needed) instead of being rendered to the
+# terminal by the stub. Handy for local dev / CI / demo when you want to
+# inspect emails without a real SMTP server or grepping logs. Selection
+# precedence is SMTP > File > Stub: if `[smtp]` above is enabled it wins, so
+# leave it commented to exercise file delivery. Note the `.define` table shape
+# -- `[localEmail]` wraps an `OptionalConfig`, so the directory lives under
+# `[localEmail.define]` (same convention as `[auth.internal.define]` below).
+# ------------------------------------------------------------------------------
+
+# [localEmail.define]
+# dir = "./data/emails"
 
 # ------------------------------------------------------------------------------
 # AUTHENTICATION SETTINGS

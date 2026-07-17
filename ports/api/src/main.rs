@@ -1205,10 +1205,10 @@ async fn initialize_modules(
     //
     // Real SMTP is opt-in in standalone (SM-R8): if `[smtp]` is configured,
     // resolve a real `SmtpTransport` and let `select_local_transport`'s
-    // existing SMTP > file > stub precedence pick it up; otherwise (the
-    // common zero-config case) it falls through to the stub (log-only)
-    // transport, same as before. File-transport configuration wiring remains
-    // a documented fast-follow.
+    // existing SMTP > file > stub precedence pick it up. If instead
+    // `[localEmail]` sets a directory (issue #169), mail is written as `.eml`
+    // files there; otherwise (the common zero-config case) it falls through to
+    // the stub, which renders each email human-readably to the terminal.
     // ? -----------------------------------------------------------------------
     let smtp_transport = match config.smtp.to_owned() {
         OptionalConfig::Enabled(smtp_config) => {
@@ -1220,11 +1220,26 @@ async fn initialize_modules(
         OptionalConfig::Disabled => None,
     };
 
+    let local_email_dir = match config.local_email.to_owned() {
+        OptionalConfig::Enabled(local_email_config) => {
+            match local_email_config.ensure_dir() {
+                Ok(dir) => Some(dir),
+                Err(err) => {
+                    panic!("Error preparing local email dir: {err}")
+                }
+            }
+        }
+        OptionalConfig::Disabled => None,
+    };
+
     let notifier_module = Arc::new(
         LocalNotifierAppModule::builder()
             .with_component_parameters::<LocalTransportMessageSendingRepository>(
                 LocalTransportMessageSendingRepositoryParameters {
-                    transport: select_local_transport(smtp_transport, None),
+                    transport: select_local_transport(
+                        smtp_transport,
+                        local_email_dir,
+                    ),
                 },
             )
             .build(),

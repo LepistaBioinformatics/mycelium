@@ -1,5 +1,6 @@
 #![cfg(feature = "local-transport")]
 
+use crate::rendering::render_stub_email_for_terminal;
 use crate::repositories::shared::build_lettre_message;
 
 use async_trait::async_trait;
@@ -71,13 +72,13 @@ impl RemoteMessageWrite for LocalTransportMessageSendingRepository {
 
         match sent {
             Ok(_) => {
+                // The stub never delivers -- render the message as a
+                // human-friendly block on stdout so a developer can read a
+                // magic-link code straight from the terminal. Deliberately
+                // bypasses `tracing` (log level/format, SigNoz export): this
+                // is a local-dev affordance, not observability signal.
                 if matches!(self.transport, LocalTransportKind::Stub(_)) {
-                    tracing::info!(
-                        subject = %message.subject,
-                        to = %message.to.email(),
-                        body = %message.body,
-                        "Stub transport: email not actually delivered",
-                    );
+                    println!("{}", render_stub_email_for_terminal(&message));
                 }
 
                 Ok(CreateResponseKind::Created(None))
@@ -93,7 +94,6 @@ impl RemoteMessageWrite for LocalTransportMessageSendingRepository {
 mod tests {
     use super::*;
     use myc_core::domain::dtos::{email::Email, message::FromEmail};
-    use std::sync::{Arc, Mutex};
 
     #[test]
     fn smtp_takes_precedence_when_configured() {
@@ -132,36 +132,11 @@ mod tests {
         }
     }
 
-    #[derive(Clone)]
-    struct SharedBufWriter(Arc<Mutex<Vec<u8>>>);
-
-    impl std::io::Write for SharedBufWriter {
-        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-            self.0.lock().unwrap().extend_from_slice(buf);
-            Ok(buf.len())
-        }
-
-        fn flush(&mut self) -> std::io::Result<()> {
-            Ok(())
-        }
-    }
-
-    impl<'a> tracing_subscriber::fmt::MakeWriter<'a> for SharedBufWriter {
-        type Writer = Self;
-
-        fn make_writer(&'a self) -> Self::Writer {
-            self.clone()
-        }
-    }
-
+    // Terminal rendering of the stub email is covered by
+    // `render_stub_email_for_terminal`'s own unit tests; here we only assert
+    // the stub send path succeeds (it prints to stdout, not `tracing`).
     #[tokio::test]
-    async fn stub_transport_logs_body_including_magic_link() {
-        let buf = Arc::new(Mutex::new(Vec::new()));
-        let subscriber = tracing_subscriber::fmt()
-            .with_writer(SharedBufWriter(buf.clone()))
-            .with_ansi(false)
-            .finish();
-
+    async fn stub_transport_send_succeeds() {
         let repo = LocalTransportMessageSendingRepository {
             transport: LocalTransportKind::Stub(StubTransport::new_ok()),
         };
@@ -169,16 +144,7 @@ mod tests {
         let message =
             sample_message("Click https://mycelium.com/magic-link/abc123");
 
-        let dispatch = tracing::Dispatch::new(subscriber);
-        let _guard = tracing::dispatcher::set_default(&dispatch);
-
         repo.send(message).await.unwrap();
-
-        drop(_guard);
-
-        let output = String::from_utf8(buf.lock().unwrap().clone()).unwrap();
-        assert!(output.contains("https://mycelium.com/magic-link/abc123"));
-        assert!(output.contains("user@mycelium.com"));
     }
 
     #[tokio::test]
