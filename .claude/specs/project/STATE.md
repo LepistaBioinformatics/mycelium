@@ -1,13 +1,38 @@
 # State
 
-**Last Updated:** 2026-07-13
-**Current Work:** Resource Audit Log — spec/design/tasks written 2026-07-13, awaiting user
-go-ahead to Execute (see block below). Standalone Mode G1-G9 done, not committed yet (awaiting
-user test/approval). M1 ongoing.
+**Last Updated:** 2026-07-17
+**Current Work:** Local Email DX (`features/local-email-dx/`) — implemented on branch
+`feat/stub-pretty-render-and-file-transport`, all gates green, **awaiting user UAT before commit**
+(see AD-007). Resource Audit Log — spec/design/tasks written 2026-07-13, awaiting user go-ahead to
+Execute (see block below). Standalone Mode G1-G9 done, not committed yet. M1 ongoing.
 
 ---
 
 ## Recent Decisions (Last 60 days)
+
+### AD-007: Local Email DX — stub terminal render + file-transport wiring (2026-07-17)
+
+**Feature:** `features/local-email-dx/` (spec/design/tasks). Branch
+`feat/stub-pretty-render-and-file-transport`. Two independent threads, one PR:
+
+- **Thread A (stub render):** the standalone stub transport now renders each undelivered email as a
+  bordered, human-readable block to **stdout** via `println!` (not `tracing` — deliberately kept out
+  of structured logs/SigNoz, DEC-1). HTML→text via the new **`html2text`** workspace dep, compiled
+  only under the notifier's `local-transport` feature (never in postgres-backend). Renderer lives in
+  its own file `render_stub_email_for_terminal.rs`; links surfaced at the top, copyable.
+- **Thread B (issue #169):** new opt-in `[localEmail.define] dir = "..."` config
+  (`OptionalConfig<LocalEmailConfig>`, standalone-only), wired through `ConfigHandler` into
+  `select_local_transport(smtp, file_dir)` in `main.rs`, replacing the hardcoded `None`. Precedence
+  unchanged (SMTP > File > Stub). Enable-shape is `.define` (OptionalConfig external tag), same as
+  `[auth.internal.define]`. **Gotcha caught in review:** lettre's `FileTransport::new` does *not*
+  create the target dir (it `fs::write`s per send and errors if missing) — so `LocalEmailConfig`
+  gained `ensure_dir()` (create_dir_all), called from `main.rs` before wiring, matching sqlite's
+  "created on first boot" convention.
+
+**Gates:** all green — `fmt --check`, workspace build+test (29 bins), standalone build+test (api 24,
+notifier local-transport 14), `html2text` confirmed absent from the default build tree.
+**Status:** implemented, **not committed** (awaiting user UAT per commit-validation rule).
+CHANGELOG left to git-cliff (conventional commit will drive it).
 
 ### AD-006: Resource Audit Log — scope, permission model, async mechanism (2026-07-13)
 

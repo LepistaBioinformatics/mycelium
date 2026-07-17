@@ -6,6 +6,8 @@ mod local_message_sending;
 #[cfg(feature = "local-transport")]
 mod local_transport_sending;
 mod remote_message_sending;
+#[cfg(feature = "local-transport")]
+mod render_stub_email_for_terminal;
 pub(crate) mod shared;
 
 pub use config::*;
