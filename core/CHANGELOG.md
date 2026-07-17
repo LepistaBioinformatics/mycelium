@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - *(encryption)* Self-heal missing system tenant DEK row
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.6
+
 ## [9.0.0-rc.5] - 2026-07-13
 
 ### 🚀 Features

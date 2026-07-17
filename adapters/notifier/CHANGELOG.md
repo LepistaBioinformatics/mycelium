@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0-rc.7] - 2026-07-17
+
+### 🚀 Features
+
+- *(notifier)* Human-friendly stub email render + wire file transport (#169)
+
+### 🚜 Refactor
+
+- *(notifier)* Address DeepSeek review on #173
+
+## [9.0.0-rc.6] - 2026-07-16
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.6
+
 ## [9.0.0-rc.5] - 2026-07-13
 
 ### ⚙️ Miscellaneous Tasks
