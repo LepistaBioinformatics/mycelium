@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-07-11T18:34:58-03:00\n"
+"POT-Creation-Date: 2026-07-22T17:17:27-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -43,96 +43,110 @@ msgstr "Implantação"
 msgid "Deploy Locally"
 msgstr "Implantação Local"
 
-#: src/SUMMARY.md:14 src/23-standalone-mode.md:1
+#: src/SUMMARY.md:14 src/24-deployment-modes.md:1
+#, fuzzy
+msgid "Deployment Modes"
+msgstr "Implantação"
+
+#: src/SUMMARY.md:15 src/25-full-mode.md:1
+#, fuzzy
+msgid "Full Mode"
+msgstr "Jornada completa"
+
+#: src/SUMMARY.md:16 src/26-postgres-only-mode.md:1
+msgid "Postgres-Only Mode"
+msgstr ""
+
+#: src/SUMMARY.md:17 src/23-standalone-mode.md:1
 #, fuzzy
 msgid "Standalone Mode"
 msgstr "Códigos de erro padrão:"
 
-#: src/SUMMARY.md:16
+#: src/SUMMARY.md:19
 msgid "Core Concepts"
 msgstr "Conceitos Fundamentais"
 
-#: src/SUMMARY.md:18 src/01-authorization.md:1
+#: src/SUMMARY.md:21 src/01-authorization.md:1
 msgid "Authorization Model"
 msgstr "Modelo de Autorização"
 
-#: src/SUMMARY.md:19 src/11-authentication-flows.md:1
+#: src/SUMMARY.md:22 src/11-authentication-flows.md:1
 msgid "Authentication Flows"
 msgstr "Fluxos de Autenticação"
 
-#: src/SUMMARY.md:20 src/15-account-types.md:1
+#: src/SUMMARY.md:23 src/15-account-types.md:1
 msgid "Account Types and Roles"
 msgstr "Tipos de Conta e Papéis"
 
-#: src/SUMMARY.md:21 src/06-downstream-apis.md:1
+#: src/SUMMARY.md:24 src/06-downstream-apis.md:1
 msgid "Downstream APIs"
 msgstr "APIs Downstream"
 
-#: src/SUMMARY.md:23
+#: src/SUMMARY.md:26
 msgid "Advanced Topics"
 msgstr "Tópicos Avançados"
 
-#: src/SUMMARY.md:25 src/10-alternative-idps.md:1
+#: src/SUMMARY.md:28 src/10-alternative-idps.md:1
 msgid "Alternative Identity Providers"
 msgstr "Provedores de Identidade Alternativos"
 
-#: src/SUMMARY.md:26 src/12-response-callbacks.md:1
+#: src/SUMMARY.md:29 src/12-response-callbacks.md:1
 msgid "Response Callbacks"
 msgstr "Callbacks de Resposta"
 
-#: src/SUMMARY.md:27 src/16-webhooks.md:1
+#: src/SUMMARY.md:30 src/16-webhooks.md:1
 msgid "Outbound Webhooks"
 msgstr "Webhooks de Saída"
 
-#: src/SUMMARY.md:28 src/17-error-codes.md:1
+#: src/SUMMARY.md:31 src/17-error-codes.md:1
 msgid "Error Codes"
 msgstr "Códigos de Erro"
 
-#: src/SUMMARY.md:29
+#: src/SUMMARY.md:32
 msgid "AI Agent Integration (MCP)"
 msgstr "Integração com Agentes de IA (MCP)"
 
-#: src/SUMMARY.md:30 src/14-json-rpc.md:1
+#: src/SUMMARY.md:33 src/14-json-rpc.md:1
 msgid "JSON-RPC Interface"
 msgstr "Interface JSON-RPC"
 
-#: src/SUMMARY.md:32
+#: src/SUMMARY.md:35
 msgid "Integrations"
 msgstr "Integrações"
 
-#: src/SUMMARY.md:34 src/19-sdk.md:1
+#: src/SUMMARY.md:37 src/19-sdk.md:1
 msgid "SDK Integration Guide"
 msgstr "Guia de Integração do SDK"
 
-#: src/SUMMARY.md:35 src/18-cli.md:1
+#: src/SUMMARY.md:38 src/18-cli.md:1
 msgid "CLI Reference"
 msgstr "Referência da CLI"
 
-#: src/SUMMARY.md:37
+#: src/SUMMARY.md:40
 msgid "Development"
 msgstr "Desenvolvimento"
 
-#: src/SUMMARY.md:39 src/20-encryption-inventory.md:1
+#: src/SUMMARY.md:42 src/20-encryption-inventory.md:1
 msgid "Encryption Inventory"
 msgstr ""
 
-#: src/SUMMARY.md:40 src/21-envelope-encryption-migration.md:1
+#: src/SUMMARY.md:43 src/21-envelope-encryption-migration.md:1
 msgid "Envelope Encryption Migration Guide"
 msgstr ""
 
-#: src/SUMMARY.md:41 src/22-hmac-key-rotation.md:1
+#: src/SUMMARY.md:44 src/22-hmac-key-rotation.md:1
 msgid "HMAC Key Rotation"
 msgstr ""
 
-#: src/SUMMARY.md:42 src/07-running-tests.md:1
+#: src/SUMMARY.md:45 src/07-running-tests.md:1
 msgid "Running Tests"
 msgstr "Executando Testes"
 
-#: src/SUMMARY.md:43 src/08-release-process.md:1
+#: src/SUMMARY.md:46 src/08-release-process.md:1
 msgid "Release Process"
 msgstr "Processo de Lançamento"
 
-#: src/SUMMARY.md:44 src/09-log-cache-tests.md:1
+#: src/SUMMARY.md:47 src/09-log-cache-tests.md:1
 msgid "Log Tests for Cache and Identity Flow"
 msgstr "Testes de Log para Cache e Fluxo de Identidade"
 
@@ -373,7 +387,8 @@ msgstr "Versão mínima"
 msgid "Purpose"
 msgstr "Finalidade"
 
-#: src/02-installation.md:14
+#: src/02-installation.md:14 src/24-deployment-modes.md:14
+#: src/25-full-mode.md:15
 msgid "PostgreSQL"
 msgstr "PostgreSQL"
 
@@ -385,7 +400,7 @@ msgstr "14"
 msgid "Stores users, tenants, roles"
 msgstr "Armazena usuários, tenants e papéis"
 
-#: src/02-installation.md:15
+#: src/02-installation.md:15 src/24-deployment-modes.md:15
 msgid "Redis"
 msgstr "Redis"
 
@@ -1451,6 +1466,596 @@ msgid "[Configuration](./04-configuration.md) — Full config reference"
 msgstr ""
 "[Configuração](./04-configuration.md) — Referência completa de configuração"
 
+#: src/24-deployment-modes.md:3
+msgid ""
+"Mycelium ships as a single codebase that compiles into one of **three "
+"mutually-exclusive build modes**, selected at **compile time** via Cargo "
+"features. All three expose the identical REST/JSON-RPC API, authentication "
+"flows, webhooks, and MCP integration — they share the same `core` domain "
+"logic and differ only in the adapters wired in `ports/api/src/main.rs`'s "
+"`initialize_modules`. What actually changes between them is **how much "
+"external infrastructure each one requires**."
+msgstr ""
+
+#: src/24-deployment-modes.md:11
+msgid "[Full](./25-full-mode.md)"
+msgstr ""
+
+#: src/24-deployment-modes.md:11
+msgid "[Postgres-Only](./26-postgres-only-mode.md)"
+msgstr ""
+
+#: src/24-deployment-modes.md:11
+msgid "[Standalone](./23-standalone-mode.md)"
+msgstr ""
+
+#: src/24-deployment-modes.md:13
+#, fuzzy
+msgid "Cargo feature"
+msgstr "Nova funcionalidade"
+
+#: src/24-deployment-modes.md:13
+msgid "`full` _(default)_"
+msgstr ""
+
+#: src/24-deployment-modes.md:13
+msgid "`postgres-only`"
+msgstr ""
+
+#: src/24-deployment-modes.md:13
+#, fuzzy
+msgid "`standalone`"
+msgstr "Códigos de erro padrão:"
+
+#: src/24-deployment-modes.md:14 src/25-full-mode.md:15
+#, fuzzy
+msgid "Persistence"
+msgstr "Referência"
+
+#: src/24-deployment-modes.md:14
+msgid "SQLite (embedded, auto-provisioned)"
+msgstr ""
+
+#: src/24-deployment-modes.md:15 src/25-full-mode.md:16
+msgid "Cache / KV"
+msgstr ""
+
+#: src/24-deployment-modes.md:15
+msgid "PostgreSQL (`kv_artifact` table)"
+msgstr ""
+
+#: src/24-deployment-modes.md:15
+msgid "in-process ([moka](https://docs.rs/moka))"
+msgstr ""
+
+#: src/24-deployment-modes.md:16 src/25-full-mode.md:17
+msgid "Email delivery"
+msgstr ""
+
+#: src/24-deployment-modes.md:16
+msgid "SMTP"
+msgstr ""
+
+#: src/24-deployment-modes.md:16
+msgid "stub / file (SMTP opt-in)"
+msgstr ""
+
+#: src/24-deployment-modes.md:17 src/25-full-mode.md:19
+#: src/23-standalone-mode.md:92
+#, fuzzy
+msgid "Secrets"
+msgstr "`tokenSecret`"
+
+#: src/24-deployment-modes.md:17
+msgid "operator-provided / Vault"
+msgstr ""
+
+#: src/24-deployment-modes.md:17
+msgid "auto-generated + persisted"
+msgstr ""
+
+#: src/24-deployment-modes.md:18
+#, fuzzy
+msgid "**External services**"
+msgstr "Registrando um serviço"
+
+#: src/24-deployment-modes.md:18
+msgid "**PostgreSQL + Redis + SMTP**"
+msgstr ""
+
+#: src/24-deployment-modes.md:18
+#, fuzzy
+msgid "**PostgreSQL (+ SMTP)**"
+msgstr "PostgreSQL"
+
+#: src/24-deployment-modes.md:18
+msgid "**none**"
+msgstr ""
+
+#: src/24-deployment-modes.md:19
+msgid "Horizontal scaling (multi-pod)"
+msgstr ""
+
+#: src/24-deployment-modes.md:19
+msgid "✅"
+msgstr ""
+
+#: src/24-deployment-modes.md:19
+msgid "❌ single instance"
+msgstr ""
+
+#: src/24-deployment-modes.md:20
+#, fuzzy
+msgid "Config example"
+msgstr "Exemplo completo"
+
+#: src/24-deployment-modes.md:20
+msgid "`config.full.example.toml`"
+msgstr ""
+
+#: src/24-deployment-modes.md:20
+msgid "`config.postgres-only.example.toml`"
+msgstr ""
+
+#: src/24-deployment-modes.md:20
+msgid "`config.standalone.example.toml`"
+msgstr ""
+
+#: src/24-deployment-modes.md:22
+msgid ""
+"Each mode's Cargo feature name matches its shipped `config.<mode>.example."
+"toml`."
+msgstr ""
+
+#: src/24-deployment-modes.md:26
+#, fuzzy
+msgid "Choosing a mode"
+msgstr "Escolhendo um grupo de segurança"
+
+#: src/24-deployment-modes.md:28
+msgid ""
+"**[Full](./25-full-mode.md)** — the default build and the published Docker "
+"image. Use it when you already run Redis, or want Redis-backed caching in a "
+"multi-pod deployment. This is the historical production topology."
+msgstr ""
+
+#: src/24-deployment-modes.md:31
+msgid ""
+"**[Postgres-Only](./26-postgres-only-mode.md)** — production-grade and "
+"horizontally scalable like full mode, but with **one less service to "
+"operate**: no Redis. The KV/artifact cache lives in a PostgreSQL table and "
+"the email queue is claimed multi-pod-safe on the existing `message_queue` "
+"table. Pick it when you want a multi-pod deployment backed by PostgreSQL "
+"alone."
+msgstr ""
+
+#: src/24-deployment-modes.md:36
+msgid ""
+"**[Standalone](./23-standalone-mode.md)** — **zero external dependencies** "
+"(embedded SQLite, in-process cache, stub/file email). Single instance only. "
+"Pick it for local development, evaluation, edge, or air-gapped deployments."
+msgstr ""
+
+#: src/24-deployment-modes.md:42
+#, fuzzy
+msgid "How selection works"
+msgstr "Como funciona a autenticação"
+
+#: src/24-deployment-modes.md:44
+msgid ""
+"Exactly one of the three backend features must be enabled. `full` is the "
+"Cargo **default**, so `cargo build` (no flags) and the published image "
+"produce full mode. The other two are opt-in and require `--no-default-"
+"features`, because Cargo features are additive and the default `full` would "
+"otherwise stay on:"
+msgstr ""
+
+#: src/24-deployment-modes.md:50
+msgid "# Full (default)\n"
+msgstr ""
+
+#: src/24-deployment-modes.md:52
+msgid "# Postgres-only\n"
+msgstr ""
+
+#: src/24-deployment-modes.md:55
+#, fuzzy
+msgid "# Standalone\n"
+msgstr "Códigos de erro padrão:"
+
+#: src/24-deployment-modes.md:60
+msgid ""
+"Enabling two backend features at once (or none) is a hard `compile_error!` — "
+"the modes select different persistence adapters and Diesel column types that "
+"cannot coexist in one binary. Add `,rhai` to any of the above to also "
+"compile the Rhai scripting support."
+msgstr ""
+
+#: src/24-deployment-modes.md:67
+#, fuzzy
+msgid "A note on schema migrations"
+msgstr "Execute o validador:"
+
+#: src/24-deployment-modes.md:69
+msgid ""
+"`full` and `postgres-only` share the same PostgreSQL schema. The `postgres-"
+"only` mode adds a `kv_artifact` cache table and an index on `message_queue`; "
+"those migrations must be applied to the database (they are harmless in full "
+"mode). See the [Postgres-Only Mode](./26-postgres-only-mode.md#database-"
+"migrations) page for the exact files and commands. Standalone auto-"
+"provisions and migrates its SQLite file on first boot, so it needs no manual "
+"step."
+msgstr ""
+
+#: src/25-full-mode.md:3
+msgid ""
+"Full mode is the **default build** and the published Docker image. It runs "
+"the complete external stack — **PostgreSQL + Redis + SMTP** (plus optional "
+"HashiCorp Vault) — and is the historical production topology. See "
+"[Deployment Modes](./24-deployment-modes.md) for how it compares to the "
+"other two modes."
+msgstr ""
+
+#: src/25-full-mode.md:11
+#, fuzzy
+msgid "What it uses"
+msgstr "O que faz"
+
+#: src/25-full-mode.md:13
+#, fuzzy
+msgid "Concern"
+msgstr "Conceitos"
+
+#: src/25-full-mode.md:13
+#, fuzzy
+msgid "Backing service"
+msgstr "Registrando um serviço"
+
+#: src/25-full-mode.md:13
+msgid "Adapter"
+msgstr ""
+
+#: src/25-full-mode.md:15 src/25-full-mode.md:18
+msgid "`adapters/diesel_postgres`"
+msgstr ""
+
+#: src/25-full-mode.md:16
+msgid "Redis (`SETEX`, TTL'd)"
+msgstr ""
+
+#: src/25-full-mode.md:16
+msgid "`adapters/kv_db`"
+msgstr ""
+
+#: src/25-full-mode.md:17
+msgid "SMTP (`lettre`)"
+msgstr ""
+
+#: src/25-full-mode.md:17
+msgid "`adapters/notifier`"
+msgstr ""
+
+#: src/25-full-mode.md:18
+msgid "Email queue"
+msgstr ""
+
+#: src/25-full-mode.md:18
+msgid "PostgreSQL `message_queue` table, polled by the in-process dispatcher"
+msgstr ""
+
+#: src/25-full-mode.md:19
+msgid "operator-provided (`{ env = ... }`) or HashiCorp Vault"
+msgstr ""
+
+#: src/25-full-mode.md:19
+msgid "`lib/config`"
+msgstr ""
+
+#: src/25-full-mode.md:21
+msgid ""
+"Redis is used as the TTL'd artifact cache (JWKS, profile, and email caches). "
+"It is a **required** service — the gateway will not boot without a reachable "
+"Redis and a `[redis]` config section."
+msgstr ""
+
+#: src/25-full-mode.md:27 src/26-postgres-only-mode.md:35
+#: src/23-standalone-mode.md:26
+#, fuzzy
+msgid "Building and running"
+msgstr "Agrupamento e ordenação"
+
+#: src/25-full-mode.md:30
+msgid "# Default build — `full` is the default Cargo feature.\n"
+msgstr ""
+
+#: src/25-full-mode.md:33 src/26-postgres-only-mode.md:40
+#: src/23-standalone-mode.md:40
+#, fuzzy
+msgid "./config.toml"
+msgstr "settings/config.toml"
+
+#: src/25-full-mode.md:36
+msgid ""
+"Start from `settings/config.full.example.toml`. A full-mode config requires "
+"`[core.accountLifeCycle]`, `[diesel]`, `[redis]`, `[smtp]`, `[queue]`, "
+"`[auth]`, and `[api]`; `[vault]` is optional."
+msgstr ""
+
+#: src/25-full-mode.md:40
+msgid ""
+"```toml\n"
+"[diesel]\n"
+"databaseUrl = { env = \"DATABASE_URL\" }\n"
+"\n"
+"[redis]\n"
+"protocol = \"redis\"        # rediss for TLS\n"
+"hostname = \"my-redis\"\n"
+"password = { env = \"REDIS_PASSWORD\" }\n"
+"\n"
+"[smtp]\n"
+"host = \"smtp.example.com\"\n"
+"username = { env = \"SMTP_USERNAME\" }\n"
+"password = { env = \"SMTP_PASSWORD\" }\n"
+"port = 465\n"
+"```"
+msgstr ""
+
+#: src/25-full-mode.md:56 src/26-postgres-only-mode.md:63
+#: src/23-standalone-mode.md:54
+#, fuzzy
+msgid "Docker"
+msgstr "Com Docker:"
+
+#: src/25-full-mode.md:58
+msgid "The published image is full mode with no extra flags:"
+msgstr ""
+
+#: src/25-full-mode.md:65
+msgid ""
+"The build features are parameterized via the `CARGO_FEATURES` build-arg, "
+"which defaults to `full,rhai` — so the default image is unchanged. (Override "
+"it only to build a different mode; see [Postgres-Only Mode](./26-postgres-"
+"only-mode.md).)"
+msgstr ""
+
+#: src/25-full-mode.md:71
+#, fuzzy
+msgid "When to use it"
+msgstr "Quando Usar"
+
+#: src/25-full-mode.md:73
+msgid "You already operate Redis and want its cache in a multi-pod deployment."
+msgstr ""
+
+#: src/25-full-mode.md:74
+msgid "You want the exact topology the published image ships."
+msgstr ""
+
+#: src/25-full-mode.md:76
+msgid ""
+"If you run multiple replicas but would rather **not** operate Redis, use "
+"[Postgres-Only Mode](./26-postgres-only-mode.md), which keeps PostgreSQL and "
+"multi-pod scaling but drops Redis. For a single-instance, zero-dependency "
+"build, use [Standalone Mode](./23-standalone-mode.md)."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:3
+msgid ""
+"Postgres-only mode runs the full production feature set — PostgreSQL "
+"persistence, real SMTP email, and **multi-pod horizontal scaling** — but "
+"with **no Redis**. Both jobs Redis does in [full mode](./25-full-mode.md) "
+"move to PostgreSQL: the KV/artifact cache becomes a table, and the email "
+"queue is claimed multi-pod-safe on the existing `message_queue` table. Pick "
+"it when you want a horizontally-scalable deployment backed by PostgreSQL "
+"alone, without operating Redis. See [Deployment Modes](./24-deployment-modes."
+"md) for the full comparison."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:14 src/23-standalone-mode.md:10
+#, fuzzy
+msgid "What changes"
+msgstr "Mudanças em testes"
+
+#: src/26-postgres-only-mode.md:16 src/23-standalone-mode.md:12
+#, fuzzy
+msgid "Full mode"
+msgstr "Jornada completa"
+
+#: src/26-postgres-only-mode.md:16
+msgid "Postgres-only mode"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:18
+msgid "Redis-backed cache (`adapters/kv_db`, `SETEX`)"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:18
+msgid "PostgreSQL `kv_artifact` table (`adapters/postgres_kv`)"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:19
+msgid "Redis client + `[redis]` config required"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:19
+msgid "No Redis; `[redis]` is not read (a present section is ignored)"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:20
+msgid "Email queue coordinated across pods via Redis"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:20
+msgid ""
+"Email queue claimed on `message_queue` via `SELECT … FOR UPDATE SKIP LOCKED`"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:21
+msgid "SMTP delivery"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:21
+msgid "SMTP delivery (unchanged)"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:23
+msgid ""
+"Everything else — the REST/JSON-RPC API, auth flows, webhooks, MCP, "
+"PostgreSQL persistence, and Vault/secret resolution — is identical to full "
+"mode. Only the cache adapter and the email-claim query differ."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:27
+msgid ""
+"The Postgres KV cache stores the same TTL'd artifacts Redis did (JWKS, "
+"profile, email caches): `set_encoded_artifact` upserts \\`(key, value, "
+"expires_at = now()"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:29
+msgid ""
+"ttl)`, reads filter on `expires_at > now()\\` (lazy expiry), and a "
+"background sweeper reclaims expired rows. The cache is shared across pods "
+"(one table), matching the cross-instance coherence Redis provided."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:43
+msgid ""
+"`--no-default-features` is required — Cargo features are additive, and the "
+"default `full` feature would otherwise stay enabled and trip the mutual-"
+"exclusion `compile_error!` guard. Add `,rhai` for Rhai scripting."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:47
+msgid ""
+"Start from `settings/config.postgres-only.example.toml`. The config needs "
+"`[core.accountLifeCycle]`, `[diesel]`, `[smtp]`, `[queue]`, `[auth]`, and "
+"`[api]` — **no `[redis]`** (this build never reads it). `[vault]` is "
+"optional."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:51
+msgid ""
+"```toml\n"
+"[diesel]\n"
+"databaseUrl = { env = \"DATABASE_URL\" }\n"
+"\n"
+"[smtp]\n"
+"host = \"smtp.example.com\"\n"
+"username = { env = \"SMTP_USERNAME\" }\n"
+"password = { env = \"SMTP_PASSWORD\" }\n"
+"port = 465\n"
+"# No [redis] section.\n"
+"```"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:65
+msgid ""
+"Reuse the main `Dockerfile` with the `CARGO_FEATURES` build-arg (the default "
+"image stays full mode; overriding the arg builds postgres-only):"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:72
+msgid ""
+"`cargo install` from crates.io only works once `mycelium-postgres-kv` and "
+"the `postgres-only` feature are published. Until then, build the image from "
+"source (`cargo build --no-default-features --features postgres-only,rhai`)."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:78
+#, fuzzy
+msgid "Database migrations"
+msgstr "Conexão com o banco de dados"
+
+#: src/26-postgres-only-mode.md:80
+msgid ""
+"`full` and `postgres-only` share the same PostgreSQL schema. Postgres-only "
+"adds two objects; **apply them before running this build** or boot/queries "
+"fail on the missing objects. Fresh installs get them from `sql/up.sql`; "
+"existing databases apply the incremental files (operator-applied via `psql`, "
+"as with all PostgreSQL migrations here):"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:87 src/26-postgres-only-mode.md:88
+#: src/18-cli.md:110
+msgid "\"$DATABASE_URL\""
+msgstr ""
+
+#: src/26-postgres-only-mode.md:91
+msgid ""
+"**`20260722_01`** — the `kv_artifact` cache table + "
+"`idx_kv_artifact_expires_at`. Used only by postgres-only; harmless and empty "
+"in full mode."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:92
+msgid ""
+"**`20260722_02`** — `idx_message_queue_claim` on `message_queue (status, "
+"created)`, backing the claim query below. **Applies to full mode too**, "
+"since the claim change is shared."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:96
+msgid "Email queue and multi-pod safety"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:98
+msgid ""
+"Both full and postgres-only deliver email by polling the PostgreSQL "
+"`message_queue` table with an in-process dispatcher. Postgres-only must run "
+"multiple pods, so the dispatcher claims pending messages atomically:"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:106
+msgid "'Queued'"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:113
+msgid ""
+"`SKIP LOCKED` guarantees each message is claimed by at most one pod (no "
+"double-send); a claimed message becomes re-claimable after a visibility "
+"timeout, so a crashed pod's message is not lost. This claim also fixes a pre-"
+"existing full-mode double-send, so the change applies to full mode as well."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:118
+msgid "Two `[queue]` fields tune it (both honored in full mode):"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:126
+msgid ""
+"**Safety invariant:** `visibilityTimeoutSecs > claimBatchSize × worst-case "
+"single SMTP send`. The defaults (batch 3, window 240s) are safe for lettre's "
+"~60s default send timeout. The window also doubles as the retry back-off for "
+"a transiently-failed send — lower it for faster retries (e.g. time-sensitive "
+"OTP email) **only after** lowering the batch so the invariant still holds."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:134
+msgid "Known limitations / trade-offs"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:136
+msgid ""
+"**Cache reads/writes hit PostgreSQL.** Redis exists precisely to keep these "
+"off the hot database path; in postgres-only they add load to your primary "
+"store. Acceptable for most workloads, but size the database accordingly."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:139
+msgid ""
+"**Failed-email retry latency equals `visibilityTimeoutSecs`.** Claim-safety "
+"and retry back-off are the same knob (both key off the `attempted` column), "
+"so they cannot be independently short. Tune via `[queue]`."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:142
+msgid ""
+"**No Vault requirement change.** Secrets resolve exactly as in full mode "
+"(operator-provided or Vault); postgres-only does **not** auto-generate "
+"secrets the way [standalone](./23-standalone-mode.md) does."
+msgstr ""
+
 #: src/23-standalone-mode.md:3
 msgid ""
 "Standalone mode runs Mycelium with **zero external runtime dependencies**: "
@@ -1459,16 +2064,6 @@ msgid ""
 "local development, edge deployments, and small teams that don't want to run "
 "four services just to try Mycelium out."
 msgstr ""
-
-#: src/23-standalone-mode.md:10
-#, fuzzy
-msgid "What changes"
-msgstr "Mudanças em testes"
-
-#: src/23-standalone-mode.md:12
-#, fuzzy
-msgid "Full mode"
-msgstr "Jornada completa"
 
 #: src/23-standalone-mode.md:12
 #, fuzzy
@@ -1528,15 +2123,10 @@ msgid ""
 "`initialize_modules` differ."
 msgstr ""
 
-#: src/23-standalone-mode.md:26
-#, fuzzy
-msgid "Building and running"
-msgstr "Agrupamento e ordenação"
-
 #: src/23-standalone-mode.md:32
 msgid ""
 "`--no-default-features` is required — Cargo features are additive, and the "
-"default `postgres-backend` feature would otherwise stay enabled and trip a "
+"default `full` feature would otherwise stay enabled and trip a "
 "`compile_error!` guard (the two are mutually exclusive; a single binary "
 "cannot link both Postgres-only and SQLite-only Diesel column types)."
 msgstr ""
@@ -1546,11 +2136,6 @@ msgid ""
 "Copy `settings/config.standalone.example.toml` and point `SETTINGS_PATH` at "
 "your copy:"
 msgstr ""
-
-#: src/23-standalone-mode.md:40
-#, fuzzy
-msgid "./config.toml"
-msgstr "settings/config.toml"
 
 #: src/23-standalone-mode.md:43
 msgid ""
@@ -1571,11 +2156,6 @@ msgid ""
 "(`user@localhost` is valid; `user@example` without a TLD still is not) — "
 "this applies in both build modes, not just standalone."
 msgstr ""
-
-#: src/23-standalone-mode.md:54
-#, fuzzy
-msgid "Docker"
-msgstr "Com Docker:"
 
 #: src/23-standalone-mode.md:61
 msgid ""
@@ -1622,11 +2202,6 @@ msgid ""
 "selection logic full mode's local-transport tests already cover). When "
 "absent, behavior is unchanged from before: stub by default."
 msgstr ""
-
-#: src/23-standalone-mode.md:92
-#, fuzzy
-msgid "Secrets"
-msgstr "`tokenSecret`"
 
 #: src/23-standalone-mode.md:94
 msgid ""
@@ -7727,10 +8302,6 @@ msgstr "Ordem típica de instalação"
 
 #: src/18-cli.md:109
 msgid "# 1. Apply the database schema\n"
-msgstr ""
-
-#: src/18-cli.md:110
-msgid "\"$DATABASE_URL\""
 msgstr ""
 
 #: src/18-cli.md:111
