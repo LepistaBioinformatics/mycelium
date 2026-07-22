@@ -114,5 +114,5 @@ profileTtl = 120
 
 [api.logging]
 level = "info"
-format = "jsonl"
+format = "ansi"
 target = "stdout"

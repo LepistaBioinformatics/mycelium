@@ -45,7 +45,7 @@ stdout — the `send` path just `println!`s its return value.
 - Add `html2text` to `[workspace.dependencies]` in the root `Cargo.toml` (with a comment: used by
   the notifier's local-transport stub to render HTML emails as terminal-readable text).
 - In `adapters/notifier/Cargo.toml`, add `html2text` **only** under the `local-transport` feature
-  (optional dep + feature-enables it), so the postgres-backend build never compiles it. Pattern:
+  (optional dep + feature-enables it), so the full build never compiles it. Pattern:
 
   ```toml
   [dependencies]
@@ -158,5 +158,5 @@ Update the "documented fast-follow" comment to reflect that file wiring now exis
 | `ConfigHandler.local_email` field + wiring + main.rs `file_dir` | `#[cfg(feature = "standalone")]` only |
 
 `standalone` → enables `mycelium-notifier/local-transport`, so the config handler (standalone) can
-always see `LocalEmailConfig` (local-transport). `postgres-backend` compiles none of it. Confirm
+always see `LocalEmailConfig` (local-transport). `full` compiles none of it. Confirm
 with the standalone gate in spec §6.

@@ -16,22 +16,22 @@ pub(crate) mod settings;
 // ? ----------------------------------------------------------------------------
 // ? Backend feature guards
 // ?
-// ? Exactly one persistence backend must be selected: `postgres-backend`
+// ? Exactly one persistence backend must be selected: `full`
 // ? (default; full mode = Postgres + Redis + SMTP), `postgres-only` (Postgres
 // ? + Postgres-backed KV cache + SMTP, no Redis; multi-pod), or `standalone`
 // ? (SQLite + moka + local email). The two non-default modes must be built with
 // ? `--no-default-features --features <mode>`.
 // ? ----------------------------------------------------------------------------
 
-#[cfg(all(feature = "standalone", feature = "postgres-backend"))]
+#[cfg(all(feature = "standalone", feature = "full"))]
 compile_error!(
-    "features `standalone` and `postgres-backend` are mutually exclusive; build \
+    "features `standalone` and `full` are mutually exclusive; build \
      standalone with `--no-default-features --features standalone`"
 );
 
-#[cfg(all(feature = "postgres-only", feature = "postgres-backend"))]
+#[cfg(all(feature = "postgres-only", feature = "full"))]
 compile_error!(
-    "features `postgres-only` and `postgres-backend` are mutually exclusive; \
+    "features `postgres-only` and `full` are mutually exclusive; \
      build postgres-only with `--no-default-features --features postgres-only`"
 );
 
@@ -42,11 +42,11 @@ compile_error!(
 
 #[cfg(not(any(
     feature = "standalone",
-    feature = "postgres-backend",
+    feature = "full",
     feature = "postgres-only"
 )))]
 compile_error!(
-    "no persistence backend selected; enable `postgres-backend` (default), or \
+    "no persistence backend selected; enable `full` (default), or \
      build with `--no-default-features --features postgres-only` (or \
      `--features standalone`)"
 );
@@ -67,12 +67,12 @@ use dispatchers::{
 };
 use models::active_backend_modules::{KVAppModule, SqlAppModule};
 use models::config_handler::ConfigHandler;
-#[cfg(feature = "postgres-backend")]
+#[cfg(feature = "full")]
 use myc_adapters_shared_lib::models::{
     SharedAppModule, SharedClientImpl, SharedClientImplParameters,
     SharedClientProvider,
 };
-#[cfg(any(feature = "postgres-backend", feature = "postgres-only"))]
+#[cfg(any(feature = "full", feature = "postgres-only"))]
 use myc_config::init_vault_config_from_file;
 use myc_config::optional_config::OptionalConfig;
 #[cfg(feature = "standalone")]
@@ -97,7 +97,7 @@ use myc_core::{
         super_users::staff::bootstrap::staff_bootstrap_is_pending,
     },
 };
-#[cfg(any(feature = "postgres-backend", feature = "postgres-only"))]
+#[cfg(any(feature = "full", feature = "postgres-only"))]
 use myc_diesel::repositories::{
     DieselDbPoolProvider, DieselDbPoolProviderParameters,
     LocalMessageReadSqlDbRepository, LocalMessageReadSqlDbRepositoryParameters,
@@ -131,7 +131,7 @@ use myc_notifier::repositories::{
     LocalTransportMessageSendingRepository,
     LocalTransportMessageSendingRepositoryParameters,
 };
-#[cfg(feature = "postgres-backend")]
+#[cfg(feature = "full")]
 use myc_notifier::{
     models::ClientProvider,
     repositories::{
@@ -337,7 +337,7 @@ pub async fn main() -> std::io::Result<()> {
     // mode has no Vault at all (SM-R9).
     //
     // ? -----------------------------------------------------------------------
-    #[cfg(any(feature = "postgres-backend", feature = "postgres-only"))]
+    #[cfg(any(feature = "full", feature = "postgres-only"))]
     {
         info!("Initializing Vault configs");
 
@@ -351,7 +351,7 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     info!("Initialize internal dependencies");
 
-    #[cfg(feature = "postgres-backend")]
+    #[cfg(feature = "full")]
     let (
         sql_module,
         shared_module,
@@ -589,7 +589,7 @@ pub async fn main() -> std::io::Result<()> {
         // `SharedAppModule` carries the Redis client and is only meaningful
         // in full mode; nothing resolves it from `app_data` anywhere in this
         // crate, but it's registered for parity/future use.
-        #[cfg(feature = "postgres-backend")]
+        #[cfg(feature = "full")]
         let base_app =
             base_app.app_data(web::Data::from(shared_module.clone()));
 
@@ -984,7 +984,7 @@ async fn announce_staff_bootstrap_status(
 
 /// Build the backend-agnostic in-memory service/callback registry module.
 ///
-/// Identical in both `postgres-backend` and `standalone` builds -- the
+/// Identical in both `full` and `standalone` builds -- the
 /// service catalog and callback engines have nothing to do with the
 /// persistence/cache/notifier backend selection.
 async fn build_mem_db_module(config: &ConfigHandler) -> Arc<MemDbAppModule> {
@@ -1054,7 +1054,7 @@ async fn build_mem_db_module(config: &ConfigHandler) -> Arc<MemDbAppModule> {
 ///
 /// The function returns a tuple of the initialized modules.
 ///
-#[cfg(feature = "postgres-backend")]
+#[cfg(feature = "full")]
 async fn initialize_modules(
     config: &ConfigHandler,
 ) -> Result<

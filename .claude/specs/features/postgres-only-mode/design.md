@@ -180,12 +180,12 @@ graph TD
 
 - `active_backend_modules.rs`:
   ```rust
-  #[cfg(any(feature = "postgres-backend", feature = "postgres-only"))]
+  #[cfg(any(feature = "full", feature = "postgres-only"))]
   pub use myc_diesel::repositories::SqlAppModule;
   #[cfg(feature = "standalone")]
   pub use myc_diesel_sqlite::repositories::SqlAppModule;
 
-  #[cfg(feature = "postgres-backend")]
+  #[cfg(feature = "full")]
   pub use myc_kv::repositories::KVAppModule;
   #[cfg(feature = "postgres-only")]
   pub use myc_postgres_kv::repositories::KVAppModule;
@@ -200,13 +200,13 @@ graph TD
   dispatcher spawn (`main.rs:412-433`, binds `LocalMessageReading`/`LocalMessageWrite` from the SQL
   module — unchanged shape, now backed by the claiming query).
 - **Mutual-exclusion guards** (extend the existing `compile_error!`s): exactly one of
-  `postgres-backend` / `postgres-only` / `standalone`; error on any pair and on none.
+  `full` / `postgres-only` / `standalone`; error on any pair and on none.
 
 ### 3.5 Config surface — POM-14..17
 
-`config_handler.rs`: widen the Postgres+SMTP field gates from `#[cfg(feature = "postgres-backend")]`
-to `#[cfg(any(feature = "postgres-backend", feature = "postgres-only"))]` (diesel, smtp, api, auth,
-account-life-cycle, vault). Keep the **`redis`** field gated to `postgres-backend` **only** → a
+`config_handler.rs`: widen the Postgres+SMTP field gates from `#[cfg(feature = "full")]`
+to `#[cfg(any(feature = "full", feature = "postgres-only"))]` (diesel, smtp, api, auth,
+account-life-cycle, vault). Keep the **`redis`** field gated to `full` **only** → a
 `postgres-only` build never parses/needs `[redis]` (POM-14). `[queue]` stays loaded in all modes
 (backend-neutral) and gains two optional, defaulted fields for the claim: `visibilityTimeoutSecs`
 (default 300 — see the §3.2 safety invariant) and a modest claim batch size (default ≈10, replacing
@@ -256,10 +256,10 @@ SQLite mirror is needed (standalone uses moka, not `kv_artifact`, and keeps its 
 
 ```toml
 [features]
-default = ["postgres-backend"]                                          # full — UNCHANGED, still default
+default = ["full"]                                          # full — UNCHANGED, still default
 
 # Full mode (Postgres + Redis + SMTP) — UNCHANGED.
-postgres-backend = ["dep:mycelium-diesel", "dep:mycelium-key-value"]
+full = ["dep:mycelium-diesel", "dep:mycelium-key-value"]
 
 # NEW: Postgres-only (Postgres persistence + Postgres KV cache + SMTP, no Redis). Multi-pod.
 # Build with `--no-default-features --features postgres-only`.
@@ -272,7 +272,7 @@ standalone = ["dep:mycelium-diesel-sqlite", "dep:mycelium-moka-cache",
 rhai = ["dep:rhai"]
 ```
 Exactly one of the three backend features may be active (compile-time guarded). Naming note: the
-new feature is `postgres-only` — it and `postgres-backend` both use Postgres persistence; the
+new feature is `postgres-only` — it and `full` both use Postgres persistence; the
 distinguishing factor is "no Redis". (Alt names considered: `no-redis`, `pg-native`; `postgres-only`
 chosen for product clarity — TD-4.)
 
@@ -304,7 +304,7 @@ prod code (project rules).
 | TD-1 | `postgres_kv` reuses `DbPoolProvider` (no own pool) | one connection pool; consistent tuning; less config. |
 | TD-2 | Sweeper self-spawned inside the adapter provider | keeps the periodic job out of `core` and out of `ports/api`; adapter owns its lifecycle. |
 | TD-3 | Claim via `attempted` + visibility timeout, **not** a new `Processing` status | avoids a `core` `MessageStatus` change (POM-18); reuses existing columns. |
-| TD-4 | Feature name `postgres-only`; keep `postgres-backend` = full, unchanged | minimal churn (standalone's cfg gates already reference `postgres-backend`); full stays default. |
+| TD-4 | Feature name `postgres-only`; keep `full` = full, unchanged | minimal churn (standalone's cfg gates already reference `full`); full stays default. |
 | TD-5 | Packaging: parametrize the Dockerfile build features via a build-arg defaulting to full | default published image stays byte-identical full; `--build-arg` produces the postgres-only image (POM-21) without a second Dockerfile. |
 
 ---
@@ -313,7 +313,7 @@ prod code (project rules).
 
 Parametrize `Dockerfile` build features, default preserving current behavior:
 ```dockerfile
-ARG CARGO_FEATURES="postgres-backend,rhai"     # default = full, image unchanged
+ARG CARGO_FEATURES="full,rhai"     # default = full, image unchanged
 RUN cargo install mycelium-api --no-default-features --features "${CARGO_FEATURES}" --version "${VERSION}"
 ```
 Postgres-only image: `docker build --build-arg CARGO_FEATURES=postgres-only,rhai …`. The default

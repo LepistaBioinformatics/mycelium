@@ -18,7 +18,7 @@ Execute (see block below). Standalone Mode G1-G9 done, not committed yet. M1 ong
 - **Thread A (stub render):** the standalone stub transport now renders each undelivered email as a
   bordered, human-readable block to **stdout** via `println!` (not `tracing` — deliberately kept out
   of structured logs/SigNoz, DEC-1). HTML→text via the new **`html2text`** workspace dep, compiled
-  only under the notifier's `local-transport` feature (never in postgres-backend). Renderer lives in
+  only under the notifier's `local-transport` feature (never in full). Renderer lives in
   its own file `render_stub_email_for_terminal.rs`; links surfaced at the top, copyable.
 - **Thread B (issue #169):** new opt-in `[localEmail.define] dir = "..."` config
   (`OptionalConfig<LocalEmailConfig>`, standalone-only), wired through `ConfigHandler` into
@@ -107,7 +107,7 @@ multi-agent dispatch that edits a shared working tree must explicitly forbid `gi
 ### AD-005: Standalone mode is a compile-time feature, not a runtime `mode` flag (2026-07-06)
 
 **Decision:** Standalone (SQLite + moka + stub/file email + autogen secrets) is selected by a
-`standalone` cargo feature, mutually exclusive with the default `postgres-backend`, producing a
+`standalone` cargo feature, mutually exclusive with the default `full`, producing a
 separate binary/image. The roadmap's original `mode = "standalone"` runtime flag is rejected.
 
 **Reason:** Every table's schema uses Postgres-only Diesel SQL types (`Uuid`, `Timestamptz`, `Jsonb`,
@@ -377,7 +377,7 @@ end-to-end.
 | Execute — SM-T26 (zero-config E2E smoke) | ⚠️ Partial — boot+health covered; full JWT/route/proxy flow deferred (needs jwtSecret autogen) |
 | Execute — SM-T27 (docs: `23-standalone-mode.md`, ROADMAP → IMPLEMENTED, i18n sync) | ✅ Done — closes G8 and the feature's initial implementation |
 
-**SM-T1 result:** `ports/api` now has `default=["postgres-backend"]` + no-op `standalone` marker + two
+**SM-T1 result:** `ports/api` now has `default=["full"]` + no-op `standalone` marker + two
 `compile_error!` guards. `cargo check` verified for default, `--no-default-features --features standalone`,
 and the both-features failure. `fmt --check` clean. Not committed yet (awaiting user test/approval).
 
@@ -518,7 +518,7 @@ backend-agnostic and untouched in both modes. This step alone is a pure refactor
 only, so far) — verified full-mode byte-identical (all tests, same counts, before/after).
 
 **SM-T23 result (committed pending):** see tasks.md SM-T23 result for full detail. `ConfigHandler`
-cfg-gated (`diesel`/`smtp`/`queue`/`redis`/`vault` under `postgres-backend`, new `sqlite: SqliteConfig`
+cfg-gated (`diesel`/`smtp`/`queue`/`redis`/`vault` under `full`, new `sqlite: SqliteConfig`
 under `standalone`); new `SqliteConfig` type in `adapters/diesel_sqlite/src/config.rs`; shipped
 `settings/config.standalone.example.toml` (no smtp/redis/queue/vault, `[sqlite] path`, `[auth]
 internal = "disabled"` for now, placeholder token/hmac secrets documented as boot-time-overridden).

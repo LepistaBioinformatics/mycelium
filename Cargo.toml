@@ -47,7 +47,7 @@ futures-util = "0.3"
 hex = "0.4.3"
 hmac = "0.12"
 # Used by the notifier's local-transport stub (standalone builds) to render
-# HTML emails as terminal-readable text; not compiled into the postgres-backend.
+# HTML emails as terminal-readable text; not compiled into full mode.
 html2text = "0.17"
 sha2 = "0.10"
 secrecy = "0.8"

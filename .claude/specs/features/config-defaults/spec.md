@@ -13,7 +13,7 @@ Several tuning/operational config fields across the gateway's TOML config are ha
 (no `#[serde(default)]`, not `Option<T>`) even though they have obvious sane defaults that almost
 every deployment uses unchanged (e.g. `tokenExpiration = 3600`, `[api] servicePort = 8080`). A new
 operator has to copy every one of these lines from an example file just to boot, even when they
-don't want to change the value. This applies identically to both build modes (full/`postgres-backend`
+don't want to change the value. This applies identically to both build modes (full/`full`
 and `standalone`), since the affected structs (`AccountLifeCycle`, `WebhookConfig`, `QueueConfig`,
 `InternalOauthConfig`, `ApiConfig`, `LoggingConfig`) are shared, not backend-specific.
 

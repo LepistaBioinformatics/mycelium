@@ -85,7 +85,7 @@ with the other thread.
 
 ```bash
 cargo fmt --all -- --check
-cargo build --workspace && cargo test --workspace --all      # postgres-backend clean
+cargo build --workspace && cargo test --workspace --all      # full clean
 cargo build --no-default-features --features standalone
 cargo test  --no-default-features --features standalone
 ```

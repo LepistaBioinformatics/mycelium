@@ -13,7 +13,7 @@
 - `cargo build -p mycelium-api --no-default-features --features standalone` — OK (no regression).
 - `cargo test -p mycelium-postgres-kv` — 2 passed (pure `expires_at` logic).
 - `cargo test -p mycelium-api --features postgres-only,rhai config_postgres_only` — 1 passed (example config parses, no `[redis]`).
-- One pre-existing feature-gap fixed: `resource_audit_log_dispatcher` had no `postgres-only` arm → widened its `postgres-backend` cfg to `any(postgres-backend, postgres-only)`.
+- One pre-existing feature-gap fixed: `resource_audit_log_dispatcher` had no `postgres-only` arm → widened its `full` cfg to `any(full, postgres-only)`.
 
 ### Post-review refinement (advisor): claim tuning made configurable
 - The claim's `visibility_timeout` and batch size were reviewed: reusing one 300s const coupled claim-protection with retry-backoff, silently raising full-mode failed-email retry latency to 300s, and lettre's ~60s default SMTP send made `10×60 > 300` re-introduce double-send. **User chose "make it configurable."**
@@ -82,7 +82,7 @@ modules) registered in root `Cargo.toml` `[workspace.dependencies]`.
 **Done when:**
 - [ ] `postgres-only = ["dep:mycelium-diesel", "dep:mycelium-postgres-kv"]` (+ notifier smtp-only feature ref once T7 names it).
 - [ ] `mycelium-postgres-kv = { workspace = true, optional = true }` in `[dependencies]`.
-- [ ] Guards: `compile_error!` for each illegal pair among {postgres-backend, postgres-only, standalone} and for none-selected; `SqlAppModule` gated `any(postgres-backend, postgres-only)`; `KVAppModule` gets a `postgres-only → myc_postgres_kv::repositories::KVAppModule` arm.
+- [ ] Guards: `compile_error!` for each illegal pair among {full, postgres-only, standalone} and for none-selected; `SqlAppModule` gated `any(full, postgres-only)`; `KVAppModule` gets a `postgres-only → myc_postgres_kv::repositories::KVAppModule` arm.
 **Tests:** none (wiring) **Gate:** build (T12)
 
 ### T3: `postgres_kv` cache adapter (provider + repos + sweeper + KVAppModule) [P]
@@ -158,13 +158,13 @@ visibility-timeout note.
 **Where:** `Dockerfile`.
 **Depends on:** None **Reuses:** existing Dockerfile install step **Requirement:** POM-21, TD-5
 **Done when:**
-- [ ] `ARG CARGO_FEATURES="postgres-backend,rhai"`; install uses `--no-default-features --features "${CARGO_FEATURES}"`; default output identical to today (full+rhai).
+- [ ] `ARG CARGO_FEATURES="full,rhai"`; install uses `--no-default-features --features "${CARGO_FEATURES}"`; default output identical to today (full+rhai).
 - [ ] Comment shows the postgres-only build-arg invocation + the pre-publish source-build caveat.
 **Tests:** none **Gate:** build (T12) **Sub-agent note:** file only.
 
 ### T10: Config surface gating in `config_handler.rs`
-**What:** Widen Postgres+SMTP field cfg gates to `any(postgres-backend, postgres-only)`; keep
-`redis` gated to `postgres-backend` only; add the two `QueueConfig` fields if config-driven (else
+**What:** Widen Postgres+SMTP field cfg gates to `any(full, postgres-only)`; keep
+`redis` gated to `full` only; add the two `QueueConfig` fields if config-driven (else
 const in T5).
 **Where:** `ports/api/src/models/config_handler.rs` (+ `adapters/notifier/src/models/queue_config.rs` only if config-driven).
 **Depends on:** T2 **Reuses:** existing cfg-gated fields **Requirement:** POM-14..17
@@ -178,7 +178,7 @@ const in T5).
 KV + PostgresNotifierAppModule, **no SharedAppModule**), plus the cfg arms in the call-site
 destructure, `app_data` registration, and the dispatcher spawn.
 **Where:** `ports/api/src/main.rs`.
-**Depends on:** T2, T3, T7, T10 **Reuses:** the postgres-backend + standalone `initialize_modules` bodies **Requirement:** POM-1,2,18
+**Depends on:** T2, T3, T7, T10 **Reuses:** the full + standalone `initialize_modules` bodies **Requirement:** POM-1,2,18
 **Done when:**
 - [ ] Third `initialize_modules` returns the standalone-shaped tuple (no `SharedAppModule`), KV built from `myc_postgres_kv` seeded with the diesel `DbPoolProvider`, notifier = `PostgresNotifierAppModule` (SMTP).
 - [ ] Call-site (`~317-360`), `app_data` (`~561-571`), dispatcher spawn (`~412-433`) get `postgres-only` cfg arms; dispatcher binds `LocalMessageReading`/`LocalMessageWrite` from the SQL module (claiming query from T5).

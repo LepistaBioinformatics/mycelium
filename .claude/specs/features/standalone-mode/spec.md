@@ -124,7 +124,7 @@ Each requirement has a traceable ID for design/tasks.
   (queue name + poll interval), not Redis-specific, and `email_dispatcher` requires it in **both**
   builds; `ConfigHandler.queue` is intentionally unconditional (not `#[cfg]`-gated). The original
   wording lumping `queue` in with `redis`/`smtp`/`vault` was inaccurate. Full-mode config parsing
-  MUST be unaffected (verified: `ConfigHandler`'s `postgres-backend`-gated fields are byte-identical
+  MUST be unaffected (verified: `ConfigHandler`'s `full`-gated fields are byte-identical
   to before).
 
 ### Build / packaging
@@ -132,7 +132,7 @@ Each requirement has a traceable ID for design/tasks.
 - **SM-R11** — `cargo build` (default) MUST produce the unchanged full binary. `cargo build
   --no-default-features --features standalone` MUST produce the zero-dependency binary. Because Cargo
   features are additive, `standalone` requires `--no-default-features` (otherwise the default
-  `postgres-backend` stays on and the mutual-exclusion `compile_error!` fires). The two feature sets
+  `full` stays on and the mutual-exclusion `compile_error!` fires). The two feature sets
   are mutually exclusive (design §1).
 - **SM-R12** — A standalone Docker image MUST build the `standalone` binary and MUST NOT install
   `libpq-dev` or any DB/Redis client system library. Ideally a minimal runtime base (e.g.

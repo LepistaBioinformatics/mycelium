@@ -18,16 +18,16 @@ Legend for each task: **What / Where / Depends on / Reuses / Done when / Tests**
 ## G1 — Feature scaffolding & build guards
 
 ### SM-T1 — Workspace feature scheme + mutual-exclusion guard — ✅ Done (verified, pending commit)
-- **What:** Add `postgres-backend` (default) and `standalone` features to `ports/api`; wire them to
+- **What:** Add `full` (default) and `standalone` features to `ports/api`; wire them to
   per-crate features (created in later tasks, initially no-op). Add
-  `#[cfg(all(feature="standalone", feature="postgres-backend"))] compile_error!(...)` in `main.rs`.
+  `#[cfg(all(feature="standalone", feature="full"))] compile_error!(...)` in `main.rs`.
 - **Where:** `ports/api/Cargo.toml`, `ports/api/src/main.rs`.
 - **Depends on:** none.
 - **Reuses:** existing `rhai` feature pattern.
 - **Done when:** `cargo build` (default) unchanged; `cargo build --no-default-features --features standalone`
   compiles (even if it produces the full behavior for now); building with both features errors with the guard message.
 - **Tests:** compile-only (both feature configs build).
-- **Result:** `default = ["postgres-backend"]`; empty no-op `postgres-backend`/`standalone` markers;
+- **Result:** `default = ["full"]`; empty no-op `full`/`standalone` markers;
   two `compile_error!` guards (both-features + neither-feature). Verified: `cargo check -p mycelium-api`
   (default) OK · `--no-default-features --features standalone` OK · `--features standalone` fails with
   the guard message. `cargo fmt --check` clean.
@@ -525,7 +525,7 @@ task. **This closes G5.**
 - **Tests:** unit — parse minimal standalone config; full-mode config test still passes.
 
 **SM-T23 result:** `ConfigHandler`'s `diesel`/`smtp`/`queue`/`redis`/`vault` fields (and their
-`init_from_file` loaders) are now `#[cfg(feature = "postgres-backend")]`; `core`/`api`/`auth` stay
+`init_from_file` loaders) are now `#[cfg(feature = "full")]`; `core`/`api`/`auth` stay
 unconditional (identical in both modes — confirmed by grep: nothing outside `main.rs` touches
 `config.diesel`/`.redis`/`.smtp`/`.queue`/`.vault`, so no other file needed changes). Added `sqlite:
 SqliteConfig` under `#[cfg(feature = "standalone")]`, backed by a new `SqliteConfig` type in
@@ -553,7 +553,7 @@ compiling), `cargo fmt --all -- --check` clean, `mycelium-api` (default features
 - **Done when:** standalone binary boots against an empty working dir with no external services.
 - **Tests:** integration — boot standalone, hit health endpoint.
 
-**SM-T24 result:** `initialize_modules` split into two `#[cfg]`-gated bodies (postgres-backend
+**SM-T24 result:** `initialize_modules` split into two `#[cfg]`-gated bodies (full
 unchanged; standalone new) sharing a `build_mem_db_module` helper for the backend-agnostic
 service/callback registry. Standalone body: `provision_database(&sqlite_path)` (new
 `adapters/diesel_sqlite::migration::provision_database` — creates the parent dir, establishes a

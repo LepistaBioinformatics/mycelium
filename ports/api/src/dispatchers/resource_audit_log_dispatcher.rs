@@ -14,9 +14,9 @@ use tokio::sync::mpsc;
 /// Two backend-specific bodies (Postgres / SQLite) follow the same
 /// cfg-gated-function-name precedent established by `main.rs`'s
 /// `initialize_modules`: same signature, one body per backend feature,
-/// mutually exclusive since `postgres-backend`/`standalone` are mutually
+/// mutually exclusive since `full`/`standalone` are mutually
 /// exclusive features on `mycelium-api`.
-#[cfg(any(feature = "postgres-backend", feature = "postgres-only"))]
+#[cfg(any(feature = "full", feature = "postgres-only"))]
 #[tracing::instrument(name = "resource_audit_log_dispatcher", skip_all)]
 pub(crate) async fn resource_audit_log_dispatcher(
     app_modules: Arc<SqlAppModule>,

@@ -39,12 +39,12 @@ domain code is gated.
 ```toml
 # ports/api/Cargo.toml
 [features]
-default   = ["postgres-backend"]      # full mode
-postgres-backend = ["myc-diesel/postgres", "dep:redis-adapter", ...]
+default   = ["full"]      # full mode
+full = ["myc-diesel/postgres", "dep:redis-adapter", ...]
 standalone       = ["myc-diesel/sqlite", "dep:moka-adapter", "notifier/local-transport", ...]
 ```
 
-`standalone` and `postgres-backend` are **mutually exclusive** — building with both is a hard error
+`standalone` and `full` are **mutually exclusive** — building with both is a hard error
 (`compile_error!` guard in `main.rs`). Rationale: the two select different Diesel backends and
 different `ConnectionManager` types that cannot coexist in one wiring path cleanly, and there is no
 product need to ship both in one binary (DEC-1).
@@ -237,8 +237,8 @@ Boot must **not** hard-fail on missing Redis/SMTP/Vault in standalone (contrast 
 `initialize_modules` is the single integration point. Introduce two cfg-gated bodies:
 
 ```rust
-#[cfg(all(feature = "standalone", feature = "postgres-backend"))]
-compile_error!("features `standalone` and `postgres-backend` are mutually exclusive");
+#[cfg(all(feature = "standalone", feature = "full"))]
+compile_error!("features `standalone` and `full` are mutually exclusive");
 
 #[cfg(not(feature = "standalone"))]
 async fn initialize_modules(...) { /* existing: diesel(pg) + redis + smtp + vault */ }
@@ -264,7 +264,7 @@ identical in both modes.
 New `Dockerfile.standalone` (or a build-arg on the existing Dockerfile):
 
 - Builder: `rust:latest`, `cargo build --release --no-default-features --features standalone` (Cargo
-  features are additive, so `--no-default-features` is required or the default `postgres-backend`
+  features are additive, so `--no-default-features` is required or the default `full`
   stays on and trips the mutual-exclusion `compile_error!`; add `rhai` explicitly if wanted).
   `libsqlite3-sys` `bundled` means the builder needs a C toolchain (present in `rust:latest`) but the
   **runtime** needs no libsqlite.
@@ -295,7 +295,7 @@ green throughout.
 
 ## 10. Component breakdown (for the Tasks phase — not atomic yet)
 
-1. **Feature scaffolding** — add `standalone`/`postgres-backend` features across crates + mutual-
+1. **Feature scaffolding** — add `standalone`/`full` features across crates + mutual-
    exclusion `compile_error!`; no behavior change yet.
 2. **SQLite backend** — `schema_sqlite.rs`, model set, type-mapping helpers, embedded migrations,
    pool provider, per-entity repository impls (grouped: account, tenant, user, token, guest, message,

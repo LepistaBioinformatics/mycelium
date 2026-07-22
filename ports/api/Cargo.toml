@@ -17,10 +17,10 @@ readme.workspace = true
 # ? ----------------------------------------------------------------------------
 
 [features]
-default = ["postgres-backend"]
+default = ["full"]
 
 # Full mode (PostgreSQL + Redis + SMTP).
-postgres-backend = ["dep:mycelium-diesel", "dep:mycelium-key-value"]
+full = ["dep:mycelium-diesel", "dep:mycelium-key-value"]
 
 # Postgres-only mode (PostgreSQL persistence + Postgres-backed KV cache + SMTP,
 # no Redis; multi-pod). Build with `--no-default-features --features postgres-only`.
