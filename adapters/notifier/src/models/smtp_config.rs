@@ -18,8 +18,8 @@ pub struct SmtpConfig {
 
 unsafe impl Send for SmtpConfig {}
 
-// Loaded on its own -- not bundled with `QueueConfig` -- so postgres-backend
-// (the only mode where SMTP applies) doesn't force standalone's `[queue]`
+// Loaded on its own -- not bundled with `QueueConfig` -- so full mode
+// (where SMTP is required) doesn't force standalone's `[queue]`
 // loader to also require a `[smtp]` section it has no use for.
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]

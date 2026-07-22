@@ -24,6 +24,7 @@ use uuid::Uuid;
 )]
 pub async fn consume_messages(
     queue_name: String,
+    claim_batch_size: i32,
     local_message_read_repo: Arc<dyn LocalMessageReading>,
     local_message_write_repo: Arc<dyn LocalMessageWrite>,
     remote_message_write_repo: Arc<dyn RemoteMessageWrite>,
@@ -47,8 +48,14 @@ pub async fn consume_messages(
             break;
         }
 
+        // Claim batch is `[queue] claimBatchSize` (default 3). Kept small so
+        // the claim's visibility-timeout invariant holds: window > batch *
+        // worst-case single SMTP send. Raising it REQUIRES raising
+        // `visibilityTimeoutSecs` proportionally, else a slow-but-live pod's
+        // un-sent rows get re-claimed and double-sent. Bounds throughput to
+        // batch/tick. See adapters/diesel_postgres/.../local_message_read.rs.
         let events = match local_message_read_repo
-            .list_oldest_messages(25, MessageStatus::Queued)
+            .list_oldest_messages(claim_batch_size, MessageStatus::Queued)
             .await?
         {
             FetchManyResponseKind::NotFound => break,

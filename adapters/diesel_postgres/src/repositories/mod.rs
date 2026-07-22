@@ -27,7 +27,7 @@ use guest_role::*;
 use guest_user::*;
 use instance_settings::*;
 use licensed_resources::*;
-use message::*;
+pub use message::*;
 use optional_written_by_parser::*;
 use profile::*;
 use tenant::*;

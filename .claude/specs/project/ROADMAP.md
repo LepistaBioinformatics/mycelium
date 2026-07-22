@@ -107,7 +107,7 @@ Docs: `docs/book/src/23-standalone-mode.md`. Tracking issue: #159.
   (`.eml`); real SMTP is also available, opt-in via an optional `[smtp]` config section (same
   precedence logic and construction path as full mode).
 - Selected at **compile time** via a `standalone` cargo feature (separate binary/image) — mutually
-  exclusive with the default `postgres-backend` feature via a `compile_error!` guard. A runtime
+  exclusive with the default `full` feature via a `compile_error!` guard. A runtime
   `mode = "standalone"` flag was rejected early: Postgres-only column types cannot compile against
   the SQLite backend in one binary.
 - Single binary, zero infra: ideal for local dev, edge deployments, and small teams.

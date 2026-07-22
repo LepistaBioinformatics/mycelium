@@ -6,7 +6,7 @@
 **Created:** 2026-07-17
 **Scope:** Large (two independent threads sharing one adapter file: a terminal-UX change in the
 stub transport and the config-plumbing fast-follow for the file transport, issue #169). Both are
-`standalone`/`local-transport`-feature-gated and must not touch the `postgres-backend` build.
+`standalone`/`local-transport`-feature-gated and must not touch the `full` build.
 
 ---
 
@@ -46,7 +46,7 @@ Established by direct code inspection on 2026-07-17.
 | Config call site | `ports/api/src/main.rs` ~line 1227: `transport: select_local_transport(smtp_transport, None)`. `smtp_transport` derives from `config.smtp: OptionalConfig<SmtpConfig>` (standalone). Comment above: "File-transport configuration wiring remains a documented fast-follow." |
 | ConfigHandler | `ports/api/src/models/config_handler.rs`. `smtp` is `#[cfg(feature = "standalone")] pub smtp: OptionalConfig<SmtpConfig>`, loaded via `SmtpConfig::from_optional_config_file`. Postgres-backend has its own mandatory `smtp: SmtpConfig`. Has a standalone test `config_standalone_example_toml_parses_into_config_handler`. |
 | SmtpConfig loader pattern | `adapters/notifier/src/models/smtp_config.rs` — `TmpConfig`/`OptionalTmpConfig` newtype wrappers + `from_default_config_file`/`from_optional_config_file` returning `OptionalConfig<SmtpConfig>` (`#[serde(default)]`). This is the pattern to mirror for the new file-dir config. |
-| Feature gating | `local-transport` (notifier) gates the transport code and enables `lettre/file-transport`. `standalone` (`ports/api/Cargo.toml`) enables `mycelium-notifier/local-transport` — so both halves compile together in the standalone build. `postgres-backend` compiles **none** of this code. |
+| Feature gating | `local-transport` (notifier) gates the transport code and enables `lettre/file-transport`. `standalone` (`ports/api/Cargo.toml`) enables `mycelium-notifier/local-transport` — so both halves compile together in the standalone build. `full` compiles **none** of this code. |
 | Example config | `settings/config.standalone.example.toml` — documents `[sqlite]`, `[queue]`, commented `[smtp]`. No file-transport section exists. |
 | HTML→text dep | No HTML-to-text crate exists anywhere in `Cargo.lock`. `regex = "1"` is a workspace dep but notifier does not currently depend on it. |
 
@@ -99,7 +99,7 @@ Established by direct code inspection on 2026-07-17.
 - **SR-R4** — The renderer MUST be template-agnostic (works for magic-link, password-reset, and any
   future HTML email) — no per-template special-casing.
 - **SR-R5** — The block MUST clearly state the email was **not actually delivered** (stub).
-- **SR-R6** — The change MUST be confined to the `local-transport` feature; the `postgres-backend`
+- **SR-R6** — The change MUST be confined to the `local-transport` feature; the `full`
   build is unaffected and pulls in no new dependency.
 
 ### Thread B — File transport wiring (`FT`, issue #169)
@@ -112,7 +112,7 @@ Established by direct code inspection on 2026-07-17.
   `None`.
 - **FT-R3** — Precedence MUST remain **SMTP > File > Stub**. `select_local_transport`'s logic and
   its existing unit tests MUST NOT change.
-- **FT-R4** — MUST NOT affect the `postgres-backend` build (which has no local transport; real SMTP
+- **FT-R4** — MUST NOT affect the `full` build (which has no local transport; real SMTP
   is mandatory there). New field is `#[cfg(feature = "standalone")]` only.
 - **FT-R5** — `settings/config.standalone.example.toml` MUST document the new field (commented, with
   precedence/behavior explained), consistent with the existing `[smtp]` section's doc style.
@@ -126,14 +126,14 @@ Established by direct code inspection on 2026-07-17.
 - Adding plain-text alternatives to the email templates or `Message` DTO (only the HTML body
   exists; the stub renders from it).
 - Any change to `select_local_transport`'s selection logic or the file/smtp transports themselves.
-- Any `postgres-backend`/full-mode behavior.
+- Any `full`/full-mode behavior.
 - Colorized ANSI output (plain bordered text only, portable across terminals/CI logs).
 
 ---
 
 ## 6. Gate checks
 
-Default workspace gate (postgres-backend) — proves Thread B didn't leak into full mode:
+Default workspace gate (full) — proves Thread B didn't leak into full mode:
 
 ```bash
 cargo fmt --all -- --check

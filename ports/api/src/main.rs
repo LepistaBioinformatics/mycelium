@@ -16,21 +16,39 @@ pub(crate) mod settings;
 // ? ----------------------------------------------------------------------------
 // ? Backend feature guards
 // ?
-// ? Exactly one persistence backend must be selected. `postgres-backend` is the
-// ? default (full mode); `standalone` swaps in SQLite + moka + local email and
-// ? must be built with `--no-default-features --features standalone`.
+// ? Exactly one persistence backend must be selected: `full`
+// ? (default; full mode = Postgres + Redis + SMTP), `postgres-only` (Postgres
+// ? + Postgres-backed KV cache + SMTP, no Redis; multi-pod), or `standalone`
+// ? (SQLite + moka + local email). The two non-default modes must be built with
+// ? `--no-default-features --features <mode>`.
 // ? ----------------------------------------------------------------------------
 
-#[cfg(all(feature = "standalone", feature = "postgres-backend"))]
+#[cfg(all(feature = "standalone", feature = "full"))]
 compile_error!(
-    "features `standalone` and `postgres-backend` are mutually exclusive; build \
+    "features `standalone` and `full` are mutually exclusive; build \
      standalone with `--no-default-features --features standalone`"
 );
 
-#[cfg(not(any(feature = "standalone", feature = "postgres-backend")))]
+#[cfg(all(feature = "postgres-only", feature = "full"))]
 compile_error!(
-    "no persistence backend selected; enable `postgres-backend` (default) or \
-     build with `--no-default-features --features standalone`"
+    "features `postgres-only` and `full` are mutually exclusive; \
+     build postgres-only with `--no-default-features --features postgres-only`"
+);
+
+#[cfg(all(feature = "postgres-only", feature = "standalone"))]
+compile_error!(
+    "features `postgres-only` and `standalone` are mutually exclusive"
+);
+
+#[cfg(not(any(
+    feature = "standalone",
+    feature = "full",
+    feature = "postgres-only"
+)))]
+compile_error!(
+    "no persistence backend selected; enable `full` (default), or \
+     build with `--no-default-features --features postgres-only` (or \
+     `--features standalone`)"
 );
 
 use crate::openapi_processor::initialize_tools_registry;
@@ -49,12 +67,12 @@ use dispatchers::{
 };
 use models::active_backend_modules::{KVAppModule, SqlAppModule};
 use models::config_handler::ConfigHandler;
-#[cfg(feature = "postgres-backend")]
+#[cfg(feature = "full")]
 use myc_adapters_shared_lib::models::{
     SharedAppModule, SharedClientImpl, SharedClientImplParameters,
     SharedClientProvider,
 };
-#[cfg(feature = "postgres-backend")]
+#[cfg(any(feature = "full", feature = "postgres-only"))]
 use myc_config::init_vault_config_from_file;
 use myc_config::optional_config::OptionalConfig;
 #[cfg(feature = "standalone")]
@@ -79,9 +97,10 @@ use myc_core::{
         super_users::staff::bootstrap::staff_bootstrap_is_pending,
     },
 };
-#[cfg(feature = "postgres-backend")]
+#[cfg(any(feature = "full", feature = "postgres-only"))]
 use myc_diesel::repositories::{
     DieselDbPoolProvider, DieselDbPoolProviderParameters,
+    LocalMessageReadSqlDbRepository, LocalMessageReadSqlDbRepositoryParameters,
     ResourceAuditLogRegistrationSqlDbRepository,
     ResourceAuditLogRegistrationSqlDbRepositoryParameters,
 };
@@ -106,18 +125,22 @@ use myc_mem_db::repositories::{
 use myc_moka_cache::config::{
     MokaCacheProviderImpl, MokaCacheProviderImplParameters,
 };
-#[cfg(feature = "standalone")]
+#[cfg(any(feature = "standalone", feature = "postgres-only"))]
 use myc_notifier::repositories::{
     select_local_transport, LocalNotifierAppModule,
     LocalTransportMessageSendingRepository,
     LocalTransportMessageSendingRepositoryParameters,
 };
-#[cfg(feature = "postgres-backend")]
+#[cfg(feature = "full")]
 use myc_notifier::{
     models::ClientProvider,
     repositories::{
         NotifierAppModule, NotifierClientImpl, NotifierClientImplParameters,
     },
+};
+#[cfg(feature = "postgres-only")]
+use myc_postgres_kv::config::{
+    spawn_expiry_sweeper, PgKvPoolProviderImpl, PgKvPoolProviderImplParameters,
 };
 use mycelium_base::utils::errors::MappedErrors;
 use oauth2::http::HeaderName;
@@ -314,7 +337,7 @@ pub async fn main() -> std::io::Result<()> {
     // mode has no Vault at all (SM-R9).
     //
     // ? -----------------------------------------------------------------------
-    #[cfg(feature = "postgres-backend")]
+    #[cfg(any(feature = "full", feature = "postgres-only"))]
     {
         info!("Initializing Vault configs");
 
@@ -328,7 +351,7 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     info!("Initialize internal dependencies");
 
-    #[cfg(feature = "postgres-backend")]
+    #[cfg(feature = "full")]
     let (
         sql_module,
         shared_module,
@@ -344,7 +367,7 @@ pub async fn main() -> std::io::Result<()> {
             std::io::Error::new(std::io::ErrorKind::Other, err)
         })?;
 
-    #[cfg(feature = "standalone")]
+    #[cfg(any(feature = "standalone", feature = "postgres-only"))]
     let (
         sql_module,
         notifier_module,
@@ -566,7 +589,7 @@ pub async fn main() -> std::io::Result<()> {
         // `SharedAppModule` carries the Redis client and is only meaningful
         // in full mode; nothing resolves it from `app_data` anywhere in this
         // crate, but it's registered for parity/future use.
-        #[cfg(feature = "postgres-backend")]
+        #[cfg(feature = "full")]
         let base_app =
             base_app.app_data(web::Data::from(shared_module.clone()));
 
@@ -961,7 +984,7 @@ async fn announce_staff_bootstrap_status(
 
 /// Build the backend-agnostic in-memory service/callback registry module.
 ///
-/// Identical in both `postgres-backend` and `standalone` builds -- the
+/// Identical in both `full` and `standalone` builds -- the
 /// service catalog and callback engines have nothing to do with the
 /// persistence/cache/notifier backend selection.
 async fn build_mem_db_module(config: &ConfigHandler) -> Arc<MemDbAppModule> {
@@ -1031,7 +1054,7 @@ async fn build_mem_db_module(config: &ConfigHandler) -> Arc<MemDbAppModule> {
 ///
 /// The function returns a tuple of the initialized modules.
 ///
-#[cfg(feature = "postgres-backend")]
+#[cfg(feature = "full")]
 async fn initialize_modules(
     config: &ConfigHandler,
 ) -> Result<
@@ -1047,6 +1070,16 @@ async fn initialize_modules(
 > {
     let (resource_audit_log_tx, resource_audit_log_rx) =
         tokio::sync::mpsc::channel::<NewResourceAuditLogEvent>(2048);
+
+    let visibility_timeout_secs = match config
+        .queue
+        .visibility_timeout_secs
+        .async_get_or_error()
+        .await
+    {
+        Ok(secs) => secs,
+        Err(err) => panic!("Error on get visibility timeout: {err}"),
+    };
 
     let sql_module = Arc::new(
         SqlAppModule::builder()
@@ -1066,6 +1099,11 @@ async fn initialize_modules(
                         }
                         .as_str(),
                     ),
+                },
+            )
+            .with_component_parameters::<LocalMessageReadSqlDbRepository>(
+                LocalMessageReadSqlDbRepositoryParameters {
+                    visibility_timeout_secs,
                 },
             )
             .with_component_parameters::<ResourceAuditLogRegistrationSqlDbRepository>(
@@ -1240,6 +1278,112 @@ async fn initialize_modules(
                         smtp_transport,
                         local_email_dir,
                     ),
+                },
+            )
+            .build(),
+    );
+
+    let mem_module = build_mem_db_module(config).await;
+
+    Ok((
+        sql_module,
+        notifier_module,
+        kv_module,
+        mem_module,
+        resource_audit_log_rx,
+    ))
+}
+
+/// Initialize the modules for the application (postgres-only mode: PostgreSQL
+/// persistence + Postgres-backed KV cache + real SMTP, no Redis; multi-pod).
+///
+/// Mirrors full mode's persistence and SMTP delivery but swaps the Redis KV
+/// cache for the `kv_artifact` Postgres table (reusing the SAME connection
+/// pool) and drops `SharedAppModule` entirely -- nothing resolves it without
+/// Redis. The email queue is the shared `message_queue` table, claimed
+/// multi-pod-safe by the diesel `LocalMessageReading` (SELECT ... FOR UPDATE
+/// SKIP LOCKED). Returns the same 5-tuple shape as standalone.
+#[cfg(feature = "postgres-only")]
+async fn initialize_modules(
+    config: &ConfigHandler,
+) -> Result<
+    (
+        Arc<SqlAppModule>,
+        Arc<LocalNotifierAppModule>,
+        Arc<KVAppModule>,
+        Arc<MemDbAppModule>,
+        tokio::sync::mpsc::Receiver<NewResourceAuditLogEvent>,
+    ),
+    MappedErrors,
+> {
+    let (resource_audit_log_tx, resource_audit_log_rx) =
+        tokio::sync::mpsc::channel::<NewResourceAuditLogEvent>(2048);
+
+    // ? Build the Postgres pool once and share it between the SQL module and
+    // ? the Postgres KV cache adapter -- a single pool, no second set of
+    // ? connections.
+    let database_url =
+        match config.diesel.database_url.async_get_or_error().await {
+            Ok(url) => url,
+            Err(err) => panic!("Error on get database url: {err}"),
+        };
+
+    let pool = DieselDbPoolProvider::new(database_url.as_str());
+
+    let visibility_timeout_secs = match config
+        .queue
+        .visibility_timeout_secs
+        .async_get_or_error()
+        .await
+    {
+        Ok(secs) => secs,
+        Err(err) => panic!("Error on get visibility timeout: {err}"),
+    };
+
+    let sql_module = Arc::new(
+        SqlAppModule::builder()
+            .with_component_parameters::<DieselDbPoolProvider>(
+                DieselDbPoolProviderParameters { pool: pool.clone() },
+            )
+            .with_component_parameters::<LocalMessageReadSqlDbRepository>(
+                LocalMessageReadSqlDbRepositoryParameters {
+                    visibility_timeout_secs,
+                },
+            )
+            .with_component_parameters::<ResourceAuditLogRegistrationSqlDbRepository>(
+                ResourceAuditLogRegistrationSqlDbRepositoryParameters {
+                    sender: resource_audit_log_tx,
+                },
+            )
+            .build(),
+    );
+
+    // ? Postgres-backed KV cache, seeded with the shared pool. A background
+    // ? sweeper reclaims expired rows; lazy expiry on read remains the
+    // ? correctness source of truth.
+    let kv_module = Arc::new(
+        KVAppModule::builder()
+            .with_component_parameters::<PgKvPoolProviderImpl>(
+                PgKvPoolProviderImplParameters { pool: pool.clone() },
+            )
+            .build(),
+    );
+
+    spawn_expiry_sweeper(pool.clone(), 60);
+
+    // ? Real SMTP is required in postgres-only mode (it is full-minus-Redis,
+    // ? not standalone). Reuse the local-transport module with SMTP always
+    // ? selected; no Redis client is constructed.
+    let smtp_transport = match config.smtp.to_owned().build_transport().await {
+        Ok(transport) => Some(transport),
+        Err(err) => panic!("Error building SMTP transport: {err}"),
+    };
+
+    let notifier_module = Arc::new(
+        LocalNotifierAppModule::builder()
+            .with_component_parameters::<LocalTransportMessageSendingRepository>(
+                LocalTransportMessageSendingRepositoryParameters {
+                    transport: select_local_transport(smtp_transport, None),
                 },
             )
             .build(),

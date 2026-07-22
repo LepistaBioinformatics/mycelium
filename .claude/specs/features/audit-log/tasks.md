@@ -2,7 +2,7 @@
 
 **Design**: `.claude/specs/features/audit-log/design.md`
 **Status**: Implemented — all 52 tasks done, full workspace gate green (fmt/build/test, both
-`postgres-backend` and `standalone` feature sets), 2026-07-13. Not committed yet — awaiting manual
+`full` and `standalone` feature sets), 2026-07-13. Not committed yet — awaiting manual
 user test/approval per `commit-validation.md`. See `.claude/specs/project/STATE.md` AD-006 for the
 execution summary, including a correctness fix (premature audit emission) and a multi-agent
 `git stash` incident that was found and resolved mid-execution.
@@ -10,7 +10,7 @@ execution summary, including a correctness fix (premature audit emission) and a 
 Scope confirmed with the user: every write use case except `error_code` (Auto-Sizing: Complex —
 full breakdown, parallel plan, per-task verification). Package names used in gate commands:
 `myc-core` (core), `mycelium-diesel` (Postgres adapter), `mycelium-diesel-sqlite` (SQLite adapter),
-`mycelium-api` (ports/api, default feature `postgres-backend`, alt feature `standalone`).
+`mycelium-api` (ports/api, default feature `full`, alt feature `standalone`).
 
 ---
 
@@ -303,13 +303,13 @@ synchronously inline (no `spawn_blocking`, matching the rest of the codebase), `
 
 ### T10: Wire channel + component parameters + dispatcher spawn in `main.rs`
 
-**What**: In both `initialize_modules` branches (`postgres-backend` and `standalone`), create
+**What**: In both `initialize_modules` branches (`full` and `standalone`), create
 `let (tx, rx) = tokio::sync::mpsc::channel::<NewResourceAuditLogEvent>(2048);` before
 `SqlAppModule::builder()`, feed `tx` into
 `.with_component_parameters::<ResourceAuditLogRegistrationSqlDbRepository>(...Parameters { sender: tx })`,
 and add a `resource_audit_log_dispatcher(sql_module.clone(), rx).instrument(span.to_owned()).await;`
 call alongside the existing `webhook_dispatcher(...)` line.
-**Where**: `ports/api/src/main.rs` (both `#[cfg(feature = "postgres-backend")]` and `#[cfg(feature = "standalone")]` code paths).
+**Where**: `ports/api/src/main.rs` (both `#[cfg(feature = "full")]` and `#[cfg(feature = "standalone")]` code paths).
 **Depends on**: T7, T8, T9
 **Reuses**: The exact `DieselDbPoolProvider` `.with_component_parameters` call site as the template (same file, ~20 lines away).
 **Requirement**: AUDIT-05, AUDIT-06
@@ -317,7 +317,7 @@ call alongside the existing `webhook_dispatcher(...)` line.
 **Tools**: MCP: NONE. Skill: NONE.
 
 **Done when**:
-- [ ] `cargo build -p mycelium-api` (default `postgres-backend`) succeeds.
+- [ ] `cargo build -p mycelium-api` (default `full`) succeeds.
 - [ ] `cargo build -p mycelium-api --no-default-features --features standalone` succeeds.
 - [ ] Booting the server with `SETTINGS_PATH=...` locally shows the dispatcher's startup span in logs.
 

@@ -30,7 +30,7 @@ cargo build --release --no-default-features --features standalone -p mycelium-ap
 ```
 
 `--no-default-features` is required — Cargo features are additive, and the default
-`postgres-backend` feature would otherwise stay enabled and trip a `compile_error!` guard (the two
+`full` feature would otherwise stay enabled and trip a `compile_error!` guard (the two
 are mutually exclusive; a single binary cannot link both Postgres-only and SQLite-only Diesel column
 types).
 

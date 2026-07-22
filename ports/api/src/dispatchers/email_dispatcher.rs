@@ -64,8 +64,21 @@ pub(crate) async fn email_dispatcher(
                 }
             };
 
+            let claim_batch_size = match queue_config
+                .clone()
+                .claim_batch_size
+                .async_get_or_error()
+                .await
+            {
+                Ok(size) => size,
+                Err(err) => {
+                    panic!("Error on get claim batch size: {err}");
+                }
+            };
+
             match consume_messages(
                 queue_name.to_owned(),
+                claim_batch_size,
                 local_message_read_repo.clone(),
                 local_message_write_repo.clone(),
                 remote_message_write_repo.clone(),

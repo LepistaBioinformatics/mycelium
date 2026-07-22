@@ -191,7 +191,7 @@ as a non-staff profile and get denied (webhooks have no owner/tenant).
 - [ ] Every write use case listed in Design's inventory (except `error_code`) enqueues exactly one
       audit event on success and zero on failure/validation-reject.
 - [ ] `cargo test --workspace --all` and `cargo build --workspace` pass for both the
-      `postgres-backend` and `standalone` feature sets.
+      `full` and `standalone` feature sets.
 - [ ] A direct `UPDATE`/`DELETE` against `resource_audit_log` fails with the trigger's error, on
       both backends.
 - [ ] Reading a trail as staff always succeeds; as an unrelated profile always fails; as the

@@ -255,6 +255,22 @@ CREATE TABLE message_queue (
     error TEXT DEFAULT NULL
 );
 
+-- Backs the multi-pod-safe email claim (status-filtered, created-ordered scan
+-- for `FOR UPDATE SKIP LOCKED`). See migration 20260722_02.
+CREATE INDEX IF NOT EXISTS idx_message_queue_claim
+    ON message_queue (status, created);
+
+-- Postgres-backed key-value artifact cache for `postgres-only` mode (no Redis).
+-- Empty/unused in full and standalone modes. See migration 20260722_01.
+CREATE TABLE kv_artifact (
+    key        TEXT        PRIMARY KEY,
+    value      TEXT        NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_kv_artifact_expires_at
+    ON kv_artifact (expires_at);
+
 --------------------------------------------------------------------------------
 -- CONSTRAINTS
 --------------------------------------------------------------------------------

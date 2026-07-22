@@ -10,6 +10,20 @@ pub struct QueueConfig {
     pub email_queue_name: SecretResolver<String>,
     #[serde(default = "default_consume_interval_in_secs")]
     pub consume_interval_in_secs: SecretResolver<u64>,
+    // Number of messages claimed per dispatcher tick. Kept small by default so
+    // the multi-pod claim's visibility-timeout invariant holds (see below and
+    // the diesel `list_oldest_messages` claim query). Bounds throughput to
+    // `claim_batch_size` messages per successful tick.
+    #[serde(default = "default_claim_batch_size")]
+    pub claim_batch_size: SecretResolver<i32>,
+    // How long a claimed message stays invisible to other pods (the
+    // `FOR UPDATE SKIP LOCKED` claim stamps `attempted`). MUST exceed the
+    // worst-case time to process a whole claimed batch, or a slow-but-live pod
+    // double-sends. It ALSO doubles as the retry back-off for a failed send:
+    // lower = faster retries but requires a smaller batch to stay safe.
+    // Invariant: visibility_timeout_secs > claim_batch_size * worst_case_smtp_send.
+    #[serde(default = "default_visibility_timeout_secs")]
+    pub visibility_timeout_secs: SecretResolver<i64>,
 }
 
 fn default_email_queue_name() -> SecretResolver<String> {
@@ -18,6 +32,14 @@ fn default_email_queue_name() -> SecretResolver<String> {
 
 fn default_consume_interval_in_secs() -> SecretResolver<u64> {
     SecretResolver::Value(15)
+}
+
+fn default_claim_batch_size() -> SecretResolver<i32> {
+    SecretResolver::Value(3)
+}
+
+fn default_visibility_timeout_secs() -> SecretResolver<i64> {
+    SecretResolver::Value(240)
 }
 
 // Loaded on its own -- not bundled with `SmtpConfig` -- so standalone mode
@@ -61,5 +83,7 @@ mod tests {
             SecretResolver::Value("emails".to_string())
         );
         assert_eq!(config.consume_interval_in_secs, SecretResolver::Value(15));
+        assert_eq!(config.claim_batch_size, SecretResolver::Value(3));
+        assert_eq!(config.visibility_timeout_secs, SecretResolver::Value(240));
     }
 }

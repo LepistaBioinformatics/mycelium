@@ -47,7 +47,7 @@ futures-util = "0.3"
 hex = "0.4.3"
 hmac = "0.12"
 # Used by the notifier's local-transport stub (standalone builds) to render
-# HTML emails as terminal-readable text; not compiled into the postgres-backend.
+# HTML emails as terminal-readable text; not compiled into full mode.
 html2text = "0.17"
 sha2 = "0.10"
 secrecy = "0.8"
@@ -131,6 +131,8 @@ mycelium-notifier = { version = "9.0.0-rc.7", path = "adapters/notifier" }
 mycelium-adapters-shared-lib = { version = "9.0.0-rc.7", path = "adapters/shared" }
 mycelium-key-value = { version = "9.0.0-rc.7", path = "adapters/kv_db" }
 mycelium-moka-cache = { version = "9.0.0-rc.7", path = "adapters/moka_cache" }
+mycelium-postgres-kv = { version = "9.0.0-rc.7", path = "adapters/postgres_kv" }
+
 
 #
 # RUSTSEC-2026-0007: force bytes >= 1.11.1 (Integer overflow in

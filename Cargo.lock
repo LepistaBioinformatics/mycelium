@@ -2749,6 +2749,7 @@ dependencies = [
  "mycelium-moka-cache",
  "mycelium-notifier",
  "mycelium-openapi",
+ "mycelium-postgres-kv",
  "mycelium-service",
  "oauth2",
  "openssl",
@@ -3014,6 +3015,20 @@ dependencies = [
  "serde_json",
  "tracing",
  "utoipa",
+]
+
+[[package]]
+name = "mycelium-postgres-kv"
+version = "9.0.0-rc.7"
+dependencies = [
+ "async-trait",
+ "chrono",
+ "diesel",
+ "myc-core",
+ "mycelium-base",
+ "shaku",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
