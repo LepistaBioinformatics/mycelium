@@ -1,0 +1,118 @@
+# ==============================================================================
+# POSTGRES-ONLY MODE — example configuration
+#
+# This is the config surface for the Redis-free `postgres-only` build:
+#   cargo build --no-default-features --features postgres-only,rhai -p mycelium-api
+# (or, once published, the Docker image built with
+#   --build-arg CARGO_FEATURES=postgres-only,rhai).
+#
+# It runs full PostgreSQL persistence, real SMTP email, and multi-pod horizontal
+# scaling — but the KV/artifact cache lives in a Postgres table (`kv_artifact`)
+# instead of Redis, so there is NO `[redis]` section: this build never reads it
+# (a present `[redis]` is ignored, not an error).
+#
+# Apply the schema first (base DDL already includes the `kv_artifact` table and
+# the message_queue claim index):
+#   psql <url> -f adapters/diesel_postgres/sql/up.sql -v db_name=... -v db_role=...
+#
+# Looking for full mode (Postgres + Redis)? Use the default build and a config
+# that includes `[redis]`. Looking for zero-dependency evaluation? See
+# config.standalone.example.toml.
+# ==============================================================================
+
+vault = "disabled"
+
+# ------------------------------------------------------------------------------
+# CORE
+# ------------------------------------------------------------------------------
+
+[core.accountLifeCycle]
+domainName = "Mycelium"
+domainUrl = "http://localhost:8080"
+tokenExpiration = 3600
+noreplyName = "NoReply"
+noreplyEmail = "noreply@example.com"
+supportName = "Support"
+supportEmail = "support@example.com"
+locale = "en-us"
+# ! In production resolve from vault/env, never inline.
+tokenSecret = { env = "MYC_TOKEN_SECRET" }
+hmacPrimaryVersion = 1
+
+[[core.accountLifeCycle.hmacSecrets]]
+version = 1
+secret = { env = "MYC_HMAC_SECRET_V1" }
+
+[core.webhook]
+acceptInvalidCertificates = false
+consumeIntervalInSecs = 30
+consumeBatchSize = 25
+maxAttempts = 5
+
+# ------------------------------------------------------------------------------
+# SQL DATABASE (PostgreSQL)
+# ------------------------------------------------------------------------------
+
+[diesel]
+# ! In production resolve from vault/env.
+databaseUrl = { env = "DATABASE_URL" }
+
+# ------------------------------------------------------------------------------
+# NOTIFIER — real SMTP (no Redis queue; the email queue is the Postgres
+# `message_queue` table, claimed multi-pod-safe via SELECT ... FOR UPDATE SKIP
+# LOCKED). `[queue]` only tunes the in-process dispatcher poll.
+#
+# ------------------------------------------------------------------------------
+
+[smtp]
+host = "smtp.example.com"
+username = { env = "SMTP_USERNAME" }
+password = { env = "SMTP_PASSWORD" }
+port = 465
+
+[queue]
+emailQueueName = "emails"
+consumeIntervalInSecs = 15
+# Multi-pod claim tuning (also honored in full mode). The claim marks a batch
+# invisible to other pods for `visibilityTimeoutSecs`; this window doubles as
+# the retry back-off for a failed send. SAFETY INVARIANT:
+#   visibilityTimeoutSecs > claimBatchSize * worst-case single SMTP send.
+# Defaults (batch 3, window 240s) are safe for lettre's ~60s default send
+# timeout. Lower the window for faster retries (e.g. time-sensitive OTP) only
+# after lowering the batch so the invariant still holds.
+claimBatchSize = 3
+visibilityTimeoutSecs = 240
+
+# ------------------------------------------------------------------------------
+# AUTHENTICATION
+# ------------------------------------------------------------------------------
+
+[auth.internal.enabled]
+jwtSecret = { env = "MYC_JWT_SECRET" }
+jwtExpiresIn = 43200
+tmpExpiresIn = 300
+
+# ------------------------------------------------------------------------------
+# API PORT
+# ------------------------------------------------------------------------------
+
+[api]
+serviceIp = "0.0.0.0"
+servicePort = 8080
+serviceWorkers = 1
+callbackExecutionMode = "fireAndForget"
+gatewayTimeout = 60
+healthCheckInterval = 120
+maxRetryCount = 3
+allowedOrigins = ["http://localhost:8080"]
+tls = "disabled"
+
+[api.cache]
+jwksTtl = 3600
+emailTtl = 120
+profileTtl = 120
+
+[api.logging]
+level = "info"
+format = "jsonl"
+target = "stdout"

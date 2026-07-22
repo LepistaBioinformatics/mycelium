@@ -4,10 +4,10 @@ use super::api_config::ApiConfig;
 use myc_adapters_shared_lib::models::RedisConfig;
 #[cfg(feature = "standalone")]
 use myc_config::optional_config::OptionalConfig;
-#[cfg(feature = "postgres-backend")]
+#[cfg(any(feature = "postgres-backend", feature = "postgres-only"))]
 use myc_config::{optional_config::OptionalConfig, VaultConfig};
 use myc_core::models::CoreConfig;
-#[cfg(feature = "postgres-backend")]
+#[cfg(any(feature = "postgres-backend", feature = "postgres-only"))]
 use myc_diesel::models::config::DieselConfig;
 #[cfg(feature = "standalone")]
 use myc_diesel_sqlite::config::SqliteConfig;
@@ -27,13 +27,15 @@ pub struct ConfigHandler {
     // interval), not Redis-specific -- shared by both backends.
     pub queue: QueueConfig,
 
-    #[cfg(feature = "postgres-backend")]
+    #[cfg(any(feature = "postgres-backend", feature = "postgres-only"))]
     pub diesel: DieselConfig,
-    #[cfg(feature = "postgres-backend")]
+    #[cfg(any(feature = "postgres-backend", feature = "postgres-only"))]
     pub smtp: SmtpConfig,
+    // Redis is full-mode only. `postgres-only` uses the `kv_artifact` Postgres
+    // table for the KV cache, so `[redis]` is never read here.
     #[cfg(feature = "postgres-backend")]
     pub redis: RedisConfig,
-    #[cfg(feature = "postgres-backend")]
+    #[cfg(any(feature = "postgres-backend", feature = "postgres-only"))]
     pub vault: OptionalConfig<VaultConfig>,
 
     #[cfg(feature = "standalone")]
@@ -66,19 +68,29 @@ impl ConfigHandler {
             // Database configurations serves the database connector, which is
             // responsible for the communication with the database into the
             // adapters layer.
-            #[cfg(feature = "postgres-backend")]
+            #[cfg(any(
+                feature = "postgres-backend",
+                feature = "postgres-only"
+            ))]
             diesel: DieselConfig::from_default_config_file(file.clone())?,
             // SMTP configuration should be used by the email sending repository
             // managements into the adapters layer.
-            #[cfg(feature = "postgres-backend")]
+            #[cfg(any(
+                feature = "postgres-backend",
+                feature = "postgres-only"
+            ))]
             smtp: SmtpConfig::from_default_config_file(file.clone())?,
             // Redis configuration should be used by the redis repository
-            // managements into the adapters layer.
+            // managements into the adapters layer. Full mode only --
+            // `postgres-only` never reads `[redis]`.
             #[cfg(feature = "postgres-backend")]
             redis: RedisConfig::from_default_config_file(file.clone())?,
             // Vault configuration should be used by the secret resolver into
             // the domain layer.
-            #[cfg(feature = "postgres-backend")]
+            #[cfg(any(
+                feature = "postgres-backend",
+                feature = "postgres-only"
+            ))]
             vault: VaultConfig::from_default_config_file(file.clone())?,
             // SQLite configuration points at the standalone database file.
             #[cfg(feature = "standalone")]
@@ -106,6 +118,15 @@ mod tests {
     fn config_full_example_toml_parses_into_config_handler() {
         let file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../../settings/config.full.example.toml");
+
+        ConfigHandler::init_from_file(file).unwrap();
+    }
+
+    #[cfg(feature = "postgres-only")]
+    #[test]
+    fn config_postgres_only_example_toml_parses_into_config_handler() {
+        let file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../settings/config.postgres-only.example.toml");
 
         ConfigHandler::init_from_file(file).unwrap();
     }

@@ -22,6 +22,16 @@ default = ["postgres-backend"]
 # Full mode (PostgreSQL + Redis + SMTP).
 postgres-backend = ["dep:mycelium-diesel", "dep:mycelium-key-value"]
 
+# Postgres-only mode (PostgreSQL persistence + Postgres-backed KV cache + SMTP,
+# no Redis; multi-pod). Build with `--no-default-features --features postgres-only`.
+# Reuses the notifier `local-transport` module to deliver via real SMTP without
+# a Redis client (the email queue is the Postgres `message_queue` table).
+postgres-only = [
+    "dep:mycelium-diesel",
+    "dep:mycelium-postgres-kv",
+    "mycelium-notifier/local-transport",
+]
+
 # Standalone mode (SQLite + moka + stub/file email + autogen secrets). Build
 # with `--no-default-features --features standalone`.
 standalone = [
@@ -108,6 +118,7 @@ mycelium-diesel = { workspace = true, optional = true }
 mycelium-diesel-sqlite = { workspace = true, optional = true }
 mycelium-key-value = { workspace = true, optional = true }
 mycelium-moka-cache = { workspace = true, optional = true }
+mycelium-postgres-kv = { workspace = true, optional = true }
 
 # ------------------------------------------------------------------------------
 # Build dependencies

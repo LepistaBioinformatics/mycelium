@@ -131,6 +131,7 @@ mycelium-notifier = { version = "9.0.0-rc.6", path = "adapters/notifier" }
 mycelium-adapters-shared-lib = { version = "9.0.0-rc.6", path = "adapters/shared" }
 mycelium-key-value = { version = "9.0.0-rc.6", path = "adapters/kv_db" }
 mycelium-moka-cache = { version = "9.0.0-rc.6", path = "adapters/moka_cache" }
+mycelium-postgres-kv = { version = "9.0.0-rc.6", path = "adapters/postgres_kv" }
 
 #
 # RUSTSEC-2026-0007: force bytes >= 1.11.1 (Integer overflow in
