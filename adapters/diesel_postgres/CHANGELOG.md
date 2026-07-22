@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0-rc.7] - 2026-07-17
+
+### 🚀 Features
+
+- *(postgres-only)* Add third build mode (Postgres KV cache, no Redis)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.7
+
 ## [9.0.0-rc.6] - 2026-07-16
 
 ### 🐛 Bug Fixes

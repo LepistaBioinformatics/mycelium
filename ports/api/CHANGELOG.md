@@ -7,6 +7,15 @@ All notable changes to this project will be documented in this file.
 ### 🚀 Features
 
 - *(notifier)* Human-friendly stub email render + wire file transport (#169)
+- *(postgres-only)* Add third build mode (Postgres KV cache, no Redis)
+
+### 🚜 Refactor
+
+- *(features)* Rename `postgres-backend` feature to `full`
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.7
 
 ## [9.0.0-rc.6] - 2026-07-16
 
