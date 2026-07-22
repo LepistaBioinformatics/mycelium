@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 - *(encryption)* Make DEK provisioning idempotent under concurrency
 - *(encryption)* Set created explicitly on Postgres system tenant insert
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.6
+
 ## [9.0.0-rc.5] - 2026-07-13
 
 ### 🚀 Features

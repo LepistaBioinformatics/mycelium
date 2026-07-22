@@ -2,7 +2,7 @@
 name = "mycelium-diesel-sqlite"
 description = "Provide SQLite diesel adapters to the mycelium project (standalone mode)."
 
-version = "9.0.0-rc.6"
+version = "9.0.0-rc.7"
 
 edition.workspace = true
 authors.workspace = true
