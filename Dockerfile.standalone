@@ -9,7 +9,7 @@
 # built from local source instead.
 #
 # `--no-default-features` is required: Cargo features are additive, so
-# without it the default `postgres-backend` feature would stay enabled and
+# without it the default `full` feature would stay enabled and
 # trip the mutual-exclusion `compile_error!` guard in ports/api/src/main.rs.
 #
 # `libsqlite3-sys`'s `bundled` feature compiles SQLite into the binary, so

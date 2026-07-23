@@ -14,14 +14,14 @@ ENV VERSION=${VERSION}
 RUN echo "Building mycelium-api version: ${VERSION}"
 
 # ? Cargo features to build. Default reproduces the historical full-mode image
-# ? byte-for-byte (default `postgres-backend` + `rhai`). Override to build the
+# ? byte-for-byte (`full` + `rhai`). Override to build the
 # ? Redis-free Postgres-only mode:
 # ?   docker build --build-arg CARGO_FEATURES=postgres-only,rhai .
 # ? NOTE: `cargo install` from crates.io only works AFTER `mycelium-postgres-kv`
 # ? and the `postgres-only` feature are published. The first postgres-only image
 # ? (pre-publish) must be a source build instead:
 # ?   cargo build --release --no-default-features --features postgres-only,rhai -p mycelium-api
-ARG CARGO_FEATURES="postgres-backend,rhai"
+ARG CARGO_FEATURES="full,rhai"
 ENV CARGO_FEATURES=${CARGO_FEATURES}
 
 # ? If the VERSION is latest, instal using cargo install
