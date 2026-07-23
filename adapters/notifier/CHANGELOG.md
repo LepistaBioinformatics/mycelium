@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0-rc.11] - 2026-07-23
+
+### 🚀 Features
+
+- *(notifier)* Support STARTTLS for SMTP (port 587 providers like ACS, O365)
+
+### 📚 Documentation
+
+- *(notifier)* Address review — note hint's OpenSSL-string dependency and port-25 default
+
+## [9.0.0-rc.10] - 2026-07-23
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.10
+
 ## [9.0.0-rc.9] - 2026-07-22
 
 ### ⚙️ Miscellaneous Tasks

@@ -2,7 +2,7 @@
 name = "mycelium-http-tools"
 description = "Provide HTTP related elements to the mycelium project."
 
-version = "9.0.0-rc.10"
+version = "9.0.0-rc.11"
 
 edition.workspace = true
 authors.workspace = true

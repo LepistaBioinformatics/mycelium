@@ -2,7 +2,7 @@
 name = "mycelium-diesel"
 description = "Provide diesel adapters to the mycelium project."
 
-version = "9.0.0-rc.10"
+version = "9.0.0-rc.11"
 
 edition.workspace = true
 authors.workspace = true
