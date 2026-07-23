@@ -69,6 +69,9 @@ host = "smtp.example.com"
 username = { env = "SMTP_USERNAME" }
 password = { env = "SMTP_PASSWORD" }
 port = 465
+# TLS mode: "implicit" (port 465) or "starttls" (port 587). Optional -- when
+# omitted it is auto-selected from `port` (587 -> starttls, else implicit).
+# security = "starttls"
 
 [queue]
 emailQueueName = "emails"

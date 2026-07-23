@@ -1,3 +1,5 @@
+use super::SmtpSecurity;
+
 use lettre::{transport::smtp::authentication::Credentials, SmtpTransport};
 use myc_config::{
     load_config_from_file, optional_config::OptionalConfig,
@@ -14,6 +16,12 @@ pub struct SmtpConfig {
     pub username: SecretResolver<String>,
     pub password: SecretResolver<String>,
     pub port: SecretResolver<u16>,
+
+    /// TLS mode for the connection. When omitted, it is auto-selected from
+    /// `port` (587 -> STARTTLS, otherwise implicit TLS) so existing 465
+    /// deployments are unaffected and 587 providers work without extra config.
+    #[serde(default)]
+    pub security: Option<SmtpSecurity>,
 }
 
 unsafe impl Send for SmtpConfig {}
@@ -76,21 +84,30 @@ impl SmtpConfig {
 
     /// Build a real `SmtpTransport` from this config. Shared by full mode's
     /// `NotifierClientImpl` and standalone's opt-in SMTP wiring (SM-R8), so
-    /// the connection-building logic exists in exactly one place.
+    /// the connection-building logic exists in exactly one place. The TLS mode
+    /// is taken from `security`, falling back to a port-based default (#178).
+    #[tracing::instrument(name = "build_smtp_transport", skip_all)]
     pub async fn build_transport(&self) -> Result<SmtpTransport, MappedErrors> {
         let host = self.host.async_get_or_error().await?;
         let username = self.username.async_get_or_error().await?;
         let password = self.password.async_get_or_error().await?;
         let port = self.port.async_get_or_error().await?;
 
-        let transport = SmtpTransport::relay(&host)
-            .map_err(|err| {
-                execution_err(format!("Failed to connect to SMTP: {err}"))
-            })?
+        let security = self
+            .security
+            .unwrap_or_else(|| SmtpSecurity::from_port(port));
+
+        let builder = match security {
+            SmtpSecurity::StartTls => SmtpTransport::starttls_relay(&host),
+            SmtpSecurity::Implicit => SmtpTransport::relay(&host),
+        }
+        .map_err(|err| {
+            execution_err(format!("Failed to connect to SMTP: {err}"))
+        })?;
+
+        Ok(builder
             .credentials(Credentials::new(username, password))
             .port(port)
-            .build();
-
-        Ok(transport)
+            .build())
     }
 }
