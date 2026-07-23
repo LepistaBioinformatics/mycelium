@@ -178,7 +178,8 @@ port = 465                                                           # required 
 # TLS mode: "implicit" (SMTPS, port 465) or "starttls" (submission, port 587).
 # Optional -- if omitted it is auto-selected from `port` (587 -> starttls,
 # otherwise implicit). Set it explicitly for providers like Azure Communication
-# Services or Office 365, which require STARTTLS on 587.
+# Services or Office 365, which require STARTTLS on 587. Any other port (e.g.
+# plain SMTP on 25) defaults to implicit TLS -- set `security` explicitly there.
 # security = "starttls"
 
 # ------------------------------------------------------------------------------

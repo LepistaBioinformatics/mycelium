@@ -10,6 +10,11 @@ use mycelium_base::utils::errors::{creation_err, MappedErrors};
 pub(crate) fn smtp_send_error_message(err: impl ToString) -> String {
     let err = err.to_string();
 
+    // Best-effort UX hint only. `lettre`/native-tls surface this TLS-record
+    // mismatch as an OpenSSL text string (no granular error kind to match on),
+    // so we substring-match. If the wording changes across OpenSSL versions the
+    // hint silently disappears -- the underlying error is still reported, so
+    // this degrades gracefully rather than breaking.
     if err.contains("wrong version number") {
         return format!(
             "Could not send email: {err} (hint: the server likely expects \

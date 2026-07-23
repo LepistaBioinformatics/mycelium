@@ -70,7 +70,8 @@ username = { env = "SMTP_USERNAME" }
 password = { env = "SMTP_PASSWORD" }
 port = 465
 # TLS mode: "implicit" (port 465) or "starttls" (port 587). Optional -- when
-# omitted it is auto-selected from `port` (587 -> starttls, else implicit).
+# omitted it is auto-selected from `port` (587 -> starttls, else implicit); any
+# other port (e.g. 25) defaults to implicit, so set `security` explicitly there.
 # security = "starttls"
 
 [queue]
