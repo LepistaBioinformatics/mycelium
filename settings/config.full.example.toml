@@ -175,6 +175,12 @@ username = { vault = { path = "myc/smtp", key = "username" } }       # required
 # ! Should be collected from vault or an environment variable in production
 password = { vault = { path = "myc/smtp", key = "password" } }       # required
 port = 465                                                           # required -- SMTP submission port (465 for implicit TLS, 587 for STARTTLS)
+# TLS mode: "implicit" (SMTPS, port 465) or "starttls" (submission, port 587).
+# Optional -- if omitted it is auto-selected from `port` (587 -> starttls,
+# otherwise implicit). Set it explicitly for providers like Azure Communication
+# Services or Office 365, which require STARTTLS on 587. Any other port (e.g.
+# plain SMTP on 25) defaults to implicit TLS -- set `security` explicitly there.
+# security = "starttls"
 
 # ------------------------------------------------------------------------------
 # EMAIL DISPATCHER POLLING SETTINGS

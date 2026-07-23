@@ -1,7 +1,9 @@
 #![cfg(feature = "local-transport")]
 
 use crate::rendering::render_stub_email_for_terminal;
-use crate::repositories::shared::build_lettre_message;
+use crate::repositories::shared::{
+    build_lettre_message, smtp_send_error_message,
+};
 
 use async_trait::async_trait;
 use lettre::transport::{file::FileTransport, stub::StubTransport};
@@ -83,9 +85,7 @@ impl RemoteMessageWrite for LocalTransportMessageSendingRepository {
 
                 Ok(CreateResponseKind::Created(None))
             }
-            Err(err) => {
-                creation_err(format!("Could not send email: {err}")).as_error()
-            }
+            Err(err) => creation_err(smtp_send_error_message(err)).as_error(),
         }
     }
 }

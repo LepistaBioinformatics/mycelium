@@ -149,11 +149,15 @@ path = "./data/mycelium.db"
 # four fields are required once you enable this section.
 # ------------------------------------------------------------------------------
 
-# [smtp]
+# [smtp.define]
 # host = "smtp.example.com"
 # username = "apikey"
 # password = { env = "MYC_SMTP_PASSWORD" }
 # port = 587
+# TLS mode: "implicit" (port 465) or "starttls" (port 587). Optional -- when
+# omitted it is auto-selected from `port` (587 -> starttls, else implicit); any
+# other port (e.g. 25) defaults to implicit, so set `security` explicitly there.
+# security = "starttls"
 
 # ------------------------------------------------------------------------------
 # LOCAL FILE EMAIL DELIVERY (optional -- opt-in `.eml` files)

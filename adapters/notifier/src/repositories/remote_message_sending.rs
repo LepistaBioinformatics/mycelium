@@ -1,5 +1,7 @@
 use crate::models::ClientProvider;
-use crate::repositories::shared::build_lettre_message;
+use crate::repositories::shared::{
+    build_lettre_message, smtp_send_error_message,
+};
 
 use async_trait::async_trait;
 use lettre::Transport;
@@ -31,9 +33,7 @@ impl RemoteMessageWrite for RemoteMessageSendingRepository {
 
         match connection.send(&email) {
             Ok(_) => Ok(CreateResponseKind::Created(None)),
-            Err(err) => {
-                creation_err(format!("Could not send email: {err}")).as_error()
-            }
+            Err(err) => creation_err(smtp_send_error_message(err)).as_error(),
         }
     }
 }
