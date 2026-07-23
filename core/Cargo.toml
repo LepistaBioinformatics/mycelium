@@ -3,7 +3,7 @@ name = "myc-core"
 description = "Provide base features of the Mycelium project as s and Use-cases."
 readme = "README.md"
 
-version = "9.0.0-rc.9"
+version = "9.0.0-rc.10"
 
 edition.workspace = true
 authors.workspace = true

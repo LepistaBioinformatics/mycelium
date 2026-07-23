@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0-rc.9] - 2026-07-22
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.9
+
 ## [9.0.0-rc.7] - 2026-07-17
 
 ### ⚙️ Miscellaneous Tasks
