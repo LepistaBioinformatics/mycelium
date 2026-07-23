@@ -434,21 +434,9 @@ pub async fn main() -> std::io::Result<()> {
 
     email_dispatcher(
         config.queue.to_owned(),
-        unsafe {
-            Arc::from_raw(*Arc::new(
-                sql_module.resolve_ref() as &dyn LocalMessageReading
-            ))
-        },
-        unsafe {
-            Arc::from_raw(*Arc::new(
-                sql_module.resolve_ref() as &dyn LocalMessageWrite
-            ))
-        },
-        unsafe {
-            Arc::from_raw(*Arc::new(
-                notifier_module.resolve_ref() as &dyn RemoteMessageWrite
-            ))
-        },
+        HasComponent::<dyn LocalMessageReading>::resolve(&*sql_module),
+        HasComponent::<dyn LocalMessageWrite>::resolve(&*sql_module),
+        HasComponent::<dyn RemoteMessageWrite>::resolve(&*notifier_module),
     )
     .instrument(span.to_owned())
     .await;
