@@ -2,11 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0-rc.12] - 2026-07-28
+
+### 🐛 Bug Fixes
+
+- *(router)* Forward downstream response headers by blocklist, not allowlist
+- *(router)* Strip client-supplied x-mycelium-* headers before forwarding
+- *(router)* Block the whole x-mycelium namespace in the gateway response
+
 ## [9.0.0-rc.11] - 2026-07-23
 
 ### 🐛 Bug Fixes
 
 - *(api)* Stop forging Arc via Arc::from_raw in email_dispatcher wiring (heap corruption)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.11
 
 ## [9.0.0-rc.10] - 2026-07-23
 

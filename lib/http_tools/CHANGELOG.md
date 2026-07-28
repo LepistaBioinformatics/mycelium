@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0-rc.12] - 2026-07-28
+
+### 🐛 Bug Fixes
+
+- *(router)* Forward downstream response headers by blocklist, not allowlist
+- *(router)* Strip client-supplied x-mycelium-* headers before forwarding
+
+## [9.0.0-rc.11] - 2026-07-23
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.11
+
 ## [9.0.0-rc.10] - 2026-07-23
 
 ### ⚙️ Miscellaneous Tasks

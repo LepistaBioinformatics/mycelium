@@ -12,6 +12,10 @@ All notable changes to this project will be documented in this file.
 
 - *(notifier)* Address review — note hint's OpenSSL-string dependency and port-25 default
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.11
+
 ## [9.0.0-rc.10] - 2026-07-23
 
 ### ⚙️ Miscellaneous Tasks

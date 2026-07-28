@@ -2,7 +2,7 @@
 name = "mycelium-postgres-kv"
 description = "Provide a Postgres-backed key-value cache adapter to the mycelium project (postgres-only mode, no Redis)."
 
-version = "9.0.0-rc.11"
+version = "9.0.0-rc.12"
 
 edition.workspace = true
 authors.workspace = true
