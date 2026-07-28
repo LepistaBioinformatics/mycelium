@@ -85,10 +85,12 @@ pub const MYCELIUM_SERVICE_NAME: &str = "x-mycelium-service-name";
 ///
 pub const MYCELIUM_SECURITY_GROUP: &str = "x-mycelium-security-group";
 
-/// Default forwarding keys
+/// Hop-by-hop headers blocklist
 ///
 /// Such keys are used to map the headers that should be removed from the
-/// downstream response before stream it back to the client.
+/// downstream response before stream it back to the client. RFC 7230 § 6.1
+/// forbids a proxy from forwarding them. Every other downstream response
+/// header is forwarded verbatim.
 ///
 pub const FORWARDING_KEYS: [&str; 9] = [
     "Host",

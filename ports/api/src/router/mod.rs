@@ -232,10 +232,14 @@ pub(crate) async fn route_request(
     //
     // ? -----------------------------------------------------------------------
 
-    let mut gateway_response =
-        build_the_gateway_response(request_id, route_key, &downstream_response)
-            .instrument(span.to_owned())
-            .await?;
+    let mut gateway_response = build_the_gateway_response(
+        request_id,
+        route_key,
+        downstream_response.status(),
+        downstream_response.headers(),
+    )
+    .instrument(span.to_owned())
+    .await?;
 
     // ? -----------------------------------------------------------------------
     // ? Stream the response to the client
