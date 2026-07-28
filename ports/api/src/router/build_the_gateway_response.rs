@@ -6,8 +6,8 @@ use awc::error::HeaderValue;
 use myc_http_tools::{
     responses::GatewayError,
     settings::{
-        DEFAULT_PROFILE_KEY, DEFAULT_REQUEST_ID_KEY, FORWARDING_KEYS,
-        FORWARD_FOR_KEY, MYCELIUM_SERVICE_NAME,
+        DEFAULT_REQUEST_ID_KEY, FORWARDING_KEYS, FORWARD_FOR_KEY,
+        MYCELIUM_HEADER_PREFIX, RFC7239_FORWARDED_KEY,
     },
 };
 
@@ -48,7 +48,7 @@ pub(super) async fn build_the_gateway_response(
     //
     for (header_name, header_value) in
         downstream_headers.iter().filter(|(name, _)| {
-            !blocked_headers.contains(&name.as_str().to_owned())
+            !is_blocked_response_header(name.as_str(), &blocked_headers)
         })
     {
         gateway_response
@@ -84,7 +84,9 @@ pub(super) async fn build_the_gateway_response(
 /// 2. Gateway-injected artifacts, which travel in the request direction only.
 ///    If a downstream service echoes one of them back, forwarding it would leak
 ///    internal context to the client — `route_key` in particular is the name of
-///    the injected downstream secret header.
+///    the injected downstream secret header, and the `x-mycelium-` namespace
+///    carries identity and authorization context (profile, email, security
+///    group, connection string).
 ///
 /// Every other header is forwarded verbatim. Both sets contain sensitive
 /// information about the system internals. Thus, be careful on edit this
@@ -101,9 +103,7 @@ fn blocked_response_headers(route_key: Option<String>) -> Vec<String> {
 
     blocked_headers.append(&mut vec![
         FORWARD_FOR_KEY.to_lowercase(),
-        DEFAULT_PROFILE_KEY.to_lowercase(),
-        DEFAULT_REQUEST_ID_KEY.to_lowercase(),
-        MYCELIUM_SERVICE_NAME.to_lowercase(),
+        RFC7239_FORWARDED_KEY.to_lowercase(),
     ]);
 
     let Some(key) = route_key else {
@@ -112,6 +112,24 @@ fn blocked_response_headers(route_key: Option<String>) -> Vec<String> {
 
     blocked_headers.push(key.to_lowercase());
     blocked_headers
+}
+
+/// Whether a downstream response header must not reach the client
+///
+/// The whole `x-mycelium-` namespace is matched by prefix rather than by
+/// listing the keys. Enumerating them is what let `x-mycelium-email`,
+/// `x-mycelium-security-group` and `x-mycelium-connection-string` through: a
+/// list only covers the keys that existed when it was written.
+///
+fn is_blocked_response_header(
+    header_name: &str,
+    blocked_headers: &[String],
+) -> bool {
+    if header_name.starts_with(MYCELIUM_HEADER_PREFIX) {
+        return true;
+    }
+
+    blocked_headers.contains(&header_name.to_owned())
 }
 
 // ? ---------------------------------------------------------------------------
@@ -128,7 +146,10 @@ mod tests {
     };
     use awc::error::HeaderValue as AwcHeaderValue;
     use myc_http_tools::settings::{
-        DEFAULT_PROFILE_KEY, DEFAULT_REQUEST_ID_KEY, MYCELIUM_SERVICE_NAME,
+        DEFAULT_CONNECTION_STRING_KEY, DEFAULT_EMAIL_KEY,
+        DEFAULT_MYCELIUM_ROLE_KEY, DEFAULT_PROFILE_KEY, DEFAULT_REQUEST_ID_KEY,
+        DEFAULT_SCOPE_KEY, DEFAULT_TENANT_ID_KEY, MYCELIUM_SECURITY_GROUP,
+        MYCELIUM_SERVICE_NAME,
     };
 
     fn headers_from(pairs: &[(&str, &str)]) -> HeaderMap {
@@ -269,6 +290,50 @@ mod tests {
             response.headers().get(DEFAULT_REQUEST_ID_KEY).unwrap(),
             "gateway-request-id"
         );
+    }
+
+    #[tokio::test]
+    async fn the_whole_mycelium_namespace_is_stripped() {
+        //
+        // Anything the gateway may have injected into the request leaks
+        // internal context if a downstream echoes it back. The namespace is
+        // matched by prefix, so keys added later are covered too.
+        //
+        let downstream_headers = headers_from(&[
+            (DEFAULT_EMAIL_KEY, "user@example.com"),
+            (MYCELIUM_SECURITY_GROUP, "{\"Protected\":null}"),
+            (DEFAULT_CONNECTION_STRING_KEY, "user-credential"),
+            (DEFAULT_SCOPE_KEY, "leaked-scope"),
+            (DEFAULT_MYCELIUM_ROLE_KEY, "leaked-role"),
+            (DEFAULT_TENANT_ID_KEY, "leaked-tenant"),
+            ("x-mycelium-not-yet-invented", "future-key"),
+        ]);
+
+        let mut builder = build_the_gateway_response(
+            None,
+            None,
+            StatusCode::OK,
+            &downstream_headers,
+        )
+        .await
+        .unwrap();
+
+        let response = builder.finish();
+
+        assert!(response.headers().get(DEFAULT_EMAIL_KEY).is_none());
+        assert!(response.headers().get(MYCELIUM_SECURITY_GROUP).is_none());
+        assert!(response
+            .headers()
+            .get(DEFAULT_CONNECTION_STRING_KEY)
+            .is_none());
+        assert!(response.headers().get(DEFAULT_SCOPE_KEY).is_none());
+        assert!(response.headers().get(DEFAULT_MYCELIUM_ROLE_KEY).is_none());
+        assert!(response.headers().get(DEFAULT_TENANT_ID_KEY).is_none());
+
+        assert!(response
+            .headers()
+            .get("x-mycelium-not-yet-invented")
+            .is_none());
     }
 
     #[tokio::test]

@@ -103,8 +103,18 @@ been served with no `Content-Type` all along; SSE was just the first client stri
   their last value. Only reachable once the allowlist is inverted — caught in review, verified by a
   test that fails on `insert_header`.
 
-**Testing:** 7 tests, all verified as regression tests — the filter was temporarily reverted to the
-original allowlist and the suite re-run (0 passed / 7 failed), then restored (7 passed).
+**Follow-up (same PR, 3rd commit):** the first pass *enumerated* the Mycelium keys to block
+(profile, request-id, service-name) and so still leaked `x-mycelium-email`,
+`x-mycelium-security-group`, `x-mycelium-connection-string`, `x-mycelium-scope`,
+`x-mycelium-role` and `x-mycelium-tenant-id` back to the client if a downstream echoed them —
+authenticated user's email, the route's authorization config, and the user's connection-string
+credential. Caught by the automated security review of the commit, **not** by the tests. Now
+matched by `MYCELIUM_HEADER_PREFIX`, same rule as the request side. Lesson is already recorded in
+`settings.rs`: never enumerate the namespace, and it was violated in the very next file.
+
+**Testing:** 8 tests, all verified as regression tests — the filter was temporarily reverted to the
+original allowlist and the suite re-run (0 passed / 7 failed), then restored (7 passed). T8
+verified separately against the enumerated blocklist (failed → passed).
 
 **Gates:** all green — `fmt --check`, `build --workspace`, `test --workspace --all` (7 new tests).
 **Status:** implemented, **not committed** (awaiting user UAT per commit-validation rule).

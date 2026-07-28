@@ -84,7 +84,8 @@ the whole stream instead of dispatching per event.
 | ID | Requirement |
 |---|---|
 | **R1** | All headers from `downstream_response` are copied to the gateway response, except those in the blocklist. |
-| **R2** | The blocklist is composed of two semantically distinct, separately named sets: **(a) hop-by-hop headers** — `FORWARDING_KEYS`, blocked because RFC 7230 §6.1 forbids proxy forwarding; **(b) gateway-injected artifacts** — `route_key` (downstream secret header name), `DEFAULT_PROFILE_KEY`, `MYCELIUM_SERVICE_NAME`, `FORWARD_FOR_KEY`, `DEFAULT_REQUEST_ID_KEY` — blocked because they are request-direction headers the gateway injects; if a downstream echoes one back, forwarding it leaks internal context to the client. |
+| **R2** | The blocklist is composed of two semantically distinct, separately named sets: **(a) hop-by-hop headers** — `FORWARDING_KEYS`, blocked because RFC 7230 §6.1 forbids proxy forwarding; **(b) gateway-injected artifacts** — the whole `MYCELIUM_HEADER_PREFIX` namespace, plus `route_key` (downstream secret header name), `FORWARD_FOR_KEY` and `RFC7239_FORWARDED_KEY` — blocked because they are request-direction headers the gateway injects; if a downstream echoes one back, forwarding it leaks internal context to the client. |
+| **R2.1** | The Mycelium set is matched **by prefix**, not by listing keys. A first pass enumerated `DEFAULT_PROFILE_KEY` / `DEFAULT_REQUEST_ID_KEY` / `MYCELIUM_SERVICE_NAME` and thereby let `x-mycelium-email`, `x-mycelium-security-group`, `x-mycelium-connection-string`, `x-mycelium-scope`, `x-mycelium-role` and `x-mycelium-tenant-id` through — an echoing downstream would have leaked the authenticated user's email, the route's authorization config, and the user's connection-string credential to the client. Caught by an automated security review of the commit. Same enumeration-vs-prefix failure this spec warns about elsewhere; the prefix is now the only rule. |
 | **R3** | Matching is case-insensitive (HTTP header names are case-insensitive). |
 | **R4** | Blocking `DEFAULT_REQUEST_ID_KEY` also removes an ordering hazard: the gateway inserts its own request id at the top of the function, and an echoed downstream value would otherwise overwrite it via `insert_header`. |
 | **R5** | `build_the_gateway_response` takes `StatusCode` + `&HeaderMap` instead of `&DownstreamResponse`, so it is unit-testable. It already only reads status and headers. The borrow ends before `mod.rs` moves `downstream_response` into `.streaming(...)`. |
@@ -103,9 +104,13 @@ the whole stream instead of dispatching per event.
 | **T6** | Blocklist matching is case-insensitive (`CONNECTION`, `Content-Type` in mixed case). |
 | **T7** | Two `Set-Cookie` values on the downstream response both reach the client (regression guard for R7 — verified failing with `insert_header`, passing with `append_header`). |
 
-**All seven are verified regression tests.** The filter was temporarily reverted to the original
+| **T8** | The whole `x-mycelium-` namespace is stripped when echoed by the downstream — email, security-group, connection-string, scope, role, tenant-id, and a never-seen `x-mycelium-not-yet-invented` (guards R2.1). |
+
+**All eight are verified regression tests.** The filter was temporarily reverted to the original
 allowlist (inverted predicate + `insert_header`) and the suite re-run: **0 passed, 7 failed**.
-Restored: 7 passed. Every test in this file fails against the code it replaces.
+Restored: 7 passed. T8 was verified separately against the enumerated blocklist that preceded the
+prefix match: **failed**, then passed once the prefix rule landed. Every test in this file fails
+against the code it replaces.
 
 Assertions read headers via `builder.finish()` → `res.headers()`, since
 `HttpResponseBuilder` exposes no getter. `finish()` must be called once.
