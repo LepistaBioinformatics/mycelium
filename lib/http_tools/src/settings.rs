@@ -6,6 +6,17 @@ use zstd::DEFAULT_COMPRESSION_LEVEL as ZSTD_DEFAULT_COMPRESSION_LEVEL;
 // ? Configure default system constants
 // ? ---------------------------------------------------------------------------
 
+/// Mycelium header namespace
+///
+/// Every header the gateway injects into the downstream request is namespaced
+/// under this prefix. The gateway strips all inbound headers matching it from
+/// the client request before forwarding, so a client can never forge identity
+/// context that a downstream service would attribute to the gateway. Any new
+/// `x-mycelium-*` header is therefore covered by construction — never enumerate
+/// the keys individually when filtering.
+///
+pub const MYCELIUM_HEADER_PREFIX: &str = "x-mycelium-";
+
 /// Default profile key
 ///
 /// This is the default key used to store the profile in the request headers and
@@ -85,10 +96,12 @@ pub const MYCELIUM_SERVICE_NAME: &str = "x-mycelium-service-name";
 ///
 pub const MYCELIUM_SECURITY_GROUP: &str = "x-mycelium-security-group";
 
-/// Default forwarding keys
+/// Hop-by-hop headers blocklist
 ///
 /// Such keys are used to map the headers that should be removed from the
-/// downstream response before stream it back to the client.
+/// downstream response before stream it back to the client. RFC 7230 § 6.1
+/// forbids a proxy from forwarding them. Every other downstream response
+/// header is forwarded verbatim.
 ///
 pub const FORWARDING_KEYS: [&str; 9] = [
     "Host",

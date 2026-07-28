@@ -1,7 +1,12 @@
 # State
 
-**Last Updated:** 2026-07-17
-**Current Work:** Local Email DX (`features/local-email-dx/`) — implemented on branch
+**Last Updated:** 2026-07-27
+**Current Work:** Two header trust-boundary fixes in the gateway router, both implemented in the
+same working tree on branch `fix/gateway-response-header-blocklist`, all gates green (449 tests),
+**awaiting user UAT before commit** — response-side (`features/gateway-response-header-blocklist/`,
+AD-008) and request-side (`features/strip-inbound-mycelium-headers/`, AD-009, **security fix**).
+See the commit plan in the second spec: disjoint file sets, meant to become two commits/PRs.
+Local Email DX (`features/local-email-dx/`) — implemented on branch
 `feat/stub-pretty-render-and-file-transport`, all gates green, **awaiting user UAT before commit**
 (see AD-007). Resource Audit Log — spec/design/tasks written 2026-07-13, awaiting user go-ahead to
 Execute (see block below). Standalone Mode G1-G9 done, not committed yet. M1 ongoing.
@@ -9,6 +14,110 @@ Execute (see block below). Standalone Mode G1-G9 done, not committed yet. M1 ong
 ---
 
 ## Recent Decisions (Last 60 days)
+
+### AD-009: Client-supplied `x-mycelium-*` headers are stripped before forwarding (2026-07-27)
+
+**Feature:** `features/strip-inbound-mycelium-headers/`. **Security fix — authorization bypass.**
+
+`awc::Client::request_from(url, req.head())` copies *every* client header into the downstream
+request. The gateway then overwrote only *some* `x-mycelium-*` headers, and only for certain
+security groups (`check_security_group.rs:99-188`): `Public` overwrites nothing, `Authenticated`
+overwrites only `x-mycelium-email`. So on any Public or Authenticated route a client could send a
+forged `x-mycelium-profile` and the gateway handed it to the downstream service, where every SDK
+decodes it as gateway-attested identity — `hasStaffPrivileges` included. `x-mycelium-scope`,
+`x-mycelium-role` and `x-mycelium-tenant-id` had **no producer at all** on the proxy path and
+passed through in every security group.
+
+**Decisions:**
+
+- Strip is **prefix-based** (`MYCELIUM_HEADER_PREFIX = "x-mycelium-"`, new in `settings.rs`), not a
+  list of known constants. A constant list re-breaks the day a new `DEFAULT_*_KEY` is added and the
+  filter is not updated — the exact failure mode of both bugs found this session.
+- Runs **unconditionally**, inside `initialize_downstream_request` right after `request_from` and
+  before every gateway `insert_header`. Not per security group — that enumeration *was* the bug.
+- `x-mycelium-request-id` is **explicitly re-injected** after the strip. It was previously forwarded
+  only as a side effect of the blanket copy. Safe: the app-level `wrap_fn` (`main.rs:805-812`)
+  overwrites it with a fresh uuid on every inbound request before the router runs.
+- **`x-mycelium-connection-string` stops being forwarded downstream** — deliberate. It is the
+  user's own bearer-equivalent credential. Searched the gateway and all three SDKs: each SDK only
+  *declares* the constant, none reads the header. Services outside the monorepo can't be checked —
+  flagged for UAT; if one does read it, re-inject it explicitly like the request id.
+- `x-mycelium-security-group` is stripped too, but `check_security_group.rs:61-62` re-inserts it
+  unconditionally in a later pipeline step, so downstream still receives it.
+- Pure `fn(&mut HeaderMap)` in its own file (`strip_inbound_mycelium_headers.rs`), so it is
+  unit-testable without constructing an `awc::Client`.
+
+**Reclassifies `.claude/specs/security/findings.md` §3.1**, which recorded profile spoofing as
+conditional on the downstream service being exposed *without* the gateway. It was reachable
+*through* the gateway — the path the SDK contract treats as trusted.
+
+**Out of scope (user decision):** profile signing (HMAC gateway↔SDK) and trusted-proxy validation
+in `resolve_client_ip` (findings.md §1.3).
+
+**Testing:** 6 unit tests on the pure function. They are **not** regression tests — the function is
+new, so none would have caught the original bug, which was its absence from the pipeline. A
+pipeline-level test (forged profile through `initialize_downstream_request` on a `Public` route)
+was proposed and **declined by the user: unit tests only**. Strip point and ordering verified by
+reading `router/mod.rs:154-197` and `check_security_group.rs:61-62`.
+
+**Gates:** all green — `fmt --check`, `build --workspace`, `test --workspace --all` (449 tests,
+6 new). **Status:** implemented, **not committed** (awaiting user UAT per commit-validation rule).
+
+### AD-008: Gateway response headers are a blocklist, not an allowlist (2026-07-27)
+
+**Feature:** `features/gateway-response-header-blocklist/`. Branch
+`fix/gateway-response-header-blocklist`.
+
+`build_the_gateway_response` kept **only** the headers present in a short list
+(`route_key` + `FORWARDING_KEYS` + forwarded-for + profile + service-name), inverting the
+documented intent of `FORWARDING_KEYS` (`settings.rs`: "headers that should be removed"). Two
+consequences: every legitimate downstream header was dropped (`Content-Type`, `Location`,
+`Cache-Control`, `ETag`, `Content-Disposition`, `Set-Cookie`, app-custom), and the only headers
+guaranteed to pass were the ones that must not — `route_key` is the **name of the injected
+downstream secret header**, so an echoing downstream leaked it to the client.
+
+**Decisions:**
+
+- Blocklist is split into two *named* sets: hop-by-hop (`FORWARDING_KEYS`, already the complete
+  RFC 7230 §6.1 set — **nothing new added**) and gateway-injected artifacts (`route_key`,
+  `x-mycelium-profile`, `x-mycelium-service-name`, `x-forwarded-for`, `x-mycelium-request-id`).
+- `x-mycelium-request-id` in the second set also kills an ordering hazard: the gateway inserts its
+  own id first, and an echoed downstream value would otherwise overwrite it.
+- **`Content-Encoding` and `Content-Length` are deliberately NOT blocked.**
+  `initialize_downstream_request.rs` calls `.no_decompress()`, so the body reaches the client still
+  compressed — stripping `Content-Encoding` would corrupt every gzip response. `Content-Length` is
+  already dropped by the actix h1 encoder for `BodySize::Stream` but is intentionally retained for
+  `304` (RFC 7232 §4.1).
+- Signature changed to `(request_id, route_key, StatusCode, &HeaderMap)` — the function only ever
+  read status and headers, and `awc::test::TestResponse` yields the wrong payload type to build a
+  `DownstreamResponse` in tests.
+
+**Blast radius:** `route_request` is only `App::default_service`, so this affected 100% of proxied
+traffic and 0% of Mycelium's own handlers (which set their own Content-Type via `Responder`) —
+that split is why it went unnoticed. Nothing masked it: no `Compress`, no `DefaultHeaders`
+middleware, and actix never supplies a default `Content-Type` for streamed bodies. Proxied JSON has
+been served with no `Content-Type` all along; SSE was just the first client strict enough to care.
+
+- The copy loop must use **`append_header`**, not `insert_header`: `HeaderMap::iter` yields one
+  entry per value, so an insert collapses multi-valued headers (`Set-Cookie`, `Vary`, `Link`) to
+  their last value. Only reachable once the allowlist is inverted — caught in review, verified by a
+  test that fails on `insert_header`.
+
+**Follow-up (same PR, 3rd commit):** the first pass *enumerated* the Mycelium keys to block
+(profile, request-id, service-name) and so still leaked `x-mycelium-email`,
+`x-mycelium-security-group`, `x-mycelium-connection-string`, `x-mycelium-scope`,
+`x-mycelium-role` and `x-mycelium-tenant-id` back to the client if a downstream echoed them —
+authenticated user's email, the route's authorization config, and the user's connection-string
+credential. Caught by the automated security review of the commit, **not** by the tests. Now
+matched by `MYCELIUM_HEADER_PREFIX`, same rule as the request side. Lesson is already recorded in
+`settings.rs`: never enumerate the namespace, and it was violated in the very next file.
+
+**Testing:** 8 tests, all verified as regression tests — the filter was temporarily reverted to the
+original allowlist and the suite re-run (0 passed / 7 failed), then restored (7 passed). T8
+verified separately against the enumerated blocklist (failed → passed).
+
+**Gates:** all green — `fmt --check`, `build --workspace`, `test --workspace --all` (7 new tests).
+**Status:** implemented, **not committed** (awaiting user UAT per commit-validation rule).
 
 ### AD-007: Local Email DX — stub terminal render + file-transport wiring (2026-07-17)
 
