@@ -6,6 +6,17 @@ use zstd::DEFAULT_COMPRESSION_LEVEL as ZSTD_DEFAULT_COMPRESSION_LEVEL;
 // ? Configure default system constants
 // ? ---------------------------------------------------------------------------
 
+/// Mycelium header namespace
+///
+/// Every header the gateway injects into the downstream request is namespaced
+/// under this prefix. The gateway strips all inbound headers matching it from
+/// the client request before forwarding, so a client can never forge identity
+/// context that a downstream service would attribute to the gateway. Any new
+/// `x-mycelium-*` header is therefore covered by construction — never enumerate
+/// the keys individually when filtering.
+///
+pub const MYCELIUM_HEADER_PREFIX: &str = "x-mycelium-";
+
 /// Default profile key
 ///
 /// This is the default key used to store the profile in the request headers and

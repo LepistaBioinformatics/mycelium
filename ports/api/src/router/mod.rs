@@ -7,7 +7,8 @@
 ///
 /// - Check if the source of the request is allowed to access the service.
 /// - Check if the method of the request is allowed to access the service.
-/// - Build the downstream URL address.
+/// - Build the downstream URL address, dropping any client-supplied
+///   `x-mycelium-*` header before the gateway injects its own.
 /// - Check security group and inject the email, profile, and role scoped
 ///   connection string into the request.
 /// - Inject the secret into the request if needed.
@@ -25,6 +26,7 @@ mod inject_downstream_secret;
 mod match_downstream_route_from_request;
 mod prepare_body_idp_context;
 mod stream_request_to_downstream;
+mod strip_inbound_mycelium_headers;
 
 use build_the_gateway_response::*;
 use check_method_permission::*;
@@ -35,6 +37,7 @@ use inject_downstream_secret::*;
 use match_downstream_route_from_request::*;
 use prepare_body_idp_context::*;
 use stream_request_to_downstream::*;
+use strip_inbound_mycelium_headers::*;
 
 use crate::models::api_config::ApiConfig;
 
