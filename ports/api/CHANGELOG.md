@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 - *(router)* Strip client-supplied x-mycelium-* headers before forwarding
 - *(router)* Block the whole x-mycelium namespace in the gateway response
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.12
+
 ## [9.0.0-rc.11] - 2026-07-23
 
 ### 🐛 Bug Fixes
