@@ -1,10 +1,10 @@
 use crate::modifiers::security::MyceliumSecurity;
-use crate::rest::{index, manager, role_scoped, service, staff};
+use crate::rest::{audit, index, manager, role_scoped, service, staff};
 
 use myc_core::domain::dtos::{
     account, account_type, email, error_code, guest_role, guest_user,
-    http_secret, profile, route, service as service_dtos, tag, tenant, token,
-    user, webhook,
+    http_secret, profile, resource_audit_log, route, service as service_dtos,
+    tag, tenant, token, user, webhook,
 };
 use myc_http_tools::{utils::HttpJsonResponse, SystemActor};
 use mycelium_base::dtos::{Children, Parent};
@@ -14,6 +14,7 @@ use utoipa::OpenApi;
 // ? DEFINE ENDPOINT GROUPS
 // ? ---------------------------------------------------------------------------
 
+use audit::resource_audit_trail_endpoints as Audit__Resource_Trail;
 use index::heath_check_endpoints as Index__Heath_Check;
 use manager::account_endpoints as Managers__Accounts;
 use manager::guest_role_endpoints as Managers__Guest_Role;
@@ -112,6 +113,24 @@ struct ManagersTenantsApiDoc;
     security(("Bearer" = [], "ConnectionString" = []))
 )]
 struct StaffsAccountsApiDoc;
+
+/// Resource Audit Trail Endpoints
+///
+/// Not role scoped: staff, tenant owners/managers, and personal-account
+/// owners all call this same route -- the permission branching happens
+/// inside the use case, not via separate role-scoped copies.
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Audit | Resource Trail Endpoints",
+        description = "Fetch the immutable audit trail of a resource. Visibility depends on the caller's standing (staff, tenant owner/manager, or personal-account owner).",
+    ),
+    paths(
+        Audit__Resource_Trail::fetch_resource_audit_trail_url,
+    ),
+    security(("Bearer" = [], "ConnectionString" = [])),
+)]
+struct AuditResourceTrailApiDoc;
 
 /// Service Endpoints for Tools Management
 ///
@@ -602,6 +621,10 @@ struct UsersManagerAccountApiDoc;
         (path = "/_adm/managers/tenants", api = ManagersTenantsApiDoc),
         (path = "/_adm/managers/guest-roles", api = ManagersGuestRoleApiDoc),
         //
+        // Resource audit trail (shared, not role scoped)
+        //
+        (path = "/_adm/audit", api = AuditResourceTrailApiDoc),
+        //
         // Beginner endpoints
         //
         (path = "/_adm/beginners/accounts", api = BeginnersAccountApiDoc),
@@ -691,6 +714,8 @@ struct UsersManagerAccountApiDoc;
             profile::Owner,
             profile::LicensedResource,
             profile::Profile,
+            resource_audit_log::ResourceAuditLog,
+            resource_audit_log::ResourceAuditResourceType,
             service_dtos::Service,
             route::Route,
             tag::Tag,
@@ -709,6 +734,11 @@ struct UsersManagerAccountApiDoc;
             Managers__Accounts::ApiSystemActor,
             Managers__Tenants::CreateTenantBody,
             Managers__Tenants::ListTenantParams,
+
+            //
+            // AUDIT
+            //
+            Audit__Resource_Trail::FetchResourceAuditTrailParams,
 
             //
             // ACCOUNT MANAGER

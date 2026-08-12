@@ -22,6 +22,19 @@ pub enum AccountMetaKey {
     /// The account locale
     Locale,
 
+    /// The emergency contact full name
+    ///
+    /// Used to reach someone on the account holder's behalf in case of an
+    /// emergency. Relevant for accounts with elevated privileges (staff,
+    /// manager, tenant manager, tenant owner).
+    EmergencyContactName,
+
+    /// The emergency contact phone number
+    EmergencyContactPhone,
+
+    /// The account holder's job title or role within their organization
+    JobTitle,
+
     /// To specify any other meta key
     ///
     /// Specify any other meta key that is not listed here.
@@ -35,6 +48,13 @@ impl Display for AccountMetaKey {
             AccountMetaKey::TelegramUser => write!(f, "telegram_user"),
             AccountMetaKey::WhatsAppUser => write!(f, "whatsapp_user"),
             AccountMetaKey::Locale => write!(f, "locale"),
+            AccountMetaKey::EmergencyContactName => {
+                write!(f, "emergency_contact_name")
+            }
+            AccountMetaKey::EmergencyContactPhone => {
+                write!(f, "emergency_contact_phone")
+            }
+            AccountMetaKey::JobTitle => write!(f, "job_title"),
             AccountMetaKey::Custom(key) => write!(f, "custom:{}", key),
         }
     }
@@ -53,6 +73,13 @@ impl FromStr for AccountMetaKey {
             "telegram_user" => Ok(AccountMetaKey::TelegramUser),
             "whatsapp_user" => Ok(AccountMetaKey::WhatsAppUser),
             "locale" => Ok(AccountMetaKey::Locale),
+            "emergency_contact_name" => {
+                Ok(AccountMetaKey::EmergencyContactName)
+            }
+            "emergency_contact_phone" => {
+                Ok(AccountMetaKey::EmergencyContactPhone)
+            }
+            "job_title" => Ok(AccountMetaKey::JobTitle),
             _ => Err(format!("Invalid key: {}", s)),
         }
     }

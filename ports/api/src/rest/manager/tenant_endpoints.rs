@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use crate::{dtos::MyceliumProfileData, rest::shared::PaginationParams};
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
@@ -13,7 +14,6 @@ use myc_core::{
         include_tenant_owner, list_tenant,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -124,6 +124,7 @@ pub async fn create_tenant_url(
         body.name.clone(),
         body.description.clone(),
         body.owner_id,
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
@@ -268,6 +269,7 @@ pub async fn delete_tenant_url(
         profile.to_profile(),
         path.into_inner(),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -323,6 +325,7 @@ pub async fn include_tenant_owner_url(
         tenant_id,
         owner_id,
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -376,6 +379,7 @@ pub async fn exclude_tenant_owner_url(
         profile.to_profile(),
         tenant_id,
         owner_id,
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

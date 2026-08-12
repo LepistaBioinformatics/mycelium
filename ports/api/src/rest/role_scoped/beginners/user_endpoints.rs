@@ -7,6 +7,7 @@ use crate::{
     settings::ADMIN_API_SCOPE,
 };
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
 use chrono::Duration;
 use myc_core::{
@@ -25,7 +26,6 @@ use myc_core::{
         verify_magic_link,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     functions::encode_jwt, models::internal_auth_config::InternalOauthConfig,
     responses::GatewayError, utils::HttpJsonResponse,
@@ -87,13 +87,13 @@ where
 #[derive(Serialize, ToResponse, ToSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct MyceliumLoginResponse {
-    token: String,
+    pub token: String,
     #[serde(serialize_with = "serialize_duration")]
-    duration: Duration,
-    totp_required: bool,
+    pub duration: Duration,
+    pub totp_required: bool,
 
     #[serde(flatten)]
-    user: User,
+    pub user: User,
 }
 
 #[derive(Deserialize, ToSchema, IntoParams)]
@@ -286,6 +286,7 @@ pub async fn create_default_user_url(
         body.password.to_owned(),
         provider,
         life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
@@ -1050,12 +1051,19 @@ pub async fn request_magic_link_url(
 #[get("/magic-link/display")]
 pub async fn display_magic_link_url(
     query: web::Query<MagicLinkDisplayParams>,
+    life_cycle_settings: web::Data<AccountLifeCycle>,
     sql_app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
+    let domain_name = life_cycle_settings
+        .domain_name
+        .async_get_or_error()
+        .await
+        .unwrap_or_default();
+
     let email = match Email::from_string(query.email.to_owned()) {
         Err(err) => {
             warn!("Invalid email in magic link display: {}", err);
-            return render_magic_link_error_page();
+            return render_magic_link_error_page(&domain_name);
         }
         Ok(email) => email,
     };
@@ -1066,12 +1074,12 @@ pub async fn display_magic_link_url(
         .await
     {
         Ok(FetchResponseKind::Found(code)) => code,
-        _ => return render_magic_link_error_page(),
+        _ => return render_magic_link_error_page(&domain_name),
     };
 
     let mut context = TeraContext::new();
     context.insert("code", &code);
-    context.insert("app_name", "Mycelium");
+    context.insert("domain_name", &domain_name);
     context.insert("expires_in_minutes", &15u32);
 
     match TEMPLATES.render("web/magic-link-display.html", &context) {
@@ -1085,9 +1093,9 @@ pub async fn display_magic_link_url(
     }
 }
 
-fn render_magic_link_error_page() -> HttpResponse {
+fn render_magic_link_error_page(domain_name: &str) -> HttpResponse {
     let mut context = TeraContext::new();
-    context.insert("app_name", "Mycelium");
+    context.insert("domain_name", domain_name);
 
     match TEMPLATES.render("web/magic-link-display-error.html", &context) {
         Ok(html) => HttpResponse::Unauthorized()

@@ -1,5 +1,6 @@
 use crate::dtos::{MyceliumProfileData, TenantData};
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{delete, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::dtos::{email::Email, guest_user::GuestUser},
@@ -9,7 +10,6 @@ use myc_core::{
         revoke_user_guest_to_subscription_manager_account,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{

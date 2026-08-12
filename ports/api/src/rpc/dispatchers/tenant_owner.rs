@@ -18,6 +18,7 @@ use super::super::{
 };
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::web;
 use myc_core::{
     domain::dtos::{email::Email, tenant::TenantMetaKey},
@@ -29,7 +30,6 @@ use myc_core::{
         update_tenant_verifying_status,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use shaku::HasComponent;
 use std::str::FromStr;
 
@@ -48,6 +48,7 @@ pub async fn dispatch_tenant_owner(
                 profile.to_profile(),
                 p.tenant_id,
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -61,6 +62,7 @@ pub async fn dispatch_tenant_owner(
                 profile.to_profile(),
                 p.tenant_id,
                 p.account_id,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
             .await
@@ -79,6 +81,7 @@ pub async fn dispatch_tenant_owner(
                 key,
                 p.value,
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -94,6 +97,7 @@ pub async fn dispatch_tenant_owner(
                 profile.to_profile(),
                 p.tenant_id,
                 key,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
             .await
@@ -145,6 +149,7 @@ pub async fn dispatch_tenant_owner(
                 p.description,
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -157,6 +162,7 @@ pub async fn dispatch_tenant_owner(
             let result = update_tenant_archiving_status(
                 profile.to_profile(),
                 p.tenant_id,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
@@ -173,6 +179,7 @@ pub async fn dispatch_tenant_owner(
                 p.tenant_id,
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -185,6 +192,7 @@ pub async fn dispatch_tenant_owner(
             let result = update_tenant_verifying_status(
                 profile.to_profile(),
                 p.tenant_id,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )

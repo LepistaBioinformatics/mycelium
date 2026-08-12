@@ -1,0 +1,83 @@
+# ? ----------------------------------------------------------------------------
+# ? Build stage
+#
+# Builds mycelium-api from local source with the `standalone` feature
+# (SQLite + moka + stub/file email + autogen secrets, zero external runtime
+# dependencies). Unlike the full-mode Dockerfile, this cannot `cargo install`
+# from crates.io -- the published crate doesn't carry the `standalone`
+# feature (or may not even exist for a given checkout), so the workspace is
+# built from local source instead.
+#
+# `--no-default-features` is required: Cargo features are additive, so
+# without it the default `full` feature would stay enabled and
+# trip the mutual-exclusion `compile_error!` guard in ports/api/src/main.rs.
+#
+# `libsqlite3-sys`'s `bundled` feature compiles SQLite into the binary, so
+# the builder needs a C toolchain (present in `rust:latest`) but the
+# **runtime** image needs no system libsqlite.
+# ? ----------------------------------------------------------------------------
+
+# Pinned to `bookworm` to match the runtime stage's `debian:bookworm-slim`
+# glibc version -- `rust:latest` tracks a newer Debian release over time and
+# produces a binary linked against a glibc the slim runtime doesn't have
+# (observed: `GLIBC_2.38'/`GLIBC_2.39' not found).
+FROM rust:bookworm AS builder
+
+WORKDIR /rust
+
+COPY . .
+
+RUN cargo build \
+    --release \
+    --no-default-features \
+    --features standalone \
+    -p mycelium-api
+
+# ? ----------------------------------------------------------------------------
+# ? Production stage
+#
+# Minimal runtime: no libpq, no Redis client, no SMTP libraries -- just the
+# binary, templates, and the OpenAPI/Redoc config.
+# ? ----------------------------------------------------------------------------
+
+FROM debian:bookworm-slim
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /rust/target/release/myc-api /usr/local/bin/myc-api
+
+COPY ports/api/src/openapi/redoc.config.json /home/redoc.config.json
+COPY templates /home/templates
+COPY settings/config.standalone.example.toml /home/config.toml
+
+ENV UTOIPA_REDOC_CONFIG_FILE=/home/redoc.config.json
+
+# `docker run` with no extra configuration boots against this shipped
+# example config; the `[sqlite] path` inside it is `./data/mycelium.db`,
+# relative to the container's working directory (`/`, since none is set
+# here), landing under the `/data` volume declared below. Override with
+# `-e SETTINGS_PATH=/path/to/your.toml` (and mount it) for a real deployment.
+ENV SETTINGS_PATH=/home/config.toml
+
+ARG TEMPLATES_DIR=/home/templates
+ENV TEMPLATES_DIR=${TEMPLATES_DIR}
+
+RUN if [ ! -d "${TEMPLATES_DIR}" ]; then \
+    echo "Error: Templates directory not found at ${TEMPLATES_DIR}" && \
+    exit 1; \
+    fi
+
+# The SQLite database and the encrypted secrets fallback file are both
+# written under this directory by default (see
+# settings/config.standalone.example.toml's `[sqlite] path`) -- mount a
+# volume here to persist state across container restarts/recreations.
+VOLUME ["/data"]
+
+ARG SERVICE_PORT=8080
+ENV SERVICE_PORT=${SERVICE_PORT}
+
+EXPOSE ${SERVICE_PORT}
+
+ENTRYPOINT ["myc-api"]

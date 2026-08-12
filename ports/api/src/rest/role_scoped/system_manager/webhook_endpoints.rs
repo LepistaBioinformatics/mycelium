@@ -1,5 +1,6 @@
 use crate::{dtos::MyceliumProfileData, rest::shared::PaginationParams};
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{delete, get, patch, post, web, Responder};
 use myc_core::{
     domain::dtos::{
@@ -12,7 +13,6 @@ use myc_core::{
         delete_webhook, list_webhooks, register_webhook, update_webhook,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -122,6 +122,7 @@ pub async fn crate_webhook_url(
         body.method.to_owned(),
         body.secret.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
@@ -238,6 +239,7 @@ pub async fn update_webhook_url(
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -289,6 +291,7 @@ pub async fn delete_webhook_url(
     match delete_webhook(
         profile.to_profile(),
         path.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

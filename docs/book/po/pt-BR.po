@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-04-23T13:28:45-03:00\n"
+"POT-Creation-Date: 2026-08-12T14:52:42-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -43,91 +43,110 @@ msgstr "Implantação"
 msgid "Deploy Locally"
 msgstr "Implantação Local"
 
-#: src/SUMMARY.md:15
+#: src/SUMMARY.md:14 src/24-deployment-modes.md:1
+#, fuzzy
+msgid "Deployment Modes"
+msgstr "Implantação"
+
+#: src/SUMMARY.md:15 src/25-full-mode.md:1
+#, fuzzy
+msgid "Full Mode"
+msgstr "Jornada completa"
+
+#: src/SUMMARY.md:16 src/26-postgres-only-mode.md:1
+msgid "Postgres-Only Mode"
+msgstr ""
+
+#: src/SUMMARY.md:17 src/23-standalone-mode.md:1
+#, fuzzy
+msgid "Standalone Mode"
+msgstr "Códigos de erro padrão:"
+
+#: src/SUMMARY.md:19
 msgid "Core Concepts"
 msgstr "Conceitos Fundamentais"
 
-#: src/SUMMARY.md:17 src/01-authorization.md:1
+#: src/SUMMARY.md:21 src/01-authorization.md:1
 msgid "Authorization Model"
 msgstr "Modelo de Autorização"
 
-#: src/SUMMARY.md:18 src/11-authentication-flows.md:1
+#: src/SUMMARY.md:22 src/11-authentication-flows.md:1
 msgid "Authentication Flows"
 msgstr "Fluxos de Autenticação"
 
-#: src/SUMMARY.md:19 src/15-account-types.md:1
+#: src/SUMMARY.md:23 src/15-account-types.md:1
 msgid "Account Types and Roles"
 msgstr "Tipos de Conta e Papéis"
 
-#: src/SUMMARY.md:20 src/06-downstream-apis.md:1
+#: src/SUMMARY.md:24 src/06-downstream-apis.md:1
 msgid "Downstream APIs"
 msgstr "APIs Downstream"
 
-#: src/SUMMARY.md:22
+#: src/SUMMARY.md:26
 msgid "Advanced Topics"
 msgstr "Tópicos Avançados"
 
-#: src/SUMMARY.md:24 src/10-alternative-idps.md:1
+#: src/SUMMARY.md:28 src/10-alternative-idps.md:1
 msgid "Alternative Identity Providers"
 msgstr "Provedores de Identidade Alternativos"
 
-#: src/SUMMARY.md:25 src/12-response-callbacks.md:1
+#: src/SUMMARY.md:29 src/12-response-callbacks.md:1
 msgid "Response Callbacks"
 msgstr "Callbacks de Resposta"
 
-#: src/SUMMARY.md:26 src/16-webhooks.md:1
+#: src/SUMMARY.md:30 src/16-webhooks.md:1
 msgid "Outbound Webhooks"
 msgstr "Webhooks de Saída"
 
-#: src/SUMMARY.md:27 src/17-error-codes.md:1
+#: src/SUMMARY.md:31 src/17-error-codes.md:1
 msgid "Error Codes"
 msgstr "Códigos de Erro"
 
-#: src/SUMMARY.md:28
+#: src/SUMMARY.md:32
 msgid "AI Agent Integration (MCP)"
 msgstr "Integração com Agentes de IA (MCP)"
 
-#: src/SUMMARY.md:29 src/14-json-rpc.md:1
+#: src/SUMMARY.md:33 src/14-json-rpc.md:1
 msgid "JSON-RPC Interface"
 msgstr "Interface JSON-RPC"
 
-#: src/SUMMARY.md:31
+#: src/SUMMARY.md:35
 msgid "Integrations"
 msgstr "Integrações"
 
-#: src/SUMMARY.md:33 src/19-sdk.md:1
+#: src/SUMMARY.md:37 src/19-sdk.md:1
 msgid "SDK Integration Guide"
 msgstr "Guia de Integração do SDK"
 
-#: src/SUMMARY.md:34 src/18-cli.md:1
+#: src/SUMMARY.md:38 src/18-cli.md:1
 msgid "CLI Reference"
 msgstr "Referência da CLI"
 
-#: src/SUMMARY.md:36
+#: src/SUMMARY.md:40
 msgid "Development"
 msgstr "Desenvolvimento"
 
-#: src/SUMMARY.md:38 src/20-encryption-inventory.md:1
+#: src/SUMMARY.md:42 src/20-encryption-inventory.md:1
 msgid "Encryption Inventory"
 msgstr ""
 
-#: src/SUMMARY.md:39 src/21-envelope-encryption-migration.md:1
+#: src/SUMMARY.md:43 src/21-envelope-encryption-migration.md:1
 msgid "Envelope Encryption Migration Guide"
 msgstr ""
 
-#: src/SUMMARY.md:40 src/22-hmac-key-rotation.md:1
+#: src/SUMMARY.md:44 src/22-hmac-key-rotation.md:1
 msgid "HMAC Key Rotation"
 msgstr ""
 
-#: src/SUMMARY.md:41 src/07-running-tests.md:1
+#: src/SUMMARY.md:45 src/07-running-tests.md:1
 msgid "Running Tests"
 msgstr "Executando Testes"
 
-#: src/SUMMARY.md:42 src/08-release-process.md:1
+#: src/SUMMARY.md:46 src/08-release-process.md:1
 msgid "Release Process"
 msgstr "Processo de Lançamento"
 
-#: src/SUMMARY.md:43 src/09-log-cache-tests.md:1
+#: src/SUMMARY.md:47 src/09-log-cache-tests.md:1
 msgid "Log Tests for Cache and Identity Flow"
 msgstr "Testes de Log para Cache e Fluxo de Identidade"
 
@@ -300,7 +319,7 @@ msgstr ""
 "[Provedores de Identidade Alternativos](./10-alternative-idps.md) para "
 "detalhes."
 
-#: src/00-introduction.md:78 src/02-installation.md:83
+#: src/00-introduction.md:78 src/02-installation.md:104
 #: src/03-quick-start.md:130 src/04-configuration.md:264
 #: src/05-deploy-locally.md:123
 msgid "Next steps"
@@ -348,8 +367,7 @@ msgstr ""
 "Escolha o método de instalação que melhor se adapta ao seu fluxo de trabalho."
 
 #: src/02-installation.md:8 src/10-alternative-idps.md:94 src/13-mcp.md:23
-#: src/21-envelope-encryption-migration.md:22 src/08-release-process.md:12
-#: src/09-log-cache-tests.md:16
+#: src/21-envelope-encryption-migration.md:22 src/09-log-cache-tests.md:16
 msgid "Prerequisites"
 msgstr "Pré-requisitos"
 
@@ -369,7 +387,8 @@ msgstr "Versão mínima"
 msgid "Purpose"
 msgstr "Finalidade"
 
-#: src/02-installation.md:14
+#: src/02-installation.md:14 src/24-deployment-modes.md:14
+#: src/25-full-mode.md:15
 msgid "PostgreSQL"
 msgstr "PostgreSQL"
 
@@ -381,7 +400,7 @@ msgstr "14"
 msgid "Stores users, tenants, roles"
 msgstr "Armazena usuários, tenants e papéis"
 
-#: src/02-installation.md:15
+#: src/02-installation.md:15 src/24-deployment-modes.md:15
 msgid "Redis"
 msgstr "Redis"
 
@@ -450,13 +469,15 @@ msgid "Database setup"
 msgstr "Configuração do banco de dados"
 
 #: src/02-installation.md:70
+#, fuzzy
 msgid ""
-"Mycelium ships with a SQL script that creates the database, user, and schema:"
+"Mycelium ships with a single SQL script that creates the database, user, and "
+"the complete schema in one invocation:"
 msgstr ""
 "O Mycelium inclui um script SQL que cria o banco de dados, o usuário e o "
 "esquema:"
 
-#: src/02-installation.md:78
+#: src/02-installation.md:79
 msgid ""
 "This creates a database named `mycelium-dev` and a user named `mycelium-"
 "user`. To use a different database name, add `-v db_name='my-database'`."
@@ -465,14 +486,47 @@ msgstr ""
 "`mycelium-user`. Para usar um nome de banco de dados diferente, adicione `-v "
 "db_name='my-database'`."
 
-#: src/02-installation.md:85
+#: src/02-installation.md:82
+msgid ""
+"There is nothing else to apply — every migration under `adapters/"
+"diesel_postgres/sql/migrations/` is already folded into `up.sql`. The DDL "
+"runs in a single transaction, so a failure leaves no partial schema behind."
+msgstr ""
+
+#: src/02-installation.md:86
+msgid ""
+"`up.sql` performs **fresh installs only**. Run against a database that "
+"already has the schema, it prints a notice and exits without changing "
+"anything. To upgrade an existing `9.0.0-rc.x` database, apply the files in "
+"`adapters/diesel_postgres/sql/migrations/` in chronological order instead — "
+"**as the same superuser that created the schema**, not as the application's "
+"own user. Some of those files issue `GRANT`s, which require table ownership."
+msgstr ""
+
+#: src/02-installation.md:93
+msgid ""
+"Upgrading from `9.0.0-rc.x`? Apply `20260812_01_audit_tables_grants.sql` "
+"even if you think you are current. Until it lands, `instance_settings` and "
+"`resource_audit_log` carry no grants for the application role, and the staff-"
+"bootstrap claim and audit-log writes fail for any deployment whose app does "
+"not connect as a superuser."
+msgstr ""
+
+#: src/02-installation.md:98
+msgid ""
+"**SQLite / standalone mode needs none of this.** That backend compiles its "
+"migrations into the binary and applies them on every boot, so the schema "
+"appears when you start `myc-api`."
+msgstr ""
+
+#: src/02-installation.md:106
 msgid ""
 "[Quick Start](./03-quick-start.md) — Start the gateway with a minimal config"
 msgstr ""
 "[Início Rápido](./03-quick-start.md) — Inicie o gateway com uma configuração "
 "mínima"
 
-#: src/02-installation.md:86
+#: src/02-installation.md:107
 msgid ""
 "[Deploy Locally](./05-deploy-locally.md) — Full Docker Compose setup with "
 "all dependencies"
@@ -480,14 +534,14 @@ msgstr ""
 "[Implantação Local](./05-deploy-locally.md) — Configuração completa com "
 "Docker Compose e todas as dependências"
 
-#: src/02-installation.md:90 src/03-quick-start.md:139
+#: src/02-installation.md:111 src/03-quick-start.md:139
 #: src/05-deploy-locally.md:105 src/06-downstream-apis.md:280
 #: src/10-alternative-idps.md:469 src/07-running-tests.md:73
-#: src/08-release-process.md:363 src/09-log-cache-tests.md:175
+#: src/08-release-process.md:266 src/09-log-cache-tests.md:175
 msgid "Troubleshooting"
 msgstr "Solução de problemas"
 
-#: src/02-installation.md:92
+#: src/02-installation.md:113
 msgid ""
 "**`cargo install` fails with SSL errors** — Install OpenSSL dev libraries: "
 "`sudo apt-get install libssl-dev` (Ubuntu) or `brew install openssl` (macOS)."
@@ -496,7 +550,7 @@ msgstr ""
 "desenvolvimento do OpenSSL: `sudo apt-get install libssl-dev` (Ubuntu) ou "
 "`brew install openssl` (macOS)."
 
-#: src/02-installation.md:95
+#: src/02-installation.md:116
 msgid ""
 "**Database connection fails** — Verify PostgreSQL is running: `psql --"
 "version` and `psql postgres://postgres:postgres@localhost:5432/postgres`."
@@ -505,7 +559,7 @@ msgstr ""
 "em execução: `psql --version` e `psql postgres://postgres:"
 "postgres@localhost:5432/postgres`."
 
-#: src/02-installation.md:98
+#: src/02-installation.md:119
 msgid "**Redis not responding** — Run `redis-cli ping`. Expect `PONG`."
 msgstr "**Redis não responde** — Execute `redis-cli ping`. Espere `PONG`."
 
@@ -852,7 +906,7 @@ msgstr "Campo"
 #: src/14-json-rpc.md:275 src/14-json-rpc.md:287 src/14-json-rpc.md:294
 #: src/14-json-rpc.md:301 src/14-json-rpc.md:308 src/14-json-rpc.md:321
 #: src/14-json-rpc.md:336 src/14-json-rpc.md:346 src/18-cli.md:52
-#: src/20-encryption-inventory.md:34 src/08-release-process.md:195
+#: src/20-encryption-inventory.md:34 src/08-release-process.md:150
 msgid "Description"
 msgstr "Descrição"
 
@@ -1446,6 +1500,872 @@ msgstr ""
 msgid "[Configuration](./04-configuration.md) — Full config reference"
 msgstr ""
 "[Configuração](./04-configuration.md) — Referência completa de configuração"
+
+#: src/24-deployment-modes.md:3
+msgid ""
+"Mycelium ships as a single codebase that compiles into one of **three "
+"mutually-exclusive build modes**, selected at **compile time** via Cargo "
+"features. All three expose the identical REST/JSON-RPC API, authentication "
+"flows, webhooks, and MCP integration — they share the same `core` domain "
+"logic and differ only in the adapters wired in `ports/api/src/main.rs`'s "
+"`initialize_modules`. What actually changes between them is **how much "
+"external infrastructure each one requires**."
+msgstr ""
+
+#: src/24-deployment-modes.md:11
+msgid "[Full](./25-full-mode.md)"
+msgstr ""
+
+#: src/24-deployment-modes.md:11
+msgid "[Postgres-Only](./26-postgres-only-mode.md)"
+msgstr ""
+
+#: src/24-deployment-modes.md:11
+msgid "[Standalone](./23-standalone-mode.md)"
+msgstr ""
+
+#: src/24-deployment-modes.md:13
+#, fuzzy
+msgid "Cargo feature"
+msgstr "Nova funcionalidade"
+
+#: src/24-deployment-modes.md:13
+msgid "`full` _(default)_"
+msgstr ""
+
+#: src/24-deployment-modes.md:13
+msgid "`postgres-only`"
+msgstr ""
+
+#: src/24-deployment-modes.md:13
+#, fuzzy
+msgid "`standalone`"
+msgstr "Códigos de erro padrão:"
+
+#: src/24-deployment-modes.md:14 src/25-full-mode.md:15
+#, fuzzy
+msgid "Persistence"
+msgstr "Referência"
+
+#: src/24-deployment-modes.md:14
+msgid "SQLite (embedded, auto-provisioned)"
+msgstr ""
+
+#: src/24-deployment-modes.md:15 src/25-full-mode.md:16
+msgid "Cache / KV"
+msgstr ""
+
+#: src/24-deployment-modes.md:15
+msgid "PostgreSQL (`kv_artifact` table)"
+msgstr ""
+
+#: src/24-deployment-modes.md:15
+msgid "in-process ([moka](https://docs.rs/moka))"
+msgstr ""
+
+#: src/24-deployment-modes.md:16 src/25-full-mode.md:17
+msgid "Email delivery"
+msgstr ""
+
+#: src/24-deployment-modes.md:16
+msgid "SMTP"
+msgstr ""
+
+#: src/24-deployment-modes.md:16
+msgid "stub / file (SMTP opt-in)"
+msgstr ""
+
+#: src/24-deployment-modes.md:17 src/25-full-mode.md:19
+#: src/23-standalone-mode.md:92
+#, fuzzy
+msgid "Secrets"
+msgstr "`tokenSecret`"
+
+#: src/24-deployment-modes.md:17
+msgid "operator-provided / Vault"
+msgstr ""
+
+#: src/24-deployment-modes.md:17
+msgid "auto-generated + persisted"
+msgstr ""
+
+#: src/24-deployment-modes.md:18
+#, fuzzy
+msgid "**External services**"
+msgstr "Registrando um serviço"
+
+#: src/24-deployment-modes.md:18
+msgid "**PostgreSQL + Redis + SMTP**"
+msgstr ""
+
+#: src/24-deployment-modes.md:18
+#, fuzzy
+msgid "**PostgreSQL (+ SMTP)**"
+msgstr "PostgreSQL"
+
+#: src/24-deployment-modes.md:18
+msgid "**none**"
+msgstr ""
+
+#: src/24-deployment-modes.md:19
+msgid "Horizontal scaling (multi-pod)"
+msgstr ""
+
+#: src/24-deployment-modes.md:19
+msgid "✅"
+msgstr ""
+
+#: src/24-deployment-modes.md:19
+msgid "❌ single instance"
+msgstr ""
+
+#: src/24-deployment-modes.md:20
+#, fuzzy
+msgid "Config example"
+msgstr "Exemplo completo"
+
+#: src/24-deployment-modes.md:20
+msgid "`config.full.example.toml`"
+msgstr ""
+
+#: src/24-deployment-modes.md:20
+msgid "`config.postgres-only.example.toml`"
+msgstr ""
+
+#: src/24-deployment-modes.md:20
+msgid "`config.standalone.example.toml`"
+msgstr ""
+
+#: src/24-deployment-modes.md:22
+msgid ""
+"Each mode's Cargo feature name matches its shipped `config.<mode>.example."
+"toml`."
+msgstr ""
+
+#: src/24-deployment-modes.md:26
+#, fuzzy
+msgid "Choosing a mode"
+msgstr "Escolhendo um grupo de segurança"
+
+#: src/24-deployment-modes.md:28
+msgid ""
+"**[Full](./25-full-mode.md)** — the default build and the published Docker "
+"image. Use it when you already run Redis, or want Redis-backed caching in a "
+"multi-pod deployment. This is the historical production topology."
+msgstr ""
+
+#: src/24-deployment-modes.md:31
+msgid ""
+"**[Postgres-Only](./26-postgres-only-mode.md)** — production-grade and "
+"horizontally scalable like full mode, but with **one less service to "
+"operate**: no Redis. The KV/artifact cache lives in a PostgreSQL table and "
+"the email queue is claimed multi-pod-safe on the existing `message_queue` "
+"table. Pick it when you want a multi-pod deployment backed by PostgreSQL "
+"alone."
+msgstr ""
+
+#: src/24-deployment-modes.md:36
+msgid ""
+"**[Standalone](./23-standalone-mode.md)** — **zero external dependencies** "
+"(embedded SQLite, in-process cache, stub/file email). Single instance only. "
+"Pick it for local development, evaluation, edge, or air-gapped deployments."
+msgstr ""
+
+#: src/24-deployment-modes.md:42
+#, fuzzy
+msgid "How selection works"
+msgstr "Como funciona a autenticação"
+
+#: src/24-deployment-modes.md:44
+msgid ""
+"Exactly one of the three backend features must be enabled. `full` is the "
+"Cargo **default**, so `cargo build` (no flags) and the published image "
+"produce full mode. The other two are opt-in and require `--no-default-"
+"features`, because Cargo features are additive and the default `full` would "
+"otherwise stay on:"
+msgstr ""
+
+#: src/24-deployment-modes.md:50
+msgid "# Full (default)\n"
+msgstr ""
+
+#: src/24-deployment-modes.md:52
+msgid "# Postgres-only\n"
+msgstr ""
+
+#: src/24-deployment-modes.md:55
+#, fuzzy
+msgid "# Standalone\n"
+msgstr "Códigos de erro padrão:"
+
+#: src/24-deployment-modes.md:60
+msgid ""
+"Enabling two backend features at once (or none) is a hard `compile_error!` — "
+"the modes select different persistence adapters and Diesel column types that "
+"cannot coexist in one binary. Add `,rhai` to any of the above to also "
+"compile the Rhai scripting support."
+msgstr ""
+
+#: src/24-deployment-modes.md:67
+#, fuzzy
+msgid "A note on schema migrations"
+msgstr "Execute o validador:"
+
+#: src/24-deployment-modes.md:69
+msgid ""
+"`full` and `postgres-only` share the same PostgreSQL schema. The `postgres-"
+"only` mode adds a `kv_artifact` cache table and an index on `message_queue`; "
+"those migrations must be applied to the database (they are harmless in full "
+"mode). See the [Postgres-Only Mode](./26-postgres-only-mode.md#database-"
+"migrations) page for the exact files and commands. Standalone auto-"
+"provisions and migrates its SQLite file on first boot, so it needs no manual "
+"step."
+msgstr ""
+
+#: src/25-full-mode.md:3
+msgid ""
+"Full mode is the **default build** and the published Docker image. It runs "
+"the complete external stack — **PostgreSQL + Redis + SMTP** (plus optional "
+"HashiCorp Vault) — and is the historical production topology. See "
+"[Deployment Modes](./24-deployment-modes.md) for how it compares to the "
+"other two modes."
+msgstr ""
+
+#: src/25-full-mode.md:11
+#, fuzzy
+msgid "What it uses"
+msgstr "O que faz"
+
+#: src/25-full-mode.md:13
+#, fuzzy
+msgid "Concern"
+msgstr "Conceitos"
+
+#: src/25-full-mode.md:13
+#, fuzzy
+msgid "Backing service"
+msgstr "Registrando um serviço"
+
+#: src/25-full-mode.md:13
+msgid "Adapter"
+msgstr ""
+
+#: src/25-full-mode.md:15 src/25-full-mode.md:18
+msgid "`adapters/diesel_postgres`"
+msgstr ""
+
+#: src/25-full-mode.md:16
+msgid "Redis (`SETEX`, TTL'd)"
+msgstr ""
+
+#: src/25-full-mode.md:16
+msgid "`adapters/kv_db`"
+msgstr ""
+
+#: src/25-full-mode.md:17
+msgid "SMTP (`lettre`)"
+msgstr ""
+
+#: src/25-full-mode.md:17
+msgid "`adapters/notifier`"
+msgstr ""
+
+#: src/25-full-mode.md:18
+msgid "Email queue"
+msgstr ""
+
+#: src/25-full-mode.md:18
+msgid "PostgreSQL `message_queue` table, polled by the in-process dispatcher"
+msgstr ""
+
+#: src/25-full-mode.md:19
+msgid "operator-provided (`{ env = ... }`) or HashiCorp Vault"
+msgstr ""
+
+#: src/25-full-mode.md:19
+msgid "`lib/config`"
+msgstr ""
+
+#: src/25-full-mode.md:21
+msgid ""
+"Redis is used as the TTL'd artifact cache (JWKS, profile, and email caches). "
+"It is a **required** service — the gateway will not boot without a reachable "
+"Redis and a `[redis]` config section."
+msgstr ""
+
+#: src/25-full-mode.md:27 src/26-postgres-only-mode.md:35
+#: src/23-standalone-mode.md:26
+#, fuzzy
+msgid "Building and running"
+msgstr "Agrupamento e ordenação"
+
+#: src/25-full-mode.md:30
+msgid "# Default build — `full` is the default Cargo feature.\n"
+msgstr ""
+
+#: src/25-full-mode.md:33 src/26-postgres-only-mode.md:40
+#: src/23-standalone-mode.md:40
+#, fuzzy
+msgid "./config.toml"
+msgstr "settings/config.toml"
+
+#: src/25-full-mode.md:36
+msgid ""
+"Start from `settings/config.full.example.toml`. A full-mode config requires "
+"`[core.accountLifeCycle]`, `[diesel]`, `[redis]`, `[smtp]`, `[queue]`, "
+"`[auth]`, and `[api]`; `[vault]` is optional."
+msgstr ""
+
+#: src/25-full-mode.md:40
+msgid ""
+"```toml\n"
+"[diesel]\n"
+"databaseUrl = { env = \"DATABASE_URL\" }\n"
+"\n"
+"[redis]\n"
+"protocol = \"redis\"        # rediss for TLS\n"
+"hostname = \"my-redis\"\n"
+"password = { env = \"REDIS_PASSWORD\" }\n"
+"\n"
+"[smtp]\n"
+"host = \"smtp.example.com\"\n"
+"username = { env = \"SMTP_USERNAME\" }\n"
+"password = { env = \"SMTP_PASSWORD\" }\n"
+"port = 465\n"
+"```"
+msgstr ""
+
+#: src/25-full-mode.md:56 src/26-postgres-only-mode.md:63
+#: src/23-standalone-mode.md:54
+#, fuzzy
+msgid "Docker"
+msgstr "Com Docker:"
+
+#: src/25-full-mode.md:58
+msgid "The published image is full mode with no extra flags:"
+msgstr ""
+
+#: src/25-full-mode.md:65
+msgid ""
+"The build features are parameterized via the `CARGO_FEATURES` build-arg, "
+"which defaults to `full,rhai` — so the default image is unchanged. (Override "
+"it only to build a different mode; see [Postgres-Only Mode](./26-postgres-"
+"only-mode.md).)"
+msgstr ""
+
+#: src/25-full-mode.md:71
+#, fuzzy
+msgid "When to use it"
+msgstr "Quando Usar"
+
+#: src/25-full-mode.md:73
+msgid "You already operate Redis and want its cache in a multi-pod deployment."
+msgstr ""
+
+#: src/25-full-mode.md:74
+msgid "You want the exact topology the published image ships."
+msgstr ""
+
+#: src/25-full-mode.md:76
+msgid ""
+"If you run multiple replicas but would rather **not** operate Redis, use "
+"[Postgres-Only Mode](./26-postgres-only-mode.md), which keeps PostgreSQL and "
+"multi-pod scaling but drops Redis. For a single-instance, zero-dependency "
+"build, use [Standalone Mode](./23-standalone-mode.md)."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:3
+msgid ""
+"Postgres-only mode runs the full production feature set — PostgreSQL "
+"persistence, real SMTP email, and **multi-pod horizontal scaling** — but "
+"with **no Redis**. Both jobs Redis does in [full mode](./25-full-mode.md) "
+"move to PostgreSQL: the KV/artifact cache becomes a table, and the email "
+"queue is claimed multi-pod-safe on the existing `message_queue` table. Pick "
+"it when you want a horizontally-scalable deployment backed by PostgreSQL "
+"alone, without operating Redis. See [Deployment Modes](./24-deployment-modes."
+"md) for the full comparison."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:14 src/23-standalone-mode.md:10
+#, fuzzy
+msgid "What changes"
+msgstr "Mudanças em testes"
+
+#: src/26-postgres-only-mode.md:16 src/23-standalone-mode.md:12
+#, fuzzy
+msgid "Full mode"
+msgstr "Jornada completa"
+
+#: src/26-postgres-only-mode.md:16
+msgid "Postgres-only mode"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:18
+msgid "Redis-backed cache (`adapters/kv_db`, `SETEX`)"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:18
+msgid "PostgreSQL `kv_artifact` table (`adapters/postgres_kv`)"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:19
+msgid "Redis client + `[redis]` config required"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:19
+msgid "No Redis; `[redis]` is not read (a present section is ignored)"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:20
+msgid "Email queue coordinated across pods via Redis"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:20
+msgid ""
+"Email queue claimed on `message_queue` via `SELECT … FOR UPDATE SKIP LOCKED`"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:21
+msgid "SMTP delivery"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:21
+msgid "SMTP delivery (unchanged)"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:23
+msgid ""
+"Everything else — the REST/JSON-RPC API, auth flows, webhooks, MCP, "
+"PostgreSQL persistence, and Vault/secret resolution — is identical to full "
+"mode. Only the cache adapter and the email-claim query differ."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:27
+msgid ""
+"The Postgres KV cache stores the same TTL'd artifacts Redis did (JWKS, "
+"profile, email caches): `set_encoded_artifact` upserts \\`(key, value, "
+"expires_at = now()"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:29
+msgid ""
+"ttl)`, reads filter on `expires_at > now()\\` (lazy expiry), and a "
+"background sweeper reclaims expired rows. The cache is shared across pods "
+"(one table), matching the cross-instance coherence Redis provided."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:43
+msgid ""
+"`--no-default-features` is required — Cargo features are additive, and the "
+"default `full` feature would otherwise stay enabled and trip the mutual-"
+"exclusion `compile_error!` guard. Add `,rhai` for Rhai scripting."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:47
+msgid ""
+"Start from `settings/config.postgres-only.example.toml`. The config needs "
+"`[core.accountLifeCycle]`, `[diesel]`, `[smtp]`, `[queue]`, `[auth]`, and "
+"`[api]` — **no `[redis]`** (this build never reads it). `[vault]` is "
+"optional."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:51
+msgid ""
+"```toml\n"
+"[diesel]\n"
+"databaseUrl = { env = \"DATABASE_URL\" }\n"
+"\n"
+"[smtp]\n"
+"host = \"smtp.example.com\"\n"
+"username = { env = \"SMTP_USERNAME\" }\n"
+"password = { env = \"SMTP_PASSWORD\" }\n"
+"port = 465\n"
+"# No [redis] section.\n"
+"```"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:65
+msgid ""
+"Reuse the main `Dockerfile` with the `CARGO_FEATURES` build-arg (the default "
+"image stays full mode; overriding the arg builds postgres-only):"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:72
+msgid ""
+"`cargo install` from crates.io only works once `mycelium-postgres-kv` and "
+"the `postgres-only` feature are published. Until then, build the image from "
+"source (`cargo build --no-default-features --features postgres-only,rhai`)."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:78
+#, fuzzy
+msgid "Database migrations"
+msgstr "Conexão com o banco de dados"
+
+#: src/26-postgres-only-mode.md:80
+msgid ""
+"`full` and `postgres-only` share the same PostgreSQL schema. Postgres-only "
+"adds two objects; **apply them before running this build** or boot/queries "
+"fail on the missing objects. Fresh installs get them from `sql/up.sql`; "
+"existing databases apply the incremental files (operator-applied via `psql`, "
+"as with all PostgreSQL migrations here):"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:87 src/26-postgres-only-mode.md:88
+#: src/18-cli.md:110
+msgid "\"$DATABASE_URL\""
+msgstr ""
+
+#: src/26-postgres-only-mode.md:91
+msgid ""
+"**`20260722_01`** — the `kv_artifact` cache table + "
+"`idx_kv_artifact_expires_at`. Used only by postgres-only; harmless and empty "
+"in full mode."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:92
+msgid ""
+"**`20260722_02`** — `idx_message_queue_claim` on `message_queue (status, "
+"created)`, backing the claim query below. **Applies to full mode too**, "
+"since the claim change is shared."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:96
+msgid "Email queue and multi-pod safety"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:98
+msgid ""
+"Both full and postgres-only deliver email by polling the PostgreSQL "
+"`message_queue` table with an in-process dispatcher. Postgres-only must run "
+"multiple pods, so the dispatcher claims pending messages atomically:"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:106
+msgid "'Queued'"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:113
+msgid ""
+"`SKIP LOCKED` guarantees each message is claimed by at most one pod (no "
+"double-send); a claimed message becomes re-claimable after a visibility "
+"timeout, so a crashed pod's message is not lost. This claim also fixes a pre-"
+"existing full-mode double-send, so the change applies to full mode as well."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:118
+msgid "Two `[queue]` fields tune it (both honored in full mode):"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:126
+msgid ""
+"**Safety invariant:** `visibilityTimeoutSecs > claimBatchSize × worst-case "
+"single SMTP send`. The defaults (batch 3, window 240s) are safe for lettre's "
+"~60s default send timeout. The window also doubles as the retry back-off for "
+"a transiently-failed send — lower it for faster retries (e.g. time-sensitive "
+"OTP email) **only after** lowering the batch so the invariant still holds."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:134
+msgid "Known limitations / trade-offs"
+msgstr ""
+
+#: src/26-postgres-only-mode.md:136
+msgid ""
+"**Cache reads/writes hit PostgreSQL.** Redis exists precisely to keep these "
+"off the hot database path; in postgres-only they add load to your primary "
+"store. Acceptable for most workloads, but size the database accordingly."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:139
+msgid ""
+"**Failed-email retry latency equals `visibilityTimeoutSecs`.** Claim-safety "
+"and retry back-off are the same knob (both key off the `attempted` column), "
+"so they cannot be independently short. Tune via `[queue]`."
+msgstr ""
+
+#: src/26-postgres-only-mode.md:142
+msgid ""
+"**No Vault requirement change.** Secrets resolve exactly as in full mode "
+"(operator-provided or Vault); postgres-only does **not** auto-generate "
+"secrets the way [standalone](./23-standalone-mode.md) does."
+msgstr ""
+
+#: src/23-standalone-mode.md:3
+msgid ""
+"Standalone mode runs Mycelium with **zero external runtime dependencies**: "
+"no PostgreSQL, no Redis, no SMTP server, no HashiCorp Vault. It is a "
+"separate build of the same gateway, selected at **compile time**, aimed at "
+"local development, edge deployments, and small teams that don't want to run "
+"four services just to try Mycelium out."
+msgstr ""
+
+#: src/23-standalone-mode.md:12
+#, fuzzy
+msgid "Standalone mode"
+msgstr "Códigos de erro padrão:"
+
+#: src/23-standalone-mode.md:14
+msgid "PostgreSQL (`adapters/diesel_postgres`)"
+msgstr ""
+
+#: src/23-standalone-mode.md:14
+msgid "SQLite, auto-provisioned on first boot (`adapters/diesel_sqlite`)"
+msgstr ""
+
+#: src/23-standalone-mode.md:15
+msgid "Redis-backed cache (`adapters/kv_db`)"
+msgstr ""
+
+#: src/23-standalone-mode.md:15
+msgid ""
+"In-process cache via [moka](https://docs.rs/moka) (`adapters/moka_cache`)"
+msgstr ""
+
+#: src/23-standalone-mode.md:16
+msgid "SMTP (`lettre` `SmtpTransport`)"
+msgstr ""
+
+#: src/23-standalone-mode.md:16
+msgid ""
+"Stub transport (default, logs to stdout) or file transport (`.eml` files); "
+"real SMTP also works if you opt in with `[smtp]`"
+msgstr ""
+
+#: src/23-standalone-mode.md:17
+msgid "HashiCorp Vault"
+msgstr ""
+
+#: src/23-standalone-mode.md:17
+#, fuzzy
+msgid "Not used"
+msgstr "Não obrigatório"
+
+#: src/23-standalone-mode.md:18
+msgid "Operator-provided `tokenSecret`/HMAC secrets"
+msgstr ""
+
+#: src/23-standalone-mode.md:18
+msgid ""
+"Auto-generated on first boot, persisted (keyring or an encrypted local file)"
+msgstr ""
+
+#: src/23-standalone-mode.md:20
+msgid ""
+"Everything else — the REST/JSON-RPC API, authentication flows, webhooks, MCP "
+"integration — is identical. The two builds share the same `core` domain "
+"logic; only the adapters wired in `ports/api/src/main.rs`'s "
+"`initialize_modules` differ."
+msgstr ""
+
+#: src/23-standalone-mode.md:32
+msgid ""
+"`--no-default-features` is required — Cargo features are additive, and the "
+"default `full` feature would otherwise stay enabled and trip a "
+"`compile_error!` guard (the two are mutually exclusive; a single binary "
+"cannot link both Postgres-only and SQLite-only Diesel column types)."
+msgstr ""
+
+#: src/23-standalone-mode.md:37
+msgid ""
+"Copy `settings/config.standalone.example.toml` and point `SETTINGS_PATH` at "
+"your copy:"
+msgstr ""
+
+#: src/23-standalone-mode.md:43
+msgid ""
+"A minimal standalone config needs only `[core.accountLifeCycle]`, "
+"`[sqlite]`, `[queue]`, `[auth]`, and `[api]` — `[redis]` and `[vault]` don't "
+"exist in standalone builds at all (the corresponding Rust types aren't even "
+"compiled in). `[smtp]` is optional and opt-in: absent by default (falls back "
+"to stub/file transport), but if present, standalone sends real email through "
+"it exactly like full mode does — see [Email transport](#email-transport) "
+"below."
+msgstr ""
+
+#: src/23-standalone-mode.md:49
+msgid ""
+"Since a fresh local install rarely has a real domain to put in "
+"`noreplyEmail`/`supportEmail`, Mycelium's email validation accepts "
+"`localhost` as a domain in addition to the usual dotted form "
+"(`user@localhost` is valid; `user@example` without a TLD still is not) — "
+"this applies in both build modes, not just standalone."
+msgstr ""
+
+#: src/23-standalone-mode.md:61
+msgid ""
+"The image bakes in `settings/config.standalone.example.toml` as its default "
+"config, with `[sqlite] path` resolving under the mounted `/data` volume — "
+"`docker run` with no extra flags boots out of the box. Mount your own config "
+"with `-e SETTINGS_PATH=/path -v /host/path:/path` for a real deployment."
+msgstr ""
+
+#: src/23-standalone-mode.md:68
+msgid "Email transport"
+msgstr ""
+
+#: src/23-standalone-mode.md:70
+msgid ""
+"By default, standalone builds don't deliver email — outbound mail goes to a "
+"**stub transport** (logs subject, recipient, and any magic-link URL to "
+"`tracing`/stdout) so you can complete flows like magic-link login without "
+"setting up anything. An opt-in **file transport** writes a `.eml` per "
+"message to a configured directory instead."
+msgstr ""
+
+#: src/23-standalone-mode.md:75
+msgid ""
+"If you want real delivery without running full mode's Postgres/Redis/Vault "
+"stack, configure `[smtp]` — same shape as full mode:"
+msgstr ""
+
+#: src/23-standalone-mode.md:78
+msgid ""
+"```toml\n"
+"[smtp]\n"
+"host = \"smtp.example.com\"\n"
+"username = \"apikey\"\n"
+"password = { env = \"MYC_SMTP_PASSWORD\" }\n"
+"port = 587\n"
+"```"
+msgstr ""
+
+#: src/23-standalone-mode.md:86
+msgid ""
+"When present, standalone resolves a real `SmtpTransport` and uses it (SMTP "
+"takes precedence over file, which takes precedence over stub — the same "
+"selection logic full mode's local-transport tests already cover). When "
+"absent, behavior is unchanged from before: stub by default."
+msgstr ""
+
+#: src/23-standalone-mode.md:94
+msgid ""
+"`tokenSecret`, the primary HMAC signing key, and (if internal auth is "
+"enabled) `jwtSecret` are each resolved on every boot in this order:"
+msgstr ""
+
+#: src/23-standalone-mode.md:97
+msgid ""
+"**An operator-supplied `{ env = \"MY_VAR\" }` resolver** — treated as "
+"explicit, same as full mode. A bare literal in the config file (what the "
+"shipped example ships) does **not** count as explicit — it's the documented "
+"placeholder, and standalone mode ignores it in favor of step 2."
+msgstr ""
+
+#: src/23-standalone-mode.md:100
+msgid "The OS keyring, if a backend is available."
+msgstr ""
+
+#: src/23-standalone-mode.md:101
+msgid ""
+"An encrypted local file next to the SQLite database (`<sqlite-dir>/.secrets/"
+"`), `0600` permissions."
+msgstr ""
+
+#: src/23-standalone-mode.md:102
+msgid ""
+"If none of the above has a value yet: **generate** a new secret and persist "
+"it (keyring first, falling back to the file)."
+msgstr ""
+
+#: src/23-standalone-mode.md:105
+msgid ""
+"Most containers, air-gapped hosts, and CI runners have no keyring/Secret-"
+"Service daemon, so step 3 is the de-facto primary path in practice — this is "
+"expected, not a degraded mode."
+msgstr ""
+
+#: src/23-standalone-mode.md:108
+msgid ""
+"**Back up `.secrets`.** Losing this directory (with no keyring copy) means "
+"losing the ability to decrypt everything the KEK protects and to verify "
+"previously-signed connection strings. Treat it like you would a database "
+"backup."
+msgstr ""
+
+#: src/23-standalone-mode.md:112
+msgid ""
+"Internal (database-backed) JWT authentication is **opt-in** via `[auth."
+"internal.define]` — note the table shape: `internal = \"enabled\"` alone "
+"does **not** work, since `OptionalConfig`'s `Enabled` variant is a newtype "
+"wrapping a table, not a bare string:"
+msgstr ""
+
+#: src/23-standalone-mode.md:116
+msgid ""
+"```toml\n"
+"[auth.internal.define]\n"
+"jwtExpiresIn = 43200                                            # 12 hours\n"
+"tmpExpiresIn = 300                                               # 5 "
+"minutes\n"
+"jwtSecret = \"any-placeholder-value\"                       # resolved per "
+"the order above\n"
+"```"
+msgstr ""
+
+#: src/23-standalone-mode.md:123
+msgid ""
+"When enabled this way, `jwtSecret` follows the exact same resolution order "
+"as `tokenSecret`/HMAC — including honoring an explicit `{ env = \"...\" }` "
+"value."
+msgstr ""
+
+#: src/23-standalone-mode.md:128
+msgid "Known limitations"
+msgstr ""
+
+#: src/23-standalone-mode.md:130
+msgid ""
+"**No distributed session tracking.** Not a regression today (full mode "
+"doesn't have this either), but future gateway-level rate limiting or retry-"
+"loop detection that needs shared state won't work across multiple standalone "
+"processes."
+msgstr ""
+
+#: src/23-standalone-mode.md:133
+msgid ""
+"**Single instance only — no replication.** The SQLite file and the in-"
+"process cache are node-local. Don't run standalone behind a load balancer "
+"with multiple replicas."
+msgstr ""
+
+#: src/23-standalone-mode.md:135
+msgid ""
+"**The cache does not persist across restarts.** Token _invalidation_ is "
+"durable (it's in SQLite), but the TTL'd profile/JWKS cache starts cold after "
+"a restart and repopulates on demand — a brief cache-miss window, not a "
+"correctness problem."
+msgstr ""
+
+#: src/23-standalone-mode.md:138
+msgid ""
+"**SQLite write concurrency is limited** to one writer at a time (WAL mode is "
+"enabled). Fine for single-instance, low-to-moderate write volume; a "
+"bottleneck under heavy concurrent writes."
+msgstr ""
+
+#: src/23-standalone-mode.md:140
+msgid ""
+"**Email is not actually delivered** in stub mode (the default) — read the "
+"magic-link URL from stdout. File mode writes a `.eml` per message to a "
+"configured directory instead of sending it. Configure `[smtp]` (see [Email "
+"transport](#email-transport)) for real delivery."
+msgstr ""
+
+#: src/23-standalone-mode.md:143
+msgid ""
+"**The secrets file holds key material in the clear (to the process)** at "
+"rest, protected only by filesystem permissions plus a locally-derived "
+"wrapping key. Protect and back it up (see above)."
+msgstr ""
+
+#: src/23-standalone-mode.md:146
+msgid ""
+"Standalone mode is not a smaller version of full mode's guarantees dressed "
+"up differently — it makes different, documented trade-offs in exchange for "
+"zero external dependencies. Pick the mode that matches your deployment's "
+"actual needs."
+msgstr ""
 
 #: src/01-authorization.md:3
 msgid ""
@@ -4941,7 +5861,7 @@ msgid "Reference — callback fields"
 msgstr "Referência — campos de callback"
 
 #: src/12-response-callbacks.md:187 src/20-encryption-inventory.md:34
-#: src/08-release-process.md:195
+#: src/08-release-process.md:150
 msgid "Type"
 msgstr ""
 
@@ -7416,11 +8336,8 @@ msgid "Typical installation order"
 msgstr "Ordem típica de instalação"
 
 #: src/18-cli.md:109
-msgid "# 1. Apply the database schema\n"
-msgstr ""
-
-#: src/18-cli.md:110
-msgid "\"$DATABASE_URL\""
+msgid ""
+"# 1. Apply the database schema (complete — no separate migrations to run)\n"
 msgstr ""
 
 #: src/18-cli.md:111
@@ -7673,7 +8590,7 @@ msgstr "A versão resumida"
 msgid "Version"
 msgstr "Tipo de Versão"
 
-#: src/20-encryption-inventory.md:58 src/08-release-process.md:25
+#: src/20-encryption-inventory.md:58 src/08-release-process.md:28
 msgid "Format"
 msgstr ""
 
@@ -7894,7 +8811,7 @@ msgid ""
 "tenant)."
 msgstr ""
 
-#: src/21-envelope-encryption-migration.md:8 src/08-release-process.md:5
+#: src/21-envelope-encryption-migration.md:8 src/08-release-process.md:6
 #: src/09-log-cache-tests.md:5
 msgid "Overview"
 msgstr ""
@@ -8583,424 +9500,344 @@ msgstr ""
 "contêineres Docker nas mesmas portas."
 
 #: src/08-release-process.md:3
+#, fuzzy
 msgid ""
-"This guide explains how to create and manage releases for Mycelium using "
-"`cargo-release` and `git-cliff`."
+"This guide explains how Mycelium releases are cut, using `cargo-release` and "
+"`git-cliff`, orchestrated by GitHub Actions."
 msgstr ""
 "Este guia explica como criar e gerenciar lançamentos do Mycelium usando "
 "`cargo-release` e `git-cliff`."
 
-#: src/08-release-process.md:7
+#: src/08-release-process.md:8
 msgid ""
-"Mycelium follows [Semantic Versioning](https://semver.org/) and uses "
-"automated tools to manage releases:"
+"Mycelium follows [Semantic Versioning](https://semver.org/). Releases are "
+"**not** run by hand locally — they run through GitHub Actions "
+"`workflow_dispatch` jobs, because two pieces of the pipeline only work "
+"inside CI:"
 msgstr ""
-"O Mycelium segue o [Versionamento Semântico](https://semver.org/) e usa "
-"ferramentas automatizadas para gerenciar lançamentos:"
 
-#: src/08-release-process.md:9
-msgid "**cargo-release**: Manages version bumping, tagging, and publishing"
-msgstr "**cargo-release**: Gerencia incremento de versão, tagging e publicação"
-
-#: src/08-release-process.md:10
-msgid "**git-cliff**: Generates changelogs from conventional commits"
-msgstr "**git-cliff**: Gera changelogs a partir de commits convencionais"
+#: src/08-release-process.md:12
+msgid ""
+"**`RELEASE_TOKEN`** (a PAT/App token) is what makes a pushed tag _cascade_ "
+"to the tag-triggered `docker-release.yml` workflow — the built-in "
+"`GITHUB_TOKEN` would not."
+msgstr ""
 
 #: src/08-release-process.md:14
-msgid "Install the required tools:"
-msgstr "Instale as ferramentas necessárias:"
+msgid ""
+"**crates.io Trusted Publishing (OIDC)** — the short-lived crates.io token is "
+"exchanged via GitHub's OIDC identity, which only exists inside an Actions "
+"run."
+msgstr ""
+
+#: src/08-release-process.md:17
+msgid ""
+"A local `cargo release <level>` (no `--execute`) dry-run is still the right "
+"way to preview a bump before dispatching the real workflow — it needs no "
+"credentials and touches nothing."
+msgstr ""
+
+#: src/08-release-process.md:20
+msgid "Tools involved:"
+msgstr ""
 
 #: src/08-release-process.md:21
+#, fuzzy
+msgid ""
+"**cargo-release**: version bumping, changelog hook, tagging, publishing."
+msgstr "**cargo-release**: Gerencia incremento de versão, tagging e publicação"
+
+#: src/08-release-process.md:22
+msgid ""
+"**git-cliff**: generates changelog notes from conventional commits — used "
+"both for `CHANGELOG.md` and as the body of the GitHub Release `docker-"
+"release.yml`'s `github-release` job creates for every tag."
+msgstr ""
+
+#: src/08-release-process.md:26
 msgid "Version Semantics"
 msgstr "Semântica de Versão"
 
-#: src/08-release-process.md:23
-msgid "Mycelium follows Semantic Versioning (SemVer):"
-msgstr "O Mycelium segue o Versionamento Semântico (SemVer):"
-
-#: src/08-release-process.md:25
+#: src/08-release-process.md:28
 msgid "Version Type"
 msgstr "Tipo de Versão"
 
-#: src/08-release-process.md:25
+#: src/08-release-process.md:28
 msgid "When to Use"
 msgstr "Quando Usar"
 
-#: src/08-release-process.md:25
+#: src/08-release-process.md:28
 msgid "Example"
 msgstr ""
 
-#: src/08-release-process.md:27
+#: src/08-release-process.md:30
 msgid "**MAJOR**"
 msgstr "**MAJOR**"
 
-#: src/08-release-process.md:27
+#: src/08-release-process.md:30
 msgid "`X.0.0`"
 msgstr ""
 
-#: src/08-release-process.md:27
+#: src/08-release-process.md:30
 msgid "Breaking changes or incompatible API changes"
 msgstr ""
 "Mudanças incompatíveis ou alterações de API que quebram compatibilidade"
 
-#: src/08-release-process.md:27
+#: src/08-release-process.md:30
 msgid "`8.0.0` → `9.0.0`"
 msgstr ""
 
-#: src/08-release-process.md:28
+#: src/08-release-process.md:31
 msgid "**MINOR**"
 msgstr "**MINOR**"
 
-#: src/08-release-process.md:28
+#: src/08-release-process.md:31
 msgid "`x.Y.0`"
 msgstr ""
 
-#: src/08-release-process.md:28
+#: src/08-release-process.md:31
 msgid "New features (backward-compatible)"
 msgstr "Novas funcionalidades (compatíveis com versões anteriores)"
 
-#: src/08-release-process.md:28
+#: src/08-release-process.md:31
 msgid "`8.3.0` → `8.4.0`"
 msgstr ""
 
-#: src/08-release-process.md:29
+#: src/08-release-process.md:32
 msgid "**PATCH**"
 msgstr "**PATCH**"
 
-#: src/08-release-process.md:29
+#: src/08-release-process.md:32
 msgid "`x.y.Z`"
 msgstr ""
 
-#: src/08-release-process.md:29
+#: src/08-release-process.md:32
 msgid "Bug fixes (backward-compatible)"
 msgstr "Correções de bugs (compatíveis com versões anteriores)"
 
-#: src/08-release-process.md:29
+#: src/08-release-process.md:32
 msgid "`8.3.0` → `8.3.1`"
 msgstr ""
 
-#: src/08-release-process.md:31
-msgid "Pre-release Workflow"
-msgstr "Fluxo de Pré-lançamento"
-
-#: src/08-release-process.md:33
-msgid "Pre-releases follow a specific progression through stages:"
-msgstr "Os pré-lançamentos seguem uma progressão específica por estágios:"
-
-#: src/08-release-process.md:35
-#, fuzzy
-msgid "1. Alpha Stage"
-msgstr "Estágio Alpha"
+#: src/08-release-process.md:34
+msgid ""
+"**Tag naming:** no `v` prefix — tags and image tags are `8.3.1`, `8.3.1-"
+"rc.1`, never `v8.3.1`. Historical `v*` tags (pre-`8.3.0`) are left as-is, "
+"never renamed."
+msgstr ""
 
 #: src/08-release-process.md:37
-msgid "**Purpose**: Early development and testing"
-msgstr "**Objetivo**: Desenvolvimento inicial e testes"
+msgid "The Automated Pipeline"
+msgstr ""
 
-#: src/08-release-process.md:39 src/08-release-process.md:60
-#: src/08-release-process.md:82
-msgid "**Characteristics**:"
-msgstr "**Características**:"
+#: src/08-release-process.md:39
+msgid ""
+"Dispatching `release-prerelease.yml` (from `develop`) or `release-stable."
+"yml` (from `main`) runs, in one job: **bump → commit (local) → publish "
+"(OIDC, rate-limited) → tag → push.** Nothing is pushed to the branch or to "
+"crates.io until the step that does it succeeds; if `publish` fails, the job "
+"simply ends and the remote is untouched — see [Publish Failures & Retry]"
+"(#publish-failures--retry) below."
+msgstr ""
 
-#: src/08-release-process.md:40
-msgid "Unstable, frequent changes"
-msgstr "Instável, mudanças frequentes"
+#: src/08-release-process.md:45
+msgid "Once the tag is pushed, `docker-release.yml` fires automatically:"
+msgstr ""
 
-#: src/08-release-process.md:41
-msgid "Used for initial feature testing"
-msgstr "Usado para testes iniciais de funcionalidades"
-
-#: src/08-release-process.md:42
-msgid "Not recommended for production"
-msgstr "Não recomendado para produção"
-
-#: src/08-release-process.md:44
-msgid "**Creating an alpha release**:"
-msgstr "**Criando um lançamento alpha**:"
-
-#: src/08-release-process.md:47
-msgid "# First alpha\n"
+#: src/08-release-process.md:46
+msgid ""
+"**`image` job** — builds from that exact tag (fixed ref bug, see below), "
+"pushes to GHCR, attests build provenance, and signs the image keylessly with "
+"cosign."
 msgstr ""
 
 #: src/08-release-process.md:48
-msgid "# Creates x.y.z-alpha.1\n"
-msgstr ""
-
-#: src/08-release-process.md:49
-msgid "# Subsequent alphas\n"
+msgid ""
+"**`github-release` job** — creates (or updates, idempotently) a GitHub "
+"Release for the tag, with `git-cliff` notes and the correct `prerelease` "
+"flag."
 msgstr ""
 
 #: src/08-release-process.md:51
-msgid "# Creates x.y.z-alpha.2, etc.\n"
-msgstr ""
-
-#: src/08-release-process.md:54
 msgid ""
-"**Example progression**: `8.3.0-alpha.1` → `8.3.0-alpha.2` → `8.3.0-alpha.3`"
+"You can also trigger `docker-release.yml` manually via `workflow_dispatch` "
+"with a `tag` input — for example to rebuild an older tag. It checks out that "
+"exact tag's source (not whatever branch the dispatch happened to run from), "
+"so the rebuilt image's content always matches its version label."
 msgstr ""
-"**Exemplo de progressão**: `8.3.0-alpha.1` → `8.3.0-alpha.2` → `8.3.0-"
-"alpha.3`"
 
-#: src/08-release-process.md:56
-#, fuzzy
-msgid "2. Beta Stage"
-msgstr "Estágio Beta"
+#: src/08-release-process.md:55
+msgid "Pre-release Workflow"
+msgstr "Fluxo de Pré-lançamento"
 
-#: src/08-release-process.md:58
-msgid "**Purpose**: Feature-complete version ready for broader testing"
+#: src/08-release-process.md:57
+msgid ""
+"Pre-releases progress through `beta` → `rc` stages (dispatch `release-"
+"prerelease.yml` from `develop`, choosing `release_type`). `cargo-release` "
+"also supports an `alpha` level, but it isn't wired into either workflow's "
+"dropdown today — use `custom_version` (see below) if you ever need it."
 msgstr ""
-"**Objetivo**: Versão com funcionalidades completas, pronta para testes mais "
-"amplos"
 
 #: src/08-release-process.md:61
-msgid "Features are complete"
-msgstr "Funcionalidades completas"
-
-#: src/08-release-process.md:62
-msgid "API should be relatively stable"
-msgstr "API deve estar relativamente estável"
-
-#: src/08-release-process.md:63
-msgid "May still have bugs"
-msgstr "Pode ainda ter bugs"
-
-#: src/08-release-process.md:64
-msgid "Used for wider testing and feedback"
-msgstr "Usado para testes mais abrangentes e feedback"
-
-#: src/08-release-process.md:66
-msgid "**Moving to beta**:"
-msgstr "**Avançando para beta**:"
-
-#: src/08-release-process.md:69
-msgid "# First beta\n"
-msgstr ""
-
-#: src/08-release-process.md:70
-msgid "# Creates x.y.z-beta.1\n"
-msgstr ""
-
-#: src/08-release-process.md:71
-msgid "# Subsequent betas\n"
-msgstr ""
-
-#: src/08-release-process.md:73
-msgid "# Creates x.y.z-beta.2, etc.\n"
-msgstr ""
-
-#: src/08-release-process.md:76
+#, fuzzy
 msgid ""
-"**Example progression**: `8.3.0-beta.1` → `8.3.0-beta.2` → `8.3.0-beta.3`"
+"**Example progression**: `8.3.0-beta.1` → `8.3.0-beta.2` → `8.3.0-rc.1` → "
+"`8.3.0-rc.2`"
 msgstr ""
 "**Exemplo de progressão**: `8.3.0-beta.1` → `8.3.0-beta.2` → `8.3.0-beta.3`"
 
-#: src/08-release-process.md:78
-#, fuzzy
-msgid "3. Release Candidate (RC) Stage"
-msgstr "Estágio Release Candidate (RC)"
+#: src/08-release-process.md:63
+msgid "Promoting to stable"
+msgstr ""
+
+#: src/08-release-process.md:65
+msgid ""
+"Dispatch `release-stable.yml` from `main` with `release_type: patch|minor|"
+"major` — cargo-release's `release` level (`X.Y.Z-rc.N` → `X.Y.Z`, dropping "
+"the pre-release suffix) is available locally for a dry-run preview, but "
+"isn't exposed as a `release-stable.yml` dropdown option; the stable workflow "
+"always bumps from `main`'s current version, so merge the release branch into "
+"`main` first, then dispatch with the level matching what the pre-release "
+"cycle was for (a `9.0.0-rc.N` line promotes via `major` from the last stable "
+"tag once `main` is on the rc's commit — see the 9.0.0 walkthrough below for "
+"the concrete case)."
+msgstr ""
+
+#: src/08-release-process.md:73
+msgid "Publish Failures & Retry"
+msgstr ""
+
+#: src/08-release-process.md:75
+msgid ""
+"If the **publish** step fails partway (crates.io throttling despite `release."
+"toml`'s `[rate-limit]`, a network blip, or a single crate's own issue), "
+"recovery depends on what kind of bump it was — nothing was pushed, so the "
+"remote branch and tags are exactly as they were before you dispatched:"
+msgstr ""
 
 #: src/08-release-process.md:80
-msgid "**Purpose**: Production-ready candidate for final validation"
-msgstr "**Objetivo**: Candidato pronto para produção e validação final"
-
-#: src/08-release-process.md:83
-msgid "Final testing before stable release"
-msgstr "Testes finais antes do lançamento estável"
+msgid ""
+"**`patch` / `minor` / `major` / `release`** (deterministic target version): "
+"just **re-dispatch the same workflow**. It recomputes the identical target "
+"version, and `cargo release publish` already skips crates that succeeded in "
+"the previous attempt — the retry only publishes what's left, then proceeds "
+"to tag+push normally."
+msgstr ""
 
 #: src/08-release-process.md:84
-msgid "Only critical bug fixes allowed"
-msgstr "Apenas correções críticas de bugs permitidas"
-
-#: src/08-release-process.md:85
-msgid "Ready for production testing"
-msgstr "Pronto para testes em produção"
-
-#: src/08-release-process.md:86
-msgid "Last chance to catch issues"
-msgstr "Última chance de encontrar problemas"
-
-#: src/08-release-process.md:88
-msgid "**Creating release candidates**:"
-msgstr "**Criando release candidates**:"
-
-#: src/08-release-process.md:91
-msgid "# First RC\n"
+msgid ""
+"**`beta` / `rc`** (relative bump): re-dispatching increments again (`rc.1` → "
+"`rc.2`), it does **not** retry `rc.1`. Treat the partial `rc.N`/`beta.N` as "
+"abandoned — the handful of crates that did publish at that version are "
+"harmless orphans on crates.io (untagged, unreferenced, nothing depends on "
+"that exact version existing) — and dispatch the workflow again for the "
+"**next** rc/beta number."
 msgstr ""
 
-#: src/08-release-process.md:92
-msgid "# Creates x.y.z-rc.1\n"
+#: src/08-release-process.md:89
+msgid ""
+"**`publish-crates.yml`** is also available any time as a standalone re-"
+"publish pass (same OIDC auth), with an `unpublished_only` input (`cargo "
+"release publish --unpublished`) to scope it to just the packages not yet "
+"published at their current `Cargo.toml` version — useful if you want to "
+"retry only the publish step without touching bump/tag/push."
 msgstr ""
 
-#: src/08-release-process.md:93
-msgid "# Subsequent RCs (if needed)\n"
+#: src/08-release-process.md:94
+msgid "Major Version Bump via Release Candidates (9.0.0 walkthrough)"
 msgstr ""
 
-#: src/08-release-process.md:95
-msgid "# Creates x.y.z-rc.2, etc.\n"
+#: src/08-release-process.md:96
+msgid ""
+"Going from the `8.3.x` line to `9.0.0` is a routine major bump with no "
+"breaking changes planned — release it as a series of RCs first, same as any "
+"other release, with one wrinkle: cargo-release's `major` LEVEL alone jumps "
+"straight to a **stable** `9.0.0`, and its `--metadata`/`-m` flag sets semver "
+"_build_ metadata after a `+` (e.g. `9.0.0+rc.1`), **not** a pre-release "
+"identifier — neither composes \"major\" with \"rc\" the way you'd want. The "
+"fix is `release-prerelease.yml`'s `custom_version` input, which accepts an "
+"explicit target version string (cargo-release's other accepted form of its "
+"`[LEVEL|VERSION]` argument):"
 msgstr ""
-
-#: src/08-release-process.md:98
-msgid "**Example progression**: `8.3.0-rc.1` → `8.3.0-rc.2`"
-msgstr "**Exemplo de progressão**: `8.3.0-rc.1` → `8.3.0-rc.2`"
-
-#: src/08-release-process.md:100
-#, fuzzy
-msgid "4. Stable Release"
-msgstr "Lançamento Estável"
-
-#: src/08-release-process.md:102
-msgid "**Purpose**: Production-ready version"
-msgstr "**Objetivo**: Versão pronta para produção"
 
 #: src/08-release-process.md:104
-msgid "**Creating the stable release**:"
-msgstr "**Criando o lançamento estável**:"
-
-#: src/08-release-process.md:107
-msgid "# Creates x.y.z\n"
+msgid ""
+"Dispatch `release-prerelease.yml` from `develop` with `custom_version: 9.0.0-"
+"rc.1` (leave `release_type` blank). Do a `dry_run: true` pass first and "
+"review the diff."
 msgstr ""
 
-#: src/08-release-process.md:110
-msgid "**Example**: `8.3.0-rc.2` → `8.3.0`"
-msgstr "**Exemplo**: `8.3.0-rc.2` → `8.3.0`"
+#: src/08-release-process.md:106
+msgid ""
+"Every subsequent RC uses the normal `release_type: rc` dropdown again — "
+"`9.0.0-rc.1` → `rc` → `9.0.0-rc.2`, etc. Verify each RC end-to-end (install "
+"the RC crate, boot the RC image) before cutting the next one."
+msgstr ""
+
+#: src/08-release-process.md:109
+msgid ""
+"Before cutting `9.0.0-rc.1`, make sure crates.io Trusted Publishing is "
+"configured for every workspace crate (see below) — this is the first real "
+"end-to-end exercise of OIDC publishing; keep `CARGO_REGISTRY_TOKEN` as a "
+"fallback until this cycle proves it works."
+msgstr ""
 
 #: src/08-release-process.md:112
-msgid "Version Increment Commands"
-msgstr "Comandos de Incremento de Versão"
-
-#: src/08-release-process.md:114
-msgid "Patch Release"
-msgstr "Lançamento de Patch"
-
-#: src/08-release-process.md:116
-msgid "For bug fixes on existing stable releases:"
-msgstr "Para correções de bugs em lançamentos estáveis existentes:"
-
-#: src/08-release-process.md:122
-msgid "**Example**: `8.3.0` → `8.3.1`"
-msgstr "**Exemplo**: `8.3.0` → `8.3.1`"
-
-#: src/08-release-process.md:124
-msgid "Minor Release"
-msgstr "Lançamento Minor"
-
-#: src/08-release-process.md:126
-msgid "For new features (backward-compatible):"
-msgstr "Para novas funcionalidades (compatíveis com versões anteriores):"
-
-#: src/08-release-process.md:132
-msgid "**Example**: `8.3.1` → `8.4.0`"
-msgstr "**Exemplo**: `8.3.1` → `8.4.0`"
-
-#: src/08-release-process.md:134
-msgid "Major Release"
-msgstr "Lançamento Major"
-
-#: src/08-release-process.md:136
-msgid "For breaking changes:"
-msgstr "Para mudanças que quebram compatibilidade:"
-
-#: src/08-release-process.md:142
-msgid "**Example**: `8.4.0` → `9.0.0`"
-msgstr "**Exemplo**: `8.4.0` → `9.0.0`"
-
-#: src/08-release-process.md:144
-msgid "Complete Release Cycle Example"
-msgstr "Exemplo de Ciclo de Lançamento Completo"
-
-#: src/08-release-process.md:146
-msgid "Here's a complete example of releasing version 8.3.0:"
-msgstr "Aqui está um exemplo completo do lançamento da versão 8.3.0:"
-
-#: src/08-release-process.md:149
-msgid "# Alpha stage - initial testing\n"
+msgid ""
+"Once satisfied, merge to `main` and dispatch `release-stable.yml` with "
+"`release_type: major` to drop the `-rc.N` suffix and cut `9.0.0` stable."
 msgstr ""
 
-#: src/08-release-process.md:150
-msgid "# 8.3.0-alpha.1\n"
+#: src/08-release-process.md:115
+msgid "crates.io Trusted Publishing setup (one-time, per crate)"
 msgstr ""
 
-#: src/08-release-process.md:152
-msgid "# 8.3.0-alpha.2\n"
+#: src/08-release-process.md:117
+msgid ""
+"OIDC-based publishing (no long-lived `CARGO_REGISTRY_TOKEN`) requires "
+"configuring **Trusted Publishing** individually for each of this workspace's "
+"~15 published crates, on crates.io itself — this can't be done from workflow "
+"YAML:"
 msgstr ""
 
-#: src/08-release-process.md:154
-msgid "# 8.3.0-alpha.3\n"
+#: src/08-release-process.md:121
+msgid ""
+"For each crate: crates.io → the crate's page → Settings → Publishing → add a "
+"GitHub Actions trusted publisher pointing at `LepistaBioinformatics/"
+"mycelium` and the workflow filename (`release-prerelease.yml`, `release-"
+"stable.yml`, or `publish-crates.yml` — add all three, since any of them may "
+"run the publish step)."
 msgstr ""
 
-#: src/08-release-process.md:155
-#, fuzzy
-msgid "# Beta stage - features complete\n"
-msgstr "Funcionalidades completas"
-
-#: src/08-release-process.md:157
-msgid "# 8.3.0-beta.1\n"
+#: src/08-release-process.md:125
+msgid ""
+"Until every crate has this configured, publish steps fall back to the "
+"`CARGO_REGISTRY_TOKEN` repository secret automatically."
 msgstr ""
 
-#: src/08-release-process.md:159
-msgid "# 8.3.0-beta.2\n"
+#: src/08-release-process.md:127
+msgid ""
+"Once every crate is confirmed working via OIDC (ideally proven by a full RC "
+"cycle), remove the `CARGO_REGISTRY_TOKEN` secret from the repository."
 msgstr ""
 
-#: src/08-release-process.md:160
-#, fuzzy
-msgid "# Release candidate - final validation\n"
-msgstr "**Objetivo**: Candidato pronto para produção e validação final"
-
-#: src/08-release-process.md:162
-msgid "# 8.3.0-rc.1\n"
-msgstr ""
-
-#: src/08-release-process.md:164
-msgid "# 8.3.0-rc.2\n"
-msgstr ""
-
-#: src/08-release-process.md:165
-#, fuzzy
-msgid "# Stable release\n"
-msgstr "Lançamento Estável"
-
-#: src/08-release-process.md:167
-msgid "# 8.3.0\n"
-msgstr ""
-
-#: src/08-release-process.md:168
-#, fuzzy
-msgid "# Later patch releases\n"
-msgstr "Lançamento de Patch"
-
-#: src/08-release-process.md:170
-msgid "# 8.3.1\n"
-msgstr ""
-
-#: src/08-release-process.md:171
-msgid "# 8.3.2\n"
-msgstr ""
-
-#: src/08-release-process.md:172
-#, fuzzy
-msgid "# Next minor release\n"
-msgstr "Lançamento Minor"
-
-#: src/08-release-process.md:174 src/08-release-process.md:360
-msgid "# 8.4.0\n"
-msgstr ""
-
-#: src/08-release-process.md:177
+#: src/08-release-process.md:130
 msgid "Changelog Management"
 msgstr "Gerenciamento de Changelog"
 
-#: src/08-release-process.md:179
+#: src/08-release-process.md:132
 msgid ""
 "Mycelium uses `git-cliff` to automatically generate changelogs from "
-"conventional commits."
+"conventional commits — both `CHANGELOG.md` (via `release.toml`'s `pre-"
+"release-hook`) and each tag's GitHub Release body (via `docker-release."
+"yml`'s `github-release` job)."
 msgstr ""
-"O Mycelium usa o `git-cliff` para gerar changelogs automaticamente a partir "
-"de commits convencionais."
 
-#: src/08-release-process.md:181
+#: src/08-release-process.md:136
 msgid "Conventional Commit Format"
 msgstr "Formato de Commit Convencional"
 
-#: src/08-release-process.md:183
+#: src/08-release-process.md:138
 msgid ""
 "All commits should follow the [Conventional Commits](https://www."
 "conventionalcommits.org/) specification:"
@@ -9008,120 +9845,120 @@ msgstr ""
 "Todos os commits devem seguir a especificação [Conventional Commits](https://"
 "www.conventionalcommits.org/):"
 
-#: src/08-release-process.md:193
+#: src/08-release-process.md:148
 msgid "**Supported types**:"
 msgstr "**Tipos suportados**:"
 
-#: src/08-release-process.md:195
+#: src/08-release-process.md:150
 msgid "Changelog Section"
 msgstr "Seção do Changelog"
 
-#: src/08-release-process.md:197
+#: src/08-release-process.md:152
 msgid "`feat`"
 msgstr ""
 
-#: src/08-release-process.md:197
+#: src/08-release-process.md:152
 msgid "New feature"
 msgstr "Nova funcionalidade"
 
-#: src/08-release-process.md:197
+#: src/08-release-process.md:152
 msgid "🚀 Features"
 msgstr "🚀 Features"
 
-#: src/08-release-process.md:198
+#: src/08-release-process.md:153
 msgid "`fix`"
 msgstr ""
 
-#: src/08-release-process.md:198
+#: src/08-release-process.md:153
 msgid "Bug fix"
 msgstr "Correção de bug"
 
-#: src/08-release-process.md:198
+#: src/08-release-process.md:153
 msgid "🐛 Bug Fixes"
 msgstr "🐛 Bug Fixes"
 
-#: src/08-release-process.md:199
+#: src/08-release-process.md:154
 msgid "`docs`"
 msgstr ""
 
-#: src/08-release-process.md:199
+#: src/08-release-process.md:154
 msgid "Documentation"
 msgstr ""
 
-#: src/08-release-process.md:199
+#: src/08-release-process.md:154
 msgid "📚 Documentation"
 msgstr "📚 Documentation"
 
-#: src/08-release-process.md:200
+#: src/08-release-process.md:155
 msgid "`perf`"
 msgstr ""
 
-#: src/08-release-process.md:200
+#: src/08-release-process.md:155
 msgid "Performance improvement"
 msgstr "Melhoria de desempenho"
 
-#: src/08-release-process.md:200
+#: src/08-release-process.md:155
 msgid "⚡ Performance"
 msgstr "⚡ Performance"
 
-#: src/08-release-process.md:201
+#: src/08-release-process.md:156
 msgid "`refactor`"
 msgstr ""
 
-#: src/08-release-process.md:201
+#: src/08-release-process.md:156
 msgid "Code refactoring"
 msgstr "Refatoração de código"
 
-#: src/08-release-process.md:201
+#: src/08-release-process.md:156
 msgid "🚜 Refactor"
 msgstr "🚜 Refactor"
 
-#: src/08-release-process.md:202
+#: src/08-release-process.md:157
 msgid "`style`"
 msgstr ""
 
-#: src/08-release-process.md:202
+#: src/08-release-process.md:157
 msgid "Code style changes"
 msgstr "Mudanças de estilo de código"
 
-#: src/08-release-process.md:202
+#: src/08-release-process.md:157
 msgid "🎨 Styling"
 msgstr "🎨 Styling"
 
-#: src/08-release-process.md:203
+#: src/08-release-process.md:158
 msgid "`test`"
 msgstr ""
 
-#: src/08-release-process.md:203
+#: src/08-release-process.md:158
 msgid "Test changes"
 msgstr "Mudanças em testes"
 
-#: src/08-release-process.md:203
+#: src/08-release-process.md:158
 msgid "🧪 Testing"
 msgstr "🧪 Testing"
 
-#: src/08-release-process.md:204
+#: src/08-release-process.md:159
 msgid "`chore`"
 msgstr ""
 
-#: src/08-release-process.md:204
+#: src/08-release-process.md:159
 msgid "Maintenance tasks"
 msgstr "Tarefas de manutenção"
 
-#: src/08-release-process.md:204
+#: src/08-release-process.md:159
 msgid "⚙️ Miscellaneous Tasks"
 msgstr "⚙️ Miscellaneous Tasks"
 
-#: src/08-release-process.md:206
+#: src/08-release-process.md:161
 msgid "**Examples**:"
 msgstr "**Exemplos**:"
 
-#: src/08-release-process.md:209
+#: src/08-release-process.md:164
 #, fuzzy
 msgid "# Feature commit\n"
 msgstr "Funcionalidades completas"
 
-#: src/08-release-process.md:210
+#: src/08-release-process.md:165
 msgid ""
 "\"feat(auth): add passwordless authentication\n"
 "\n"
@@ -9131,23 +9968,23 @@ msgid ""
 "Fixes #110\""
 msgstr ""
 
-#: src/08-release-process.md:216
+#: src/08-release-process.md:171
 msgid "# Bug fix commit\n"
 msgstr ""
 
-#: src/08-release-process.md:218
+#: src/08-release-process.md:173
 msgid ""
 "\"fix(api): resolve null pointer in user endpoint\n"
 "\n"
 "Fixes #123\""
 msgstr ""
 
-#: src/08-release-process.md:221
+#: src/08-release-process.md:176
 #, fuzzy
 msgid "# Breaking change\n"
 msgstr "Para mudanças que quebram compatibilidade:"
 
-#: src/08-release-process.md:223
+#: src/08-release-process.md:178
 msgid ""
 "\"feat(core): redesign authentication API\n"
 "\n"
@@ -9157,31 +9994,33 @@ msgid ""
 "Fixes #150\""
 msgstr ""
 
-#: src/08-release-process.md:231
-msgid "Generating Changelogs"
+#: src/08-release-process.md:186
+#, fuzzy
+msgid "Previewing changelogs locally"
 msgstr "Gerando Changelogs"
 
-#: src/08-release-process.md:233
-msgid "Before creating a release, update the changelog:"
-msgstr "Antes de criar um lançamento, atualize o changelog:"
-
-#: src/08-release-process.md:236
+#: src/08-release-process.md:189
 msgid "# Preview unreleased changes\n"
 msgstr ""
 
-#: src/08-release-process.md:238
-msgid "# Update CHANGELOG.md with unreleased changes\n"
+#: src/08-release-process.md:191
+msgid ""
+"# Notes for a specific already-tagged version (what the GitHub Release job "
+"runs)\n"
 msgstr ""
 
-#: src/08-release-process.md:241
-msgid "# Generate changelog for a specific version\n"
+#: src/08-release-process.md:196
+msgid ""
+"`CHANGELOG.md` itself is updated automatically by `release.toml`'s `pre-"
+"release-hook` as part of the bump step — you don't need to run this by hand "
+"as part of a normal release."
 msgstr ""
 
-#: src/08-release-process.md:246
+#: src/08-release-process.md:199
 msgid "Changelog Configuration"
 msgstr "Configuração do Changelog"
 
-#: src/08-release-process.md:248
+#: src/08-release-process.md:201
 msgid ""
 "The changelog format is configured in `cliff.toml` at the repository root. "
 "This file defines:"
@@ -9189,104 +10028,108 @@ msgstr ""
 "O formato do changelog é configurado em `cliff.toml` na raiz do repositório. "
 "Este arquivo define:"
 
-#: src/08-release-process.md:249
+#: src/08-release-process.md:202
 msgid "Commit parsing rules"
 msgstr "Regras de análise de commits"
 
-#: src/08-release-process.md:250
+#: src/08-release-process.md:203
 msgid "Grouping and sorting"
 msgstr "Agrupamento e ordenação"
 
-#: src/08-release-process.md:251
+#: src/08-release-process.md:204
 msgid "Output format"
 msgstr "Formato de saída"
 
-#: src/08-release-process.md:252
+#: src/08-release-process.md:205
 msgid "Template customization"
 msgstr "Personalização de template"
 
-#: src/08-release-process.md:254
+#: src/08-release-process.md:207
 msgid "Dry Run (Recommended)"
 msgstr "Simulação (Recomendado)"
 
-#: src/08-release-process.md:256
-msgid "Always preview release changes before executing:"
+#: src/08-release-process.md:209
+#, fuzzy
+msgid "Always preview a release locally before dispatching the real workflow:"
 msgstr "Sempre pré-visualize as mudanças do lançamento antes de executar:"
 
-#: src/08-release-process.md:259
-msgid "# Dry run (default - no --execute flag)\n"
+#: src/08-release-process.md:212
+msgid ""
+"# Dry run (default -- no --execute flag). Needs no credentials, touches "
+"nothing.\n"
 msgstr ""
 
-#: src/08-release-process.md:261
+#: src/08-release-process.md:214
 msgid "# Review the output carefully:\n"
 msgstr ""
 
-#: src/08-release-process.md:263
+#: src/08-release-process.md:216
 msgid "# - Files that will be modified\n"
 msgstr ""
 
-#: src/08-release-process.md:265
+#: src/08-release-process.md:218
 msgid "# - Tags that will be created\n"
 msgstr ""
 
-#: src/08-release-process.md:267
-msgid "# If everything looks correct, execute\n"
+#: src/08-release-process.md:222
+msgid ""
+"Every release workflow also has its own `dry_run` input (`--no-publish --no-"
+"tag --no-push`) for the same preview, run inside CI."
 msgstr ""
 
-#: src/08-release-process.md:272
+#: src/08-release-process.md:225
 msgid "Release Checklist"
 msgstr "Checklist de Lançamento"
 
-#: src/08-release-process.md:274
-msgid "Use this checklist before creating a stable release:"
+#: src/08-release-process.md:227
+#, fuzzy
+msgid "Use this checklist before dispatching a stable release:"
 msgstr "Use este checklist antes de criar um lançamento estável:"
 
-#: src/08-release-process.md:276
-msgid "All tests pass: `cargo test`"
+#: src/08-release-process.md:229
+#, fuzzy
+msgid "All tests pass: `cargo test --workspace --all`"
 msgstr "Todos os testes passam: `cargo test`"
 
-#: src/08-release-process.md:277
-msgid "Code is properly formatted: `cargo fmt`"
+#: src/08-release-process.md:230
+#, fuzzy
+msgid "Code is properly formatted: `cargo fmt --all -- --check`"
 msgstr "Código está devidamente formatado: `cargo fmt`"
 
-#: src/08-release-process.md:278
+#: src/08-release-process.md:231
 msgid "No security vulnerabilities: `cargo audit`"
 msgstr "Sem vulnerabilidades de segurança: `cargo audit`"
 
-#: src/08-release-process.md:279
+#: src/08-release-process.md:232
 msgid "Documentation is up-to-date"
 msgstr "Documentação está atualizada"
 
-#: src/08-release-process.md:280
+#: src/08-release-process.md:233
 msgid "All commits follow conventional commit format"
 msgstr "Todos os commits seguem o formato de commit convencional"
 
-#: src/08-release-process.md:281
-msgid "Changelog is updated: `git-cliff --unreleased --prepend CHANGELOG.md`"
+#: src/08-release-process.md:234
+msgid "All CI checks pass on the branch being released"
 msgstr ""
-"Changelog está atualizado: `git-cliff --unreleased --prepend CHANGELOG.md`"
 
-#: src/08-release-process.md:282
-msgid "All CI checks pass"
-msgstr "Todas as verificações de CI passam"
-
-#: src/08-release-process.md:283
+#: src/08-release-process.md:235
 msgid "Team review is complete (for major/minor releases)"
 msgstr "Revisão do time está completa (para lançamentos major/minor)"
 
-#: src/08-release-process.md:284
-msgid "Release notes are prepared"
-msgstr "Notas de lançamento estão preparadas"
-
-#: src/08-release-process.md:285
-msgid "Dry run reviewed: `cargo release <level>`"
+#: src/08-release-process.md:236
+#, fuzzy
+msgid "Local dry run reviewed: `cargo release <level>`"
 msgstr "Simulação revisada: `cargo release <level>`"
 
-#: src/08-release-process.md:287
+#: src/08-release-process.md:237
+msgid "Workflow `dry_run: true` dispatch reviewed"
+msgstr ""
+
+#: src/08-release-process.md:239
 msgid "Release Configuration"
 msgstr "Configuração de Lançamento"
 
-#: src/08-release-process.md:289
+#: src/08-release-process.md:241
 msgid ""
 "The project's release behavior is configured in `release.toml` at the "
 "repository root."
@@ -9294,247 +10137,189 @@ msgstr ""
 "O comportamento de lançamento do projeto é configurado em `release.toml` na "
 "raiz do repositório."
 
-#: src/08-release-process.md:291
+#: src/08-release-process.md:243
 msgid "Key configurations include:"
 msgstr "As principais configurações incluem:"
 
-#: src/08-release-process.md:292
-msgid "**Pre-release hooks**: Run tests and builds before releasing"
+#: src/08-release-process.md:244
+#, fuzzy
+msgid ""
+"**Pre-release hooks**: regenerate `CHANGELOG.md` via `git-cliff` before "
+"tagging"
 msgstr "**Hooks pré-lançamento**: Executa testes e builds antes do lançamento"
 
-#: src/08-release-process.md:293
-msgid "**Version bumping**: Control how versions are incremented"
-msgstr "**Incremento de versão**: Controla como as versões são incrementadas"
+#: src/08-release-process.md:245
+msgid ""
+"**`[rate-limit]`**: paces crates.io publishes (`new-packages`/`existing-"
+"packages`) to stay under crates.io's documented limits — see [Publish "
+"Failures & Retry](#publish-failures--retry) for what happens if it still "
+"isn't enough"
+msgstr ""
 
-#: src/08-release-process.md:294
-msgid "**Git operations**: Tag format, commit messages"
+#: src/08-release-process.md:248
+msgid ""
+"**Version bumping**: `shared-version = true` — all workspace crates move "
+"together"
+msgstr ""
+
+#: src/08-release-process.md:249
+#, fuzzy
+msgid ""
+"**Git operations**: `tag-name = \"{{version}}\"` (no `v` prefix), commit/tag "
+"message templates"
 msgstr "**Operações Git**: Formato de tag, mensagens de commit"
 
-#: src/08-release-process.md:295
+#: src/08-release-process.md:250
 msgid ""
-"**Changelog integration**: Automatic changelog generation with git-cliff"
+"**Publishing**: `publish = true`, consumed by the `publish` step of the "
+"staged pipeline"
 msgstr ""
-"**Integração de changelog**: Geração automática de changelog com git-cliff"
 
-#: src/08-release-process.md:296
-msgid "**Publishing**: Control what gets published and where"
-msgstr "**Publicação**: Controla o que é publicado e onde"
-
-#: src/08-release-process.md:298
+#: src/08-release-process.md:252
 msgid "Best Practices"
 msgstr "Boas Práticas"
 
-#: src/08-release-process.md:300
-msgid "**Test thoroughly**: Run full test suite before any release"
+#: src/08-release-process.md:254
+#, fuzzy
+msgid "**Test thoroughly**: run the full test suite before any release."
 msgstr ""
 "**Teste completamente**: Execute o conjunto completo de testes antes de "
 "qualquer lançamento"
 
-#: src/08-release-process.md:301
-msgid "**Use dry runs**: Always preview changes before executing"
-msgstr "**Use simulações**: Sempre pré-visualize as mudanças antes de executar"
-
-#: src/08-release-process.md:302
+#: src/08-release-process.md:255
 msgid ""
-"**Follow the progression**: Don't skip stages (alpha → beta → rc → release)"
+"**Use dry runs**: both the local `cargo release <level>` preview and each "
+"workflow's `dry_run` input."
+msgstr ""
+
+#: src/08-release-process.md:257
+#, fuzzy
+msgid ""
+"**Follow the progression**: don't skip stages (beta → rc → stable) for "
+"anything but a hotfix patch."
 msgstr "**Siga a progressão**: Não pule estágios (alpha → beta → rc → release)"
 
-#: src/08-release-process.md:303
+#: src/08-release-process.md:259
+#, fuzzy
 msgid ""
-"**Write good commits**: Use conventional commits for automatic changelog "
-"generation"
+"**Write good commits**: use conventional commits — they drive both "
+"`CHANGELOG.md` and every tag's GitHub Release notes."
 msgstr ""
 "**Escreva bons commits**: Use commits convencionais para geração automática "
 "de changelog"
 
-#: src/08-release-process.md:304
-msgid "**Update changelog**: Generate changelog before each release"
-msgstr "**Atualize o changelog**: Gere o changelog antes de cada lançamento"
-
-#: src/08-release-process.md:305
-msgid "**Coordinate releases**: Communicate with team for major/minor releases"
+#: src/08-release-process.md:261
+#, fuzzy
+msgid ""
+"**Coordinate releases**: communicate with the team for major/minor releases."
 msgstr ""
 "**Coordene lançamentos**: Comunique-se com o time para lançamentos major/"
 "minor"
 
-#: src/08-release-process.md:306
-msgid "**Tag properly**: Let cargo-release handle tagging automatically"
-msgstr ""
-"**Faça tags corretamente**: Deixe o cargo-release gerenciar as tags "
-"automaticamente"
-
-#: src/08-release-process.md:307
-msgid "**Document changes**: Include migration guides for breaking changes"
-msgstr ""
-"**Documente mudanças**: Inclua guias de migração para mudanças que quebram "
-"compatibilidade"
-
-#: src/08-release-process.md:309
-msgid "Common Workflows"
-msgstr "Fluxos de Trabalho Comuns"
-
-#: src/08-release-process.md:311
-msgid "Hotfix Release"
-msgstr "Lançamento de Hotfix"
-
-#: src/08-release-process.md:313
-msgid "For urgent bug fixes on a stable release:"
-msgstr "Para correções urgentes de bugs em um lançamento estável:"
-
-#: src/08-release-process.md:316
-msgid "# On main branch with stable release 8.3.0\n"
+#: src/08-release-process.md:262
+msgid ""
+"**Never publish crates.io by hand**: always go through a workflow (OIDC "
+"token only exists in CI); a stray local `cargo publish` bypasses the "
+"pipeline entirely and won't produce a tag, image, or Release."
 msgstr ""
 
-#: src/08-release-process.md:317
-msgid "# ... fix the bug ...\n"
+#: src/08-release-process.md:268
+msgid "Workflow fails: \"Either release_type or custom_version must be set\""
 msgstr ""
 
-#: src/08-release-process.md:319
-msgid "\"fix: resolve critical security issue\""
+#: src/08-release-process.md:270
+msgid ""
+"`release-prerelease.yml` requires one of the two — leave `release_type` on "
+"its default `beta`/`rc` choice unless you specifically need `custom_version` "
+"(see the 9.0.0 walkthrough above)."
 msgstr ""
 
-#: src/08-release-process.md:320
-msgid "# Merge to main\n"
-msgstr ""
-
-#: src/08-release-process.md:324
-#, fuzzy
-msgid "# Create patch release\n"
-msgstr "Criar um papel de convidado"
-
-#: src/08-release-process.md:328
-msgid "\"docs: update changelog for 8.3.1\""
-msgstr ""
-
-#: src/08-release-process.md:329
-#, fuzzy
-msgid "# 8.3.0 → 8.3.1\n"
-msgstr "**Exemplo**: `8.3.0` → `8.3.1`"
-
-#: src/08-release-process.md:332
-msgid "Feature Release"
-msgstr "Lançamento de Funcionalidade"
-
-#: src/08-release-process.md:334
-msgid "For a new feature release:"
-msgstr "Para um lançamento de nova funcionalidade:"
-
-#: src/08-release-process.md:337
-msgid "# On develop branch\n"
-msgstr ""
-
-#: src/08-release-process.md:338
-msgid "# ... implement feature ...\n"
-msgstr ""
-
-#: src/08-release-process.md:340
-msgid "\"feat: add new capability\""
-msgstr ""
-
-#: src/08-release-process.md:341
-msgid "# Merge to develop\n"
-msgstr ""
-
-#: src/08-release-process.md:345
-msgid "# Start pre-release cycle\n"
-msgstr ""
-
-#: src/08-release-process.md:347
-msgid "# 8.4.0-alpha.1\n"
-msgstr ""
-
-#: src/08-release-process.md:349
-msgid "# 8.4.0-beta.1\n"
-msgstr ""
-
-#: src/08-release-process.md:351
-msgid "# 8.4.0-rc.1\n"
-msgstr ""
-
-#: src/08-release-process.md:353
-msgid "# Merge to main and release\n"
-msgstr ""
-
-#: src/08-release-process.md:359
-msgid "\"docs: update changelog for 8.4.0\""
-msgstr ""
-
-#: src/08-release-process.md:365
-msgid "Release fails due to uncommitted changes"
-msgstr "Lançamento falha devido a mudanças não confirmadas"
-
-#: src/08-release-process.md:368
-msgid "# Ensure working directory is clean\n"
-msgstr ""
-
-#: src/08-release-process.md:370
-msgid "# Commit or stash changes\n"
-msgstr ""
-
-#: src/08-release-process.md:373
-msgid "\"chore: prepare for release\""
-msgstr ""
-
-#: src/08-release-process.md:376
+#: src/08-release-process.md:273
 msgid "Changelog not generating correctly"
 msgstr "Changelog não está sendo gerado corretamente"
 
-#: src/08-release-process.md:379
+#: src/08-release-process.md:276
 #, fuzzy
 msgid "# Verify conventional commit format\n"
 msgstr "Formato de Commit Convencional"
 
-#: src/08-release-process.md:381
+#: src/08-release-process.md:278
 #, fuzzy
 msgid "# Test cliff configuration\n"
 msgstr "Configuração por tenant"
 
-#: src/08-release-process.md:384
+#: src/08-release-process.md:281
 #, fuzzy
 msgid "# Check cliff.toml configuration\n"
 msgstr "Configuração do Changelog"
 
-#: src/08-release-process.md:389
+#: src/08-release-process.md:286
+msgid "A GitHub Release didn't get created for a tag"
+msgstr ""
+
+#: src/08-release-process.md:288
+msgid ""
+"`docker-release.yml`'s `github-release` job depends on the `image` job "
+"succeeding first (`needs: image`) — check the `image` job's logs (build, "
+"provenance attestation, cosign signing) for the actual failure; the Release "
+"step itself is idempotent and safe to re-run via `workflow_dispatch` with "
+"that tag once the underlying issue is fixed."
+msgstr ""
+
+#: src/08-release-process.md:293
 msgid "Wrong version incremented"
 msgstr "Versão errada incrementada"
 
-#: src/08-release-process.md:392
-msgid "# Use dry run first to verify\n"
+#: src/08-release-process.md:296
+#, fuzzy
+msgid "# Use a local dry run first to verify: cargo release <level>\n"
+msgstr "Simulação revisada: `cargo release <level>`"
+
+#: src/08-release-process.md:297
+msgid ""
+"# (publish failed before tag+push), just re-dispatch with the correct level "
+"--\n"
 msgstr ""
 
-#: src/08-release-process.md:395
-msgid "# Edit Cargo.toml files\n"
+#: src/08-release-process.md:299
+msgid ""
+"# If it DID reach the remote (tag pushed), coordinate a fix manually --\n"
 msgstr ""
 
-#: src/08-release-process.md:397
-msgid "# Try again with correct level\n"
+#: src/08-release-process.md:301
+msgid "# without understanding the full blast radius first.\n"
 msgstr ""
 
-#: src/08-release-process.md:401
+#: src/08-release-process.md:305
 msgid "Additional Resources"
 msgstr "Recursos Adicionais"
 
-#: src/08-release-process.md:403
+#: src/08-release-process.md:307
 msgid "[Semantic Versioning Specification](https://semver.org/)"
 msgstr "[Especificação de Versionamento Semântico](https://semver.org/)"
 
-#: src/08-release-process.md:404
+#: src/08-release-process.md:308
 msgid ""
 "[Conventional Commits Specification](https://www.conventionalcommits.org/)"
 msgstr ""
 "[Especificação de Conventional Commits](https://www.conventionalcommits.org/)"
 
-#: src/08-release-process.md:405
+#: src/08-release-process.md:309
 msgid ""
 "[cargo-release Documentation](https://github.com/crate-ci/cargo-release)"
 msgstr ""
 "[Documentação do cargo-release](https://github.com/crate-ci/cargo-release)"
 
-#: src/08-release-process.md:406
+#: src/08-release-process.md:310
 msgid "[git-cliff Documentation](https://git-cliff.org/)"
 msgstr "[Documentação do git-cliff](https://git-cliff.org/)"
 
-#: src/08-release-process.md:407
+#: src/08-release-process.md:311
+msgid ""
+"[crates.io Trusted Publishing](https://crates.io/docs/trusted-publishing)"
+msgstr ""
+
+#: src/08-release-process.md:312
 msgid "[Contributing Guide](../../CONTRIBUTING.md#release-process)"
 msgstr "[Guia de Contribuição](../../CONTRIBUTING.md#release-process)"
 
@@ -10050,3 +10835,245 @@ msgstr ""
 "ciclo é o fluxo de identidade/perfil de uma requisição; use-os para comparar "
 "a primeira requisição (geralmente mais `resolved`) vs. requisições "
 "posteriores (geralmente mais `from_cache`)."
+
+#~ msgid ""
+#~ "Mycelium follows [Semantic Versioning](https://semver.org/) and uses "
+#~ "automated tools to manage releases:"
+#~ msgstr ""
+#~ "O Mycelium segue o [Versionamento Semântico](https://semver.org/) e usa "
+#~ "ferramentas automatizadas para gerenciar lançamentos:"
+
+#~ msgid "**git-cliff**: Generates changelogs from conventional commits"
+#~ msgstr "**git-cliff**: Gera changelogs a partir de commits convencionais"
+
+#~ msgid "Install the required tools:"
+#~ msgstr "Instale as ferramentas necessárias:"
+
+#~ msgid "Mycelium follows Semantic Versioning (SemVer):"
+#~ msgstr "O Mycelium segue o Versionamento Semântico (SemVer):"
+
+#~ msgid "Pre-releases follow a specific progression through stages:"
+#~ msgstr "Os pré-lançamentos seguem uma progressão específica por estágios:"
+
+#, fuzzy
+#~ msgid "1. Alpha Stage"
+#~ msgstr "Estágio Alpha"
+
+#~ msgid "**Purpose**: Early development and testing"
+#~ msgstr "**Objetivo**: Desenvolvimento inicial e testes"
+
+#~ msgid "**Characteristics**:"
+#~ msgstr "**Características**:"
+
+#~ msgid "Unstable, frequent changes"
+#~ msgstr "Instável, mudanças frequentes"
+
+#~ msgid "Used for initial feature testing"
+#~ msgstr "Usado para testes iniciais de funcionalidades"
+
+#~ msgid "Not recommended for production"
+#~ msgstr "Não recomendado para produção"
+
+#~ msgid "**Creating an alpha release**:"
+#~ msgstr "**Criando um lançamento alpha**:"
+
+#~ msgid ""
+#~ "**Example progression**: `8.3.0-alpha.1` → `8.3.0-alpha.2` → `8.3.0-"
+#~ "alpha.3`"
+#~ msgstr ""
+#~ "**Exemplo de progressão**: `8.3.0-alpha.1` → `8.3.0-alpha.2` → `8.3.0-"
+#~ "alpha.3`"
+
+#, fuzzy
+#~ msgid "2. Beta Stage"
+#~ msgstr "Estágio Beta"
+
+#~ msgid "**Purpose**: Feature-complete version ready for broader testing"
+#~ msgstr ""
+#~ "**Objetivo**: Versão com funcionalidades completas, pronta para testes "
+#~ "mais amplos"
+
+#~ msgid "Features are complete"
+#~ msgstr "Funcionalidades completas"
+
+#~ msgid "API should be relatively stable"
+#~ msgstr "API deve estar relativamente estável"
+
+#~ msgid "May still have bugs"
+#~ msgstr "Pode ainda ter bugs"
+
+#~ msgid "Used for wider testing and feedback"
+#~ msgstr "Usado para testes mais abrangentes e feedback"
+
+#~ msgid "**Moving to beta**:"
+#~ msgstr "**Avançando para beta**:"
+
+#, fuzzy
+#~ msgid "3. Release Candidate (RC) Stage"
+#~ msgstr "Estágio Release Candidate (RC)"
+
+#~ msgid "**Purpose**: Production-ready candidate for final validation"
+#~ msgstr "**Objetivo**: Candidato pronto para produção e validação final"
+
+#~ msgid "Final testing before stable release"
+#~ msgstr "Testes finais antes do lançamento estável"
+
+#~ msgid "Only critical bug fixes allowed"
+#~ msgstr "Apenas correções críticas de bugs permitidas"
+
+#~ msgid "Ready for production testing"
+#~ msgstr "Pronto para testes em produção"
+
+#~ msgid "Last chance to catch issues"
+#~ msgstr "Última chance de encontrar problemas"
+
+#~ msgid "**Creating release candidates**:"
+#~ msgstr "**Criando release candidates**:"
+
+#~ msgid "**Example progression**: `8.3.0-rc.1` → `8.3.0-rc.2`"
+#~ msgstr "**Exemplo de progressão**: `8.3.0-rc.1` → `8.3.0-rc.2`"
+
+#, fuzzy
+#~ msgid "4. Stable Release"
+#~ msgstr "Lançamento Estável"
+
+#~ msgid "**Purpose**: Production-ready version"
+#~ msgstr "**Objetivo**: Versão pronta para produção"
+
+#~ msgid "**Creating the stable release**:"
+#~ msgstr "**Criando o lançamento estável**:"
+
+#~ msgid "**Example**: `8.3.0-rc.2` → `8.3.0`"
+#~ msgstr "**Exemplo**: `8.3.0-rc.2` → `8.3.0`"
+
+#~ msgid "Version Increment Commands"
+#~ msgstr "Comandos de Incremento de Versão"
+
+#~ msgid "Patch Release"
+#~ msgstr "Lançamento de Patch"
+
+#~ msgid "For bug fixes on existing stable releases:"
+#~ msgstr "Para correções de bugs em lançamentos estáveis existentes:"
+
+#~ msgid "**Example**: `8.3.0` → `8.3.1`"
+#~ msgstr "**Exemplo**: `8.3.0` → `8.3.1`"
+
+#~ msgid "Minor Release"
+#~ msgstr "Lançamento Minor"
+
+#~ msgid "For new features (backward-compatible):"
+#~ msgstr "Para novas funcionalidades (compatíveis com versões anteriores):"
+
+#~ msgid "**Example**: `8.3.1` → `8.4.0`"
+#~ msgstr "**Exemplo**: `8.3.1` → `8.4.0`"
+
+#~ msgid "Major Release"
+#~ msgstr "Lançamento Major"
+
+#~ msgid "For breaking changes:"
+#~ msgstr "Para mudanças que quebram compatibilidade:"
+
+#~ msgid "**Example**: `8.4.0` → `9.0.0`"
+#~ msgstr "**Exemplo**: `8.4.0` → `9.0.0`"
+
+#~ msgid "Complete Release Cycle Example"
+#~ msgstr "Exemplo de Ciclo de Lançamento Completo"
+
+#~ msgid "Here's a complete example of releasing version 8.3.0:"
+#~ msgstr "Aqui está um exemplo completo do lançamento da versão 8.3.0:"
+
+#, fuzzy
+#~ msgid "# Beta stage - features complete\n"
+#~ msgstr "Funcionalidades completas"
+
+#, fuzzy
+#~ msgid "# Release candidate - final validation\n"
+#~ msgstr "**Objetivo**: Candidato pronto para produção e validação final"
+
+#, fuzzy
+#~ msgid "# Stable release\n"
+#~ msgstr "Lançamento Estável"
+
+#, fuzzy
+#~ msgid "# Later patch releases\n"
+#~ msgstr "Lançamento de Patch"
+
+#, fuzzy
+#~ msgid "# Next minor release\n"
+#~ msgstr "Lançamento Minor"
+
+#~ msgid ""
+#~ "Mycelium uses `git-cliff` to automatically generate changelogs from "
+#~ "conventional commits."
+#~ msgstr ""
+#~ "O Mycelium usa o `git-cliff` para gerar changelogs automaticamente a "
+#~ "partir de commits convencionais."
+
+#~ msgid "Before creating a release, update the changelog:"
+#~ msgstr "Antes de criar um lançamento, atualize o changelog:"
+
+#~ msgid ""
+#~ "Changelog is updated: `git-cliff --unreleased --prepend CHANGELOG.md`"
+#~ msgstr ""
+#~ "Changelog está atualizado: `git-cliff --unreleased --prepend CHANGELOG.md`"
+
+#~ msgid "All CI checks pass"
+#~ msgstr "Todas as verificações de CI passam"
+
+#~ msgid "Release notes are prepared"
+#~ msgstr "Notas de lançamento estão preparadas"
+
+#~ msgid "**Version bumping**: Control how versions are incremented"
+#~ msgstr ""
+#~ "**Incremento de versão**: Controla como as versões são incrementadas"
+
+#~ msgid ""
+#~ "**Changelog integration**: Automatic changelog generation with git-cliff"
+#~ msgstr ""
+#~ "**Integração de changelog**: Geração automática de changelog com git-cliff"
+
+#~ msgid "**Publishing**: Control what gets published and where"
+#~ msgstr "**Publicação**: Controla o que é publicado e onde"
+
+#~ msgid "**Use dry runs**: Always preview changes before executing"
+#~ msgstr ""
+#~ "**Use simulações**: Sempre pré-visualize as mudanças antes de executar"
+
+#~ msgid "**Update changelog**: Generate changelog before each release"
+#~ msgstr "**Atualize o changelog**: Gere o changelog antes de cada lançamento"
+
+#~ msgid "**Tag properly**: Let cargo-release handle tagging automatically"
+#~ msgstr ""
+#~ "**Faça tags corretamente**: Deixe o cargo-release gerenciar as tags "
+#~ "automaticamente"
+
+#~ msgid "**Document changes**: Include migration guides for breaking changes"
+#~ msgstr ""
+#~ "**Documente mudanças**: Inclua guias de migração para mudanças que "
+#~ "quebram compatibilidade"
+
+#~ msgid "Common Workflows"
+#~ msgstr "Fluxos de Trabalho Comuns"
+
+#~ msgid "Hotfix Release"
+#~ msgstr "Lançamento de Hotfix"
+
+#~ msgid "For urgent bug fixes on a stable release:"
+#~ msgstr "Para correções urgentes de bugs em um lançamento estável:"
+
+#, fuzzy
+#~ msgid "# Create patch release\n"
+#~ msgstr "Criar um papel de convidado"
+
+#, fuzzy
+#~ msgid "# 8.3.0 → 8.3.1\n"
+#~ msgstr "**Exemplo**: `8.3.0` → `8.3.1`"
+
+#~ msgid "Feature Release"
+#~ msgstr "Lançamento de Funcionalidade"
+
+#~ msgid "For a new feature release:"
+#~ msgstr "Para um lançamento de nova funcionalidade:"
+
+#~ msgid "Release fails due to uncommitted changes"
+#~ msgstr "Lançamento falha devido a mudanças não confirmadas"

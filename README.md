@@ -166,13 +166,13 @@ For complete installation instructions including database setup and Vault config
 1. **Initialize the database:**
    ```bash
    psql postgres://postgres:postgres@localhost:5432/postgres \
-     -f postgres/sql/up.sql \
+     -f adapters/diesel_postgres/sql/up.sql \
      -v db_password='your-password'
    ```
 
 2. **Configure Mycelium:**
    ```bash
-   cp settings/config.example.toml settings/config.toml
+   cp settings/config.full.example.toml settings/config.toml
    # Edit config.toml with your settings
    ```
 

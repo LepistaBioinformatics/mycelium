@@ -9,6 +9,7 @@ use super::super::{
 };
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::web;
 use myc_core::{
     domain::dtos::account_type::AccountType,
@@ -16,7 +17,6 @@ use myc_core::{
         downgrade_account_privileges, upgrade_account_privileges,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use shaku::HasComponent;
 
 fn parse_upgrade_target(s: &str) -> Result<AccountType, JsonRpcError> {
@@ -56,6 +56,7 @@ pub async fn dispatch_staff(
                 p.account_id,
                 target,
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -70,6 +71,7 @@ pub async fn dispatch_staff(
                 profile.to_profile(),
                 p.account_id,
                 target,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
             .await

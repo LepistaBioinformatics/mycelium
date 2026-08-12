@@ -7,12 +7,12 @@ use super::super::{
 };
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::web;
 use myc_core::use_cases::role_scoped::users_manager::account::{
     change_account_activation_status, change_account_approval_status,
     change_account_archival_status,
 };
-use myc_diesel::repositories::SqlAppModule;
 use shaku::HasComponent;
 
 pub async fn dispatch_users_manager(
@@ -32,6 +32,7 @@ pub async fn dispatch_users_manager(
                 true,
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -45,6 +46,7 @@ pub async fn dispatch_users_manager(
                 profile.to_profile(),
                 p.account_id,
                 false,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
@@ -62,6 +64,7 @@ pub async fn dispatch_users_manager(
                 true,
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -75,6 +78,7 @@ pub async fn dispatch_users_manager(
                 profile.to_profile(),
                 p.account_id,
                 false,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
@@ -92,6 +96,7 @@ pub async fn dispatch_users_manager(
                 true,
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -105,6 +110,7 @@ pub async fn dispatch_users_manager(
                 profile.to_profile(),
                 p.account_id,
                 false,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )

@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{delete, post, put, web, HttpResponse, Responder};
 use myc_core::{
     domain::dtos::account::{AccountMeta, AccountMetaKey},
@@ -9,7 +10,6 @@ use myc_core::{
         create_account_meta, delete_account_meta, update_account_meta,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -106,6 +106,7 @@ pub async fn create_account_meta_url(
         key.to_owned(),
         body.value.to_owned(),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -166,6 +167,7 @@ pub async fn update_account_meta_url(
         key.to_owned(),
         body.value.to_owned(),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -224,6 +226,7 @@ pub async fn delete_account_meta_url(
     match delete_account_meta(
         profile.to_profile(),
         key.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

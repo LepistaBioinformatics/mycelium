@@ -1,0 +1,41 @@
+[package]
+name = "mycelium-moka-cache"
+description = "Provide an in-process (moka) key-value cache adapter to the mycelium project (standalone mode)."
+
+version = "9.0.0-rc.13"
+
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+readme.workspace = true
+
+
+[dependencies]
+
+moka = { version = "0.12", features = ["future"] }
+
+async-trait.workspace = true
+shaku.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+# ------------------------------------------------------------------------------
+# Mycelium packages
+# ------------------------------------------------------------------------------
+
+myc-core.workspace = true
+mycelium-base.workspace = true
+
+# ------------------------------------------------------------------------------
+# Dev dependencies
+# ------------------------------------------------------------------------------
+
+[dev-dependencies]
+tokio.workspace = true
+
+[lib]
+name = "myc_moka_cache"
+path = "src/lib.rs"

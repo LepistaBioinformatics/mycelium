@@ -2,6 +2,117 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0-rc.12] - 2026-07-28
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.12
+
+## [9.0.0-rc.11] - 2026-07-23
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.11
+
+## [9.0.0-rc.10] - 2026-07-23
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.10
+
+## [9.0.0-rc.9] - 2026-07-22
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.9
+
+## [9.0.0-rc.7] - 2026-07-17
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.7
+
+## [9.0.0-rc.6] - 2026-07-16
+
+### 🐛 Bug Fixes
+
+- *(encryption)* Self-heal missing system tenant DEK row
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.6
+
+## [9.0.0-rc.5] - 2026-07-13
+
+### 🚀 Features
+
+- *(audit)* Add immutable resource audit log for mycelium-internal writes
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.5
+
+## [9.0.0-rc.4] - 2026-07-13
+
+### 🚀 Features
+
+- *(staff-bootstrap)* Autonomous web onboarding for the initial staff account
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.4
+
+## [9.0.0-rc.3] - 2026-07-12
+
+### 🚀 Features
+
+- *(account-meta)* Add emergency contact and job title meta keys
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.3
+
+## [9.0.0-rc.2] - 2026-07-12
+
+### 🐛 Bug Fixes
+
+- *(http-secret)* Support field-level env/vault resolution for token
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.2
+
+## [9.0.0-rc.1] - 2026-07-12
+
+### 🚀 Features
+
+- *(standalone-mode)* Wire standalone initialize_modules end-to-end (SM-T24)
+- *(standalone-mode)* Wire internal JWT auth into the autogen-secrets flow
+- *(config)* Add sane defaults to tuning knobs, rewrite example configs for beginners
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.1
+
+## [8.3.1-rc.5] - 2026-05-03
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.5
+
+## [8.3.1-rc.4] - 2026-04-30
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.4
+
+## [8.3.1-rc.3] - 2026-04-27
+
+### ⚙️ Miscellaneous Tasks
+
+- Merge develop — release automation, crates.io publish, GHCR Docker workflow
+- Release version 8.3.1-rc.3
+
 ## [8.3.1-rc.2] - 2026-04-26
 
 ### 🚀 Features
@@ -21,6 +132,10 @@ All notable changes to this project will be documented in this file.
 ### 🚜 Refactor
 
 - *(router)* Generalize body-based IdP with BodyIdpResolver trait
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.2
 
 ## [8.3.1-rc.1] - 2026-04-15
 

@@ -82,6 +82,17 @@ pub(super) async fn inject_downstream_secret(
                 prefix,
                 token,
             } => {
+                let token = match token.async_get_or_error().await {
+                    Err(err) => {
+                        tracing::warn!("{:?}", err);
+
+                        return Err(GatewayError::InternalServerError(
+                            format!("{err}"),
+                        ));
+                    }
+                    Ok(res) => res,
+                };
+
                 //
                 // Build the bearer token
                 //
@@ -109,7 +120,18 @@ pub(super) async fn inject_downstream_secret(
             // Insert the query parameter into the header
             //
             HttpSecret::QueryParameter { name, token } => {
-                req = match req.query(&[(name, token.to_owned())]) {
+                let token = match token.async_get_or_error().await {
+                    Err(err) => {
+                        tracing::warn!("{:?}", err);
+
+                        return Err(GatewayError::InternalServerError(
+                            format!("{err}"),
+                        ));
+                    }
+                    Ok(res) => res,
+                };
+
+                req = match req.query(&[(name, token)]) {
                     Err(err) => {
                         tracing::warn!("{:?}", err);
 

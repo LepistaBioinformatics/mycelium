@@ -84,14 +84,85 @@ Spec: `.claude/specs/features/magic-link-auth/`
 - JWT identical to password-based login (`iss: "mycelium"`, HS512)
 - Fix: `BEGINNERS_ACCOUNTS_CREATE` RPC dispatcher accepts internal provider
 
-**Standalone Mode** - PLANNED
+**Standalone Mode** - IMPLEMENTED (SM-T1..T30 done, including the full scripted E2E smoke)
 
-- Run Mycelium with zero external dependencies: no PostgreSQL, no Redis, no Vault
-- Auto-provision a local SQLite database via a new `sqlite` Diesel adapter
-- In-memory KV store replaces Redis (`mem_db` adapter already exists — wire it)
-- Secrets loaded from local encrypted file instead of Vault
-- Single binary, zero infra: ideal for local dev, edge deployments, and small teams
-- Activated via config flag `mode = "standalone"`
+Spec: `.claude/specs/features/standalone-mode/` (spec.md + design.md + tasks.md, 2026-07-06/07)
+Docs: `docs/book/src/23-standalone-mode.md`. Tracking issue: #159.
+
+- Run Mycelium with zero external runtime deps: no PostgreSQL, no Redis, no SMTP, no Vault —
+  **verified end-to-end**, not just built: the standalone binary boots against an empty working dir,
+  auto-provisions its SQLite database, and serves `/health`, confirmed across real process restarts
+  and a real `docker build`/`docker run`/`docker restart` cycle.
+- SQLite backend lives in its own sibling crate, `adapters/diesel_sqlite` (not a feature on the
+  Postgres adapter) — a parallel schema + model set was required, since every table uses
+  Postgres-only Diesel types (`Uuid`, `Timestamptz`, `Jsonb`, `Array`), each mapped to SQLite TEXT
+  with dedicated encode/decode helpers.
+- In-process cache replaces Redis via a new sibling crate, `adapters/moka_cache`, implementing
+  `KVArtifactRead`/`Write` with true per-key TTL (a `moka::Expiry` impl, not the crate's uniform
+  `time_to_live`).
+- Secrets **auto-generated on first boot and persisted** (OS keyring preferred, encrypted
+  AES-256-GCM local-file fallback — keyring is usually absent on container/air-gapped/edge targets;
+  verified this is exactly what happens in a real Docker container).
+- Email falls back to lettre `StubTransport` (default, logs the magic-link URL) or `FileTransport`
+  (`.eml`); real SMTP is also available, opt-in via an optional `[smtp]` config section (same
+  precedence logic and construction path as full mode).
+- Selected at **compile time** via a `standalone` cargo feature (separate binary/image) — mutually
+  exclusive with the default `full` feature via a `compile_error!` guard. A runtime
+  `mode = "standalone"` flag was rejected early: Postgres-only column types cannot compile against
+  the SQLite backend in one binary.
+- Single binary, zero infra: ideal for local dev, edge deployments, and small teams.
+- Internal (database-backed) JWT auth is enabled by default (`[auth.internal.define]`) with
+  `jwtSecret` wired into the same autogen-secrets flow as `tokenSecret`/HMAC — verified end-to-end
+  with a real magic-link request through a running standalone instance. All three secrets now also
+  honor an operator-supplied `{ env = "..." }` value as an explicit override before falling back to
+  keyring/file/generate, matching SM-R9's original resolution order.
+- Mycelium's email validation accepts `localhost` as a domain (in both build modes), so a fresh
+  standalone install doesn't need a placeholder real-looking domain for `noreplyEmail`/`supportEmail`.
+- The full scripted E2E smoke (magic-link → add a downstream route → proxy a request) is automated
+  and repeatable: `scripts/standalone-e2e-smoke.sh` boots a real standalone binary against an empty
+  temp dir and asserts every step, including a config-declared downstream route proxied through the
+  gateway (routes are config-driven — `[api.services]`/`[[service-name]]` — not REST-managed).
+
+**Staff Bootstrap (Autonomous First-Login Onboarding)** - IMPLEMENTED (SB-T1..T17 done)
+
+Spec: `.claude/specs/features/staff-bootstrap/` (spec.md + design.md + tasks.md, 2026-07-13)
+
+- Replaces the credential-driven CLI path (`accounts create-seed-account`, which needed
+  `DATABASE_URL` typed at execution time) with a **self-service, one-time, web-based onboarding
+  flow** served by the running gateway itself for autonomous deploys (e.g. dokploy) — no external
+  interface required beyond a browser and the operator's own deploy config.
+- New **generalized key/value settings table** `instance_settings` (Postgres **and** SQLite, `key
+  PK`/`value JSONB`) — reusable for any future instance-wide setting, not shaped around this one
+  flag. The staff bootstrap claim is its first consumer: a row keyed `staff_bootstrap` whose
+  *presence* means claimed, whose *absence* means pending — no `status` column to drift out of
+  sync. Multi-replica safe via a single atomic `INSERT ... ON CONFLICT (key) DO NOTHING`; whoever's
+  insert lands wins the claim, no separate CAS-update step or advisory locks needed.
+- The "proof you are the deployer" is an **operator-supplied secret** (`staff_bootstrap_secret`,
+  `SecretResolver`-backed, same pattern as every other gateway secret) — not a generated/logged
+  token, which would break down across replicas, and not a pre-configured email, which would force
+  a redeploy over a typo. Bootstrap is opt-in: unset the secret and the three new routes
+  (`/_adm/instance/bootstrap*`) 404 unconditionally, zero behavior change for existing deployments.
+- Reuses the existing magic-link use-cases (`request_magic_link`/`verify_magic_link`) completely
+  unmodified — verified zero diff against `develop`. The operator's browser genuinely bounces
+  through the standard magic-link display page to read the 6-digit code before returning to
+  complete the claim (four hops total, not three — the email template and display page are
+  untouched, by design, to keep the reuse total).
+- `claim_staff_bootstrap` attempts the key insert first, with no cross-repo transaction (none exist
+  anywhere in this codebase — verified against `create_seed_staff_account`'s precedent): the claim
+  insert runs before the Account repo is ever touched, so a lost race never creates anything to roll
+  back.
+- The manual CLI path (`create-seed-account`) is unchanged and remains available; using it also
+  best-effort closes the web bootstrap flow so both paths stay consistent.
+- `instance_settings.created_by`/`updated_by` (JSON, nullable) record who wrote each entry. This
+  drove a generalization of the shared `WrittenBy` DTO (`core/src/domain/dtos/written_by.rs`):
+  `id`/`from` are now optional and an independent, base64-encoded `email` field carries identity
+  even before any User/Account exists (the staff bootstrap flow's exact situation) — old
+  `created_by`/`updated_by` JSON on `account`/`webhook` rows (no `email` key) still deserializes
+  unchanged, no retroactive migration.
+- Postgres migration is operator-applied (`sql/migrations/20260713_01_instance_settings.sql`),
+  matching this project's existing manual-migration convention (verified: the prior
+  envelope-encryption migration isn't auto-applied either); a missing table degrades boot
+  gracefully (logged, non-fatal) rather than panicking, since this is an optional, opt-in feature.
 
 **Messaging Platform Identity Providers (WhatsApp + Telegram)** - PLANNED
 

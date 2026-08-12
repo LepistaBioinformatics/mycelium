@@ -292,4 +292,28 @@ mod tests {
         let result = host.choose_host().unwrap();
         assert!(hosts.contains(&result));
     }
+
+    /// Reproduces the exact config shape from GitHub issue #165: an
+    /// `authorizationHeader` secret whose `token` is sourced from an
+    /// environment variable, nested inside the field-level
+    /// `SecretResolver<HttpSecret>` flatten on `ServiceSecret`.
+    #[test]
+    fn test_service_secret_with_env_token_parses() {
+        let toml = r#"
+            name = "picoclaw-alpha-authorization-header"
+            authorizationHeader = { headerName = "Authorization", prefix = "Bearer", token = { env = "MY_TOKEN_VAR" } }
+        "#;
+
+        let service_secret: ServiceSecret = toml::from_str(toml).unwrap();
+
+        let SecretResolver::Value(HttpSecret::AuthorizationHeader {
+            token,
+            ..
+        }) = service_secret.secret
+        else {
+            panic!("Expected SecretResolver::Value(AuthorizationHeader)");
+        };
+
+        assert_eq!(token, SecretResolver::Env("MY_TOKEN_VAR".to_string()));
+    }
 }

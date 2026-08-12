@@ -3,6 +3,7 @@ use crate::{
     rest::shared::PaginationParams,
 };
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::{
@@ -15,7 +16,6 @@ use myc_core::{
         propagate_existing_subscription_account, update_account_name_and_flags,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -235,6 +235,7 @@ pub async fn create_subscription_account_url(
         body.name.to_owned(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -299,6 +300,7 @@ pub async fn create_role_associated_account_url(
         body.account_name.to_owned(),
         body.role_name.to_owned(),
         body.role_description.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
@@ -558,6 +560,7 @@ pub async fn update_account_name_and_flags_url(
         body.is_checked.to_owned(),
         body.is_archived.to_owned(),
         body.is_system_account.to_owned(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),

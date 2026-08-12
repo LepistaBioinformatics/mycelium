@@ -2,6 +2,147 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0-rc.12] - 2026-07-28
+
+### 🐛 Bug Fixes
+
+- *(router)* Forward downstream response headers by blocklist, not allowlist
+- *(router)* Strip client-supplied x-mycelium-* headers before forwarding
+- *(router)* Block the whole x-mycelium namespace in the gateway response
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.12
+
+## [9.0.0-rc.11] - 2026-07-23
+
+### 🐛 Bug Fixes
+
+- *(api)* Stop forging Arc via Arc::from_raw in email_dispatcher wiring (heap corruption)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.11
+
+## [9.0.0-rc.10] - 2026-07-23
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.10
+
+## [9.0.0-rc.9] - 2026-07-22
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.9
+
+## [9.0.0-rc.7] - 2026-07-17
+
+### 🚀 Features
+
+- *(notifier)* Human-friendly stub email render + wire file transport (#169)
+- *(postgres-only)* Add third build mode (Postgres KV cache, no Redis)
+
+### 🚜 Refactor
+
+- *(features)* Rename `postgres-backend` feature to `full`
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.7
+
+## [9.0.0-rc.6] - 2026-07-16
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.6
+
+## [9.0.0-rc.5] - 2026-07-13
+
+### 🚀 Features
+
+- *(audit)* Add immutable resource audit log for mycelium-internal writes
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.5
+
+## [9.0.0-rc.4] - 2026-07-13
+
+### 🚀 Features
+
+- *(staff-bootstrap)* Autonomous web onboarding for the initial staff account
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.4
+
+## [9.0.0-rc.3] - 2026-07-12
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.3
+
+## [9.0.0-rc.2] - 2026-07-12
+
+### 🐛 Bug Fixes
+
+- *(http-secret)* Support field-level env/vault resolution for token
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.2
+
+## [9.0.0-rc.1] - 2026-07-12
+
+### 🚀 Features
+
+- *(standalone)* Add backend feature scheme + mutual-exclusion guards (SM-T1)
+- *(standalone-mode)* Standalone config shape (SM-T23)
+- *(standalone-mode)* Wire standalone initialize_modules end-to-end (SM-T24)
+- *(standalone-mode)* Wire internal JWT auth into the autogen-secrets flow
+- *(standalone-mode)* Opt-in real SMTP for standalone (SM-T29, closes SM-R8)
+- *(config)* Add sane defaults to tuning knobs, rewrite example configs for beginners
+
+### 🐛 Bug Fixes
+
+- *(gateway)* Add leading slash when composing downstream route paths
+
+### 🚜 Refactor
+
+- *(ports/api)* Indirect SqlAppModule/KVAppModule through active_backend_modules
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.1
+
+## [8.3.1-rc.5] - 2026-05-03
+
+### 🚀 Features
+
+- Expose public app config and replace hardcoded brand name in templates
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.5
+
+## [8.3.1-rc.4] - 2026-04-30
+
+### 🐛 Bug Fixes
+
+- Allow callbacks to be omitted or absent in config
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.4
+
+## [8.3.1-rc.3] - 2026-04-27
+
+### ⚙️ Miscellaneous Tasks
+
+- Merge develop — release automation, crates.io publish, GHCR Docker workflow
+- Release version 8.3.1-rc.3
+
 ## [8.3.1-rc.2] - 2026-04-26
 
 ### 🚀 Features
@@ -19,6 +160,10 @@ All notable changes to this project will be documented in this file.
 ### 🚜 Refactor
 
 - *(router)* Generalize body-based IdP with BodyIdpResolver trait
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.2
 
 ## [8.3.1-rc.1] - 2026-04-15
 

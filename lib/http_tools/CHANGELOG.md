@@ -2,6 +2,100 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0-rc.12] - 2026-07-28
+
+### 🐛 Bug Fixes
+
+- *(router)* Forward downstream response headers by blocklist, not allowlist
+- *(router)* Strip client-supplied x-mycelium-* headers before forwarding
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.12
+
+## [9.0.0-rc.11] - 2026-07-23
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.11
+
+## [9.0.0-rc.10] - 2026-07-23
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.10
+
+## [9.0.0-rc.9] - 2026-07-22
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.9
+
+## [9.0.0-rc.7] - 2026-07-17
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.7
+
+## [9.0.0-rc.6] - 2026-07-16
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.6
+
+## [9.0.0-rc.5] - 2026-07-13
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.5
+
+## [9.0.0-rc.4] - 2026-07-13
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.4
+
+## [9.0.0-rc.3] - 2026-07-12
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.3
+
+## [9.0.0-rc.2] - 2026-07-12
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.2
+
+## [9.0.0-rc.1] - 2026-07-12
+
+### 🚀 Features
+
+- *(config)* Add sane defaults to tuning knobs, rewrite example configs for beginners
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.1
+
+## [8.3.1-rc.5] - 2026-05-03
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.5
+
+## [8.3.1-rc.4] - 2026-04-30
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.4
+
+## [8.3.1-rc.3] - 2026-04-27
+
+### ⚙️ Miscellaneous Tasks
+
+- Merge develop — release automation, crates.io publish, GHCR Docker workflow
+- Release version 8.3.1-rc.3
+
 ## [8.3.1-rc.2] - 2026-04-26
 
 ### 🚀 Features
@@ -9,6 +103,10 @@ All notable changes to this project will be documented in this file.
 - *(router)* Add RFC 7239 Forwarded header compliance alongside X-Forwarded-For
 - *(telegram)* Add Telegram IdP — link, login, webhook, encrypted config
 - *(encryption)* Envelope encryption with per-tenant DEKs (v2 format)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.2
 
 ## [8.3.1-rc.1] - 2026-04-15
 

@@ -11,6 +11,10 @@
 # Deployment
 
 - [Deploy Locally](./05-deploy-locally.md)
+- [Deployment Modes](./24-deployment-modes.md)
+    - [Full Mode](./25-full-mode.md)
+    - [Postgres-Only Mode](./26-postgres-only-mode.md)
+    - [Standalone Mode](./23-standalone-mode.md)
 
 # Core Concepts
 

@@ -13,8 +13,11 @@ pub struct Email {
 
 impl Email {
     pub fn from_string(email: String) -> Result<Email, MappedErrors> {
+        // The `localhost` alternative has no dot+TLD -- accepted alongside
+        // the regular dotted-domain form so standalone-mode configs (no real
+        // domain available, e.g. `noreply@localhost`) validate too.
         let re = Regex::new(
-            r"^([a-zA-Z0-9_\-+]([a-zA-Z0-9_\-+.]*[a-zA-Z0-9_+])?)@([a-zA-Z0-9.-]+\.[a-zA-Z]{1,})"
+            r"^([a-zA-Z0-9_\-+]([a-zA-Z0-9_\-+.]*[a-zA-Z0-9_+])?)@([a-zA-Z0-9.-]+\.[a-zA-Z]{1,}|localhost)"
         ).unwrap();
 
         let cap = match re.captures(email.as_str()) {
@@ -137,6 +140,7 @@ mod tests {
             (true, "myceliumDefaultUsers@mycelium.com".to_string()),
             (false, "mycelium-default-users@mycelium".to_string()),
             (false, "myceliumDefaultUsers@mycelium".to_string()),
+            (true, "noreply@localhost".to_string()),
         ] {
             let email = Email::from_string(email_string.to_owned());
 

@@ -13,7 +13,7 @@ PostgreSQL, Redis, Vault, and the gateway together with one command.
 ```bash
 git clone https://github.com/LepistaBioinformatics/mycelium.git
 cd mycelium
-cp settings/config.example.toml settings/config.toml
+cp settings/config.full.example.toml settings/config.toml
 ```
 
 Open `settings/config.toml` and update at minimum:

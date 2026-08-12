@@ -1,5 +1,6 @@
 use crate::{dtos::MyceliumProfileData, rest::shared::PaginationParams};
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{delete, get, patch, post, web, HttpResponse, Responder};
 use myc_core::{
     domain::dtos::error_code::ErrorCode,
@@ -8,7 +9,6 @@ use myc_core::{
         register_error_code, update_error_code_message_and_details,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{

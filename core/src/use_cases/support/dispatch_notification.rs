@@ -453,6 +453,7 @@ mod tests {
                     secret: SecretResolver::Value("test-hmac".to_string()),
                 },
             ]),
+            staff_bootstrap_secret: None,
         }
     }
 

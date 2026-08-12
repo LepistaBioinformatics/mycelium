@@ -13,16 +13,27 @@ ARG VERSION="latest"
 ENV VERSION=${VERSION}
 RUN echo "Building mycelium-api version: ${VERSION}"
 
+# ? Cargo features to build. Default reproduces the historical full-mode image
+# ? byte-for-byte (`full` + `rhai`). Override to build the
+# ? Redis-free Postgres-only mode:
+# ?   docker build --build-arg CARGO_FEATURES=postgres-only,rhai .
+# ? NOTE: `cargo install` from crates.io only works AFTER `mycelium-postgres-kv`
+# ? and the `postgres-only` feature are published. The first postgres-only image
+# ? (pre-publish) must be a source build instead:
+# ?   cargo build --release --no-default-features --features postgres-only,rhai -p mycelium-api
+ARG CARGO_FEATURES="full,rhai"
+ENV CARGO_FEATURES=${CARGO_FEATURES}
+
 # ? If the VERSION is latest, instal using cargo install
 # ? Otherwise, install using the --version flag
 RUN if [ "${VERSION}" = "latest" ]; then \
-        echo "Installing mycelium-api from minor version"; \
-        cargo install mycelium-api --features rhai; \
+        echo "Installing mycelium-api (features: ${CARGO_FEATURES})"; \
+        cargo install mycelium-api --no-default-features --features "${CARGO_FEATURES}"; \
         echo "mycelium-api installed successfully"; \
         echo "Version: $(myc-api --version)"; \
     else \
-        echo "Installing mycelium-api from specific version"; \
-        cargo install mycelium-api  --features rhai --version ${VERSION}; \
+        echo "Installing mycelium-api ${VERSION} (features: ${CARGO_FEATURES})"; \
+        cargo install mycelium-api --no-default-features --features "${CARGO_FEATURES}" --version ${VERSION}; \
         echo "mycelium-api installed successfully"; \
         echo "Version: $(myc-api --version)"; \
     fi

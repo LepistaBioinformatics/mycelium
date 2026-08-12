@@ -1,10 +1,10 @@
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{web, web::Bytes, HttpRequest};
 use async_trait::async_trait;
 use myc_core::domain::{
     dtos::{related_accounts::RelatedAccounts, telegram::TelegramUserId},
     entities::AccountFetching,
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{responses::GatewayError, Email};
 use mycelium_base::{dtos::Children, entities::FetchResponseKind};
 use shaku::HasComponent;

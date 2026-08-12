@@ -7,10 +7,18 @@ use crate::{
             guest_role::Permission,
             native_error_codes::NativeErrorCodes,
             profile::Profile,
+            resource_audit_log::{
+                ResourceAuditEventKind, ResourceAuditResourceType,
+            },
             webhook::{PayloadId, WebHookTrigger},
+            written_by::WrittenBy,
         },
-        entities::{AccountFetching, AccountUpdating, WebHookRegistration},
+        entities::{
+            AccountFetching, AccountUpdating, ResourceAuditLogRegistration,
+            WebHookRegistration,
+        },
     },
+    use_cases::shared::audit::emit_resource_audit_event,
     use_cases::support::register_webhook_dispatching_event,
 };
 
@@ -42,6 +50,7 @@ pub async fn update_account_name_and_flags(
     account_fetching_repo: Box<&dyn AccountFetching>,
     account_updating_repo: Box<&dyn AccountUpdating>,
     webhook_registration_repo: Box<&dyn WebHookRegistration>,
+    audit_repo: Box<&dyn ResourceAuditLogRegistration>,
 ) -> Result<UpdatingResponseKind<Account>, MappedErrors> {
     // ? -----------------------------------------------------------------------
     // ? Initialize tracing span
@@ -150,6 +159,17 @@ pub async fn update_account_name_and_flags(
             use_case_err("Account ID not found".to_string()).with_exp_true()
         })?;
 
+        emit_resource_audit_event(
+            audit_repo,
+            ResourceAuditResourceType::Account,
+            account_id,
+            Some(tenant_id),
+            ResourceAuditEventKind::Updated,
+            WrittenBy::new_from_account(profile.acc_id),
+            serde_json::json!({ "action": "update_account_name_and_flags" }),
+        )
+        .await;
+
         register_webhook_dispatching_event(
             correspondence_id,
             WebHookTrigger::SubscriptionAccountUpdated,
@@ -176,7 +196,7 @@ mod tests {
             telegram::TelegramUserId,
             webhook::{WebHook, WebHookPayloadArtifact},
         },
-        entities::AccountFetching,
+        entities::{AccountFetching, MockResourceAuditLogRegistration},
     };
 
     use async_trait::async_trait;
@@ -361,6 +381,9 @@ mod tests {
         let webhook_registration_repo =
             Box::new(&webhook_registration as &dyn WebHookRegistration);
 
+        let mut audit_mock = MockResourceAuditLogRegistration::new();
+        audit_mock.expect_create().times(0);
+
         let result = update_account_name_and_flags(
             profile,
             account_id,
@@ -373,6 +396,7 @@ mod tests {
             account_fetching_repo,
             account_updating_repo,
             webhook_registration_repo,
+            Box::new(&audit_mock),
         )
         .await;
 
@@ -396,6 +420,16 @@ mod tests {
         let webhook_registration_repo =
             Box::new(&webhook_registration as &dyn WebHookRegistration);
 
+        let mut audit_mock = MockResourceAuditLogRegistration::new();
+        audit_mock
+            .expect_create()
+            .times(1)
+            .withf(|event| {
+                event.resource_type == ResourceAuditResourceType::Account
+                    && event.event == ResourceAuditEventKind::Updated
+            })
+            .returning(|_| Ok(()));
+
         let result = update_account_name_and_flags(
             profile,
             old_account.id.unwrap(),
@@ -408,6 +442,7 @@ mod tests {
             account_fetching_repo,
             account_updating_repo,
             webhook_registration_repo,
+            Box::new(&audit_mock),
         )
         .await;
 

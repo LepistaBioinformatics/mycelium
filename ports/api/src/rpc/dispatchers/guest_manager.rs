@@ -16,6 +16,7 @@ use super::super::{
 };
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::web;
 use myc_core::{
     domain::dtos::guest_role::Permission,
@@ -25,7 +26,6 @@ use myc_core::{
         update_guest_role_name_and_description, update_guest_role_permission,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use shaku::HasComponent;
 
 pub async fn dispatch_guest_manager(
@@ -46,6 +46,7 @@ pub async fn dispatch_guest_manager(
                 p.description,
                 permission,
                 p.system,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
             .await
@@ -79,6 +80,7 @@ pub async fn dispatch_guest_manager(
                 profile.to_profile(),
                 p.guest_role_id,
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -93,6 +95,7 @@ pub async fn dispatch_guest_manager(
                 p.name,
                 p.description,
                 p.guest_role_id,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
@@ -111,6 +114,7 @@ pub async fn dispatch_guest_manager(
                 permission,
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -126,6 +130,7 @@ pub async fn dispatch_guest_manager(
                 p.child_id,
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -139,6 +144,7 @@ pub async fn dispatch_guest_manager(
                 profile.to_profile(),
                 p.guest_role_id,
                 p.child_id,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
             .await

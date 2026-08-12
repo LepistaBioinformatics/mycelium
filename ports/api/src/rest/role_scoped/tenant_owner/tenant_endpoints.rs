@@ -1,11 +1,11 @@
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{patch, web, Responder};
 use myc_core::use_cases::role_scoped::tenant_owner::{
     update_tenant_archiving_status, update_tenant_name_and_description,
     update_tenant_trashing_status, update_tenant_verifying_status,
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -93,6 +93,7 @@ pub async fn update_tenant_name_and_description_url(
         body.description.to_owned(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -144,6 +145,7 @@ pub async fn update_tenant_archiving_status_url(
     match update_tenant_archiving_status(
         profile.to_profile(),
         path.into_inner(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
@@ -199,6 +201,7 @@ pub async fn update_tenant_trashing_status_url(
         path.into_inner(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -250,6 +253,7 @@ pub async fn update_tenant_verifying_status_url(
     match update_tenant_verifying_status(
         profile.to_profile(),
         path.into_inner(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )

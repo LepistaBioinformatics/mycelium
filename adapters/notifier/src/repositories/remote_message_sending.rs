@@ -1,13 +1,11 @@
 use crate::models::ClientProvider;
+use crate::repositories::shared::{
+    build_lettre_message, smtp_send_error_message,
+};
 
 use async_trait::async_trait;
-use lettre::{
-    message::header::ContentType, Message as LettreMessage, Transport,
-};
-use myc_core::domain::{
-    dtos::message::{FromEmail, Message},
-    entities::RemoteMessageWrite,
-};
+use lettre::Transport;
+use myc_core::domain::{dtos::message::Message, entities::RemoteMessageWrite};
 use mycelium_base::{
     entities::CreateResponseKind,
     utils::errors::{creation_err, MappedErrors},
@@ -31,35 +29,11 @@ impl RemoteMessageWrite for RemoteMessageSendingRepository {
         message: Message,
     ) -> Result<CreateResponseKind<Option<Uuid>>, MappedErrors> {
         let connection = self.client.get_smtp_client().as_ref().clone();
-
-        let from_addr = (match message.to_owned().from {
-            FromEmail::Email(email) => email.email(),
-            FromEmail::NamedEmail(named_email) => named_email,
-        })
-        .parse()
-        .map_err(|e| {
-            creation_err(format!("Invalid from email address: {e}"))
-        })?;
-
-        let to_addr = message.to_owned().to.email().parse().map_err(|e| {
-            creation_err(format!("Invalid to email address: {e}"))
-        })?;
-
-        let email = LettreMessage::builder()
-            .from(from_addr)
-            .to(to_addr)
-            .subject(message.to_owned().subject)
-            .header(ContentType::TEXT_HTML)
-            .body(message.to_owned().body)
-            .map_err(|e| {
-                creation_err(format!("Could not build email message: {e}"))
-            })?;
+        let email = build_lettre_message(&message)?;
 
         match connection.send(&email) {
             Ok(_) => Ok(CreateResponseKind::Created(None)),
-            Err(err) => {
-                creation_err(format!("Could not send email: {err}")).as_error()
-            }
+            Err(err) => creation_err(smtp_send_error_message(err)).as_error(),
         }
     }
 }

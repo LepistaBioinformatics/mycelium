@@ -2,7 +2,7 @@
 name = "mycelium-notifier"
 description = "Provide message adapters to the mycelium project."
 
-version = "8.3.1-rc.2"
+version = "9.0.0-rc.13"
 
 edition.workspace = true
 authors.workspace = true
@@ -13,10 +13,19 @@ categories.workspace = true
 readme.workspace = true
 
 
+[features]
+
+# Enables local (non-SMTP) transports for standalone mode: `StubTransport`
+# (always available, no extra lettre feature) and `FileTransport` (write
+# `.eml` files, requires lettre's `file-transport`). Full mode keeps `lettre`
+# featureless and unchanged (SM-R14).
+local-transport = ["lettre/file-transport", "dep:html2text"]
+
 [dependencies]
 
 async-trait.workspace = true
 chrono.workspace = true
+html2text = { workspace = true, optional = true }
 lazy_static.workspace = true
 lettre.workspace = true
 redis.workspace = true
@@ -41,6 +50,8 @@ mycelium-adapters-shared-lib.workspace = true
 
 [dev-dependencies]
 tokio.workspace = true
+toml.workspace = true
+tracing-subscriber.workspace = true
 
 # ------------------------------------------------------------------------------
 # Library

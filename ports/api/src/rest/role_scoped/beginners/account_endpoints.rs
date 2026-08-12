@@ -3,6 +3,7 @@ use crate::{
     middleware::check_credentials_with_multi_identity_provider,
 };
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{
     delete, get, patch, post, web, HttpRequest, HttpResponse, Responder,
 };
@@ -13,7 +14,6 @@ use myc_core::{
         update_own_account_name,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     settings::MYCELIUM_AI_AWARE,
     utils::HttpJsonResponse,
@@ -139,6 +139,7 @@ pub async fn create_default_account_url(
         Some(issuer),
         body.name.to_owned(),
         life_cycle_settings.get_ref().to_owned(),
+        Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
         Box::new(&*sql_app_module.resolve_ref()),
@@ -271,6 +272,7 @@ pub async fn update_own_account_name_url(
         body.name.to_owned(),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -317,6 +319,7 @@ pub async fn delete_my_account_url(
 
     match delete_my_account(
         profile.to_profile(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )

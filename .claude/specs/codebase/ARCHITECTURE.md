@@ -187,7 +187,7 @@ REST/RPC Request → begin_registration
 
 Key files:
 - `core/src/domain/entities/user/user_registration.rs` (trait)
-- `adapters/diesel/src/repositories/user/user_registration.rs` (implementation)
+- `adapters/diesel_postgres/src/repositories/user/user_registration.rs` (implementation)
 - `core/src/use_cases/role_scoped/beginner/user/` (orchestration)
 
 ### Path 3: MCP (Model Context Protocol) Tool Invocation

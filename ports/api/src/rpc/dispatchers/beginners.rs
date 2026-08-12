@@ -32,6 +32,7 @@ use crate::{
     },
 };
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{web, HttpRequest};
 use myc_core::{
     domain::dtos::{
@@ -62,7 +63,6 @@ use myc_core::{
         },
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::responses::GatewayError;
 use myc_http_tools::settings::MYCELIUM_PROVIDER_KEY;
 use shaku::HasComponent;
@@ -124,6 +124,7 @@ pub async fn dispatch_beginners(
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -158,6 +159,7 @@ pub async fn dispatch_beginners(
                 p.name,
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -176,6 +178,7 @@ pub async fn dispatch_beginners(
             }
             let result = delete_my_account(
                 profile.to_profile(),
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
@@ -210,6 +213,7 @@ pub async fn dispatch_beginners(
                 key,
                 p.value,
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -226,6 +230,7 @@ pub async fn dispatch_beginners(
                 key,
                 p.value,
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -240,6 +245,7 @@ pub async fn dispatch_beginners(
             let result = delete_account_meta(
                 profile.to_profile(),
                 key,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )
             .await
@@ -414,6 +420,7 @@ pub async fn dispatch_beginners(
                 p.password,
                 provider,
                 life_cycle.to_owned(),
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
@@ -642,6 +649,34 @@ pub async fn dispatch_beginners(
                     message: e.to_string(),
                     data: None,
                 }
+            })
+        }
+        method_names::BEGINNERS_APP_CONFIG_GET_PUBLIC_INFO => {
+            let life_cycle = life_cycle_settings
+                .ok_or_else(|| invalid_params("Life cycle config required"))?
+                .get_ref();
+            let domain_name = life_cycle
+                .domain_name
+                .async_get_or_error()
+                .await
+                .map_err(mapped_errors_to_jsonrpc_error)?;
+            let domain_url = match &life_cycle.domain_url {
+                Some(r) => r.async_get_or_error().await.ok(),
+                None => None,
+            };
+            let locale = match &life_cycle.locale {
+                Some(r) => r.async_get_or_error().await.ok(),
+                None => None,
+            };
+            serde_json::to_value(serde_json::json!({
+                "domainName": domain_name,
+                "domainUrl": domain_url,
+                "locale": locale,
+            }))
+            .map_err(|e| JsonRpcError {
+                code: types::codes::INTERNAL_ERROR,
+                message: e.to_string(),
+                data: None,
             })
         }
         _ => Err(JsonRpcError {

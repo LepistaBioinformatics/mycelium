@@ -1,5 +1,6 @@
 use crate::dtos::MyceliumConnectionStringData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{web, HttpRequest};
 use myc_core::{
     domain::{
@@ -8,7 +9,6 @@ use myc_core::{
     },
     models::AccountLifeCycle,
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     responses::GatewayError, settings::DEFAULT_CONNECTION_STRING_KEY,
 };

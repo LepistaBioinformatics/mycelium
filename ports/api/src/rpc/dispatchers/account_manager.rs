@@ -13,6 +13,7 @@ use super::super::{
 };
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::web;
 use myc_core::{
     domain::dtos::email::Email,
@@ -22,7 +23,6 @@ use myc_core::{
         guest_role::{fetch_guest_role_details, list_guest_roles},
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use shaku::HasComponent;
 
 pub async fn dispatch_account_manager(

@@ -30,7 +30,7 @@ Separation of responsibility into single-trait files:
 
 Observed in:
 - `core/src/domain/entities/user/` (trait definitions)
-- `adapters/diesel/src/repositories/user/` (implementations)
+- `adapters/diesel_postgres/src/repositories/user/` (implementations)
 - `adapters/notifier/src/repositories/` (email implementations)
 
 ### Directory Hierarchy
@@ -173,7 +173,7 @@ Found in:
 4. **Adapter/library imports** (shaku, traits)
 5. **Standard library imports**
 
-Example from `adapters/diesel/src/repositories/user/user_registration.rs`:
+Example from `adapters/diesel_postgres/src/repositories/user/user_registration.rs`:
 ```rust
 use crate::{                          // Adapter-local
     models::{...},
@@ -214,7 +214,7 @@ Example:
 pub use user_registration::*;    // Public export
 pub use user_fetching::*;
 
-// adapters/diesel/src/repositories/user/mod.rs
+// adapters/diesel_postgres/src/repositories/user/mod.rs
 pub(super) use user_registration::*;  // Only visible to parent (repositories/)
 pub(super) use user_fetching::*;
 ```
@@ -339,6 +339,39 @@ let result = conn.transaction(|conn| {
     Ok(result)
 })?;
 ```
+
+### Postgres schema changes: two files, one commit
+
+**Rule (as of 9.0.0):** a schema change is written **twice** — as an incremental migration
+*and* folded into the base DDL — in the same commit.
+
+1. `adapters/diesel_postgres/sql/migrations/YYYYMMDD_NN_<name>.sql` — the incremental file,
+   for databases upgrading in place. Operator-applied via `psql`; there is no
+   `embed_migrations!` on the Postgres side (that exists only for SQLite/standalone).
+2. `adapters/diesel_postgres/sql/up.sql` — the same DDL folded into the complete schema, so
+   a fresh install is one `psql` invocation with nothing else to apply.
+3. `adapters/diesel_postgres/src/schema.rs` — the `diesel::table!` block.
+
+Folding is not optional. `up.sql` is the documented install path
+(`docs/book/src/02-installation.md`); a migration left out of it produces a database that
+does not match `schema.rs`, and the app compiles against tables that do not exist.
+
+Three constraints when folding, each learned from a real defect:
+
+- **New tables go above the `PERMISSIONS` block.** `GRANT ALL ON ALL TABLES` is evaluated at
+  execution time, so a table created after it silently receives no grants. This is exactly
+  how `instance_settings` and `resource_audit_log` ended up ungranted on migrated databases
+  (fixed by `20260812_01_audit_tables_grants.sql`). An incremental migration that creates a
+  table must carry its own explicit `GRANT ALL ON <table> TO :"db_role";`.
+- **`ADD COLUMN` folds to the *end* of the `CREATE TABLE`.** Column order is part of the
+  schema; putting a folded column anywhere else makes a fresh install differ from a migrated
+  one.
+- **No `CONCURRENTLY` in `up.sql`.** The DDL runs inside one transaction, which forbids it —
+  and on an empty database it buys nothing. Keep the `CONCURRENTLY` form in the incremental
+  file, where it matters.
+
+Verify a fold by building both paths and diffing `pg_dump --schema-only` output. "It ran
+without errors" does not prove equivalence.
 
 ## Function Naming
 

@@ -18,6 +18,7 @@ use super::super::{
 };
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::web;
 use myc_core::{
     domain::dtos::{email::Email, guest_role::Permission, tag::Tag},
@@ -29,7 +30,6 @@ use myc_core::{
         revoke_user_guest_to_subscription_manager_account, update_tag,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use shaku::HasComponent;
 
 pub async fn dispatch_tenant_manager(
@@ -49,6 +49,7 @@ pub async fn dispatch_tenant_manager(
                 p.tenant_id,
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
@@ -62,6 +63,7 @@ pub async fn dispatch_tenant_manager(
                 profile.to_profile(),
                 p.tenant_id,
                 p.account_id,
+                Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
                 Box::new(&*app_module.resolve_ref()),
             )

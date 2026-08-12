@@ -14,6 +14,13 @@ use uuid::Uuid;
 /// Sentinel tenant ID used for system-level (Staff, webhooks) DEK lookups.
 pub const SYSTEM_TENANT_ID: Uuid = Uuid::nil();
 
+/// Display name of the sentinel system tenant row.
+///
+/// The system tenant is not a real tenant — it only holds the system-level DEK
+/// used to encrypt tenant-less secrets (e.g. webhook secrets). This name is
+/// used when the row is seeded lazily on first use.
+pub const SYSTEM_TENANT_NAME: &str = "System";
+
 /// Build the AAD (Additional Authenticated Data) bytes for a ciphertext.
 ///
 /// AAD = tenant_id_bytes ++ field_tag prevents a ciphertext from being moved

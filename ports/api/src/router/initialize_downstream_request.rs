@@ -1,3 +1,4 @@
+use super::strip_inbound_mycelium_headers;
 use crate::models::api_config::ApiConfig;
 
 use actix_web::{web, HttpRequest};
@@ -5,7 +6,10 @@ use awc::{Client, ClientRequest};
 use myc_core::domain::dtos::route::Route;
 use myc_http_tools::{
     responses::GatewayError,
-    settings::{FORWARD_FOR_KEY, MYCELIUM_SERVICE_NAME, RFC7239_FORWARDED_KEY},
+    settings::{
+        DEFAULT_REQUEST_ID_KEY, FORWARD_FOR_KEY, MYCELIUM_SERVICE_NAME,
+        RFC7239_FORWARDED_KEY,
+    },
 };
 use mycelium_base::dtos::Parent;
 use std::time::Duration;
@@ -201,7 +205,19 @@ pub(super) async fn initialize_downstream_request(
     let mut downstream_request = client
         .request_from(routing_url.as_str(), req.head())
         .no_decompress()
-        .timeout(Duration::from_secs(config.gateway_timeout))
+        .timeout(Duration::from_secs(config.gateway_timeout));
+
+    //
+    // ! Drop the client-supplied Mycelium headers
+    //
+    // `request_from` copied every header of the client request, including any
+    // `x-mycelium-*` the client chose to send. They are removed here, before
+    // the gateway injects its own — otherwise a forged identity header would
+    // survive on the security groups that do not overwrite it.
+    //
+    strip_inbound_mycelium_headers(downstream_request.headers_mut());
+
+    downstream_request = downstream_request
         .insert_header((FORWARD_FOR_KEY, client_ip.as_str()))
         .insert_header((RFC7239_FORWARDED_KEY, format!("for={client_ip}")));
 
@@ -211,6 +227,16 @@ pub(super) async fn initialize_downstream_request(
     //
     downstream_request = downstream_request
         .insert_header((MYCELIUM_SERVICE_NAME, format!("{}", service.name)));
+
+    //
+    // Re-inject the request id stripped above. The value is always
+    // gateway-generated: the app level middleware overwrites it with a fresh
+    // uuid on every inbound request, before the router runs.
+    //
+    if let Some(request_id) = req.headers().get(DEFAULT_REQUEST_ID_KEY) {
+        downstream_request = downstream_request
+            .insert_header((DEFAULT_REQUEST_ID_KEY, request_id.to_owned()));
+    }
 
     Ok(downstream_request)
 }

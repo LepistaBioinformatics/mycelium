@@ -1,6 +1,6 @@
 use crate::models::{ClientProvider, QueueConfig, SmtpConfig};
 
-use lettre::{transport::smtp::authentication::Credentials, SmtpTransport};
+use lettre::SmtpTransport;
 use myc_adapters_shared_lib::models::{
     RedisClientWrapper, RedisConfig, SharedClientProvider,
 };
@@ -57,19 +57,7 @@ impl NotifierClientImpl {
             redis_config,
         );
 
-        let host = smtp_config.host.async_get_or_error().await?;
-        let username = smtp_config.username.async_get_or_error().await?;
-        let password = smtp_config.password.async_get_or_error().await?;
-        let credentials = Credentials::new(username, password);
-        let port = smtp_config.port.async_get_or_error().await?;
-
-        let smtp_client = SmtpTransport::relay(&host)
-            .map_err(|err| {
-                execution_err(format!("Failed to connect to SMTP: {err}"))
-            })?
-            .credentials(credentials)
-            .port(port)
-            .build();
+        let smtp_client = smtp_config.build_transport().await?;
 
         Ok(Arc::new(Self {
             redis_client: Arc::new(queue_client),

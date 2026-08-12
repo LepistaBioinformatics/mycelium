@@ -1,11 +1,11 @@
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{post, web, Responder};
 use myc_core::{
     domain::dtos::guest_role::GuestRole,
     use_cases::super_users::managers::create_system_account,
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -99,6 +99,7 @@ pub async fn create_system_account_url(
         profile.to_profile(),
         body.name.to_owned(),
         body.actor.to_system_actor(),
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

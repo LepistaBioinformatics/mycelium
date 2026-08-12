@@ -13,6 +13,44 @@ mod router;
 mod rpc;
 pub(crate) mod settings;
 
+// ? ----------------------------------------------------------------------------
+// ? Backend feature guards
+// ?
+// ? Exactly one persistence backend must be selected: `full`
+// ? (default; full mode = Postgres + Redis + SMTP), `postgres-only` (Postgres
+// ? + Postgres-backed KV cache + SMTP, no Redis; multi-pod), or `standalone`
+// ? (SQLite + moka + local email). The two non-default modes must be built with
+// ? `--no-default-features --features <mode>`.
+// ? ----------------------------------------------------------------------------
+
+#[cfg(all(feature = "standalone", feature = "full"))]
+compile_error!(
+    "features `standalone` and `full` are mutually exclusive; build \
+     standalone with `--no-default-features --features standalone`"
+);
+
+#[cfg(all(feature = "postgres-only", feature = "full"))]
+compile_error!(
+    "features `postgres-only` and `full` are mutually exclusive; \
+     build postgres-only with `--no-default-features --features postgres-only`"
+);
+
+#[cfg(all(feature = "postgres-only", feature = "standalone"))]
+compile_error!(
+    "features `postgres-only` and `standalone` are mutually exclusive"
+);
+
+#[cfg(not(any(
+    feature = "standalone",
+    feature = "full",
+    feature = "postgres-only"
+)))]
+compile_error!(
+    "no persistence backend selected; enable `full` (default), or \
+     build with `--no-default-features --features postgres-only` (or \
+     `--features standalone`)"
+);
+
 use crate::openapi_processor::initialize_tools_registry;
 
 use actix_cors::Cors;
@@ -24,39 +62,85 @@ use actix_web::{
 use actix_web_opentelemetry::RequestTracing;
 use awc::{error::HeaderValue, Client};
 use dispatchers::{
-    email_dispatcher, services_health_dispatcher, webhook_dispatcher,
+    email_dispatcher, resource_audit_log_dispatcher,
+    services_health_dispatcher, webhook_dispatcher,
 };
+use models::active_backend_modules::{KVAppModule, SqlAppModule};
 use models::config_handler::ConfigHandler;
+#[cfg(feature = "full")]
 use myc_adapters_shared_lib::models::{
     SharedAppModule, SharedClientImpl, SharedClientImplParameters,
     SharedClientProvider,
 };
-use myc_config::{
-    init_vault_config_from_file, optional_config::OptionalConfig,
-};
+#[cfg(any(feature = "full", feature = "postgres-only"))]
+use myc_config::init_vault_config_from_file;
+use myc_config::optional_config::OptionalConfig;
+#[cfg(feature = "standalone")]
+use myc_config::resolve_or_generate_standalone_secret;
+#[cfg(feature = "standalone")]
+use myc_config::secret_resolver::SecretResolver;
 use myc_core::{
     domain::{
-        dtos::callback::CallbackExecutor,
+        dtos::{
+            callback::CallbackExecutor,
+            resource_audit_log::NewResourceAuditLogEvent,
+        },
         entities::{
-            GuestRoleRegistration, LocalMessageReading, LocalMessageWrite,
-            RemoteMessageWrite, ServiceRead,
+            GuestRoleRegistration, InstanceSettingsFetching,
+            LocalMessageReading, LocalMessageWrite, RemoteMessageWrite,
+            ServiceRead,
         },
     },
-    use_cases::gateway::guest_roles::propagate_declared_roles_to_storage_engine,
+    models::AccountLifeCycle,
+    use_cases::{
+        gateway::guest_roles::propagate_declared_roles_to_storage_engine,
+        super_users::staff::bootstrap::staff_bootstrap_is_pending,
+    },
 };
+#[cfg(any(feature = "full", feature = "postgres-only"))]
 use myc_diesel::repositories::{
-    DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
+    DieselDbPoolProvider, DieselDbPoolProviderParameters,
+    LocalMessageReadSqlDbRepository, LocalMessageReadSqlDbRepositoryParameters,
+    ResourceAuditLogRegistrationSqlDbRepository,
+    ResourceAuditLogRegistrationSqlDbRepositoryParameters,
 };
+#[cfg(feature = "standalone")]
+use myc_diesel_sqlite::{
+    config::{
+        DieselSqliteDbPoolProvider, DieselSqliteDbPoolProviderParameters,
+    },
+    migration::provision_database,
+    repositories::resource_audit_log::{
+        ResourceAuditLogRegistrationSqlDbRepository,
+        ResourceAuditLogRegistrationSqlDbRepositoryParameters,
+    },
+};
+#[cfg(feature = "standalone")]
+use myc_http_tools::models::internal_auth_config::InternalOauthConfig;
 use myc_http_tools::settings::DEFAULT_REQUEST_ID_KEY;
-use myc_kv::repositories::KVAppModule;
 use myc_mem_db::repositories::{
     MemDbAppModule, MemDbPoolProvider, MemDbPoolProviderParameters,
 };
+#[cfg(feature = "standalone")]
+use myc_moka_cache::config::{
+    MokaCacheProviderImpl, MokaCacheProviderImplParameters,
+};
+#[cfg(any(feature = "standalone", feature = "postgres-only"))]
+use myc_notifier::repositories::{
+    select_local_transport, LocalNotifierAppModule,
+    LocalTransportMessageSendingRepository,
+    LocalTransportMessageSendingRepositoryParameters,
+};
+#[cfg(feature = "full")]
 use myc_notifier::{
     models::ClientProvider,
     repositories::{
         NotifierAppModule, NotifierClientImpl, NotifierClientImplParameters,
     },
+};
+#[cfg(feature = "postgres-only")]
+use myc_postgres_kv::config::{
+    spawn_expiry_sweeper, PgKvPoolProviderImpl, PgKvPoolProviderImplParameters,
 };
 use mycelium_base::utils::errors::MappedErrors;
 use oauth2::http::HeaderName;
@@ -72,7 +156,9 @@ use reqwest::header::{
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
 use rest::{
-    index::heath_check_endpoints,
+    audit::resource_audit_trail_endpoints as audit_resource_audit_trail_endpoints,
+    index::{app_public_config_endpoints, heath_check_endpoints},
+    instance as instance_endpoints,
     manager::{
         account_endpoints as manager_account_endpoints,
         guest_role_endpoints as manager_guest_role_endpoints,
@@ -139,6 +225,91 @@ pub async fn main() -> std::io::Result<()> {
             Err(err) => panic!("Error on init config: {err}"),
         };
 
+    // ? -----------------------------------------------------------------------
+    // ? STANDALONE SECRET RESOLUTION (SM-R9)
+    //
+    // `tokenSecret`/`hmacSecrets`/`jwtSecret` resolve in this order: an
+    // operator-supplied `{ env = "..." }` resolver (explicit, same as full
+    // mode) first; otherwise the config file's literal is treated as the
+    // shipped placeholder (see settings/config.standalone.example.toml) and
+    // the real secret is resolved (or generated, on first boot) from the OS
+    // keyring / an encrypted local file next to the SQLite database.
+    // ? -----------------------------------------------------------------------
+    #[cfg(feature = "standalone")]
+    let config = {
+        let mut config = config;
+
+        let sqlite_path = match config.sqlite.path.async_get_or_error().await {
+            Ok(path) => path,
+            Err(err) => panic!("Error on get sqlite path: {err}"),
+        };
+
+        let secrets_dir = std::path::Path::new(&sqlite_path)
+            .parent()
+            .map(|parent| parent.join(".secrets"))
+            .unwrap_or_else(|| PathBuf::from(".secrets"));
+
+        let token_secret = match resolve_standalone_secret(
+            Some(config.core.account_life_cycle.token_secret_resolver()),
+            "mycelium-standalone",
+            &secrets_dir,
+            "token_secret",
+        )
+        .await
+        {
+            Ok(secret) => secret,
+            Err(err) => panic!("Error resolving token secret: {err}"),
+        };
+
+        let hmac_secret = match resolve_standalone_secret(
+            config
+                .core
+                .account_life_cycle
+                .primary_hmac_secret_resolver(),
+            "mycelium-standalone",
+            &secrets_dir,
+            "hmac_secret",
+        )
+        .await
+        {
+            Ok(secret) => secret,
+            Err(err) => panic!("Error resolving hmac secret: {err}"),
+        };
+
+        config.core.account_life_cycle = config
+            .core
+            .account_life_cycle
+            .with_token_secret_override(token_secret)
+            .with_hmac_secret_override(hmac_secret);
+
+        // Internal (database-backed) JWT auth is opt-in via
+        // `[auth.internal.define]` in the config file -- only resolve/
+        // override its `jwtSecret` when the operator has actually enabled
+        // it; leave it untouched if disabled.
+        if let OptionalConfig::Enabled(internal) = &config.auth.internal {
+            let jwt_secret = match resolve_standalone_secret(
+                Some(&internal.jwt_secret),
+                "mycelium-standalone",
+                &secrets_dir,
+                "jwt_secret",
+            )
+            .await
+            {
+                Ok(secret) => secret,
+                Err(err) => panic!("Error resolving jwt secret: {err}"),
+            };
+
+            config.auth.internal =
+                OptionalConfig::Enabled(InternalOauthConfig {
+                    jwt_secret: SecretResolver::Value(jwt_secret),
+                    jwt_expires_in: internal.jwt_expires_in.clone(),
+                    tmp_expires_in: internal.tmp_expires_in.clone(),
+                });
+        }
+
+        config
+    };
+
     let api_config = config.api.clone();
 
     // ? -----------------------------------------------------------------------
@@ -162,28 +333,54 @@ pub async fn main() -> std::io::Result<()> {
     // ? INITIALIZE VAULT CONFIGURATION
     //
     // The vault configuration should be initialized before the server starts.
-    // Vault configurations should be used to store sensitive data.
+    // Vault configurations should be used to store sensitive data. Standalone
+    // mode has no Vault at all (SM-R9).
     //
     // ? -----------------------------------------------------------------------
-    info!("Initializing Vault configs");
+    #[cfg(any(feature = "full", feature = "postgres-only"))]
+    {
+        info!("Initializing Vault configs");
 
-    init_vault_config_from_file(None, Some(config.vault.to_owned()))
-        .instrument(span.to_owned())
-        .await;
+        init_vault_config_from_file(None, Some(config.vault.to_owned()))
+            .instrument(span.to_owned())
+            .await;
+    }
 
     // ? -----------------------------------------------------------------------
     // ? CONFIGURE INTERNAL DEPENDENCIES
     // ? -----------------------------------------------------------------------
     info!("Initialize internal dependencies");
 
-    let (sql_module, shared_module, notifier_module, kv_module, mem_module) =
-        initialize_modules(&config.to_owned())
-            .await
-            .map_err(|err| {
-                tracing::error!("Error initializing modules: {err}");
+    #[cfg(feature = "full")]
+    let (
+        sql_module,
+        shared_module,
+        notifier_module,
+        kv_module,
+        mem_module,
+        resource_audit_log_rx,
+    ) = initialize_modules(&config.to_owned())
+        .await
+        .map_err(|err| {
+            tracing::error!("Error initializing modules: {err}");
 
-                std::io::Error::new(std::io::ErrorKind::Other, err)
-            })?;
+            std::io::Error::new(std::io::ErrorKind::Other, err)
+        })?;
+
+    #[cfg(any(feature = "standalone", feature = "postgres-only"))]
+    let (
+        sql_module,
+        notifier_module,
+        kv_module,
+        mem_module,
+        resource_audit_log_rx,
+    ) = initialize_modules(&config.to_owned())
+        .await
+        .map_err(|err| {
+            tracing::error!("Error initializing modules: {err}");
+
+            std::io::Error::new(std::io::ErrorKind::Other, err)
+        })?;
 
     // ? -----------------------------------------------------------------------
     // ? PROPAGATE DECLARED ROLES TO THE SQL DATABASE
@@ -237,21 +434,9 @@ pub async fn main() -> std::io::Result<()> {
 
     email_dispatcher(
         config.queue.to_owned(),
-        unsafe {
-            Arc::from_raw(*Arc::new(
-                sql_module.resolve_ref() as &dyn LocalMessageReading
-            ))
-        },
-        unsafe {
-            Arc::from_raw(*Arc::new(
-                sql_module.resolve_ref() as &dyn LocalMessageWrite
-            ))
-        },
-        unsafe {
-            Arc::from_raw(*Arc::new(
-                notifier_module.resolve_ref() as &dyn RemoteMessageWrite
-            ))
-        },
+        HasComponent::<dyn LocalMessageReading>::resolve(&*sql_module),
+        HasComponent::<dyn LocalMessageWrite>::resolve(&*sql_module),
+        HasComponent::<dyn RemoteMessageWrite>::resolve(&*notifier_module),
     )
     .instrument(span.to_owned())
     .await;
@@ -270,6 +455,20 @@ pub async fn main() -> std::io::Result<()> {
         .await;
 
     // ? -----------------------------------------------------------------------
+    // ? FIRE THE RESOURCE AUDIT LOG DISPATCHER
+    //
+    // The resource audit log dispatcher should be fired to allow resource
+    // audit log events to be persisted. Dispatching will occur in a separate
+    // thread.
+    //
+    // ? -----------------------------------------------------------------------
+    info!("Fire resource audit log dispatcher");
+
+    resource_audit_log_dispatcher(sql_module.clone(), resource_audit_log_rx)
+        .instrument(span.to_owned())
+        .await;
+
+    // ? -----------------------------------------------------------------------
     // ? FIRE THE SERVICES HEALTH DISPATCHER
     //
     // The services health dispatcher should be fired to allow the services
@@ -281,6 +480,24 @@ pub async fn main() -> std::io::Result<()> {
     services_health_dispatcher(config.api.clone(), mem_module.clone())
         .instrument(span.to_owned())
         .await;
+
+    // ? -----------------------------------------------------------------------
+    // ? STAFF BOOTSTRAP — CHECK CLAIM STATE
+    //
+    // Checks whether the `STAFF_BOOTSTRAP_KEY` row exists in the generalized
+    // `instance_settings` table -- its presence alone means already claimed,
+    // no pre-created row needed. Non-fatal: a missing table (operator
+    // upgraded without applying the migration yet) must not abort boot --
+    // this backs an optional, opt-in feature, unlike Postgres/Redis/SMTP.
+    // ? -----------------------------------------------------------------------
+    info!("Checking staff bootstrap state");
+
+    announce_staff_bootstrap_status(
+        &sql_module,
+        &config.core.account_life_cycle,
+    )
+    .instrument(span.to_owned())
+    .await;
 
     // ? -----------------------------------------------------------------------
     // ? CONFIGURE THE SERVER
@@ -353,10 +570,18 @@ pub async fn main() -> std::io::Result<()> {
             // Inject modules
             //
             .app_data(web::Data::from(sql_module.clone()))
-            .app_data(web::Data::from(shared_module.clone()))
             .app_data(web::Data::from(notifier_module.clone()))
             .app_data(web::Data::from(kv_module.clone()))
-            .app_data(web::Data::from(mem_module.clone()))
+            .app_data(web::Data::from(mem_module.clone()));
+
+        // `SharedAppModule` carries the Redis client and is only meaningful
+        // in full mode; nothing resolves it from `app_data` anywhere in this
+        // crate, but it's registered for parity/future use.
+        #[cfg(feature = "full")]
+        let base_app =
+            base_app.app_data(web::Data::from(shared_module.clone()));
+
+        let base_app = base_app
             //
             // Index endpoints
             //
@@ -365,6 +590,10 @@ pub async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("/health")
                     .configure(heath_check_endpoints::configure),
+            )
+            .service(
+                web::scope("/app-config")
+                    .configure(app_public_config_endpoints::configure),
             )
             //
             // The well known openid configuration path
@@ -483,6 +712,14 @@ pub async fn main() -> std::io::Result<()> {
                     .configure(manager_account_endpoints::configure),
             )
             //
+            // Instance (public, unauthenticated staff bootstrap flow --
+            // feature staff-bootstrap. No `wrap_fn`/role header: these
+            // routes must work before any Staff account exists.)
+            //
+            .service(
+                web::scope("instance").configure(instance_endpoints::configure),
+            )
+            //
             // JSON-RPC (single + batch at _adm/rpc)
             //
             .service(
@@ -493,6 +730,17 @@ pub async fn main() -> std::io::Result<()> {
                         srv.call(req)
                     })
                     .configure(rpc::configure),
+            )
+            //
+            // Resource audit trail (shared, not role scoped -- staff,
+            // tenant owners/managers, and personal-account owners all call
+            // this same route; permission branching happens inside
+            // `fetch_resource_audit_trail`. No `wrap_fn`/role header, same
+            // as `tenant-owner` and `rpc` above.)
+            //
+            .service(
+                web::scope("audit")
+                    .configure(audit_resource_audit_trail_endpoints::configure),
             )
             //
             // Role Scoped Endpoints
@@ -632,7 +880,157 @@ pub async fn main() -> std::io::Result<()> {
         .await
 }
 
-/// Initialize the modules for the application.
+/// Resolve one standalone secret (SM-R9), honoring an operator-supplied
+/// `Env` resolver as the explicit override -- same precedence full mode
+/// gives `SecretResolver::Env`/`Value` -- before falling back to the
+/// keyring/file/generate flow. A bare `Value(...)` resolver (the shipped
+/// example config's placeholder) is treated as "not configured", not as an
+/// explicit secret.
+#[cfg(feature = "standalone")]
+async fn resolve_standalone_secret(
+    existing: Option<&SecretResolver<String>>,
+    keyring_service: &str,
+    secrets_dir: &std::path::Path,
+    name: &str,
+) -> Result<String, MappedErrors> {
+    if let Some(resolver @ SecretResolver::Env(_)) = existing {
+        return resolver.async_get_or_error().await;
+    }
+
+    resolve_or_generate_standalone_secret(keyring_service, secrets_dir, name)
+}
+
+/// Checks whether the staff bootstrap is still pending and, if the feature
+/// is enabled (`staff_bootstrap_secret` configured), logs a reminder with
+/// the claim URL -- never the secret itself, since the operator already
+/// holds it from their own config.
+///
+/// Non-fatal by design: any failure (e.g. the migration hasn't been applied
+/// yet -- see feature staff-bootstrap design.md SB-R12) is logged and
+/// swallowed. This backs an optional, opt-in feature and must never abort
+/// boot the way missing Postgres/Redis/SMTP does.
+async fn announce_staff_bootstrap_status(
+    sql_module: &SqlAppModule,
+    account_life_cycle: &AccountLifeCycle,
+) {
+    let is_pending = match staff_bootstrap_is_pending(Box::new(
+        sql_module.resolve_ref() as &dyn InstanceSettingsFetching,
+    ))
+    .await
+    {
+        Ok(is_pending) => is_pending,
+        Err(err) => {
+            tracing::error!(
+                %err,
+                "staff bootstrap unavailable this boot (instance_settings \
+                 table missing or unreachable) -- gateway continues without it"
+            );
+            return;
+        }
+    };
+
+    if !is_pending {
+        return;
+    }
+
+    let Some(secret_resolver) =
+        account_life_cycle.staff_bootstrap_secret.as_ref()
+    else {
+        return;
+    };
+
+    if secret_resolver.async_get_or_error().await.is_err() {
+        tracing::error!(
+            "staff_bootstrap_secret is configured but failed to resolve"
+        );
+        return;
+    }
+
+    let claim_url = match account_life_cycle.domain_url.clone() {
+        Some(resolver) => resolver.async_get_or_error().await.ok().map(|url| {
+            format!(
+                "{}/{}/instance/bootstrap",
+                url.trim_end_matches('/'),
+                ADMIN_API_SCOPE,
+            )
+        }),
+        None => None,
+    };
+
+    match claim_url {
+        Some(url) => info!(
+            claim_url = %url,
+            "staff bootstrap pending -- visit this URL with your configured \
+             bootstrap secret to claim the initial staff account"
+        ),
+        None => info!(
+            "staff bootstrap pending -- configure `domainUrl` to see the \
+             full claim URL logged here"
+        ),
+    }
+}
+
+/// Build the backend-agnostic in-memory service/callback registry module.
+///
+/// Identical in both `full` and `standalone` builds -- the
+/// service catalog and callback engines have nothing to do with the
+/// persistence/cache/notifier backend selection.
+async fn build_mem_db_module(config: &ConfigHandler) -> Arc<MemDbAppModule> {
+    for service in config.api.services.clone() {
+        trace!("Service: {:?}", service);
+    }
+
+    // ? -----------------------------------------------------------------------
+    // ? CREATE CALLBACK ENGINES FROM CONFIGURED CALLBACKS
+    //
+    // Convert callbacks configuration into executable engines that can be
+    // injected and executed later.
+    //
+    // ? -----------------------------------------------------------------------
+    let callbacks = config.api.to_owned().callbacks.clone().unwrap_or_default();
+
+    let mut engines: Vec<Arc<dyn CallbackExecutor>> = Vec::new();
+
+    for callback in &callbacks {
+        match callback_engines::create_engine_from_callback(callback) {
+            Ok(engine) => {
+                tracing::debug!(
+                    "Created engine for callback '{}' (type: {:?})",
+                    callback.name,
+                    callback.callback_type
+                );
+
+                engines.push(engine);
+            }
+            Err(e) => {
+                tracing::warn!(
+                    "Failed to create engine for callback '{}': {e}",
+                    callback.name,
+                );
+            }
+        }
+    }
+
+    Arc::new(
+        MemDbAppModule::builder()
+            .with_component_parameters::<MemDbPoolProvider>(
+                MemDbPoolProviderParameters {
+                    services_db: Arc::new(Mutex::new(
+                        config.api.services.clone(),
+                    )),
+                    callbacks_db: Arc::new(Mutex::new(callbacks)),
+                    engines: Arc::new(Mutex::new(engines)),
+                    mode: Arc::new(Mutex::new(
+                        config.api.to_owned().callback_execution_mode.clone(),
+                    )),
+                },
+            )
+            .build(),
+    )
+}
+
+/// Initialize the modules for the application (full mode: PostgreSQL +
+/// Redis + SMTP).
 ///
 /// This function initializes the modules for the application based on the
 /// configuration provided. The modules are
@@ -644,6 +1042,7 @@ pub async fn main() -> std::io::Result<()> {
 ///
 /// The function returns a tuple of the initialized modules.
 ///
+#[cfg(feature = "full")]
 async fn initialize_modules(
     config: &ConfigHandler,
 ) -> Result<
@@ -653,9 +1052,23 @@ async fn initialize_modules(
         Arc<NotifierAppModule>,
         Arc<KVAppModule>,
         Arc<MemDbAppModule>,
+        tokio::sync::mpsc::Receiver<NewResourceAuditLogEvent>,
     ),
     MappedErrors,
 > {
+    let (resource_audit_log_tx, resource_audit_log_rx) =
+        tokio::sync::mpsc::channel::<NewResourceAuditLogEvent>(2048);
+
+    let visibility_timeout_secs = match config
+        .queue
+        .visibility_timeout_secs
+        .async_get_or_error()
+        .await
+    {
+        Ok(secs) => secs,
+        Err(err) => panic!("Error on get visibility timeout: {err}"),
+    };
+
     let sql_module = Arc::new(
         SqlAppModule::builder()
             .with_component_parameters::<DieselDbPoolProvider>(
@@ -674,6 +1087,16 @@ async fn initialize_modules(
                         }
                         .as_str(),
                     ),
+                },
+            )
+            .with_component_parameters::<LocalMessageReadSqlDbRepository>(
+                LocalMessageReadSqlDbRepositoryParameters {
+                    visibility_timeout_secs,
+                },
+            )
+            .with_component_parameters::<ResourceAuditLogRegistrationSqlDbRepository>(
+                ResourceAuditLogRegistrationSqlDbRepositoryParameters {
+                    sender: resource_audit_log_tx,
                 },
             )
             .build(),
@@ -735,57 +1158,7 @@ async fn initialize_modules(
             .build(),
     );
 
-    for service in config.api.services.clone() {
-        trace!("Service: {:?}", service);
-    }
-
-    // ? -----------------------------------------------------------------------
-    // ? CREATE CALLBACK ENGINES FROM CONFIGURED CALLBACKS
-    //
-    // Convert callbacks configuration into executable engines that can be
-    // injected and executed later.
-    //
-    // ? -----------------------------------------------------------------------
-    let callbacks = config.api.to_owned().callbacks.clone().unwrap_or_default();
-
-    let mut engines: Vec<Arc<dyn CallbackExecutor>> = Vec::new();
-
-    for callback in &callbacks {
-        match callback_engines::create_engine_from_callback(callback) {
-            Ok(engine) => {
-                tracing::debug!(
-                    "Created engine for callback '{}' (type: {:?})",
-                    callback.name,
-                    callback.callback_type
-                );
-
-                engines.push(engine);
-            }
-            Err(e) => {
-                tracing::warn!(
-                    "Failed to create engine for callback '{}': {e}",
-                    callback.name,
-                );
-            }
-        }
-    }
-
-    let mem_module = Arc::new(
-        MemDbAppModule::builder()
-            .with_component_parameters::<MemDbPoolProvider>(
-                MemDbPoolProviderParameters {
-                    services_db: Arc::new(Mutex::new(
-                        config.api.services.clone(),
-                    )),
-                    callbacks_db: Arc::new(Mutex::new(callbacks)),
-                    engines: Arc::new(Mutex::new(engines)),
-                    mode: Arc::new(Mutex::new(
-                        config.api.to_owned().callback_execution_mode.clone(),
-                    )),
-                },
-            )
-            .build(),
-    );
+    let mem_module = build_mem_db_module(config).await;
 
     Ok((
         sql_module,
@@ -793,5 +1166,224 @@ async fn initialize_modules(
         notifier_module,
         kv_module,
         mem_module,
+        resource_audit_log_rx,
+    ))
+}
+
+/// Initialize the modules for the application (standalone mode: SQLite +
+/// in-process moka cache + stub/file email, no external services).
+///
+/// Mirrors the full-mode function's role but with no `SharedAppModule` --
+/// nothing else in `ports/api` resolves it, since it exists only to carry a
+/// Redis client, and standalone has no Redis.
+#[cfg(feature = "standalone")]
+async fn initialize_modules(
+    config: &ConfigHandler,
+) -> Result<
+    (
+        Arc<SqlAppModule>,
+        Arc<LocalNotifierAppModule>,
+        Arc<KVAppModule>,
+        Arc<MemDbAppModule>,
+        tokio::sync::mpsc::Receiver<NewResourceAuditLogEvent>,
+    ),
+    MappedErrors,
+> {
+    let sqlite_path = match config.sqlite.path.async_get_or_error().await {
+        Ok(path) => path,
+        Err(err) => panic!("Error on get sqlite path: {err}"),
+    };
+
+    if let Err(err) = provision_database(&sqlite_path) {
+        panic!("Error provisioning SQLite database: {err}");
+    }
+
+    let (resource_audit_log_tx, resource_audit_log_rx) =
+        tokio::sync::mpsc::channel::<NewResourceAuditLogEvent>(2048);
+
+    let sql_module = Arc::new(
+        SqlAppModule::builder()
+            .with_component_parameters::<DieselSqliteDbPoolProvider>(
+                DieselSqliteDbPoolProviderParameters {
+                    pool: DieselSqliteDbPoolProvider::new(&sqlite_path),
+                },
+            )
+            .with_component_parameters::<ResourceAuditLogRegistrationSqlDbRepository>(
+                ResourceAuditLogRegistrationSqlDbRepositoryParameters {
+                    sender: resource_audit_log_tx,
+                },
+            )
+            .build(),
+    );
+
+    let kv_module = Arc::new(
+        KVAppModule::builder()
+            .with_component_parameters::<MokaCacheProviderImpl>(
+                MokaCacheProviderImplParameters {
+                    cache: MokaCacheProviderImpl::new().cache,
+                },
+            )
+            .build(),
+    );
+
+    // ? -----------------------------------------------------------------------
+    // ? LOCAL EMAIL TRANSPORT
+    //
+    // Real SMTP is opt-in in standalone (SM-R8): if `[smtp]` is configured,
+    // resolve a real `SmtpTransport` and let `select_local_transport`'s
+    // existing SMTP > file > stub precedence pick it up. If instead
+    // `[localEmail]` sets a directory (issue #169), mail is written as `.eml`
+    // files there; otherwise (the common zero-config case) it falls through to
+    // the stub, which renders each email human-readably to the terminal.
+    // ? -----------------------------------------------------------------------
+    let smtp_transport = match config.smtp.to_owned() {
+        OptionalConfig::Enabled(smtp_config) => {
+            match smtp_config.build_transport().await {
+                Ok(transport) => Some(transport),
+                Err(err) => panic!("Error building SMTP transport: {err}"),
+            }
+        }
+        OptionalConfig::Disabled => None,
+    };
+
+    let local_email_dir = match config.local_email.to_owned() {
+        OptionalConfig::Enabled(local_email_config) => {
+            match local_email_config.ensure_dir() {
+                Ok(dir) => Some(dir),
+                Err(err) => {
+                    panic!("Error preparing local email dir: {err}")
+                }
+            }
+        }
+        OptionalConfig::Disabled => None,
+    };
+
+    let notifier_module = Arc::new(
+        LocalNotifierAppModule::builder()
+            .with_component_parameters::<LocalTransportMessageSendingRepository>(
+                LocalTransportMessageSendingRepositoryParameters {
+                    transport: select_local_transport(
+                        smtp_transport,
+                        local_email_dir,
+                    ),
+                },
+            )
+            .build(),
+    );
+
+    let mem_module = build_mem_db_module(config).await;
+
+    Ok((
+        sql_module,
+        notifier_module,
+        kv_module,
+        mem_module,
+        resource_audit_log_rx,
+    ))
+}
+
+/// Initialize the modules for the application (postgres-only mode: PostgreSQL
+/// persistence + Postgres-backed KV cache + real SMTP, no Redis; multi-pod).
+///
+/// Mirrors full mode's persistence and SMTP delivery but swaps the Redis KV
+/// cache for the `kv_artifact` Postgres table (reusing the SAME connection
+/// pool) and drops `SharedAppModule` entirely -- nothing resolves it without
+/// Redis. The email queue is the shared `message_queue` table, claimed
+/// multi-pod-safe by the diesel `LocalMessageReading` (SELECT ... FOR UPDATE
+/// SKIP LOCKED). Returns the same 5-tuple shape as standalone.
+#[cfg(feature = "postgres-only")]
+async fn initialize_modules(
+    config: &ConfigHandler,
+) -> Result<
+    (
+        Arc<SqlAppModule>,
+        Arc<LocalNotifierAppModule>,
+        Arc<KVAppModule>,
+        Arc<MemDbAppModule>,
+        tokio::sync::mpsc::Receiver<NewResourceAuditLogEvent>,
+    ),
+    MappedErrors,
+> {
+    let (resource_audit_log_tx, resource_audit_log_rx) =
+        tokio::sync::mpsc::channel::<NewResourceAuditLogEvent>(2048);
+
+    // ? Build the Postgres pool once and share it between the SQL module and
+    // ? the Postgres KV cache adapter -- a single pool, no second set of
+    // ? connections.
+    let database_url =
+        match config.diesel.database_url.async_get_or_error().await {
+            Ok(url) => url,
+            Err(err) => panic!("Error on get database url: {err}"),
+        };
+
+    let pool = DieselDbPoolProvider::new(database_url.as_str());
+
+    let visibility_timeout_secs = match config
+        .queue
+        .visibility_timeout_secs
+        .async_get_or_error()
+        .await
+    {
+        Ok(secs) => secs,
+        Err(err) => panic!("Error on get visibility timeout: {err}"),
+    };
+
+    let sql_module = Arc::new(
+        SqlAppModule::builder()
+            .with_component_parameters::<DieselDbPoolProvider>(
+                DieselDbPoolProviderParameters { pool: pool.clone() },
+            )
+            .with_component_parameters::<LocalMessageReadSqlDbRepository>(
+                LocalMessageReadSqlDbRepositoryParameters {
+                    visibility_timeout_secs,
+                },
+            )
+            .with_component_parameters::<ResourceAuditLogRegistrationSqlDbRepository>(
+                ResourceAuditLogRegistrationSqlDbRepositoryParameters {
+                    sender: resource_audit_log_tx,
+                },
+            )
+            .build(),
+    );
+
+    // ? Postgres-backed KV cache, seeded with the shared pool. A background
+    // ? sweeper reclaims expired rows; lazy expiry on read remains the
+    // ? correctness source of truth.
+    let kv_module = Arc::new(
+        KVAppModule::builder()
+            .with_component_parameters::<PgKvPoolProviderImpl>(
+                PgKvPoolProviderImplParameters { pool: pool.clone() },
+            )
+            .build(),
+    );
+
+    spawn_expiry_sweeper(pool.clone(), 60);
+
+    // ? Real SMTP is required in postgres-only mode (it is full-minus-Redis,
+    // ? not standalone). Reuse the local-transport module with SMTP always
+    // ? selected; no Redis client is constructed.
+    let smtp_transport = match config.smtp.to_owned().build_transport().await {
+        Ok(transport) => Some(transport),
+        Err(err) => panic!("Error building SMTP transport: {err}"),
+    };
+
+    let notifier_module = Arc::new(
+        LocalNotifierAppModule::builder()
+            .with_component_parameters::<LocalTransportMessageSendingRepository>(
+                LocalTransportMessageSendingRepositoryParameters {
+                    transport: select_local_transport(smtp_transport, None),
+                },
+            )
+            .build(),
+    );
+
+    let mem_module = build_mem_db_module(config).await;
+
+    Ok((
+        sql_module,
+        notifier_module,
+        kv_module,
+        mem_module,
+        resource_audit_log_rx,
     ))
 }

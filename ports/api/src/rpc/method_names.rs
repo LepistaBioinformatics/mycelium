@@ -14,6 +14,9 @@ pub const MANAGERS_TENANTS_INCLUDE_TENANT_OWNER: &str =
 pub const MANAGERS_TENANTS_EXCLUDE_TENANT_OWNER: &str =
     "managers.tenants.excludeTenantOwner";
 
+// Audit (shared, not role scoped)
+pub const AUDIT_RESOURCE_TRAIL_FETCH: &str = "audit.resourceTrail.fetch";
+
 // Account manager
 pub const ACCOUNT_MANAGER_GUESTS_GUEST_TO_CHILDREN_ACCOUNT: &str =
     "accountManager.guests.guestToChildrenAccount";
@@ -28,6 +31,8 @@ pub const GATEWAY_MANAGER_SERVICES_LIST: &str = "gatewayManager.services.list";
 pub const GATEWAY_MANAGER_TOOLS_LIST: &str = "gatewayManager.tools.list";
 
 // Beginners
+pub const BEGINNERS_APP_CONFIG_GET_PUBLIC_INFO: &str =
+    "beginners.appConfig.getPublicInfo";
 pub const BEGINNERS_ACCOUNTS_CREATE: &str = "beginners.accounts.create";
 pub const BEGINNERS_ACCOUNTS_GET: &str = "beginners.accounts.get";
 pub const BEGINNERS_ACCOUNTS_UPDATE_NAME: &str =

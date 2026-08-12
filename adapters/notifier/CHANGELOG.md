@@ -2,6 +2,122 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0-rc.12] - 2026-07-28
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.12
+
+## [9.0.0-rc.11] - 2026-07-23
+
+### 🚀 Features
+
+- *(notifier)* Support STARTTLS for SMTP (port 587 providers like ACS, O365)
+
+### 📚 Documentation
+
+- *(notifier)* Address review — note hint's OpenSSL-string dependency and port-25 default
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.11
+
+## [9.0.0-rc.10] - 2026-07-23
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.10
+
+## [9.0.0-rc.9] - 2026-07-22
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.9
+
+## [9.0.0-rc.7] - 2026-07-17
+
+### 🚀 Features
+
+- *(notifier)* Human-friendly stub email render + wire file transport (#169)
+- *(postgres-only)* Add third build mode (Postgres KV cache, no Redis)
+
+### 🚜 Refactor
+
+- *(notifier)* Address DeepSeek review on #173
+- *(features)* Rename `postgres-backend` feature to `full`
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.7
+
+## [9.0.0-rc.6] - 2026-07-16
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.6
+
+## [9.0.0-rc.5] - 2026-07-13
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.5
+
+## [9.0.0-rc.4] - 2026-07-13
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.4
+
+## [9.0.0-rc.3] - 2026-07-12
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.3
+
+## [9.0.0-rc.2] - 2026-07-12
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.2
+
+## [9.0.0-rc.1] - 2026-07-12
+
+### 🚀 Features
+
+- *(standalone-mode)* Add local email transport (SM-T20, SM-T21)
+- *(standalone-mode)* Wire standalone initialize_modules end-to-end (SM-T24)
+- *(standalone-mode)* Opt-in real SMTP for standalone (SM-T29, closes SM-R8)
+- *(config)* Add sane defaults to tuning knobs, rewrite example configs for beginners
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.1
+
+## [8.3.1-rc.5] - 2026-05-03
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.5
+
+## [8.3.1-rc.4] - 2026-04-30
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.4
+
+## [8.3.1-rc.3] - 2026-04-27
+
+### ⚙️ Miscellaneous Tasks
+
+- Merge develop — release automation, crates.io publish, GHCR Docker workflow
+- Release version 8.3.1-rc.3
+
+## [8.3.1-rc.2] - 2026-04-26
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 8.3.1-rc.2
+
 ## [8.3.1-rc.1] - 2026-04-15
 
 ### 🚀 Features

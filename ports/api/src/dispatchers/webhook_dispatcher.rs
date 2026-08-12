@@ -1,3 +1,4 @@
+use crate::models::active_backend_modules::SqlAppModule;
 use futures::future::join_all;
 use myc_core::domain::dtos::webhook::WebHookExecutionStatus;
 use myc_core::domain::entities::WebHookUpdating;
@@ -6,7 +7,6 @@ use myc_core::{
     domain::entities::{EncryptionKeyFetching, WebHookFetching},
     use_cases::dispatch_webhooks,
 };
-use myc_diesel::repositories::SqlAppModule;
 use mycelium_base::entities::FetchManyResponseKind;
 use rand::Rng;
 use shaku::HasComponent;

@@ -75,7 +75,7 @@ if secret.len() < 32 {
 
 ### 5. No SQL Injection Prevention Verification
 **Severity**: MEDIUM (mitigated by Diesel)
-**Evidence**: `/mnt/external/thirdparty-projects/mycelium/adapters/diesel/sql/up.sql` uses raw SQL
+**Evidence**: `/mnt/external/thirdparty-projects/mycelium/adapters/diesel_postgres/sql/up.sql` uses raw SQL
 
 **Risk**: While Diesel provides parameterization by default, custom raw SQL in migrations could be vulnerable
 
@@ -188,7 +188,7 @@ pub async fn init_vault_config_from_file(...) {
 
 ### 14. Database Repository Integration Tests Missing
 **Severity**: MEDIUM
-**Evidence**: `adapters/diesel/src/repositories/` — no inline tests; no integration test helper for DB
+**Evidence**: `adapters/diesel_postgres/src/repositories/` — no inline tests; no integration test helper for DB
 
 **Risk**: CRUD operations not validated; migrations may break without detection
 
@@ -257,7 +257,7 @@ let email = LettreMessage::builder()
 
 ### 19. JSONB Serialization Without Schema Validation
 **Severity**: MEDIUM
-**Evidence**: `adapters/diesel/sql/up.sql` — many JSONB columns (meta, status, trigger, etc.) with no constraints
+**Evidence**: `adapters/diesel_postgres/sql/up.sql` — many JSONB columns (meta, status, trigger, etc.) with no constraints
 
 **Risk**: Invalid JSON silently accepted; query errors at runtime; schema drift
 

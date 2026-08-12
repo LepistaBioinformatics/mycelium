@@ -11,5 +11,6 @@ pub use envelope::{
     build_aad, decrypt_with_dek, encrypt_with_dek, generate_dek, unwrap_dek,
     wrap_dek, AAD_FIELD_HTTP_SECRET, AAD_FIELD_TELEGRAM_BOT_TOKEN,
     AAD_FIELD_TELEGRAM_WEBHOOK_SECRET, AAD_FIELD_TOTP_SECRET, SYSTEM_TENANT_ID,
+    SYSTEM_TENANT_NAME,
 };
 pub use try_as_uuid::*;

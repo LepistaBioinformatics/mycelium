@@ -1,8 +1,8 @@
 use super::{
     dispatchers::{
-        dispatch_account_manager, dispatch_beginners, dispatch_gateway_manager,
-        dispatch_guest_manager, dispatch_managers, dispatch_service,
-        dispatch_staff, dispatch_subscriptions_manager,
+        dispatch_account_manager, dispatch_audit, dispatch_beginners,
+        dispatch_gateway_manager, dispatch_guest_manager, dispatch_managers,
+        dispatch_service, dispatch_staff, dispatch_subscriptions_manager,
         dispatch_system_manager, dispatch_tenant_manager,
         dispatch_tenant_owner, dispatch_users_manager,
     },
@@ -13,12 +13,12 @@ use crate::{
     dtos::MyceliumProfileData, openapi_processor::ServiceOpenApiSchema,
 };
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{
     dev::Payload, error::ResponseError, post, web, FromRequest, HttpRequest,
     HttpResponse, Responder,
 };
 use myc_core::models::AccountLifeCycle;
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::responses::GatewayError;
 use myc_mem_db::repositories::MemDbAppModule;
 use tracing::{error, info, info_span};
@@ -76,6 +76,15 @@ async fn process_single_request(
         }
         Some("managers") => {
             dispatch_managers(
+                profile,
+                app_module,
+                &request.method,
+                request.params.clone(),
+            )
+            .await
+        }
+        Some("audit") => {
+            dispatch_audit(
                 profile,
                 app_module,
                 &request.method,

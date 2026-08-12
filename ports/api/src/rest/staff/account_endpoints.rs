@@ -1,5 +1,6 @@
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{patch, web, Responder};
 use myc_core::{
     domain::dtos::account_type::AccountType,
@@ -7,7 +8,6 @@ use myc_core::{
         downgrade_account_privileges, upgrade_account_privileges,
     },
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
@@ -122,6 +122,7 @@ pub async fn upgrade_account_privileges_url(
             UpgradeTargetAccountType::Staff => AccountType::Staff,
         },
         Box::new(&*app_module.resolve_ref()),
+        Box::new(&*app_module.resolve_ref()),
     )
     .await
     {
@@ -182,6 +183,7 @@ pub async fn downgrade_account_privileges_url(
             DowngradeTargetAccountType::Manager => AccountType::Manager,
             DowngradeTargetAccountType::User => AccountType::User,
         },
+        Box::new(&*app_module.resolve_ref()),
         Box::new(&*app_module.resolve_ref()),
     )
     .await

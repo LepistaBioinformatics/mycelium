@@ -4,7 +4,7 @@ use crate::domain::{
         profile::Profile,
         tenant::{Tenant, TenantStatus},
     },
-    entities::{TenantFetching, TenantUpdating},
+    entities::{ResourceAuditLogRegistration, TenantFetching, TenantUpdating},
 };
 
 use chrono::Local;
@@ -14,7 +14,7 @@ use mycelium_base::{
 use uuid::Uuid;
 
 #[tracing::instrument(
-    name = "update_tenant_archiving_status", 
+    name = "update_tenant_archiving_status",
     fields(profile_id = %profile.acc_id),
     skip_all
 )]
@@ -23,6 +23,7 @@ pub async fn update_tenant_archiving_status(
     tenant_id: Uuid,
     tenant_updating_repo: Box<&dyn TenantUpdating>,
     tenant_fetching_repo: Box<&dyn TenantFetching>,
+    audit_repo: Box<&dyn ResourceAuditLogRegistration>,
 ) -> Result<UpdatingResponseKind<Tenant>, MappedErrors> {
     update_tenant_status(
         profile.to_owned(),
@@ -33,6 +34,7 @@ pub async fn update_tenant_archiving_status(
         tenant_id,
         tenant_updating_repo,
         tenant_fetching_repo,
+        audit_repo,
     )
     .await
 }

@@ -67,16 +67,37 @@ cargo build --release
 
 ## Database setup
 
-Mycelium ships with a SQL script that creates the database, user, and schema:
+Mycelium ships with a single SQL script that creates the database, user, and the complete
+schema in one invocation:
 
 ```bash
 psql postgres://postgres:postgres@localhost:5432/postgres \
-  -f postgres/sql/up.sql \
+  -f adapters/diesel_postgres/sql/up.sql \
   -v db_password='REPLACE_WITH_STRONG_PASSWORD'
 ```
 
 This creates a database named `mycelium-dev` and a user named `mycelium-user`. To use a
 different database name, add `-v db_name='my-database'`.
+
+There is nothing else to apply — every migration under
+`adapters/diesel_postgres/sql/migrations/` is already folded into `up.sql`. The DDL runs in
+a single transaction, so a failure leaves no partial schema behind.
+
+`up.sql` performs **fresh installs only**. Run against a database that already has the
+schema, it prints a notice and exits without changing anything. To upgrade an existing
+`9.0.0-rc.x` database, apply the files in
+`adapters/diesel_postgres/sql/migrations/` in chronological order instead — **as the same
+superuser that created the schema**, not as the application's own user. Some of those files
+issue `GRANT`s, which require table ownership.
+
+> Upgrading from `9.0.0-rc.x`? Apply `20260812_01_audit_tables_grants.sql` even if you think
+> you are current. Until it lands, `instance_settings` and `resource_audit_log` carry no
+> grants for the application role, and the staff-bootstrap claim and audit-log writes fail
+> for any deployment whose app does not connect as a superuser.
+
+> **SQLite / standalone mode needs none of this.** That backend compiles its migrations
+> into the binary and applies them on every boot, so the schema appears when you start
+> `myc-api`.
 
 ---
 

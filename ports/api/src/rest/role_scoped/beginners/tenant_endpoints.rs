@@ -1,11 +1,11 @@
 use crate::dtos::MyceliumProfileData;
 
+use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{get, web, Responder};
 use myc_core::{
     domain::dtos::tenant::Tenant,
     use_cases::role_scoped::beginner::tenant::fetch_tenant_public_info,
 };
-use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     utils::HttpJsonResponse,
     wrappers::default_response_to_http_response::{
