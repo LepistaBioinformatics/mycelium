@@ -147,6 +147,13 @@ Additive migration, same pattern as the existing `20260421_01_envelope_encryptio
 place — this feature hasn't shipped or been applied anywhere yet, so this is a correction, not
 migration churn).
 
+> **Superseded 2026-08-12** — `features/single-file-postgres-install/`. `instance_settings` is
+> now folded into `up.sql`, and folding every migration is mandatory going forward
+> (`CONVENTIONS.md` § "Postgres schema changes: two files, one commit"). Not folding it also
+> left the table with **no grants** on databases built from `up.sql` + migrations, because
+> `up.sql`'s `GRANT ALL ON ALL TABLES` had already run — fixed by
+> `20260812_01_audit_tables_grants.sql`.
+
 **Migration application (Postgres) is manual, matching existing convention.** Verified: neither
 `encrypted_dek`/`kek_version` (the existing `20260421_01_envelope_encryption.sql` migration) nor
 any other dated migration file appears in `up.sql`, and no script/Dockerfile in the repo applies

@@ -1,5 +1,37 @@
--- Example usage:
--- psql -v db_password='myc-password' -f up.sql
+-- =============================================================================
+-- Mycelium -- complete Postgres schema (9.0.0)
+-- =============================================================================
+--
+-- This file is the ONE-SHOT installer: it creates the database, the role/user,
+-- and the entire schema in a single psql invocation. Every migration under
+-- `sql/migrations/` is already folded in here.
+--
+--   psql postgres://postgres:postgres@localhost:5432/postgres \
+--        -f up.sql \
+--        -v db_password='myc-password'
+--
+-- Optional variables (defaults shown): -v db_name='mycelium-dev'
+--                                      -v db_user='mycelium-user'
+--                                      -v db_role='service-role-mycelium'
+--
+-- FRESH INSTALLS ONLY. Re-running against a database that already has the
+-- schema exits early without touching anything (see GUARD below). To upgrade an
+-- existing 9.0.0-rc.x database, apply `sql/migrations/*.sql` in chronological
+-- order instead.
+--
+-- MAINTAINERS: a new migration goes in `sql/migrations/` *and* is folded into
+-- this file in the same commit, so both paths stay equivalent.
+--
+-- Structure:
+--   Phase A (no transaction) -- CREATE DATABASE cannot run inside one, and \c
+--                               reconnects. Ends with the already-installed guard.
+--   Phase B (BEGIN/COMMIT)   -- all DDL, so a failure leaves nothing behind.
+-- =============================================================================
+
+
+-- #############################################################################
+-- PHASE A -- database creation and guard (not transactional)
+-- #############################################################################
 
 --------------------------------------------------------------------------------
 -- EXTERNAL VALUES
@@ -48,13 +80,67 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = :'db_name')\gexec
 \c :"db_name"
 
 --------------------------------------------------------------------------------
--- ROLES
+-- GUARD
+--
+-- Postgres has no `ALTER TABLE ... ADD CONSTRAINT IF NOT EXISTS`, so the ~40
+-- constraint statements below cannot be made individually re-runnable without
+-- wrapping each in a DO block. Probing for one table the schema cannot exist
+-- without achieves the same thing in three lines: a second run is a clean
+-- no-op with a message instead of a cascade of "already exists" errors.
+--
 --------------------------------------------------------------------------------
 
-CREATE ROLE :"db_role";
+SELECT (to_regclass('public.account') IS NOT NULL) AS schema_already_installed \gset
 
-CREATE USER :"db_user" WITH PASSWORD :'db_password';
+\if :schema_already_installed
+    \echo ''
+    \echo '>> SKIP: the Mycelium schema is already installed in this database.'
+    \echo '>>       up.sql only performs fresh installs. To upgrade an existing'
+    \echo '>>       database, apply sql/migrations/*.sql in chronological order.'
+    \echo ''
+    \quit
+\endif
 
+
+-- #############################################################################
+-- PHASE B -- schema (all-or-nothing)
+-- #############################################################################
+
+BEGIN;
+
+--------------------------------------------------------------------------------
+-- ROLES
+--
+-- Roles are cluster-global, not per-database: an unguarded CREATE ROLE fails
+-- when a second Mycelium database is installed on the same Postgres cluster.
+-- The GUARD above does not cover that case -- there the role exists but this
+-- database's schema does not.
+--
+--------------------------------------------------------------------------------
+
+SELECT NOT EXISTS (
+    SELECT FROM pg_roles WHERE rolname = :'db_role'
+) AS must_create_role \gset
+
+\if :must_create_role
+    CREATE ROLE :"db_role";
+\else
+    \echo 'Role' :'db_role' 'already exists -- reusing it.'
+\endif
+
+-- An existing user keeps its current password: silently rotating a credential
+-- the operator did not ask to rotate is worse than doing nothing.
+SELECT NOT EXISTS (
+    SELECT FROM pg_roles WHERE rolname = :'db_user'
+) AS must_create_user \gset
+
+\if :must_create_user
+    CREATE USER :"db_user" WITH PASSWORD :'db_password';
+\else
+    \echo 'User' :'db_user' 'already exists -- password left unchanged.'
+\endif
+
+-- Idempotent: re-granting an existing membership is a no-op.
 GRANT :"db_role" TO :"db_user";
 
 --------------------------------------------------------------------------------
@@ -71,6 +157,15 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 --------------------------------------------------------------------------------
 
 -- Tenant table
+--
+-- encrypted_dek/kek_version implement envelope encryption: a per-tenant
+-- data-encryption key (DEK) wrapped by the KEK. encrypted_dek is NULL until
+-- first use -- the implementation provisions it lazily via get_or_provision_dek.
+-- kek_version tracks which KEK generation wrapped the DEK; increment it after a
+-- KEK rotation and run `myc-cli rotate-kek`. See migration 20260421_01.
+--
+-- Column order matters: the migration appends these two, so they must stay last
+-- for a folded install to match a migrated one.
 CREATE TABLE tenant (
     id UUID DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
@@ -78,7 +173,9 @@ CREATE TABLE tenant (
     meta JSONB,
     status JSONB[],
     created TIMESTAMPTZ DEFAULT now(),
-    updated TIMESTAMPTZ DEFAULT NULL
+    updated TIMESTAMPTZ DEFAULT NULL,
+    encrypted_dek TEXT,
+    kek_version INTEGER NOT NULL DEFAULT 1
 );
 
 -- Account table
@@ -271,6 +368,22 @@ CREATE TABLE kv_artifact (
 CREATE INDEX IF NOT EXISTS idx_kv_artifact_expires_at
     ON kv_artifact (expires_at);
 
+-- Generalized instance-wide settings store. Each row is one named
+-- configuration entry; `value`'s shape is defined and validated by the
+-- application layer, not by this schema. Row *presence* under a given key
+-- is itself meaningful for existence-based flags -- e.g. the staff
+-- bootstrap claim (see feature staff-bootstrap) stores nothing but a
+-- `STAFF_BOOTSTRAP_KEY` row once claimed; its absence means still pending.
+-- See migration 20260713_01.
+CREATE TABLE instance_settings (
+    key VARCHAR(255) PRIMARY KEY,
+    value JSONB NOT NULL,
+    created_by JSONB DEFAULT '{}'::JSONB,
+    updated_by JSONB DEFAULT '{}'::JSONB,
+    created TIMESTAMPTZ DEFAULT now(),
+    updated TIMESTAMPTZ DEFAULT NULL
+);
+
 --------------------------------------------------------------------------------
 -- CONSTRAINTS
 --------------------------------------------------------------------------------
@@ -376,7 +489,7 @@ FROM
 JOIN
 	guest_user AS gu
 ON
-	ga.guest_user_id = gu.id 
+	ga.guest_user_id = gu.id
 JOIN
 	guest_role AS gr
 ON
@@ -417,14 +530,20 @@ ORDER BY id DESC;
 
 -- GIN index on account.meta for fast JSONB reverse-lookup (used by Telegram IdP
 -- and any future platform IdP that stores identity in account.meta).
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_account_meta_gin
+--
+-- Built non-CONCURRENTLY: this file only ever runs on a fresh, empty database
+-- (see GUARD), so there is no concurrent write traffic to avoid locking -- and
+-- CONCURRENTLY cannot run inside the transaction that makes phase B atomic.
+-- The CONCURRENTLY form, plus the DROP of the pre-c79c1f5d
+-- idx_account_meta_telegram_user_id_per_tenant index it replaced, stay in
+-- sql/migrations/ for databases being upgraded in place.
+CREATE INDEX IF NOT EXISTS idx_account_meta_gin
 ON account USING GIN (meta jsonb_path_ops);
 
 -- Unique index: one Telegram from.id globally. Telegram identity links to a
 -- personal account (user/manager/staff), which has no tenant_id. A Telegram ID
 -- maps to at most one personal account across all tenants.
-DROP INDEX CONCURRENTLY IF EXISTS idx_account_meta_telegram_user_id_per_tenant;
-CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS
+CREATE UNIQUE INDEX IF NOT EXISTS
     idx_account_meta_telegram_user_id_global
 ON account ((meta -> 'telegram_user' ->> 'id'))
 WHERE meta ? 'telegram_user';
@@ -447,7 +566,60 @@ CREATE INDEX IF NOT EXISTS idx_telegram_audit_created_at
     ON telegram_identity_audit (created_at);
 
 --------------------------------------------------------------------------------
+-- RESOURCE AUDIT LOG
+--
+-- See migration 20260713_02.
+--
+--------------------------------------------------------------------------------
+
+-- Immutable audit trail for lifecycle events (created/updated/deleted) across
+-- account, tenant, user, guest_role, and webhook resources.
+--
+-- created_at has no DEFAULT now() -- it is always supplied by the
+-- application (captured synchronously at the moment the triggering use case
+-- succeeded), not derived from insert time, since the write is dispatched
+-- asynchronously through a channel.
+--
+-- No foreign keys on resource_id/tenant_id: the row must outlive the
+-- resource it describes (e.g. a deleted account keeps its audit history) --
+-- same posture as telegram_identity_audit.
+--
+-- Immutability is enforced both by omitting Updating/Deletion ports in the
+-- application layer AND by the trigger below, which closes the gap left by
+-- direct DB access under the app's own role.
+
+CREATE TABLE IF NOT EXISTS resource_audit_log (
+    id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    resource_type TEXT        NOT NULL CHECK (resource_type IN
+                       ('account', 'account_meta', 'user', 'tenant', 'tenant_meta', 'guest_role', 'webhook')),
+    resource_id   UUID        NOT NULL,
+    tenant_id     UUID,
+    event         TEXT        NOT NULL CHECK (event IN ('created', 'updated', 'deleted')),
+    performed_by  JSONB       NOT NULL,
+    metadata      JSONB       NOT NULL DEFAULT '{}'::jsonb,
+    created_at    TIMESTAMPTZ NOT NULL
+);
+
+CREATE INDEX idx_resource_audit_log_resource ON resource_audit_log (resource_id, created_at DESC);
+CREATE INDEX idx_resource_audit_log_tenant   ON resource_audit_log (tenant_id, created_at DESC)
+    WHERE tenant_id IS NOT NULL;
+
+CREATE OR REPLACE FUNCTION prevent_resource_audit_log_mutation() RETURNS TRIGGER AS $$
+BEGIN
+    RAISE EXCEPTION 'resource_audit_log is immutable: % not allowed', TG_OP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_resource_audit_log_immutable
+BEFORE UPDATE OR DELETE ON resource_audit_log
+FOR EACH ROW EXECUTE FUNCTION prevent_resource_audit_log_mutation();
+
+--------------------------------------------------------------------------------
 -- PERMISSIONS
+--
+-- Must stay last: `ON ALL TABLES` is evaluated at execution time, so any table
+-- created after this block would silently receive no grants.
+--
 --------------------------------------------------------------------------------
 
 GRANT CONNECT ON DATABASE :"db_name" TO :"db_role";
@@ -457,3 +629,9 @@ GRANT USAGE ON SCHEMA public TO :"db_role";
 GRANT ALL ON ALL TABLES IN SCHEMA public TO :"db_role";
 
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO :"db_role";
+
+COMMIT;
+
+\echo ''
+\echo '>> OK: Mycelium 9.0.0 schema installed in database' :'db_name'
+\echo ''

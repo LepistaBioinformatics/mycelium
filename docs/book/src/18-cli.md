@@ -106,8 +106,8 @@ DATABASE_URL="postgres://user:pass@localhost:5432/mycelium" myc-cli native-error
 ## Typical installation order
 
 ```bash
-# 1. Apply the database schema
-psql "$DATABASE_URL" -f postgres/sql/up.sql
+# 1. Apply the database schema (complete — no separate migrations to run)
+psql "$DATABASE_URL" -f adapters/diesel_postgres/sql/up.sql
 
 # 2. Seed native error codes
 myc-cli native-errors init
