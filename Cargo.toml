@@ -110,7 +110,7 @@ tracing-opentelemetry = "0.32"
 toml = "0.9"
 uuid = { version = "1.1", features = ["v3", "v4", "v7", "serde", "fast-rng"] }
 utoipa-redoc = { version = "5", features = ["actix-web"] }
-utoipa-swagger-ui = { version = "9", features = ["actix-web"] }
+utoipa-swagger-ui = { version = "9", features = ["actix-web", "vendored"] }
 wildmatch = "2.1"
 zstd = "0.13"
 
