@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-07-22T17:17:27-03:00\n"
+"POT-Creation-Date: 2026-08-12T14:52:42-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -319,7 +319,7 @@ msgstr ""
 "[Provedores de Identidade Alternativos](./10-alternative-idps.md) para "
 "detalhes."
 
-#: src/00-introduction.md:78 src/02-installation.md:83
+#: src/00-introduction.md:78 src/02-installation.md:104
 #: src/03-quick-start.md:130 src/04-configuration.md:264
 #: src/05-deploy-locally.md:123
 msgid "Next steps"
@@ -469,13 +469,15 @@ msgid "Database setup"
 msgstr "Configuração do banco de dados"
 
 #: src/02-installation.md:70
+#, fuzzy
 msgid ""
-"Mycelium ships with a SQL script that creates the database, user, and schema:"
+"Mycelium ships with a single SQL script that creates the database, user, and "
+"the complete schema in one invocation:"
 msgstr ""
 "O Mycelium inclui um script SQL que cria o banco de dados, o usuário e o "
 "esquema:"
 
-#: src/02-installation.md:78
+#: src/02-installation.md:79
 msgid ""
 "This creates a database named `mycelium-dev` and a user named `mycelium-"
 "user`. To use a different database name, add `-v db_name='my-database'`."
@@ -484,14 +486,47 @@ msgstr ""
 "`mycelium-user`. Para usar um nome de banco de dados diferente, adicione `-v "
 "db_name='my-database'`."
 
-#: src/02-installation.md:85
+#: src/02-installation.md:82
+msgid ""
+"There is nothing else to apply — every migration under `adapters/"
+"diesel_postgres/sql/migrations/` is already folded into `up.sql`. The DDL "
+"runs in a single transaction, so a failure leaves no partial schema behind."
+msgstr ""
+
+#: src/02-installation.md:86
+msgid ""
+"`up.sql` performs **fresh installs only**. Run against a database that "
+"already has the schema, it prints a notice and exits without changing "
+"anything. To upgrade an existing `9.0.0-rc.x` database, apply the files in "
+"`adapters/diesel_postgres/sql/migrations/` in chronological order instead — "
+"**as the same superuser that created the schema**, not as the application's "
+"own user. Some of those files issue `GRANT`s, which require table ownership."
+msgstr ""
+
+#: src/02-installation.md:93
+msgid ""
+"Upgrading from `9.0.0-rc.x`? Apply `20260812_01_audit_tables_grants.sql` "
+"even if you think you are current. Until it lands, `instance_settings` and "
+"`resource_audit_log` carry no grants for the application role, and the staff-"
+"bootstrap claim and audit-log writes fail for any deployment whose app does "
+"not connect as a superuser."
+msgstr ""
+
+#: src/02-installation.md:98
+msgid ""
+"**SQLite / standalone mode needs none of this.** That backend compiles its "
+"migrations into the binary and applies them on every boot, so the schema "
+"appears when you start `myc-api`."
+msgstr ""
+
+#: src/02-installation.md:106
 msgid ""
 "[Quick Start](./03-quick-start.md) — Start the gateway with a minimal config"
 msgstr ""
 "[Início Rápido](./03-quick-start.md) — Inicie o gateway com uma configuração "
 "mínima"
 
-#: src/02-installation.md:86
+#: src/02-installation.md:107
 msgid ""
 "[Deploy Locally](./05-deploy-locally.md) — Full Docker Compose setup with "
 "all dependencies"
@@ -499,14 +534,14 @@ msgstr ""
 "[Implantação Local](./05-deploy-locally.md) — Configuração completa com "
 "Docker Compose e todas as dependências"
 
-#: src/02-installation.md:90 src/03-quick-start.md:139
+#: src/02-installation.md:111 src/03-quick-start.md:139
 #: src/05-deploy-locally.md:105 src/06-downstream-apis.md:280
 #: src/10-alternative-idps.md:469 src/07-running-tests.md:73
 #: src/08-release-process.md:266 src/09-log-cache-tests.md:175
 msgid "Troubleshooting"
 msgstr "Solução de problemas"
 
-#: src/02-installation.md:92
+#: src/02-installation.md:113
 msgid ""
 "**`cargo install` fails with SSL errors** — Install OpenSSL dev libraries: "
 "`sudo apt-get install libssl-dev` (Ubuntu) or `brew install openssl` (macOS)."
@@ -515,7 +550,7 @@ msgstr ""
 "desenvolvimento do OpenSSL: `sudo apt-get install libssl-dev` (Ubuntu) ou "
 "`brew install openssl` (macOS)."
 
-#: src/02-installation.md:95
+#: src/02-installation.md:116
 msgid ""
 "**Database connection fails** — Verify PostgreSQL is running: `psql --"
 "version` and `psql postgres://postgres:postgres@localhost:5432/postgres`."
@@ -524,7 +559,7 @@ msgstr ""
 "em execução: `psql --version` e `psql postgres://postgres:"
 "postgres@localhost:5432/postgres`."
 
-#: src/02-installation.md:98
+#: src/02-installation.md:119
 msgid "**Redis not responding** — Run `redis-cli ping`. Expect `PONG`."
 msgstr "**Redis não responde** — Execute `redis-cli ping`. Espere `PONG`."
 
@@ -8301,7 +8336,8 @@ msgid "Typical installation order"
 msgstr "Ordem típica de instalação"
 
 #: src/18-cli.md:109
-msgid "# 1. Apply the database schema\n"
+msgid ""
+"# 1. Apply the database schema (complete — no separate migrations to run)\n"
 msgstr ""
 
 #: src/18-cli.md:111
