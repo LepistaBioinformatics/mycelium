@@ -1,7 +1,14 @@
 # State
 
-**Last Updated:** 2026-07-27
-**Current Work:** Two header trust-boundary fixes in the gateway router, both implemented in the
+**Last Updated:** 2026-08-12
+**Current Work:** **9.0.0 stable release prep.** Single-file Postgres install
+(`features/single-file-postgres-install/`, AD-010) implemented and verified on Postgres
+12/14/16, **awaiting user UAT before commit** — `up.sql` is now the complete 9.0.0 schema plus
+a new migration fixing a grant bug the fold exposed. Latest tag is `9.0.0-rc.12`; **open
+question with the user:** cut rc.13 first or go straight to stable. Either way
+`release-stable.yml` requires `refs/heads/main`, so a `develop` → `main` PR is a prerequisite.
+
+**Previously:** Two header trust-boundary fixes in the gateway router, both implemented in the
 same working tree on branch `fix/gateway-response-header-blocklist`, all gates green (449 tests),
 **awaiting user UAT before commit** — response-side (`features/gateway-response-header-blocklist/`,
 AD-008) and request-side (`features/strip-inbound-mycelium-headers/`, AD-009, **security fix**).
@@ -14,6 +21,61 @@ Execute (see block below). Standalone Mode G1-G9 done, not committed yet. M1 ong
 ---
 
 ## Recent Decisions (Last 60 days)
+
+### AD-010: `up.sql` is the complete Postgres schema; folding is mandatory (2026-08-12)
+
+**Feature:** `features/single-file-postgres-install/`. Blocks the 9.0.0 stable release.
+
+Postgres was the only backend without a one-shot install: `up.sql` + five hand-applied
+migrations, three of them not re-runnable. SQLite self-installs (`embed_migrations!` +
+`provision_database`, called from `main.rs:112`), so it needed nothing.
+
+**Decisions:**
+
+- **Fold into `up.sql`; no sibling `install.sql`** (user decision). This reverses the
+  convention in `staff-bootstrap/design.md` and `postgres-only-mode/spec.md` — but that
+  convention was **already broken**: `kv_artifact` and `idx_message_queue_claim` had been
+  folded in during postgres-only-mode, matching that feature's `tasks.md:104` and
+  contradicting the other two docs. Only 3 of the 5 migrations were actually missing.
+  New rule recorded in `CONVENTIONS.md`: a migration goes in `sql/migrations/` **and** is
+  folded into `up.sql` in the same commit.
+- **Two-phase file.** `CREATE DATABASE` can't run in a transaction and `\c` reconnects, so
+  phase A (vars, database creation, guard) is unwrapped and phase B (all DDL) is a single
+  `BEGIN`/`COMMIT`. Verified atomic: a bogus column type leaves 0 tables behind.
+- **Re-runnability via an early-exit guard, not 40 `DO` blocks.** Postgres has no
+  `ADD CONSTRAINT IF NOT EXISTS`; probing `to_regclass('public.account')` and `\quit`ing
+  with a "use sql/migrations/ to upgrade" message achieves the same in three lines.
+  `CREATE ROLE`/`CREATE USER` *are* individually guarded — roles are cluster-global, so an
+  unguarded `CREATE ROLE` fails on the second Mycelium database in a cluster, a case the
+  early-exit guard doesn't cover. An existing user keeps its password.
+- **`CREATE INDEX CONCURRENTLY` → plain `CREATE INDEX`** in `up.sql` (required by the
+  transaction; pointless on an empty database). The `CONCURRENTLY` form and the legacy
+  `DROP INDEX ... _per_tenant` stay in `sql/migrations/` for in-place upgrades.
+- **Embedded Postgres migrations deferred**, not adopted: every replica in a multi-pod
+  deployment would race to migrate at boot. Larger design question than the release needs.
+
+**Bug found by the verification diff, not by reading:** `instance_settings` and
+`resource_audit_log` have **no grants** on any database built from `up.sql` + migrations.
+`up.sql`'s `GRANT ALL ON ALL TABLES` is evaluated at execution time and sits at the end of the
+file, so it never covered tables created later by migrations — and unlike `20260722_01`
+(`kv_artifact`), neither of those two migrations granted explicitly. Superuser deployments
+never notice (including `eva-natural-ai`); a README-style install where the app connects as
+`db_user` fails on staff bootstrap and every audit-log write. Fixed by a **new** migration,
+`20260812_01_audit_tables_grants.sql` — not by editing the shipped files, since nothing tracks
+which migrations ran and an operator would never re-read an old one. **It must be applied by
+the table owner** (the superuser that ran `up.sql`): as `db_user` it fails with
+`permission denied for table instance_settings`. That is pre-existing convention — the shipped
+`20260722_01` fails the same way (`must be owner of table kv_artifact`) — now documented in
+both the migration header and `docs/book/src/02-installation.md`.
+
+**Verification:** built both paths (migrated vs consolidated) on throwaway containers and
+diffed `pg_dump --schema-only`. Identical — 420 normalised lines — on Postgres **12, 14 and
+16**. Plus: guard no-ops on re-run, role reuse works, atomicity holds, all three folded tables
+carry grants, immutability trigger still fires. **Deferred:** a CI job asserting the two paths
+produce identical dumps is the only durable enforcement of the new convention.
+
+**Status:** implemented, **not committed** (awaiting user UAT per commit-validation rule). No
+Rust changed, so cargo gates are untouched by this work.
 
 ### AD-009: Client-supplied `x-mycelium-*` headers are stripped before forwarding (2026-07-27)
 
@@ -852,6 +914,8 @@ pointer `e955f50` on `main`.
 - [ ] `TelegramConfig` trait está em `core/domain/entities` mas nenhum use case do core a usa — apenas o port handler a consome diretamente via shaku. Isso viola o espírito da arquitetura hexagonal (traits no core deveriam ser portas para use cases, não para ports). Opções: mover o trait para `adapters/service` como tipo concreto, ou criar um use case de "resolve config" que o port chame. Capturado durante: Telegram IdP (2026-04-19)
 - [ ] Email address validation in the DTO layer (not just at send time) — Captured during: fix-notifier-panics
 - [ ] Hot-reloading Tera templates (ops/config concern) — Captured during: fix-notifier-panics
+- [ ] **CI job: assert `up.sql` alone and `up.sql` + `sql/migrations/*` produce identical `pg_dump --schema-only` output.** `CONVENTIONS.md` now *states* that every migration must be folded into `up.sql`; only CI can *enforce* it. Without this, the two paths silently diverge the first time someone adds a migration and forgets the fold — which is exactly how `instance_settings`/`resource_audit_log` lost their grants. A working `verify.sh` was written during the feature and is the basis for the job. — Captured during: single-file-postgres-install (AD-010)
+- [ ] **`embed_migrations!` on the Postgres adapter**, so Postgres self-installs and self-migrates like SQLite does. Would eliminate operator-applied SQL entirely. Blocker to think through first: in a multi-pod Kubernetes deployment every replica would race to migrate at boot — needs an advisory-lock or init-container/Job strategy before it's safe. — Captured during: single-file-postgres-install (AD-010, D-06)
 
 ---
 
