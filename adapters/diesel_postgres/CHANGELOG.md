@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.0] - 2026-08-12
+
+### 🚀 Features
+
+- *(postgres)* Make up.sql the complete 9.0.0 schema
+
+### 🐛 Bug Fixes
+
+- *(postgres)* Grant the app role access to instance_settings and resource_audit_log
+
+## [9.0.0-rc.13] - 2026-07-29
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0-rc.13
+
 ## [9.0.0-rc.12] - 2026-07-28
 
 ### ⚙️ Miscellaneous Tasks

@@ -1,10 +1,10 @@
 # State
 
 **Last Updated:** 2026-08-28
-**Current Work:** **Issue #187 — parentless guest role grant**
-(`features/parentless-guest-role-grant/`, AD-011) implemented on branch
-`feat/parentless-guest-role-grant`, all gates green (338 core tests, 0 failures),
-**awaiting user UAT before commit**.
+**Current Work:** **Release hygiene.** Issue #187 (parentless guest role grant,
+`features/parentless-guest-role-grant/`, AD-011) is **merged** into `develop` via PR #189.
+Follow-up in flight: the `9.0.0` release commit never came back from `main`, so `develop` still
+declared `9.0.0-rc.13` — see AD-012.
 
 **Also open:** **9.0.0 stable release prep.** Single-file Postgres install
 (`features/single-file-postgres-install/`, AD-010) implemented and verified on Postgres
@@ -26,6 +26,36 @@ Execute (see block below). Standalone Mode G1-G9 done, not committed yet. M1 ong
 ---
 
 ## Recent Decisions (Last 60 days)
+
+### AD-012: the stable release commit must be back-merged into `develop` (2026-08-28)
+
+`cargo release` bumps the version **on the branch it runs from**. `9.0.0` was cut on `main`, so
+`chore: Release version 9.0.0` (`cdd8f8bc`) lived only there; `develop` still declared
+`9.0.0-rc.13`. `release-prerelease.yml` runs from `develop`, so a dispatch with `beta` read the
+stale version and died on cargo-release's misleading `unsupported release level beta, only major,
+minor, and patch are supported` (run 33205154348).
+
+The message is a red herring: `src/ops/version.rs`'s `increment_beta` rejects the **rc → beta**
+transition specifically. Confirmed by diffing cargo-release 1.1.3 (last green run) against 1.1.5
+(the failing one) — that code is byte-identical, so the tool upgrade was not the cause.
+
+**The dangerous case is not the one that failed.** With `develop` behind, a `rc` dispatch would
+have silently cut `9.0.0-rc.14` — a version *behind* the already-published `9.0.0` — and shipped
+it to crates.io and GHCR without a single error.
+
+**Decisions:**
+
+- **Back-merge is a mandatory step after every stable release**, documented in
+  `docs/book/src/08-release-process.md` (it was not mentioned anywhere before) and added to the
+  release checklist.
+- **`release-prerelease.yml` gained a pre-flight step**, placed before the ~6min cargo-release
+  build so a bad dispatch fails in seconds. It refuses to run while `develop`'s version is lower
+  than `main`'s, and it explains the rc → beta rejection in its own words.
+- **The guard compares versions, not commit ancestry**, so it is satisfied whether a back-merge PR
+  is merged or squashed.
+- **`sort -V` is not semver.** It ranks `9.0.0-rc.13` *above* `9.0.0`. The comparator rewrites the
+  pre-release hyphen as `~` first, which GNU sort ranks before everything — verified against
+  rc/beta/stable/minor pairs.
 
 ### AD-011: a root guest role is grantable by whoever already holds it (2026-08-28)
 

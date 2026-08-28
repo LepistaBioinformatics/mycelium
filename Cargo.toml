@@ -118,20 +118,20 @@ zstd = "0.13"
 # Mycelium packages
 # ------------------------------------------------------------------------------
 
-myc-core = { version = "9.0.0-rc.13", path = "core" }
-mycelium-base = { version = "9.0.0-rc.13", path = "lib/base" }
-mycelium-config = { version = "9.0.0-rc.13", path = "lib/config" }
-mycelium-openapi = { version = "9.0.0-rc.13", path = "lib/openapi" }
-mycelium-http-tools = { version = "9.0.0-rc.13", path = "lib/http_tools" }
-mycelium-memory-db = { version = "9.0.0-rc.13", path = "adapters/mem_db" }
-mycelium-service = { version = "9.0.0-rc.13", path = "adapters/service" }
-mycelium-diesel = { version = "9.0.0-rc.13", path = "adapters/diesel_postgres" }
-mycelium-diesel-sqlite = { version = "9.0.0-rc.13", path = "adapters/diesel_sqlite" }
-mycelium-notifier = { version = "9.0.0-rc.13", path = "adapters/notifier" }
-mycelium-adapters-shared-lib = { version = "9.0.0-rc.13", path = "adapters/shared" }
-mycelium-key-value = { version = "9.0.0-rc.13", path = "adapters/kv_db" }
-mycelium-moka-cache = { version = "9.0.0-rc.13", path = "adapters/moka_cache" }
-mycelium-postgres-kv = { version = "9.0.0-rc.13", path = "adapters/postgres_kv" }
+myc-core = { version = "9.0.0", path = "core" }
+mycelium-base = { version = "9.0.0", path = "lib/base" }
+mycelium-config = { version = "9.0.0", path = "lib/config" }
+mycelium-openapi = { version = "9.0.0", path = "lib/openapi" }
+mycelium-http-tools = { version = "9.0.0", path = "lib/http_tools" }
+mycelium-memory-db = { version = "9.0.0", path = "adapters/mem_db" }
+mycelium-service = { version = "9.0.0", path = "adapters/service" }
+mycelium-diesel = { version = "9.0.0", path = "adapters/diesel_postgres" }
+mycelium-diesel-sqlite = { version = "9.0.0", path = "adapters/diesel_sqlite" }
+mycelium-notifier = { version = "9.0.0", path = "adapters/notifier" }
+mycelium-adapters-shared-lib = { version = "9.0.0", path = "adapters/shared" }
+mycelium-key-value = { version = "9.0.0", path = "adapters/kv_db" }
+mycelium-moka-cache = { version = "9.0.0", path = "adapters/moka_cache" }
+mycelium-postgres-kv = { version = "9.0.0", path = "adapters/postgres_kv" }
 
 
 #
