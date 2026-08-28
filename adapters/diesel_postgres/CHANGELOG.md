@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.1-beta.1] - 2026-08-28
+
+### ⚙️ Miscellaneous Tasks
+
+- Back-merge 9.0.0 release commit from main into develop
+
 ## [9.0.0] - 2026-08-12
 
 ### 🚀 Features
@@ -11,6 +17,10 @@ All notable changes to this project will be documented in this file.
 ### 🐛 Bug Fixes
 
 - *(postgres)* Grant the app role access to instance_settings and resource_audit_log
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.0
 
 ## [9.0.0-rc.13] - 2026-07-29
 
