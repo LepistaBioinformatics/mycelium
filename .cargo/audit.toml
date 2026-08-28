@@ -1,0 +1,30 @@
+# cargo-audit configuration
+#
+# Read by the `Security Audit` CI job (.github/workflows/security.yml) and by
+# local `cargo audit` runs.
+
+[advisories]
+
+#
+# RUSTSEC-2026-0258 -- h2 unbounded empty DATA frames (low severity DoS:
+# empty DATA frames are queued without limit, so a peer that never drains a
+# stream can drive unbounded memory growth, or a panic on length overflow).
+#
+# The advisory patches only the 0.4 line (>= 0.4.16). Two h2 versions are in
+# the graph:
+#
+#   - h2 0.4.x -- FIXED. Cargo.lock pins 0.4.19 (>= 0.4.16), reached via
+#     hyper 1.x / reqwest 0.12 / tonic.
+#   - h2 0.3.27 -- NO PATCHED RELEASE EXISTS. It is the latest 0.3 release and
+#     is required transitively by actix-http 3.x (actix-web 4, awc,
+#     actix-web-httpauth, actix-cors, ...) and by hyper 0.14 via reqwest 0.11.
+#     actix-http 3.13.3, the newest release, still declares `h2 = "0.3"`.
+#
+# There is therefore nothing to upgrade to for the 0.3 instance: clearing it
+# means leaving the actix-web 4 stack, which is the gateway's HTTP server.
+#
+# Revisit when actix-http moves to h2 0.4 (drop this entry and re-run the
+# audit) -- and drop reqwest 0.11 from `core/` at that point too, since it is
+# the other 0.3 root.
+#
+ignore = ["RUSTSEC-2026-0258"]

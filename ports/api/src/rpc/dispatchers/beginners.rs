@@ -28,7 +28,7 @@ use crate::{
     dtos::MyceliumProfileData,
     middleware::{
         check_credentials_with_multi_identity_provider,
-        parse_issuer_from_request,
+        parse_issuer_from_request, resolve_issuer_from_provider,
     },
 };
 
@@ -64,7 +64,6 @@ use myc_core::{
     },
 };
 use myc_http_tools::responses::GatewayError;
-use myc_http_tools::settings::MYCELIUM_PROVIDER_KEY;
 use shaku::HasComponent;
 use std::str::FromStr;
 use tracing::warn;
@@ -95,21 +94,16 @@ pub async fn dispatch_beginners(
                             data: None,
                         }
                     })?;
-            let issuer = if let Some(provider) = external_provider {
-                match provider.issuer.async_get_or_error().await {
-                    Ok(issuer) => issuer,
-                    Err(err) => {
-                        warn!("issuer err: {:?}", err);
-                        return Err(JsonRpcError {
-                            code: types::codes::INTERNAL_ERROR,
-                            message: err.to_string(),
-                            data: None,
-                        });
+            let issuer = resolve_issuer_from_provider(external_provider)
+                .await
+                .map_err(|err| {
+                    warn!("issuer err: {:?}", err);
+                    JsonRpcError {
+                        code: types::codes::INTERNAL_ERROR,
+                        message: err.to_string(),
+                        data: None,
                     }
-                }
-            } else {
-                MYCELIUM_PROVIDER_KEY.to_string()
-            };
+                })?;
             let p: CreateDefaultAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;

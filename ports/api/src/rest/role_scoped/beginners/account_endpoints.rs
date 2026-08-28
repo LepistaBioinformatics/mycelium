@@ -1,11 +1,15 @@
 use crate::{
     dtos::MyceliumProfileData,
-    middleware::check_credentials_with_multi_identity_provider,
+    middleware::{
+        check_credentials_with_multi_identity_provider,
+        resolve_issuer_from_provider,
+    },
 };
 
 use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::{
-    delete, get, patch, post, web, HttpRequest, HttpResponse, Responder,
+    delete, error::ResponseError, get, patch, post, web, HttpRequest,
+    HttpResponse, Responder,
 };
 use myc_core::{
     models::AccountLifeCycle,
@@ -113,25 +117,17 @@ pub async fn create_default_account_url(
         {
             Err(err) => {
                 warn!("err: {:?}", err);
-                return HttpResponse::InternalServerError()
-                    .json(HttpJsonResponse::new_message(err.to_string()));
+                return err.error_response();
             }
             Ok(res) => res,
         };
 
-    let issuer = if let Some(provider) = external_provider {
-        match provider.issuer.async_get_or_error().await {
-            Ok(issuer) => issuer,
-            Err(err) => {
-                warn!("err: {:?}", err);
-                return HttpResponse::InternalServerError()
-                    .json(HttpJsonResponse::new_message(err.to_string()));
-            }
+    let issuer = match resolve_issuer_from_provider(external_provider).await {
+        Ok(issuer) => issuer,
+        Err(err) => {
+            warn!("err: {:?}", err);
+            return err.error_response();
         }
-    } else {
-        return HttpResponse::BadRequest().json(HttpJsonResponse::new_message(
-            "Invalid provider".to_string(),
-        ));
     };
 
     match create_user_account(
