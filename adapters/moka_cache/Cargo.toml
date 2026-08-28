@@ -2,7 +2,7 @@
 name = "mycelium-moka-cache"
 description = "Provide an in-process (moka) key-value cache adapter to the mycelium project (standalone mode)."
 
-version = "9.0.0-rc.13"
+version = "9.0.0"
 
 edition.workspace = true
 authors.workspace = true
