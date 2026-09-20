@@ -2,7 +2,8 @@
 
 **Feature:** standalone-mode · **Spec:** `./spec.md` · **Design:** `./design.md`
 **Branch:** `feat/standalone-mode` (gateway submodule) — NEVER `develop`
-**Status:** Ready for execution
+**Status:** Shipped — the work described here is implemented and merged. Individual task lines were
+never converted to checkboxes; treat the prose "— ✅ Done" markers as the record.
 **Created:** 2026-07-06
 
 Invariant on every task: **full mode stays byte-identical** (SM-R14). Gate for all Rust tasks:

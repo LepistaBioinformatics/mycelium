@@ -2,7 +2,8 @@
 
 **Feature:** standalone-mode
 **Milestone:** M3 — Auth Evolution (roadmap entry: "Standalone Mode")
-**Status:** Specified
+**Status:** Shipped — implemented and merged. `adapters/diesel_sqlite` and `adapters/moka_cache` exist,
+`Dockerfile.standalone` builds it, and CI builds the `standalone` feature (`.github/workflows/ci.yml:47`).
 **Created:** 2026-07-06
 **Scope:** Complex (new persistence backend + cache + email + secrets + build/packaging; workspace-wide feature flags)
 
