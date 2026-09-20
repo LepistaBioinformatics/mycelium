@@ -36,6 +36,19 @@ pub struct LicensedResourcesFetchingSqlDbRepository {
     pub db_config: Arc<dyn DbPoolProvider>,
 }
 
+/// Defensive quoting for string values that end up interpolated into the
+/// dynamically-built query below (diesel's raw `sql_query` bind chain is
+/// static, so a runtime-variable number/type of filters can't all go through
+/// `.bind()`). Numeric/bool/UUID values are interpolated via `Display`, which
+/// can't emit quotes; only free-form strings (email, role slug) go through
+/// this escape.
+///
+/// Mirrors `adapters/diesel_sqlite/src/repositories/licensed_resources/
+/// licensed_resources_fetching.rs`, which already carried it.
+fn sql_quote(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "''"))
+}
+
 #[async_trait]
 impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
     #[tracing::instrument(name = "list_licensed_resources", skip_all)]
@@ -53,15 +66,15 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         })?;
 
         let mut sql: String = format!(
-            "SELECT * FROM licensed_resources WHERE gu_email = '{}'",
-            email.email(),
+            "SELECT * FROM licensed_resources WHERE gu_email = {}",
+            sql_quote(&email.email()),
         );
 
         if let Some(tenant_id) = tenant {
             sql.push_str(
                 format!(
-                    " AND (tenant_id = '{}' OR tenant_id IS NULL)",
-                    tenant_id.to_string()
+                    " AND (tenant_id = {} OR tenant_id IS NULL)",
+                    sql_quote(&tenant_id.to_string())
                 )
                 .as_str(),
             );
@@ -74,9 +87,9 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 .iter()
                 .fold(String::new(), |acc, role| {
                     format!(
-                        "{}(gr_slug = '{}' AND gr_perm >= {}) OR ",
+                        "{}(gr_slug = {} AND gr_perm >= {}) OR ",
                         acc,
-                        role.name,
+                        sql_quote(&role.name),
                         role.permission.to_owned().clone().unwrap_or_default()
                             as i64
                     )
@@ -98,11 +111,16 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
         if let Some(related_accounts) = related_accounts {
             match related_accounts {
                 RelatedAccounts::AllowedAccounts(ids) => {
+                    // `= ANY(a,b)` is not valid Postgres -- `ANY` wants an
+                    // array or a subquery, so this branch errored on every
+                    // call. `IN (...)` with quoted UUIDs is what the SQLite
+                    // sibling emits and what the column actually compares
+                    // against.
                     sql.push_str(
                         format!(
-                            " AND acc_id = ANY({})",
+                            " AND acc_id IN ({})",
                             ids.into_iter()
-                                .map(|i| i.to_string())
+                                .map(|i| sql_quote(&i.to_string()))
                                 .collect::<Vec<String>>()
                                 .join(",")
                         )
@@ -111,8 +129,11 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 }
                 RelatedAccounts::HasTenantWidePrivileges(tenant_id) => {
                     sql.push_str(
-                        format!(" AND tenant_id = '{}'", tenant_id.to_string())
-                            .as_str(),
+                        format!(
+                            " AND tenant_id = {}",
+                            sql_quote(&tenant_id.to_string())
+                        )
+                        .as_str(),
                     );
                 }
                 _ => (),
@@ -205,5 +226,33 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
                 })
                 .collect(),
         ))
+    }
+}
+
+// ? ---------------------------------------------------------------------------
+// ? TESTS
+// ? ---------------------------------------------------------------------------
+
+#[cfg(test)]
+mod tests {
+    use super::sql_quote;
+
+    #[test]
+    fn sql_quote_wraps_plain_values() {
+        assert_eq!(sql_quote("admin"), "'admin'");
+        assert_eq!(sql_quote(""), "''");
+    }
+
+    #[test]
+    fn sql_quote_neutralizes_an_injection_payload() {
+        // The payload that would otherwise close the literal and append a
+        // tautology to the `gr_slug` predicate.
+        assert_eq!(sql_quote("x' OR '1'='1"), "'x'' OR ''1''=''1'");
+    }
+
+    #[test]
+    fn sql_quote_doubles_every_quote() {
+        assert_eq!(sql_quote("a'b'c"), "'a''b''c'");
+        assert_eq!(sql_quote("'"), "''''");
     }
 }

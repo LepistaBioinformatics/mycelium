@@ -4,7 +4,7 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use diesel::{Connection, QueryDsl, RunQueryDsl};
+use diesel::{sql_types::Text, Connection, QueryDsl, RunQueryDsl};
 use myc_core::domain::{
     dtos::{
         email::Email,
@@ -49,20 +49,18 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
 
         let result: Result<(Option<Uuid>, bool), diesel::result::Error> = conn
             .transaction(|conn| {
-                let sql = format!(
-                    r#"
-                SELECT id, expiration, meta 
-                FROM token 
-                WHERE meta->'email'->>'username' = '{username}' 
-                AND meta->'email'->>'domain' = '{domain}' 
-                AND meta->>'userId' = '{user_id}'
-                "#,
-                    username = meta.email.username,
-                    domain = meta.email.domain,
-                    user_id = meta.user_id
-                );
+                let sql = r#"
+                SELECT id, expiration, meta
+                FROM token
+                WHERE meta->'email'->>'username' = $1
+                AND meta->'email'->>'domain' = $2
+                AND meta->>'userId' = $3
+                "#;
 
                 let tokens = diesel::sql_query(sql)
+                    .bind::<Text, _>(meta.email.username.to_owned())
+                    .bind::<Text, _>(meta.email.domain.to_owned())
+                    .bind::<Text, _>(meta.user_id.to_string())
                     .load::<TokenModel>(conn)
                     .map_err(|e| {
                         error!("Error fetching token: {}", e);
@@ -148,20 +146,18 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
 
         let result: Result<(Option<Uuid>, bool), diesel::result::Error> = conn
             .transaction(|conn| {
-                let sql = format!(
-                    r#"
-                SELECT id, expiration, meta 
-                FROM token 
-                WHERE meta->'email'->>'username' = '{username}' 
-                AND meta->'email'->>'domain' = '{domain}' 
-                AND meta->>'userId' = '{user_id}'
-                "#,
-                    username = meta.email.username,
-                    domain = meta.email.domain,
-                    user_id = meta.user_id
-                );
+                let sql = r#"
+                SELECT id, expiration, meta
+                FROM token
+                WHERE meta->'email'->>'username' = $1
+                AND meta->'email'->>'domain' = $2
+                AND meta->>'userId' = $3
+                "#;
 
                 let tokens = diesel::sql_query(sql)
+                    .bind::<Text, _>(meta.email.username.to_owned())
+                    .bind::<Text, _>(meta.email.domain.to_owned())
+                    .bind::<Text, _>(meta.user_id.to_string())
                     .load::<TokenModel>(conn)
                     .map_err(|e| {
                         error!("Error fetching token: {}", e);
@@ -245,9 +241,9 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let username = email.username.replace('\'', "''");
-        let domain = email.domain.replace('\'', "''");
-        let token_val = token.replace('\'', "''");
+        let username = email.username.to_owned();
+        let domain = email.domain.to_owned();
+        let token_val = token.to_owned();
 
         let result: Result<Option<(i32, String)>, diesel::result::Error> = conn
             .transaction(|conn| {
@@ -255,22 +251,20 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
                 // ? Fetch by (email, token) — token must not be null yet
                 // ? -----------------------------------------------------------
 
-                let sql = format!(
-                    r#"
+                let sql = r#"
                     SELECT id, expiration, meta
                     FROM token
-                    WHERE meta->>'token' = '{token}'
-                    AND meta->'email'->>'username' = '{username}'
-                    AND meta->'email'->>'domain' = '{domain}'
+                    WHERE meta->>'token' = $1
+                    AND meta->'email'->>'username' = $2
+                    AND meta->'email'->>'domain' = $3
                     AND expiration > now()
                     LIMIT 1
-                    "#,
-                    token = token_val,
-                    username = username,
-                    domain = domain
-                );
+                    "#;
 
                 let tokens = diesel::sql_query(sql)
+                    .bind::<Text, _>(&token_val)
+                    .bind::<Text, _>(&username)
+                    .bind::<Text, _>(&domain)
                     .load::<TokenModel>(conn)
                     .map_err(|e| {
                         error!(
@@ -297,17 +291,20 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
                 // ? Consume the display token — set token field to JSON null
                 // ? -----------------------------------------------------------
 
-                let update_sql = format!(
-                    "UPDATE token \
-                     SET meta = jsonb_set(meta, '{{token}}', 'null'::jsonb) \
-                     WHERE id = {id}",
-                    id = record.id
-                );
+                let update_sql = "UPDATE token \
+                     SET meta = jsonb_set(meta, '{token}', 'null'::jsonb) \
+                     WHERE id = $1";
 
-                diesel::sql_query(update_sql).execute(conn).map_err(|e| {
-                    error!("Error consuming magic link display token: {}", e);
-                    diesel::result::Error::RollbackTransaction
-                })?;
+                diesel::sql_query(update_sql)
+                    .bind::<diesel::sql_types::Integer, _>(record.id)
+                    .execute(conn)
+                    .map_err(|e| {
+                        error!(
+                            "Error consuming magic link display token: {}",
+                            e
+                        );
+                        diesel::result::Error::RollbackTransaction
+                    })?;
 
                 Ok(Some((record.id, code)))
             });
@@ -339,9 +336,9 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        let username = email.username.replace('\'', "''");
-        let domain = email.domain.replace('\'', "''");
-        let code_val = code.replace('\'', "''");
+        let username = email.username.to_owned();
+        let domain = email.domain.to_owned();
+        let code_val = code.to_owned();
 
         let result: Result<bool, diesel::result::Error> =
             conn.transaction(|conn| {
@@ -349,23 +346,21 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
                 // ? Fetch by (email, code) where display token was consumed
                 // ? -----------------------------------------------------------
 
-                let sql = format!(
-                    r#"
+                let sql = r#"
                     SELECT id, expiration, meta
                     FROM token
-                    WHERE meta->>'code' = '{code}'
-                    AND meta->'email'->>'username' = '{username}'
-                    AND meta->'email'->>'domain' = '{domain}'
+                    WHERE meta->>'code' = $1
+                    AND meta->'email'->>'username' = $2
+                    AND meta->'email'->>'domain' = $3
                     AND (meta->>'token') IS NULL
                     AND expiration > now()
                     LIMIT 1
-                    "#,
-                    code = code_val,
-                    username = username,
-                    domain = domain
-                );
+                    "#;
 
                 let tokens = diesel::sql_query(sql)
+                    .bind::<Text, _>(&code_val)
+                    .bind::<Text, _>(&username)
+                    .bind::<Text, _>(&domain)
                     .load::<TokenModel>(conn)
                     .map_err(|e| {
                         error!("Error fetching magic link code token: {}", e);
