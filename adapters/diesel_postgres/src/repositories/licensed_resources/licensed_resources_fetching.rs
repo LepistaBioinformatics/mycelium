@@ -100,8 +100,6 @@ impl LicensedResourcesFetching for LicensedResourcesFetchingSqlDbRepository {
             sql.push_str(format!(" AND ({})", statement).as_str());
         }
 
-        tracing::debug!("SQL Query: {}", sql);
-
         if let Some(was_verified) = was_verified {
             sql.push_str(
                 format!(" AND gu_verified = {}", was_verified).as_str(),
