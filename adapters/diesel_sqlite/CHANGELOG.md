@@ -2,11 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.1-beta.2] - 2026-09-21
+
+### 🐛 Bug Fixes
+
+- *(licensed_resources)* Drop the SQL log that printed the email in the clear
+
 ## [9.0.1-beta.1] - 2026-08-28
 
 ### ⚙️ Miscellaneous Tasks
 
 - Back-merge 9.0.0 release commit from main into develop
+- Release version 9.0.1-beta.1
 
 ## [9.0.0] - 2026-08-12
 

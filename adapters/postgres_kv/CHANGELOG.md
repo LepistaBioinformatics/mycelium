@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### ⚙️ Miscellaneous Tasks
 
 - Back-merge 9.0.0 release commit from main into develop
+- Release version 9.0.1-beta.1
 
 ## [9.0.0] - 2026-08-12
 

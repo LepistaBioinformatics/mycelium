@@ -2,11 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.1-beta.2] - 2026-09-21
+
+### 🐛 Bug Fixes
+
+- *(diesel_postgres)* Bind the connection-string signature instead of interpolating it
+- *(diesel_postgres)* Stop interpolating free-form strings into raw SQL
+- *(licensed_resources)* Drop the SQL log that printed the email in the clear
+
 ## [9.0.1-beta.1] - 2026-08-28
 
 ### ⚙️ Miscellaneous Tasks
 
 - Back-merge 9.0.0 release commit from main into develop
+- Release version 9.0.1-beta.1
 
 ## [9.0.0] - 2026-08-12
 
@@ -48,15 +57,15 @@ All notable changes to this project will be documented in this file.
 
 ## [9.0.0-rc.9] - 2026-07-22
 
+### 🚀 Features
+
+- *(postgres-only)* Add third build mode (Postgres KV cache, no Redis)
+
 ### ⚙️ Miscellaneous Tasks
 
 - Release version 9.0.0-rc.9
 
 ## [9.0.0-rc.7] - 2026-07-17
-
-### 🚀 Features
-
-- *(postgres-only)* Add third build mode (Postgres KV cache, no Redis)
 
 ### ⚙️ Miscellaneous Tasks
 

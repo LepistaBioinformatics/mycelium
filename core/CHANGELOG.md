@@ -4,15 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [9.0.1-beta.1] - 2026-08-28
 
-### ⚙️ Miscellaneous Tasks
-
-- Back-merge 9.0.0 release commit from main into develop
-
-## [9.0.0] - 2026-08-12
-
 ### 🚀 Features
 
 - *(guest)* Allow granting a parentless guest role to whoever holds it
+
+### ⚙️ Miscellaneous Tasks
+
+- Back-merge 9.0.0 release commit from main into develop
+- Release version 9.0.1-beta.1
+
+## [9.0.0] - 2026-08-12
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -126,13 +127,13 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- Merge develop — release automation, crates.io publish, GHCR Docker workflow
 - Release version 8.3.1-rc.4
 
 ## [8.3.1-rc.3] - 2026-04-27
 
 ### ⚙️ Miscellaneous Tasks
 
-- Merge develop — release automation, crates.io publish, GHCR Docker workflow
 - Release version 8.3.1-rc.3
 
 ## [8.3.1-rc.2] - 2026-04-26
