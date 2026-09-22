@@ -49,6 +49,21 @@ consumeIntervalInSecs = 30
 consumeBatchSize = 25
 maxAttempts = 5
 
+# Bounds every outbound call; without them a hung downstream holds the
+# dispatcher open forever.
+requestTimeoutInSecs = 30
+connectTimeoutInSecs = 10
+
+# Retry spacing: 30, 60, 120, 240, 480 seconds, capped at an hour.
+retryBaseInSecs = 30
+retryCapInSecs = 3600
+
+# Crash recovery for a claimed batch, NOT retry spacing. MUST exceed the
+# worst-case wall-clock of one whole batch (floor:
+# consumeBatchSize * requestTimeoutInSecs = 750s here), or a live-but-slow
+# replica has its undispatched rows reclaimed and the webhook is sent twice.
+visibilityTimeoutInSecs = 900
+
 # ------------------------------------------------------------------------------
 # SQL DATABASE (PostgreSQL)
 # ------------------------------------------------------------------------------

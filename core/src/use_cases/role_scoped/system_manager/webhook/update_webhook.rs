@@ -203,6 +203,7 @@ mod tests {
             _: Option<
                 Vec<crate::domain::dtos::webhook::WebHookExecutionStatus>,
             >,
+            _: crate::domain::dtos::webhook::WebHookRetryPolicy,
         ) -> Result<
             mycelium_base::entities::FetchManyResponseKind<
                 crate::domain::dtos::webhook::WebHookPayloadArtifact,
@@ -381,6 +382,7 @@ mod tests {
             _: Option<
                 Vec<crate::domain::dtos::webhook::WebHookExecutionStatus>,
             >,
+            _: crate::domain::dtos::webhook::WebHookRetryPolicy,
         ) -> Result<
             mycelium_base::entities::FetchManyResponseKind<
                 crate::domain::dtos::webhook::WebHookPayloadArtifact,
