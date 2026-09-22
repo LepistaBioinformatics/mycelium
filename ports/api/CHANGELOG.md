@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.1-beta.3] - 2026-09-22
+
+### 🚀 Features
+
+- *(webhook)* Claim events exclusively, back off exponentially, terminate
+
+## [9.0.1-beta.2] - 2026-09-21
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.2
+
 ## [9.0.1-beta.1] - 2026-08-28
 
 ### 🚀 Features

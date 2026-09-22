@@ -2,11 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.1-beta.3] - 2026-09-22
+
+### 🚀 Features
+
+- *(webhook)* Claim events exclusively, back off exponentially, terminate
+
+### 🐛 Bug Fixes
+
+- *(webhook)* Stop a stored JSON null in propagations panicking the dispatcher
+
 ## [9.0.1-beta.2] - 2026-09-21
 
 ### 🐛 Bug Fixes
 
 - *(licensed_resources)* Drop the SQL log that printed the email in the clear
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.2
 
 ## [9.0.1-beta.1] - 2026-08-28
 
