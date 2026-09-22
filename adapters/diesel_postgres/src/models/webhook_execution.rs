@@ -16,6 +16,12 @@ pub(crate) struct WebHookExecution {
     pub status: Option<String>,
     pub attempts: i32,
     pub attempted: Option<NaiveDateTime>,
+    /// When a dispatcher claimed the row
+    ///
+    /// The lease clock, not the retry clock. Internal to this adapter: it is
+    /// not surfaced on `WebHookPayloadArtifact`, because nothing outside the
+    /// claim query has any use for it.
+    pub claimed_at: Option<NaiveDateTime>,
     pub propagations: Option<JsonValue>,
     pub encrypted: Option<bool>,
 }

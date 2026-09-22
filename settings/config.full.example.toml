@@ -146,8 +146,45 @@ secret = { vault = { path = "myc/core/accountLifeCycle", key = "hmacSecretV1" } 
 # consumeBatchSize = 25
 
 # How many delivery attempts before a webhook is given up on. Optional --
-# defaults to 5 if omitted.
+# defaults to 5 if omitted. On the last one the event becomes `exhausted`,
+# a terminal status it never leaves, and the abandonment is logged at error
+# level.
 # maxAttempts = 5
+
+# Whole-request timeout (seconds) on each outbound webhook call. Optional --
+# defaults to 30 if omitted. Without it a downstream that accepts the
+# connection and never answers holds the dispatcher open indefinitely.
+# requestTimeoutInSecs = 30
+
+# Connect-phase timeout (seconds). Optional -- defaults to 10 if omitted.
+# connectTimeoutInSecs = 10
+
+# Delay (seconds) before the first retry. Doubles with every further attempt
+# -- 30, 60, 120, 240, 480 at the defaults -- up to retryCapInSecs. Optional
+# -- defaults to 30 if omitted.
+# retryBaseInSecs = 30
+
+# Ceiling (seconds) on that exponential delay. Optional -- defaults to 3600
+# if omitted.
+# retryCapInSecs = 3600
+
+# How long (seconds) an event claimed by one replica stays invisible to the
+# others. This is crash recovery, not retry spacing: it only governs how long
+# an event left behind by a pod that died waits before another pod may take
+# it.
+#
+# INVARIANT: it must exceed the worst-case wall-clock of one whole claimed
+# batch, since the batch is claimed up front and dispatched sequentially.
+# `consumeBatchSize * requestTimeoutInSecs` (25 x 30 = 750s at the defaults)
+# is the floor of that bound -- each event also pays a webhook lookup, a KEK
+# derivation, a DEK fetch and a secret-decryption pass. RAISING the batch or
+# the request timeout REQUIRES raising this with it, or a live-but-slow
+# replica has its undispatched rows reclaimed and the webhook is delivered
+# twice.
+#
+# Optional -- defaults to 900 if omitted. Ignored in standalone mode, which
+# is a single process with nothing to race against.
+# visibilityTimeoutInSecs = 900
 
 # ------------------------------------------------------------------------------
 # SQL DATABASE (POSTGRES) ADAPTER SETTINGS

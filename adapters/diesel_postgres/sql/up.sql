@@ -330,9 +330,18 @@ CREATE TABLE webhook_execution (
     attempts INT DEFAULT 0,
     created TIMESTAMPTZ DEFAULT now(),
     attempted TIMESTAMPTZ DEFAULT NULL,
+    -- When a dispatcher took ownership of the row, not when it last tried to
+    -- deliver it. `attempted` drives the back-off, `claimed_at` drives crash
+    -- recovery; see migration 20260920_01.
+    claimed_at TIMESTAMPTZ DEFAULT NULL,
     status VARCHAR(100) DEFAULT NULL,
     propagations JSONB
 );
+
+-- Backs the multi-pod-safe webhook claim (status filter, attempt-tier back-off
+-- and the stale-claim branch on one scan). See migration 20260920_01.
+CREATE INDEX IF NOT EXISTS idx_webhook_execution_claim
+    ON webhook_execution (status, attempts, attempted);
 
 -- Token table
 CREATE TABLE token (

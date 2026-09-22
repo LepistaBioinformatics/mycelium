@@ -6,18 +6,26 @@ use crate::{
         webhook_execution::WebHookExecution as WebHookExecutionModel,
     },
     schema::{webhook, webhook_execution},
-    types::{json_from_text, naive_timestamp_from_text, uuid_to_text},
+    types::{
+        json_from_text, naive_timestamp_from_text, naive_timestamp_to_text,
+        uuid_to_text,
+    },
 };
 
 use async_trait::async_trait;
-use chrono::Local;
-use diesel::prelude::*;
+use chrono::{Duration, Local, NaiveDateTime};
+use diesel::{
+    expression::BoxableExpression,
+    prelude::*,
+    sql_types::{Bool, Nullable},
+    sqlite::Sqlite,
+};
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
         webhook::{
             PayloadId, WebHook, WebHookExecutionStatus, WebHookPayloadArtifact,
-            WebHookTrigger,
+            WebHookRetryPolicy, WebHookTrigger,
         },
     },
     entities::WebHookFetching,
@@ -174,6 +182,7 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
         max_events: u32,
         max_attempts: u32,
         status: Option<Vec<WebHookExecutionStatus>>,
+        retry_policy: WebHookRetryPolicy,
     ) -> Result<FetchManyResponseKind<WebHookPayloadArtifact>, MappedErrors>
     {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
@@ -187,12 +196,22 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
             .map(|s| s.to_string())
             .collect::<Vec<String>>();
 
+        // No claim here, and none needed: standalone is a single process with a
+        // single dispatcher, so there is no second consumer to race against and
+        // nothing to lock against it. `SKIP LOCKED` has no SQLite equivalent
+        // anyway. The Postgres twin's `claimed_at`/`processing` lease is absent
+        // from this schema for the same reason -- the same split the email
+        // queue's two adapters already carry.
+        let now = Local::now().naive_utc();
+
         let execution_events = webhook_execution::table
-            .filter(
-                webhook_execution::status
-                    .eq_any(statuses)
-                    .and(webhook_execution::attempts.lt(max_attempts as i32)),
-            )
+            .filter(webhook_execution::attempts.lt(max_attempts as i32))
+            .filter(due_for_dispatch(
+                &statuses,
+                max_attempts,
+                &retry_policy,
+                now,
+            ))
             .order(webhook_execution::created.desc())
             .limit(max_events as i64)
             .select(WebHookExecutionModel::as_select())
@@ -210,8 +229,15 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                 payload: record.payload.to_string(),
                 payload_id: PayloadId::from_str(&record.payload_id).unwrap(),
                 trigger: record.trigger.parse().unwrap(),
-                propagations: record.propagations.map(|p| {
-                    serde_json::from_value(json_from_text(&p).unwrap()).unwrap()
+                // An attempt that failed before any hook was contacted has
+                // nothing to propagate, and the column then holds a JSON
+                // `null` -- which is not a sequence. Degrade to `None` rather
+                // than unwrap: this runs inside the dispatcher task, where a
+                // panic takes the whole queue down over one malformed row.
+                propagations: record.propagations.as_deref().and_then(|p| {
+                    json_from_text(p)
+                        .ok()
+                        .and_then(|value| serde_json::from_value(value).ok())
                 }),
                 encrypted: record.encrypted,
                 attempts: Some(record.attempts as u8),
@@ -234,5 +260,201 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
             .collect();
 
         Ok(FetchManyResponseKind::Found(execution_events))
+    }
+}
+
+/// The selector for events that are actually owed an attempt right now
+///
+/// The back-off half of the Postgres twin's predicate, and only that half: one
+/// OR-term per attempt tier, comparing the row's `attempted` against its own
+/// precomputed cutoff. The exponent is computed in Rust so the expression stays
+/// inside the diesel DSL and stays identical across both backends.
+///
+/// `attempted` is TEXT here. `naive_timestamp_to_text` writes a fixed-width
+/// date-and-time prefix with an optional fractional tail, so lexicographic
+/// order is chronological order and `<` means what it looks like. The cutoff is
+/// formatted once and bound -- never concatenated into the query.
+///
+type ClaimPredicate = Box<
+    dyn BoxableExpression<
+        webhook_execution::table,
+        Sqlite,
+        SqlType = Nullable<Bool>,
+    >,
+>;
+
+fn due_for_dispatch(
+    statuses: &[String],
+    max_attempts: u32,
+    retry_policy: &WebHookRetryPolicy,
+    now: NaiveDateTime,
+) -> ClaimPredicate {
+    let mut predicate: ClaimPredicate = Box::new(
+        webhook_execution::status
+            .eq_any(statuses.to_owned())
+            .and(webhook_execution::attempted.is_null()),
+    );
+
+    // One OR-term per tier, so the chain is bounded twice over: `attempts` is a
+    // `u8` on the domain artifact and can never exceed 255, and an unclamped
+    // `maxAttempts` would otherwise emit one term per configured attempt --
+    // a 10 000-term predicate for a 10 000 ceiling.
+    let tiers = max_attempts.min(u8::MAX as u32 + 1);
+
+    for attempt in 0..tiers {
+        let cutoff = now
+            - Duration::seconds(retry_policy.backoff_in_secs(attempt) as i64);
+
+        predicate = Box::new(
+            predicate.or(webhook_execution::status
+                .eq_any(statuses.to_owned())
+                .and(webhook_execution::attempts.eq(attempt as i32))
+                .and(
+                    webhook_execution::attempted
+                        .lt(naive_timestamp_to_text(&cutoff)),
+                )),
+        );
+    }
+
+    predicate
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        test_support::setup_temp_db,
+        types::{naive_timestamp_to_text, uuid_to_text},
+    };
+    use myc_core::domain::dtos::webhook::WebHookTrigger;
+
+    fn seed(
+        provider: &Arc<dyn SqliteDbPoolProvider>,
+        events: usize,
+        status: WebHookExecutionStatus,
+        attempts: i32,
+        attempted: Option<NaiveDateTime>,
+    ) -> usize {
+        let conn = &mut provider.get_pool().get().unwrap();
+
+        for index in 0..events {
+            let row = WebHookExecutionModel {
+                id: uuid_to_text(&Uuid::new_v4()),
+                trigger: WebHookTrigger::SubscriptionAccountCreated.to_string(),
+                payload: format!("{{\"event\":{index}}}"),
+                payload_id: Uuid::new_v4().to_string(),
+                created: naive_timestamp_to_text(&Local::now().naive_utc()),
+                status: Some(status.to_string()),
+                attempts,
+                attempted: attempted.as_ref().map(naive_timestamp_to_text),
+                propagations: None,
+                encrypted: None,
+            };
+
+            diesel::insert_into(webhook_execution::table)
+                .values(&row)
+                .execute(conn)
+                .unwrap();
+        }
+
+        events
+    }
+
+    async fn claim(
+        repository: &WebHookFetchingSqlDbRepository,
+        retry_policy: WebHookRetryPolicy,
+    ) -> usize {
+        let claimed = repository
+            .fetch_execution_event(
+                100,
+                5,
+                Some(vec![
+                    WebHookExecutionStatus::Pending,
+                    WebHookExecutionStatus::Failed,
+                ]),
+                retry_policy,
+            )
+            .await
+            .unwrap();
+
+        match claimed {
+            FetchManyResponseKind::Found(events) => events.len(),
+            other => panic!("unexpected claim response: {other:?}"),
+        }
+    }
+
+    /// The back-off boundary, on the tier where it actually bites
+    ///
+    /// `attempts = 1` owes `backoff(1)` = 60s. Seeding `attempted` at 45s and
+    /// then 75s straddles that, which is the only shape that proves anything
+    /// here: a policy with a zero base and a zero cap would pass even if
+    /// `backoff_in_secs` were ignored outright, since every tier's cutoff would
+    /// collapse onto `now`.
+    ///
+    /// It is also the only place the TEXT storage of `attempted` is compared
+    /// against a non-trivial boundary. `naive_timestamp_to_text` writes a
+    /// fixed-width date and time, so lexicographic order is chronological
+    /// order -- if that ever stopped holding, this is the test that would say
+    /// so.
+    ///
+    #[tokio::test]
+    async fn the_backoff_boundary_holds_against_text_timestamps() {
+        let now = Local::now().naive_utc();
+
+        let too_soon_db = setup_temp_db();
+        let seeded = seed(
+            &too_soon_db.provider,
+            3,
+            WebHookExecutionStatus::Failed,
+            1,
+            Some(now - Duration::seconds(45)),
+        );
+
+        let repository = WebHookFetchingSqlDbRepository {
+            db_config: too_soon_db.provider.to_owned(),
+        };
+
+        assert_eq!(
+            claim(&repository, WebHookRetryPolicy::new(30, 3600, 900)).await,
+            0,
+            "a failure 45s old was retried inside its 60s back-off"
+        );
+
+        let due_db = setup_temp_db();
+        seed(
+            &due_db.provider,
+            seeded,
+            WebHookExecutionStatus::Failed,
+            1,
+            Some(now - Duration::seconds(75)),
+        );
+
+        let repository = WebHookFetchingSqlDbRepository {
+            db_config: due_db.provider.to_owned(),
+        };
+
+        assert_eq!(
+            claim(&repository, WebHookRetryPolicy::new(30, 3600, 900)).await,
+            seeded,
+            "a failure past its 60s back-off was never retried"
+        );
+    }
+
+    /// A never-attempted event is due at once, whatever the policy says
+    #[tokio::test]
+    async fn a_never_attempted_event_is_not_held_by_the_backoff() {
+        let db = setup_temp_db();
+        let seeded =
+            seed(&db.provider, 2, WebHookExecutionStatus::Pending, 0, None);
+
+        let repository = WebHookFetchingSqlDbRepository {
+            db_config: db.provider.to_owned(),
+        };
+
+        assert_eq!(
+            claim(&repository, WebHookRetryPolicy::new(3600, 3600, 900)).await,
+            seeded,
+            "a brand-new event was held back by a back-off it never earned"
+        );
     }
 }

@@ -210,6 +210,7 @@ diesel::table! {
         attempts -> Int4,
         created -> Timestamptz,
         attempted -> Nullable<Timestamptz>,
+        claimed_at -> Nullable<Timestamptz>,
         #[max_length = 100]
         status -> Nullable<Varchar>,
         propagations -> Nullable<Jsonb>,
