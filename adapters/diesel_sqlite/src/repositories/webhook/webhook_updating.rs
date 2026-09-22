@@ -110,12 +110,25 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
             None => "unknown".to_string(),
         };
 
-        let propagations_text = json_to_text(
-            &serde_json::to_value(artifact.propagations.to_owned()).unwrap(),
-        )
-        .map_err(|e| {
-            updating_err(format!("Failed to serialize propagations: {e}"))
-        })?;
+        // `None` becomes a SQL NULL, not the text "null": the second is a
+        // value that fails to deserialize back into a sequence.
+        let propagations_text = match artifact.propagations.to_owned() {
+            None => None,
+            Some(propagations) => {
+                let value =
+                    serde_json::to_value(propagations).map_err(|e| {
+                        updating_err(format!(
+                            "Failed to serialize propagations: {e}"
+                        ))
+                    })?;
+
+                Some(json_to_text(&value).map_err(|e| {
+                    updating_err(format!(
+                        "Failed to serialize propagations: {e}"
+                    ))
+                })?)
+            }
+        };
 
         diesel::update(
             webhook_execution::table.find(uuid_to_text(&artifact_id)),

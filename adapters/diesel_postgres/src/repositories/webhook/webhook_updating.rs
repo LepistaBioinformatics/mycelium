@@ -125,6 +125,17 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
             None => "unknown".to_string(),
         };
 
+        let propagations = match artifact.propagations.to_owned() {
+            None => None,
+            Some(propagations) => {
+                Some(serde_json::to_value(propagations).map_err(|e| {
+                    updating_err(format!(
+                        "Failed to serialize propagations: {e}"
+                    ))
+                })?)
+            }
+        };
+
         diesel::update(webhook_execution_model::table.find(artifact_id))
             .set((
                 webhook_execution_model::attempts
@@ -132,9 +143,9 @@ impl WebHookUpdating for WebHookUpdatingSqlDbRepository {
                 webhook_execution_model::attempted
                     .eq(Some(Local::now().naive_utc())),
                 webhook_execution_model::status.eq(status),
-                webhook_execution_model::propagations
-                    .eq(serde_json::to_value(artifact.propagations.to_owned())
-                        .unwrap()),
+                // `None` becomes a SQL NULL, not a JSONB `null`: the second
+                // is a value that fails to deserialize back into a sequence.
+                webhook_execution_model::propagations.eq(propagations),
             ))
             .returning(WebHookExecutionModel::as_returning())
             .get_result::<WebHookExecutionModel>(conn)

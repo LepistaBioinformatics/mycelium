@@ -272,12 +272,14 @@ impl WebHookFetching for WebHookFetchingSqlDbRepository {
                 payload: record.payload.to_string(),
                 payload_id: PayloadId::from_str(&record.payload_id).unwrap(),
                 trigger: record.trigger.parse().unwrap(),
-                propagations: match record.propagations {
-                    Some(propagations) => {
-                        Some(from_value(propagations).unwrap())
-                    }
-                    None => None,
-                },
+                // An attempt that failed before any hook was contacted has
+                // nothing to propagate, and the column then holds a JSONB
+                // `null` -- which is not a sequence. Degrade to `None` rather
+                // than unwrap: this runs inside the dispatcher task, where a
+                // panic takes the whole queue down over one malformed row.
+                propagations: record
+                    .propagations
+                    .and_then(|propagations| from_value(propagations).ok()),
                 encrypted: record.encrypted,
                 attempts: Some(record.attempts as u8),
                 attempted: record
