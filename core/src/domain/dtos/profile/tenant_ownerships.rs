@@ -105,9 +105,9 @@ impl FromStr for TenantOwnership {
             }
         };
 
-        let name_decoded =
+        let name_bytes =
             match general_purpose::STANDARD.decode(name_encoded.as_bytes()) {
-                Ok(name) => String::from_utf8(name).unwrap(),
+                Ok(name) => name,
                 Err(_) => {
                     return Err(
                         "Failed to decode tenant ownership name".to_string()
@@ -115,8 +115,15 @@ impl FromStr for TenantOwnership {
                 }
             };
 
+        let name_decoded = String::from_utf8(name_bytes).map_err(|_| {
+            "Tenant ownership name contains invalid UTF-8".to_string()
+        })?;
+
+        let id = Uuid::from_str(tenant_id)
+            .map_err(|_| "Invalid tenant UUID".to_string())?;
+
         Ok(Self {
-            id: Uuid::from_str(tenant_id).unwrap(),
+            id,
             name: name_decoded,
             since,
         })
@@ -129,8 +136,40 @@ impl TenantsOwnership {
             Self::Records(records) => records.to_owned(),
             Self::Urls(urls) => urls
                 .iter()
-                .map(|i| TenantOwnership::from_str(i).unwrap())
+                .filter_map(|i| {
+                    match TenantOwnership::from_str(i) {
+                        Ok(ownership) => Some(ownership),
+                        Err(err) => {
+                            tracing::warn!(error = %err, url = %i, "Failed to parse TenantOwnership from URL");
+                            None
+                        }
+                    }
+                })
                 .collect(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const OWNERSHIP_PREFIX: &str =
+        "tid/00000000000000000000000000000001?since=2020-01-01T00%3A00%3A00Z";
+
+    #[test]
+    fn invalid_utf8_tenant_name_returns_error() {
+        let url = format!("{OWNERSHIP_PREFIX}&name=%2Fw%3D%3D");
+
+        assert!(TenantOwnership::from_str(&url).is_err());
+    }
+
+    #[test]
+    fn malformed_urls_are_skipped_by_collection_conversion() {
+        let ownerships = TenantsOwnership::Urls(vec![format!(
+            "{OWNERSHIP_PREFIX}&name=%2Fw%3D%3D"
+        )]);
+
+        assert!(ownerships.to_ownership_vector().is_empty());
     }
 }
