@@ -275,6 +275,13 @@ impl FromStr for LicensedResource {
                 }
             };
 
+        let acc_name = String::from_utf8(name_decoded)
+            .map_err(|_| "Account name contains invalid UTF-8".to_string())?;
+
+        let permission_i32 = permission_code.parse::<i32>().map_err(|_| {
+            "Invalid permission code, must be an integer".to_string()
+        })?;
+
         //
         // Try to extract optional permit flags
         //
@@ -304,13 +311,16 @@ impl FromStr for LicensedResource {
         };
 
         Ok(Self {
-            tenant_id: Uuid::from_str(tenant_id).unwrap(),
-            acc_id: Uuid::from_str(account_id).unwrap(),
-            role_id: Uuid::from_str(role_id).unwrap(),
+            tenant_id: Uuid::from_str(tenant_id)
+                .map_err(|_| "Invalid tenant UUID".to_string())?,
+            acc_id: Uuid::from_str(account_id)
+                .map_err(|_| "Invalid account UUID".to_string())?,
+            role_id: Uuid::from_str(role_id)
+                .map_err(|_| "Invalid role UUID".to_string())?,
             role: role_name.to_string(),
-            perm: Permission::from_i32(permission_code.parse::<i32>().unwrap()),
+            perm: Permission::from_i32(permission_i32),
             sys_acc: sys,
-            acc_name: String::from_utf8(name_decoded).unwrap(),
+            acc_name,
             verified,
             permit_flags,
             deny_flags,
@@ -333,8 +343,48 @@ impl LicensedResources {
             Self::Records(records) => records.to_owned(),
             Self::Urls(urls) => urls
                 .iter()
-                .map(|i| LicensedResource::from_str(i).unwrap())
+                .filter_map(|i| {
+                    match LicensedResource::from_str(i) {
+                        Ok(resource) => Some(resource),
+                        Err(err) => {
+                            tracing::warn!(error = %err, url = %i, "Failed to parse LicensedResource from URL");
+                            None
+                        }
+                    }
+                })
                 .collect(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const LICENSE_PREFIX: &str =
+        "t/00000000000000000000000000000001/a/00000000000000000000000000000002/r/00000000000000000000000000000003";
+
+    #[test]
+    fn malformed_permission_returns_error() {
+        let url =
+            format!("{LICENSE_PREFIX}?p=role:not-an-integer&s=0&v=0&n=YWJj");
+
+        assert!(LicensedResource::from_str(&url).is_err());
+    }
+
+    #[test]
+    fn invalid_utf8_account_name_returns_error() {
+        let url = format!("{LICENSE_PREFIX}?p=role:0&s=0&v=0&n=%2Fw%3D%3D");
+
+        assert!(LicensedResource::from_str(&url).is_err());
+    }
+
+    #[test]
+    fn malformed_urls_are_skipped_by_collection_conversion() {
+        let resources = LicensedResources::Urls(vec![format!(
+            "{LICENSE_PREFIX}?p=role:not-an-integer&s=0&v=0&n=YWJj"
+        )]);
+
+        assert!(resources.to_licenses_vector().is_empty());
     }
 }
