@@ -347,7 +347,7 @@ impl LicensedResources {
                     match LicensedResource::from_str(i) {
                         Ok(resource) => Some(resource),
                         Err(err) => {
-                            tracing::warn!(error = %err, url = %i, "Failed to parse LicensedResource from URL");
+                            tracing::warn!(error = %err, "Failed to parse LicensedResource from URL");
                             None
                         }
                     }
