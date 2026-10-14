@@ -20,7 +20,13 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::Local;
-use diesel::{dsl::sql, prelude::*, BelongingToDsl, QueryDsl};
+use diesel::{
+    dsl::{sql, AsExprOf},
+    expression::{SqlLiteral, UncheckedBind},
+    prelude::*,
+    sql_types::{Bool, Text},
+    BelongingToDsl, QueryDsl,
+};
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
@@ -378,15 +384,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         }
 
         if let Some((meta_key, value)) = metadata {
-            let json_filter = format!(
-                "LOWER(tenant.meta::text)::jsonb @> LOWER('{}'::text)::jsonb",
-                serde_json::to_string(&json!({
-                    meta_key.to_string().to_lowercase(): value.to_owned()
-                }))
-                .unwrap()
-            );
-
-            let dsl = sql::<diesel::sql_types::Bool>(&json_filter);
+            let dsl = tenant_metadata_containment(&meta_key, &value)?;
             records_query = records_query.filter(dsl.clone());
             count_query = count_query.filter(dsl);
         }
@@ -473,6 +471,30 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
     }
 }
 
+type TenantMetadataContainment =
+    SqlLiteral<Bool, UncheckedBind<SqlLiteral<Bool>, AsExprOf<String, Text>>>;
+
+/// Builds the case-insensitive `tenant.meta @> {key: value}` filter.
+///
+/// The JSON document is sent as a bind parameter: both the key (through
+/// `TenantMetaKey::Custom`) and the value are client-controlled, so they must
+/// never be interpolated into the SQL text.
+fn tenant_metadata_containment(
+    meta_key: &TenantMetaKey,
+    value: &str,
+) -> Result<TenantMetadataContainment, MappedErrors> {
+    let document = serde_json::to_string(&json!({
+        meta_key.to_string().to_lowercase(): value
+    }))
+    .map_err(|e| {
+        fetching_err(format!("Failed to serialize metadata filter: {e}"))
+    })?;
+
+    Ok(sql::<Bool>("LOWER(tenant.meta::text)::jsonb @> LOWER(")
+        .bind::<Text, _>(document)
+        .sql(")::jsonb"))
+}
+
 fn map_tenant_model_to_dto(record: TenantModel) -> Tenant {
     Tenant {
         id: Some(record.id),
@@ -500,5 +522,31 @@ fn map_tenant_model_to_dto(record: TenantModel) -> Tenant {
         owners: Children::Records(vec![]),
         manager: None,
         tags: None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use diesel::{debug_query, pg::Pg};
+
+    #[test]
+    fn metadata_filter_binds_quotes_instead_of_interpolating_them() {
+        let injection = "x') OR (SELECT pg_sleep(5)) IS NULL OR ('";
+        let filter = tenant_metadata_containment(
+            &TenantMetaKey::Custom(injection.to_string()),
+            injection,
+        )
+        .unwrap();
+
+        let rendered = debug_query::<Pg, _>(&filter).to_string();
+        let (sql_text, binds) = rendered.split_once(" -- binds: ").unwrap();
+
+        assert_eq!(
+            sql_text,
+            "LOWER(tenant.meta::text)::jsonb @> LOWER($1)::jsonb"
+        );
+        assert!(!sql_text.contains('\''));
+        assert!(binds.contains("pg_sleep"));
     }
 }

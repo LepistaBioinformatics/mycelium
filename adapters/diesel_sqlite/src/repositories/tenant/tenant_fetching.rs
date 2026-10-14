@@ -19,7 +19,13 @@ use crate::{
 };
 
 use async_trait::async_trait;
-use diesel::{dsl::sql, prelude::*, sql_types::Text, BelongingToDsl, QueryDsl};
+use diesel::{
+    dsl::{sql, AsExprOf},
+    expression::{SqlLiteral, UncheckedBind},
+    prelude::*,
+    sql_types::{Bool, Text},
+    BelongingToDsl, QueryDsl,
+};
 use myc_core::domain::{
     dtos::{
         native_error_codes::NativeErrorCodes,
@@ -218,13 +224,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
             // (case-insensitive match on a single meta key) via SQLite
             // JSON1's json_extract, rather than the "lowercase the whole
             // document" mechanism.
-            let path = format!("$.{}", meta_key.to_string().to_lowercase());
-
-            let dsl = sql::<diesel::sql_types::Bool>(&format!(
-                "LOWER(json_extract(tenant.meta, '{path}')) = LOWER("
-            ))
-            .bind::<Text, _>(value)
-            .sql(")");
+            let dsl = tenant_metadata_match(&meta_key, value);
 
             records_query = records_query.filter(dsl.clone());
             count_query = count_query.filter(dsl);
@@ -306,6 +306,37 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
     }
 }
 
+type TenantMetadataMatch = SqlLiteral<
+    Bool,
+    UncheckedBind<
+        SqlLiteral<
+            Bool,
+            UncheckedBind<SqlLiteral<Bool>, AsExprOf<String, Text>>,
+        >,
+        AsExprOf<String, Text>,
+    >,
+>;
+
+/// Builds the case-insensitive `tenant.meta.<key> = <value>` filter.
+///
+/// Both the JSON path and the value are sent as bind parameters: the key
+/// (through `TenantMetaKey::Custom`) and the value are client-controlled, so
+/// they must never be interpolated into the SQL text. The key is written as a
+/// quoted path label so that `.` or `[` inside it cannot address another
+/// member.
+fn tenant_metadata_match(
+    meta_key: &TenantMetaKey,
+    value: String,
+) -> TenantMetadataMatch {
+    let path = format!("$.\"{}\"", meta_key.to_string().to_lowercase());
+
+    sql::<Bool>("LOWER(json_extract(tenant.meta, ")
+        .bind::<Text, _>(path)
+        .sql(")) = LOWER(")
+        .bind::<Text, _>(value)
+        .sql(")")
+}
+
 fn tag_model_to_dto(t: TenantTagModel) -> Tag {
     Tag {
         id: crate::types::uuid_from_text(&t.id).unwrap(),
@@ -375,5 +406,146 @@ impl TenantFetchingSqlDbRepository {
         };
 
         Ok(tenant)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        repositories::tenant::{
+            TenantRegistrationSqlDbRepository, TenantUpdatingSqlDbRepository,
+        },
+        test_support::setup_temp_db,
+        types::naive_timestamp_to_text,
+    };
+    use chrono::Local;
+    use diesel::{debug_query, sqlite::Sqlite};
+    use myc_core::domain::entities::{TenantRegistration, TenantUpdating};
+    use mycelium_base::entities::CreateResponseKind;
+
+    #[test]
+    fn metadata_filter_binds_quotes_instead_of_interpolating_them() {
+        let injection = "x') = 1 OR (SELECT count(*) FROM user) > 0 OR ('";
+        let filter = tenant_metadata_match(
+            &TenantMetaKey::Custom(injection.to_string()),
+            injection.to_string(),
+        );
+
+        let rendered = debug_query::<Sqlite, _>(&filter).to_string();
+        let (sql_text, binds) = rendered.split_once(" -- binds: ").unwrap();
+
+        assert_eq!(sql_text, "LOWER(json_extract(tenant.meta, ?)) = LOWER(?)");
+        assert!(binds.contains("SELECT count(*) FROM user"));
+    }
+
+    async fn count_tenants_matching_metadata(
+        fetching: &TenantFetchingSqlDbRepository,
+        key: &str,
+        value: &str,
+    ) -> Result<i64, MappedErrors> {
+        let response = fetching
+            .filter_tenants_as_manager(
+                None,
+                None,
+                Some((TenantMetaKey::Custom(key.into()), value.into())),
+                None,
+                None,
+                None,
+            )
+            .await?;
+
+        Ok(match response {
+            FetchManyResponseKind::FoundPaginated { count, .. } => count,
+            FetchManyResponseKind::NotFound => 0,
+            other => panic!("unexpected response: {other:?}"),
+        })
+    }
+
+    #[tokio::test]
+    async fn metadata_filter_matches_tenants_and_ignores_injected_keys(
+    ) -> Result<(), MappedErrors> {
+        let db = setup_temp_db();
+        let owner_id = Uuid::new_v4();
+
+        {
+            let conn = &mut db.provider.get_pool().get().unwrap();
+            diesel::insert_into(user::table)
+                .values((
+                    user::id.eq(uuid_to_text(&owner_id)),
+                    user::username.eq("owner"),
+                    user::email.eq("owner@acme.test"),
+                    user::first_name.eq("Own"),
+                    user::last_name.eq("Er"),
+                    user::is_active.eq(true),
+                    user::created
+                        .eq(naive_timestamp_to_text(&Local::now().naive_utc())),
+                    user::is_principal.eq(true),
+                ))
+                .execute(conn)
+                .unwrap();
+        }
+
+        let registration = TenantRegistrationSqlDbRepository {
+            db_config: db.provider.clone(),
+        };
+        let updating = TenantUpdatingSqlDbRepository {
+            db_config: db.provider.clone(),
+        };
+        let fetching = TenantFetchingSqlDbRepository {
+            db_config: db.provider.clone(),
+        };
+
+        let tenant = Tenant::new_with_owners(
+            "Acme Tenant".into(),
+            None,
+            Children::Records(vec![Owner {
+                id: owner_id,
+                email: "owner@acme.test".into(),
+                first_name: None,
+                last_name: None,
+                username: None,
+                is_principal: true,
+            }]),
+        );
+        let tenant_id = match registration.create(tenant, "self".into()).await?
+        {
+            CreateResponseKind::Created(tenant) => tenant.id.unwrap(),
+            CreateResponseKind::NotCreated(..) => panic!("tenant not created"),
+        };
+
+        updating
+            .update_tenant_meta(
+                tenant_id,
+                TenantMetaKey::Custom("environment".into()),
+                "production".into(),
+            )
+            .await?;
+
+        assert_eq!(
+            count_tenants_matching_metadata(
+                &fetching,
+                "environment",
+                "PRODUCTION"
+            )
+            .await?,
+            1
+        );
+        assert_eq!(
+            count_tenants_matching_metadata(&fetching, "environment", "dev")
+                .await?,
+            0
+        );
+        assert_eq!(
+            count_tenants_matching_metadata(
+                &fetching,
+                "x')) IS NULL OR ((",
+                "x"
+            )
+            .await?,
+            0
+        );
+
+        Ok(())
     }
 }
