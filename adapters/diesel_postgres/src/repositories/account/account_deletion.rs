@@ -1,3 +1,4 @@
+use super::account_type_containment::account_type_containment;
 use crate::{
     models::{
         config::DbPoolProvider, internal_error::InternalError,
@@ -13,7 +14,7 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::Local;
-use diesel::{dsl::sql, prelude::*};
+use diesel::prelude::*;
 use myc_core::domain::{
     dtos::{
         account::AccountMetaKey, account_type::AccountType,
@@ -68,22 +69,13 @@ impl AccountDeletion for AccountDeletionSqlDbRepository {
 
         // Check if account exists and is allowed
         let account_exists = query
-            .filter(account_model::id.eq(account_id).and(sql::<
-                diesel::sql_types::Bool,
-            >(
-                &format!(
-                "account_type::jsonb @> '{}'",
-                match serde_json::to_string(&account_type) {
-                    Ok(json) => json,
-                    Err(e) => {
-                        return deletion_err(format!(
-                            "Failed to serialize account type: {e}"
-                        ))
-                        .as_error();
-                    }
-                }
-            )
-            )))
+            .filter(account_model::id.eq(account_id).and(
+                account_type_containment(&account_type).map_err(|e| {
+                    deletion_err(format!(
+                        "Failed to serialize account type: {e}"
+                    ))
+                })?,
+            ))
             .select(account_model::id)
             .first::<Uuid>(conn)
             .optional()
@@ -232,22 +224,13 @@ impl AccountDeletion for AccountDeletionSqlDbRepository {
 
         // Check if account exists and is allowed
         let account_exists = query
-            .filter(account_model::id.eq(account_id).and(sql::<
-                diesel::sql_types::Bool,
-            >(
-                &format!(
-                "account_type::jsonb @> '{}'",
-                match serde_json::to_string(&account_type) {
-                    Ok(json) => json,
-                    Err(e) => {
-                        return deletion_err(format!(
-                            "Failed to serialize account type: {e}"
-                        ))
-                        .as_error();
-                    }
-                }
-            )
-            )))
+            .filter(account_model::id.eq(account_id).and(
+                account_type_containment(&account_type).map_err(|e| {
+                    deletion_err(format!(
+                        "Failed to serialize account type: {e}"
+                    ))
+                })?,
+            ))
             .select(account_model::id)
             .first::<Uuid>(conn)
             .optional()

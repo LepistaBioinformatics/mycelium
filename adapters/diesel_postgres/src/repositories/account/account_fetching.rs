@@ -1,3 +1,4 @@
+use super::account_type_containment::account_type_containment;
 use super::shared::map_account_model_to_dto;
 use crate::{
     models::{
@@ -193,18 +194,10 @@ impl AccountFetching for AccountFetchingSqlDbRepository {
             _ => account_type_value,
         };
 
-        let account_type_dsl = sql::<diesel::sql_types::Bool>(&format!(
-            "account_type::jsonb @> '{}'",
-            match serde_json::to_string(&parsed_account_type) {
-                Ok(json) => json,
-                Err(e) => {
-                    return fetching_err(format!(
-                        "Failed to serialize account type: {e}"
-                    ))
-                    .as_error();
-                }
-            }
-        ));
+        let account_type_dsl = account_type_containment(&parsed_account_type)
+            .map_err(|e| {
+            fetching_err(format!("Failed to serialize account type: {e}"))
+        })?;
 
         let mut count_query =
             base_query.filter(account_type_dsl.clone()).into_boxed();
