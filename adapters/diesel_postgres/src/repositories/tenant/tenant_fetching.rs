@@ -32,7 +32,7 @@ use myc_core::domain::{
         native_error_codes::NativeErrorCodes,
         profile::Owner,
         tag::Tag,
-        tenant::{Tenant, TenantMetaKey},
+        tenant::{Tenant, TenantMetaKey, TenantTagFilter},
     },
     entities::TenantFetching,
 };
@@ -41,7 +41,7 @@ use mycelium_base::{
     entities::{FetchManyResponseKind, FetchResponseKind},
     utils::errors::{fetching_err, MappedErrors},
 };
-use serde_json::{json, to_value};
+use serde_json::json;
 use shaku::Component;
 use std::{collections::HashMap, str::FromStr, sync::Arc};
 use uuid::Uuid;
@@ -347,7 +347,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         name: Option<String>,
         owner: Option<Uuid>,
         metadata: Option<(TenantMetaKey, String)>,
-        tag: Option<(String, String)>,
+        tag: TenantTagFilter,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Tenant>, MappedErrors> {
@@ -374,11 +374,16 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
             count_query = count_query.filter(dsl);
         }
 
-        if let Some((meta, value)) = tag {
-            let dsl = tenant_tag_dsl::meta
-                .contains(to_value(meta).unwrap())
-                .and(tenant_tag_dsl::value.eq(value));
+        if let Some(tag_value) = tag.value {
+            let dsl = tenant_tag_dsl::value.eq(tag_value);
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
+        }
 
+        if let Some((meta_key, meta_value)) = tag.meta {
+            let dsl = tenant_tag_dsl::meta.contains(json!({
+                meta_key: meta_value
+            }));
             records_query = records_query.filter(dsl.clone());
             count_query = count_query.filter(dsl);
         }
@@ -391,7 +396,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
 
         // Get total of records
         let total = count_query
-            .select(diesel::dsl::count_star())
+            .select(diesel::dsl::count(tenant_dsl::id).aggregate_distinct())
             .first::<i64>(conn)
             .map_err(|e| {
                 fetching_err(format!("Failed to count tenants: {}", e))

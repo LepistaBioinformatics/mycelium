@@ -28,8 +28,13 @@ pub struct ListTenantParams {
     pub owner: Option<Uuid>,
     #[schemars(description = "key=value")]
     pub metadata: Option<String>,
-    #[schemars(description = "key=value")]
+    #[schemars(description = "Tag value")]
     pub tag: Option<String>,
+    #[schemars(
+        description = "key=value pair in the tag meta; combined with tag, both \
+            must match the same tag"
+    )]
+    pub tag_meta: Option<String>,
     pub page_size: Option<i32>,
     pub skip: Option<i32>,
 }

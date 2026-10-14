@@ -415,7 +415,7 @@ mod tests {
             _name: Option<String>,
             _owner: Option<Uuid>,
             _metadata: Option<(TenantMetaKey, String)>,
-            _tag: Option<(String, String)>,
+            _tag: crate::domain::dtos::tenant::TenantTagFilter,
             _page_size: Option<i32>,
             _skip: Option<i32>,
         ) -> Result<FetchManyResponseKind<Tenant>, MappedErrors> {

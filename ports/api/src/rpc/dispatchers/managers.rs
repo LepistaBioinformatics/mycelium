@@ -16,7 +16,7 @@ use crate::dtos::MyceliumProfileData;
 
 use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::web;
-use myc_core::domain::dtos::tenant::TenantMetaKey;
+use myc_core::domain::dtos::tenant::{TenantMetaKey, TenantTagFilter};
 use myc_core::use_cases::super_users::managers::{
     create_system_account, create_system_roles, create_tenant, delete_tenant,
     exclude_tenant_owner, include_tenant_owner, list_tenant,
@@ -97,10 +97,12 @@ pub async fn dispatch_managers(
                 .transpose()
                 .map_err(|e| invalid_params(e.to_string()))?
                 .unwrap_or_default();
-            let tag = match p.tag.as_ref() {
+            let tag_meta = match p.tag_meta.as_ref() {
                 Some(t) => match t.split_once('=') {
                     Some((k, v)) => Some((k.to_string(), v.to_string())),
-                    None => return Err(invalid_params("Invalid tag format")),
+                    None => {
+                        return Err(invalid_params("Invalid tag meta format"))
+                    }
                 },
                 None => None,
             };
@@ -123,7 +125,10 @@ pub async fn dispatch_managers(
                 p.name,
                 p.owner,
                 metadata,
-                tag,
+                TenantTagFilter {
+                    value: p.tag,
+                    meta: tag_meta,
+                },
                 p.page_size,
                 p.skip,
                 Box::new(&*app_module.resolve_ref()),

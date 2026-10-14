@@ -1,8 +1,10 @@
 mod meta;
 mod status;
+mod tag_filter;
 
 pub use meta::TenantMetaKey;
 pub use status::TenantStatus;
+pub use tag_filter::TenantTagFilter;
 
 use super::{account::Account, profile::Owner, tag::Tag};
 
