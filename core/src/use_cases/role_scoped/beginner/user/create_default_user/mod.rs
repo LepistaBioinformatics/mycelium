@@ -365,7 +365,7 @@ mod tests {
             _: Option<String>,
             _: Option<Uuid>,
             _: Option<(crate::domain::dtos::tenant::TenantMetaKey, String)>,
-            _: Option<(String, String)>,
+            _: crate::domain::dtos::tenant::TenantTagFilter,
             _: Option<i32>,
             _: Option<i32>,
         ) -> Result<

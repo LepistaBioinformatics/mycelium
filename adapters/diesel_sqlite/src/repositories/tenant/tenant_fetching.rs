@@ -31,7 +31,7 @@ use myc_core::domain::{
         native_error_codes::NativeErrorCodes,
         profile::Owner,
         tag::Tag,
-        tenant::{Tenant, TenantMetaKey},
+        tenant::{Tenant, TenantMetaKey, TenantTagFilter},
     },
     entities::TenantFetching,
 };
@@ -172,7 +172,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
         name: Option<String>,
         owner: Option<Uuid>,
         metadata: Option<(TenantMetaKey, String)>,
-        tag: Option<(String, String)>,
+        tag: TenantTagFilter,
         page_size: Option<i32>,
         skip: Option<i32>,
     ) -> Result<FetchManyResponseKind<Tenant>, MappedErrors> {
@@ -201,19 +201,14 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
             count_query = count_query.filter(dsl);
         }
 
-        if let Some((meta_key, value)) = tag {
-            // Mirrors the postgres `tenant_tag.meta.contains(to_value(meta_key))`
-            // filter, which compares the whole `meta` JSON document against a
-            // bare string scalar. Since `meta` is always an object, this never
-            // matches in practice on either backend -- preserved as-is rather
-            // than "fixed", pending an audit of the call site.
-            let meta_key_json = serde_json::to_string(&meta_key)
-                .expect("string is always serializable");
+        if let Some(tag_value) = tag.value {
+            let dsl = tenant_tag_dsl::value.eq(tag_value);
+            records_query = records_query.filter(dsl.clone());
+            count_query = count_query.filter(dsl);
+        }
 
-            let dsl = sql::<diesel::sql_types::Bool>("tenant_tag.meta = ")
-                .bind::<Text, _>(meta_key_json)
-                .and(tenant_tag_dsl::value.eq(value));
-
+        if let Some((meta_key, meta_value)) = tag.meta {
+            let dsl = tenant_tag_meta_match(&meta_key, meta_value);
             records_query = records_query.filter(dsl.clone());
             count_query = count_query.filter(dsl);
         }
@@ -232,7 +227,7 @@ impl TenantFetching for TenantFetchingSqlDbRepository {
 
         // Get total of records
         let total = count_query
-            .select(diesel::dsl::count_star())
+            .select(diesel::dsl::count(tenant_dsl::id).aggregate_distinct())
             .first::<i64>(conn)
             .map_err(|e| {
                 fetching_err(format!("Failed to count tenants: {}", e))
@@ -337,6 +332,23 @@ fn tenant_metadata_match(
         .sql(")")
 }
 
+type TenantTagMetaMatch = UncheckedBind<
+    SqlLiteral<Bool, UncheckedBind<SqlLiteral<Bool>, AsExprOf<String, Text>>>,
+    AsExprOf<String, Text>,
+>;
+
+/// Builds the `tenant_tag.meta.<key> = <value>` filter.
+///
+/// The JSON path and the value are bind parameters; the key is written as a
+/// quoted path label so that `.` or `[` inside it cannot address another
+/// member.
+fn tenant_tag_meta_match(meta_key: &str, value: String) -> TenantTagMetaMatch {
+    sql::<Bool>("json_extract(tenant_tag.meta, ")
+        .bind::<Text, _>(format!("$.\"{meta_key}\""))
+        .sql(") = ")
+        .bind::<Text, _>(value)
+}
+
 fn tag_model_to_dto(t: TenantTagModel) -> Tag {
     Tag {
         id: crate::types::uuid_from_text(&t.id).unwrap(),
@@ -413,16 +425,23 @@ impl TenantFetchingSqlDbRepository {
 mod tests {
     use super::*;
     use crate::{
-        repositories::tenant::{
-            TenantRegistrationSqlDbRepository, TenantUpdatingSqlDbRepository,
+        repositories::{
+            tenant::{
+                TenantRegistrationSqlDbRepository,
+                TenantUpdatingSqlDbRepository,
+            },
+            tenant_tag::TenantTagRegistrationSqlDbRepository,
         },
-        test_support::setup_temp_db,
+        test_support::{setup_temp_db, TempDb},
         types::naive_timestamp_to_text,
     };
     use chrono::Local;
     use diesel::{debug_query, sqlite::Sqlite};
-    use myc_core::domain::entities::{TenantRegistration, TenantUpdating};
+    use myc_core::domain::entities::{
+        TenantRegistration, TenantTagRegistration, TenantUpdating,
+    };
     use mycelium_base::entities::CreateResponseKind;
+    use std::collections::HashMap;
 
     #[test]
     fn metadata_filter_binds_quotes_instead_of_interpolating_them() {
@@ -439,20 +458,13 @@ mod tests {
         assert!(binds.contains("SELECT count(*) FROM user"));
     }
 
-    async fn count_tenants_matching_metadata(
+    async fn count_tenants(
         fetching: &TenantFetchingSqlDbRepository,
-        key: &str,
-        value: &str,
+        metadata: Option<(TenantMetaKey, String)>,
+        tag: TenantTagFilter,
     ) -> Result<i64, MappedErrors> {
         let response = fetching
-            .filter_tenants_as_manager(
-                None,
-                None,
-                Some((TenantMetaKey::Custom(key.into()), value.into())),
-                None,
-                None,
-                None,
-            )
+            .filter_tenants_as_manager(None, None, metadata, tag, None, None)
             .await?;
 
         Ok(match response {
@@ -462,19 +474,20 @@ mod tests {
         })
     }
 
-    #[tokio::test]
-    async fn metadata_filter_matches_tenants_and_ignores_injected_keys(
-    ) -> Result<(), MappedErrors> {
-        let db = setup_temp_db();
+    async fn seed_tenant(
+        db: &TempDb,
+        name: &str,
+    ) -> Result<Uuid, MappedErrors> {
         let owner_id = Uuid::new_v4();
+        let email = format!("{owner_id}@acme.test");
 
         {
             let conn = &mut db.provider.get_pool().get().unwrap();
             diesel::insert_into(user::table)
                 .values((
                     user::id.eq(uuid_to_text(&owner_id)),
-                    user::username.eq("owner"),
-                    user::email.eq("owner@acme.test"),
+                    user::username.eq(owner_id.to_string()),
+                    user::email.eq(&email),
                     user::first_name.eq("Own"),
                     user::last_name.eq("Er"),
                     user::is_active.eq(true),
@@ -489,31 +502,44 @@ mod tests {
         let registration = TenantRegistrationSqlDbRepository {
             db_config: db.provider.clone(),
         };
-        let updating = TenantUpdatingSqlDbRepository {
-            db_config: db.provider.clone(),
-        };
-        let fetching = TenantFetchingSqlDbRepository {
-            db_config: db.provider.clone(),
-        };
-
         let tenant = Tenant::new_with_owners(
-            "Acme Tenant".into(),
+            name.into(),
             None,
             Children::Records(vec![Owner {
                 id: owner_id,
-                email: "owner@acme.test".into(),
+                email,
                 first_name: None,
                 last_name: None,
                 username: None,
                 is_principal: true,
             }]),
         );
-        let tenant_id = match registration.create(tenant, "self".into()).await?
-        {
-            CreateResponseKind::Created(tenant) => tenant.id.unwrap(),
+
+        match registration.create(tenant, "self".into()).await? {
+            CreateResponseKind::Created(tenant) => Ok(tenant.id.unwrap()),
             CreateResponseKind::NotCreated(..) => panic!("tenant not created"),
+        }
+    }
+
+    fn custom_metadata(
+        key: &str,
+        value: &str,
+    ) -> Option<(TenantMetaKey, String)> {
+        Some((TenantMetaKey::Custom(key.into()), value.into()))
+    }
+
+    #[tokio::test]
+    async fn metadata_filter_matches_tenants_and_ignores_injected_keys(
+    ) -> Result<(), MappedErrors> {
+        let db = setup_temp_db();
+        let fetching = TenantFetchingSqlDbRepository {
+            db_config: db.provider.clone(),
+        };
+        let updating = TenantUpdatingSqlDbRepository {
+            db_config: db.provider.clone(),
         };
 
+        let tenant_id = seed_tenant(&db, "Acme Tenant").await?;
         updating
             .update_tenant_meta(
                 tenant_id,
@@ -522,27 +548,128 @@ mod tests {
             )
             .await?;
 
+        let no_tag = TenantTagFilter::default;
         assert_eq!(
-            count_tenants_matching_metadata(
+            count_tenants(
                 &fetching,
-                "environment",
-                "PRODUCTION"
+                custom_metadata("environment", "PRODUCTION"),
+                no_tag()
             )
             .await?,
             1
         );
         assert_eq!(
-            count_tenants_matching_metadata(&fetching, "environment", "dev")
-                .await?,
+            count_tenants(
+                &fetching,
+                custom_metadata("environment", "dev"),
+                no_tag()
+            )
+            .await?,
             0
         );
         assert_eq!(
-            count_tenants_matching_metadata(
+            count_tenants(
                 &fetching,
-                "x')) IS NULL OR ((",
-                "x"
+                custom_metadata("x')) IS NULL OR ((", "x"),
+                no_tag()
             )
             .await?,
+            0
+        );
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn tag_filter_matches_tag_value_and_meta_on_the_same_tag(
+    ) -> Result<(), MappedErrors> {
+        let db = setup_temp_db();
+        let fetching = TenantFetchingSqlDbRepository {
+            db_config: db.provider.clone(),
+        };
+        let tags = TenantTagRegistrationSqlDbRepository {
+            db_config: db.provider.clone(),
+        };
+
+        let production = seed_tenant(&db, "Production").await?;
+        let staging = seed_tenant(&db, "Staging").await?;
+        seed_tenant(&db, "Untagged").await?;
+
+        for (tenant_id, environment) in
+            [(production, "production"), (staging, "staging")]
+        {
+            tags.get_or_create(
+                tenant_id,
+                "rolling-circle.environment".into(),
+                HashMap::from([("environment".into(), environment.into())]),
+            )
+            .await?;
+        }
+        tags.get_or_create(
+            staging,
+            "billing".into(),
+            HashMap::from([("plan".into(), "production".into())]),
+        )
+        .await?;
+
+        let filter =
+            |value: Option<&str>, meta: Option<(&str, &str)>| TenantTagFilter {
+                value: value.map(Into::into),
+                meta: meta.map(|(key, value)| (key.into(), value.into())),
+            };
+
+        assert_eq!(
+            count_tenants(&fetching, None, filter(None, None)).await?,
+            3
+        );
+        assert_eq!(
+            count_tenants(
+                &fetching,
+                None,
+                filter(Some("rolling-circle.environment"), None)
+            )
+            .await?,
+            2
+        );
+        assert_eq!(
+            count_tenants(
+                &fetching,
+                None,
+                filter(None, Some(("environment", "production")))
+            )
+            .await?,
+            1
+        );
+        assert_eq!(
+            count_tenants(
+                &fetching,
+                None,
+                filter(
+                    Some("rolling-circle.environment"),
+                    Some(("environment", "staging"))
+                )
+            )
+            .await?,
+            1
+        );
+
+        // `plan=production` lives on the staging tenant's `billing` tag, not
+        // on its `rolling-circle.environment` tag.
+        assert_eq!(
+            count_tenants(
+                &fetching,
+                None,
+                filter(
+                    Some("rolling-circle.environment"),
+                    Some(("plan", "production"))
+                )
+            )
+            .await?,
+            0
+        );
+        assert_eq!(
+            count_tenants(&fetching, None, filter(Some("missing"), None))
+                .await?,
             0
         );
 
