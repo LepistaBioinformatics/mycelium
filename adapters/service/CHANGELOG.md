@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.1-beta.3] - 2026-09-22
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.3
+
 ## [9.0.1-beta.2] - 2026-09-21
 
 ### ⚙️ Miscellaneous Tasks

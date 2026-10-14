@@ -2,11 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.1-beta.4] - 2026-10-14
+
+### 🐛 Bug Fixes
+
+- Prevent compact URL parser panics
+- Avoid logging compact profile URLs
+
 ## [9.0.1-beta.3] - 2026-09-22
 
 ### 🚀 Features
 
 - *(webhook)* Claim events exclusively, back off exponentially, terminate
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.3
 
 ## [9.0.1-beta.2] - 2026-09-21
 

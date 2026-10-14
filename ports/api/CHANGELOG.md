@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - *(webhook)* Claim events exclusively, back off exponentially, terminate
 
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.3
+
 ## [9.0.1-beta.2] - 2026-09-21
 
 ### ⚙️ Miscellaneous Tasks

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.1-beta.4] - 2026-10-14
+
+### 🐛 Bug Fixes
+
+- Bind tenant metadata and account type filters as SQL parameters
+
 ## [9.0.1-beta.3] - 2026-09-22
 
 ### 🚀 Features
@@ -11,6 +17,10 @@ All notable changes to this project will be documented in this file.
 ### 🐛 Bug Fixes
 
 - *(webhook)* Stop a stored JSON null in propagations panicking the dispatcher
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.3
 
 ## [9.0.1-beta.2] - 2026-09-21
 
