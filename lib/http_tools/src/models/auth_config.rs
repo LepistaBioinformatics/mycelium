@@ -4,6 +4,7 @@ use super::{
 };
 
 use myc_config::{load_config_from_file, optional_config::OptionalConfig};
+use myc_core::models::HostedLoginConfig;
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -15,6 +16,10 @@ pub struct AuthConfig {
     pub internal: OptionalConfig<InternalOauthConfig>,
     #[serde(default)]
     pub external: OptionalConfig<Vec<ExternalProviderConfig>>,
+
+    /// Clients allowed to use the gateway-hosted email login pages.
+    #[serde(default)]
+    pub hosted_login: OptionalConfig<HostedLoginConfig>,
 }
 
 #[derive(Clone, Debug, Deserialize)]

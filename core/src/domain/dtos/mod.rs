@@ -7,6 +7,7 @@ pub mod guest_role;
 pub mod guest_user;
 pub mod guest_user_on_account;
 pub mod health_check_info;
+pub mod hosted_login;
 pub mod http;
 pub mod http_secret;
 pub mod identity_source;

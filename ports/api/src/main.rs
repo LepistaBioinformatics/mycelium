@@ -157,6 +157,7 @@ use reqwest::header::{
 };
 use rest::{
     audit::resource_audit_trail_endpoints as audit_resource_audit_trail_endpoints,
+    hosted_login::configure as configure_hosted_login_endpoints,
     index::{app_public_config_endpoints, heath_check_endpoints},
     instance as instance_endpoints,
     manager::{
@@ -556,7 +557,6 @@ pub async fn main() -> std::io::Result<()> {
             .wrap(NormalizePath::new(TrailingSlash::MergeOnly))
             //
             // Configure tracing and logging
-            //
             .wrap(RequestTracing::default())
             .wrap(TracingLogger::default())
             //
@@ -718,6 +718,14 @@ pub async fn main() -> std::io::Result<()> {
             //
             .service(
                 web::scope("instance").configure(instance_endpoints::configure),
+            )
+            //
+            // Hosted email login (public -- the gateway pages collect the
+            // email and code, then hand the client an authorization code).
+            //
+            .service(
+                web::scope("hosted-login")
+                    .configure(configure_hosted_login_endpoints),
             )
             //
             // JSON-RPC (single + batch at _adm/rpc)

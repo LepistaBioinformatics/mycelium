@@ -1,4 +1,5 @@
 pub(crate) mod audit;
+pub(crate) mod hosted_login;
 pub(crate) mod hosted_page_response;
 pub(crate) mod index;
 pub(crate) mod instance;
