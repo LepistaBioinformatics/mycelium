@@ -196,6 +196,7 @@ mod tests {
         dtos::{
             account::{Account, VerboseStatus},
             account_type::AccountType,
+            email::Email,
             guest_role::Permission,
             profile::{LicensedResource, LicensedResources, Profile},
             related_accounts::RelatedAccounts,
@@ -455,13 +456,10 @@ mod tests {
     impl GuestUserOnAccountUpdating for MockGuestUserOnAccountUpdating {
         async fn accept_invitation(
             &self,
-            _: String,
+            _: Vec<Email>,
             _: Uuid,
-            _: Permission,
-        ) -> Result<
-            UpdatingResponseKind<(String, Uuid, Permission)>,
-            MappedErrors,
-        > {
+            _: Uuid,
+        ) -> Result<UpdatingResponseKind<Uuid>, MappedErrors> {
             unimplemented!()
         }
 

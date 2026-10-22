@@ -1,10 +1,7 @@
 use crate::{
     config::SqliteDbPoolProvider,
-    models::{
-        guest_user::GuestUser as GuestUserModel,
-        guest_user_on_account::GuestUserOnAccount as GuestUserOnAccountModel,
-    },
-    schema::{guest_role, guest_user, guest_user_on_account},
+    models::guest_user_on_account::GuestUserOnAccount as GuestUserOnAccountModel,
+    schema::{guest_user, guest_user_on_account},
     types::{string_array_to_text, uuid_from_text, uuid_to_text},
 };
 
@@ -12,7 +9,7 @@ use async_trait::async_trait;
 use diesel::prelude::*;
 use myc_core::domain::{
     dtos::{
-        guest_role::Permission, guest_user_on_account::GuestUserOnAccount,
+        email::Email, guest_user_on_account::GuestUserOnAccount,
         native_error_codes::NativeErrorCodes,
     },
     entities::GuestUserOnAccountUpdating,
@@ -37,75 +34,55 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
     #[tracing::instrument(name = "accept_invitation", skip_all)]
     async fn accept_invitation(
         &self,
-        guest_role_name: String,
+        guest_emails: Vec<Email>,
         account_id: Uuid,
-        permission: Permission,
-    ) -> Result<UpdatingResponseKind<(String, Uuid, Permission)>, MappedErrors>
-    {
+        guest_role_id: Uuid,
+    ) -> Result<UpdatingResponseKind<Uuid>, MappedErrors> {
         let conn = &mut self.db_config.get_pool().get().map_err(|e| {
             updating_err(format!("Failed to get DB connection: {}", e))
                 .with_code(NativeErrorCodes::MYC00001)
         })?;
 
-        // Find guest role by name
-        let guest_role_id = guest_role::table
-            .filter(guest_role::name.eq(&guest_role_name))
-            .filter(guest_role::permission.eq(permission.to_i32()))
-            .select(guest_role::id)
-            .first::<String>(conn)
-            .optional()
-            .map_err(|e| {
-                updating_err(format!("Failed to fetch guest role: {}", e))
-            })?;
+        let emails: Vec<String> =
+            guest_emails.iter().map(|email| email.email()).collect();
 
-        let Some(guest_role_id) = guest_role_id else {
-            return Ok(UpdatingResponseKind::NotUpdated(
-                (guest_role_name, account_id, permission),
-                "Guest role not found".to_string(),
-            ));
-        };
-
-        // Find guest user by account
-        let guest_user_record = guest_user::table
+        //
+        // The caller's own pending guest on this account and role. Filtering
+        // by email keeps another guest of the same account from being
+        // verified in its place.
+        //
+        let guest_user_id = guest_user::table
             .inner_join(guest_user_on_account::table)
             .filter(
                 guest_user_on_account::account_id.eq(uuid_to_text(&account_id)),
             )
+            .filter(guest_user::email.eq_any(&emails))
+            .filter(guest_user::guest_role_id.eq(uuid_to_text(&guest_role_id)))
             .filter(guest_user::was_verified.eq(false))
-            .select(GuestUserModel::as_select())
-            .first::<GuestUserModel>(conn)
+            .select(guest_user::id)
+            .first::<String>(conn)
             .optional()
             .map_err(|e| {
                 updating_err(format!("Failed to fetch guest user: {}", e))
             })?;
 
-        match guest_user_record {
-            Some(user) => {
-                // Update guest user
-                diesel::update(guest_user::table.find(&user.id))
-                    .set((
-                        guest_user::guest_role_id.eq(&guest_role_id),
-                        guest_user::was_verified.eq(true),
-                    ))
-                    .execute(conn)
-                    .map_err(|e| {
-                        updating_err(format!(
-                            "Failed to update guest user: {}",
-                            e
-                        ))
-                    })?;
-
-                Ok(UpdatingResponseKind::Updated((
-                    guest_role_name,
-                    account_id,
-                    permission,
-                )))
-            }
-            None => Ok(UpdatingResponseKind::NotUpdated(
-                (guest_role_name, account_id, permission),
+        let Some(guest_user_id) = guest_user_id else {
+            return Ok(UpdatingResponseKind::NotUpdated(
+                account_id,
                 "No unverified guest user found for account".to_string(),
-            )),
-        }
+            ));
+        };
+
+        diesel::update(guest_user::table.find(&guest_user_id))
+            .set(guest_user::was_verified.eq(true))
+            .execute(conn)
+            .map_err(|e| {
+                updating_err(format!("Failed to update guest user: {}", e))
+            })?;
+
+        Ok(UpdatingResponseKind::Updated(uuid_from_text(
+            &guest_user_id,
+        )?))
     }
 
     #[tracing::instrument(name = "update", skip_all)]
@@ -202,4 +179,137 @@ impl GuestUserOnAccountUpdating for GuestUserOnAccountUpdatingSqlDbRepository {
 
 fn decode_string_array(value: &str) -> Vec<String> {
     crate::types::string_array_from_text(value).unwrap()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::test_support::setup_temp_db;
+    use diesel::sql_query;
+
+    const NOW: &str = "2026-10-22T00:00:00+00:00";
+
+    struct Fixture {
+        account_id: Uuid,
+        role_id: Uuid,
+        other_role_id: Uuid,
+    }
+
+    /// Alice and Bob invited to the same account with the same role, Bob
+    /// also holding a pending invitation with another role.
+    fn seed(conn: &mut SqliteConnection) -> Fixture {
+        let fixture = Fixture {
+            account_id: Uuid::new_v4(),
+            role_id: Uuid::new_v4(),
+            other_role_id: Uuid::new_v4(),
+        };
+
+        sql_query(format!(
+            "INSERT INTO account (id, name, created, slug) \
+             VALUES ('{}', 'Account', '{NOW}', 'account')",
+            fixture.account_id
+        ))
+        .execute(conn)
+        .unwrap();
+
+        for (role_id, permission) in
+            [(fixture.role_id, 1), (fixture.other_role_id, 0)]
+        {
+            sql_query(format!(
+                "INSERT INTO guest_role (id, name, permission, slug, created) \
+                 VALUES ('{role_id}', 'rc-manager', {permission}, \
+                 'rc-manager', '{NOW}')"
+            ))
+            .execute(conn)
+            .unwrap();
+        }
+
+        for (email, role_id) in [
+            ("alice@example.com", fixture.role_id),
+            ("bob@example.com", fixture.role_id),
+            ("bob@example.com", fixture.other_role_id),
+        ] {
+            let guest_id = Uuid::new_v4();
+            sql_query(format!(
+                "INSERT INTO guest_user (id, email, guest_role_id, created) \
+                 VALUES ('{guest_id}', '{email}', '{role_id}', '{NOW}')"
+            ))
+            .execute(conn)
+            .unwrap();
+            sql_query(format!(
+                "INSERT INTO guest_user_on_account \
+                 (guest_user_id, account_id, created) \
+                 VALUES ('{guest_id}', '{}', '{NOW}')",
+                fixture.account_id
+            ))
+            .execute(conn)
+            .unwrap();
+        }
+
+        fixture
+    }
+
+    fn verified(
+        conn: &mut SqliteConnection,
+        email: &str,
+        role_id: Uuid,
+    ) -> bool {
+        guest_user::table
+            .filter(guest_user::email.eq(email))
+            .filter(guest_user::guest_role_id.eq(uuid_to_text(&role_id)))
+            .select(guest_user::was_verified)
+            .first::<bool>(conn)
+            .unwrap()
+    }
+
+    #[tokio::test]
+    async fn verifies_only_the_callers_guest_on_the_given_role(
+    ) -> Result<(), MappedErrors> {
+        let db = setup_temp_db();
+        let conn = &mut db.provider.get_pool().get().unwrap();
+        let fixture = seed(conn);
+        let repo = GuestUserOnAccountUpdatingSqlDbRepository {
+            db_config: db.provider.clone(),
+        };
+
+        let result = repo
+            .accept_invitation(
+                vec![Email::from_string("bob@example.com".into())?],
+                fixture.account_id,
+                fixture.role_id,
+            )
+            .await?;
+
+        assert!(matches!(result, UpdatingResponseKind::Updated(_)));
+        assert!(verified(conn, "bob@example.com", fixture.role_id));
+        assert!(!verified(conn, "alice@example.com", fixture.role_id));
+        assert!(!verified(conn, "bob@example.com", fixture.other_role_id));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn does_not_verify_a_guest_of_another_email(
+    ) -> Result<(), MappedErrors> {
+        let db = setup_temp_db();
+        let conn = &mut db.provider.get_pool().get().unwrap();
+        let fixture = seed(conn);
+        let repo = GuestUserOnAccountUpdatingSqlDbRepository {
+            db_config: db.provider.clone(),
+        };
+
+        let result = repo
+            .accept_invitation(
+                vec![Email::from_string("carol@example.com".into())?],
+                fixture.account_id,
+                fixture.role_id,
+            )
+            .await?;
+
+        assert!(matches!(result, UpdatingResponseKind::NotUpdated(..)));
+        assert!(!verified(conn, "alice@example.com", fixture.role_id));
+        assert!(!verified(conn, "bob@example.com", fixture.role_id));
+
+        Ok(())
+    }
 }
