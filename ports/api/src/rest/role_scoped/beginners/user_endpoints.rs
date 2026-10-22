@@ -1,7 +1,8 @@
 use crate::{
     middleware::{
         check_credentials_with_multi_identity_provider,
-        parse_issuer_from_request,
+        parse_issuer_from_request, sign_in_blocked_by_staff_bootstrap,
+        staff_bootstrap_pending_response,
     },
     rest::{
         hosted_page_response::hosted_page_response,
@@ -536,11 +537,16 @@ pub async fn check_token_and_reset_password_url(
 )]
 #[post("/login")]
 pub async fn check_email_password_validity_url(
+    req: HttpRequest,
     body: web::Json<CheckUserCredentialsBody>,
     app_module: web::Data<SqlAppModule>,
     auth_config: web::Data<InternalOauthConfig>,
     core_config: web::Data<AccountLifeCycle>,
 ) -> impl Responder {
+    if sign_in_blocked_by_staff_bootstrap(&req).await {
+        return staff_bootstrap_pending_response();
+    }
+
     let email_instance = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
             warn!("Invalid email: {}", err);
@@ -970,10 +976,15 @@ pub async fn totp_disable_url(
 )]
 #[post("/magic-link/request")]
 pub async fn request_magic_link_url(
+    req: HttpRequest,
     body: web::Json<MagicLinkRequestBody>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     sql_app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
+    if sign_in_blocked_by_staff_bootstrap(&req).await {
+        return staff_bootstrap_pending_response();
+    }
+
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
             warn!("Invalid email: {}", err);
@@ -1143,11 +1154,16 @@ fn render_magic_link_error_page(domain_name: &str) -> HttpResponse {
 )]
 #[post("/magic-link/verify")]
 pub async fn verify_magic_link_url(
+    req: HttpRequest,
     body: web::Json<MagicLinkVerifyBody>,
     app_module: web::Data<SqlAppModule>,
     auth_config: web::Data<InternalOauthConfig>,
     core_config: web::Data<AccountLifeCycle>,
 ) -> impl Responder {
+    if sign_in_blocked_by_staff_bootstrap(&req).await {
+        return staff_bootstrap_pending_response();
+    }
+
     let email = match Email::from_string(body.email.to_owned()) {
         Err(err) => {
             warn!("Invalid email: {}", err);

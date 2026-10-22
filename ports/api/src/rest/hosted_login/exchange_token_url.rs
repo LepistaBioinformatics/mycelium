@@ -1,8 +1,11 @@
-use crate::models::active_backend_modules::SqlAppModule;
+use crate::{
+    middleware::sign_in_blocked_by_staff_bootstrap,
+    models::active_backend_modules::SqlAppModule,
+};
 
 use actix_web::{
     http::header::{HeaderValue, CACHE_CONTROL},
-    post, web, HttpResponse, Responder,
+    post, web, HttpRequest, HttpResponse, Responder,
 };
 use myc_core::{
     domain::dtos::user::User, models::AccountLifeCycle,
@@ -38,11 +41,16 @@ struct TokenResponse {
 /// Exchange the one-time authorization code for a Mycelium session token.
 #[post("/token")]
 pub async fn exchange_token_url(
+    req: HttpRequest,
     form: web::Form<TokenForm>,
     sql_app_module: web::Data<SqlAppModule>,
     auth_config: web::Data<InternalOauthConfig>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
 ) -> impl Responder {
+    if sign_in_blocked_by_staff_bootstrap(&req).await {
+        return token_error("access_denied");
+    }
+
     let form = form.into_inner();
 
     if form.grant_type.as_deref() != Some("authorization_code") {

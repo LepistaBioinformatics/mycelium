@@ -65,7 +65,7 @@ use dispatchers::{
     email_dispatcher, resource_audit_log_dispatcher,
     services_health_dispatcher, webhook_dispatcher,
 };
-use middleware::log_served_request;
+use middleware::{log_served_request, StaffBootstrapClaimed};
 use models::active_backend_modules::{KVAppModule, SqlAppModule};
 use models::config_handler::ConfigHandler;
 #[cfg(feature = "full")]
@@ -506,6 +506,11 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     info!("Startup the server configuration");
 
+    // Shared by every worker: once one sees the staff bootstrap claimed, the
+    // sign-in gate stops reading the database everywhere in this process.
+    let staff_bootstrap_claimed =
+        web::Data::new(StaffBootstrapClaimed::default());
+
     let server = HttpServer::new(move || {
         //
         // Here we should clone the config to avoid borrowing issues
@@ -573,6 +578,7 @@ pub async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(tools_registry_schema.clone()))
             .app_data(web::Data::new(token_config).clone())
             .app_data(web::Data::new(auth_config.to_owned()).clone())
+            .app_data(staff_bootstrap_claimed.clone())
             //
             // Inject modules
             //

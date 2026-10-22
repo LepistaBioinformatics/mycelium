@@ -11,6 +11,7 @@ mod log_served_request;
 mod parse_issuer_from_request;
 mod recovery_profile_from_storage_engines;
 mod resolve_issuer_from_provider;
+mod staff_bootstrap_gate;
 
 pub(crate) use body_idp::*;
 pub(crate) use check_credentials_with_multi_identity_provider::*;
@@ -26,3 +27,4 @@ pub(crate) use recovery_profile_from_storage_engines::*;
 pub(crate) use resolve_issuer_from_provider::*;
 
 use get_email_or_provider_from_request::*;
+pub(crate) use staff_bootstrap_gate::*;

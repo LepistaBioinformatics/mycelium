@@ -1,6 +1,9 @@
 use crate::{
     dtos::{Audience, GenericAccessTokenClaims, JWKS},
-    middleware::get_email_or_provider_from_request,
+    middleware::{
+        get_email_or_provider_from_request, sign_in_blocked_by_staff_bootstrap,
+        STAFF_BOOTSTRAP_PENDING_MESSAGE,
+    },
     models::api_config::ApiConfig,
 };
 
@@ -50,6 +53,17 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
     let span = tracing::Span::current();
 
     tracing::trace!("Checking credentials with multiple identity providers");
+
+    // ? -----------------------------------------------------------------------
+    // ? Refuse every authenticated request until the staff bootstrap is
+    // ? claimed (covers internal, external-IdP and already-issued tokens)
+    // ? -----------------------------------------------------------------------
+
+    if sign_in_blocked_by_staff_bootstrap(&req).await {
+        return Err(GatewayError::Forbidden(
+            STAFF_BOOTSTRAP_PENDING_MESSAGE.to_string(),
+        ));
+    }
 
     // ? -----------------------------------------------------------------------
     // ? Extract issuer and token from request

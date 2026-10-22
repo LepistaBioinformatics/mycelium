@@ -2,13 +2,18 @@ use super::{
     hosted_login_session_cookie::hosted_login_session_cookie,
     render_hosted_login_page::{
         domain_name, render_hosted_login_page,
-        render_invalid_authorization_request,
+        render_invalid_authorization_request, render_staff_bootstrap_pending,
     },
     HOSTED_LOGIN_PATH,
 };
-use crate::models::active_backend_modules::SqlAppModule;
+use crate::{
+    middleware::sign_in_blocked_by_staff_bootstrap,
+    models::active_backend_modules::SqlAppModule,
+};
 
-use actix_web::{get, http::StatusCode, web, HttpResponse, Responder};
+use actix_web::{
+    get, http::StatusCode, web, HttpRequest, HttpResponse, Responder,
+};
 use myc_config::optional_config::OptionalConfig;
 use myc_core::{
     domain::dtos::hosted_login::{HostedLoginClients, HostedLoginRequest},
@@ -36,12 +41,17 @@ pub struct AuthorizeParams {
 /// asking for the email address.
 #[get("/authorize")]
 pub async fn authorize_url(
+    req: HttpRequest,
     query: web::Query<AuthorizeParams>,
     auth_config: web::Data<AuthConfig>,
     life_cycle_settings: web::Data<AccountLifeCycle>,
     sql_app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
     let domain_name = domain_name(&life_cycle_settings).await;
+
+    if sign_in_blocked_by_staff_bootstrap(&req).await {
+        return render_staff_bootstrap_pending(&domain_name);
+    }
 
     let query = query.into_inner();
 
