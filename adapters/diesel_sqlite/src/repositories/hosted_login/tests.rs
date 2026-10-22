@@ -195,6 +195,32 @@ async fn pending_codes_per_email_are_capped() -> Result<(), MappedErrors> {
 }
 
 #[tokio::test]
+async fn email_case_variants_share_the_cap() -> Result<(), MappedErrors> {
+    let repos = repos();
+
+    for _ in 0..MAX_PENDING_HOSTED_LOGIN_CODES_PER_EMAIL {
+        session_with_code(&repos).await?;
+    }
+
+    // Same mailbox, different case: still capped
+    let session = open_session(&repos).await?;
+    let attachment = repos
+        .updating
+        .attach_email_code(
+            &session.session_id,
+            HostedLoginEmailCode::new(Email::from_string(
+                "USER@Example.com".to_string(),
+            )?),
+            MAX_PENDING_HOSTED_LOGIN_CODES_PER_EMAIL,
+        )
+        .await?;
+
+    assert_eq!(attachment, HostedLoginCodeAttachment::EmailCapReached);
+
+    Ok(())
+}
+
+#[tokio::test]
 async fn right_code_after_wrong_ones_issues_authorization(
 ) -> Result<(), MappedErrors> {
     let repos = repos();

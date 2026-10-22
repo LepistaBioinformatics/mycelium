@@ -26,9 +26,15 @@ pub struct HostedLoginEmailCode {
 }
 
 impl HostedLoginEmailCode {
+    /// The email is stored lowercased: `Email` keeps the case it was typed
+    /// with, and the per-email cap must count `User@x.com` and `user@x.com`
+    /// (the same mailbox) as one address.
     pub fn new(email: Email) -> Self {
         Self {
-            email,
+            email: Email {
+                username: email.username.to_lowercase(),
+                domain: email.domain.to_lowercase(),
+            },
             code: format!("{:06}", OsRng.gen_range(0..1_000_000u32)),
             failed_attempts: 0,
         }
@@ -59,6 +65,17 @@ mod tests {
             username: "user".to_string(),
             domain: "example.com".to_string(),
         })
+    }
+
+    #[test]
+    fn email_is_stored_lowercased() {
+        let email_code = HostedLoginEmailCode::new(Email {
+            username: "User".to_string(),
+            domain: "Example.COM".to_string(),
+        });
+
+        assert_eq!(email_code.email.username, "user");
+        assert_eq!(email_code.email.domain, "example.com");
     }
 
     #[test]
