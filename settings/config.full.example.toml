@@ -499,3 +499,15 @@ level = "mycelium_base=info,myc_api=info,myc_diesel=info,myc_config=info,myc_cor
 #secretName = "service-01-authorization-header"
 #acceptInsecureRouting = true
 #methods = ["GET"]
+#
+## Retry transient downstream failures. Only idempotent methods (GET, HEAD,
+## OPTIONS, PUT, DELETE, TRACE) are retried unless `retryNonIdempotent` is
+## set; bodies of retried routes are buffered (512 KB limit). The n-th retry
+## waits `min(baseDelayMs * n^2, maxDelayMs)`. Worst-case latency is
+## `maxAttempts * timeout` plus the delays. Every key is optional; the values
+## below are the defaults.
+#[[service-01.path]]
+#group = "public"
+#path = "/flaky"
+#methods = ["GET", "PUT"]
+#retry = { maxAttempts = 3, baseDelayMs = 100, maxDelayMs = 2000, retryOnStatus = [502, 503, 504], retryNonIdempotent = false }
