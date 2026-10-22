@@ -19,6 +19,7 @@ pub mod related_accounts;
 pub mod resolved_http_secret;
 pub mod resource_audit_log;
 pub mod route;
+pub mod route_retry_policy;
 pub mod security_group;
 pub mod service;
 pub mod tag;

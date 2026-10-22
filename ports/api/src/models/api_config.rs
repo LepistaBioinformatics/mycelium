@@ -541,6 +541,74 @@ mod tests {
         );
     }
 
+    fn parse_services(toml_content: &str) -> Result<ApiConfig, String> {
+        let preprocessed = preprocess_toml_services(toml_content);
+        toml::from_str::<TmpConfig>(&preprocessed)
+            .map(|config| config.api)
+            .map_err(|e| e.to_string())
+    }
+
+    #[test]
+    fn route_retry_policy_parses_from_the_service_path_table() {
+        let config = parse_services(
+            r#"
+            [api]
+            [api.logging]
+
+            [api.services]
+
+            [[inventory]]
+            host = "localhost:8088"
+            healthCheckPath = "/health"
+
+            [[inventory.path]]
+            group = "public"
+            path = "/items/*"
+            methods = ["GET"]
+            retry = { maxAttempts = 4, baseDelayMs = 50, maxDelayMs = 500, retryOnStatus = [503] }
+
+            [[inventory.path]]
+            group = "public"
+            path = "/orders/*"
+            methods = ["POST"]
+            "#,
+        )
+        .unwrap();
+
+        let routes = &config.services[0].routes;
+        let retry = routes[0].retry.as_ref().expect("retry parsed");
+        assert_eq!(retry.max_attempts, 4);
+        assert_eq!(retry.base_delay_ms, 50);
+        assert_eq!(retry.max_delay_ms, 500);
+        assert_eq!(retry.retry_on_status, vec![503]);
+        assert!(routes[1].retry.is_none());
+    }
+
+    #[test]
+    fn invalid_route_retry_policy_fails_config_load() {
+        let error = parse_services(
+            r#"
+            [api]
+            [api.logging]
+
+            [api.services]
+
+            [[inventory]]
+            host = "localhost:8088"
+            healthCheckPath = "/health"
+
+            [[inventory.path]]
+            group = "public"
+            path = "/items/*"
+            methods = ["GET"]
+            retry = { maxAttempts = 50 }
+            "#,
+        )
+        .unwrap_err();
+
+        assert!(error.contains("maxAttempts"), "{error}");
+    }
+
     #[test]
     fn logging_config_defaults_when_fields_absent() {
         let config: LoggingConfig = toml::from_str("").unwrap();

@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-08-12T14:52:42-03:00\n"
+"POT-Creation-Date: 2026-10-22T12:09:30-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -535,9 +535,9 @@ msgstr ""
 "Docker Compose e todas as dependências"
 
 #: src/02-installation.md:111 src/03-quick-start.md:139
-#: src/05-deploy-locally.md:105 src/06-downstream-apis.md:280
+#: src/05-deploy-locally.md:105 src/06-downstream-apis.md:317
 #: src/10-alternative-idps.md:469 src/07-running-tests.md:73
-#: src/08-release-process.md:266 src/09-log-cache-tests.md:175
+#: src/08-release-process.md:313 src/09-log-cache-tests.md:175
 msgid "Troubleshooting"
 msgstr "Solução de problemas"
 
@@ -556,8 +556,8 @@ msgid ""
 "version` and `psql postgres://postgres:postgres@localhost:5432/postgres`."
 msgstr ""
 "**Falha na conexão com o banco de dados** — Verifique se o PostgreSQL está "
-"em execução: `psql --version` e `psql postgres://postgres:"
-"postgres@localhost:5432/postgres`."
+"em execução: `psql --version` e `psql postgres://"
+"postgres:postgres@localhost:5432/postgres`."
 
 #: src/02-installation.md:119
 msgid "**Redis not responding** — Run `redis-cli ping`. Expect `PONG`."
@@ -597,8 +597,8 @@ msgstr ""
 #: src/03-quick-start.md:15
 msgid ""
 "Replace `YOUR_DB_PASSWORD` with the password you set during database setup. "
-"Replace both `your-secret-*` values with random strings (use `openssl rand -"
-"hex 32`)."
+"Replace both `your-secret-*` values with random strings (use `openssl rand "
+"-hex 32`)."
 msgstr ""
 "Substitua `YOUR_DB_PASSWORD` pela senha definida durante a configuração do "
 "banco de dados. Substitua ambos os valores `your-secret-*` por strings "
@@ -884,8 +884,8 @@ msgstr ""
 
 #: src/04-configuration.md:58 src/04-configuration.md:81
 #: src/04-configuration.md:103 src/04-configuration.md:184
-#: src/04-configuration.md:211 src/06-downstream-apis.md:298
-#: src/06-downstream-apis.md:313 src/12-response-callbacks.md:165
+#: src/04-configuration.md:211 src/06-downstream-apis.md:335
+#: src/06-downstream-apis.md:350 src/12-response-callbacks.md:165
 #: src/12-response-callbacks.md:187 src/20-encryption-inventory.md:16
 #: src/20-encryption-inventory.md:49
 msgid "Field"
@@ -893,20 +893,21 @@ msgstr "Campo"
 
 #: src/04-configuration.md:58 src/04-configuration.md:81
 #: src/04-configuration.md:103 src/04-configuration.md:184
-#: src/04-configuration.md:211 src/06-downstream-apis.md:298
-#: src/06-downstream-apis.md:313 src/12-response-callbacks.md:165
-#: src/12-response-callbacks.md:187 src/16-webhooks.md:98
-#: src/17-error-codes.md:81 src/14-json-rpc.md:64 src/14-json-rpc.md:80
-#: src/14-json-rpc.md:92 src/14-json-rpc.md:106 src/14-json-rpc.md:115
-#: src/14-json-rpc.md:121 src/14-json-rpc.md:127 src/14-json-rpc.md:133
-#: src/14-json-rpc.md:142 src/14-json-rpc.md:150 src/14-json-rpc.md:168
-#: src/14-json-rpc.md:186 src/14-json-rpc.md:196 src/14-json-rpc.md:211
-#: src/14-json-rpc.md:222 src/14-json-rpc.md:232 src/14-json-rpc.md:239
-#: src/14-json-rpc.md:253 src/14-json-rpc.md:260 src/14-json-rpc.md:267
-#: src/14-json-rpc.md:275 src/14-json-rpc.md:287 src/14-json-rpc.md:294
-#: src/14-json-rpc.md:301 src/14-json-rpc.md:308 src/14-json-rpc.md:321
-#: src/14-json-rpc.md:336 src/14-json-rpc.md:346 src/18-cli.md:52
-#: src/20-encryption-inventory.md:34 src/08-release-process.md:150
+#: src/04-configuration.md:211 src/06-downstream-apis.md:187
+#: src/06-downstream-apis.md:335 src/06-downstream-apis.md:350
+#: src/12-response-callbacks.md:165 src/12-response-callbacks.md:187
+#: src/16-webhooks.md:98 src/17-error-codes.md:81 src/14-json-rpc.md:64
+#: src/14-json-rpc.md:80 src/14-json-rpc.md:92 src/14-json-rpc.md:106
+#: src/14-json-rpc.md:115 src/14-json-rpc.md:121 src/14-json-rpc.md:127
+#: src/14-json-rpc.md:133 src/14-json-rpc.md:142 src/14-json-rpc.md:150
+#: src/14-json-rpc.md:168 src/14-json-rpc.md:186 src/14-json-rpc.md:196
+#: src/14-json-rpc.md:211 src/14-json-rpc.md:222 src/14-json-rpc.md:232
+#: src/14-json-rpc.md:239 src/14-json-rpc.md:253 src/14-json-rpc.md:260
+#: src/14-json-rpc.md:267 src/14-json-rpc.md:275 src/14-json-rpc.md:287
+#: src/14-json-rpc.md:294 src/14-json-rpc.md:301 src/14-json-rpc.md:308
+#: src/14-json-rpc.md:321 src/14-json-rpc.md:336 src/14-json-rpc.md:346
+#: src/18-cli.md:52 src/20-encryption-inventory.md:34
+#: src/08-release-process.md:196
 msgid "Description"
 msgstr "Descrição"
 
@@ -1042,7 +1043,7 @@ msgstr "`consumeBatchSize`"
 msgid "Events per flush"
 msgstr "Eventos por ciclo de envio"
 
-#: src/04-configuration.md:108
+#: src/04-configuration.md:108 src/06-downstream-apis.md:189
 msgid "`maxAttempts`"
 msgstr "`maxAttempts`"
 
@@ -1324,8 +1325,8 @@ msgstr "`[api.services]` — Serviços downstream"
 
 #: src/04-configuration.md:260
 msgid ""
-"Route configuration lives here. See [Downstream APIs](./06-downstream-apis."
-"md) for the full guide."
+"Route configuration lives here. See [Downstream APIs](./06-downstream-"
+"apis.md) for the full guide."
 msgstr ""
 "A configuração de rotas fica aqui. Veja as [APIs Downstream](./06-downstream-"
 "apis.md) para o guia completo."
@@ -1638,8 +1639,8 @@ msgstr ""
 
 #: src/24-deployment-modes.md:22
 msgid ""
-"Each mode's Cargo feature name matches its shipped `config.<mode>.example."
-"toml`."
+"Each mode's Cargo feature name matches its shipped `config."
+"<mode>.example.toml`."
 msgstr ""
 
 #: src/24-deployment-modes.md:26
@@ -1882,8 +1883,8 @@ msgid ""
 "move to PostgreSQL: the KV/artifact cache becomes a table, and the email "
 "queue is claimed multi-pod-safe on the existing `message_queue` table. Pick "
 "it when you want a horizontally-scalable deployment backed by PostgreSQL "
-"alone, without operating Redis. See [Deployment Modes](./24-deployment-modes."
-"md) for the full comparison."
+"alone, without operating Redis. See [Deployment Modes](./24-deployment-"
+"modes.md) for the full comparison."
 msgstr ""
 
 #: src/26-postgres-only-mode.md:14 src/23-standalone-mode.md:10
@@ -2285,10 +2286,10 @@ msgstr ""
 
 #: src/23-standalone-mode.md:112
 msgid ""
-"Internal (database-backed) JWT authentication is **opt-in** via `[auth."
-"internal.define]` — note the table shape: `internal = \"enabled\"` alone "
-"does **not** work, since `OptionalConfig`'s `Enabled` variant is a newtype "
-"wrapping a table, not a bare string:"
+"Internal (database-backed) JWT authentication is **opt-in** via "
+"`[auth.internal.define]` — note the table shape: `internal = \"enabled\"` "
+"alone does **not** work, since `OptionalConfig`'s `Enabled` variant is a "
+"newtype wrapping a table, not a bare string:"
 msgstr ""
 
 #: src/23-standalone-mode.md:116
@@ -2426,7 +2427,7 @@ msgstr ""
 "Cada rota pertence a um **grupo de segurança** que define os requisitos "
 "mínimos:"
 
-#: src/01-authorization.md:28 src/06-downstream-apis.md:223
+#: src/01-authorization.md:28 src/06-downstream-apis.md:260
 msgid "Security group"
 msgstr "Grupo de segurança"
 
@@ -2442,7 +2443,7 @@ msgstr ""
 msgid "Nothing — anyone can pass"
 msgstr "Nada — qualquer pessoa pode passar"
 
-#: src/01-authorization.md:31 src/06-downstream-apis.md:225
+#: src/01-authorization.md:31 src/06-downstream-apis.md:262
 msgid "`authenticated`"
 msgstr ""
 
@@ -2450,7 +2451,7 @@ msgstr ""
 msgid "Valid JWT or connection string"
 msgstr "JWT válido ou string de conexão"
 
-#: src/01-authorization.md:32 src/06-downstream-apis.md:226
+#: src/01-authorization.md:32 src/06-downstream-apis.md:263
 msgid "`protected`"
 msgstr ""
 
@@ -2458,7 +2459,7 @@ msgstr ""
 msgid "Valid token + resolved profile"
 msgstr "Token válido + perfil resolvido"
 
-#: src/01-authorization.md:33 src/06-downstream-apis.md:227
+#: src/01-authorization.md:33 src/06-downstream-apis.md:264
 msgid "`protectedByRoles`"
 msgstr ""
 
@@ -2494,7 +2495,7 @@ msgstr "Quando injetado"
 msgid "Contains"
 msgstr "Contém"
 
-#: src/01-authorization.md:46 src/06-downstream-apis.md:223
+#: src/01-authorization.md:46 src/06-downstream-apis.md:260
 msgid "`x-mycelium-email`"
 msgstr ""
 
@@ -2506,7 +2507,7 @@ msgstr "`authenticated` ou superior"
 msgid "The authenticated user's email"
 msgstr "O e-mail do usuário autenticado"
 
-#: src/01-authorization.md:47 src/06-downstream-apis.md:223
+#: src/01-authorization.md:47 src/06-downstream-apis.md:260
 msgid "`x-mycelium-profile`"
 msgstr ""
 
@@ -3197,9 +3198,9 @@ msgstr ""
 
 #: src/15-account-types.md:75
 msgid ""
-"A tenant-scoped account representing a service, bot, or non-human entity (e."
-"g. an external application, an automated pipeline, an integration). Created "
-"by a `TenantManager` within a specific tenant."
+"A tenant-scoped account representing a service, bot, or non-human entity "
+"(e.g. an external application, an automated pipeline, an integration). "
+"Created by a `TenantManager` within a specific tenant."
 msgstr ""
 "Uma conta com escopo por tenant representando um serviço, bot ou entidade "
 "não humana (ex.: uma aplicação externa, um pipeline automatizado, uma "
@@ -3300,8 +3301,8 @@ msgstr ""
 #: src/15-account-types.md:123
 msgid ""
 "An internal account bound to a specific `SystemActor` role. Used by Mycelium "
-"itself to represent system-level actors that need a persistent identity (e."
-"g. for audit trails). You do not create these manually — the platform "
+"itself to represent system-level actors that need a persistent identity "
+"(e.g. for audit trails). You do not create these manually — the platform "
 "provisions them as needed."
 msgstr ""
 "Uma conta interna vinculada a um papel `SystemActor` específico. Usada pelo "
@@ -3591,8 +3592,8 @@ msgstr "Como os papéis são aplicados"
 
 #: src/15-account-types.md:238
 msgid ""
-"When a request arrives at an admin route (e.g. `POST /_adm/tenant-owner/..."
-"`), Mycelium:"
+"When a request arrives at an admin route (e.g. `POST /_adm/tenant-"
+"owner/...`), Mycelium:"
 msgstr ""
 "Quando uma requisição chega a uma rota administrativa (ex.: `POST /_adm/"
 "tenant-owner/...`), o Mycelium:"
@@ -3660,11 +3661,11 @@ msgstr ""
 
 #: src/06-downstream-apis.md:5
 msgid ""
-"All service configuration lives in `settings/config.toml` under `[api."
-"services]`. Restart the gateway after any change."
+"All service configuration lives in `settings/config.toml` under "
+"`[api.services]`. Restart the gateway after any change."
 msgstr ""
-"Toda a configuração de serviço fica em `settings/config.toml` em `[api."
-"services]`. Reinicie o gateway após qualquer alteração."
+"Toda a configuração de serviço fica em `settings/config.toml` em "
+"`[api.services]`. Reinicie o gateway após qualquer alteração."
 
 #: src/06-downstream-apis.md:10
 msgid "Registering a service"
@@ -3937,10 +3938,130 @@ msgid ""
 msgstr ""
 
 #: src/06-downstream-apis.md:174
+msgid "Retrying transient failures"
+msgstr ""
+
+#: src/06-downstream-apis.md:176
+msgid ""
+"A route can retry requests that fail with a connection error or with one of "
+"the configured statuses. Retries are off unless the route sets `retry`:"
+msgstr ""
+
+#: src/06-downstream-apis.md:179
+msgid ""
+"```toml\n"
+"[[api-service.path]]\n"
+"group = \"protected\"\n"
+"path = \"/api/reports/*\"\n"
+"methods = [\"GET\", \"PUT\"]\n"
+"retry = { maxAttempts = 3, baseDelayMs = 100, maxDelayMs = 2000, "
+"retryOnStatus = [502, 503, 504] }\n"
+"```"
+msgstr ""
+
+#: src/06-downstream-apis.md:187
+msgid "Key"
+msgstr ""
+
+#: src/06-downstream-apis.md:187
+msgid "Default"
+msgstr ""
+
+#: src/06-downstream-apis.md:189
+msgid "`3`"
+msgstr ""
+
+#: src/06-downstream-apis.md:189
+msgid "Total attempts, including the first one (1 to 10)"
+msgstr ""
+
+#: src/06-downstream-apis.md:190
+msgid "`baseDelayMs`"
+msgstr ""
+
+#: src/06-downstream-apis.md:190
+msgid "`100`"
+msgstr ""
+
+#: src/06-downstream-apis.md:190
+msgid ""
+"Base of the back-off. The n-th retry waits `min(baseDelayMs * n², "
+"maxDelayMs)`"
+msgstr ""
+
+#: src/06-downstream-apis.md:191
+msgid "`maxDelayMs`"
+msgstr ""
+
+#: src/06-downstream-apis.md:191
+msgid "`2000`"
+msgstr ""
+
+#: src/06-downstream-apis.md:191
+msgid "Upper bound of a single wait. Must be at least `baseDelayMs`"
+msgstr ""
+
+#: src/06-downstream-apis.md:192
+msgid "`retryOnStatus`"
+msgstr ""
+
+#: src/06-downstream-apis.md:192
+msgid "`[502, 503, 504]`"
+msgstr ""
+
+#: src/06-downstream-apis.md:192
+msgid ""
+"Downstream statuses that trigger a retry. Only `429` and `5xx` are accepted"
+msgstr ""
+
+#: src/06-downstream-apis.md:193
+msgid "`retryNonIdempotent`"
+msgstr ""
+
+#: src/06-downstream-apis.md:193
+msgid "`false`"
+msgstr ""
+
+#: src/06-downstream-apis.md:193
+msgid "Also retry `POST`, `PATCH` and `CONNECT`"
+msgstr ""
+
+#: src/06-downstream-apis.md:195
+msgid "Things to keep in mind:"
+msgstr ""
+
+#: src/06-downstream-apis.md:197
+msgid ""
+"Only idempotent methods (`GET`, `HEAD`, `OPTIONS`, `PUT`, `DELETE`, `TRACE`) "
+"are retried by default. With `retryNonIdempotent = true`, the other methods "
+"are retried on connection failures and configured statuses, but never after "
+"a timeout or a broken response, since the service may already have acted on "
+"the request."
+msgstr ""
+
+#: src/06-downstream-apis.md:202
+msgid ""
+"The request body of a retried route is held in memory so it can be sent "
+"again. Bodies above 512 KB are rejected with `400`."
+msgstr ""
+
+#: src/06-downstream-apis.md:204
+msgid ""
+"When every attempt fails, the client receives the last status or error. "
+"Response callbacks run once, on that final result."
+msgstr ""
+
+#: src/06-downstream-apis.md:206
+msgid ""
+"The worst-case latency is `maxAttempts` times the gateway timeout, plus the "
+"back-off delays."
+msgstr ""
+
+#: src/06-downstream-apis.md:211
 msgid "Webhook routes — identity from request body"
 msgstr "Rotas de webhook — identidade a partir do corpo da requisição"
 
-#: src/06-downstream-apis.md:176
+#: src/06-downstream-apis.md:213
 msgid ""
 "Some callers (like Telegram) don't send a JWT. Instead, the user's identity "
 "is in the request body. Use `identitySource` to handle this."
@@ -3949,7 +4070,7 @@ msgstr ""
 "identidade do usuário está no corpo da requisição. Use `identitySource` para "
 "lidar com isso."
 
-#: src/06-downstream-apis.md:179
+#: src/06-downstream-apis.md:216
 msgid ""
 "**Requires `allowedSources`** — before parsing the body, Mycelium checks "
 "that the `Host` header matches an allowed source. This prevents attackers "
@@ -3959,7 +4080,7 @@ msgstr ""
 "se o cabeçalho `Host` corresponde a uma fonte permitida. Isso impede que "
 "atacantes forjem chamadas de webhook."
 
-#: src/06-downstream-apis.md:182
+#: src/06-downstream-apis.md:219
 msgid ""
 "```toml\n"
 "[[telegram-bot]]\n"
@@ -3975,7 +4096,7 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/06-downstream-apis.md:195
+#: src/06-downstream-apis.md:232
 msgid ""
 "With this config, Mycelium extracts the Telegram user ID from the message "
 "body, looks up the linked Mycelium account, and injects `x-mycelium-profile` "
@@ -3987,7 +4108,7 @@ msgstr ""
 "profile` antes de encaminhar. Se o usuário não vinculou sua conta, o "
 "Mycelium retorna 401 e a mensagem não é encaminhada."
 
-#: src/06-downstream-apis.md:199
+#: src/06-downstream-apis.md:236
 msgid ""
 "See [Alternative Identity Providers](./10-alternative-idps.md) for the full "
 "Telegram setup journey."
@@ -3995,11 +4116,11 @@ msgstr ""
 "Consulte [Provedores de Identidade Alternativos](./10-alternative-idps.md) "
 "para o percurso completo de configuração do Telegram."
 
-#: src/06-downstream-apis.md:203
+#: src/06-downstream-apis.md:240
 msgid "Service discovery (AI agents)"
 msgstr "Descoberta de serviços (agentes de IA)"
 
-#: src/06-downstream-apis.md:205
+#: src/06-downstream-apis.md:242
 msgid ""
 "Set `discoverable = true` to make a service visible to AI agents and LLM-"
 "based tooling:"
@@ -4007,7 +4128,7 @@ msgstr ""
 "Defina `discoverable = true` para tornar um serviço visível para agentes de "
 "IA e ferramentas baseadas em LLM:"
 
-#: src/06-downstream-apis.md:207
+#: src/06-downstream-apis.md:244
 msgid ""
 "```toml\n"
 "[[data-service]]\n"
@@ -4022,30 +4143,31 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/06-downstream-apis.md:221
+#: src/06-downstream-apis.md:258
 msgid "What headers does my service receive?"
 msgstr "Quais cabeçalhos meu serviço recebe?"
 
-#: src/06-downstream-apis.md:225 src/06-downstream-apis.md:226
-#: src/06-downstream-apis.md:227 src/06-downstream-apis.md:302
-#: src/06-downstream-apis.md:315 src/06-downstream-apis.md:316
-#: src/06-downstream-apis.md:317 src/12-response-callbacks.md:189
+#: src/06-downstream-apis.md:262 src/06-downstream-apis.md:263
+#: src/06-downstream-apis.md:264 src/06-downstream-apis.md:339
+#: src/06-downstream-apis.md:352 src/06-downstream-apis.md:353
+#: src/06-downstream-apis.md:354 src/12-response-callbacks.md:189
 #: src/12-response-callbacks.md:190
 msgid "Yes"
 msgstr ""
 
-#: src/06-downstream-apis.md:225 src/06-downstream-apis.md:304
-#: src/06-downstream-apis.md:305 src/06-downstream-apis.md:306
-#: src/06-downstream-apis.md:307 src/06-downstream-apis.md:308
-#: src/06-downstream-apis.md:309 src/06-downstream-apis.md:318
-#: src/06-downstream-apis.md:319 src/06-downstream-apis.md:320
-#: src/12-response-callbacks.md:191 src/12-response-callbacks.md:192
-#: src/12-response-callbacks.md:193 src/12-response-callbacks.md:200
-#: src/12-response-callbacks.md:201 src/12-response-callbacks.md:202
+#: src/06-downstream-apis.md:262 src/06-downstream-apis.md:341
+#: src/06-downstream-apis.md:342 src/06-downstream-apis.md:343
+#: src/06-downstream-apis.md:344 src/06-downstream-apis.md:345
+#: src/06-downstream-apis.md:346 src/06-downstream-apis.md:355
+#: src/06-downstream-apis.md:356 src/06-downstream-apis.md:357
+#: src/06-downstream-apis.md:358 src/12-response-callbacks.md:191
+#: src/12-response-callbacks.md:192 src/12-response-callbacks.md:193
+#: src/12-response-callbacks.md:200 src/12-response-callbacks.md:201
+#: src/12-response-callbacks.md:202
 msgid "No"
 msgstr ""
 
-#: src/06-downstream-apis.md:229
+#: src/06-downstream-apis.md:266
 msgid ""
 "The `x-mycelium-profile` value is a Base64-encoded, ZSTD-compressed JSON "
 "object. Use the [Python SDK](https://github.com/LepistaBioinformatics/"
@@ -4057,11 +4179,11 @@ msgstr ""
 "LepistaBioinformatics/mycelium-sdk-py) ou decodifique-o manualmente para ler "
 "participações em tenants, papéis e escopos de acesso."
 
-#: src/06-downstream-apis.md:235
+#: src/06-downstream-apis.md:272
 msgid "Complete example"
 msgstr "Exemplo completo"
 
-#: src/06-downstream-apis.md:237
+#: src/06-downstream-apis.md:274
 msgid ""
 "```toml\n"
 "[api.services]\n"
@@ -4105,7 +4227,7 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/06-downstream-apis.md:282
+#: src/06-downstream-apis.md:319
 msgid ""
 "**Route not matching** — Check that the path has a wildcard (`/api/*`) if "
 "you want to match subpaths. `/api/` only matches that exact path."
@@ -4114,7 +4236,7 @@ msgstr ""
 "curinga (`/api/*`) se deseja corresponder subcaminhos. `/api/` corresponde "
 "apenas a esse caminho exato."
 
-#: src/06-downstream-apis.md:285
+#: src/06-downstream-apis.md:322
 msgid ""
 "**401 on a protected route** — The JWT or connection string is missing, "
 "expired, or invalid. Check the `Authorization: Bearer <token>` or `x-"
@@ -4124,7 +4246,7 @@ msgstr ""
 "expirado ou inválido. Verifique o cabeçalho `Authorization: Bearer <token>` "
 "ou `x-mycelium-connection-string`."
 
-#: src/06-downstream-apis.md:288
+#: src/06-downstream-apis.md:325
 msgid ""
 "**403 on a role-protected route** — The user is authenticated but doesn't "
 "have the required role. Check role assignment in the Mycelium admin panel."
@@ -4133,7 +4255,7 @@ msgstr ""
 "não possui o papel necessário. Verifique a atribuição de papéis no painel de "
 "administração do Mycelium."
 
-#: src/06-downstream-apis.md:291
+#: src/06-downstream-apis.md:328
 msgid ""
 "**Downstream unreachable** — Verify `host`, `protocol`, and that the service "
 "is actually running. Use `acceptInsecureRouting = true` on the route if the "
@@ -4143,158 +4265,166 @@ msgstr ""
 "está realmente em execução. Use `acceptInsecureRouting = true` na rota se o "
 "downstream usar um certificado TLS autoassinado."
 
-#: src/06-downstream-apis.md:296
+#: src/06-downstream-apis.md:333
 msgid "Reference — service-level fields"
 msgstr "Referência — campos de nível de serviço"
 
-#: src/06-downstream-apis.md:298 src/06-downstream-apis.md:313
+#: src/06-downstream-apis.md:335 src/06-downstream-apis.md:350
 #: src/12-response-callbacks.md:187
 msgid "Required"
 msgstr "Obrigatório"
 
-#: src/06-downstream-apis.md:300
+#: src/06-downstream-apis.md:337
 msgid "`host`"
 msgstr ""
 
-#: src/06-downstream-apis.md:300
+#: src/06-downstream-apis.md:337
 msgid "Yes (or `hosts`)"
 msgstr "Sim (ou `hosts`)"
 
-#: src/06-downstream-apis.md:300
+#: src/06-downstream-apis.md:337
 msgid "Single downstream host with port"
 msgstr "Host downstream único com porta"
 
-#: src/06-downstream-apis.md:301
+#: src/06-downstream-apis.md:338
 msgid "`hosts`"
 msgstr ""
 
-#: src/06-downstream-apis.md:301
+#: src/06-downstream-apis.md:338
 msgid "Yes (or `host`)"
 msgstr "Sim (ou `host`)"
 
-#: src/06-downstream-apis.md:301
+#: src/06-downstream-apis.md:338
 msgid "Multiple hosts for load balancing"
 msgstr "Múltiplos hosts para balanceamento de carga"
 
-#: src/06-downstream-apis.md:302
+#: src/06-downstream-apis.md:339
 msgid "`protocol`"
 msgstr ""
 
-#: src/06-downstream-apis.md:302
+#: src/06-downstream-apis.md:339
 msgid "`\"http\"` or `\"https\"`"
 msgstr ""
 
-#: src/06-downstream-apis.md:303
+#: src/06-downstream-apis.md:340
 msgid "`allowedSources`"
 msgstr ""
 
-#: src/06-downstream-apis.md:303
+#: src/06-downstream-apis.md:340
 msgid "Required when `identitySource` is set"
 msgstr "Obrigatório quando `identitySource` está definido"
 
-#: src/06-downstream-apis.md:303
+#: src/06-downstream-apis.md:340
 msgid "Allowed `Host` headers (supports wildcards)"
 msgstr "Cabeçalhos `Host` permitidos (suporta curingas)"
 
-#: src/06-downstream-apis.md:304
+#: src/06-downstream-apis.md:341
 msgid "`discoverable`"
 msgstr ""
 
-#: src/06-downstream-apis.md:304
+#: src/06-downstream-apis.md:341
 msgid "Expose service to AI agents"
 msgstr "Expor serviço a agentes de IA"
 
-#: src/06-downstream-apis.md:305
+#: src/06-downstream-apis.md:342
 msgid "`description`"
 msgstr ""
 
-#: src/06-downstream-apis.md:305
+#: src/06-downstream-apis.md:342
 msgid "Human-readable description"
 msgstr "Descrição legível por humanos"
 
-#: src/06-downstream-apis.md:306
+#: src/06-downstream-apis.md:343
 msgid "`openapiPath`"
 msgstr ""
 
-#: src/06-downstream-apis.md:306
+#: src/06-downstream-apis.md:343
 msgid "Path to OpenAPI spec"
 msgstr "Caminho para a especificação OpenAPI"
 
-#: src/06-downstream-apis.md:307
+#: src/06-downstream-apis.md:344
 msgid "`healthCheckPath`"
 msgstr ""
 
-#: src/06-downstream-apis.md:307
+#: src/06-downstream-apis.md:344
 msgid "Health check endpoint"
 msgstr "Endpoint de health check"
 
-#: src/06-downstream-apis.md:308
+#: src/06-downstream-apis.md:345
 msgid "`capabilities`"
 msgstr ""
 
-#: src/06-downstream-apis.md:308
+#: src/06-downstream-apis.md:345
 msgid "Array of capability tags"
 msgstr "Array de tags de capacidade"
 
-#: src/06-downstream-apis.md:309
+#: src/06-downstream-apis.md:346
 msgid "`serviceType`"
 msgstr ""
 
-#: src/06-downstream-apis.md:309
+#: src/06-downstream-apis.md:346
 msgid "e.g. `\"rest-api\"`"
 msgstr ""
 
-#: src/06-downstream-apis.md:311
+#: src/06-downstream-apis.md:348
 msgid "Reference — route-level fields"
 msgstr "Referência — campos de nível de rota"
 
-#: src/06-downstream-apis.md:315
+#: src/06-downstream-apis.md:352
 msgid "`group`"
 msgstr ""
 
-#: src/06-downstream-apis.md:315
+#: src/06-downstream-apis.md:352
 msgid "Security group (see above)"
 msgstr "Grupo de segurança (ver acima)"
 
-#: src/06-downstream-apis.md:316
+#: src/06-downstream-apis.md:353
 msgid "`path`"
 msgstr ""
 
-#: src/06-downstream-apis.md:316
+#: src/06-downstream-apis.md:353
 msgid "URL path pattern, supports wildcards"
 msgstr "Padrão de caminho URL, suporta curingas"
 
-#: src/06-downstream-apis.md:317
+#: src/06-downstream-apis.md:354
 msgid "`methods`"
 msgstr ""
 
-#: src/06-downstream-apis.md:317
+#: src/06-downstream-apis.md:354
 msgid "HTTP methods, or `[\"ALL\"]`"
 msgstr ""
 
-#: src/06-downstream-apis.md:318
+#: src/06-downstream-apis.md:355
 msgid "`secretName`"
 msgstr ""
 
-#: src/06-downstream-apis.md:318
+#: src/06-downstream-apis.md:355
 msgid "Reference to a secret defined at service level"
 msgstr "Referência a um segredo definido no nível de serviço"
 
-#: src/06-downstream-apis.md:319
+#: src/06-downstream-apis.md:356
 msgid "`identitySource`"
 msgstr ""
 
-#: src/06-downstream-apis.md:319
+#: src/06-downstream-apis.md:356
 msgid "Body-based IdP. Currently: `\"telegram\"`"
 msgstr ""
 
-#: src/06-downstream-apis.md:320
+#: src/06-downstream-apis.md:357
 msgid "`acceptInsecureRouting`"
 msgstr ""
 
-#: src/06-downstream-apis.md:320
+#: src/06-downstream-apis.md:357
 msgid "Allow self-signed TLS certs on downstream"
 msgstr "Permitir certificados TLS autoassinados no downstream"
+
+#: src/06-downstream-apis.md:358
+msgid "`retry`"
+msgstr ""
+
+#: src/06-downstream-apis.md:358
+msgid "Retry policy for transient failures (see above)"
+msgstr ""
 
 #: src/10-alternative-idps.md:3
 msgid ""
@@ -4353,17 +4483,18 @@ msgstr "String de conexão — `x-mycelium-connection-string: <string>`"
 
 #: src/10-alternative-idps.md:25
 msgid ""
-"A Mycelium-native token with the format `acc=<uuid>;tid=<uuid>;r=<role>;"
-"edt=<datetime>;sig=<hmac>`. Issued by Telegram login (and service token "
-"generation). Clients send it as the custom header `x-mycelium-connection-"
-"string: <string>`. The gateway fetches the token from the database and "
-"resolves the profile from the stored scope."
+"A Mycelium-native token with the format "
+"`acc=<uuid>;tid=<uuid>;r=<role>;edt=<datetime>;sig=<hmac>`. Issued by "
+"Telegram login (and service token generation). Clients send it as the custom "
+"header `x-mycelium-connection-string: <string>`. The gateway fetches the "
+"token from the database and resolves the profile from the stored scope."
 msgstr ""
-"Um token nativo do Mycelium com o formato `acc=<uuid>;tid=<uuid>;r=<role>;"
-"edt=<datetime>;sig=<hmac>`. Emitido pelo login via Telegram (e geração de "
-"token de serviço). Os clientes o enviam como cabeçalho personalizado `x-"
-"mycelium-connection-string: <string>`. O gateway busca o token no banco de "
-"dados e resolve o perfil a partir do escopo armazenado."
+"Um token nativo do Mycelium com o formato "
+"`acc=<uuid>;tid=<uuid>;r=<role>;edt=<datetime>;sig=<hmac>`. Emitido pelo "
+"login via Telegram (e geração de token de serviço). Os clientes o enviam "
+"como cabeçalho personalizado `x-mycelium-connection-string: <string>`. O "
+"gateway busca o token no banco de dados e resolve o perfil a partir do "
+"escopo armazenado."
 
 #: src/10-alternative-idps.md:30
 msgid ""
@@ -4530,12 +4661,12 @@ msgstr "Telegram"
 #: src/10-alternative-idps.md:96
 msgid ""
 "A Telegram bot created via [@BotFather](https://t.me/BotFather). After "
-"creating the bot you receive a **bot token** (looks like `7123456789:AAF..."
-"`). Keep it secret."
+"creating the bot you receive a **bot token** (looks like "
+"`7123456789:AAF...`). Keep it secret."
 msgstr ""
 "Um bot do Telegram criado via [@BotFather](https://t.me/BotFather). Após "
-"criar o bot, você recebe um **token de bot** (parece com `7123456789:AAF..."
-"`). Mantenha-o secreto."
+"criar o bot, você recebe um **token de bot** (parece com "
+"`7123456789:AAF...`). Mantenha-o secreto."
 
 #: src/10-alternative-idps.md:98
 msgid ""
@@ -4735,9 +4866,8 @@ msgid ""
 "Content-Type: application/json\n"
 "\n"
 "{\n"
-"  \"initData\": \"query_id=AAH..."
-"&user=%7B%22id%22%3A98765432%2C%22username%22%3A%22maria_acme%22..."
-"&hash=abc123...\"\n"
+"  \"initData\": "
+"\"query_id=AAH...&user=%7B%22id%22%3A98765432%2C%22username%22%3A%22maria_acme%22...&hash=abc123...\"\n"
 "}\n"
 "```"
 msgstr ""
@@ -5423,8 +5553,8 @@ msgstr ""
 "**`401 invalid_telegram_init_data`** : A verificação HMAC do `initData` "
 "falhou. Causas: token de bot errado armazenado no Mycelium, `initData` "
 "expirado (o Telegram assina `initData` com um timestamp de curta duração) ou "
-"a string foi modificada em trânsito. Releia `initData` de `window.Telegram."
-"WebApp.initData` e tente novamente imediatamente."
+"a string foi modificada em trânsito. Releia `initData` de "
+"`window.Telegram.WebApp.initData` e tente novamente imediatamente."
 
 #: src/10-alternative-idps.md:486
 msgid ""
@@ -5480,8 +5610,8 @@ msgstr ""
 "requisições com `Host: api.telegram.org`. `Origin` é um cabeçalho de "
 "navegador enviado em requisições preflight do CORS — o Telegram nunca o "
 "envia. O CORS (`allowedOrigins`) é completamente independente e irrelevante "
-"para rotas de webhook. Veja [APIs Downstream](./06-downstream-apis."
-"md#webhook-routes--identity-from-request-body)."
+"para rotas de webhook. Veja [APIs Downstream](./06-downstream-"
+"apis.md#webhook-routes--identity-from-request-body)."
 
 #: src/12-response-callbacks.md:3
 msgid ""
@@ -5861,7 +5991,7 @@ msgid "Reference — callback fields"
 msgstr "Referência — campos de callback"
 
 #: src/12-response-callbacks.md:187 src/20-encryption-inventory.md:34
-#: src/08-release-process.md:150
+#: src/08-release-process.md:196
 msgid "Type"
 msgstr ""
 
@@ -6058,8 +6188,8 @@ msgstr ""
 
 #: src/16-webhooks.md:28
 msgid ""
-"Delivery is retried up to a configured maximum number of attempts (`core."
-"webhook.maxAttempts` in `config.toml`)."
+"Delivery is retried up to a configured maximum number of attempts "
+"(`core.webhook.maxAttempts` in `config.toml`)."
 msgstr ""
 "A entrega é tentada novamente até um número máximo configurado de tentativas "
 "(`core.webhook.maxAttempts` em `config.toml`)."
@@ -6081,9 +6211,9 @@ msgid ""
 "or the equivalent REST routes under `/_adm/system-manager/webhooks/`. "
 "Requires the **system-manager** role."
 msgstr ""
-"Os webhooks são gerenciados pelos métodos JSON-RPC `systemManager.webhooks."
-"*` ou pelas rotas REST equivalentes em `/_adm/system-manager/webhooks/`. "
-"Requer o papel **system-manager**."
+"Os webhooks são gerenciados pelos métodos JSON-RPC "
+"`systemManager.webhooks.*` ou pelas rotas REST equivalentes em `/_adm/system-"
+"manager/webhooks/`. Requer o papel **system-manager**."
 
 #: src/16-webhooks.md:52
 msgid "Via JSON-RPC"
@@ -6889,8 +7019,8 @@ msgid ""
 "required to call them (see [Account Types and Roles](./15-account-types.md))."
 msgstr ""
 "Os métodos são organizados por namespace. O namespace corresponde ao papel "
-"necessário para chamá-los (veja [Tipos de Conta e Papéis](./15-account-types."
-"md))."
+"necessário para chamá-los (veja [Tipos de Conta e Papéis](./15-account-"
+"types.md))."
 
 #: src/14-json-rpc.md:60
 msgid "`managers` — Platform-wide operations"
@@ -7879,8 +8009,8 @@ msgstr ""
 
 #: src/19-sdk.md:20
 msgid ""
-"Source: [github.com/LepistaBioinformatics/mycelium-sdk-py](https://github."
-"com/LepistaBioinformatics/mycelium-sdk-py)"
+"Source: [github.com/LepistaBioinformatics/mycelium-sdk-py](https://"
+"github.com/LepistaBioinformatics/mycelium-sdk-py)"
 msgstr ""
 "Fonte: [github.com/LepistaBioinformatics/mycelium-sdk-py](https://github.com/"
 "LepistaBioinformatics/mycelium-sdk-py)"
@@ -8798,10 +8928,10 @@ msgstr ""
 
 #: src/20-encryption-inventory.md:113
 msgid ""
-"See [Envelope Encryption Migration Guide](./21-envelope-encryption-migration."
-"md) for step-by-step operator instructions on KEK rotation. See [HMAC Key "
-"Rotation](./22-hmac-key-rotation.md) for the connection-string signing-key "
-"rotation procedure."
+"See [Envelope Encryption Migration Guide](./21-envelope-encryption-"
+"migration.md) for step-by-step operator instructions on KEK rotation. See "
+"[HMAC Key Rotation](./22-hmac-key-rotation.md) for the connection-string "
+"signing-key rotation procedure."
 msgstr ""
 
 #: src/21-envelope-encryption-migration.md:3
@@ -8977,13 +9107,13 @@ msgstr ""
 #: src/21-envelope-encryption-migration.md:103
 msgid ""
 "**Side-effect — connection strings are invalidated.** `token_secret` is also "
-"used as the HMAC key for connection-string signatures (`UserAccountScope::"
-"sign_token`). Rotating the KEK therefore invalidates every signature issued "
-"under the old secret. There is no re-signing path — treat all active "
-"connection strings as revoked and plan the rotation accordingly. See the "
-"[Encryption Inventory](./20-encryption-inventory.md#token_secret-is-multi-"
-"purpose--rotation-has-side-effects) for the full list of `token_secret` "
-"consumers."
+"used as the HMAC key for connection-string signatures "
+"(`UserAccountScope::sign_token`). Rotating the KEK therefore invalidates "
+"every signature issued under the old secret. There is no re-signing path — "
+"treat all active connection strings as revoked and plan the rotation "
+"accordingly. See the [Encryption Inventory](./20-encryption-"
+"inventory.md#token_secret-is-multi-purpose--rotation-has-side-effects) for "
+"the full list of `token_secret` consumers."
 msgstr ""
 
 #: src/21-envelope-encryption-migration.md:114
@@ -9632,12 +9762,12 @@ msgstr ""
 
 #: src/08-release-process.md:39
 msgid ""
-"Dispatching `release-prerelease.yml` (from `develop`) or `release-stable."
-"yml` (from `main`) runs, in one job: **bump → commit (local) → publish "
-"(OIDC, rate-limited) → tag → push.** Nothing is pushed to the branch or to "
-"crates.io until the step that does it succeeds; if `publish` fails, the job "
-"simply ends and the remote is untouched — see [Publish Failures & Retry]"
-"(#publish-failures--retry) below."
+"Dispatching `release-prerelease.yml` (from `develop`) or `release-"
+"stable.yml` (from `main`) runs, in one job: **bump → commit (local) → "
+"publish (OIDC, rate-limited) → tag → push.** Nothing is pushed to the branch "
+"or to crates.io until the step that does it succeeds; if `publish` fails, "
+"the job simply ends and the remote is untouched — see [Publish Failures & "
+"Retry](#publish-failures--retry) below."
 msgstr ""
 
 #: src/08-release-process.md:45
@@ -9687,10 +9817,32 @@ msgstr ""
 "**Exemplo de progressão**: `8.3.0-beta.1` → `8.3.0-beta.2` → `8.3.0-beta.3`"
 
 #: src/08-release-process.md:63
+msgid ""
+"**The stages are one-way.** Once a line is at `-rc.N` you cannot dispatch "
+"`beta` on it — cargo-release refuses to walk a pre-release backwards, and "
+"reports it as:"
+msgstr ""
+
+#: src/08-release-process.md:70
+msgid ""
+"That message is misleading: the `beta` level exists and works fine, it is "
+"the `rc` → `beta` transition that is rejected (`src/ops/version.rs`, "
+"`increment_beta`). From `-rc.N` the only relative moves are `rc` (next RC) "
+"or promotion to stable; starting a _new_ line at beta means going through "
+"stable first, or naming the version explicitly with `custom_version`."
+msgstr ""
+
+#: src/08-release-process.md:75
+msgid ""
+"`release-prerelease.yml`'s pre-flight step catches this before it spends six "
+"minutes building cargo-release, and says which of the two it is."
+msgstr ""
+
+#: src/08-release-process.md:78
 msgid "Promoting to stable"
 msgstr ""
 
-#: src/08-release-process.md:65
+#: src/08-release-process.md:80
 msgid ""
 "Dispatch `release-stable.yml` from `main` with `release_type: patch|minor|"
 "major` — cargo-release's `release` level (`X.Y.Z-rc.N` → `X.Y.Z`, dropping "
@@ -9703,19 +9855,101 @@ msgid ""
 "the concrete case)."
 msgstr ""
 
-#: src/08-release-process.md:73
+#: src/08-release-process.md:88
+msgid "Back-merge `main` into `develop` (mandatory)"
+msgstr ""
+
+#: src/08-release-process.md:90
+msgid ""
+"`cargo release` bumps the version **on the branch it runs from**. A stable "
+"release therefore leaves the `chore: Release version X.Y.Z` commit on `main` "
+"only, while `develop` still declares the last pre-release version. `release-"
+"prerelease.yml` runs from `develop`, so until that commit is brought back, "
+"every later bump is computed from a stale base:"
+msgstr ""
+
+#: src/08-release-process.md:95
+#, fuzzy
+msgid "`main`"
+msgstr "`domainUrl`"
+
+#: src/08-release-process.md:95
+#, fuzzy
+msgid "`develop`"
+msgstr "Desenvolvimento"
+
+#: src/08-release-process.md:95
+msgid "dispatch"
+msgstr ""
+
+#: src/08-release-process.md:95
+msgid "result"
+msgstr ""
+
+#: src/08-release-process.md:97 src/08-release-process.md:98
+msgid "`9.0.0`"
+msgstr ""
+
+#: src/08-release-process.md:97 src/08-release-process.md:98
+msgid "`9.0.0-rc.13`"
+msgstr ""
+
+#: src/08-release-process.md:97
+msgid "`beta`"
+msgstr ""
+
+#: src/08-release-process.md:97
+msgid "hard error (rc → beta, see above)"
+msgstr ""
+
+#: src/08-release-process.md:98
+msgid "`rc`"
+msgstr ""
+
+#: src/08-release-process.md:98
+msgid ""
+"**silently cuts `9.0.0-rc.14`** — a version _behind_ the published `9.0.0`"
+msgstr ""
+
+#: src/08-release-process.md:100
+msgid ""
+"The second row is the dangerous one: nothing fails, and a version lower than "
+"the current stable reaches crates.io and GHCR."
+msgstr ""
+
+#: src/08-release-process.md:103
+msgid ""
+"**So, immediately after every stable release**, open a PR bringing `main` "
+"back into `develop`:"
+msgstr ""
+
+#: src/08-release-process.md:108
+msgid ""
+"# resolve nothing in the normal case -- only main touched the version lines\n"
+msgstr ""
+
+#: src/08-release-process.md:114
+msgid ""
+"`release-prerelease.yml`'s pre-flight compares `develop`'s version against "
+"`main`'s and refuses to run while `develop` is behind, so a forgotten back-"
+"merge now fails loudly at second zero instead of producing a bad version. "
+"The comparison is by version, not by commit ancestry, so it is satisfied "
+"whether the back-merge PR is merged or squashed."
+msgstr ""
+
+#: src/08-release-process.md:119
 msgid "Publish Failures & Retry"
 msgstr ""
 
-#: src/08-release-process.md:75
+#: src/08-release-process.md:121
 msgid ""
-"If the **publish** step fails partway (crates.io throttling despite `release."
-"toml`'s `[rate-limit]`, a network blip, or a single crate's own issue), "
-"recovery depends on what kind of bump it was — nothing was pushed, so the "
-"remote branch and tags are exactly as they were before you dispatched:"
+"If the **publish** step fails partway (crates.io throttling despite "
+"`release.toml`'s `[rate-limit]`, a network blip, or a single crate's own "
+"issue), recovery depends on what kind of bump it was — nothing was pushed, "
+"so the remote branch and tags are exactly as they were before you dispatched:"
 msgstr ""
 
-#: src/08-release-process.md:80
+#: src/08-release-process.md:126
 msgid ""
 "**`patch` / `minor` / `major` / `release`** (deterministic target version): "
 "just **re-dispatch the same workflow**. It recomputes the identical target "
@@ -9724,7 +9958,7 @@ msgid ""
 "to tag+push normally."
 msgstr ""
 
-#: src/08-release-process.md:84
+#: src/08-release-process.md:130
 msgid ""
 "**`beta` / `rc`** (relative bump): re-dispatching increments again (`rc.1` → "
 "`rc.2`), it does **not** retry `rc.1`. Treat the partial `rc.N`/`beta.N` as "
@@ -9734,7 +9968,7 @@ msgid ""
 "**next** rc/beta number."
 msgstr ""
 
-#: src/08-release-process.md:89
+#: src/08-release-process.md:135
 msgid ""
 "**`publish-crates.yml`** is also available any time as a standalone re-"
 "publish pass (same OIDC auth), with an `unpublished_only` input (`cargo "
@@ -9743,11 +9977,11 @@ msgid ""
 "retry only the publish step without touching bump/tag/push."
 msgstr ""
 
-#: src/08-release-process.md:94
+#: src/08-release-process.md:140
 msgid "Major Version Bump via Release Candidates (9.0.0 walkthrough)"
 msgstr ""
 
-#: src/08-release-process.md:96
+#: src/08-release-process.md:142
 msgid ""
 "Going from the `8.3.x` line to `9.0.0` is a routine major bump with no "
 "breaking changes planned — release it as a series of RCs first, same as any "
@@ -9760,21 +9994,21 @@ msgid ""
 "`[LEVEL|VERSION]` argument):"
 msgstr ""
 
-#: src/08-release-process.md:104
+#: src/08-release-process.md:150
 msgid ""
 "Dispatch `release-prerelease.yml` from `develop` with `custom_version: 9.0.0-"
 "rc.1` (leave `release_type` blank). Do a `dry_run: true` pass first and "
 "review the diff."
 msgstr ""
 
-#: src/08-release-process.md:106
+#: src/08-release-process.md:152
 msgid ""
 "Every subsequent RC uses the normal `release_type: rc` dropdown again — "
 "`9.0.0-rc.1` → `rc` → `9.0.0-rc.2`, etc. Verify each RC end-to-end (install "
 "the RC crate, boot the RC image) before cutting the next one."
 msgstr ""
 
-#: src/08-release-process.md:109
+#: src/08-release-process.md:155
 msgid ""
 "Before cutting `9.0.0-rc.1`, make sure crates.io Trusted Publishing is "
 "configured for every workspace crate (see below) — this is the first real "
@@ -9782,17 +10016,17 @@ msgid ""
 "fallback until this cycle proves it works."
 msgstr ""
 
-#: src/08-release-process.md:112
+#: src/08-release-process.md:158
 msgid ""
 "Once satisfied, merge to `main` and dispatch `release-stable.yml` with "
 "`release_type: major` to drop the `-rc.N` suffix and cut `9.0.0` stable."
 msgstr ""
 
-#: src/08-release-process.md:115
+#: src/08-release-process.md:161
 msgid "crates.io Trusted Publishing setup (one-time, per crate)"
 msgstr ""
 
-#: src/08-release-process.md:117
+#: src/08-release-process.md:163
 msgid ""
 "OIDC-based publishing (no long-lived `CARGO_REGISTRY_TOKEN`) requires "
 "configuring **Trusted Publishing** individually for each of this workspace's "
@@ -9800,7 +10034,7 @@ msgid ""
 "YAML:"
 msgstr ""
 
-#: src/08-release-process.md:121
+#: src/08-release-process.md:167
 msgid ""
 "For each crate: crates.io → the crate's page → Settings → Publishing → add a "
 "GitHub Actions trusted publisher pointing at `LepistaBioinformatics/"
@@ -9809,156 +10043,156 @@ msgid ""
 "run the publish step)."
 msgstr ""
 
-#: src/08-release-process.md:125
+#: src/08-release-process.md:171
 msgid ""
 "Until every crate has this configured, publish steps fall back to the "
 "`CARGO_REGISTRY_TOKEN` repository secret automatically."
 msgstr ""
 
-#: src/08-release-process.md:127
+#: src/08-release-process.md:173
 msgid ""
 "Once every crate is confirmed working via OIDC (ideally proven by a full RC "
 "cycle), remove the `CARGO_REGISTRY_TOKEN` secret from the repository."
 msgstr ""
 
-#: src/08-release-process.md:130
+#: src/08-release-process.md:176
 msgid "Changelog Management"
 msgstr "Gerenciamento de Changelog"
 
-#: src/08-release-process.md:132
+#: src/08-release-process.md:178
 msgid ""
 "Mycelium uses `git-cliff` to automatically generate changelogs from "
 "conventional commits — both `CHANGELOG.md` (via `release.toml`'s `pre-"
-"release-hook`) and each tag's GitHub Release body (via `docker-release."
-"yml`'s `github-release` job)."
+"release-hook`) and each tag's GitHub Release body (via `docker-"
+"release.yml`'s `github-release` job)."
 msgstr ""
 
-#: src/08-release-process.md:136
+#: src/08-release-process.md:182
 msgid "Conventional Commit Format"
 msgstr "Formato de Commit Convencional"
 
-#: src/08-release-process.md:138
+#: src/08-release-process.md:184
 msgid ""
-"All commits should follow the [Conventional Commits](https://www."
-"conventionalcommits.org/) specification:"
+"All commits should follow the [Conventional Commits](https://"
+"www.conventionalcommits.org/) specification:"
 msgstr ""
 "Todos os commits devem seguir a especificação [Conventional Commits](https://"
 "www.conventionalcommits.org/):"
 
-#: src/08-release-process.md:148
+#: src/08-release-process.md:194
 msgid "**Supported types**:"
 msgstr "**Tipos suportados**:"
 
-#: src/08-release-process.md:150
+#: src/08-release-process.md:196
 msgid "Changelog Section"
 msgstr "Seção do Changelog"
 
-#: src/08-release-process.md:152
+#: src/08-release-process.md:198
 msgid "`feat`"
 msgstr ""
 
-#: src/08-release-process.md:152
+#: src/08-release-process.md:198
 msgid "New feature"
 msgstr "Nova funcionalidade"
 
-#: src/08-release-process.md:152
+#: src/08-release-process.md:198
 msgid "🚀 Features"
 msgstr "🚀 Features"
 
-#: src/08-release-process.md:153
+#: src/08-release-process.md:199
 msgid "`fix`"
 msgstr ""
 
-#: src/08-release-process.md:153
+#: src/08-release-process.md:199
 msgid "Bug fix"
 msgstr "Correção de bug"
 
-#: src/08-release-process.md:153
+#: src/08-release-process.md:199
 msgid "🐛 Bug Fixes"
 msgstr "🐛 Bug Fixes"
 
-#: src/08-release-process.md:154
+#: src/08-release-process.md:200
 msgid "`docs`"
 msgstr ""
 
-#: src/08-release-process.md:154
+#: src/08-release-process.md:200
 msgid "Documentation"
 msgstr ""
 
-#: src/08-release-process.md:154
+#: src/08-release-process.md:200
 msgid "📚 Documentation"
 msgstr "📚 Documentation"
 
-#: src/08-release-process.md:155
+#: src/08-release-process.md:201
 msgid "`perf`"
 msgstr ""
 
-#: src/08-release-process.md:155
+#: src/08-release-process.md:201
 msgid "Performance improvement"
 msgstr "Melhoria de desempenho"
 
-#: src/08-release-process.md:155
+#: src/08-release-process.md:201
 msgid "⚡ Performance"
 msgstr "⚡ Performance"
 
-#: src/08-release-process.md:156
+#: src/08-release-process.md:202
 msgid "`refactor`"
 msgstr ""
 
-#: src/08-release-process.md:156
+#: src/08-release-process.md:202
 msgid "Code refactoring"
 msgstr "Refatoração de código"
 
-#: src/08-release-process.md:156
+#: src/08-release-process.md:202
 msgid "🚜 Refactor"
 msgstr "🚜 Refactor"
 
-#: src/08-release-process.md:157
+#: src/08-release-process.md:203
 msgid "`style`"
 msgstr ""
 
-#: src/08-release-process.md:157
+#: src/08-release-process.md:203
 msgid "Code style changes"
 msgstr "Mudanças de estilo de código"
 
-#: src/08-release-process.md:157
+#: src/08-release-process.md:203
 msgid "🎨 Styling"
 msgstr "🎨 Styling"
 
-#: src/08-release-process.md:158
+#: src/08-release-process.md:204
 msgid "`test`"
 msgstr ""
 
-#: src/08-release-process.md:158
+#: src/08-release-process.md:204
 msgid "Test changes"
 msgstr "Mudanças em testes"
 
-#: src/08-release-process.md:158
+#: src/08-release-process.md:204
 msgid "🧪 Testing"
 msgstr "🧪 Testing"
 
-#: src/08-release-process.md:159
+#: src/08-release-process.md:205
 msgid "`chore`"
 msgstr ""
 
-#: src/08-release-process.md:159
+#: src/08-release-process.md:205
 msgid "Maintenance tasks"
 msgstr "Tarefas de manutenção"
 
-#: src/08-release-process.md:159
+#: src/08-release-process.md:205
 msgid "⚙️ Miscellaneous Tasks"
 msgstr "⚙️ Miscellaneous Tasks"
 
-#: src/08-release-process.md:161
+#: src/08-release-process.md:207
 msgid "**Examples**:"
 msgstr "**Exemplos**:"
 
-#: src/08-release-process.md:164
+#: src/08-release-process.md:210
 #, fuzzy
 msgid "# Feature commit\n"
 msgstr "Funcionalidades completas"
 
-#: src/08-release-process.md:165
+#: src/08-release-process.md:211
 msgid ""
 "\"feat(auth): add passwordless authentication\n"
 "\n"
@@ -9968,23 +10202,23 @@ msgid ""
 "Fixes #110\""
 msgstr ""
 
-#: src/08-release-process.md:171
+#: src/08-release-process.md:217
 msgid "# Bug fix commit\n"
 msgstr ""
 
-#: src/08-release-process.md:173
+#: src/08-release-process.md:219
 msgid ""
 "\"fix(api): resolve null pointer in user endpoint\n"
 "\n"
 "Fixes #123\""
 msgstr ""
 
-#: src/08-release-process.md:176
+#: src/08-release-process.md:222
 #, fuzzy
 msgid "# Breaking change\n"
 msgstr "Para mudanças que quebram compatibilidade:"
 
-#: src/08-release-process.md:178
+#: src/08-release-process.md:224
 msgid ""
 "\"feat(core): redesign authentication API\n"
 "\n"
@@ -9994,33 +10228,33 @@ msgid ""
 "Fixes #150\""
 msgstr ""
 
-#: src/08-release-process.md:186
+#: src/08-release-process.md:232
 #, fuzzy
 msgid "Previewing changelogs locally"
 msgstr "Gerando Changelogs"
 
-#: src/08-release-process.md:189
+#: src/08-release-process.md:235
 msgid "# Preview unreleased changes\n"
 msgstr ""
 
-#: src/08-release-process.md:191
+#: src/08-release-process.md:237
 msgid ""
 "# Notes for a specific already-tagged version (what the GitHub Release job "
 "runs)\n"
 msgstr ""
 
-#: src/08-release-process.md:196
+#: src/08-release-process.md:242
 msgid ""
 "`CHANGELOG.md` itself is updated automatically by `release.toml`'s `pre-"
 "release-hook` as part of the bump step — you don't need to run this by hand "
 "as part of a normal release."
 msgstr ""
 
-#: src/08-release-process.md:199
+#: src/08-release-process.md:245
 msgid "Changelog Configuration"
 msgstr "Configuração do Changelog"
 
-#: src/08-release-process.md:201
+#: src/08-release-process.md:247
 msgid ""
 "The changelog format is configured in `cliff.toml` at the repository root. "
 "This file defines:"
@@ -10028,108 +10262,112 @@ msgstr ""
 "O formato do changelog é configurado em `cliff.toml` na raiz do repositório. "
 "Este arquivo define:"
 
-#: src/08-release-process.md:202
+#: src/08-release-process.md:248
 msgid "Commit parsing rules"
 msgstr "Regras de análise de commits"
 
-#: src/08-release-process.md:203
+#: src/08-release-process.md:249
 msgid "Grouping and sorting"
 msgstr "Agrupamento e ordenação"
 
-#: src/08-release-process.md:204
+#: src/08-release-process.md:250
 msgid "Output format"
 msgstr "Formato de saída"
 
-#: src/08-release-process.md:205
+#: src/08-release-process.md:251
 msgid "Template customization"
 msgstr "Personalização de template"
 
-#: src/08-release-process.md:207
+#: src/08-release-process.md:253
 msgid "Dry Run (Recommended)"
 msgstr "Simulação (Recomendado)"
 
-#: src/08-release-process.md:209
+#: src/08-release-process.md:255
 #, fuzzy
 msgid "Always preview a release locally before dispatching the real workflow:"
 msgstr "Sempre pré-visualize as mudanças do lançamento antes de executar:"
 
-#: src/08-release-process.md:212
+#: src/08-release-process.md:258
 msgid ""
 "# Dry run (default -- no --execute flag). Needs no credentials, touches "
 "nothing.\n"
 msgstr ""
 
-#: src/08-release-process.md:214
+#: src/08-release-process.md:260
 msgid "# Review the output carefully:\n"
 msgstr ""
 
-#: src/08-release-process.md:216
+#: src/08-release-process.md:262
 msgid "# - Files that will be modified\n"
 msgstr ""
 
-#: src/08-release-process.md:218
+#: src/08-release-process.md:264
 msgid "# - Tags that will be created\n"
 msgstr ""
 
-#: src/08-release-process.md:222
+#: src/08-release-process.md:268
 msgid ""
 "Every release workflow also has its own `dry_run` input (`--no-publish --no-"
 "tag --no-push`) for the same preview, run inside CI."
 msgstr ""
 
-#: src/08-release-process.md:225
+#: src/08-release-process.md:271
 msgid "Release Checklist"
 msgstr "Checklist de Lançamento"
 
-#: src/08-release-process.md:227
+#: src/08-release-process.md:273
 #, fuzzy
 msgid "Use this checklist before dispatching a stable release:"
 msgstr "Use este checklist antes de criar um lançamento estável:"
 
-#: src/08-release-process.md:229
+#: src/08-release-process.md:275
 #, fuzzy
 msgid "All tests pass: `cargo test --workspace --all`"
 msgstr "Todos os testes passam: `cargo test`"
 
-#: src/08-release-process.md:230
+#: src/08-release-process.md:276
 #, fuzzy
 msgid "Code is properly formatted: `cargo fmt --all -- --check`"
 msgstr "Código está devidamente formatado: `cargo fmt`"
 
-#: src/08-release-process.md:231
+#: src/08-release-process.md:277
 msgid "No security vulnerabilities: `cargo audit`"
 msgstr "Sem vulnerabilidades de segurança: `cargo audit`"
 
-#: src/08-release-process.md:232
+#: src/08-release-process.md:278
 msgid "Documentation is up-to-date"
 msgstr "Documentação está atualizada"
 
-#: src/08-release-process.md:233
+#: src/08-release-process.md:279
 msgid "All commits follow conventional commit format"
 msgstr "Todos os commits seguem o formato de commit convencional"
 
-#: src/08-release-process.md:234
+#: src/08-release-process.md:280
 msgid "All CI checks pass on the branch being released"
 msgstr ""
 
-#: src/08-release-process.md:235
+#: src/08-release-process.md:281
 msgid "Team review is complete (for major/minor releases)"
 msgstr "Revisão do time está completa (para lançamentos major/minor)"
 
-#: src/08-release-process.md:236
+#: src/08-release-process.md:282
 #, fuzzy
 msgid "Local dry run reviewed: `cargo release <level>`"
 msgstr "Simulação revisada: `cargo release <level>`"
 
-#: src/08-release-process.md:237
+#: src/08-release-process.md:283
 msgid "Workflow `dry_run: true` dispatch reviewed"
 msgstr ""
 
-#: src/08-release-process.md:239
+#: src/08-release-process.md:284
+msgid "After a stable release: `main` back-merged into `develop` (see above)"
+msgstr ""
+
+#: src/08-release-process.md:286
 msgid "Release Configuration"
 msgstr "Configuração de Lançamento"
 
-#: src/08-release-process.md:241
+#: src/08-release-process.md:288
 msgid ""
 "The project's release behavior is configured in `release.toml` at the "
 "repository root."
@@ -10137,18 +10375,18 @@ msgstr ""
 "O comportamento de lançamento do projeto é configurado em `release.toml` na "
 "raiz do repositório."
 
-#: src/08-release-process.md:243
+#: src/08-release-process.md:290
 msgid "Key configurations include:"
 msgstr "As principais configurações incluem:"
 
-#: src/08-release-process.md:244
+#: src/08-release-process.md:291
 #, fuzzy
 msgid ""
 "**Pre-release hooks**: regenerate `CHANGELOG.md` via `git-cliff` before "
 "tagging"
 msgstr "**Hooks pré-lançamento**: Executa testes e builds antes do lançamento"
 
-#: src/08-release-process.md:245
+#: src/08-release-process.md:292
 msgid ""
 "**`[rate-limit]`**: paces crates.io publishes (`new-packages`/`existing-"
 "packages`) to stay under crates.io's documented limits — see [Publish "
@@ -10156,50 +10394,50 @@ msgid ""
 "isn't enough"
 msgstr ""
 
-#: src/08-release-process.md:248
+#: src/08-release-process.md:295
 msgid ""
 "**Version bumping**: `shared-version = true` — all workspace crates move "
 "together"
 msgstr ""
 
-#: src/08-release-process.md:249
+#: src/08-release-process.md:296
 #, fuzzy
 msgid ""
 "**Git operations**: `tag-name = \"{{version}}\"` (no `v` prefix), commit/tag "
 "message templates"
 msgstr "**Operações Git**: Formato de tag, mensagens de commit"
 
-#: src/08-release-process.md:250
+#: src/08-release-process.md:297
 msgid ""
 "**Publishing**: `publish = true`, consumed by the `publish` step of the "
 "staged pipeline"
 msgstr ""
 
-#: src/08-release-process.md:252
+#: src/08-release-process.md:299
 msgid "Best Practices"
 msgstr "Boas Práticas"
 
-#: src/08-release-process.md:254
+#: src/08-release-process.md:301
 #, fuzzy
 msgid "**Test thoroughly**: run the full test suite before any release."
 msgstr ""
 "**Teste completamente**: Execute o conjunto completo de testes antes de "
 "qualquer lançamento"
 
-#: src/08-release-process.md:255
+#: src/08-release-process.md:302
 msgid ""
 "**Use dry runs**: both the local `cargo release <level>` preview and each "
 "workflow's `dry_run` input."
 msgstr ""
 
-#: src/08-release-process.md:257
+#: src/08-release-process.md:304
 #, fuzzy
 msgid ""
 "**Follow the progression**: don't skip stages (beta → rc → stable) for "
 "anything but a hotfix patch."
 msgstr "**Siga a progressão**: Não pule estágios (alpha → beta → rc → release)"
 
-#: src/08-release-process.md:259
+#: src/08-release-process.md:306
 #, fuzzy
 msgid ""
 "**Write good commits**: use conventional commits — they drive both "
@@ -10208,7 +10446,7 @@ msgstr ""
 "**Escreva bons commits**: Use commits convencionais para geração automática "
 "de changelog"
 
-#: src/08-release-process.md:261
+#: src/08-release-process.md:308
 #, fuzzy
 msgid ""
 "**Coordinate releases**: communicate with the team for major/minor releases."
@@ -10216,48 +10454,48 @@ msgstr ""
 "**Coordene lançamentos**: Comunique-se com o time para lançamentos major/"
 "minor"
 
-#: src/08-release-process.md:262
+#: src/08-release-process.md:309
 msgid ""
 "**Never publish crates.io by hand**: always go through a workflow (OIDC "
 "token only exists in CI); a stray local `cargo publish` bypasses the "
 "pipeline entirely and won't produce a tag, image, or Release."
 msgstr ""
 
-#: src/08-release-process.md:268
+#: src/08-release-process.md:315
 msgid "Workflow fails: \"Either release_type or custom_version must be set\""
 msgstr ""
 
-#: src/08-release-process.md:270
+#: src/08-release-process.md:317
 msgid ""
 "`release-prerelease.yml` requires one of the two — leave `release_type` on "
 "its default `beta`/`rc` choice unless you specifically need `custom_version` "
 "(see the 9.0.0 walkthrough above)."
 msgstr ""
 
-#: src/08-release-process.md:273
+#: src/08-release-process.md:320
 msgid "Changelog not generating correctly"
 msgstr "Changelog não está sendo gerado corretamente"
 
-#: src/08-release-process.md:276
+#: src/08-release-process.md:323
 #, fuzzy
 msgid "# Verify conventional commit format\n"
 msgstr "Formato de Commit Convencional"
 
-#: src/08-release-process.md:278
+#: src/08-release-process.md:325
 #, fuzzy
 msgid "# Test cliff configuration\n"
 msgstr "Configuração por tenant"
 
-#: src/08-release-process.md:281
+#: src/08-release-process.md:328
 #, fuzzy
 msgid "# Check cliff.toml configuration\n"
 msgstr "Configuração do Changelog"
 
-#: src/08-release-process.md:286
+#: src/08-release-process.md:333
 msgid "A GitHub Release didn't get created for a tag"
 msgstr ""
 
-#: src/08-release-process.md:288
+#: src/08-release-process.md:335
 msgid ""
 "`docker-release.yml`'s `github-release` job depends on the `image` job "
 "succeeding first (`needs: image`) — check the `image` job's logs (build, "
@@ -10266,60 +10504,60 @@ msgid ""
 "that tag once the underlying issue is fixed."
 msgstr ""
 
-#: src/08-release-process.md:293
+#: src/08-release-process.md:340
 msgid "Wrong version incremented"
 msgstr "Versão errada incrementada"
 
-#: src/08-release-process.md:296
+#: src/08-release-process.md:343
 #, fuzzy
 msgid "# Use a local dry run first to verify: cargo release <level>\n"
 msgstr "Simulação revisada: `cargo release <level>`"
 
-#: src/08-release-process.md:297
+#: src/08-release-process.md:344
 msgid ""
 "# (publish failed before tag+push), just re-dispatch with the correct level "
 "--\n"
 msgstr ""
 
-#: src/08-release-process.md:299
+#: src/08-release-process.md:346
 msgid ""
 "# If it DID reach the remote (tag pushed), coordinate a fix manually --\n"
 msgstr ""
 
-#: src/08-release-process.md:301
+#: src/08-release-process.md:348
 msgid "# without understanding the full blast radius first.\n"
 msgstr ""
 
-#: src/08-release-process.md:305
+#: src/08-release-process.md:352
 msgid "Additional Resources"
 msgstr "Recursos Adicionais"
 
-#: src/08-release-process.md:307
+#: src/08-release-process.md:354
 msgid "[Semantic Versioning Specification](https://semver.org/)"
 msgstr "[Especificação de Versionamento Semântico](https://semver.org/)"
 
-#: src/08-release-process.md:308
+#: src/08-release-process.md:355
 msgid ""
 "[Conventional Commits Specification](https://www.conventionalcommits.org/)"
 msgstr ""
 "[Especificação de Conventional Commits](https://www.conventionalcommits.org/)"
 
-#: src/08-release-process.md:309
+#: src/08-release-process.md:356
 msgid ""
 "[cargo-release Documentation](https://github.com/crate-ci/cargo-release)"
 msgstr ""
 "[Documentação do cargo-release](https://github.com/crate-ci/cargo-release)"
 
-#: src/08-release-process.md:310
+#: src/08-release-process.md:357
 msgid "[git-cliff Documentation](https://git-cliff.org/)"
 msgstr "[Documentação do git-cliff](https://git-cliff.org/)"
 
-#: src/08-release-process.md:311
+#: src/08-release-process.md:358
 msgid ""
 "[crates.io Trusted Publishing](https://crates.io/docs/trusted-publishing)"
 msgstr ""
 
-#: src/08-release-process.md:312
+#: src/08-release-process.md:359
 msgid "[Contributing Guide](../../CONTRIBUTING.md#release-process)"
 msgstr "[Guia de Contribuição](../../CONTRIBUTING.md#release-process)"
 
@@ -10603,13 +10841,13 @@ msgstr ""
 
 #: src/09-log-cache-tests.md:124
 msgid ""
-"**Result: OK** – Every “start” stage (e.g. `identity.jwks`, `identity."
-"external`, `identity.profile`) had a matching “outcome” event in the "
-"expected order. No violations were reported."
+"**Result: OK** – Every “start” stage (e.g. `identity.jwks`, "
+"`identity.external`, `identity.profile`) had a matching “outcome” event in "
+"the expected order. No violations were reported."
 msgstr ""
-"**Result: OK** – Cada estágio de “início” (ex.: `identity.jwks`, `identity."
-"external`, `identity.profile`) teve um evento de “resultado” correspondente "
-"na ordem esperada. Nenhuma violação foi reportada."
+"**Result: OK** – Cada estágio de “início” (ex.: `identity.jwks`, "
+"`identity.external`, `identity.profile`) teve um evento de “resultado” "
+"correspondente na ordem esperada. Nenhuma violação foi reportada."
 
 #: src/09-log-cache-tests.md:125
 msgid ""

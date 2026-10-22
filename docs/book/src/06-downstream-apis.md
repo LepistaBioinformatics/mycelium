@@ -171,6 +171,43 @@ methods = ["ALL"]
 
 ---
 
+## Retrying transient failures
+
+A route can retry requests that fail with a connection error or with one of
+the configured statuses. Retries are off unless the route sets `retry`:
+
+```toml
+[[api-service.path]]
+group = "protected"
+path = "/api/reports/*"
+methods = ["GET", "PUT"]
+retry = { maxAttempts = 3, baseDelayMs = 100, maxDelayMs = 2000, retryOnStatus = [502, 503, 504] }
+```
+
+| Key | Default | Description |
+|---|---|---|
+| `maxAttempts` | `3` | Total attempts, including the first one (1 to 10) |
+| `baseDelayMs` | `100` | Base of the back-off. The n-th retry waits `min(baseDelayMs * n², maxDelayMs)` |
+| `maxDelayMs` | `2000` | Upper bound of a single wait. Must be at least `baseDelayMs` |
+| `retryOnStatus` | `[502, 503, 504]` | Downstream statuses that trigger a retry. Only `429` and `5xx` are accepted |
+| `retryNonIdempotent` | `false` | Also retry `POST`, `PATCH` and `CONNECT` |
+
+Things to keep in mind:
+
+- Only idempotent methods (`GET`, `HEAD`, `OPTIONS`, `PUT`, `DELETE`,
+  `TRACE`) are retried by default. With `retryNonIdempotent = true`, the other
+  methods are retried on connection failures and configured statuses, but
+  never after a timeout or a broken response, since the service may already
+  have acted on the request.
+- The request body of a retried route is held in memory so it can be sent
+  again. Bodies above 512 KB are rejected with `400`.
+- When every attempt fails, the client receives the last status or error.
+  Response callbacks run once, on that final result.
+- The worst-case latency is `maxAttempts` times the gateway timeout, plus the
+  back-off delays.
+
+---
+
 ## Webhook routes — identity from request body
 
 Some callers (like Telegram) don't send a JWT. Instead, the user's identity is in the request
@@ -318,3 +355,4 @@ Use `acceptInsecureRouting = true` on the route if the downstream uses a self-si
 | `secretName` | No | Reference to a secret defined at service level |
 | `identitySource` | No | Body-based IdP. Currently: `"telegram"` |
 | `acceptInsecureRouting` | No | Allow self-signed TLS certs on downstream |
+| `retry` | No | Retry policy for transient failures (see above) |

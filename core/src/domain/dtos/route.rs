@@ -1,7 +1,8 @@
 pub use super::identity_source::IdentitySource;
 
 use super::{
-    http::HttpMethod, http_secret::HttpSecret, security_group::SecurityGroup,
+    http::HttpMethod, http_secret::HttpSecret,
+    route_retry_policy::RouteRetryPolicy, security_group::SecurityGroup,
     service::Service,
 };
 use http::{uri::PathAndQuery, Uri};
@@ -71,6 +72,11 @@ pub struct Route {
     /// enforced before any identity extraction.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub identity_source: Option<IdentitySource>,
+
+    /// Retry policy for the downstream request (opt-in). Without it the
+    /// request is sent once.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub retry: Option<RouteRetryPolicy>,
 }
 
 impl Route {
@@ -111,6 +117,7 @@ impl Route {
             accept_insecure_routing,
             callbacks,
             identity_source,
+            retry: None,
         }
     }
 
@@ -336,6 +343,7 @@ mod tests {
             accept_insecure_routing: None,
             callbacks: None,
             identity_source: None,
+            retry: None,
         }
     }
 
@@ -583,6 +591,7 @@ mod tests {
             accept_insecure_routing: None,
             callbacks: None,
             identity_source: None,
+            retry: None,
         }
     }
 
