@@ -399,7 +399,7 @@ tls = "disabled"
 # [api.cache]
 # jwksTtl = 43200    # 12 hours
 # emailTtl = 600     # 10 minutes
-# profileTtl = 600   # 10 minutes
+# profileTtl = 60    # 1 minute -- how long a changed profile can stay stale
 
 # ------------------------------------------------------------------------------
 # LOGGING SETTINGS

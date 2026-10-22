@@ -140,7 +140,7 @@ tls = "disabled"
 [api.cache]
 jwksTtl = 3600
 emailTtl = 120
-profileTtl = 120
+profileTtl = 60
 
 [api.logging]
 level = "info"

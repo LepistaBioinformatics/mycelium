@@ -96,7 +96,9 @@ pub struct CacheConfig {
 
     /// Profile TTL
     ///
-    /// The time to live for the profile cache.
+    /// The time to live for the profile cache. Kept short: nothing evicts a
+    /// cached profile when an invitation, tenant ownership or account change
+    /// alters it, so this bounds how long a user sees the old profile.
     pub profile_ttl: Option<u64>,
 }
 
@@ -105,7 +107,7 @@ impl Default for CacheConfig {
         Self {
             jwks_ttl: Some(60 * 60 * 12), // 12 hours
             email_ttl: Some(60 * 10),     // 10 minutes
-            profile_ttl: Some(60 * 10),   // 10 minutes
+            profile_ttl: Some(60),        // 1 minute
         }
     }
 }
