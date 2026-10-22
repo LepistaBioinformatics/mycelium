@@ -21,7 +21,7 @@ use actix_web::{
 use myc_core::models::AccountLifeCycle;
 use myc_http_tools::responses::GatewayError;
 use myc_mem_db::repositories::MemDbAppModule;
-use tracing::{error, info, info_span};
+use tracing::{debug, error, info, info_span};
 use uuid::Uuid;
 
 async fn process_single_request(
@@ -38,7 +38,7 @@ async fn process_single_request(
     let span = info_span!("rpc_call", rpc.method = %method);
     let _guard = span.enter();
 
-    info!(rpc.method = %method, "RPC request");
+    debug!(rpc.method = %method, "RPC request");
 
     let id = request.id.clone();
 

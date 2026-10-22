@@ -56,7 +56,7 @@ use crate::openapi_processor::initialize_tools_registry;
 use actix_cors::Cors;
 use actix_web::{
     dev::Service,
-    middleware::{Logger, NormalizePath, TrailingSlash},
+    middleware::{from_fn, NormalizePath, TrailingSlash},
     web, App, HttpServer,
 };
 use actix_web_opentelemetry::RequestTracing;
@@ -65,6 +65,7 @@ use dispatchers::{
     email_dispatcher, resource_audit_log_dispatcher,
     services_health_dispatcher, webhook_dispatcher,
 };
+use middleware::log_served_request;
 use models::active_backend_modules::{KVAppModule, SqlAppModule};
 use models::config_handler::ConfigHandler;
 #[cfg(feature = "full")]
@@ -557,6 +558,12 @@ pub async fn main() -> std::io::Result<()> {
             .wrap(NormalizePath::new(TrailingSlash::MergeOnly))
             //
             // Configure tracing and logging
+            //
+            // One `info` line per served request with the requester identity.
+            // Registered before the tracing middlewares so it runs inside the
+            // request span (actix runs the last registered wrap first).
+            //
+            .wrap(from_fn(log_served_request))
             .wrap(RequestTracing::default())
             .wrap(TracingLogger::default())
             //
@@ -637,17 +644,6 @@ pub async fn main() -> std::io::Result<()> {
                             .show_common_extensions(true)
                             .request_snippets_enabled(true),
                     ),
-            )
-            //
-            // Configure anti-log elements
-            //
-            // Filter docs and common routes from the logs.
-            //
-            .wrap(
-                Logger::default()
-                    .exclude_regex("/health/*")
-                    .exclude_regex("/doc/swagger/*")
-                    .exclude_regex("/doc/redoc/*"),
             );
 
         // ? -------------------------------------------------------------------

@@ -39,7 +39,7 @@ pub(super) async fn check_security_group(
 
     let security_group = route.security_group.to_owned();
 
-    tracing::info!(
+    tracing::debug!(
         stage = "router.check_security_group",
         security_group = %security_group.to_string(),
         "Security group check started"
@@ -64,7 +64,7 @@ pub(super) async fn check_security_group(
     let service_name = match route.service {
         Parent::Record(ref service) => service.name.to_owned(),
         Parent::Id(_) => {
-            tracing::info!(
+            tracing::warn!(
                 stage = "router.check_security_group",
                 outcome = "error",
                 "Service not found; security group check aborted"
@@ -101,7 +101,7 @@ pub(super) async fn check_security_group(
         // Public routes do not need any authentication or profile injection.
         //
         SecurityGroup::Public => {
-            tracing::info!(
+            tracing::debug!(
                 stage = "router.check_security_group",
                 security_group = "Public",
                 outcome = "ok",
@@ -114,7 +114,7 @@ pub(super) async fn check_security_group(
         // token
         //
         SecurityGroup::Authenticated => {
-            tracing::info!(
+            tracing::debug!(
                 stage = "router.identity_resolution",
                 "Identity (email) resolution started"
             );
@@ -126,7 +126,7 @@ pub(super) async fn check_security_group(
                 )
                 .instrument(span.to_owned())
                 .await?;
-            tracing::info!(
+            tracing::debug!(
                 stage = "router.identity_resolution",
                 outcome = "ok",
                 "Identity (email) resolution completed"
@@ -138,7 +138,7 @@ pub(super) async fn check_security_group(
         // the header
         //
         SecurityGroup::Protected => {
-            tracing::info!(
+            tracing::debug!(
                 stage = "router.profile_resolution",
                 "Profile resolution started"
             );
@@ -152,7 +152,7 @@ pub(super) async fn check_security_group(
                 )
                 .instrument(span.to_owned())
                 .await?;
-            tracing::info!(
+            tracing::debug!(
                 stage = "router.profile_resolution",
                 outcome = "ok",
                 "Profile resolution completed"
@@ -164,7 +164,7 @@ pub(super) async fn check_security_group(
         // into the header
         //
         SecurityGroup::ProtectedByRoles(roles) => {
-            tracing::info!(
+            tracing::debug!(
                 stage = "router.profile_resolution",
                 "Profile resolution by roles started"
             );
@@ -178,7 +178,7 @@ pub(super) async fn check_security_group(
                 )
                 .instrument(span.to_owned())
                 .await?;
-            tracing::info!(
+            tracing::debug!(
                 stage = "router.profile_resolution",
                 outcome = "ok",
                 "Profile resolution by roles completed"
@@ -187,7 +187,7 @@ pub(super) async fn check_security_group(
         }
     };
 
-    tracing::info!(
+    tracing::debug!(
         stage = "router.check_security_group",
         outcome = "ok",
         security_group = %security_group.to_string(),
@@ -219,7 +219,7 @@ async fn authenticate_from_body_idp(
         }
     };
 
-    tracing::info!(
+    tracing::debug!(
         stage = "router.body_idp_auth",
         user_id = ctx.user_id.as_str(),
         "Resolving profile from body IdP user_id"
@@ -235,7 +235,7 @@ async fn authenticate_from_body_idp(
         )
         .await?;
 
-    tracing::info!(
+    tracing::debug!(
         stage = "router.body_idp_auth",
         outcome = "ok",
         "Body IdP auth: profile injected"

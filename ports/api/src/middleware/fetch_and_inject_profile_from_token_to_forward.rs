@@ -47,7 +47,7 @@ pub async fn fetch_and_inject_profile_from_token_to_forward(
 ) -> Result<(ClientRequest, Profile), GatewayError> {
     let span = tracing::Span::current();
 
-    tracing::info!(
+    tracing::debug!(
         stage = "router.profile_injection",
         "Starting profile injection to downstream"
     );
@@ -127,7 +127,7 @@ pub async fn fetch_and_inject_profile_from_token_to_forward(
         .unwrap(),
     );
 
-    tracing::info!(
+    tracing::debug!(
         stage = "router.profile_injection",
         outcome = "ok",
         "Profile injected into downstream request"
