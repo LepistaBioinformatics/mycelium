@@ -68,6 +68,19 @@ pub(super) fn render_invalid_authorization_request(
     )
 }
 
+/// Sign-in is closed until the instance's initial staff account is claimed.
+pub(super) fn render_staff_bootstrap_pending(
+    domain_name: &str,
+) -> HttpResponse {
+    render_hosted_login_error_with(
+        domain_name,
+        Some(
+            "This instance is not set up yet: nobody can sign in until its \
+             initial staff account is claimed.",
+        ),
+    )
+}
+
 fn render_hosted_login_error_with(
     domain_name: &str,
     message: Option<&str>,
