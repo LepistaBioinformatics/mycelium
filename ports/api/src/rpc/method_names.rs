@@ -99,6 +99,10 @@ pub const SYSTEM_MANAGER_WEBHOOKS_UPDATE: &str =
     "systemManager.webhooks.update";
 pub const SYSTEM_MANAGER_WEBHOOKS_DELETE: &str =
     "systemManager.webhooks.delete";
+pub const SYSTEM_MANAGER_WEBHOOKS_LIST_EXECUTIONS: &str =
+    "systemManager.webhooks.listExecutions";
+pub const SYSTEM_MANAGER_WEBHOOKS_SUMMARIZE_EXECUTIONS: &str =
+    "systemManager.webhooks.summarizeExecutions";
 
 // Subscriptions manager
 pub const SUBSCRIPTIONS_MANAGER_ACCOUNTS_CREATE_SUBSCRIPTION_ACCOUNT: &str =

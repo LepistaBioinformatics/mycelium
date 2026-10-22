@@ -442,6 +442,8 @@ struct SystemManagerErrorCodeApiDoc;
         System_Manager__Webhook::crate_webhook_url,
         System_Manager__Webhook::delete_webhook_url,
         System_Manager__Webhook::list_webhooks_url,
+        System_Manager__Webhook::list_webhook_executions_url,
+        System_Manager__Webhook::summarize_webhook_executions_url,
         System_Manager__Webhook::update_webhook_url,
     ),
     security(("Bearer" = [], "ConnectionString" = [])),
@@ -726,6 +728,11 @@ struct UsersManagerAccountApiDoc;
             user::User,
             webhook::WebHook,
             webhook::WebHookTrigger,
+            webhook::WebHookExecutionEvent,
+            webhook::WebHookExecutionSummary,
+            webhook::WebHookDispatchState,
+            webhook::WebHookPropagationSummary,
+            webhook::WebHookExecutionStatus,
 
             //
             // MANAGER
@@ -798,6 +805,8 @@ struct UsersManagerAccountApiDoc;
             System_Manager__Webhook::CreateWebHookBody,
             System_Manager__Webhook::UpdateWebHookBody,
             System_Manager__Webhook::ListWebHooksParams,
+            System_Manager__Webhook::ListWebHookExecutionsParams,
+            System_Manager__Webhook::SummarizeWebHookExecutionsParams,
 
             //
             // TENANT MANAGER

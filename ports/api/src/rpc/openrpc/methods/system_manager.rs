@@ -21,6 +21,11 @@ pub fn methods() -> Vec<serde_json::Value> {
         schema::param_schema_value::<params::UpdateWebhookParams>();
     let delete_webhook_schema =
         schema::param_schema_value::<params::DeleteWebhookParams>();
+    let list_webhook_executions_schema =
+        schema::param_schema_value::<params::ListWebhookExecutionsParams>();
+    let summarize_webhook_executions_schema = schema::param_schema_value::<
+        params::SummarizeWebhookExecutionsParams,
+    >();
 
     vec![
         serde_json::json!({
@@ -102,6 +107,24 @@ pub fn methods() -> Vec<serde_json::Value> {
             "tags": [{ "name": "systemManager" }, { "name": "webhooks" }],
             "params": [{ "name": "params", "required": true, "schema": delete_webhook_schema }],
             "result": { "name": "result", "description": "null on success (DeletionResponseKind)", "schema": { "type": "null" } },
+            "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
+        }),
+        serde_json::json!({
+            "name": method_names::SYSTEM_MANAGER_WEBHOOKS_LIST_EXECUTIONS,
+            "summary": "List webhook execution events",
+            "description": "Lists webhook execution events newest first, with optional trigger and status filters and pagination. Exposes the dispatching state and delivery counts only, never payloads, target URLs or response bodies.",
+            "tags": [{ "name": "systemManager" }, { "name": "webhooks" }],
+            "params": [{ "name": "params", "required": false, "schema": list_webhook_executions_schema }],
+            "result": { "name": "result", "description": "Paginated execution events (FetchManyResponseKind)", "schema": { "type": "object" } },
+            "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
+        }),
+        serde_json::json!({
+            "name": method_names::SYSTEM_MANAGER_WEBHOOKS_SUMMARIZE_EXECUTIONS,
+            "summary": "Summarize webhook execution events",
+            "description": "Counts webhook execution events by trigger and status, optionally since a given time.",
+            "tags": [{ "name": "systemManager" }, { "name": "webhooks" }],
+            "params": [{ "name": "params", "required": false, "schema": summarize_webhook_executions_schema }],
+            "result": { "name": "result", "description": "Counts per trigger and status (FetchManyResponseKind)", "schema": { "type": "array" } },
             "errors": [{ "code": -32602, "message": "Invalid params" }, { "code": -32401, "message": "Forbidden" }]
         }),
     ]
