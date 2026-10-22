@@ -101,6 +101,7 @@ module! {
             UserRegistrationSqlDbRepository,
             UserUpdatingSqlDbRepository,
             WebHookDeletionSqlDbRepository,
+            WebHookExecutionFetchingSqlDbRepository,
             WebHookFetchingSqlDbRepository,
             WebHookRegistrationSqlDbRepository,
             WebHookUpdatingSqlDbRepository,
