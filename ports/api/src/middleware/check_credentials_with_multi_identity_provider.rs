@@ -4,7 +4,9 @@ use crate::{
     models::api_config::ApiConfig,
 };
 
-use crate::models::active_backend_modules::KVAppModule;
+use crate::models::{
+    active_backend_modules::KVAppModule, requester_identity::RequesterIdentity,
+};
 use actix_web::{web, HttpRequest};
 use base64::{engine::general_purpose, Engine};
 use jsonwebtoken::{decode, decode_header, DecodingKey, Validation};
@@ -78,8 +80,9 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
 
     if let Some(email) = optional_email_from_internal_provider {
         span.record("myc.router.email", &Some(email.redacted_email()));
+        RequesterIdentity::record_email(&req, &email);
 
-        tracing::info!(
+        tracing::debug!(
             stage = "identity.email",
             outcome = "from_token",
             "Email obtained from internal token"
@@ -105,7 +108,10 @@ pub(crate) async fn check_credentials_with_multi_identity_provider(
             .instrument(span.to_owned())
             .await
         {
-            Ok(email) => Ok((email, Some(provider))),
+            Ok(email) => {
+                RequesterIdentity::record_email(&req, &email);
+                Ok((email, Some(provider)))
+            }
             Err(err) => Err(err),
         };
     }
@@ -127,7 +133,7 @@ async fn get_email_from_external_provider(
     token: &str,
     req: &HttpRequest,
 ) -> Result<Email, GatewayError> {
-    tracing::info!(
+    tracing::debug!(
         stage = "identity.external",
         "Identity resolution via external provider started"
     );
@@ -341,7 +347,7 @@ async fn get_email_from_external_provider(
             )
         })?;
 
-        tracing::info!(
+        tracing::debug!(
             stage = "identity.external",
             outcome = "ok",
             "Identity via external provider completed"
@@ -386,7 +392,7 @@ async fn get_email_from_external_provider(
         .await?;
 
         if let Some(email) = email {
-            tracing::info!(
+            tracing::debug!(
                 stage = "identity.external",
                 outcome = "ok",
                 "Identity via external provider completed"
@@ -413,7 +419,7 @@ async fn get_email_from_external_provider(
             .await?;
 
             if let Some(email) = email {
-                tracing::info!(
+                tracing::debug!(
                     stage = "identity.external",
                     outcome = "ok",
                     "Identity via external provider completed"
@@ -439,7 +445,7 @@ async fn fetch_jwks(
     uri: &str,
     req: &HttpRequest,
 ) -> Result<JWKS, GatewayError> {
-    tracing::info!(
+    tracing::debug!(
         stage = "identity.jwks",
         jwks_uri = %uri,
         "Resolving JWKS"
@@ -487,7 +493,7 @@ async fn fetch_jwks(
 
         match serde_json::from_slice::<JWKS>(&jwks_slice) {
             Ok(jwks) => {
-                tracing::info!(
+                tracing::debug!(
                     stage = "identity.jwks",
                     outcome = "from_cache",
                     jwks_uri = %uri,
@@ -527,7 +533,7 @@ async fn fetch_jwks(
 
     set_jwks_in_cache(search_key, jwks.to_owned(), req).await;
 
-    tracing::info!(
+    tracing::debug!(
         stage = "identity.jwks",
         outcome = "resolved",
         jwks_uri = %uri,
@@ -617,7 +623,7 @@ async fn fetch_email_from_cache(
 
     let profile_base64 = match profile_response {
         FetchResponseKind::NotFound(_) => {
-            tracing::info!(
+            tracing::debug!(
                 stage = "identity.email.cache",
                 cache_hit = false,
                 "Email cache: miss"
@@ -640,7 +646,7 @@ async fn fetch_email_from_cache(
 
     match serde_json::from_slice::<Email>(&profile_slice) {
         Ok(email) => {
-            tracing::info!(
+            tracing::debug!(
                 stage = "identity.email.cache",
                 cache_hit = true,
                 "Email cache: hit"
@@ -715,7 +721,7 @@ async fn get_user_info_from_url(
     token_identifier: String,
     req: &HttpRequest,
 ) -> Result<Option<Email>, GatewayError> {
-    tracing::info!(
+    tracing::debug!(
         stage = "identity.email",
         user_info_url = %user_info_url,
         "Resolving user email"
@@ -732,7 +738,7 @@ async fn get_user_info_from_url(
     let email = fetch_email_from_cache(token_identifier.to_owned(), req).await;
 
     if let Some(email) = email {
-        tracing::info!(
+        tracing::debug!(
             stage = "identity.email",
             outcome = "from_cache",
             "Email obtained from cache"
@@ -788,7 +794,7 @@ async fn get_user_info_from_url(
 
     set_email_in_cache(token_identifier, parsed_email.to_owned(), req).await;
 
-    tracing::info!(
+    tracing::debug!(
         stage = "identity.email",
         outcome = "resolved",
         "Email resolved via userinfo"

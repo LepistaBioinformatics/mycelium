@@ -23,7 +23,7 @@ pub async fn fetch_and_inject_email_to_forward(
 ) -> Result<(ClientRequest, Email), GatewayError> {
     let span = tracing::Span::current();
 
-    tracing::info!(
+    tracing::debug!(
         stage = "router.identity_injection",
         "Starting email injection to downstream"
     );
@@ -67,7 +67,7 @@ pub async fn fetch_and_inject_email_to_forward(
 
     span.record("myc.router.email", &Some(email.redacted_email()));
 
-    tracing::info!(
+    tracing::debug!(
         stage = "router.identity_injection",
         outcome = "ok",
         "Email injected into downstream request"
