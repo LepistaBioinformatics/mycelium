@@ -2,11 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.1-beta.5] - 2026-10-22
+
+### 🚀 Features
+
+- *(auth)* Gateway-hosted email login with OAuth 2.0 code + PKCE
+- *(webhook)* Let system managers check webhook execution events
+
+### 🐛 Bug Fixes
+
+- Make the tenant list tag filter match tags
+- *(magic-link)* Cap failed code attempts to stop brute force
+- *(auth)* Count hosted login email case variants as one address
+- *(guest)* Accept only the caller's own pending invitation
+
 ## [9.0.1-beta.4] - 2026-10-14
 
 ### 🐛 Bug Fixes
 
 - Bind tenant metadata and account type filters as SQL parameters
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.4
 
 ## [9.0.1-beta.3] - 2026-09-22
 

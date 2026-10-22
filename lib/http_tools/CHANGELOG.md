@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.1-beta.5] - 2026-10-22
+
+### 🚀 Features
+
+- *(auth)* Gateway-hosted email login with OAuth 2.0 code + PKCE
+
+## [9.0.1-beta.4] - 2026-10-14
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.4
+
 ## [9.0.1-beta.3] - 2026-09-22
 
 ### ⚙️ Miscellaneous Tasks

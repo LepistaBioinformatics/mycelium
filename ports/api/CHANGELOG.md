@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [9.0.1-beta.5] - 2026-10-22
+
+### 🚀 Features
+
+- *(auth)* Gateway-hosted email login with OAuth 2.0 code + PKCE
+- *(router)* Retry transient downstream failures per route
+- *(webhook)* Let system managers check webhook execution events
+
+### 🐛 Bug Fixes
+
+- Make the tenant list tag filter match tags
+- *(api)* Forbid framing of gateway-rendered pages
+- *(cache)* Shorten the default profile cache TTL to one minute
+- *(auth)* Block sign-in until the staff bootstrap is claimed
+
+### 🚜 Refactor
+
+- *(observability)* Identity logs to debug, one access line per request
+
+## [9.0.1-beta.4] - 2026-10-14
+
+### ⚙️ Miscellaneous Tasks
+
+- Release version 9.0.1-beta.4
+
 ## [9.0.1-beta.3] - 2026-09-22
 
 ### 🚀 Features
