@@ -3,7 +3,10 @@ use crate::{
         check_credentials_with_multi_identity_provider,
         parse_issuer_from_request,
     },
-    rest::shared::{build_actor_context, UrlGroup},
+    rest::{
+        hosted_page_response::hosted_page_response,
+        shared::{build_actor_context, UrlGroup},
+    },
     settings::ADMIN_API_SCOPE,
 };
 
@@ -1083,9 +1086,7 @@ pub async fn display_magic_link_url(
     context.insert("expires_in_minutes", &15u32);
 
     match TEMPLATES.render("web/magic-link-display.html", &context) {
-        Ok(html) => HttpResponse::Ok()
-            .content_type("text/html; charset=utf-8")
-            .body(html),
+        Ok(html) => hosted_page_response(actix_web::http::StatusCode::OK, html),
         Err(err) => {
             warn!("Failed to render magic-link-display template: {}", err);
             HttpResponse::InternalServerError().finish()
@@ -1098,9 +1099,10 @@ fn render_magic_link_error_page(domain_name: &str) -> HttpResponse {
     context.insert("domain_name", domain_name);
 
     match TEMPLATES.render("web/magic-link-display-error.html", &context) {
-        Ok(html) => HttpResponse::Unauthorized()
-            .content_type("text/html; charset=utf-8")
-            .body(html),
+        Ok(html) => hosted_page_response(
+            actix_web::http::StatusCode::UNAUTHORIZED,
+            html,
+        ),
         Err(err) => {
             warn!(
                 "Failed to render magic-link-display-error template: {}",
