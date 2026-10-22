@@ -181,7 +181,10 @@ mod tests {
     };
     use chrono::Duration;
     use myc_core::domain::{
-        dtos::{email::Email, token::MagicLinkTokenMeta},
+        dtos::{
+            email::Email,
+            token::{MagicLinkTokenMeta, MAX_FAILED_MAGIC_LINK_ATTEMPTS},
+        },
         entities::TokenInvalidation,
     };
     use uuid::Uuid;
@@ -319,6 +322,144 @@ mod tests {
             reused,
             mycelium_base::entities::FetchResponseKind::NotFound(_)
         ));
+
+        Ok(())
+    }
+    async fn open_magic_link(
+        registration: &TokenRegistrationSqlDbRepository,
+        invalidation: &TokenInvalidationSqlDbRepository,
+        email: &Email,
+    ) -> Result<String, MappedErrors> {
+        let meta = MagicLinkTokenMeta::new(email.clone());
+        let display_token = meta.token.clone().expect("token must be set");
+
+        registration
+            .create_magic_link_token(meta, Local::now() + Duration::minutes(15))
+            .await?;
+
+        match invalidation
+            .get_code_and_invalidate_display_token(email, &display_token)
+            .await?
+        {
+            mycelium_base::entities::FetchResponseKind::Found(code) => Ok(code),
+            mycelium_base::entities::FetchResponseKind::NotFound(_) => {
+                panic!("expected the display token to be found")
+            }
+        }
+    }
+
+    fn wrong_code(code: &str) -> String {
+        format!("{:06}", (code.parse::<u32>().unwrap() + 1) % 1_000_000)
+    }
+
+    #[tokio::test]
+    async fn magic_link_code_is_discarded_after_max_failed_attempts(
+    ) -> Result<(), MappedErrors> {
+        let db = setup_temp_db();
+        let registration = TokenRegistrationSqlDbRepository {
+            db_config: db.provider.clone(),
+        };
+        let invalidation = TokenInvalidationSqlDbRepository {
+            db_config: db.provider.clone(),
+        };
+
+        let email = Email::from_string("owner@acme.test".into())?;
+        let code =
+            open_magic_link(&registration, &invalidation, &email).await?;
+
+        for _ in 0..MAX_FAILED_MAGIC_LINK_ATTEMPTS {
+            let guess = invalidation
+                .get_and_invalidate_magic_link_code(&email, &wrong_code(&code))
+                .await?;
+            assert!(matches!(
+                guess,
+                mycelium_base::entities::FetchResponseKind::NotFound(_)
+            ));
+        }
+
+        // The right code no longer works: the record was discarded
+        let verified = invalidation
+            .get_and_invalidate_magic_link_code(&email, &code)
+            .await?;
+        assert!(matches!(
+            verified,
+            mycelium_base::entities::FetchResponseKind::NotFound(_)
+        ));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn magic_link_code_still_works_below_max_failed_attempts(
+    ) -> Result<(), MappedErrors> {
+        let db = setup_temp_db();
+        let registration = TokenRegistrationSqlDbRepository {
+            db_config: db.provider.clone(),
+        };
+        let invalidation = TokenInvalidationSqlDbRepository {
+            db_config: db.provider.clone(),
+        };
+
+        let email = Email::from_string("owner@acme.test".into())?;
+        let code =
+            open_magic_link(&registration, &invalidation, &email).await?;
+
+        for _ in 1..MAX_FAILED_MAGIC_LINK_ATTEMPTS {
+            invalidation
+                .get_and_invalidate_magic_link_code(&email, &wrong_code(&code))
+                .await?;
+        }
+
+        let verified = invalidation
+            .get_and_invalidate_magic_link_code(&email, &code)
+            .await?;
+        assert!(matches!(
+            verified,
+            mycelium_base::entities::FetchResponseKind::Found(())
+        ));
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn magic_link_failed_attempts_count_on_every_active_code(
+    ) -> Result<(), MappedErrors> {
+        let db = setup_temp_db();
+        let registration = TokenRegistrationSqlDbRepository {
+            db_config: db.provider.clone(),
+        };
+        let invalidation = TokenInvalidationSqlDbRepository {
+            db_config: db.provider.clone(),
+        };
+
+        let email = Email::from_string("owner@acme.test".into())?;
+        let first =
+            open_magic_link(&registration, &invalidation, &email).await?;
+        let second =
+            open_magic_link(&registration, &invalidation, &email).await?;
+
+        // A guess that matches neither code
+        let guess = (0..1_000_000)
+            .map(|n| format!("{:06}", n))
+            .find(|candidate| *candidate != first && *candidate != second)
+            .unwrap();
+
+        for _ in 0..MAX_FAILED_MAGIC_LINK_ATTEMPTS {
+            invalidation
+                .get_and_invalidate_magic_link_code(&email, &guess)
+                .await?;
+        }
+
+        // Opening more links does not grant more guesses: both are gone
+        for code in [first, second] {
+            let verified = invalidation
+                .get_and_invalidate_magic_link_code(&email, &code)
+                .await?;
+            assert!(matches!(
+                verified,
+                mycelium_base::entities::FetchResponseKind::NotFound(_)
+            ));
+        }
 
         Ok(())
     }

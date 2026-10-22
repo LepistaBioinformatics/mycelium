@@ -5,7 +5,10 @@ use crate::{
 
 use async_trait::async_trait;
 use chrono::Utc;
-use diesel::{sql_types::Text, Connection, QueryDsl, RunQueryDsl};
+use diesel::{
+    sql_types::Text, Connection, ExpressionMethods, QueryDsl, RunQueryDsl,
+    SqliteConnection,
+};
 use myc_core::domain::{
     dtos::{
         email::Email,
@@ -170,25 +173,26 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
         let code_val = code.to_string();
         let now = naive_timestamp_to_text(&Utc::now().naive_utc());
 
-        let result: Result<bool, diesel::result::Error> =
-            conn.transaction(|conn| {
+        // IMMEDIATE takes the write lock before the read, so concurrent
+        // guesses queue on the failed-attempt counter instead of racing it.
+        let result: Result<bool, diesel::result::Error> = conn
+            .immediate_transaction(|conn| {
                 // ? -----------------------------------------------------------
-                // ? Fetch by (email, code) where display token was consumed
+                // ? Fetch the active records of the email whose display token
+                // ? was consumed
                 // ? -----------------------------------------------------------
 
                 let sql = r#"
                     SELECT id, expiration, meta
                     FROM token
-                    WHERE json_extract(meta, '$.code') = ?
+                    WHERE json_extract(meta, '$.code') IS NOT NULL
                     AND json_extract(meta, '$.email.username') = ?
                     AND json_extract(meta, '$.email.domain') = ?
                     AND json_extract(meta, '$.token') IS NULL
                     AND expiration > ?
-                    LIMIT 1
                 "#;
 
                 let tokens = diesel::sql_query(sql)
-                    .bind::<Text, _>(&code_val)
                     .bind::<Text, _>(&username)
                     .bind::<Text, _>(&domain)
                     .bind::<Text, _>(&now)
@@ -198,23 +202,7 @@ impl TokenInvalidation for TokenInvalidationSqlDbRepository {
                         diesel::result::Error::RollbackTransaction
                     })?;
 
-                let record = match tokens.into_iter().next() {
-                    Some(r) => r,
-                    None => return Ok(false),
-                };
-
-                // ? -----------------------------------------------------------
-                // ? Consume — delete the record
-                // ? -----------------------------------------------------------
-
-                let deleted = diesel::delete(token::table.find(record.id))
-                    .execute(conn)
-                    .map_err(|e| {
-                        error!("Error deleting magic link code token: {}", e);
-                        diesel::result::Error::RollbackTransaction
-                    })?;
-
-                Ok(deleted > 0)
+                consume_or_penalize_magic_link_codes(conn, tokens, &code_val)
             });
 
         match result {
@@ -327,4 +315,64 @@ impl TokenInvalidationSqlDbRepository {
             .as_error(),
         }
     }
+}
+
+// ? ---------------------------------------------------------------------------
+// ? Magic link code check
+// ? ---------------------------------------------------------------------------
+
+/// Delete the record holding `code` and return `true`. When no record holds
+/// it, count a failed attempt on every record and delete the exhausted ones.
+fn consume_or_penalize_magic_link_codes(
+    conn: &mut SqliteConnection,
+    tokens: Vec<TokenModel>,
+    code: &str,
+) -> Result<bool, diesel::result::Error> {
+    let mut records = Vec::with_capacity(tokens.len());
+
+    for token in tokens {
+        let meta: MagicLinkTokenMeta = serde_json::from_str(&token.meta)
+            .map_err(|e| {
+                error!("Error deserializing magic link meta: {}", e);
+                diesel::result::Error::RollbackTransaction
+            })?;
+
+        records.push((token.id, meta));
+    }
+
+    if let Some((id, _)) =
+        records.iter().find(|(_, meta)| meta.code_matches(code))
+    {
+        let deleted = diesel::delete(token::table.find(*id)).execute(conn)?;
+
+        return Ok(deleted > 0);
+    }
+
+    for (id, mut meta) in records {
+        penalize_magic_link_record(conn, id, &mut meta)?;
+    }
+
+    Ok(false)
+}
+
+fn penalize_magic_link_record(
+    conn: &mut SqliteConnection,
+    id: i32,
+    meta: &mut MagicLinkTokenMeta,
+) -> Result<(), diesel::result::Error> {
+    if meta.register_failed_attempt() {
+        diesel::delete(token::table.find(id)).execute(conn)?;
+        return Ok(());
+    }
+
+    let meta_text = serde_json::to_string(&*meta).map_err(|e| {
+        error!("Error serializing magic link meta: {}", e);
+        diesel::result::Error::RollbackTransaction
+    })?;
+
+    diesel::update(token::table.find(id))
+        .set(token::meta.eq(meta_text))
+        .execute(conn)?;
+
+    Ok(())
 }
