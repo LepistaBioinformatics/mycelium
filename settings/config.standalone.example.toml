@@ -238,6 +238,17 @@ path = "./data/mycelium.db"
 # note above), this value is never read. Still a required key.
 jwtSecret = "replaced-at-boot-by-standalone-secret-resolution"
 
+# Gateway-hosted email login (OAuth 2.0 authorization code + PKCE S256).
+# Optional -- disabled when omitted. Each client lists the exact redirect URIs
+# the gateway may send the browser back to (no prefix or wildcard matching).
+# The client's origin must also be in `api.allowedOrigins` for the
+# `POST /_adm/hosted-login/token` call.
+#
+# [auth.hostedLogin.define]
+# clients = [
+#   { clientId = "webapp", redirectUris = ["http://localhost:5173/callback"] },
+# ]
+
 # ------------------------------------------------------------------------------
 # API PORT SETTINGS
 #
