@@ -24,6 +24,36 @@ pub const MYCELIUM_HEADER_PREFIX: &str = "x-mycelium-";
 ///
 pub const DEFAULT_PROFILE_KEY: &str = "x-mycelium-profile";
 
+/// Default profile signature key
+///
+/// Carries the compact JWS (EdDSA) issued by the gateway over the exact value
+/// of `DEFAULT_PROFILE_KEY`. Only injected when `core.profileSigning` is
+/// configured; downstream SDKs verify it when public keys are configured.
+///
+pub const DEFAULT_PROFILE_SIGNATURE_KEY: &str = "x-mycelium-profile-signature";
+
+/// Prefix of the trusted public key variables of a Rust downstream service
+///
+/// `MYC_PROFILE_PUBLIC_KEY_<version>` holds an Ed25519 SPKI PEM. The presence
+/// of any such variable enables signature verification in
+/// `GatewayProfileData`. Same convention as the Python, JavaScript and Go SDKs.
+///
+pub const PROFILE_PUBLIC_KEY_ENV_PREFIX: &str = "MYC_PROFILE_PUBLIC_KEY_";
+
+/// Optional symmetric `iat` tolerance, in seconds (default 60)
+pub const PROFILE_SIGNATURE_TOLERANCE_ENV: &str =
+    "MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS";
+
+/// Optional expected `aud`: compared only when set
+pub const PROFILE_SIGNATURE_AUDIENCE_ENV: &str =
+    "MYC_PROFILE_SIGNATURE_AUDIENCE";
+
+/// Default symmetric, inclusive `iat` tolerance, in seconds
+pub const DEFAULT_PROFILE_SIGNATURE_TOLERANCE_SECONDS: u64 = 60;
+
+/// Largest accepted `x-mycelium-profile-signature` value, in bytes
+pub const MAX_PROFILE_SIGNATURE_BYTES: usize = 4096;
+
 /// Default email key
 ///
 /// This is the default key used to store the email in the request headers and
