@@ -38,6 +38,15 @@ codes will have no human-readable message attached.
 
 See [CLI Reference](./18-cli.md) for full usage.
 
+Profile signing adds three internal codes (see
+[Downstream Profile Signature](./27-downstream-profile-signature.md)):
+
+| Code | Meaning |
+|---|---|
+| `MYC00033` | Invalid `core.profileSigning` configuration or unusable signing key; the gateway refuses to start |
+| `MYC00034` | The profile signature could not be issued for a request; the request is not forwarded |
+| `MYC00035` | Invalid verification setting in a Rust downstream service (`GatewayProfileData`); requests fail closed |
+
 ---
 
 ## Custom error codes

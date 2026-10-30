@@ -42,14 +42,13 @@ The SDK ships a FastAPI middleware and dependency injectors:
 
 ```python
 from fastapi import FastAPI, Depends
-from myc_http_tools.fastapi import get_profile, MyceliumProfileMiddleware
+from myc_http_tools.fastapi import get_profile_from_header_required
 from myc_http_tools.models.profile import Profile
 
 app = FastAPI()
-app.add_middleware(MyceliumProfileMiddleware)
 
 @app.get("/dashboard")
-async def dashboard(profile: Profile = Depends(get_profile)):
+async def dashboard(profile: Profile = Depends(get_profile_from_header_required)):
     # profile is already decoded and validated
     return {"account_id": str(profile.acc_id)}
 ```
@@ -112,14 +111,41 @@ from myc_http_tools.settings import (
     DEFAULT_REQUEST_ID_KEY,     # "x-mycelium-request-id"
     DEFAULT_CONNECTION_STRING_KEY,  # "x-mycelium-connection-string"
     DEFAULT_TENANT_ID_KEY,      # "x-mycelium-tenant-id"
+    DEFAULT_PROFILE_SIGNATURE_KEY,  # "x-mycelium-profile-signature"
 )
 ```
 
 ---
 
+## Verifying the profile signature
+
+If your service can be reached without going through the gateway, enable signature
+verification so forged `x-mycelium-profile` headers are rejected. Install the `signature` extra
+and set the gateway public key **after** the gateway is already signing:
+
+```bash
+pip install 'mycelium-http-tools[fastapi,signature]'
+export MYC_PROFILE_PUBLIC_KEY_1="$(cat profile-signing-v1.pub.pem)"
+```
+
+```python
+from myc_http_tools import configure_profile_signature
+
+configure_profile_signature()  # at startup: fails fast on invalid configuration
+```
+
+Every FastAPI helper then verifies before decoding. Signature rejections return
+`403` in every environment. The required header dependency preserves `422` for
+a missing profile; configuration/internal failures return generic `500`.
+Use startup configuration to fail before accepting traffic. The JavaScript and Go SDKs and
+the Rust `GatewayProfileData` extractor read the same variables. Details, rotation and limits:
+[Downstream Profile Signature](./27-downstream-profile-signature.md).
+
+---
+
 ## Manual decoding (any language)
 
-If you are not using Python, decode `x-mycelium-profile` manually:
+For diagnostics only (this does not authenticate the profile), decode `x-mycelium-profile` manually:
 
 ```
 Base64-decode → ZSTD-decompress → JSON-parse → access Profile fields
@@ -132,7 +158,9 @@ echo "<header-value>" | base64 -d | zstd -d | python3 -m json.tool
 ```
 
 The resulting JSON has the same structure as the Rust `Profile` struct:
-`acc_id`, `email`, `tenants` (array of tenant memberships with roles and accounts).
+`accId`, `owners`, account flags and optional `licensedResources` /
+`tenantsOwnership`. Rust permissions serialize as `"read"` / `"write"`; the
+JavaScript SDK normalizes these to its public `0` / `1` permission codes.
 
 ---
 
