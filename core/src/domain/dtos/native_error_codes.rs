@@ -249,6 +249,33 @@ pub enum NativeErrorCodes {
     /// is_native: true
     ///
     MYC00032,
+
+    ///
+    /// code: "MYC00033",
+    /// message: "Invalid downstream profile signing configuration.",
+    /// details: "Dispatched at boot when `core.profileSigning` is present but structurally invalid (empty key set, duplicated or out-of-range versions, primary not listed) or when a configured Ed25519 private key cannot be resolved or imported. The gateway refuses to start.",
+    /// is_internal: true,
+    /// is_native: true
+    ///
+    MYC00033,
+
+    ///
+    /// code: "MYC00034",
+    /// message: "Downstream profile signature could not be issued.",
+    /// details: "Dispatched when profile signing is enabled and the gateway fails to produce the `x-mycelium-profile-signature` header for a request. The request is not forwarded to the downstream service.",
+    /// is_internal: true,
+    /// is_native: true
+    ///
+    MYC00034,
+
+    ///
+    /// code: "MYC00035",
+    /// message: "Invalid downstream profile signature verification configuration.",
+    /// details: "Dispatched by a Rust downstream service (`GatewayProfileData`) when a `MYC_PROFILE_PUBLIC_KEY_<version>`, `MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS` or `MYC_PROFILE_SIGNATURE_AUDIENCE` variable is present but invalid. Requests fail closed instead of skipping verification.",
+    /// is_internal: true,
+    /// is_native: true
+    ///
+    MYC00035,
 }
 
 impl NativeErrorCodes {
@@ -298,6 +325,9 @@ impl NativeErrorCodes {
             Self::MYC00030 => "MYC00030",
             Self::MYC00031 => "MYC00031",
             Self::MYC00032 => "MYC00032",
+            Self::MYC00033 => "MYC00033",
+            Self::MYC00034 => "MYC00034",
+            Self::MYC00035 => "MYC00035",
         }
     }
 
@@ -463,6 +493,24 @@ impl NativeErrorCodes {
                 "Connection string signature mismatch.".to_string(),
                 true,
             )?.with_details("Dispatched when HMAC verification fails: the stored SIG does not match the recomputed signature under the version-selected HMAC key.".to_string())),
+            Self::MYC00033 => Ok(ErrorCode::new_internal_error(
+                "MYC".to_string(),
+                33,
+                "Invalid downstream profile signing configuration.".to_string(),
+                true,
+            )?.with_details("Dispatched at boot when `core.profileSigning` is present but structurally invalid (empty key set, duplicated or out-of-range versions, primary not listed) or when a configured Ed25519 private key cannot be resolved or imported. The gateway refuses to start.".to_string())),
+            Self::MYC00034 => Ok(ErrorCode::new_internal_error(
+                "MYC".to_string(),
+                34,
+                "Downstream profile signature could not be issued.".to_string(),
+                true,
+            )?.with_details("Dispatched when profile signing is enabled and the gateway fails to produce the `x-mycelium-profile-signature` header for a request. The request is not forwarded to the downstream service.".to_string())),
+            Self::MYC00035 => Ok(ErrorCode::new_internal_error(
+                "MYC".to_string(),
+                35,
+                "Invalid downstream profile signature verification configuration.".to_string(),
+                true,
+            )?.with_details("Dispatched by a Rust downstream service (`GatewayProfileData`) when a `MYC_PROFILE_PUBLIC_KEY_<version>`, `MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS` or `MYC_PROFILE_SIGNATURE_AUDIENCE` variable is present but invalid. Requests fail closed instead of skipping verification.".to_string())),
         }
     }
 

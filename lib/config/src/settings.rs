@@ -35,6 +35,20 @@ pub async fn init_vault_config_from_file(
     };
 }
 
+/// Whether Vault was initialized and enabled for this process
+///
+/// Unlike `get_vault_config`, never panics: standalone builds never
+/// initialize Vault at all. Lets callers reject a `SecretResolver::Vault`
+/// entry with a configuration error before `async_get_or_error` would panic.
+///
+pub fn is_vault_configured() -> bool {
+    let Ok(guard) = VAULT_CONFIG.lock() else {
+        return false;
+    };
+
+    matches!(guard.as_ref(), Some(OptionalConfig::Enabled(_)))
+}
+
 pub(crate) fn get_vault_config() -> OptionalConfig<VaultConfig> {
     VAULT_CONFIG
         .lock()

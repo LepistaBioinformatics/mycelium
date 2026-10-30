@@ -1,4 +1,7 @@
-use super::{account_life_cycle_config::AccountLifeCycle, WebhookConfig};
+use super::{
+    account_life_cycle_config::AccountLifeCycle, ProfileSigningConfig,
+    WebhookConfig,
+};
 
 use myc_config::load_config_from_file;
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
@@ -10,6 +13,10 @@ use std::path::PathBuf;
 pub struct CoreConfig {
     pub account_life_cycle: AccountLifeCycle,
     pub webhook: WebhookConfig,
+
+    /// Downstream profile signing; absent keeps signing disabled
+    #[serde(default)]
+    pub profile_signing: Option<ProfileSigningConfig>,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -33,6 +40,11 @@ impl CoreConfig {
         match load_config_from_file::<TmpConfig>(file) {
             Ok(config) => {
                 config.core.account_life_cycle.validate_hmac_config()?;
+
+                if let Some(signing) = &config.core.profile_signing {
+                    signing.validate()?;
+                }
+
                 Ok(config.core)
             }
             Err(err) => Err(err),
