@@ -1,0 +1,37 @@
+# Test-only infrastructure. Ports and volumes belong to one unique run.
+services:
+  postgres:
+    image: postgres:18@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6
+    profiles: [postgres-only, full]
+    environment:
+      POSTGRES_PASSWORD: ${PSIG_DB_PASSWORD:?test password required}
+    ports: ["127.0.0.1::5432"]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 3s
+      retries: 40
+    volumes: ["postgres-data:/var/lib/postgresql"]
+  redis:
+    image: redis:8@sha256:0a014ae5c04f55c82aaad2314de411c7a203de1c4312c3e526939226a0185dd9
+    profiles: [full]
+    command: [redis-server, --requirepass, "${PSIG_REDIS_PASSWORD:?test password required}"]
+    ports: ["127.0.0.1::6379"]
+    healthcheck:
+      test: [CMD, redis-cli, -a, "${PSIG_REDIS_PASSWORD}", ping]
+      interval: 1s
+      timeout: 3s
+      retries: 40
+  mailpit:
+    image: axllent/mailpit:v1.32.0@sha256:0790692be935ea4420d085694f7985b1f692ca6a8771ab0e0bd8ba75ac180498
+    profiles: [postgres-only, full]
+    environment:
+      MP_SMTP_TLS_CERT: /tls/server.pem
+      MP_SMTP_TLS_KEY: /tls/server.key
+      MP_SMTP_REQUIRE_STARTTLS: "true"
+      MP_SMTP_AUTH: "${PSIG_SMTP_USER}:${PSIG_SMTP_PASSWORD}"
+    ports: ["127.0.0.1::1025", "127.0.0.1::8025"]
+    volumes:
+      - "${PSIG_TLS_DIR:?test TLS directory required}:/tls:ro"
+volumes:
+  postgres-data:
