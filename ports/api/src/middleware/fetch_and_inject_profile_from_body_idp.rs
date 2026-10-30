@@ -1,5 +1,6 @@
 use crate::middleware::{
-    body_idp::BodyIdpContext, recovery_profile_from_storage_engines,
+    body_idp::BodyIdpContext, inject_signed_profile,
+    profile_signing_state_from, recovery_profile_from_storage_engines,
 };
 
 use actix_web::HttpRequest;
@@ -8,12 +9,15 @@ use myc_core::domain::dtos::{
     security_group::{PermissionedRole, SecurityGroup},
     service::Service,
 };
-use myc_http_tools::{
-    functions::compress_and_encode_profile_to_base64, responses::GatewayError,
-    settings::DEFAULT_PROFILE_KEY, Profile,
-};
-use reqwest::header::{HeaderName, HeaderValue};
-use std::str::FromStr;
+use myc_http_tools::{responses::GatewayError, Email, Profile};
+use std::{future::Future, pin::Pin};
+
+type ProfileLookup =
+    fn(
+        HttpRequest,
+        Email,
+        Option<Vec<PermissionedRole>>,
+    ) -> Pin<Box<dyn Future<Output = Result<Profile, GatewayError>>>>;
 
 /// Resolve the caller's Mycelium profile from a body-based identity provider
 /// and inject it as the `DEFAULT_PROFILE_KEY` header into the downstream request.
@@ -29,35 +33,72 @@ use std::str::FromStr;
 )]
 pub(crate) async fn fetch_and_inject_profile_from_body_idp(
     req: HttpRequest,
-    mut downstream_request: ClientRequest,
+    downstream_request: ClientRequest,
     body_idp: BodyIdpContext,
     service: &Service,
     security_group: &SecurityGroup,
 ) -> Result<(ClientRequest, Profile), GatewayError> {
-    enforce_mandatory_allowlist(service)?;
+    resolve_and_inject_body_profile(
+        req,
+        downstream_request,
+        body_idp,
+        service,
+        security_group,
+        lookup_profile,
+    )
+    .await
+}
 
+async fn resolve_and_inject_body_profile(
+    req: HttpRequest,
+    downstream_request: ClientRequest,
+    body_idp: BodyIdpContext,
+    service: &Service,
+    security_group: &SecurityGroup,
+    lookup: ProfileLookup,
+) -> Result<(ClientRequest, Profile), GatewayError> {
+    enforce_mandatory_allowlist(service)?;
+    let signing = profile_signing_state_from(&req)?;
+    let profile =
+        resolve_body_profile(req, body_idp, security_group, lookup).await?;
+    let request = inject_signed_profile(
+        downstream_request,
+        profile.clone(),
+        &service.name,
+        &signing,
+    )?;
+    Ok((request, profile))
+}
+
+async fn resolve_body_profile(
+    req: HttpRequest,
+    body_idp: BodyIdpContext,
+    security_group: &SecurityGroup,
+    lookup: ProfileLookup,
+) -> Result<Profile, GatewayError> {
     let roles = extract_roles(security_group);
     let email = body_idp
         .resolver
         .resolve_email(&body_idp.user_id, &req)
         .await?;
 
-    let profile =
-        recovery_profile_from_storage_engines(req, email, None, roles.clone())
-            .await?;
+    let profile = lookup(req, email, roles.clone()).await?;
 
     if let Some(ref r) = roles {
         enforce_rbac(&profile, r)?;
     }
 
-    let encoded = compress_and_encode_profile_to_base64(profile.clone())?;
+    Ok(profile)
+}
 
-    downstream_request.headers_mut().insert(
-        HeaderName::from_str(DEFAULT_PROFILE_KEY).unwrap(),
-        HeaderValue::from_str(&encoded).unwrap(),
-    );
-
-    Ok((downstream_request, profile))
+fn lookup_profile(
+    req: HttpRequest,
+    email: Email,
+    roles: Option<Vec<PermissionedRole>>,
+) -> Pin<Box<dyn Future<Output = Result<Profile, GatewayError>>>> {
+    Box::pin(recovery_profile_from_storage_engines(
+        req, email, None, roles,
+    ))
 }
 
 fn extract_roles(
@@ -101,3 +142,7 @@ fn enforce_mandatory_allowlist(service: &Service) -> Result<(), GatewayError> {
 
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "body_profile_signature_tests.rs"]
+mod tests;

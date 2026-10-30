@@ -8,6 +8,7 @@ mod modifiers;
 mod openapi;
 mod openapi_processor;
 mod otel;
+mod profile_signing;
 mod rest;
 mod router;
 mod rpc;
@@ -152,6 +153,7 @@ use openssl::{
     x509::X509,
 };
 use otel::initialize_otel;
+use profile_signing::prepare_profile_signing;
 use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
@@ -347,6 +349,24 @@ pub async fn main() -> std::io::Result<()> {
             .instrument(span.to_owned())
             .await;
     }
+
+    // ? -----------------------------------------------------------------------
+    // ? PREPARE DOWNSTREAM PROFILE SIGNING
+    //
+    // Resolve, import and self-test every configured Ed25519 key once, after
+    // Vault and before any worker accepts traffic. An absent section keeps
+    // signing disabled; a present but invalid one aborts the boot.
+    //
+    // ? -----------------------------------------------------------------------
+    let profile_signing =
+        prepare_profile_signing(config.core.profile_signing.as_ref())
+            .instrument(span.to_owned())
+            .await
+            .map_err(|err| {
+                tracing::error!("Error preparing profile signing: {err}");
+
+                std::io::Error::new(std::io::ErrorKind::Other, err.to_string())
+            })?;
 
     // ? -----------------------------------------------------------------------
     // ? CONFIGURE INTERNAL DEPENDENCIES
@@ -800,6 +820,7 @@ pub async fn main() -> std::io::Result<()> {
             //
             .app_data(web::Data::new(Client::new()))
             .app_data(web::Data::new(forward_api_config.to_owned()).clone())
+            .app_data(web::Data::new(profile_signing.clone()))
             .wrap_fn(|mut req, srv| {
                 req.headers_mut().insert(
                     HeaderName::from_str(DEFAULT_REQUEST_ID_KEY).unwrap(),

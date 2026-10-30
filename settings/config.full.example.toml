@@ -130,6 +130,31 @@ secret = { vault = { path = "myc/core/accountLifeCycle", key = "hmacSecretV1" } 
 # optional -- shown here at its built-in default value.
 # ------------------------------------------------------------------------------
 
+# ? ----------------------------------------------------------------------------
+# ? Downstream profile signature (optional)
+#
+# When present, the gateway signs every `x-mycelium-profile` it injects with
+# an Ed25519 private key and adds `x-mycelium-profile-signature` (compact JWS,
+# `alg: EdDSA`, `kid: <version>`, claims `{iat, ph, aud}`). When absent,
+# nothing changes: no signature is sent. A present but invalid section, or
+# any key that cannot be resolved/imported, stops the boot (MYC00033).
+#
+# Keys are PKCS#8 PEM with real line breaks. Generate with:
+#   openssl genpkey -algorithm ED25519 -out profile-signing-v1.pem
+#   openssl pkey -in profile-signing-v1.pem -pubout -out profile-signing-v1.pub.pem
+# Give the PUBLIC key to downstream services (MYC_PROFILE_PUBLIC_KEY_1).
+# Rollout: enable signing here first; only then enable verification in the
+# downstream services. See the "Downstream profile signature" book chapter.
+#
+# [core.profileSigning]
+# primaryKeyVersion = 1
+#
+# [[core.profileSigning.keys]]
+# version = 1
+# privateKey = { env = "MYC_PROFILE_PRIVATE_KEY_1" }
+# # or: privateKey = { vault = { path = "myc/core/profileSigning", key = "v1-private-pem" } }
+# ? ----------------------------------------------------------------------------
+
 [core.webhook]
 
 # Whether to accept self-signed/invalid TLS certificates on webhook target

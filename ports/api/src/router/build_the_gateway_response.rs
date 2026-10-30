@@ -147,7 +147,8 @@ mod tests {
     use awc::error::HeaderValue as AwcHeaderValue;
     use myc_http_tools::settings::{
         DEFAULT_CONNECTION_STRING_KEY, DEFAULT_EMAIL_KEY,
-        DEFAULT_MYCELIUM_ROLE_KEY, DEFAULT_PROFILE_KEY, DEFAULT_REQUEST_ID_KEY,
+        DEFAULT_MYCELIUM_ROLE_KEY, DEFAULT_PROFILE_KEY,
+        DEFAULT_PROFILE_SIGNATURE_KEY, DEFAULT_REQUEST_ID_KEY,
         DEFAULT_SCOPE_KEY, DEFAULT_TENANT_ID_KEY, MYCELIUM_SECURITY_GROUP,
         MYCELIUM_SERVICE_NAME,
     };
@@ -249,6 +250,7 @@ mod tests {
         let downstream_headers = headers_from(&[
             ("x-downstream-secret", "super-secret-token"),
             (DEFAULT_PROFILE_KEY, "leaked-profile"),
+            (DEFAULT_PROFILE_SIGNATURE_KEY, "leaked.signature.jws"),
             (MYCELIUM_SERVICE_NAME, "crab-shell-proxy"),
             ("x-forwarded-for", "10.0.0.1"),
         ]);
@@ -266,6 +268,10 @@ mod tests {
 
         assert!(response.headers().get("x-downstream-secret").is_none());
         assert!(response.headers().get(DEFAULT_PROFILE_KEY).is_none());
+        assert!(response
+            .headers()
+            .get(DEFAULT_PROFILE_SIGNATURE_KEY)
+            .is_none());
         assert!(response.headers().get(MYCELIUM_SERVICE_NAME).is_none());
         assert!(response.headers().get("x-forwarded-for").is_none());
     }

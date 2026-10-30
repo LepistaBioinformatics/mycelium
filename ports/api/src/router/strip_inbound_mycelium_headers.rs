@@ -47,9 +47,24 @@ mod tests {
     use actix_web::http::header::{HeaderMap, HeaderName, HeaderValue};
     use myc_http_tools::settings::{
         DEFAULT_CONNECTION_STRING_KEY, DEFAULT_EMAIL_KEY,
-        DEFAULT_MYCELIUM_ROLE_KEY, DEFAULT_PROFILE_KEY, DEFAULT_SCOPE_KEY,
+        DEFAULT_MYCELIUM_ROLE_KEY, DEFAULT_PROFILE_KEY,
+        DEFAULT_PROFILE_SIGNATURE_KEY, DEFAULT_SCOPE_KEY,
         DEFAULT_TENANT_ID_KEY,
     };
+
+    #[test]
+    fn forged_profile_signature_is_removed_case_insensitively() {
+        let mut headers = headers_from(&[
+            ("X-Mycelium-Profile-Signature", "forged.jws.value"),
+            (DEFAULT_PROFILE_SIGNATURE_KEY, "second.forged.jws"),
+            ("x-unrelated", "kept"),
+        ]);
+
+        strip_inbound_mycelium_headers(&mut headers);
+
+        assert!(headers.get(DEFAULT_PROFILE_SIGNATURE_KEY).is_none());
+        assert_eq!(headers.get("x-unrelated").unwrap(), "kept");
+    }
 
     fn headers_from(pairs: &[(&str, &str)]) -> HeaderMap {
         let mut headers = HeaderMap::new();
