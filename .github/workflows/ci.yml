@@ -21,6 +21,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Native build dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y libpq-dev libssl-dev pkg-config cmake nasm
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
@@ -28,7 +33,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build workspace
-        run: cargo build --workspace
+        run: cargo build --workspace --locked --no-default-features --features full
 
   standalone-build:
     name: Standalone Build
@@ -37,6 +42,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Native build dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y libpq-dev libssl-dev pkg-config cmake nasm
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
@@ -44,7 +54,34 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build standalone binary
-        run: cargo build -p mycelium-api --no-default-features --features standalone
+        run: cargo build -p mycelium-api --no-default-features --features standalone --locked
+
+      - name: Test standalone port
+        run: cargo test --workspace --no-default-features --features standalone --locked
+
+  postgres-only-build:
+    name: Postgres-only Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Native build dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y libpq-dev libssl-dev pkg-config cmake nasm
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache dependencies
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build postgres-only binary
+        run: cargo build -p mycelium-api --no-default-features --features postgres-only --locked
+
+      - name: Test postgres-only port
+        run: cargo test --workspace --no-default-features --features postgres-only --locked
 
   test:
     name: Test
@@ -53,6 +90,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Native build dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y libpq-dev libssl-dev pkg-config cmake nasm
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
@@ -60,7 +102,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Run tests
-        run: cargo test --workspace --all
+        run: cargo test --workspace --all --locked --no-default-features --features full
 
   fmt:
     name: Format Check
