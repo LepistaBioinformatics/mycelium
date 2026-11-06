@@ -98,13 +98,18 @@ secret = "replaced-at-boot-by-standalone-secret-resolution"
 #
 # Keys are PKCS#8 PEM with real line breaks. Generate with:
 #   openssl genpkey -algorithm ED25519 -out profile-signing-v1.pem
-#   openssl pkey -in profile-signing-v1.pem -pubout -out profile-signing-v1.pub.pem
-# Give the PUBLIC key to downstream services (MYC_PROFILE_PUBLIC_KEY_1).
+# The public halves are published automatically at
+# GET /.well-known/mycelium-profile-jwks.json; downstream services point
+# MYCELIUM_JWKS_URL at it (and set MYC_PROFILE_SIGNATURE_AUDIENCE).
 # Rollout: enable signing here first; only then enable verification in the
 # downstream services. See the "Downstream profile signature" book chapter.
 #
 # [core.profileSigning]
 # primaryKeyVersion = 1
+# # How long downstream verifiers may cache the published keys
+# # (GET /.well-known/mycelium-profile-jwks.json). Optional, 60..=86400,
+# # default 43200 (12 h).
+# jwksMaxAgeSeconds = 43200
 #
 # [[core.profileSigning.keys]]
 # version = 1

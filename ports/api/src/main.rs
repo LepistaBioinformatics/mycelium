@@ -161,7 +161,10 @@ use reqwest::header::{
 use rest::{
     audit::resource_audit_trail_endpoints as audit_resource_audit_trail_endpoints,
     hosted_login::configure as configure_hosted_login_endpoints,
-    index::{app_public_config_endpoints, heath_check_endpoints},
+    index::{
+        app_public_config_endpoints, heath_check_endpoints,
+        profile_signing_jwks_endpoints,
+    },
     instance as instance_endpoints,
     manager::{
         account_endpoints as manager_account_endpoints,
@@ -636,6 +639,14 @@ pub async fn main() -> std::io::Result<()> {
             //
             .configure(well_known_endpoints::configure)
             //
+            // Public keys of the downstream profile signature (JWKS)
+            //
+            // Downstream verifiers read them from MYCELIUM_JWKS_URL. 404
+            // while `[core.profileSigning]` is not configured.
+            //
+            .app_data(web::Data::new(profile_signing.published_keys.clone()))
+            .configure(profile_signing_jwks_endpoints::configure)
+            //
             // Configure tools routes
             //
             // These endpoints allow users to identify the status of public
@@ -820,7 +831,7 @@ pub async fn main() -> std::io::Result<()> {
             //
             .app_data(web::Data::new(Client::new()))
             .app_data(web::Data::new(forward_api_config.to_owned()).clone())
-            .app_data(web::Data::new(profile_signing.clone()))
+            .app_data(web::Data::new(profile_signing.state.clone()))
             .wrap_fn(|mut req, srv| {
                 req.headers_mut().insert(
                     HeaderName::from_str(DEFAULT_REQUEST_ID_KEY).unwrap(),

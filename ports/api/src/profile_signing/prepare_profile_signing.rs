@@ -1,10 +1,13 @@
-use super::preparation_limits::PreparationLimits;
+use super::{preparation_limits::PreparationLimits, PreparedProfileSigning};
 use myc_config::is_vault_configured;
 use myc_core::{
     domain::dtos::native_error_codes::NativeErrorCodes,
     models::{ProfileSigningConfig, ProfileSigningKeyEntry},
 };
-use myc_http_tools::models::{ProfileSigningState, VersionedEd25519Signer};
+use myc_http_tools::models::{
+    Ed25519PublicJwk, ProfileSigningState, PublishedProfileKeys,
+    VersionedEd25519Signer,
+};
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use std::{future::Future, pin::Pin, sync::Arc, time::Duration};
 use tokio::time::timeout;
@@ -23,7 +26,8 @@ type KeyResolver = for<'a> fn(&'a ProfileSigningKeyEntry) -> KeyResolution<'a>;
 /// - Section absent: signing disabled, legacy behavior preserved.
 /// - Section present: every key (primary or not) is resolved, imported and
 ///   self-tested; any failure aborts boot. Only the primary signer is kept:
-///   the gateway signs with the primary and never verifies.
+///   the gateway signs with the primary and never verifies. The public half
+///   of every key is published as the profile JWKS.
 ///
 /// Must run after Vault initialization and before the server accepts
 /// traffic. Errors are sanitized: version and failing step, never material.
@@ -31,10 +35,10 @@ type KeyResolver = for<'a> fn(&'a ProfileSigningKeyEntry) -> KeyResolution<'a>;
 #[tracing::instrument(name = "prepare_profile_signing", skip_all)]
 pub(crate) async fn prepare_profile_signing(
     config: Option<&ProfileSigningConfig>,
-) -> Result<ProfileSigningState, MappedErrors> {
+) -> Result<PreparedProfileSigning, MappedErrors> {
     let Some(config) = config else {
         tracing::info!(event = "profile_signature.startup", enabled = false);
-        return Ok(ProfileSigningState::Disabled);
+        return Ok(PreparedProfileSigning::disabled());
     };
 
     prepare_enabled(config, resolve_key, PreparationLimits::default()).await
@@ -44,7 +48,7 @@ async fn prepare_enabled(
     config: &ProfileSigningConfig,
     resolver: KeyResolver,
     limits: PreparationLimits,
-) -> Result<ProfileSigningState, MappedErrors> {
+) -> Result<PreparedProfileSigning, MappedErrors> {
     config.validate()?;
     reject_vault_entries_without_vault(config)?;
     timeout(limits.total, prepare_keys(config, resolver, limits.per_key))
@@ -58,18 +62,36 @@ async fn prepare_keys(
     config: &ProfileSigningConfig,
     resolver: KeyResolver,
     per_key: Duration,
-) -> Result<ProfileSigningState, MappedErrors> {
+) -> Result<PreparedProfileSigning, MappedErrors> {
     let mut primary = None;
+    let mut public_keys = Vec::with_capacity(config.keys.len());
     for entry in config.keys.iter() {
         let signer = prepare_entry(entry, resolver, per_key).await?;
+        public_keys.push(signer.public_jwk().clone());
         let is_primary = entry.version == config.primary_key_version;
         primary = primary.or(is_primary.then_some(signer));
     }
 
+    let signer = primary.ok_or_else(|| {
+        invalid(config.primary_key_version.value(), "primary")
+    })?;
+
     announce_enabled(config);
-    primary
-        .map(|signer| ProfileSigningState::Enabled(Arc::new(signer)))
-        .ok_or_else(|| invalid(config.primary_key_version.value(), "primary"))
+    Ok(enabled(signer, &public_keys, config))
+}
+
+fn enabled(
+    signer: VersionedEd25519Signer,
+    public_keys: &[Ed25519PublicJwk],
+    config: &ProfileSigningConfig,
+) -> PreparedProfileSigning {
+    PreparedProfileSigning {
+        state: ProfileSigningState::Enabled(Arc::new(signer)),
+        published_keys: PublishedProfileKeys::new(
+            public_keys,
+            config.jwks_max_age_seconds,
+        ),
+    }
 }
 
 fn reject_vault_entries_without_vault(
@@ -112,6 +134,7 @@ fn announce_enabled(config: &ProfileSigningConfig) {
         enabled = true,
         primary_key_version = config.primary_key_version.value(),
         key_versions = config.keys.len(),
+        jwks_max_age_seconds = config.jwks_max_age_seconds.value(),
     );
 }
 
@@ -127,7 +150,9 @@ mod tests {
     use super::*;
     use myc_config::secret_resolver::SecretResolver;
     use myc_core::{
-        domain::dtos::profile_signature::SigningKeyVersion,
+        domain::dtos::profile_signature::{
+            JwksMaxAgeSeconds, SigningKeyVersion,
+        },
         models::ProfileSigningKeySet,
     };
 
@@ -158,6 +183,7 @@ MC4CAQAwBQYDK2VwBCIEIJ1hsZ3v/VpguoRK9JLsLMREScVpezJpGXA7rAMcrn9g
         ProfileSigningConfig {
             primary_key_version: version(primary),
             keys: ProfileSigningKeySet::new(entries),
+            jwks_max_age_seconds: JwksMaxAgeSeconds::default(),
         }
     }
 
@@ -313,12 +339,47 @@ MC4CAQAwBQYDK2VwBCIEIJ1hsZ3v/VpguoRK9JLsLMREScVpezJpGXA7rAMcrn9g
             vec![entry(1, value(PRIVATE_PEM)), entry(2, value(PRIVATE_PEM))],
         );
 
-        let state = prepare_profile_signing(Some(&rotation)).await.unwrap();
-        let ProfileSigningState::Enabled(signer) = state else {
+        let prepared = prepare_profile_signing(Some(&rotation)).await.unwrap();
+        let ProfileSigningState::Enabled(signer) = prepared.state else {
             panic!("signing should be enabled");
         };
 
         assert_eq!(signer.version().value(), 2);
+    }
+
+    #[tokio::test]
+    async fn publishes_every_key_not_only_the_primary() {
+        /// TEST ONLY: RFC 8032 test vector 2 (PKCS#8)
+        const SECOND_PEM: &str = "-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEIEzNCJso/5banbbDRuwRTg9bijGfNaumJNqM9u1PuKb7
+-----END PRIVATE KEY-----
+";
+        let rotation = config(
+            2,
+            vec![entry(1, value(PRIVATE_PEM)), entry(2, value(SECOND_PEM))],
+        );
+
+        let prepared = prepare_profile_signing(Some(&rotation)).await.unwrap();
+        let PublishedProfileKeys::Enabled { body, max_age } =
+            prepared.published_keys
+        else {
+            panic!("the key set should be published");
+        };
+
+        assert_eq!(max_age.value(), 43_200);
+        assert!(body.contains("11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"));
+        assert!(body.contains("PUAXw-hDiVqStwqnTRt-vJyYLM8uxJaMwM1V8Sr0Zgw"));
+        assert!(!body.contains("\"d\""));
+    }
+
+    #[tokio::test]
+    async fn absent_section_publishes_nothing() {
+        let prepared = prepare_profile_signing(None).await.unwrap();
+
+        assert!(matches!(
+            prepared.published_keys,
+            PublishedProfileKeys::Disabled
+        ));
     }
 
     #[tokio::test]
