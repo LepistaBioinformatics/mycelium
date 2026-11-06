@@ -4,7 +4,8 @@ Uses the local SDK checkout (editable install). Routes:
 
 - ``GET /health``: no SDK, always 200.
 - ``GET /whoami``: SDK dependency ``get_profile_from_header_required``;
-  verifies the signature when ``MYC_PROFILE_PUBLIC_KEY_*`` is set.
+  verifies the signature when ``MYCELIUM_JWKS_URL`` is set (the gateway
+  key set is downloaded at startup; failure stops the service).
 - ``GET /capture``: no SDK; returns the identity headers it received so the
   runner can replay or tamper with a real gateway-issued pair.
 - ``GET /stats``: how many times the ``/whoami`` handler actually ran.
@@ -44,7 +45,7 @@ def schema():
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "runId": os.environ.get("PSIG_RUN_ID"), "verification": bool(os.environ.get("MYC_PROFILE_PUBLIC_KEY_1"))}
+    return {"status": "ok", "runId": os.environ.get("PSIG_RUN_ID"), "verification": bool(os.environ.get("MYCELIUM_JWKS_URL"))}
 
 
 @app.get("/whoami", operation_id="psigWhoami")

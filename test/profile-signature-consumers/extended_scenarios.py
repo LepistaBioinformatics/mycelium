@@ -107,7 +107,8 @@ log = (runtime / "api.log").read_text()
 assert "Profile cache: hit" in log and "Profile cache: miss" in log
 record("gateway trace confirms both real profile cache miss and hit", 200, 200)
 
-audiences = {"Express": "express-svc", "Go": "go-svc", "Rust": "rust-svc"}
+audiences = {"Express": "express-svc", "Fastify": "fastify-svc",
+             "Go": "go-svc", "Rust": "rust-svc"}
 for framework, port in (("FastAPI", int(os.environ["PY_PORT"])),
                         ("Express", int(os.environ["EXPRESS_PORT"])),
                         ("Fastify", int(os.environ["FASTIFY_PORT"])),

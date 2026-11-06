@@ -53,21 +53,99 @@ start_infra() {
     export PSIG_DATABASE_URL="postgres://psig:$PSIG_DB_PASSWORD@127.0.0.1:$PSIG_POSTGRES_PORT/psig"
 }
 
-# pinned_to_v1 <consumer>: listed in ONLY_V1 (rotation scenarios).
-pinned_to_v1() { case " ${ONLY_V1:-} " in *" $1 "*) return 0 ;; esac; return 1; }
-
 # Go (adapters/nethttp) and Rust (GatewayProfileData) consumers, each with
-# its own audience. Reads key_env/v1_env from start_consumers.
+# its own audience. Reads jwks_env from launch_consumers.
 start_compiled_consumers() {
-    local go_env=("${key_env[@]}") rust_env=("${key_env[@]}")
-    pinned_to_v1 go && go_env=("${v1_env[@]}")
-    pinned_to_v1 rust && rust_env=("${v1_env[@]}")
-    env "${go_env[@]}" MYC_PROFILE_SIGNATURE_AUDIENCE=go-svc \
+    env "${jwks_env[@]}" MYC_PROFILE_SIGNATURE_AUDIENCE=go-svc \
         "$GO_BIN" "$GO_PORT" >"$WORKDIR/go.log" 2>&1 &
     GO_PID=$!
-    env "${rust_env[@]}" MYC_PROFILE_SIGNATURE_AUDIENCE=rust-svc \
+    env "${jwks_env[@]}" MYC_PROFILE_SIGNATURE_AUDIENCE=rust-svc \
         "$RUST_BIN" "$RUST_PORT" >"$WORKDIR/rust.log" 2>&1 &
     RUST_PID=$!
+}
+
+# The kids of the key set the gateway publishes, space separated.
+published_kids() {
+    curl -fsS "http://127.0.0.1:$API_PORT$JWKS_URL_PATH" | "$PYTHON_BIN" -c \
+        'import json,sys; print(" ".join(k["kid"] for k in json.load(sys.stdin)["keys"]))'
+}
+
+# expect_published_kids <kids>: the JWKS lists exactly these key versions.
+expect_published_kids() {
+    local actual
+    actual="$(published_kids)" || fail "the gateway does not publish its key set"
+    [ "$actual" = "$1" ] || fail "published kids: expected '$1', got '$actual'"
+    pass "gateway publishes kids [$1] at $JWKS_URL_PATH"
+}
+
+# Verifying consumers start while the gateway publishes no keys, and a
+# well-formed signed pair (kid 1) is refused: the failed key download fails
+# closed. That attempt also arms the consumers' first-download retry.
+expect_consumers_start_without_keys() {
+    status_of "http://127.0.0.1:$API_PORT$JWKS_URL_PATH" | grep -qx 404 \
+        || fail "the gateway still publishes keys without signing"
+    start_consumers jwks
+    pass "verifying consumers start while the gateway publishes no keys"
+    expect_direct "$PY_PORT" 403 "FastAPI fails closed without the key set" "$PAIR_PROFILE" "$PAIR_SIGNATURE"
+    expect_direct "$EXPRESS_PORT" 403 "Express fails closed without the key set" "$PAIR_PROFILE" "$PAIR_SIGNATURE"
+    expect_direct "$FASTIFY_PORT" 403 "Fastify fails closed without the key set" "$PAIR_PROFILE" "$PAIR_SIGNATURE"
+    expect_direct "$GO_PORT" 403 "Go fails closed without the key set" "$GO_PAIR_PROFILE" "$GO_PAIR_SIGNATURE"
+    expect_direct "$RUST_PORT" 403 "Rust fails closed without the key set" "$RUST_PAIR_PROFILE" "$RUST_PAIR_SIGNATURE"
+    remember_consumer_pids
+}
+
+# Once the gateway publishes its keys, every consumer accepts signed traffic
+# within the first-download retry (5 s), without being restarted.
+expect_consumers_recover_key_set() {
+    local service status
+    for service in py-svc express-svc fastify-svc go-svc rust-svc; do
+        SERVICE="$service"
+        for _ in $(seq 1 40); do
+            status="$(whoami_via_gateway)"
+            [ "$status" = 200 ] && break
+            sleep 0.25
+        done
+        [ "$status" = 200 ] || fail "$service did not pick up the key set within 10 s (got $status)"
+        pass "$service picks up the published key set without a restart -> 200"
+    done
+    expect_consumers_not_restarted "key set recovery"
+}
+
+# Signed profiles reached consumers without MYCELIUM_JWKS_URL: each SDK logs
+# the warning once per process. (The Rust test consumer installs no tracing
+# subscriber, so its warning is not observable here.)
+expect_single_unverified_warning() {
+    local name count
+    for name in py express fastify go; do
+        count="$(grep -c "MYCELIUM_JWKS_URL" "$WORKDIR/$name.log" || true)"
+        [ "$count" = 1 ] || fail "$name logged the unverified-signature warning $count times"
+        pass "$name warns once that MYCELIUM_JWKS_URL is not set"
+    done
+}
+
+remember_consumer_pids() {
+    ROTATION_PIDS="$PY_PID $EXPRESS_PID $FASTIFY_PID $GO_PID $RUST_PID"
+}
+
+# The rotation must not restart any consumer process.
+expect_consumers_not_restarted() {
+    local pid
+    [ "$ROTATION_PIDS" = "$PY_PID $EXPRESS_PID $FASTIFY_PID $GO_PID $RUST_PID" ] \
+        || fail "consumers were restarted during the $1"
+    for pid in $ROTATION_PIDS; do
+        kill -0 "$pid" 2>/dev/null || fail "consumer $pid died during the $1"
+    done
+    pass "$1 completed with the same consumer processes (no restart)"
+}
+
+# An unknown kid refetches at most once per 30 s since the last fetch
+# attempt (the first download counts): wait out that window once.
+wait_refetch_cooldown() {
+    local elapsed=$(( $(date +%s) - CONSUMERS_STARTED ))
+    if [ "$elapsed" -lt 31 ]; then
+        log "waiting $((31 - elapsed)) s for the consumers' refetch cooldown"
+        sleep $((31 - elapsed))
+    fi
 }
 
 # capture_pair <service> <variable prefix>: gateway-issued pair for that

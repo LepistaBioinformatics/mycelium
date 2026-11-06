@@ -51,7 +51,8 @@ run_benchmark_matrix() {
                     compose exec -T postgres psql -U postgres -d psig -v ON_ERROR_STOP=1 \
                         -c 'DELETE FROM kv_artifact;' >"$WORKDIR/flush.log" 2>&1
                 fi
-                if [ "$state" = C ]; then start_consumers '1'; else start_consumers ''; fi
+                # Verifying consumers start before the gateway (keys on first use).
+                if [ "$state" = C ]; then start_consumers jwks; else start_consumers ''; fi
                 if [ "$state" = A ]; then write_config ''; else write_config "$(signing_block 1 '1')"; fi
                 start_gateway
                 benchmark_config "$state" "$dataset"

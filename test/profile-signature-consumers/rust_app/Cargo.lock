@@ -1719,6 +1719,7 @@ dependencies = [
  "mycelium-service",
  "oauth2",
  "rand 0.8.6",
+ "ring",
  "secrecy",
  "serde",
  "serde_json",

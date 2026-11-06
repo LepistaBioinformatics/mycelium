@@ -2,8 +2,9 @@
 //!
 //! Uses the LOCAL `mycelium-http-tools` crate (path dependency) and its
 //! `GatewayProfileData` extractor, never a published crate. The verification
-//! settings (`MYC_PROFILE_PUBLIC_KEY_*`, `MYC_PROFILE_SIGNATURE_AUDIENCE`) are
-//! loaded once at startup; an invalid setting stops the service.
+//! settings (`MYCELIUM_JWKS_URL`, `MYC_PROFILE_SIGNATURE_AUDIENCE`) are
+//! loaded and the gateway JWKS is downloaded once at startup; an invalid
+//! setting or an unreachable gateway stops the service.
 //!
 //! Run: `psig-rust-consumer <port>`
 

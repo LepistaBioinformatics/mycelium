@@ -32,7 +32,7 @@ async fn health() -> impl Responder {
     HttpResponse::Ok().json(json!({
         "status": "ok",
         "runId": std::env::var("PSIG_RUN_ID").ok(),
-        "verification": std::env::var("MYC_PROFILE_PUBLIC_KEY_1").is_ok(),
+        "verification": std::env::var("MYCELIUM_JWKS_URL").is_ok(),
     }))
 }
 

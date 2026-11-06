@@ -3,8 +3,9 @@
 // MYC_SDK_JS_DIR, never from the published package.
 //
 // Routes: GET /health (no SDK), GET /whoami (SDK verification when
-// MYC_PROFILE_PUBLIC_KEY_* is set), GET /capture (no SDK, echoes identity
-// headers), GET /stats (handler call count).
+// MYCELIUM_JWKS_URL is set; the gateway key set is downloaded on the first
+// signed request), GET /capture (no SDK, echoes identity headers),
+// GET /stats (handler call count).
 //
 // Run: node javascript_app.mjs <express|fastify> <port>
 
@@ -25,7 +26,7 @@ const sdkEntry = (name) =>
 const calls = { whoami: 0 }
 
 const health = () => ({ status: "ok", runId: process.env.PSIG_RUN_ID,
-  verification: Boolean(process.env.MYC_PROFILE_PUBLIC_KEY_1) })
+  verification: Boolean(process.env.MYCELIUM_JWKS_URL) })
 const inspect = (headers) => ({ profilePresent: Boolean(headers["x-mycelium-profile"]),
   signaturePresent: Boolean(headers["x-mycelium-profile-signature"]) })
 const openapi = { openapi: "3.0.3", info: { title: "PSIG synthetic consumer", version: "1" },

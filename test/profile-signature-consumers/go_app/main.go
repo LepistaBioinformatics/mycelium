@@ -5,8 +5,9 @@
 //
 //   - GET /health: no SDK, always 200.
 //   - GET /whoami: SDK adapters/nethttp middleware; verifies the signature
-//     when MYC_PROFILE_PUBLIC_KEY_* is set (audience from
-//     MYC_PROFILE_SIGNATURE_AUDIENCE).
+//     when MYCELIUM_JWKS_URL is set (audience from
+//     MYC_PROFILE_SIGNATURE_AUDIENCE). The gateway key set is downloaded at
+//     startup; a failure stops the service.
 //   - GET /capture: no SDK; echoes the identity headers it received, only
 //     with the private control token.
 //   - GET /stats: how many times the /whoami handler actually ran.
@@ -15,6 +16,7 @@
 package main
 
 import (
+	"context"
 	"crypto/subtle"
 	"encoding/json"
 	"log"
@@ -53,7 +55,7 @@ func health(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status":       "ok",
 		"runId":        os.Getenv("PSIG_RUN_ID"),
-		"verification": os.Getenv("MYC_PROFILE_PUBLIC_KEY_1") != "",
+		"verification": os.Getenv("MYCELIUM_JWKS_URL") != "",
 	})
 }
 
@@ -99,8 +101,8 @@ func main() {
 	if len(os.Args) != 2 {
 		log.Fatal("usage: go_app <port>")
 	}
-	// Invalid verification settings must stop the service at startup.
-	verifier, err := mycelium.ConfigureProfileSignature()
+	// Invalid settings or an unreachable key set must stop the service.
+	verifier, err := mycelium.ConfigureProfileSignature(context.Background())
 	if err != nil {
 		log.Fatalf("profile signature configuration: %v", err)
 	}

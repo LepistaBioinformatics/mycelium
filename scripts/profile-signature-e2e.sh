@@ -6,17 +6,23 @@
 # Rust actix-web consumers built on the LOCAL SDK checkouts (never the
 # published packages). Proves, over HTTP:
 #
-#   1. signing on + verification on: Protected route answers 200 with the
-#      caller's real account (profile created through the beginner API);
+#   1. signing on + verification on: consumers download the gateway key set
+#      (GET /.well-known/mycelium-profile-jwks.json, MYCELIUM_JWKS_URL) and
+#      the Protected route answers 200 with the caller's real account;
 #   2. a forged inbound signature header is stripped and re-signed;
 #   3. direct access to a consumer: unsigned / tampered profile -> 403 and the
 #      handler never runs; a captured valid pair replayed inside the window
-#      -> 200 (documented limitation); replay to another service is rejected
-#      when that service configures its audience;
+#      -> 200 (documented limitation); replay to another service -> 403
+#      (audience is mandatory);
 #   4. wrong rollout order (consumers verify, gateway does not sign) -> 403;
-#   5. legacy: nothing configured on either side -> 200;
-#   6. rotation: gateway primary v2, consumers trusting v1+v2 -> 200; a
-#      consumer trusting only v1 -> 403; retired v1 pairs -> 403;
+#      verifying consumers start without the gateway key set (it is fetched
+#      on first use), fail closed meanwhile and pick it up, without a
+#      restart, within seconds of the gateway publishing it;
+#   5. legacy: nothing configured on either side -> 200; gateway signing with
+#      verification off -> 200 and one warning per consumer;
+#   6. rotation without touching any consumer: v2 published, then primary,
+#      picked up through the unknown-kid refetch; retired v1 pairs -> 403
+#      once the consumers refresh their key set;
 #   7. invalid signing configuration -> gateway refuses to boot, without
 #      printing key material.
 #
@@ -180,33 +186,40 @@ log "generated temporary key pairs v1 and v2"
 # ? Consumers
 # ? ---------------------------------------------------------------------------
 
-# start_consumers <trusted versions, space separated or empty>
-# ONLY_V1 lists the consumers pinned to v1 (fastify, go, rust) for rotation.
-start_consumers() {
-    local versions="$1" key_env=() v1_env=("MYC_PROFILE_PUBLIC_KEY_1=$(cat "$WORKDIR/public-v1.pem")")
-    for version in $versions; do
-        key_env+=("MYC_PROFILE_PUBLIC_KEY_$version=$(cat "$WORKDIR/public-v$version.pem")")
-    done
+JWKS_URL_PATH="/.well-known/mycelium-profile-jwks.json"
 
-    env "${key_env[@]}" ENVIRONMENT=production \
+# launch_consumers <jwks|empty>: spawn the five consumers. With "jwks", each
+# one verifies with the key set the gateway publishes (plain HTTP on
+# loopback, so the development switch is set) and its own audience.
+launch_consumers() {
+    local jwks_env=()
+    if [ "$1" = jwks ]; then
+        jwks_env=("MYCELIUM_JWKS_URL=http://127.0.0.1:$API_PORT$JWKS_URL_PATH"
+            "MYCELIUM_JWKS_ALLOW_INSECURE_HTTP=true")
+    fi
+
+    env "${jwks_env[@]}" MYC_PROFILE_SIGNATURE_AUDIENCE=py-svc ENVIRONMENT=production \
         "$PYTHON_BIN" "$CONSUMERS/python_app.py" "$PY_PORT" >"$WORKDIR/py.log" 2>&1 &
     PY_PID=$!
-    env "${key_env[@]}" MYC_PROFILE_SIGNATURE_AUDIENCE=express-svc MYC_SDK_JS_DIR="$SDK_JS_DIR" NODE_ENV=production \
+    env "${jwks_env[@]}" MYC_PROFILE_SIGNATURE_AUDIENCE=express-svc MYC_SDK_JS_DIR="$SDK_JS_DIR" NODE_ENV=production \
         "$NODE_BIN" "$CONSUMERS/javascript_app.mjs" express "$EXPRESS_PORT" >"$WORKDIR/express.log" 2>&1 &
     EXPRESS_PID=$!
-
-    local fastify_env=("${key_env[@]}")
-    pinned_to_v1 fastify && fastify_env=("${v1_env[@]}")
-    env "${fastify_env[@]}" MYC_SDK_JS_DIR="$SDK_JS_DIR" \
+    env "${jwks_env[@]}" MYC_PROFILE_SIGNATURE_AUDIENCE=fastify-svc MYC_SDK_JS_DIR="$SDK_JS_DIR" \
         "$NODE_BIN" "$CONSUMERS/javascript_app.mjs" fastify "$FASTIFY_PORT" >"$WORKDIR/fastify.log" 2>&1 &
     FASTIFY_PID=$!
     start_compiled_consumers
+}
 
+# start_consumers <jwks|empty>: launch and wait until every consumer serves.
+# Never needs the gateway: with "jwks" the key set is fetched on first use.
+start_consumers() {
+    launch_consumers "$1"
     wait_http "http://127.0.0.1:$PY_PORT/health" "FastAPI consumer" "$WORKDIR/py.log"
     wait_http "http://127.0.0.1:$EXPRESS_PORT/health" "Express consumer" "$WORKDIR/express.log"
     wait_http "http://127.0.0.1:$FASTIFY_PORT/health" "Fastify consumer" "$WORKDIR/fastify.log"
     wait_http "http://127.0.0.1:$GO_PORT/health" "Go consumer" "$WORKDIR/go.log"
     wait_http "http://127.0.0.1:$RUST_PORT/health" "Rust consumer" "$WORKDIR/rust.log"
+    CONSUMERS_STARTED="$(date +%s)"
 }
 
 # ? ---------------------------------------------------------------------------
@@ -262,7 +275,7 @@ allowedOrigins = ["http://127.0.0.1:$API_PORT"]
 tls = "disabled"
 
 [api.logging]
-level = "${PSIG_LOG_LEVEL:-myc_api=info,myc_http_tools=info,myc_notifier=info}"
+level = "${PSIG_LOG_LEVEL:-myc_api=info,myc_api::middleware::recovery_profile_from_storage_engines=debug,myc_http_tools=info,myc_notifier=info}"
 format = "ansi"
 target = "stdout"
 
@@ -425,7 +438,11 @@ expect_direct() {
 
 log "isolated run $RUN_ID ($MODE)"
 start_infra
-start_consumers "1"
+# Cold start: verifying consumers come up before the gateway exists (the key
+# set is fetched on first use), then the gateway boots and reads their
+# OpenAPI documents. Neither side waits for the other.
+start_consumers jwks
+pass "verifying consumers start before the gateway exists"
 write_config "$(signing_block 1 "1")"
 start_gateway
 authenticate
@@ -471,7 +488,7 @@ expect_direct "$PY_PORT" 200 "FastAPI: replay of a valid pair inside the window 
 expect_direct "$EXPRESS_PORT" 403 "Express: pair signed for py-svc rejected by audience -> 403" "$PAIR_PROFILE" "$PAIR_SIGNATURE"
 expect_direct "$EXPRESS_PORT" 403 "Express: forged unsigned profile -> 403" "$PAIR_PROFILE" -
 expect_direct "$FASTIFY_PORT" 403 "Fastify: tampered profile -> 403" "${PAIR_PROFILE}A" "$PAIR_SIGNATURE"
-expect_direct "$FASTIFY_PORT" 200 "Fastify without audience accepts a cross-service replay (why audience matters)" "$PAIR_PROFILE" "$PAIR_SIGNATURE"
+expect_direct "$FASTIFY_PORT" 403 "Fastify: pair signed for py-svc rejected by audience -> 403" "$PAIR_PROFILE" "$PAIR_SIGNATURE"
 expect_compiled_direct Go "$GO_PORT" "$GO_PAIR_PROFILE" "$GO_PAIR_SIGNATURE"
 expect_compiled_direct Rust "$RUST_PORT" "$RUST_PAIR_PROFILE" "$RUST_PAIR_SIGNATURE"
 
@@ -483,8 +500,15 @@ expect_gateway_status fastify-svc 403 "Fastify rejects unsigned gateway traffic"
 expect_gateway_status go-svc 403 "Go rejects unsigned gateway traffic" "$GO_PORT"
 expect_gateway_status rust-svc 403 "Rust rejects unsigned gateway traffic" "$RUST_PORT"
 
-log "4. legacy: no signing, no verification"
+log "3a. consumers start without the gateway key set, fail closed, then recover"
 stop_consumers
+expect_consumers_start_without_keys
+restart_gateway "$(signing_block 1 "1")"
+expect_consumers_recover_key_set
+restart_gateway ""
+stop_consumers
+
+log "4. legacy: no signing, no verification"
 start_consumers ""
 expect_gateway_ok py-svc "FastAPI legacy path -> 200"
 expect_gateway_ok express-svc "Express legacy path -> 200"
@@ -492,34 +516,55 @@ expect_gateway_ok fastify-svc "Fastify legacy path -> 200"
 expect_gateway_ok go-svc "Go legacy path -> 200"
 expect_gateway_ok rust-svc "Rust legacy path -> 200"
 
-log "5. rotation: consumers trust v1+v2 (Fastify only v1), gateway primary v2"
+log "4a. gateway signs, verification off: accepted, one warning per consumer"
+restart_gateway "$(signing_block 1 "1")"
+for service in py-svc express-svc fastify-svc go-svc rust-svc; do
+    expect_gateway_ok "$service" "$service unverified signed profile -> 200 (legacy)"
+    expect_gateway_ok "$service" "$service second unverified signed profile -> 200"
+done
+expect_single_unverified_warning
+
+log "5. rotation without touching the consumers"
 stop_consumers
-ONLY_V1="fastify" start_consumers "1 2"
+start_consumers jwks
+remember_consumer_pids
+for service in py-svc express-svc fastify-svc go-svc rust-svc; do
+    expect_gateway_ok "$service" "$service verifies kid 1 from the downloaded key set -> 200"
+done
+
+log "5a. gateway publishes v2 while still signing with v1"
+restart_gateway "$(signing_block 1 "1 2")"
+expect_published_kids "1 2"
+expect_gateway_ok py-svc "FastAPI still verifies kid 1 -> 200"
+wait_refetch_cooldown
+for service in py-svc express-svc fastify-svc go-svc rust-svc; do
+    capture_pair "$service" "V1_${service%%-svc}"
+done
+
+log "5b. primary switched to v2: consumers fetch it on the unknown kid"
 restart_gateway "$(signing_block 2 "1 2")"
-expect_gateway_ok py-svc "FastAPI accepts kid 2 -> 200"
-expect_gateway_ok express-svc "Express accepts kid 2 -> 200"
-expect_gateway_status fastify-svc 403 "Fastify trusting only v1 rejects kid 2 -> 403" "$FASTIFY_PORT"
-expect_gateway_ok go-svc "Go accepts kid 2 -> 200"
-expect_gateway_ok rust-svc "Rust accepts kid 2 -> 200"
+expect_gateway_ok py-svc "FastAPI accepts kid 2 without restart -> 200"
+expect_gateway_ok express-svc "Express accepts kid 2 without restart -> 200"
+expect_gateway_ok fastify-svc "Fastify accepts kid 2 without restart -> 200"
+expect_gateway_ok go-svc "Go accepts kid 2 without restart -> 200"
+expect_gateway_ok rust-svc "Rust accepts kid 2 without restart -> 200"
+expect_consumers_not_restarted rotation
 
-log "5a. rotation: Go and Rust trusting only v1, gateway primary v2"
+log "5c. v1 retired at the gateway"
+restart_gateway "$(signing_block 2 "2")"
+expect_published_kids "2"
+expect_gateway_ok py-svc "FastAPI keeps verifying kid 2 -> 200"
+# A restart stands in for the cache expiry (12 h by default).
 stop_consumers
-ONLY_V1="go rust" start_consumers "1 2"
-expect_gateway_status go-svc 403 "Go trusting only v1 rejects kid 2 -> 403" "$GO_PORT"
-expect_gateway_status rust-svc 403 "Rust trusting only v1 rejects kid 2 -> 403" "$RUST_PORT"
-
-log "5b. retired v1 key is no longer trusted"
-stop_consumers
-start_consumers "2"
-expect_gateway_ok py-svc "FastAPI trusts v2 after retiring v1 -> 200"
-expect_gateway_ok express-svc "Express trusts v2 after retiring v1 -> 200"
-expect_gateway_ok fastify-svc "Fastify trusts v2 after retiring v1 -> 200"
-expect_gateway_ok go-svc "Go trusts v2 after retiring v1 -> 200"
-expect_gateway_ok rust-svc "Rust trusts v2 after retiring v1 -> 200"
-expect_direct "$PY_PORT" 403 "FastAPI retired v1 pair is refused" "$PAIR_PROFILE" "$PAIR_SIGNATURE"
-expect_direct "$FASTIFY_PORT" 403 "Fastify retired v1 pair is refused" "$PAIR_PROFILE" "$PAIR_SIGNATURE"
-expect_direct "$GO_PORT" 403 "Go retired v1 pair (aud go-svc) is refused" "$GO_PAIR_PROFILE" "$GO_PAIR_SIGNATURE"
-expect_direct "$RUST_PORT" 403 "Rust retired v1 pair (aud rust-svc) is refused" "$RUST_PAIR_PROFILE" "$RUST_PAIR_SIGNATURE"
+start_consumers jwks
+expect_direct "$PY_PORT" 403 "FastAPI refuses a retired v1 pair" "$V1_py_PAIR_PROFILE" "$V1_py_PAIR_SIGNATURE"
+expect_direct "$EXPRESS_PORT" 403 "Express refuses a retired v1 pair" "$V1_express_PAIR_PROFILE" "$V1_express_PAIR_SIGNATURE"
+expect_direct "$FASTIFY_PORT" 403 "Fastify refuses a retired v1 pair" "$V1_fastify_PAIR_PROFILE" "$V1_fastify_PAIR_SIGNATURE"
+expect_direct "$GO_PORT" 403 "Go refuses a retired v1 pair" "$V1_go_PAIR_PROFILE" "$V1_go_PAIR_SIGNATURE"
+expect_direct "$RUST_PORT" 403 "Rust refuses a retired v1 pair" "$V1_rust_PAIR_PROFILE" "$V1_rust_PAIR_SIGNATURE"
+for service in py-svc express-svc fastify-svc go-svc rust-svc; do
+    expect_gateway_ok "$service" "$service verifies kid 2 after retiring v1 -> 200"
+done
 
 log "6. invalid signing configuration aborts the boot"
 stop_pid "$API_PID"; API_PID=""
