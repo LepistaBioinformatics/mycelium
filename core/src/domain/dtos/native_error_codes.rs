@@ -271,7 +271,7 @@ pub enum NativeErrorCodes {
     ///
     /// code: "MYC00035",
     /// message: "Invalid downstream profile signature verification configuration.",
-    /// details: "Dispatched by a Rust downstream service (`GatewayProfileData`) when a `MYC_PROFILE_PUBLIC_KEY_<version>`, `MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS` or `MYC_PROFILE_SIGNATURE_AUDIENCE` variable is present but invalid. Requests fail closed instead of skipping verification.",
+    /// details: "Dispatched by a Rust downstream service (`GatewayProfileData`) when `MYCELIUM_JWKS_URL`, `MYCELIUM_JWKS_ALLOW_INSECURE_HTTP`, `MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS` or `MYC_PROFILE_SIGNATURE_AUDIENCE` is invalid, when the audience is missing while `MYCELIUM_JWKS_URL` is set, or when the gateway profile JWKS is unsafe or malformed. Requests fail closed instead of skipping verification.",
     /// is_internal: true,
     /// is_native: true
     ///
@@ -510,7 +510,7 @@ impl NativeErrorCodes {
                 35,
                 "Invalid downstream profile signature verification configuration.".to_string(),
                 true,
-            )?.with_details("Dispatched by a Rust downstream service (`GatewayProfileData`) when a `MYC_PROFILE_PUBLIC_KEY_<version>`, `MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS` or `MYC_PROFILE_SIGNATURE_AUDIENCE` variable is present but invalid. Requests fail closed instead of skipping verification.".to_string())),
+            )?.with_details("Dispatched by a Rust downstream service (`GatewayProfileData`) when `MYCELIUM_JWKS_URL`, `MYCELIUM_JWKS_ALLOW_INSECURE_HTTP`, `MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS` or `MYC_PROFILE_SIGNATURE_AUDIENCE` is invalid, when the audience is missing while `MYCELIUM_JWKS_URL` is set, or when the gateway profile JWKS is unsafe or malformed. Requests fail closed instead of skipping verification.".to_string())),
         }
     }
 

@@ -1,5 +1,7 @@
 use super::ProfileSigningKeySet;
-use crate::domain::dtos::profile_signature::SigningKeyVersion;
+use crate::domain::dtos::profile_signature::{
+    JwksMaxAgeSeconds, SigningKeyVersion,
+};
 
 use mycelium_base::utils::errors::MappedErrors;
 use serde::Deserialize;
@@ -13,11 +15,15 @@ use serde::Deserialize;
 /// ```toml
 /// [core.profileSigning]
 /// primaryKeyVersion = 1
+/// jwksMaxAgeSeconds = 43200 # optional, default 12 h
 ///
 /// [[core.profileSigning.keys]]
 /// version = 1
 /// privateKey = { env = "MYC_PROFILE_PRIVATE_KEY_1" }
 /// ```
+///
+/// The public halves of every listed key are published as a JWKS for
+/// downstream verifiers, cached by them for `jwksMaxAgeSeconds`.
 ///
 /// `validate` only checks structure. Key material is resolved and imported
 /// asynchronously at boot, after Vault is ready.
@@ -27,6 +33,9 @@ use serde::Deserialize;
 pub struct ProfileSigningConfig {
     pub primary_key_version: SigningKeyVersion,
     pub keys: ProfileSigningKeySet,
+
+    #[serde(default)]
+    pub jwks_max_age_seconds: JwksMaxAgeSeconds,
 }
 
 impl ProfileSigningConfig {
@@ -70,6 +79,23 @@ mod tests {
         config.validate().unwrap();
         assert_eq!(config.primary_key_version.value(), 2);
         assert_eq!(config.keys.len(), 2);
+        assert_eq!(config.jwks_max_age_seconds.value(), 43_200);
+    }
+
+    #[test]
+    fn reads_and_bounds_the_jwks_max_age() {
+        let raw = |max_age: u32| {
+            format!(
+                "[profileSigning]\nprimaryKeyVersion = 1\n\
+                 jwksMaxAgeSeconds = {max_age}\n\
+                 [[profileSigning.keys]]\nversion = 1\n\
+                 privateKey = {{ env = \"X\" }}\n"
+            )
+        };
+
+        let config = parse(&raw(600)).unwrap();
+        assert_eq!(config.jwks_max_age_seconds.value(), 600);
+        assert!(parse(&raw(10)).is_err());
     }
 
     #[test]
