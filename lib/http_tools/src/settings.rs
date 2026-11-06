@@ -28,23 +28,46 @@ pub const DEFAULT_PROFILE_KEY: &str = "x-mycelium-profile";
 ///
 /// Carries the compact JWS (EdDSA) issued by the gateway over the exact value
 /// of `DEFAULT_PROFILE_KEY`. Only injected when `core.profileSigning` is
-/// configured; downstream SDKs verify it when public keys are configured.
+/// configured; downstream SDKs verify it when `MYCELIUM_JWKS_URL` is set.
 ///
 pub const DEFAULT_PROFILE_SIGNATURE_KEY: &str = "x-mycelium-profile-signature";
 
-/// Prefix of the trusted public key variables of a Rust downstream service
-///
-/// `MYC_PROFILE_PUBLIC_KEY_<version>` holds an Ed25519 SPKI PEM. The presence
-/// of any such variable enables signature verification in
-/// `GatewayProfileData`. Same convention as the Python, JavaScript and Go SDKs.
-///
-pub const PROFILE_PUBLIC_KEY_ENV_PREFIX: &str = "MYC_PROFILE_PUBLIC_KEY_";
+/// URL of the gateway profile JWKS; enables verification in
+/// `GatewayProfileData` (same variable as the SDKs). `https://` only, unless
+/// `PROFILE_JWKS_ALLOW_INSECURE_HTTP_ENV` is `true` (development)
+pub const PROFILE_JWKS_URL_ENV: &str = "MYCELIUM_JWKS_URL";
+
+/// Development-only switch that accepts an `http://` JWKS URL
+pub const PROFILE_JWKS_ALLOW_INSECURE_HTTP_ENV: &str =
+    "MYCELIUM_JWKS_ALLOW_INSECURE_HTTP";
+
+/// Path where the gateway publishes the profile JWKS
+pub const PROFILE_JWKS_PATH: &str = "/.well-known/mycelium-profile-jwks.json";
+
+/// Upper bound of one JWKS request
+pub const PROFILE_JWKS_FETCH_TIMEOUT_SECONDS: u64 = 5;
+
+/// Largest accepted JWKS response body, in bytes
+pub const PROFILE_JWKS_MAX_BYTES: usize = 64 * 1024;
+
+/// Minimum interval between JWKS requests (unknown `kid`, failed refresh)
+pub const PROFILE_JWKS_REFETCH_COOLDOWN_SECONDS: u64 = 30;
+
+/// Shorter retry interval while no key set was ever downloaded (first use)
+pub const PROFILE_JWKS_EMPTY_RETRY_SECONDS: u64 = 5;
+
+/// Cache lifetime when the response carries no usable `max-age` (12 h)
+pub const PROFILE_JWKS_DEFAULT_MAX_AGE_SECONDS: u64 = 43_200;
+
+/// Bounds applied to the `max-age` announced by the gateway
+pub const PROFILE_JWKS_MIN_MAX_AGE_SECONDS: u64 = 60;
+pub const PROFILE_JWKS_MAX_MAX_AGE_SECONDS: u64 = 86_400;
 
 /// Optional symmetric `iat` tolerance, in seconds (default 60)
 pub const PROFILE_SIGNATURE_TOLERANCE_ENV: &str =
     "MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS";
 
-/// Optional expected `aud`: compared only when set
+/// Expected `aud`, required whenever verification is enabled
 pub const PROFILE_SIGNATURE_AUDIENCE_ENV: &str =
     "MYC_PROFILE_SIGNATURE_AUDIENCE";
 

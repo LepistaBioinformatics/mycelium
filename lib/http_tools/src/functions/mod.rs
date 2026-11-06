@@ -3,6 +3,9 @@ mod compress_and_encode_profile_to_base64;
 mod decode_and_decompress_profile_from_base64;
 mod decode_jwt;
 mod encode_jwt;
+mod fetch_profile_jwks;
+mod read_jwks_cache_max_age;
+mod read_signature_key_version;
 mod sign_profile_payload;
 mod verify_profile_signature;
 
@@ -11,5 +14,8 @@ pub use compress_and_encode_profile_to_base64::*;
 pub use decode_and_decompress_profile_from_base64::*;
 pub use decode_jwt::*;
 pub use encode_jwt::*;
+pub use fetch_profile_jwks::*;
+pub use read_jwks_cache_max_age::*;
+pub use read_signature_key_version::*;
 pub use sign_profile_payload::*;
 pub use verify_profile_signature::*;

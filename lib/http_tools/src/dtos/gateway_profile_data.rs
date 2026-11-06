@@ -23,14 +23,15 @@ use uuid::Uuid;
 ///
 /// ! Signature verification (opt-in)
 ///
-/// When the service sets any `MYC_PROFILE_PUBLIC_KEY_<version>` variable (or
-/// registers `web::Data<ProfileSignatureVerification>`), the extractor
-/// authenticates `x-mycelium-profile` with `x-mycelium-profile-signature`
-/// before decoding it, following the contract shared with the Python,
-/// JavaScript and Go SDKs. Any rejection is a 403; an invalid configuration
-/// is a 500. Without public keys, the profile is trusted as received (legacy
-/// behavior). The bearer-token fallback only runs when the request carries
-/// neither profile header.
+/// When the service sets `MYCELIUM_JWKS_URL` (or registers
+/// `web::Data<ProfileSignatureVerification>`), the extractor authenticates
+/// `x-mycelium-profile` with `x-mycelium-profile-signature` before decoding
+/// it, using the keys published by the gateway and the contract shared with
+/// the Python, JavaScript and Go SDKs. Any rejection is a 403; an invalid
+/// configuration is a 500. Without the URL, the profile is trusted as
+/// received (legacy behavior) and a signed profile logs a warning once. The
+/// bearer-token fallback only runs when the request carries neither profile
+/// header.
 ///
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -107,7 +108,7 @@ impl FromRequest for GatewayProfileData {
         //
         if let Some(signed) = signed_profile_from_request(req) {
             return Box::pin(async move {
-                signed.map(GatewayProfileData::from_profile)
+                signed.await.map(GatewayProfileData::from_profile)
             });
         }
 

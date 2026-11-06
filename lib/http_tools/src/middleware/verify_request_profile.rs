@@ -2,22 +2,31 @@ use super::{
     resolve_profile_signature_verification, SIGNATURE_INTERNAL_DETAIL,
 };
 use crate::{
-    functions::verify_and_decode_profile,
-    models::{ProfileSignatureVerification, ProfileSignatureVerifier},
+    models::{JwksProfileSignatureVerifier, ProfileSignatureVerification},
     responses::GatewayError,
     settings::{DEFAULT_PROFILE_KEY, DEFAULT_PROFILE_SIGNATURE_KEY},
 };
 
 use actix_web::HttpRequest;
+use futures::future::LocalBoxFuture;
 use myc_core::domain::dtos::{
     profile::Profile,
     profile_signature::{ProfileSignatureRejection, UnixTimestampSeconds},
 };
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 /// Generic detail of every rejection; the reason is only logged
 pub(crate) const SIGNATURE_REJECTION_DETAIL: &str =
     "Unable to verify Mycelium profile";
+
+/// Whether the "signed profile but verification disabled" warning was logged
+static UNVERIFIED_SIGNATURE_WARNED: AtomicBool = AtomicBool::new(false);
 
 /// The signed profile of a request, when verification applies to it
 ///
@@ -29,21 +38,30 @@ pub(crate) const SIGNATURE_REJECTION_DETAIL: &str =
 ///
 pub(crate) fn signed_profile_from_request(
     req: &HttpRequest,
-) -> Option<Result<Profile, GatewayError>> {
+) -> Option<LocalBoxFuture<'static, Result<Profile, GatewayError>>> {
     match resolve_profile_signature_verification(req) {
-        Err(error) => Some(Err(error)),
-        Ok(ProfileSignatureVerification::Disabled) => None,
+        Err(error) => Some(Box::pin(async move { Err(error) })),
+        Ok(ProfileSignatureVerification::Disabled) => {
+            warn_when_signature_is_ignored(req);
+            None
+        }
         Ok(ProfileSignatureVerification::Enabled(verifier)) => {
-            carries_profile_headers(req)
-                .then(|| verify_request_profile(req, &verifier, current_time()))
+            carries_profile_headers(req).then(|| {
+                let req = req.clone();
+                Box::pin(async move {
+                    verify_request_profile(&req, &verifier, current_time())
+                        .await
+                }) as LocalBoxFuture<'static, _>
+            })
         }
     }
 }
 
 /// Authenticate and decode the profile of a request at a given instant
-pub(crate) fn verify_request_profile(
+#[tracing::instrument(name = "verify_request_profile", skip_all)]
+pub(crate) async fn verify_request_profile(
     req: &HttpRequest,
-    verifier: &ProfileSignatureVerifier,
+    verifier: &Arc<JwksProfileSignatureVerifier>,
     now: Option<UnixTimestampSeconds>,
 ) -> Result<Profile, GatewayError> {
     let Some(now) = now else {
@@ -52,19 +70,21 @@ pub(crate) fn verify_request_profile(
         ));
     };
 
-    verified_profile(req, verifier, now).map_err(|reason| {
-        tracing::warn!(
-            reason = reason.as_str(),
-            "profile_signature.verify outcome=rejected"
-        );
+    verified_profile(req, verifier, now)
+        .await
+        .map_err(|reason| {
+            tracing::warn!(
+                reason = reason.as_str(),
+                "profile_signature.verify outcome=rejected"
+            );
 
-        GatewayError::Forbidden(SIGNATURE_REJECTION_DETAIL.to_string())
-    })
+            GatewayError::Forbidden(SIGNATURE_REJECTION_DETAIL.to_string())
+        })
 }
 
-fn verified_profile(
+async fn verified_profile(
     req: &HttpRequest,
-    verifier: &ProfileSignatureVerifier,
+    verifier: &JwksProfileSignatureVerifier,
     now: UnixTimestampSeconds,
 ) -> Result<Profile, ProfileSignatureRejection> {
     let profile_header = single_value(
@@ -80,12 +100,34 @@ fn verified_profile(
         ProfileSignatureRejection::MalformedSignature,
     )?;
 
-    verify_and_decode_profile(profile_header, signature_header, verifier, now)
+    verifier
+        .verify_and_decode(profile_header, signature_header, now)
+        .await
 }
 
 fn carries_profile_headers(req: &HttpRequest) -> bool {
     req.headers().contains_key(DEFAULT_PROFILE_KEY)
         || req.headers().contains_key(DEFAULT_PROFILE_SIGNATURE_KEY)
+}
+
+/// Log once that a signed profile arrived while verification is off
+///
+/// The usual cause is a service that forgot `MYCELIUM_JWKS_URL`: the profile
+/// is still trusted as received, exactly as before.
+///
+fn warn_when_signature_is_ignored(req: &HttpRequest) {
+    if !req.headers().contains_key(DEFAULT_PROFILE_SIGNATURE_KEY)
+        || UNVERIFIED_SIGNATURE_WARNED.swap(true, Ordering::Relaxed)
+    {
+        return;
+    }
+
+    tracing::warn!(
+        event = "profile_signature.verify",
+        outcome = "skipped",
+        "received a signed profile but MYCELIUM_JWKS_URL is not set; \
+         the signature is not verified"
+    );
 }
 
 /// The one value of a header, refusing duplicates
@@ -127,40 +169,72 @@ mod tests {
         functions::{
             compress_and_encode_profile_to_base64, sign_profile_payload,
         },
-        models::VersionedEd25519Signer,
+        models::{
+            FetchedProfileJwks, ProfileJwksFetcher, TrustedProfileKeys,
+            VersionedEd25519Signer,
+        },
     };
     use actix_web::{dev::Payload, test::TestRequest, web, FromRequest};
     use myc_core::domain::dtos::profile_signature::{
         ProfileSignatureAudience, SigningKeyVersion,
     };
-    use std::{collections::BTreeMap, sync::Arc};
+    use serde_json::json;
+    use std::{collections::BTreeMap, time::Duration};
     use uuid::Uuid;
 
-    /// TEST ONLY: RFC 8032 test vector 1 (PKCS#8 / SPKI)
+    /// TEST ONLY: RFC 8032 test vector 1 (PKCS#8)
     const PRIVATE_PEM: &str = "-----BEGIN PRIVATE KEY-----
 MC4CAQAwBQYDK2VwBCIEIJ1hsZ3v/VpguoRK9JLsLMREScVpezJpGXA7rAMcrn9g
 -----END PRIVATE KEY-----
 ";
-    const PUBLIC_PEM: &str = "-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
------END PUBLIC KEY-----
-";
 
-    fn verifier() -> ProfileSignatureVerifier {
-        let variables = BTreeMap::from([(
-            "MYC_PROFILE_PUBLIC_KEY_1".to_string(),
-            PUBLIC_PEM.to_string(),
-        )]);
+    fn signer() -> VersionedEd25519Signer {
+        VersionedEd25519Signer::from_pem(
+            SigningKeyVersion::try_from(1).unwrap(),
+            PRIVATE_PEM,
+        )
+        .unwrap()
+    }
 
-        ProfileSignatureVerifier::from_variables(&variables)
-            .unwrap()
-            .unwrap()
+    fn fetcher() -> ProfileJwksFetcher {
+        let document = json!({"keys": [signer().public_jwk().to_json()]});
+        let keys = TrustedProfileKeys::from_jwks_document(
+            document.to_string().as_bytes(),
+        )
+        .unwrap();
+
+        Arc::new(move |_| {
+            let keys = keys.clone();
+            Box::pin(async move {
+                Ok(FetchedProfileJwks {
+                    keys,
+                    max_age: Duration::from_secs(600),
+                })
+            })
+        })
+    }
+
+    fn verifier() -> Arc<JwksProfileSignatureVerifier> {
+        let variables = BTreeMap::from([
+            (
+                "MYCELIUM_JWKS_URL".to_string(),
+                "https://gateway.test/jwks.json".to_string(),
+            ),
+            (
+                "MYC_PROFILE_SIGNATURE_AUDIENCE".to_string(),
+                "svc".to_string(),
+            ),
+        ]);
+
+        Arc::new(
+            JwksProfileSignatureVerifier::from_variables(&variables, fetcher())
+                .unwrap()
+                .unwrap(),
+        )
     }
 
     fn enabled() -> web::Data<ProfileSignatureVerification> {
-        web::Data::new(ProfileSignatureVerification::Enabled(Arc::new(
-            verifier(),
-        )))
+        web::Data::new(ProfileSignatureVerification::Enabled(verifier()))
     }
 
     fn signed_headers() -> (String, String) {
@@ -180,15 +254,10 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
             None,
         );
         let header = compress_and_encode_profile_to_base64(profile).unwrap();
-        let signer = VersionedEd25519Signer::from_pem(
-            SigningKeyVersion::try_from(1).unwrap(),
-            PRIVATE_PEM,
-        )
-        .unwrap();
         let signature = sign_profile_payload(
             &header,
             ProfileSignatureAudience::try_from("svc".to_string()).unwrap(),
-            &signer,
+            &signer(),
             current_time().unwrap(),
         )
         .unwrap();
@@ -269,22 +338,23 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         assert!(profile.is_staff);
     }
 
-    #[test]
-    fn missing_clock_is_an_internal_error() {
+    #[actix_web::test]
+    async fn missing_clock_is_an_internal_error() {
         let (header, signature) = signed_headers();
         let req = TestRequest::default()
             .insert_header((DEFAULT_PROFILE_KEY, header))
             .insert_header((DEFAULT_PROFILE_SIGNATURE_KEY, signature))
             .to_http_request();
 
-        let error =
-            verify_request_profile(&req, &verifier(), None).unwrap_err();
+        let error = verify_request_profile(&req, &verifier(), None)
+            .await
+            .unwrap_err();
 
         assert!(matches!(error, GatewayError::InternalServerError(_)));
     }
 
-    #[test]
-    fn folded_duplicate_headers_are_refused() {
+    #[actix_web::test]
+    async fn folded_duplicate_headers_are_refused() {
         let req = TestRequest::default()
             .insert_header((DEFAULT_PROFILE_KEY, "a, b"))
             .insert_header((DEFAULT_PROFILE_SIGNATURE_KEY, "x.y.z"))
@@ -292,6 +362,7 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
 
         let reason =
             verified_profile(&req, &verifier(), current_time().unwrap())
+                .await
                 .unwrap_err();
 
         assert_eq!(reason, ProfileSignatureRejection::DuplicateHeader);

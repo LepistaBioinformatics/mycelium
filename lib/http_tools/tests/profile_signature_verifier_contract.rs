@@ -5,12 +5,20 @@
 //! the same corpus; this test proves `verify_and_decode_profile`, used by
 //! `GatewayProfileData`, reports the same outcome for every case.
 
-use myc_core::domain::dtos::profile_signature::UnixTimestampSeconds;
+use base64::{engine::general_purpose::STANDARD, Engine};
+use myc_core::domain::dtos::profile_signature::{
+    ProfileSignatureAudience, SigningKeyVersion, UnixTimestampSeconds,
+};
 use myc_http_tools::{
-    functions::verify_and_decode_profile, models::ProfileSignatureVerifier,
+    functions::verify_and_decode_profile,
+    models::{
+        Ed25519PublicJwk, ProfileSignatureTolerance, ProfileSignatureVerifier,
+        TrustedProfileKeys,
+    },
 };
 use serde::Deserialize;
-use std::collections::BTreeMap;
+use serde_json::{json, Value};
+use std::{collections::BTreeMap, sync::Arc};
 
 const VECTORS: &str =
     include_str!("../test/mock/profile-signature/vectors.json");
@@ -35,31 +43,36 @@ struct Vector {
     expected: String,
 }
 
+/// The JWK of a corpus SPKI PEM (an Ed25519 SPKI ends with the raw key)
+fn jwk(version: &str, pem: &str) -> Value {
+    let body: String =
+        pem.lines().filter(|l| !l.starts_with("-----")).collect();
+    let der = STANDARD.decode(body).unwrap();
+    let raw: [u8; 32] = der[der.len() - 32..].try_into().unwrap();
+
+    Ed25519PublicJwk::new(version.parse::<SigningKeyVersion>().unwrap(), raw)
+        .to_json()
+}
+
 fn verifier(corpus: &Corpus, vector: &Vector) -> ProfileSignatureVerifier {
-    let mut variables: BTreeMap<String, String> = vector
+    let keys: Vec<Value> = vector
         .trusted_key_versions
         .iter()
-        .map(|version| {
-            (
-                format!("MYC_PROFILE_PUBLIC_KEY_{version}"),
-                corpus.public_keys[version].clone(),
-            )
-        })
+        .map(|version| jwk(version, &corpus.public_keys[version]))
         .collect();
-    variables.insert(
-        "MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS".to_string(),
-        vector.tolerance_seconds.to_string(),
-    );
-    if let Some(audience) = &vector.expected_audience {
-        variables.insert(
-            "MYC_PROFILE_SIGNATURE_AUDIENCE".to_string(),
-            audience.clone(),
-        );
-    }
+    let document = json!({ "keys": keys }).to_string();
+    let tolerance = vector.tolerance_seconds.to_string();
 
-    ProfileSignatureVerifier::from_variables(&variables)
-        .unwrap()
-        .unwrap()
+    ProfileSignatureVerifier::new(
+        Arc::new(
+            TrustedProfileKeys::from_jwks_document(document.as_bytes())
+                .unwrap(),
+        ),
+        ProfileSignatureTolerance::from_variable(Some(&tolerance)).unwrap(),
+        vector.expected_audience.clone().map(|audience| {
+            ProfileSignatureAudience::try_from(audience).unwrap()
+        }),
+    )
 }
 
 fn outcome(corpus: &Corpus, vector: &Vector) -> String {

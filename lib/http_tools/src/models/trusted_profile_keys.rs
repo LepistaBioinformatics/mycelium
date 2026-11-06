@@ -1,46 +1,38 @@
-use crate::settings::PROFILE_PUBLIC_KEY_ENV_PREFIX;
+use super::Ed25519PublicJwk;
 
 use jsonwebtoken::DecodingKey;
 use myc_core::domain::dtos::{
     native_error_codes::NativeErrorCodes, profile_signature::SigningKeyVersion,
 };
 use mycelium_base::utils::errors::{dto_err, MappedErrors};
+use serde_json::Value;
 use std::{collections::BTreeMap, str::FromStr};
 
-/// Marker of an SPKI public key PEM (a PKCS#8 private key is refused)
-const PUBLIC_KEY_PEM_HEADER: &str = "-----BEGIN PUBLIC KEY-----";
+/// Label used in configuration errors about a published key set
+const JWKS: &str = "profile JWKS";
 
 /// The Ed25519 public keys a downstream service trusts, by key version
 ///
-/// Built from the `MYC_PROFILE_PUBLIC_KEY_<version>` variables. The version
-/// suffix must be canonical, since it is matched against the JWS `kid`, and
-/// every value must be an Ed25519 SPKI PEM: a private key or a malformed PEM
-/// is a configuration error, never a silently ignored key.
+/// Read from the gateway's profile JWKS. The document is accepted or refused
+/// as a whole: one unsafe entry (private member, other key type or curve,
+/// wrong length, non-canonical or duplicated `kid`) refuses the set, so the
+/// verifier keeps its last valid one instead of trusting a partial set.
 ///
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct TrustedProfileKeys(BTreeMap<SigningKeyVersion, DecodingKey>);
 
 impl TrustedProfileKeys {
-    /// Collect the trusted keys from environment-like variables
-    ///
-    /// Returns `None` when no variable carries the prefix: verification is
-    /// disabled and the legacy behavior is preserved.
-    ///
-    pub fn from_variables(
-        variables: &BTreeMap<String, String>,
-    ) -> Result<Option<Self>, MappedErrors> {
+    /// Parse a JWKS document (`{"keys": [...]}`)
+    pub fn from_jwks_document(document: &[u8]) -> Result<Self, MappedErrors> {
+        let parsed: Value = serde_json::from_slice(document)
+            .map_err(|_| invalid_verification_setting(JWKS, "is not JSON"))?;
+
         let mut keys = BTreeMap::new();
-
-        for (name, pem) in variables.iter() {
-            let Some(suffix) = name.strip_prefix(PROFILE_PUBLIC_KEY_ENV_PREFIX)
-            else {
-                continue;
-            };
-
-            keys.insert(parse_version(name, suffix)?, parse_key(name, pem)?);
+        for entry in read_entries(&parsed)? {
+            insert_unique(&mut keys, Ed25519PublicJwk::from_json(entry)?)?;
         }
 
-        Ok((!keys.is_empty()).then_some(Self(keys)))
+        Ok(Self(keys))
     }
 
     /// The key selected by a JWS `kid`, when the version is trusted
@@ -49,36 +41,47 @@ impl TrustedProfileKeys {
 
         self.0.get(&version)
     }
-}
 
-fn parse_version(
-    name: &str,
-    suffix: &str,
-) -> Result<SigningKeyVersion, MappedErrors> {
-    SigningKeyVersion::from_str(suffix).map_err(|_| {
-        invalid_verification_setting(
-            name,
-            "key version suffix must be a canonical positive integer",
-        )
-    })
-}
-
-fn parse_key(name: &str, pem: &str) -> Result<DecodingKey, MappedErrors> {
-    if !pem.contains(PUBLIC_KEY_PEM_HEADER) {
-        return Err(invalid_verification_setting(
-            name,
-            "is not a PEM SubjectPublicKeyInfo public key",
-        ));
+    pub fn len(&self) -> usize {
+        self.0.len()
     }
 
-    DecodingKey::from_ed_pem(pem.as_bytes()).map_err(|_| {
-        invalid_verification_setting(name, "is not an Ed25519 public key")
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+}
+
+fn read_entries(parsed: &Value) -> Result<&Vec<Value>, MappedErrors> {
+    parsed
+        .get("keys")
+        .and_then(Value::as_array)
+        .filter(|entries| !entries.is_empty())
+        .ok_or_else(|| invalid_verification_setting(JWKS, "has no keys array"))
+}
+
+fn insert_unique(
+    keys: &mut BTreeMap<SigningKeyVersion, DecodingKey>,
+    jwk: Ed25519PublicJwk,
+) -> Result<(), MappedErrors> {
+    let key = decoding_key(&jwk)?;
+
+    match keys.insert(jwk.version(), key) {
+        None => Ok(()),
+        Some(_) => {
+            Err(invalid_verification_setting(JWKS, "has a duplicated kid"))
+        }
+    }
+}
+
+fn decoding_key(jwk: &Ed25519PublicJwk) -> Result<DecodingKey, MappedErrors> {
+    DecodingKey::from_ed_components(&jwk.x()).map_err(|_| {
+        invalid_verification_setting(JWKS, "entry x is not an Ed25519 key")
     })
 }
 
 /// Configuration error of a downstream verification setting (`MYC00035`)
 ///
-/// Names the variable and the problem only; never echoes the value.
+/// Names the setting and the problem only; never echoes the value.
 ///
 pub(crate) fn invalid_verification_setting(
     name: &str,
@@ -90,69 +93,54 @@ pub(crate) fn invalid_verification_setting(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
 
-    /// TEST ONLY: RFC 8032 test vector 1 (SPKI / PKCS#8)
-    const PUBLIC_PEM: &str = "-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
------END PUBLIC KEY-----
-";
-    const PRIVATE_PEM: &str = "-----BEGIN PRIVATE KEY-----
-MC4CAQAwBQYDK2VwBCIEIJ1hsZ3v/VpguoRK9JLsLMREScVpezJpGXA7rAMcrn9g
------END PRIVATE KEY-----
-";
+    /// TEST ONLY: RFC 8032 section 7.1 test vectors 1 and 2 public keys
+    const X1: &str = "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo";
+    const X2: &str = "PUAXw-hDiVqStwqnTRt-vJyYLM8uxJaMwM1V8Sr0Zgw";
 
-    fn variables(entries: &[(&str, &str)]) -> BTreeMap<String, String> {
-        entries
-            .iter()
-            .map(|(name, value)| (name.to_string(), value.to_string()))
-            .collect()
+    fn jwk(kid: &str, x: &str) -> Value {
+        json!({"kty": "OKP", "crv": "Ed25519", "x": x, "kid": kid})
     }
 
-    #[test]
-    fn no_prefixed_variable_disables_verification() {
-        let keys =
-            TrustedProfileKeys::from_variables(&variables(&[("PATH", "x")]))
-                .unwrap();
-
-        assert!(keys.is_none());
+    fn parse(document: Value) -> Result<TrustedProfileKeys, MappedErrors> {
+        TrustedProfileKeys::from_jwks_document(document.to_string().as_bytes())
     }
 
     #[test]
     fn selects_keys_by_canonical_kid_only() {
-        let keys = TrustedProfileKeys::from_variables(&variables(&[(
-            "MYC_PROFILE_PUBLIC_KEY_1",
-            PUBLIC_PEM,
-        )]))
-        .unwrap()
-        .unwrap();
+        let keys =
+            parse(json!({"keys": [jwk("1", X1), jwk("2", X2)]})).unwrap();
 
+        assert_eq!(keys.len(), 2);
         assert!(keys.key_for("1").is_some());
-        assert!(keys.key_for("2").is_none());
+        assert!(keys.key_for("2").is_some());
+        assert!(keys.key_for("3").is_none());
         assert!(keys.key_for("01").is_none());
         assert!(keys.key_for("../1").is_none());
     }
 
     #[test]
-    fn invalid_entries_are_configuration_errors() {
+    fn one_bad_entry_refuses_the_whole_set() {
+        let mut private = jwk("2", X2);
+        private["d"] = json!(X1);
+
         let invalid = [
-            ("MYC_PROFILE_PUBLIC_KEY_0", PUBLIC_PEM),
-            ("MYC_PROFILE_PUBLIC_KEY_01", PUBLIC_PEM),
-            ("MYC_PROFILE_PUBLIC_KEY_v1", PUBLIC_PEM),
-            ("MYC_PROFILE_PUBLIC_KEY_1", PRIVATE_PEM),
-            ("MYC_PROFILE_PUBLIC_KEY_1", ""),
-            (
-                "MYC_PROFILE_PUBLIC_KEY_1",
-                "-----BEGIN PUBLIC KEY-----\nAA==",
-            ),
+            json!([]),
+            json!({"keys": []}),
+            json!({"keys": "x"}),
+            json!({"keys": [jwk("1", X1), jwk("1", X2)]}),
+            json!({"keys": [jwk("1", X1), private]}),
+            json!({"keys": [jwk("1", X1), jwk("0", X2)]}),
         ];
 
-        for entry in invalid {
-            let error =
-                TrustedProfileKeys::from_variables(&variables(&[entry]))
-                    .unwrap_err();
-
-            assert!(error.msg().contains(entry.0));
-            assert!(error.has_str_code("MYC00035"));
+        for document in invalid {
+            let error = parse(document.clone()).unwrap_err();
+            assert!(error.has_str_code("MYC00035"), "{document}");
         }
+
+        let error =
+            TrustedProfileKeys::from_jwks_document(b"not json").unwrap_err();
+        assert!(error.has_str_code("MYC00035"));
     }
 }

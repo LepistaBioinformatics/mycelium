@@ -1,8 +1,12 @@
+use super::{Ed25519PublicJwk, ED25519_PUBLIC_KEY_BYTES};
+
+use base64::{engine::general_purpose::STANDARD, Engine};
 use jsonwebtoken::{encode, Algorithm, EncodingKey, Header};
 use myc_core::domain::dtos::{
     native_error_codes::NativeErrorCodes, profile_signature::SigningKeyVersion,
 };
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
+use ring::signature::{Ed25519KeyPair, KeyPair};
 use serde::Serialize;
 use std::fmt::{Debug, Formatter, Result as FmtResult};
 
@@ -13,11 +17,13 @@ use std::fmt::{Debug, Formatter, Result as FmtResult};
 /// is detected before the server accepts traffic, never on a request.
 ///
 /// Signing emits a compact JWS with `alg: EdDSA` and the version as `kid` in
-/// the protected header.
+/// the protected header. The public half is derived at the same time, so the
+/// gateway can publish it in the profile JWKS.
 ///
 pub struct VersionedEd25519Signer {
     version: SigningKeyVersion,
     key: EncodingKey,
+    public_jwk: Ed25519PublicJwk,
 }
 
 #[derive(Serialize)]
@@ -33,7 +39,14 @@ impl VersionedEd25519Signer {
         let key = EncodingKey::from_ed_pem(private_key_pem.as_bytes())
             .map_err(|_| invalid_key(version, "import"))?;
 
-        let signer = Self { version, key };
+        let public_key = derive_public_key(private_key_pem)
+            .ok_or_else(|| invalid_key(version, "public_key_derivation"))?;
+
+        let signer = Self {
+            version,
+            key,
+            public_jwk: Ed25519PublicJwk::new(version, public_key),
+        };
 
         signer
             .sign_claims(&SelfTestClaims { self_test: true })
@@ -44,6 +57,11 @@ impl VersionedEd25519Signer {
 
     pub fn version(&self) -> SigningKeyVersion {
         self.version
+    }
+
+    /// The public half of this key, as published in the profile JWKS
+    pub fn public_jwk(&self) -> &Ed25519PublicJwk {
+        &self.public_jwk
     }
 
     /// Sign arbitrary claims as a compact EdDSA JWS carrying this `kid`
@@ -61,6 +79,25 @@ impl VersionedEd25519Signer {
     }
 }
 
+/// The raw Ed25519 public key of a PKCS#8 PEM private key
+///
+/// The PEM was already accepted by `jsonwebtoken`; this only strips the
+/// armor and lets `ring` compute the public point from the seed.
+///
+fn derive_public_key(
+    private_key_pem: &str,
+) -> Option<[u8; ED25519_PUBLIC_KEY_BYTES]> {
+    let body: String = private_key_pem
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty() && !line.starts_with("-----"))
+        .collect();
+    let der = STANDARD.decode(body).ok()?;
+    let pair = Ed25519KeyPair::from_pkcs8_maybe_unchecked(&der).ok()?;
+
+    pair.public_key().as_ref().try_into().ok()
+}
+
 /// Sanitized error: names the version and failing step, never the key
 fn invalid_key(version: SigningKeyVersion, step: &str) -> MappedErrors {
     execution_err(format!(
@@ -75,6 +112,7 @@ impl Debug for VersionedEd25519Signer {
             .debug_struct("VersionedEd25519Signer")
             .field("version", &self.version)
             .field("key", &"<redacted>")
+            .field("public_jwk", &self.public_jwk.x())
             .finish()
     }
 }
@@ -116,6 +154,19 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         assert_eq!(header["alg"], "EdDSA");
         assert_eq!(header["kid"], "7");
         assert_eq!(token.split('.').count(), 3);
+    }
+
+    #[test]
+    fn derives_the_rfc_8032_public_key() {
+        let signer =
+            VersionedEd25519Signer::from_pem(version(1), TEST_PRIVATE_PEM)
+                .unwrap();
+
+        assert_eq!(
+            signer.public_jwk().x(),
+            "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo"
+        );
+        assert_eq!(signer.public_jwk().version(), version(1));
     }
 
     #[test]
