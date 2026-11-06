@@ -45,7 +45,7 @@ Profile signing adds three internal codes (see
 |---|---|
 | `MYC00033` | Invalid `core.profileSigning` configuration or unusable signing key; the gateway refuses to start |
 | `MYC00034` | The profile signature could not be issued for a request; the request is not forwarded |
-| `MYC00035` | Invalid verification setting in a Rust downstream service (`GatewayProfileData`); requests fail closed |
+| `MYC00035` | Invalid verification setting in a Rust downstream service (`GatewayProfileData`): an invalid `MYCELIUM_JWKS_URL`, tolerance or insecure-HTTP switch, a missing audience while `MYCELIUM_JWKS_URL` is set, or an unsafe published key set; requests fail closed |
 
 ---
 

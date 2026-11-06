@@ -121,24 +121,29 @@ from myc_http_tools.settings import (
 
 If your service can be reached without going through the gateway, enable signature
 verification so forged `x-mycelium-profile` headers are rejected. Install the `signature` extra
-and set the gateway public key **after** the gateway is already signing:
+and point the SDK at the gateway's published keys **after** the gateway is already signing:
 
 ```bash
 pip install 'mycelium-http-tools[fastapi,signature]'
-export MYC_PROFILE_PUBLIC_KEY_1="$(cat profile-signing-v1.pub.pem)"
+export MYCELIUM_JWKS_URL="https://gateway.internal/.well-known/mycelium-profile-jwks.json"
+export MYC_PROFILE_SIGNATURE_AUDIENCE="billing-api"  # required: this service's name
 ```
 
 ```python
 from myc_http_tools import configure_profile_signature
 
-configure_profile_signature()  # at startup: fails fast on invalid configuration
+# at startup: fails fast on invalid configuration; the gateway keys are
+# downloaded on the first signed request (the gateway is not needed to start)
+configure_profile_signature()
 ```
 
 Every FastAPI helper then verifies before decoding. Signature rejections return
 `403` in every environment. The required header dependency preserves `422` for
 a missing profile; configuration/internal failures return generic `500`.
-Use startup configuration to fail before accepting traffic. The JavaScript and Go SDKs and
-the Rust `GatewayProfileData` extractor read the same variables. Details, rotation and limits:
+Use startup configuration to fail on a bad setting before accepting traffic.
+New gateway keys are picked up automatically, so key rotation needs no change
+in your service. The JavaScript and Go SDKs and the Rust `GatewayProfileData`
+extractor read the same variables. Details, rotation and limits:
 [Downstream Profile Signature](./27-downstream-profile-signature.md).
 
 ---

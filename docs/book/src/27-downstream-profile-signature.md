@@ -7,12 +7,13 @@ gateway (misconfiguration, SSRF, missing network policy) would accept a forged
 profile, including `isStaff: true`.
 
 Profile signing closes that gap. The gateway signs the exact profile header
-with an Ed25519 private key; downstream services that opt in verify the
-signature locally with the corresponding public key and reject anything the
-gateway did not produce.
+with an Ed25519 private key and publishes the matching public keys as a JSON
+Web Key Set (JWKS). Downstream services that opt in download those keys from
+the gateway, verify the signature locally and reject anything the gateway did
+not produce.
 
 > **Opt-in on both sides.** Without `[core.profileSigning]` the gateway sends
-> exactly what it sent before. Without `MYC_PROFILE_PUBLIC_KEY_*` a downstream
+> exactly what it sent before. Without `MYCELIUM_JWKS_URL` a downstream
 > service decodes the profile exactly as before.
 
 ---
@@ -45,8 +46,9 @@ Claims:
   SDKs reject a signature header larger than 4096 UTF-8 bytes.
 - `iat` is the signing time in Unix seconds. Verifiers accept
   `|now - iat| <= tolerance` (default 60 seconds, both directions).
-- `aud` is the name of the service the request is routed to. Verifiers that
-  configure an expected audience reject pairs signed for another service.
+- `aud` is the name of the service the request is routed to. Verifiers
+  always compare it with their configured audience and reject pairs signed
+  for another service.
 
 In the traditional bearer/connection-string flow, `public` and
 `authenticated` routes receive no profile and therefore no signature. A
@@ -60,11 +62,12 @@ stripped from the response.
 
 ## Gateway configuration
 
-Generate a key pair (keep the private key secret, distribute the public key):
+Generate a private key and keep it secret. Only the private key is
+configured: the gateway derives the public key and publishes it, so there is
+no public key file to distribute.
 
 ```bash
 openssl genpkey -algorithm ED25519 -out profile-signing-v1.pem
-openssl pkey -in profile-signing-v1.pem -pubout -out profile-signing-v1.pub.pem
 ```
 
 Configure the private key through any `SecretResolver` source. The PEM must
@@ -73,6 +76,9 @@ keep its real line breaks:
 ```toml
 [core.profileSigning]
 primaryKeyVersion = 1
+# Optional: how long downstreams may cache the published keys
+# (60 to 86400 seconds, default 43200 = 12 hours)
+jwksMaxAgeSeconds = 43200
 
 [[core.profileSigning.keys]]
 version = 1
@@ -88,8 +94,9 @@ At boot, after Vault initialization and before accepting traffic, the gateway
 resolves, imports and test-signs **every** listed key (primary or not). It
 refuses to start (`MYC00033`) when:
 
-- the section is present but `keys` is empty, a version is `0` or repeated, or
-  `primaryKeyVersion` is not listed;
+- the section is present but `keys` is empty, a version is `0` or repeated,
+  `primaryKeyVersion` is not listed, or `jwksMaxAgeSeconds` is outside
+  60..86400;
 - a key cannot be resolved (missing or empty env var, Vault error or timeout
   after 10 seconds per key, with a 60-second budget for the complete key set);
 - a `vault` entry is used while Vault is not configured (always the case in
@@ -106,6 +113,39 @@ database table, migration or network call per request.
 
 ---
 
+## Published keys (JWKS)
+
+When `[core.profileSigning]` is configured, the gateway serves its public
+keys at a public, unauthenticated route:
+
+```
+GET /.well-known/mycelium-profile-jwks.json
+```
+
+```json
+{
+  "keys": [
+    {"kty": "OKP", "crv": "Ed25519", "x": "<32-byte public key, base64url>",
+     "kid": "1", "use": "sig", "alg": "EdDSA"}
+  ]
+}
+```
+
+- The set contains **every** configured key version, not only the primary,
+  so a downstream already trusts the next key before the gateway signs with
+  it. It never contains private material (`d`) or certificates.
+- The body is built once at boot. The response carries
+  `Content-Type: application/jwk-set+json` and
+  `Cache-Control: public, max-age=<jwksMaxAgeSeconds>`.
+- Without `[core.profileSigning]` the route answers `404`.
+
+The keys only verify, so publishing them is safe. Profile-signing keys must
+**never be reused for any other purpose** (for example instance federation):
+the signature uses `typ: "JWT"`, which is only unambiguous while nothing else
+is signed with these keys.
+
+---
+
 ## Downstream configuration
 
 Every verifier (the Python, JavaScript and Go SDKs and the Rust
@@ -113,21 +153,62 @@ Every verifier (the Python, JavaScript and Go SDKs and the Rust
 
 | Variable | Meaning |
 |---|---|
-| `MYC_PROFILE_PUBLIC_KEY_<version>` | Gateway public key (PEM SPKI) trusted for `kid = <version>`. Any such variable enables verification |
-| `MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS` | Accepted clock difference, default `60` |
-| `MYC_PROFILE_SIGNATURE_AUDIENCE` | Optional. When set, `aud` must equal it (use the service `name` registered in the gateway) |
+| `MYCELIUM_JWKS_URL` | URL of the gateway JWKS, for example `https://gateway.internal/.well-known/mycelium-profile-jwks.json`. Setting it enables verification |
+| `MYC_PROFILE_SIGNATURE_AUDIENCE` | **Required** when `MYCELIUM_JWKS_URL` is set. The `aud` claim must equal it (use the service `name` registered in the gateway) |
+| `MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS` | Optional. Accepted clock difference, default `60` |
+| `MYCELIUM_JWKS_ALLOW_INSECURE_HTTP` | Development only. `true` accepts an `http://` JWKS URL (a warning is logged); any other value than `true`/`false` is an error |
 
-Any present but invalid value is a configuration error. JavaScript checks it
-when middleware/plugin is created. Python checks it in
-`configure_profile_signature()` at startup; if that call is omitted, the first
-request loads and caches the error and responds 500. Go checks it in
-`mycelium.ConfigureProfileSignature()` at startup; otherwise the adapters load
-it once and respond 500. Rust services register
-`web::Data<ProfileSignatureVerification>` built with
-`ProfileSignatureVerification::from_environment()` at startup; otherwise the
-extractor loads it once and responds 500 (logged as `MYC00035`). An invalid
-configuration never means "verification disabled". Tolerance is a positive
-integer no larger than 9007199254740991 in every verifier.
+The JWKS URL must use `https://` and must not carry credentials. It comes
+**only** from the service configuration: a verifier never follows a key or a
+key location found in the request it is verifying (which is also why tokens
+carrying `jku`, `jwk`, `x5u` or `x5c` are rejected). Static public keys in
+environment variables are not supported (see
+[issue #225](https://github.com/LepistaBioinformatics/mycelium/issues/225)).
+
+How the keys are kept:
+
+- **First use:** the set is downloaded on the first signed request, not at
+  startup. Requests only reach the service through the gateway, so the gateway
+  is up by then, and the service never depends on it to start (both can boot
+  in any order). Until a set is downloaded, requests fail closed (`403`) and
+  the download is retried at most every 5 seconds.
+- **Cache:** the set is reused for the `max-age` announced by the gateway,
+  bounded to 1 minute..1 day (12 hours when absent), then refreshed.
+- **Unknown `kid`:** a signature naming a key version the cached set does not
+  have triggers one refetch, at most once every 30 seconds, shared by
+  concurrent requests. A new key is therefore picked up without restarting
+  the service.
+- **Gateway unreachable:** a failed refresh keeps the last valid set and is
+  logged.
+- **Strict set:** a set with private material, another key type or curve, a
+  key that is not 32 bytes, or a non-canonical or repeated `kid` is refused
+  as a whole.
+- **Bounded fetch:** 5-second timeout, 64 KiB body, redirects never followed.
+
+If a signed profile arrives while `MYCELIUM_JWKS_URL` is unset, the verifier
+logs one warning per process: the profile is still decoded as before, but
+nothing is verified.
+
+Any present but invalid value, including a missing audience, is a
+configuration error. Call the startup function of your SDK so a bad setting
+stops the service before it accepts traffic. It only validates the settings
+and never needs the gateway. Downloading the keys at startup is opt-in: it
+makes an unreachable gateway stop the service, so use it only when the
+service does not need to start before the gateway:
+
+| SDK | Startup call (validates the settings) | Opt-in download at startup |
+|---|---|---|
+| Python | `configure_profile_signature()` | `configure_profile_signature(prefetch=True)` (raises `ProfileJwksFetchError`) |
+| JavaScript | Fastify: registering `fastifyProfilePlugin`. Express: the settings are read when the middleware is created | Pass `signatureVerifier: await prepareProfileSignatureVerifier()` to the Express middleware or the Fastify plugin |
+| Go | `mycelium.ConfigureProfileSignature(ctx)` returns an error to abort on | `verifier.Prefetch(ctx)` on the returned verifier |
+| Rust | Register `web::Data<ProfileSignatureVerification>` built with `ProfileSignatureVerification::from_environment()` | `verification.prefetch().await` |
+
+When the settings are invalid and no startup call was made, requests fail with
+500 (Rust logs `MYC00035`). An invalid configuration never means
+"verification disabled". Tolerance is a positive integer no larger than
+9007199254740991 in every verifier. Warnings go to the standard logging of each
+platform (`logging` in Python, `console.warn` in JavaScript, `log/slog` in Go,
+`tracing` in Rust).
 
 With verification enabled, every SDK entry point verifies **before** decoding
 the profile and answers `403 Unable to verify Mycelium profile` on failure,
@@ -153,7 +234,7 @@ Rejections are logged with a stable reason:
 | Reason | Typical cause |
 |---|---|
 | `missing_signature` | Gateway not signing yet (rollout order), or header stripped by a proxy |
-| `unknown_key` | Gateway signs with a version this service does not trust yet (rotation lag), or a forged `kid` |
+| `unknown_key` | Version not published by the gateway even after a refetch (the refetch cooldown was active, or the gateway is unreachable), or a forged `kid` |
 | `invalid_signature` | Forged or corrupted token |
 | `profile_hash_mismatch` | Profile altered after signing |
 | `timestamp_out_of_tolerance` | Clock skew between hosts, or an old captured pair |
@@ -174,10 +255,11 @@ Rollout:
    (they ignore the new header).
 2. Confirm signature presence and successful verification using a controlled
    synthetic request. Log only status/reason/key version, never the header value.
-3. Upgrade the downstream SDK and set `MYC_PROFILE_PUBLIC_KEY_<version>`;
-   restart. Repeat per service, at its own pace.
+3. Upgrade the downstream SDK, set `MYCELIUM_JWKS_URL` and
+   `MYC_PROFILE_SIGNATURE_AUDIENCE`, and restart. Repeat per service, at its
+   own pace.
 
-Rollback, in reverse order: remove the public keys from the downstreams first
+Rollback, in reverse order: unset `MYCELIUM_JWKS_URL` in the downstreams first
 (this removes their protection, a conscious operator decision), then remove
 `[core.profileSigning]` from the gateway.
 
@@ -185,22 +267,29 @@ Rollback, in reverse order: remove the public keys from the downstreams first
 
 ## Key rotation
 
-1. Generate key pair v2. Add `MYC_PROFILE_PUBLIC_KEY_2` to every downstream
-   **while keeping v1**; restart them.
-2. Add the v2 private key to `[[core.profileSigning.keys]]`, set
-   `primaryKeyVersion = 2`, rolling-restart the gateway. During the restart
-   old replicas still emit `kid: "1"`; downstreams accept both.
+No downstream service changes at any step:
+
+1. Generate private key v2 and add it to `[[core.profileSigning.keys]]`
+   **keeping `primaryKeyVersion = 1`**; rolling-restart the gateway. The JWKS
+   now publishes v1 and v2.
+2. Set `primaryKeyVersion = 2` and rolling-restart the gateway. During the
+   restart old replicas still emit `kid: "1"` and new ones `kid: "2"`;
+   downstreams accept both (the first `kid: "2"` they see triggers a refetch
+   if their cached set predates step 1).
 3. Once no replica uses v1, wait for in-flight requests plus the tolerance
-   window, then remove the v1 private key from the gateway.
-4. Remove `MYC_PROFILE_PUBLIC_KEY_1` from the downstreams when convenient.
+   window, then remove the v1 private key from the gateway and restart. The
+   JWKS stops publishing v1; downstreams drop it at their next refresh.
 
-**Compromised private key:** remove the corresponding public key from every
-downstream immediately. Requests signed with it start failing, which is the
-intended effect: the timestamp window does not protect against someone who
-holds the private key and can sign fresh tokens.
+**Compromised private key:** sign with a new key immediately (add it as the
+primary in one step) and remove the compromised key from the gateway.
+Downstreams pick up the new `kid` within the 30-second refetch cooldown.
+Until their cached set expires (`jwksMaxAgeSeconds`) they may still trust the
+removed key; lower `jwksMaxAgeSeconds` beforehand, or restart the downstreams,
+when that window matters. The timestamp window does not protect against
+someone who holds the private key and can sign fresh tokens.
 
-Keys are loaded once per process; rotation always requires a restart (no hot
-reload).
+The gateway loads its keys once per process; changing them requires a
+gateway restart (no hot reload).
 
 ---
 
@@ -208,8 +297,11 @@ reload).
 
 - **Replay inside the window.** A captured `(profile, signature)` pair is
   accepted again until `iat + tolerance`. There is no nonce or replay cache.
-  Configure `MYC_PROFILE_SIGNATURE_AUDIENCE` so a pair cannot be replayed to a
-  different service.
+  The mandatory `MYC_PROFILE_SIGNATURE_AUDIENCE` prevents replaying a pair to
+  a different service.
+- **The JWKS is the trust anchor.** Serve it over TLS and point
+  `MYCELIUM_JWKS_URL` at the gateway itself, never at a location an
+  untrusted party controls.
 - **Only the profile is signed.** `x-mycelium-email`, `x-mycelium-role`,
   `x-mycelium-scope` and other headers are not covered; derive identity and
   authorization from the verified profile.
