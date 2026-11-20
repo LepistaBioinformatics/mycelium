@@ -177,3 +177,59 @@ impl FromRequest for MyceliumProfileData {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::middleware::connection_string_test_fixtures::*;
+
+    use actix_web::{http::StatusCode, test, web, App, HttpResponse};
+
+    async fn profile_handler(profile: MyceliumProfileData) -> HttpResponse {
+        HttpResponse::Ok().body(profile.acc_id.to_string())
+    }
+
+    async fn call_rest_handler(
+        connection_string: &str,
+    ) -> (StatusCode, String) {
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(life_cycle()))
+                .route("/profile", web::get().to(profile_handler)),
+        )
+        .await;
+
+        let req = test::TestRequest::get()
+            .uri("/profile")
+            .insert_header((DEFAULT_CONNECTION_STRING_KEY, connection_string))
+            .to_request();
+
+        let response = test::call_service(&app, req).await;
+        let status = response.status();
+        let body = test::read_body(response).await;
+
+        (status, String::from_utf8_lossy(&body).to_string())
+    }
+
+    #[actix_web::test]
+    async fn rest_handler_rejects_notification_string() {
+        let connection_string =
+            notification_connection_string(&life_cycle()).await;
+
+        let (status, body) = call_rest_handler(&connection_string).await;
+
+        assert_eq!(status, StatusCode::UNAUTHORIZED);
+        assert!(body.contains("MYC00033"), "{body}");
+    }
+
+    #[actix_web::test]
+    async fn rest_handler_takes_general_string_to_the_database_lookup() {
+        let connection_string = general_connection_string(&life_cycle()).await;
+
+        // No SQL module is registered, so a string accepted by every check
+        // before the lookup ends in 500 rather than 401.
+        let (status, _) = call_rest_handler(&connection_string).await;
+
+        assert_eq!(status, StatusCode::INTERNAL_SERVER_ERROR);
+    }
+}

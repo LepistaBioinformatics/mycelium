@@ -1,6 +1,6 @@
 use super::{
     health_check_info::HealthStatus, http::Protocol, http_secret::HttpSecret,
-    route::Route,
+    route::Route, service_notification_config::ServiceNotificationConfig,
 };
 
 use myc_config::secret_resolver::SecretResolver;
@@ -243,6 +243,15 @@ pub struct Service {
     ///
     #[serde(skip_serializing_if = "Option::is_none")]
     pub proxy_address: Option<String>,
+
+    /// The service email notifications
+    ///
+    /// Opt-in block that allows the service to send emails through the
+    /// gateway. When absent, the service can not obtain notification
+    /// connection strings nor send emails.
+    ///
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notifications: Option<ServiceNotificationConfig>,
 }
 
 fn default_protocol() -> Protocol {
@@ -300,7 +309,7 @@ mod tests {
     #[test]
     fn test_service_secret_with_env_token_parses() {
         let toml = r#"
-            name = "picoclaw-alpha-authorization-header"
+            name = "service-01-authorization-header"
             authorizationHeader = { headerName = "Authorization", prefix = "Bearer", token = { env = "MY_TOKEN_VAR" } }
         "#;
 
