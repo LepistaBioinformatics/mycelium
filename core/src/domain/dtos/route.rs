@@ -331,6 +331,7 @@ mod tests {
             secrets: None,
             allowed_sources: None,
             proxy_address: None,
+            notifications: None,
         };
 
         Route {
@@ -615,6 +616,7 @@ mod tests {
             secrets,
             allowed_sources: None,
             proxy_address: None,
+            notifications: None,
         }
     }
 

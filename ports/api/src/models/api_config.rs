@@ -7,13 +7,19 @@ use myc_core::domain::dtos::{
     http::Protocol,
     route::Route,
     service::{Service, ServiceHost, ServiceSecret, ServiceType},
+    service_notification_config::ServiceNotificationConfig,
 };
+use myc_core::models::ServiceNotificationsConfig;
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
 use serde::{
     de::{MapAccess, SeqAccess, Visitor},
     Deserialize, Deserializer,
 };
-use std::{fmt, path::PathBuf};
+use std::{
+    collections::HashSet,
+    env, fmt,
+    path::{Path, PathBuf},
+};
 use toml;
 use uuid::Uuid;
 
@@ -147,6 +153,8 @@ struct ServiceIntermediate {
     allowed_sources: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     proxy_address: Option<String>,
+    #[serde(default)]
+    notifications: Option<ServiceNotificationConfig>,
 }
 
 fn default_service_id() -> Uuid {
@@ -183,6 +191,7 @@ fn service_from_intermediate(
         secrets: intermediate.secrets,
         allowed_sources: intermediate.allowed_sources,
         proxy_address: intermediate.proxy_address,
+        notifications: intermediate.notifications,
     }
 }
 
@@ -378,6 +387,101 @@ fn default_gateway_timeout() -> u64 {
 #[serde(rename_all = "camelCase")]
 struct TmpConfig {
     api: ApiConfig,
+
+    /// Only the `[core.serviceNotifications]` block is read here, to
+    /// cross-check it against the services that enable notifications.
+    #[serde(default)]
+    core: TmpCoreConfig,
+}
+
+#[derive(Clone, Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TmpCoreConfig {
+    #[serde(default)]
+    service_notifications: ServiceNotificationsConfig,
+}
+
+/// Cross-service checks for the `notifications` blocks
+///
+/// Runs after `deserialize_services`, since each block is validated alone at
+/// parse time. Sender tags must be unique, and any enabled service requires a
+/// `templatesDir` isolated from the gateway's own `TEMPLATES_DIR`.
+fn validate_service_notifications(
+    services: &[Service],
+    notifications_config: &ServiceNotificationsConfig,
+    gateway_templates_dir: &Path,
+) -> Result<(), String> {
+    if !validate_unique_sender_tags(services)? {
+        return Ok(());
+    }
+
+    let Some(templates_dir) = notifications_config.templates_dir.as_ref()
+    else {
+        return Err("core.serviceNotifications.templatesDir is required \
+                    when a service enables notifications"
+            .to_string());
+    };
+
+    validate_isolated_templates_dir(templates_dir, gateway_templates_dir)
+}
+
+/// Reject duplicate sender tags; return whether any service is enabled.
+fn validate_unique_sender_tags(services: &[Service]) -> Result<bool, String> {
+    let mut sender_tags = HashSet::new();
+
+    for notifications in services
+        .iter()
+        .filter_map(|service| service.notifications.as_ref())
+    {
+        if !sender_tags.insert(notifications.sender_tag.as_str()) {
+            return Err(format!(
+                "Duplicate notifications.senderTag: {}",
+                notifications.sender_tag
+            ));
+        }
+    }
+
+    Ok(!sender_tags.is_empty())
+}
+
+/// The service templates root and `TEMPLATES_DIR` must be disjoint
+///
+/// Neither may equal or contain the other: the service Tera instance loads
+/// `templatesDir/**/*`, so an ancestor would also load the gateway's own
+/// lifecycle templates, and a descendant would be loaded by the gateway's.
+fn validate_isolated_templates_dir(
+    templates_dir: &Path,
+    gateway_templates_dir: &Path,
+) -> Result<(), String> {
+    let service_root = resolve_dir(templates_dir);
+    let gateway_root = resolve_dir(gateway_templates_dir);
+
+    if service_root.starts_with(&gateway_root)
+        || gateway_root.starts_with(&service_root)
+    {
+        return Err(format!(
+            "core.serviceNotifications.templatesDir ({}) must not equal, \
+             contain or sit inside TEMPLATES_DIR ({})",
+            templates_dir.display(),
+            gateway_templates_dir.display()
+        ));
+    }
+
+    Ok(())
+}
+
+/// Resolve symlinks when the directory exists, otherwise make it absolute.
+fn resolve_dir(dir: &Path) -> PathBuf {
+    dir.canonicalize()
+        .or_else(|_| std::path::absolute(dir))
+        .unwrap_or_else(|_| dir.to_path_buf())
+}
+
+/// The gateway templates root, resolved as in `myc_core::settings`.
+fn gateway_templates_dir() -> PathBuf {
+    PathBuf::from(
+        env::var("TEMPLATES_DIR").unwrap_or_else(|_| "templates".to_string()),
+    )
 }
 
 /// Pre-process TOML content to transform [[service-name]] into
@@ -387,9 +491,25 @@ fn preprocess_toml_services(content: &str) -> String {
     let mut result = String::new();
     let mut in_services_context = false;
     let mut in_callbacks_context = false;
+    let mut seen_services = HashSet::<String>::new();
 
     for line in content.lines() {
         let trimmed = line.trim();
+
+        // Transform [service-name.notifications] into
+        // [api.services.service-name.notifications], which TOML attaches to
+        // the last [[api.services.service-name]] entry. Only the notifications
+        // sub-table of an already declared service is rewritten, so unrelated
+        // top-level tables keep closing the services context below.
+        if in_services_context {
+            if let Some(new_line) =
+                rewrite_service_notifications_table(line, &seen_services)
+            {
+                result.push_str(&new_line);
+                result.push('\n');
+                continue;
+            }
+        }
 
         // Check if we're entering [api.services] context
         if trimmed == "[api.services]" {
@@ -446,6 +566,13 @@ fn preprocess_toml_services(content: &str) -> String {
             if let Some(start) = trimmed.find("[[") {
                 if let Some(end) = trimmed[start + 2..].find("]]") {
                     let service_name = &trimmed[start + 2..start + 2 + end];
+                    seen_services.insert(
+                        service_name
+                            .split('.')
+                            .next()
+                            .unwrap_or_default()
+                            .to_string(),
+                    );
                     // Replace [[service-name with [[api.services.service-name
                     let new_line = line.replace(
                         &format!("[[{}", service_name),
@@ -486,6 +613,28 @@ fn preprocess_toml_services(content: &str) -> String {
     result
 }
 
+/// Rewrite `[service-name.notifications]` when `service-name` was declared
+fn rewrite_service_notifications_table(
+    line: &str,
+    seen_services: &HashSet<String>,
+) -> Option<String> {
+    let service_name = line
+        .trim()
+        .strip_prefix('[')?
+        .strip_suffix(']')?
+        .strip_suffix(".notifications")?;
+
+    if !seen_services.contains(service_name) {
+        return None;
+    }
+
+    Some(line.replacen(
+        &format!("[{service_name}."),
+        &format!("[api.services.{service_name}."),
+        1,
+    ))
+}
+
 impl ApiConfig {
     pub fn from_default_config_file(
         file: PathBuf,
@@ -511,6 +660,15 @@ impl ApiConfig {
             toml::from_str(&preprocessed_content).map_err(|err| {
                 creation_err(format!("Could not parse config file: {err}"))
             })?;
+
+        validate_service_notifications(
+            &config.api.services,
+            &config.core.service_notifications,
+            &gateway_templates_dir(),
+        )
+        .map_err(|err| {
+            creation_err(format!("Invalid services notifications: {err}"))
+        })?;
 
         Ok(config.api)
     }
@@ -607,6 +765,245 @@ mod tests {
         .unwrap_err();
 
         assert!(error.contains("maxAttempts"), "{error}");
+    }
+
+    const NOTIFIED_SERVICE: &str = r#"
+            [api]
+            [api.logging]
+
+            [api.services]
+
+            [[service-01]]
+            host = "localhost:8088"
+            healthCheckPath = "/health"
+
+            [service-01.notifications]
+            senderTag = "service-01"
+            displayName = "Service 01"
+            issuerRoles = ["service-01-admin"]
+            recipientPolicy = "owner"
+            templates = ["invoice-ready"]
+
+            [[service-01.path]]
+            group = "public"
+            path = "/items/*"
+            methods = ["GET"]
+            "#;
+
+    fn load_from_file(content: &str) -> Result<ApiConfig, MappedErrors> {
+        let file = env::temp_dir()
+            .join(format!("myc-api-config-{}.toml", Uuid::new_v4()));
+
+        std::fs::write(&file, content).unwrap();
+        let config = ApiConfig::from_default_config_file(file.clone());
+        std::fs::remove_file(&file).unwrap();
+
+        config
+    }
+
+    fn with_core_block(api: &str, templates_dir: Option<&Path>) -> String {
+        let Some(templates_dir) = templates_dir else {
+            return api.to_string();
+        };
+
+        format!(
+            "[core.serviceNotifications]\ntemplatesDir = {:?}\n{api}",
+            templates_dir.display().to_string()
+        )
+    }
+
+    fn isolated_templates_dir() -> PathBuf {
+        env::temp_dir()
+            .join(format!("myc-service-templates-{}", Uuid::new_v4()))
+    }
+
+    #[test]
+    fn service_without_notifications_block_parses_as_before() {
+        let config = load_from_file(
+            r#"
+            [api]
+            [api.logging]
+
+            [api.services]
+
+            [[inventory]]
+            host = "localhost:8088"
+            healthCheckPath = "/health"
+            "#,
+        )
+        .unwrap();
+
+        assert!(config.services[0].notifications.is_none());
+    }
+
+    #[test]
+    fn notifications_table_attaches_to_its_service() {
+        let config = parse_services(NOTIFIED_SERVICE).unwrap();
+
+        let service = &config.services[0];
+        let notifications = service
+            .notifications
+            .as_ref()
+            .expect("notifications parsed");
+
+        assert_eq!(service.name, "service-01");
+        assert_eq!(notifications.sender_tag, "service-01");
+        assert_eq!(service.routes.len(), 1);
+    }
+
+    #[test]
+    fn notifications_inline_table_parses() {
+        let config = parse_services(
+            r#"
+            [api]
+            [api.logging]
+
+            [api.services]
+
+            [[service-01]]
+            host = "localhost:8088"
+            healthCheckPath = "/health"
+            notifications = { senderTag = "service-01", displayName = "Service 01", issuerRoles = ["admin"], recipientPolicy = "any", templates = ["a"] }
+            "#,
+        )
+        .unwrap();
+
+        assert!(config.services[0].notifications.is_some());
+    }
+
+    #[test]
+    fn notifications_table_of_unknown_service_is_not_rewritten() {
+        let mut seen = HashSet::new();
+        seen.insert("service-01".to_string());
+
+        assert_eq!(
+            rewrite_service_notifications_table(
+                "[service-01.notifications]",
+                &seen
+            ),
+            Some("[api.services.service-01.notifications]".to_string())
+        );
+        assert!(rewrite_service_notifications_table(
+            "[other.notifications]",
+            &seen
+        )
+        .is_none());
+        assert!(rewrite_service_notifications_table("[core.webhook]", &seen)
+            .is_none());
+    }
+
+    #[test]
+    fn invalid_notifications_block_fails_config_load() {
+        let error = parse_services(
+            &NOTIFIED_SERVICE.replace(r#"["service-01-admin"]"#, "[]"),
+        )
+        .unwrap_err();
+
+        assert!(error.contains("issuerRoles"), "{error}");
+    }
+
+    #[test]
+    fn enabled_service_with_isolated_templates_dir_loads() {
+        let templates_dir = isolated_templates_dir();
+        let config = load_from_file(&with_core_block(
+            NOTIFIED_SERVICE,
+            Some(&templates_dir),
+        ))
+        .unwrap();
+
+        assert!(config.services[0].notifications.is_some());
+    }
+
+    #[test]
+    fn duplicate_sender_tags_fail_config_load() {
+        let templates_dir = isolated_templates_dir();
+        let duplicated = format!(
+            "{NOTIFIED_SERVICE}{}",
+            r#"
+            [[service-02]]
+            host = "localhost:8089"
+            healthCheckPath = "/health"
+
+            [service-02.notifications]
+            senderTag = "service-01"
+            displayName = "Service 02"
+            issuerRoles = ["service-01-admin"]
+            recipientPolicy = "owner"
+            templates = ["invoice-ready"]
+            "#
+        );
+
+        let error =
+            load_from_file(&with_core_block(&duplicated, Some(&templates_dir)))
+                .unwrap_err();
+
+        assert!(error.to_string().contains("Duplicate"), "{error}");
+    }
+
+    #[test]
+    fn enabled_service_without_templates_dir_fails_config_load() {
+        let error = load_from_file(NOTIFIED_SERVICE).unwrap_err();
+
+        assert!(error.to_string().contains("templatesDir"), "{error}");
+    }
+
+    #[test]
+    fn templates_dir_overlapping_gateway_templates_fails_config_load() {
+        let gateway_dir = gateway_templates_dir();
+
+        for templates_dir in [gateway_dir.clone(), gateway_dir.join("services")]
+        {
+            let error = load_from_file(&with_core_block(
+                NOTIFIED_SERVICE,
+                Some(&templates_dir),
+            ))
+            .unwrap_err();
+
+            assert!(error.to_string().contains("TEMPLATES_DIR"), "{error}");
+        }
+    }
+
+    #[test]
+    fn templates_dir_overlap_check_uses_given_gateway_dir() {
+        let services = parse_services(NOTIFIED_SERVICE).unwrap().services;
+        let gateway_dir = PathBuf::from("/srv/myc/templates");
+        let config_for = |dir: &str| ServiceNotificationsConfig {
+            templates_dir: Some(PathBuf::from(dir)),
+            ..Default::default()
+        };
+
+        for overlapping in [
+            "/srv/myc/templates",
+            "/srv/myc/templates/svc",
+            "/srv/myc",
+            "/",
+        ] {
+            assert!(validate_service_notifications(
+                &services,
+                &config_for(overlapping),
+                &gateway_dir
+            )
+            .is_err());
+        }
+
+        for isolated in ["/srv/myc/service-templates", "/srv/other"] {
+            assert!(validate_service_notifications(
+                &services,
+                &config_for(isolated),
+                &gateway_dir
+            )
+            .is_ok());
+        }
+    }
+
+    #[test]
+    fn templates_dir_not_required_without_enabled_services() {
+        assert!(validate_service_notifications(
+            &[],
+            &ServiceNotificationsConfig::default(),
+            Path::new("templates"),
+        )
+        .is_ok());
     }
 
     #[test]

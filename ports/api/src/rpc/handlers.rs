@@ -226,6 +226,46 @@ async fn process_single_request(
     }
 }
 
+/// Resolve the RPC caller profile
+///
+/// Mirror the REST pattern for account creation: profile extraction is
+/// best-effort. Authenticated users without an account yet receive
+/// GatewayError::Forbidden — we let them through with an anonymous profile
+/// so that `beginners.accounts.create` (which re-validates credentials on its
+/// own) can still be reached. Any other error (e.g. invalid/missing token) is
+/// a real auth failure and is returned as-is.
+///
+/// A scoped (notification) connection string is rejected with 401 by
+/// `fetch_connection_string_from_request`, so it lands on the anonymous
+/// profile and never on the profile of the string creator.
+///
+async fn resolve_rpc_profile(
+    req: &HttpRequest,
+) -> Result<MyceliumProfileData, GatewayError> {
+    match MyceliumProfileData::from_request(req, &mut Payload::None).await {
+        Ok(profile) => Ok(profile),
+        Err(GatewayError::Forbidden(_) | GatewayError::Unauthorized(_)) => {
+            Ok(MyceliumProfileData {
+                owners: vec![],
+                acc_id: Uuid::nil(),
+                is_subscription: false,
+                is_manager: false,
+                is_staff: false,
+                owner_is_active: false,
+                account_is_active: false,
+                account_was_approved: false,
+                account_was_archived: false,
+                account_was_deleted: false,
+                verbose_status: None,
+                licensed_resources: None,
+                tenants_ownership: None,
+                meta: None,
+            })
+        }
+        Err(err) => Err(err),
+    }
+}
+
 #[post("")]
 pub async fn admin_jsonrpc_post(
     req: HttpRequest,
@@ -239,36 +279,10 @@ pub async fn admin_jsonrpc_post(
     let span = info_span!("adm_rpc", path = "_adm/rpc");
     let _guard = span.enter();
 
-    // Mirror the REST pattern for account creation: profile extraction is
-    // best-effort. Authenticated users without an account yet receive
-    // GatewayError::Forbidden — we let them through with an anonymous
-    // profile so that `beginners.accounts.create` (which re-validates
-    // credentials on its own) can still be reached. Any other error (e.g.
-    // invalid/missing token) is a real auth failure and is returned as-is.
-    let profile =
-        match MyceliumProfileData::from_request(&req, &mut Payload::None).await
-        {
-            Ok(p) => p,
-            Err(GatewayError::Forbidden(_) | GatewayError::Unauthorized(_)) => {
-                MyceliumProfileData {
-                    owners: vec![],
-                    acc_id: Uuid::nil(),
-                    is_subscription: false,
-                    is_manager: false,
-                    is_staff: false,
-                    owner_is_active: false,
-                    account_is_active: false,
-                    account_was_approved: false,
-                    account_was_archived: false,
-                    account_was_deleted: false,
-                    verbose_status: None,
-                    licensed_resources: None,
-                    tenants_ownership: None,
-                    meta: None,
-                }
-            }
-            Err(err) => return err.error_response(),
-        };
+    let profile = match resolve_rpc_profile(&req).await {
+        Ok(profile) => profile,
+        Err(err) => return err.error_response(),
+    };
 
     let value: serde_json::Value = match serde_json::from_slice(&body) {
         Ok(v) => v,
@@ -401,4 +415,47 @@ pub async fn admin_jsonrpc_post(
         },
     );
     HttpResponse::Ok().json(response)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::middleware::connection_string_test_fixtures::*;
+
+    #[actix_web::test]
+    async fn rpc_notification_string_resolves_to_anonymous_profile() {
+        let life_cycle = life_cycle();
+        let req = request_with_connection_string(
+            &notification_connection_string(&life_cycle).await,
+            &life_cycle,
+        );
+
+        // The anonymous fallback hides the reason, so assert it first on the
+        // extractor the RPC handler calls.
+        assert!(matches!(
+            MyceliumProfileData::from_request(&req, &mut Payload::None).await,
+            Err(GatewayError::Unauthorized(msg)) if msg.contains("MYC00033")
+        ));
+
+        let profile = resolve_rpc_profile(&req).await.unwrap();
+
+        assert_eq!(profile.acc_id, Uuid::nil());
+        assert!(profile.owners.is_empty());
+        assert!(profile.licensed_resources.is_none());
+        assert!(profile.tenants_ownership.is_none());
+    }
+
+    #[actix_web::test]
+    async fn rpc_general_string_reaches_the_database_lookup() {
+        let life_cycle = life_cycle();
+        let req = request_with_connection_string(
+            &general_connection_string(&life_cycle).await,
+            &life_cycle,
+        );
+
+        assert!(matches!(
+            resolve_rpc_profile(&req).await,
+            Err(GatewayError::InternalServerError(_))
+        ));
+    }
 }

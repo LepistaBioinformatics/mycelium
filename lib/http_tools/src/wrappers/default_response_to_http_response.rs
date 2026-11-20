@@ -194,6 +194,17 @@ pub fn handle_mapped_error(err: MappedErrors) -> HttpResponse {
         (MYC00021, HttpResponse::BadRequest()),
         (MYC00022, HttpResponse::BadRequest()),
         (MYC00023, HttpResponse::BadRequest()),
+        (MYC00030, HttpResponse::Unauthorized()),
+        (MYC00031, HttpResponse::Unauthorized()),
+        (MYC00032, HttpResponse::Unauthorized()),
+        (MYC00033, HttpResponse::Unauthorized()),
+        (MYC00034, HttpResponse::Unauthorized()),
+        (MYC00035, HttpResponse::BadRequest()),
+        (MYC00036, HttpResponse::Forbidden()),
+        (MYC00037, HttpResponse::Forbidden()),
+        (MYC00038, HttpResponse::UnprocessableEntity()),
+        (MYC00039, HttpResponse::Forbidden()),
+        (MYC00040, HttpResponse::TooManyRequests()),
     ];
 
     for (code, mut response) in error_maps {
@@ -213,4 +224,39 @@ pub fn handle_mapped_error(err: MappedErrors) -> HttpResponse {
         HttpJsonResponse::new_message("Unexpcted internal error")
             .with_code(code_string),
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use actix_web::http::StatusCode;
+    use myc_core::domain::dtos::native_error_codes::NativeErrorCodes;
+    use mycelium_base::utils::errors::execution_err;
+
+    fn status_for(code: NativeErrorCodes) -> StatusCode {
+        let err = execution_err("test error").with_code(code);
+
+        handle_mapped_error(err).status()
+    }
+
+    #[test]
+    fn connection_string_and_notification_codes_map_to_expected_status() {
+        let cases = vec![
+            (MYC00030, StatusCode::UNAUTHORIZED),
+            (MYC00031, StatusCode::UNAUTHORIZED),
+            (MYC00032, StatusCode::UNAUTHORIZED),
+            (MYC00033, StatusCode::UNAUTHORIZED),
+            (MYC00034, StatusCode::UNAUTHORIZED),
+            (MYC00035, StatusCode::BAD_REQUEST),
+            (MYC00036, StatusCode::FORBIDDEN),
+            (MYC00037, StatusCode::FORBIDDEN),
+            (MYC00038, StatusCode::UNPROCESSABLE_ENTITY),
+            (MYC00039, StatusCode::FORBIDDEN),
+            (MYC00040, StatusCode::TOO_MANY_REQUESTS),
+        ];
+
+        for (code, expected) in cases {
+            assert_eq!(status_for(code), expected, "code {code}");
+        }
+    }
 }

@@ -1,4 +1,7 @@
-use super::{account_life_cycle_config::AccountLifeCycle, WebhookConfig};
+use super::{
+    account_life_cycle_config::AccountLifeCycle, ServiceNotificationsConfig,
+    WebhookConfig,
+};
 
 use myc_config::load_config_from_file;
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
@@ -10,6 +13,8 @@ use std::path::PathBuf;
 pub struct CoreConfig {
     pub account_life_cycle: AccountLifeCycle,
     pub webhook: WebhookConfig,
+    #[serde(default)]
+    pub service_notifications: ServiceNotificationsConfig,
 }
 
 #[derive(Clone, Debug, Deserialize)]
