@@ -300,7 +300,7 @@ mod tests {
     #[test]
     fn test_service_secret_with_env_token_parses() {
         let toml = r#"
-            name = "picoclaw-alpha-authorization-header"
+            name = "service-01-authorization-header"
             authorizationHeader = { headerName = "Authorization", prefix = "Bearer", token = { env = "MY_TOKEN_VAR" } }
         "#;
 
