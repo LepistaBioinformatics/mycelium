@@ -52,7 +52,7 @@ pub(crate) struct PreparedFederation {
 pub(crate) async fn prepare_federation(
     config: Option<&FederationConfig>,
     life_cycle: &AccountLifeCycle,
-    instance_settings_registration_repo: Box<&dyn InstanceSettingsRegistration>,
+    instance_settings_registration_repo: &dyn InstanceSettingsRegistration,
 ) -> Result<Option<PreparedFederation>, MappedErrors> {
     let Some(config) = config else {
         return Ok(None);
@@ -66,7 +66,8 @@ pub(crate) async fn prepare_federation(
 
     let signing = derive_federation_signing(&secrets, primary)?;
     let instance_id =
-        get_or_mint_instance_id(instance_settings_registration_repo).await?;
+        get_or_mint_instance_id(Box::new(instance_settings_registration_repo))
+            .await?;
 
     tracing::info!(
         event = "federation.startup",

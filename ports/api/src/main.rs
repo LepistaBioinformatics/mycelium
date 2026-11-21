@@ -435,7 +435,7 @@ pub async fn main() -> std::io::Result<()> {
     let federation = prepare_federation(
         config.federation.as_ref(),
         &config.core.account_life_cycle,
-        Box::new(sql_module.resolve_ref() as &dyn InstanceSettingsRegistration),
+        sql_module.resolve_ref() as &dyn InstanceSettingsRegistration,
     )
     .instrument(span.to_owned())
     .await
