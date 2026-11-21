@@ -655,6 +655,27 @@ CREATE TRIGGER trg_resource_audit_log_immutable
 BEFORE UPDATE OR DELETE ON resource_audit_log
 FOR EACH ROW EXECUTE FUNCTION prevent_resource_audit_log_mutation();
 
+-- Trace and hourly quota of the downstream service email notifications: one
+-- row per recipient, written in the transaction that enqueues the message
+-- (`id` = `message_queue.id` = `X-Mycelium-Message-Id`). No foreign keys: the
+-- trace outlives both the connection string and the delivered message.
+-- Template variables are never stored. See migration 20261120_01.
+CREATE TABLE IF NOT EXISTS notification_dispatch (
+    id                   UUID         PRIMARY KEY,
+    sender_tag           VARCHAR(32)  NOT NULL,
+    channel              VARCHAR(16)  NOT NULL DEFAULT 'email',
+    connection_string_id INT          NOT NULL,
+    account_id           UUID         NOT NULL,
+    tenant_id            UUID,
+    recipient            VARCHAR(320) NOT NULL,
+    template             VARCHAR(64)  NOT NULL,
+    locale               VARCHAR(16)  NOT NULL,
+    created_at           TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS notification_dispatch_tag_created_idx
+    ON notification_dispatch (sender_tag, created_at);
+
 --------------------------------------------------------------------------------
 -- PERMISSIONS
 --

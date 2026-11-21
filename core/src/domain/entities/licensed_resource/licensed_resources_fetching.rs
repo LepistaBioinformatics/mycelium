@@ -6,12 +6,15 @@ use crate::domain::dtos::{
 };
 
 use async_trait::async_trait;
+#[cfg(test)]
+use mockall::automock;
 use mycelium_base::{
     entities::FetchManyResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Interface;
 use uuid::Uuid;
 
+#[cfg_attr(test, automock)]
 #[async_trait]
 pub trait LicensedResourcesFetching: Interface + Send + Sync {
     async fn list_licensed_resources(

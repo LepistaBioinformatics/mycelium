@@ -108,6 +108,7 @@ mod tests {
             "webhook",
             "webhook_execution",
             "message_queue",
+            "notification_dispatch",
         ] {
             assert!(
                 names.contains(&expected.to_string()),

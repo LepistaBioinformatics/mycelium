@@ -11,6 +11,7 @@ pub mod hosted_login;
 pub mod instance_settings;
 pub mod licensed_resources;
 pub mod message;
+pub mod notification_dispatch;
 pub mod profile;
 pub mod resource_audit_log;
 pub mod tenant;

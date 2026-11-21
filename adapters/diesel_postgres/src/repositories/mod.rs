@@ -11,6 +11,7 @@ mod hosted_login;
 mod instance_settings;
 mod licensed_resources;
 mod message;
+mod notification_dispatch;
 mod optional_written_by_parser;
 mod profile;
 mod resource_audit_log;
@@ -39,6 +40,7 @@ use user::*;
 use webhook::*;
 
 pub use config::*;
+pub use notification_dispatch::*;
 pub use resource_audit_log::*;
 
 module! {

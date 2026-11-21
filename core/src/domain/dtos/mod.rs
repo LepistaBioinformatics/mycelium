@@ -15,6 +15,8 @@ pub mod instance_settings;
 pub mod message;
 pub mod message_header;
 pub mod native_error_codes;
+pub mod notification_dispatch;
+pub mod notification_quota_window;
 pub mod profile;
 pub mod profile_signature;
 pub mod related_accounts;
