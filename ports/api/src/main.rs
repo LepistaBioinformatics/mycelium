@@ -172,6 +172,8 @@ use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
+#[cfg(feature = "federation")]
+use rest::index::instance_self_description_endpoints;
 use rest::{
     audit::resource_audit_trail_endpoints as audit_resource_audit_trail_endpoints,
     hosted_login::configure as configure_hosted_login_endpoints,
@@ -684,9 +686,19 @@ pub async fn main() -> std::io::Result<()> {
         let base_app =
             base_app.app_data(web::Data::from(shared_module.clone()));
 
-        // `None` when `[core.federation]` is absent.
+        // Instance self-description (FED-03), public like `/app-config`.
+        // `None` when `[core.federation]` is absent; the endpoint then and
+        // while the runtime switch is off answers 404.
         #[cfg(feature = "federation")]
-        let base_app = base_app.app_data(web::Data::new(federation.clone()));
+        let base_app = {
+            let instance_settings: Arc<dyn InstanceSettingsFetching> =
+                sql_module.resolve();
+
+            base_app
+                .app_data(web::Data::new(federation.clone()))
+                .app_data(web::Data::from(instance_settings))
+                .configure(instance_self_description_endpoints::configure)
+        };
 
         let base_app = base_app
             //
