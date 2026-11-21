@@ -33,6 +33,13 @@ pub const DEFAULT_PROFILE_KEY: &str = "x-mycelium-profile";
 ///
 pub const DEFAULT_PROFILE_SIGNATURE_KEY: &str = "x-mycelium-profile-signature";
 
+/// Signed federation peer request
+///
+/// Carries the compact JWS (EdDSA, `typ: mycelium-peer-request+jwt`) a peer
+/// instance signs with its federation key over the request (D-9).
+///
+pub const PEER_REQUEST_SIGNATURE_KEY: &str = "x-mycelium-peer-signature";
+
 /// Where the gateway is; enables verification in `GatewayProfileData` (same
 /// variable as the SDKs). Either the gateway address, to which
 /// `PROFILE_JWKS_PATH` is appended, or the complete JWKS endpoint. `https://`

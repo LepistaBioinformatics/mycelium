@@ -1,4 +1,6 @@
 pub(crate) mod audit;
+#[cfg(feature = "federation")]
+pub(crate) mod federation;
 pub(crate) mod hosted_login;
 pub(crate) mod hosted_page_response;
 pub(crate) mod index;
