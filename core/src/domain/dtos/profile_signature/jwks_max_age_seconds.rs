@@ -46,7 +46,7 @@ impl TryFrom<u32> for JwksMaxAgeSeconds {
                 Self::MIN,
                 Self::MAX
             ))
-            .with_code(NativeErrorCodes::MYC00033)
+            .with_code(NativeErrorCodes::MYC00041)
             .as_error();
         }
 

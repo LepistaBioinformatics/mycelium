@@ -20,10 +20,10 @@ pub fn configure(config: &mut web::ServiceConfig) {
 
 /// Public keys downstream services use to verify signed profiles
 ///
-/// Serves the JWKS prepared at boot from `[core.profileSigning]`: one
-/// Ed25519 JWK per configured key version, never private material. Public
-/// and unauthenticated by design: the keys only verify. `404` when profile
-/// signing is not configured.
+/// Serves the JWKS prepared at boot: one Ed25519 JWK per version of
+/// `core.accountLifeCycle.hmacSecrets`, never private material. Public and
+/// unauthenticated by design: the keys only verify. `404` when the gateway
+/// does not sign profiles.
 ///
 #[tracing::instrument(name = "get_profile_signing_jwks", skip_all)]
 pub async fn get_profile_signing_jwks(

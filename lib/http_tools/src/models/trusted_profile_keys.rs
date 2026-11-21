@@ -79,7 +79,7 @@ fn decoding_key(jwk: &Ed25519PublicJwk) -> Result<DecodingKey, MappedErrors> {
     })
 }
 
-/// Configuration error of a downstream verification setting (`MYC00035`)
+/// Configuration error of a downstream verification setting (`MYC00043`)
 ///
 /// Names the setting and the problem only; never echoes the value.
 ///
@@ -87,7 +87,7 @@ pub(crate) fn invalid_verification_setting(
     name: &str,
     problem: &str,
 ) -> MappedErrors {
-    dto_err(format!("{name} {problem}")).with_code(NativeErrorCodes::MYC00035)
+    dto_err(format!("{name} {problem}")).with_code(NativeErrorCodes::MYC00043)
 }
 
 #[cfg(test)]
@@ -136,11 +136,11 @@ mod tests {
 
         for document in invalid {
             let error = parse(document.clone()).unwrap_err();
-            assert!(error.has_str_code("MYC00035"), "{document}");
+            assert!(error.has_str_code("MYC00043"), "{document}");
         }
 
         let error =
             TrustedProfileKeys::from_jwks_document(b"not json").unwrap_err();
-        assert!(error.has_str_code("MYC00035"));
+        assert!(error.has_str_code("MYC00043"));
     }
 }

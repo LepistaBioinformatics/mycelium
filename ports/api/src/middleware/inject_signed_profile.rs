@@ -133,7 +133,7 @@ fn signing_failure(reason: &'static str) -> GatewayError {
         event = "profile_signature.sign",
         outcome = "error",
         reason = reason,
-        code = "MYC00034",
+        code = "MYC00042",
         "Unable to issue downstream profile signature"
     );
 

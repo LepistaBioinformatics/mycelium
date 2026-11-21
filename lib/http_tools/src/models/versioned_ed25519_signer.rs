@@ -6,7 +6,10 @@ use myc_core::domain::dtos::{
     native_error_codes::NativeErrorCodes, profile_signature::SigningKeyVersion,
 };
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
-use ring::signature::{Ed25519KeyPair, KeyPair};
+use ring::{
+    hkdf::{Salt, HKDF_SHA256},
+    signature::{Ed25519KeyPair, KeyPair},
+};
 use serde::Serialize;
 use std::fmt::{Debug, Formatter, Result as FmtResult};
 
@@ -55,6 +58,41 @@ impl VersionedEd25519Signer {
         Ok(signer)
     }
 
+    /// Derive the signing key of one version from a shared secret
+    ///
+    /// Deterministic: every gateway replica holding the same secret derives
+    /// the same key pair, so any replica signs and publishes the same JWKS.
+    /// The private key only ever exists in memory.
+    ///
+    pub fn derive_from_secret(
+        version: SigningKeyVersion,
+        secret: &[u8],
+    ) -> Result<Self, MappedErrors> {
+        let seed = derive_seed(secret)
+            .ok_or_else(|| invalid_key(version, "derivation"))?;
+        let pair = Ed25519KeyPair::from_seed_unchecked(&seed)
+            .map_err(|_| invalid_key(version, "public_key_derivation"))?;
+        let public_key = pair
+            .public_key()
+            .as_ref()
+            .try_into()
+            .map_err(|_| invalid_key(version, "public_key_derivation"))?;
+
+        let signer = Self {
+            version,
+            key: EncodingKey::from_ed_der(
+                &[&PKCS8_ED25519_PREFIX[..], &seed[..]].concat(),
+            ),
+            public_jwk: Ed25519PublicJwk::new(version, public_key),
+        };
+
+        signer
+            .sign_claims(&SelfTestClaims { self_test: true })
+            .map_err(|_| invalid_key(version, "self_test_signature"))?;
+
+        Ok(signer)
+    }
+
     pub fn version(&self) -> SigningKeyVersion {
         self.version
     }
@@ -74,9 +112,37 @@ impl VersionedEd25519Signer {
 
         encode(&header, claims, &self.key).map_err(|_| {
             execution_err("profile_signature_encoding_failed")
-                .with_code(NativeErrorCodes::MYC00034)
+                .with_code(NativeErrorCodes::MYC00042)
         })
     }
+}
+
+/// Domain separation label of the profile signing key derivation
+///
+/// Part of the key: changing it changes every derived key. It keeps the
+/// derived Ed25519 key cryptographically independent from the HMAC use of
+/// the same secret.
+///
+const DERIVATION_INFO: &[u8] = b"mycelium/profile-signing/ed25519/v1";
+
+/// PKCS#8 v1 prefix of an Ed25519 private key (RFC 8410); the seed follows
+const PKCS8_ED25519_PREFIX: [u8; 16] = [
+    0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70,
+    0x04, 0x22, 0x04, 0x20,
+];
+
+/// HKDF-SHA256 of the secret, expanded to one Ed25519 seed
+fn derive_seed(secret: &[u8]) -> Option<[u8; ED25519_PUBLIC_KEY_BYTES]> {
+    let mut seed = [0u8; ED25519_PUBLIC_KEY_BYTES];
+
+    Salt::new(HKDF_SHA256, &[])
+        .extract(secret)
+        .expand(&[DERIVATION_INFO], HKDF_SHA256)
+        .ok()?
+        .fill(&mut seed)
+        .ok()?;
+
+    Some(seed)
 }
 
 /// The raw Ed25519 public key of a PKCS#8 PEM private key
@@ -103,7 +169,7 @@ fn invalid_key(version: SigningKeyVersion, step: &str) -> MappedErrors {
     execution_err(format!(
         "profile_signing_key_invalid: version {version}, step {step}"
     ))
-    .with_code(NativeErrorCodes::MYC00033)
+    .with_code(NativeErrorCodes::MYC00041)
 }
 
 impl Debug for VersionedEd25519Signer {
@@ -190,5 +256,39 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
                 .to_string();
         assert!(!error.contains("secret-material"));
         assert!(error.contains("version 3"));
+    }
+    #[test]
+    fn derivation_is_deterministic_per_secret() {
+        let derive = |secret: &[u8]| {
+            VersionedEd25519Signer::derive_from_secret(version(1), secret)
+                .unwrap()
+                .public_jwk()
+                .x()
+        };
+
+        assert_eq!(derive(b"shared-secret"), derive(b"shared-secret"));
+        assert_ne!(derive(b"shared-secret"), derive(b"other-secret"));
+    }
+
+    #[test]
+    fn derived_key_signs_what_its_public_half_verifies() {
+        use jsonwebtoken::{crypto::verify, Algorithm, DecodingKey};
+
+        let signer = VersionedEd25519Signer::derive_from_secret(
+            version(3),
+            b"shared-secret",
+        )
+        .unwrap();
+        let token = signer
+            .sign_claims(&SelfTestClaims { self_test: true })
+            .unwrap();
+        let (message, signature) = token.rsplit_once('.').unwrap();
+        let key =
+            DecodingKey::from_ed_components(&signer.public_jwk().x()).unwrap();
+
+        assert!(
+            verify(signature, message.as_bytes(), &key, Algorithm::EdDSA)
+                .unwrap()
+        );
     }
 }

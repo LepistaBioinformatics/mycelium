@@ -9,7 +9,7 @@ use std::sync::Arc;
 /// Built once at boot from every configured signing key (not only the
 /// primary), so a downstream already knows the next key before the gateway
 /// starts signing with it. The body is serialized once; the route only
-/// returns it. `Disabled` when `[core.profileSigning]` is absent.
+/// returns it. `Disabled` when the gateway does not sign profiles.
 ///
 #[derive(Clone, Debug)]
 pub enum PublishedProfileKeys {

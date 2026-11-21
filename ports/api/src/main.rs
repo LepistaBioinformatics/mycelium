@@ -356,13 +356,13 @@ pub async fn main() -> std::io::Result<()> {
     // ? -----------------------------------------------------------------------
     // ? PREPARE DOWNSTREAM PROFILE SIGNING
     //
-    // Resolve, import and self-test every configured Ed25519 key once, after
-    // Vault and before any worker accepts traffic. An absent section keeps
-    // signing disabled; a present but invalid one aborts the boot.
+    // Derive one Ed25519 key per connection-string HMAC secret once, after
+    // Vault and before any worker accepts traffic. A secret that cannot be
+    // resolved or a key that fails its self-test aborts the boot.
     //
     // ? -----------------------------------------------------------------------
     let profile_signing =
-        prepare_profile_signing(config.core.profile_signing.as_ref())
+        prepare_profile_signing(&config.core.account_life_cycle)
             .instrument(span.to_owned())
             .await
             .map_err(|err| {
@@ -641,8 +641,7 @@ pub async fn main() -> std::io::Result<()> {
             //
             // Public keys of the downstream profile signature (JWKS)
             //
-            // Downstream verifiers read them from MYCELIUM_JWKS_URL. 404
-            // while `[core.profileSigning]` is not configured.
+            // Downstream verifiers read them from MYCELIUM_JWKS_URL.
             //
             .app_data(web::Data::new(profile_signing.published_keys.clone()))
             .configure(profile_signing_jwks_endpoints::configure)

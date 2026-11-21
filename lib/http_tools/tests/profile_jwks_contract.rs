@@ -19,7 +19,8 @@ use myc_core::domain::dtos::profile_signature::{
 use myc_http_tools::{
     functions::read_jwks_cache_max_age,
     models::{
-        PublishedProfileKeys, TrustedProfileKeys, VersionedEd25519Signer,
+        ProfileJwksUrl, PublishedProfileKeys, TrustedProfileKeys,
+        VersionedEd25519Signer,
     },
     settings::{
         PROFILE_JWKS_DEFAULT_MAX_AGE_SECONDS, PROFILE_JWKS_EMPTY_RETRY_SECONDS,
@@ -317,6 +318,45 @@ fn cache_catalog() -> Vec<CacheVector> {
     .collect()
 }
 
+/// What each verifier fetches for a configured `MYCELIUM_JWKS_URL`
+///
+/// `resolved` is `null` when the value is a configuration error.
+///
+fn url_catalog() -> Vec<Value> {
+    [
+        ("https://gateway.example/.well-known/mycelium-profile-jwks.json", false),
+        ("gateway.example", false),
+        ("https://gateway.example", false),
+        ("https://gateway.example/", false),
+        ("gateway.example/prod", false),
+        ("https://gateway.example/prod/", false),
+        ("https://gateway.example:8443/prod", false),
+        ("https://gateway.example/prod/.well-known/mycelium-profile-jwks.json", false),
+        ("  gateway.example  ", false),
+        ("http://localhost:8080", true),
+        ("http://localhost:8080", false),
+        ("", false),
+        ("/.well-known/mycelium-profile-jwks.json", false),
+        ("ftp://gateway.example", true),
+        ("https://user:pass@gateway.example", false),
+        ("https://gateway.example/prod?tenant=1", false),
+        ("https://gateway.example/prod#keys", false),
+    ]
+    .into_iter()
+    .map(|(configured, allow_insecure_http)| {
+        let resolved = ProfileJwksUrl::parse(configured, allow_insecure_http)
+            .ok()
+            .map(|url| url.as_str().to_string());
+
+        json!({
+            "configured": configured,
+            "allowInsecureHttp": allow_insecure_http,
+            "resolved": resolved,
+        })
+    })
+    .collect()
+}
+
 // ? ---------------------------------------------------------------------------
 // ? Tests
 // ? ---------------------------------------------------------------------------
@@ -340,6 +380,7 @@ fn render_fixture() -> String {
         "published": published_document(),
         "vectors": catalog(),
         "cacheControl": cache_catalog(),
+        "urls": url_catalog(),
     });
 
     let mut rendered = serde_json::to_string_pretty(&fixture).unwrap();

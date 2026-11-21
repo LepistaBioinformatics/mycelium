@@ -1,19 +1,15 @@
 use super::invalid_verification_setting;
 use crate::settings::{
     DEFAULT_PROFILE_SIGNATURE_TOLERANCE_SECONDS,
-    PROFILE_SIGNATURE_TOLERANCE_ENV,
+    MAX_PROFILE_SIGNATURE_TOLERANCE_SECONDS, PROFILE_SIGNATURE_TOLERANCE_ENV,
 };
 
-use myc_core::domain::dtos::profile_signature::MAX_SAFE_TIMESTAMP_SECONDS;
 use mycelium_base::utils::errors::MappedErrors;
-
-/// Longest accepted tolerance text (the safe integer has 16 digits)
-const MAX_TOLERANCE_DIGITS: usize = 16;
 
 /// Symmetric, inclusive `iat` tolerance of a downstream verifier, in seconds
 ///
-/// Parsed like the SDKs: a canonical positive integer up to the cross-language
-/// safe integer. An invalid value is a configuration error, never the default.
+/// Parsed like the SDKs: a canonical positive integer of at most 300 (the
+/// tolerance is the replay window of a captured signature). An invalid value is a configuration error, never the default.
 ///
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ProfileSignatureTolerance(u64);
@@ -39,12 +35,14 @@ impl ProfileSignatureTolerance {
         let parsed = is_canonical_positive(trimmed)
             .then(|| trimmed.parse::<u64>().ok())
             .flatten()
-            .filter(|seconds| *seconds <= MAX_SAFE_TIMESTAMP_SECONDS);
+            .filter(|seconds| {
+                *seconds <= MAX_PROFILE_SIGNATURE_TOLERANCE_SECONDS
+            });
 
         parsed.map(Self).ok_or_else(|| {
             invalid_verification_setting(
                 PROFILE_SIGNATURE_TOLERANCE_ENV,
-                "must be a positive integer",
+                "must be an integer between 1 and 300",
             )
         })
     }
@@ -52,7 +50,6 @@ impl ProfileSignatureTolerance {
 
 fn is_canonical_positive(raw: &str) -> bool {
     !raw.is_empty()
-        && raw.len() <= MAX_TOLERANCE_DIGITS
         && raw.bytes().all(|byte| byte.is_ascii_digit())
         && !raw.starts_with('0')
 }
@@ -73,17 +70,14 @@ mod tests {
     }
 
     #[test]
-    fn accepts_canonical_values_up_to_the_safe_integer() {
+    fn accepts_canonical_values_up_to_five_minutes() {
         assert_eq!(parse(" 120 ").unwrap().seconds(), 120);
-        assert_eq!(
-            parse("9007199254740991").unwrap().seconds(),
-            MAX_SAFE_TIMESTAMP_SECONDS
-        );
+        assert_eq!(parse("300").unwrap().seconds(), 300);
     }
 
     #[test]
-    fn rejects_non_canonical_or_unsafe_values() {
-        for raw in ["", "0", "-1", "060", "1.5", "abc", "9007199254740992"] {
+    fn rejects_non_canonical_or_too_wide_values() {
+        for raw in ["", "0", "-1", "060", "1.5", "abc", "301", "86400"] {
             assert!(parse(raw).is_err(), "{raw:?}");
         }
     }

@@ -25,7 +25,7 @@ impl TryFrom<String> for ProfileSignatureAudience {
     fn try_from(service_name: String) -> Result<Self, Self::Error> {
         if service_name.trim().is_empty() {
             return dto_err("profile_signature_audience_is_empty")
-                .with_code(NativeErrorCodes::MYC00034)
+                .with_code(NativeErrorCodes::MYC00042)
                 .as_error();
         }
 

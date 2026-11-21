@@ -27,14 +27,16 @@ pub const DEFAULT_PROFILE_KEY: &str = "x-mycelium-profile";
 /// Default profile signature key
 ///
 /// Carries the compact JWS (EdDSA) issued by the gateway over the exact value
-/// of `DEFAULT_PROFILE_KEY`. Only injected when `core.profileSigning` is
-/// configured; downstream SDKs verify it when `MYCELIUM_JWKS_URL` is set.
+/// of `DEFAULT_PROFILE_KEY`. Signed with the Ed25519 key derived from the
+/// primary connection-string HMAC secret; downstream SDKs verify it when
+/// `MYCELIUM_JWKS_URL` is set.
 ///
 pub const DEFAULT_PROFILE_SIGNATURE_KEY: &str = "x-mycelium-profile-signature";
 
-/// URL of the gateway profile JWKS; enables verification in
-/// `GatewayProfileData` (same variable as the SDKs). `https://` only, unless
-/// `PROFILE_JWKS_ALLOW_INSECURE_HTTP_ENV` is `true` (development)
+/// Where the gateway is; enables verification in `GatewayProfileData` (same
+/// variable as the SDKs). Either the gateway address, to which
+/// `PROFILE_JWKS_PATH` is appended, or the complete JWKS endpoint. `https://`
+/// only, unless `PROFILE_JWKS_ALLOW_INSECURE_HTTP_ENV` is `true` (development)
 pub const PROFILE_JWKS_URL_ENV: &str = "MYCELIUM_JWKS_URL";
 
 /// Development-only switch that accepts an `http://` JWKS URL
@@ -73,6 +75,20 @@ pub const PROFILE_SIGNATURE_AUDIENCE_ENV: &str =
 
 /// Default symmetric, inclusive `iat` tolerance, in seconds
 pub const DEFAULT_PROFILE_SIGNATURE_TOLERANCE_SECONDS: u64 = 60;
+
+/// Largest accepted `iat` tolerance, in seconds (5 minutes)
+///
+/// The tolerance is the replay window of a captured signed profile, so a
+/// mistyped value must not silently widen it to hours or days.
+///
+pub const MAX_PROFILE_SIGNATURE_TOLERANCE_SECONDS: u64 = 300;
+
+/// How long an expired key set stays trusted while refreshes fail (1 day)
+///
+/// Bounds how long a key the gateway retired keeps verifying when the
+/// downstream cannot reach the JWKS; after it, requests fail closed.
+///
+pub const PROFILE_JWKS_MAX_STALE_SECONDS: u64 = 86_400;
 
 /// Largest accepted `x-mycelium-profile-signature` value, in bytes
 pub const MAX_PROFILE_SIGNATURE_BYTES: usize = 4096;

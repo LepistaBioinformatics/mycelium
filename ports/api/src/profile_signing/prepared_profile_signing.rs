@@ -1,10 +1,10 @@
 use myc_http_tools::models::{ProfileSigningState, PublishedProfileKeys};
 
-/// What boot preparation of `[core.profileSigning]` produces
+/// What boot preparation of the profile signing keys produces
 ///
 /// The primary signer (used on every forwarded request) and the JWKS that
 /// publishes the public half of every configured key. Both are registered as
-/// `web::Data`; both are disabled when the section is absent.
+/// `web::Data`; both are disabled when the primary version cannot be a `kid`.
 ///
 #[derive(Clone, Debug)]
 pub(crate) struct PreparedProfileSigning {
@@ -18,9 +18,5 @@ impl PreparedProfileSigning {
             state: ProfileSigningState::Disabled,
             published_keys: PublishedProfileKeys::Disabled,
         }
-    }
-
-    pub(crate) fn is_enabled(&self) -> bool {
-        self.state.is_enabled()
     }
 }

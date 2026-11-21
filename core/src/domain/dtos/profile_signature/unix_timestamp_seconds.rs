@@ -30,7 +30,7 @@ impl TryFrom<u64> for UnixTimestampSeconds {
     fn try_from(value: u64) -> Result<Self, Self::Error> {
         if value > MAX_SAFE_TIMESTAMP_SECONDS {
             return dto_err("unix_timestamp_seconds_out_of_safe_range")
-                .with_code(NativeErrorCodes::MYC00034)
+                .with_code(NativeErrorCodes::MYC00042)
                 .as_error();
         }
 

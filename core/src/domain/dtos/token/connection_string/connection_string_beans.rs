@@ -1,3 +1,4 @@
+use super::NotificationScope;
 use crate::domain::dtos::{
     guest_role::Permission, security_group::PermissionedRole,
 };
@@ -36,6 +37,13 @@ pub enum ConnectionStringBean {
     /// HMAC rotation rollout; required by `verify_signature` to locate
     /// the right HMAC key for constant-time comparison.
     KVR(u32),
+
+    /// The scopes granted to a scoped (notification) connection string.
+    /// Present only on scoped strings, which never resolve a profile.
+    SCP(Vec<NotificationScope>),
+
+    /// The sender tag of the service a notification string was issued for.
+    SVC(String),
 }
 
 impl ToString for ConnectionStringBean {
@@ -83,6 +91,18 @@ impl ToString for ConnectionStringBean {
             }
             ConnectionStringBean::KVR(version) => {
                 format!("kvr={}", version)
+            }
+            ConnectionStringBean::SCP(scopes) => {
+                let scopes = scopes
+                    .iter()
+                    .map(|scope| scope.to_string())
+                    .collect::<Vec<String>>()
+                    .join(",");
+
+                format!("scp={}", scopes)
+            }
+            ConnectionStringBean::SVC(sender_tag) => {
+                format!("svc={}", sender_tag)
             }
         }
     }
@@ -163,6 +183,21 @@ impl TryFrom<String> for ConnectionStringBean {
             "KVR" | "kvr" => {
                 let version = value.parse::<u32>().map_err(|_| ())?;
                 Ok(ConnectionStringBean::KVR(version))
+            }
+            "SCP" | "scp" => {
+                let scopes = value
+                    .split(',')
+                    .map(NotificationScope::try_from)
+                    .collect::<Result<Vec<NotificationScope>, ()>>()?;
+
+                Ok(ConnectionStringBean::SCP(scopes))
+            }
+            "SVC" | "svc" => {
+                if value.is_empty() {
+                    return Err(());
+                }
+
+                Ok(ConnectionStringBean::SVC(value.to_string()))
             }
             _ => Err(()),
         }
@@ -292,6 +327,53 @@ mod tests {
         );
         assert!(ConnectionStringBean::try_from("kvr=abc".to_string()).is_err());
         assert!(ConnectionStringBean::try_from("kvr=-1".to_string()).is_err());
+    }
+
+    #[test]
+    fn test_scp_string_round_trip() {
+        let bean =
+            ConnectionStringBean::SCP(vec![NotificationScope::NotifyEmail]);
+
+        assert_eq!(bean.to_string(), "scp=notify:email");
+        assert_eq!(
+            ConnectionStringBean::try_from(bean.to_string()).unwrap(),
+            bean
+        );
+        assert!(ConnectionStringBean::try_from("scp=".to_string()).is_err());
+        assert!(ConnectionStringBean::try_from("scp=notify:sms".to_string())
+            .is_err());
+    }
+
+    #[test]
+    fn test_svc_string_round_trip() {
+        let bean = ConnectionStringBean::SVC("service-01".to_string());
+
+        assert_eq!(bean.to_string(), "svc=service-01");
+        assert_eq!(
+            ConnectionStringBean::try_from(bean.to_string()).unwrap(),
+            bean
+        );
+        assert!(ConnectionStringBean::try_from("svc=".to_string()).is_err());
+    }
+
+    #[test]
+    fn test_scp_and_svc_serde_round_trip() {
+        let scp =
+            ConnectionStringBean::SCP(vec![NotificationScope::NotifyEmail]);
+        let json = serde_json::to_string(&scp).unwrap();
+        assert_eq!(json, "{\"scp\":[\"notify:email\"]}");
+        assert_eq!(
+            serde_json::from_str::<ConnectionStringBean>(&json).unwrap(),
+            scp
+        );
+
+        let svc = ConnectionStringBean::SVC("service-01".to_string());
+        let json = serde_json::to_string(&svc).unwrap();
+        assert_eq!(json, "{\"svc\":\"service-01\"}");
+        assert_eq!(
+            serde_json::from_str::<ConnectionStringBean>(&json).unwrap(),
+            svc
+        );
     }
 
     #[test]

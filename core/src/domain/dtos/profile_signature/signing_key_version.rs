@@ -40,7 +40,7 @@ impl TryFrom<u32> for SigningKeyVersion {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         if value == 0 {
             return dto_err("profile_signing_key_version_must_be_positive")
-                .with_code(NativeErrorCodes::MYC00033)
+                .with_code(NativeErrorCodes::MYC00041)
                 .as_error();
         }
 
@@ -65,13 +65,13 @@ impl FromStr for SigningKeyVersion {
 
         if !is_canonical {
             return dto_err("profile_signing_key_version_not_canonical")
-                .with_code(NativeErrorCodes::MYC00033)
+                .with_code(NativeErrorCodes::MYC00041)
                 .as_error();
         }
 
         let parsed = raw.parse::<u32>().map_err(|_| {
             dto_err("profile_signing_key_version_out_of_range")
-                .with_code(NativeErrorCodes::MYC00033)
+                .with_code(NativeErrorCodes::MYC00041)
         })?;
 
         Self::try_from(parsed)

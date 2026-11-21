@@ -23,6 +23,7 @@ pub mod route;
 pub mod route_retry_policy;
 pub mod security_group;
 pub mod service;
+pub mod service_notification_config;
 pub mod tag;
 pub mod telegram;
 pub mod tenant;

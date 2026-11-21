@@ -135,3 +135,47 @@ pub async fn fetch_and_inject_profile_from_token_to_forward(
 
     Ok((forwarded_req, profile.to_profile()))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::middleware::connection_string_test_fixtures::*;
+
+    async fn forward_with(connection_string: &str) -> Option<GatewayError> {
+        let life_cycle = life_cycle();
+        let req =
+            request_with_connection_string(connection_string, &life_cycle);
+        let forwarded_req = awc::Client::default().get("http://localhost/");
+
+        fetch_and_inject_profile_from_token_to_forward(
+            req,
+            forwarded_req,
+            None,
+            None,
+            "service-01".to_string(),
+        )
+        .await
+        .err()
+    }
+
+    #[actix_web::test]
+    async fn routed_request_rejects_notification_string() {
+        let connection_string =
+            notification_connection_string(&life_cycle()).await;
+
+        assert!(matches!(
+            forward_with(&connection_string).await,
+            Some(GatewayError::Unauthorized(msg)) if msg.contains("MYC00033")
+        ));
+    }
+
+    #[actix_web::test]
+    async fn routed_request_takes_general_string_to_the_database_lookup() {
+        let connection_string = general_connection_string(&life_cycle()).await;
+
+        assert!(matches!(
+            forward_with(&connection_string).await,
+            Some(GatewayError::InternalServerError(_))
+        ));
+    }
+}

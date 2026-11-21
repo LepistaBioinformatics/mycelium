@@ -1,5 +1,5 @@
 use super::{
-    account_life_cycle_config::AccountLifeCycle, ProfileSigningConfig,
+    account_life_cycle_config::AccountLifeCycle, ServiceNotificationsConfig,
     WebhookConfig,
 };
 
@@ -13,10 +13,8 @@ use std::path::PathBuf;
 pub struct CoreConfig {
     pub account_life_cycle: AccountLifeCycle,
     pub webhook: WebhookConfig,
-
-    /// Downstream profile signing; absent keeps signing disabled
     #[serde(default)]
-    pub profile_signing: Option<ProfileSigningConfig>,
+    pub service_notifications: ServiceNotificationsConfig,
 }
 
 #[derive(Clone, Debug, Deserialize)]
@@ -40,11 +38,6 @@ impl CoreConfig {
         match load_config_from_file::<TmpConfig>(file) {
             Ok(config) => {
                 config.core.account_life_cycle.validate_hmac_config()?;
-
-                if let Some(signing) = &config.core.profile_signing {
-                    signing.validate()?;
-                }
-
                 Ok(config.core)
             }
             Err(err) => Err(err),

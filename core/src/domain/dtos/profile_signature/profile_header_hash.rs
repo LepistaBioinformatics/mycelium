@@ -44,7 +44,7 @@ impl TryFrom<String> for ProfileHeaderHash {
 
         if !is_canonical {
             return dto_err("profile_header_hash_not_canonical")
-                .with_code(NativeErrorCodes::MYC00034)
+                .with_code(NativeErrorCodes::MYC00042)
                 .as_error();
         }
 

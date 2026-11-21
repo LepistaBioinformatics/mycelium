@@ -17,7 +17,7 @@ const JWKS: &str = "profile JWKS";
 /// Shared by the gateway, which publishes it, and by the Rust downstream
 /// verifier, which reads it back. Reading is strict: a private member (`d`),
 /// another key type or curve, a key that is not 32 bytes, a non-canonical
-/// `kid` or a non-signature use is a configuration error (`MYC00035`), never
+/// `kid` or a non-signature use is a configuration error (`MYC00043`), never
 /// a silently skipped key.
 ///
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -163,7 +163,7 @@ mod tests {
 
         for entry in invalid {
             let error = Ed25519PublicJwk::from_json(&entry).unwrap_err();
-            assert!(error.has_str_code("MYC00035"), "{entry}");
+            assert!(error.has_str_code("MYC00043"), "{entry}");
         }
     }
 }

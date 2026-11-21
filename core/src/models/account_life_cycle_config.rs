@@ -221,6 +221,29 @@ impl AccountLifeCycle {
         Ok((version, key))
     }
 
+    /// The version currently used to sign (`hmac_primary_version`).
+    pub fn hmac_primary_version(&self) -> u32 {
+        self.hmac_primary_version
+    }
+
+    /// Every configured HMAC key as `(version, key_bytes)`.
+    ///
+    /// Consumed at boot to derive the downstream profile signing keys, one
+    /// per version, so both features rotate together.
+    #[tracing::instrument(name = "hmac_signing_keys", skip_all)]
+    pub async fn hmac_signing_keys(
+        &self,
+    ) -> Result<Vec<(u32, Vec<u8>)>, MappedErrors> {
+        let mut keys = Vec::new();
+
+        for version in self.hmac_secrets.versions() {
+            let key = self.hmac_signing_key_for_version(version).await?;
+            keys.push((version, key));
+        }
+
+        Ok(keys)
+    }
+
     /// Check that `hmac_primary_version` is present in `hmac_secrets` and
     /// that the set is internally consistent.
     ///

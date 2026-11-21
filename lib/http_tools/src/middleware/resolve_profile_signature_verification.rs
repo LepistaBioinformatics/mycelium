@@ -44,7 +44,7 @@ pub(crate) fn resolve_profile_signature_verification(
 fn load_from_environment() -> Result<ProfileSignatureVerification, ()> {
     ProfileSignatureVerification::from_environment().map_err(|error| {
         tracing::error!(
-            code = "MYC00035",
+            code = "MYC00043",
             reason = %error.msg(),
             "profile_signature.verify outcome=error reason=configuration_invalid"
         );

@@ -286,7 +286,7 @@ fn settings(
         FakeGateway::default().fetcher(),
     )
     .map_err(|error| {
-        assert!(error.has_str_code("MYC00035"), "{error}");
+        assert!(error.has_str_code("MYC00043"), "{error}");
         error.msg()
     })
 }
@@ -340,7 +340,7 @@ fn serve_jwks() -> String {
         let body = body.clone();
         App::new()
             .route(
-                "/jwks.json",
+                "/ok/.well-known/mycelium-profile-jwks.json",
                 web::get().to(move || {
                     let body = body.clone();
                     async move {
@@ -355,20 +355,22 @@ fn serve_jwks() -> String {
                 }),
             )
             .route(
-                "/huge.json",
+                "/huge/.well-known/mycelium-profile-jwks.json",
                 web::get().to(|| async {
                     HttpResponse::Ok().body(" ".repeat(70 * 1024))
                 }),
             )
             .route(
-                "/redirect.json",
+                "/redirect/.well-known/mycelium-profile-jwks.json",
                 web::get().to(|| async {
                     HttpResponse::Found()
-                        .insert_header(("location", "/jwks.json"))
+                        .insert_header((
+                            "location",
+                            "/ok/.well-known/mycelium-profile-jwks.json",
+                        ))
                         .finish()
                 }),
             )
-            .route("/missing.json", web::get().to(HttpResponse::NotFound))
     })
     .workers(1)
     .bind(("127.0.0.1", 0))
@@ -388,9 +390,7 @@ fn local(base: &str, path: &str) -> ProfileJwksUrl {
 async fn fetches_the_set_and_its_cache_lifetime_over_http() {
     let base = serve_jwks();
 
-    let fetched = fetch_profile_jwks(local(&base, "/jwks.json"))
-        .await
-        .unwrap();
+    let fetched = fetch_profile_jwks(local(&base, "/ok")).await.unwrap();
 
     assert_eq!(fetched.keys.len(), 2);
     assert_eq!(fetched.max_age, Duration::from_secs(600));
@@ -400,7 +400,7 @@ async fn fetches_the_set_and_its_cache_lifetime_over_http() {
 async fn refuses_errors_oversized_bodies_and_redirects() {
     let base = serve_jwks();
 
-    for path in ["/missing.json", "/huge.json", "/redirect.json"] {
+    for path in ["/missing", "/huge", "/redirect"] {
         let result = fetch_profile_jwks(local(&base, path)).await;
         assert!(result.is_err(), "{path}");
     }

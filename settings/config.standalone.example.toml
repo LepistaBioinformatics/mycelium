@@ -371,18 +371,18 @@ level = "warn,mycelium_base=info,myc_api=info,myc_config=info,myc_core=info,myc_
 
 [api.services]
 
-[[picoclaw]]
+[[service-01]]
 host = "127.0.0.1:8787"
 protocol = "http"
-healthCheckPath = "/v1/models"
+healthCheckPath = "/health"
 
-[[picoclaw.secret]]
-name = "picoclaw-authorization-header"
+[[service-01.secret]]
+name = "service-01-authorization-header"
 authorizationHeader = { name = "Authorization", prefix = "Bearer", token = "replace-me-by-in-env-token" }
 
-[[picoclaw.path]]
+[[service-01.path]]
 group = "public"
-path = "/v1/chat/completions"
-secretName = "picoclaw-authorization-header"
+path = "/public"
+secretName = "service-01-authorization-header"
 acceptInsecureRouting = true
 methods = ["ALL"]

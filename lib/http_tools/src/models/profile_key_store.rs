@@ -1,7 +1,12 @@
 use super::{ProfileJwksUrl, TrustedProfileKeys};
-use crate::settings::PROFILE_JWKS_EMPTY_RETRY_SECONDS;
+use crate::settings::{
+    PROFILE_JWKS_EMPTY_RETRY_SECONDS, PROFILE_JWKS_MAX_STALE_SECONDS,
+};
 
-use futures::{future::LocalBoxFuture, lock::Mutex};
+use futures::{
+    future::LocalBoxFuture,
+    lock::{Mutex, MutexGuard},
+};
 use mycelium_base::utils::errors::MappedErrors;
 use std::{
     fmt::{Debug, Formatter, Result as FmtResult},
@@ -34,11 +39,31 @@ struct CachedKeys {
     last_attempt: Option<Instant>,
 }
 
+impl CachedKeys {
+    /// The cached keys, or none once they outlived the maximum staleness
+    fn trusted_keys(&self) -> Arc<TrustedProfileKeys> {
+        let max_stale = Duration::from_secs(PROFILE_JWKS_MAX_STALE_SECONDS);
+        let outlived = self
+            .fresh_until
+            .is_some_and(|until| Instant::now() >= until + max_stale);
+
+        if outlived {
+            return Arc::default();
+        }
+
+        self.keys.clone()
+    }
+}
+
 /// The gateway public keys cached by a downstream verifier
 ///
 /// - Fetched before serving (`prefetch`) or lazily on the first request.
 /// - Refreshed when `max-age` expires; a failed refresh keeps the last valid
-///   set and is logged, so a gateway outage never drops trusted keys.
+///   set and is logged, so a short gateway outage never drops trusted keys.
+///   The set stops being trusted one day after it expired, so a retired key
+///   cannot verify forever while refreshes fail.
+/// - A request never waits for a refresh another request already started
+///   while keys are cached: it verifies with the cached set.
 /// - Refetched once when a signature names an unknown `kid`, at most once
 ///   per cooldown, and single-flight: concurrent requests share one fetch.
 ///
@@ -67,7 +92,7 @@ impl ProfileKeyStore {
 
     /// The trusted keys now, and the generation they belong to
     pub fn current(&self) -> (Arc<TrustedProfileKeys>, u64) {
-        self.read(|cache| (cache.keys.clone(), cache.generation))
+        self.read(|cache| (cache.trusted_keys(), cache.generation))
     }
 
     /// Fetch the set now; any failure is returned (startup must abort)
@@ -88,9 +113,19 @@ impl ProfileKeyStore {
             (cache.generation, is_stale)
         });
 
-        if is_stale {
-            self.refresh_from(generation).await;
+        if !is_stale {
+            return;
         }
+
+        if generation == 0 {
+            self.refresh_from(generation).await;
+            return;
+        }
+
+        let Some(guard) = self.refresh.try_lock() else {
+            return;
+        };
+        self.refresh_holding(guard, generation).await;
     }
 
     /// Refetch after an unknown `kid`; `true` when newer keys are available
@@ -104,7 +139,16 @@ impl ProfileKeyStore {
 
     /// Single-flight refresh: waiters reuse a fetch that completed meanwhile
     async fn refresh_from(&self, seen_generation: u64) -> bool {
-        let _guard = self.refresh.lock().await;
+        let guard = self.refresh.lock().await;
+
+        self.refresh_holding(guard, seen_generation).await
+    }
+
+    async fn refresh_holding(
+        &self,
+        _guard: MutexGuard<'_, ()>,
+        seen_generation: u64,
+    ) -> bool {
         let (generation, last_attempt) =
             self.read(|cache| (cache.generation, cache.last_attempt));
 
@@ -124,8 +168,9 @@ impl ProfileKeyStore {
     }
 
     async fn fetch_and_store(&self) -> Result<(), MappedErrors> {
+        let outcome = (self.fetcher)(self.url.clone()).await;
         self.update(|cache| cache.last_attempt = Some(Instant::now()));
-        let fetched = (self.fetcher)(self.url.clone()).await?;
+        let fetched = outcome?;
 
         self.update(|cache| {
             cache.keys = Arc::new(fetched.keys);
