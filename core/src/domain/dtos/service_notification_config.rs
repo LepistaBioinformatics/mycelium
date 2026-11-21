@@ -184,6 +184,12 @@ fn validate_quotas(
         );
     }
 
+    if config.max_recipients_per_message > config.quota_per_hour {
+        return Err("notifications.maxRecipientsPerMessage must not exceed \
+             quotaPerHour: such a message could never be sent"
+            .into());
+    }
+
     Ok(())
 }
 
@@ -287,6 +293,13 @@ mod tests {
     fn rejects_zero_quotas() {
         assert!(parse(&with_override("quotaPerHour", "0")).is_err());
         assert!(parse(&with_override("maxRecipientsPerMessage", "0")).is_err());
+    }
+
+    #[test]
+    fn rejects_more_recipients_per_message_than_the_hourly_quota() {
+        // `maxRecipientsPerMessage` defaults to 10.
+        assert!(parse(&with_override("quotaPerHour", "9")).is_err());
+        assert!(parse(&with_override("quotaPerHour", "10")).is_ok());
     }
 
     #[test]

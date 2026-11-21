@@ -24,8 +24,10 @@ use uuid::Uuid;
 /// - `domains`: every recipient domain is listed in `allowedDomains`. The
 ///   whole domain must match, ignoring case: a listed domain allows neither
 ///   its subdomains nor domains that merely contain it.
-/// - `tenantMembers`: every recipient is a guest or an owner of the
-///   connection string tenant.
+/// - `tenantMembers`: every recipient is a verified guest or an owner of
+///   exactly the connection string tenant. Tenant-less licences (system
+///   accounts), licences on another tenant and invitations never accepted
+///   are not membership.
 /// - `any`: no restriction.
 ///
 /// Every violation returns the same MYC00039, which never names the failing
@@ -115,23 +117,37 @@ async fn every_recipient_is_a_tenant_member(
     Ok(memberships.into_iter().all(|is_member| is_member))
 }
 
-/// Whether the address is licensed on, or owns, the tenant
+/// Whether the address is a verified guest, or an owner, of the tenant
+///
+/// A licence counts only when it is verified (the invitation was accepted)
+/// and its tenant is exactly the connection string tenant. The repository
+/// also returns tenant-less licences (system accounts, nil tenant) for any
+/// tenant asked: those are not membership. An ownership counts only when it
+/// is of that same tenant.
 async fn is_a_tenant_member(
     recipient: &Email,
     tenant_id: Uuid,
     licensed_resources_fetching_repo: &dyn LicensedResourcesFetching,
 ) -> Result<bool, MappedErrors> {
+    if tenant_id.is_nil() {
+        return Ok(false);
+    }
+
     let licensed_resources = licensed_resources_fetching_repo
         .list_licensed_resources(
             recipient.to_owned(),
             Some(tenant_id),
             None,
             None,
-            None,
+            Some(true),
         )
         .await?;
 
-    if has_records(&licensed_resources) {
+    let is_a_verified_guest = records_of(licensed_resources)
+        .iter()
+        .any(|resource| resource.verified && resource.tenant_id == tenant_id);
+
+    if is_a_verified_guest {
         return Ok(true);
     }
 
@@ -139,16 +155,16 @@ async fn is_a_tenant_member(
         .list_tenants_ownership(recipient.to_owned(), Some(tenant_id))
         .await?;
 
-    Ok(has_records(&ownerships))
+    Ok(records_of(ownerships)
+        .iter()
+        .any(|ownership| ownership.id == tenant_id))
 }
 
-fn has_records<T: Serialize>(response: &FetchManyResponseKind<T>) -> bool {
+fn records_of<T: Serialize>(response: FetchManyResponseKind<T>) -> Vec<T> {
     match response {
-        FetchManyResponseKind::NotFound => false,
-        FetchManyResponseKind::Found(records) => !records.is_empty(),
-        FetchManyResponseKind::FoundPaginated { records, .. } => {
-            !records.is_empty()
-        }
+        FetchManyResponseKind::NotFound => vec![],
+        FetchManyResponseKind::Found(records) => records,
+        FetchManyResponseKind::FoundPaginated { records, .. } => records,
     }
 }
 
@@ -261,8 +277,9 @@ mod tests {
         let mut repo = MockLicensedResourcesFetching::new();
 
         repo.expect_list_licensed_resources().returning(
-            move |email, tenant, _, _, _| {
+            move |email, tenant, _, _, was_verified| {
                 assert_eq!(tenant, Some(tenant_id));
+                assert_eq!(was_verified, Some(true));
 
                 match guests.contains(&email.email().as_str()) {
                     true => Ok(FetchManyResponseKind::Found(vec![
@@ -456,6 +473,122 @@ mod tests {
             )
             .await,
         );
+    }
+
+    /// A repository answering every licence question with `licences` and
+    /// every ownership question with `ownerships`.
+    fn answering_repo(
+        licences: FetchManyResponseKind<LicensedResource>,
+        ownerships: Vec<Uuid>,
+    ) -> MockLicensedResourcesFetching {
+        let mut repo = MockLicensedResourcesFetching::new();
+
+        repo.expect_list_licensed_resources()
+            .withf(|_, _, _, _, was_verified| *was_verified == Some(true))
+            .returning(move |_, _, _, _, _| Ok(licences.clone()));
+
+        repo.expect_list_tenants_ownership().returning(move |_, _| {
+            Ok(FetchManyResponseKind::Found(
+                ownerships
+                    .iter()
+                    .map(|id| TenantOwnership {
+                        id: *id,
+                        name: "Tenant 01".to_string(),
+                        since: Local::now(),
+                    })
+                    .collect(),
+            ))
+        });
+
+        repo
+    }
+
+    async fn check_member(
+        tenant_id: Uuid,
+        repo: &MockLicensedResourcesFetching,
+    ) -> Result<(), MappedErrors> {
+        check(
+            &config("tenantMembers", &[]),
+            Some(tenant_id),
+            &["guest@example.com"],
+            repo,
+        )
+        .await
+    }
+
+    #[tokio::test]
+    async fn tenant_members_policy_rejects_a_tenant_less_licence() {
+        let tenant_id = Uuid::new_v4();
+        let licences =
+            FetchManyResponseKind::Found(vec![licensed_resource(Uuid::nil())]);
+
+        assert_not_allowed(
+            check_member(tenant_id, &answering_repo(licences, vec![])).await,
+        );
+    }
+
+    #[tokio::test]
+    async fn tenant_members_policy_rejects_a_licence_on_another_tenant() {
+        let tenant_id = Uuid::new_v4();
+        let licences = FetchManyResponseKind::FoundPaginated {
+            count: 1,
+            skip: None,
+            size: None,
+            records: vec![licensed_resource(Uuid::new_v4())],
+        };
+
+        assert_not_allowed(
+            check_member(tenant_id, &answering_repo(licences, vec![])).await,
+        );
+    }
+
+    #[tokio::test]
+    async fn tenant_members_policy_rejects_an_unverified_licence() {
+        let tenant_id = Uuid::new_v4();
+        let mut unverified = licensed_resource(tenant_id);
+        unverified.verified = false;
+
+        // Asked for verified licences only (`withf` in the repository); an
+        // unverified record slipping through is still not membership.
+        let licences = FetchManyResponseKind::Found(vec![unverified]);
+
+        assert_not_allowed(
+            check_member(tenant_id, &answering_repo(licences, vec![])).await,
+        );
+    }
+
+    #[tokio::test]
+    async fn tenant_members_policy_accepts_a_verified_licence_on_the_tenant(
+    ) -> Result<(), MappedErrors> {
+        let tenant_id = Uuid::new_v4();
+        let licences = FetchManyResponseKind::Found(vec![
+            licensed_resource(Uuid::nil()),
+            licensed_resource(tenant_id),
+        ]);
+
+        check_member(tenant_id, &answering_repo(licences, vec![])).await
+    }
+
+    #[tokio::test]
+    async fn tenant_members_policy_accepts_only_ownership_of_the_tenant(
+    ) -> Result<(), MappedErrors> {
+        let tenant_id = Uuid::new_v4();
+        let none = || FetchManyResponseKind::NotFound;
+
+        assert_not_allowed(
+            check_member(
+                tenant_id,
+                &answering_repo(none(), vec![Uuid::new_v4()]),
+            )
+            .await,
+        );
+
+        check_member(tenant_id, &answering_repo(none(), vec![tenant_id])).await
+    }
+
+    #[tokio::test]
+    async fn tenant_members_policy_rejects_a_nil_tenant() {
+        assert_not_allowed(check_member(Uuid::nil(), &untouched_repo()).await);
     }
 
     #[tokio::test]

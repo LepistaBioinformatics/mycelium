@@ -4,6 +4,7 @@ pub(crate) mod hosted_page_response;
 pub(crate) mod index;
 pub(crate) mod instance;
 pub(crate) mod manager;
+pub(crate) mod notifications;
 pub(crate) mod openid;
 pub(crate) mod role_scoped;
 pub(crate) mod service;

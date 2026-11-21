@@ -84,6 +84,7 @@ module! {
             LicensedResourcesFetchingSqlDbRepository,
             LocalMessageReadSqlDbRepository,
             LocalMessageWriteSqlDbRepository,
+            NotificationDispatchRegistrationSqlDbRepository,
             ResourceAuditLogFetchingSqlDbRepository,
             ResourceAuditLogRegistrationSqlDbRepository,
             TenantDeletionSqlDbRepository,
