@@ -27,4 +27,33 @@
 # audit) -- and drop reqwest 0.11 from `core/` at that point too, since it is
 # the other 0.3 root.
 #
-ignore = ["RUSTSEC-2026-0258"]
+#
+# RUSTSEC-2026-0367, -0368, -0369, -0429, -0545, -0548 -- zip 3.0.0
+# extraction of attacker-controlled archives (SUID/SGID bits preserved,
+# symlinks resolving outside the destination, permissions applied through
+# symlinks, abort on a huge declared symlink size, AES entries accepted
+# without their authentication code, local-header names differing from the
+# central directory). Patched only in zip >= 9.
+#
+# zip 3.0.0 is not in the gateway binary. It is a build dependency of
+# utoipa-swagger-ui 9, whose build.rs extracts the Swagger UI archive. With
+# the `vendored` feature the gateway uses, that archive is fixed bytes
+# shipped in utoipa-swagger-ui-vendored, not a download. The build script
+# walks the entries itself (by_index + enclosed_name) and never calls
+# ZipArchive::extract() or ZipStreamReader, and the archive has no encrypted
+# entries. The closest case, -0367, needs a privileged process extracting an
+# untrusted archive; here a non-root build extracts the vendored one.
+#
+# Revisit with #235: utoipa-swagger-ui 10.0.2 is the first release on
+# zip 9 and needs utoipa 6. Drop these six entries in that change and
+# re-run the audit.
+#
+ignore = [
+    "RUSTSEC-2026-0258",
+    "RUSTSEC-2026-0367",
+    "RUSTSEC-2026-0368",
+    "RUSTSEC-2026-0369",
+    "RUSTSEC-2026-0429",
+    "RUSTSEC-2026-0545",
+    "RUSTSEC-2026-0548",
+]
