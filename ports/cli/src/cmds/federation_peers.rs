@@ -1,13 +1,11 @@
-use crate::functions::try_to_resolve_database_url;
+use crate::functions::{connect_sql_module, try_to_resolve_database_url};
 
 use clap::Parser;
 use myc_core::domain::{
     dtos::federation::{FederationPolicy, NewFederationPeer},
     entities::{FederationPeerRead, FederationPeerWrite},
 };
-use myc_diesel::repositories::{
-    DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
-};
+use myc_diesel::repositories::SqlAppModule;
 use mycelium_base::{
     entities::{
         CreateResponseKind, DeletionResponseKind, FetchManyResponseKind,
@@ -95,15 +93,7 @@ pub(crate) async fn peer_cmd(cmd: PeerCommands) {
 }
 
 fn sql_module() -> SqlAppModule {
-    let database_url = try_to_resolve_database_url();
-
-    SqlAppModule::builder()
-        .with_component_parameters::<DieselDbPoolProvider>(
-            DieselDbPoolProviderParameters {
-                pool: DieselDbPoolProvider::new(&database_url),
-            },
-        )
-        .build()
+    connect_sql_module(&try_to_resolve_database_url())
 }
 
 fn print_json<T: serde::Serialize>(value: &T) -> Result<(), MappedErrors> {

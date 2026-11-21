@@ -15,9 +15,7 @@ use myc_core::{
     models::{CoreConfig, FederationConfig},
     use_cases::federation::{describe_instance, read_role_catalog_mode},
 };
-use myc_diesel::repositories::{
-    DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
-};
+use myc_diesel::repositories::SqlAppModule;
 use myc_http_tools::{
     models::{KeyDerivationPurpose, VersionedEd25519Signer},
     settings::ROLE_CATALOG_PATH,
@@ -97,15 +95,7 @@ fn load_federation_config(
 }
 
 fn sql_module() -> SqlAppModule {
-    let database_url = try_to_resolve_database_url();
-
-    SqlAppModule::builder()
-        .with_component_parameters::<DieselDbPoolProvider>(
-            DieselDbPoolProviderParameters {
-                pool: DieselDbPoolProvider::new(&database_url),
-            },
-        )
-        .build()
+    connect_sql_module(&try_to_resolve_database_url())
 }
 
 /// The catalog URL the gateway advertises, unless the catalog is off
