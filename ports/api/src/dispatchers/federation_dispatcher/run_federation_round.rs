@@ -215,7 +215,21 @@ mod tests {
         ) -> Result<UpdatingResponseKind<FederationPeer>, MappedErrors>
         {
             self.statuses.lock().unwrap().push((peer_id, status));
-            Ok(UpdatingResponseKind::Updated(self.peers[0].clone()))
+            Ok(UpdatingResponseKind::Updated(FederationPeer {
+                status,
+                ..self.peers[0].clone()
+            }))
+        }
+
+        async fn settle_status(
+            &self,
+
+            peer_id: Uuid,
+
+            status: PeerStatus,
+        ) -> Result<UpdatingResponseKind<FederationPeer>, MappedErrors>
+        {
+            self.update_status(peer_id, status).await
         }
 
         async fn record_keys(

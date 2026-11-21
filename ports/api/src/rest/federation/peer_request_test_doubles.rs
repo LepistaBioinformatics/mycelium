@@ -115,7 +115,20 @@ impl FederationPeerWrite for PeerBook {
         status: PeerStatus,
     ) -> Result<UpdatingResponseKind<FederationPeer>, MappedErrors> {
         self.statuses.lock().unwrap().push(status);
-        Ok(UpdatingResponseKind::Updated(self.peer.clone()))
+        Ok(UpdatingResponseKind::Updated(FederationPeer {
+            status,
+            ..self.peer.clone()
+        }))
+    }
+
+    async fn settle_status(
+        &self,
+
+        peer_id: Uuid,
+
+        status: PeerStatus,
+    ) -> Result<UpdatingResponseKind<FederationPeer>, MappedErrors> {
+        self.update_status(peer_id, status).await
     }
 
     async fn record_keys(

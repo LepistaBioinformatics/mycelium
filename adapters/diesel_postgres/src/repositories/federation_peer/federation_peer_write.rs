@@ -5,6 +5,7 @@ use super::{
         record_contact_failure, record_contact_success, record_negotiated_kinds,
     },
     replace_peer_keys::replace_peer_keys,
+    settle_peer_status::settle_peer_status,
 };
 use crate::{
     models::config::DbPoolProvider, schema::federation_peer as peer_model,
@@ -70,6 +71,15 @@ impl FederationPeerWrite for FederationPeerWriteSqlDbRepository {
         status: PeerStatus,
     ) -> Result<UpdatingResponseKind<FederationPeer>, MappedErrors> {
         change_peer_status(&mut *self.connection()?, peer_id, status)
+    }
+
+    #[tracing::instrument(name = "federation_peer_settle_status", skip_all)]
+    async fn settle_status(
+        &self,
+        peer_id: Uuid,
+        status: PeerStatus,
+    ) -> Result<UpdatingResponseKind<FederationPeer>, MappedErrors> {
+        settle_peer_status(&mut *self.connection()?, peer_id, status)
     }
 
     #[tracing::instrument(name = "federation_peer_record_keys", skip_all)]
@@ -386,6 +396,44 @@ mod tests {
         assert!(matches!(
             write.remove(peer_id).await.unwrap(),
             DeletionResponseKind::NotDeleted(..)
+        ));
+    }
+
+    #[tokio::test]
+    async fn settling_never_lifts_a_quarantine() {
+        let Some((read, write)) = live() else {
+            return;
+        };
+        let peer_id = declared(&write).await;
+
+        write
+            .update_status(peer_id, PeerStatus::Quarantined)
+            .await
+            .unwrap();
+        let settled = write
+            .settle_status(peer_id, PeerStatus::Active)
+            .await
+            .unwrap();
+
+        assert!(matches!(
+            settled,
+            UpdatingResponseKind::NotUpdated(ref peer, _)
+                if peer.status == PeerStatus::Quarantined
+        ));
+        let FetchResponseKind::Found(peer) = read.get(peer_id).await.unwrap()
+        else {
+            panic!("peer must still exist");
+        };
+        assert_eq!(peer.status, PeerStatus::Quarantined);
+
+        write
+            .update_status(peer_id, PeerStatus::Declared)
+            .await
+            .unwrap();
+        assert!(matches!(
+            write.settle_status(peer_id, PeerStatus::Active).await.unwrap(),
+            UpdatingResponseKind::Updated(ref peer)
+                if peer.status == PeerStatus::Active
         ));
     }
 }

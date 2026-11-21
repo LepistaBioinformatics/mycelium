@@ -8,7 +8,9 @@ use crate::domain::{
 
 use super::{next_peer_status, ContactOutcome};
 
-use mycelium_base::utils::errors::MappedErrors;
+use mycelium_base::{
+    entities::UpdatingResponseKind, utils::errors::MappedErrors,
+};
 
 /// Handshake with a declared peer (FED-08)
 ///
@@ -72,13 +74,17 @@ async fn trust(
     settle(peer, PeerStatus::Active, peer_write_repo).await
 }
 
+/// The status the peer ends in: the one reached, unless an operator
+/// quarantined it (or it became untrusted) while the handshake ran
 async fn settle(
     peer: &FederationPeer,
     status: PeerStatus,
     peer_write_repo: &dyn FederationPeerWrite,
 ) -> Result<PeerStatus, MappedErrors> {
-    peer_write_repo.update_status(peer.id, status).await?;
-    Ok(status)
+    match peer_write_repo.settle_status(peer.id, status).await? {
+        UpdatingResponseKind::Updated(peer) => Ok(peer.status),
+        UpdatingResponseKind::NotUpdated(peer, _) => Ok(peer.status),
+    }
 }
 
 /// The peer's Ed25519 signing keys; anything else is ignored
@@ -165,7 +171,21 @@ mod tests {
         ) -> Result<UpdatingResponseKind<FederationPeer>, MappedErrors>
         {
             self.status.lock().unwrap().push(status);
-            Ok(UpdatingResponseKind::Updated(declared()))
+            Ok(UpdatingResponseKind::Updated(FederationPeer {
+                status,
+                ..declared()
+            }))
+        }
+
+        async fn settle_status(
+            &self,
+
+            peer_id: Uuid,
+
+            status: PeerStatus,
+        ) -> Result<UpdatingResponseKind<FederationPeer>, MappedErrors>
+        {
+            self.update_status(peer_id, status).await
         }
 
         async fn record_keys(
@@ -344,6 +364,101 @@ mod tests {
             run_with(&Peer(None), &recorded, 2).await?,
             PeerStatus::Unreachable
         );
+
+        Ok(())
+    }
+
+    /// Stands in for a peer quarantined while the handshake ran
+    struct Held(Recorded);
+
+    #[async_trait]
+    impl FederationPeerWrite for Held {
+        async fn declare(
+            &self,
+            peer: NewFederationPeer,
+            by: Option<WrittenBy>,
+        ) -> Result<CreateResponseKind<FederationPeer>, MappedErrors> {
+            self.0.declare(peer, by).await
+        }
+
+        async fn update_status(
+            &self,
+            peer_id: Uuid,
+            status: PeerStatus,
+        ) -> Result<UpdatingResponseKind<FederationPeer>, MappedErrors>
+        {
+            self.0.update_status(peer_id, status).await
+        }
+
+        async fn settle_status(
+            &self,
+            _: Uuid,
+            _: PeerStatus,
+        ) -> Result<UpdatingResponseKind<FederationPeer>, MappedErrors>
+        {
+            Ok(UpdatingResponseKind::NotUpdated(
+                FederationPeer {
+                    status: PeerStatus::Quarantined,
+                    ..declared()
+                },
+                "peer is quarantined".to_string(),
+            ))
+        }
+
+        async fn record_keys(
+            &self,
+            peer_id: Uuid,
+            keys: Vec<NewPeerKey>,
+        ) -> Result<(), MappedErrors> {
+            self.0.record_keys(peer_id, keys).await
+        }
+
+        async fn set_negotiated_kinds(
+            &self,
+            peer_id: Uuid,
+            kinds: Vec<String>,
+        ) -> Result<(), MappedErrors> {
+            self.0.set_negotiated_kinds(peer_id, kinds).await
+        }
+
+        async fn record_success(
+            &self,
+            peer_id: Uuid,
+        ) -> Result<(), MappedErrors> {
+            self.0.record_success(peer_id).await
+        }
+
+        async fn record_failure(
+            &self,
+            peer_id: Uuid,
+        ) -> Result<u32, MappedErrors> {
+            self.0.record_failure(peer_id).await
+        }
+
+        async fn remove(
+            &self,
+            peer_id: Uuid,
+        ) -> Result<DeletionResponseKind<Uuid>, MappedErrors> {
+            self.0.remove(peer_id).await
+        }
+    }
+
+    #[tokio::test]
+    async fn a_peer_quarantined_during_the_handshake_stays_quarantined(
+    ) -> Result<(), MappedErrors> {
+        let held = Held(Recorded::default());
+
+        let status = handshake_peer(
+            &declared(),
+            &[],
+            1,
+            Box::new(&Peer(Some(description(declared().instance_id)))
+                as &dyn PeerClient),
+            Box::new(&held as &dyn FederationPeerWrite),
+        )
+        .await?;
+
+        assert_eq!(status, PeerStatus::Quarantined);
 
         Ok(())
     }

@@ -154,6 +154,17 @@ mod tests {
             Ok(UpdatingResponseKind::Updated(peer.clone()))
         }
 
+        async fn settle_status(
+            &self,
+
+            _: Uuid,
+
+            _: PeerStatus,
+        ) -> Result<UpdatingResponseKind<FederationPeer>, MappedErrors>
+        {
+            unreachable!()
+        }
+
         async fn record_keys(
             &self,
             _: Uuid,

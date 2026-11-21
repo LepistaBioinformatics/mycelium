@@ -33,6 +33,16 @@ pub trait FederationPeerWrite: Interface + Send + Sync {
         status: PeerStatus,
     ) -> Result<UpdatingResponseKind<FederationPeer>, MappedErrors>;
 
+    /// Set the status a handshake reached, unless the peer is quarantined or
+    /// untrusted: those are held until an operator changes them, so a
+    /// handshake that started before a quarantine never lifts it.
+    /// `NotUpdated` carries the peer as stored when it is held.
+    async fn settle_status(
+        &self,
+        peer_id: Uuid,
+        status: PeerStatus,
+    ) -> Result<UpdatingResponseKind<FederationPeer>, MappedErrors>;
+
     /// Replace every stored key of the peer with `keys`
     async fn record_keys(
         &self,
