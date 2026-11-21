@@ -6,6 +6,12 @@
 ///
 pub mod gateway;
 
+/// Instance federation use cases
+///
+/// Identity of this instance and trust between peer Mycelium instances.
+///
+pub mod federation;
+
 /// Federation use cases
 ///
 /// This module contains the use cases for the federation functionalities like
