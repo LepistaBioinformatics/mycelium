@@ -23,10 +23,22 @@
 #   6. rotation without touching any consumer: v2 published, then primary,
 #      picked up through the unknown-kid refetch; retired v1 pairs -> 403
 #      once the consumers refresh their key set;
-#   7. invalid signing configuration -> gateway refuses to boot, without
-#      printing key material.
+#   7. the primary HMAC secret cannot be resolved -> gateway refuses to boot,
+#      without printing any secret.
 #
-# Everything binds to 127.0.0.1 and lives in a temp dir; keys are generated
+# The gateway has no signing configuration of its own: it derives one Ed25519
+# key (HKDF-SHA256) from every entry of core.accountLifeCycle.hmacSecrets,
+# keeps the entry version as the kid and signs with hmacPrimaryVersion.
+# Version 0 cannot be a kid, so hmacPrimaryVersion = 0 is the gateway that
+# does not sign (and publishes no key set).
+#
+# Standalone keeps a single HMAC secret as version 1 (whatever the file
+# declares), so it always signs with kid 1: the scenarios that need a gateway
+# that does not sign, a second key version or the signing boot failure (part
+# of 4, 5, 6 and 7) run only in postgres-only and full modes. In standalone
+# the consumers' cold start is exercised by starting the gateway late.
+#
+# Everything binds to 127.0.0.1 and lives in a temp dir; secrets are generated
 # per run. Only processes started here are stopped. Tokens are never printed.
 #
 # Usage:
@@ -92,6 +104,16 @@ RUST_PID=""
 PASSED=0
 
 log() { printf '==> %s\n' "$1"; }
+
+STANDALONE_LIMIT="standalone keeps a single HMAC secret as version 1"
+
+# only_multi_version <group>: true where the gateway honours the whole HMAC
+# set (postgres-only, full). In standalone, log the skipped group and why.
+only_multi_version() {
+    [ "$MODE" = standalone ] || return 0
+    log "SKIPPED in standalone ($STANDALONE_LIMIT): $1"
+    return 1
+}
 pass() { PASSED=$((PASSED + 1)); record_result "$1"; printf '  PASS %s\n' "$1"; }
 fail() { printf 'FAIL: %s\n' "$1" >&2; exit 1; }
 
@@ -169,18 +191,26 @@ handler_calls() { curl -fsS "http://127.0.0.1:$1/stats" | json_field whoami; }
 # Explicit env resolvers: standalone would otherwise generate and persist
 # these secrets in the OS keyring of the machine running the test.
 export MYC_E2E_TOKEN_SECRET="$(openssl rand -hex 32)"
-export MYC_E2E_HMAC_SECRET="$(openssl rand -hex 32)"
 export MYC_E2E_JWT_SECRET="$(openssl rand -hex 32)"
 
 # ? ---------------------------------------------------------------------------
-# ? Keys (generated per run, TEST ONLY)
+# ? HMAC secrets and the signing keys derived from them (per run, TEST ONLY)
 # ? ---------------------------------------------------------------------------
 
+# One distinct secret per HMAC version. Version 0 only backs the gateway
+# that does not sign; 1 and 2 are the versions the scenarios rotate.
+export MYC_E2E_HMAC_SECRET_0="$(openssl rand -hex 32)"
+export MYC_E2E_HMAC_SECRET_1="$(openssl rand -hex 32)"
+export MYC_E2E_HMAC_SECRET_2="$(openssl rand -hex 32)"
+
+# The same derivation the gateway runs at boot. The scenarios that verify a
+# gateway signature against public-v1.pem prove both sides derive one key.
 for version in 1 2; do
-    openssl genpkey -algorithm ED25519 -out "$WORKDIR/private-v$version.pem" 2>/dev/null
-    openssl pkey -in "$WORKDIR/private-v$version.pem" -pubout -out "$WORKDIR/public-v$version.pem" 2>/dev/null
+    "$PYTHON_BIN" "$CONSUMERS/derive_profile_signing_key.py" "MYC_E2E_HMAC_SECRET_$version" \
+        "$WORKDIR/private-v$version.pem" "$WORKDIR/public-v$version.pem" \
+        || fail "could not derive the profile signing key of version $version"
 done
-log "generated temporary key pairs v1 and v2"
+log "derived temporary key pairs v1 and v2 from the HMAC secrets"
 
 # ? ---------------------------------------------------------------------------
 # ? Consumers
@@ -226,8 +256,11 @@ start_consumers() {
 # ? Gateway
 # ? ---------------------------------------------------------------------------
 
-# write_config <signing toml block (may be empty)>
+# write_config <signing_block output; empty = gateway that does not sign>
 write_config() {
+    local hmac_block="${1:-$(signing_block 0 "0")}"
+    [ "$MODE" != standalone ] || [ "$hmac_block" = "$(signing_block 1 "1")" ] \
+        || fail "$STANDALONE_LIMIT: this HMAC configuration cannot be expressed in standalone"
     cat >"$WORKDIR/config.toml" <<EOF
 vault = "disabled"
 [core.accountLifeCycle]
@@ -240,13 +273,7 @@ supportName = "Mycelium"
 supportEmail = "support@localhost"
 locale = "en-us"
 tokenSecret = { env = "MYC_E2E_TOKEN_SECRET" }
-hmacPrimaryVersion = 1
-
-[[core.accountLifeCycle.hmacSecrets]]
-version = 1
-secret = { env = "MYC_E2E_HMAC_SECRET" }
-
-$1
+$hmac_block
 
 [core.webhook]
 acceptInvalidCertificates = true
@@ -321,26 +348,26 @@ EOF
     append_infra_config
 }
 
+# signing_block <primary> "<versions>": the HMAC settings of
+# [core.accountLifeCycle]. The gateway signs profiles with the key derived
+# from <primary> and publishes the key of every listed version (0 is never
+# signed with nor published).
 signing_block() {
     local primary="$1" versions="$2" block
-    block="[core.profileSigning]
-primaryKeyVersion = $primary"
+    block="hmacPrimaryVersion = $primary"
     for version in $versions; do
         block="$block
 
-[[core.profileSigning.keys]]
+[[core.accountLifeCycle.hmacSecrets]]
 version = $version
-privateKey = { env = \"MYC_E2E_PROFILE_PRIVATE_KEY_$version\" }"
+secret = { env = \"MYC_E2E_HMAC_SECRET_$version\" }"
     done
     printf '%s' "$block"
 }
 
 start_gateway() {
     "$PYTHON_BIN" -c 'import socket,sys; s=socket.socket(); s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1); s.bind(("127.0.0.1",int(sys.argv[1]))); s.close()' "$API_PORT"
-    SETTINGS_PATH="$WORKDIR/config.toml" \
-    MYC_E2E_PROFILE_PRIVATE_KEY_1="$(cat "$WORKDIR/private-v1.pem")" \
-    MYC_E2E_PROFILE_PRIVATE_KEY_2="$(cat "$WORKDIR/private-v2.pem")" \
-        "$API_BIN" >>"$WORKDIR/api.log" 2>&1 &
+    SETTINGS_PATH="$WORKDIR/config.toml" "$API_BIN" >>"$WORKDIR/api.log" 2>&1 &
     API_PID=$!
     wait_http "http://127.0.0.1:$API_PORT/health" "gateway" "$WORKDIR/api.log"
 }
@@ -492,105 +519,126 @@ expect_direct "$FASTIFY_PORT" 403 "Fastify: pair signed for py-svc rejected by a
 expect_compiled_direct Go "$GO_PORT" "$GO_PAIR_PROFILE" "$GO_PAIR_SIGNATURE"
 expect_compiled_direct Rust "$RUST_PORT" "$RUST_PAIR_PROFILE" "$RUST_PAIR_SIGNATURE"
 
-log "3. wrong rollout order: consumers verify, gateway does not sign"
-restart_gateway ""
-expect_gateway_status py-svc 403 "FastAPI rejects unsigned gateway traffic" "$PY_PORT"
-expect_gateway_status express-svc 403 "Express rejects unsigned gateway traffic" "$EXPRESS_PORT"
-expect_gateway_status fastify-svc 403 "Fastify rejects unsigned gateway traffic" "$FASTIFY_PORT"
-expect_gateway_status go-svc 403 "Go rejects unsigned gateway traffic" "$GO_PORT"
-expect_gateway_status rust-svc 403 "Rust rejects unsigned gateway traffic" "$RUST_PORT"
+if only_multi_version "3. wrong rollout order: consumers verify, gateway does not sign"; then
+    log "3. wrong rollout order: consumers verify, gateway does not sign"
+    restart_gateway ""
+    expect_gateway_status py-svc 403 "FastAPI rejects unsigned gateway traffic" "$PY_PORT"
+    expect_gateway_status express-svc 403 "Express rejects unsigned gateway traffic" "$EXPRESS_PORT"
+    expect_gateway_status fastify-svc 403 "Fastify rejects unsigned gateway traffic" "$FASTIFY_PORT"
+    expect_gateway_status go-svc 403 "Go rejects unsigned gateway traffic" "$GO_PORT"
+    expect_gateway_status rust-svc 403 "Rust rejects unsigned gateway traffic" "$RUST_PORT"
+fi
 
 log "3a. consumers start without the gateway key set, fail closed, then recover"
 stop_consumers
-expect_consumers_start_without_keys
-restart_gateway "$(signing_block 1 "1")"
+if [ "$MODE" = standalone ]; then
+    # No gateway that does not sign here: the key set is unavailable because
+    # the gateway is down, and appears when it boots (same signing settings).
+    stop_pid "$API_PID"; API_PID=""
+    expect_consumers_start_without_keys
+    start_gateway
+else
+    expect_consumers_start_without_keys
+    restart_gateway "$(signing_block 1 "1")"
+fi
 expect_consumers_recover_key_set
-restart_gateway ""
-stop_consumers
 
-log "4. legacy: no signing, no verification"
-start_consumers ""
-expect_gateway_ok py-svc "FastAPI legacy path -> 200"
-expect_gateway_ok express-svc "Express legacy path -> 200"
-expect_gateway_ok fastify-svc "Fastify legacy path -> 200"
-expect_gateway_ok go-svc "Go legacy path -> 200"
-expect_gateway_ok rust-svc "Rust legacy path -> 200"
+if only_multi_version "4. legacy: no signing, no verification"; then
+    restart_gateway ""
+    stop_consumers
+    log "4. legacy: no signing, no verification"
+    start_consumers ""
+    expect_gateway_ok py-svc "FastAPI legacy path -> 200"
+    expect_gateway_ok express-svc "Express legacy path -> 200"
+    expect_gateway_ok fastify-svc "Fastify legacy path -> 200"
+    expect_gateway_ok go-svc "Go legacy path -> 200"
+    expect_gateway_ok rust-svc "Rust legacy path -> 200"
+    restart_gateway "$(signing_block 1 "1")"
+else
+    stop_consumers
+    start_consumers ""
+fi
 
 log "4a. gateway signs, verification off: accepted, one warning per consumer"
-restart_gateway "$(signing_block 1 "1")"
 for service in py-svc express-svc fastify-svc go-svc rust-svc; do
     expect_gateway_ok "$service" "$service unverified signed profile -> 200 (legacy)"
     expect_gateway_ok "$service" "$service second unverified signed profile -> 200"
 done
 expect_single_unverified_warning
 
-log "5. rotation without touching the consumers"
-stop_consumers
-start_consumers jwks
-remember_consumer_pids
-for service in py-svc express-svc fastify-svc go-svc rust-svc; do
-    expect_gateway_ok "$service" "$service verifies kid 1 from the downloaded key set -> 200"
-done
+if only_multi_version "5. rotation without touching the consumers (v2 published, primary switched, v1 retired)"; then
+    log "5. rotation without touching the consumers"
+    stop_consumers
+    start_consumers jwks
+    remember_consumer_pids
+    for service in py-svc express-svc fastify-svc go-svc rust-svc; do
+        expect_gateway_ok "$service" "$service verifies kid 1 from the downloaded key set -> 200"
+    done
 
-log "5a. gateway publishes v2 while still signing with v1"
-restart_gateway "$(signing_block 1 "1 2")"
-expect_published_kids "1 2"
-expect_gateway_ok py-svc "FastAPI still verifies kid 1 -> 200"
-wait_refetch_cooldown
-for service in py-svc express-svc fastify-svc go-svc rust-svc; do
-    capture_pair "$service" "V1_${service%%-svc}"
-done
+    log "5a. gateway publishes v2 while still signing with v1"
+    restart_gateway "$(signing_block 1 "1 2")"
+    expect_published_kids "1 2"
+    expect_gateway_ok py-svc "FastAPI still verifies kid 1 -> 200"
+    wait_refetch_cooldown
+    for service in py-svc express-svc fastify-svc go-svc rust-svc; do
+        capture_pair "$service" "V1_${service%%-svc}"
+    done
 
-log "5b. primary switched to v2: consumers fetch it on the unknown kid"
-restart_gateway "$(signing_block 2 "1 2")"
-expect_gateway_ok py-svc "FastAPI accepts kid 2 without restart -> 200"
-expect_gateway_ok express-svc "Express accepts kid 2 without restart -> 200"
-expect_gateway_ok fastify-svc "Fastify accepts kid 2 without restart -> 200"
-expect_gateway_ok go-svc "Go accepts kid 2 without restart -> 200"
-expect_gateway_ok rust-svc "Rust accepts kid 2 without restart -> 200"
-expect_consumers_not_restarted rotation
+    log "5b. primary switched to v2: consumers fetch it on the unknown kid"
+    restart_gateway "$(signing_block 2 "1 2")"
+    expect_gateway_ok py-svc "FastAPI accepts kid 2 without restart -> 200"
+    expect_gateway_ok express-svc "Express accepts kid 2 without restart -> 200"
+    expect_gateway_ok fastify-svc "Fastify accepts kid 2 without restart -> 200"
+    expect_gateway_ok go-svc "Go accepts kid 2 without restart -> 200"
+    expect_gateway_ok rust-svc "Rust accepts kid 2 without restart -> 200"
+    expect_consumers_not_restarted rotation
 
-log "5c. v1 retired at the gateway"
-restart_gateway "$(signing_block 2 "2")"
-expect_published_kids "2"
-expect_gateway_ok py-svc "FastAPI keeps verifying kid 2 -> 200"
-# A restart stands in for the cache expiry (12 h by default).
-stop_consumers
-start_consumers jwks
-expect_direct "$PY_PORT" 403 "FastAPI refuses a retired v1 pair" "$V1_py_PAIR_PROFILE" "$V1_py_PAIR_SIGNATURE"
-expect_direct "$EXPRESS_PORT" 403 "Express refuses a retired v1 pair" "$V1_express_PAIR_PROFILE" "$V1_express_PAIR_SIGNATURE"
-expect_direct "$FASTIFY_PORT" 403 "Fastify refuses a retired v1 pair" "$V1_fastify_PAIR_PROFILE" "$V1_fastify_PAIR_SIGNATURE"
-expect_direct "$GO_PORT" 403 "Go refuses a retired v1 pair" "$V1_go_PAIR_PROFILE" "$V1_go_PAIR_SIGNATURE"
-expect_direct "$RUST_PORT" 403 "Rust refuses a retired v1 pair" "$V1_rust_PAIR_PROFILE" "$V1_rust_PAIR_SIGNATURE"
-for service in py-svc express-svc fastify-svc go-svc rust-svc; do
-    expect_gateway_ok "$service" "$service verifies kid 2 after retiring v1 -> 200"
-done
-
-log "6. invalid signing configuration aborts the boot"
-stop_pid "$API_PID"; API_PID=""
-write_config "$(signing_block 1 "1")"
-: >"$WORKDIR/boot-fail.log"
-set +e
-SETTINGS_PATH="$WORKDIR/config.toml" MYC_E2E_PROFILE_PRIVATE_KEY_1="-----BEGIN PRIVATE KEY-----
-c2VjcmV0LW1hdGVyaWFs
------END PRIVATE KEY-----" "$API_BIN" >"$WORKDIR/boot-fail.log" 2>&1 &
-BOOT_PID=$!
-for _ in $(seq 1 240); do
-    kill -0 "$BOOT_PID" 2>/dev/null || break
-    sleep 0.25
-done
-if kill -0 "$BOOT_PID" 2>/dev/null; then
-    stop_pid "$BOOT_PID"
-    fail "gateway kept running with an invalid signing key"
+    log "5c. v1 retired at the gateway"
+    restart_gateway "$(signing_block 2 "2")"
+    expect_published_kids "2"
+    expect_gateway_ok py-svc "FastAPI keeps verifying kid 2 -> 200"
+    # A restart stands in for the cache expiry (12 h).
+    stop_consumers
+    start_consumers jwks
+    expect_direct "$PY_PORT" 403 "FastAPI refuses a retired v1 pair" "$V1_py_PAIR_PROFILE" "$V1_py_PAIR_SIGNATURE"
+    expect_direct "$EXPRESS_PORT" 403 "Express refuses a retired v1 pair" "$V1_express_PAIR_PROFILE" "$V1_express_PAIR_SIGNATURE"
+    expect_direct "$FASTIFY_PORT" 403 "Fastify refuses a retired v1 pair" "$V1_fastify_PAIR_PROFILE" "$V1_fastify_PAIR_SIGNATURE"
+    expect_direct "$GO_PORT" 403 "Go refuses a retired v1 pair" "$V1_go_PAIR_PROFILE" "$V1_go_PAIR_SIGNATURE"
+    expect_direct "$RUST_PORT" 403 "Rust refuses a retired v1 pair" "$V1_rust_PAIR_PROFILE" "$V1_rust_PAIR_SIGNATURE"
+    for service in py-svc express-svc fastify-svc go-svc rust-svc; do
+        expect_gateway_ok "$service" "$service verifies kid 2 after retiring v1 -> 200"
+    done
 fi
-wait "$BOOT_PID"
-BOOT_STATUS=$?
-set -e
-[ "$BOOT_STATUS" -ne 0 ] || fail "gateway did not refuse to boot (status $BOOT_STATUS)"
-grep -q "profile_signing_key_invalid: version 1" "$WORKDIR/boot-fail.log" || fail "boot failure does not name the key version"
-! grep -q "c2VjcmV0LW1hdGVyaWFs" "$WORKDIR/boot-fail.log" || fail "boot failure leaked key material"
-curl -fsS "http://127.0.0.1:$API_PORT/health" >/dev/null 2>&1 && fail "gateway is serving after a failed boot"
-pass "boot refused (exit $BOOT_STATUS), sanitized error, nothing listening"
+
+if only_multi_version "6. unresolvable primary HMAC secret aborts the boot with the sanitized signing error"; then
+    log "6. unresolvable primary HMAC secret aborts the boot"
+    stop_pid "$API_PID"; API_PID=""
+    write_config "$(signing_block 1 "1 2")"
+    : >"$WORKDIR/boot-fail.log"
+    set +e
+    env -u MYC_E2E_HMAC_SECRET_1 SETTINGS_PATH="$WORKDIR/config.toml" "$API_BIN" >"$WORKDIR/boot-fail.log" 2>&1 &
+    BOOT_PID=$!
+    for _ in $(seq 1 240); do
+        kill -0 "$BOOT_PID" 2>/dev/null || break
+        sleep 0.25
+    done
+    if kill -0 "$BOOT_PID" 2>/dev/null; then
+        stop_pid "$BOOT_PID"
+        fail "gateway kept running without its primary HMAC secret"
+    fi
+    wait "$BOOT_PID"
+    BOOT_STATUS=$?
+    set -e
+    [ "$BOOT_STATUS" -ne 0 ] || fail "gateway did not refuse to boot (status $BOOT_STATUS)"
+    grep -q "profile_signing_key_invalid: version 1, step resolution_failed" "$WORKDIR/boot-fail.log" \
+        || fail "boot failure does not name the key version and the failing step"
+    # The other secrets were resolvable in that boot: none may reach the log.
+    for secret in "$MYC_E2E_HMAC_SECRET_2" "$MYC_E2E_TOKEN_SECRET" "$MYC_E2E_JWT_SECRET"; do
+        ! grep -qF -- "$secret" "$WORKDIR/boot-fail.log" || fail "boot failure leaked a configured secret"
+    done
+    curl -fsS "http://127.0.0.1:$API_PORT/health" >/dev/null 2>&1 && fail "gateway is serving after a failed boot"
+    pass "boot refused (exit $BOOT_STATUS), sanitized error, nothing listening"
+fi
 
 echo
 echo "ALL $PASSED CHECKS PASSED ($MODE)"

@@ -56,7 +56,12 @@ start_infra() {
 # Go (adapters/nethttp) and Rust (GatewayProfileData) consumers, each with
 # its own audience. Reads jwks_env from launch_consumers.
 start_compiled_consumers() {
-    env "${jwks_env[@]}" MYC_PROFILE_SIGNATURE_AUDIENCE=go-svc \
+    # The Go consumer gets the gateway base instead of the complete JWKS
+    # endpoint (the last assignment wins), so both accepted forms of
+    # MYCELIUM_JWKS_URL are exercised.
+    local go_jwks_base=()
+    [ "${#jwks_env[@]}" = 0 ] || go_jwks_base=("MYCELIUM_JWKS_URL=http://127.0.0.1:$API_PORT")
+    env "${jwks_env[@]}" "${go_jwks_base[@]}" MYC_PROFILE_SIGNATURE_AUDIENCE=go-svc \
         "$GO_BIN" "$GO_PORT" >"$WORKDIR/go.log" 2>&1 &
     GO_PID=$!
     env "${jwks_env[@]}" MYC_PROFILE_SIGNATURE_AUDIENCE=rust-svc \
@@ -78,12 +83,16 @@ expect_published_kids() {
     pass "gateway publishes kids [$1] at $JWKS_URL_PATH"
 }
 
-# Verifying consumers start while the gateway publishes no keys, and a
-# well-formed signed pair (kid 1) is refused: the failed key download fails
-# closed. That attempt also arms the consumers' first-download retry.
+# Verifying consumers start while the gateway publishes no keys (it does not
+# sign; in standalone, which always signs, it is down), and a well-formed
+# signed pair (kid 1) is refused: the failed key download fails closed. That
+# attempt also arms the consumers' first-download retry.
 expect_consumers_start_without_keys() {
-    status_of "http://127.0.0.1:$API_PORT$JWKS_URL_PATH" | grep -qx 404 \
-        || fail "the gateway still publishes keys without signing"
+    local expected=404 actual
+    [ "$MODE" != standalone ] || expected=000
+    actual="$(status_of "http://127.0.0.1:$API_PORT$JWKS_URL_PATH" || true)"
+    [ "$actual" = "$expected" ] \
+        || fail "the gateway key set is still available (status $actual, expected $expected)"
     start_consumers jwks
     pass "verifying consumers start while the gateway publishes no keys"
     expect_direct "$PY_PORT" 403 "FastAPI fails closed without the key set" "$PAIR_PROFILE" "$PAIR_SIGNATURE"

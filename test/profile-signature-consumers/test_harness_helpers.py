@@ -12,6 +12,7 @@ from extract_magic_link import extract_code, extract_display_url
 from collect_evidence import export
 from write_test_config import adapter_config
 from run_step import run
+from derive_profile_signing_key import pem_pair
 
 
 class MagicLinkParsingTests(unittest.TestCase):
@@ -88,6 +89,19 @@ class EvidenceAndConfigTests(unittest.TestCase):
         with patch.dict(os.environ, {"PSIG_SMTP_PORT": "65536"}):
             with self.assertRaises(ValueError):
                 adapter_config("postgres-only")
+
+
+class ProfileSigningKeyDerivationTests(unittest.TestCase):
+    def test_derivation_is_deterministic_and_distinct_per_secret(self):
+        self.assertEqual(pem_pair(b"service-01-secret"), pem_pair(b"service-01-secret"))
+        self.assertNotEqual(pem_pair(b"service-01-secret")[1], pem_pair(b"service-02-secret")[1])
+
+    def test_derived_private_key_signs_what_its_public_half_verifies(self):
+        import jwt
+        private, public = pem_pair(b"service-01-secret")
+        token = jwt.encode({"aud": "service-01"}, private, algorithm="EdDSA", headers={"kid": "1"})
+        claims = jwt.decode(token, public, algorithms=["EdDSA"], audience="service-01")
+        self.assertEqual(claims["aud"], "service-01")
 
 
 if __name__ == "__main__":
