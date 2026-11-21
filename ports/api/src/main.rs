@@ -41,6 +41,13 @@ compile_error!(
     "features `postgres-only` and `standalone` are mutually exclusive"
 );
 
+#[cfg(all(feature = "federation", feature = "standalone"))]
+compile_error!(
+    "feature `federation` is not available in `standalone`; build it with \
+     `full` (default) or `--no-default-features --features \
+     postgres-only,federation`"
+);
+
 #[cfg(not(any(
     feature = "standalone",
     feature = "full",
