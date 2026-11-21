@@ -45,6 +45,7 @@ pub(crate) async fn accept_peer_handshake(
     if let Err(err) = handshake_peer(
         &request.peer,
         &description.assertion_kinds,
+        prepared.config.max_failures_before_open,
         Box::new(peer_client.get_ref()),
         Box::new(peer_write.get_ref()),
     )

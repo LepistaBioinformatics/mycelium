@@ -6,6 +6,8 @@ use crate::domain::{
     entities::{FederationPeerWrite, PeerClient},
 };
 
+use super::{next_peer_status, ContactOutcome};
+
 use mycelium_base::utils::errors::MappedErrors;
 
 /// Handshake with a declared peer (FED-08)
@@ -15,20 +17,29 @@ use mycelium_base::utils::errors::MappedErrors;
 /// untrusted and stores nothing, never re-pinning it. On a match the peer's
 /// Ed25519 keys are stored, the assertion kinds both sides support are
 /// recorded and the peer becomes active. An unreachable peer counts a
-/// failure. Returns the status the peer ends in.
+/// failure and moves through the circuit breaker: degraded, then unreachable
+/// once `max_failures_before_open` is reached (FED-21). Returns the status
+/// the peer ends in.
 ///
 #[tracing::instrument(name = "handshake_peer", skip_all)]
 pub async fn handshake_peer(
     peer: &FederationPeer,
     local_kinds: &[String],
+    max_failures_before_open: u32,
     peer_client: Box<&dyn PeerClient>,
     peer_write_repo: Box<&dyn FederationPeerWrite>,
 ) -> Result<PeerStatus, MappedErrors> {
     let Ok(description) =
         peer_client.fetch_self_description(&peer.base_url).await
     else {
-        peer_write_repo.record_failure(peer.id).await?;
-        return settle(peer, PeerStatus::Unreachable, *peer_write_repo).await;
+        let failures = peer_write_repo.record_failure(peer.id).await?;
+        let status = next_peer_status(
+            peer.status,
+            ContactOutcome::Failure,
+            failures,
+            max_failures_before_open,
+        );
+        return settle(peer, status, *peer_write_repo).await;
     };
 
     if description.instance_id != peer.instance_id {
@@ -241,9 +252,18 @@ mod tests {
         peer: &Peer,
         recorded: &Recorded,
     ) -> Result<PeerStatus, MappedErrors> {
+        run_with(peer, recorded, 1).await
+    }
+
+    async fn run_with(
+        peer: &Peer,
+        recorded: &Recorded,
+        threshold: u32,
+    ) -> Result<PeerStatus, MappedErrors> {
         handshake_peer(
             &declared(),
             &["profile.v1".to_string()],
+            threshold,
             Box::new(peer as &dyn PeerClient),
             Box::new(recorded as &dyn FederationPeerWrite),
         )
@@ -307,6 +327,23 @@ mod tests {
         assert_eq!(status, PeerStatus::Unreachable);
         assert_eq!(*recorded.failures.lock().unwrap(), 1);
         assert!(recorded.keys.lock().unwrap().is_none());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn failures_below_the_threshold_only_degrade(
+    ) -> Result<(), MappedErrors> {
+        let recorded = Recorded::default();
+
+        assert_eq!(
+            run_with(&Peer(None), &recorded, 2).await?,
+            PeerStatus::Degraded
+        );
+        assert_eq!(
+            run_with(&Peer(None), &recorded, 2).await?,
+            PeerStatus::Unreachable
+        );
 
         Ok(())
     }

@@ -76,7 +76,13 @@ use dispatchers::{
     services_health_dispatcher, webhook_dispatcher,
 };
 #[cfg(feature = "federation")]
-use federation::{build_peer_client, prepare_federation};
+use dispatchers::{
+    spawn_federation_dispatcher, FederationDispatcher, FederationRoundPorts,
+};
+#[cfg(feature = "federation")]
+use federation::{
+    build_peer_client, describe_this_instance, prepare_federation,
+};
 use middleware::{log_served_request, StaffBootstrapClaimed};
 use models::active_backend_modules::{KVAppModule, SqlAppModule};
 use models::config_handler::ConfigHandler;
@@ -586,6 +592,34 @@ pub async fn main() -> std::io::Result<()> {
         .await;
 
     // ? -----------------------------------------------------------------------
+    // ? FIRE THE FEDERATION DISPATCHER
+    //
+    // Periodic peer health rounds (re-handshake, key refresh, circuit breaker,
+    // nonce purge). Only when `[core.federation]` is present. The handle is
+    // kept and awaited on shutdown.
+    //
+    // ? -----------------------------------------------------------------------
+    #[cfg(feature = "federation")]
+    let federation_dispatcher = federation
+        .as_ref()
+        .zip(peer_client.clone())
+        .map(|(prepared, peer_client)| {
+            info!("Fire federation dispatcher");
+
+            spawn_federation_dispatcher(
+                FederationRoundPorts {
+                    peer_read: sql_module.resolve(),
+                    peer_write: sql_module.resolve(),
+                    nonces: sql_module.resolve(),
+                    settings: sql_module.resolve(),
+                    peer_client,
+                },
+                describe_this_instance(prepared).assertion_kinds,
+                prepared.config.max_failures_before_open,
+            )
+        });
+
+    // ? -----------------------------------------------------------------------
     // ? STAFF BOOTSTRAP — CHECK CLAIM STATE
     //
     // Checks whether the `STAFF_BOOTSTRAP_KEY` row exists in the generalized
@@ -1020,22 +1054,42 @@ pub async fn main() -> std::io::Result<()> {
         builder.set_private_key(&key).unwrap();
 
         info!("Fire the server with TLS");
-        return server
+        let served = server
             .bind_openssl(format!("{}:{}", address.0, address.1), builder)?
             .workers(api_config.service_workers.to_owned() as usize)
             .run()
             .await;
+
+        #[cfg(feature = "federation")]
+        stop_federation_dispatcher(federation_dispatcher).await;
+
+        return served;
     }
 
     // ? -----------------------------------------------------------------------
     // ? WITHOUT TLS OTHERWISE
     // ? -----------------------------------------------------------------------
     info!("Fire the server without TLS");
-    server
+    let served = server
         .bind(address)?
         .workers(api_config.service_workers as usize)
         .run()
-        .await
+        .await;
+
+    #[cfg(feature = "federation")]
+    stop_federation_dispatcher(federation_dispatcher).await;
+
+    served
+}
+
+#[cfg(feature = "federation")]
+async fn stop_federation_dispatcher(dispatcher: Option<FederationDispatcher>) {
+    let Some(dispatcher) = dispatcher else {
+        return;
+    };
+
+    info!("Stopping federation dispatcher");
+    dispatcher.shutdown().await;
 }
 
 /// Resolve one standalone secret (SM-R9), honoring an operator-supplied
