@@ -10,8 +10,9 @@ use myc_core::{
     domain::{
         dtos::{
             federation::{
-                FederationPeer, FederationPolicy, InstanceSelfDescription,
-                NewFederationPeer, NewPeerKey, PeerKey, PeerStatus,
+                FederationPeer, FederationPolicy, FederationPublicJwk,
+                InstanceSelfDescription, NewFederationPeer, NewPeerKey,
+                PeerKey, PeerStatus,
             },
             instance_settings::{InstanceSetting, FEDERATION_ROLE_CATALOG_KEY},
             profile_signature::SigningKeyVersion,
@@ -56,7 +57,7 @@ pub(crate) fn signer(secret: &[u8]) -> VersionedEd25519Signer {
 /// One declared peer, its stored key, and what was done to it
 pub(crate) struct PeerBook {
     pub(crate) peer: FederationPeer,
-    pub(crate) key: PeerKey,
+    pub(crate) keys: Mutex<Vec<PeerKey>>,
     pub(crate) key_reads: AtomicUsize,
     pub(crate) statuses: Mutex<Vec<PeerStatus>>,
 }
@@ -94,7 +95,7 @@ impl FederationPeerRead for PeerBook {
 
     async fn list_keys(&self, _: Uuid) -> Result<Vec<PeerKey>, MappedErrors> {
         self.key_reads.fetch_add(1, Ordering::SeqCst);
-        Ok(vec![self.key.clone()])
+        Ok(self.keys.lock().unwrap().clone())
     }
 }
 
@@ -119,9 +120,20 @@ impl FederationPeerWrite for PeerBook {
 
     async fn record_keys(
         &self,
-        _: Uuid,
-        _: Vec<NewPeerKey>,
+        peer_id: Uuid,
+        keys: Vec<NewPeerKey>,
     ) -> Result<(), MappedErrors> {
+        *self.keys.lock().unwrap() = keys
+            .into_iter()
+            .map(|key| PeerKey {
+                peer_id,
+                kid: key.kid,
+                alg: key.alg,
+                public_key: key.public_key,
+                fetched_at: Local::now(),
+                expires_at: None,
+            })
+            .collect();
         Ok(())
     }
 
@@ -258,8 +270,12 @@ pub(crate) fn federation_world(status: PeerStatus) -> FederationWorld {
         fetched_at: Local::now(),
         expires_at: None,
     };
+    let published = serde_json::from_value::<FederationPublicJwk>(
+        peer_signer.public_jwk().to_json(),
+    )
+    .unwrap();
     let remote = RemotePeer {
-        description: Some(remote_description(peer.instance_id)),
+        description: Some(remote_description(peer.instance_id, published)),
         calls: AtomicUsize::new(0),
     };
 
@@ -268,7 +284,7 @@ pub(crate) fn federation_world(status: PeerStatus) -> FederationWorld {
         peer_signer,
         peers: Arc::new(PeerBook {
             peer,
-            key,
+            keys: Mutex::new(vec![key]),
             key_reads: AtomicUsize::new(0),
             statuses: Mutex::new(vec![]),
         }),
@@ -313,14 +329,17 @@ fn declared_peer(status: PeerStatus) -> FederationPeer {
     }
 }
 
-fn remote_description(instance_id: Uuid) -> InstanceSelfDescription {
+fn remote_description(
+    instance_id: Uuid,
+    key: FederationPublicJwk,
+) -> InstanceSelfDescription {
     InstanceSelfDescription {
         instance_id,
         display_name: None,
         base_url: "https://myc-02.example.com".to_string(),
         version: "9.0.1".to_string(),
         assertion_kinds: vec![],
-        keys: vec![],
+        keys: vec![key],
         role_catalog_url: None,
     }
 }

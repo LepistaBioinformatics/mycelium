@@ -1,3 +1,4 @@
+use super::verify_with_peer_keys::verify;
 use crate::federation::PreparedFederation;
 
 use actix_web::{
@@ -17,8 +18,7 @@ use myc_core::{
 };
 use myc_http_tools::{
     federation::{
-        peek_peer_request_issuer, verify_peer_request, ExpectedPeerRequest,
-        VerifiedPeerRequest,
+        peek_peer_request_issuer, ExpectedPeerRequest, VerifiedPeerRequest,
     },
     responses::GatewayError,
     settings::PEER_REQUEST_SIGNATURE_KEY,
@@ -77,15 +77,15 @@ async fn authenticate(
     Ok(SignedPeerRequest { peer, body })
 }
 
-fn unauthorized(reason: &str) -> Error {
+pub(super) fn unauthorized(reason: &str) -> Error {
     GatewayError::Unauthorized(reason.to_string()).into()
 }
 
-fn internal(reason: impl ToString) -> Error {
+pub(super) fn internal(reason: impl ToString) -> Error {
     GatewayError::InternalServerError(reason.to_string()).into()
 }
 
-fn app_data<T: ?Sized + 'static>(
+pub(super) fn app_data<T: ?Sized + 'static>(
     req: &HttpRequest,
 ) -> Result<&web::Data<T>, Error> {
     req.app_data::<web::Data<T>>()
@@ -139,21 +139,6 @@ async fn admitted_peer(
     }
 }
 
-async fn verify(
-    req: &HttpRequest,
-    jws: &str,
-    peer: &FederationPeer,
-    expected: &ExpectedPeerRequest<'_>,
-) -> Result<VerifiedPeerRequest, Error> {
-    let peers = app_data::<dyn FederationPeerRead>(req)?;
-    let keys = peers.list_keys(peer.id).await.map_err(internal)?;
-
-    verify_peer_request(jws, &keys, expected).map_err(|rejection| {
-        tracing::warn!(peer = %peer.instance_id, %rejection, "peer request refused");
-        unauthorized(&rejection.to_string())
-    })
-}
-
 /// Single use across every pod; the nonce is kept past `exp` + tolerance
 async fn claim_once(
     req: &HttpRequest,
@@ -187,6 +172,7 @@ mod tests {
 
     use actix_web::{http::StatusCode, test, App, HttpResponse};
     use myc_core::domain::dtos::federation::PeerStatus;
+    use std::sync::Arc;
 
     const PATH: &str = "/federation/echo";
 
@@ -299,5 +285,46 @@ mod tests {
 
         assert_eq!(status, StatusCode::NOT_FOUND);
         assert_eq!(world.peers.key_reads(), 0);
+    }
+
+    #[actix_web::test]
+    async fn a_peer_without_stored_keys_is_fetched_once_then_served() {
+        let world = federation_world(PeerStatus::Declared);
+        world.peers.keys.lock().unwrap().clear();
+        let issuer = world.peers.peer.instance_id;
+        let jws = world.sign(issuer, PATH, "jti-first-contact", b"{}");
+
+        let (status, _) = call(&world, &jws, b"{}").await;
+
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(world.remote.calls(), 1);
+    }
+
+    #[actix_web::test]
+    async fn an_unknown_kid_with_fresh_keys_is_refused_without_a_fetch() {
+        let world = federation_world(PeerStatus::Active);
+        world.peers.keys.lock().unwrap()[0].kid = "2".to_string();
+        let issuer = world.peers.peer.instance_id;
+        let jws = world.sign(issuer, PATH, "jti-unknown-kid", b"{}");
+
+        let (status, _) = call(&world, &jws, b"{}").await;
+
+        assert_eq!(status, StatusCode::UNAUTHORIZED);
+        assert_eq!(world.remote.calls(), 0);
+    }
+
+    #[actix_web::test]
+    async fn a_peer_without_keys_handshaked_moments_ago_is_not_fetched_again() {
+        let mut world = federation_world(PeerStatus::Declared);
+        Arc::get_mut(&mut world.peers).unwrap().peer.updated =
+            Some(chrono::Local::now());
+        world.peers.keys.lock().unwrap().clear();
+        let issuer = world.peers.peer.instance_id;
+        let jws = world.sign(issuer, PATH, "jti-recent-attempt", b"{}");
+
+        let (status, _) = call(&world, &jws, b"{}").await;
+
+        assert_eq!(status, StatusCode::UNAUTHORIZED);
+        assert_eq!(world.remote.calls(), 0);
     }
 }
