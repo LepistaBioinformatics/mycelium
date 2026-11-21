@@ -44,6 +44,9 @@ pub const PEER_REQUEST_SIGNATURE_KEY: &str = "x-mycelium-peer-signature";
 pub const INSTANCE_SELF_DESCRIPTION_PATH: &str =
     "/.well-known/mycelium-instance";
 
+/// Where an instance serves its role catalog (D-10, FED-55)
+pub const ROLE_CATALOG_PATH: &str = "/.well-known/mycelium-instance/roles";
+
 /// Where a peer asks this instance to handshake again (FED-08)
 pub const FEDERATION_HANDSHAKE_PATH: &str = "/federation/handshake";
 

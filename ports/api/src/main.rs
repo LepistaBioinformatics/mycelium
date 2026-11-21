@@ -100,6 +100,8 @@ use myc_config::resolve_or_generate_standalone_secret;
 #[cfg(feature = "standalone")]
 use myc_config::secret_resolver::SecretResolver;
 #[cfg(feature = "federation")]
+use myc_core::domain::entities::GuestRoleFetching;
+#[cfg(feature = "federation")]
 use myc_core::domain::entities::InstanceSettingsRegistration;
 use myc_core::{
     domain::{
@@ -181,7 +183,9 @@ use reqwest::header::{
 #[cfg(feature = "federation")]
 use rest::federation::configure_federation_endpoints;
 #[cfg(feature = "federation")]
-use rest::index::instance_self_description_endpoints;
+use rest::index::{
+    instance_self_description_endpoints, role_catalog_endpoints,
+};
 use rest::{
     audit::resource_audit_trail_endpoints as audit_resource_audit_trail_endpoints,
     hosted_login::configure as configure_hosted_login_endpoints,
@@ -614,7 +618,7 @@ pub async fn main() -> std::io::Result<()> {
                     settings: sql_module.resolve(),
                     peer_client,
                 },
-                describe_this_instance(prepared).assertion_kinds,
+                describe_this_instance(prepared, false).assertion_kinds,
                 prepared.config.max_failures_before_open,
             )
         });
@@ -741,11 +745,14 @@ pub async fn main() -> std::io::Result<()> {
         let base_app = {
             let instance_settings: Arc<dyn InstanceSettingsFetching> =
                 sql_module.resolve();
+            let guest_roles: Arc<dyn GuestRoleFetching> = sql_module.resolve();
 
             let base_app = base_app
                 .app_data(web::Data::new(federation.clone()))
                 .app_data(web::Data::from(instance_settings))
-                .configure(instance_self_description_endpoints::configure);
+                .app_data(web::Data::from(guest_roles))
+                .configure(instance_self_description_endpoints::configure)
+                .configure(role_catalog_endpoints::configure);
 
             // Peer-authenticated endpoints (`/federation/*`), only when
             // `[core.federation]` is present.

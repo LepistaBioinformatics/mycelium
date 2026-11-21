@@ -8,14 +8,15 @@ use uuid::Uuid;
 /// Build the self-description this instance publishes (FED-03)
 ///
 /// `keys` are the public halves of every valid federation key (FED-04).
-/// F0 issues no assertion kind yet, and the role catalog URL appears once
-/// the catalog is served (D-10).
+/// No assertion kind is issued yet. `role_catalog_url` is set while the
+/// role catalog is published (D-10).
 ///
 pub fn describe_instance(
     instance_id: Uuid,
     config: &FederationConfig,
     version: &str,
     keys: Vec<FederationPublicJwk>,
+    role_catalog_url: Option<String>,
 ) -> InstanceSelfDescription {
     InstanceSelfDescription {
         instance_id,
@@ -24,7 +25,7 @@ pub fn describe_instance(
         version: version.to_string(),
         assertion_kinds: vec![],
         keys,
-        role_catalog_url: None,
+        role_catalog_url,
     }
 }
 
@@ -59,6 +60,7 @@ mod tests {
             &config(Some("Instance 01")),
             "9.0.1",
             vec![key("1"), key("2")],
+            None,
         ))
         .unwrap();
 
@@ -79,6 +81,7 @@ mod tests {
             &config(None),
             "9.0.1",
             vec![key("1")],
+            None,
         ))
         .unwrap();
 
@@ -92,6 +95,7 @@ mod tests {
             &config(Some("Instance 01")),
             "9.0.1",
             vec![key("1")],
+            None,
         ))
         .unwrap();
 
@@ -99,5 +103,22 @@ mod tests {
             assert!(key.get("d").is_none(), "{key}");
         }
         assert!(!document.to_string().contains("\"d\""));
+    }
+
+    #[test]
+    fn advertises_the_role_catalog_while_it_is_published() {
+        let document = serde_json::to_value(describe_instance(
+            Uuid::new_v4(),
+            &config(None),
+            "9.0.1",
+            vec![],
+            Some("https://myc-01.example.com/catalog".to_string()),
+        ))
+        .unwrap();
+
+        assert_eq!(
+            document["roleCatalogUrl"],
+            "https://myc-01.example.com/catalog"
+        );
     }
 }

@@ -1,4 +1,6 @@
-use crate::federation::{describe_this_instance, PreparedFederation};
+use crate::federation::{
+    describe_this_instance, role_catalog_published, PreparedFederation,
+};
 
 use actix_web::{web, HttpResponse};
 use myc_core::{
@@ -47,7 +49,9 @@ pub async fn get_instance_self_description(
         }
     }
 
-    HttpResponse::Ok().json(describe_this_instance(prepared))
+    let published = role_catalog_published(instance_settings.get_ref()).await;
+
+    HttpResponse::Ok().json(describe_this_instance(prepared, published))
 }
 
 #[cfg(test)]

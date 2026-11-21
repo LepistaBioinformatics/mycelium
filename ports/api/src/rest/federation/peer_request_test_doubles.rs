@@ -13,7 +13,7 @@ use myc_core::{
                 FederationPeer, FederationPolicy, InstanceSelfDescription,
                 NewFederationPeer, NewPeerKey, PeerKey, PeerStatus,
             },
-            instance_settings::InstanceSetting,
+            instance_settings::{InstanceSetting, FEDERATION_ROLE_CATALOG_KEY},
             profile_signature::SigningKeyVersion,
             written_by::WrittenBy,
         },
@@ -168,18 +168,30 @@ impl RequestNonceRegistration for SeenNonces {
     }
 }
 
-/// The runtime federation switch, on or off
-pub(crate) struct Switch(pub(crate) bool);
+/// The federation instance settings: the runtime switch and, when set,
+/// the role catalog mode
+pub(crate) struct Settings {
+    pub(crate) enabled: bool,
+    pub(crate) role_catalog: Option<&'static str>,
+}
 
 #[async_trait]
-impl InstanceSettingsFetching for Switch {
+impl InstanceSettingsFetching for Settings {
     async fn get(
         &self,
         key: String,
     ) -> Result<FetchResponseKind<InstanceSetting, ()>, MappedErrors> {
+        let value = match key.as_str() {
+            FEDERATION_ROLE_CATALOG_KEY => match self.role_catalog {
+                Some(mode) => serde_json::json!(mode),
+                None => return Ok(FetchResponseKind::NotFound(None)),
+            },
+            _ => serde_json::json!(self.enabled),
+        };
+
         Ok(FetchResponseKind::Found(InstanceSetting {
             key,
-            value: serde_json::json!(self.0),
+            value,
             created_by: None,
             updated_by: None,
             created: Local::now(),
@@ -231,6 +243,7 @@ pub(crate) struct FederationWorld {
     pub(crate) nonces: Arc<SeenNonces>,
     pub(crate) remote: Arc<RemotePeer>,
     pub(crate) enabled: bool,
+    pub(crate) role_catalog: Option<&'static str>,
 }
 
 pub(crate) fn federation_world(status: PeerStatus) -> FederationWorld {
@@ -262,6 +275,7 @@ pub(crate) fn federation_world(status: PeerStatus) -> FederationWorld {
         nonces: Arc::new(SeenNonces::default()),
         remote: Arc::new(remote),
         enabled: true,
+        role_catalog: None,
     }
 }
 
@@ -312,10 +326,22 @@ fn remote_description(instance_id: Uuid) -> InstanceSelfDescription {
 }
 
 impl FederationWorld {
-    /// A request signed by the declared peer's key, claiming `issuer`
+    /// A POST signed by the declared peer's key, claiming `issuer`
     pub(crate) fn sign(
         &self,
         issuer: Uuid,
+        path: &str,
+        jti: &str,
+        body: &[u8],
+    ) -> String {
+        self.sign_request(issuer, "POST", path, jti, body)
+    }
+
+    /// A request signed by the declared peer's key, claiming `issuer`
+    pub(crate) fn sign_request(
+        &self,
+        issuer: Uuid,
+        method: &str,
         path: &str,
         jti: &str,
         body: &[u8],
@@ -325,7 +351,7 @@ impl FederationWorld {
             &PeerRequest {
                 iss: issuer,
                 aud: self.local.instance_id,
-                method: "POST",
+                method,
                 path,
                 body,
                 jti,
@@ -341,8 +367,10 @@ impl FederationWorld {
         let read: Arc<dyn FederationPeerRead> = self.peers.clone();
         let write: Arc<dyn FederationPeerWrite> = self.peers.clone();
         let nonces: Arc<dyn RequestNonceRegistration> = self.nonces.clone();
-        let settings: Arc<dyn InstanceSettingsFetching> =
-            Arc::new(Switch(self.enabled));
+        let settings: Arc<dyn InstanceSettingsFetching> = Arc::new(Settings {
+            enabled: self.enabled,
+            role_catalog: self.role_catalog,
+        });
         let remote: Arc<dyn PeerClient> = self.remote.clone();
 
         config

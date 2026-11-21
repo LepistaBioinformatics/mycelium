@@ -1,9 +1,13 @@
 use super::SignedPeerRequest;
-use crate::federation::{describe_this_instance, PreparedFederation};
+use crate::federation::{
+    describe_this_instance, role_catalog_published, PreparedFederation,
+};
 
 use actix_web::{web, HttpResponse};
 use myc_core::{
-    domain::entities::{FederationPeerWrite, PeerClient},
+    domain::entities::{
+        FederationPeerWrite, InstanceSettingsFetching, PeerClient,
+    },
     use_cases::federation::handshake_peer,
 };
 use myc_http_tools::settings::FEDERATION_HANDSHAKE_PATH;
@@ -36,11 +40,13 @@ pub(crate) async fn accept_peer_handshake(
     prepared: web::Data<Option<PreparedFederation>>,
     peer_client: web::Data<dyn PeerClient>,
     peer_write: web::Data<dyn FederationPeerWrite>,
+    settings: web::Data<dyn InstanceSettingsFetching>,
 ) -> HttpResponse {
     let Some(prepared) = prepared.get_ref() else {
         return HttpResponse::NotFound().finish();
     };
-    let description = describe_this_instance(prepared);
+    let published = role_catalog_published(settings.get_ref()).await;
+    let description = describe_this_instance(prepared, published);
 
     if let Err(err) = handshake_peer(
         &request.peer,

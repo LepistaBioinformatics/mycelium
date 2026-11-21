@@ -4,16 +4,24 @@ use clap::Parser;
 use myc_core::{
     domain::{
         dtos::{
-            federation::{FederationPublicJwk, InstanceSelfDescription},
+            federation::{
+                FederationPublicJwk, InstanceSelfDescription, RoleCatalogMode,
+            },
             instance_settings::FEDERATION_INSTANCE_ID_KEY,
             profile_signature::SigningKeyVersion,
         },
         entities::InstanceSettingsFetching,
     },
     models::{CoreConfig, FederationConfig},
-    use_cases::federation::describe_instance,
+    use_cases::federation::{describe_instance, read_role_catalog_mode},
 };
-use myc_http_tools::models::{KeyDerivationPurpose, VersionedEd25519Signer};
+use myc_diesel::repositories::{
+    DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
+};
+use myc_http_tools::{
+    models::{KeyDerivationPurpose, VersionedEd25519Signer},
+    settings::ROLE_CATALOG_PATH,
+};
 use mycelium_base::{
     entities::FetchResponseKind,
     utils::errors::{execution_err, MappedErrors},
@@ -58,14 +66,25 @@ pub(crate) async fn describe_cmd() {
 }
 
 async fn describe() -> Result<InstanceSelfDescription, MappedErrors> {
+    let (core, config) = load_federation_config()?;
+    let secrets = core.account_life_cycle.hmac_signing_keys().await?;
+    let module = sql_module();
+    let settings: &dyn InstanceSettingsFetching = module.resolve_ref();
+    let instance_id = read_instance_id(settings).await?;
+    let role_catalog_url = role_catalog_url(settings, &config).await?;
+
+    build_description(instance_id, &config, &secrets, role_catalog_url)
+}
+
+/// `[core.federation]` from `SETTINGS_PATH`, checked by the same loader, so
+/// with the same message, as the gateway boot
+fn load_federation_config(
+) -> Result<(CoreConfig, FederationConfig), MappedErrors> {
     let settings_path = PathBuf::from(
         var("SETTINGS_PATH")
             .map_err(|_| execution_err("SETTINGS_PATH env var is required"))?,
     );
-
     let core = CoreConfig::from_default_config_file(settings_path.clone())?;
-
-    // Same loader, so the same message, as the gateway boot check.
     let config = FederationConfig::from_default_config_file(
         settings_path,
         &core.account_life_cycle,
@@ -74,17 +93,37 @@ async fn describe() -> Result<InstanceSelfDescription, MappedErrors> {
         execution_err("[core.federation] is absent from the configuration")
     })?;
 
-    let secrets = core.account_life_cycle.hmac_signing_keys().await?;
-    let instance_id = read_instance_id().await?;
+    Ok((core, config))
+}
 
-    build_description(instance_id, &config, &secrets)
+fn sql_module() -> SqlAppModule {
+    let database_url = try_to_resolve_database_url();
+
+    SqlAppModule::builder()
+        .with_component_parameters::<DieselDbPoolProvider>(
+            DieselDbPoolProviderParameters {
+                pool: DieselDbPoolProvider::new(&database_url),
+            },
+        )
+        .build()
+}
+
+/// The catalog URL the gateway advertises, unless the catalog is off
+async fn role_catalog_url(
+    settings: &dyn InstanceSettingsFetching,
+    config: &FederationConfig,
+) -> Result<Option<String>, MappedErrors> {
+    let mode = read_role_catalog_mode(Box::new(settings)).await?;
+    let base_url = config.base_url.trim_end_matches('/');
+
+    Ok((mode != RoleCatalogMode::Off)
+        .then(|| format!("{base_url}{ROLE_CATALOG_PATH}")))
 }
 
 /// The persisted instance id; the gateway mints it on its first boot
-async fn read_instance_id() -> Result<Uuid, MappedErrors> {
-    let module = connect_sql_module(&try_to_resolve_database_url());
-    let repo: &dyn InstanceSettingsFetching = module.resolve_ref();
-
+async fn read_instance_id(
+    repo: &dyn InstanceSettingsFetching,
+) -> Result<Uuid, MappedErrors> {
     let FetchResponseKind::Found(setting) =
         repo.get(FEDERATION_INSTANCE_ID_KEY.to_string()).await?
     else {
@@ -113,33 +152,41 @@ fn build_description(
     instance_id: Uuid,
     config: &FederationConfig,
     secrets: &[(u32, Vec<u8>)],
+    role_catalog_url: Option<String>,
 ) -> Result<InstanceSelfDescription, MappedErrors> {
-    let mut keys = Vec::with_capacity(secrets.len());
-    for (raw_version, secret) in secrets {
-        let Ok(version) = SigningKeyVersion::try_from(*raw_version) else {
-            continue;
-        };
-
-        let signer = VersionedEd25519Signer::derive_from_secret(
-            version,
-            secret,
-            KeyDerivationPurpose::Federation,
-        )?;
-
-        keys.push(
-            serde_json::from_value::<FederationPublicJwk>(
-                signer.public_jwk().to_json(),
-            )
-            .map_err(|err| execution_err(err.to_string()))?,
-        );
-    }
+    let keys = secrets
+        .iter()
+        .filter_map(|(version, secret)| {
+            public_key(*version, secret).transpose()
+        })
+        .collect::<Result<Vec<_>, _>>()?;
 
     Ok(describe_instance(
         instance_id,
         config,
         env!("CARGO_PKG_VERSION"),
         keys,
+        role_catalog_url,
     ))
+}
+
+/// The federation public key of one HMAC version; `None` for version `0`
+fn public_key(
+    raw_version: u32,
+    secret: &[u8],
+) -> Result<Option<FederationPublicJwk>, MappedErrors> {
+    let Ok(version) = SigningKeyVersion::try_from(raw_version) else {
+        return Ok(None);
+    };
+    let signer = VersionedEd25519Signer::derive_from_secret(
+        version,
+        secret,
+        KeyDerivationPurpose::Federation,
+    )?;
+
+    serde_json::from_value(signer.public_jwk().to_json())
+        .map(Some)
+        .map_err(|err| execution_err(err.to_string()))
 }
 
 #[cfg(test)]
@@ -180,9 +227,13 @@ mod tests {
     #[test]
     fn prints_one_public_key_per_version_and_nothing_private() {
         let instance_id = Uuid::new_v4();
-        let description =
-            build_description(instance_id, &config(), &secrets(&[0, 1, 2]))
-                .unwrap();
+        let description = build_description(
+            instance_id,
+            &config(),
+            &secrets(&[0, 1, 2]),
+            None,
+        )
+        .unwrap();
         let document = serde_json::to_value(&description).unwrap();
 
         assert_eq!(document["instanceId"], instance_id.to_string());
