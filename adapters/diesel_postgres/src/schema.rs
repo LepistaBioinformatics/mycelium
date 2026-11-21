@@ -47,6 +47,52 @@ diesel::table! {
 }
 
 diesel::table! {
+    federation_peer (id) {
+        id -> Uuid,
+        instance_id -> Uuid,
+        #[max_length = 2048]
+        base_url -> Varchar,
+        #[max_length = 255]
+        display_name -> Nullable<Varchar>,
+        #[max_length = 32]
+        status -> Varchar,
+        consume_kinds -> Jsonb,
+        serve_kinds -> Jsonb,
+        negotiated_kinds -> Jsonb,
+        policy -> Jsonb,
+        last_contact_at -> Nullable<Timestamptz>,
+        failure_count -> Int4,
+        created -> Timestamptz,
+        created_by -> Nullable<Jsonb>,
+        updated -> Nullable<Timestamptz>,
+        updated_by -> Nullable<Jsonb>,
+    }
+}
+
+diesel::table! {
+    federation_peer_key (peer_id, kid) {
+        peer_id -> Uuid,
+        #[max_length = 16]
+        kid -> Varchar,
+        #[max_length = 16]
+        alg -> Varchar,
+        #[max_length = 64]
+        public_key -> Varchar,
+        fetched_at -> Timestamptz,
+        expires_at -> Nullable<Timestamptz>,
+    }
+}
+
+diesel::table! {
+    federation_request_nonce (jti) {
+        #[max_length = 128]
+        jti -> Varchar,
+        peer_id -> Uuid,
+        expires_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     guest_role (id) {
         id -> Uuid,
         #[max_length = 140]
@@ -290,6 +336,8 @@ diesel::table! {
 
 diesel::joinable!(account -> tenant (tenant_id));
 diesel::joinable!(account_tag -> account (account_id));
+diesel::joinable!(federation_peer_key -> federation_peer (peer_id));
+diesel::joinable!(federation_request_nonce -> federation_peer (peer_id));
 diesel::joinable!(guest_user -> guest_role (guest_role_id));
 diesel::joinable!(guest_user_on_account -> account (account_id));
 diesel::joinable!(guest_user_on_account -> guest_user (guest_user_id));
@@ -306,6 +354,9 @@ diesel::allow_tables_to_appear_in_same_query!(
     account,
     account_tag,
     error_code,
+    federation_peer,
+    federation_peer_key,
+    federation_request_nonce,
     guest_role,
     guest_role_children,
     guest_user,

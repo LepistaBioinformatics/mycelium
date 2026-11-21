@@ -676,6 +676,47 @@ CREATE TABLE IF NOT EXISTS notification_dispatch (
 CREATE INDEX IF NOT EXISTS notification_dispatch_tag_created_idx
     ON notification_dispatch (sender_tag, created_at);
 
+-- Instance federation trust (F1): peers declared by the operator, their public
+-- keys, and the jti of accepted signed peer requests (replay guard shared by
+-- every pod). Status is validated by the application. See migration
+-- 20261121_01.
+CREATE TABLE IF NOT EXISTS federation_peer (
+    id               UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
+    instance_id      UUID          NOT NULL UNIQUE,
+    base_url         VARCHAR(2048) NOT NULL,
+    display_name     VARCHAR(255),
+    status           VARCHAR(32)   NOT NULL DEFAULT 'declared',
+    consume_kinds    JSONB         NOT NULL DEFAULT '[]'::JSONB,
+    serve_kinds      JSONB         NOT NULL DEFAULT '[]'::JSONB,
+    negotiated_kinds JSONB         NOT NULL DEFAULT '[]'::JSONB,
+    policy           JSONB         NOT NULL DEFAULT '{}'::JSONB,
+    last_contact_at  TIMESTAMPTZ,
+    failure_count    INT           NOT NULL DEFAULT 0,
+    created          TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    created_by       JSONB,
+    updated          TIMESTAMPTZ,
+    updated_by       JSONB
+);
+
+CREATE TABLE IF NOT EXISTS federation_peer_key (
+    peer_id    UUID         NOT NULL REFERENCES federation_peer (id) ON DELETE CASCADE,
+    kid        VARCHAR(16)  NOT NULL,
+    alg        VARCHAR(16)  NOT NULL,
+    public_key VARCHAR(64)  NOT NULL,
+    fetched_at TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    expires_at TIMESTAMPTZ,
+    PRIMARY KEY (peer_id, kid)
+);
+
+CREATE TABLE IF NOT EXISTS federation_request_nonce (
+    jti        VARCHAR(128) PRIMARY KEY,
+    peer_id    UUID         NOT NULL REFERENCES federation_peer (id) ON DELETE CASCADE,
+    expires_at TIMESTAMPTZ  NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS federation_request_nonce_expires_idx
+    ON federation_request_nonce (expires_at);
+
 --------------------------------------------------------------------------------
 -- PERMISSIONS
 --
