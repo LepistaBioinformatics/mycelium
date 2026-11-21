@@ -168,17 +168,18 @@ impl RequestNonceRegistration for SeenNonces {
     }
 }
 
-pub(crate) struct SwitchedOn;
+/// The runtime federation switch, on or off
+pub(crate) struct Switch(pub(crate) bool);
 
 #[async_trait]
-impl InstanceSettingsFetching for SwitchedOn {
+impl InstanceSettingsFetching for Switch {
     async fn get(
         &self,
         key: String,
     ) -> Result<FetchResponseKind<InstanceSetting, ()>, MappedErrors> {
         Ok(FetchResponseKind::Found(InstanceSetting {
             key,
-            value: serde_json::json!(true),
+            value: serde_json::json!(self.0),
             created_by: None,
             updated_by: None,
             created: Local::now(),
@@ -229,6 +230,7 @@ pub(crate) struct FederationWorld {
     pub(crate) peers: Arc<PeerBook>,
     pub(crate) nonces: Arc<SeenNonces>,
     pub(crate) remote: Arc<RemotePeer>,
+    pub(crate) enabled: bool,
 }
 
 pub(crate) fn federation_world(status: PeerStatus) -> FederationWorld {
@@ -259,6 +261,7 @@ pub(crate) fn federation_world(status: PeerStatus) -> FederationWorld {
         }),
         nonces: Arc::new(SeenNonces::default()),
         remote: Arc::new(remote),
+        enabled: true,
     }
 }
 
@@ -338,7 +341,8 @@ impl FederationWorld {
         let read: Arc<dyn FederationPeerRead> = self.peers.clone();
         let write: Arc<dyn FederationPeerWrite> = self.peers.clone();
         let nonces: Arc<dyn RequestNonceRegistration> = self.nonces.clone();
-        let settings: Arc<dyn InstanceSettingsFetching> = Arc::new(SwitchedOn);
+        let settings: Arc<dyn InstanceSettingsFetching> =
+            Arc::new(Switch(self.enabled));
         let remote: Arc<dyn PeerClient> = self.remote.clone();
 
         config

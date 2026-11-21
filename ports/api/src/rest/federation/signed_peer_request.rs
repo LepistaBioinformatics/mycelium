@@ -285,4 +285,19 @@ mod tests {
 
         assert_eq!(status, StatusCode::UNAUTHORIZED);
     }
+
+    #[actix_web::test]
+    async fn the_kill_switch_refuses_every_request() {
+        let world = FederationWorld {
+            enabled: false,
+            ..federation_world(PeerStatus::Active)
+        };
+        let issuer = world.peers.peer.instance_id;
+        let jws = world.sign(issuer, PATH, "jti-killed", b"{}");
+
+        let (status, _) = call(&world, &jws, b"{}").await;
+
+        assert_eq!(status, StatusCode::NOT_FOUND);
+        assert_eq!(world.peers.key_reads(), 0);
+    }
 }
