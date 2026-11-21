@@ -139,6 +139,16 @@ pub struct PeerKey {
     pub expires_at: Option<DateTime<Local>>,
 }
 
+/// A peer public key to store, as read from its self-description
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewPeerKey {
+    pub kid: String,
+    pub alg: String,
+    pub public_key: String,
+    pub expires_at: Option<DateTime<Local>>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
