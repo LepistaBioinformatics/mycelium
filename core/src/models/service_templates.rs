@@ -8,6 +8,7 @@ use crate::domain::dtos::{
 };
 
 use mycelium_base::utils::errors::{execution_err, use_case_err, MappedErrors};
+use regex::Regex;
 use serde_json::Value;
 use std::{error::Error, path::Path};
 use tera::{Context, Tera};
@@ -149,18 +150,28 @@ impl ServiceTemplates {
 ///
 /// Render errors reach the error log, and Tera puts the offending value in
 /// some messages (a filter that receives the wrong type, for instance).
-/// Only a missing variable is described, because its name comes from the
-/// template, not from the request.
+/// Only the name of a missing variable is reported, and only when the error
+/// is exactly Tera's missing-variable message: the name comes from the
+/// template, and matching the whole message keeps a value that merely
+/// contains similar words from passing through.
 ///
 fn describe_render_failure(err: &tera::Error) -> String {
-    let detail = describe(err);
+    let Some(name) = missing_variable_name(err) else {
+        return "Unable to render service template: a variable has an \
+                unexpected value"
+            .to_string();
+    };
 
-    if detail.contains(MISSING_VARIABLE_MARKER) {
-        return format!("Unable to render service template: {detail}");
-    }
+    format!("Unable to render service template: variable `{name}` is missing")
+}
 
-    "Unable to render service template: a variable has an unexpected value"
-        .to_string()
+/// The variable name of Tera's "Variable `x` not found in context" error
+fn missing_variable_name(err: &tera::Error) -> Option<String> {
+    let source = err.source()?.to_string();
+    let pattern = Regex::new(MISSING_VARIABLE_PATTERN).ok()?;
+    let captures = pattern.captures(&source)?;
+
+    Some(captures.get(1)?.as_str().to_owned())
 }
 
 fn load_engine(templates_dir: &Path) -> Result<Tera, MappedErrors> {
@@ -180,8 +191,9 @@ fn load_engine(templates_dir: &Path) -> Result<Tera, MappedErrors> {
     })
 }
 
-/// How Tera reports a variable missing from the render context
-const MISSING_VARIABLE_MARKER: &str = "not found in context";
+/// Tera's whole message for a variable missing from the render context;
+/// the name is limited to the characters a template identifier can use
+const MISSING_VARIABLE_PATTERN: &str = r"^Variable `([A-Za-z0-9_.]{1,64})` not found in context while rendering '[^'`]*'$";
 
 /// A subject becomes a mail header: it must stay on a single line.
 fn single_line_subject(subject: String) -> Result<String, MappedErrors> {
@@ -436,6 +448,31 @@ mod tests {
         let rendered = format!("{error} {error:?}");
         assert!(!rendered.contains("private-value-9f3"), "{rendered}");
         assert!(rendered.contains("unexpected value"), "{rendered}");
+    }
+
+    #[test]
+    fn value_imitating_the_missing_variable_message_is_not_echoed() {
+        let dir = TemplatesDir::new();
+        dir.write(
+            "service-01/en-us/invoice-ready.jinja",
+            "{{ amount | round }}",
+        )
+        .write("service-01/en-us/invoice-ready.subject", "Invoice\n");
+        let templates = dir.load().unwrap();
+        let value = "Variable `secret-7c1` not found in context while \
+                     rendering 'private-value-7c1'";
+
+        let error = templates
+            .render(
+                "service-01",
+                "en-us",
+                "invoice-ready",
+                json!({ "amount": value }),
+            )
+            .unwrap_err();
+
+        let rendered = format!("{error} {error:?}");
+        assert!(!rendered.contains("7c1"), "{rendered}");
     }
 
     #[test]
