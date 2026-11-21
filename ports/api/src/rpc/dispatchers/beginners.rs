@@ -9,11 +9,11 @@ use super::super::{
         CheckTokenAndActivateUserParams, CheckTokenAndResetPasswordParams,
         CreateAccountMetaParams, CreateConnectionStringParams,
         CreateDefaultAccountParams, CreateDefaultUserParams,
-        DeleteAccountMetaParams, DeleteConnectionStringParams,
-        DeleteMyAccountParams, FetchMyProfileParams,
-        FetchTenantPublicInfoParams, RevokeConnectionStringParams,
-        StartPasswordRedefinitionParams, TotpCheckTokenParams,
-        TotpDisableParams, TotpFinishActivationParams,
+        CreateNotificationConnectionStringParams, DeleteAccountMetaParams,
+        DeleteConnectionStringParams, DeleteMyAccountParams,
+        FetchMyProfileParams, FetchTenantPublicInfoParams,
+        RevokeConnectionStringParams, StartPasswordRedefinitionParams,
+        TotpCheckTokenParams, TotpDisableParams, TotpFinishActivationParams,
         TotpStartActivationParams, UpdateAccountMetaParams,
         UpdateOwnAccountNameParams,
     },
@@ -42,7 +42,7 @@ use myc_core::{
         profile::{LicensedResources, TenantsOwnership},
         security_group::PermissionedRole,
     },
-    models::AccountLifeCycle,
+    models::{AccountLifeCycle, ServiceNotificationsConfig},
     use_cases::role_scoped::beginner::{
         account::{
             create_user_account, delete_my_account, get_my_account_details,
@@ -52,8 +52,9 @@ use myc_core::{
         meta::{create_account_meta, delete_account_meta, update_account_meta},
         tenant::fetch_tenant_public_info,
         token::{
-            create_connection_string, delete_connection_string,
-            list_my_connection_strings, revoke_connection_string,
+            create_connection_string, create_notification_connection_string,
+            delete_connection_string, list_my_connection_strings,
+            revoke_connection_string,
         },
         user::{
             check_email_password_validity, check_token_and_activate_user,
@@ -64,6 +65,7 @@ use myc_core::{
     },
 };
 use myc_http_tools::responses::GatewayError;
+use myc_mem_db::repositories::MemDbAppModule;
 use shaku::HasComponent;
 use std::str::FromStr;
 use tracing::warn;
@@ -349,6 +351,41 @@ pub async fn dispatch_beginners(
                 message: e.to_string(),
                 data: None,
             })
+        }
+        method_names::BEGINNERS_TOKENS_CREATE_NOTIFICATION => {
+            let life_cycle = life_cycle_settings
+                .ok_or_else(|| invalid_params("Life cycle config required"))?
+                .get_ref();
+            let notifications_settings = req
+                .and_then(|r| {
+                    r.app_data::<web::Data<ServiceNotificationsConfig>>()
+                })
+                .ok_or_else(|| {
+                    invalid_params("Service notifications config required")
+                })?
+                .get_ref();
+            let mem_module = req
+                .and_then(|r| r.app_data::<web::Data<MemDbAppModule>>())
+                .ok_or_else(|| invalid_params("Services registry required"))?;
+            let p: CreateNotificationConnectionStringParams =
+                serde_json::from_value(params.ok_or_else(params_required)?)
+                    .map_err(|e| invalid_params(e.to_string()))?;
+            let result = create_notification_connection_string(
+                profile.to_profile(),
+                p.name,
+                p.expiration,
+                p.tenant_id,
+                p.sender_tag,
+                notifications_settings.to_owned(),
+                life_cycle.to_owned(),
+                Box::new(&*mem_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+                Box::new(&*app_module.resolve_ref()),
+            )
+            .await
+            .map_err(mapped_errors_to_jsonrpc_error)?;
+            Ok(serde_json::json!({ "connectionString": result }))
         }
         method_names::BEGINNERS_TOKENS_LIST => {
             let result = list_my_connection_strings(

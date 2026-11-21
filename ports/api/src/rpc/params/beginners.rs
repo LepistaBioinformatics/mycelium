@@ -131,6 +131,25 @@ pub struct CreateConnectionStringParams {
 }
 
 #[derive(Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct CreateNotificationConnectionStringParams {
+    #[schemars(description = "Token name")]
+    pub name: String,
+    #[schemars(
+        description = "Expiration time in seconds. Must be positive and not above the instance maxConnectionStringTtlInDays"
+    )]
+    pub expiration: i64,
+    #[schemars(
+        description = "Tenant the string is bound to. Required when the service recipientPolicy is tenantMembers"
+    )]
+    pub tenant_id: Option<Uuid>,
+    #[schemars(
+        description = "senderTag of the service allowed to send emails with this string"
+    )]
+    pub sender_tag: String,
+}
+
+#[derive(Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct RevokeConnectionStringParams {
     #[schemars(description = "Token ID to revoke (set expiration to now)")]
@@ -212,4 +231,41 @@ pub struct TotpCheckTokenParams {
 pub struct TotpDisableParams {
     pub email: String,
     pub token: String,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn notification_params_parse_from_camel_case() {
+        let tenant_id = Uuid::new_v4();
+        let params: CreateNotificationConnectionStringParams =
+            serde_json::from_value(serde_json::json!({
+                "name": "token",
+                "expiration": 3600,
+                "tenantId": tenant_id,
+                "senderTag": "service-01",
+            }))
+            .unwrap();
+
+        assert_eq!(params.name, "token");
+        assert_eq!(params.expiration, 3600);
+        assert_eq!(params.tenant_id, Some(tenant_id));
+        assert_eq!(params.sender_tag, "service-01");
+    }
+
+    #[test]
+    fn notification_params_reject_general_token_fields() {
+        let result = serde_json::from_value::<
+            CreateNotificationConnectionStringParams,
+        >(serde_json::json!({
+            "name": "token",
+            "expiration": 3600,
+            "senderTag": "service-01",
+            "roles": [{ "name": "admin" }],
+        }));
+
+        assert!(result.is_err());
+    }
 }

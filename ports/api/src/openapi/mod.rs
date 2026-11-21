@@ -267,6 +267,7 @@ struct BeginnersTenantApiDoc;
     ),
     paths(
         Beginners__Token::create_connection_string_url,
+        Beginners__Token::create_notification_connection_string_url,
         Beginners__Token::list_my_connection_strings_url,
     ),
     security(("Bearer" = [], "ConnectionString" = []))
@@ -766,6 +767,7 @@ struct UsersManagerAccountApiDoc;
             Beginners__User::ResetPasswordBody,
             Beginners__User::CheckUserCredentialsBody,
             Beginners__Token::CreateTokenBody,
+            Beginners__Token::CreateNotificationTokenBody,
 
             //
             // GATEWAY MANAGER
