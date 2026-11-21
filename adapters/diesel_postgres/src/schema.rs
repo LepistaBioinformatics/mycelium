@@ -273,6 +273,21 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    notification_dispatch (id) {
+        id -> Uuid,
+        sender_tag -> Varchar,
+        channel -> Varchar,
+        connection_string_id -> Int4,
+        account_id -> Uuid,
+        tenant_id -> Nullable<Uuid>,
+        recipient -> Varchar,
+        template -> Varchar,
+        locale -> Varchar,
+        created_at -> Timestamptz,
+    }
+}
+
 diesel::joinable!(account -> tenant (tenant_id));
 diesel::joinable!(account_tag -> account (account_id));
 diesel::joinable!(guest_user -> guest_role (guest_role_id));

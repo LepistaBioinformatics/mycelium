@@ -1,4 +1,5 @@
 mod email_dispatcher;
+mod notification_dispatch_retention;
 mod resource_audit_log_dispatcher;
 mod services_health_dispatcher;
 mod webhook_dispatcher;

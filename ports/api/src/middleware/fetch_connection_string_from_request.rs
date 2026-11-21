@@ -7,8 +7,8 @@ use myc_core::{
         dtos::{
             native_error_codes::NativeErrorCodes,
             token::{
-                MultiTypeMeta, NotificationScope, UserAccountConnectionString,
-                UserAccountScope,
+                MultiTypeMeta, NotificationScope, Token,
+                UserAccountConnectionString, UserAccountScope,
             },
         },
         entities::TokenFetching,
@@ -49,7 +49,8 @@ pub async fn fetch_connection_string_from_request(
         )));
     }
 
-    let connection_string = fetch_stored_connection_string(&req, scope).await?;
+    let token = fetch_stored_connection_string(&req, scope).await?;
+    let connection_string = user_account_connection_string(token)?;
 
     Ok(MyceliumConnectionStringData::new(connection_string))
 }
@@ -58,16 +59,16 @@ pub async fn fetch_connection_string_from_request(
 ///
 /// Accepts only strings whose `SCP` bean grants `notify:email`. General
 /// strings, and scoped strings without that scope, are rejected with
-/// MYC00034.
+/// MYC00034. Returns the stored string together with its `token.id`, which
+/// the dispatch trace records.
 ///
-#[allow(dead_code)] // Wired by the notification send endpoint.
 #[tracing::instrument(
     name = "fetch_notification_connection_string_from_request",
     skip_all
 )]
 pub async fn fetch_notification_connection_string_from_request(
     req: HttpRequest,
-) -> Result<UserAccountConnectionString, GatewayError> {
+) -> Result<(i32, UserAccountConnectionString), GatewayError> {
     let scope = parse_and_verify_connection_string(&req).await?;
 
     let grants_notify_email = scope
@@ -87,7 +88,17 @@ pub async fn fetch_notification_connection_string_from_request(
         )));
     }
 
-    fetch_stored_connection_string(&req, scope).await
+    let token = fetch_stored_connection_string(&req, scope).await?;
+
+    let Some(token_id) = token.get_id() else {
+        error!("Stored notification connection string has no id");
+
+        return Err(GatewayError::InternalServerError(
+            "Invalid connection string".to_string(),
+        ));
+    };
+
+    Ok((token_id, user_account_connection_string(token)?))
 }
 
 /// Read the connection string header, parse it and verify its signature
@@ -185,7 +196,7 @@ async fn parse_and_verify_connection_string(
 async fn fetch_stored_connection_string(
     req: &HttpRequest,
     scope: UserAccountScope,
-) -> Result<UserAccountConnectionString, GatewayError> {
+) -> Result<Token, GatewayError> {
     // ? -----------------------------------------------------------------------
     // ? Build dependencies
     // ? -----------------------------------------------------------------------
@@ -231,15 +242,19 @@ async fn fetch_stored_connection_string(
         }
     };
 
-    let meta = match token.meta {
-        MultiTypeMeta::UserAccountConnectionString(string) => string,
-        _ => {
-            error!("Connection string is not a UserAccountConnectionString");
+    Ok(token)
+}
 
-            return Err(GatewayError::InternalServerError(
-                "Invalid connection string".to_string(),
-            ));
-        }
+/// The account connection string carried by a stored token
+fn user_account_connection_string(
+    token: Token,
+) -> Result<UserAccountConnectionString, GatewayError> {
+    let MultiTypeMeta::UserAccountConnectionString(meta) = token.meta else {
+        error!("Connection string is not a UserAccountConnectionString");
+
+        return Err(GatewayError::InternalServerError(
+            "Invalid connection string".to_string(),
+        ));
     };
 
     Ok(meta)

@@ -69,6 +69,7 @@ use dispatchers::{
 use middleware::{log_served_request, StaffBootstrapClaimed};
 use models::active_backend_modules::{KVAppModule, SqlAppModule};
 use models::config_handler::ConfigHandler;
+use models::load_service_templates::load_service_templates;
 #[cfg(feature = "full")]
 use myc_adapters_shared_lib::models::{
     SharedAppModule, SharedClientImpl, SharedClientImplParameters,
@@ -89,8 +90,8 @@ use myc_core::{
         },
         entities::{
             GuestRoleRegistration, InstanceSettingsFetching,
-            LocalMessageReading, LocalMessageWrite, RemoteMessageWrite,
-            ServiceRead,
+            LocalMessageReading, LocalMessageWrite,
+            NotificationDispatchRegistration, RemoteMessageWrite, ServiceRead,
         },
     },
     models::AccountLifeCycle,
@@ -449,6 +450,29 @@ pub async fn main() -> std::io::Result<()> {
         })?;
 
     // ? -----------------------------------------------------------------------
+    // ? LOAD THE SERVICE NOTIFICATION TEMPLATES
+    //
+    // Loaded and validated before the server accepts traffic: a malformed
+    // template, or a declared one missing for the default locale, fails the
+    // boot. Without any service declaring `notifications`, nothing is loaded
+    // and no `templatesDir` is required.
+    //
+    // ? -----------------------------------------------------------------------
+    info!("Loading service notification templates");
+
+    let service_templates = web::Data::new(
+        load_service_templates(
+            &config.api.services,
+            &config.core.service_notifications,
+        )
+        .map_err(|err| {
+            tracing::error!("Error loading service templates: {err}");
+
+            std::io::Error::new(std::io::ErrorKind::Other, err.to_string())
+        })?,
+    );
+
+    // ? -----------------------------------------------------------------------
     // ? FIRE THE EMAIL DISPATCHER
     //
     // The email dispatcher should be fired to allow emails to be sent.
@@ -462,6 +486,10 @@ pub async fn main() -> std::io::Result<()> {
         HasComponent::<dyn LocalMessageReading>::resolve(&*sql_module),
         HasComponent::<dyn LocalMessageWrite>::resolve(&*sql_module),
         HasComponent::<dyn RemoteMessageWrite>::resolve(&*notifier_module),
+        HasComponent::<dyn NotificationDispatchRegistration>::resolve(
+            &*sql_module,
+        ),
+        config.core.service_notifications.retention_days,
     )
     .instrument(span.to_owned())
     .await;
@@ -603,6 +631,7 @@ pub async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(tools_registry_schema.clone()))
             .app_data(web::Data::new(token_config).clone())
             .app_data(web::Data::new(service_notifications_config))
+            .app_data(service_templates.clone())
             .app_data(web::Data::new(auth_config.to_owned()).clone())
             .app_data(staff_bootstrap_claimed.clone())
             //
@@ -784,6 +813,15 @@ pub async fn main() -> std::io::Result<()> {
             .service(
                 web::scope("audit")
                     .configure(audit_resource_audit_trail_endpoints::configure),
+            )
+            //
+            // Downstream service notifications. Authenticated only by a
+            // notification connection string inside the handler: no
+            // `wrap_fn`/role header and no JWT extractor.
+            //
+            .service(
+                web::scope("notifications")
+                    .configure(rest::notifications::configure),
             )
             //
             // Role Scoped Endpoints

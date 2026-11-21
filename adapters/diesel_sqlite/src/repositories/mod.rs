@@ -11,6 +11,7 @@ pub mod hosted_login;
 pub mod instance_settings;
 pub mod licensed_resources;
 pub mod message;
+pub mod notification_dispatch;
 pub mod profile;
 pub mod resource_audit_log;
 pub mod tenant;
@@ -31,6 +32,7 @@ use hosted_login::*;
 use instance_settings::*;
 use licensed_resources::*;
 use message::*;
+use notification_dispatch::*;
 use optional_written_by_parser::*;
 use profile::*;
 use resource_audit_log::*;
@@ -83,6 +85,7 @@ module! {
             LicensedResourcesFetchingSqlDbRepository,
             LocalMessageReadSqlDbRepository,
             LocalMessageWriteSqlDbRepository,
+            NotificationDispatchRegistrationSqlDbRepository,
             ResourceAuditLogFetchingSqlDbRepository,
             ResourceAuditLogRegistrationSqlDbRepository,
             TenantDeletionSqlDbRepository,

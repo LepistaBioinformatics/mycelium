@@ -162,6 +162,43 @@ secret = "replaced-at-boot-by-standalone-secret-resolution"
 # visibilityTimeoutInSecs = 900
 
 # ------------------------------------------------------------------------------
+# DOWNSTREAM SERVICE NOTIFICATIONS
+#
+# Lets a downstream service send emails through the gateway with a
+# notification connection string (POST /_adm/notifications/email). Dormant
+# until a service declares a `[<service>.notifications]` block (example under
+# `[api.services]` below). This block is then optional except `templatesDir`,
+# which becomes required. Every key below shows its default.
+#
+# ROLLOUT: add the first `notifications` block only after EVERY gateway pod
+# runs a version that supports it. ROLLBACK: before going back to an older
+# version, delete every notification connection string first. See the
+# "Downstream APIs" book chapter (Sending emails from a service).
+# ------------------------------------------------------------------------------
+
+#[core.serviceNotifications]
+#
+## "header" keeps `From` equal to `noreplyEmail` and carries the service tag
+## in the X-Mycelium-Source-Service header: works with every provider. "plus"
+## sends from <local>+<senderTag>@<domain>; turn it on only after checking
+## that your provider accepts those senders (Google SMTP needs a send-as alias
+## or the SMTP relay; Azure Communication Services needs each sender
+## username registered on the verified domain).
+#senderTagMode = "header"
+#
+## Upper bound, in days, for the expiration of a notification string.
+#maxConnectionStringTtlInDays = 90
+#
+## Days the notification dispatch trace is kept; purged at most once an hour.
+#retentionDays = 90
+#
+## Root of the service templates: <templatesDir>/<senderTag>/<locale>/
+## <name>.jinja (body) and <name>.subject. Must not equal, contain or sit
+## inside TEMPLATES_DIR. Every declared template must exist for `en-us`; a
+## missing or malformed template fails the boot.
+#templatesDir = "service-templates"
+
+# ------------------------------------------------------------------------------
 # SQLITE DATABASE ADAPTER SETTINGS
 #
 # Path to the SQLite database file. Created and migrated automatically on
@@ -374,3 +411,19 @@ path = "/public"
 secretName = "service-01-authorization-header"
 acceptInsecureRouting = true
 methods = ["ALL"]
+#
+## Email notifications sent by service-01 (deny by default: without this
+## block the service can neither get notification strings nor send). Needs
+## `[core.serviceNotifications].templatesDir`. `quotaPerHour` is shared by all
+## gateway pods; `maxRecipientsPerMessage` must not exceed it.
+#[service-01.notifications]
+#senderTag = "service-01"
+#displayName = "Service 01"
+#issuerRoles = ["service-01-admin"]
+#issuerTenants = []
+## owner | tenantMembers (needs a tenant-bound string) | domains | any
+#recipientPolicy = "owner"
+#allowedDomains = []
+#templates = ["welcome"]
+#quotaPerHour = 100
+#maxRecipientsPerMessage = 10

@@ -187,4 +187,93 @@ mod tests {
         let _ = std::fs::remove_file(&config_path);
         let _ = std::fs::remove_dir_all(&dir);
     }
+
+    // ? -----------------------------------------------------------------------
+    // ? Downstream service notifications examples
+    // ? -----------------------------------------------------------------------
+
+    use crate::models::load_service_templates::load_service_templates;
+
+    #[cfg(feature = "full")]
+    const EXAMPLE: (&str, &str) =
+        ("config.full.example.toml", "#[api.services]");
+
+    #[cfg(feature = "postgres-only")]
+    const EXAMPLE: (&str, &str) =
+        ("config.postgres-only.example.toml", "#[api.services]");
+
+    #[cfg(feature = "standalone")]
+    const EXAMPLE: (&str, &str) = (
+        "config.standalone.example.toml",
+        "#[service-01.notifications]",
+    );
+
+    fn example_path(name: &str) -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../../settings")
+            .join(name)
+    }
+
+    /// Strip one leading `#` from the `anchor` line and from every commented
+    /// line right after it, as an operator enabling the example would.
+    fn uncomment_from(content: &str, anchor: &str) -> String {
+        let mut in_block = false;
+
+        content
+            .lines()
+            .map(|line| {
+                in_block =
+                    line == anchor || (in_block && line.starts_with('#'));
+
+                match in_block {
+                    true => &line[1..],
+                    false => line,
+                }
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+
+    #[test]
+    fn shipped_example_boots_without_service_templates() {
+        let config =
+            ConfigHandler::init_from_file(example_path(EXAMPLE.0)).unwrap();
+
+        let templates = load_service_templates(
+            &config.api.services,
+            &config.core.service_notifications,
+        )
+        .unwrap();
+
+        assert!(templates.is_none());
+        assert!(config.core.service_notifications.templates_dir.is_none());
+    }
+
+    #[test]
+    fn example_with_notifications_uncommented_parses() {
+        let (name, services_anchor) = EXAMPLE;
+        let content = std::fs::read_to_string(example_path(name)).unwrap();
+        let content = uncomment_from(&content, "#[core.serviceNotifications]");
+        let content = uncomment_from(&content, services_anchor);
+
+        let path = std::env::temp_dir()
+            .join(format!("myc-notifications-{}-{name}", std::process::id()));
+        std::fs::write(&path, content).unwrap();
+
+        let config = ConfigHandler::init_from_file(path.clone());
+        let _ = std::fs::remove_file(&path);
+        let config = config.unwrap();
+
+        let notifications = config
+            .api
+            .services
+            .iter()
+            .find_map(|service| service.notifications.as_ref())
+            .expect("the example notifications block was not attached");
+
+        assert_eq!(notifications.sender_tag, "service-01");
+        assert_eq!(notifications.max_recipients_per_message, 10);
+        assert_eq!(config.core.service_notifications.retention_days, 90);
+        assert!(config.core.service_notifications.templates_dir.is_some());
+    }
 }

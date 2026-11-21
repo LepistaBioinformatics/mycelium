@@ -18,14 +18,13 @@ use crate::{
         },
     },
     models::{AccountLifeCycle, ServiceNotificationsConfig},
-    use_cases::support::check_notification_issuer,
+    use_cases::support::{
+        check_notification_issuer, fetch_service_notification_config,
+    },
 };
 
 use chrono::{Duration, Local};
-use mycelium_base::{
-    entities::FetchManyResponseKind,
-    utils::errors::{use_case_err, MappedErrors},
-};
+use mycelium_base::utils::errors::{use_case_err, MappedErrors};
 use uuid::Uuid;
 
 const SECONDS_PER_DAY: i64 = 86_400;
@@ -65,7 +64,7 @@ pub async fn create_notification_connection_string(
     check_expiration(expiration, &notifications_settings)?;
 
     let service_settings =
-        fetch_service_notification_settings(&sender_tag, service_read_repo)
+        fetch_service_notification_config(&sender_tag, service_read_repo)
             .await?;
 
     check_tenant_requirement(tenant_id, &service_settings)?;
@@ -150,32 +149,6 @@ fn check_expiration(
     .as_error()
 }
 
-async fn fetch_service_notification_settings(
-    sender_tag: &str,
-    service_read_repo: Box<&dyn ServiceRead>,
-) -> Result<ServiceNotificationConfig, MappedErrors> {
-    let services =
-        match service_read_repo.list_services(None, None, None).await? {
-            FetchManyResponseKind::Found(services) => services,
-            FetchManyResponseKind::FoundPaginated { records, .. } => records,
-            FetchManyResponseKind::NotFound => vec![],
-        };
-
-    let service_settings = services
-        .into_iter()
-        .filter_map(|service| service.notifications)
-        .find(|settings| settings.sender_tag == sender_tag);
-
-    let Some(service_settings) = service_settings else {
-        return use_case_err("Service notifications not enabled")
-            .with_code(NativeErrorCodes::MYC00036)
-            .with_exp_true()
-            .as_error();
-    };
-
-    Ok(service_settings)
-}
-
 fn check_tenant_requirement(
     tenant_id: Option<Uuid>,
     service_settings: &ServiceNotificationConfig,
@@ -216,6 +189,7 @@ mod tests {
     };
     use myc_config::secret_resolver::SecretResolver;
     use mycelium_base::entities::CreateResponseKind;
+    use mycelium_base::entities::FetchManyResponseKind;
 
     const SENDER_TAG: &str = "service-01";
     const ISSUER_ROLE: &str = "service-01-admin";

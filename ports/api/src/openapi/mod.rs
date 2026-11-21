@@ -1,10 +1,13 @@
 use crate::modifiers::security::MyceliumSecurity;
-use crate::rest::{audit, index, manager, role_scoped, service, staff};
+use crate::rest::{
+    audit, index, manager, notifications, role_scoped, service, staff,
+};
 
 use myc_core::domain::dtos::{
     account, account_type, email, error_code, guest_role, guest_user,
-    http_secret, profile, resource_audit_log, route, service as service_dtos,
-    tag, tenant, token, user, webhook,
+    http_secret, profile, resource_audit_log, route,
+    send_service_email_request, service as service_dtos, tag, tenant, token,
+    user, webhook,
 };
 use myc_http_tools::{utils::HttpJsonResponse, SystemActor};
 use mycelium_base::dtos::{Children, Parent};
@@ -19,6 +22,7 @@ use index::heath_check_endpoints as Index__Heath_Check;
 use manager::account_endpoints as Managers__Accounts;
 use manager::guest_role_endpoints as Managers__Guest_Role;
 use manager::tenant_endpoints as Managers__Tenants;
+use notifications as Notifications__Email;
 use role_scoped::account_manager::guest_endpoints as Account_Manager__Guest;
 use role_scoped::account_manager::guest_role_endpoints as Account_Manager__Guest_Role;
 use role_scoped::beginners::account_endpoints as Beginners__Account;
@@ -48,6 +52,21 @@ use role_scoped::tenant_owner::tenant_endpoints as Tenant_Owner__Tenant;
 use role_scoped::users_manager::account_endpoints as Users_Manager__Account;
 use service::tools_endpoints as Service__Tools;
 use staff::account_endpoints as Staffs__Accounts;
+
+/// Notification Endpoints for Downstream Services
+///
+#[derive(OpenApi)]
+#[openapi(
+    info(
+        title = "Notifications | Email Endpoints",
+        description = "Endpoints a downstream service calls with a notification connection string to send emails. The connection string is a long-lived secret: never log it.",
+    ),
+    paths(
+        Notifications__Email::send_service_email_url,
+    ),
+    security(("ConnectionString" = []))
+)]
+struct NotificationsEmailApiDoc;
 
 /// Manager Endpoints for Account Management
 ///
@@ -628,6 +647,10 @@ struct UsersManagerAccountApiDoc;
         //
         (path = "/_adm/audit", api = AuditResourceTrailApiDoc),
         //
+        // Downstream service notifications (notification connection string)
+        //
+        (path = "/_adm/notifications", api = NotificationsEmailApiDoc),
+        //
         // Beginner endpoints
         //
         (path = "/_adm/beginners/accounts", api = BeginnersAccountApiDoc),
@@ -768,6 +791,12 @@ struct UsersManagerAccountApiDoc;
             Beginners__User::CheckUserCredentialsBody,
             Beginners__Token::CreateTokenBody,
             Beginners__Token::CreateNotificationTokenBody,
+
+            //
+            // NOTIFICATIONS
+            //
+            send_service_email_request::SendServiceEmailRequest,
+            Notifications__Email::SendServiceEmailResponse,
 
             //
             // GATEWAY MANAGER

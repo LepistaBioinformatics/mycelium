@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-11-20T22:05:51-03:00\n"
+"POT-Creation-Date: 2026-11-20T23:05:23-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -540,7 +540,7 @@ msgstr ""
 "Docker Compose e todas as dependências"
 
 #: src/02-installation.md:111 src/03-quick-start.md:139
-#: src/05-deploy-locally.md:105 src/06-downstream-apis.md:320
+#: src/05-deploy-locally.md:105 src/06-downstream-apis.md:416
 #: src/10-alternative-idps.md:469 src/07-running-tests.md:73
 #: src/08-release-process.md:313 src/09-log-cache-tests.md:175
 msgid "Troubleshooting"
@@ -889,8 +889,8 @@ msgstr ""
 
 #: src/04-configuration.md:58 src/04-configuration.md:81
 #: src/04-configuration.md:103 src/04-configuration.md:184
-#: src/04-configuration.md:211 src/06-downstream-apis.md:338
-#: src/06-downstream-apis.md:353 src/12-response-callbacks.md:165
+#: src/04-configuration.md:211 src/06-downstream-apis.md:434
+#: src/06-downstream-apis.md:449 src/12-response-callbacks.md:165
 #: src/12-response-callbacks.md:187 src/20-encryption-inventory.md:16
 #: src/20-encryption-inventory.md:49
 msgid "Field"
@@ -899,7 +899,7 @@ msgstr "Campo"
 #: src/04-configuration.md:58 src/04-configuration.md:81
 #: src/04-configuration.md:103 src/04-configuration.md:184
 #: src/04-configuration.md:211 src/06-downstream-apis.md:187
-#: src/06-downstream-apis.md:338 src/06-downstream-apis.md:353
+#: src/06-downstream-apis.md:434 src/06-downstream-apis.md:449
 #: src/12-response-callbacks.md:165 src/12-response-callbacks.md:187
 #: src/16-webhooks.md:98 src/17-error-codes.md:90 src/14-json-rpc.md:64
 #: src/14-json-rpc.md:80 src/14-json-rpc.md:92 src/14-json-rpc.md:106
@@ -4154,19 +4154,19 @@ msgid "What headers does my service receive?"
 msgstr "Quais cabeçalhos meu serviço recebe?"
 
 #: src/06-downstream-apis.md:262 src/06-downstream-apis.md:263
-#: src/06-downstream-apis.md:264 src/06-downstream-apis.md:342
-#: src/06-downstream-apis.md:355 src/06-downstream-apis.md:356
-#: src/06-downstream-apis.md:357 src/12-response-callbacks.md:189
+#: src/06-downstream-apis.md:264 src/06-downstream-apis.md:438
+#: src/06-downstream-apis.md:451 src/06-downstream-apis.md:452
+#: src/06-downstream-apis.md:453 src/12-response-callbacks.md:189
 #: src/12-response-callbacks.md:190
 msgid "Yes"
 msgstr ""
 
-#: src/06-downstream-apis.md:262 src/06-downstream-apis.md:344
-#: src/06-downstream-apis.md:345 src/06-downstream-apis.md:346
-#: src/06-downstream-apis.md:347 src/06-downstream-apis.md:348
-#: src/06-downstream-apis.md:349 src/06-downstream-apis.md:358
-#: src/06-downstream-apis.md:359 src/06-downstream-apis.md:360
-#: src/06-downstream-apis.md:361 src/12-response-callbacks.md:191
+#: src/06-downstream-apis.md:262 src/06-downstream-apis.md:440
+#: src/06-downstream-apis.md:441 src/06-downstream-apis.md:442
+#: src/06-downstream-apis.md:443 src/06-downstream-apis.md:444
+#: src/06-downstream-apis.md:445 src/06-downstream-apis.md:454
+#: src/06-downstream-apis.md:455 src/06-downstream-apis.md:456
+#: src/06-downstream-apis.md:457 src/12-response-callbacks.md:191
 #: src/12-response-callbacks.md:192 src/12-response-callbacks.md:193
 #: src/12-response-callbacks.md:200 src/12-response-callbacks.md:201
 #: src/12-response-callbacks.md:202
@@ -4245,7 +4245,204 @@ msgid ""
 "```"
 msgstr ""
 
+#: src/06-downstream-apis.md:320
+msgid "Sending emails from a service (notifications)"
+msgstr ""
+
 #: src/06-downstream-apis.md:322
+msgid ""
+"A downstream service can ask the gateway to send an email on its behalf, for "
+"example from a background job that has no user session. The gateway renders "
+"an operator-deployed template, sets the sender and the attribution itself, "
+"and queues one message per recipient."
+msgstr ""
+
+#: src/06-downstream-apis.md:327
+msgid ""
+"The feature is off for every service until the service declares a "
+"`notifications` block:"
+msgstr ""
+
+#: src/06-downstream-apis.md:330
+msgid ""
+"```toml\n"
+"[core.serviceNotifications]\n"
+"templatesDir = \"service-templates\"   # required once any service enables "
+"notifications\n"
+"# senderTagMode = \"header\"           # header | plus\n"
+"# maxConnectionStringTtlInDays = 90\n"
+"# retentionDays = 90\n"
+"\n"
+"[api.services]\n"
+"\n"
+"[[service-01]]\n"
+"host = \"service-01.internal:8080\"\n"
+"protocol = \"http\"\n"
+"\n"
+"[service-01.notifications]\n"
+"senderTag = \"service-01\"\n"
+"displayName = \"Service 01\"\n"
+"issuerRoles = [\"service-01-admin\"]\n"
+"recipientPolicy = \"owner\"            # owner | tenantMembers | domains | "
+"any\n"
+"templates = [\"welcome\"]\n"
+"quotaPerHour = 100                   # shared by every gateway pod\n"
+"maxRecipientsPerMessage = 10         # must not exceed quotaPerHour\n"
+"```"
+msgstr ""
+
+#: src/06-downstream-apis.md:353
+msgid ""
+"Templates live at `<templatesDir>/<senderTag>/<locale>/<name>.jinja` (body) "
+"and `<name>.subject`. Every declared template must exist for `en-us`. A "
+"missing or malformed template stops the gateway at boot."
+msgstr ""
+
+#: src/06-downstream-apis.md:357
+msgid ""
+"**Issuing a string.** A user holding one of the `issuerRoles` calls `POST /"
+"_adm/beginners/tokens/notifications` (or the JSON-RPC method "
+"`beginners.tokens.createNotification`) with the service `senderTag`. The "
+"returned connection string works only on the send endpoint: every other "
+"surface rejects it."
+msgstr ""
+
+#: src/06-downstream-apis.md:363
+msgid ""
+"**Sending.** The service calls `POST /_adm/notifications/email` with the "
+"string in the `x-mycelium-connection-string` header:"
+msgstr ""
+
+#: src/06-downstream-apis.md:367
+msgid "\"to\""
+msgstr ""
+
+#: src/06-downstream-apis.md:367
+msgid "\"user@example.com\""
+msgstr ""
+
+#: src/06-downstream-apis.md:367
+msgid "\"template\""
+msgstr ""
+
+#: src/06-downstream-apis.md:367
+msgid "\"welcome\""
+msgstr ""
+
+#: src/06-downstream-apis.md:367
+msgid "\"variables\""
+msgstr ""
+
+#: src/06-downstream-apis.md:367 src/16-webhooks.md:121
+msgid "\"name\""
+msgstr ""
+
+#: src/06-downstream-apis.md:367
+msgid "\"Ana\""
+msgstr ""
+
+#: src/06-downstream-apis.md:367
+msgid "\"locale\""
+msgstr ""
+
+#: src/06-downstream-apis.md:367
+msgid "\"pt-br\""
+msgstr ""
+
+#: src/06-downstream-apis.md:370
+msgid ""
+"The body accepts only these four fields. The service cannot choose the "
+"sender, the reply address, the subject, headers or raw HTML."
+msgstr ""
+
+#: src/06-downstream-apis.md:372
+msgid ""
+"`variables` holds strings, numbers and booleans only, at most 8192 bytes as "
+"compact JSON."
+msgstr ""
+
+#: src/06-downstream-apis.md:374
+msgid "Each `to` entry must be one bare address."
+msgstr ""
+
+#: src/06-downstream-apis.md:375
+msgid ""
+"The gateway re-checks the string creator on every send. If the account was "
+"deactivated, the role revoked or the service disabled, the send is refused."
+msgstr ""
+
+#: src/06-downstream-apis.md:377
+msgid ""
+"Answers: `202` with one message id per recipient; `401` for a missing, "
+"tampered, expired, revoked or general string; `403` for a disabled service, "
+"an issuer no longer allowed or a recipient outside the policy; `422` for an "
+"invalid body; `429` with `Retry-After` when the hourly quota is spent."
+msgstr ""
+
+#: src/06-downstream-apis.md:382
+msgid ""
+"**The connection string is a long-lived secret.** Store it like a password "
+"and never log it."
+msgstr ""
+
+#: src/06-downstream-apis.md:385
+msgid "Operator notes"
+msgstr ""
+
+#: src/06-downstream-apis.md:387
+msgid ""
+"**Rollout gate.** Add the first `notifications` block only after every "
+"gateway pod runs a version that supports it. Older pods answer `401` to "
+"notification strings while the rollout is in progress."
+msgstr ""
+
+#: src/06-downstream-apis.md:390
+msgid ""
+"**Rollback rule.** Before you roll back to a version without this feature, "
+"delete every notification connection string. An older binary cannot read "
+"them, and it fails to list the connection strings of the accounts that own "
+"them."
+msgstr ""
+
+#: src/06-downstream-apis.md:394
+msgid ""
+"**Sender tag mode.** `header` (the default) sends from `noreplyEmail` "
+"unchanged and carries the service in the `X-Mycelium-Source-Service` header. "
+"It works with every provider. `plus` sends from "
+"`<local>+<senderTag>@<domain>`. Turn it on only after you confirm that your "
+"provider accepts those senders:"
+msgstr ""
+
+#: src/06-downstream-apis.md:399
+msgid ""
+"**Google SMTP** (`smtp.gmail.com`) rejects or rewrites a `From` that is not "
+"the authenticated account or a configured \"send as\" alias. Each `+tag` "
+"address needs an alias, or use the SMTP relay (`smtp-relay.gmail.com`) "
+"configured for the domain."
+msgstr ""
+
+#: src/06-downstream-apis.md:403
+msgid ""
+"**Azure Communication Services Email** accepts only `MailFrom` usernames "
+"registered on the verified domain, so each `<noreply>+<tag>` must be "
+"registered."
+msgstr ""
+
+#: src/06-downstream-apis.md:407
+msgid ""
+"Neither provider has been tested with `plus`. When in doubt, keep `header`: "
+"the display name and the `X-Mycelium-*` headers carry the attribution in "
+"both modes."
+msgstr ""
+
+#: src/06-downstream-apis.md:410
+msgid ""
+"**Retention.** The dispatch trace (`notification_dispatch`) records who sent "
+"what to whom, without the template variables. Rows older than "
+"`retentionDays` are purged at most once an hour."
+msgstr ""
+
+#: src/06-downstream-apis.md:418
 msgid ""
 "**Route not matching** — Check that the path has a wildcard (`/api/*`) if "
 "you want to match subpaths. `/api/` only matches that exact path."
@@ -4254,7 +4451,7 @@ msgstr ""
 "curinga (`/api/*`) se deseja corresponder subcaminhos. `/api/` corresponde "
 "apenas a esse caminho exato."
 
-#: src/06-downstream-apis.md:325
+#: src/06-downstream-apis.md:421
 msgid ""
 "**401 on a protected route** — The JWT or connection string is missing, "
 "expired, or invalid. Check the `Authorization: Bearer <token>` or `x-"
@@ -4264,7 +4461,7 @@ msgstr ""
 "expirado ou inválido. Verifique o cabeçalho `Authorization: Bearer <token>` "
 "ou `x-mycelium-connection-string`."
 
-#: src/06-downstream-apis.md:328
+#: src/06-downstream-apis.md:424
 msgid ""
 "**403 on a role-protected route** — The user is authenticated but doesn't "
 "have the required role. Check role assignment in the Mycelium admin panel."
@@ -4273,7 +4470,7 @@ msgstr ""
 "não possui o papel necessário. Verifique a atribuição de papéis no painel de "
 "administração do Mycelium."
 
-#: src/06-downstream-apis.md:331
+#: src/06-downstream-apis.md:427
 msgid ""
 "**Downstream unreachable** — Verify `host`, `protocol`, and that the service "
 "is actually running. Use `acceptInsecureRouting = true` on the route if the "
@@ -4283,164 +4480,164 @@ msgstr ""
 "está realmente em execução. Use `acceptInsecureRouting = true` na rota se o "
 "downstream usar um certificado TLS autoassinado."
 
-#: src/06-downstream-apis.md:336
+#: src/06-downstream-apis.md:432
 msgid "Reference — service-level fields"
 msgstr "Referência — campos de nível de serviço"
 
-#: src/06-downstream-apis.md:338 src/06-downstream-apis.md:353
+#: src/06-downstream-apis.md:434 src/06-downstream-apis.md:449
 #: src/12-response-callbacks.md:187
 msgid "Required"
 msgstr "Obrigatório"
 
-#: src/06-downstream-apis.md:340
+#: src/06-downstream-apis.md:436
 msgid "`host`"
 msgstr ""
 
-#: src/06-downstream-apis.md:340
+#: src/06-downstream-apis.md:436
 msgid "Yes (or `hosts`)"
 msgstr "Sim (ou `hosts`)"
 
-#: src/06-downstream-apis.md:340
+#: src/06-downstream-apis.md:436
 msgid "Single downstream host with port"
 msgstr "Host downstream único com porta"
 
-#: src/06-downstream-apis.md:341
+#: src/06-downstream-apis.md:437
 msgid "`hosts`"
 msgstr ""
 
-#: src/06-downstream-apis.md:341
+#: src/06-downstream-apis.md:437
 msgid "Yes (or `host`)"
 msgstr "Sim (ou `host`)"
 
-#: src/06-downstream-apis.md:341
+#: src/06-downstream-apis.md:437
 msgid "Multiple hosts for load balancing"
 msgstr "Múltiplos hosts para balanceamento de carga"
 
-#: src/06-downstream-apis.md:342
+#: src/06-downstream-apis.md:438
 msgid "`protocol`"
 msgstr ""
 
-#: src/06-downstream-apis.md:342
+#: src/06-downstream-apis.md:438
 msgid "`\"http\"` or `\"https\"`"
 msgstr ""
 
-#: src/06-downstream-apis.md:343
+#: src/06-downstream-apis.md:439
 msgid "`allowedSources`"
 msgstr ""
 
-#: src/06-downstream-apis.md:343
+#: src/06-downstream-apis.md:439
 msgid "Required when `identitySource` is set"
 msgstr "Obrigatório quando `identitySource` está definido"
 
-#: src/06-downstream-apis.md:343
+#: src/06-downstream-apis.md:439
 msgid "Allowed `Host` headers (supports wildcards)"
 msgstr "Cabeçalhos `Host` permitidos (suporta curingas)"
 
-#: src/06-downstream-apis.md:344
+#: src/06-downstream-apis.md:440
 msgid "`discoverable`"
 msgstr ""
 
-#: src/06-downstream-apis.md:344
+#: src/06-downstream-apis.md:440
 msgid "Expose service to AI agents"
 msgstr "Expor serviço a agentes de IA"
 
-#: src/06-downstream-apis.md:345
+#: src/06-downstream-apis.md:441
 msgid "`description`"
 msgstr ""
 
-#: src/06-downstream-apis.md:345
+#: src/06-downstream-apis.md:441
 msgid "Human-readable description"
 msgstr "Descrição legível por humanos"
 
-#: src/06-downstream-apis.md:346
+#: src/06-downstream-apis.md:442
 msgid "`openapiPath`"
 msgstr ""
 
-#: src/06-downstream-apis.md:346
+#: src/06-downstream-apis.md:442
 msgid "Path to OpenAPI spec"
 msgstr "Caminho para a especificação OpenAPI"
 
-#: src/06-downstream-apis.md:347
+#: src/06-downstream-apis.md:443
 msgid "`healthCheckPath`"
 msgstr ""
 
-#: src/06-downstream-apis.md:347
+#: src/06-downstream-apis.md:443
 msgid "Health check endpoint"
 msgstr "Endpoint de health check"
 
-#: src/06-downstream-apis.md:348
+#: src/06-downstream-apis.md:444
 msgid "`capabilities`"
 msgstr ""
 
-#: src/06-downstream-apis.md:348
+#: src/06-downstream-apis.md:444
 msgid "Array of capability tags"
 msgstr "Array de tags de capacidade"
 
-#: src/06-downstream-apis.md:349
+#: src/06-downstream-apis.md:445
 msgid "`serviceType`"
 msgstr ""
 
-#: src/06-downstream-apis.md:349
+#: src/06-downstream-apis.md:445
 msgid "e.g. `\"rest-api\"`"
 msgstr ""
 
-#: src/06-downstream-apis.md:351
+#: src/06-downstream-apis.md:447
 msgid "Reference — route-level fields"
 msgstr "Referência — campos de nível de rota"
 
-#: src/06-downstream-apis.md:355
+#: src/06-downstream-apis.md:451
 msgid "`group`"
 msgstr ""
 
-#: src/06-downstream-apis.md:355
+#: src/06-downstream-apis.md:451
 msgid "Security group (see above)"
 msgstr "Grupo de segurança (ver acima)"
 
-#: src/06-downstream-apis.md:356
+#: src/06-downstream-apis.md:452
 msgid "`path`"
 msgstr ""
 
-#: src/06-downstream-apis.md:356
+#: src/06-downstream-apis.md:452
 msgid "URL path pattern, supports wildcards"
 msgstr "Padrão de caminho URL, suporta curingas"
 
-#: src/06-downstream-apis.md:357
+#: src/06-downstream-apis.md:453
 msgid "`methods`"
 msgstr ""
 
-#: src/06-downstream-apis.md:357
+#: src/06-downstream-apis.md:453
 msgid "HTTP methods, or `[\"ALL\"]`"
 msgstr ""
 
-#: src/06-downstream-apis.md:358
+#: src/06-downstream-apis.md:454
 msgid "`secretName`"
 msgstr ""
 
-#: src/06-downstream-apis.md:358
+#: src/06-downstream-apis.md:454
 msgid "Reference to a secret defined at service level"
 msgstr "Referência a um segredo definido no nível de serviço"
 
-#: src/06-downstream-apis.md:359
+#: src/06-downstream-apis.md:455
 msgid "`identitySource`"
 msgstr ""
 
-#: src/06-downstream-apis.md:359
+#: src/06-downstream-apis.md:455
 msgid "Body-based IdP. Currently: `\"telegram\"`"
 msgstr ""
 
-#: src/06-downstream-apis.md:360
+#: src/06-downstream-apis.md:456
 msgid "`acceptInsecureRouting`"
 msgstr ""
 
-#: src/06-downstream-apis.md:360
+#: src/06-downstream-apis.md:456
 msgid "Allow self-signed TLS certs on downstream"
 msgstr "Permitir certificados TLS autoassinados no downstream"
 
-#: src/06-downstream-apis.md:361
+#: src/06-downstream-apis.md:457
 msgid "`retry`"
 msgstr ""
 
-#: src/06-downstream-apis.md:361
+#: src/06-downstream-apis.md:457
 msgid "Retry policy for transient failures (see above)"
 msgstr ""
 
@@ -7559,10 +7756,6 @@ msgstr ""
 
 #: src/16-webhooks.md:120
 msgid "\"alice@example.com\""
-msgstr ""
-
-#: src/16-webhooks.md:121
-msgid "\"name\""
 msgstr ""
 
 #: src/16-webhooks.md:121
