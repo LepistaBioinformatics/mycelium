@@ -1,12 +1,9 @@
-use crate::federation::PreparedFederation;
+use crate::federation::{describe_this_instance, PreparedFederation};
 
 use actix_web::{web, HttpResponse};
 use myc_core::{
-    domain::{
-        dtos::federation::{FederationPublicJwk, InstanceSelfDescription},
-        entities::InstanceSettingsFetching,
-    },
-    use_cases::federation::{describe_instance, is_federation_enabled},
+    domain::entities::InstanceSettingsFetching,
+    use_cases::federation::is_federation_enabled,
 };
 use myc_http_tools::settings::INSTANCE_SELF_DESCRIPTION_PATH;
 
@@ -50,26 +47,7 @@ pub async fn get_instance_self_description(
         }
     }
 
-    HttpResponse::Ok().json(self_description(prepared))
-}
-
-fn self_description(prepared: &PreparedFederation) -> InstanceSelfDescription {
-    let keys = prepared
-        .signing
-        .public_keys
-        .iter()
-        .map(|key| {
-            serde_json::from_value::<FederationPublicJwk>(key.to_json())
-                .expect("a published Ed25519 JWK maps to FederationPublicJwk")
-        })
-        .collect();
-
-    describe_instance(
-        prepared.instance_id,
-        &prepared.config,
-        env!("CARGO_PKG_VERSION"),
-        keys,
-    )
+    HttpResponse::Ok().json(describe_this_instance(prepared))
 }
 
 #[cfg(test)]

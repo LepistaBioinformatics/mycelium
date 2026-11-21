@@ -18,7 +18,7 @@ use myc_core::{
 use myc_http_tools::{
     federation::{
         peek_peer_request_issuer, verify_peer_request, ExpectedPeerRequest,
-        PeerRequestClaims, VerifiedPeerRequest,
+        VerifiedPeerRequest,
     },
     responses::GatewayError,
     settings::PEER_REQUEST_SIGNATURE_KEY,
@@ -35,7 +35,10 @@ use uuid::Uuid;
 ///
 pub(crate) struct SignedPeerRequest {
     pub(crate) peer: FederationPeer,
-    pub(crate) claims: PeerRequestClaims,
+
+    // Read by the handlers that take a body (resolve and tombstone, F3/F5);
+    // drop the allow then.
+    #[allow(dead_code)]
     pub(crate) body: Bytes,
 }
 
@@ -46,7 +49,7 @@ impl FromRequest for SignedPeerRequest {
     #[tracing::instrument(name = "signed_peer_request_from_request", skip_all)]
     fn from_request(req: &HttpRequest, payload: &mut Payload) -> Self::Future {
         let req = req.clone();
-        let mut payload = payload.take();
+        let payload = payload.take();
 
         Box::pin(async move { authenticate(req, payload).await })
     }
@@ -71,11 +74,7 @@ async fn authenticate(
     let verified = verify(&req, &jws, &peer, &expected).await?;
     claim_once(&req, &peer, &verified, tolerance_secs).await?;
 
-    Ok(SignedPeerRequest {
-        peer,
-        claims: verified.claims,
-        body,
-    })
+    Ok(SignedPeerRequest { peer, body })
 }
 
 fn unauthorized(reason: &str) -> Error {
@@ -182,201 +181,14 @@ async fn claim_once(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::federation::FederationSigning;
+    use crate::rest::federation::peer_request_test_doubles::{
+        federation_world, FederationWorld,
+    };
 
     use actix_web::{http::StatusCode, test, App, HttpResponse};
-    use async_trait::async_trait;
-    use myc_core::{
-        domain::dtos::{
-            federation::{FederationPolicy, PeerKey, PeerStatus},
-            instance_settings::InstanceSetting,
-            profile_signature::SigningKeyVersion,
-        },
-        models::FederationConfig,
-    };
-    use myc_http_tools::{
-        federation::{sign_peer_request, PeerRequest},
-        models::{KeyDerivationPurpose, VersionedEd25519Signer},
-    };
-    use mycelium_base::{
-        entities::{FetchManyResponseKind, FetchResponseKind},
-        utils::errors::MappedErrors,
-    };
-    use std::{
-        collections::HashSet,
-        sync::{
-            atomic::{AtomicUsize, Ordering},
-            Arc, Mutex,
-        },
-    };
+    use myc_core::domain::dtos::federation::PeerStatus;
 
     const PATH: &str = "/federation/echo";
-
-    fn signer(secret: &[u8]) -> VersionedEd25519Signer {
-        VersionedEd25519Signer::derive_from_secret(
-            SigningKeyVersion::try_from(1).unwrap(),
-            secret,
-            KeyDerivationPurpose::Federation,
-        )
-        .unwrap()
-    }
-
-    struct Peers {
-        peer: FederationPeer,
-        key: PeerKey,
-        key_reads: AtomicUsize,
-    }
-
-    #[async_trait]
-    impl FederationPeerRead for Peers {
-        async fn get(
-            &self,
-            _: Uuid,
-        ) -> Result<FetchResponseKind<FederationPeer, Uuid>, MappedErrors>
-        {
-            unreachable!()
-        }
-
-        async fn get_by_instance_id(
-            &self,
-            instance_id: Uuid,
-        ) -> Result<FetchResponseKind<FederationPeer, Uuid>, MappedErrors>
-        {
-            match self.peer.instance_id == instance_id {
-                true => Ok(FetchResponseKind::Found(self.peer.clone())),
-                false => Ok(FetchResponseKind::NotFound(Some(instance_id))),
-            }
-        }
-
-        async fn list(
-            &self,
-        ) -> Result<FetchManyResponseKind<FederationPeer>, MappedErrors>
-        {
-            unreachable!()
-        }
-
-        async fn list_keys(
-            &self,
-            _: Uuid,
-        ) -> Result<Vec<PeerKey>, MappedErrors> {
-            self.key_reads.fetch_add(1, Ordering::SeqCst);
-            Ok(vec![self.key.clone()])
-        }
-    }
-
-    #[derive(Default)]
-    struct Nonces(Mutex<HashSet<String>>);
-
-    #[async_trait]
-    impl RequestNonceRegistration for Nonces {
-        async fn claim(
-            &self,
-            jti: String,
-            _: Uuid,
-            _: chrono::DateTime<Local>,
-        ) -> Result<bool, MappedErrors> {
-            Ok(self.0.lock().unwrap().insert(jti))
-        }
-
-        async fn purge_expired(&self) -> Result<u64, MappedErrors> {
-            Ok(0)
-        }
-    }
-
-    struct Enabled;
-
-    #[async_trait]
-    impl InstanceSettingsFetching for Enabled {
-        async fn get(
-            &self,
-            key: String,
-        ) -> Result<FetchResponseKind<InstanceSetting, ()>, MappedErrors>
-        {
-            Ok(FetchResponseKind::Found(InstanceSetting {
-                key,
-                value: serde_json::json!(true),
-                created_by: None,
-                updated_by: None,
-                created: Local::now(),
-                updated: None,
-            }))
-        }
-    }
-
-    struct World {
-        local: PreparedFederation,
-        peer_signer: VersionedEd25519Signer,
-        peers: Arc<Peers>,
-        nonces: Arc<Nonces>,
-    }
-
-    fn world(status: PeerStatus) -> World {
-        let local_signer = signer(b"local-test-secret");
-        let peer_signer = signer(b"peer-test-secret");
-        let peer = FederationPeer {
-            id: Uuid::new_v4(),
-            instance_id: Uuid::new_v4(),
-            base_url: "https://myc-02.example.com".to_string(),
-            display_name: None,
-            status,
-            consume_kinds: vec![],
-            serve_kinds: vec![],
-            negotiated_kinds: vec![],
-            policy: FederationPolicy::default(),
-            last_contact_at: None,
-            failure_count: 0,
-            created: Local::now(),
-            created_by: None,
-            updated: None,
-            updated_by: None,
-        };
-        let key = PeerKey {
-            peer_id: peer.id,
-            kid: "1".to_string(),
-            alg: "EdDSA".to_string(),
-            public_key: peer_signer.public_jwk().x(),
-            fetched_at: Local::now(),
-            expires_at: None,
-        };
-
-        World {
-            local: PreparedFederation {
-                config: serde_json::from_value::<FederationConfig>(
-                    serde_json::json!({"baseUrl": "https://myc-01.example.com"}),
-                )
-                .unwrap(),
-                instance_id: Uuid::new_v4(),
-                signing: FederationSigning {
-                    public_keys: vec![local_signer.public_jwk().clone()],
-                    primary: Arc::new(local_signer),
-                },
-            },
-            peer_signer,
-            peers: Arc::new(Peers {
-                peer,
-                key,
-                key_reads: AtomicUsize::new(0),
-            }),
-            nonces: Arc::new(Nonces::default()),
-        }
-    }
-
-    fn signed(world: &World, issuer: Uuid, jti: &str, body: &[u8]) -> String {
-        sign_peer_request(
-            &world.peer_signer,
-            &PeerRequest {
-                iss: issuer,
-                aud: world.local.instance_id,
-                method: "POST",
-                path: PATH,
-                body,
-                jti,
-                issued_at: Utc::now().timestamp() as u64,
-                lifetime_secs: 60,
-            },
-        )
-        .unwrap()
-    }
 
     async fn echo(request: SignedPeerRequest) -> HttpResponse {
         HttpResponse::Ok().body(format!(
@@ -387,19 +199,13 @@ mod tests {
     }
 
     async fn call(
-        world: &World,
+        world: &FederationWorld,
         jws: &str,
         body: &'static [u8],
     ) -> (StatusCode, String) {
-        let peers: Arc<dyn FederationPeerRead> = world.peers.clone();
-        let nonces: Arc<dyn RequestNonceRegistration> = world.nonces.clone();
-        let settings: Arc<dyn InstanceSettingsFetching> = Arc::new(Enabled);
         let app = test::init_service(
             App::new()
-                .app_data(web::Data::new(Some(world.local.clone())))
-                .app_data(web::Data::from(peers))
-                .app_data(web::Data::from(nonces))
-                .app_data(web::Data::from(settings))
+                .configure(|config| world.configure(config))
                 .route(PATH, web::post().to(echo)),
         )
         .await;
@@ -417,9 +223,9 @@ mod tests {
 
     #[actix_web::test]
     async fn a_valid_request_reaches_the_handler_with_its_peer() {
-        let world = world(PeerStatus::Active);
+        let world = federation_world(PeerStatus::Active);
         let issuer = world.peers.peer.instance_id;
-        let jws = signed(&world, issuer, "jti-valid", b"{\"x\":1}");
+        let jws = world.sign(issuer, PATH, "jti-valid", b"{\"x\":1}");
 
         let (status, body) = call(&world, &jws, b"{\"x\":1}").await;
 
@@ -429,32 +235,32 @@ mod tests {
 
     #[actix_web::test]
     async fn an_unknown_peer_is_refused_without_a_key_lookup() {
-        let world = world(PeerStatus::Active);
-        let jws = signed(&world, Uuid::new_v4(), "jti-unknown", b"{}");
+        let world = federation_world(PeerStatus::Active);
+        let jws = world.sign(Uuid::new_v4(), PATH, "jti-unknown", b"{}");
 
         let (status, _) = call(&world, &jws, b"{}").await;
 
         assert_eq!(status, StatusCode::UNAUTHORIZED);
-        assert_eq!(world.peers.key_reads.load(Ordering::SeqCst), 0);
+        assert_eq!(world.peers.key_reads(), 0);
     }
 
     #[actix_web::test]
     async fn a_quarantined_peer_is_forbidden() {
-        let world = world(PeerStatus::Quarantined);
+        let world = federation_world(PeerStatus::Quarantined);
         let issuer = world.peers.peer.instance_id;
-        let jws = signed(&world, issuer, "jti-quarantined", b"{}");
+        let jws = world.sign(issuer, PATH, "jti-quarantined", b"{}");
 
         let (status, _) = call(&world, &jws, b"{}").await;
 
         assert_eq!(status, StatusCode::FORBIDDEN);
-        assert_eq!(world.peers.key_reads.load(Ordering::SeqCst), 0);
+        assert_eq!(world.peers.key_reads(), 0);
     }
 
     #[actix_web::test]
     async fn a_replayed_jti_is_refused() {
-        let world = world(PeerStatus::Active);
+        let world = federation_world(PeerStatus::Active);
         let issuer = world.peers.peer.instance_id;
-        let jws = signed(&world, issuer, "jti-replayed", b"{}");
+        let jws = world.sign(issuer, PATH, "jti-replayed", b"{}");
 
         assert_eq!(call(&world, &jws, b"{}").await.0, StatusCode::OK);
         assert_eq!(call(&world, &jws, b"{}").await.0, StatusCode::UNAUTHORIZED);
@@ -462,9 +268,9 @@ mod tests {
 
     #[actix_web::test]
     async fn a_body_other_than_the_signed_one_is_refused() {
-        let world = world(PeerStatus::Active);
+        let world = federation_world(PeerStatus::Active);
         let issuer = world.peers.peer.instance_id;
-        let jws = signed(&world, issuer, "jti-body", b"{\"x\":1}");
+        let jws = world.sign(issuer, PATH, "jti-body", b"{\"x\":1}");
 
         let (status, _) = call(&world, &jws, b"{\"x\":2}").await;
 
@@ -473,7 +279,7 @@ mod tests {
 
     #[actix_web::test]
     async fn a_missing_signature_is_unauthorized() {
-        let world = world(PeerStatus::Active);
+        let world = federation_world(PeerStatus::Active);
 
         let (status, _) = call(&world, "", b"{}").await;
 

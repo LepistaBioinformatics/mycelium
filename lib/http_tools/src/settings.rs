@@ -44,6 +44,9 @@ pub const PEER_REQUEST_SIGNATURE_KEY: &str = "x-mycelium-peer-signature";
 pub const INSTANCE_SELF_DESCRIPTION_PATH: &str =
     "/.well-known/mycelium-instance";
 
+/// Where a peer asks this instance to handshake again (FED-08)
+pub const FEDERATION_HANDSHAKE_PATH: &str = "/federation/handshake";
+
 /// Upper bound of a peer response body read by the federation client
 pub const PEER_RESPONSE_MAX_BYTES: usize = 64 * 1024;
 

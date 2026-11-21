@@ -76,7 +76,7 @@ use dispatchers::{
     services_health_dispatcher, webhook_dispatcher,
 };
 #[cfg(feature = "federation")]
-use federation::prepare_federation;
+use federation::{build_peer_client, prepare_federation};
 use middleware::{log_served_request, StaffBootstrapClaimed};
 use models::active_backend_modules::{KVAppModule, SqlAppModule};
 use models::config_handler::ConfigHandler;
@@ -172,6 +172,8 @@ use reqwest::header::{
     ACCEPT, ACCESS_CONTROL_ALLOW_CREDENTIALS, ACCESS_CONTROL_ALLOW_METHODS,
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
+#[cfg(feature = "federation")]
+use rest::federation::configure_federation_endpoints;
 #[cfg(feature = "federation")]
 use rest::index::instance_self_description_endpoints;
 use rest::{
@@ -445,6 +447,18 @@ pub async fn main() -> std::io::Result<()> {
         std::io::Error::new(std::io::ErrorKind::Other, err.to_string())
     })?;
 
+    // The client this instance calls its peers with; only when federating.
+    #[cfg(feature = "federation")]
+    let peer_client = federation
+        .as_ref()
+        .map(build_peer_client)
+        .transpose()
+        .map_err(|err| {
+            tracing::error!("Error building the peer client: {err}");
+
+            std::io::Error::new(std::io::ErrorKind::Other, err.to_string())
+        })?;
+
     // ? -----------------------------------------------------------------------
     // ? PROPAGATE DECLARED ROLES TO THE SQL DATABASE
     //
@@ -694,10 +708,21 @@ pub async fn main() -> std::io::Result<()> {
             let instance_settings: Arc<dyn InstanceSettingsFetching> =
                 sql_module.resolve();
 
-            base_app
+            let base_app = base_app
                 .app_data(web::Data::new(federation.clone()))
                 .app_data(web::Data::from(instance_settings))
-                .configure(instance_self_description_endpoints::configure)
+                .configure(instance_self_description_endpoints::configure);
+
+            // Peer-authenticated endpoints (`/federation/*`), only when
+            // `[core.federation]` is present.
+            match peer_client.clone() {
+                Some(peer_client) => configure_federation_endpoints(
+                    base_app,
+                    &sql_module,
+                    peer_client,
+                ),
+                None => base_app,
+            }
         };
 
         let base_app = base_app
