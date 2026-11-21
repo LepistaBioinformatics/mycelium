@@ -2762,6 +2762,7 @@ dependencies = [
  "mycelium-http-tools",
  "mycelium-notifier",
  "rpassword",
+ "serde",
  "serde_json",
  "shaku",
  "tokio",

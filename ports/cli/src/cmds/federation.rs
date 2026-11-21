@@ -36,6 +36,10 @@ pub(crate) enum Commands {
     /// Reads the instance id from the database (`DATABASE_URL`); never calls
     /// a peer and never prints private material.
     Describe,
+
+    /// Declare, list or remove peers. Peers are declared here only, never
+    /// through a remote API (FED-07).
+    Peer(super::federation_peers::PeerArguments),
 }
 
 /// Print the self-description as JSON, or exit non-zero with the reason
