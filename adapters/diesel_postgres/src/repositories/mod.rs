@@ -5,6 +5,7 @@ mod account_tag;
 mod config;
 mod encryption_key;
 mod error_code;
+mod federation_peer;
 mod guest_role;
 mod guest_user;
 mod hosted_login;
@@ -25,6 +26,7 @@ use account::*;
 use account_tag::*;
 use encryption_key::*;
 use error_code::*;
+use federation_peer::*;
 use guest_role::*;
 use guest_user::*;
 use hosted_login::*;
@@ -65,6 +67,8 @@ module! {
             ErrorCodeFetchingSqlDbRepository,
             ErrorCodeRegistrationSqlDbRepository,
             ErrorCodeUpdatingSqlDbRepository,
+            FederationPeerReadSqlDbRepository,
+            FederationPeerWriteSqlDbRepository,
             GuestRoleDeletionSqlDbRepository,
             GuestRoleFetchingSqlDbRepository,
             GuestRoleRegistrationSqlDbRepository,
