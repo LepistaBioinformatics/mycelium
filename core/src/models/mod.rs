@@ -2,12 +2,18 @@ mod account_life_cycle_config;
 mod config;
 mod hmac_secret_set;
 mod hosted_login_config;
+mod rendered_service_email;
 mod service_notifications_config;
+mod service_template_path;
+mod service_templates;
 mod webhook_config;
 
 pub use account_life_cycle_config::*;
 pub use config::*;
 pub use hmac_secret_set::*;
 pub use hosted_login_config::*;
+pub use rendered_service_email::*;
 pub use service_notifications_config::*;
+pub use service_template_path::*;
+pub use service_templates::*;
 pub use webhook_config::*;
