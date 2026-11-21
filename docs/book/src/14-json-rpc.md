@@ -133,6 +133,7 @@ Requires: **authenticated** (any logged-in user). No admin role needed.
 | Method | Description |
 |---|---|
 | `beginners.tokens.create` | Create a connection string token |
+| `beginners.tokens.createNotification` | Create a connection string a service uses to send emails |
 | `beginners.tokens.list` | List own active tokens |
 | `beginners.tokens.revoke` | Revoke a specific token |
 | `beginners.tokens.delete` | Delete a token |

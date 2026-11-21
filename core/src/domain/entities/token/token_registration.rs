@@ -5,11 +5,14 @@ use crate::domain::dtos::token::{
 
 use async_trait::async_trait;
 use chrono::{DateTime, Local};
+#[cfg(test)]
+use mockall::automock;
 use mycelium_base::{
     entities::CreateResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Interface;
 
+#[cfg_attr(test, automock)]
 #[async_trait]
 pub trait TokenRegistration: Interface + Send + Sync {
     async fn create_email_confirmation_token(

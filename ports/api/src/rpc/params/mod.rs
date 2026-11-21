@@ -22,12 +22,12 @@ pub(crate) use beginners::{
     CheckTokenAndActivateUserParams, CheckTokenAndResetPasswordParams,
     CreateAccountMetaParams, CreateConnectionStringParams,
     CreateDefaultAccountParams, CreateDefaultUserParams,
-    DeleteAccountMetaParams, DeleteConnectionStringParams,
-    DeleteMyAccountParams, FetchMyProfileParams, FetchTenantPublicInfoParams,
-    RevokeConnectionStringParams, StartPasswordRedefinitionParams,
-    TotpCheckTokenParams, TotpDisableParams, TotpFinishActivationParams,
-    TotpStartActivationParams, UpdateAccountMetaParams,
-    UpdateOwnAccountNameParams,
+    CreateNotificationConnectionStringParams, DeleteAccountMetaParams,
+    DeleteConnectionStringParams, DeleteMyAccountParams, FetchMyProfileParams,
+    FetchTenantPublicInfoParams, RevokeConnectionStringParams,
+    StartPasswordRedefinitionParams, TotpCheckTokenParams, TotpDisableParams,
+    TotpFinishActivationParams, TotpStartActivationParams,
+    UpdateAccountMetaParams, UpdateOwnAccountNameParams,
 };
 pub(crate) use gateway_manager::{
     ListOperationsParams, ListRoutesParams, ListServicesParams,

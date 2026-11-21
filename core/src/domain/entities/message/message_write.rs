@@ -1,12 +1,15 @@
 use crate::domain::dtos::message::{Message, MessageSendingEvent};
 
 use async_trait::async_trait;
+#[cfg(test)]
+use mockall::automock;
 use mycelium_base::{
     entities::CreateResponseKind, utils::errors::MappedErrors,
 };
 use shaku::Interface;
 use uuid::Uuid;
 
+#[cfg_attr(test, automock)]
 #[async_trait]
 pub trait LocalMessageWrite: Interface + Send + Sync {
     async fn send(

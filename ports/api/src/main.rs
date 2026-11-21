@@ -542,6 +542,8 @@ pub async fn main() -> std::io::Result<()> {
         let forward_api_config = config.api.clone();
         let auth_config = config.auth.clone();
         let token_config = config.core.account_life_cycle.clone();
+        let service_notifications_config =
+            config.core.service_notifications.clone();
 
         //
         // Configure the CORS policy
@@ -600,6 +602,7 @@ pub async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(openrpc_spec_config))
             .app_data(web::Data::new(tools_registry_schema.clone()))
             .app_data(web::Data::new(token_config).clone())
+            .app_data(web::Data::new(service_notifications_config))
             .app_data(web::Data::new(auth_config.to_owned()).clone())
             .app_data(staff_bootstrap_claimed.clone())
             //
