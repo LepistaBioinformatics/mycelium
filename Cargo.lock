@@ -2758,6 +2758,7 @@ dependencies = [
  "myc-core",
  "mycelium-base",
  "mycelium-diesel",
+ "mycelium-http-tools",
  "mycelium-notifier",
  "rpassword",
  "serde_json",

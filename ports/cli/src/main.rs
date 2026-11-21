@@ -2,11 +2,11 @@ mod cmds;
 mod functions;
 
 use clap::Parser;
-use cmds::{accounts, error_codes, migrate_dek, rotate_kek};
+use cmds::{accounts, error_codes, federation, migrate_dek, rotate_kek};
 use std::env::set_var;
 
 #[derive(Parser, Debug)]
-enum Cli {
+pub(crate) enum Cli {
     /// Create a seed staff account
     Accounts(accounts::Arguments),
 
@@ -19,6 +19,9 @@ enum Cli {
     /// Rewrap every tenant's DEK under a new KEK (without touching
     /// user-data ciphertexts or invalidating connection strings).
     Kek(rotate_kek::Arguments),
+
+    /// Instance federation tools
+    Federation(federation::Arguments),
 }
 
 #[tokio::main]
@@ -51,6 +54,9 @@ pub async fn main() {
             rotate_kek::Commands::RotateKek(args) => {
                 rotate_kek::rotate_kek_cmd(args).await
             }
+        },
+        Cli::Federation(sub_args) => match sub_args.cmd {
+            federation::Commands::Describe => federation::describe_cmd().await,
         },
     }
 }

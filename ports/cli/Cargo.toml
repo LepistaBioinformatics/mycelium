@@ -36,6 +36,7 @@ rpassword = "7.3.0"
 myc-core.workspace = true
 mycelium-base.workspace = true
 mycelium-diesel.workspace = true
+mycelium-http-tools.workspace = true
 mycelium-notifier.workspace = true
 
 # ? ---------------------------------------------------------------------------
