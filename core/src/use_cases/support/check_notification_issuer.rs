@@ -42,17 +42,23 @@ pub fn check_notification_issuer(
     Ok(())
 }
 
-/// Whether any licensed resource survives the issuer-roles filter
+/// Whether a verified licensed resource survives the issuer-roles filter
 ///
 /// Deliberately not `get_ids_or_error`: that one also succeeds for staff and
 /// manager accounts with no licensed resource at all, and `issuerRoles` is
-/// deny by default with no administrative bypass.
+/// deny by default with no administrative bypass. An invitation that was
+/// never accepted (`verified == false`) does not count either.
 ///
 fn holds_an_issuer_role(profile: &Profile, issuer_roles: &[String]) -> bool {
     profile
         .with_roles(issuer_roles.to_owned())
         .licensed_resources
-        .is_some_and(|resources| !resources.to_licenses_vector().is_empty())
+        .is_some_and(|resources| {
+            resources
+                .to_licenses_vector()
+                .iter()
+                .any(|resource| resource.verified)
+        })
 }
 
 fn issuer_account_is_in_good_standing(profile: &Profile) -> bool {
@@ -111,6 +117,14 @@ mod tests {
     }
 
     fn profile_with_role(role: &str, tenant_id: Uuid) -> Profile {
+        profile_with_licence(role, tenant_id, true)
+    }
+
+    fn profile_with_licence(
+        role: &str,
+        tenant_id: Uuid,
+        verified: bool,
+    ) -> Profile {
         Profile::new(
             vec![],
             Uuid::new_v4(),
@@ -131,7 +145,7 @@ mod tests {
                 sys_acc: false,
                 role: role.to_string(),
                 perm: Permission::Write,
-                verified: true,
+                verified,
                 permit_flags: None,
                 deny_flags: None,
             }])),
@@ -174,6 +188,23 @@ mod tests {
                 &config(vec![]),
             ));
         }
+    }
+
+    #[test]
+    fn unaccepted_invitation_with_the_role_is_rejected() {
+        let tenant_id = Uuid::new_v4();
+        let profile = profile_with_licence(ISSUER_ROLE, tenant_id, false);
+
+        assert_not_allowed(check_notification_issuer(
+            &profile,
+            Some(tenant_id),
+            &config(vec![]),
+        ));
+        assert_not_allowed(check_notification_issuer(
+            &profile,
+            None,
+            &config(vec![]),
+        ));
     }
 
     fn assert_not_allowed(result: Result<(), MappedErrors>) {
