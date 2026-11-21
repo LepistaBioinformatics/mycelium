@@ -143,7 +143,10 @@ pub(crate) async fn handle_call_tool(
     // Forward Authorization header from the original MCP request
     if let Some(auth) = http_req.headers().get("Authorization") {
         if let Ok(auth_str) = auth.to_str() {
-            tracing::debug!(mcp.auth_header = %auth_str, "Forwarding Authorization header");
+            tracing::debug!(
+                mcp.auth_header_present = true,
+                "Forwarding Authorization header"
+            );
             downstream = downstream.insert_header(("Authorization", auth_str));
         }
     }
@@ -151,7 +154,10 @@ pub(crate) async fn handle_call_tool(
     // Forward Connection String header from the original MCP request
     if let Some(cs) = http_req.headers().get("x-mycelium-connection-string") {
         if let Ok(cs_str) = cs.to_str() {
-            tracing::debug!(mcp.cs_header = %cs_str, "Forwarding Connection String header");
+            tracing::debug!(
+                mcp.cs_header_present = true,
+                "Forwarding Connection String header"
+            );
             downstream = downstream
                 .insert_header(("x-mycelium-connection-string", cs_str));
         }

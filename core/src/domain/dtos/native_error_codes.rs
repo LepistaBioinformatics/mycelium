@@ -321,6 +321,33 @@ pub enum NativeErrorCodes {
     /// is_native: true
     ///
     MYC00040,
+
+    ///
+    /// code: "MYC00041",
+    /// message: "Downstream profile signing could not be prepared.",
+    /// details: "Dispatched at boot when an Ed25519 profile signing key cannot be derived from a configured connection-string HMAC secret (`core.accountLifeCycle.hmacSecrets`), or when a derived key fails its self-test. The gateway refuses to start.",
+    /// is_internal: true,
+    /// is_native: true
+    ///
+    MYC00041,
+
+    ///
+    /// code: "MYC00042",
+    /// message: "Downstream profile signature could not be issued.",
+    /// details: "Dispatched when the gateway fails to produce the `x-mycelium-profile-signature` header for a request. The request is not forwarded to the downstream service.",
+    /// is_internal: true,
+    /// is_native: true
+    ///
+    MYC00042,
+
+    ///
+    /// code: "MYC00043",
+    /// message: "Invalid downstream profile signature verification configuration.",
+    /// details: "Dispatched by a Rust downstream service (`GatewayProfileData`) when `MYCELIUM_JWKS_URL`, `MYCELIUM_JWKS_ALLOW_INSECURE_HTTP`, `MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS` or `MYC_PROFILE_SIGNATURE_AUDIENCE` is invalid, when the audience is missing while `MYCELIUM_JWKS_URL` is set, or when the gateway profile JWKS is unsafe or malformed. Requests fail closed instead of skipping verification.",
+    /// is_internal: true,
+    /// is_native: true
+    ///
+    MYC00043,
 }
 
 impl NativeErrorCodes {
@@ -378,6 +405,9 @@ impl NativeErrorCodes {
             Self::MYC00038 => "MYC00038",
             Self::MYC00039 => "MYC00039",
             Self::MYC00040 => "MYC00040",
+            Self::MYC00041 => "MYC00041",
+            Self::MYC00042 => "MYC00042",
+            Self::MYC00043 => "MYC00043",
         }
     }
 
@@ -591,6 +621,24 @@ impl NativeErrorCodes {
                 "Notification quota exceeded.".to_string(),
                 true,
             )?.with_details("Dispatched when the service exceeded its hourly notification quota.".to_string())),
+            Self::MYC00041 => Ok(ErrorCode::new_internal_error(
+                "MYC".to_string(),
+                41,
+                "Downstream profile signing could not be prepared.".to_string(),
+                true,
+            )?.with_details("Dispatched at boot when an Ed25519 profile signing key cannot be derived from a configured connection-string HMAC secret (`core.accountLifeCycle.hmacSecrets`), or when a derived key fails its self-test. The gateway refuses to start.".to_string())),
+            Self::MYC00042 => Ok(ErrorCode::new_internal_error(
+                "MYC".to_string(),
+                42,
+                "Downstream profile signature could not be issued.".to_string(),
+                true,
+            )?.with_details("Dispatched when the gateway fails to produce the `x-mycelium-profile-signature` header for a request. The request is not forwarded to the downstream service.".to_string())),
+            Self::MYC00043 => Ok(ErrorCode::new_internal_error(
+                "MYC".to_string(),
+                43,
+                "Invalid downstream profile signature verification configuration.".to_string(),
+                true,
+            )?.with_details("Dispatched by a Rust downstream service (`GatewayProfileData`) when `MYCELIUM_JWKS_URL`, `MYCELIUM_JWKS_ALLOW_INSECURE_HTTP`, `MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS` or `MYC_PROFILE_SIGNATURE_AUDIENCE` is invalid, when the audience is missing while `MYCELIUM_JWKS_URL` is set, or when the gateway profile JWKS is unsafe or malformed. Requests fail closed instead of skipping verification.".to_string())),
         }
     }
 

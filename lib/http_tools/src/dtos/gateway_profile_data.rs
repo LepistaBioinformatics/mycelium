@@ -1,7 +1,9 @@
 use crate::{
     functions::decode_and_decompress_profile_from_base64,
-    middleware::fetch_profile_from_token, responses::GatewayError,
-    settings::DEFAULT_PROFILE_KEY, Profile,
+    middleware::{fetch_profile_from_token, signed_profile_from_request},
+    responses::GatewayError,
+    settings::DEFAULT_PROFILE_KEY,
+    Profile,
 };
 
 use actix_web::{dev::Payload, FromRequest, HttpRequest};
@@ -18,6 +20,18 @@ use uuid::Uuid;
 ///
 /// A Gateway Profile Data is used to extract the Profile from requests
 /// delivered to the gateway downstream services.
+///
+/// ! Signature verification (opt-in)
+///
+/// When the service sets `MYCELIUM_JWKS_URL` (or registers
+/// `web::Data<ProfileSignatureVerification>`), the extractor authenticates
+/// `x-mycelium-profile` with `x-mycelium-profile-signature` before decoding
+/// it, using the keys published by the gateway and the contract shared with
+/// the Python, JavaScript and Go SDKs. Any rejection is a 403; an invalid
+/// configuration is a 500. Without the URL, the profile is trusted as
+/// received (legacy behavior) and a signed profile logs a warning once. The
+/// bearer-token fallback only runs when the request carries neither profile
+/// header.
 ///
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -88,6 +102,15 @@ impl FromRequest for GatewayProfileData {
     #[tracing::instrument(name = "gateway_profile_data_from_request", skip_all)]
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
         let span = tracing::Span::current();
+
+        //
+        // Authenticate the signed profile when verification is enabled
+        //
+        if let Some(signed) = signed_profile_from_request(req) {
+            return Box::pin(async move {
+                signed.await.map(GatewayProfileData::from_profile)
+            });
+        }
 
         //
         // Try to extract profile from header

@@ -43,6 +43,24 @@ hmacPrimaryVersion = 1
 version = 1
 secret = { env = "MYC_HMAC_SECRET_V1" }
 
+# ? ----------------------------------------------------------------------------
+# ? Downstream profile signature (no configuration)
+#
+# The gateway signs every `x-mycelium-profile` it injects and adds
+# `x-mycelium-profile-signature` (compact JWS, `alg: EdDSA`, `kid: <version>`,
+# claims `{iat, ph, aud}`). There is nothing to configure: one Ed25519 key is
+# derived (HKDF-SHA256) from each entry of `core.accountLifeCycle.hmacSecrets`
+# above, the entry's `version` is the `kid`, and `hmacPrimaryVersion` selects
+# the signing key. Both features therefore rotate together; always add a new
+# version, never replace the secret of an existing one. Use secrets of at
+# least 32 random bytes.
+#
+# The public halves are published at
+# GET /.well-known/mycelium-profile-jwks.json; downstream services point
+# MYCELIUM_JWKS_URL at it (and set MYC_PROFILE_SIGNATURE_AUDIENCE) to verify.
+# See the "Downstream profile signature" book chapter.
+# ? ----------------------------------------------------------------------------
+
 [core.webhook]
 acceptInvalidCertificates = false
 consumeIntervalInSecs = 30

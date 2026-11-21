@@ -39,6 +39,11 @@ sha2.workspace = true
 secrecy.workspace = true
 subtle.workspace = true
 
+# Already a direct dependency of `myc-core` (same 0.17 line). Used only to
+# derive the Ed25519 public key published in the profile JWKS from the
+# configured PKCS#8 private key: `jsonwebtoken` does not expose it.
+ring = "0.17"
+
 # ------------------------------------------------------------------------------
 # Mycelium packages
 # ------------------------------------------------------------------------------

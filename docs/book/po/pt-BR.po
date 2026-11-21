@@ -1,7 +1,8 @@
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-10-22T12:09:30-03:00\n"
+"POT-Creation-Date: 2026-11-20T20:42:38-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -82,71 +83,75 @@ msgstr "Tipos de Conta e Papéis"
 msgid "Downstream APIs"
 msgstr "APIs Downstream"
 
-#: src/SUMMARY.md:26
+#: src/SUMMARY.md:25 src/27-downstream-profile-signature.md:1
+msgid "Downstream Profile Signature"
+msgstr "Assinatura de Profile Downstream"
+
+#: src/SUMMARY.md:27
 msgid "Advanced Topics"
 msgstr "Tópicos Avançados"
 
-#: src/SUMMARY.md:28 src/10-alternative-idps.md:1
+#: src/SUMMARY.md:29 src/10-alternative-idps.md:1
 msgid "Alternative Identity Providers"
 msgstr "Provedores de Identidade Alternativos"
 
-#: src/SUMMARY.md:29 src/12-response-callbacks.md:1
+#: src/SUMMARY.md:30 src/12-response-callbacks.md:1
 msgid "Response Callbacks"
 msgstr "Callbacks de Resposta"
 
-#: src/SUMMARY.md:30 src/16-webhooks.md:1
+#: src/SUMMARY.md:31 src/16-webhooks.md:1
 msgid "Outbound Webhooks"
 msgstr "Webhooks de Saída"
 
-#: src/SUMMARY.md:31 src/17-error-codes.md:1
+#: src/SUMMARY.md:32 src/17-error-codes.md:1
 msgid "Error Codes"
 msgstr "Códigos de Erro"
 
-#: src/SUMMARY.md:32
+#: src/SUMMARY.md:33
 msgid "AI Agent Integration (MCP)"
 msgstr "Integração com Agentes de IA (MCP)"
 
-#: src/SUMMARY.md:33 src/14-json-rpc.md:1
+#: src/SUMMARY.md:34 src/14-json-rpc.md:1
 msgid "JSON-RPC Interface"
 msgstr "Interface JSON-RPC"
 
-#: src/SUMMARY.md:35
+#: src/SUMMARY.md:36
 msgid "Integrations"
 msgstr "Integrações"
 
-#: src/SUMMARY.md:37 src/19-sdk.md:1
+#: src/SUMMARY.md:38 src/19-sdk.md:1
 msgid "SDK Integration Guide"
 msgstr "Guia de Integração do SDK"
 
-#: src/SUMMARY.md:38 src/18-cli.md:1
+#: src/SUMMARY.md:39 src/18-cli.md:1
 msgid "CLI Reference"
 msgstr "Referência da CLI"
 
-#: src/SUMMARY.md:40
+#: src/SUMMARY.md:41
 msgid "Development"
 msgstr "Desenvolvimento"
 
-#: src/SUMMARY.md:42 src/20-encryption-inventory.md:1
+#: src/SUMMARY.md:43 src/20-encryption-inventory.md:1
 msgid "Encryption Inventory"
 msgstr ""
 
-#: src/SUMMARY.md:43 src/21-envelope-encryption-migration.md:1
+#: src/SUMMARY.md:44 src/21-envelope-encryption-migration.md:1
 msgid "Envelope Encryption Migration Guide"
 msgstr ""
 
-#: src/SUMMARY.md:44 src/22-hmac-key-rotation.md:1
+#: src/SUMMARY.md:45 src/22-hmac-key-rotation.md:1
 msgid "HMAC Key Rotation"
 msgstr ""
 
-#: src/SUMMARY.md:45 src/07-running-tests.md:1
+#: src/SUMMARY.md:46 src/07-running-tests.md:1
 msgid "Running Tests"
 msgstr "Executando Testes"
 
-#: src/SUMMARY.md:46 src/08-release-process.md:1
+#: src/SUMMARY.md:47 src/08-release-process.md:1
 msgid "Release Process"
 msgstr "Processo de Lançamento"
 
-#: src/SUMMARY.md:47 src/09-log-cache-tests.md:1
+#: src/SUMMARY.md:48 src/09-log-cache-tests.md:1
 msgid "Log Tests for Cache and Identity Flow"
 msgstr "Testes de Log para Cache e Fluxo de Identidade"
 
@@ -535,7 +540,7 @@ msgstr ""
 "Docker Compose e todas as dependências"
 
 #: src/02-installation.md:111 src/03-quick-start.md:139
-#: src/05-deploy-locally.md:105 src/06-downstream-apis.md:317
+#: src/05-deploy-locally.md:105 src/06-downstream-apis.md:320
 #: src/10-alternative-idps.md:469 src/07-running-tests.md:73
 #: src/08-release-process.md:313 src/09-log-cache-tests.md:175
 msgid "Troubleshooting"
@@ -884,8 +889,8 @@ msgstr ""
 
 #: src/04-configuration.md:58 src/04-configuration.md:81
 #: src/04-configuration.md:103 src/04-configuration.md:184
-#: src/04-configuration.md:211 src/06-downstream-apis.md:335
-#: src/06-downstream-apis.md:350 src/12-response-callbacks.md:165
+#: src/04-configuration.md:211 src/06-downstream-apis.md:338
+#: src/06-downstream-apis.md:353 src/12-response-callbacks.md:165
 #: src/12-response-callbacks.md:187 src/20-encryption-inventory.md:16
 #: src/20-encryption-inventory.md:49
 msgid "Field"
@@ -894,9 +899,9 @@ msgstr "Campo"
 #: src/04-configuration.md:58 src/04-configuration.md:81
 #: src/04-configuration.md:103 src/04-configuration.md:184
 #: src/04-configuration.md:211 src/06-downstream-apis.md:187
-#: src/06-downstream-apis.md:335 src/06-downstream-apis.md:350
+#: src/06-downstream-apis.md:338 src/06-downstream-apis.md:353
 #: src/12-response-callbacks.md:165 src/12-response-callbacks.md:187
-#: src/16-webhooks.md:98 src/17-error-codes.md:81 src/14-json-rpc.md:64
+#: src/16-webhooks.md:98 src/17-error-codes.md:90 src/14-json-rpc.md:64
 #: src/14-json-rpc.md:80 src/14-json-rpc.md:92 src/14-json-rpc.md:106
 #: src/14-json-rpc.md:115 src/14-json-rpc.md:121 src/14-json-rpc.md:127
 #: src/14-json-rpc.md:133 src/14-json-rpc.md:142 src/14-json-rpc.md:150
@@ -2483,7 +2488,7 @@ msgstr "O que é injetado"
 msgid "Depending on the security group, your service receives:"
 msgstr "Dependendo do grupo de segurança, o seu serviço recebe:"
 
-#: src/01-authorization.md:44
+#: src/01-authorization.md:44 src/27-downstream-profile-signature.md:28
 msgid "Header"
 msgstr "Cabeçalho"
 
@@ -2508,8 +2513,9 @@ msgid "The authenticated user's email"
 msgstr "O e-mail do usuário autenticado"
 
 #: src/01-authorization.md:47 src/06-downstream-apis.md:260
+#: src/27-downstream-profile-signature.md:30
 msgid "`x-mycelium-profile`"
-msgstr ""
+msgstr "`x-mycelium-profile`"
 
 #: src/01-authorization.md:47
 msgid "`protected` or higher"
@@ -3164,9 +3170,9 @@ msgstr ""
 "A primeira conta `Staff` é criada via CLI (`myc-cli accounts create-seed-"
 "account`). Veja a [Referência da CLI](./18-cli.md)."
 
-#: src/15-account-types.md:62 src/19-sdk.md:75
+#: src/15-account-types.md:62 src/19-sdk.md:74
 msgid "\"manager\""
-msgstr ""
+msgstr "\"manager\""
 
 #: src/15-account-types.md:65
 msgid ""
@@ -4148,19 +4154,19 @@ msgid "What headers does my service receive?"
 msgstr "Quais cabeçalhos meu serviço recebe?"
 
 #: src/06-downstream-apis.md:262 src/06-downstream-apis.md:263
-#: src/06-downstream-apis.md:264 src/06-downstream-apis.md:339
-#: src/06-downstream-apis.md:352 src/06-downstream-apis.md:353
-#: src/06-downstream-apis.md:354 src/12-response-callbacks.md:189
+#: src/06-downstream-apis.md:264 src/06-downstream-apis.md:342
+#: src/06-downstream-apis.md:355 src/06-downstream-apis.md:356
+#: src/06-downstream-apis.md:357 src/12-response-callbacks.md:189
 #: src/12-response-callbacks.md:190
 msgid "Yes"
 msgstr ""
 
-#: src/06-downstream-apis.md:262 src/06-downstream-apis.md:341
-#: src/06-downstream-apis.md:342 src/06-downstream-apis.md:343
-#: src/06-downstream-apis.md:344 src/06-downstream-apis.md:345
-#: src/06-downstream-apis.md:346 src/06-downstream-apis.md:355
-#: src/06-downstream-apis.md:356 src/06-downstream-apis.md:357
-#: src/06-downstream-apis.md:358 src/12-response-callbacks.md:191
+#: src/06-downstream-apis.md:262 src/06-downstream-apis.md:344
+#: src/06-downstream-apis.md:345 src/06-downstream-apis.md:346
+#: src/06-downstream-apis.md:347 src/06-downstream-apis.md:348
+#: src/06-downstream-apis.md:349 src/06-downstream-apis.md:358
+#: src/06-downstream-apis.md:359 src/06-downstream-apis.md:360
+#: src/06-downstream-apis.md:361 src/12-response-callbacks.md:191
 #: src/12-response-callbacks.md:192 src/12-response-callbacks.md:193
 #: src/12-response-callbacks.md:200 src/12-response-callbacks.md:201
 #: src/12-response-callbacks.md:202
@@ -4179,11 +4185,23 @@ msgstr ""
 "LepistaBioinformatics/mycelium-sdk-py) ou decodifique-o manualmente para ler "
 "participações em tenants, papéis e escopos de acesso."
 
-#: src/06-downstream-apis.md:272
+#: src/06-downstream-apis.md:270
+msgid ""
+"Every request that carries `x-mycelium-profile` also carries `x-mycelium-"
+"profile-signature`, which lets your service prove the profile came from the "
+"gateway. See [Downstream Profile Signature](./27-downstream-profile-"
+"signature.md)."
+msgstr ""
+"Toda requisição que traz `x-mycelium-profile` também traz `x-mycelium-"
+"profile-signature`, que permite ao seu serviço provar que o profile veio do "
+"gateway. Veja [Downstream Profile Signature](./27-downstream-profile-"
+"signature.md)."
+
+#: src/06-downstream-apis.md:275
 msgid "Complete example"
 msgstr "Exemplo completo"
 
-#: src/06-downstream-apis.md:274
+#: src/06-downstream-apis.md:277
 msgid ""
 "```toml\n"
 "[api.services]\n"
@@ -4227,7 +4245,7 @@ msgid ""
 "```"
 msgstr ""
 
-#: src/06-downstream-apis.md:319
+#: src/06-downstream-apis.md:322
 msgid ""
 "**Route not matching** — Check that the path has a wildcard (`/api/*`) if "
 "you want to match subpaths. `/api/` only matches that exact path."
@@ -4236,7 +4254,7 @@ msgstr ""
 "curinga (`/api/*`) se deseja corresponder subcaminhos. `/api/` corresponde "
 "apenas a esse caminho exato."
 
-#: src/06-downstream-apis.md:322
+#: src/06-downstream-apis.md:325
 msgid ""
 "**401 on a protected route** — The JWT or connection string is missing, "
 "expired, or invalid. Check the `Authorization: Bearer <token>` or `x-"
@@ -4246,7 +4264,7 @@ msgstr ""
 "expirado ou inválido. Verifique o cabeçalho `Authorization: Bearer <token>` "
 "ou `x-mycelium-connection-string`."
 
-#: src/06-downstream-apis.md:325
+#: src/06-downstream-apis.md:328
 msgid ""
 "**403 on a role-protected route** — The user is authenticated but doesn't "
 "have the required role. Check role assignment in the Mycelium admin panel."
@@ -4255,7 +4273,7 @@ msgstr ""
 "não possui o papel necessário. Verifique a atribuição de papéis no painel de "
 "administração do Mycelium."
 
-#: src/06-downstream-apis.md:328
+#: src/06-downstream-apis.md:331
 msgid ""
 "**Downstream unreachable** — Verify `host`, `protocol`, and that the service "
 "is actually running. Use `acceptInsecureRouting = true` on the route if the "
@@ -4265,166 +4283,1251 @@ msgstr ""
 "está realmente em execução. Use `acceptInsecureRouting = true` na rota se o "
 "downstream usar um certificado TLS autoassinado."
 
-#: src/06-downstream-apis.md:333
+#: src/06-downstream-apis.md:336
 msgid "Reference — service-level fields"
 msgstr "Referência — campos de nível de serviço"
 
-#: src/06-downstream-apis.md:335 src/06-downstream-apis.md:350
+#: src/06-downstream-apis.md:338 src/06-downstream-apis.md:353
 #: src/12-response-callbacks.md:187
 msgid "Required"
 msgstr "Obrigatório"
 
-#: src/06-downstream-apis.md:337
+#: src/06-downstream-apis.md:340
 msgid "`host`"
 msgstr ""
 
-#: src/06-downstream-apis.md:337
+#: src/06-downstream-apis.md:340
 msgid "Yes (or `hosts`)"
 msgstr "Sim (ou `hosts`)"
 
-#: src/06-downstream-apis.md:337
+#: src/06-downstream-apis.md:340
 msgid "Single downstream host with port"
 msgstr "Host downstream único com porta"
 
-#: src/06-downstream-apis.md:338
+#: src/06-downstream-apis.md:341
 msgid "`hosts`"
 msgstr ""
 
-#: src/06-downstream-apis.md:338
+#: src/06-downstream-apis.md:341
 msgid "Yes (or `host`)"
 msgstr "Sim (ou `host`)"
 
-#: src/06-downstream-apis.md:338
+#: src/06-downstream-apis.md:341
 msgid "Multiple hosts for load balancing"
 msgstr "Múltiplos hosts para balanceamento de carga"
 
-#: src/06-downstream-apis.md:339
+#: src/06-downstream-apis.md:342
 msgid "`protocol`"
 msgstr ""
 
-#: src/06-downstream-apis.md:339
+#: src/06-downstream-apis.md:342
 msgid "`\"http\"` or `\"https\"`"
 msgstr ""
 
-#: src/06-downstream-apis.md:340
+#: src/06-downstream-apis.md:343
 msgid "`allowedSources`"
 msgstr ""
 
-#: src/06-downstream-apis.md:340
+#: src/06-downstream-apis.md:343
 msgid "Required when `identitySource` is set"
 msgstr "Obrigatório quando `identitySource` está definido"
 
-#: src/06-downstream-apis.md:340
+#: src/06-downstream-apis.md:343
 msgid "Allowed `Host` headers (supports wildcards)"
 msgstr "Cabeçalhos `Host` permitidos (suporta curingas)"
 
-#: src/06-downstream-apis.md:341
+#: src/06-downstream-apis.md:344
 msgid "`discoverable`"
 msgstr ""
 
-#: src/06-downstream-apis.md:341
+#: src/06-downstream-apis.md:344
 msgid "Expose service to AI agents"
 msgstr "Expor serviço a agentes de IA"
 
-#: src/06-downstream-apis.md:342
+#: src/06-downstream-apis.md:345
 msgid "`description`"
 msgstr ""
 
-#: src/06-downstream-apis.md:342
+#: src/06-downstream-apis.md:345
 msgid "Human-readable description"
 msgstr "Descrição legível por humanos"
 
-#: src/06-downstream-apis.md:343
+#: src/06-downstream-apis.md:346
 msgid "`openapiPath`"
 msgstr ""
 
-#: src/06-downstream-apis.md:343
+#: src/06-downstream-apis.md:346
 msgid "Path to OpenAPI spec"
 msgstr "Caminho para a especificação OpenAPI"
 
-#: src/06-downstream-apis.md:344
+#: src/06-downstream-apis.md:347
 msgid "`healthCheckPath`"
 msgstr ""
 
-#: src/06-downstream-apis.md:344
+#: src/06-downstream-apis.md:347
 msgid "Health check endpoint"
 msgstr "Endpoint de health check"
 
-#: src/06-downstream-apis.md:345
+#: src/06-downstream-apis.md:348
 msgid "`capabilities`"
 msgstr ""
 
-#: src/06-downstream-apis.md:345
+#: src/06-downstream-apis.md:348
 msgid "Array of capability tags"
 msgstr "Array de tags de capacidade"
 
-#: src/06-downstream-apis.md:346
+#: src/06-downstream-apis.md:349
 msgid "`serviceType`"
 msgstr ""
 
-#: src/06-downstream-apis.md:346
+#: src/06-downstream-apis.md:349
 msgid "e.g. `\"rest-api\"`"
 msgstr ""
 
-#: src/06-downstream-apis.md:348
+#: src/06-downstream-apis.md:351
 msgid "Reference — route-level fields"
 msgstr "Referência — campos de nível de rota"
 
-#: src/06-downstream-apis.md:352
+#: src/06-downstream-apis.md:355
 msgid "`group`"
 msgstr ""
 
-#: src/06-downstream-apis.md:352
+#: src/06-downstream-apis.md:355
 msgid "Security group (see above)"
 msgstr "Grupo de segurança (ver acima)"
 
-#: src/06-downstream-apis.md:353
+#: src/06-downstream-apis.md:356
 msgid "`path`"
 msgstr ""
 
-#: src/06-downstream-apis.md:353
+#: src/06-downstream-apis.md:356
 msgid "URL path pattern, supports wildcards"
 msgstr "Padrão de caminho URL, suporta curingas"
 
-#: src/06-downstream-apis.md:354
+#: src/06-downstream-apis.md:357
 msgid "`methods`"
 msgstr ""
 
-#: src/06-downstream-apis.md:354
+#: src/06-downstream-apis.md:357
 msgid "HTTP methods, or `[\"ALL\"]`"
 msgstr ""
 
-#: src/06-downstream-apis.md:355
+#: src/06-downstream-apis.md:358
 msgid "`secretName`"
 msgstr ""
 
-#: src/06-downstream-apis.md:355
+#: src/06-downstream-apis.md:358
 msgid "Reference to a secret defined at service level"
 msgstr "Referência a um segredo definido no nível de serviço"
 
-#: src/06-downstream-apis.md:356
+#: src/06-downstream-apis.md:359
 msgid "`identitySource`"
 msgstr ""
 
-#: src/06-downstream-apis.md:356
+#: src/06-downstream-apis.md:359
 msgid "Body-based IdP. Currently: `\"telegram\"`"
 msgstr ""
 
-#: src/06-downstream-apis.md:357
+#: src/06-downstream-apis.md:360
 msgid "`acceptInsecureRouting`"
 msgstr ""
 
-#: src/06-downstream-apis.md:357
+#: src/06-downstream-apis.md:360
 msgid "Allow self-signed TLS certs on downstream"
 msgstr "Permitir certificados TLS autoassinados no downstream"
 
-#: src/06-downstream-apis.md:358
+#: src/06-downstream-apis.md:361
 msgid "`retry`"
 msgstr ""
 
-#: src/06-downstream-apis.md:358
+#: src/06-downstream-apis.md:361
 msgid "Retry policy for transient failures (see above)"
 msgstr ""
+
+#: src/27-downstream-profile-signature.md:3
+msgid ""
+"The gateway forwards the caller's identity to downstream services in the `x-"
+"mycelium-profile` header. The format of that header is public, so a "
+"downstream service that can be reached **without** passing through the "
+"gateway (misconfiguration, SSRF, missing network policy) would accept a "
+"forged profile, including `isStaff: true`."
+msgstr ""
+"O gateway repassa a identidade de quem chama aos serviços downstream no "
+"header `x-mycelium-profile`. O formato desse header é público, então um "
+"serviço downstream que possa ser alcançado **sem** passar pelo gateway "
+"(configuração incorreta, SSRF, falta de política de rede) aceitaria um "
+"profile forjado, inclusive com `isStaff: true`."
+
+#: src/27-downstream-profile-signature.md:9
+msgid ""
+"Profile signing closes that gap. The gateway signs the exact profile header "
+"with an Ed25519 private key derived from its connection-string HMAC secret "
+"and publishes the matching public keys as a JSON Web Key Set (JWKS). "
+"Downstream services that opt in download those keys from the gateway, verify "
+"the signature locally and reject anything the gateway did not produce."
+msgstr ""
+"A assinatura do profile fecha essa brecha. O gateway assina o header exato "
+"do profile com uma chave privada Ed25519 derivada do seu segredo HMAC de "
+"connection strings e publica as chaves públicas correspondentes como um JSON "
+"Web Key Set (JWKS). Os serviços downstream que optarem pela verificação "
+"baixam essas chaves do gateway, verificam a assinatura localmente e rejeitam "
+"tudo o que o gateway não produziu."
+
+#: src/27-downstream-profile-signature.md:15
+msgid ""
+"**Always signed, verified on opt-in.** The gateway needs no configuration: "
+"it signs every profile it forwards. Without `MYCELIUM_JWKS_URL` a downstream "
+"service ignores the signature and decodes the profile exactly as before."
+msgstr ""
+"**Sempre assinado, verificado por opção.** O gateway não precisa de "
+"configuração: ele assina todo profile que encaminha. Sem `MYCELIUM_JWKS_URL` "
+"um serviço downstream ignora a assinatura e decodifica o profile exatamente "
+"como antes."
+
+#: src/27-downstream-profile-signature.md:22
+msgid "What is sent"
+msgstr "O que é enviado"
+
+#: src/27-downstream-profile-signature.md:24
+msgid ""
+"For every request that already carries `x-mycelium-profile` (security groups "
+"`protected` and `protectedByRoles`, and body-based identity routes), the "
+"gateway adds:"
+msgstr ""
+"Em toda requisição que já carrega `x-mycelium-profile` (security groups "
+"`protected` e `protectedByRoles`, e rotas com identidade no corpo), o "
+"gateway adiciona:"
+
+#: src/27-downstream-profile-signature.md:28
+msgid "Value"
+msgstr "Valor"
+
+#: src/27-downstream-profile-signature.md:30
+msgid "Unchanged: Base64 of ZSTD-compressed JSON"
+msgstr "Inalterado: Base64 de JSON comprimido com ZSTD"
+
+#: src/27-downstream-profile-signature.md:31
+msgid "`x-mycelium-profile-signature`"
+msgstr "`x-mycelium-profile-signature`"
+
+#: src/27-downstream-profile-signature.md:31
+msgid "Compact JWS (`header.claims.signature`)"
+msgstr "JWS compacto (`header.claims.signature`)"
+
+#: src/27-downstream-profile-signature.md:33
+msgid ""
+"JWS protected header: `{\"typ\": \"JWT\", \"alg\": \"EdDSA\", \"kid\": "
+"\"<key version>\"}`."
+msgstr ""
+"Header protegido do JWS: `{\"typ\": \"JWT\", \"alg\": \"EdDSA\", \"kid\": "
+"\"<versão da chave>\"}`."
+
+#: src/27-downstream-profile-signature.md:35
+msgid "Claims:"
+msgstr "Claims:"
+
+#: src/27-downstream-profile-signature.md:39
+msgid "\"iat\""
+msgstr "\"iat\""
+
+#: src/27-downstream-profile-signature.md:40
+msgid "\"ph\""
+msgstr "\"ph\""
+
+#: src/27-downstream-profile-signature.md:40
+msgid "\"<base64url(sha256(x-mycelium-profile value))>\""
+msgstr "\"<base64url(sha256(x-mycelium-profile value))>\""
+
+#: src/27-downstream-profile-signature.md:41
+msgid "\"aud\""
+msgstr "\"aud\""
+
+#: src/27-downstream-profile-signature.md:41
+msgid "\"<downstream service name>\""
+msgstr "\"<downstream service name>\""
+
+#: src/27-downstream-profile-signature.md:45
+msgid ""
+"`ph` binds the signature to the **exact** header bytes; the profile itself "
+"is not duplicated. Token size depends on the service name and key version; "
+"SDKs reject a signature header larger than 4096 UTF-8 bytes."
+msgstr ""
+"`ph` vincula a assinatura aos bytes **exatos** do header; o profile não é "
+"duplicado. O tamanho do token depende do nome do serviço e da versão da "
+"chave; os SDKs rejeitam um header de assinatura maior que 4096 bytes UTF-8."
+
+#: src/27-downstream-profile-signature.md:48
+msgid ""
+"`iat` is the signing time in Unix seconds. Verifiers accept `|now - iat| <= "
+"tolerance` (default 60 seconds, both directions)."
+msgstr ""
+"`iat` é o horário da assinatura em segundos Unix. Os verificadores aceitam `|"
+"agora - iat| <= tolerância` (padrão de 60 segundos, nas duas direções)."
+
+#: src/27-downstream-profile-signature.md:50
+msgid ""
+"`aud` is the name of the service the request is routed to. Verifiers always "
+"compare it with their configured audience and reject pairs signed for "
+"another service."
+msgstr ""
+"`aud` é o nome do serviço para o qual a requisição é roteada. Os "
+"verificadores sempre o comparam com a audiência configurada e rejeitam pares "
+"assinados para outro serviço."
+
+#: src/27-downstream-profile-signature.md:54
+msgid ""
+"In the traditional bearer/connection-string flow, `public` and "
+"`authenticated` routes receive no profile and therefore no signature. A body-"
+"based IdP route is resolved before that group match and signs the profile it "
+"produces, including those groups. A profile restored from cache is signed "
+"again on every request. Client-supplied `x-mycelium-*` headers, including a "
+"forged signature, are stripped on the way in, and `x-mycelium-*` headers "
+"echoed by a downstream are stripped from the response."
+msgstr ""
+"No fluxo tradicional de bearer/connection string, as rotas `public` e "
+"`authenticated` não recebem profile nem assinatura. Uma rota com IdP baseado "
+"no corpo é resolvida antes dessa seleção de grupo e assina o profile "
+"produzido, inclusive nesses grupos. Um profile recuperado do cache recebe "
+"nova assinatura a cada requisição. Headers `x-mycelium-*` enviados pelo "
+"cliente, inclusive assinaturas forjadas, são removidos na entrada; esses "
+"headers devolvidos por um downstream são removidos da resposta."
+
+#: src/27-downstream-profile-signature.md:64 src/10-alternative-idps.md:293
+#: src/10-alternative-idps.md:373
+msgid "Gateway configuration"
+msgstr "Configuração do gateway"
+
+#: src/27-downstream-profile-signature.md:66
+msgid ""
+"There is nothing to configure and no key to generate. At boot, after Vault "
+"initialization and before accepting traffic, the gateway derives one Ed25519 "
+"key from **every** entry of `core.accountLifeCycle.hmacSecrets` (the secrets "
+"that already sign connection strings):"
+msgstr ""
+"Não há nada para configurar nem chave para gerar. Na inicialização, depois "
+"de inicializar o Vault e antes de aceitar tráfego, o gateway deriva uma "
+"chave Ed25519 de **cada** entrada de `core.accountLifeCycle.hmacSecrets` (os "
+"segredos que já assinam as connection strings):"
+
+#: src/27-downstream-profile-signature.md:71
+msgid ""
+"```\n"
+"seed        = HKDF-SHA256(secret, info = \"mycelium/profile-signing/ed25519/"
+"v1\")\n"
+"private key = Ed25519 key of that 32-byte seed\n"
+"kid         = the entry's `version`\n"
+"```"
+msgstr ""
+
+#: src/27-downstream-profile-signature.md:77
+msgid ""
+"The gateway signs with the key of `hmacPrimaryVersion` and publishes the "
+"public half of every version."
+msgstr ""
+"O gateway assina com a chave de `hmacPrimaryVersion` e publica a metade "
+"pública de todas as versões."
+
+#: src/27-downstream-profile-signature.md:79
+msgid ""
+"The derivation is deterministic, so every replica holding the same secrets "
+"derives the same keys: any replica signs and any replica serves the same "
+"JWKS, with no shared state."
+msgstr ""
+"A derivação é determinística, então toda réplica que tem os mesmos segredos "
+"deriva as mesmas chaves: qualquer réplica assina e qualquer réplica serve o "
+"mesmo JWKS, sem estado compartilhado."
+
+#: src/27-downstream-profile-signature.md:82
+msgid ""
+"The private keys only ever exist in memory. The fixed `info` label keeps "
+"them cryptographically independent from the HMAC use of the same secret: a "
+"public key or a signature reveals nothing about it."
+msgstr ""
+"As chaves privadas só existem em memória. O rótulo `info` fixo as mantém "
+"criptograficamente independentes do uso do mesmo segredo como HMAC: uma "
+"chave pública ou uma assinatura não revela nada sobre ele."
+
+#: src/27-downstream-profile-signature.md:85
+msgid ""
+"A derived key is only as strong as its secret. The gateway logs a warning at "
+"boot for a secret shorter than 32 bytes; use at least 32 random bytes."
+msgstr ""
+"Uma chave derivada é tão forte quanto o seu segredo. O gateway registra um "
+"aviso na inicialização para um segredo com menos de 32 bytes; use pelo menos "
+"32 bytes aleatórios."
+
+#: src/27-downstream-profile-signature.md:87
+msgid ""
+"Version `0` cannot be a `kid`: such an entry is not published, and when it "
+"is the primary the gateway does not sign (logged as a warning at boot)."
+msgstr ""
+"A versão `0` não pode ser um `kid`: uma entrada assim não é publicada e, "
+"quando ela é a principal, o gateway não assina (registrado como aviso na "
+"inicialização)."
+
+#: src/27-downstream-profile-signature.md:90
+msgid ""
+"The gateway refuses to start (`MYC00041`) when a secret cannot be resolved "
+"(missing env var, Vault error, or a 60-second budget exceeded) or a derived "
+"key fails its self-test. Errors name the key version and the failing step, "
+"never the key material. If a signature cannot be produced for a request, the "
+"request is **not** forwarded (500, logged as `MYC00042`); an unsigned "
+"profile is never sent while signing is enabled."
+msgstr ""
+"O gateway se recusa a iniciar (`MYC00041`) quando um segredo não pode ser "
+"resolvido (variável de ambiente ausente, erro do Vault ou limite de 60 "
+"segundos excedido) ou quando uma chave derivada falha no autoteste. Os erros "
+"informam a versão da chave e a etapa que falhou, nunca o material da chave. "
+"Se não for possível gerar a assinatura para uma requisição, ela **não** é "
+"encaminhada (500, registrado como `MYC00042`); com a assinatura habilitada, "
+"um profile sem assinatura nunca é enviado."
+
+#: src/27-downstream-profile-signature.md:97
+msgid ""
+"Works identically in full, postgres-only and standalone modes. It adds no "
+"configuration, database table, migration or network call per request."
+msgstr ""
+"Funciona igual nos modos full, postgres-only e standalone. Não adiciona "
+"configuração, tabela, migration nem chamada de rede por requisição."
+
+#: src/27-downstream-profile-signature.md:102
+msgid "Published keys (JWKS)"
+msgstr "Chaves publicadas (JWKS)"
+
+#: src/27-downstream-profile-signature.md:104
+msgid "The gateway serves its public keys at a public, unauthenticated route:"
+msgstr ""
+"O gateway disponibiliza suas chaves públicas em uma rota pública e sem "
+"autenticação:"
+
+#: src/27-downstream-profile-signature.md:112
+msgid "\"keys\""
+msgstr "\"keys\""
+
+#: src/27-downstream-profile-signature.md:113
+msgid "\"kty\""
+msgstr "\"kty\""
+
+#: src/27-downstream-profile-signature.md:113
+msgid "\"OKP\""
+msgstr "\"OKP\""
+
+#: src/27-downstream-profile-signature.md:113
+msgid "\"crv\""
+msgstr "\"crv\""
+
+#: src/27-downstream-profile-signature.md:113
+msgid "\"Ed25519\""
+msgstr "\"Ed25519\""
+
+#: src/27-downstream-profile-signature.md:113
+msgid "\"x\""
+msgstr "\"x\""
+
+#: src/27-downstream-profile-signature.md:113
+msgid "\"<32-byte public key, base64url>\""
+msgstr "\"<chave pública de 32 bytes, base64url>\""
+
+#: src/27-downstream-profile-signature.md:114
+msgid "\"kid\""
+msgstr "\"kid\""
+
+#: src/27-downstream-profile-signature.md:114
+msgid "\"1\""
+msgstr "\"1\""
+
+#: src/27-downstream-profile-signature.md:114
+msgid "\"use\""
+msgstr "\"use\""
+
+#: src/27-downstream-profile-signature.md:114
+msgid "\"sig\""
+msgstr "\"sig\""
+
+#: src/27-downstream-profile-signature.md:114
+msgid "\"alg\""
+msgstr "\"alg\""
+
+#: src/27-downstream-profile-signature.md:114
+msgid "\"EdDSA\""
+msgstr "\"EdDSA\""
+
+#: src/27-downstream-profile-signature.md:119
+msgid ""
+"The set contains **every** `hmacSecrets` version, not only the primary, so a "
+"downstream already trusts the next key before the gateway signs with it. It "
+"never contains private material (`d`) or certificates."
+msgstr ""
+"O conjunto contém **todas** as versões de `hmacSecrets`, não só a principal, "
+"então um downstream já confia na próxima chave antes de o gateway começar a "
+"assinar com ela. Ele nunca contém material privado (`d`) nem certificados."
+
+#: src/27-downstream-profile-signature.md:122
+msgid ""
+"The body is built once at boot. The response carries `Content-Type: "
+"application/jwk-set+json` and `Cache-Control: public, max-age=43200` (12 "
+"hours)."
+msgstr ""
+"O corpo é montado uma única vez na inicialização. A resposta traz `Content-"
+"Type: application/jwk-set+json` e `Cache-Control: public, max-age=43200` (12 "
+"horas)."
+
+#: src/27-downstream-profile-signature.md:125
+msgid ""
+"When the gateway does not sign (primary version `0`) the route answers `404`."
+msgstr ""
+"Quando o gateway não assina (versão principal `0`), a rota responde `404`."
+
+#: src/27-downstream-profile-signature.md:128
+msgid ""
+"The keys only verify, so publishing them is safe. The derived keys must "
+"**never be reused for any other purpose** (for example instance federation): "
+"the signature uses `typ: \"JWT\"`, which is only unambiguous while nothing "
+"else is signed with these keys."
+msgstr ""
+"As chaves só servem para verificar, então publicá-las é seguro. As chaves "
+"derivadas **nunca devem ser reutilizadas para outra finalidade** (por "
+"exemplo, federação de instâncias): a assinatura usa `typ: \"JWT\"`, que só é "
+"inequívoco enquanto nada mais for assinado com essas chaves."
+
+#: src/27-downstream-profile-signature.md:135
+msgid "Downstream configuration"
+msgstr "Configuração do downstream"
+
+#: src/27-downstream-profile-signature.md:137
+msgid ""
+"Every verifier (the Python, JavaScript and Go SDKs and the Rust "
+"`GatewayProfileData` extractor) reads the same variables:"
+msgstr ""
+"Todos os verificadores (os SDKs Python, JavaScript e Go e o extrator Rust "
+"`GatewayProfileData`) leem as mesmas variáveis:"
+
+#: src/27-downstream-profile-signature.md:140
+msgid "Variable"
+msgstr "Variável"
+
+#: src/27-downstream-profile-signature.md:140 src/17-error-codes.md:44
+#: src/14-json-rpc.md:370 src/22-hmac-key-rotation.md:122
+msgid "Meaning"
+msgstr "Significado"
+
+#: src/27-downstream-profile-signature.md:142
+msgid "`MYCELIUM_JWKS_URL`"
+msgstr "`MYCELIUM_JWKS_URL`"
+
+#: src/27-downstream-profile-signature.md:142
+msgid ""
+"Where the gateway is. Either its address (`gateway.internal`, `https://"
+"gateway.internal/prod`), to which the verifier appends `/.well-known/"
+"mycelium-profile-jwks.json`, or that complete endpoint. `https://` is "
+"assumed when no scheme is given. Setting it enables verification"
+msgstr ""
+"Onde o gateway está. Pode ser o endereço dele (`gateway.internal`, `https://"
+"gateway.internal/prod`), ao qual o verificador acrescenta `/.well-known/"
+"mycelium-profile-jwks.json`, ou esse endpoint completo. Sem esquema, assume-"
+"se `https://`. Definir a variável habilita a verificação"
+
+#: src/27-downstream-profile-signature.md:143
+msgid "`MYC_PROFILE_SIGNATURE_AUDIENCE`"
+msgstr "`MYC_PROFILE_SIGNATURE_AUDIENCE`"
+
+#: src/27-downstream-profile-signature.md:143
+msgid ""
+"**Required** when `MYCELIUM_JWKS_URL` is set. The `aud` claim must equal it "
+"(use the service `name` registered in the gateway)"
+msgstr ""
+"**Obrigatória** quando `MYCELIUM_JWKS_URL` está definida. O claim `aud` "
+"precisa ser igual a ela (use o `name` do serviço registrado no gateway)"
+
+#: src/27-downstream-profile-signature.md:144
+msgid "`MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS`"
+msgstr "`MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS`"
+
+#: src/27-downstream-profile-signature.md:144
+msgid "Optional. Accepted clock difference, `1` to `300`, default `60`"
+msgstr "Opcional. Diferença de relógio aceita, de `1` a `300`, padrão `60`"
+
+#: src/27-downstream-profile-signature.md:145
+msgid "`MYCELIUM_JWKS_ALLOW_INSECURE_HTTP`"
+msgstr "`MYCELIUM_JWKS_ALLOW_INSECURE_HTTP`"
+
+#: src/27-downstream-profile-signature.md:145
+msgid ""
+"Development only. `true` accepts an `http://` JWKS URL (a warning is "
+"logged); any other value than `true`/`false` is an error"
+msgstr ""
+"Somente para desenvolvimento. `true` aceita uma URL de JWKS `http://` (um "
+"aviso é registrado no log); qualquer valor diferente de `true`/`false` é um "
+"erro"
+
+#: src/27-downstream-profile-signature.md:147
+msgid ""
+"The JWKS URL must use `https://` and must not carry credentials. It comes "
+"**only** from the service configuration: a verifier never follows a key or a "
+"key location found in the request it is verifying (which is also why tokens "
+"carrying `jku`, `jwk`, `x5u` or `x5c` are rejected). Static public keys in "
+"environment variables are not supported (see [issue #225](https://github.com/"
+"LepistaBioinformatics/mycelium/issues/225))."
+msgstr ""
+"A URL do JWKS precisa usar `https://` e não pode conter credenciais. Ela vem "
+"**somente** da configuração do serviço: um verificador nunca segue uma chave "
+"ou um endereço de chave encontrado na própria requisição que está "
+"verificando (por isso também são rejeitados tokens com `jku`, `jwk`, `x5u` "
+"ou `x5c`). Chaves públicas fixas em variáveis de ambiente não são suportadas "
+"(veja a [issue #225](https://github.com/LepistaBioinformatics/mycelium/"
+"issues/225))."
+
+#: src/27-downstream-profile-signature.md:154
+msgid "How the keys are kept:"
+msgstr "Como as chaves são mantidas:"
+
+#: src/27-downstream-profile-signature.md:156
+msgid ""
+"**First use:** the set is downloaded on the first signed request, not at "
+"startup. Requests only reach the service through the gateway, so the gateway "
+"is up by then, and the service never depends on it to start (both can boot "
+"in any order). Until a set is downloaded, requests fail closed (`403`) and "
+"the download is retried at most every 5 seconds."
+msgstr ""
+"**Primeiro uso:** o conjunto é baixado na primeira requisição assinada, não "
+"na inicialização. As requisições só chegam ao serviço passando pelo gateway, "
+"então o gateway já está de pé nesse momento, e o serviço nunca depende dele "
+"para subir (os dois podem subir em qualquer ordem). Até um conjunto ser "
+"baixado, as requisições falham fechadas (`403`) e o download é tentado de "
+"novo no máximo a cada 5 segundos."
+
+#: src/27-downstream-profile-signature.md:161
+msgid ""
+"**Cache:** the set is reused for the `max-age` announced by the gateway, "
+"bounded to 1 minute..1 day (12 hours when absent), then refreshed."
+msgstr ""
+"**Cache:** o conjunto é reutilizado pelo `max-age` informado pelo gateway, "
+"limitado entre 1 minuto e 1 dia (12 horas quando ausente), e depois "
+"atualizado."
+
+#: src/27-downstream-profile-signature.md:163
+msgid ""
+"**Unknown `kid`:** a signature naming a key version the cached set does not "
+"have triggers one refetch, at most once every 30 seconds, shared by "
+"concurrent requests. A new key is therefore picked up without restarting the "
+"service."
+msgstr ""
+"**`kid` desconhecido:** uma assinatura com uma versão de chave que não está "
+"no conjunto em cache dispara uma nova busca, no máximo uma vez a cada 30 "
+"segundos, compartilhada entre requisições simultâneas. Assim, uma chave nova "
+"é reconhecida sem reiniciar o serviço."
+
+#: src/27-downstream-profile-signature.md:167
+msgid ""
+"**Gateway unreachable:** a failed refresh keeps the last valid set and is "
+"logged."
+msgstr ""
+"**Gateway inacessível:** uma atualização que falha mantém o último conjunto "
+"válido e é registrada no log."
+
+#: src/27-downstream-profile-signature.md:169
+msgid ""
+"**Strict set:** a set with private material, another key type or curve, a "
+"key that is not 32 bytes, or a non-canonical or repeated `kid` is refused as "
+"a whole."
+msgstr ""
+"**Conjunto estrito:** um conjunto com material privado, outro tipo de chave "
+"ou curva, uma chave que não tem 32 bytes, ou um `kid` não canônico ou "
+"repetido é recusado por inteiro."
+
+#: src/27-downstream-profile-signature.md:172
+msgid ""
+"**Bounded fetch:** 5-second timeout, 64 KiB body, redirects never followed."
+msgstr ""
+"**Busca limitada:** timeout de 5 segundos, corpo de até 64 KiB, "
+"redirecionamentos nunca seguidos."
+
+#: src/27-downstream-profile-signature.md:174
+msgid ""
+"If a signed profile arrives while `MYCELIUM_JWKS_URL` is unset, the verifier "
+"logs one warning per process: the profile is still decoded as before, but "
+"nothing is verified."
+msgstr ""
+"Se chegar um profile assinado enquanto `MYCELIUM_JWKS_URL` não está "
+"definida, o verificador registra um aviso por processo: o profile continua "
+"sendo decodificado como antes, mas nada é verificado."
+
+#: src/27-downstream-profile-signature.md:178
+msgid ""
+"Any present but invalid value, including a missing audience, is a "
+"configuration error. Call the startup function of your SDK so a bad setting "
+"stops the service before it accepts traffic. It only validates the settings "
+"and never needs the gateway. Downloading the keys at startup is opt-in: it "
+"makes an unreachable gateway stop the service, so use it only when the "
+"service does not need to start before the gateway:"
+msgstr ""
+"Qualquer valor presente mas inválido, incluindo a audiência ausente, é um "
+"erro de configuração. Chame a função de inicialização do seu SDK para que "
+"uma configuração ruim impeça o serviço de subir antes de aceitar tráfego. "
+"Ela só valida as configurações e nunca precisa do gateway. Baixar as chaves "
+"na inicialização é opcional: isso faz um gateway inacessível impedir o "
+"serviço de subir, então use apenas quando o serviço não precisar subir antes "
+"do gateway:"
+
+#: src/27-downstream-profile-signature.md:185
+#: src/27-downstream-profile-signature.md:206
+msgid "SDK"
+msgstr "SDK"
+
+#: src/27-downstream-profile-signature.md:185
+msgid "Startup call (validates the settings)"
+msgstr "Chamada na inicialização (valida as configurações)"
+
+#: src/27-downstream-profile-signature.md:185
+msgid "Opt-in download at startup"
+msgstr "Download opcional na inicialização"
+
+#: src/27-downstream-profile-signature.md:187
+msgid "Python"
+msgstr "Python"
+
+#: src/27-downstream-profile-signature.md:187
+msgid "`configure_profile_signature()`"
+msgstr "`configure_profile_signature()`"
+
+#: src/27-downstream-profile-signature.md:187
+msgid ""
+"`configure_profile_signature(prefetch=True)` (raises `ProfileJwksFetchError`)"
+msgstr ""
+"`configure_profile_signature(prefetch=True)` (lança `ProfileJwksFetchError`)"
+
+#: src/27-downstream-profile-signature.md:188
+msgid "JavaScript"
+msgstr "JavaScript"
+
+#: src/27-downstream-profile-signature.md:188
+msgid ""
+"Fastify: registering `fastifyProfilePlugin`. Express: the settings are read "
+"when the middleware is created"
+msgstr ""
+"Fastify: registrar o `fastifyProfilePlugin`. Express: as configurações são "
+"lidas quando o middleware é criado"
+
+#: src/27-downstream-profile-signature.md:188
+msgid ""
+"Pass `signatureVerifier: await prepareProfileSignatureVerifier()` to the "
+"Express middleware or the Fastify plugin"
+msgstr ""
+"Passe `signatureVerifier: await prepareProfileSignatureVerifier()` para o "
+"middleware do Express ou para o plugin do Fastify"
+
+#: src/27-downstream-profile-signature.md:189
+msgid "Go"
+msgstr "Go"
+
+#: src/27-downstream-profile-signature.md:189
+msgid "`mycelium.ConfigureProfileSignature(ctx)` returns an error to abort on"
+msgstr ""
+"`mycelium.ConfigureProfileSignature(ctx)` retorna um erro para interromper a "
+"inicialização"
+
+#: src/27-downstream-profile-signature.md:189
+msgid "`verifier.Prefetch(ctx)` on the returned verifier"
+msgstr "`verifier.Prefetch(ctx)` no verificador retornado"
+
+#: src/27-downstream-profile-signature.md:190
+msgid "Rust"
+msgstr "Rust"
+
+#: src/27-downstream-profile-signature.md:190
+msgid ""
+"Register `web::Data<ProfileSignatureVerification>` built with "
+"`ProfileSignatureVerification::from_environment()`"
+msgstr ""
+"Registre `web::Data<ProfileSignatureVerification>` criado com "
+"`ProfileSignatureVerification::from_environment()`"
+
+#: src/27-downstream-profile-signature.md:190
+msgid "`verification.prefetch().await`"
+msgstr "`verification.prefetch().await`"
+
+#: src/27-downstream-profile-signature.md:192
+msgid ""
+"When the settings are invalid and no startup call was made, requests fail "
+"with 500 (Rust logs `MYC00043`). An invalid configuration never means "
+"\"verification disabled\". Tolerance is an integer between 1 and 300 in "
+"every verifier. Warnings go to the standard logging of each platform "
+"(`logging` in Python, `console.warn` in JavaScript, `log/slog` in Go, "
+"`tracing` in Rust)."
+msgstr ""
+"Quando as configurações são inválidas e nenhuma chamada de inicialização foi "
+"feita, as requisições falham com 500 (o Rust registra `MYC00043`). Uma "
+"configuração inválida nunca significa \"verificação desabilitada\". A "
+"tolerância é um inteiro entre 1 e 300 em todos os verificadores. Os avisos "
+"vão para o log padrão de cada plataforma (`logging` no Python, "
+"`console.warn` no JavaScript, `log/slog` no Go, `tracing` no Rust)."
+
+#: src/27-downstream-profile-signature.md:198
+msgid ""
+"With verification enabled, every SDK entry point verifies **before** "
+"decoding the profile and answers `403 Unable to verify Mycelium profile` on "
+"failure, in every environment (the development leniency does not apply). "
+"Python `get_profile_from_header_required` preserves FastAPI's 422 when the "
+"profile header itself is absent. Configuration/internal failures return "
+"generic 500 and never execute the handler. See the [SDK Integration Guide](./"
+"19-sdk.md) and each SDK README for code samples."
+msgstr ""
+"Com a verificação habilitada, todo ponto de entrada do SDK verifica "
+"**antes** de decodificar o profile e responde `403 Unable to verify Mycelium "
+"profile` nas rejeições, em qualquer ambiente (a tolerância de "
+"desenvolvimento não se aplica). No Python, "
+"`get_profile_from_header_required` preserva o 422 do FastAPI quando o header "
+"de profile está ausente. Falhas internas/de configuração retornam 500 "
+"genérico sem executar o handler. Veja exemplos no [Guia de Integração do SDK]"
+"(./19-sdk.md) e nos READMEs dos SDKs."
+
+#: src/27-downstream-profile-signature.md:206
+msgid "Install"
+msgstr "Instalação"
+
+#: src/27-downstream-profile-signature.md:206
+msgid "Entry points covered"
+msgstr "Pontos de entrada cobertos"
+
+#: src/27-downstream-profile-signature.md:208
+msgid "Python `mycelium-http-tools`"
+msgstr "Python `mycelium-http-tools`"
+
+#: src/27-downstream-profile-signature.md:208
+msgid "`pip install 'mycelium-http-tools[fastapi,signature]'`"
+msgstr "`pip install 'mycelium-http-tools[fastapi,signature]'`"
+
+#: src/27-downstream-profile-signature.md:208
+msgid ""
+"`get_profile_from_request`, `profile_middleware`, `get_profile_from_header`, "
+"`get_profile_from_header_required`"
+msgstr ""
+"`get_profile_from_request`, `profile_middleware`, `get_profile_from_header`, "
+"`get_profile_from_header_required`"
+
+#: src/27-downstream-profile-signature.md:209
+msgid "JavaScript `@lepistabioinformatics/mycelium-sdk`"
+msgstr "JavaScript `@lepistabioinformatics/mycelium-sdk`"
+
+#: src/27-downstream-profile-signature.md:209
+msgid "`jose` is a dependency"
+msgstr "`jose` é uma dependência"
+
+#: src/27-downstream-profile-signature.md:209
+msgid ""
+"Express `profileMiddleware`, `getProfileFromHeaderRequired`; "
+"`fastifyProfilePlugin`"
+msgstr ""
+"Express `profileMiddleware`, `getProfileFromHeaderRequired`; "
+"`fastifyProfilePlugin`"
+
+#: src/27-downstream-profile-signature.md:210
+msgid "Go `mycelium-sdk-go`"
+msgstr "Go `mycelium-sdk-go`"
+
+#: src/27-downstream-profile-signature.md:210
+msgid "Standard library only"
+msgstr "Somente a biblioteca padrão"
+
+#: src/27-downstream-profile-signature.md:210
+msgid "`adapters/nethttp`, `adapters/gin`, `adapters/echo` `Middleware`"
+msgstr "`Middleware` de `adapters/nethttp`, `adapters/gin` e `adapters/echo`"
+
+#: src/27-downstream-profile-signature.md:211
+msgid "Rust `mycelium-http-tools`"
+msgstr "Rust `mycelium-http-tools`"
+
+#: src/27-downstream-profile-signature.md:211
+msgid "Part of the crate"
+msgstr "Faz parte do crate"
+
+#: src/27-downstream-profile-signature.md:211
+msgid "`GatewayProfileData` extractor (actix-web)"
+msgstr "Extrator `GatewayProfileData` (actix-web)"
+
+#: src/27-downstream-profile-signature.md:213
+msgid ""
+"The Rust extractor keeps its bearer-token fallback (the profile is fetched "
+"from the gateway) only for requests that carry neither profile header; as "
+"soon as either header is present, the signed profile must verify."
+msgstr ""
+"O extrator Rust mantém o fallback por token bearer (o profile é buscado no "
+"gateway) apenas para requisições que não carregam nenhum dos dois headers de "
+"profile; assim que qualquer um deles estiver presente, o profile assinado "
+"precisa ser verificado."
+
+#: src/27-downstream-profile-signature.md:217
+msgid "Rejections are logged with a stable reason:"
+msgstr "As rejeições são registradas com uma razão estável:"
+
+#: src/27-downstream-profile-signature.md:219
+msgid "Reason"
+msgstr "Razão"
+
+#: src/27-downstream-profile-signature.md:219 src/22-hmac-key-rotation.md:122
+msgid "Typical cause"
+msgstr "Causa típica"
+
+#: src/27-downstream-profile-signature.md:221
+msgid "`missing_signature`"
+msgstr "`missing_signature`"
+
+#: src/27-downstream-profile-signature.md:221
+msgid "Gateway not signing yet (rollout order), or header stripped by a proxy"
+msgstr ""
+"Gateway ainda não assina (ordem de rollout) ou header removido por um proxy"
+
+#: src/27-downstream-profile-signature.md:222
+msgid "`unknown_key`"
+msgstr "`unknown_key`"
+
+#: src/27-downstream-profile-signature.md:222
+msgid ""
+"Version not published by the gateway even after a refetch (the refetch "
+"cooldown was active, or the gateway is unreachable), or a forged `kid`"
+msgstr ""
+"Versão não publicada pelo gateway mesmo após uma nova busca (o intervalo "
+"mínimo entre buscas estava ativo, ou o gateway está inacessível), ou um "
+"`kid` forjado"
+
+#: src/27-downstream-profile-signature.md:223
+msgid "`invalid_signature`"
+msgstr "`invalid_signature`"
+
+#: src/27-downstream-profile-signature.md:223
+msgid "Forged or corrupted token"
+msgstr "Token forjado ou corrompido"
+
+#: src/27-downstream-profile-signature.md:224
+msgid "`profile_hash_mismatch`"
+msgstr "`profile_hash_mismatch`"
+
+#: src/27-downstream-profile-signature.md:224
+msgid "Profile altered after signing"
+msgstr "Profile alterado depois da assinatura"
+
+#: src/27-downstream-profile-signature.md:225
+msgid "`timestamp_out_of_tolerance`"
+msgstr "`timestamp_out_of_tolerance`"
+
+#: src/27-downstream-profile-signature.md:225
+msgid "Clock skew between hosts, or an old captured pair"
+msgstr "Diferença de relógio entre hosts ou par antigo capturado"
+
+#: src/27-downstream-profile-signature.md:226
+msgid "`audience_mismatch`"
+msgstr "`audience_mismatch`"
+
+#: src/27-downstream-profile-signature.md:226
+msgid "Pair signed for another service"
+msgstr "Par assinado para outro serviço"
+
+#: src/27-downstream-profile-signature.md:227
+msgid ""
+"`unsupported_algorithm`, `malformed_signature`, `invalid_claims`, "
+"`duplicate_header`"
+msgstr ""
+"`unsupported_algorithm`, `malformed_signature`, `invalid_claims`, "
+"`duplicate_header`"
+
+#: src/27-downstream-profile-signature.md:227
+msgid "Hostile or broken input"
+msgstr "Entrada hostil ou corrompida"
+
+#: src/27-downstream-profile-signature.md:228
+msgid "`invalid_profile`"
+msgstr "`invalid_profile`"
+
+#: src/27-downstream-profile-signature.md:228
+msgid ""
+"Signature valid but the profile does not decode (SDK/gateway version "
+"mismatch)"
+msgstr ""
+"Assinatura válida, mas o profile não decodifica (versões de SDK e gateway "
+"incompatíveis)"
+
+#: src/27-downstream-profile-signature.md:232
+msgid "Rollout and rollback"
+msgstr "Rollout e rollback"
+
+#: src/27-downstream-profile-signature.md:234
+msgid ""
+"**Order is mandatory.** A downstream that verifies behind a gateway that is "
+"not signing yet rejects **every** authenticated request."
+msgstr ""
+"**A ordem é obrigatória.** Um downstream que verifica atrás de um gateway "
+"que ainda não assina rejeita **todas** as requisições autenticadas."
+
+#: src/27-downstream-profile-signature.md:237
+msgid "Rollout:"
+msgstr "Rollout:"
+
+#: src/27-downstream-profile-signature.md:239
+msgid ""
+"Upgrade every gateway replica to a version that signs. Downstreams keep "
+"working (they ignore the new header)."
+msgstr ""
+"Atualize todas as réplicas do gateway para uma versão que assina. Os "
+"downstreams continuam funcionando (ignoram o header novo)."
+
+#: src/27-downstream-profile-signature.md:241
+msgid ""
+"Confirm signature presence and successful verification using a controlled "
+"synthetic request. Log only status/reason/key version, never the header "
+"value."
+msgstr ""
+"Confirme a presença da assinatura e sua verificação bem-sucedida com "
+"requisição sintética controlada. Registre somente status/motivo/versão da "
+"chave, nunca o valor do header."
+
+#: src/27-downstream-profile-signature.md:243
+msgid ""
+"Upgrade the downstream SDK, set `MYCELIUM_JWKS_URL` and "
+"`MYC_PROFILE_SIGNATURE_AUDIENCE`, and restart. Repeat per service, at its "
+"own pace."
+msgstr ""
+"Atualize o SDK do downstream, defina `MYCELIUM_JWKS_URL` e "
+"`MYC_PROFILE_SIGNATURE_AUDIENCE` e reinicie. Repita para cada serviço, no "
+"ritmo de cada um."
+
+#: src/27-downstream-profile-signature.md:247
+msgid ""
+"Rollback: unset `MYCELIUM_JWKS_URL` in the downstreams (this removes their "
+"protection, a conscious operator decision). The gateway keeps signing; the "
+"header is ignored."
+msgstr ""
+"Rollback: remova `MYCELIUM_JWKS_URL` dos downstreams (isso remove a proteção "
+"deles, uma decisão consciente do operador). O gateway continua assinando; o "
+"header é ignorado."
+
+#: src/27-downstream-profile-signature.md:253
+msgid "Key rotation"
+msgstr "Rotação de chaves"
+
+#: src/27-downstream-profile-signature.md:255
+msgid ""
+"The profile signing keys rotate **together with the connection-string HMAC "
+"secrets**: follow the HMAC key rotation procedure ([chapter 22](./22-hmac-"
+"key-rotation.md)). No downstream service changes at any step:"
+msgstr ""
+"As chaves de assinatura do profile são rotacionadas **junto com os segredos "
+"HMAC das connection strings**: siga o procedimento de rotação de chaves HMAC "
+"([capítulo 22](./22-hmac-key-rotation.md)). Nenhum serviço downstream muda "
+"em nenhuma etapa:"
+
+#: src/27-downstream-profile-signature.md:260
+msgid ""
+"Add secret v2 to `hmacSecrets` **keeping `hmacPrimaryVersion = 1`**; rolling-"
+"restart the gateway. The JWKS now publishes v1 and v2."
+msgstr ""
+"Adicione o segredo v2 em `hmacSecrets` **mantendo `hmacPrimaryVersion = "
+"1`**; reinicie o gateway de forma escalonada. O JWKS passa a publicar v1 e "
+"v2."
+
+#: src/27-downstream-profile-signature.md:262
+msgid ""
+"Set `hmacPrimaryVersion = 2` and rolling-restart the gateway. During the "
+"restart old replicas still emit `kid: \"1\"` and new ones `kid: \"2\"`; "
+"downstreams accept both (the first `kid: \"2\"` they see triggers a refetch "
+"if their cached set predates step 1)."
+msgstr ""
+"Defina `hmacPrimaryVersion = 2` e reinicie o gateway de forma escalonada. "
+"Durante o reinício, réplicas antigas ainda emitem `kid: \"1\"` e as novas "
+"`kid: \"2\"`; os downstreams aceitam ambos (o primeiro `kid: \"2\"` que "
+"recebem dispara uma nova busca se o conjunto em cache for anterior à etapa "
+"1)."
+
+#: src/27-downstream-profile-signature.md:266
+msgid ""
+"Once v1 is retired from `hmacSecrets` (see chapter 22 for when that is safe "
+"for connection strings), the JWKS stops publishing v1; downstreams drop it "
+"at their next refresh."
+msgstr ""
+"Quando a v1 for retirada de `hmacSecrets` (veja no capítulo 22 quando isso é "
+"seguro para as connection strings), o JWKS deixa de publicar a v1; os "
+"downstreams a descartam na próxima atualização."
+
+#: src/27-downstream-profile-signature.md:270
+msgid ""
+"Never replace the secret of an existing version in place: replicas would "
+"sign with different keys under the same `kid` during the rolling restart and "
+"downstreams would reject part of the traffic. Always add a new version."
+msgstr ""
+"Nunca substitua o segredo de uma versão existente: durante o reinício "
+"escalonado as réplicas assinariam com chaves diferentes sob o mesmo `kid` e "
+"os downstreams rejeitariam parte do tráfego. Sempre adicione uma versão nova."
+
+#: src/27-downstream-profile-signature.md:274
+msgid ""
+"**Compromised secret:** an HMAC secret leak compromises both connection "
+"strings and profile signatures of that version. Rotate to a new primary "
+"version immediately and remove the compromised one. Downstreams pick up the "
+"new `kid` within the 30-second refetch cooldown. Until their cached set "
+"expires (12 hours) they may still trust the removed key; restart the "
+"downstreams when that window matters. A downstream that cannot refresh keeps "
+"its last key set for at most one more day, then fails closed. The timestamp "
+"window does not protect against someone who holds the secret and can sign "
+"fresh tokens."
+msgstr ""
+"**Segredo comprometido:** o vazamento de um segredo HMAC compromete tanto as "
+"connection strings quanto as assinaturas de profile daquela versão. "
+"Rotacione imediatamente para uma nova versão principal e remova a "
+"comprometida. Os downstreams reconhecem o novo `kid` dentro do intervalo de "
+"30 segundos entre buscas. Até o conjunto em cache expirar (12 horas), eles "
+"ainda podem confiar na chave removida; reinicie os downstreams quando essa "
+"janela importar. Um downstream que não consegue atualizar mantém o último "
+"conjunto de chaves por no máximo mais um dia e depois falha fechado. A "
+"janela de timestamp não protege contra quem tem o segredo e consegue assinar "
+"tokens novos."
+
+#: src/27-downstream-profile-signature.md:284
+msgid ""
+"The gateway derives its keys once per process; changing them requires a "
+"gateway restart (no hot reload)."
+msgstr ""
+"O gateway deriva suas chaves uma vez por processo; trocá-las exige reiniciar "
+"o gateway (não há recarga a quente)."
+
+#: src/27-downstream-profile-signature.md:287
+msgid ""
+"**Standalone mode** keeps a single HMAC secret (the one it resolves or "
+"generates and persists at first boot) as version `1`, whatever `hmacSecrets` "
+"lists. Profiles are therefore always signed with `kid: \"1\"` and there is "
+"no version-based rotation: replacing that secret changes the key under the "
+"same `kid`, so restart the downstream services after doing it."
+msgstr ""
+"O **modo standalone** mantém um único segredo HMAC (o que ele resolve ou "
+"gera e persiste na primeira inicialização) como versão `1`, "
+"independentemente do que `hmacSecrets` lista. Os profiles são, portanto, "
+"sempre assinados com `kid: \"1\"` e não há rotação por versão: substituir "
+"esse segredo troca a chave sob o mesmo `kid`, então reinicie os serviços "
+"downstream depois de fazê-lo."
+
+#: src/27-downstream-profile-signature.md:295
+msgid "Security limits"
+msgstr "Limites de segurança"
+
+#: src/27-downstream-profile-signature.md:297
+msgid ""
+"**Replay inside the window.** A captured `(profile, signature)` pair is "
+"accepted again until `iat + tolerance`. There is no nonce or replay cache. "
+"The mandatory `MYC_PROFILE_SIGNATURE_AUDIENCE` prevents replaying a pair to "
+"a different service."
+msgstr ""
+"**Replay dentro da janela.** Um par `(profile, assinatura)` capturado é "
+"aceito novamente até `iat + tolerância`. Não há nonce nem cache de replay. A "
+"`MYC_PROFILE_SIGNATURE_AUDIENCE` obrigatória impede reenviar um par para "
+"outro serviço."
+
+#: src/27-downstream-profile-signature.md:301
+msgid ""
+"**The JWKS is the trust anchor.** Serve it over TLS and point "
+"`MYCELIUM_JWKS_URL` at the gateway itself, never at a location an untrusted "
+"party controls."
+msgstr ""
+"**O JWKS é a âncora de confiança.** Sirva-o via TLS e aponte "
+"`MYCELIUM_JWKS_URL` para o próprio gateway, nunca para um endereço "
+"controlado por terceiros não confiáveis."
+
+#: src/27-downstream-profile-signature.md:304
+msgid ""
+"**Only the profile is signed.** `x-mycelium-email`, `x-mycelium-role`, `x-"
+"mycelium-scope` and other headers are not covered; derive identity and "
+"authorization from the verified profile."
+msgstr ""
+"**Só o profile é assinado.** `x-mycelium-email`, `x-mycelium-role`, `x-"
+"mycelium-scope` e os demais headers não são cobertos; derive identidade e "
+"autorização do profile verificado."
+
+#: src/27-downstream-profile-signature.md:307
+msgid ""
+"**No method, path or body binding.** The signature proves who the caller is, "
+"not which request they sent."
+msgstr ""
+"**Sem vínculo com método, caminho ou corpo.** A assinatura prova quem está "
+"chamando, não qual requisição foi enviada."
+
+#: src/27-downstream-profile-signature.md:309
+msgid ""
+"**Not encryption.** The profile remains readable by anyone who sees the "
+"request; use TLS between gateway and services."
+msgstr ""
+"**Não é criptografia.** O profile continua legível para quem vê a "
+"requisição; use TLS entre o gateway e os serviços."
+
+#: src/27-downstream-profile-signature.md:313
+msgid "Reproducing the integration checks"
+msgstr "Reproduzindo as verificações integradas"
+
+#: src/27-downstream-profile-signature.md:315
+msgid ""
+"From a prepared monorepo checkout, use the local SDKs and a binary built "
+"with exactly one mode. The driver installs nothing and uses loopback-only "
+"synthetic services. Postgres modes start isolated Compose infrastructure "
+"with pinned Postgres 18, Redis 8 (full only), and Mailpit with verified "
+"STARTTLS."
+msgstr ""
+"Em um checkout preparado do monorepo, use os SDKs locais e um binário "
+"compilado com exatamente um modo. O driver não instala ferramentas e usa "
+"serviços sintéticos restritos ao loopback. Os modos Postgres iniciam "
+"infraestrutura Compose isolada com versões fixadas de Postgres 18, Redis 8 "
+"(somente full) e Mailpit com STARTTLS verificado."
+
+#: src/27-downstream-profile-signature.md:323
+msgid "# Repeat the rust/e2e commands with postgres-only and full.\n"
+msgstr "# Repita os comandos rust/e2e com postgres-only e full.\n"
+
+#: src/27-downstream-profile-signature.md:327
+msgid ""
+"Set `PYTHON`, `NODE`, `CARGO_TARGET_DIR`, `PSIG_API_BIN` and "
+"`PSIG_EVIDENCE_DIR` for non-default tool/binary paths. Run the driver from "
+"the monorepo root, not the gateway-only repository. The e2e stage also "
+"builds the Go and Rust consumers (`test/profile-signature-consumers/go_app` "
+"and `rust_app`), so Go 1.23 or newer is required. The gateway runner also "
+"accepts explicit `--api-bin`, `--python`, `--node`, `--sdk-js-dir`, `--go-"
+"bin`, `--rust-bin`, `--mode` and `--evidence-dir` arguments. The optional "
+"WSL root Docker adapter is test-only: `PSIG_DOCKER_WSL_ROOT=1`; ordinary "
+"Linux/CI uses the current Docker account."
+msgstr ""
+"Defina `PYTHON`, `NODE`, `CARGO_TARGET_DIR`, `PSIG_API_BIN` e "
+"`PSIG_EVIDENCE_DIR` para caminhos personalizados de ferramentas/binário. "
+"Execute o driver na raiz do monorepo, não no repositório isolado do gateway. "
+"O estágio e2e também compila os consumidores Go e Rust (`test/profile-"
+"signature-consumers/go_app` e `rust_app`), por isso é necessário Go 1.23 ou "
+"mais recente. O runner também aceita `--api-bin`, `--python`, `--node`, `--"
+"sdk-js-dir`, `--go-bin`, `--rust-bin`, `--mode` e `--evidence-dir`. O "
+"adaptador opcional de Docker root no WSL é exclusivo de teste: "
+"`PSIG_DOCKER_WSL_ROOT=1`; Linux/CI comum usa a conta Docker atual."
+
+#: src/27-downstream-profile-signature.md:336
+msgid ""
+"The public artifacts contain individual assertions and the actual exit "
+"status. Captured profiles, JWS values, magic links, credentials and raw "
+"service logs remain in a private temporary directory and are deleted at "
+"cleanup. A failed run stays failed even when earlier assertions passed. "
+"These results do not imply that the remote GitHub workflow has run."
+msgstr ""
+"Os artefatos públicos contêm verificações individuais e código de saída "
+"real. Profiles capturados, JWS, magic links, credenciais e logs brutos dos "
+"serviços permanecem em diretório temporário privado e são apagados na "
+"limpeza. Uma execução que falha continua registrada como falha, mesmo que "
+"verificações anteriores tenham passado. Esses resultados não significam que "
+"o workflow remoto do GitHub foi executado."
+
+#: src/27-downstream-profile-signature.md:342
+msgid ""
+"Use `--benchmark` only after correctness checks and release builds. It runs "
+"A (signing/verification off), B (signing on, verification off), and C (both "
+"on) with real small/200-license profiles, keep-alive HTTP, concurrency "
+"1/8/32 and three repetitions. Compile tools before collecting samples. "
+"Benchmark results are measurements of that environment, not an SLA."
+msgstr ""
+"Use `--benchmark` somente após verificar a correção e compilar em release. "
+"Ele executa A (assinatura/verificação desligadas), B (assinatura ligada e "
+"verificação desligada) e C (ambas ligadas) com profiles reais pequeno/com "
+"200 licenças, HTTP keep-alive, concorrência 1/8/32 e três repetições. "
+"Compile as ferramentas antes de coletar amostras. Os resultados medem esse "
+"ambiente; não constituem um SLA."
 
 #: src/10-alternative-idps.md:3
 msgid ""
@@ -5058,10 +6161,6 @@ msgstr ""
 #: src/10-alternative-idps.md:291
 msgid "Returns `422` if the tenant has not completed admin Step 1."
 msgstr "Retorna `422` se o tenant não concluiu o Passo 1 de administrador."
-
-#: src/10-alternative-idps.md:293 src/10-alternative-idps.md:373
-msgid "Gateway configuration"
-msgstr "Configuração do gateway"
 
 #: src/10-alternative-idps.md:295
 msgid ""
@@ -6219,19 +7318,19 @@ msgstr ""
 msgid "Via JSON-RPC"
 msgstr "Via JSON-RPC"
 
-#: src/16-webhooks.md:56 src/17-error-codes.md:55 src/17-error-codes.md:70
+#: src/16-webhooks.md:56 src/17-error-codes.md:64 src/17-error-codes.md:79
 #: src/14-json-rpc.md:24 src/14-json-rpc.md:35 src/14-json-rpc.md:36
 #: src/14-json-rpc.md:50 src/14-json-rpc.md:359
 msgid "\"jsonrpc\""
 msgstr ""
 
-#: src/16-webhooks.md:56 src/17-error-codes.md:55 src/17-error-codes.md:70
+#: src/16-webhooks.md:56 src/17-error-codes.md:64 src/17-error-codes.md:79
 #: src/14-json-rpc.md:24 src/14-json-rpc.md:35 src/14-json-rpc.md:36
 #: src/14-json-rpc.md:50 src/14-json-rpc.md:359
 msgid "\"2.0\""
 msgstr ""
 
-#: src/16-webhooks.md:57 src/17-error-codes.md:56 src/17-error-codes.md:71
+#: src/16-webhooks.md:57 src/17-error-codes.md:65 src/17-error-codes.md:80
 #: src/14-json-rpc.md:25 src/14-json-rpc.md:35 src/14-json-rpc.md:36
 #: src/14-json-rpc.md:50
 msgid "\"method\""
@@ -6241,7 +7340,7 @@ msgstr ""
 msgid "\"systemManager.webhooks.create\""
 msgstr ""
 
-#: src/16-webhooks.md:58 src/17-error-codes.md:57 src/17-error-codes.md:72
+#: src/16-webhooks.md:58 src/17-error-codes.md:66 src/17-error-codes.md:81
 #: src/14-json-rpc.md:26 src/14-json-rpc.md:35 src/14-json-rpc.md:36
 #: src/14-json-rpc.md:50
 msgid "\"params\""
@@ -6267,7 +7366,7 @@ msgstr ""
 msgid "\"isActive\""
 msgstr ""
 
-#: src/16-webhooks.md:63 src/17-error-codes.md:62 src/17-error-codes.md:73
+#: src/16-webhooks.md:63 src/17-error-codes.md:71 src/17-error-codes.md:82
 #: src/14-json-rpc.md:27 src/14-json-rpc.md:35 src/14-json-rpc.md:36
 #: src/14-json-rpc.md:50 src/14-json-rpc.md:364
 msgid "\"id\""
@@ -6356,7 +7455,7 @@ msgstr "Uma conta de usuário é excluída"
 msgid "Managing webhooks"
 msgstr "Gerenciando webhooks"
 
-#: src/16-webhooks.md:98 src/17-error-codes.md:81
+#: src/16-webhooks.md:98 src/17-error-codes.md:90
 msgid "JSON-RPC method"
 msgstr "Método JSON-RPC"
 
@@ -6522,29 +7621,29 @@ msgstr ""
 "Quando um caso de uso retorna um erro de domínio com um código, o Mycelium "
 "inclui esse código no corpo da resposta HTTP:"
 
-#: src/17-error-codes.md:16 src/17-error-codes.md:59 src/14-json-rpc.md:362
+#: src/17-error-codes.md:16 src/17-error-codes.md:68 src/14-json-rpc.md:362
 msgid "\"message\""
-msgstr ""
+msgstr "\"message\""
 
 #: src/17-error-codes.md:16
 msgid "\"Account not found.\""
-msgstr ""
+msgstr "\"Conta não encontrada.\""
 
-#: src/17-error-codes.md:17 src/17-error-codes.md:58 src/14-json-rpc.md:361
+#: src/17-error-codes.md:17 src/17-error-codes.md:67 src/14-json-rpc.md:361
 msgid "\"code\""
-msgstr ""
+msgstr "\"code\""
 
 #: src/17-error-codes.md:17
 msgid "\"MYC00023\""
-msgstr ""
+msgstr "\"MYC00023\""
 
-#: src/17-error-codes.md:18 src/17-error-codes.md:60
+#: src/17-error-codes.md:18 src/17-error-codes.md:69
 msgid "\"details\""
-msgstr ""
+msgstr "\"details\""
 
 #: src/17-error-codes.md:18
 msgid "\"No account with this ID exists in the requested tenant.\""
-msgstr ""
+msgstr "\"Não existe conta com este ID no tenant solicitado.\""
 
 #: src/17-error-codes.md:22
 msgid ""
@@ -6555,7 +7654,7 @@ msgstr ""
 "Downstream services and client SDKs can `switch` on `code` rather than "
 "parsing the `message` string."
 
-#: src/17-error-codes.md:27 src/22-hmac-key-rotation.md:113
+#: src/17-error-codes.md:27 src/22-hmac-key-rotation.md:120
 msgid "Native error codes"
 msgstr "Códigos de erro nativos"
 
@@ -6583,11 +7682,67 @@ msgstr ""
 msgid "See [CLI Reference](./18-cli.md) for full usage."
 msgstr "Consulte a [Referência da CLI](./18-cli.md) para uso completo."
 
-#: src/17-error-codes.md:43
+#: src/17-error-codes.md:41
+msgid ""
+"Profile signing adds three internal codes (see [Downstream Profile Signature]"
+"(./27-downstream-profile-signature.md)):"
+msgstr ""
+"A assinatura de profile adiciona três códigos internos (veja [Assinatura de "
+"Profile Downstream](./27-downstream-profile-signature.md)):"
+
+#: src/17-error-codes.md:44 src/14-json-rpc.md:370
+#: src/22-hmac-key-rotation.md:122
+msgid "Code"
+msgstr "Código"
+
+#: src/17-error-codes.md:46
+msgid "`MYC00041`"
+msgstr "`MYC00041`"
+
+#: src/17-error-codes.md:46
+msgid ""
+"A profile signing key could not be derived from "
+"`core.accountLifeCycle.hmacSecrets` (secret unresolved or self-test failed); "
+"the gateway refuses to start"
+msgstr ""
+"Não foi possível derivar uma chave de assinatura do profile a partir de "
+"`core.accountLifeCycle.hmacSecrets` (segredo não resolvido ou falha no "
+"autoteste); o gateway se recusa a iniciar"
+
+#: src/17-error-codes.md:47
+msgid "`MYC00042`"
+msgstr "`MYC00042`"
+
+#: src/17-error-codes.md:47
+msgid ""
+"The profile signature could not be issued for a request; the request is not "
+"forwarded"
+msgstr ""
+"Não foi possível gerar a assinatura do profile para uma requisição; a "
+"requisição não é encaminhada"
+
+#: src/17-error-codes.md:48
+msgid "`MYC00043`"
+msgstr "`MYC00043`"
+
+#: src/17-error-codes.md:48
+msgid ""
+"Invalid verification setting in a Rust downstream service "
+"(`GatewayProfileData`): an invalid `MYCELIUM_JWKS_URL`, tolerance or "
+"insecure-HTTP switch, a missing audience while `MYCELIUM_JWKS_URL` is set, "
+"or an unsafe published key set; requests fail closed"
+msgstr ""
+"Configuração de verificação inválida em um serviço downstream Rust "
+"(`GatewayProfileData`): `MYCELIUM_JWKS_URL`, tolerância ou a opção de HTTP "
+"inseguro inválidas, audiência ausente com `MYCELIUM_JWKS_URL` definida, ou "
+"um conjunto de chaves publicado inseguro; as requisições falham de forma "
+"fechada"
+
+#: src/17-error-codes.md:52
 msgid "Custom error codes"
 msgstr "Códigos de erro personalizados"
 
-#: src/17-error-codes.md:45
+#: src/17-error-codes.md:54
 msgid ""
 "You can define additional error codes for your own downstream services. This "
 "lets you publish a shared error vocabulary between the gateway and the "
@@ -6597,7 +7752,7 @@ msgstr ""
 "downstream. Isso permite publicar um vocabulário de erros compartilhado "
 "entre o gateway e os serviços atrás dele."
 
-#: src/17-error-codes.md:48
+#: src/17-error-codes.md:57
 msgid ""
 "Custom codes are managed through the `systemManager.errorCodes.*` JSON-RPC "
 "methods or the equivalent REST routes. Requires the **system-manager** role."
@@ -6606,80 +7761,80 @@ msgstr ""
 "`systemManager.errorCodes.*` ou pelas rotas REST equivalentes. Requer o "
 "papel **system-manager**."
 
-#: src/17-error-codes.md:51 src/14-json-rpc.md:188
+#: src/17-error-codes.md:60 src/14-json-rpc.md:188
 msgid "Create a custom error code"
 msgstr "Criar um código de erro personalizado"
 
-#: src/17-error-codes.md:56
+#: src/17-error-codes.md:65
 msgid "\"systemManager.errorCodes.create\""
-msgstr ""
+msgstr "\"systemManager.errorCodes.create\""
 
-#: src/17-error-codes.md:58
+#: src/17-error-codes.md:67
 msgid "\"SVC00001\""
-msgstr ""
+msgstr "\"SVC00001\""
 
-#: src/17-error-codes.md:59
+#: src/17-error-codes.md:68
 msgid "\"User has exceeded their rate limit.\""
-msgstr ""
+msgstr "\"O usuário excedeu o limite de requisições.\""
 
-#: src/17-error-codes.md:60
+#: src/17-error-codes.md:69
 msgid ""
 "\"The account has made more requests than allowed in the current window.\""
-msgstr ""
+msgstr "\"A conta fez mais requisições do que o permitido na janela atual.\""
 
-#: src/17-error-codes.md:66 src/14-json-rpc.md:189
+#: src/17-error-codes.md:75 src/14-json-rpc.md:189
 msgid "List all error codes"
 msgstr "Listar todos os códigos de erro"
 
-#: src/17-error-codes.md:71
+#: src/17-error-codes.md:80
 msgid "\"systemManager.errorCodes.list\""
-msgstr ""
+msgstr "\"systemManager.errorCodes.list\""
 
-#: src/17-error-codes.md:79
+#: src/17-error-codes.md:88
 msgid "Error code API reference"
 msgstr "Referência da API de códigos de erro"
 
-#: src/17-error-codes.md:83 src/14-json-rpc.md:188
+#: src/17-error-codes.md:92 src/14-json-rpc.md:188
 msgid "`systemManager.errorCodes.create`"
-msgstr ""
+msgstr "`systemManager.errorCodes.create`"
 
-#: src/17-error-codes.md:83
+#: src/17-error-codes.md:92
 msgid "Register a new error code"
 msgstr "Registrar um novo código de erro"
 
-#: src/17-error-codes.md:84 src/14-json-rpc.md:189
+#: src/17-error-codes.md:93 src/14-json-rpc.md:189
 msgid "`systemManager.errorCodes.list`"
-msgstr ""
+msgstr "`systemManager.errorCodes.list`"
 
-#: src/17-error-codes.md:84
+#: src/17-error-codes.md:93
 msgid "List all error codes (native + custom)"
 msgstr "Listar todos os códigos de erro (nativos + personalizados)"
 
-#: src/17-error-codes.md:85 src/14-json-rpc.md:190
+#: src/17-error-codes.md:94 src/14-json-rpc.md:190
 msgid "`systemManager.errorCodes.get`"
-msgstr ""
+msgstr "`systemManager.errorCodes.get`"
 
-#: src/17-error-codes.md:85
+#: src/17-error-codes.md:94
 msgid "Get a single error code by code string"
 msgstr "Obter um único código de erro pela string do código"
 
-#: src/17-error-codes.md:86 src/14-json-rpc.md:191
+#: src/17-error-codes.md:95 src/14-json-rpc.md:191
 msgid "`systemManager.errorCodes.updateMessageAndDetails`"
-msgstr ""
+msgstr "`systemManager.errorCodes.updateMessageAndDetails`"
 
-#: src/17-error-codes.md:86
+#: src/17-error-codes.md:95
 msgid "Update an existing code's message and details"
 msgstr "Atualizar a mensagem e detalhes de um código existente"
 
-#: src/17-error-codes.md:87 src/14-json-rpc.md:192
+#: src/17-error-codes.md:96 src/14-json-rpc.md:192
 msgid "`systemManager.errorCodes.delete`"
-msgstr ""
+msgstr "`systemManager.errorCodes.delete`"
 
-#: src/17-error-codes.md:87
+#: src/17-error-codes.md:96
 msgid "Remove a custom error code"
 msgstr "Remover um código de erro personalizado"
 
-#: src/17-error-codes.md:89
+#: src/17-error-codes.md:98
 msgid ""
 "Native error codes (prefixed `MYC`) cannot be deleted — only their message "
 "and details can be updated if you want to localize them."
@@ -7039,9 +8194,9 @@ msgstr "Requer: papel de **staff** ou **manager**."
 #: src/14-json-rpc.md:260 src/14-json-rpc.md:267 src/14-json-rpc.md:275
 #: src/14-json-rpc.md:287 src/14-json-rpc.md:294 src/14-json-rpc.md:301
 #: src/14-json-rpc.md:308 src/14-json-rpc.md:321 src/14-json-rpc.md:336
-#: src/14-json-rpc.md:346 src/19-sdk.md:90
+#: src/14-json-rpc.md:346 src/19-sdk.md:89
 msgid "Method"
-msgstr ""
+msgstr "Método"
 
 #: src/14-json-rpc.md:66
 msgid "`managers.accounts.createSystemAccount`"
@@ -7920,14 +9075,6 @@ msgstr ""
 msgid "Standard error codes:"
 msgstr "Códigos de erro padrão:"
 
-#: src/14-json-rpc.md:370 src/22-hmac-key-rotation.md:115
-msgid "Code"
-msgstr ""
-
-#: src/14-json-rpc.md:370 src/22-hmac-key-rotation.md:115
-msgid "Meaning"
-msgstr ""
-
 #: src/14-json-rpc.md:372
 msgid "`-32700`"
 msgstr ""
@@ -8068,23 +9215,23 @@ msgstr "Usando o SDK com FastAPI"
 msgid "The SDK ships a FastAPI middleware and dependency injectors:"
 msgstr "O SDK inclui um middleware FastAPI e injetores de dependência:"
 
-#: src/19-sdk.md:51
+#: src/19-sdk.md:50
 msgid "\"/dashboard\""
-msgstr ""
+msgstr "\"/dashboard\""
+
+#: src/19-sdk.md:52
+msgid "# profile is already decoded and validated\n"
+msgstr "# o profile já está decodificado e validado\n"
 
 #: src/19-sdk.md:53
-msgid "# profile is already decoded and validated\n"
-msgstr ""
-
-#: src/19-sdk.md:54
 msgid "\"account_id\""
-msgstr ""
+msgstr "\"account_id\""
 
-#: src/19-sdk.md:59
+#: src/19-sdk.md:58
 msgid "Making access decisions"
 msgstr "Tomando decisões de acesso"
 
-#: src/19-sdk.md:61
+#: src/19-sdk.md:60
 msgid ""
 "The `Profile` object provides a fluent filtering chain. Each step narrows — "
 "never expands — the set of permissions:"
@@ -8092,26 +9239,23 @@ msgstr ""
 "O objeto `Profile` fornece uma cadeia de filtragem fluente. Cada etapa "
 "restringe — nunca expande — o conjunto de permissões:"
 
-#: src/19-sdk.md:72
-#, fuzzy
+#: src/19-sdk.md:71
 msgid "# focus on this tenant\n"
-msgstr "Não pode vincular via este tenant"
+msgstr "# foco neste tenant\n"
+
+#: src/19-sdk.md:72
+msgid "# focus on this account\n"
+msgstr "# foco nesta conta\n"
 
 #: src/19-sdk.md:73
-#, fuzzy
-msgid "# focus on this account\n"
-msgstr "Convidando para contas filhas"
+msgid "# must have write permission\n"
+msgstr "# precisa ter permissão de escrita\n"
 
 #: src/19-sdk.md:74
-#, fuzzy
-msgid "# must have write permission\n"
-msgstr "Exigir permissão de escrita"
-
-#: src/19-sdk.md:75
 msgid "# must have manager role\n"
-msgstr ""
+msgstr "# precisa ter o papel de manager\n"
 
-#: src/19-sdk.md:83
+#: src/19-sdk.md:82
 msgid ""
 "If any step in the chain finds no match (wrong tenant, no write access, "
 "missing role), it raises `InsufficientPrivilegesError`. Your handler catches "
@@ -8121,67 +9265,67 @@ msgstr ""
 "sem acesso de escrita, papel ausente), ela lança "
 "`InsufficientPrivilegesError`. Seu handler a captura e retorna 403."
 
-#: src/19-sdk.md:88
+#: src/19-sdk.md:87
 msgid "Available filter methods"
 msgstr "Métodos de filtro disponíveis"
 
-#: src/19-sdk.md:90
+#: src/19-sdk.md:89
 msgid "Effect"
-msgstr ""
+msgstr "Efeito"
 
-#: src/19-sdk.md:92
+#: src/19-sdk.md:91
 msgid "`.on_tenant(tenant_id)`"
-msgstr ""
+msgstr "`.on_tenant(tenant_id)`"
 
-#: src/19-sdk.md:92
+#: src/19-sdk.md:91
 msgid "Filter to a specific tenant membership"
 msgstr "Filtrar para uma associação de tenant específica"
 
-#: src/19-sdk.md:93
+#: src/19-sdk.md:92
 msgid "`.on_account(account_id)`"
-msgstr ""
+msgstr "`.on_account(account_id)`"
 
-#: src/19-sdk.md:93
+#: src/19-sdk.md:92
 msgid "Filter to a specific account within the tenant"
 msgstr "Filtrar para uma conta específica dentro do tenant"
 
-#: src/19-sdk.md:94
+#: src/19-sdk.md:93
 msgid "`.with_read_access()`"
-msgstr ""
+msgstr "`.with_read_access()`"
 
-#: src/19-sdk.md:94
+#: src/19-sdk.md:93
 msgid "Require at least read permission"
 msgstr "Exigir ao menos permissão de leitura"
 
-#: src/19-sdk.md:95
+#: src/19-sdk.md:94
 msgid "`.with_write_access()`"
-msgstr ""
+msgstr "`.with_write_access()`"
 
-#: src/19-sdk.md:95
+#: src/19-sdk.md:94
 msgid "Require write permission"
 msgstr "Exigir permissão de escrita"
 
-#: src/19-sdk.md:96
+#: src/19-sdk.md:95
 msgid "`.with_roles([\"role1\", \"role2\"])`"
-msgstr ""
+msgstr "`.with_roles([\"role1\", \"role2\"])`"
 
-#: src/19-sdk.md:96
+#: src/19-sdk.md:95
 msgid "Require at least one of the listed roles"
 msgstr "Exigir ao menos um dos papéis listados"
 
-#: src/19-sdk.md:97
+#: src/19-sdk.md:96
 msgid "`.get_related_account_or_error()`"
-msgstr ""
+msgstr "`.get_related_account_or_error()`"
 
-#: src/19-sdk.md:97
+#: src/19-sdk.md:96
 msgid "Return the matched account or raise"
 msgstr "Retornar a conta correspondente ou lançar exceção"
 
-#: src/19-sdk.md:101
+#: src/19-sdk.md:100
 msgid "Header constants"
 msgstr "Constantes de cabeçalho"
 
-#: src/19-sdk.md:103
+#: src/19-sdk.md:102
 msgid ""
 "The SDK exports the same header key constants as the gateway. Use them "
 "instead of raw strings to prevent mismatches if header names change:"
@@ -8190,71 +9334,137 @@ msgstr ""
 "as em vez de strings brutas para evitar incompatibilidades se os nomes dos "
 "cabeçalhos mudarem:"
 
-#: src/19-sdk.md:108
-#, fuzzy
+#: src/19-sdk.md:107
 msgid "# \"x-mycelium-profile\"\n"
-msgstr "`x-mycelium-profile` em qualquer rota"
+msgstr "# \"x-mycelium-profile\"\n"
+
+#: src/19-sdk.md:108
+msgid "# \"x-mycelium-email\"\n"
+msgstr "# \"x-mycelium-email\"\n"
 
 #: src/19-sdk.md:109
-#, fuzzy
-msgid "# \"x-mycelium-email\"\n"
-msgstr "mycelium-api"
+msgid "# \"x-mycelium-scope\"\n"
+msgstr "# \"x-mycelium-scope\"\n"
 
 #: src/19-sdk.md:110
-#, fuzzy
-msgid "# \"x-mycelium-scope\"\n"
-msgstr "mycelium-api"
+msgid "# \"x-mycelium-role\"\n"
+msgstr "# \"x-mycelium-role\"\n"
 
 #: src/19-sdk.md:111
-msgid "# \"x-mycelium-role\"\n"
-msgstr ""
+msgid "# \"x-mycelium-request-id\"\n"
+msgstr "# \"x-mycelium-request-id\"\n"
 
 #: src/19-sdk.md:112
-#, fuzzy
-msgid "# \"x-mycelium-request-id\"\n"
-msgstr "Valor de `x-mycelium-request-id` se presente"
+msgid "# \"x-mycelium-connection-string\"\n"
+msgstr "# \"x-mycelium-connection-string\"\n"
 
 #: src/19-sdk.md:113
-#, fuzzy
-msgid "# \"x-mycelium-connection-string\"\n"
-msgstr "String de conexão — `x-mycelium-connection-string: <string>`"
+msgid "# \"x-mycelium-tenant-id\"\n"
+msgstr "# \"x-mycelium-tenant-id\"\n"
 
 #: src/19-sdk.md:114
-msgid "# \"x-mycelium-tenant-id\"\n"
-msgstr ""
+msgid "# \"x-mycelium-profile-signature\"\n"
+msgstr "# \"x-mycelium-profile-signature\"\n"
 
 #: src/19-sdk.md:120
-msgid "Manual decoding (any language)"
-msgstr "Decodificação manual (qualquer linguagem)"
+msgid "Verifying the profile signature"
+msgstr "Verificando a assinatura do profile"
 
 #: src/19-sdk.md:122
-msgid "If you are not using Python, decode `x-mycelium-profile` manually:"
+msgid ""
+"If your service can be reached without going through the gateway, enable "
+"signature verification so forged `x-mycelium-profile` headers are rejected. "
+"Install the `signature` extra and point the SDK at the gateway's published "
+"keys **after** the gateway is already signing:"
 msgstr ""
-"Se você não está usando Python, decodifique `x-mycelium-profile` manualmente:"
+"Se o seu serviço pode ser acessado sem passar pelo gateway, habilite a "
+"verificação de assinatura para que headers `x-mycelium-profile` forjados "
+"sejam rejeitados. Instale o extra `signature` e aponte o SDK para as chaves "
+"publicadas pelo gateway **depois** que o gateway já estiver assinando:"
+
+#: src/19-sdk.md:127
+msgid "'mycelium-http-tools[fastapi,signature]'"
+msgstr "'mycelium-http-tools[fastapi,signature]'"
 
 #: src/19-sdk.md:128
-msgid "Example in shell (for debugging):"
-msgstr "Exemplo em shell (para depuração):"
+msgid "\"https://gateway.internal/.well-known/mycelium-profile-jwks.json\""
+msgstr "\"https://gateway.internal/.well-known/mycelium-profile-jwks.json\""
 
-#: src/19-sdk.md:131
-msgid "\"<header-value>\""
-msgstr ""
+#: src/19-sdk.md:129
+msgid "\"billing-api\"  # required: this service's name\n"
+msgstr "\"billing-api\"  # obrigatório: o nome deste serviço\n"
 
 #: src/19-sdk.md:134
 msgid ""
-"The resulting JSON has the same structure as the Rust `Profile` struct: "
-"`acc_id`, `email`, `tenants` (array of tenant memberships with roles and "
-"accounts)."
+"# at startup: fails fast on invalid configuration; the gateway keys are\n"
+"# downloaded on the first signed request (the gateway is not needed to "
+"start)\n"
 msgstr ""
-"O JSON resultante tem a mesma estrutura que a struct `Profile` do Rust: "
-"`acc_id`, `email`, `tenants` (array de associações de tenant com papéis e "
-"contas)."
+"# na inicialização: falha cedo com configuração inválida; as chaves do "
+"gateway\n"
+"# são baixadas na primeira requisição assinada (o gateway não é necessário "
+"para subir)\n"
 
-#: src/19-sdk.md:139
+#: src/19-sdk.md:140
+msgid ""
+"Every FastAPI helper then verifies before decoding. Signature rejections "
+"return `403` in every environment. The required header dependency preserves "
+"`422` for a missing profile; configuration/internal failures return generic "
+"`500`. Use startup configuration to fail on a bad setting before accepting "
+"traffic. New gateway keys are picked up automatically, so key rotation needs "
+"no change in your service. The JavaScript and Go SDKs and the Rust "
+"`GatewayProfileData` extractor read the same variables. Details, rotation "
+"and limits: [Downstream Profile Signature](./27-downstream-profile-"
+"signature.md)."
+msgstr ""
+"Todo helper do FastAPI passa então a verificar antes de decodificar. "
+"Rejeições de assinatura retornam `403` em todos os ambientes. A dependência "
+"de header obrigatório preserva o `422` para profile ausente; falhas de "
+"configuração/internas retornam `500` genérico. Use a configuração na "
+"inicialização para falhar com uma configuração ruim antes de aceitar "
+"tráfego. Novas chaves do gateway são carregadas automaticamente, então a "
+"rotação de chaves não exige nenhuma mudança no seu serviço. Os SDKs "
+"JavaScript e Go e o extrator Rust `GatewayProfileData` leem as mesmas "
+"variáveis. Detalhes, rotação e limites: [Assinatura de Profile Downstream](./"
+"27-downstream-profile-signature.md)."
+
+#: src/19-sdk.md:151
+msgid "Manual decoding (any language)"
+msgstr "Decodificação manual (qualquer linguagem)"
+
+#: src/19-sdk.md:153
+msgid ""
+"For diagnostics only (this does not authenticate the profile), decode `x-"
+"mycelium-profile` manually:"
+msgstr ""
+"Somente para diagnóstico (isso não autentica o profile), decodifique `x-"
+"mycelium-profile` manualmente:"
+
+#: src/19-sdk.md:159
+msgid "Example in shell (for debugging):"
+msgstr "Exemplo em shell (para depuração):"
+
+#: src/19-sdk.md:162
+msgid "\"<header-value>\""
+msgstr "\"<header-value>\""
+
+#: src/19-sdk.md:165
+msgid ""
+"The resulting JSON has the same structure as the Rust `Profile` struct: "
+"`accId`, `owners`, account flags and optional `licensedResources` / "
+"`tenantsOwnership`. Rust permissions serialize as `\"read\"` / `\"write\"`; "
+"the JavaScript SDK normalizes these to its public `0` / `1` permission codes."
+msgstr ""
+"O JSON resultante tem a mesma estrutura da struct Rust `Profile`: `accId`, "
+"`owners`, flags da conta e campos opcionais `licensedResources` / "
+"`tenantsOwnership`. Rust serializa permissões como `\"read\"` / `\"write\"`; "
+"o SDK JavaScript converte para os códigos públicos `0` / `1`."
+
+#: src/19-sdk.md:172
 msgid "Keeping the SDK in sync with the gateway"
 msgstr "Mantendo o SDK sincronizado com o gateway"
 
-#: src/19-sdk.md:141
+#: src/19-sdk.md:174
 msgid ""
 "The `Profile` Pydantic model in the SDK mirrors the Rust `Profile` struct in "
 "the gateway. When the gateway changes the `Profile` struct (new fields, "
@@ -8268,7 +9478,7 @@ msgstr ""
 "receber um perfil que não corresponde ao modelo do SDK, a desserialização "
 "falhará com um erro de validação."
 
-#: src/19-sdk.md:146
+#: src/19-sdk.md:179
 msgid ""
 "Check the [SDK changelog](https://github.com/LepistaBioinformatics/mycelium-"
 "sdk-py/releases) when upgrading the gateway."
@@ -9458,11 +10668,27 @@ msgid ""
 "need to roll back before step 4."
 msgstr ""
 
-#: src/22-hmac-key-rotation.md:100
+#: src/22-hmac-key-rotation.md:98
+msgid ""
+"**This also rotates the downstream profile signing keys.** The gateway "
+"derives one Ed25519 profile signing key from each `hmacSecrets` entry and "
+"signs with the one of `hmacPrimaryVersion`. Steps 2 and 3 are what make the "
+"rotation transparent for downstream verifiers; never replace the secret of "
+"an existing version in place. See [Downstream Profile Signature](./27-"
+"downstream-profile-signature.md#key-rotation)."
+msgstr ""
+"**Isso também rotaciona as chaves de assinatura do profile downstream.** O "
+"gateway deriva uma chave Ed25519 de assinatura do profile de cada entrada de "
+"`hmacSecrets` e assina com a de `hmacPrimaryVersion`. As etapas 2 e 3 são o "
+"que torna a rotação transparente para os verificadores downstream; nunca "
+"substitua o segredo de uma versão existente. Veja [Downstream Profile "
+"Signature](./27-downstream-profile-signature.md#key-rotation)."
+
+#: src/22-hmac-key-rotation.md:107
 msgid "Anti-downgrade"
 msgstr ""
 
-#: src/22-hmac-key-rotation.md:102
+#: src/22-hmac-key-rotation.md:109
 msgid ""
 "The `kvr` bean is part of the HMAC input — not an out-of-band hint. An "
 "attacker who intercepts a token signed under `kvr=2` cannot rewrite the bean "
@@ -9471,74 +10697,69 @@ msgid ""
 "returns `MYC00032` in that case, not a silent fallback."
 msgstr ""
 
-#: src/22-hmac-key-rotation.md:108
+#: src/22-hmac-key-rotation.md:115
 msgid ""
 "Similarly, stripping the `kvr` bean yields `MYC00030` rather than a guess at "
 "the default version."
 msgstr ""
 
-#: src/22-hmac-key-rotation.md:115
-#, fuzzy
-msgid "Typical cause"
-msgstr "Escopo típico"
-
-#: src/22-hmac-key-rotation.md:117
+#: src/22-hmac-key-rotation.md:124
 msgid "`MYC00030`"
 msgstr ""
 
-#: src/22-hmac-key-rotation.md:117
+#: src/22-hmac-key-rotation.md:124
 msgid "Connection string is missing the HMAC key version (`kvr` bean)."
 msgstr ""
 
-#: src/22-hmac-key-rotation.md:117
+#: src/22-hmac-key-rotation.md:124
 msgid "Pre-rotation token, or tampering."
 msgstr ""
 
-#: src/22-hmac-key-rotation.md:118
+#: src/22-hmac-key-rotation.md:125
 msgid "`MYC00031`"
 msgstr ""
 
-#: src/22-hmac-key-rotation.md:118
+#: src/22-hmac-key-rotation.md:125
 msgid "Connection string references an unknown HMAC key version."
 msgstr ""
 
-#: src/22-hmac-key-rotation.md:118
+#: src/22-hmac-key-rotation.md:125
 msgid "Retired key, misconfigured replica, or tampering."
 msgstr ""
 
-#: src/22-hmac-key-rotation.md:119
+#: src/22-hmac-key-rotation.md:126
 msgid "`MYC00032`"
 msgstr ""
 
-#: src/22-hmac-key-rotation.md:119
+#: src/22-hmac-key-rotation.md:126
 #, fuzzy
 msgid "Connection string signature mismatch."
 msgstr "**Connection string emitida**"
 
-#: src/22-hmac-key-rotation.md:119
+#: src/22-hmac-key-rotation.md:126
 msgid ""
 "Tampering (including `kvr` downgrade) or wrong key provisioned for the "
 "version."
 msgstr ""
 
-#: src/22-hmac-key-rotation.md:121
+#: src/22-hmac-key-rotation.md:128
 msgid ""
 "All three are surfaced verbatim in `Unauthorized` responses from the "
 "connection-string middleware, and structured-logged with "
 "`connection_string_verification_failed=true` for operator audit."
 msgstr ""
 
-#: src/22-hmac-key-rotation.md:127
+#: src/22-hmac-key-rotation.md:134
 msgid "See also:"
 msgstr ""
 
-#: src/22-hmac-key-rotation.md:129
+#: src/22-hmac-key-rotation.md:136
 msgid ""
 "[Envelope Encryption Migration Guide](./21-envelope-encryption-migration.md) "
 "for KEK rotation (different key, different procedure)."
 msgstr ""
 
-#: src/22-hmac-key-rotation.md:131
+#: src/22-hmac-key-rotation.md:138
 msgid ""
 "[Encryption Inventory](./20-encryption-inventory.md) for the full list of "
 "`token_secret` consumers."
@@ -10203,8 +11424,9 @@ msgid ""
 msgstr ""
 
 #: src/08-release-process.md:217
+#, fuzzy
 msgid "# Bug fix commit\n"
-msgstr ""
+msgstr "Funcionalidades completas"
 
 #: src/08-release-process.md:219
 msgid ""
@@ -11073,6 +12295,213 @@ msgstr ""
 "ciclo é o fluxo de identidade/perfil de uma requisição; use-os para comparar "
 "a primeira requisição (geralmente mais `resolved`) vs. requisições "
 "posteriores (geralmente mais `from_cache`)."
+
+#~ msgid ""
+#~ "URL of the gateway JWKS, for example `https://gateway.internal/.well-"
+#~ "known/mycelium-profile-jwks.json`. Setting it enables verification"
+#~ msgstr ""
+#~ "URL do JWKS do gateway, por exemplo `https://gateway.internal/.well-known/"
+#~ "mycelium-profile-jwks.json`. Defini-la habilita a verificação"
+
+#~ msgid ""
+#~ "Generate a private key and keep it secret. Only the private key is "
+#~ "configured: the gateway derives the public key and publishes it, so there "
+#~ "is no public key file to distribute."
+#~ msgstr ""
+#~ "Gere uma chave privada e mantenha-a em segredo. Só a chave privada é "
+#~ "configurada: o gateway deriva a chave pública e a publica, então não há "
+#~ "arquivo de chave pública para distribuir."
+
+#~ msgid ""
+#~ "Configure the private key through any `SecretResolver` source. The PEM "
+#~ "must keep its real line breaks:"
+#~ msgstr ""
+#~ "Configure a chave privada por qualquer fonte do `SecretResolver`. O PEM "
+#~ "precisa manter as quebras de linha reais:"
+
+#~ msgid ""
+#~ "```toml\n"
+#~ "[core.profileSigning]\n"
+#~ "primaryKeyVersion = 1\n"
+#~ "# Optional: how long downstreams may cache the published keys\n"
+#~ "# (60 to 86400 seconds, default 43200 = 12 hours)\n"
+#~ "jwksMaxAgeSeconds = 43200\n"
+#~ "\n"
+#~ "[[core.profileSigning.keys]]\n"
+#~ "version = 1\n"
+#~ "privateKey = { env = \"MYC_PROFILE_PRIVATE_KEY_1\" }\n"
+#~ "# or: privateKey = { vault = { path = \"myc/core/profileSigning\", key = "
+#~ "\"v1-private-pem\" } }\n"
+#~ "```"
+#~ msgstr ""
+#~ "```toml\n"
+#~ "[core.profileSigning]\n"
+#~ "primaryKeyVersion = 1\n"
+#~ "# Opcional: por quanto tempo os downstreams podem manter as chaves "
+#~ "publicadas em cache\n"
+#~ "# (60 a 86400 segundos, padrão 43200 = 12 horas)\n"
+#~ "jwksMaxAgeSeconds = 43200\n"
+#~ "\n"
+#~ "[[core.profileSigning.keys]]\n"
+#~ "version = 1\n"
+#~ "privateKey = { env = \"MYC_PROFILE_PRIVATE_KEY_1\" }\n"
+#~ "# ou: privateKey = { vault = { path = \"myc/core/profileSigning\", key = "
+#~ "\"v1-private-pem\" } }\n"
+#~ "```"
+
+#~ msgid "\"$(cat profile-signing-v1.pem)\""
+#~ msgstr "\"$(cat profile-signing-v1.pem)\""
+
+#~ msgid ""
+#~ "At boot, after Vault initialization and before accepting traffic, the "
+#~ "gateway resolves, imports and test-signs **every** listed key (primary or "
+#~ "not). It refuses to start (`MYC00033`) when:"
+#~ msgstr ""
+#~ "Na inicialização, depois do Vault e antes de aceitar tráfego, o gateway "
+#~ "resolve, importa e faz uma assinatura de teste com **todas** as chaves "
+#~ "listadas (primária ou não). Ele se recusa a iniciar (`MYC00033`) quando:"
+
+#~ msgid ""
+#~ "the section is present but `keys` is empty, a version is `0` or repeated, "
+#~ "`primaryKeyVersion` is not listed, or `jwksMaxAgeSeconds` is outside "
+#~ "60..86400;"
+#~ msgstr ""
+#~ "a seção existe, mas `keys` está vazio, uma versão é `0` ou repetida, "
+#~ "`primaryKeyVersion` não está na lista, ou `jwksMaxAgeSeconds` está fora "
+#~ "de 60..86400;"
+
+#~ msgid ""
+#~ "a key cannot be resolved (missing or empty env var, Vault error or "
+#~ "timeout after 10 seconds per key, with a 60-second budget for the "
+#~ "complete key set);"
+#~ msgstr ""
+#~ "uma chave não pode ser resolvida (variável de ambiente ausente ou vazia, "
+#~ "erro do Vault ou timeout de 10 segundos por chave, com limite de 60 "
+#~ "segundos para preparar o conjunto inteiro);"
+
+#~ msgid ""
+#~ "a `vault` entry is used while Vault is not configured (always the case in "
+#~ "standalone mode);"
+#~ msgstr ""
+#~ "uma entrada `vault` é usada sem o Vault configurado (sempre o caso no "
+#~ "modo standalone);"
+
+#~ msgid "a value is not an Ed25519 PKCS#8 private key."
+#~ msgstr "um valor não é uma chave privada Ed25519 PKCS#8."
+
+#~ msgid "Without `[core.profileSigning]` the route answers `404`."
+#~ msgstr "Sem `[core.profileSigning]` a rota responde `404`."
+
+#~ msgid "No downstream service changes at any step:"
+#~ msgstr "Nenhum serviço downstream muda em nenhuma etapa:"
+
+#~ msgid ""
+#~ "Invalid `core.profileSigning` configuration or unusable signing key; the "
+#~ "gateway refuses to start"
+#~ msgstr ""
+#~ "Configuração `core.profileSigning` inválida ou chave de assinatura "
+#~ "inutilizável; o gateway se recusa a iniciar"
+
+#~ msgid "`MYC00035`"
+#~ msgstr "`MYC00035`"
+
+#~ msgid ""
+#~ "Generate a key pair (keep the private key secret, distribute the public "
+#~ "key):"
+#~ msgstr ""
+#~ "Gere um par de chaves (mantenha a chave privada em segredo e distribua a "
+#~ "chave pública):"
+
+#~ msgid "`MYC_PROFILE_PUBLIC_KEY_<version>`"
+#~ msgstr "`MYC_PROFILE_PUBLIC_KEY_<version>`"
+
+#~ msgid ""
+#~ "Gateway public key (PEM SPKI) trusted for `kid = <version>`. Any such "
+#~ "variable enables verification"
+#~ msgstr ""
+#~ "Chave pública do gateway (PEM SPKI) confiável para `kid = <versão>`. "
+#~ "Qualquer variável desse tipo habilita a verificação"
+
+#~ msgid ""
+#~ "Any present but invalid value is a configuration error. JavaScript checks "
+#~ "it when middleware/plugin is created. Python checks it in "
+#~ "`configure_profile_signature()` at startup; if that call is omitted, the "
+#~ "first request loads and caches the error and responds 500. Go checks it "
+#~ "in `mycelium.ConfigureProfileSignature()` at startup; otherwise the "
+#~ "adapters load it once and respond 500. Rust services register "
+#~ "`web::Data<ProfileSignatureVerification>` built with "
+#~ "`ProfileSignatureVerification::from_environment()` at startup; otherwise "
+#~ "the extractor loads it once and responds 500 (logged as `MYC00035`). An "
+#~ "invalid configuration never means \"verification disabled\". Tolerance is "
+#~ "a positive integer no larger than 9007199254740991 in every verifier."
+#~ msgstr ""
+#~ "Qualquer valor presente, mas inválido, é um erro de configuração. O "
+#~ "JavaScript o verifica quando o middleware/plugin é criado. O Python o "
+#~ "verifica em `configure_profile_signature()` na inicialização; se essa "
+#~ "chamada for omitida, a primeira requisição carrega e guarda o erro e "
+#~ "responde 500. O Go o verifica em `mycelium.ConfigureProfileSignature()` "
+#~ "na inicialização; caso contrário, os adaptadores o carregam uma vez e "
+#~ "respondem 500. Serviços Rust registram "
+#~ "`web::Data<ProfileSignatureVerification>` criado com "
+#~ "`ProfileSignatureVerification::from_environment()` na inicialização; caso "
+#~ "contrário, o extrator o carrega uma vez e responde 500 (registrado como "
+#~ "`MYC00035`). Uma configuração inválida nunca significa \"verificação "
+#~ "desabilitada\". A tolerância é um inteiro positivo de no máximo "
+#~ "9007199254740991 em todos os verificadores."
+
+#~ msgid ""
+#~ "Gateway signs with a version this service does not trust yet (rotation "
+#~ "lag), or a forged `kid`"
+#~ msgstr ""
+#~ "Gateway assina com uma versão em que este serviço ainda não confia "
+#~ "(atraso na rotação) ou `kid` forjado"
+
+#~ msgid ""
+#~ "Generate key pair v2. Add `MYC_PROFILE_PUBLIC_KEY_2` to every downstream "
+#~ "**while keeping v1**; restart them."
+#~ msgstr ""
+#~ "Gere o par de chaves v2. Adicione `MYC_PROFILE_PUBLIC_KEY_2` em todos os "
+#~ "downstreams **mantendo a v1**; reinicie-os."
+
+#~ msgid ""
+#~ "Remove `MYC_PROFILE_PUBLIC_KEY_1` from the downstreams when convenient."
+#~ msgstr ""
+#~ "Remova `MYC_PROFILE_PUBLIC_KEY_1` dos downstreams quando for conveniente."
+
+#~ msgid ""
+#~ "**Compromised private key:** remove the corresponding public key from "
+#~ "every downstream immediately. Requests signed with it start failing, "
+#~ "which is the intended effect: the timestamp window does not protect "
+#~ "against someone who holds the private key and can sign fresh tokens."
+#~ msgstr ""
+#~ "**Chave privada comprometida:** remova imediatamente a chave pública "
+#~ "correspondente de todos os downstreams. Requisições assinadas com ela "
+#~ "passam a falhar, que é o efeito desejado: a janela de tempo não protege "
+#~ "contra quem tem a chave privada e consegue assinar tokens novos."
+
+#~ msgid ""
+#~ "Invalid verification setting in a Rust downstream service "
+#~ "(`GatewayProfileData`); requests fail closed"
+#~ msgstr ""
+#~ "Configuração de verificação inválida em um serviço downstream Rust "
+#~ "(`GatewayProfileData`); as requisições falham de forma fechada"
+
+#~ msgid "\"$(cat profile-signing-v1.pub.pem)\""
+#~ msgstr "\"$(cat profile-signing-v1.pub.pem)\""
+
+#~ msgid "If you are not using Python, decode `x-mycelium-profile` manually:"
+#~ msgstr ""
+#~ "Se você não está usando Python, decodifique `x-mycelium-profile` "
+#~ "manualmente:"
+
+#~ msgid ""
+#~ "The resulting JSON has the same structure as the Rust `Profile` struct: "
+#~ "`acc_id`, `email`, `tenants` (array of tenant memberships with roles and "
+#~ "accounts)."
+#~ msgstr ""
+#~ "O JSON resultante tem a mesma estrutura que a struct `Profile` do Rust: "
+#~ "`acc_id`, `email`, `tenants` (array de associações de tenant com papéis e "
+#~ "contas)."
 
 #~ msgid ""
 #~ "Mycelium follows [Semantic Versioning](https://semver.org/) and uses "

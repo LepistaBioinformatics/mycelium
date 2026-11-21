@@ -32,3 +32,6 @@ mycelium.db*
 .claude/plans
 .claude/settings.local.json
 *.log
+
+# Local translated mdBook output (sources/catalog remain tracked).
+/docs/book/book-pt-BR/

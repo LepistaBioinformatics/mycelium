@@ -22,6 +22,7 @@
 - [Authentication Flows](./11-authentication-flows.md)
 - [Account Types and Roles](./15-account-types.md)
 - [Downstream APIs](./06-downstream-apis.md)
+    - [Downstream Profile Signature](./27-downstream-profile-signature.md)
 
 # Advanced Topics
 

@@ -1,0 +1,19 @@
+[package]
+name = "psig-rust-consumer"
+description = "Synthetic actix-web downstream for the profile signature E2E (test only)"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+# ? ---------------------------------------------------------------------------
+# ? Standalone crate, outside the gateway workspace: it keeps its own
+# ? Cargo.lock (seeded from the workspace lock) and never changes the
+# ? workspace Cargo.lock.
+# ? ---------------------------------------------------------------------------
+
+[workspace]
+
+[dependencies]
+actix-web = "4"
+serde_json = "1.0"
+mycelium-http-tools = { path = "../../../lib/http_tools" }

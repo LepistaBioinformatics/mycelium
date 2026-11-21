@@ -311,6 +311,9 @@ pub(crate) mod connection_string_test_fixtures {
         TestRequest::default()
             .insert_header((DEFAULT_CONNECTION_STRING_KEY, connection_string))
             .app_data(web::Data::new(life_cycle.to_owned()))
+            .app_data(web::Data::new(
+                myc_http_tools::models::ProfileSigningState::Disabled,
+            ))
             .to_http_request()
     }
 }

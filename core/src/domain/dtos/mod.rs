@@ -15,6 +15,7 @@ pub mod instance_settings;
 pub mod message;
 pub mod native_error_codes;
 pub mod profile;
+pub mod profile_signature;
 pub mod related_accounts;
 pub mod resolved_http_secret;
 pub mod resource_audit_log;

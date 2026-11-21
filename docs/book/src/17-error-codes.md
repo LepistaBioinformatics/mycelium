@@ -38,6 +38,15 @@ codes will have no human-readable message attached.
 
 See [CLI Reference](./18-cli.md) for full usage.
 
+Profile signing adds three internal codes (see
+[Downstream Profile Signature](./27-downstream-profile-signature.md)):
+
+| Code | Meaning |
+|---|---|
+| `MYC00041` | A profile signing key could not be derived from `core.accountLifeCycle.hmacSecrets` (secret unresolved or self-test failed); the gateway refuses to start |
+| `MYC00042` | The profile signature could not be issued for a request; the request is not forwarded |
+| `MYC00043` | Invalid verification setting in a Rust downstream service (`GatewayProfileData`): an invalid `MYCELIUM_JWKS_URL`, tolerance or insecure-HTTP switch, a missing audience while `MYCELIUM_JWKS_URL` is set, or an unsafe published key set; requests fail closed |
+
 ---
 
 ## Custom error codes

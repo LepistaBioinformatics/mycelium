@@ -155,8 +155,8 @@ mod tests {
         let dir = std::env::temp_dir()
             .join(format!("myc_local_email_{}", std::process::id()));
         let with_local_email = format!(
-            "{base}\n[localEmail.define]\ndir = \"{}\"\n",
-            dir.to_str().unwrap()
+            "{base}\n[localEmail.define]\ndir = {}\n",
+            toml::Value::String(dir.to_string_lossy().into_owned())
         );
 
         let config_path = std::env::temp_dir().join(format!(
