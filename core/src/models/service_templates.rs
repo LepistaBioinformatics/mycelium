@@ -93,11 +93,8 @@ impl ServiceTemplates {
     ) -> Result<RenderedServiceEmail, MappedErrors> {
         let path = self.resolve_path(sender_tag, locale, name)?;
 
-        let context = Context::from_value(variables).map_err(|err| {
-            template_err(format!(
-                "Invalid template variables: {}",
-                describe(&err)
-            ))
+        let context = Context::from_value(variables).map_err(|_| {
+            template_err("Invalid template variables".to_string())
         })?;
 
         let body = self.render_file(&path.body(), &context)?;
@@ -142,13 +139,28 @@ impl ServiceTemplates {
         file: &str,
         context: &Context,
     ) -> Result<String, MappedErrors> {
-        self.engine.render(file, context).map_err(|err| {
-            template_err(format!(
-                "Unable to render service template: {}",
-                describe(&err)
-            ))
-        })
+        self.engine
+            .render(file, context)
+            .map_err(|err| template_err(describe_render_failure(&err)))
     }
+}
+
+/// The reason a render failed, without any value taken from the request
+///
+/// Render errors reach the error log, and Tera puts the offending value in
+/// some messages (a filter that receives the wrong type, for instance).
+/// Only a missing variable is described, because its name comes from the
+/// template, not from the request.
+///
+fn describe_render_failure(err: &tera::Error) -> String {
+    let detail = describe(err);
+
+    if detail.contains(MISSING_VARIABLE_MARKER) {
+        return format!("Unable to render service template: {detail}");
+    }
+
+    "Unable to render service template: a variable has an unexpected value"
+        .to_string()
 }
 
 fn load_engine(templates_dir: &Path) -> Result<Tera, MappedErrors> {
@@ -167,6 +179,9 @@ fn load_engine(templates_dir: &Path) -> Result<Tera, MappedErrors> {
         ))
     })
 }
+
+/// How Tera reports a variable missing from the render context
+const MISSING_VARIABLE_MARKER: &str = "not found in context";
 
 /// A subject becomes a mail header: it must stay on a single line.
 fn single_line_subject(subject: String) -> Result<String, MappedErrors> {
@@ -396,6 +411,31 @@ mod tests {
         let error = result.unwrap_err();
         assert!(error.is_in(vec![NativeErrorCodes::MYC00038]), "{error}");
         assert!(error.to_string().contains("customer"), "{error}");
+    }
+
+    #[test]
+    fn render_error_never_carries_a_variable_value() {
+        let dir = TemplatesDir::new();
+        dir.write(
+            "service-01/en-us/invoice-ready.jinja",
+            "{{ amount | round }}",
+        )
+        .write("service-01/en-us/invoice-ready.subject", "Invoice\n");
+        let templates = dir.load().unwrap();
+
+        let error = templates
+            .render(
+                "service-01",
+                "en-us",
+                "invoice-ready",
+                json!({"amount": "private-value-9f3"}),
+            )
+            .unwrap_err();
+
+        assert!(error.is_in(vec![NativeErrorCodes::MYC00038]), "{error}");
+        let rendered = format!("{error} {error:?}");
+        assert!(!rendered.contains("private-value-9f3"), "{rendered}");
+        assert!(rendered.contains("unexpected value"), "{rendered}");
     }
 
     #[test]
