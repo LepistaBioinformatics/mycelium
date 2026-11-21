@@ -44,7 +44,7 @@ standalone = [
 # Instance federation (peer mesh between Mycelium instances). Opt-in, never in
 # `default`. Usable with `full` and `postgres-only`; refused with `standalone`
 # (federation tables live in Postgres only).
-federation = []
+federation = ["dep:mycelium-federation-client"]
 
 rhai = ["dep:rhai"]
 
@@ -114,6 +114,7 @@ mycelium-openapi.workspace = true
 mycelium-http-tools.workspace = true
 mycelium-memory-db.workspace = true
 mycelium-service.workspace = true
+mycelium-federation-client = { workspace = true, optional = true }
 mycelium-notifier.workspace = true
 mycelium-adapters-shared-lib.workspace = true
 secrecy.workspace = true

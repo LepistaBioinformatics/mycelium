@@ -8,10 +8,7 @@ use myc_core::{
     },
     use_cases::federation::{describe_instance, is_federation_enabled},
 };
-
-/// Where the instance self-description is served (FED-03)
-pub(crate) const INSTANCE_SELF_DESCRIPTION_PATH: &str =
-    "/.well-known/mycelium-instance";
+use myc_http_tools::settings::INSTANCE_SELF_DESCRIPTION_PATH;
 
 // ? ---------------------------------------------------------------------------
 // ? Configure application

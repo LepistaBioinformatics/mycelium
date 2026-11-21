@@ -40,6 +40,13 @@ pub const DEFAULT_PROFILE_SIGNATURE_KEY: &str = "x-mycelium-profile-signature";
 ///
 pub const PEER_REQUEST_SIGNATURE_KEY: &str = "x-mycelium-peer-signature";
 
+/// Where an instance serves its federation self-description (FED-03)
+pub const INSTANCE_SELF_DESCRIPTION_PATH: &str =
+    "/.well-known/mycelium-instance";
+
+/// Upper bound of a peer response body read by the federation client
+pub const PEER_RESPONSE_MAX_BYTES: usize = 64 * 1024;
+
 /// Where the gateway is; enables verification in `GatewayProfileData` (same
 /// variable as the SDKs). Either the gateway address, to which
 /// `PROFILE_JWKS_PATH` is appended, or the complete JWKS endpoint. `https://`

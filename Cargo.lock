@@ -2675,6 +2675,7 @@ dependencies = [
  "mycelium-config",
  "mycelium-diesel",
  "mycelium-diesel-sqlite",
+ "mycelium-federation-client",
  "mycelium-http-tools",
  "mycelium-key-value",
  "mycelium-memory-db",
@@ -2823,6 +2824,21 @@ dependencies = [
  "serde",
  "serde_json",
  "shaku",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
+name = "mycelium-federation-client"
+version = "9.0.1-beta.5"
+dependencies = [
+ "async-trait",
+ "myc-core",
+ "mycelium-base",
+ "mycelium-http-tools",
+ "reqwest 0.11.27",
+ "serde_json",
  "tokio",
  "tracing",
  "uuid",

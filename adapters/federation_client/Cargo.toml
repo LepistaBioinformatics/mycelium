@@ -1,0 +1,45 @@
+[package]
+name = "mycelium-federation-client"
+description = "HTTP client the mycelium gateway uses to call peer instances (federation)."
+
+version = "9.0.1-beta.5"
+
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
+readme.workspace = true
+
+
+[dependencies]
+
+async-trait.workspace = true
+reqwest.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+
+
+# ------------------------------------------------------------------------------
+# Mycelium packages
+# ------------------------------------------------------------------------------
+
+myc-core.workspace = true
+mycelium-base.workspace = true
+mycelium-http-tools.workspace = true
+
+
+[dev-dependencies]
+
+tokio.workspace = true
+uuid.workspace = true
+
+
+# ------------------------------------------------------------------------------
+# Library
+# ------------------------------------------------------------------------------
+
+[lib]
+name = "myc_federation_client"
+path = "src/lib.rs"
