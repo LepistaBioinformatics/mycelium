@@ -17,7 +17,7 @@ readme.workspace = true
 
 # RUSTSEC-2026-0136 / RUSTSEC-2026-0137: force diesel >= 2.3.8 (command
 # injection in COPY FROM/TO; unaligned access in SqliteAggregate impls).
-diesel = { version = "2.3.8", features = [
+diesel = { version = "2.4", features = [
     "postgres",
     "uuid",
     "serde_json",

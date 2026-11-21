@@ -15,7 +15,7 @@ readme.workspace = true
 
 [dependencies]
 
-diesel = { version = "2.3.8", features = [
+diesel = { version = "2.4", features = [
     "postgres",
     "uuid",
     "serde_json",
