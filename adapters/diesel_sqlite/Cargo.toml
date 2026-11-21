@@ -22,7 +22,9 @@ readme.workspace = true
 # binary -- no system libsqlite runtime dependency.
 # RUSTSEC-2026-0136 / RUSTSEC-2026-0137: force diesel >= 2.3.8 (command
 # injection in COPY FROM/TO; unaligned access in SqliteAggregate impls).
-diesel = { version = "2.3.8", features = [
+# RUSTSEC-2026-0459: libsqlite3-sys >= 0.39.0 (CVE-2026-119375 in the bundled
+# C SQLite); diesel 2.3 caps libsqlite3-sys below 0.38, so diesel moves to 2.4.
+diesel = { version = "2.4", features = [
     "sqlite",
     "returning_clauses_for_sqlite_3_35",
     "uuid",
@@ -30,8 +32,8 @@ diesel = { version = "2.3.8", features = [
     "chrono",
     "r2d2",
 ] }
-libsqlite3-sys = { version = "0.30", features = ["bundled"] }
-diesel_migrations = { version = "2" }
+libsqlite3-sys = { version = "0.40", features = ["bundled"] }
+diesel_migrations = { version = "2.4" }
 
 async-trait.workspace = true
 base64.workspace = true
