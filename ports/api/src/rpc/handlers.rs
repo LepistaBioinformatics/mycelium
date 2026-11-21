@@ -1,3 +1,5 @@
+#[cfg(feature = "federation")]
+use super::dispatchers::dispatch_federation;
 use super::{
     dispatchers::{
         dispatch_account_manager, dispatch_audit, dispatch_beginners,
@@ -196,6 +198,17 @@ async fn process_single_request(
             dispatch_staff(
                 profile,
                 app_module,
+                &request.method,
+                request.params.clone(),
+            )
+            .await
+        }
+        #[cfg(feature = "federation")]
+        Some("federation") => {
+            dispatch_federation(
+                profile,
+                app_module,
+                req,
                 &request.method,
                 request.params.clone(),
             )
