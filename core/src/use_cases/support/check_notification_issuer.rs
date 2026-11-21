@@ -11,7 +11,8 @@ use uuid::Uuid;
 /// The owner and the account must be active, approved and not archived. The
 /// profile must hold at least one of the service `issuerRoles` (on the tenant,
 /// when one is informed), and the tenant must be listed in `issuerTenants`
-/// when that list is not empty. Every failure returns MYC00037.
+/// when that list is not empty. Staff and manager accounts get no bypass.
+/// Every failure returns MYC00037.
 ///
 /// Called at issuance with the request profile and at send time with a fresh
 /// one.
@@ -34,15 +35,24 @@ pub fn check_notification_issuer(
         None => profile.to_owned(),
     };
 
-    if scoped_profile
-        .with_roles(config.issuer_roles.to_owned())
-        .get_ids_or_error()
-        .is_err()
-    {
+    if !holds_an_issuer_role(&scoped_profile, &config.issuer_roles) {
         return issuer_not_allowed("Issuer lacks the service issuer roles");
     }
 
     Ok(())
+}
+
+/// Whether any licensed resource survives the issuer-roles filter
+///
+/// Deliberately not `get_ids_or_error`: that one also succeeds for staff and
+/// manager accounts with no licensed resource at all, and `issuerRoles` is
+/// deny by default with no administrative bypass.
+///
+fn holds_an_issuer_role(profile: &Profile, issuer_roles: &[String]) -> bool {
+    profile
+        .with_roles(issuer_roles.to_owned())
+        .licensed_resources
+        .is_some_and(|resources| !resources.to_licenses_vector().is_empty())
 }
 
 fn issuer_account_is_in_good_standing(profile: &Profile) -> bool {
@@ -127,6 +137,43 @@ mod tests {
             }])),
             None,
         )
+    }
+
+    fn admin_without_roles(is_staff: bool, is_manager: bool) -> Profile {
+        Profile::new(
+            vec![],
+            Uuid::new_v4(),
+            false,
+            is_manager,
+            is_staff,
+            true,
+            true,
+            true,
+            false,
+            false,
+            None,
+            None,
+            None,
+        )
+    }
+
+    #[test]
+    fn staff_and_manager_without_the_role_are_rejected() {
+        for (is_staff, is_manager) in [(true, false), (false, true)] {
+            let profile = admin_without_roles(is_staff, is_manager);
+            assert!(profile.has_admin_privileges());
+
+            assert_not_allowed(check_notification_issuer(
+                &profile,
+                None,
+                &config(vec![]),
+            ));
+            assert_not_allowed(check_notification_issuer(
+                &profile,
+                Some(Uuid::new_v4()),
+                &config(vec![]),
+            ));
+        }
     }
 
     fn assert_not_allowed(result: Result<(), MappedErrors>) {
