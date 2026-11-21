@@ -1,4 +1,4 @@
-use crate::functions::try_to_resolve_database_url;
+use crate::functions::{connect_sql_module, try_to_resolve_database_url};
 
 use clap::Parser;
 use myc_core::{
@@ -12,9 +12,6 @@ use myc_core::{
     },
     models::{CoreConfig, FederationConfig},
     use_cases::federation::describe_instance,
-};
-use myc_diesel::repositories::{
-    DieselDbPoolProvider, DieselDbPoolProviderParameters, SqlAppModule,
 };
 use myc_http_tools::models::{KeyDerivationPurpose, VersionedEd25519Signer};
 use mycelium_base::{
@@ -81,14 +78,7 @@ async fn describe() -> Result<InstanceSelfDescription, MappedErrors> {
 
 /// The persisted instance id; the gateway mints it on its first boot
 async fn read_instance_id() -> Result<Uuid, MappedErrors> {
-    let database_url = try_to_resolve_database_url();
-    let module = SqlAppModule::builder()
-        .with_component_parameters::<DieselDbPoolProvider>(
-            DieselDbPoolProviderParameters {
-                pool: DieselDbPoolProvider::new(&database_url),
-            },
-        )
-        .build();
+    let module = connect_sql_module(&try_to_resolve_database_url());
     let repo: &dyn InstanceSettingsFetching = module.resolve_ref();
 
     let FetchResponseKind::Found(setting) =
