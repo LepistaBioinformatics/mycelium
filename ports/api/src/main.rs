@@ -1,6 +1,8 @@
 mod callback_engines;
 mod dispatchers;
 mod dtos;
+#[cfg(feature = "federation")]
+mod federation;
 mod mcp;
 mod middleware;
 mod models;
@@ -73,6 +75,8 @@ use dispatchers::{
     email_dispatcher, resource_audit_log_dispatcher,
     services_health_dispatcher, webhook_dispatcher,
 };
+#[cfg(feature = "federation")]
+use federation::prepare_federation;
 use middleware::{log_served_request, StaffBootstrapClaimed};
 use models::active_backend_modules::{KVAppModule, SqlAppModule};
 use models::config_handler::ConfigHandler;
@@ -89,6 +93,8 @@ use myc_config::optional_config::OptionalConfig;
 use myc_config::resolve_or_generate_standalone_secret;
 #[cfg(feature = "standalone")]
 use myc_config::secret_resolver::SecretResolver;
+#[cfg(feature = "federation")]
+use myc_core::domain::entities::InstanceSettingsRegistration;
 use myc_core::{
     domain::{
         dtos::{
@@ -416,6 +422,28 @@ pub async fn main() -> std::io::Result<()> {
         })?;
 
     // ? -----------------------------------------------------------------------
+    // ? PREPARE INSTANCE FEDERATION
+    //
+    // Only with `[core.federation]`: derive the federation keys from the HMAC
+    // secrets and mint (or read back) the instance id. Any failure aborts the
+    // boot. Runs after the modules because the instance id is persisted.
+    //
+    // ? -----------------------------------------------------------------------
+    #[cfg(feature = "federation")]
+    let federation = prepare_federation(
+        config.federation.as_ref(),
+        &config.core.account_life_cycle,
+        Box::new(sql_module.resolve_ref() as &dyn InstanceSettingsRegistration),
+    )
+    .instrument(span.to_owned())
+    .await
+    .map_err(|err| {
+        tracing::error!("Error preparing federation: {err}");
+
+        std::io::Error::new(std::io::ErrorKind::Other, err.to_string())
+    })?;
+
+    // ? -----------------------------------------------------------------------
     // ? PROPAGATE DECLARED ROLES TO THE SQL DATABASE
     //
     // The roles propagation was defined as part of the solution for issue #127:
@@ -655,6 +683,10 @@ pub async fn main() -> std::io::Result<()> {
         #[cfg(feature = "full")]
         let base_app =
             base_app.app_data(web::Data::from(shared_module.clone()));
+
+        // `None` when `[core.federation]` is absent.
+        #[cfg(feature = "federation")]
+        let base_app = base_app.app_data(web::Data::new(federation.clone()));
 
         let base_app = base_app
             //
