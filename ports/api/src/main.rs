@@ -60,7 +60,6 @@ use actix_web::{
     middleware::{from_fn, NormalizePath, TrailingSlash},
     web, App, HttpServer,
 };
-use actix_web_opentelemetry::RequestTracing;
 use awc::{error::HeaderValue, Client};
 use dispatchers::{
     email_dispatcher, resource_audit_log_dispatcher,
@@ -153,6 +152,7 @@ use openssl::{
     ssl::{SslAcceptor, SslMethod},
     x509::X509,
 };
+use opentelemetry_instrumentation_actix_web::RequestTracing;
 use otel::initialize_otel;
 use profile_signing::prepare_profile_signing;
 use reqwest::header::{

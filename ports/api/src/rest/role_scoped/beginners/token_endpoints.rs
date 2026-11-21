@@ -108,6 +108,7 @@ pub struct CreateNotificationTokenBody {
 }
 
 #[derive(Serialize, ToSchema, ToResponse)]
+#[response(description = "Token created")]
 #[serde(rename_all = "camelCase")]
 pub struct CreateTokenResponse {
     connection_string: String,

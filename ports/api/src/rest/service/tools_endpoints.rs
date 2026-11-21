@@ -37,6 +37,7 @@ pub struct ListServicesParams {
 }
 
 #[derive(Serialize, ToSchema, ToResponse)]
+#[response(description = "Registered services")]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct ListServicesResponse {
     /// Description
