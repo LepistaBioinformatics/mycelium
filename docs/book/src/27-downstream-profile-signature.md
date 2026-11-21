@@ -7,14 +7,15 @@ gateway (misconfiguration, SSRF, missing network policy) would accept a forged
 profile, including `isStaff: true`.
 
 Profile signing closes that gap. The gateway signs the exact profile header
-with an Ed25519 private key and publishes the matching public keys as a JSON
-Web Key Set (JWKS). Downstream services that opt in download those keys from
+with an Ed25519 private key derived from its connection-string HMAC secret
+and publishes the matching public keys as a JSON Web Key Set (JWKS). Downstream services that opt in download those keys from
 the gateway, verify the signature locally and reject anything the gateway did
 not produce.
 
-> **Opt-in on both sides.** Without `[core.profileSigning]` the gateway sends
-> exactly what it sent before. Without `MYCELIUM_JWKS_URL` a downstream
-> service decodes the profile exactly as before.
+> **Always signed, verified on opt-in.** The gateway needs no configuration:
+> it signs every profile it forwards. Without `MYCELIUM_JWKS_URL` a
+> downstream service ignores the signature and decodes the profile exactly as
+> before.
 
 ---
 
@@ -62,61 +63,45 @@ stripped from the response.
 
 ## Gateway configuration
 
-Generate a private key and keep it secret. Only the private key is
-configured: the gateway derives the public key and publishes it, so there is
-no public key file to distribute.
+There is nothing to configure and no key to generate. At boot, after Vault
+initialization and before accepting traffic, the gateway derives one Ed25519
+key from **every** entry of `core.accountLifeCycle.hmacSecrets` (the secrets
+that already sign connection strings):
 
-```bash
-openssl genpkey -algorithm ED25519 -out profile-signing-v1.pem
+```
+seed        = HKDF-SHA256(secret, info = "mycelium/profile-signing/ed25519/v1")
+private key = Ed25519 key of that 32-byte seed
+kid         = the entry's `version`
 ```
 
-Configure the private key through any `SecretResolver` source. The PEM must
-keep its real line breaks:
+- The gateway signs with the key of `hmacPrimaryVersion` and publishes the
+  public half of every version.
+- The derivation is deterministic, so every replica holding the same secrets
+  derives the same keys: any replica signs and any replica serves the same
+  JWKS, with no shared state.
+- The private keys only ever exist in memory. The fixed `info` label keeps
+  them cryptographically independent from the HMAC use of the same secret:
+  a public key or a signature reveals nothing about it.
+- A derived key is only as strong as its secret. The gateway logs a warning
+  at boot for a secret shorter than 32 bytes; use at least 32 random bytes.
+- Version `0` cannot be a `kid`: such an entry is not published, and when it
+  is the primary the gateway does not sign (logged as a warning at boot).
 
-```toml
-[core.profileSigning]
-primaryKeyVersion = 1
-# Optional: how long downstreams may cache the published keys
-# (60 to 86400 seconds, default 43200 = 12 hours)
-jwksMaxAgeSeconds = 43200
-
-[[core.profileSigning.keys]]
-version = 1
-privateKey = { env = "MYC_PROFILE_PRIVATE_KEY_1" }
-# or: privateKey = { vault = { path = "myc/core/profileSigning", key = "v1-private-pem" } }
-```
-
-```bash
-export MYC_PROFILE_PRIVATE_KEY_1="$(cat profile-signing-v1.pem)"
-```
-
-At boot, after Vault initialization and before accepting traffic, the gateway
-resolves, imports and test-signs **every** listed key (primary or not). It
-refuses to start (`MYC00033`) when:
-
-- the section is present but `keys` is empty, a version is `0` or repeated,
-  `primaryKeyVersion` is not listed, or `jwksMaxAgeSeconds` is outside
-  60..86400;
-- a key cannot be resolved (missing or empty env var, Vault error or timeout
-  after 10 seconds per key, with a 60-second budget for the complete key set);
-- a `vault` entry is used while Vault is not configured (always the case in
-  standalone mode);
-- a value is not an Ed25519 PKCS#8 private key.
-
-Errors name the key version and the failing step, never the key material.
-The gateway signs only with `primaryKeyVersion`. If a signature cannot be
-produced for a request, the request is **not** forwarded (500, logged as
-`MYC00034`); an unsigned profile is never sent while signing is enabled.
+The gateway refuses to start (`MYC00041`) when a secret cannot be resolved
+(missing env var, Vault error, or a 60-second budget exceeded) or a derived
+key fails its self-test. Errors name the key version and the failing step,
+never the key material. If a signature cannot be produced for a request, the
+request is **not** forwarded (500, logged as `MYC00042`); an unsigned profile
+is never sent while signing is enabled.
 
 Works identically in full, postgres-only and standalone modes. It adds no
-database table, migration or network call per request.
+configuration, database table, migration or network call per request.
 
 ---
 
 ## Published keys (JWKS)
 
-When `[core.profileSigning]` is configured, the gateway serves its public
-keys at a public, unauthenticated route:
+The gateway serves its public keys at a public, unauthenticated route:
 
 ```
 GET /.well-known/mycelium-profile-jwks.json
@@ -131,15 +116,16 @@ GET /.well-known/mycelium-profile-jwks.json
 }
 ```
 
-- The set contains **every** configured key version, not only the primary,
+- The set contains **every** `hmacSecrets` version, not only the primary,
   so a downstream already trusts the next key before the gateway signs with
   it. It never contains private material (`d`) or certificates.
 - The body is built once at boot. The response carries
   `Content-Type: application/jwk-set+json` and
-  `Cache-Control: public, max-age=<jwksMaxAgeSeconds>`.
-- Without `[core.profileSigning]` the route answers `404`.
+  `Cache-Control: public, max-age=43200` (12 hours).
+- When the gateway does not sign (primary version `0`) the route answers
+  `404`.
 
-The keys only verify, so publishing them is safe. Profile-signing keys must
+The keys only verify, so publishing them is safe. The derived keys must
 **never be reused for any other purpose** (for example instance federation):
 the signature uses `typ: "JWT"`, which is only unambiguous while nothing else
 is signed with these keys.
@@ -153,9 +139,9 @@ Every verifier (the Python, JavaScript and Go SDKs and the Rust
 
 | Variable | Meaning |
 |---|---|
-| `MYCELIUM_JWKS_URL` | URL of the gateway JWKS, for example `https://gateway.internal/.well-known/mycelium-profile-jwks.json`. Setting it enables verification |
+| `MYCELIUM_JWKS_URL` | Where the gateway is. Either its address (`gateway.internal`, `https://gateway.internal/prod`), to which the verifier appends `/.well-known/mycelium-profile-jwks.json`, or that complete endpoint. `https://` is assumed when no scheme is given. Setting it enables verification |
 | `MYC_PROFILE_SIGNATURE_AUDIENCE` | **Required** when `MYCELIUM_JWKS_URL` is set. The `aud` claim must equal it (use the service `name` registered in the gateway) |
-| `MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS` | Optional. Accepted clock difference, default `60` |
+| `MYC_PROFILE_SIGNATURE_TOLERANCE_SECONDS` | Optional. Accepted clock difference, `1` to `300`, default `60` |
 | `MYCELIUM_JWKS_ALLOW_INSECURE_HTTP` | Development only. `true` accepts an `http://` JWKS URL (a warning is logged); any other value than `true`/`false` is an error |
 
 The JWKS URL must use `https://` and must not carry credentials. It comes
@@ -204,9 +190,8 @@ service does not need to start before the gateway:
 | Rust | Register `web::Data<ProfileSignatureVerification>` built with `ProfileSignatureVerification::from_environment()` | `verification.prefetch().await` |
 
 When the settings are invalid and no startup call was made, requests fail with
-500 (Rust logs `MYC00035`). An invalid configuration never means
-"verification disabled". Tolerance is a positive integer no larger than
-9007199254740991 in every verifier. Warnings go to the standard logging of each
+500 (Rust logs `MYC00043`). An invalid configuration never means
+"verification disabled". Tolerance is an integer between 1 and 300 in every verifier. Warnings go to the standard logging of each
 platform (`logging` in Python, `console.warn` in JavaScript, `log/slog` in Go,
 `tracing` in Rust).
 
@@ -247,49 +232,63 @@ Rejections are logged with a stable reason:
 ## Rollout and rollback
 
 > **Order is mandatory.** A downstream that verifies behind a gateway that is
-> not signing rejects **every** authenticated request.
+> not signing yet rejects **every** authenticated request.
 
 Rollout:
 
-1. Deploy the gateway with `[core.profileSigning]`. Downstreams keep working
-   (they ignore the new header).
+1. Upgrade every gateway replica to a version that signs. Downstreams keep
+   working (they ignore the new header).
 2. Confirm signature presence and successful verification using a controlled
    synthetic request. Log only status/reason/key version, never the header value.
 3. Upgrade the downstream SDK, set `MYCELIUM_JWKS_URL` and
    `MYC_PROFILE_SIGNATURE_AUDIENCE`, and restart. Repeat per service, at its
    own pace.
 
-Rollback, in reverse order: unset `MYCELIUM_JWKS_URL` in the downstreams first
-(this removes their protection, a conscious operator decision), then remove
-`[core.profileSigning]` from the gateway.
+Rollback: unset `MYCELIUM_JWKS_URL` in the downstreams (this removes their
+protection, a conscious operator decision). The gateway keeps signing; the
+header is ignored.
 
 ---
 
 ## Key rotation
 
-No downstream service changes at any step:
+The profile signing keys rotate **together with the connection-string HMAC
+secrets**: follow the HMAC key rotation procedure
+([chapter 22](./22-hmac-key-rotation.md)). No downstream service changes at
+any step:
 
-1. Generate private key v2 and add it to `[[core.profileSigning.keys]]`
-   **keeping `primaryKeyVersion = 1`**; rolling-restart the gateway. The JWKS
-   now publishes v1 and v2.
-2. Set `primaryKeyVersion = 2` and rolling-restart the gateway. During the
+1. Add secret v2 to `hmacSecrets` **keeping `hmacPrimaryVersion = 1`**;
+   rolling-restart the gateway. The JWKS now publishes v1 and v2.
+2. Set `hmacPrimaryVersion = 2` and rolling-restart the gateway. During the
    restart old replicas still emit `kid: "1"` and new ones `kid: "2"`;
    downstreams accept both (the first `kid: "2"` they see triggers a refetch
    if their cached set predates step 1).
-3. Once no replica uses v1, wait for in-flight requests plus the tolerance
-   window, then remove the v1 private key from the gateway and restart. The
-   JWKS stops publishing v1; downstreams drop it at their next refresh.
+3. Once v1 is retired from `hmacSecrets` (see chapter 22 for when that is
+   safe for connection strings), the JWKS stops publishing v1; downstreams
+   drop it at their next refresh.
 
-**Compromised private key:** sign with a new key immediately (add it as the
-primary in one step) and remove the compromised key from the gateway.
-Downstreams pick up the new `kid` within the 30-second refetch cooldown.
-Until their cached set expires (`jwksMaxAgeSeconds`) they may still trust the
-removed key; lower `jwksMaxAgeSeconds` beforehand, or restart the downstreams,
-when that window matters. The timestamp window does not protect against
-someone who holds the private key and can sign fresh tokens.
+Never replace the secret of an existing version in place: replicas would sign
+with different keys under the same `kid` during the rolling restart and
+downstreams would reject part of the traffic. Always add a new version.
 
-The gateway loads its keys once per process; changing them requires a
+**Compromised secret:** an HMAC secret leak compromises both connection
+strings and profile signatures of that version. Rotate to a new primary
+version immediately and remove the compromised one. Downstreams pick up the
+new `kid` within the 30-second refetch cooldown. Until their cached set
+expires (12 hours) they may still trust the removed key; restart the
+downstreams when that window matters. A downstream that cannot refresh keeps
+its last key set for at most one more day, then fails closed. The timestamp
+window does not protect against someone who holds the secret and can sign
+fresh tokens.
+
+The gateway derives its keys once per process; changing them requires a
 gateway restart (no hot reload).
+
+**Standalone mode** keeps a single HMAC secret (the one it resolves or
+generates and persists at first boot) as version `1`, whatever `hmacSecrets`
+lists. Profiles are therefore always signed with `kid: "1"` and there is no
+version-based rotation: replacing that secret changes the key under the same
+`kid`, so restart the downstream services after doing it.
 
 ---
 
