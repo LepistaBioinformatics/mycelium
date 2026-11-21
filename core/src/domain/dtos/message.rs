@@ -27,6 +27,11 @@ pub struct Message {
     // Message
     pub subject: String,
     pub body: String,
+
+    /// Extra mail headers, as `(name, value)` pairs. Only `X-Mycelium-*`
+    /// names are delivered (see `check_message_header`).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub headers: Vec<(String, String)>,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize, ToSchema)]
@@ -81,5 +86,51 @@ impl MessageSendingEvent {
             attempts: 0,
             error: None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const PRE_HEADERS_MESSAGE: &str = r#"{
+        "from": {"namedEmail": "Mycelium <noreply@example.com>"},
+        "to": {"username": "user", "domain": "example.com"},
+        "cc": null,
+        "subject": "Welcome",
+        "body": "<p>Hello</p>"
+    }"#;
+
+    #[test]
+    fn message_stored_before_headers_existed_still_deserializes() {
+        let message: Message =
+            serde_json::from_str(PRE_HEADERS_MESSAGE).unwrap();
+
+        assert!(message.headers.is_empty());
+    }
+
+    #[test]
+    fn empty_headers_are_not_serialized() {
+        let message: Message =
+            serde_json::from_str(PRE_HEADERS_MESSAGE).unwrap();
+
+        let json = serde_json::to_value(&message).unwrap();
+
+        assert!(json.get("headers").is_none());
+    }
+
+    #[test]
+    fn headers_round_trip() {
+        let mut message: Message =
+            serde_json::from_str(PRE_HEADERS_MESSAGE).unwrap();
+        message.headers = vec![(
+            "X-Mycelium-Source-Service".to_string(),
+            "service-01".to_string(),
+        )];
+
+        let json = serde_json::to_string(&message).unwrap();
+        let decoded: Message = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(decoded.headers, message.headers);
     }
 }

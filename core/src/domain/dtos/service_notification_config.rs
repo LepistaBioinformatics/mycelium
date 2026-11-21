@@ -124,7 +124,7 @@ impl TryFrom<ServiceNotificationConfigRaw> for ServiceNotificationConfig {
     }
 }
 
-fn validate_sender_tag(sender_tag: &str) -> Result<(), String> {
+pub(crate) fn validate_sender_tag(sender_tag: &str) -> Result<(), String> {
     let pattern = Regex::new(SENDER_TAG_PATTERN).map_err(|e| e.to_string())?;
 
     if !pattern.is_match(sender_tag) {

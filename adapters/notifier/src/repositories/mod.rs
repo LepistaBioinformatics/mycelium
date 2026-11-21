@@ -1,6 +1,7 @@
 use myc_adapters_shared_lib::models::SharedClientImpl;
 use shaku::module;
 
+mod build_lettre_header;
 mod config;
 mod local_message_sending;
 #[cfg(feature = "local-transport")]

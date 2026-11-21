@@ -130,6 +130,7 @@ mod tests {
             cc: None,
             subject: "Your Login Link".to_string(),
             body: body.to_string(),
+            headers: vec![],
         }
     }
 

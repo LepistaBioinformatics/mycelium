@@ -129,6 +129,7 @@ mod tests {
             cc: None,
             subject: "Your magic link".to_string(),
             body: body.to_string(),
+            headers: vec![],
         }
     }
 
