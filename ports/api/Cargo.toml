@@ -87,7 +87,6 @@ uuid.workspace = true
 url.workspace = true
 utoipa-redoc.workspace = true
 utoipa-swagger-ui.workspace = true
-zip.workspace = true
 wildmatch.workspace = true
 zstd.workspace = true
 
@@ -119,16 +118,6 @@ mycelium-diesel-sqlite = { workspace = true, optional = true }
 mycelium-key-value = { workspace = true, optional = true }
 mycelium-moka-cache = { workspace = true, optional = true }
 mycelium-postgres-kv = { workspace = true, optional = true }
-
-# ------------------------------------------------------------------------------
-# Build dependencies
-#
-# The zip package should be fixed from workspace due to security issues.
-#
-# ------------------------------------------------------------------------------
-
-[build-dependencies]
-zip.workspace = true
 
 # ? ----------------------------------------------------------------------------
 # ? BINARIES
