@@ -1,6 +1,7 @@
 pub(crate) mod account;
 pub(crate) mod account_tag;
 pub(crate) mod error_code;
+pub(crate) mod federation_link;
 pub(crate) mod federation_peer;
 pub(crate) mod guest_role;
 pub(crate) mod guest_role_children;

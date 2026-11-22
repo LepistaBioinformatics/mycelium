@@ -32,7 +32,10 @@ pub(crate) use beginners::{
     UpdateAccountMetaParams, UpdateOwnAccountNameParams,
 };
 #[cfg(feature = "federation")]
-pub(crate) use federation::{FederationPeerParams, SetFederationEnabledParams};
+pub(crate) use federation::{
+    FederationPeerParams, LinkParams, SetFederationEnabledParams,
+    StartLinkParams,
+};
 pub(crate) use gateway_manager::{
     ListOperationsParams, ListRoutesParams, ListServicesParams,
 };

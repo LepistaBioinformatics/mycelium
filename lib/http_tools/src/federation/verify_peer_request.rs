@@ -1,15 +1,10 @@
 use super::{
-    body_hash,
-    read_jws_segments::{
-        decode_claims, decode_segment, header_kid, split_jws, JwsSegments,
-    },
-    ExpectedPeerRequest, PeerRequestClaims, PeerRequestRejection,
-    VerifiedPeerRequest, PEER_REQUEST_TYP,
+    body_hash, read_jws_segments::decode_claims,
+    verify_typed_jws::verify_typed_jws, ExpectedPeerRequest, PeerRequestClaims,
+    PeerRequestRejection, VerifiedPeerRequest, PEER_REQUEST_TYP,
 };
 
-use jsonwebtoken::{crypto::verify, Algorithm, DecodingKey};
 use myc_core::domain::dtos::federation::PeerKey;
-use serde_json::Value;
 
 /// Verify a signed peer request against the caller's stored keys
 ///
@@ -21,60 +16,12 @@ pub fn verify_peer_request(
     keys: &[PeerKey],
     expected: &ExpectedPeerRequest,
 ) -> Result<VerifiedPeerRequest, PeerRequestRejection> {
-    let segments = split_jws(jws)?;
-    let kid = verify_signature(&segments, keys)?;
-    let claims = decode_claims(segments.payload)?;
+    let (kid, payload) = verify_typed_jws(jws, keys, PEER_REQUEST_TYP)?;
+    let claims: PeerRequestClaims = decode_claims(payload)?;
 
     check_claims(&claims, expected)?;
 
     Ok(VerifiedPeerRequest { kid, claims })
-}
-
-/// The `kid` whose key produced the signature
-fn verify_signature(
-    segments: &JwsSegments,
-    keys: &[PeerKey],
-) -> Result<String, PeerRequestRejection> {
-    let header = decode_segment(segments.header)?;
-    check_header(&header)?;
-
-    let kid = header_kid(&header)?;
-    let decoding_key = decoding_key_of(keys, &kid)?;
-    let input = segments.signing_input();
-
-    match verify(
-        segments.signature,
-        input.as_bytes(),
-        &decoding_key,
-        Algorithm::EdDSA,
-    ) {
-        Ok(true) => Ok(kid),
-        _ => Err(PeerRequestRejection::BadSignature),
-    }
-}
-
-fn decoding_key_of(
-    keys: &[PeerKey],
-    kid: &str,
-) -> Result<DecodingKey, PeerRequestRejection> {
-    let key = keys
-        .iter()
-        .find(|key| key.kid == kid)
-        .ok_or_else(|| PeerRequestRejection::UnknownKid(kid.to_string()))?;
-
-    DecodingKey::from_ed_components(&key.public_key)
-        .map_err(|_| PeerRequestRejection::BadSignature)
-}
-
-fn check_header(header: &Value) -> Result<(), PeerRequestRejection> {
-    if header.get("alg").and_then(Value::as_str) != Some("EdDSA") {
-        return Err(PeerRequestRejection::UnsupportedAlgorithm);
-    }
-    if header.get("typ").and_then(Value::as_str) != Some(PEER_REQUEST_TYP) {
-        return Err(PeerRequestRejection::WrongType);
-    }
-
-    Ok(())
 }
 
 fn check_claims(

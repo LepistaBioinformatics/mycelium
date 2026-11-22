@@ -17,3 +17,19 @@ pub struct SetFederationEnabledParams {
     )]
     pub enabled: bool,
 }
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct StartLinkParams {
+    #[schemars(
+        description = "The instanceId of the peer, from beginners.federation.listPeers"
+    )]
+    pub instance_id: Uuid,
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct LinkParams {
+    #[schemars(description = "The id of the identity link")]
+    pub link_id: Uuid,
+}

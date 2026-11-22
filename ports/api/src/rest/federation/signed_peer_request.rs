@@ -36,9 +36,6 @@ use uuid::Uuid;
 pub(crate) struct SignedPeerRequest {
     pub(crate) peer: FederationPeer,
 
-    // Read by the handlers that take a body (resolve and tombstone, F3/F5);
-    // drop the allow then.
-    #[allow(dead_code)]
     pub(crate) body: Bytes,
 }
 

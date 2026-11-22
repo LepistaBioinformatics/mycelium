@@ -1,6 +1,7 @@
-use super::{PeerRequestClaims, PeerRequestRejection};
+use super::PeerRequestRejection;
 
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use serde::de::DeserializeOwned;
 use serde_json::Value;
 use uuid::Uuid;
 
@@ -59,17 +60,18 @@ pub(super) fn header_kid(
         .ok_or(PeerRequestRejection::Malformed)
 }
 
-pub(super) fn decode_claims(
+pub(super) fn decode_claims<Claims: DeserializeOwned>(
     segment: &str,
-) -> Result<PeerRequestClaims, PeerRequestRejection> {
+) -> Result<Claims, PeerRequestRejection> {
     serde_json::from_value(decode_segment(segment)?)
         .map_err(|_| PeerRequestRejection::Malformed)
 }
 
-/// The caller and key a request *claims*, read without verification
+/// The issuer and key a signed peer request or link state *claims*, read
+/// without verification
 ///
-/// Only for finding the caller's stored keys; nothing here is trusted until
-/// `verify_peer_request` succeeds.
+/// Only for finding the issuer's stored keys; nothing here is trusted until
+/// the token is verified.
 ///
 pub fn peek_peer_request_issuer(
     jws: &str,
@@ -77,5 +79,12 @@ pub fn peek_peer_request_issuer(
     let segments = split_jws(jws)?;
     let kid = header_kid(&decode_segment(segments.header)?)?;
 
-    Ok((decode_claims(segments.payload)?.iss, kid))
+    let payload = decode_segment(segments.payload)?;
+    let issuer = payload
+        .get("iss")
+        .and_then(Value::as_str)
+        .and_then(|iss| Uuid::parse_str(iss).ok())
+        .ok_or(PeerRequestRejection::Malformed)?;
+
+    Ok((issuer, kid))
 }

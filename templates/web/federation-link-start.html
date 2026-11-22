@@ -1,0 +1,15 @@
+{% extends "web/federation-link-layout.html" %}
+{% block title %}Link your account to {{ peer_name }}{% endblock title %}
+{% block content %}
+<h1>Link your account to {{ peer_name }}</h1>
+<p>
+  You will sign in on <strong>{{ peer_name }}</strong> to prove the account
+  there is yours. Once you confirm, {{ instance_name }} receives the access
+  that account holds.
+</p>
+<form method="post" action="{{ action }}">
+  <input type="hidden" name="request" value="{{ request }}" />
+  <button type="submit">Continue to {{ peer_name }}</button>
+</form>
+<p class="note">If you did not start this from your application, close this page.</p>
+{% endblock content %}

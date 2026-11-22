@@ -78,6 +78,14 @@ pub async fn dispatch_beginners(
     method: &str,
     params: Option<serde_json::Value>,
 ) -> Result<serde_json::Value, JsonRpcError> {
+    #[cfg(feature = "federation")]
+    if method.starts_with("beginners.federation.") {
+        return super::beginners_federation::dispatch_beginners_federation(
+            profile, app_module, req, method, params,
+        )
+        .await;
+    }
+
     match method {
         method_names::BEGINNERS_ACCOUNTS_CREATE => {
             let req =

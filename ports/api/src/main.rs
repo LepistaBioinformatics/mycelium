@@ -77,6 +77,7 @@ use dispatchers::{
 #[cfg(feature = "federation")]
 use dispatchers::{
     spawn_federation_dispatcher, FederationDispatcher, FederationRoundPorts,
+    LinkConsentPurge, LinkRequestPurge, RequestNoncePurge,
 };
 #[cfg(feature = "federation")]
 use federation::{
@@ -614,7 +615,11 @@ pub async fn main() -> std::io::Result<()> {
                 FederationRoundPorts {
                     peer_read: sql_module.resolve(),
                     peer_write: sql_module.resolve(),
-                    nonces: sql_module.resolve(),
+                    purges: vec![
+                        Arc::new(RequestNoncePurge(sql_module.resolve())),
+                        Arc::new(LinkRequestPurge(sql_module.resolve())),
+                        Arc::new(LinkConsentPurge(sql_module.resolve())),
+                    ],
                     settings: sql_module.resolve(),
                     peer_client,
                 },
@@ -756,12 +761,15 @@ pub async fn main() -> std::io::Result<()> {
 
             // Peer-authenticated endpoints (`/federation/*`), only when
             // `[core.federation]` is present.
-            match peer_client.clone() {
-                Some(peer_client) => configure_federation_endpoints(
-                    base_app,
-                    &sql_module,
-                    peer_client,
-                ),
+            match federation.as_ref().zip(peer_client.clone()) {
+                Some((prepared, peer_client)) => {
+                    configure_federation_endpoints(
+                        base_app,
+                        &sql_module,
+                        prepared,
+                        peer_client,
+                    )
+                }
                 None => base_app,
             }
         };
