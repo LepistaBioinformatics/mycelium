@@ -77,7 +77,6 @@ pub async fn dispatch_beginners_federation(
                 WrittenBy::new_from_user_with_email(owner.id, &owner.email);
             revoke_identity_link(
                 app_module,
-                req,
                 link_id,
                 LinkRevoker::User(owner.id),
                 author,

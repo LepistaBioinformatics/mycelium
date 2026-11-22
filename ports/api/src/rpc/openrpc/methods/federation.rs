@@ -64,7 +64,7 @@ pub fn methods() -> Vec<serde_json::Value> {
         method(
             method_names::FEDERATION_LINKS_REVOKE,
             "Revoke an identity link",
-            "Revokes the link here and tells the peer with a signed call; the local revocation stands if the peer cannot be reached. Requires Staff privileges.",
+            "Revokes the link here and queues a tombstone the peer receives within seconds, retried until delivered; the local revocation stands whatever the peer answers. Requires Staff privileges.",
             link(),
         ),
         method(
@@ -94,7 +94,7 @@ pub fn methods() -> Vec<serde_json::Value> {
         method(
             method_names::BEGINNERS_FEDERATION_REVOKE_LINK,
             "Revoke one of my identity links",
-            "Revokes one of the caller's links here and tells the peer with a signed call.",
+            "Revokes one of the caller's links here and queues a tombstone the peer receives within seconds, retried until delivered.",
             link(),
         ),
         method(

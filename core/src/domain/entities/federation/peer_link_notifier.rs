@@ -1,5 +1,5 @@
 use crate::domain::dtos::federation::{
-    FederationPeer, LinkAcknowledgement, LinkConfirmation, LinkRevocation,
+    FederationPeer, LinkAcknowledgement, LinkConfirmation,
 };
 
 use async_trait::async_trait;
@@ -20,11 +20,4 @@ pub trait PeerLinkNotifier: Interface + Send + Sync {
         peer: &FederationPeer,
         confirmation: LinkConfirmation,
     ) -> Result<LinkAcknowledgement, MappedErrors>;
-
-    /// Tell the peer a link was revoked on this side
-    async fn revoke_link(
-        &self,
-        peer: &FederationPeer,
-        revocation: LinkRevocation,
-    ) -> Result<(), MappedErrors>;
 }

@@ -68,8 +68,9 @@ pub const FEDERATION_LINK_APPROVE_PATH: &str = "/federation/link/approve";
 /// Where an issuer tells the consumer a link was confirmed (signed request)
 pub const FEDERATION_LINK_CONFIRM_PATH: &str = "/federation/link/confirm";
 
-/// Where a peer tells this instance a link was revoked (signed request)
-pub const FEDERATION_LINK_REVOKE_PATH: &str = "/federation/link/revoke";
+/// Where a peer pushes a tombstone: grants or a link revoked on its side
+/// (FED-22, signed request)
+pub const FEDERATION_TOMBSTONE_PATH: &str = "/federation/tombstone";
 
 /// Where a peer asks this instance for a linked subject's grants (FED-11)
 pub const FEDERATION_RESOLVE_PATH: &str = "/federation/resolve";

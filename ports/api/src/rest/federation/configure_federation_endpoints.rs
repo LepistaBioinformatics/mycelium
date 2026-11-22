@@ -1,5 +1,6 @@
 use super::{
     handshake_endpoints, link_endpoints, link_pages, resolution_endpoints,
+    tombstone_endpoints,
 };
 use crate::{
     federation::{
@@ -63,6 +64,7 @@ where
         .configure(link_endpoints::configure)
         .configure(link_pages::configure)
         .configure(resolution_endpoints::configure)
+        .configure(tombstone_endpoints::configure)
 }
 
 /// How this instance asks its peers for a linked subject's grants (FED-11)

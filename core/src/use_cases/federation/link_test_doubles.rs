@@ -452,8 +452,6 @@ pub(crate) struct PeerNotifier {
     pub(crate) refuses: bool,
     pub(crate) confirmed:
         Mutex<Vec<crate::domain::dtos::federation::LinkConfirmation>>,
-    pub(crate) revoked:
-        Mutex<Vec<crate::domain::dtos::federation::LinkRevocation>>,
 }
 
 #[async_trait]
@@ -475,19 +473,5 @@ impl crate::domain::entities::PeerLinkNotifier for PeerNotifier {
         Ok(crate::domain::dtos::federation::LinkAcknowledgement {
             consumer_subject_ref: SubjectRef::mint(),
         })
-    }
-
-    async fn revoke_link(
-        &self,
-        _: &FederationPeer,
-        revocation: crate::domain::dtos::federation::LinkRevocation,
-    ) -> Result<(), MappedErrors> {
-        if self.refuses {
-            return mycelium_base::utils::errors::execution_err("unreachable")
-                .as_error();
-        }
-
-        self.revoked.lock().unwrap().push(revocation);
-        Ok(())
     }
 }

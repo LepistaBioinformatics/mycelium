@@ -49,7 +49,6 @@ pub async fn dispatch_federation(
             let link_id = parse::<LinkParams>(params)?.link_id;
             revoke_identity_link(
                 app_module,
-                req,
                 link_id,
                 LinkRevoker::Operator,
                 WrittenBy::new_from_account(profile.acc_id),
