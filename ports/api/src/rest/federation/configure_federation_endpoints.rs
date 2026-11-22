@@ -1,11 +1,11 @@
 use super::{
     handshake_endpoints, link_endpoints, link_pages, resolution_endpoints,
-    tombstone_endpoints,
+    tombstone_endpoints, vocabulary_endpoints,
 };
 use crate::{
     federation::{
         AssertionVerifier, PreparedFederation, SignedPeerGrantResolver,
-        SignedPeerLinkNotifier, SignedPeerPoster,
+        SignedPeerLinkNotifier, SignedPeerPoster, SignedPeerVocabularyReader,
     },
     models::active_backend_modules::SqlAppModule,
 };
@@ -17,7 +17,7 @@ use actix_web::{
 };
 use myc_core::domain::entities::{
     FederationPeerRead, FederationPeerWrite, PeerClient, PeerGrantResolver,
-    PeerLinkNotifier, RequestNonceRegistration,
+    PeerLinkNotifier, PeerVocabularyReader, RequestNonceRegistration,
 };
 use shaku::HasComponent;
 use std::sync::Arc;
@@ -53,6 +53,16 @@ where
         peer_read.clone(),
         peer_write.clone(),
     );
+    let vocabulary: Arc<dyn PeerVocabularyReader> =
+        Arc::new(SignedPeerVocabularyReader {
+            poster: poster(prepared, peer_client.clone()),
+            verifier: verifier(
+                prepared,
+                peer_client.clone(),
+                peer_read.clone(),
+                peer_write.clone(),
+            ),
+        });
 
     app.app_data(web::Data::from(peer_client))
         .app_data(web::Data::from(peer_read))
@@ -60,11 +70,13 @@ where
         .app_data(web::Data::from(nonces))
         .app_data(web::Data::from(notifier))
         .app_data(web::Data::from(resolver))
+        .app_data(web::Data::from(vocabulary))
         .configure(handshake_endpoints::configure)
         .configure(link_endpoints::configure)
         .configure(link_pages::configure)
         .configure(resolution_endpoints::configure)
         .configure(tombstone_endpoints::configure)
+        .configure(vocabulary_endpoints::configure)
 }
 
 /// How this instance asks its peers for a linked subject's grants (FED-11)
@@ -75,15 +87,32 @@ fn grant_resolver(
     peer_write: Arc<dyn FederationPeerWrite>,
 ) -> Arc<dyn PeerGrantResolver> {
     Arc::new(SignedPeerGrantResolver {
-        poster: SignedPeerPoster {
-            prepared: prepared.clone(),
-            peer_client: peer_client.clone(),
-        },
-        verifier: AssertionVerifier {
-            prepared: prepared.clone(),
-            peer_client,
-            peer_read,
-            peer_write,
-        },
+        poster: poster(prepared, peer_client.clone()),
+        verifier: verifier(prepared, peer_client, peer_read, peer_write),
     })
+}
+
+fn poster(
+    prepared: &PreparedFederation,
+    peer_client: Arc<dyn PeerClient>,
+) -> SignedPeerPoster {
+    SignedPeerPoster {
+        prepared: prepared.clone(),
+        peer_client,
+    }
+}
+
+/// Verifies assertions of any kind against the peers' keys (FED-14, FED-40)
+fn verifier(
+    prepared: &PreparedFederation,
+    peer_client: Arc<dyn PeerClient>,
+    peer_read: Arc<dyn FederationPeerRead>,
+    peer_write: Arc<dyn FederationPeerWrite>,
+) -> AssertionVerifier {
+    AssertionVerifier {
+        prepared: prepared.clone(),
+        peer_client,
+        peer_read,
+        peer_write,
+    }
 }
