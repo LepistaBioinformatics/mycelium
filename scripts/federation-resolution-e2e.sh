@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Instance federation, phases F3 (resolution) and F4 (degradation): end to
-# end.
+# Instance federation, phases F3 (resolution), F4 (degradation) and F5
+# (revocation): end to end.
 #
 # Two postgres-only gateways, A (issuer) and B (consumer), declared to each
 # other and active, B accepting A's assertions (`--may-assert`). user-01 has
@@ -19,7 +19,12 @@
 #   5. the kill-switch on A stops its answers;
 #   6. with user-01's account deactivated on B, no grant and no call: a local
 #      denial wins;
-#   7. with A stopped, an unexpired stored assertion is served as stale, and
+#   7. user-01's grant revoked on A pushes a tombstone: B drops the stored
+#      assertion within seconds, and the next answer carries no grant; a
+#      subject A denies (account inactive there) is answered "unknown";
+#   8. with B down during the push, A keeps retrying; B drops its stored
+#      assertions when it starts and receives the tombstone after;
+#   9. with A stopped, an unexpired stored assertion is served as stale, and
 #      an expired one contributes nothing: the result is partial, never an
 #      error.
 #
@@ -65,14 +70,15 @@ subject_ref() { openssl rand 32 | basenc --base64url | tr -d '='; }
 
 user_id() { sql "$1" "select id from public.user where email = '$2'"; }
 
-# seed_grant <database> <email>: a reader role on an account of a new tenant;
-# prints the tenant id
+# seed_grant <database> <email> [suffix]: a reader role on an account of a
+# new tenant (names suffixed when seeded again); prints the tenant id
 seed_grant() {
+    local suffix="${3:-}"
     local tenant account role guest
     read -r tenant account role guest < <(python3 -c 'import uuid; print(*(uuid.uuid4() for _ in range(4)))')
-    sql "$1" "insert into tenant (id, name) values ('$tenant', 'tenant-01');
+    sql "$1" "insert into tenant (id, name) values ('$tenant', 'tenant-01$suffix');
               insert into account (id, name, slug, tenant_id) values ('$account', 'account-01', 'account-01', '$tenant');
-              insert into guest_role (id, name, slug, permission) values ('$role', 'reader', 'reader', 0);
+              insert into guest_role (id, name, slug, permission) values ('$role', 'reader$suffix', 'reader$suffix', 0);
               insert into guest_user (id, email, guest_role_id, was_verified) values ('$guest', '$2', '$role', true);
               insert into guest_user_on_account (guest_user_id, account_id) values ('$guest', '$account')" >/dev/null
     printf '%s' "$tenant"
@@ -96,6 +102,37 @@ account_active() {
     sql fed_b "update account set is_active = $1
                where id = (select account_id from public.user where email = 'user-01@example.com');
                delete from kv_artifact" >/dev/null
+}
+
+# sql_within <expected> <database> <query>: the query's result once it is
+# <expected>, or the last one seen after 60 s (a retry backs off)
+sql_within() {
+    local value=""
+    for _ in $(seq 1 120); do
+        value="$(sql "$2" "$3")"
+        [ "$value" = "$1" ] && break
+        sleep 0.5
+    done
+    printf '%s' "$value"
+}
+
+# make_staff <database> <email>: the email's account becomes a staff account,
+# so it may revoke any guest (the profile cache is dropped)
+make_staff() {
+    sql "$1" "update account set account_type = '\"staff\"'
+              where id = (select account_id from public.user where email = '$2');
+              delete from kv_artifact" >/dev/null
+}
+
+# revoke_grant_on_a: staff user-01 revokes their own reader grant on A's
+# tenant (a FED-22 trigger)
+revoke_grant_on_a() {
+    local account role
+    account="$(sql fed_a "select id from account where tenant_id = '$TENANT_A'")"
+    role="$(sql fed_a "select g.guest_role_id from guest_user g join guest_user_on_account o on o.guest_user_id = g.id
+                       where o.account_id = '$account'")"
+    rpc "$BASE_A" "$TOKEN_A" subscriptionsManager.guests.revokeUserGuestToSubscriptionAccount \
+        "{\"tenantId\":\"$TENANT_A\",\"accountId\":\"$account\",\"roleId\":\"$role\",\"email\":\"user-01@example.com\"}" >/dev/null
 }
 
 forget_assertions() { sql fed_b "delete from federation_assertion_cache; delete from federation_namespace_claim" >/dev/null; }
@@ -144,7 +181,9 @@ expect "profile.v1 is negotiated on B" profile.v1 \
 
 log "seeding user-01's grant on A and the link between A and B"
 TOKEN_B="$(account_token "$BASE_B" fed_b user-01@example.com)"
-account_token "$BASE_A" fed_a user-01@example.com >/dev/null
+TOKEN_A="$(account_token "$BASE_A" fed_a user-01@example.com)"
+ACCOUNT_A="$(sql fed_a "select account_id from public.user where email = 'user-01@example.com'")"
+make_staff fed_a user-01@example.com
 TENANT_A="$(seed_grant fed_a user-01@example.com)"
 REF_ON_A="$(subject_ref)"
 REF_ON_B="$(subject_ref)"
@@ -201,7 +240,41 @@ expect "no peer contributes" "[]" "$(field result.peers <<<"$DENIED")"
 expect "A is not asked" 5 "$(audited 5)"
 account_active true
 
-log "7. with A stopped, stale within the lifetime and nothing after it"
+log "7. a revocation on A reaches B within seconds"
+expect "A answers" answered "$(resolve "$TOKEN_B" | field result.peers.0.resolution.outcome)"
+revoke_grant_on_a
+expect "the grant is revoked on A" 0 "$(sql fed_a "select count(*) from licensed_resources where gu_email = 'user-01@example.com' and tenant_id = '$TENANT_A'")"
+expect "B drops the stored assertion" 0 "$(sql_within 0 fed_b "select count(*) from federation_assertion_cache")"
+expect "B records the tombstone" grantsChanged "$(sql fed_b "select reason from federation_tombstone")"
+expect "A's outbox is drained" 0 "$(sql_within 0 fed_a "select count(*) from federation_outbox")"
+sleep 1.1
+REVOKED="$(resolve "$TOKEN_B")"
+expect "A answers again" answered "$(field result.peers.0.resolution.outcome <<<"$REVOKED")"
+expect "without the revoked grant" "[]" "$(field result.peers.0.grants <<<"$REVOKED")"
+TENANT_A="$(seed_grant fed_a user-01@example.com -2)"
+sql fed_a "update account set is_active = false where id = '$ACCOUNT_A'" >/dev/null
+age_assertions 40
+expect "A answers unknown for a subject it denies" unknown "$(resolve "$TOKEN_B" | field result.peers.0.resolution.outcome)"
+sql fed_a "update account set is_active = true where id = '$ACCOUNT_A'" >/dev/null
+expect "A answers once the subject stands again" answered "$(resolve "$TOKEN_B" | field result.peers.0.resolution.outcome)"
+
+log "8. B down during the push receives it after restarting"
+RECEIVED="$(sql fed_b "select received_at from federation_tombstone")"
+kill "${PIDS[1]}"
+wait "${PIDS[1]}" 2>/dev/null || true
+revoke_grant_on_a
+expect "A keeps the tombstone to retry" 1 \
+    "$(sql_within 1 fed_a "select count(*) from federation_outbox where attempts > 0 and status = 'pending'")"
+start_gateway B "$PORT_B" "$BASE_B" "$DB_B" "$HMAC_B"
+expect "B serves nothing stored before the restart" 0 "$(sql_within 0 fed_b "select count(*) from federation_assertion_cache")"
+expect "the retry reaches B" 0 "$(sql_within 0 fed_a "select count(*) from federation_outbox")"
+expect "B records the newer tombstone" t \
+    "$(sql fed_b "select received_at > '$RECEIVED' from federation_tombstone")"
+TENANT_A="$(seed_grant fed_a user-01@example.com -3)"
+TOKEN_B="$(account_token "$BASE_B" fed_b user-01@example.com)"
+sleep 1.1
+
+log "9. with A stopped, stale within the lifetime and nothing after it"
 forget_assertions
 expect "A answers while up" answered "$(resolve "$TOKEN_B" | field result.peers.0.resolution.outcome)"
 age_assertions 40

@@ -16,7 +16,7 @@
 #   4. different emails are refused by default;
 #   5. a state from a quarantined consumer is refused;
 #   6. the kill-switch closes A's hosted login to the internal linking client;
-#   7. unlinking on A revokes B's copy through the signed revocation.
+#   7. unlinking on A revokes B's copy through a pushed tombstone.
 #
 # Form POSTs carry the `Origin` a browser sends; each gateway lists its own
 # base URL in `api.allowedOrigins`, as the hosted login already requires.
@@ -75,6 +75,18 @@ redirect_state() {
 link_status() {
     sql "$1" "select l.status from federation_identity_link l join public.user u on u.id = l.local_user_id
               where u.email = '$2' order by l.created desc limit 1"
+}
+
+# The link status once it is `$3`, or the last one seen after 10 s: the
+# revocation reaches the peer through the outbox, not in the same request
+link_status_within() {
+    local status
+    for _ in $(seq 1 20); do
+        status="$(link_status "$1" "$2")"
+        [ "$status" = "$3" ] && break
+        sleep 0.5
+    done
+    printf '%s' "$status"
 }
 
 # ? ---------------------------------------------------------------------------
@@ -178,7 +190,7 @@ TOKEN_A1="$(account_token "$BASE_A" fed_a user-01@example.com)"
 LINK_A="$(rpc "$BASE_A" "$TOKEN_A1" beginners.federation.listLinks '{}' | field result.0.id)"
 expect "the user revokes the link on A" revoked \
     "$(rpc "$BASE_A" "$TOKEN_A1" beginners.federation.revokeLink "{\"linkId\":\"$LINK_A\"}" | field result.status)"
-expect "the link is revoked on B" revoked "$(link_status fed_b user-01@example.com)"
+expect "the link is revoked on B" revoked "$(link_status_within fed_b user-01@example.com revoked)"
 
 if grep -q -e "$HMAC_A" -e "$HMAC_B" "$WORKDIR"/*.log; then
     fail "a secret appears in the logs"
