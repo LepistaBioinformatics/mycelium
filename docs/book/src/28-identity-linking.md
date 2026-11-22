@@ -54,8 +54,7 @@ App on B        Gateway B (consumer)            Gateway A (issuer)
    user; neither is an email or a user id. If B refuses or cannot be reached,
    A revokes its own record. If B recorded the link but its answer was lost
    (a timeout), B keeps an active copy that A does not know; it carries no
-   grants, since A answers nothing for it, and is reconciled by the tombstone
-   phase.
+   grants, since A answers "unknown" for it.
 
 ## Removing a link
 
@@ -66,10 +65,11 @@ Either side may revoke, through the API only:
 | `beginners.federation.listLinks` / `beginners.federation.revokeLink` | The linked user, own links only |
 | `federation.links.list` / `federation.links.revoke` | Staff |
 
-Revoking marks the link revoked here and tells the peer with a signed
-request, and the peer revokes its copy. If the peer cannot be reached, the
-local revocation stands and the failure is logged. The peer's copy stays
-active until a later delivery; a durable retry queue is planned.
+Revoking marks the link revoked here and queues a `linkRevoked` tombstone for
+the peer, which revokes its copy and drops its stored grants (see
+[Revocation](./29-federated-grants.md#revocation)). The local revocation
+stands whatever the peer answers; a peer that cannot be reached receives the
+tombstone when it is back.
 
 ## Limits
 

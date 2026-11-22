@@ -67,11 +67,51 @@ keep it alive for long either:
 - **Past expiry** a silent peer contributes nothing. Absence is never read as
   "last known good".
 
+## Revocation
+
+When the issuer removes access, it does not wait for the consumers'
+next refresh: it pushes a signed **tombstone** to every peer holding an
+active link for the subject. Its own link table is the list of peers to
+tell.
+
+| Change on the issuer | Tombstone |
+|---|---|
+| A guest revoked from an account (subscription or subscription manager) | `grantsChanged` for that email |
+| A guest role deleted | `grantsChanged` for every guest holding it |
+| An account deleted, deactivated, archived or disapproved | `grantsChanged` for its users and guests |
+| A user deleting their own account | `grantsChanged` for that account's users |
+| A link revoked | `linkRevoked` |
+
+The consumer records the tombstone in the database and drops the stored
+assertion at once, on every pod. An assertion issued before the tombstone
+is never stored again, so a refresh already in flight cannot bring the old
+grants back. `grantsChanged` keeps the link: the next resolution asks the
+issuer, which answers with what is left. `linkRevoked` also revokes the
+consumer's copy of the link.
+
+Delivery is at least once. A tombstone is written to an outbox in the same
+request, and the federation dispatcher pushes it within a second, retrying
+a failed push after 5 s, doubling up to 15 min, and giving up after 20
+attempts (about four hours). A consumer that was down when the push was
+attempted drops every stored assertion when it starts, so it asks each
+issuer again before serving any grant, and receives the tombstone with the
+next retry.
+
+What the push does not reach is bounded by the assertion lifetime, which is
+why it stays short: a partition that heals while both instances stay up
+lets the consumer serve a stored assertion for up to `assertionRefreshSecs`
+before it asks again.
+
+Quarantining a peer drops every assertion stored from it; removing a peer
+drops them with it.
+
 ## What the issuer answers
 
 The issuer answers "unknown" unless the reference names an **active link
 with the caller**, the caller is an active peer and `profile.v1` was
-negotiated. The answer reveals nothing else.
+negotiated. It also answers "unknown" for a subject it denies itself: an
+inactive user, or an inactive, archived or deleted account. The answer
+reveals nothing else.
 
 Otherwise it signs an assertion (`typ: mycelium-assertion+jwt`, EdDSA, its
 federation key) bound to the caller (`aud`) and the reference (`sub`), valid
