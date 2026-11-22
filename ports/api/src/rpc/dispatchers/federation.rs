@@ -15,7 +15,8 @@ use myc_core::{
     domain::dtos::{profile::Profile, written_by::WrittenBy},
     use_cases::federation::{
         ensure_federation_operator, list_federation_peers, list_identity_links,
-        quarantine_peer, release_peer, set_federation_enabled, LinkRevoker,
+        list_stored_assertions, quarantine_peer, release_peer,
+        set_federation_enabled, LinkRevoker,
     },
 };
 use serde::{de::DeserializeOwned, Serialize};
@@ -55,6 +56,9 @@ pub async fn dispatch_federation(
             )
             .await
         }
+        method_names::FEDERATION_ASSERTIONS_LIST => to_result(
+            list_stored_assertions(Box::new(app_module.resolve_ref())).await,
+        ),
         method_names::FEDERATION_SET_ENABLED => {
             let enabled = parse::<SetFederationEnabledParams>(params)?.enabled;
             switch_federation(app_module, req, &profile, enabled).await
@@ -152,6 +156,8 @@ mod tests {
             method_names::FEDERATION_SET_ENABLED,
             method_names::FEDERATION_LINKS_LIST,
             method_names::FEDERATION_LINKS_REVOKE,
+            method_names::FEDERATION_ASSERTIONS_LIST,
+            method_names::BEGINNERS_FEDERATION_RESOLVE_GRANTS,
             method_names::BEGINNERS_FEDERATION_LIST_PEERS,
             method_names::BEGINNERS_FEDERATION_START_LINK,
             method_names::BEGINNERS_FEDERATION_LIST_LINKS,

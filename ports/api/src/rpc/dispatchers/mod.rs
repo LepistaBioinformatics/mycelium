@@ -9,6 +9,8 @@ pub(crate) mod gateway_manager;
 pub(crate) mod guest_manager;
 pub(crate) mod managers;
 #[cfg(feature = "federation")]
+mod resolve_own_grants;
+#[cfg(feature = "federation")]
 mod revoke_identity_link;
 pub(crate) mod service;
 pub(crate) mod staff;

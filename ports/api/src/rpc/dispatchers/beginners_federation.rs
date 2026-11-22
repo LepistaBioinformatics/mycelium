@@ -6,6 +6,7 @@ use super::{
         types::{self, JsonRpcError},
     },
     federation::{method_not_found, parse, to_result},
+    resolve_own_grants::resolve_own_grants,
     revoke_identity_link::revoke_identity_link,
 };
 use crate::{
@@ -40,8 +41,8 @@ struct LinkInitiation {
     expires_at: DateTime<Local>,
 }
 
-/// `beginners.federation.*`: a user's own identity links (FED-42, FED-43,
-/// FED-47)
+/// `beginners.federation.*`: a user's own identity links and their grants
+/// on linked peers (FED-11, FED-42, FED-43, FED-47, FED-53)
 pub async fn dispatch_beginners_federation(
     profile: &MyceliumProfileData,
     app_module: &web::Data<SqlAppModule>,
@@ -82,6 +83,9 @@ pub async fn dispatch_beginners_federation(
                 author,
             )
             .await
+        }
+        method_names::BEGINNERS_FEDERATION_RESOLVE_GRANTS => {
+            resolve_own_grants(app_module, req, prepared, owner).await
         }
         _ => Err(method_not_found(method)),
     }

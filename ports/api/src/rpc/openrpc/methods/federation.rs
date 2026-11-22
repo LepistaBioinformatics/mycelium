@@ -68,6 +68,12 @@ pub fn methods() -> Vec<serde_json::Value> {
             link(),
         ),
         method(
+            method_names::FEDERATION_ASSERTIONS_LIST,
+            "List stored assertions",
+            "Every unexpired assertion received from a peer, with its link, peer, grants and signed JWS. Requires Staff privileges.",
+            None,
+        ),
+        method(
             method_names::BEGINNERS_FEDERATION_LIST_PEERS,
             "List peers to link with",
             "The active peers the caller may link an account with, by display name only.",
@@ -90,6 +96,12 @@ pub fn methods() -> Vec<serde_json::Value> {
             "Revoke one of my identity links",
             "Revokes one of the caller's links here and tells the peer with a signed call.",
             link(),
+        ),
+        method(
+            method_names::BEGINNERS_FEDERATION_RESOLVE_GRANTS,
+            "Resolve my grants on linked peers",
+            "Asks the peers the caller has an active link with for the caller's grants there (a stored, unexpired assertion is used instead of a call), verifies the signed answers and rejects any that name an id this instance or another peer owns. partial is true when some peer could not answer before resolveDeadlineMs. Each peer actually asked is recorded in the audit log.",
+            None,
         ),
     ]
 }
