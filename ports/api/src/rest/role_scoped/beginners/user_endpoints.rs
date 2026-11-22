@@ -70,6 +70,7 @@ pub fn configure(config: &mut web::ServiceConfig) {
 // ? ---------------------------------------------------------------------------
 
 #[derive(Serialize, Deserialize, ToResponse, ToSchema)]
+#[response(description = "Email status")]
 #[serde(rename_all = "camelCase")]
 pub struct CheckEmailStatusResponse {
     email: String,
@@ -89,6 +90,7 @@ where
 }
 
 #[derive(Serialize, ToResponse, ToSchema)]
+#[response(description = "Login succeeded")]
 #[serde(rename_all = "camelCase")]
 pub struct MyceliumLoginResponse {
     pub token: String,
@@ -107,12 +109,14 @@ pub struct TotpActivationStartedParams {
 }
 
 #[derive(Serialize, ToResponse, ToSchema)]
+#[response(description = "TOTP activation started")]
 #[serde(rename_all = "camelCase")]
 pub struct TotpActivationStartedResponse {
     totp_url: Option<String>,
 }
 
 #[derive(Serialize, ToResponse, ToSchema)]
+#[response(description = "TOTP activation finished")]
 #[serde(rename_all = "camelCase")]
 pub struct TotpActivationFinishedResponse {
     finished: bool,

@@ -62,12 +62,12 @@ lettre = "0.11.24"
 # Use native-tls to avoid rustls-webpki 0.101.x (RUSTSEC-2026-0098/0099).
 oauth2 = { version = "4.4", default-features = false, features = ["reqwest", "native-tls"] }
 openssl = ">=0.10.70"
-opentelemetry = { version = "0.31", features = ["trace", "metrics", "logs"] }
-opentelemetry_sdk = { version = "0.31", features = ["rt-tokio"] }
-opentelemetry-otlp = { version = "0.31", features = [
+opentelemetry = { version = "0.33", features = ["trace", "metrics", "logs"] }
+opentelemetry_sdk = { version = "0.33", features = ["rt-tokio"] }
+opentelemetry-otlp = { version = "0.33", features = [
     "reqwest-client",
     "http-proto",
-    "tls",
+    "tls-ring",
     "grpc-tonic",
     "trace",
     "metrics",
@@ -88,7 +88,7 @@ shaku = "0.6"
 slugify = "0.1.0"
 tokio = { version = "1.46", features = ["full"] }
 url = "2.2"
-utoipa = { version = "5", features = [
+utoipa = { version = "6", features = [
     "actix_extras",
     "chrono",
     "debug",
@@ -98,7 +98,7 @@ utoipa = { version = "5", features = [
 ] }
 tracing = "0.1"
 tracing-appender = "0.2"
-tracing-actix-web = { version = "0.7", features = ["opentelemetry_0_29"] }
+tracing-actix-web = { version = "0.7", features = ["opentelemetry_0_33"] }
 tracing-subscriber = { version = "0.3.19", features = [
     "alloc",
     "json",
@@ -106,11 +106,11 @@ tracing-subscriber = { version = "0.3.19", features = [
     "tracing-serde",
     "registry",
 ] }
-tracing-opentelemetry = "0.32"
+tracing-opentelemetry = "0.34"
 toml = "0.9"
 uuid = { version = "1.1", features = ["v3", "v4", "v7", "serde", "fast-rng"] }
-utoipa-redoc = { version = "5", features = ["actix-web"] }
-utoipa-swagger-ui = { version = "9", features = ["actix-web", "vendored"] }
+utoipa-redoc = { version = "7", features = ["actix-web"] }
+utoipa-swagger-ui = { version = "10.0.2", features = ["actix-web", "vendored"] }
 wildmatch = "2.1"
 zstd = "0.13.4"
 

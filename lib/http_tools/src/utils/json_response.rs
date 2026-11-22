@@ -4,6 +4,7 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 use utoipa::{ToResponse, ToSchema};
 
 #[derive(Debug, Serialize, ToResponse, ToSchema)]
+#[response(description = "JSON message")]
 #[serde(rename_all = "camelCase")]
 pub struct HttpJsonResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
