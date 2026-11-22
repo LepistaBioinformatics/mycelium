@@ -47,6 +47,20 @@ diesel::table! {
 }
 
 diesel::table! {
+    federation_assertion_cache (link_id, kind) {
+        link_id -> Uuid,
+        peer_id -> Uuid,
+        #[max_length = 64]
+        kind -> Varchar,
+        jws -> Text,
+        payload -> Jsonb,
+        iat -> Timestamptz,
+        exp -> Timestamptz,
+        received_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     federation_identity_link (id) {
         id -> Uuid,
         local_user_id -> Uuid,
@@ -93,6 +107,16 @@ diesel::table! {
         expires_at -> Timestamptz,
         redirected_at -> Nullable<Timestamptz>,
         consumed_at -> Nullable<Timestamptz>,
+    }
+}
+
+diesel::table! {
+    federation_namespace_claim (foreign_id) {
+        foreign_id -> Uuid,
+        peer_id -> Uuid,
+        #[max_length = 16]
+        kind -> Varchar,
+        first_seen_at -> Timestamptz,
     }
 }
 
@@ -386,12 +410,15 @@ diesel::table! {
 
 diesel::joinable!(account -> tenant (tenant_id));
 diesel::joinable!(account_tag -> account (account_id));
+diesel::joinable!(federation_assertion_cache -> federation_identity_link (link_id));
+diesel::joinable!(federation_assertion_cache -> federation_peer (peer_id));
 diesel::joinable!(federation_identity_link -> federation_peer (peer_id));
 diesel::joinable!(federation_identity_link -> user (local_user_id));
 diesel::joinable!(federation_link_consent -> federation_peer (peer_id));
 diesel::joinable!(federation_link_consent -> user (local_user_id));
 diesel::joinable!(federation_link_request -> federation_peer (peer_id));
 diesel::joinable!(federation_link_request -> user (local_user_id));
+diesel::joinable!(federation_namespace_claim -> federation_peer (peer_id));
 diesel::joinable!(federation_peer_key -> federation_peer (peer_id));
 diesel::joinable!(federation_request_nonce -> federation_peer (peer_id));
 diesel::joinable!(guest_user -> guest_role (guest_role_id));
@@ -410,9 +437,11 @@ diesel::allow_tables_to_appear_in_same_query!(
     account,
     account_tag,
     error_code,
+    federation_assertion_cache,
     federation_identity_link,
     federation_link_consent,
     federation_link_request,
+    federation_namespace_claim,
     federation_peer,
     federation_peer_key,
     federation_request_nonce,

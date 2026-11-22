@@ -632,7 +632,8 @@ CREATE INDEX IF NOT EXISTS idx_telegram_audit_created_at
 CREATE TABLE IF NOT EXISTS resource_audit_log (
     id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     resource_type TEXT        NOT NULL CHECK (resource_type IN
-                       ('account', 'account_meta', 'user', 'tenant', 'tenant_meta', 'guest_role', 'webhook')),
+                       ('account', 'account_meta', 'user', 'tenant', 'tenant_meta', 'guest_role', 'webhook',
+                        'federation_resolution')),
     resource_id   UUID        NOT NULL,
     tenant_id     UUID,
     event         TEXT        NOT NULL CHECK (event IN ('created', 'updated', 'deleted')),
@@ -767,6 +768,28 @@ CREATE TABLE IF NOT EXISTS federation_link_consent (
 
 CREATE INDEX IF NOT EXISTS federation_link_consent_expires_idx
     ON federation_link_consent (expires_at);
+
+CREATE TABLE IF NOT EXISTS federation_assertion_cache (
+    link_id     UUID        NOT NULL REFERENCES federation_identity_link (id) ON DELETE CASCADE,
+    peer_id     UUID        NOT NULL REFERENCES federation_peer (id) ON DELETE CASCADE,
+    kind        VARCHAR(64) NOT NULL,
+    jws         TEXT        NOT NULL,
+    payload     JSONB       NOT NULL,
+    iat         TIMESTAMPTZ NOT NULL,
+    exp         TIMESTAMPTZ NOT NULL,
+    received_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (link_id, kind)
+);
+
+CREATE INDEX IF NOT EXISTS federation_assertion_cache_exp_idx
+    ON federation_assertion_cache (exp);
+
+CREATE TABLE IF NOT EXISTS federation_namespace_claim (
+    foreign_id    UUID        PRIMARY KEY,
+    peer_id       UUID        NOT NULL REFERENCES federation_peer (id) ON DELETE CASCADE,
+    kind          VARCHAR(16) NOT NULL,
+    first_seen_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 
 --------------------------------------------------------------------------------
 -- PERMISSIONS
