@@ -11,7 +11,7 @@ pub const ASSERTION_TYP: &str = "mycelium-assertion+jwt";
 /// (`sub`), so it cannot be replayed to a third peer or for another subject.
 ///
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct AssertionClaims {
+pub struct AssertionClaims<P = ProfileAssertion> {
     /// Issuer `instance_id`
     pub iss: Uuid,
     /// Requester `instance_id`
@@ -22,7 +22,14 @@ pub struct AssertionClaims {
     pub exp: u64,
     pub jti: Uuid,
     pub kind: String,
-    pub payload: ProfileAssertion,
+    pub payload: P,
+}
+
+/// The kind alone, read before the payload so another kind is recognized as
+/// such rather than as a malformed payload (FED-41)
+#[derive(Deserialize)]
+pub(super) struct AssertionKindOnly {
+    pub kind: String,
 }
 
 /// What a consumer expects of an assertion it asked for
@@ -30,6 +37,7 @@ pub struct ExpectedAssertion {
     pub issuer: Uuid,
     pub audience: Uuid,
     pub subject: String,
+    pub kind: String,
     pub now: u64,
     pub tolerance_secs: u64,
 }

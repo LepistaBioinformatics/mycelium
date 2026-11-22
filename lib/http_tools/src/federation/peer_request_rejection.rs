@@ -17,6 +17,9 @@ pub enum PeerRequestRejection {
     IssuedInFuture,
     /// Method, path or body differ from what was signed
     RequestMismatch,
+    /// A valid assertion of another kind than the one asked for; ignored,
+    /// never an error (FED-41)
+    UnknownKind(String),
 }
 
 impl fmt::Display for PeerRequestRejection {
@@ -31,6 +34,9 @@ impl fmt::Display for PeerRequestRejection {
             Self::WrongSubject => f.write_str("wrong issuer or subject"),
             Self::Expired => f.write_str("expired"),
             Self::IssuedInFuture => f.write_str("issued in the future"),
+            Self::UnknownKind(kind) => {
+                write!(f, "unknown assertion kind {kind}")
+            }
             Self::RequestMismatch => {
                 f.write_str("method, path or body differ from the signature")
             }
