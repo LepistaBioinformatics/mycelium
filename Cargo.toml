@@ -36,6 +36,8 @@ categories = ["development-tools", "web-programming::http-server"]
 
 actix-web = { version = "4.20", features = ["openssl"] }
 actix-web-httpauth = "0.8.0"
+# Serves the webapp build under /_app (the `webapp` feature of mycelium-api).
+actix-files = "0.7"
 async-trait = "0.1"
 awc = { version = "3", features = ["openssl"] }
 base64 = "0.22"

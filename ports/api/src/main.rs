@@ -16,6 +16,7 @@ mod revoke_federated_access;
 mod router;
 mod rpc;
 pub(crate) mod settings;
+mod webapp;
 
 // ? ----------------------------------------------------------------------------
 // ? Backend feature guards
@@ -223,6 +224,7 @@ use utoipa::OpenApi;
 use utoipa_redoc::{FileConfig, Redoc, Servable};
 use utoipa_swagger_ui::{oauth, Config, SwaggerUi};
 use uuid::Uuid;
+use webapp::{configure_webapp, ServedWebapp};
 
 #[tokio::main]
 pub async fn main() -> std::io::Result<()> {
@@ -370,6 +372,21 @@ pub async fn main() -> std::io::Result<()> {
     let _guard = initialize_otel(api_config.to_owned().logging)?;
 
     let span = tracing::Span::current();
+
+    // ? -----------------------------------------------------------------------
+    // ? CHECK THE SERVED WEBAPP
+    //
+    // Only with `[api.webapp]`: the build must be readable and the `webapp`
+    // feature compiled in, or the boot stops (WEBAPP-09).
+    //
+    // ? -----------------------------------------------------------------------
+    let served_webapp =
+        ServedWebapp::prepare(config.api.webapp.as_ref(), &config.api.services)
+            .map_err(|err| {
+                tracing::error!("Error preparing the webapp: {err}");
+
+                std::io::Error::new(std::io::ErrorKind::Other, err)
+            })?;
 
     // ? -----------------------------------------------------------------------
     // ? INITIALIZE VAULT CONFIGURATION
@@ -1048,6 +1065,10 @@ pub async fn main() -> std::io::Result<()> {
 
                 srv.call(req)
             })
+            //
+            // The webapp build under /_app, when served
+            //
+            .configure(|config| configure_webapp(config, served_webapp.clone()))
             .default_service(web::to(route_request))
     });
 

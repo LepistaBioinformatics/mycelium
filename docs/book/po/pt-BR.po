@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-11-22T14:05:44-03:00\n"
+"POT-Creation-Date: 2026-11-22T20:56:17-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -63,104 +63,108 @@ msgstr ""
 msgid "Standalone Mode"
 msgstr "Códigos de erro padrão:"
 
-#: src/SUMMARY.md:19
+#: src/SUMMARY.md:18 src/30-serving-the-webapp.md:1
+msgid "Serving the Webapp"
+msgstr ""
+
+#: src/SUMMARY.md:20
 msgid "Core Concepts"
 msgstr "Conceitos Fundamentais"
 
-#: src/SUMMARY.md:21 src/01-authorization.md:1
+#: src/SUMMARY.md:22 src/01-authorization.md:1
 msgid "Authorization Model"
 msgstr "Modelo de Autorização"
 
-#: src/SUMMARY.md:22 src/11-authentication-flows.md:1
+#: src/SUMMARY.md:23 src/11-authentication-flows.md:1
 msgid "Authentication Flows"
 msgstr "Fluxos de Autenticação"
 
-#: src/SUMMARY.md:23 src/15-account-types.md:1
+#: src/SUMMARY.md:24 src/15-account-types.md:1
 msgid "Account Types and Roles"
 msgstr "Tipos de Conta e Papéis"
 
-#: src/SUMMARY.md:24 src/06-downstream-apis.md:1
+#: src/SUMMARY.md:25 src/06-downstream-apis.md:1
 msgid "Downstream APIs"
 msgstr "APIs Downstream"
 
-#: src/SUMMARY.md:25 src/27-downstream-profile-signature.md:1
+#: src/SUMMARY.md:26 src/27-downstream-profile-signature.md:1
 msgid "Downstream Profile Signature"
 msgstr "Assinatura de Profile Downstream"
 
-#: src/SUMMARY.md:26 src/28-identity-linking.md:1
+#: src/SUMMARY.md:27 src/28-identity-linking.md:1
 #, fuzzy
 msgid "Identity Linking Across Instances"
 msgstr "Vinculação de identidade vs. autenticação"
 
-#: src/SUMMARY.md:27 src/29-federated-grants.md:1
+#: src/SUMMARY.md:28 src/29-federated-grants.md:1
 msgid "Federated Grants"
 msgstr ""
 
-#: src/SUMMARY.md:29
+#: src/SUMMARY.md:30
 msgid "Advanced Topics"
 msgstr "Tópicos Avançados"
 
-#: src/SUMMARY.md:31 src/10-alternative-idps.md:1
+#: src/SUMMARY.md:32 src/10-alternative-idps.md:1
 msgid "Alternative Identity Providers"
 msgstr "Provedores de Identidade Alternativos"
 
-#: src/SUMMARY.md:32 src/12-response-callbacks.md:1
+#: src/SUMMARY.md:33 src/12-response-callbacks.md:1
 msgid "Response Callbacks"
 msgstr "Callbacks de Resposta"
 
-#: src/SUMMARY.md:33 src/16-webhooks.md:1
+#: src/SUMMARY.md:34 src/16-webhooks.md:1
 msgid "Outbound Webhooks"
 msgstr "Webhooks de Saída"
 
-#: src/SUMMARY.md:34 src/17-error-codes.md:1
+#: src/SUMMARY.md:35 src/17-error-codes.md:1
 msgid "Error Codes"
 msgstr "Códigos de Erro"
 
-#: src/SUMMARY.md:35
+#: src/SUMMARY.md:36
 msgid "AI Agent Integration (MCP)"
 msgstr "Integração com Agentes de IA (MCP)"
 
-#: src/SUMMARY.md:36 src/14-json-rpc.md:1
+#: src/SUMMARY.md:37 src/14-json-rpc.md:1
 msgid "JSON-RPC Interface"
 msgstr "Interface JSON-RPC"
 
-#: src/SUMMARY.md:38
+#: src/SUMMARY.md:39
 msgid "Integrations"
 msgstr "Integrações"
 
-#: src/SUMMARY.md:40 src/19-sdk.md:1
+#: src/SUMMARY.md:41 src/19-sdk.md:1
 msgid "SDK Integration Guide"
 msgstr "Guia de Integração do SDK"
 
-#: src/SUMMARY.md:41 src/18-cli.md:1
+#: src/SUMMARY.md:42 src/18-cli.md:1
 msgid "CLI Reference"
 msgstr "Referência da CLI"
 
-#: src/SUMMARY.md:43
+#: src/SUMMARY.md:44
 msgid "Development"
 msgstr "Desenvolvimento"
 
-#: src/SUMMARY.md:45 src/20-encryption-inventory.md:1
+#: src/SUMMARY.md:46 src/20-encryption-inventory.md:1
 msgid "Encryption Inventory"
 msgstr ""
 
-#: src/SUMMARY.md:46 src/21-envelope-encryption-migration.md:1
+#: src/SUMMARY.md:47 src/21-envelope-encryption-migration.md:1
 msgid "Envelope Encryption Migration Guide"
 msgstr ""
 
-#: src/SUMMARY.md:47 src/22-hmac-key-rotation.md:1
+#: src/SUMMARY.md:48 src/22-hmac-key-rotation.md:1
 msgid "HMAC Key Rotation"
 msgstr ""
 
-#: src/SUMMARY.md:48 src/07-running-tests.md:1
+#: src/SUMMARY.md:49 src/07-running-tests.md:1
 msgid "Running Tests"
 msgstr "Executando Testes"
 
-#: src/SUMMARY.md:49 src/08-release-process.md:1
+#: src/SUMMARY.md:50 src/08-release-process.md:1
 msgid "Release Process"
 msgstr "Processo de Lançamento"
 
-#: src/SUMMARY.md:50 src/09-log-cache-tests.md:1
+#: src/SUMMARY.md:51 src/09-log-cache-tests.md:1
 msgid "Log Tests for Cache and Identity Flow"
 msgstr "Testes de Log para Cache e Fluxo de Identidade"
 
@@ -334,7 +338,7 @@ msgstr ""
 "detalhes."
 
 #: src/00-introduction.md:78 src/02-installation.md:104
-#: src/03-quick-start.md:130 src/04-configuration.md:264
+#: src/03-quick-start.md:130 src/04-configuration.md:276
 #: src/05-deploy-locally.md:123
 msgid "Next steps"
 msgstr "Próximos passos"
@@ -549,9 +553,10 @@ msgstr ""
 "Docker Compose e todas as dependências"
 
 #: src/02-installation.md:111 src/03-quick-start.md:139
-#: src/05-deploy-locally.md:105 src/06-downstream-apis.md:418
-#: src/10-alternative-idps.md:469 src/07-running-tests.md:73
-#: src/08-release-process.md:313 src/09-log-cache-tests.md:175
+#: src/05-deploy-locally.md:105 src/30-serving-the-webapp.md:139
+#: src/06-downstream-apis.md:418 src/10-alternative-idps.md:469
+#: src/07-running-tests.md:73 src/08-release-process.md:313
+#: src/09-log-cache-tests.md:175
 msgid "Troubleshooting"
 msgstr "Solução de problemas"
 
@@ -1345,13 +1350,35 @@ msgstr ""
 "A configuração de rotas fica aqui. Veja as [APIs Downstream](./06-downstream-"
 "apis.md) para o guia completo."
 
+#: src/04-configuration.md:264
+#, fuzzy
+msgid "`[api.webapp]` — Serve the webapp (optional)"
+msgstr "`[api]` — Servidor e roteamento"
+
 #: src/04-configuration.md:266
+msgid ""
+"Serves a webapp build under `/_app/`. Needs a gateway built with the "
+"`webapp` feature. See [Serving the Webapp](./30-serving-the-webapp.md)."
+msgstr ""
+
+#: src/04-configuration.md:268
+msgid ""
+"```toml\n"
+"[api.webapp]\n"
+"distDir = \"/srv/mycelium-webapp/dist\"      # the webapp dist/, built with "
+"VITE_BASE_PATH=/_app/\n"
+"hostedLoginClientId = \"webapp-01\"          # optional -- published by GET /"
+"app-config\n"
+"```"
+msgstr ""
+
+#: src/04-configuration.md:278
 msgid ""
 "[Downstream APIs](./06-downstream-apis.md) — Configure routes and security"
 msgstr ""
 "[APIs Downstream](./06-downstream-apis.md) — Configure rotas e segurança"
 
-#: src/04-configuration.md:267
+#: src/04-configuration.md:279
 msgid ""
 "[Deploy Locally](./05-deploy-locally.md) — Full environment with Docker "
 "Compose"
@@ -2382,6 +2409,281 @@ msgid ""
 "actual needs."
 msgstr ""
 
+#: src/30-serving-the-webapp.md:3
+msgid ""
+"The [Mycelium webapp](https://github.com/LepistaBioinformatics/mycelium-"
+"webapp) is the user and operator interface: sign-in, accounts, tenants, "
+"guests and federation. It can run as its own service (nginx in front of the "
+"static build), or the gateway can serve it under `/_app/`. Serving it from "
+"the gateway means one process, one origin, no CORS setup and no second "
+"deployment."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:9
+msgid ""
+"**Opt-in.** Serving the webapp needs the `webapp` cargo feature and an "
+"`[api.webapp]` section. Without either, `/_app/*` goes to the downstream "
+"router like any other path and nothing changes."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:15 src/11-authentication-flows.md:13
+#: src/12-response-callbacks.md:13 src/16-webhooks.md:10
+msgid "How it works"
+msgstr "Como funciona"
+
+#: src/30-serving-the-webapp.md:17
+msgid ""
+"The gateway serves the files of a webapp build (its `dist/` directory) from "
+"disk, under the fixed prefix `/_app/`. The prefix cannot be changed, because "
+"the build itself is made for it."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:20
+msgid ""
+"Any path under `/_app/` that is not a file of the build and has no file "
+"extension is answered with `index.html`, so deep links such as `/_app/"
+"dashboard/federation` survive a page reload. A missing file with an "
+"extension, such as `/_app/assets/missing.js`, is a 404."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:24
+msgid ""
+"`/_app/*` is public, as the files of any website are. Requests under it do "
+"not go through the downstream router or authentication. The webapp then "
+"calls the gateway API (`/_adm/...`) on the same origin, with the user's "
+"token."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:28
+msgid ""
+"`index.html` and the service worker are never cached, so users get a new "
+"build on their next visit. The hashed assets are cached for a year. Every "
+"answer carries `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: "
+"nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:33
+msgid ""
+"Requests that try to leave the build directory are never answered with a "
+"file outside it. That covers `..` segments, encoded traversals and symlinks "
+"pointing out."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:39
+msgid "1. Build the gateway with the feature"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:41
+msgid "Add `webapp` to the features of your build mode:"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:44
+#, fuzzy
+msgid "# Full mode\n"
+msgstr "Jornada completa"
+
+#: src/30-serving-the-webapp.md:46
+msgid "# Postgres-only mode\n"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:56
+msgid ""
+"The published Docker images are built without it. Build your own image with "
+"the feature to serve the webapp from a container."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:59
+msgid "2. Build the webapp for `/_app/`"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:61
+msgid ""
+"From a checkout of the webapp, at the version that matches your gateway:"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:65
+msgid "/_app/"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:68
+msgid ""
+"`VITE_BASE_PATH=/_app/` makes every asset, route and the service worker "
+"resolve under `/_app/`."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:70
+msgid ""
+"The empty `VITE_MYCELIUM_API_URL=` makes the webapp call the API on its own "
+"origin. Keep it empty even when a local `.env` file sets it, because the "
+"value from the shell wins."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:74
+msgid ""
+"The output is `dist/`. The same build works on any gateway, since it holds "
+"no URL and no client id."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:77
+msgid "3. Configure the gateway"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:79
+msgid ""
+"Point `distDir` to the build and name the hosted login client the webapp "
+"signs in with:"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:82
+msgid ""
+"```toml\n"
+"[api.webapp]\n"
+"distDir = \"/srv/mycelium-webapp/dist\"\n"
+"hostedLoginClientId = \"webapp-01\"\n"
+"```"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:88
+msgid ""
+"`hostedLoginClientId` is optional. When set, `GET /app-config` publishes it, "
+"and the webapp offers the gateway-hosted login with that client. The client "
+"must exist and accept the webapp's callback:"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:92
+msgid ""
+"```toml\n"
+"[auth.hostedLogin.define]\n"
+"clients = [\n"
+"  { clientId = \"webapp-01\", redirectUris = [\"https://myc-01.example.com/"
+"_app/callback\"] },\n"
+"]\n"
+"```"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:99
+msgid ""
+"The callback is your gateway's public origin followed by `/_app/callback`."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:101
+msgid "4. Open it"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:103
+msgid ""
+"Start the gateway and open `https://myc-01.example.com/_app/`. A fresh "
+"instance asks for its first staff account to be claimed before anyone can "
+"sign in. Claim it at `/_adm/instance/bootstrap` with "
+"`core.accountLifeCycle.staffBootstrapSecret`."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:108
+#, fuzzy
+msgid "With Docker"
+msgstr "Com Docker:"
+
+#: src/30-serving-the-webapp.md:110
+msgid ""
+"Mount the build into a gateway image built with the feature, and point "
+"`distDir` at the mount:"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:120
+msgid ""
+"`my-registry/mycelium-api-webapp` stands for your own image of the gateway, "
+"built with `--features webapp`."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:125
+msgid "Startup checks"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:127
+msgid ""
+"The gateway refuses to start, with an error naming the problem and the path, "
+"when `[api.webapp]` is set and:"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:130
+msgid "the binary was built without the `webapp` feature,"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:131
+msgid "`distDir` does not exist or cannot be read, or"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:132
+msgid "`distDir` has no `index.html`."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:134
+msgid ""
+"It also logs a warning for each downstream route configured under `/_app`, "
+"since those routes cannot be reached while the webapp is served."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:141
+msgid "Symptom"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:141
+msgid "Cause"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:143
+msgid "Blank page, assets answer 404"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:143
+msgid "The webapp was built without `VITE_BASE_PATH=/_app/`. Rebuild it."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:144
+msgid "API calls go to another host"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:144
+msgid ""
+"`VITE_MYCELIUM_API_URL` was set during the build, possibly from a `.env` "
+"file. Rebuild with it empty."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:145
+msgid "No hosted login option"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:145
+msgid ""
+"`hostedLoginClientId` is not set, so `GET /app-config` has no "
+"`hostedLoginClientId`."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:146
+#, fuzzy
+msgid "Login fails after the gateway's sign-in page"
+msgstr "Profile alterado depois da assinatura"
+
+#: src/30-serving-the-webapp.md:146
+msgid "The client's `redirectUris` lack `<origin>/_app/callback`."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:147
+msgid "`/_app/` answers like a downstream route"
+msgstr ""
+
+#: src/30-serving-the-webapp.md:147
+msgid ""
+"The gateway was built without the `webapp` feature, or `[api.webapp]` is "
+"missing."
+msgstr ""
+
+#: src/30-serving-the-webapp.md:149
+msgid ""
+"To upgrade the webapp, replace the contents of `distDir`. No restart is "
+"needed: the next page load picks up the new `index.html`."
+msgstr ""
+
 #: src/01-authorization.md:3
 msgid ""
 "This page explains how Mycelium decides whether a request is allowed to "
@@ -2689,11 +2991,6 @@ msgid ""
 msgstr ""
 "O magic link é o método de autenticação padrão. Sem senhas — o usuário "
 "insere seu e-mail e recebe um link de uso único."
-
-#: src/11-authentication-flows.md:13 src/12-response-callbacks.md:13
-#: src/16-webhooks.md:10
-msgid "How it works"
-msgstr "Como funciona"
 
 #: src/11-authentication-flows.md:15
 msgid ""

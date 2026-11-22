@@ -15,6 +15,7 @@
     - [Full Mode](./25-full-mode.md)
     - [Postgres-Only Mode](./26-postgres-only-mode.md)
     - [Standalone Mode](./23-standalone-mode.md)
+- [Serving the Webapp](./30-serving-the-webapp.md)
 
 # Core Concepts
 
