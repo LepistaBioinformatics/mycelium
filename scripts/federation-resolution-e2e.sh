@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Instance federation, phases F3 (resolution), F4 (degradation) and F5
-# (revocation): end to end.
+# Instance federation, phases F3 (resolution), F4 (degradation), F5
+# (revocation), F6 (profile) and F6b (translation): end to end.
 #
 # Two postgres-only gateways, A (issuer) and B (consumer), declared to each
 # other and active, B accepting A's assertions (`--may-assert`). user-01 has
@@ -26,7 +26,11 @@
 #      subject A denies (account inactive there) is answered "unknown";
 #   8. with B down during the push, A keeps retrying; B drops its stored
 #      assertions before it serves and receives the tombstone after;
-#   9. with A stopped, an unexpired stored assertion is served as stale, and
+#   9. a staff translation rule on B turns A's grant into a local grant on a
+#      local account, on the next request and without writing guest rows;
+#      disabled it yields nothing; a system-account target is refused; a
+#      tombstone removes the translated grant with the raw one;
+#  10. with A stopped, an unexpired stored assertion is served as stale, and
 #      an expired one contributes nothing: the result is partial, never an
 #      error.
 #
@@ -146,6 +150,29 @@ dropped_at_boot() {
     sed 's/\x1b\[[0-9;]*m//g' "$WORKDIR/api-$1-$2.log" | grep "dropped at boot" |
         grep -oE "forgotten[^0-9]*[0-9]+" | grep -oE "[0-9]+$" | tail -1
 }
+
+# seed_local_targets <database>: a tenant with a plain account, a system
+# account and a guest role; prints "account system-account role"
+seed_local_targets() {
+    local tenant account system role
+    read -r tenant account system role < <(python3 -c 'import uuid; print(*(uuid.uuid4() for _ in range(4)))')
+    sql "$1" "insert into tenant (id, name) values ('$tenant', 'tenant-b-01');
+              insert into account (id, name, slug, tenant_id) values ('$account', 'local-account', 'local-account', '$tenant');
+              insert into account (id, name, slug, tenant_id, is_default) values ('$system', 'local-system', 'local-system', '$tenant', true);
+              insert into guest_role (id, name, slug, permission) values ('$role', 'reviewer', 'reviewer', 0)" >/dev/null
+    printf '%s %s %s\n' "$account" "$system" "$role"
+}
+
+# translation_rule <account> <issuer role>: params of a rule turning A's
+# <issuer role> on A's tenant into "reviewer" (read) on <account>
+translation_rule() {
+    printf '{"peerInstanceId":"%s","issuerTenantId":"%s","issuerRole":"%s","issuerMinPerm":"read","localAccountId":"%s","localGuestRoleId":"%s","localPerm":"read"}' \
+        "$ID_A" "$TENANT_A" "$2" "$1" "$LOCAL_ROLE"
+}
+
+# local_grants_on <account>: how many local grants of user-01's profile on
+# B name the account
+local_grants_on() { profile_b | field result.licensedResources | grep -o "$1" | wc -l | tr -d ' '; }
 
 forget_assertions() { sql fed_b "delete from federation_assertion_cache; delete from federation_namespace_claim" >/dev/null; }
 
@@ -293,7 +320,32 @@ TENANT_A="$(seed_grant fed_a user-01@example.com -3)"
 TOKEN_B="$(account_token "$BASE_B" fed_b user-01@example.com)"
 sleep 1.1
 
-log "9. with A stopped, stale within the lifetime and nothing after it"
+log "9. a translation rule on B turns A's grant into a local one"
+make_staff fed_b user-01@example.com
+read -r LOCAL_ACCOUNT LOCAL_SYSTEM LOCAL_ROLE < <(seed_local_targets fed_b)
+expect "A answers" answered "$(resolve "$TOKEN_B" | field result.peers.0.resolution.outcome)"
+expect "no local grant before any rule" 0 "$(local_grants_on "$LOCAL_ACCOUNT")"
+RULE="$(rpc "$BASE_B" "$TOKEN_B" federation.translations.create "$(translation_rule "$LOCAL_ACCOUNT" reader-3)")"
+RULE_ID="$(field result.id <<<"$RULE")"
+expect "staff creates the rule" True "$(field result.enabled <<<"$RULE")"
+expect "the rule is audited" 1 \
+    "$(sql_within 1 fed_b "select count(*) from resource_audit_log where resource_type = 'federation_translation'")"
+expect "B's profile gains the translated local grant" 1 "$(local_grants_on "$LOCAL_ACCOUNT")"
+expect "nothing is written to the guest tables" 0 \
+    "$(sql fed_b "select count(*) from guest_user_on_account where account_id = '$LOCAL_ACCOUNT'")"
+rpc "$BASE_B" "$TOKEN_B" federation.translations.setEnabled "{\"ruleId\":\"$RULE_ID\",\"enabled\":false}" >/dev/null
+expect "a disabled rule yields nothing on the next request" 0 "$(local_grants_on "$LOCAL_ACCOUNT")"
+rpc "$BASE_B" "$TOKEN_B" federation.translations.setEnabled "{\"ruleId\":\"$RULE_ID\",\"enabled\":true}" >/dev/null
+expect "re-enabled, it applies again" 1 "$(local_grants_on "$LOCAL_ACCOUNT")"
+REFUSED="$(rpc "$BASE_B" "$TOKEN_B" federation.translations.create "$(translation_rule "$LOCAL_SYSTEM" reader-3)" | field error.message)"
+expect "a rule on a system account is refused" True "$([ "$REFUSED" != None ] && echo True || echo False)"
+revoke_grant_on_a
+expect "B drops the stored assertion" 0 "$(sql_within 0 fed_b "select count(*) from federation_assertion_cache")"
+expect "the tombstone removes the translated grant too" 0 "$(local_grants_on "$LOCAL_ACCOUNT")"
+TENANT_A="$(seed_grant fed_a user-01@example.com -4)"
+sleep 1.1
+
+log "10. with A stopped, stale within the lifetime and nothing after it"
 forget_assertions
 expect "A answers while up" answered "$(resolve "$TOKEN_B" | field result.peers.0.resolution.outcome)"
 age_assertions 40

@@ -29,6 +29,10 @@ const REVOCATION: &str = include_str!(
     "../../../sql/migrations/20261124_01_federation_revocation.sql"
 );
 
+const TRANSLATION: &str = include_str!(
+    "../../../sql/migrations/20261125_01_federation_translation.sql"
+);
+
 static PREPARE: Once = Once::new();
 
 struct TestPool(DbPool);
@@ -52,9 +56,12 @@ fn tables() -> String {
         .replace("public.user", "link_test_user");
     let resolution = RESOLUTION.split("ALTER TABLE").next().unwrap();
     let revocation = REVOCATION.split("GRANT ALL").next().unwrap();
+    let translation = TRANSLATION.split("ALTER TABLE").next().unwrap();
 
     format!(
-        "DROP TABLE IF EXISTS federation_outbox;
+        "DROP TABLE IF EXISTS federation_grant_translation;
+         DROP TABLE IF EXISTS guest_role;
+         DROP TABLE IF EXISTS federation_outbox;
          DROP TABLE IF EXISTS federation_tombstone;
          DROP TABLE IF EXISTS federation_namespace_claim;
          DROP TABLE IF EXISTS federation_assertion_cache;
@@ -69,11 +76,17 @@ fn tables() -> String {
          DROP TABLE IF EXISTS link_test_user;
          CREATE TABLE link_test_user (id UUID PRIMARY KEY);
          CREATE TABLE tenant (id UUID PRIMARY KEY);
-         CREATE TABLE account (id UUID PRIMARY KEY);
+         CREATE TABLE account (id UUID PRIMARY KEY,
+             name VARCHAR(256) NOT NULL DEFAULT 'account-01', tenant_id UUID,
+             is_deleted BOOLEAN NOT NULL DEFAULT false,
+             is_default BOOLEAN NOT NULL DEFAULT false);
+         CREATE TABLE guest_role (id UUID PRIMARY KEY,
+             slug VARCHAR(140) NOT NULL DEFAULT 'reviewer');
          {trust}
          {links}
          {resolution}
-         {revocation}"
+         {revocation}
+         {translation}"
     )
 }
 

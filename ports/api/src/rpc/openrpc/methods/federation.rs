@@ -74,6 +74,30 @@ pub fn methods() -> Vec<serde_json::Value> {
             None,
         ),
         method(
+            method_names::FEDERATION_TRANSLATIONS_LIST,
+            "List grant translation rules",
+            "Every rule, or the rules of one peer. Requires Staff privileges.",
+            Some(schema::param_schema_value::<params::ListTranslationRulesParams>()),
+        ),
+        method(
+            method_names::FEDERATION_TRANSLATIONS_CREATE,
+            "Create a grant translation rule",
+            "Turns a peer's role on one of its tenants into a guest role on a local tenant account, at read time. The account and role must exist; system accounts are refused; the issuer's permission only restricts. Audited. Requires Staff privileges.",
+            Some(schema::param_schema_value::<params::CreateTranslationRuleParams>()),
+        ),
+        method(
+            method_names::FEDERATION_TRANSLATIONS_SET_ENABLED,
+            "Enable or disable a grant translation rule",
+            "Applies from the next request. Audited. Requires Staff privileges.",
+            Some(schema::param_schema_value::<params::SetTranslationRuleEnabledParams>()),
+        ),
+        method(
+            method_names::FEDERATION_TRANSLATIONS_DELETE,
+            "Delete a grant translation rule",
+            "Audited. Requires Staff privileges.",
+            Some(schema::param_schema_value::<params::TranslationRuleParams>()),
+        ),
+        method(
             method_names::BEGINNERS_FEDERATION_LIST_PEERS,
             "List peers to link with",
             "The active peers the caller may link an account with, by display name only.",

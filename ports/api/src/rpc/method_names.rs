@@ -208,6 +208,17 @@ pub const FEDERATION_LINKS_LIST: &str = "federation.links.list";
 pub const FEDERATION_LINKS_REVOKE: &str = "federation.links.revoke";
 #[cfg(feature = "federation")]
 pub const FEDERATION_ASSERTIONS_LIST: &str = "federation.assertions.list";
+#[cfg(feature = "federation")]
+pub const FEDERATION_TRANSLATIONS_LIST: &str = "federation.translations.list";
+#[cfg(feature = "federation")]
+pub const FEDERATION_TRANSLATIONS_CREATE: &str =
+    "federation.translations.create";
+#[cfg(feature = "federation")]
+pub const FEDERATION_TRANSLATIONS_SET_ENABLED: &str =
+    "federation.translations.setEnabled";
+#[cfg(feature = "federation")]
+pub const FEDERATION_TRANSLATIONS_DELETE: &str =
+    "federation.translations.delete";
 
 // Federation, the user's own links (`federation` feature)
 #[cfg(feature = "federation")]

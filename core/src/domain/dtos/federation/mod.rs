@@ -1,6 +1,7 @@
 mod assertion_kind;
 mod federated_grants;
 mod federation_peer;
+mod grant_translation;
 mod identity_link;
 mod instance_self_description;
 mod issuer_namespace;
@@ -29,6 +30,7 @@ mod verified_assertion;
 pub use assertion_kind::*;
 pub use federated_grants::*;
 pub use federation_peer::*;
+pub use grant_translation::*;
 pub use identity_link::*;
 pub use instance_self_description::*;
 pub use issuer_namespace::*;

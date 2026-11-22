@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-11-22T13:02:59-03:00\n"
+"POT-Creation-Date: 2026-11-22T13:22:01-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5020,7 +5020,7 @@ msgid "Variable"
 msgstr "Variável"
 
 #: src/27-downstream-profile-signature.md:140 src/28-identity-linking.md:91
-#: src/29-federated-grants.md:42 src/29-federated-grants.md:192
+#: src/29-federated-grants.md:42 src/29-federated-grants.md:224
 #: src/17-error-codes.md:44 src/14-json-rpc.md:371
 #: src/22-hmac-key-rotation.md:122
 msgid "Meaning"
@@ -5842,21 +5842,22 @@ msgstr ""
 msgid "Either side may revoke, through the API only:"
 msgstr ""
 
-#: src/28-identity-linking.md:63 src/29-federated-grants.md:183
-#: src/14-json-rpc.md:64 src/14-json-rpc.md:80 src/14-json-rpc.md:92
-#: src/14-json-rpc.md:106 src/14-json-rpc.md:115 src/14-json-rpc.md:121
-#: src/14-json-rpc.md:127 src/14-json-rpc.md:133 src/14-json-rpc.md:143
-#: src/14-json-rpc.md:151 src/14-json-rpc.md:169 src/14-json-rpc.md:187
-#: src/14-json-rpc.md:197 src/14-json-rpc.md:212 src/14-json-rpc.md:223
-#: src/14-json-rpc.md:233 src/14-json-rpc.md:240 src/14-json-rpc.md:254
-#: src/14-json-rpc.md:261 src/14-json-rpc.md:268 src/14-json-rpc.md:276
-#: src/14-json-rpc.md:288 src/14-json-rpc.md:295 src/14-json-rpc.md:302
-#: src/14-json-rpc.md:309 src/14-json-rpc.md:322 src/14-json-rpc.md:337
-#: src/14-json-rpc.md:347 src/19-sdk.md:89
+#: src/28-identity-linking.md:63 src/29-federated-grants.md:131
+#: src/29-federated-grants.md:215 src/14-json-rpc.md:64 src/14-json-rpc.md:80
+#: src/14-json-rpc.md:92 src/14-json-rpc.md:106 src/14-json-rpc.md:115
+#: src/14-json-rpc.md:121 src/14-json-rpc.md:127 src/14-json-rpc.md:133
+#: src/14-json-rpc.md:143 src/14-json-rpc.md:151 src/14-json-rpc.md:169
+#: src/14-json-rpc.md:187 src/14-json-rpc.md:197 src/14-json-rpc.md:212
+#: src/14-json-rpc.md:223 src/14-json-rpc.md:233 src/14-json-rpc.md:240
+#: src/14-json-rpc.md:254 src/14-json-rpc.md:261 src/14-json-rpc.md:268
+#: src/14-json-rpc.md:276 src/14-json-rpc.md:288 src/14-json-rpc.md:295
+#: src/14-json-rpc.md:302 src/14-json-rpc.md:309 src/14-json-rpc.md:322
+#: src/14-json-rpc.md:337 src/14-json-rpc.md:347 src/19-sdk.md:89
 msgid "Method"
 msgstr "Método"
 
-#: src/28-identity-linking.md:63 src/29-federated-grants.md:183
+#: src/28-identity-linking.md:63 src/29-federated-grants.md:131
+#: src/29-federated-grants.md:215
 msgid "Who"
 msgstr ""
 
@@ -5872,7 +5873,7 @@ msgstr ""
 msgid "`federation.links.list` / `federation.links.revoke`"
 msgstr ""
 
-#: src/28-identity-linking.md:66
+#: src/28-identity-linking.md:66 src/29-federated-grants.md:135
 msgid "Staff"
 msgstr ""
 
@@ -5917,15 +5918,15 @@ msgid ""
 "grants."
 msgstr ""
 
-#: src/28-identity-linking.md:89 src/29-federated-grants.md:190
+#: src/28-identity-linking.md:89 src/29-federated-grants.md:222
 msgid "Settings"
 msgstr ""
 
-#: src/28-identity-linking.md:91 src/29-federated-grants.md:192
+#: src/28-identity-linking.md:91 src/29-federated-grants.md:224
 msgid "Setting"
 msgstr ""
 
-#: src/28-identity-linking.md:91 src/29-federated-grants.md:192
+#: src/28-identity-linking.md:91 src/29-federated-grants.md:224
 msgid "Where"
 msgstr ""
 
@@ -5933,9 +5934,9 @@ msgstr ""
 msgid "`linkRequestTtlSecs`"
 msgstr ""
 
-#: src/28-identity-linking.md:93 src/29-federated-grants.md:194
-#: src/29-federated-grants.md:195 src/29-federated-grants.md:196
-#: src/29-federated-grants.md:197
+#: src/28-identity-linking.md:93 src/29-federated-grants.md:226
+#: src/29-federated-grants.md:227 src/29-federated-grants.md:228
+#: src/29-federated-grants.md:229
 msgid "`[core.federation]`"
 msgstr ""
 
@@ -5947,7 +5948,7 @@ msgstr ""
 msgid "`allowDifferentEmails`"
 msgstr ""
 
-#: src/28-identity-linking.md:94 src/29-federated-grants.md:198
+#: src/28-identity-linking.md:94 src/29-federated-grants.md:230
 msgid "Peer policy"
 msgstr ""
 
@@ -6229,75 +6230,154 @@ msgstr ""
 
 #: src/29-federated-grants.md:108
 #, fuzzy
+msgid "Translation"
+msgstr "Instalação"
+
+#: src/29-federated-grants.md:110
+msgid ""
+"Raw federated grants carry the issuer's tenant and account ids, which mean "
+"nothing to an application that only knows this instance. A **translation "
+"rule** turns them into ordinary local grants: _\"role `editor` on tenant "
+"`T_A` at A becomes guest role `reviewer` on local account `Z`\"_."
+msgstr ""
+
+#: src/29-federated-grants.md:115
+msgid ""
+"**Local grants.** A translated grant is added to `licensedResources`, so the "
+"default filter chain sees it and an unchanged downstream works."
+msgstr ""
+
+#: src/29-federated-grants.md:117
+msgid ""
+"**Read time only.** Rules are applied on every request to the grants stored "
+"for the subject, after the profile cache. Nothing is written to the guest "
+"tables: a rule enabled or disabled applies on the next request, and a "
+"tombstone removes the translated grant with the raw one."
+msgstr ""
+
+#: src/29-federated-grants.md:121
+msgid "**Bounded.**"
+msgstr ""
+
+#: src/29-federated-grants.md:122
+msgid ""
+"A rule targets a guest role and a tenant account that already exist on this "
+"instance, and never a system account. Deleting either deletes the rule."
+msgstr ""
+
+#: src/29-federated-grants.md:125
+msgid "System grants of the issuer are never translated."
+msgstr ""
+
+#: src/29-federated-grants.md:126
+msgid ""
+"The issuer's permission only restricts: a rule matches grants with at least "
+"its issuer permission, and the local permission is the lower of the rule's "
+"and the grant's. A read on A never becomes a write here."
+msgstr ""
+
+#: src/29-federated-grants.md:129
+msgid "**Per peer.** A rule applies only to grants of the peer it names."
+msgstr ""
+
+#: src/29-federated-grants.md:133
+msgid "`federation.translations.list`"
+msgstr ""
+
+#: src/29-federated-grants.md:133
+msgid "Staff; optionally one peer (`peerInstanceId`)"
+msgstr ""
+
+#: src/29-federated-grants.md:134
+msgid "`federation.translations.create`"
+msgstr ""
+
+#: src/29-federated-grants.md:134
+msgid ""
+"Staff: `peerInstanceId`, `issuerTenantId`, `issuerRole`, `issuerMinPerm`, "
+"`localAccountId`, `localGuestRoleId`, `localPerm`"
+msgstr ""
+
+#: src/29-federated-grants.md:135
+msgid "`federation.translations.setEnabled` / `federation.translations.delete`"
+msgstr ""
+
+#: src/29-federated-grants.md:137
+msgid ""
+"Every change is recorded in the resource audit log (`federationTranslation`)."
+msgstr ""
+
+#: src/29-federated-grants.md:140
+#, fuzzy
 msgid "Revocation"
 msgstr "Rotação de chaves"
 
-#: src/29-federated-grants.md:110
+#: src/29-federated-grants.md:142
 msgid ""
 "When the issuer removes access, it does not wait for the consumers' next "
 "refresh: it pushes a signed **tombstone** to every peer holding an active "
 "link for the subject. Its own link table is the list of peers to tell."
 msgstr ""
 
-#: src/29-federated-grants.md:115
+#: src/29-federated-grants.md:147
 #, fuzzy
 msgid "Change on the issuer"
 msgstr "Última chance de encontrar problemas"
 
-#: src/29-federated-grants.md:115
+#: src/29-federated-grants.md:147
 msgid "Tombstone"
 msgstr ""
 
-#: src/29-federated-grants.md:117
+#: src/29-federated-grants.md:149
 msgid "A guest revoked from an account (subscription or subscription manager)"
 msgstr ""
 
-#: src/29-federated-grants.md:117
+#: src/29-federated-grants.md:149
 msgid "`grantsChanged` for that email"
 msgstr ""
 
-#: src/29-federated-grants.md:118
+#: src/29-federated-grants.md:150
 msgid "A guest role deleted, or its permission changed"
 msgstr ""
 
-#: src/29-federated-grants.md:118
+#: src/29-federated-grants.md:150
 msgid "`grantsChanged` for every guest holding it"
 msgstr ""
 
-#: src/29-federated-grants.md:119
+#: src/29-federated-grants.md:151
 msgid "A guest's flags changed on an account"
 msgstr ""
 
-#: src/29-federated-grants.md:119
+#: src/29-federated-grants.md:151
 msgid "`grantsChanged` for the account's guests"
 msgstr ""
 
-#: src/29-federated-grants.md:120
+#: src/29-federated-grants.md:152
 msgid "An account deleted, deactivated, archived or disapproved"
 msgstr ""
 
-#: src/29-federated-grants.md:120
+#: src/29-federated-grants.md:152
 msgid "`grantsChanged` for its users and guests"
 msgstr ""
 
-#: src/29-federated-grants.md:121
+#: src/29-federated-grants.md:153
 #, fuzzy
 msgid "A user deleting their own account"
 msgstr "Excluir a própria conta"
 
-#: src/29-federated-grants.md:121
+#: src/29-federated-grants.md:153
 msgid "`grantsChanged` for that account's users"
 msgstr ""
 
-#: src/29-federated-grants.md:122
+#: src/29-federated-grants.md:154
 msgid "A link revoked"
 msgstr ""
 
-#: src/29-federated-grants.md:122
+#: src/29-federated-grants.md:154
 msgid "`linkRevoked`"
 msgstr ""
 
-#: src/29-federated-grants.md:124
+#: src/29-federated-grants.md:156
 msgid ""
 "The consumer records the tombstone in the database and drops the stored "
 "assertion at once, on every pod. An assertion issued before the tombstone is "
@@ -6307,7 +6387,7 @@ msgid ""
 "consumer's copy of the link."
 msgstr ""
 
-#: src/29-federated-grants.md:131
+#: src/29-federated-grants.md:163
 msgid ""
 "Delivery is at least once. A tombstone is written to an outbox in the same "
 "request, and the federation dispatcher pushes it within a second, retrying a "
@@ -6318,7 +6398,7 @@ msgid ""
 "receives the tombstone with the next retry."
 msgstr ""
 
-#: src/29-federated-grants.md:139
+#: src/29-federated-grants.md:171
 msgid ""
 "What the push does not reach is bounded by the assertion lifetime, which is "
 "why it stays short. Changes outside the table above (a tenant deleted, a "
@@ -6328,18 +6408,18 @@ msgid ""
 "before it asks again."
 msgstr ""
 
-#: src/29-federated-grants.md:146
+#: src/29-federated-grants.md:178
 msgid ""
 "Quarantining a peer drops every assertion stored from it; removing a peer "
 "drops them with it."
 msgstr ""
 
-#: src/29-federated-grants.md:149
+#: src/29-federated-grants.md:181
 #, fuzzy
 msgid "What the issuer answers"
 msgstr "O que o cabeçalho contém"
 
-#: src/29-federated-grants.md:151
+#: src/29-federated-grants.md:183
 msgid ""
 "The issuer answers \"unknown\" unless the reference names an **active link "
 "with the caller**, the caller is an active peer and `profile.v1` was "
@@ -6348,7 +6428,7 @@ msgid ""
 "reveals nothing else."
 msgstr ""
 
-#: src/29-federated-grants.md:157
+#: src/29-federated-grants.md:189
 msgid ""
 "Otherwise it signs an assertion (`typ: mycelium-assertion+jwt`, EdDSA, its "
 "federation key) bound to the caller (`aud`) and the reference (`sub`), valid "
@@ -6358,25 +6438,25 @@ msgid ""
 "system accounts: a peer cannot make anyone staff or manager elsewhere."
 msgstr ""
 
-#: src/29-federated-grants.md:164
+#: src/29-federated-grants.md:196
 #, fuzzy
 msgid "What the consumer checks"
 msgstr "O que o Mycelium verifica"
 
-#: src/29-federated-grants.md:166
+#: src/29-federated-grants.md:198
 msgid ""
 "**Signature, audience, subject and lifetime.** An unknown key id makes the "
 "consumer fetch the issuer's keys once before refusing."
 msgstr ""
 
-#: src/29-federated-grants.md:168
+#: src/29-federated-grants.md:200
 msgid ""
 "**Lifetime.** An assertion is kept no longer than the consumer's own "
 "`assertionTtlSecs`, whatever the issuer signed: the short lifetime is what "
 "bounds a role removed on the issuer until revocations are pushed."
 msgstr ""
 
-#: src/29-federated-grants.md:171
+#: src/29-federated-grants.md:203
 msgid ""
 "**ID collisions.** Every tenant and account id in the assertion must not "
 "exist on the consumer and must not have been claimed by another peer. The "
@@ -6384,77 +6464,77 @@ msgid ""
 "a peer cannot borrow one of this instance's tenants, or another peer's."
 msgstr ""
 
-#: src/29-federated-grants.md:177
+#: src/29-federated-grants.md:209
 msgid ""
 "Each call to a peer is recorded in the resource audit log "
 "(`federationResolution`), with its outcome and reason; reads from the store "
 "are not."
 msgstr ""
 
-#: src/29-federated-grants.md:181
+#: src/29-federated-grants.md:213
 msgid "Inspecting"
 msgstr ""
 
-#: src/29-federated-grants.md:185
+#: src/29-federated-grants.md:217
 msgid "`beginners.federation.resolveGrants`"
 msgstr ""
 
-#: src/29-federated-grants.md:185
+#: src/29-federated-grants.md:217
 msgid "The linked user, own grants only"
 msgstr ""
 
-#: src/29-federated-grants.md:186
+#: src/29-federated-grants.md:218
 msgid "`federation.assertions.list`"
 msgstr ""
 
-#: src/29-federated-grants.md:186
+#: src/29-federated-grants.md:218
 msgid "Staff: every stored, unexpired assertion"
 msgstr ""
 
-#: src/29-federated-grants.md:188
+#: src/29-federated-grants.md:220
 msgid "Expired assertions are purged by the federation dispatcher."
 msgstr ""
 
-#: src/29-federated-grants.md:194
+#: src/29-federated-grants.md:226
 msgid "`assertionTtlSecs`"
 msgstr ""
 
-#: src/29-federated-grants.md:194
+#: src/29-federated-grants.md:226
 msgid ""
 "Lifetime of the assertions this instance issues, and the longest it keeps "
 "one it receives"
 msgstr ""
 
-#: src/29-federated-grants.md:195
+#: src/29-federated-grants.md:227
 msgid "`assertionRefreshSecs`"
 msgstr ""
 
-#: src/29-federated-grants.md:195
+#: src/29-federated-grants.md:227
 msgid ""
 "Age after which a stored assertion is refreshed (below `assertionTtlSecs`)"
 msgstr ""
 
-#: src/29-federated-grants.md:196
+#: src/29-federated-grants.md:228
 msgid "`peerTimeoutMs`"
 msgstr ""
 
-#: src/29-federated-grants.md:196
+#: src/29-federated-grants.md:228
 msgid "Bound of one call to a peer"
 msgstr ""
 
-#: src/29-federated-grants.md:197
+#: src/29-federated-grants.md:229
 msgid "`resolveDeadlineMs`"
 msgstr ""
 
-#: src/29-federated-grants.md:197
+#: src/29-federated-grants.md:229
 msgid "Bound of a whole resolution"
 msgstr ""
 
-#: src/29-federated-grants.md:198
+#: src/29-federated-grants.md:230
 msgid "`mayAssert`"
 msgstr ""
 
-#: src/29-federated-grants.md:198
+#: src/29-federated-grants.md:230
 msgid "Whether the peer's assertions are accepted (default: no)"
 msgstr ""
 

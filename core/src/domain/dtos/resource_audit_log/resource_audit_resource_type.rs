@@ -37,6 +37,10 @@ pub enum ResourceAuditResourceType {
     /// A federated resolution refreshed the grants of an identity link
     /// (FED-16); `resource_id` is the link.
     FederationResolution,
+
+    /// A staff member changed a grant translation rule (FED-48);
+    /// `resource_id` is the rule.
+    FederationTranslation,
 }
 
 #[cfg(test)]
@@ -54,6 +58,7 @@ mod tests {
             ResourceAuditResourceType::GuestRole,
             ResourceAuditResourceType::Webhook,
             ResourceAuditResourceType::FederationResolution,
+            ResourceAuditResourceType::FederationTranslation,
         ];
 
         for variant in variants {

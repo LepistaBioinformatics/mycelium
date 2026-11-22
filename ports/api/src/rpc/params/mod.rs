@@ -3,6 +3,8 @@ pub(crate) mod audit;
 pub(crate) mod beginners;
 #[cfg(feature = "federation")]
 pub(crate) mod federation;
+#[cfg(feature = "federation")]
+pub(crate) mod federation_translation;
 pub(crate) mod gateway_manager;
 pub(crate) mod guest_manager;
 pub(crate) mod managers;
@@ -35,6 +37,11 @@ pub(crate) use beginners::{
 pub(crate) use federation::{
     FederationPeerParams, LinkParams, SetFederationEnabledParams,
     StartLinkParams,
+};
+#[cfg(feature = "federation")]
+pub(crate) use federation_translation::{
+    CreateTranslationRuleParams, ListTranslationRulesParams,
+    SetTranslationRuleEnabledParams, TranslationRuleParams,
 };
 pub(crate) use gateway_manager::{
     ListOperationsParams, ListRoutesParams, ListServicesParams,

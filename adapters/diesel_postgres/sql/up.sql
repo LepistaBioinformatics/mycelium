@@ -633,7 +633,7 @@ CREATE TABLE IF NOT EXISTS resource_audit_log (
     id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     resource_type TEXT        NOT NULL CHECK (resource_type IN
                        ('account', 'account_meta', 'user', 'tenant', 'tenant_meta', 'guest_role', 'webhook',
-                        'federation_resolution')),
+                        'federation_resolution', 'federation_translation')),
     resource_id   UUID        NOT NULL,
     tenant_id     UUID,
     event         TEXT        NOT NULL CHECK (event IN ('created', 'updated', 'deleted')),
@@ -813,6 +813,25 @@ CREATE TABLE IF NOT EXISTS federation_outbox (
 
 CREATE INDEX IF NOT EXISTS federation_outbox_due_idx
     ON federation_outbox (status, next_attempt_at);
+
+CREATE TABLE IF NOT EXISTS federation_grant_translation (
+    id                  UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+    peer_id             UUID         NOT NULL REFERENCES federation_peer (id) ON DELETE CASCADE,
+    issuer_tenant_id    UUID         NOT NULL,
+    issuer_role         VARCHAR(140) NOT NULL,
+    issuer_perm         INTEGER      NOT NULL,
+    local_account_id    UUID         NOT NULL REFERENCES account (id) ON DELETE CASCADE,
+    local_guest_role_id UUID         NOT NULL REFERENCES guest_role (id) ON DELETE CASCADE,
+    local_perm          INTEGER      NOT NULL,
+    enabled             BOOLEAN      NOT NULL DEFAULT true,
+    created             TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    created_by          JSONB,
+    updated             TIMESTAMPTZ,
+    updated_by          JSONB
+);
+
+CREATE INDEX IF NOT EXISTS federation_grant_translation_peer_idx
+    ON federation_grant_translation (peer_id) WHERE enabled;
 
 --------------------------------------------------------------------------------
 -- PERMISSIONS

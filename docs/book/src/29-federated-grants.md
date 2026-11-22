@@ -105,6 +105,38 @@ asserted it.
 - **Local denial wins.** A subject whose owner is inactive, or whose account
   is inactive, archived or deleted, gets no `federatedResources`.
 
+## Translation
+
+Raw federated grants carry the issuer's tenant and account ids, which mean
+nothing to an application that only knows this instance. A **translation
+rule** turns them into ordinary local grants: *"role `editor` on tenant
+`T_A` at A becomes guest role `reviewer` on local account `Z`"*.
+
+- **Local grants.** A translated grant is added to `licensedResources`, so
+  the default filter chain sees it and an unchanged downstream works.
+- **Read time only.** Rules are applied on every request to the grants
+  stored for the subject, after the profile cache. Nothing is written to the
+  guest tables: a rule enabled or disabled applies on the next request, and
+  a tombstone removes the translated grant with the raw one.
+- **Bounded.**
+  - A rule targets a guest role and a tenant account that already exist on
+    this instance, and never a system account. Deleting either deletes the
+    rule.
+  - System grants of the issuer are never translated.
+  - The issuer's permission only restricts: a rule matches grants with at
+    least its issuer permission, and the local permission is the lower of
+    the rule's and the grant's. A read on A never becomes a write here.
+- **Per peer.** A rule applies only to grants of the peer it names.
+
+| Method | Who |
+|---|---|
+| `federation.translations.list` | Staff; optionally one peer (`peerInstanceId`) |
+| `federation.translations.create` | Staff: `peerInstanceId`, `issuerTenantId`, `issuerRole`, `issuerMinPerm`, `localAccountId`, `localGuestRoleId`, `localPerm` |
+| `federation.translations.setEnabled` / `federation.translations.delete` | Staff |
+
+Every change is recorded in the resource audit log
+(`federationTranslation`).
+
 ## Revocation
 
 When the issuer removes access, it does not wait for the consumers'

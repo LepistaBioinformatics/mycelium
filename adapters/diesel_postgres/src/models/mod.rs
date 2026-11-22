@@ -5,6 +5,7 @@ pub(crate) mod federation_assertion;
 pub(crate) mod federation_link;
 pub(crate) mod federation_peer;
 pub(crate) mod federation_revocation;
+pub(crate) mod federation_translation;
 pub(crate) mod guest_role;
 pub(crate) mod guest_role_children;
 pub(crate) mod guest_user;

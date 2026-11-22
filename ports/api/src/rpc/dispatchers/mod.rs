@@ -5,6 +5,8 @@ pub(crate) mod beginners;
 pub(crate) mod beginners_federation;
 #[cfg(feature = "federation")]
 pub(crate) mod federation;
+#[cfg(feature = "federation")]
+mod federation_translations;
 pub(crate) mod gateway_manager;
 pub(crate) mod guest_manager;
 pub(crate) mod managers;
