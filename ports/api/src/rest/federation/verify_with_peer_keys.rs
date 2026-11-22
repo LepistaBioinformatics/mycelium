@@ -21,17 +21,31 @@ use std::time::Duration;
 /// Least time between two key refreshes a request can trigger for one peer
 const KEY_REFRESH_COOL_DOWN: Duration = Duration::from_secs(30);
 
-/// Verify with the stored keys; an unknown `kid` refreshes them once, at
-/// most every `KEY_REFRESH_COOL_DOWN`
+/// Verify a signed peer request with the stored keys; an unknown `kid`
+/// refreshes them once, at most every `KEY_REFRESH_COOL_DOWN`
 pub(super) async fn verify(
     req: &HttpRequest,
     jws: &str,
     peer: &FederationPeer,
     expected: &ExpectedPeerRequest<'_>,
 ) -> Result<VerifiedPeerRequest, Error> {
+    verify_with_peer_keys(req, peer, |keys| {
+        verify_peer_request(jws, keys, expected)
+    })
+    .await
+}
+
+/// Run `check` against the peer's stored keys; when it reports an unknown
+/// `kid`, refresh the keys once (at most every `KEY_REFRESH_COOL_DOWN`) and
+/// run it again
+pub(crate) async fn verify_with_peer_keys<T>(
+    req: &HttpRequest,
+    peer: &FederationPeer,
+    check: impl Fn(&[PeerKey]) -> Result<T, PeerRequestRejection>,
+) -> Result<T, Error> {
     let keys = stored_keys(req, peer).await?;
 
-    match verify_peer_request(jws, &keys, expected) {
+    match check(&keys) {
         Err(PeerRequestRejection::UnknownKid(_))
             if peer_keys_refresh_due(
                 &keys,
@@ -42,8 +56,7 @@ pub(super) async fn verify(
         {
             refresh_peer_keys(req, peer).await?;
             let keys = stored_keys(req, peer).await?;
-            verify_peer_request(jws, &keys, expected)
-                .map_err(|r| refused(peer, r))
+            check(&keys).map_err(|r| refused(peer, r))
         }
         outcome => outcome.map_err(|r| refused(peer, r)),
     }
