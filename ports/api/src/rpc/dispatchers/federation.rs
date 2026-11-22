@@ -34,6 +34,13 @@ pub async fn dispatch_federation(
     ensure_federation_operator(&profile)
         .map_err(mapped_errors_to_jsonrpc_error)?;
 
+    if method.starts_with("federation.translations.") {
+        return super::federation_translations::dispatch_federation_translations(
+            &profile, app_module, method, params,
+        )
+        .await;
+    }
+
     match method {
         method_names::FEDERATION_PEERS_LIST => to_result(
             list_federation_peers(Box::new(app_module.resolve_ref())).await,
@@ -159,6 +166,10 @@ mod tests {
             method_names::FEDERATION_LINKS_LIST,
             method_names::FEDERATION_LINKS_REVOKE,
             method_names::FEDERATION_ASSERTIONS_LIST,
+            method_names::FEDERATION_TRANSLATIONS_LIST,
+            method_names::FEDERATION_TRANSLATIONS_CREATE,
+            method_names::FEDERATION_TRANSLATIONS_SET_ENABLED,
+            method_names::FEDERATION_TRANSLATIONS_DELETE,
             method_names::BEGINNERS_FEDERATION_RESOLVE_GRANTS,
             method_names::BEGINNERS_FEDERATION_LIST_PEERS,
             method_names::BEGINNERS_FEDERATION_START_LINK,
