@@ -98,6 +98,14 @@ impl AssertionStoreWrite for Mesh {
         Ok(())
     }
 
+    async fn forget(&self, link_id: Uuid) -> Result<(), MappedErrors> {
+        self.stored
+            .lock()
+            .unwrap()
+            .retain(|assertion| assertion.link_id != link_id);
+        Ok(())
+    }
+
     async fn purge_expired(&self) -> Result<u64, MappedErrors> {
         Ok(0)
     }

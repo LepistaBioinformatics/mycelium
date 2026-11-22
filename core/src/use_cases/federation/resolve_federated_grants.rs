@@ -8,23 +8,31 @@ use crate::domain::dtos::{
     written_by::WrittenBy,
 };
 
+use chrono::Local;
 use futures::future::join_all;
 use mycelium_base::{entities::FetchResponseKind, utils::errors::MappedErrors};
 use uuid::Uuid;
 
+/// A peer to ask, with the grants of its unexpired stored assertion, if any
+type Ask = (IdentityLink, FederationPeer, Option<FederatedGrants>);
+
 /// What to do for one linked peer
 enum Step {
     Done(PeerOutcome),
-    Ask(Box<(IdentityLink, FederationPeer)>),
+    Ask(Box<Ask>),
 }
 
-/// The federated part of a local user's grants (FED-11, FED-15, FED-53)
+/// The federated part of a local user's grants (FED-11, FED-15, FED-17,
+/// FED-18, FED-53)
 ///
 /// Only the peers the user has an active link with are considered, and only
-/// while they are trusted, their circuit is closed, `profile.v1` was
-/// negotiated and their policy lets them assert. A stored, unexpired
-/// assertion is used as is; the other peers are asked in parallel under the
-/// deadline. The caller must already hold the user's local profile: a
+/// while they are trusted, `profile.v1` was negotiated and their policy lets
+/// them assert. A stored assertion younger than `assertion_refresh` is used
+/// as is. An older one, or none, makes the peer be asked, in parallel with
+/// the others under the deadline; if the peer does not answer, its unexpired
+/// assertion is served as stale, and an expired one contributes nothing. A
+/// peer whose circuit is open is not called: its unexpired assertion is
+/// served as stale. The caller must already hold the user's local profile: a
 /// subject without a local account never reaches this point.
 ///
 #[tracing::instrument(name = "resolve_federated_grants", skip_all)]
@@ -41,16 +49,15 @@ pub async fn resolve_federated_grants(
     let mut outcomes = vec![];
     let mut asks = vec![];
     for link in links {
-        match step_for(link, &stored, ports).await? {
+        match step_for(link, &stored, limits, ports).await? {
             Step::Done(outcome) => outcomes.push(outcome),
             Step::Ask(ask) => asks.push(*ask),
         }
     }
 
-    for refreshed in join_all(
-        asks.iter()
-            .map(|(link, peer)| ask(link, peer, author, limits, ports)),
-    )
+    for refreshed in join_all(asks.into_iter().map(|(link, peer, stored)| {
+        refresh_peer_grants(link, peer, stored, author, limits, ports)
+    }))
     .await
     {
         outcomes.push(refreshed?);
@@ -75,6 +82,7 @@ async fn active_links(
 async fn step_for(
     link: IdentityLink,
     stored: &[StoredAssertion],
+    limits: ResolutionLimits,
     ports: &ResolutionPorts<'_>,
 ) -> Result<Step, MappedErrors> {
     let FetchResponseKind::Found(peer) =
@@ -83,27 +91,35 @@ async fn step_for(
         return Ok(Step::Done(skipped_unknown_peer(&link)));
     };
 
-    if let Some(reason) = not_callable(&peer) {
-        return Ok(Step::Done(outcome(
-            &peer,
-            PeerResolution::Skipped(reason),
-            FederatedGrants::default(),
-        )));
+    if let Some(reason) = excluded(&peer) {
+        return Ok(done(&peer, PeerResolution::Skipped(reason), None));
     }
 
-    match stored.iter().find(|assertion| assertion.link_id == link.id) {
-        Some(found) => Ok(Step::Done(outcome(
-            &peer,
-            PeerResolution::Stored,
-            found.assertion.payload.grants.clone(),
-        ))),
-        None => Ok(Step::Ask(Box::new((link, peer)))),
+    let found = stored.iter().find(|stored| stored.link_id == link.id);
+    if !matches!(peer.status, PeerStatus::Active | PeerStatus::Degraded) {
+        return Ok(circuit_open(&peer, found));
+    }
+
+    match found {
+        Some(found)
+            if !found
+                .assertion
+                .is_due(Local::now(), limits.assertion_refresh) =>
+        {
+            Ok(done(&peer, PeerResolution::Stored, Some(found)))
+        }
+        _ => {
+            let grants =
+                found.map(|found| found.assertion.payload.grants.clone());
+            Ok(Step::Ask(Box::new((link, peer, grants))))
+        }
     }
 }
 
-/// Why the peer must not contribute now, if it must not
-fn not_callable(peer: &FederationPeer) -> Option<String> {
-    if !matches!(peer.status, PeerStatus::Active | PeerStatus::Degraded) {
+/// Why the peer must never contribute, if it must not: an operator or
+/// handshake decision, or nothing negotiated or allowed to assert
+fn excluded(peer: &FederationPeer) -> Option<String> {
+    if matches!(peer.status, PeerStatus::Quarantined | PeerStatus::Untrusted) {
         return Some(format!("peer is {}", peer.status.as_str()));
     }
     if !peer
@@ -120,22 +136,30 @@ fn not_callable(peer: &FederationPeer) -> Option<String> {
     None
 }
 
-async fn ask(
-    link: &IdentityLink,
+/// A peer that must not be called now serves its unexpired assertion as
+/// stale (FED-17), or nothing (FED-18)
+fn circuit_open(
     peer: &FederationPeer,
-    author: &WrittenBy,
-    limits: ResolutionLimits,
-    ports: &ResolutionPorts<'_>,
-) -> Result<PeerOutcome, MappedErrors> {
-    let Some(subject_ref) = link.peer_subject_ref.clone() else {
-        return Ok(outcome(
-            peer,
-            PeerResolution::Skipped("link has no reference".to_string()),
-            FederatedGrants::default(),
-        ));
-    };
+    found: Option<&StoredAssertion>,
+) -> Step {
+    let reason = format!("peer is {}", peer.status.as_str());
 
-    refresh_peer_grants(link, subject_ref, peer, author, limits, ports).await
+    match found {
+        Some(found) => done(peer, PeerResolution::Stale(reason), Some(found)),
+        None => done(peer, PeerResolution::Skipped(reason), None),
+    }
+}
+
+fn done(
+    peer: &FederationPeer,
+    resolution: PeerResolution,
+    found: Option<&StoredAssertion>,
+) -> Step {
+    let grants = found
+        .map(|found| found.assertion.payload.grants.clone())
+        .unwrap_or_default();
+
+    Step::Done(outcome(peer, resolution, grants))
 }
 
 fn outcome(
@@ -251,8 +275,8 @@ mod tests {
         }
     }
 
-    async fn resolve(world: &World) -> FederatedResolution {
-        let ports = ResolutionPorts {
+    fn ports_of(world: &World) -> ResolutionPorts<'_> {
+        ResolutionPorts {
             links: &world.links,
             peers: ResolutionPeerPorts {
                 read: &world.links,
@@ -268,18 +292,24 @@ mod tests {
                 claims: &world.mesh,
             },
             audit: &world.mesh,
-        };
-        let limits = ResolutionLimits {
+        }
+    }
+
+    fn limits() -> ResolutionLimits {
+        ResolutionLimits {
             deadline: Duration::from_millis(50),
             max_failures_before_open: 5,
             assertion_ttl: Duration::from_secs(60),
-        };
+            assertion_refresh: Duration::from_secs(30),
+        }
+    }
 
+    async fn resolve(world: &World) -> FederatedResolution {
         resolve_federated_grants(
             world.user_id,
             &WrittenBy::default(),
-            limits,
-            &ports,
+            limits(),
+            &ports_of(world),
         )
         .await
         .unwrap()
@@ -371,5 +401,99 @@ mod tests {
         )));
         assert!(world.mesh.asked.lock().unwrap().is_empty());
         assert!(!resolution.is_partial());
+    }
+
+    /// A stored assertion of the world's only link, issued `age` seconds ago
+    /// and valid for 60 seconds from then
+    fn stored_aged(world: &World, age: i64) -> FederatedGrants {
+        let link = world.links.links()[0].clone();
+        let PeerGrantAnswer::Verified(mut assertion) = verified(Uuid::new_v4())
+        else {
+            unreachable!()
+        };
+        assertion.issued_at = Local::now() - Lifetime::seconds(age);
+        assertion.expires_at = assertion.issued_at + Lifetime::seconds(60);
+        let grants = assertion.payload.grants.clone();
+        world.mesh.stored.lock().unwrap().push(StoredAssertion {
+            link_id: link.id,
+            peer_id: link.peer_id,
+            assertion,
+        });
+        grants
+    }
+
+    #[tokio::test]
+    async fn a_due_assertion_is_refreshed_when_the_peer_answers() {
+        let issuer = trusted_peer();
+        let mut mesh = Mesh::default();
+        mesh.scripts
+            .insert(issuer.id, Script::Answer(verified(Uuid::new_v4())));
+        let world = world(vec![issuer], mesh);
+        let old = stored_aged(&world, 40);
+
+        let resolution = resolve(&world).await;
+
+        assert_eq!(only(&resolution).resolution, PeerResolution::Answered);
+        assert_ne!(only(&resolution).grants, old);
+        assert_eq!(world.mesh.asked.lock().unwrap().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn a_due_assertion_is_served_stale_when_the_peer_is_silent() {
+        let issuer = trusted_peer();
+        let mut mesh = Mesh::default();
+        mesh.scripts.insert(issuer.id, Script::Hang);
+        let world = world(vec![issuer], mesh);
+        let old = stored_aged(&world, 40);
+
+        let resolution = resolve(&world).await;
+
+        assert!(matches!(
+            only(&resolution).resolution,
+            PeerResolution::Stale(_)
+        ));
+        assert_eq!(only(&resolution).grants, old);
+        assert!(resolution.is_stale());
+        assert!(!resolution.is_partial());
+        assert_eq!(world.mesh.failures.lock().unwrap().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn an_open_circuit_serves_the_stored_assertion_stale_without_a_call()
+    {
+        let unreachable_peer = {
+            let mut peer = trusted_peer();
+            peer.status = PeerStatus::Unreachable;
+            peer
+        };
+        let world = world(vec![unreachable_peer], Mesh::default());
+
+        let without = resolve(&world).await;
+        let old = stored_aged(&world, 5);
+        let with = resolve(&world).await;
+
+        assert!(matches!(
+            only(&without).resolution,
+            PeerResolution::Skipped(_)
+        ));
+        assert!(matches!(only(&with).resolution, PeerResolution::Stale(_)));
+        assert_eq!(only(&with).grants, old);
+        assert!(world.mesh.asked.lock().unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn an_unknown_answer_forgets_the_stored_assertion() {
+        let issuer = trusted_peer();
+        let mut mesh = Mesh::default();
+        mesh.scripts
+            .insert(issuer.id, Script::Answer(PeerGrantAnswer::Unknown));
+        let world = world(vec![issuer], mesh);
+        stored_aged(&world, 40);
+
+        let resolution = resolve(&world).await;
+
+        assert_eq!(only(&resolution).resolution, PeerResolution::Unknown);
+        assert!(only(&resolution).grants.is_empty());
+        assert!(world.mesh.stored.lock().unwrap().is_empty());
     }
 }

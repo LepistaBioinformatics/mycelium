@@ -15,38 +15,70 @@ use chrono::Local;
 use mycelium_base::utils::errors::MappedErrors;
 
 /// Ask one linked peer for the subject's grants, then verify, guard, store,
-/// count the call in the peer's circuit and audit it (FED-13…16, FED-54)
+/// count the call in the peer's circuit and audit it (FED-13…18, FED-54)
 ///
-/// A call that fails or does not finish before the deadline is a partial
-/// outcome, never an error.
+/// `stored` holds the grants of the link's unexpired assertion, if any. A
+/// call that fails or misses the deadline serves them as stale (FED-17), or
+/// contributes nothing without them (FED-18); never an error. A peer that
+/// answers "unknown", or whose answer fails a check, no longer vouches for
+/// the stored grants: they are forgotten.
 ///
 #[tracing::instrument(name = "refresh_peer_grants", skip_all)]
 pub async fn refresh_peer_grants(
-    link: &IdentityLink,
-    subject_ref: SubjectRef,
-    peer: &FederationPeer,
+    link: IdentityLink,
+    peer: FederationPeer,
+    stored: Option<FederatedGrants>,
     author: &WrittenBy,
     limits: ResolutionLimits,
     ports: &ResolutionPorts<'_>,
 ) -> Result<PeerOutcome, MappedErrors> {
+    let Some(subject_ref) = link.peer_subject_ref.clone() else {
+        let reason = "link has no reference".to_string();
+        return Ok(outcome_of(&peer, PeerResolution::Skipped(reason), empty()));
+    };
+
+    let (resolution, grants) =
+        match ask(&peer, subject_ref, limits, ports).await {
+            Err(reason) => fall_back(stored, reason),
+            Ok(answer) => settle(&link, &peer, answer, limits, ports).await?,
+        };
+
+    let outcome = outcome_of(&peer, resolution, grants);
+    record_contact(&peer, &outcome, limits, ports).await?;
+    audit_peer_resolution(link.id, &outcome, author, Box::new(ports.audit))
+        .await;
+
+    Ok(outcome)
+}
+
+/// The peer's answer, or why there is none
+async fn ask(
+    peer: &FederationPeer,
+    subject_ref: SubjectRef,
+    limits: ResolutionLimits,
+    ports: &ResolutionPorts<'_>,
+) -> Result<PeerGrantAnswer, String> {
     let asked = tokio::time::timeout(
         limits.deadline,
         ports.peers.resolver.resolve(peer, subject_ref),
     )
     .await;
 
-    let (resolution, grants) = match asked {
-        Err(_) => (unreachable("deadline exceeded"), empty()),
-        Ok(Err(err)) => (unreachable(&err.to_string()), empty()),
-        Ok(Ok(answer)) => settle(link, peer, answer, limits, ports).await?,
-    };
+    match asked {
+        Err(_) => Err("deadline exceeded".to_string()),
+        Ok(Err(err)) => Err(err.to_string()),
+        Ok(Ok(answer)) => Ok(answer),
+    }
+}
 
-    let outcome = outcome_of(peer, resolution, grants);
-    record_contact(peer, &outcome, limits, ports).await?;
-    audit_peer_resolution(link.id, &outcome, author, Box::new(ports.audit))
-        .await;
-
-    Ok(outcome)
+fn fall_back(
+    stored: Option<FederatedGrants>,
+    reason: String,
+) -> (PeerResolution, FederatedGrants) {
+    match stored {
+        Some(grants) => (PeerResolution::Stale(reason), grants),
+        None => (PeerResolution::Unreachable(reason), empty()),
+    }
 }
 
 async fn settle(
@@ -58,22 +90,32 @@ async fn settle(
 ) -> Result<(PeerResolution, FederatedGrants), MappedErrors> {
     let assertion = match answer {
         PeerGrantAnswer::Unknown => {
-            return Ok((PeerResolution::Unknown, empty()))
+            return forget(link, PeerResolution::Unknown, ports).await
         }
         PeerGrantAnswer::Invalid(reason) => {
-            return Ok((PeerResolution::Rejected(reason), empty()))
+            return forget(link, PeerResolution::Rejected(reason), ports).await
         }
         PeerGrantAnswer::Verified(assertion) => assertion,
     };
 
     if let Some(reason) = guard(peer, &assertion, ports).await? {
-        return Ok((PeerResolution::Rejected(reason), empty()));
+        return forget(link, PeerResolution::Rejected(reason), ports).await;
     }
 
     let grants = assertion.payload.grants.clone();
     let latest = Local::now() + limits.assertion_ttl;
     store(link, assertion.kept_until(latest), ports).await?;
     Ok((PeerResolution::Answered, grants))
+}
+
+/// Drop the link's stored assertion: the peer no longer vouches for it
+async fn forget(
+    link: &IdentityLink,
+    resolution: PeerResolution,
+    ports: &ResolutionPorts<'_>,
+) -> Result<(PeerResolution, FederatedGrants), MappedErrors> {
+    ports.store.write.forget(link.id).await?;
+    Ok((resolution, empty()))
 }
 
 async fn guard(
@@ -112,7 +154,9 @@ async fn record_contact(
     limits: ResolutionLimits,
     ports: &ResolutionPorts<'_>,
 ) -> Result<(), MappedErrors> {
-    let contact = match outcome.resolution.is_partial() {
+    let failed =
+        outcome.resolution.is_partial() || outcome.resolution.is_stale();
+    let contact = match failed {
         true => ContactOutcome::Failure,
         false => ContactOutcome::Success,
     };
@@ -137,10 +181,6 @@ fn outcome_of(
         resolution,
         grants,
     }
-}
-
-fn unreachable(reason: &str) -> PeerResolution {
-    PeerResolution::Unreachable(reason.to_string())
 }
 
 fn empty() -> FederatedGrants {

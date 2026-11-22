@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-11-21T23:23:20-03:00\n"
+"POT-Creation-Date: 2026-11-22T00:11:31-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5013,7 +5013,7 @@ msgid "Variable"
 msgstr "Variável"
 
 #: src/27-downstream-profile-signature.md:140 src/28-identity-linking.md:91
-#: src/29-federated-grants.md:37 src/29-federated-grants.md:90
+#: src/29-federated-grants.md:42 src/29-federated-grants.md:111
 #: src/17-error-codes.md:44 src/14-json-rpc.md:371
 #: src/22-hmac-key-rotation.md:122
 msgid "Meaning"
@@ -5835,7 +5835,7 @@ msgstr ""
 msgid "Either side may revoke, through the API only:"
 msgstr ""
 
-#: src/28-identity-linking.md:64 src/29-federated-grants.md:81
+#: src/28-identity-linking.md:64 src/29-federated-grants.md:102
 #: src/14-json-rpc.md:64 src/14-json-rpc.md:80 src/14-json-rpc.md:92
 #: src/14-json-rpc.md:106 src/14-json-rpc.md:115 src/14-json-rpc.md:121
 #: src/14-json-rpc.md:127 src/14-json-rpc.md:133 src/14-json-rpc.md:143
@@ -5849,7 +5849,7 @@ msgstr ""
 msgid "Method"
 msgstr "Método"
 
-#: src/28-identity-linking.md:64 src/29-federated-grants.md:81
+#: src/28-identity-linking.md:64 src/29-federated-grants.md:102
 msgid "Who"
 msgstr ""
 
@@ -5909,15 +5909,15 @@ msgid ""
 "grants."
 msgstr ""
 
-#: src/28-identity-linking.md:89 src/29-federated-grants.md:88
+#: src/28-identity-linking.md:89 src/29-federated-grants.md:109
 msgid "Settings"
 msgstr ""
 
-#: src/28-identity-linking.md:91 src/29-federated-grants.md:90
+#: src/28-identity-linking.md:91 src/29-federated-grants.md:111
 msgid "Setting"
 msgstr ""
 
-#: src/28-identity-linking.md:91 src/29-federated-grants.md:90
+#: src/28-identity-linking.md:91 src/29-federated-grants.md:111
 msgid "Where"
 msgstr ""
 
@@ -5925,8 +5925,9 @@ msgstr ""
 msgid "`linkRequestTtlSecs`"
 msgstr ""
 
-#: src/28-identity-linking.md:93 src/29-federated-grants.md:92
-#: src/29-federated-grants.md:93 src/29-federated-grants.md:94
+#: src/28-identity-linking.md:93 src/29-federated-grants.md:113
+#: src/29-federated-grants.md:114 src/29-federated-grants.md:115
+#: src/29-federated-grants.md:116
 msgid "`[core.federation]`"
 msgstr ""
 
@@ -5938,7 +5939,7 @@ msgstr ""
 msgid "`allowDifferentEmails`"
 msgstr ""
 
-#: src/28-identity-linking.md:94 src/29-federated-grants.md:95
+#: src/28-identity-linking.md:94 src/29-federated-grants.md:117
 msgid "Peer policy"
 msgstr ""
 
@@ -5977,107 +5978,162 @@ msgstr ""
 #: src/29-federated-grants.md:22
 msgid ""
 "The linked user calls `beginners.federation.resolveGrants` on the consumer. "
-"For each peer the user has an active link with:"
-msgstr ""
-
-#: src/29-federated-grants.md:25
-msgid ""
-"A peer that is quarantined, unreachable, did not negotiate `profile.v1` or "
-"is not allowed to assert is **skipped**."
-msgstr ""
-
-#: src/29-federated-grants.md:27
-msgid ""
-"A stored assertion that has not expired is used as is (`stored`); the peer "
-"is not called."
+"If the user's owner is inactive, or the account is inactive, archived or "
+"deleted on the consumer, the answer is `denied` with the reason, and no peer "
+"is asked: federation adds grants, it never overrides a local denial. Like "
+"local authorization, it applies once the cached profile expires. Otherwise, "
+"for each peer the user has an active link with:"
 msgstr ""
 
 #: src/29-federated-grants.md:29
+msgid ""
+"A peer that is quarantined or untrusted, did not negotiate `profile.v1` or "
+"is not allowed to assert is **skipped**."
+msgstr ""
+
+#: src/29-federated-grants.md:31
+msgid ""
+"A stored assertion younger than `assertionRefreshSecs` is used as is "
+"(`stored`); the peer is not called."
+msgstr ""
+
+#: src/29-federated-grants.md:33
 msgid ""
 "Otherwise the consumer sends a signed `POST /federation/resolve` with the "
 "link's opaque reference. Every peer is asked in parallel, each call is "
 "bounded by `peerTimeoutMs`, and the whole resolution by `resolveDeadlineMs`."
 msgstr ""
 
-#: src/29-federated-grants.md:34
+#: src/29-federated-grants.md:37
 msgid ""
-"The answer lists one outcome per peer, and `partial` is true when some peer "
-"could not contribute:"
+"A peer whose circuit is open is not called: its stored assertion, if still "
+"unexpired, is served as `stale`."
 msgstr ""
 
-#: src/29-federated-grants.md:37
+#: src/29-federated-grants.md:40
+msgid "The answer lists one outcome per peer:"
+msgstr ""
+
+#: src/29-federated-grants.md:42
 msgid "Outcome"
 msgstr ""
 
-#: src/29-federated-grants.md:39
+#: src/29-federated-grants.md:44
 msgid "`answered`"
 msgstr ""
 
-#: src/29-federated-grants.md:39
+#: src/29-federated-grants.md:44
 msgid "The peer answered, the assertion passed every check and was stored"
 msgstr ""
 
-#: src/29-federated-grants.md:40
+#: src/29-federated-grants.md:45
 msgid "`stored`"
 msgstr ""
 
-#: src/29-federated-grants.md:40
-msgid "Served from the store"
+#: src/29-federated-grants.md:45
+msgid "Served from the store, younger than `assertionRefreshSecs`"
 msgstr ""
 
-#: src/29-federated-grants.md:41
+#: src/29-federated-grants.md:46
+#, fuzzy
+msgid "`stale`"
+msgstr "Códigos de erro padrão:"
+
+#: src/29-federated-grants.md:46
+msgid ""
+"The peer could not refresh its assertion; the stored grants, still "
+"unexpired, are served"
+msgstr ""
+
+#: src/29-federated-grants.md:47
 #, fuzzy
 msgid "`unknown`"
 msgstr "`unknown_key`"
 
-#: src/29-federated-grants.md:41
-msgid "The peer has no active link for the reference"
+#: src/29-federated-grants.md:47
+msgid ""
+"The peer has no active link for the reference; any stored assertion is "
+"dropped"
 msgstr ""
 
-#: src/29-federated-grants.md:42
+#: src/29-federated-grants.md:48
 msgid "`skipped`"
 msgstr ""
 
-#: src/29-federated-grants.md:42
+#: src/29-federated-grants.md:48
 msgid "The peer was not asked (the reason says why)"
 msgstr ""
 
-#: src/29-federated-grants.md:43
+#: src/29-federated-grants.md:49
 msgid "`unreachable`"
 msgstr ""
 
-#: src/29-federated-grants.md:43
-msgid "The call failed or missed the deadline (partial)"
+#: src/29-federated-grants.md:49
+msgid ""
+"The call failed or missed the deadline, and nothing unexpired was stored"
 msgstr ""
 
-#: src/29-federated-grants.md:44
+#: src/29-federated-grants.md:50
 #, fuzzy
 msgid "`rejected`"
 msgstr "Quando injetado"
 
-#: src/29-federated-grants.md:44
-msgid "The assertion failed a check (partial; the reason says which)"
-msgstr ""
-
-#: src/29-federated-grants.md:46
+#: src/29-federated-grants.md:50
 msgid ""
-"A partial result is not an error. An unreachable or rejected answer counts "
-"against the peer's circuit breaker, as a failed health check does."
+"The assertion failed a check (the reason says which); any stored assertion "
+"is dropped"
 msgstr ""
 
-#: src/29-federated-grants.md:49
+#: src/29-federated-grants.md:52
+msgid ""
+"`stale` is true when some grants come from an assertion its peer could not "
+"refresh. `partial` is true when some peer contributed nothing because of a "
+"failure (`unreachable`, `rejected`). Neither is an error. An unreachable, "
+"stale or rejected answer counts against the peer's circuit breaker, as a "
+"failed health check does."
+msgstr ""
+
+#: src/29-federated-grants.md:58
+#, fuzzy
+msgid "Degradation"
+msgstr "Operação"
+
+#: src/29-federated-grants.md:60
+msgid ""
+"A silent peer does not take its users' access down at once, and does not "
+"keep it alive for long either:"
+msgstr ""
+
+#: src/29-federated-grants.md:63
+msgid "**Within the refresh age** the stored grants are served without a call."
+msgstr ""
+
+#: src/29-federated-grants.md:64
+msgid ""
+"**Past the refresh age, before expiry**, the peer is asked; if it does not "
+"answer, the stored grants are served as `stale`. While the peer is up, a "
+"role it changes reaches the consumer within `assertionRefreshSecs`."
+msgstr ""
+
+#: src/29-federated-grants.md:67
+msgid ""
+"**Past expiry** a silent peer contributes nothing. Absence is never read as "
+"\"last known good\"."
+msgstr ""
+
+#: src/29-federated-grants.md:70
 #, fuzzy
 msgid "What the issuer answers"
 msgstr "O que o cabeçalho contém"
 
-#: src/29-federated-grants.md:51
+#: src/29-federated-grants.md:72
 msgid ""
 "The issuer answers \"unknown\" unless the reference names an **active link "
 "with the caller**, the caller is an active peer and `profile.v1` was "
 "negotiated. The answer reveals nothing else."
 msgstr ""
 
-#: src/29-federated-grants.md:55
+#: src/29-federated-grants.md:76
 msgid ""
 "Otherwise it signs an assertion (`typ: mycelium-assertion+jwt`, EdDSA, its "
 "federation key) bound to the caller (`aud`) and the reference (`sub`), valid "
@@ -6087,25 +6143,25 @@ msgid ""
 "system accounts: a peer cannot make anyone staff or manager elsewhere."
 msgstr ""
 
-#: src/29-federated-grants.md:62
+#: src/29-federated-grants.md:83
 #, fuzzy
 msgid "What the consumer checks"
 msgstr "O que o Mycelium verifica"
 
-#: src/29-federated-grants.md:64
+#: src/29-federated-grants.md:85
 msgid ""
 "**Signature, audience, subject and lifetime.** An unknown key id makes the "
 "consumer fetch the issuer's keys once before refusing."
 msgstr ""
 
-#: src/29-federated-grants.md:66
+#: src/29-federated-grants.md:87
 msgid ""
 "**Lifetime.** An assertion is kept no longer than the consumer's own "
 "`assertionTtlSecs`, whatever the issuer signed: the short lifetime is what "
 "bounds a role removed on the issuer until revocations are pushed."
 msgstr ""
 
-#: src/29-federated-grants.md:69
+#: src/29-federated-grants.md:90
 msgid ""
 "**ID collisions.** Every tenant and account id in the assertion must not "
 "exist on the consumer and must not have been claimed by another peer. The "
@@ -6113,66 +6169,77 @@ msgid ""
 "a peer cannot borrow one of this instance's tenants, or another peer's."
 msgstr ""
 
-#: src/29-federated-grants.md:75
+#: src/29-federated-grants.md:96
 msgid ""
 "Each call to a peer is recorded in the resource audit log "
 "(`federationResolution`), with its outcome and reason; reads from the store "
 "are not."
 msgstr ""
 
-#: src/29-federated-grants.md:79
+#: src/29-federated-grants.md:100
 msgid "Inspecting"
 msgstr ""
 
-#: src/29-federated-grants.md:83
+#: src/29-federated-grants.md:104
 msgid "`beginners.federation.resolveGrants`"
 msgstr ""
 
-#: src/29-federated-grants.md:83
+#: src/29-federated-grants.md:104
 msgid "The linked user, own grants only"
 msgstr ""
 
-#: src/29-federated-grants.md:84
+#: src/29-federated-grants.md:105
 msgid "`federation.assertions.list`"
 msgstr ""
 
-#: src/29-federated-grants.md:84
+#: src/29-federated-grants.md:105
 msgid "Staff: every stored, unexpired assertion"
 msgstr ""
 
-#: src/29-federated-grants.md:86
+#: src/29-federated-grants.md:107
 msgid "Expired assertions are purged by the federation dispatcher."
 msgstr ""
 
-#: src/29-federated-grants.md:92
+#: src/29-federated-grants.md:113
 msgid "`assertionTtlSecs`"
 msgstr ""
 
-#: src/29-federated-grants.md:92
-msgid "Lifetime of the assertions this instance issues"
+#: src/29-federated-grants.md:113
+msgid ""
+"Lifetime of the assertions this instance issues, and the longest it keeps "
+"one it receives"
 msgstr ""
 
-#: src/29-federated-grants.md:93
+#: src/29-federated-grants.md:114
+msgid "`assertionRefreshSecs`"
+msgstr ""
+
+#: src/29-federated-grants.md:114
+msgid ""
+"Age after which a stored assertion is refreshed (below `assertionTtlSecs`)"
+msgstr ""
+
+#: src/29-federated-grants.md:115
 msgid "`peerTimeoutMs`"
 msgstr ""
 
-#: src/29-federated-grants.md:93
+#: src/29-federated-grants.md:115
 msgid "Bound of one call to a peer"
 msgstr ""
 
-#: src/29-federated-grants.md:94
+#: src/29-federated-grants.md:116
 msgid "`resolveDeadlineMs`"
 msgstr ""
 
-#: src/29-federated-grants.md:94
+#: src/29-federated-grants.md:116
 msgid "Bound of a whole resolution"
 msgstr ""
 
-#: src/29-federated-grants.md:95
+#: src/29-federated-grants.md:117
 msgid "`mayAssert`"
 msgstr ""
 
-#: src/29-federated-grants.md:95
+#: src/29-federated-grants.md:117
 msgid "Whether the peer's assertions are accepted (default: no)"
 msgstr ""
 

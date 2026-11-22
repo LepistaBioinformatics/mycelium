@@ -43,4 +43,6 @@ pub struct ResolutionLimits {
     pub max_failures_before_open: u32,
     /// The longest a received assertion is kept, whatever its `exp` (D-1)
     pub assertion_ttl: Duration,
+    /// Age after which a stored assertion is refreshed (FED-17)
+    pub assertion_refresh: Duration,
 }

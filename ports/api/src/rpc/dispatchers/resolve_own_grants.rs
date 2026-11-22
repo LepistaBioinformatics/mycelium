@@ -11,36 +11,27 @@ use actix_web::{web, HttpRequest};
 use myc_core::{
     domain::{
         dtos::{
-            federation::{FederatedResolution, PeerOutcome},
-            profile::Owner,
+            profile::{Owner, Profile},
             written_by::WrittenBy,
         },
         entities::PeerGrantResolver,
     },
     use_cases::federation::{
-        resolve_federated_grants, ResolutionGuardPorts, ResolutionLimits,
+        resolve_own_federated_grants, ResolutionGuardPorts, ResolutionLimits,
         ResolutionPeerPorts, ResolutionPorts, ResolutionStorePorts,
     },
 };
 use mycelium_base::utils::errors::execution_err;
-use serde::Serialize;
 use shaku::HasComponent;
 use std::time::Duration;
 
-/// The federated part of the caller's grants, per linked peer (FED-11)
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-struct OwnGrants {
-    /// Some linked peer could not contribute (FED-13)
-    partial: bool,
-    peers: Vec<PeerOutcome>,
-}
-
-/// Resolve the caller's grants on the peers they linked, on demand
+/// Resolve the caller's grants on the peers they linked, on demand; a local
+/// denial wins (FED-19)
 pub(super) async fn resolve_own_grants(
     app_module: &web::Data<SqlAppModule>,
     req: Option<&HttpRequest>,
     prepared: &PreparedFederation,
+    profile: &Profile,
     owner: Owner,
 ) -> Result<serde_json::Value, JsonRpcError> {
     let resolver = req
@@ -52,15 +43,16 @@ pub(super) async fn resolve_own_grants(
         })?;
     let author = WrittenBy::new_from_user_with_email(owner.id, &owner.email);
 
-    let resolution = resolve_federated_grants(
-        owner.id,
-        &author,
-        limits_of(prepared),
-        &ports(app_module, resolver.get_ref()),
+    to_result(
+        resolve_own_federated_grants(
+            profile,
+            owner.id,
+            &author,
+            limits_of(prepared),
+            &ports(app_module, resolver.get_ref()),
+        )
+        .await,
     )
-    .await;
-
-    to_result(resolution.map(own_grants))
 }
 
 fn ports<'a>(
@@ -91,12 +83,8 @@ fn limits_of(prepared: &PreparedFederation) -> ResolutionLimits {
         deadline: Duration::from_millis(prepared.config.resolve_deadline_ms),
         max_failures_before_open: prepared.config.max_failures_before_open,
         assertion_ttl: Duration::from_secs(prepared.config.assertion_ttl_secs),
-    }
-}
-
-fn own_grants(resolution: FederatedResolution) -> OwnGrants {
-    OwnGrants {
-        partial: resolution.is_partial(),
-        peers: resolution.0,
+        assertion_refresh: Duration::from_secs(
+            prepared.config.assertion_refresh_secs,
+        ),
     }
 }

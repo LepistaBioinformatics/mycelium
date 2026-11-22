@@ -15,6 +15,9 @@ pub enum PeerResolution {
     Unknown,
     /// The peer was skipped (inactive, circuit open, kind not negotiated)
     Skipped(String),
+    /// The peer could not refresh its assertion; its stored grants, still
+    /// within their lifetime, are served (FED-17)
+    Stale(String),
     /// The call failed or did not finish before the deadline
     Unreachable(String),
     /// The assertion failed verification or the namespace guard
@@ -26,6 +29,11 @@ impl PeerResolution {
     /// other than the peer having none
     pub fn is_partial(&self) -> bool {
         matches!(self, Self::Unreachable(_) | Self::Rejected(_))
+    }
+
+    /// Whether the peer's grants come from an assertion it could not refresh
+    pub fn is_stale(&self) -> bool {
+        matches!(self, Self::Stale(_))
     }
 }
 
@@ -47,6 +55,11 @@ impl FederatedResolution {
     /// A partial result is not an error: some peer could not contribute
     pub fn is_partial(&self) -> bool {
         self.0.iter().any(|outcome| outcome.resolution.is_partial())
+    }
+
+    /// Some grants are served from an assertion the peer could not refresh
+    pub fn is_stale(&self) -> bool {
+        self.0.iter().any(|outcome| outcome.resolution.is_stale())
     }
 }
 
@@ -76,6 +89,17 @@ mod tests {
 
         assert!(!complete.is_partial());
         assert!(partial.is_partial());
+    }
+
+    #[test]
+    fn a_stale_peer_makes_the_result_stale_but_not_partial() {
+        let stale = FederatedResolution(vec![
+            outcome(PeerResolution::Stored),
+            outcome(PeerResolution::Stale("deadline".to_string())),
+        ]);
+
+        assert!(stale.is_stale());
+        assert!(!stale.is_partial());
     }
 
     #[test]

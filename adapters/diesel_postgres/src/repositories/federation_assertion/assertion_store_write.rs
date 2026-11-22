@@ -17,6 +17,7 @@ use myc_core::domain::{
 use mycelium_base::utils::errors::{creation_err, MappedErrors};
 use shaku::Component;
 use std::sync::Arc;
+use uuid::Uuid;
 
 #[derive(Component)]
 #[shaku(interface = AssertionStoreWrite)]
@@ -64,6 +65,16 @@ impl AssertionStoreWrite for AssertionStoreWriteSqlDbRepository {
             .map_err(write_err)
     }
 
+    #[tracing::instrument(name = "assertion_store_forget", skip_all)]
+    async fn forget(&self, link_id: Uuid) -> Result<(), MappedErrors> {
+        diesel::delete(
+            assertion_model::table.filter(assertion_model::link_id.eq(link_id)),
+        )
+        .execute(&mut *self.connection()?)
+        .map(|_| ())
+        .map_err(write_err)
+    }
+
     #[tracing::instrument(name = "assertion_store_purge_expired", skip_all)]
     async fn purge_expired(&self) -> Result<u64, MappedErrors> {
         diesel::delete(
@@ -88,7 +99,6 @@ mod tests {
         dtos::federation::{ProfileAssertion, VerifiedAssertion},
         entities::AssertionStoreRead,
     };
-    use uuid::Uuid;
 
     fn stored(
         link_id: Uuid,
@@ -140,5 +150,12 @@ mod tests {
         assert_eq!(valid[0].assertion.jws, "second");
         assert!(read.list_valid(Some(stale_peer)).await.unwrap().is_empty());
         assert!(write.purge_expired().await.unwrap() >= 1);
+
+        write.forget(fresh).await.unwrap();
+        assert!(read
+            .list_valid_for_links(&[fresh])
+            .await
+            .unwrap()
+            .is_empty());
     }
 }
