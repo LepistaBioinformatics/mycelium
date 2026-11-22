@@ -8,6 +8,7 @@ mod error_code;
 mod federation_assertion;
 mod federation_link;
 mod federation_link_request;
+mod federation_namespace;
 mod federation_peer;
 mod federation_request_nonce;
 mod guest_role;
@@ -33,6 +34,7 @@ use error_code::*;
 use federation_assertion::*;
 use federation_link::*;
 use federation_link_request::*;
+use federation_namespace::*;
 use federation_peer::*;
 use federation_request_nonce::*;
 use guest_role::*;
@@ -84,6 +86,8 @@ module! {
             FederationPeerReadSqlDbRepository,
             FederationPeerWriteSqlDbRepository,
             FederationRequestNonceSqlDbRepository,
+            LocalNamespaceProbeSqlDbRepository,
+            NamespaceClaimRegistrationSqlDbRepository,
             GuestRoleDeletionSqlDbRepository,
             GuestRoleFetchingSqlDbRepository,
             GuestRoleRegistrationSqlDbRepository,
