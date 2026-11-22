@@ -103,6 +103,11 @@ visibilityTimeoutInSecs = 900
 ## Lifetime, in seconds, of an assertion issued to a peer.
 #assertionTtlSecs = 60
 #
+## Age, in seconds, after which a stored assertion from a peer is refreshed;
+## if the peer does not answer, it is served as stale until it expires.
+## Must be below assertionTtlSecs.
+#assertionRefreshSecs = 30
+#
 ## Timeout of one call to a peer, and deadline of a whole resolution.
 #peerTimeoutMs = 800
 #resolveDeadlineMs = 1500

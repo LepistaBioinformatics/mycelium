@@ -13,6 +13,7 @@ use std::path::PathBuf;
 /// displayName = "Instance 01"
 /// baseUrl = "https://myc-01.example.com"
 /// assertionTtlSecs = 60
+/// assertionRefreshSecs = 30
 /// peerTimeoutMs = 800
 /// resolveDeadlineMs = 1500
 /// maxFailuresBeforeOpen = 5
@@ -35,6 +36,10 @@ pub struct FederationConfig {
 
     /// Lifetime of an issued assertion (D-1)
     pub assertion_ttl_secs: u64,
+
+    /// Age after which a stored assertion is refreshed; if the peer does not
+    /// answer, it is served as stale until it expires (FED-17)
+    pub assertion_refresh_secs: u64,
 
     /// Timeout of one call to a peer (FED-13)
     pub peer_timeout_ms: u64,
@@ -62,6 +67,8 @@ struct FederationConfigRaw {
     base_url: Option<String>,
     #[serde(default = "default_assertion_ttl_secs")]
     assertion_ttl_secs: u64,
+    #[serde(default = "default_assertion_refresh_secs")]
+    assertion_refresh_secs: u64,
     #[serde(default = "default_peer_timeout_ms")]
     peer_timeout_ms: u64,
     #[serde(default = "default_resolve_deadline_ms")]
@@ -76,6 +83,10 @@ struct FederationConfigRaw {
 
 fn default_assertion_ttl_secs() -> u64 {
     60
+}
+
+fn default_assertion_refresh_secs() -> u64 {
+    30
 }
 
 fn default_peer_timeout_ms() -> u64 {
@@ -102,6 +113,8 @@ impl TryFrom<FederationConfigRaw> for FederationConfig {
     type Error = String;
 
     fn try_from(raw: FederationConfigRaw) -> Result<Self, Self::Error> {
+        check_refresh_age(&raw)?;
+
         let base_url = raw
             .base_url
             .ok_or_else(|| "core.federation.baseUrl is required".to_string())?;
@@ -117,6 +130,7 @@ impl TryFrom<FederationConfigRaw> for FederationConfig {
             display_name: raw.display_name,
             base_url,
             assertion_ttl_secs: raw.assertion_ttl_secs,
+            assertion_refresh_secs: raw.assertion_refresh_secs,
             peer_timeout_ms: raw.peer_timeout_ms,
             resolve_deadline_ms: raw.resolve_deadline_ms,
             max_failures_before_open: raw.max_failures_before_open,
@@ -124,6 +138,19 @@ impl TryFrom<FederationConfigRaw> for FederationConfig {
             request_tolerance_secs: raw.request_tolerance_secs,
         })
     }
+}
+
+/// A refresh age at or past the lifetime would never refresh before expiry
+fn check_refresh_age(raw: &FederationConfigRaw) -> Result<(), String> {
+    if raw.assertion_refresh_secs >= raw.assertion_ttl_secs {
+        return Err(format!(
+            "core.federation.assertionRefreshSecs ({}) must be below \
+             assertionTtlSecs ({})",
+            raw.assertion_refresh_secs, raw.assertion_ttl_secs
+        ));
+    }
+
+    Ok(())
 }
 
 fn is_absolute_http_url(value: &str) -> bool {
@@ -203,6 +230,7 @@ mod tests {
                 display_name: None,
                 base_url: "https://myc-01.example.com".to_string(),
                 assertion_ttl_secs: 60,
+                assertion_refresh_secs: 30,
                 peer_timeout_ms: 800,
                 resolve_deadline_ms: 1500,
                 max_failures_before_open: 5,
@@ -226,6 +254,20 @@ mod tests {
             let error = parse(serde_json::json!({"baseUrl": url})).unwrap_err();
 
             assert!(error.contains("baseUrl"), "{url}: {error}");
+        }
+    }
+
+    #[test]
+    fn a_refresh_age_not_below_the_lifetime_is_refused_by_name() {
+        for (refresh, ttl) in [(60, 60), (90, 60)] {
+            let error = parse(serde_json::json!({
+                "baseUrl": "https://myc-01.example.com",
+                "assertionTtlSecs": ttl,
+                "assertionRefreshSecs": refresh,
+            }))
+            .unwrap_err();
+
+            assert!(error.contains("assertionRefreshSecs"), "{error}");
         }
     }
 
