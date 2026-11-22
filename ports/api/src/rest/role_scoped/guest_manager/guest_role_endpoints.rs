@@ -362,6 +362,12 @@ pub async fn update_guest_role_permissions_url(
     profile: MyceliumProfileData,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
+    let revocation = FederatedAccessRevocation::of_guest_role(
+        app_module.get_ref(),
+        path.to_owned(),
+    )
+    .await;
+
     match update_guest_role_permission(
         profile.to_profile(),
         path.to_owned(),
@@ -372,7 +378,10 @@ pub async fn update_guest_role_permissions_url(
     )
     .await
     {
-        Ok(res) => updating_response_kind(res),
+        Ok(res) => {
+            revocation.queue(app_module.get_ref()).await;
+            updating_response_kind(res)
+        }
         Err(err) => handle_mapped_error(err),
     }
 }

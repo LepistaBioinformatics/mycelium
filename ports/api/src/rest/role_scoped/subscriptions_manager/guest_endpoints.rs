@@ -307,6 +307,12 @@ pub async fn update_flags_from_subscription_account_url(
     let permit_flags = body.permit_flags.to_owned().unwrap_or_default();
     let deny_flags = body.deny_flags.to_owned().unwrap_or_default();
 
+    let revocation = FederatedAccessRevocation::of_account(
+        sql_app_module.get_ref(),
+        account_id,
+    )
+    .await;
+
     match update_flags_from_subscription_account(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
@@ -320,7 +326,10 @@ pub async fn update_flags_from_subscription_account_url(
     )
     .await
     {
-        Ok(res) => updating_response_kind(res),
+        Ok(res) => {
+            revocation.queue(sql_app_module.get_ref()).await;
+            updating_response_kind(res)
+        }
         Err(err) => handle_mapped_error(err),
     }
 }
