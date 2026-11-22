@@ -17,6 +17,7 @@ use super::super::{
     types::{self, JsonRpcError},
 };
 use crate::dtos::MyceliumProfileData;
+use crate::revoke_federated_access::FederatedAccessRevocation;
 
 use crate::models::active_backend_modules::SqlAppModule;
 use actix_web::web;
@@ -58,6 +59,11 @@ pub async fn dispatch_tenant_owner(
             let p: DeleteTenantManagerAccountParams =
                 serde_json::from_value(params.ok_or_else(params_required)?)
                     .map_err(|e| invalid_params(e.to_string()))?;
+            let revocation = FederatedAccessRevocation::of_account(
+                app_module.get_ref(),
+                p.account_id,
+            )
+            .await;
             let result = delete_tenant_manager_account(
                 profile.to_profile(),
                 p.tenant_id,
@@ -67,6 +73,7 @@ pub async fn dispatch_tenant_owner(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
+            revocation.queue(app_module.get_ref()).await;
             delete_response_kind_to_result(result)
         }
         method_names::TENANT_OWNER_META_CREATE => {

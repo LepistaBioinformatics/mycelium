@@ -7,6 +7,7 @@ use crate::{
 };
 
 use crate::models::active_backend_modules::SqlAppModule;
+use crate::revoke_federated_access::FederatedAccessRevocation;
 use actix_web::{
     delete, error::ResponseError, get, patch, post, web, HttpRequest,
     HttpResponse, Responder,
@@ -313,6 +314,12 @@ pub async fn delete_my_account_url(
         ));
     }
 
+    let revocation = FederatedAccessRevocation::of_account(
+        app_module.get_ref(),
+        profile.acc_id,
+    )
+    .await;
+
     match delete_my_account(
         profile.to_profile(),
         Box::new(&*app_module.resolve_ref()),
@@ -321,7 +328,10 @@ pub async fn delete_my_account_url(
     )
     .await
     {
-        Ok(res) => delete_response_kind(res),
+        Ok(res) => {
+            revocation.queue(app_module.get_ref()).await;
+            delete_response_kind(res)
+        }
         Err(err) => handle_mapped_error(err),
     }
 }

@@ -11,6 +11,7 @@ mod openapi;
 mod openapi_processor;
 mod otel;
 mod profile_signing;
+mod revoke_federated_access;
 mod rest;
 mod router;
 mod rpc;

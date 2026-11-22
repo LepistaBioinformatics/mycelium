@@ -24,6 +24,7 @@ use super::super::{
     },
     types::{self, JsonRpcError},
 };
+use crate::revoke_federated_access::FederatedAccessRevocation;
 use crate::{
     dtos::MyceliumProfileData,
     middleware::{
@@ -180,6 +181,11 @@ pub async fn dispatch_beginners(
                 );
                 return Err(forbidden_owner_only());
             }
+            let revocation = FederatedAccessRevocation::of_account(
+                app_module.get_ref(),
+                profile.acc_id,
+            )
+            .await;
             let result = delete_my_account(
                 profile.to_profile(),
                 Box::new(&*app_module.resolve_ref()),
@@ -188,6 +194,7 @@ pub async fn dispatch_beginners(
             )
             .await
             .map_err(mapped_errors_to_jsonrpc_error)?;
+            revocation.queue(app_module.get_ref()).await;
             delete_response_kind_to_result(result)
         }
         method_names::BEGINNERS_GUESTS_ACCEPT_INVITATION => {
