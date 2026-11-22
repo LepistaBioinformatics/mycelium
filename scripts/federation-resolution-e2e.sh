@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Instance federation, phase F3 (resolution): end to end.
+# Instance federation, phases F3 (resolution) and F4 (degradation): end to
+# end.
 #
 # Two postgres-only gateways, A (issuer) and B (consumer), declared to each
 # other and active, B accepting A's assertions (`--may-assert`). user-01 has
@@ -10,12 +11,17 @@
 #
 #   1. `beginners.federation.resolveGrants` refuses anonymous calls, asks A
 #      and returns user-01's grant on A, verified, stored and audited;
-#   2. the next call is served from the store, without asking A;
+#   2. the next call is served from the store, without asking A; once the
+#      stored assertion is older than assertionRefreshSecs, A is asked again;
 #   3. a reference A has no active link for is answered "unknown";
 #   4. an assertion naming a tenant id that exists on B is rejected, not
 #      stored, and audited;
 #   5. the kill-switch on A stops its answers;
-#   6. with A stopped, the result is partial, never an error.
+#   6. with user-01's account deactivated on B, no grant and no call: a local
+#      denial wins;
+#   7. with A stopped, an unexpired stored assertion is served as stale, and
+#      an expired one contributes nothing: the result is partial, never an
+#      error.
 #
 # Emails are never delivered: the hosted login codes are read from the
 # session rows. Everything binds to 127.0.0.1 and lives in a temp dir;
@@ -80,6 +86,17 @@ seed_link() {
 }
 
 resolve() { rpc "$BASE_B" "$1" beginners.federation.resolveGrants '{}'; }
+
+# age_assertions <seconds>: make the stored assertions that old
+age_assertions() { sql fed_b "update federation_assertion_cache set iat = now() - interval '$1 seconds'" >/dev/null; }
+
+# account_active <true|false>: switch user-01's account on B, and drop the
+# cached profiles so the next call reads it
+account_active() {
+    sql fed_b "update account set is_active = $1
+               where id = (select account_id from public.user where email = 'user-01@example.com');
+               delete from kv_artifact" >/dev/null
+}
 
 forget_assertions() { sql fed_b "delete from federation_assertion_cache; delete from federation_namespace_claim" >/dev/null; }
 
@@ -147,9 +164,12 @@ expect "A's tenant is claimed for A" 1 \
                   where c.foreign_id = '$TENANT_A' and p.instance_id = '$ID_A'")"
 expect "the call is audited" 1 "$(audited 1)"
 
-log "2. the next call reads the store"
+log "2. the next call reads the store, until the assertion is due"
 expect "served from the store" stored "$(resolve "$TOKEN_B" | field result.peers.0.resolution.outcome)"
 expect "no new audit row" 1 "$(audited 1)"
+age_assertions 40
+expect "a due assertion is refreshed" answered "$(resolve "$TOKEN_B" | field result.peers.0.resolution.outcome)"
+expect "the refresh is audited" 2 "$(audited 2)"
 
 log "3. a reference A does not know"
 forget_assertions
@@ -164,7 +184,7 @@ COLLIDING="$(resolve "$TOKEN_B")"
 expect "the assertion is rejected" rejected "$(field result.peers.0.resolution.outcome <<<"$COLLIDING")"
 expect "the result is partial" True "$(field result.partial <<<"$COLLIDING")"
 expect "nothing is stored" 0 "$(sql fed_b "select count(*) from federation_assertion_cache")"
-expect "the rejection is audited" 3 "$(audited 3)"
+expect "the rejection is audited" 4 "$(audited 4)"
 sql fed_b "delete from tenant where id = '$TENANT_A'" >/dev/null
 
 log "5. the kill-switch on A stops its answers"
@@ -173,13 +193,30 @@ sql fed_a "update instance_settings set value = 'false' where key = 'federation.
 expect "A answers nothing once switched off" unreachable "$(resolve "$TOKEN_B" | field result.peers.0.resolution.outcome)"
 sql fed_a "update instance_settings set value = 'true' where key = 'federation.enabled'"
 
-log "6. with A stopped the result is partial"
+log "6. a local denial wins"
+account_active false
+DENIED="$(resolve "$TOKEN_B")"
+expect "the account is denied" "the account is inactive" "$(field result.denied <<<"$DENIED")"
+expect "no peer contributes" "[]" "$(field result.peers <<<"$DENIED")"
+expect "A is not asked" 5 "$(audited 5)"
+account_active true
+
+log "7. with A stopped, stale within the lifetime and nothing after it"
 forget_assertions
+expect "A answers while up" answered "$(resolve "$TOKEN_B" | field result.peers.0.resolution.outcome)"
+age_assertions 40
 kill "${PIDS[0]}"
 wait "${PIDS[0]}" 2>/dev/null || true
-UNREACHABLE="$(resolve "$TOKEN_B")"
-expect "A is unreachable" unreachable "$(field result.peers.0.resolution.outcome <<<"$UNREACHABLE")"
-expect "the result is partial, not an error" True "$(field result.partial <<<"$UNREACHABLE")"
+STALE="$(resolve "$TOKEN_B")"
+expect "the stored assertion is served stale" stale "$(field result.peers.0.resolution.outcome <<<"$STALE")"
+expect "its grant is still served" "$TENANT_A" "$(field result.peers.0.grants.0.tenantId <<<"$STALE")"
+expect "the result is stale" True "$(field result.stale <<<"$STALE")"
+expect "but not partial" False "$(field result.partial <<<"$STALE")"
+sql fed_b "update federation_assertion_cache set exp = now() - interval '1 second'" >/dev/null
+EXPIRED="$(resolve "$TOKEN_B")"
+expect "an expired assertion is not served" unreachable "$(field result.peers.0.resolution.outcome <<<"$EXPIRED")"
+expect "no grant from A" "[]" "$(field result.peers.0.grants <<<"$EXPIRED")"
+expect "the result is partial, not an error" True "$(field result.partial <<<"$EXPIRED")"
 
 if grep -q -e "$HMAC_A" -e "$HMAC_B" "$WORKDIR"/*.log; then
     fail "a secret appears in the logs"
