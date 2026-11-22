@@ -84,6 +84,7 @@ async fn add_link(
     };
 
     read.refresh_due |= found.assertion.is_due(Local::now(), refresh_after);
+    read.peer_ids.push(peer.id);
     read.resources
         .0
         .extend(found.assertion.payload.grants.0.iter().map(|grant| {

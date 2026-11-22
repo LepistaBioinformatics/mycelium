@@ -8,12 +8,17 @@ use crate::{
 use actix_web::{web, HttpRequest};
 use myc_core::{
     domain::{
-        dtos::{email::Email, profile::Profile, written_by::WrittenBy},
-        entities::PeerGrantResolver,
+        dtos::{
+            email::Email,
+            federation::StoredFederatedGrants,
+            profile::{LicensedResource, LicensedResources, Profile},
+            written_by::WrittenBy,
+        },
+        entities::{GrantTranslationRead, PeerGrantResolver},
     },
     use_cases::federation::{
         is_federation_enabled, locally_denied, read_federated_grants,
-        resolve_own_federated_grants,
+        resolve_own_federated_grants, translate_federated_grants,
     },
 };
 use shaku::HasComponent;
@@ -29,7 +34,8 @@ use uuid::Uuid;
 /// `beginners.federation.resolveGrants` refreshes on demand, and a second,
 /// concurrent call to the same peer would be waste. Nothing is attached
 /// while federation is off or unconfigured, or for a locally denied subject
-/// (FED-19). The profile cache never holds this part.
+/// (FED-19). The profile cache never holds this part. The peers' enabled
+/// translation rules turn matching grants into local ones (FED-52).
 ///
 #[tracing::instrument(name = "attach_federated_grants", skip_all)]
 pub(crate) async fn attach_federated_grants(
@@ -74,11 +80,50 @@ pub(crate) async fn attach_federated_grants(
     if read.refresh_due && routed_downstream(req) {
         refresh_in_background(req, &profile, subject, email, refresh_after);
     }
-    if !read.resources.is_empty() {
-        profile.federated_resources = Some(read.resources);
+    if read.resources.is_empty() {
+        return profile;
     }
 
+    let translated = translated(app_module, &read).await;
+    profile.licensed_resources =
+        with_local(profile.licensed_resources, translated);
+    profile.federated_resources = Some(read.resources);
+
     profile
+}
+
+/// The local grants the peers' enabled rules make of their grants (FED-52);
+/// none if the rules cannot be read
+async fn translated(
+    app_module: &SqlAppModule,
+    read: &StoredFederatedGrants,
+) -> Vec<LicensedResource> {
+    let rules: &dyn GrantTranslationRead = app_module.resolve_ref();
+
+    match rules.list_active_for_peers(&read.peer_ids).await {
+        Ok(rules) => translate_federated_grants(&read.resources, &rules),
+        Err(err) => {
+            tracing::error!(%err, "translation rules not read");
+            vec![]
+        }
+    }
+}
+
+/// Translated grants are local grants: the default chain sees them
+fn with_local(
+    local: Option<LicensedResources>,
+    translated: Vec<LicensedResource>,
+) -> Option<LicensedResources> {
+    if translated.is_empty() {
+        return local;
+    }
+
+    let mut grants = local
+        .map(|local| local.to_licenses_vector())
+        .unwrap_or_default();
+    grants.extend(translated);
+
+    Some(LicensedResources::Records(grants))
 }
 
 fn prepared(req: &HttpRequest) -> Option<&PreparedFederation> {
