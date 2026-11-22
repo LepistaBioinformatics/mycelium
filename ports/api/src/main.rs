@@ -78,9 +78,10 @@ use dispatchers::{
 };
 #[cfg(feature = "federation")]
 use dispatchers::{
-    spawn_federation_dispatcher, AssertionPurge, FailedRevocationPurge,
-    FederationDispatcher, FederationRoundPorts, LinkConsentPurge,
-    LinkRequestPurge, RequestNoncePurge, RevocationRound, TombstonePurge,
+    forget_stored_assertions, spawn_federation_dispatcher, AssertionPurge,
+    FailedRevocationPurge, FederationDispatcher, FederationRoundPorts,
+    LinkConsentPurge, LinkRequestPurge, RequestNoncePurge, RevocationRound,
+    TombstonePurge,
 };
 #[cfg(feature = "federation")]
 use federation::{
@@ -103,6 +104,8 @@ use myc_config::optional_config::OptionalConfig;
 use myc_config::resolve_or_generate_standalone_secret;
 #[cfg(feature = "standalone")]
 use myc_config::secret_resolver::SecretResolver;
+#[cfg(feature = "federation")]
+use myc_core::domain::entities::AssertionStoreWrite;
 #[cfg(feature = "federation")]
 use myc_core::domain::entities::GuestRoleFetching;
 #[cfg(feature = "federation")]
@@ -600,6 +603,21 @@ pub async fn main() -> std::io::Result<()> {
         .await;
 
     // ? -----------------------------------------------------------------------
+    // ? DROP STORED ASSERTIONS BEFORE SERVING
+    //
+    // This instance cannot know which tombstones it missed while it was down:
+    // every federated grant is asked again before it is served (FED-24).
+    //
+    // ? -----------------------------------------------------------------------
+    #[cfg(feature = "federation")]
+    if federation.is_some() {
+        forget_stored_assertions(
+            sql_module.resolve_ref() as &dyn AssertionStoreWrite
+        )
+        .await;
+    }
+
+    // ? -----------------------------------------------------------------------
     // ? FIRE THE FEDERATION DISPATCHER
     //
     // Periodic peer health rounds (re-handshake, key refresh, circuit breaker,
@@ -641,7 +659,6 @@ pub async fn main() -> std::io::Result<()> {
                     peers: sql_module.resolve(),
                     sender,
                     settings: sql_module.resolve(),
-                    assertions: sql_module.resolve(),
                 },
                 describe_this_instance(prepared, false).assertion_kinds,
                 prepared.config.max_failures_before_open,

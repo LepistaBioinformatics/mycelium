@@ -9,14 +9,13 @@ use myc_core::{
 };
 use std::sync::Arc;
 
-/// What pushing queued tombstones and the boot purge use (FED-24)
+/// What pushing queued tombstones uses (FED-24)
 #[derive(Clone)]
 pub(crate) struct RevocationRound {
     pub(crate) outbox: Arc<dyn RevocationOutbox>,
     pub(crate) peers: Arc<dyn FederationPeerRead>,
     pub(crate) sender: Arc<dyn PeerTombstoneSender>,
     pub(crate) settings: Arc<dyn InstanceSettingsFetching>,
-    pub(crate) assertions: Arc<dyn AssertionStoreWrite>,
 }
 
 impl RevocationRound {
@@ -40,17 +39,19 @@ impl RevocationRound {
             tracing::error!(%err, "revocation delivery failed");
         }
     }
+}
 
-    /// Drop every stored assertion: this instance cannot know which
-    /// tombstones it missed while it was down, so it asks each issuer again
-    /// before serving any grant (FED-24)
-    #[tracing::instrument(name = "forget_stored_assertions", skip_all)]
-    pub(crate) async fn forget_stored_assertions(&self) {
-        match self.assertions.forget_all().await {
-            Ok(forgotten) => {
-                tracing::info!(forgotten, "stored assertions dropped at boot")
-            }
-            Err(err) => tracing::error!(%err, "stored assertions not dropped"),
+/// Drop every stored assertion before serving: this instance cannot know
+/// which tombstones it missed while it was down, so it asks each issuer again
+/// before serving any grant (FED-24)
+#[tracing::instrument(name = "forget_stored_assertions", skip_all)]
+pub(crate) async fn forget_stored_assertions(
+    assertions: &dyn AssertionStoreWrite,
+) {
+    match assertions.forget_all().await {
+        Ok(forgotten) => {
+            tracing::info!(forgotten, "stored assertions dropped at boot")
         }
+        Err(err) => tracing::error!(%err, "stored assertions not dropped"),
     }
 }

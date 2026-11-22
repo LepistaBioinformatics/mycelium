@@ -23,7 +23,7 @@
 #      assertion within seconds, and the next answer carries no grant; a
 #      subject A denies (account inactive there) is answered "unknown";
 #   8. with B down during the push, A keeps retrying; B drops its stored
-#      assertions when it starts and receives the tombstone after;
+#      assertions before it serves and receives the tombstone after;
 #   9. with A stopped, an unexpired stored assertion is served as stale, and
 #      an expired one contributes nothing: the result is partial, never an
 #      error.
@@ -133,6 +133,13 @@ revoke_grant_on_a() {
                        where o.account_id = '$account'")"
     rpc "$BASE_A" "$TOKEN_A" subscriptionsManager.guests.revokeUserGuestToSubscriptionAccount \
         "{\"tenantId\":\"$TENANT_A\",\"accountId\":\"$account\",\"roleId\":\"$role\",\"email\":\"user-01@example.com\"}" >/dev/null
+}
+
+# dropped_at_boot <instance> <port>: how many stored assertions the gateway
+# dropped when it last started
+dropped_at_boot() {
+    sed 's/\x1b\[[0-9;]*m//g' "$WORKDIR/api-$1-$2.log" | grep "dropped at boot" |
+        grep -oE "forgotten[^0-9]*[0-9]+" | grep -oE "[0-9]+$" | tail -1
 }
 
 forget_assertions() { sql fed_b "delete from federation_assertion_cache; delete from federation_namespace_claim" >/dev/null; }
@@ -266,7 +273,7 @@ revoke_grant_on_a
 expect "A keeps the tombstone to retry" 1 \
     "$(sql_within 1 fed_a "select count(*) from federation_outbox where attempts > 0 and status = 'pending'")"
 start_gateway B "$PORT_B" "$BASE_B" "$DB_B" "$HMAC_B"
-expect "B serves nothing stored before the restart" 0 "$(sql_within 0 fed_b "select count(*) from federation_assertion_cache")"
+expect "B dropped its stored assertion before serving" 1 "$(dropped_at_boot B "$PORT_B")"
 expect "the retry reaches B" 0 "$(sql_within 0 fed_a "select count(*) from federation_outbox")"
 expect "B records the newer tombstone" t \
     "$(sql fed_b "select received_at > '$RECEIVED' from federation_tombstone")"
