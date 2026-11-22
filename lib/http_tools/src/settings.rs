@@ -33,6 +33,26 @@ pub const DEFAULT_PROFILE_KEY: &str = "x-mycelium-profile";
 ///
 pub const DEFAULT_PROFILE_SIGNATURE_KEY: &str = "x-mycelium-profile-signature";
 
+/// Signed federation peer request
+///
+/// Carries the compact JWS (EdDSA, `typ: mycelium-peer-request+jwt`) a peer
+/// instance signs with its federation key over the request (D-9).
+///
+pub const PEER_REQUEST_SIGNATURE_KEY: &str = "x-mycelium-peer-signature";
+
+/// Where an instance serves its federation self-description (FED-03)
+pub const INSTANCE_SELF_DESCRIPTION_PATH: &str =
+    "/.well-known/mycelium-instance";
+
+/// Where an instance serves its role catalog (D-10, FED-55)
+pub const ROLE_CATALOG_PATH: &str = "/.well-known/mycelium-instance/roles";
+
+/// Where a peer asks this instance to handshake again (FED-08)
+pub const FEDERATION_HANDSHAKE_PATH: &str = "/federation/handshake";
+
+/// Upper bound of a peer response body read by the federation client
+pub const PEER_RESPONSE_MAX_BYTES: usize = 64 * 1024;
+
 /// Where the gateway is; enables verification in `GatewayProfileData` (same
 /// variable as the SDKs). Either the gateway address, to which
 /// `PROFILE_JWKS_PATH` is appended, or the complete JWKS endpoint. `https://`

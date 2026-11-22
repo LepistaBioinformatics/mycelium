@@ -75,7 +75,13 @@ use dispatchers::{
     services_health_dispatcher, webhook_dispatcher,
 };
 #[cfg(feature = "federation")]
-use federation::prepare_federation;
+use dispatchers::{
+    spawn_federation_dispatcher, FederationDispatcher, FederationRoundPorts,
+};
+#[cfg(feature = "federation")]
+use federation::{
+    build_peer_client, describe_this_instance, prepare_federation,
+};
 use middleware::{log_served_request, StaffBootstrapClaimed};
 use models::active_backend_modules::{KVAppModule, SqlAppModule};
 use models::config_handler::ConfigHandler;
@@ -92,6 +98,8 @@ use myc_config::optional_config::OptionalConfig;
 use myc_config::resolve_or_generate_standalone_secret;
 #[cfg(feature = "standalone")]
 use myc_config::secret_resolver::SecretResolver;
+#[cfg(feature = "federation")]
+use myc_core::domain::entities::GuestRoleFetching;
 #[cfg(feature = "federation")]
 use myc_core::domain::entities::InstanceSettingsRegistration;
 use myc_core::{
@@ -173,7 +181,11 @@ use reqwest::header::{
     ACCESS_CONTROL_ALLOW_ORIGIN, CONTENT_LENGTH, CONTENT_TYPE,
 };
 #[cfg(feature = "federation")]
-use rest::index::instance_self_description_endpoints;
+use rest::federation::configure_federation_endpoints;
+#[cfg(feature = "federation")]
+use rest::index::{
+    instance_self_description_endpoints, role_catalog_endpoints,
+};
 use rest::{
     audit::resource_audit_trail_endpoints as audit_resource_audit_trail_endpoints,
     hosted_login::configure as configure_hosted_login_endpoints,
@@ -445,6 +457,18 @@ pub async fn main() -> std::io::Result<()> {
         std::io::Error::new(std::io::ErrorKind::Other, err.to_string())
     })?;
 
+    // The client this instance calls its peers with; only when federating.
+    #[cfg(feature = "federation")]
+    let peer_client = federation
+        .as_ref()
+        .map(build_peer_client)
+        .transpose()
+        .map_err(|err| {
+            tracing::error!("Error building the peer client: {err}");
+
+            std::io::Error::new(std::io::ErrorKind::Other, err.to_string())
+        })?;
+
     // ? -----------------------------------------------------------------------
     // ? PROPAGATE DECLARED ROLES TO THE SQL DATABASE
     //
@@ -572,6 +596,34 @@ pub async fn main() -> std::io::Result<()> {
         .await;
 
     // ? -----------------------------------------------------------------------
+    // ? FIRE THE FEDERATION DISPATCHER
+    //
+    // Periodic peer health rounds (re-handshake, key refresh, circuit breaker,
+    // nonce purge). Only when `[core.federation]` is present. The handle is
+    // kept and awaited on shutdown.
+    //
+    // ? -----------------------------------------------------------------------
+    #[cfg(feature = "federation")]
+    let federation_dispatcher = federation
+        .as_ref()
+        .zip(peer_client.clone())
+        .map(|(prepared, peer_client)| {
+            info!("Fire federation dispatcher");
+
+            spawn_federation_dispatcher(
+                FederationRoundPorts {
+                    peer_read: sql_module.resolve(),
+                    peer_write: sql_module.resolve(),
+                    nonces: sql_module.resolve(),
+                    settings: sql_module.resolve(),
+                    peer_client,
+                },
+                describe_this_instance(prepared, false).assertion_kinds,
+                prepared.config.max_failures_before_open,
+            )
+        });
+
+    // ? -----------------------------------------------------------------------
     // ? STAFF BOOTSTRAP — CHECK CLAIM STATE
     //
     // Checks whether the `STAFF_BOOTSTRAP_KEY` row exists in the generalized
@@ -693,11 +745,25 @@ pub async fn main() -> std::io::Result<()> {
         let base_app = {
             let instance_settings: Arc<dyn InstanceSettingsFetching> =
                 sql_module.resolve();
+            let guest_roles: Arc<dyn GuestRoleFetching> = sql_module.resolve();
 
-            base_app
+            let base_app = base_app
                 .app_data(web::Data::new(federation.clone()))
                 .app_data(web::Data::from(instance_settings))
+                .app_data(web::Data::from(guest_roles))
                 .configure(instance_self_description_endpoints::configure)
+                .configure(role_catalog_endpoints::configure);
+
+            // Peer-authenticated endpoints (`/federation/*`), only when
+            // `[core.federation]` is present.
+            match peer_client.clone() {
+                Some(peer_client) => configure_federation_endpoints(
+                    base_app,
+                    &sql_module,
+                    peer_client,
+                ),
+                None => base_app,
+            }
         };
 
         let base_app = base_app
@@ -995,22 +1061,42 @@ pub async fn main() -> std::io::Result<()> {
         builder.set_private_key(&key).unwrap();
 
         info!("Fire the server with TLS");
-        return server
+        let served = server
             .bind_openssl(format!("{}:{}", address.0, address.1), builder)?
             .workers(api_config.service_workers.to_owned() as usize)
             .run()
             .await;
+
+        #[cfg(feature = "federation")]
+        stop_federation_dispatcher(federation_dispatcher).await;
+
+        return served;
     }
 
     // ? -----------------------------------------------------------------------
     // ? WITHOUT TLS OTHERWISE
     // ? -----------------------------------------------------------------------
     info!("Fire the server without TLS");
-    server
+    let served = server
         .bind(address)?
         .workers(api_config.service_workers as usize)
         .run()
-        .await
+        .await;
+
+    #[cfg(feature = "federation")]
+    stop_federation_dispatcher(federation_dispatcher).await;
+
+    served
+}
+
+#[cfg(feature = "federation")]
+async fn stop_federation_dispatcher(dispatcher: Option<FederationDispatcher>) {
+    let Some(dispatcher) = dispatcher else {
+        return;
+    };
+
+    info!("Stopping federation dispatcher");
+    dispatcher.shutdown().await;
 }
 
 /// Resolve one standalone secret (SM-R9), honoring an operator-supplied

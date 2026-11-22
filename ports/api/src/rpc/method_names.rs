@@ -192,3 +192,13 @@ pub const STAFF_ACCOUNTS_UPGRADE_PRIVILEGES: &str =
     "staff.accounts.upgradePrivileges";
 pub const STAFF_ACCOUNTS_DOWNGRADE_PRIVILEGES: &str =
     "staff.accounts.downgradePrivileges";
+
+// Federation (staff only; `federation` feature)
+#[cfg(feature = "federation")]
+pub const FEDERATION_PEERS_LIST: &str = "federation.peers.list";
+#[cfg(feature = "federation")]
+pub const FEDERATION_PEERS_QUARANTINE: &str = "federation.peers.quarantine";
+#[cfg(feature = "federation")]
+pub const FEDERATION_PEERS_RELEASE: &str = "federation.peers.release";
+#[cfg(feature = "federation")]
+pub const FEDERATION_SET_ENABLED: &str = "federation.setEnabled";

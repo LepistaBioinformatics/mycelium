@@ -2,7 +2,10 @@ mod cmds;
 mod functions;
 
 use clap::Parser;
-use cmds::{accounts, error_codes, federation, migrate_dek, rotate_kek};
+use cmds::{
+    accounts, error_codes, federation, federation_peers, migrate_dek,
+    rotate_kek,
+};
 use std::env::set_var;
 
 #[derive(Parser, Debug)]
@@ -57,6 +60,9 @@ pub async fn main() {
         },
         Cli::Federation(sub_args) => match sub_args.cmd {
             federation::Commands::Describe => federation::describe_cmd().await,
+            federation::Commands::Peer(peer_args) => {
+                federation_peers::peer_cmd(peer_args.cmd).await
+            }
         },
     }
 }

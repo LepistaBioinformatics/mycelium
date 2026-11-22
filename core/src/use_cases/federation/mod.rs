@@ -1,9 +1,27 @@
+mod admit_requesting_peer;
 mod describe_instance;
+mod ensure_federation_operator;
 mod get_or_mint_instance_id;
+mod handshake_peer;
 mod is_federation_enabled;
+mod list_federation_peers;
+mod list_role_catalog;
+mod peer_circuit;
+mod peer_keys_refresh_due;
+mod quarantine_peer;
+mod read_role_catalog_mode;
 mod set_federation_enabled;
 
+pub use admit_requesting_peer::*;
 pub use describe_instance::*;
+pub use ensure_federation_operator::*;
 pub use get_or_mint_instance_id::*;
+pub use handshake_peer::*;
 pub use is_federation_enabled::*;
+pub use list_federation_peers::*;
+pub use list_role_catalog::*;
+pub use peer_circuit::*;
+pub use peer_keys_refresh_due::*;
+pub use quarantine_peer::*;
+pub use read_role_catalog_mode::*;
 pub use set_federation_enabled::*;

@@ -109,8 +109,24 @@ impl VersionedEd25519Signer {
         &self,
         claims: &T,
     ) -> Result<String, MappedErrors> {
+        self.sign_typed_claims(None, claims)
+    }
+
+    /// Like `sign_claims`, with an explicit `typ` in the protected header
+    ///
+    /// A distinct `typ` per protocol keeps a token of one protocol from being
+    /// accepted by the verifier of another.
+    ///
+    pub fn sign_typed_claims<T: Serialize>(
+        &self,
+        typ: Option<&str>,
+        claims: &T,
+    ) -> Result<String, MappedErrors> {
         let mut header = Header::new(Algorithm::EdDSA);
         header.kid = Some(self.version.to_string());
+        if let Some(typ) = typ {
+            header.typ = Some(typ.to_string());
+        }
 
         encode(&header, claims, &self.key).map_err(|_| {
             execution_err("profile_signature_encoding_failed")

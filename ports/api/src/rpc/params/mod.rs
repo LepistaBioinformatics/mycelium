@@ -1,6 +1,8 @@
 pub(crate) mod account_manager;
 pub(crate) mod audit;
 pub(crate) mod beginners;
+#[cfg(feature = "federation")]
+pub(crate) mod federation;
 pub(crate) mod gateway_manager;
 pub(crate) mod guest_manager;
 pub(crate) mod managers;
@@ -29,6 +31,8 @@ pub(crate) use beginners::{
     TotpFinishActivationParams, TotpStartActivationParams,
     UpdateAccountMetaParams, UpdateOwnAccountNameParams,
 };
+#[cfg(feature = "federation")]
+pub(crate) use federation::{FederationPeerParams, SetFederationEnabledParams};
 pub(crate) use gateway_manager::{
     ListOperationsParams, ListRoutesParams, ListServicesParams,
 };

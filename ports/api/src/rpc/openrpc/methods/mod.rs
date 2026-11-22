@@ -2,6 +2,8 @@ mod account_manager;
 mod audit;
 mod beginners;
 mod discovery;
+#[cfg(feature = "federation")]
+mod federation;
 mod gateway_manager;
 mod guest_manager;
 mod managers;
@@ -31,5 +33,7 @@ pub fn all_methods() -> Vec<serde_json::Value> {
     out.extend(service::methods());
     out.extend(staff::methods());
     out.extend(beginners::methods());
+    #[cfg(feature = "federation")]
+    out.extend(federation::methods());
     out
 }

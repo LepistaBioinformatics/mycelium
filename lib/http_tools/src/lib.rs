@@ -1,4 +1,5 @@
 pub mod dtos;
+pub mod federation;
 pub mod functions;
 pub mod middleware;
 pub mod models;
