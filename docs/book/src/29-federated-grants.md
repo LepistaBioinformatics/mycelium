@@ -11,9 +11,9 @@ which roles that person holds there. The issuer answers with a signed
 > issuer's peer policy on the consumer (`myc-cli federation peer add
 > --may-assert`). A peer asserts nothing until the operator allows it.
 
-The grants are not yet part of the `x-mycelium-profile` header that
-downstream services receive: that change breaks the SDK contract and ships
-with the SDKs. Until then, resolution runs on demand.
+Stored grants reach downstream services in the `x-mycelium-profile` header,
+under `federatedResources`, apart from the local `licensedResources` (see
+[In the profile](#in-the-profile)).
 
 ---
 
@@ -66,6 +66,44 @@ keep it alive for long either:
   role it changes reaches the consumer within `assertionRefreshSecs`.
 - **Past expiry** a silent peer contributes nothing. Absence is never read as
   "last known good".
+
+## In the profile
+
+On every request, after the profile cache, the gateway adds the grants
+stored for the subject under `federatedResources`. Each entry is a licensed
+resource with one more member, `issuer`: the instance id of the peer that
+asserted it.
+
+```json
+{
+  "licensedResources": { "records": [ { "tenantId": "…", "role": "reader" } ] },
+  "federatedResources": [
+    { "issuer": "6f9c…", "tenantId": "…", "accId": "…", "role": "reader", "perm": "read" }
+  ]
+}
+```
+
+- **Local by default.** Every SDK filter works on `licensedResources` only.
+  `.with_federated()` adds every federated grant to the local ones;
+  `.from_issuer(instance_id)` keeps one issuer's grants only (for chains
+  without a tenant filter). Both must open the chain: called after another
+  filter they leave nothing, rather than bring back grants that filter never
+  saw. An SDK that predates this field ignores it, and still verifies the
+  signature, which covers the exact header.
+- **No confusion with local grants.** Once merged, a federated grant is a
+  plain grant to the filters. That is safe because its tenant and account
+  ids can never be this instance's own, nor another peer's: the consumer
+  rejects any assertion naming one (see "ID collisions" below).
+- **Never cached.** The federated part is read from the assertion store on
+  every request, so a tombstone, a quarantine or an expiry acts at once.
+- **No peer call on the request.** A subject without links costs one read.
+  When an assertion is missing or due, a request routed to a downstream
+  service starts a background refresh, at most once per subject per
+  `assertionRefreshSecs`; the request itself serves what is stored. The
+  gateway's own API never starts one (`resolveGrants` refreshes on
+  demand).
+- **Local denial wins.** A subject whose owner is inactive, or whose account
+  is inactive, archived or deleted, gets no `federatedResources`.
 
 ## Revocation
 
