@@ -5,6 +5,7 @@ mod account_tag;
 mod config;
 mod encryption_key;
 mod error_code;
+mod federation_assertion;
 mod federation_link;
 mod federation_link_request;
 mod federation_peer;
@@ -29,6 +30,7 @@ use account::*;
 use account_tag::*;
 use encryption_key::*;
 use error_code::*;
+use federation_assertion::*;
 use federation_link::*;
 use federation_link_request::*;
 use federation_peer::*;
@@ -73,6 +75,8 @@ module! {
             ErrorCodeFetchingSqlDbRepository,
             ErrorCodeRegistrationSqlDbRepository,
             ErrorCodeUpdatingSqlDbRepository,
+            AssertionStoreReadSqlDbRepository,
+            AssertionStoreWriteSqlDbRepository,
             IdentityLinkReadSqlDbRepository,
             IdentityLinkWriteSqlDbRepository,
             LinkRequestRegistrationSqlDbRepository,
