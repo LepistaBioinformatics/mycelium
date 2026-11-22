@@ -33,6 +33,10 @@ pub enum ResourceAuditResourceType {
 
     /// A `webhook` row was affected.
     Webhook,
+
+    /// A federated resolution refreshed the grants of an identity link
+    /// (FED-16); `resource_id` is the link.
+    FederationResolution,
 }
 
 #[cfg(test)]
@@ -49,6 +53,7 @@ mod tests {
             ResourceAuditResourceType::TenantMeta,
             ResourceAuditResourceType::GuestRole,
             ResourceAuditResourceType::Webhook,
+            ResourceAuditResourceType::FederationResolution,
         ];
 
         for variant in variants {
