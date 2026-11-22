@@ -61,6 +61,25 @@ diesel::table! {
 }
 
 diesel::table! {
+    federation_grant_translation (id) {
+        id -> Uuid,
+        peer_id -> Uuid,
+        issuer_tenant_id -> Uuid,
+        #[max_length = 140]
+        issuer_role -> Varchar,
+        issuer_perm -> Int4,
+        local_account_id -> Uuid,
+        local_guest_role_id -> Uuid,
+        local_perm -> Int4,
+        enabled -> Bool,
+        created -> Timestamptz,
+        created_by -> Nullable<Jsonb>,
+        updated -> Nullable<Timestamptz>,
+        updated_by -> Nullable<Jsonb>,
+    }
+}
+
+diesel::table! {
     federation_identity_link (id) {
         id -> Uuid,
         local_user_id -> Uuid,
@@ -440,6 +459,9 @@ diesel::joinable!(account -> tenant (tenant_id));
 diesel::joinable!(account_tag -> account (account_id));
 diesel::joinable!(federation_assertion_cache -> federation_identity_link (link_id));
 diesel::joinable!(federation_assertion_cache -> federation_peer (peer_id));
+diesel::joinable!(federation_grant_translation -> account (local_account_id));
+diesel::joinable!(federation_grant_translation -> federation_peer (peer_id));
+diesel::joinable!(federation_grant_translation -> guest_role (local_guest_role_id));
 diesel::joinable!(federation_identity_link -> federation_peer (peer_id));
 diesel::joinable!(federation_identity_link -> user (local_user_id));
 diesel::joinable!(federation_link_consent -> federation_peer (peer_id));
@@ -469,6 +491,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     account_tag,
     error_code,
     federation_assertion_cache,
+    federation_grant_translation,
     federation_identity_link,
     federation_link_consent,
     federation_link_request,
