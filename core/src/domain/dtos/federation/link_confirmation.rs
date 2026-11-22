@@ -21,11 +21,3 @@ pub struct LinkAcknowledgement {
     /// How the issuer names the user when asking the consumer
     pub consumer_subject_ref: SubjectRef,
 }
-
-/// A link revoked on one side, told to the other (FED-47)
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct LinkRevocation {
-    /// The receiver's `local_subject_ref` of the link
-    pub subject_ref: SubjectRef,
-}

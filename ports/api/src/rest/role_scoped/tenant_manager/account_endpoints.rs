@@ -1,6 +1,7 @@
 use crate::dtos::{MyceliumProfileData, TenantData};
 
 use crate::models::active_backend_modules::SqlAppModule;
+use crate::revoke_federated_access::FederatedAccessRevocation;
 use actix_web::{delete, post, web, Responder};
 use myc_core::use_cases::role_scoped::tenant_manager::{
     create_subscription_manager_account, delete_subscription_account,
@@ -138,6 +139,10 @@ pub async fn delete_subscription_account_url(
 ) -> impl Responder {
     let account_id = path.into_inner();
 
+    let revocation =
+        FederatedAccessRevocation::of_account(app_module.get_ref(), account_id)
+            .await;
+
     match delete_subscription_account(
         profile.to_profile(),
         tenant.tenant_id().to_owned(),
@@ -148,7 +153,10 @@ pub async fn delete_subscription_account_url(
     )
     .await
     {
-        Ok(res) => delete_response_kind(res),
+        Ok(res) => {
+            revocation.queue(app_module.get_ref()).await;
+            delete_response_kind(res)
+        }
         Err(err) => handle_mapped_error(err),
     }
 }

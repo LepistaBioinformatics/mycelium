@@ -21,6 +21,8 @@ mod role_catalog_entry;
 mod role_catalog_mode;
 mod stored_assertion;
 mod subject_ref;
+mod subject_standing;
+mod tombstone;
 mod verified_assertion;
 
 pub use assertion_kind::*;
@@ -46,4 +48,6 @@ pub use role_catalog_entry::*;
 pub use role_catalog_mode::*;
 pub use stored_assertion::*;
 pub use subject_ref::*;
+pub use subject_standing::*;
+pub use tombstone::*;
 pub use verified_assertion::*;

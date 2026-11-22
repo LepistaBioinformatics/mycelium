@@ -6,7 +6,9 @@ use crate::domain::{
             PeerStatus, ProfileAssertion, SubjectRef, PROFILE_ASSERTION_KIND,
         },
     },
-    entities::{IdentityLinkRead, LicensedResourcesFetching},
+    entities::{
+        IdentityLinkRead, LicensedResourcesFetching, SubjectStandingFetching,
+    },
 };
 
 use mycelium_base::{
@@ -26,6 +28,7 @@ pub async fn answer_peer_resolution(
     peer: &FederationPeer,
     subject_ref: SubjectRef,
     link_read_repo: Box<&dyn IdentityLinkRead>,
+    standing_repo: Box<&dyn SubjectStandingFetching>,
     licensed_resources_repo: Box<&dyn LicensedResourcesFetching>,
 ) -> Result<Option<ProfileAssertion>, MappedErrors> {
     if !may_ask(peer) {
@@ -36,6 +39,10 @@ pub async fn answer_peer_resolution(
     else {
         return Ok(None);
     };
+
+    if denied(&link, *standing_repo).await? {
+        return Ok(None);
+    }
 
     let grants = grants_of(&link, *licensed_resources_repo).await?;
     Ok(Some(ProfileAssertion::from_grants(grants)))
@@ -65,6 +72,17 @@ async fn active_link(
     }
 }
 
+/// The subject is denied on this instance, so nothing is vouched for: a
+/// deactivation is not undone by the consumer's next refresh (FED-19)
+async fn denied(
+    link: &IdentityLink,
+    standing_repo: &dyn SubjectStandingFetching,
+) -> Result<bool, MappedErrors> {
+    let standing = standing_repo.standing(link.local_user_id).await?;
+
+    Ok(standing.is_none_or(|standing| standing.denial().is_some()))
+}
+
 async fn grants_of(
     link: &IdentityLink,
     licensed_resources_repo: &dyn LicensedResourcesFetching,
@@ -89,10 +107,13 @@ async fn grants_of(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::domain::dtos::federation::SubjectStanding;
     use crate::{
         domain::{
             dtos::{guest_role::Permission, profile::LicensedResource},
-            entities::MockLicensedResourcesFetching,
+            entities::{
+                MockLicensedResourcesFetching, MockSubjectStandingFetching,
+            },
         },
         use_cases::federation::link_test_doubles::{peer, LinkStore},
     };
@@ -149,16 +170,39 @@ mod tests {
         asking
     }
 
+    fn standing(account_is_active: bool) -> MockSubjectStandingFetching {
+        let mut repo = MockSubjectStandingFetching::new();
+        repo.expect_standing().returning(move |_| {
+            Ok(Some(SubjectStanding {
+                owner_is_active: true,
+                account_is_active,
+                account_was_archived: false,
+                account_was_deleted: false,
+            }))
+        });
+        repo
+    }
+
     async fn answer(
         asking: &FederationPeer,
         store: &LinkStore,
         subject_ref: SubjectRef,
+    ) -> Option<ProfileAssertion> {
+        answer_as(asking, store, subject_ref, standing(true)).await
+    }
+
+    async fn answer_as(
+        asking: &FederationPeer,
+        store: &LinkStore,
+        subject_ref: SubjectRef,
+        standing: MockSubjectStandingFetching,
     ) -> Option<ProfileAssertion> {
         let repo = resources(vec![grant(false), grant(true)]);
         answer_peer_resolution(
             asking,
             subject_ref,
             Box::new(store),
+            Box::new(&standing),
             Box::new(&repo),
         )
         .await
@@ -209,5 +253,18 @@ mod tests {
             assert!(answer(&caller, &store, subject_ref).await.is_none());
         }
         assert!(answer(&asking, &store, SubjectRef::mint()).await.is_none());
+    }
+
+    #[tokio::test]
+    async fn a_subject_denied_on_the_issuer_is_unknown() {
+        let asking = asking_peer();
+        let active = link(asking.id, LinkStatus::Active);
+        let store = LinkStore::default();
+        store.links.lock().unwrap().push(active.clone());
+
+        let subject_ref = active.local_subject_ref;
+        let answer = answer_as(&asking, &store, subject_ref, standing(false));
+
+        assert!(answer.await.is_none());
     }
 }

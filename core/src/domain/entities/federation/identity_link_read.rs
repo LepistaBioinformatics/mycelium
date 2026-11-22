@@ -32,4 +32,10 @@ pub trait IdentityLinkRead: Interface + Send + Sync {
         &self,
         local_user_id: Option<Uuid>,
     ) -> Result<Vec<IdentityLink>, MappedErrors>;
+
+    /// Active links of the subjects with these local emails
+    async fn list_active_by_emails(
+        &self,
+        emails: &[String],
+    ) -> Result<Vec<IdentityLink>, MappedErrors>;
 }

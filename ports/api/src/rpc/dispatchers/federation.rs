@@ -49,7 +49,6 @@ pub async fn dispatch_federation(
             let link_id = parse::<LinkParams>(params)?.link_id;
             revoke_identity_link(
                 app_module,
-                req,
                 link_id,
                 LinkRevoker::Operator,
                 WrittenBy::new_from_account(profile.acc_id),
@@ -85,7 +84,10 @@ async fn change_peer(
 
     match method {
         method_names::FEDERATION_PEERS_QUARANTINE => {
-            to_result(quarantine_peer(params.instance_id, read, write).await)
+            let store = Box::new(app_module.resolve_ref());
+            to_result(
+                quarantine_peer(params.instance_id, read, write, store).await,
+            )
         }
         _ => to_result(release_peer(params.instance_id, read, write).await),
     }

@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-11-22T00:11:31-03:00\n"
+"POT-Creation-Date: 2026-11-22T12:10:17-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -4339,8 +4339,9 @@ msgid "\"welcome\""
 msgstr ""
 
 #: src/06-downstream-apis.md:367
+#, fuzzy
 msgid "\"variables\""
-msgstr ""
+msgstr "Variável"
 
 #: src/06-downstream-apis.md:367 src/16-webhooks.md:121
 msgid "\"name\""
@@ -4351,8 +4352,9 @@ msgid "\"Ana\""
 msgstr ""
 
 #: src/06-downstream-apis.md:367
+#, fuzzy
 msgid "\"locale\""
-msgstr ""
+msgstr "`locale`"
 
 #: src/06-downstream-apis.md:367
 msgid "\"pt-br\""
@@ -4395,8 +4397,9 @@ msgid ""
 msgstr ""
 
 #: src/06-downstream-apis.md:385
+#, fuzzy
 msgid "Operator notes"
-msgstr ""
+msgstr "Operação"
 
 #: src/06-downstream-apis.md:387
 msgid ""
@@ -5013,7 +5016,7 @@ msgid "Variable"
 msgstr "Variável"
 
 #: src/27-downstream-profile-signature.md:140 src/28-identity-linking.md:91
-#: src/29-federated-grants.md:42 src/29-federated-grants.md:111
+#: src/29-federated-grants.md:42 src/29-federated-grants.md:154
 #: src/17-error-codes.md:44 src/14-json-rpc.md:371
 #: src/22-hmac-key-rotation.md:122
 msgid "Meaning"
@@ -5824,18 +5827,18 @@ msgid ""
 "neither is an email or a user id. If B refuses or cannot be reached, A "
 "revokes its own record. If B recorded the link but its answer was lost (a "
 "timeout), B keeps an active copy that A does not know; it carries no grants, "
-"since A answers nothing for it, and is reconciled by the tombstone phase."
+"since A answers \"unknown\" for it."
 msgstr ""
 
-#: src/28-identity-linking.md:60
+#: src/28-identity-linking.md:59
 msgid "Removing a link"
 msgstr ""
 
-#: src/28-identity-linking.md:62
+#: src/28-identity-linking.md:61
 msgid "Either side may revoke, through the API only:"
 msgstr ""
 
-#: src/28-identity-linking.md:64 src/29-federated-grants.md:102
+#: src/28-identity-linking.md:63 src/29-federated-grants.md:145
 #: src/14-json-rpc.md:64 src/14-json-rpc.md:80 src/14-json-rpc.md:92
 #: src/14-json-rpc.md:106 src/14-json-rpc.md:115 src/14-json-rpc.md:121
 #: src/14-json-rpc.md:127 src/14-json-rpc.md:133 src/14-json-rpc.md:143
@@ -5849,32 +5852,33 @@ msgstr ""
 msgid "Method"
 msgstr "Método"
 
-#: src/28-identity-linking.md:64 src/29-federated-grants.md:102
+#: src/28-identity-linking.md:63 src/29-federated-grants.md:145
 msgid "Who"
 msgstr ""
 
-#: src/28-identity-linking.md:66
+#: src/28-identity-linking.md:65
 msgid "`beginners.federation.listLinks` / `beginners.federation.revokeLink`"
 msgstr ""
 
-#: src/28-identity-linking.md:66
+#: src/28-identity-linking.md:65
 msgid "The linked user, own links only"
 msgstr ""
 
-#: src/28-identity-linking.md:67
+#: src/28-identity-linking.md:66
 msgid "`federation.links.list` / `federation.links.revoke`"
 msgstr ""
 
-#: src/28-identity-linking.md:67
+#: src/28-identity-linking.md:66
 msgid "Staff"
 msgstr ""
 
-#: src/28-identity-linking.md:69
+#: src/28-identity-linking.md:68
 msgid ""
-"Revoking marks the link revoked here and tells the peer with a signed "
-"request, and the peer revokes its copy. If the peer cannot be reached, the "
-"local revocation stands and the failure is logged. The peer's copy stays "
-"active until a later delivery; a durable retry queue is planned."
+"Revoking marks the link revoked here and queues a `linkRevoked` tombstone "
+"for the peer, which revokes its copy and drops its stored grants (see "
+"[Revocation](./29-federated-grants.md#revocation)). The local revocation "
+"stands whatever the peer answers; a peer that cannot be reached receives the "
+"tombstone when it is back."
 msgstr ""
 
 #: src/28-identity-linking.md:74
@@ -5909,15 +5913,15 @@ msgid ""
 "grants."
 msgstr ""
 
-#: src/28-identity-linking.md:89 src/29-federated-grants.md:109
+#: src/28-identity-linking.md:89 src/29-federated-grants.md:152
 msgid "Settings"
 msgstr ""
 
-#: src/28-identity-linking.md:91 src/29-federated-grants.md:111
+#: src/28-identity-linking.md:91 src/29-federated-grants.md:154
 msgid "Setting"
 msgstr ""
 
-#: src/28-identity-linking.md:91 src/29-federated-grants.md:111
+#: src/28-identity-linking.md:91 src/29-federated-grants.md:154
 msgid "Where"
 msgstr ""
 
@@ -5925,9 +5929,9 @@ msgstr ""
 msgid "`linkRequestTtlSecs`"
 msgstr ""
 
-#: src/28-identity-linking.md:93 src/29-federated-grants.md:113
-#: src/29-federated-grants.md:114 src/29-federated-grants.md:115
-#: src/29-federated-grants.md:116
+#: src/28-identity-linking.md:93 src/29-federated-grants.md:156
+#: src/29-federated-grants.md:157 src/29-federated-grants.md:158
+#: src/29-federated-grants.md:159
 msgid "`[core.federation]`"
 msgstr ""
 
@@ -5939,7 +5943,7 @@ msgstr ""
 msgid "`allowDifferentEmails`"
 msgstr ""
 
-#: src/28-identity-linking.md:94 src/29-federated-grants.md:117
+#: src/28-identity-linking.md:94 src/29-federated-grants.md:160
 msgid "Peer policy"
 msgstr ""
 
@@ -6123,17 +6127,126 @@ msgstr ""
 
 #: src/29-federated-grants.md:70
 #, fuzzy
-msgid "What the issuer answers"
-msgstr "O que o cabeçalho contém"
+msgid "Revocation"
+msgstr "Rotação de chaves"
 
 #: src/29-federated-grants.md:72
 msgid ""
-"The issuer answers \"unknown\" unless the reference names an **active link "
-"with the caller**, the caller is an active peer and `profile.v1` was "
-"negotiated. The answer reveals nothing else."
+"When the issuer removes access, it does not wait for the consumers' next "
+"refresh: it pushes a signed **tombstone** to every peer holding an active "
+"link for the subject. Its own link table is the list of peers to tell."
 msgstr ""
 
-#: src/29-federated-grants.md:76
+#: src/29-federated-grants.md:77
+#, fuzzy
+msgid "Change on the issuer"
+msgstr "Última chance de encontrar problemas"
+
+#: src/29-federated-grants.md:77
+msgid "Tombstone"
+msgstr ""
+
+#: src/29-federated-grants.md:79
+msgid "A guest revoked from an account (subscription or subscription manager)"
+msgstr ""
+
+#: src/29-federated-grants.md:79
+msgid "`grantsChanged` for that email"
+msgstr ""
+
+#: src/29-federated-grants.md:80
+msgid "A guest role deleted, or its permission changed"
+msgstr ""
+
+#: src/29-federated-grants.md:80
+msgid "`grantsChanged` for every guest holding it"
+msgstr ""
+
+#: src/29-federated-grants.md:81
+msgid "A guest's flags changed on an account"
+msgstr ""
+
+#: src/29-federated-grants.md:81
+msgid "`grantsChanged` for the account's guests"
+msgstr ""
+
+#: src/29-federated-grants.md:82
+msgid "An account deleted, deactivated, archived or disapproved"
+msgstr ""
+
+#: src/29-federated-grants.md:82
+msgid "`grantsChanged` for its users and guests"
+msgstr ""
+
+#: src/29-federated-grants.md:83
+#, fuzzy
+msgid "A user deleting their own account"
+msgstr "Excluir a própria conta"
+
+#: src/29-federated-grants.md:83
+msgid "`grantsChanged` for that account's users"
+msgstr ""
+
+#: src/29-federated-grants.md:84
+msgid "A link revoked"
+msgstr ""
+
+#: src/29-federated-grants.md:84
+msgid "`linkRevoked`"
+msgstr ""
+
+#: src/29-federated-grants.md:86
+msgid ""
+"The consumer records the tombstone in the database and drops the stored "
+"assertion at once, on every pod. An assertion issued before the tombstone is "
+"never stored again, so a refresh already in flight cannot bring the old "
+"grants back. `grantsChanged` keeps the link: the next resolution asks the "
+"issuer, which answers with what is left. `linkRevoked` also revokes the "
+"consumer's copy of the link."
+msgstr ""
+
+#: src/29-federated-grants.md:93
+msgid ""
+"Delivery is at least once. A tombstone is written to an outbox in the same "
+"request, and the federation dispatcher pushes it within a second, retrying a "
+"failed push after 5 s, doubling up to 15 min, and giving up after 20 "
+"attempts (about four hours). A consumer that was down when the push was "
+"attempted drops every stored assertion when it starts, before it serves "
+"anything, so it asks each issuer again before serving any grant, and "
+"receives the tombstone with the next retry."
+msgstr ""
+
+#: src/29-federated-grants.md:101
+msgid ""
+"What the push does not reach is bounded by the assertion lifetime, which is "
+"why it stays short. Changes outside the table above (a tenant deleted, a "
+"role's children changed) reach the consumer with its next refresh, within "
+"`assertionRefreshSecs`. A partition that heals while both instances stay up "
+"lets the consumer serve a stored assertion for up to `assertionRefreshSecs` "
+"before it asks again."
+msgstr ""
+
+#: src/29-federated-grants.md:108
+msgid ""
+"Quarantining a peer drops every assertion stored from it; removing a peer "
+"drops them with it."
+msgstr ""
+
+#: src/29-federated-grants.md:111
+#, fuzzy
+msgid "What the issuer answers"
+msgstr "O que o cabeçalho contém"
+
+#: src/29-federated-grants.md:113
+msgid ""
+"The issuer answers \"unknown\" unless the reference names an **active link "
+"with the caller**, the caller is an active peer and `profile.v1` was "
+"negotiated. It also answers \"unknown\" for a subject it denies itself: an "
+"inactive user, or an inactive, archived or deleted account. The answer "
+"reveals nothing else."
+msgstr ""
+
+#: src/29-federated-grants.md:119
 msgid ""
 "Otherwise it signs an assertion (`typ: mycelium-assertion+jwt`, EdDSA, its "
 "federation key) bound to the caller (`aud`) and the reference (`sub`), valid "
@@ -6143,25 +6256,25 @@ msgid ""
 "system accounts: a peer cannot make anyone staff or manager elsewhere."
 msgstr ""
 
-#: src/29-federated-grants.md:83
+#: src/29-federated-grants.md:126
 #, fuzzy
 msgid "What the consumer checks"
 msgstr "O que o Mycelium verifica"
 
-#: src/29-federated-grants.md:85
+#: src/29-federated-grants.md:128
 msgid ""
 "**Signature, audience, subject and lifetime.** An unknown key id makes the "
 "consumer fetch the issuer's keys once before refusing."
 msgstr ""
 
-#: src/29-federated-grants.md:87
+#: src/29-federated-grants.md:130
 msgid ""
 "**Lifetime.** An assertion is kept no longer than the consumer's own "
 "`assertionTtlSecs`, whatever the issuer signed: the short lifetime is what "
 "bounds a role removed on the issuer until revocations are pushed."
 msgstr ""
 
-#: src/29-federated-grants.md:90
+#: src/29-federated-grants.md:133
 msgid ""
 "**ID collisions.** Every tenant and account id in the assertion must not "
 "exist on the consumer and must not have been claimed by another peer. The "
@@ -6169,77 +6282,77 @@ msgid ""
 "a peer cannot borrow one of this instance's tenants, or another peer's."
 msgstr ""
 
-#: src/29-federated-grants.md:96
+#: src/29-federated-grants.md:139
 msgid ""
 "Each call to a peer is recorded in the resource audit log "
 "(`federationResolution`), with its outcome and reason; reads from the store "
 "are not."
 msgstr ""
 
-#: src/29-federated-grants.md:100
+#: src/29-federated-grants.md:143
 msgid "Inspecting"
 msgstr ""
 
-#: src/29-federated-grants.md:104
+#: src/29-federated-grants.md:147
 msgid "`beginners.federation.resolveGrants`"
 msgstr ""
 
-#: src/29-federated-grants.md:104
+#: src/29-federated-grants.md:147
 msgid "The linked user, own grants only"
 msgstr ""
 
-#: src/29-federated-grants.md:105
+#: src/29-federated-grants.md:148
 msgid "`federation.assertions.list`"
 msgstr ""
 
-#: src/29-federated-grants.md:105
+#: src/29-federated-grants.md:148
 msgid "Staff: every stored, unexpired assertion"
 msgstr ""
 
-#: src/29-federated-grants.md:107
+#: src/29-federated-grants.md:150
 msgid "Expired assertions are purged by the federation dispatcher."
 msgstr ""
 
-#: src/29-federated-grants.md:113
+#: src/29-federated-grants.md:156
 msgid "`assertionTtlSecs`"
 msgstr ""
 
-#: src/29-federated-grants.md:113
+#: src/29-federated-grants.md:156
 msgid ""
 "Lifetime of the assertions this instance issues, and the longest it keeps "
 "one it receives"
 msgstr ""
 
-#: src/29-federated-grants.md:114
+#: src/29-federated-grants.md:157
 msgid "`assertionRefreshSecs`"
 msgstr ""
 
-#: src/29-federated-grants.md:114
+#: src/29-federated-grants.md:157
 msgid ""
 "Age after which a stored assertion is refreshed (below `assertionTtlSecs`)"
 msgstr ""
 
-#: src/29-federated-grants.md:115
+#: src/29-federated-grants.md:158
 msgid "`peerTimeoutMs`"
 msgstr ""
 
-#: src/29-federated-grants.md:115
+#: src/29-federated-grants.md:158
 msgid "Bound of one call to a peer"
 msgstr ""
 
-#: src/29-federated-grants.md:116
+#: src/29-federated-grants.md:159
 msgid "`resolveDeadlineMs`"
 msgstr ""
 
-#: src/29-federated-grants.md:116
+#: src/29-federated-grants.md:159
 msgid "Bound of a whole resolution"
 msgstr ""
 
-#: src/29-federated-grants.md:117
+#: src/29-federated-grants.md:160
 msgid "`mayAssert`"
 msgstr ""
 
-#: src/29-federated-grants.md:117
+#: src/29-federated-grants.md:160
 msgid "Whether the peer's assertions are accepted (default: no)"
 msgstr ""
 
@@ -13002,6 +13115,20 @@ msgstr ""
 "a primeira requisição (geralmente mais `resolved`) vs. requisições "
 "posteriores (geralmente mais `from_cache`)."
 
+#~ msgid "If you are not using Python, decode `x-mycelium-profile` manually:"
+#~ msgstr ""
+#~ "Se você não está usando Python, decodifique `x-mycelium-profile` "
+#~ "manualmente:"
+
+#~ msgid ""
+#~ "The resulting JSON has the same structure as the Rust `Profile` struct: "
+#~ "`acc_id`, `email`, `tenants` (array of tenant memberships with roles and "
+#~ "accounts)."
+#~ msgstr ""
+#~ "O JSON resultante tem a mesma estrutura que a struct `Profile` do Rust: "
+#~ "`acc_id`, `email`, `tenants` (array de associações de tenant com papéis e "
+#~ "contas)."
+
 #~ msgid ""
 #~ "URL of the gateway JWKS, for example `https://gateway.internal/.well-"
 #~ "known/mycelium-profile-jwks.json`. Setting it enables verification"
@@ -13195,20 +13322,6 @@ msgstr ""
 #~ msgid "\"$(cat profile-signing-v1.pub.pem)\""
 #~ msgstr "\"$(cat profile-signing-v1.pub.pem)\""
 
-#~ msgid "If you are not using Python, decode `x-mycelium-profile` manually:"
-#~ msgstr ""
-#~ "Se você não está usando Python, decodifique `x-mycelium-profile` "
-#~ "manualmente:"
-
-#~ msgid ""
-#~ "The resulting JSON has the same structure as the Rust `Profile` struct: "
-#~ "`acc_id`, `email`, `tenants` (array of tenant memberships with roles and "
-#~ "accounts)."
-#~ msgstr ""
-#~ "O JSON resultante tem a mesma estrutura que a struct `Profile` do Rust: "
-#~ "`acc_id`, `email`, `tenants` (array de associações de tenant com papéis e "
-#~ "contas)."
-
 #~ msgid ""
 #~ "Mycelium follows [Semantic Versioning](https://semver.org/) and uses "
 #~ "automated tools to manage releases:"
@@ -13296,9 +13409,6 @@ msgstr ""
 
 #~ msgid "Ready for production testing"
 #~ msgstr "Pronto para testes em produção"
-
-#~ msgid "Last chance to catch issues"
-#~ msgstr "Última chance de encontrar problemas"
 
 #~ msgid "**Creating release candidates**:"
 #~ msgstr "**Criando release candidates**:"

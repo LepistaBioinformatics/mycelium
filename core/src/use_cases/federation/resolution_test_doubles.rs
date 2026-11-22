@@ -44,6 +44,8 @@ pub(crate) struct Mesh {
     pub(crate) claims: Mutex<HashMap<Uuid, Uuid>>,
     pub(crate) failures: Mutex<Vec<Uuid>>,
     pub(crate) audited: Mutex<Vec<NewResourceAuditLogEvent>>,
+    /// Links whose tombstone supersedes any assertion stored now
+    pub(crate) superseded: Mutex<Vec<Uuid>>,
 }
 
 #[async_trait]
@@ -93,9 +95,13 @@ impl AssertionStoreWrite for Mesh {
     async fn store(
         &self,
         assertion: StoredAssertion,
-    ) -> Result<(), MappedErrors> {
+    ) -> Result<bool, MappedErrors> {
+        if self.superseded.lock().unwrap().contains(&assertion.link_id) {
+            return Ok(false);
+        }
+
         self.stored.lock().unwrap().push(assertion);
-        Ok(())
+        Ok(true)
     }
 
     async fn forget(&self, link_id: Uuid) -> Result<(), MappedErrors> {
@@ -108,6 +114,20 @@ impl AssertionStoreWrite for Mesh {
 
     async fn purge_expired(&self) -> Result<u64, MappedErrors> {
         Ok(0)
+    }
+
+    async fn forget_peer(&self, peer_id: Uuid) -> Result<u64, MappedErrors> {
+        let mut stored = self.stored.lock().unwrap();
+        let before = stored.len();
+        stored.retain(|assertion| assertion.peer_id != peer_id);
+        Ok((before - stored.len()) as u64)
+    }
+
+    async fn forget_all(&self) -> Result<u64, MappedErrors> {
+        let mut stored = self.stored.lock().unwrap();
+        let before = stored.len();
+        stored.clear();
+        Ok(before as u64)
     }
 }
 

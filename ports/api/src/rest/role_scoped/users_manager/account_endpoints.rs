@@ -1,6 +1,7 @@
 use crate::dtos::MyceliumProfileData;
 
 use crate::models::active_backend_modules::SqlAppModule;
+use crate::revoke_federated_access::FederatedAccessRevocation;
 use actix_web::{patch, web, Responder};
 use myc_core::use_cases::role_scoped::users_manager::account::{
     change_account_activation_status, change_account_approval_status,
@@ -140,6 +141,12 @@ pub async fn disapprove_account_url(
     profile: MyceliumProfileData,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
+    let revocation = FederatedAccessRevocation::of_account(
+        app_module.get_ref(),
+        path.to_owned(),
+    )
+    .await;
+
     match change_account_approval_status(
         profile.to_profile(),
         path.to_owned(),
@@ -150,7 +157,10 @@ pub async fn disapprove_account_url(
     )
     .await
     {
-        Ok(res) => updating_response_kind(res),
+        Ok(res) => {
+            revocation.queue(app_module.get_ref()).await;
+            updating_response_kind(res)
+        }
         Err(err) => handle_mapped_error(err),
     }
 }
@@ -258,6 +268,12 @@ pub async fn deactivate_account_url(
     profile: MyceliumProfileData,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
+    let revocation = FederatedAccessRevocation::of_account(
+        app_module.get_ref(),
+        path.to_owned(),
+    )
+    .await;
+
     match change_account_activation_status(
         profile.to_profile(),
         path.to_owned(),
@@ -268,7 +284,10 @@ pub async fn deactivate_account_url(
     )
     .await
     {
-        Ok(res) => updating_response_kind(res),
+        Ok(res) => {
+            revocation.queue(app_module.get_ref()).await;
+            updating_response_kind(res)
+        }
         Err(err) => handle_mapped_error(err),
     }
 }
@@ -316,6 +335,12 @@ pub async fn archive_account_url(
     profile: MyceliumProfileData,
     app_module: web::Data<SqlAppModule>,
 ) -> impl Responder {
+    let revocation = FederatedAccessRevocation::of_account(
+        app_module.get_ref(),
+        path.to_owned(),
+    )
+    .await;
+
     match change_account_archival_status(
         profile.to_profile(),
         path.to_owned(),
@@ -326,7 +351,10 @@ pub async fn archive_account_url(
     )
     .await
     {
-        Ok(res) => updating_response_kind(res),
+        Ok(res) => {
+            revocation.queue(app_module.get_ref()).await;
+            updating_response_kind(res)
+        }
         Err(err) => handle_mapped_error(err),
     }
 }

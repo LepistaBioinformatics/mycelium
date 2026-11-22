@@ -50,6 +50,7 @@ pub(crate) async fn answer_resolution(
         asked.subject_ref.clone(),
         Box::new(sql_module.resolve_ref()),
         Box::new(sql_module.resolve_ref()),
+        Box::new(sql_module.resolve_ref()),
     )
     .await
     .and_then(|payload| sign(prepared, &request.peer, &asked, payload));

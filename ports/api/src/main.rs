@@ -12,6 +12,7 @@ mod openapi_processor;
 mod otel;
 mod profile_signing;
 mod rest;
+mod revoke_federated_access;
 mod router;
 mod rpc;
 pub(crate) mod settings;
@@ -76,13 +77,15 @@ use dispatchers::{
 };
 #[cfg(feature = "federation")]
 use dispatchers::{
-    spawn_federation_dispatcher, AssertionPurge, FederationDispatcher,
-    FederationRoundPorts, LinkConsentPurge, LinkRequestPurge,
-    RequestNoncePurge,
+    forget_stored_assertions, spawn_federation_dispatcher, AssertionPurge,
+    FailedRevocationPurge, FederationDispatcher, FederationRoundPorts,
+    LinkConsentPurge, LinkRequestPurge, RequestNoncePurge, RevocationRound,
+    TombstonePurge,
 };
 #[cfg(feature = "federation")]
 use federation::{
     build_peer_client, describe_this_instance, prepare_federation,
+    SignedPeerPoster, SignedPeerTombstoneSender,
 };
 use middleware::{log_served_request, StaffBootstrapClaimed};
 use models::active_backend_modules::{KVAppModule, SqlAppModule};
@@ -100,6 +103,8 @@ use myc_config::optional_config::OptionalConfig;
 use myc_config::resolve_or_generate_standalone_secret;
 #[cfg(feature = "standalone")]
 use myc_config::secret_resolver::SecretResolver;
+#[cfg(feature = "federation")]
+use myc_core::domain::entities::AssertionStoreWrite;
 #[cfg(feature = "federation")]
 use myc_core::domain::entities::GuestRoleFetching;
 #[cfg(feature = "federation")]
@@ -598,6 +603,21 @@ pub async fn main() -> std::io::Result<()> {
         .await;
 
     // ? -----------------------------------------------------------------------
+    // ? DROP STORED ASSERTIONS BEFORE SERVING
+    //
+    // This instance cannot know which tombstones it missed while it was down:
+    // every federated grant is asked again before it is served (FED-24).
+    //
+    // ? -----------------------------------------------------------------------
+    #[cfg(feature = "federation")]
+    if federation.is_some() {
+        forget_stored_assertions(
+            sql_module.resolve_ref() as &dyn AssertionStoreWrite
+        )
+        .await;
+    }
+
+    // ? -----------------------------------------------------------------------
     // ? FIRE THE FEDERATION DISPATCHER
     //
     // Periodic peer health rounds (re-handshake, key refresh, circuit breaker,
@@ -612,6 +632,13 @@ pub async fn main() -> std::io::Result<()> {
         .map(|(prepared, peer_client)| {
             info!("Fire federation dispatcher");
 
+            let sender = Arc::new(SignedPeerTombstoneSender {
+                poster: SignedPeerPoster {
+                    prepared: prepared.clone(),
+                    peer_client: peer_client.clone(),
+                },
+            });
+
             spawn_federation_dispatcher(
                 FederationRoundPorts {
                     peer_read: sql_module.resolve(),
@@ -621,9 +648,17 @@ pub async fn main() -> std::io::Result<()> {
                         Arc::new(LinkRequestPurge(sql_module.resolve())),
                         Arc::new(LinkConsentPurge(sql_module.resolve())),
                         Arc::new(AssertionPurge(sql_module.resolve())),
+                        Arc::new(TombstonePurge(sql_module.resolve())),
+                        Arc::new(FailedRevocationPurge(sql_module.resolve())),
                     ],
                     settings: sql_module.resolve(),
                     peer_client,
+                },
+                RevocationRound {
+                    outbox: sql_module.resolve(),
+                    peers: sql_module.resolve(),
+                    sender,
+                    settings: sql_module.resolve(),
                 },
                 describe_this_instance(prepared, false).assertion_kinds,
                 prepared.config.max_failures_before_open,

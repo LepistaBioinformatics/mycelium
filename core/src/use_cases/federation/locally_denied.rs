@@ -1,4 +1,4 @@
-use crate::domain::dtos::profile::Profile;
+use crate::domain::dtos::{federation::SubjectStanding, profile::Profile};
 
 /// Why the local profile must gain nothing from federation, if it must not
 /// (FED-19)
@@ -8,17 +8,7 @@ use crate::domain::dtos::profile::Profile;
 /// grant whatever its peers assert.
 ///
 pub fn locally_denied(profile: &Profile) -> Option<String> {
-    let denials = [
-        (!profile.owner_is_active, "the account owner is inactive"),
-        (!profile.account_is_active, "the account is inactive"),
-        (profile.account_was_archived, "the account is archived"),
-        (profile.account_was_deleted, "the account is deleted"),
-    ];
-
-    denials
-        .into_iter()
-        .find(|(denied, _)| *denied)
-        .map(|(_, reason)| reason.to_string())
+    SubjectStanding::from(profile).denial()
 }
 
 #[cfg(test)]
