@@ -1,22 +1,31 @@
 use super::{
-    read_jws_segments::decode_claims, verify_typed_jws::verify_typed_jws,
-    AssertionClaims, ExpectedAssertion, PeerRequestRejection, ASSERTION_TYP,
+    assertion_claims::AssertionKindOnly, read_jws_segments::decode_claims,
+    verify_typed_jws::verify_typed_jws, AssertionClaims, ExpectedAssertion,
+    PeerRequestRejection, ASSERTION_TYP,
 };
 
 use myc_core::domain::dtos::federation::PeerKey;
+use serde::de::DeserializeOwned;
 
 /// Verify a peer's assertion against its stored keys (FED-14)
 ///
 /// Algorithm pinned to EdDSA, `typ` to `ASSERTION_TYP`; the issuer, the
-/// audience, the subject and the lifetime must be the expected ones.
+/// audience, the subject and the lifetime must be the expected ones. The
+/// envelope knows nothing of the payload (FED-38): the expected kind is read
+/// first, and another kind is `UnknownKind`, for the caller to ignore
+/// (FED-41).
 ///
-pub fn verify_assertion(
+pub fn verify_assertion<P: DeserializeOwned>(
     jws: &str,
     keys: &[PeerKey],
     expected: &ExpectedAssertion,
-) -> Result<AssertionClaims, PeerRequestRejection> {
+) -> Result<AssertionClaims<P>, PeerRequestRejection> {
     let (_, payload) = verify_typed_jws(jws, keys, ASSERTION_TYP)?;
-    let claims: AssertionClaims = decode_claims(payload)?;
+    let found: AssertionKindOnly = decode_claims(payload)?;
+    if found.kind != expected.kind {
+        return Err(PeerRequestRejection::UnknownKind(found.kind));
+    }
+    let claims: AssertionClaims<P> = decode_claims(payload)?;
 
     check_binding(&claims, expected)?;
     check_lifetime(&claims, expected)?;
@@ -24,8 +33,8 @@ pub fn verify_assertion(
     Ok(claims)
 }
 
-fn check_binding(
-    claims: &AssertionClaims,
+fn check_binding<P>(
+    claims: &AssertionClaims<P>,
     expected: &ExpectedAssertion,
 ) -> Result<(), PeerRequestRejection> {
     if claims.aud != expected.audience {
@@ -38,8 +47,8 @@ fn check_binding(
     Ok(())
 }
 
-fn check_lifetime(
-    claims: &AssertionClaims,
+fn check_lifetime<P>(
+    claims: &AssertionClaims<P>,
     expected: &ExpectedAssertion,
 ) -> Result<(), PeerRequestRejection> {
     if claims.exp <= claims.iat {
@@ -115,6 +124,7 @@ mod tests {
             issuer: issuer(),
             audience: consumer(),
             subject: "subject-ref-01".to_string(),
+            kind: "profile.v1".to_string(),
             now,
             tolerance_secs: 30,
         }
@@ -123,7 +133,12 @@ mod tests {
     fn refusal(claims: &AssertionClaims, now: u64) -> PeerRequestRejection {
         let signer = signer(b"test-only-secret");
         let jws = sign_assertion(&signer, claims).unwrap();
-        verify_assertion(&jws, &keys_of(&signer), &expected(now)).unwrap_err()
+        verify_assertion::<ProfileAssertion>(
+            &jws,
+            &keys_of(&signer),
+            &expected(now),
+        )
+        .unwrap_err()
     }
 
     #[test]
@@ -131,7 +146,7 @@ mod tests {
         let signer = signer(b"test-only-secret");
         let jws = sign_assertion(&signer, &claims()).unwrap();
 
-        let verified =
+        let verified: AssertionClaims =
             verify_assertion(&jws, &keys_of(&signer), &expected(NOW)).unwrap();
 
         assert_eq!(verified, claims());
@@ -186,12 +201,47 @@ mod tests {
         let stranger = keys_of(&self::signer(b"another-secret"));
 
         assert_eq!(
-            verify_assertion(&state_jws, &keys_of(&signer), &expected(NOW)),
+            verify_assertion::<ProfileAssertion>(
+                &state_jws,
+                &keys_of(&signer),
+                &expected(NOW)
+            ),
             Err(PeerRequestRejection::WrongType)
         );
         assert_eq!(
-            verify_assertion(&jws, &stranger, &expected(NOW)),
+            verify_assertion::<ProfileAssertion>(
+                &jws,
+                &stranger,
+                &expected(NOW)
+            ),
             Err(PeerRequestRejection::BadSignature)
+        );
+    }
+
+    #[test]
+    fn another_kind_is_recognized_as_such_not_as_malformed() {
+        let signer = signer(b"test-only-secret");
+        let other = AssertionClaims {
+            kind: "tenant-directory.v1".to_string(),
+            payload: serde_json::json!({ "tenants": [] }),
+            iss: issuer(),
+            aud: consumer(),
+            sub: "subject-ref-01".to_string(),
+            iat: NOW,
+            exp: NOW + 60,
+            jti: Uuid::from_u128(8),
+        };
+        let jws = sign_assertion(&signer, &other).unwrap();
+
+        assert_eq!(
+            verify_assertion::<ProfileAssertion>(
+                &jws,
+                &keys_of(&signer),
+                &expected(NOW)
+            ),
+            Err(PeerRequestRejection::UnknownKind(
+                "tenant-directory.v1".to_string()
+            ))
         );
     }
 }

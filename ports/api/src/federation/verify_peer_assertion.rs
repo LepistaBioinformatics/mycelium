@@ -12,6 +12,7 @@ use myc_http_tools::federation::{
     verify_assertion, AssertionClaims, ExpectedAssertion, PeerRequestRejection,
 };
 use mycelium_base::utils::errors::MappedErrors;
+use serde::de::DeserializeOwned;
 use std::{sync::Arc, time::Duration};
 
 /// Least time between two key refreshes an assertion can trigger for a peer
@@ -26,16 +27,17 @@ pub(crate) struct AssertionVerifier {
 }
 
 impl AssertionVerifier {
-    /// Verify with the stored keys; an unknown `kid` refreshes them once,
-    /// at most every `KEY_REFRESH_COOL_DOWN` (FED-14)
-    pub(crate) async fn verify(
+    /// Verify an assertion of `kind` with the stored keys; an unknown `kid`
+    /// refreshes them once, at most every `KEY_REFRESH_COOL_DOWN` (FED-14)
+    pub(crate) async fn verify<P: DeserializeOwned>(
         &self,
         peer: &FederationPeer,
         jws: &str,
         subject: &str,
-    ) -> Result<Result<AssertionClaims, PeerRequestRejection>, MappedErrors>
+        kind: &str,
+    ) -> Result<Result<AssertionClaims<P>, PeerRequestRejection>, MappedErrors>
     {
-        let expected = self.expected(peer, subject);
+        let expected = self.expected(peer, subject, kind);
         let keys = self.peer_read.list_keys(peer.id).await?;
 
         match verify_assertion(jws, &keys, &expected) {
@@ -54,11 +56,13 @@ impl AssertionVerifier {
         &self,
         peer: &FederationPeer,
         subject: &str,
+        kind: &str,
     ) -> ExpectedAssertion {
         ExpectedAssertion {
             issuer: peer.instance_id,
             audience: self.prepared.instance_id,
             subject: subject.to_string(),
+            kind: kind.to_string(),
             now: Utc::now().timestamp().max(0) as u64,
             tolerance_secs: self.prepared.config.request_tolerance_secs,
         }

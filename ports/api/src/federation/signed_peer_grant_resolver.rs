@@ -5,12 +5,13 @@ use chrono::{DateTime, Local};
 use myc_core::domain::{
     dtos::federation::{
         FederationPeer, PeerGrantAnswer, ResolutionAnswer, ResolutionRequest,
-        SubjectRef, VerifiedAssertion,
+        SubjectRef, VerifiedAssertion, PROFILE_ASSERTION_KIND,
     },
     entities::PeerGrantResolver,
 };
 use myc_http_tools::{
-    federation::AssertionClaims, settings::FEDERATION_RESOLVE_PATH,
+    federation::{AssertionClaims, PeerRequestRejection},
+    settings::FEDERATION_RESOLVE_PATH,
 };
 use mycelium_base::utils::errors::MappedErrors;
 
@@ -48,11 +49,15 @@ impl PeerGrantResolver for SignedPeerGrantResolver {
 
         let verified = self
             .verifier
-            .verify(peer, &jws, subject_ref.as_str())
+            .verify(peer, &jws, subject_ref.as_str(), PROFILE_ASSERTION_KIND)
             .await?;
 
         Ok(match verified {
             Ok(claims) => PeerGrantAnswer::Verified(verified_of(jws, claims)),
+            Err(PeerRequestRejection::UnknownKind(kind)) => {
+                tracing::warn!(%kind, peer = %peer.instance_id, "assertion of another kind ignored");
+                PeerGrantAnswer::Unknown
+            }
             Err(rejection) => PeerGrantAnswer::Invalid(rejection.to_string()),
         })
     }

@@ -75,6 +75,9 @@ pub const FEDERATION_TOMBSTONE_PATH: &str = "/federation/tombstone";
 /// Where a peer asks this instance for a linked subject's grants (FED-11)
 pub const FEDERATION_RESOLVE_PATH: &str = "/federation/resolve";
 
+/// Where a peer asks this instance for its guest-role vocabulary (FED-40)
+pub const FEDERATION_VOCABULARY_PATH: &str = "/federation/vocabulary";
+
 /// Upper bound of a peer response body read by the federation client
 pub const PEER_RESPONSE_MAX_BYTES: usize = 64 * 1024;
 

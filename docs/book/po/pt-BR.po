@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-11-22T13:22:01-03:00\n"
+"POT-Creation-Date: 2026-11-22T14:05:44-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -5020,7 +5020,7 @@ msgid "Variable"
 msgstr "Variável"
 
 #: src/27-downstream-profile-signature.md:140 src/28-identity-linking.md:91
-#: src/29-federated-grants.md:42 src/29-federated-grants.md:224
+#: src/29-federated-grants.md:42 src/29-federated-grants.md:246
 #: src/17-error-codes.md:44 src/14-json-rpc.md:371
 #: src/22-hmac-key-rotation.md:122
 msgid "Meaning"
@@ -5843,7 +5843,7 @@ msgid "Either side may revoke, through the API only:"
 msgstr ""
 
 #: src/28-identity-linking.md:63 src/29-federated-grants.md:131
-#: src/29-federated-grants.md:215 src/14-json-rpc.md:64 src/14-json-rpc.md:80
+#: src/29-federated-grants.md:237 src/14-json-rpc.md:64 src/14-json-rpc.md:80
 #: src/14-json-rpc.md:92 src/14-json-rpc.md:106 src/14-json-rpc.md:115
 #: src/14-json-rpc.md:121 src/14-json-rpc.md:127 src/14-json-rpc.md:133
 #: src/14-json-rpc.md:143 src/14-json-rpc.md:151 src/14-json-rpc.md:169
@@ -5857,7 +5857,7 @@ msgid "Method"
 msgstr "Método"
 
 #: src/28-identity-linking.md:63 src/29-federated-grants.md:131
-#: src/29-federated-grants.md:215
+#: src/29-federated-grants.md:237
 msgid "Who"
 msgstr ""
 
@@ -5918,15 +5918,15 @@ msgid ""
 "grants."
 msgstr ""
 
-#: src/28-identity-linking.md:89 src/29-federated-grants.md:222
+#: src/28-identity-linking.md:89 src/29-federated-grants.md:244
 msgid "Settings"
 msgstr ""
 
-#: src/28-identity-linking.md:91 src/29-federated-grants.md:224
+#: src/28-identity-linking.md:91 src/29-federated-grants.md:246
 msgid "Setting"
 msgstr ""
 
-#: src/28-identity-linking.md:91 src/29-federated-grants.md:224
+#: src/28-identity-linking.md:91 src/29-federated-grants.md:246
 msgid "Where"
 msgstr ""
 
@@ -5934,9 +5934,9 @@ msgstr ""
 msgid "`linkRequestTtlSecs`"
 msgstr ""
 
-#: src/28-identity-linking.md:93 src/29-federated-grants.md:226
-#: src/29-federated-grants.md:227 src/29-federated-grants.md:228
-#: src/29-federated-grants.md:229
+#: src/28-identity-linking.md:93 src/29-federated-grants.md:248
+#: src/29-federated-grants.md:249 src/29-federated-grants.md:250
+#: src/29-federated-grants.md:251
 msgid "`[core.federation]`"
 msgstr ""
 
@@ -5948,7 +5948,7 @@ msgstr ""
 msgid "`allowDifferentEmails`"
 msgstr ""
 
-#: src/28-identity-linking.md:94 src/29-federated-grants.md:230
+#: src/28-identity-linking.md:94 src/29-federated-grants.md:252
 msgid "Peer policy"
 msgstr ""
 
@@ -6472,69 +6472,135 @@ msgid ""
 msgstr ""
 
 #: src/29-federated-grants.md:213
+msgid "Assertion kinds"
+msgstr ""
+
+#: src/29-federated-grants.md:215
+msgid ""
+"Every assertion shares one envelope: issuer, audience, subject, lifetime, "
+"key id and signature, verified the same way whatever it carries. Only its "
+"`kind` and payload differ. Each instance lists the kinds it supports in its "
+"self-description (`assertionKinds`), and a handshake keeps the ones both "
+"sides support. A peer is never asked for a kind it did not negotiate, and an "
+"assertion of a kind other than the one asked for is ignored with a log line, "
+"never treated as an error. A peer that upgrades first therefore does not "
+"break one that upgrades later."
+msgstr ""
+
+#: src/29-federated-grants.md:224
+msgid "Kind"
+msgstr ""
+
+#: src/29-federated-grants.md:224
+msgid "Subject"
+msgstr ""
+
+#: src/29-federated-grants.md:224
+msgid "Carries"
+msgstr ""
+
+#: src/29-federated-grants.md:226
+#, fuzzy
+msgid "`profile.v1`"
+msgstr "`invalid_profile`"
+
+#: src/29-federated-grants.md:226
+msgid "The linked user's opaque reference"
+msgstr ""
+
+#: src/29-federated-grants.md:226
+#, fuzzy
+msgid "The user's grants on the issuer"
+msgstr "Última chance de encontrar problemas"
+
+#: src/29-federated-grants.md:227
+msgid "`guest-role-vocabulary.v1`"
+msgstr ""
+
+#: src/29-federated-grants.md:227
+#, fuzzy
+msgid "The issuer itself"
+msgstr "O que o cabeçalho contém"
+
+#: src/29-federated-grants.md:227
+msgid ""
+"The issuer's guest roles (slug, name, permission, children; no tenant or "
+"account id)"
+msgstr ""
+
+#: src/29-federated-grants.md:229
+msgid ""
+"The vocabulary helps operators write translation rules: staff call "
+"`federation.peers.roles` with the peer's `instanceId` and get the peer's "
+"roles, verified (`verified`), or `unknown` when the kind is not negotiated "
+"or the peer's role catalog is `off`. It is fetched on demand and never "
+"stored."
+msgstr ""
+
+#: src/29-federated-grants.md:235
 msgid "Inspecting"
 msgstr ""
 
-#: src/29-federated-grants.md:217
+#: src/29-federated-grants.md:239
 msgid "`beginners.federation.resolveGrants`"
 msgstr ""
 
-#: src/29-federated-grants.md:217
+#: src/29-federated-grants.md:239
 msgid "The linked user, own grants only"
 msgstr ""
 
-#: src/29-federated-grants.md:218
+#: src/29-federated-grants.md:240
 msgid "`federation.assertions.list`"
 msgstr ""
 
-#: src/29-federated-grants.md:218
+#: src/29-federated-grants.md:240
 msgid "Staff: every stored, unexpired assertion"
 msgstr ""
 
-#: src/29-federated-grants.md:220
+#: src/29-federated-grants.md:242
 msgid "Expired assertions are purged by the federation dispatcher."
 msgstr ""
 
-#: src/29-federated-grants.md:226
+#: src/29-federated-grants.md:248
 msgid "`assertionTtlSecs`"
 msgstr ""
 
-#: src/29-federated-grants.md:226
+#: src/29-federated-grants.md:248
 msgid ""
 "Lifetime of the assertions this instance issues, and the longest it keeps "
 "one it receives"
 msgstr ""
 
-#: src/29-federated-grants.md:227
+#: src/29-federated-grants.md:249
 msgid "`assertionRefreshSecs`"
 msgstr ""
 
-#: src/29-federated-grants.md:227
+#: src/29-federated-grants.md:249
 msgid ""
 "Age after which a stored assertion is refreshed (below `assertionTtlSecs`)"
 msgstr ""
 
-#: src/29-federated-grants.md:228
+#: src/29-federated-grants.md:250
 msgid "`peerTimeoutMs`"
 msgstr ""
 
-#: src/29-federated-grants.md:228
+#: src/29-federated-grants.md:250
 msgid "Bound of one call to a peer"
 msgstr ""
 
-#: src/29-federated-grants.md:229
+#: src/29-federated-grants.md:251
 msgid "`resolveDeadlineMs`"
 msgstr ""
 
-#: src/29-federated-grants.md:229
+#: src/29-federated-grants.md:251
 msgid "Bound of a whole resolution"
 msgstr ""
 
-#: src/29-federated-grants.md:230
+#: src/29-federated-grants.md:252
 msgid "`mayAssert`"
 msgstr ""
 
-#: src/29-federated-grants.md:230
+#: src/29-federated-grants.md:252
 msgid "Whether the peer's assertions are accepted (default: no)"
 msgstr ""
 

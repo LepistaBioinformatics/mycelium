@@ -210,6 +210,28 @@ Each call to a peer is recorded in the resource audit log
 (`federationResolution`), with its outcome and reason; reads from the store
 are not.
 
+## Assertion kinds
+
+Every assertion shares one envelope: issuer, audience, subject, lifetime,
+key id and signature, verified the same way whatever it carries. Only its
+`kind` and payload differ. Each instance lists the kinds it supports in its
+self-description (`assertionKinds`), and a handshake keeps the ones both
+sides support. A peer is never asked for a kind it did not negotiate, and an
+assertion of a kind other than the one asked for is ignored with a log line,
+never treated as an error. A peer that upgrades first therefore does not
+break one that upgrades later.
+
+| Kind | Subject | Carries |
+|---|---|---|
+| `profile.v1` | The linked user's opaque reference | The user's grants on the issuer |
+| `guest-role-vocabulary.v1` | The issuer itself | The issuer's guest roles (slug, name, permission, children; no tenant or account id) |
+
+The vocabulary helps operators write translation rules: staff call
+`federation.peers.roles` with the peer's `instanceId` and get the peer's
+roles, verified (`verified`), or `unknown` when the kind is not negotiated
+or the peer's role catalog is `off`. It is fetched on demand and never
+stored.
+
 ## Inspecting
 
 | Method | Who |

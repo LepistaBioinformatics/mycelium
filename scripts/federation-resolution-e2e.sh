@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
 # Instance federation, phases F3 (resolution), F4 (degradation), F5
-# (revocation), F6 (profile) and F6b (translation): end to end.
+# (revocation), F6 (profile), F6b (translation) and F8 (a second assertion
+# kind): end to end.
 #
 # Two postgres-only gateways, A (issuer) and B (consumer), declared to each
 # other and active, B accepting A's assertions (`--may-assert`). user-01 has
@@ -30,7 +31,9 @@
 #      local account, on the next request and without writing guest rows;
 #      disabled it yields nothing; a system-account target is refused; a
 #      tombstone removes the translated grant with the raw one;
-#  10. with A stopped, an unexpired stored assertion is served as stale, and
+#  10. B reads A's guest-role vocabulary, a second assertion kind
+#      (`guest-role-vocabulary.v1`), verified; with A's catalog off, nothing;
+#  11. with A stopped, an unexpired stored assertion is served as stale, and
 #      an expired one contributes nothing: the result is partial, never an
 #      error.
 #
@@ -345,7 +348,19 @@ expect "the tombstone removes the translated grant too" 0 "$(local_grants_on "$L
 TENANT_A="$(seed_grant fed_a user-01@example.com -4)"
 sleep 1.1
 
-log "10. with A stopped, stale within the lifetime and nothing after it"
+log "10. B reads A's guest-role vocabulary, a second assertion kind"
+expect "the kind is negotiated" t \
+    "$(sql fed_b "select negotiated_kinds ? 'guest-role-vocabulary.v1' from federation_peer where instance_id = '$ID_A'")"
+VOCABULARY="$(rpc "$BASE_B" "$TOKEN_B" federation.peers.roles "{\"instanceId\":\"$ID_A\"}")"
+expect "A's vocabulary is verified" verified "$(field result.outcome <<<"$VOCABULARY")"
+expect "it carries A's reader role" 1 \
+    "$(field result.roles <<<"$VOCABULARY" | grep -o "'slug': 'reader'" | wc -l | tr -d ' ')"
+sql fed_a "insert into instance_settings (key, value) values ('federation.roleCatalog', '\"off\"')" >/dev/null
+expect "with A's catalog off, nothing" unknown \
+    "$(rpc "$BASE_B" "$TOKEN_B" federation.peers.roles "{\"instanceId\":\"$ID_A\"}" | field result.outcome)"
+sql fed_a "delete from instance_settings where key = 'federation.roleCatalog'" >/dev/null
+
+log "11. with A stopped, stale within the lifetime and nothing after it"
 forget_assertions
 expect "A answers while up" answered "$(resolve "$TOKEN_B" | field result.peers.0.resolution.outcome)"
 age_assertions 40
