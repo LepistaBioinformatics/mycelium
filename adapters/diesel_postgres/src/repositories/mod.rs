@@ -80,6 +80,7 @@ module! {
             HostedLoginSessionUpdatingSqlDbRepository,
             InstanceSettingsFetchingSqlDbRepository,
             InstanceSettingsRegistrationSqlDbRepository,
+            InstanceSettingsUpdatingSqlDbRepository,
             ProfileFetchingSqlDbRepository,
             LicensedResourcesFetchingSqlDbRepository,
             LocalMessageReadSqlDbRepository,

@@ -7,8 +7,8 @@ use myc_core::{
     models::AccountLifeCycle,
 };
 use myc_http_tools::models::{
-    Ed25519PublicJwk, ProfileSigningState, PublishedProfileKeys,
-    VersionedEd25519Signer,
+    Ed25519PublicJwk, KeyDerivationPurpose, ProfileSigningState,
+    PublishedProfileKeys, VersionedEd25519Signer,
 };
 use mycelium_base::utils::errors::{execution_err, MappedErrors};
 use std::{sync::Arc, time::Duration};
@@ -94,7 +94,12 @@ fn derive_signer(
     };
 
     warn_when_secret_is_short(version, secret);
-    VersionedEd25519Signer::derive_from_secret(version, secret).map(Some)
+    VersionedEd25519Signer::derive_from_secret(
+        version,
+        secret,
+        KeyDerivationPurpose::ProfileSigning,
+    )
+    .map(Some)
 }
 
 fn announce_disabled(primary: u32) {

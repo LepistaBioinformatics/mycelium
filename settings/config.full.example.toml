@@ -205,6 +205,40 @@ secret = { vault = { path = "myc/core/accountLifeCycle", key = "hmacSecretV1" } 
 # visibilityTimeoutInSecs = 900
 
 # ------------------------------------------------------------------------------
+# INSTANCE FEDERATION (optional, requires the `federation` cargo feature)
+#
+# Present = this instance can federate with declared peers; absent = it does
+# not. Turning federation on or off at runtime is a separate switch stored in
+# the database. There is no key here: the federation signing key is derived
+# from `core.accountLifeCycle.hmacSecrets`, so `hmacPrimaryVersion` must not
+# be 0 while this section is present.
+# ------------------------------------------------------------------------------
+
+#[core.federation]
+#
+## Name shown to peers in the instance self-description.
+#displayName = "Instance 01"
+#
+## Canonical public base URL of this instance. Required.
+#baseUrl = "https://myc-01.example.com"
+#
+## Lifetime, in seconds, of an assertion issued to a peer.
+#assertionTtlSecs = 60
+#
+## Timeout of one call to a peer, and deadline of a whole resolution.
+#peerTimeoutMs = 800
+#resolveDeadlineMs = 1500
+#
+## Consecutive failures before a peer's circuit opens.
+#maxFailuresBeforeOpen = 5
+#
+## Lifetime, in seconds, of a single-use account-link URL.
+#linkRequestTtlSecs = 600
+#
+## Accepted clock skew, in seconds, on signed peer requests.
+#requestToleranceSecs = 30
+
+# ------------------------------------------------------------------------------
 # DOWNSTREAM SERVICE NOTIFICATIONS
 #
 # Lets a downstream service send emails through the gateway with a

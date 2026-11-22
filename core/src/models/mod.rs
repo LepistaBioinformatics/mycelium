@@ -1,5 +1,6 @@
 mod account_life_cycle_config;
 mod config;
+mod federation_config;
 mod hmac_secret_set;
 mod hosted_login_config;
 mod rendered_service_email;
@@ -10,6 +11,7 @@ mod webhook_config;
 
 pub use account_life_cycle_config::*;
 pub use config::*;
+pub use federation_config::*;
 pub use hmac_secret_set::*;
 pub use hosted_login_config::*;
 pub use rendered_service_email::*;

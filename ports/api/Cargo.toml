@@ -41,6 +41,11 @@ standalone = [
     "mycelium-config/standalone-secrets",
 ]
 
+# Instance federation (peer mesh between Mycelium instances). Opt-in, never in
+# `default`. Usable with `full` and `postgres-only`; refused with `standalone`
+# (federation tables live in Postgres only).
+federation = []
+
 rhai = ["dep:rhai"]
 
 # ? ----------------------------------------------------------------------------

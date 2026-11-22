@@ -58,17 +58,19 @@ impl VersionedEd25519Signer {
         Ok(signer)
     }
 
-    /// Derive the signing key of one version from a shared secret
+    /// Derive the signing key of one version and purpose from a shared secret
     ///
     /// Deterministic: every gateway replica holding the same secret derives
     /// the same key pair, so any replica signs and publishes the same JWKS.
-    /// The private key only ever exists in memory.
+    /// Each purpose derives an independent key from the same secret. The
+    /// private key only ever exists in memory.
     ///
     pub fn derive_from_secret(
         version: SigningKeyVersion,
         secret: &[u8],
+        purpose: KeyDerivationPurpose,
     ) -> Result<Self, MappedErrors> {
-        let seed = derive_seed(secret)
+        let seed = derive_seed(secret, purpose)
             .ok_or_else(|| invalid_key(version, "derivation"))?;
         let pair = Ed25519KeyPair::from_seed_unchecked(&seed)
             .map_err(|_| invalid_key(version, "public_key_derivation"))?;
@@ -117,13 +119,35 @@ impl VersionedEd25519Signer {
     }
 }
 
-/// Domain separation label of the profile signing key derivation
+/// What a derived Ed25519 key is for
 ///
-/// Part of the key: changing it changes every derived key. It keeps the
-/// derived Ed25519 key cryptographically independent from the HMAC use of
-/// the same secret.
+/// Each purpose has its own HKDF domain separation label. The label is part
+/// of the key: changing it changes every derived key. It keeps each derived
+/// key cryptographically independent from the others and from the HMAC use
+/// of the same secret.
 ///
-const DERIVATION_INFO: &[u8] = b"mycelium/profile-signing/ed25519/v1";
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum KeyDerivationPurpose {
+    /// Signs the downstream profile (`x-mycelium-profile-signature`)
+    ProfileSigning,
+
+    /// Signs instance federation assertions and peer requests
+    Federation,
+}
+
+impl KeyDerivationPurpose {
+    fn label(self) -> &'static [u8] {
+        match self {
+            Self::ProfileSigning => PROFILE_SIGNING_DERIVATION_LABEL,
+            Self::Federation => FEDERATION_DERIVATION_LABEL,
+        }
+    }
+}
+
+const PROFILE_SIGNING_DERIVATION_LABEL: &[u8] =
+    b"mycelium/profile-signing/ed25519/v1";
+
+const FEDERATION_DERIVATION_LABEL: &[u8] = b"mycelium/federation/ed25519/v1";
 
 /// PKCS#8 v1 prefix of an Ed25519 private key (RFC 8410); the seed follows
 const PKCS8_ED25519_PREFIX: [u8; 16] = [
@@ -131,13 +155,16 @@ const PKCS8_ED25519_PREFIX: [u8; 16] = [
     0x04, 0x22, 0x04, 0x20,
 ];
 
-/// HKDF-SHA256 of the secret, expanded to one Ed25519 seed
-fn derive_seed(secret: &[u8]) -> Option<[u8; ED25519_PUBLIC_KEY_BYTES]> {
+/// HKDF-SHA256 of the secret, expanded to one Ed25519 seed per purpose
+fn derive_seed(
+    secret: &[u8],
+    purpose: KeyDerivationPurpose,
+) -> Option<[u8; ED25519_PUBLIC_KEY_BYTES]> {
     let mut seed = [0u8; ED25519_PUBLIC_KEY_BYTES];
 
     Salt::new(HKDF_SHA256, &[])
         .extract(secret)
-        .expand(&[DERIVATION_INFO], HKDF_SHA256)
+        .expand(&[purpose.label()], HKDF_SHA256)
         .ok()?
         .fill(&mut seed)
         .ok()?;
@@ -260,10 +287,14 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
     #[test]
     fn derivation_is_deterministic_per_secret() {
         let derive = |secret: &[u8]| {
-            VersionedEd25519Signer::derive_from_secret(version(1), secret)
-                .unwrap()
-                .public_jwk()
-                .x()
+            VersionedEd25519Signer::derive_from_secret(
+                version(1),
+                secret,
+                KeyDerivationPurpose::ProfileSigning,
+            )
+            .unwrap()
+            .public_jwk()
+            .x()
         };
 
         assert_eq!(derive(b"shared-secret"), derive(b"shared-secret"));
@@ -277,6 +308,7 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
         let signer = VersionedEd25519Signer::derive_from_secret(
             version(3),
             b"shared-secret",
+            KeyDerivationPurpose::ProfileSigning,
         )
         .unwrap();
         let token = signer
@@ -290,5 +322,48 @@ MCowBQYDK2VwAyEA11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=
             verify(signature, message.as_bytes(), &key, Algorithm::EdDSA)
                 .unwrap()
         );
+    }
+
+    #[test]
+    fn each_purpose_derives_an_independent_key() {
+        use jsonwebtoken::{crypto::verify, Algorithm, DecodingKey};
+
+        let derive = |purpose| {
+            VersionedEd25519Signer::derive_from_secret(
+                version(1),
+                b"shared-secret",
+                purpose,
+            )
+            .unwrap()
+        };
+        let profile = derive(KeyDerivationPurpose::ProfileSigning);
+        let federation = derive(KeyDerivationPurpose::Federation);
+
+        assert_ne!(profile.public_jwk().x(), federation.public_jwk().x());
+
+        let token = federation
+            .sign_claims(&SelfTestClaims { self_test: true })
+            .unwrap();
+        let (message, signature) = token.rsplit_once('.').unwrap();
+        let profile_key =
+            DecodingKey::from_ed_components(&profile.public_jwk().x()).unwrap();
+        let federation_key =
+            DecodingKey::from_ed_components(&federation.public_jwk().x())
+                .unwrap();
+
+        assert!(!verify(
+            signature,
+            message.as_bytes(),
+            &profile_key,
+            Algorithm::EdDSA
+        )
+        .unwrap());
+        assert!(verify(
+            signature,
+            message.as_bytes(),
+            &federation_key,
+            Algorithm::EdDSA
+        )
+        .unwrap());
     }
 }
