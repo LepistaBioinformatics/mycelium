@@ -23,6 +23,7 @@
 - [Account Types and Roles](./15-account-types.md)
 - [Downstream APIs](./06-downstream-apis.md)
     - [Downstream Profile Signature](./27-downstream-profile-signature.md)
+- [Identity Linking Across Instances](./28-identity-linking.md)
 
 # Advanced Topics
 

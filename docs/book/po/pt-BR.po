@@ -2,7 +2,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Mycelium API Gateway Documentation\n"
-"POT-Creation-Date: 2026-11-20T23:05:23-03:00\n"
+"POT-Creation-Date: 2026-11-21T21:49:11-03:00\n"
 "PO-Revision-Date: \n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -87,71 +87,76 @@ msgstr "APIs Downstream"
 msgid "Downstream Profile Signature"
 msgstr "Assinatura de Profile Downstream"
 
-#: src/SUMMARY.md:27
+#: src/SUMMARY.md:26 src/28-identity-linking.md:1
+#, fuzzy
+msgid "Identity Linking Across Instances"
+msgstr "Vinculação de identidade vs. autenticação"
+
+#: src/SUMMARY.md:28
 msgid "Advanced Topics"
 msgstr "Tópicos Avançados"
 
-#: src/SUMMARY.md:29 src/10-alternative-idps.md:1
+#: src/SUMMARY.md:30 src/10-alternative-idps.md:1
 msgid "Alternative Identity Providers"
 msgstr "Provedores de Identidade Alternativos"
 
-#: src/SUMMARY.md:30 src/12-response-callbacks.md:1
+#: src/SUMMARY.md:31 src/12-response-callbacks.md:1
 msgid "Response Callbacks"
 msgstr "Callbacks de Resposta"
 
-#: src/SUMMARY.md:31 src/16-webhooks.md:1
+#: src/SUMMARY.md:32 src/16-webhooks.md:1
 msgid "Outbound Webhooks"
 msgstr "Webhooks de Saída"
 
-#: src/SUMMARY.md:32 src/17-error-codes.md:1
+#: src/SUMMARY.md:33 src/17-error-codes.md:1
 msgid "Error Codes"
 msgstr "Códigos de Erro"
 
-#: src/SUMMARY.md:33
+#: src/SUMMARY.md:34
 msgid "AI Agent Integration (MCP)"
 msgstr "Integração com Agentes de IA (MCP)"
 
-#: src/SUMMARY.md:34 src/14-json-rpc.md:1
+#: src/SUMMARY.md:35 src/14-json-rpc.md:1
 msgid "JSON-RPC Interface"
 msgstr "Interface JSON-RPC"
 
-#: src/SUMMARY.md:36
+#: src/SUMMARY.md:37
 msgid "Integrations"
 msgstr "Integrações"
 
-#: src/SUMMARY.md:38 src/19-sdk.md:1
+#: src/SUMMARY.md:39 src/19-sdk.md:1
 msgid "SDK Integration Guide"
 msgstr "Guia de Integração do SDK"
 
-#: src/SUMMARY.md:39 src/18-cli.md:1
+#: src/SUMMARY.md:40 src/18-cli.md:1
 msgid "CLI Reference"
 msgstr "Referência da CLI"
 
-#: src/SUMMARY.md:41
+#: src/SUMMARY.md:42
 msgid "Development"
 msgstr "Desenvolvimento"
 
-#: src/SUMMARY.md:43 src/20-encryption-inventory.md:1
+#: src/SUMMARY.md:44 src/20-encryption-inventory.md:1
 msgid "Encryption Inventory"
 msgstr ""
 
-#: src/SUMMARY.md:44 src/21-envelope-encryption-migration.md:1
+#: src/SUMMARY.md:45 src/21-envelope-encryption-migration.md:1
 msgid "Envelope Encryption Migration Guide"
 msgstr ""
 
-#: src/SUMMARY.md:45 src/22-hmac-key-rotation.md:1
+#: src/SUMMARY.md:46 src/22-hmac-key-rotation.md:1
 msgid "HMAC Key Rotation"
 msgstr ""
 
-#: src/SUMMARY.md:46 src/07-running-tests.md:1
+#: src/SUMMARY.md:47 src/07-running-tests.md:1
 msgid "Running Tests"
 msgstr "Executando Testes"
 
-#: src/SUMMARY.md:47 src/08-release-process.md:1
+#: src/SUMMARY.md:48 src/08-release-process.md:1
 msgid "Release Process"
 msgstr "Processo de Lançamento"
 
-#: src/SUMMARY.md:48 src/09-log-cache-tests.md:1
+#: src/SUMMARY.md:49 src/09-log-cache-tests.md:1
 msgid "Log Tests for Cache and Identity Flow"
 msgstr "Testes de Log para Cache e Fluxo de Identidade"
 
@@ -5003,8 +5008,9 @@ msgstr ""
 msgid "Variable"
 msgstr "Variável"
 
-#: src/27-downstream-profile-signature.md:140 src/17-error-codes.md:44
-#: src/14-json-rpc.md:371 src/22-hmac-key-rotation.md:122
+#: src/27-downstream-profile-signature.md:140 src/28-identity-linking.md:91
+#: src/17-error-codes.md:44 src/14-json-rpc.md:371
+#: src/22-hmac-key-rotation.md:122
 msgid "Meaning"
 msgstr "Significado"
 
@@ -5725,6 +5731,213 @@ msgstr ""
 "200 licenças, HTTP keep-alive, concorrência 1/8/32 e três repetições. "
 "Compile as ferramentas antes de coletar amostras. Os resultados medem esse "
 "ambiente; não constituem um SLA."
+
+#: src/28-identity-linking.md:3
+msgid ""
+"Instance federation lets one Mycelium instance accept grants that another "
+"instance holds for the same person. The anchor of that trust is an "
+"**identity link**: an explicit, user-made link between an account on this "
+"instance (the _consumer_) and the person's account on a declared peer (the "
+"_issuer_). No grant flows between instances without one."
+msgstr ""
+
+#: src/28-identity-linking.md:9
+msgid ""
+"Requires a gateway built with the `federation` feature, a "
+"`[core.federation]` section, federation switched on at runtime "
+"(`federation.setEnabled`), and the issuer declared and `active` as a peer on "
+"the consumer (and the consumer on the issuer). Each gateway's own `baseUrl` "
+"must be listed in `api.allowedOrigins`: the linking pages post their forms "
+"to the gateway that served them, as the hosted login pages do."
+msgstr ""
+
+#: src/28-identity-linking.md:18
+msgid "How a link is made"
+msgstr ""
+
+#: src/28-identity-linking.md:20
+msgid ""
+"```text\n"
+"App on B        Gateway B (consumer)            Gateway A (issuer)\n"
+"   | beginners.federation.startLink\n"
+"   |-------------->|\n"
+"   |<-- initiation URL (single use, linkRequestTtlSecs)\n"
+"   | browser opens it\n"
+"   |               | page: \"link your account to A\"\n"
+"   |               |-- 303 /federation/link/authorize?state=<signed JWS> --"
+">|\n"
+"   |               |                    hosted login on A (email code)      "
+"|\n"
+"   |               |                    page: \"link a@x here to b@x on B?"
+"\"  |\n"
+"   |               |<-- POST /federation/link/confirm (signed) "
+"-------------|\n"
+"   |               |    both sides record the link                          "
+"|\n"
+"   |<------------- 303 back to B's /federation/link/done "
+"--------------------|\n"
+"```"
+msgstr ""
+
+#: src/28-identity-linking.md:35
+msgid ""
+"The user, signed in on B, calls `beginners.federation.listPeers` to see the "
+"active peers by name, then `beginners.federation.startLink` with the peer's "
+"`instanceId`. The answer carries a single-use **initiation URL**. Only the "
+"hash of its secret is stored."
+msgstr ""
+
+#: src/28-identity-linking.md:39
+msgid ""
+"Opening the URL shows a page naming the peer. Opening it spends nothing, so "
+"a link scanner that fetches it does no harm. Continuing spends it and sends "
+"the browser to A with a **state** signed by B's federation key. The state "
+"names B, A, the link request, the user's email on B and the page to return "
+"to."
+msgstr ""
+
+#: src/28-identity-linking.md:44
+msgid ""
+"A verifies the state against B's published keys before offering any login. "
+"It then signs the user in through its **hosted login** (emailed code, "
+"attempt cap, no framing) as an internal client whose only redirect URI is "
+"A's own callback."
+msgstr ""
+
+#: src/28-identity-linking.md:48
+msgid ""
+"A compares the emails. **They must be equal**, case aside, unless the "
+"operator set `allowDifferentEmails` in the peer's policy. A then shows which "
+"account on A will be linked to which account on which instance, and waits "
+"for an explicit confirmation."
+msgstr ""
+
+#: src/28-identity-linking.md:52
+msgid ""
+"On confirmation A records the link, tells B with a signed request, and sends "
+"the browser back to B. Each side mints an opaque reference for the user; "
+"neither is an email or a user id. If B refuses or cannot be reached, A "
+"revokes its own record. If B recorded the link but its answer was lost (a "
+"timeout), B keeps an active copy that A does not know; it carries no grants, "
+"since A answers nothing for it, and is reconciled by the tombstone phase."
+msgstr ""
+
+#: src/28-identity-linking.md:60
+msgid "Removing a link"
+msgstr ""
+
+#: src/28-identity-linking.md:62
+msgid "Either side may revoke, through the API only:"
+msgstr ""
+
+#: src/28-identity-linking.md:64 src/14-json-rpc.md:64 src/14-json-rpc.md:80
+#: src/14-json-rpc.md:92 src/14-json-rpc.md:106 src/14-json-rpc.md:115
+#: src/14-json-rpc.md:121 src/14-json-rpc.md:127 src/14-json-rpc.md:133
+#: src/14-json-rpc.md:143 src/14-json-rpc.md:151 src/14-json-rpc.md:169
+#: src/14-json-rpc.md:187 src/14-json-rpc.md:197 src/14-json-rpc.md:212
+#: src/14-json-rpc.md:223 src/14-json-rpc.md:233 src/14-json-rpc.md:240
+#: src/14-json-rpc.md:254 src/14-json-rpc.md:261 src/14-json-rpc.md:268
+#: src/14-json-rpc.md:276 src/14-json-rpc.md:288 src/14-json-rpc.md:295
+#: src/14-json-rpc.md:302 src/14-json-rpc.md:309 src/14-json-rpc.md:322
+#: src/14-json-rpc.md:337 src/14-json-rpc.md:347 src/19-sdk.md:89
+msgid "Method"
+msgstr "Método"
+
+#: src/28-identity-linking.md:64
+msgid "Who"
+msgstr ""
+
+#: src/28-identity-linking.md:66
+msgid "`beginners.federation.listLinks` / `beginners.federation.revokeLink`"
+msgstr ""
+
+#: src/28-identity-linking.md:66
+msgid "The linked user, own links only"
+msgstr ""
+
+#: src/28-identity-linking.md:67
+msgid "`federation.links.list` / `federation.links.revoke`"
+msgstr ""
+
+#: src/28-identity-linking.md:67
+msgid "Staff"
+msgstr ""
+
+#: src/28-identity-linking.md:69
+msgid ""
+"Revoking marks the link revoked here and tells the peer with a signed "
+"request, and the peer revokes its copy. If the peer cannot be reached, the "
+"local revocation stands and the failure is logged. The peer's copy stays "
+"active until a later delivery; a durable retry queue is planned."
+msgstr ""
+
+#: src/28-identity-linking.md:74
+msgid "Limits"
+msgstr ""
+
+#: src/28-identity-linking.md:76
+msgid ""
+"**TOTP is not asked during linking.** The issuer signs the user in with the "
+"emailed-code hosted login, which has no TOTP step yet. A user who protects "
+"password logins with TOTP gets a weaker check when linking."
+msgstr ""
+
+#: src/28-identity-linking.md:79
+msgid ""
+"**External identity providers.** A user who only signs in to the issuer "
+"through an external IdP cannot link from the issuer's pages, since they only "
+"offer the hosted login."
+msgstr ""
+
+#: src/28-identity-linking.md:82
+msgid ""
+"While federation is on, the issuer's hosted login endpoints accept the "
+"internal client `mycelium-federation-link`, even if `auth.hostedLogin` is "
+"not configured. Its only redirect URI is the issuer's own callback."
+msgstr ""
+
+#: src/28-identity-linking.md:85
+msgid ""
+"Signing in on the issuer with an email that has no account there creates "
+"one, as the hosted login always does. A link to such an account carries no "
+"grants."
+msgstr ""
+
+#: src/28-identity-linking.md:89
+msgid "Settings"
+msgstr ""
+
+#: src/28-identity-linking.md:91
+msgid "Setting"
+msgstr ""
+
+#: src/28-identity-linking.md:91
+msgid "Where"
+msgstr ""
+
+#: src/28-identity-linking.md:93
+msgid "`linkRequestTtlSecs`"
+msgstr ""
+
+#: src/28-identity-linking.md:93
+msgid "`[core.federation]`"
+msgstr ""
+
+#: src/28-identity-linking.md:93
+msgid "Lifetime of an initiation URL, and of the issuer's pending consent"
+msgstr ""
+
+#: src/28-identity-linking.md:94
+msgid "`allowDifferentEmails`"
+msgstr ""
+
+#: src/28-identity-linking.md:94
+msgid "Peer policy"
+msgstr ""
+
+#: src/28-identity-linking.md:94
+msgid "Allows linking accounts whose emails differ (default: no)"
+msgstr ""
 
 #: src/10-alternative-idps.md:3
 msgid ""
@@ -8377,19 +8590,6 @@ msgstr ""
 #: src/14-json-rpc.md:62
 msgid "Requires: **staff** or **manager** role."
 msgstr "Requer: papel de **staff** ou **manager**."
-
-#: src/14-json-rpc.md:64 src/14-json-rpc.md:80 src/14-json-rpc.md:92
-#: src/14-json-rpc.md:106 src/14-json-rpc.md:115 src/14-json-rpc.md:121
-#: src/14-json-rpc.md:127 src/14-json-rpc.md:133 src/14-json-rpc.md:143
-#: src/14-json-rpc.md:151 src/14-json-rpc.md:169 src/14-json-rpc.md:187
-#: src/14-json-rpc.md:197 src/14-json-rpc.md:212 src/14-json-rpc.md:223
-#: src/14-json-rpc.md:233 src/14-json-rpc.md:240 src/14-json-rpc.md:254
-#: src/14-json-rpc.md:261 src/14-json-rpc.md:268 src/14-json-rpc.md:276
-#: src/14-json-rpc.md:288 src/14-json-rpc.md:295 src/14-json-rpc.md:302
-#: src/14-json-rpc.md:309 src/14-json-rpc.md:322 src/14-json-rpc.md:337
-#: src/14-json-rpc.md:347 src/19-sdk.md:89
-msgid "Method"
-msgstr "Método"
 
 #: src/14-json-rpc.md:66
 msgid "`managers.accounts.createSystemAccount`"
