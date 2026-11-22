@@ -47,6 +47,56 @@ diesel::table! {
 }
 
 diesel::table! {
+    federation_identity_link (id) {
+        id -> Uuid,
+        local_user_id -> Uuid,
+        #[max_length = 140]
+        local_email -> Varchar,
+        peer_id -> Uuid,
+        #[max_length = 64]
+        peer_subject_ref -> Nullable<Varchar>,
+        #[max_length = 64]
+        local_subject_ref -> Varchar,
+        #[max_length = 16]
+        status -> Varchar,
+        created -> Timestamptz,
+        established_at -> Nullable<Timestamptz>,
+        revoked_at -> Nullable<Timestamptz>,
+        revoked_by -> Nullable<Jsonb>,
+    }
+}
+
+diesel::table! {
+    federation_link_consent (id) {
+        id -> Uuid,
+        peer_id -> Uuid,
+        peer_request_id -> Uuid,
+        #[max_length = 140]
+        peer_email -> Varchar,
+        #[max_length = 2048]
+        return_url -> Varchar,
+        local_user_id -> Nullable<Uuid>,
+        created -> Timestamptz,
+        expires_at -> Timestamptz,
+        consumed_at -> Nullable<Timestamptz>,
+    }
+}
+
+diesel::table! {
+    federation_link_request (id) {
+        id -> Uuid,
+        local_user_id -> Uuid,
+        peer_id -> Uuid,
+        #[max_length = 64]
+        secret_hash -> Varchar,
+        created -> Timestamptz,
+        expires_at -> Timestamptz,
+        redirected_at -> Nullable<Timestamptz>,
+        consumed_at -> Nullable<Timestamptz>,
+    }
+}
+
+diesel::table! {
     federation_peer (id) {
         id -> Uuid,
         instance_id -> Uuid,
@@ -336,6 +386,12 @@ diesel::table! {
 
 diesel::joinable!(account -> tenant (tenant_id));
 diesel::joinable!(account_tag -> account (account_id));
+diesel::joinable!(federation_identity_link -> federation_peer (peer_id));
+diesel::joinable!(federation_identity_link -> user (local_user_id));
+diesel::joinable!(federation_link_consent -> federation_peer (peer_id));
+diesel::joinable!(federation_link_consent -> user (local_user_id));
+diesel::joinable!(federation_link_request -> federation_peer (peer_id));
+diesel::joinable!(federation_link_request -> user (local_user_id));
 diesel::joinable!(federation_peer_key -> federation_peer (peer_id));
 diesel::joinable!(federation_request_nonce -> federation_peer (peer_id));
 diesel::joinable!(guest_user -> guest_role (guest_role_id));
@@ -354,6 +410,9 @@ diesel::allow_tables_to_appear_in_same_query!(
     account,
     account_tag,
     error_code,
+    federation_identity_link,
+    federation_link_consent,
+    federation_link_request,
     federation_peer,
     federation_peer_key,
     federation_request_nonce,
