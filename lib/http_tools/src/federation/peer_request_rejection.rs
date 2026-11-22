@@ -11,6 +11,8 @@ pub enum PeerRequestRejection {
     UnknownKid(String),
     BadSignature,
     WrongAudience,
+    /// An assertion names another issuer or another subject
+    WrongSubject,
     Expired,
     IssuedInFuture,
     /// Method, path or body differ from what was signed
@@ -26,6 +28,7 @@ impl fmt::Display for PeerRequestRejection {
             Self::UnknownKid(kid) => write!(f, "unknown key id {kid}"),
             Self::BadSignature => f.write_str("invalid signature"),
             Self::WrongAudience => f.write_str("wrong audience"),
+            Self::WrongSubject => f.write_str("wrong issuer or subject"),
             Self::Expired => f.write_str("expired"),
             Self::IssuedInFuture => f.write_str("issued in the future"),
             Self::RequestMismatch => {
