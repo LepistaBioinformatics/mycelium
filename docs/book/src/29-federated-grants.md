@@ -77,7 +77,8 @@ tell.
 | Change on the issuer | Tombstone |
 |---|---|
 | A guest revoked from an account (subscription or subscription manager) | `grantsChanged` for that email |
-| A guest role deleted | `grantsChanged` for every guest holding it |
+| A guest role deleted, or its permission changed | `grantsChanged` for every guest holding it |
+| A guest's flags changed on an account | `grantsChanged` for the account's guests |
 | An account deleted, deactivated, archived or disapproved | `grantsChanged` for its users and guests |
 | A user deleting their own account | `grantsChanged` for that account's users |
 | A link revoked | `linkRevoked` |
@@ -93,12 +94,14 @@ Delivery is at least once. A tombstone is written to an outbox in the same
 request, and the federation dispatcher pushes it within a second, retrying
 a failed push after 5 s, doubling up to 15 min, and giving up after 20
 attempts (about four hours). A consumer that was down when the push was
-attempted drops every stored assertion when it starts, so it asks each
-issuer again before serving any grant, and receives the tombstone with the
-next retry.
+attempted drops every stored assertion when it starts, before it serves
+anything, so it asks each issuer again before serving any grant, and
+receives the tombstone with the next retry.
 
 What the push does not reach is bounded by the assertion lifetime, which is
-why it stays short: a partition that heals while both instances stay up
+why it stays short. Changes outside the table above (a tenant deleted, a
+role's children changed) reach the consumer with its next refresh, within
+`assertionRefreshSecs`. A partition that heals while both instances stay up
 lets the consumer serve a stored assertion for up to `assertionRefreshSecs`
 before it asks again.
 
