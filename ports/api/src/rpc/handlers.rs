@@ -271,6 +271,7 @@ async fn resolve_rpc_profile(
                 account_was_deleted: false,
                 verbose_status: None,
                 licensed_resources: None,
+                federated_resources: None,
                 tenants_ownership: None,
                 meta: None,
             })

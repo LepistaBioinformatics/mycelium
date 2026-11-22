@@ -7,7 +7,7 @@ use actix_web::{dev::Payload, FromRequest, HttpRequest};
 use futures::Future;
 use myc_core::domain::dtos::{
     account::VerboseStatus,
-    profile::{LicensedResources, Owner, TenantsOwnership},
+    profile::{FederatedResources, LicensedResources, Owner, TenantsOwnership},
     security_group::PermissionedRole,
 };
 use myc_http_tools::{
@@ -38,6 +38,8 @@ pub(crate) struct MyceliumProfileData {
     pub account_was_deleted: bool,
     pub verbose_status: Option<VerboseStatus>,
     pub licensed_resources: Option<LicensedResources>,
+    #[serde(default)]
+    pub federated_resources: Option<FederatedResources>,
     pub tenants_ownership: Option<TenantsOwnership>,
     pub meta: Option<HashMap<AccountMetaKey, String>>,
 }
@@ -57,6 +59,7 @@ impl MyceliumProfileData {
             account_was_deleted: profile.account_was_deleted,
             verbose_status: profile.verbose_status,
             licensed_resources: profile.licensed_resources,
+            federated_resources: profile.federated_resources,
             tenants_ownership: profile.tenants_ownership,
             meta: profile.meta,
         }
@@ -80,6 +83,7 @@ impl MyceliumProfileData {
         );
 
         profile.meta = self.meta.to_owned();
+        profile.federated_resources = self.federated_resources.to_owned();
 
         profile
     }

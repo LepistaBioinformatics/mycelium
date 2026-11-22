@@ -49,7 +49,7 @@ pub(crate) async fn recovery_profile_from_storage_engines(
             "Profile obtained from cache"
         );
         RequesterIdentity::record_account(&req, profile.acc_id);
-        return Ok(profile);
+        return Ok(with_federated_grants(profile, &req, &email).await);
     }
 
     // ? -----------------------------------------------------------------------
@@ -89,7 +89,25 @@ pub(crate) async fn recovery_profile_from_storage_engines(
 
     tracing::trace!("Profile: {:?}", profile.profile_redacted());
 
-    Ok(profile)
+    Ok(with_federated_grants(profile, &req, &email).await)
+}
+
+/// The grants peers asserted for the subject, attached after the cache so
+/// they are never cached with the local profile (FED-26)
+async fn with_federated_grants(
+    profile: Profile,
+    req: &HttpRequest,
+    email: &Email,
+) -> Profile {
+    #[cfg(feature = "federation")]
+    return crate::federation::attach_federated_grants(profile, req, email)
+        .await;
+
+    #[cfg(not(feature = "federation"))]
+    {
+        let _ = (req, email);
+        profile
+    }
 }
 
 /// Generate a hash of the profile request
