@@ -1,11 +1,15 @@
 use super::map_assertion_row::map_assertion_dto_to_row;
 use crate::{
-    models::config::DbPoolProvider,
-    schema::federation_assertion_cache as assertion_model,
+    models::{config::DbPoolProvider, federation_assertion::AssertionRow},
+    repositories::federation_revocation::lock_link,
+    schema::{
+        federation_assertion_cache as assertion_model,
+        federation_tombstone as tombstone_model,
+    },
 };
 
 use async_trait::async_trait;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use diesel::{
     prelude::*,
     r2d2::{ConnectionManager, PooledConnection},
@@ -41,27 +45,59 @@ fn write_err(e: diesel::result::Error) -> MappedErrors {
     creation_err(format!("Failed to write the assertion store: {e}"))
 }
 
+/// Whether the link's tombstone was issued no earlier than the assertion
+fn superseded(
+    conn: &mut PgConnection,
+    row: &AssertionRow,
+) -> Result<bool, diesel::result::Error> {
+    let revoked_at = tombstone_model::table
+        .find(row.link_id)
+        .select(tombstone_model::issued_at)
+        .first::<DateTime<Utc>>(conn)
+        .optional()?;
+
+    Ok(revoked_at.is_some_and(|revoked_at| row.iat <= revoked_at))
+}
+
+/// Keep the assertion, replacing the link's previous one
+fn upsert(
+    conn: &mut PgConnection,
+    row: AssertionRow,
+) -> Result<usize, diesel::result::Error> {
+    diesel::insert_into(assertion_model::table)
+        .values(row)
+        .on_conflict((assertion_model::link_id, assertion_model::kind))
+        .do_update()
+        .set((
+            assertion_model::peer_id.eq(excluded(assertion_model::peer_id)),
+            assertion_model::jws.eq(excluded(assertion_model::jws)),
+            assertion_model::payload.eq(excluded(assertion_model::payload)),
+            assertion_model::iat.eq(excluded(assertion_model::iat)),
+            assertion_model::exp.eq(excluded(assertion_model::exp)),
+            assertion_model::received_at.eq(Utc::now()),
+        ))
+        .execute(conn)
+}
+
 #[async_trait]
 impl AssertionStoreWrite for AssertionStoreWriteSqlDbRepository {
     #[tracing::instrument(name = "assertion_store_store", skip_all)]
     async fn store(
         &self,
         assertion: StoredAssertion,
-    ) -> Result<(), MappedErrors> {
-        diesel::insert_into(assertion_model::table)
-            .values(map_assertion_dto_to_row(assertion)?)
-            .on_conflict((assertion_model::link_id, assertion_model::kind))
-            .do_update()
-            .set((
-                assertion_model::peer_id.eq(excluded(assertion_model::peer_id)),
-                assertion_model::jws.eq(excluded(assertion_model::jws)),
-                assertion_model::payload.eq(excluded(assertion_model::payload)),
-                assertion_model::iat.eq(excluded(assertion_model::iat)),
-                assertion_model::exp.eq(excluded(assertion_model::exp)),
-                assertion_model::received_at.eq(Utc::now()),
-            ))
-            .execute(&mut *self.connection()?)
-            .map(|_| ())
+    ) -> Result<bool, MappedErrors> {
+        let row = map_assertion_dto_to_row(assertion)?;
+
+        self.connection()?
+            .transaction(|conn| {
+                lock_link(conn, row.link_id)?;
+
+                if superseded(conn, &row)? {
+                    return Ok(false);
+                }
+
+                upsert(conn, row).map(|_| true)
+            })
             .map_err(write_err)
     }
 
@@ -73,6 +109,24 @@ impl AssertionStoreWrite for AssertionStoreWriteSqlDbRepository {
         .execute(&mut *self.connection()?)
         .map(|_| ())
         .map_err(write_err)
+    }
+
+    #[tracing::instrument(name = "assertion_store_forget_peer", skip_all)]
+    async fn forget_peer(&self, peer_id: Uuid) -> Result<u64, MappedErrors> {
+        diesel::delete(
+            assertion_model::table.filter(assertion_model::peer_id.eq(peer_id)),
+        )
+        .execute(&mut *self.connection()?)
+        .map(|deleted| deleted as u64)
+        .map_err(write_err)
+    }
+
+    #[tracing::instrument(name = "assertion_store_forget_all", skip_all)]
+    async fn forget_all(&self) -> Result<u64, MappedErrors> {
+        diesel::delete(assertion_model::table)
+            .execute(&mut *self.connection()?)
+            .map(|deleted| deleted as u64)
+            .map_err(write_err)
     }
 
     #[tracing::instrument(name = "assertion_store_purge_expired", skip_all)]

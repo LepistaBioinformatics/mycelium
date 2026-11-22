@@ -25,6 +25,10 @@ const RESOLUTION: &str = include_str!(
     "../../../sql/migrations/20261123_01_federation_resolution.sql"
 );
 
+const REVOCATION: &str = include_str!(
+    "../../../sql/migrations/20261124_01_federation_revocation.sql"
+);
+
 static PREPARE: Once = Once::new();
 
 struct TestPool(DbPool);
@@ -47,9 +51,12 @@ fn tables() -> String {
         .unwrap()
         .replace("public.user", "link_test_user");
     let resolution = RESOLUTION.split("ALTER TABLE").next().unwrap();
+    let revocation = REVOCATION.split("GRANT ALL").next().unwrap();
 
     format!(
-        "DROP TABLE IF EXISTS federation_namespace_claim;
+        "DROP TABLE IF EXISTS federation_outbox;
+         DROP TABLE IF EXISTS federation_tombstone;
+         DROP TABLE IF EXISTS federation_namespace_claim;
          DROP TABLE IF EXISTS federation_assertion_cache;
          DROP TABLE IF EXISTS tenant;
          DROP TABLE IF EXISTS account;
@@ -65,7 +72,8 @@ fn tables() -> String {
          CREATE TABLE account (id UUID PRIMARY KEY);
          {trust}
          {links}
-         {resolution}"
+         {resolution}
+         {revocation}"
     )
 }
 

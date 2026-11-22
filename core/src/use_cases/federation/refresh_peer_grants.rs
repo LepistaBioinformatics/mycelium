@@ -21,7 +21,8 @@ use mycelium_base::utils::errors::MappedErrors;
 /// call that fails or misses the deadline serves them as stale (FED-17), or
 /// contributes nothing without them (FED-18); never an error. A peer that
 /// answers "unknown", or whose answer fails a check, no longer vouches for
-/// the stored grants: they are forgotten.
+/// the stored grants: they are forgotten. An answer issued before the link's
+/// tombstone is not stored and contributes nothing (FED-23).
 ///
 #[tracing::instrument(name = "refresh_peer_grants", skip_all)]
 pub async fn refresh_peer_grants(
@@ -104,8 +105,10 @@ async fn settle(
 
     let grants = assertion.payload.grants.clone();
     let latest = Local::now() + limits.assertion_ttl;
-    store(link, assertion.kept_until(latest), ports).await?;
-    Ok((PeerResolution::Answered, grants))
+    match store(link, assertion.kept_until(latest), ports).await? {
+        true => Ok((PeerResolution::Answered, grants)),
+        false => Ok((PeerResolution::Unknown, empty())),
+    }
 }
 
 /// Drop the link's stored assertion: the peer no longer vouches for it
@@ -136,7 +139,7 @@ async fn store(
     link: &IdentityLink,
     assertion: VerifiedAssertion,
     ports: &ResolutionPorts<'_>,
-) -> Result<(), MappedErrors> {
+) -> Result<bool, MappedErrors> {
     ports
         .store
         .write

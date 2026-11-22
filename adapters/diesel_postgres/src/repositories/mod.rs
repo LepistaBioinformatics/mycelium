@@ -11,6 +11,7 @@ mod federation_link_request;
 mod federation_namespace;
 mod federation_peer;
 mod federation_request_nonce;
+mod federation_revocation;
 mod guest_role;
 mod guest_user;
 mod hosted_login;
@@ -37,6 +38,7 @@ use federation_link_request::*;
 use federation_namespace::*;
 use federation_peer::*;
 use federation_request_nonce::*;
+use federation_revocation::*;
 use guest_role::*;
 use guest_user::*;
 use hosted_login::*;
@@ -88,6 +90,10 @@ module! {
             FederationRequestNonceSqlDbRepository,
             LocalNamespaceProbeSqlDbRepository,
             NamespaceClaimRegistrationSqlDbRepository,
+            RevocationOutboxSqlDbRepository,
+            RevocationSubjectsFetchingSqlDbRepository,
+            SubjectStandingFetchingSqlDbRepository,
+            TombstoneRegistrationSqlDbRepository,
             GuestRoleDeletionSqlDbRepository,
             GuestRoleFetchingSqlDbRepository,
             GuestRoleRegistrationSqlDbRepository,

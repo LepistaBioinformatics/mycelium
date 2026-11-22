@@ -129,4 +129,23 @@ impl IdentityLinkRead for IdentityLinkReadSqlDbRepository {
             .map(map_link_row_to_dto)
             .collect()
     }
+
+    #[tracing::instrument(
+        name = "identity_link_list_active_by_emails",
+        skip_all
+    )]
+    async fn list_active_by_emails(
+        &self,
+        emails: &[String],
+    ) -> Result<Vec<IdentityLink>, MappedErrors> {
+        link_model::table
+            .filter(link_model::local_email.eq_any(emails))
+            .filter(link_model::status.eq(LinkStatus::Active.as_str()))
+            .select(IdentityLinkRow::as_select())
+            .load::<IdentityLinkRow>(&mut *self.connection()?)
+            .map_err(read_err)?
+            .into_iter()
+            .map(map_link_row_to_dto)
+            .collect()
+    }
 }

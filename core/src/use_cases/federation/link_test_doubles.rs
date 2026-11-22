@@ -180,6 +180,18 @@ impl IdentityLinkRead for LinkStore {
             })
             .collect())
     }
+
+    async fn list_active_by_emails(
+        &self,
+        emails: &[String],
+    ) -> Result<Vec<IdentityLink>, MappedErrors> {
+        Ok(self
+            .links()
+            .into_iter()
+            .filter(|link| link.status == LinkStatus::Active)
+            .filter(|link| emails.contains(&link.local_email))
+            .collect())
+    }
 }
 
 #[async_trait]

@@ -496,4 +496,21 @@ mod tests {
         assert!(only(&resolution).grants.is_empty());
         assert!(world.mesh.stored.lock().unwrap().is_empty());
     }
+
+    #[tokio::test]
+    async fn an_answer_issued_before_the_links_tombstone_is_not_stored() {
+        let issuer = trusted_peer();
+        let mut mesh = Mesh::default();
+        mesh.scripts
+            .insert(issuer.id, Script::Answer(verified(Uuid::new_v4())));
+        let world = world(vec![issuer], mesh);
+        let link_id = world.links.links()[0].id;
+        world.mesh.superseded.lock().unwrap().push(link_id);
+
+        let resolution = resolve(&world).await;
+
+        assert_eq!(only(&resolution).resolution, PeerResolution::Unknown);
+        assert!(only(&resolution).grants.is_empty());
+        assert!(world.mesh.stored.lock().unwrap().is_empty());
+    }
 }
