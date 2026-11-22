@@ -1,13 +1,27 @@
 mod federation_peer;
+mod identity_link;
 mod instance_self_description;
+mod link_confirmation;
+mod link_consent;
+mod link_request;
+mod link_request_secret;
+mod linkable_peer;
 mod peer_admission;
 mod peer_overview;
 mod role_catalog_entry;
 mod role_catalog_mode;
+mod subject_ref;
 
 pub use federation_peer::*;
+pub use identity_link::*;
 pub use instance_self_description::*;
+pub use link_confirmation::*;
+pub use link_consent::*;
+pub use link_request::*;
+pub use link_request_secret::*;
+pub use linkable_peer::*;
 pub use peer_admission::*;
 pub use peer_overview::*;
 pub use role_catalog_entry::*;
 pub use role_catalog_mode::*;
+pub use subject_ref::*;
