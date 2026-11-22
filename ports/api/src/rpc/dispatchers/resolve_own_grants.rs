@@ -91,6 +91,9 @@ fn limits_of(prepared: &PreparedFederation) -> ResolutionLimits {
         deadline: Duration::from_millis(prepared.config.resolve_deadline_ms),
         max_failures_before_open: prepared.config.max_failures_before_open,
         assertion_ttl: Duration::from_secs(prepared.config.assertion_ttl_secs),
+        assertion_refresh: Duration::from_secs(
+            prepared.config.assertion_refresh_secs,
+        ),
     }
 }
 
