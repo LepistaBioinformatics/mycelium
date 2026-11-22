@@ -1,7 +1,8 @@
 use async_trait::async_trait;
+use chrono::{Duration, Local};
 use myc_core::domain::entities::{
     AssertionStoreWrite, LinkConsentRegistration, LinkRequestRegistration,
-    RequestNonceRegistration,
+    RequestNonceRegistration, RevocationOutbox, TombstoneRegistration,
 };
 use mycelium_base::utils::errors::MappedErrors;
 use std::sync::Arc;
@@ -28,6 +29,13 @@ pub(crate) struct LinkConsentPurge(pub(crate) Arc<dyn LinkConsentRegistration>);
 
 /// The consumer's stored assertions past their `exp` (D-6)
 pub(crate) struct AssertionPurge(pub(crate) Arc<dyn AssertionStoreWrite>);
+
+/// The consumer's tombstones, a day after they arrived: every assertion they
+/// supersede has expired by then (FED-23)
+pub(crate) struct TombstonePurge(pub(crate) Arc<dyn TombstoneRegistration>);
+
+/// The issuer's tombstones given up, a week later (FED-24)
+pub(crate) struct FailedRevocationPurge(pub(crate) Arc<dyn RevocationOutbox>);
 
 #[async_trait]
 impl ExpiredRowsPurge for RequestNoncePurge {
@@ -70,5 +78,29 @@ impl ExpiredRowsPurge for AssertionPurge {
 
     async fn purge_expired(&self) -> Result<u64, MappedErrors> {
         self.0.purge_expired().await
+    }
+}
+
+#[async_trait]
+impl ExpiredRowsPurge for TombstonePurge {
+    fn rows(&self) -> &'static str {
+        "tombstones"
+    }
+
+    async fn purge_expired(&self) -> Result<u64, MappedErrors> {
+        self.0
+            .purge_older_than(Local::now() - Duration::days(1))
+            .await
+    }
+}
+
+#[async_trait]
+impl ExpiredRowsPurge for FailedRevocationPurge {
+    fn rows(&self) -> &'static str {
+        "failed revocations"
+    }
+
+    async fn purge_expired(&self) -> Result<u64, MappedErrors> {
+        self.0.purge_failed(Local::now() - Duration::days(7)).await
     }
 }
