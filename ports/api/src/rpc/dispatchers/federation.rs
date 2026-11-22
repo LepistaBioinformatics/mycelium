@@ -1,9 +1,10 @@
 use super::super::{
     errors::{invalid_params, mapped_errors_to_jsonrpc_error, params_required},
     method_names,
-    params::{FederationPeerParams, SetFederationEnabledParams},
+    params::{FederationPeerParams, LinkParams, SetFederationEnabledParams},
     types::{self, JsonRpcError},
 };
+use super::revoke_identity_link::revoke_identity_link;
 use crate::{
     dtos::MyceliumProfileData, federation::PreparedFederation,
     models::active_backend_modules::SqlAppModule,
@@ -13,14 +14,14 @@ use actix_web::{web, HttpRequest};
 use myc_core::{
     domain::dtos::{profile::Profile, written_by::WrittenBy},
     use_cases::federation::{
-        ensure_federation_operator, list_federation_peers, quarantine_peer,
-        release_peer, set_federation_enabled,
+        ensure_federation_operator, list_federation_peers, list_identity_links,
+        quarantine_peer, release_peer, set_federation_enabled, LinkRevoker,
     },
 };
 use serde::{de::DeserializeOwned, Serialize};
 use shaku::HasComponent;
 
-/// The staff-only `federation.*` scope (FED-33, FED-34, FED-35)
+/// The staff-only `federation.*` scope (FED-33, FED-34, FED-35, FED-47)
 pub async fn dispatch_federation(
     profile: &MyceliumProfileData,
     app_module: &web::Data<SqlAppModule>,
@@ -40,6 +41,20 @@ pub async fn dispatch_federation(
         | method_names::FEDERATION_PEERS_RELEASE => {
             change_peer(app_module, method, parse(params)?).await
         }
+        method_names::FEDERATION_LINKS_LIST => to_result(
+            list_identity_links(None, Box::new(app_module.resolve_ref())).await,
+        ),
+        method_names::FEDERATION_LINKS_REVOKE => {
+            let link_id = parse::<LinkParams>(params)?.link_id;
+            revoke_identity_link(
+                app_module,
+                req,
+                link_id,
+                LinkRevoker::Operator,
+                WrittenBy::new_from_account(profile.acc_id),
+            )
+            .await
+        }
         method_names::FEDERATION_SET_ENABLED => {
             let enabled = parse::<SetFederationEnabledParams>(params)?.enabled;
             switch_federation(app_module, req, &profile, enabled).await
@@ -48,7 +63,7 @@ pub async fn dispatch_federation(
     }
 }
 
-fn method_not_found(method: &str) -> JsonRpcError {
+pub(super) fn method_not_found(method: &str) -> JsonRpcError {
     JsonRpcError {
         code: types::codes::METHOD_NOT_FOUND,
         message: format!("Method not found: {}", method),
@@ -96,14 +111,14 @@ async fn switch_federation(
     )
 }
 
-fn parse<T: DeserializeOwned>(
+pub(super) fn parse<T: DeserializeOwned>(
     params: Option<serde_json::Value>,
 ) -> Result<T, JsonRpcError> {
     serde_json::from_value(params.ok_or_else(params_required)?)
         .map_err(|e| invalid_params(e.to_string()))
 }
 
-fn to_result<T: Serialize>(
+pub(super) fn to_result<T: Serialize>(
     outcome: Result<T, mycelium_base::utils::errors::MappedErrors>,
 ) -> Result<serde_json::Value, JsonRpcError> {
     let value = outcome.map_err(mapped_errors_to_jsonrpc_error)?;
@@ -135,6 +150,12 @@ mod tests {
             method_names::FEDERATION_PEERS_QUARANTINE,
             method_names::FEDERATION_PEERS_RELEASE,
             method_names::FEDERATION_SET_ENABLED,
+            method_names::FEDERATION_LINKS_LIST,
+            method_names::FEDERATION_LINKS_REVOKE,
+            method_names::BEGINNERS_FEDERATION_LIST_PEERS,
+            method_names::BEGINNERS_FEDERATION_START_LINK,
+            method_names::BEGINNERS_FEDERATION_LIST_LINKS,
+            method_names::BEGINNERS_FEDERATION_REVOKE_LINK,
         ] {
             assert!(names.contains(&name), "{name} missing");
         }

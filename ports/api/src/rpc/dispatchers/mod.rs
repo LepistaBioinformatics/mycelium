@@ -2,10 +2,14 @@ pub(crate) mod account_manager;
 pub(crate) mod audit;
 pub(crate) mod beginners;
 #[cfg(feature = "federation")]
+pub(crate) mod beginners_federation;
+#[cfg(feature = "federation")]
 pub(crate) mod federation;
 pub(crate) mod gateway_manager;
 pub(crate) mod guest_manager;
 pub(crate) mod managers;
+#[cfg(feature = "federation")]
+mod revoke_identity_link;
 pub(crate) mod service;
 pub(crate) mod staff;
 pub(crate) mod subscriptions_manager;

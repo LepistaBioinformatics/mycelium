@@ -202,3 +202,21 @@ pub const FEDERATION_PEERS_QUARANTINE: &str = "federation.peers.quarantine";
 pub const FEDERATION_PEERS_RELEASE: &str = "federation.peers.release";
 #[cfg(feature = "federation")]
 pub const FEDERATION_SET_ENABLED: &str = "federation.setEnabled";
+#[cfg(feature = "federation")]
+pub const FEDERATION_LINKS_LIST: &str = "federation.links.list";
+#[cfg(feature = "federation")]
+pub const FEDERATION_LINKS_REVOKE: &str = "federation.links.revoke";
+
+// Federation, the user's own links (`federation` feature)
+#[cfg(feature = "federation")]
+pub const BEGINNERS_FEDERATION_LIST_PEERS: &str =
+    "beginners.federation.listPeers";
+#[cfg(feature = "federation")]
+pub const BEGINNERS_FEDERATION_START_LINK: &str =
+    "beginners.federation.startLink";
+#[cfg(feature = "federation")]
+pub const BEGINNERS_FEDERATION_LIST_LINKS: &str =
+    "beginners.federation.listLinks";
+#[cfg(feature = "federation")]
+pub const BEGINNERS_FEDERATION_REVOKE_LINK: &str =
+    "beginners.federation.revokeLink";
