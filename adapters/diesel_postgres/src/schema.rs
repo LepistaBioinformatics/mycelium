@@ -121,6 +121,23 @@ diesel::table! {
 }
 
 diesel::table! {
+    federation_outbox (id) {
+        id -> Uuid,
+        peer_id -> Uuid,
+        #[max_length = 64]
+        subject_ref -> Varchar,
+        #[max_length = 32]
+        reason -> Varchar,
+        issued_at -> Timestamptz,
+        attempts -> Int4,
+        next_attempt_at -> Timestamptz,
+        #[max_length = 16]
+        status -> Varchar,
+        last_error -> Nullable<Text>,
+    }
+}
+
+diesel::table! {
     federation_peer (id) {
         id -> Uuid,
         instance_id -> Uuid,
@@ -163,6 +180,17 @@ diesel::table! {
         jti -> Varchar,
         peer_id -> Uuid,
         expires_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    federation_tombstone (link_id) {
+        link_id -> Uuid,
+        peer_id -> Uuid,
+        #[max_length = 32]
+        reason -> Varchar,
+        issued_at -> Timestamptz,
+        received_at -> Timestamptz,
     }
 }
 
@@ -419,8 +447,11 @@ diesel::joinable!(federation_link_consent -> user (local_user_id));
 diesel::joinable!(federation_link_request -> federation_peer (peer_id));
 diesel::joinable!(federation_link_request -> user (local_user_id));
 diesel::joinable!(federation_namespace_claim -> federation_peer (peer_id));
+diesel::joinable!(federation_outbox -> federation_peer (peer_id));
 diesel::joinable!(federation_peer_key -> federation_peer (peer_id));
 diesel::joinable!(federation_request_nonce -> federation_peer (peer_id));
+diesel::joinable!(federation_tombstone -> federation_identity_link (link_id));
+diesel::joinable!(federation_tombstone -> federation_peer (peer_id));
 diesel::joinable!(guest_user -> guest_role (guest_role_id));
 diesel::joinable!(guest_user_on_account -> account (account_id));
 diesel::joinable!(guest_user_on_account -> guest_user (guest_user_id));
@@ -442,9 +473,11 @@ diesel::allow_tables_to_appear_in_same_query!(
     federation_link_consent,
     federation_link_request,
     federation_namespace_claim,
+    federation_outbox,
     federation_peer,
     federation_peer_key,
     federation_request_nonce,
+    federation_tombstone,
     guest_role,
     guest_role_children,
     guest_user,
