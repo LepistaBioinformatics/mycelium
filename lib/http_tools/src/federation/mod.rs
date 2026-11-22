@@ -1,11 +1,20 @@
+mod derive_link_secret;
+mod link_state_claims;
 mod peer_request_claims;
 mod peer_request_rejection;
 mod read_jws_segments;
+mod sign_link_state;
 mod sign_peer_request;
+mod verify_link_state;
 mod verify_peer_request;
+mod verify_typed_jws;
 
+pub use derive_link_secret::*;
+pub use link_state_claims::*;
 pub use peer_request_claims::*;
 pub use peer_request_rejection::*;
 pub use read_jws_segments::peek_peer_request_issuer;
+pub use sign_link_state::*;
 pub use sign_peer_request::*;
+pub use verify_link_state::*;
 pub use verify_peer_request::*;

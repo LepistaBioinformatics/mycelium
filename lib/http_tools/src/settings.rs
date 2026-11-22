@@ -50,6 +50,27 @@ pub const ROLE_CATALOG_PATH: &str = "/.well-known/mycelium-instance/roles";
 /// Where a peer asks this instance to handshake again (FED-08)
 pub const FEDERATION_HANDSHAKE_PATH: &str = "/federation/handshake";
 
+/// Consumer page a link initiation URL opens (FED-42)
+pub const FEDERATION_LINK_START_PATH: &str = "/federation/link/start";
+
+/// Consumer page the browser returns to once a link is settled
+pub const FEDERATION_LINK_DONE_PATH: &str = "/federation/link/done";
+
+/// Issuer page a consumer redirects a linking user to, with the signed state
+pub const FEDERATION_LINK_AUTHORIZE_PATH: &str = "/federation/link/authorize";
+
+/// Issuer page the hosted login returns to during linking
+pub const FEDERATION_LINK_CALLBACK_PATH: &str = "/federation/link/callback";
+
+/// Issuer form the user submits to confirm a link (FED-46)
+pub const FEDERATION_LINK_APPROVE_PATH: &str = "/federation/link/approve";
+
+/// Where an issuer tells the consumer a link was confirmed (signed request)
+pub const FEDERATION_LINK_CONFIRM_PATH: &str = "/federation/link/confirm";
+
+/// Where a peer tells this instance a link was revoked (signed request)
+pub const FEDERATION_LINK_REVOKE_PATH: &str = "/federation/link/revoke";
+
 /// Upper bound of a peer response body read by the federation client
 pub const PEER_RESPONSE_MAX_BYTES: usize = 64 * 1024;
 
