@@ -1,6 +1,8 @@
+mod expired_rows_purge;
 mod federation_round_ports;
 mod run_federation_round;
 
+pub(crate) use expired_rows_purge::*;
 pub(crate) use federation_round_ports::*;
 pub(crate) use run_federation_round::*;
 

@@ -16,7 +16,8 @@ pub(crate) const PEER_COOL_DOWN: Duration = Duration::from_secs(60);
 /// One round of the federation dispatcher
 ///
 /// Skipped while the runtime switch is off (kill-switch, FED-35). Otherwise:
-/// purge expired request nonces, then handshake again with every peer the
+/// purge expired request nonces, link requests and link consents, then
+/// handshake again with every peer the
 /// circuit lets through, which refreshes its keys and moves its status
 /// (FED-20, FED-21). A failure is logged and the round goes on; nothing here
 /// panics.
@@ -35,8 +36,10 @@ pub(crate) async fn run_federation_round(
         return;
     }
 
-    if let Err(err) = ports.nonces.purge_expired().await {
-        tracing::error!(%err, "request nonce purge failed");
+    for purge in &ports.purges {
+        if let Err(err) = purge.purge_expired().await {
+            tracing::error!(%err, rows = purge.rows(), "purge failed");
+        }
     }
 
     for peer in callable_peers(ports, now).await {
@@ -92,6 +95,7 @@ async fn callable_peers(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::dispatchers::federation_dispatcher::ExpiredRowsPurge;
 
     use async_trait::async_trait;
     use chrono::Duration as ChronoDuration;
@@ -106,7 +110,7 @@ mod tests {
         },
         entities::{
             FederationPeerRead, FederationPeerWrite, InstanceSettingsFetching,
-            PeerClient, RequestNonceRegistration,
+            PeerClient,
         },
     };
     use mycelium_base::{
@@ -149,14 +153,9 @@ mod tests {
     }
 
     #[async_trait]
-    impl RequestNonceRegistration for Mesh {
-        async fn claim(
-            &self,
-            _: String,
-            _: Uuid,
-            _: DateTime<Local>,
-        ) -> Result<bool, MappedErrors> {
-            unreachable!()
+    impl ExpiredRowsPurge for Mesh {
+        fn rows(&self) -> &'static str {
+            "test rows"
         }
 
         async fn purge_expired(&self) -> Result<u64, MappedErrors> {
@@ -327,7 +326,7 @@ mod tests {
         FederationRoundPorts {
             peer_read: mesh.clone(),
             peer_write: mesh.clone(),
-            nonces: mesh.clone(),
+            purges: vec![mesh.clone(), mesh.clone()],
             settings: mesh.clone(),
             peer_client: mesh,
         }
@@ -348,7 +347,7 @@ mod tests {
 
         run_federation_round(&ports(mesh.clone()), &[], 5, Local::now()).await;
 
-        assert_eq!(*mesh.purges.lock().unwrap(), 1);
+        assert_eq!(*mesh.purges.lock().unwrap(), 2);
         assert_eq!(
             *mesh.called.lock().unwrap(),
             ["https://active.example.com", "https://probe.example.com"]
