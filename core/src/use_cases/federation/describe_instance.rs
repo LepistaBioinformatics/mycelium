@@ -1,6 +1,7 @@
 use crate::{
     domain::dtos::federation::{
-        FederationPublicJwk, InstanceSelfDescription, PROFILE_ASSERTION_KIND,
+        FederationPublicJwk, InstanceSelfDescription,
+        GUEST_ROLE_VOCABULARY_KIND, PROFILE_ASSERTION_KIND,
     },
     models::FederationConfig,
 };
@@ -25,7 +26,10 @@ pub fn describe_instance(
         display_name: config.display_name.clone(),
         base_url: config.base_url.clone(),
         version: version.to_string(),
-        assertion_kinds: vec![PROFILE_ASSERTION_KIND.to_string()],
+        assertion_kinds: vec![
+            PROFILE_ASSERTION_KIND.to_string(),
+            GUEST_ROLE_VOCABULARY_KIND.to_string(),
+        ],
         keys,
         role_catalog_url,
     }
@@ -72,7 +76,7 @@ mod tests {
         assert_eq!(document["version"], "9.0.1");
         assert_eq!(
             document["assertionKinds"],
-            serde_json::json!(["profile.v1"])
+            serde_json::json!(["profile.v1", "guest-role-vocabulary.v1"])
         );
         assert_eq!(document["keys"][1]["kid"], "2");
         assert_eq!(document["keys"][0]["use"], "sig");
