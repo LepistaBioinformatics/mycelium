@@ -20,7 +20,11 @@ mod peer_circuit;
 mod peer_keys_refresh_due;
 mod quarantine_peer;
 mod read_role_catalog_mode;
+mod record_peer_contact;
 mod redirect_link_request;
+mod refresh_peer_grants;
+mod resolution_ports;
+mod resolve_federated_grants;
 mod review_link_request;
 mod revoke_link;
 mod set_federation_enabled;
@@ -28,6 +32,8 @@ mod start_link;
 
 #[cfg(test)]
 pub(crate) mod link_test_doubles;
+#[cfg(test)]
+pub(crate) mod resolution_test_doubles;
 
 pub use accept_link_login::*;
 pub use admit_requesting_peer::*;
@@ -51,7 +57,11 @@ pub use peer_circuit::*;
 pub use peer_keys_refresh_due::*;
 pub use quarantine_peer::*;
 pub use read_role_catalog_mode::*;
+pub use record_peer_contact::*;
 pub use redirect_link_request::*;
+pub use refresh_peer_grants::*;
+pub use resolution_ports::*;
+pub use resolve_federated_grants::*;
 pub use review_link_request::*;
 pub use revoke_link::*;
 pub use set_federation_enabled::*;
