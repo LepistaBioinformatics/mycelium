@@ -24,9 +24,6 @@ const RESOLUTION_BUDGET: Duration = Duration::from_secs(60);
 /// The federation signing keys: the primary signer and every public key
 #[derive(Clone, Debug)]
 pub(crate) struct FederationSigning {
-    // Read once peer requests are signed (federation tasks T17/T18); drop the
-    // allow then.
-    #[allow(dead_code)]
     pub(crate) primary: Arc<VersionedEd25519Signer>,
     pub(crate) public_keys: Vec<Ed25519PublicJwk>,
 }
