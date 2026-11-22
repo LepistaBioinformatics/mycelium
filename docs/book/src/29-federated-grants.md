@@ -20,31 +20,52 @@ with the SDKs. Until then, resolution runs on demand.
 ## Asking for grants
 
 The linked user calls `beginners.federation.resolveGrants` on the consumer.
-For each peer the user has an active link with:
+If the user's owner is inactive, or the account is inactive, archived or
+deleted on the consumer, the answer is `denied` with the reason, and no peer
+is asked: federation adds grants, it never overrides a local denial. Like
+local authorization, it applies once the cached profile expires.
+Otherwise, for each peer the user has an active link with:
 
-1. A peer that is quarantined, unreachable, did not negotiate `profile.v1`
+1. A peer that is quarantined or untrusted, did not negotiate `profile.v1`
    or is not allowed to assert is **skipped**.
-2. A stored assertion that has not expired is used as is (`stored`); the
-   peer is not called.
+2. A stored assertion younger than `assertionRefreshSecs` is used as is
+   (`stored`); the peer is not called.
 3. Otherwise the consumer sends a signed `POST /federation/resolve` with the
    link's opaque reference. Every peer is asked in parallel, each call is
    bounded by `peerTimeoutMs`, and the whole resolution by
    `resolveDeadlineMs`.
+4. A peer whose circuit is open is not called: its stored assertion, if
+   still unexpired, is served as `stale`.
 
-The answer lists one outcome per peer, and `partial` is true when some peer
-could not contribute:
+The answer lists one outcome per peer:
 
 | Outcome | Meaning |
 |---|---|
 | `answered` | The peer answered, the assertion passed every check and was stored |
-| `stored` | Served from the store |
-| `unknown` | The peer has no active link for the reference |
+| `stored` | Served from the store, younger than `assertionRefreshSecs` |
+| `stale` | The peer could not refresh its assertion; the stored grants, still unexpired, are served |
+| `unknown` | The peer has no active link for the reference; any stored assertion is dropped |
 | `skipped` | The peer was not asked (the reason says why) |
-| `unreachable` | The call failed or missed the deadline (partial) |
-| `rejected` | The assertion failed a check (partial; the reason says which) |
+| `unreachable` | The call failed or missed the deadline, and nothing unexpired was stored |
+| `rejected` | The assertion failed a check (the reason says which); any stored assertion is dropped |
 
-A partial result is not an error. An unreachable or rejected answer counts
-against the peer's circuit breaker, as a failed health check does.
+`stale` is true when some grants come from an assertion its peer could not
+refresh. `partial` is true when some peer contributed nothing because of a
+failure (`unreachable`, `rejected`). Neither is an error. An unreachable,
+stale or rejected answer counts against the peer's circuit breaker, as a
+failed health check does.
+
+## Degradation
+
+A silent peer does not take its users' access down at once, and does not
+keep it alive for long either:
+
+- **Within the refresh age** the stored grants are served without a call.
+- **Past the refresh age, before expiry**, the peer is asked; if it does not
+  answer, the stored grants are served as `stale`. While the peer is up, a
+  role it changes reaches the consumer within `assertionRefreshSecs`.
+- **Past expiry** a silent peer contributes nothing. Absence is never read as
+  "last known good".
 
 ## What the issuer answers
 
@@ -89,7 +110,8 @@ Expired assertions are purged by the federation dispatcher.
 
 | Setting | Where | Meaning |
 |---|---|---|
-| `assertionTtlSecs` | `[core.federation]` | Lifetime of the assertions this instance issues |
+| `assertionTtlSecs` | `[core.federation]` | Lifetime of the assertions this instance issues, and the longest it keeps one it receives |
+| `assertionRefreshSecs` | `[core.federation]` | Age after which a stored assertion is refreshed (below `assertionTtlSecs`) |
 | `peerTimeoutMs` | `[core.federation]` | Bound of one call to a peer |
 | `resolveDeadlineMs` | `[core.federation]` | Bound of a whole resolution |
 | `mayAssert` | Peer policy | Whether the peer's assertions are accepted (default: no) |
