@@ -1,5 +1,6 @@
 mod build_peer_client;
 mod describe_this_instance;
+mod issue_profile_assertion;
 mod link_login_client;
 mod prepare_federation;
 mod role_catalog_published;
@@ -10,6 +11,7 @@ mod verify_peer_assertion;
 
 pub(crate) use build_peer_client::*;
 pub(crate) use describe_this_instance::*;
+pub(crate) use issue_profile_assertion::*;
 pub(crate) use link_login_client::*;
 pub(crate) use prepare_federation::*;
 pub(crate) use role_catalog_published::*;

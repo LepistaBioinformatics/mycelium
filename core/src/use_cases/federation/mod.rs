@@ -1,5 +1,6 @@
 mod accept_link_login;
 mod admit_requesting_peer;
+mod answer_peer_resolution;
 mod apply_peer_revocation;
 mod complete_link_on_issuer;
 mod confirm_link_on_consumer;
@@ -28,6 +29,7 @@ pub(crate) mod link_test_doubles;
 
 pub use accept_link_login::*;
 pub use admit_requesting_peer::*;
+pub use answer_peer_resolution::*;
 pub use apply_peer_revocation::*;
 pub use complete_link_on_issuer::*;
 pub use confirm_link_on_consumer::*;

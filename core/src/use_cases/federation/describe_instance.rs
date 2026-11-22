@@ -1,5 +1,7 @@
 use crate::{
-    domain::dtos::federation::{FederationPublicJwk, InstanceSelfDescription},
+    domain::dtos::federation::{
+        FederationPublicJwk, InstanceSelfDescription, PROFILE_ASSERTION_KIND,
+    },
     models::FederationConfig,
 };
 
@@ -8,7 +10,7 @@ use uuid::Uuid;
 /// Build the self-description this instance publishes (FED-03)
 ///
 /// `keys` are the public halves of every valid federation key (FED-04).
-/// No assertion kind is issued yet. `role_catalog_url` is set while the
+/// Issues `profile.v1` assertions (F3). `role_catalog_url` is set while the
 /// role catalog is published (D-10).
 ///
 pub fn describe_instance(
@@ -23,7 +25,7 @@ pub fn describe_instance(
         display_name: config.display_name.clone(),
         base_url: config.base_url.clone(),
         version: version.to_string(),
-        assertion_kinds: vec![],
+        assertion_kinds: vec![PROFILE_ASSERTION_KIND.to_string()],
         keys,
         role_catalog_url,
     }
@@ -68,7 +70,10 @@ mod tests {
         assert_eq!(document["displayName"], "Instance 01");
         assert_eq!(document["baseUrl"], "https://myc-01.example.com");
         assert_eq!(document["version"], "9.0.1");
-        assert_eq!(document["assertionKinds"], serde_json::json!([]));
+        assert_eq!(
+            document["assertionKinds"],
+            serde_json::json!(["profile.v1"])
+        );
         assert_eq!(document["keys"][1]["kid"], "2");
         assert_eq!(document["keys"][0]["use"], "sig");
         assert!(document.get("roleCatalogUrl").is_none());

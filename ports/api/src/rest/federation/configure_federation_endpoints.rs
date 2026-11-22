@@ -1,6 +1,11 @@
-use super::{handshake_endpoints, link_endpoints, link_pages};
+use super::{
+    handshake_endpoints, link_endpoints, link_pages, resolution_endpoints,
+};
 use crate::{
-    federation::{PreparedFederation, SignedPeerLinkNotifier},
+    federation::{
+        AssertionVerifier, PreparedFederation, SignedPeerGrantResolver,
+        SignedPeerLinkNotifier, SignedPeerPoster,
+    },
     models::active_backend_modules::SqlAppModule,
 };
 
@@ -10,8 +15,8 @@ use actix_web::{
     web, App, Error,
 };
 use myc_core::domain::entities::{
-    FederationPeerRead, FederationPeerWrite, PeerClient, PeerLinkNotifier,
-    RequestNonceRegistration,
+    FederationPeerRead, FederationPeerWrite, PeerClient, PeerGrantResolver,
+    PeerLinkNotifier, RequestNonceRegistration,
 };
 use shaku::HasComponent;
 use std::sync::Arc;
@@ -41,12 +46,42 @@ where
         SignedPeerLinkNotifier::new(prepared.clone(), peer_client.clone()),
     );
 
+    let resolver = grant_resolver(
+        prepared,
+        peer_client.clone(),
+        peer_read.clone(),
+        peer_write.clone(),
+    );
+
     app.app_data(web::Data::from(peer_client))
         .app_data(web::Data::from(peer_read))
         .app_data(web::Data::from(peer_write))
         .app_data(web::Data::from(nonces))
         .app_data(web::Data::from(notifier))
+        .app_data(web::Data::from(resolver))
         .configure(handshake_endpoints::configure)
         .configure(link_endpoints::configure)
         .configure(link_pages::configure)
+        .configure(resolution_endpoints::configure)
+}
+
+/// How this instance asks its peers for a linked subject's grants (FED-11)
+fn grant_resolver(
+    prepared: &PreparedFederation,
+    peer_client: Arc<dyn PeerClient>,
+    peer_read: Arc<dyn FederationPeerRead>,
+    peer_write: Arc<dyn FederationPeerWrite>,
+) -> Arc<dyn PeerGrantResolver> {
+    Arc::new(SignedPeerGrantResolver {
+        poster: SignedPeerPoster {
+            prepared: prepared.clone(),
+            peer_client: peer_client.clone(),
+        },
+        verifier: AssertionVerifier {
+            prepared: prepared.clone(),
+            peer_client,
+            peer_read,
+            peer_write,
+        },
+    })
 }
