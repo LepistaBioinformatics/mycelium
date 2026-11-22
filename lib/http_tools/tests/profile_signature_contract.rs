@@ -24,7 +24,10 @@ use jsonwebtoken::{
 use myc_core::domain::dtos::{
     account::VerboseStatus,
     guest_role::Permission,
-    profile::{LicensedResource, LicensedResources, Owner, Profile},
+    profile::{
+        FederatedResource, FederatedResources, LicensedResource,
+        LicensedResources, Owner, Profile,
+    },
     profile_signature::{
         ProfileHeaderHash, ProfileSignatureAudience, SigningKeyVersion,
         UnixTimestampSeconds, MAX_SAFE_TIMESTAMP_SECONDS,
@@ -242,6 +245,7 @@ fn catalog() -> Vec<Vector> {
     vectors.extend(hostile_header_vectors(header));
     vectors.extend(hostile_claims_vectors(header));
     vectors.push(licensed_wire_vector(&v1));
+    vectors.push(federated_wire_vector(&v1));
     vectors
 }
 
@@ -272,6 +276,50 @@ fn licensed_wire_vector(signer: &VersionedEd25519Signer) -> Vector {
     vector(
         "valid_rust_permissions_and_null_status",
         "Real Rust wire strings read/write, nil tenant and null verboseStatus",
+        &header,
+        issue(&header, signer, ISSUED_AT),
+        vec!["1"],
+        ISSUED_AT,
+        Some(AUDIENCE),
+        "valid",
+    )
+}
+
+/// A profile carrying a federated grant next to a local one: the signature
+/// covers it like any other member, and an SDK that ignores the field still
+/// verifies the exact header (FED-30)
+fn federated_wire_vector(signer: &VersionedEd25519Signer) -> Vector {
+    let mut profile =
+        synthetic_profile(0x1111_1111_1111_4111_8111_1111_1111_1111, true);
+    profile.verbose_status = None;
+    let grant = |tenant: u128, role: &str| LicensedResource {
+        acc_id: Uuid::from_u128(tenant + 1),
+        sys_acc: false,
+        tenant_id: Uuid::from_u128(tenant),
+        acc_name: "Synthetic license".to_string(),
+        role: role.to_string(),
+        role_id: Uuid::from_u128(0x3333_3333_3333_4333_8333_3333_3333_3333),
+        perm: Permission::Read,
+        verified: true,
+        permit_flags: None,
+        deny_flags: None,
+    };
+    profile.licensed_resources = Some(LicensedResources::Records(vec![grant(
+        0x5555_5555_5555_4555_8555_5555_5555_5500,
+        "local-role",
+    )]));
+    profile.federated_resources =
+        Some(FederatedResources(vec![FederatedResource {
+            issuer: Uuid::from_u128(0x7777_7777_7777_4777_8777_7777_7777_7777),
+            grant: grant(
+                0x6666_6666_6666_4666_8666_6666_6666_6600,
+                "federated-role",
+            ),
+        }]));
+    let header = compress_and_encode_profile_to_base64(profile).unwrap();
+    vector(
+        "valid_with_federated_resources",
+        "A federated grant beside a local one; local-only filters ignore it",
         &header,
         issue(&header, signer, ISSUED_AT),
         vec!["1"],
@@ -947,6 +995,33 @@ fn valid_profile_decodes_to_the_synthetic_account() {
         "11111111-1111-4111-8111-111111111111"
     );
     assert!(profile.is_staff);
+}
+
+#[test]
+fn federated_grants_ride_in_their_own_member_with_their_issuer() {
+    let vector = catalog()
+        .into_iter()
+        .find(|vector| vector.name == "valid_with_federated_resources")
+        .unwrap();
+    let profile =
+        decode_and_decompress_profile_from_base64(vector.profile_header)
+            .unwrap();
+    let federated = profile.federated_resources.clone().unwrap();
+
+    assert_eq!(
+        federated.0[0].issuer.to_string(),
+        "77777777-7777-4777-8777-777777777777"
+    );
+    assert_eq!(federated.0[0].grant.role, "federated-role");
+    assert!(profile
+        .with_roles(vec!["federated-role".to_string()])
+        .licensed_resources
+        .is_none());
+    assert!(profile
+        .with_federated()
+        .with_roles(vec!["federated-role".to_string()])
+        .licensed_resources
+        .is_some());
 }
 
 #[test]
