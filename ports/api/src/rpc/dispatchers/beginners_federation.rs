@@ -85,7 +85,8 @@ pub async fn dispatch_beginners_federation(
             .await
         }
         method_names::BEGINNERS_FEDERATION_RESOLVE_GRANTS => {
-            resolve_own_grants(app_module, req, prepared, owner).await
+            let profile = profile.to_profile();
+            resolve_own_grants(app_module, req, prepared, &profile, owner).await
         }
         _ => Err(method_not_found(method)),
     }

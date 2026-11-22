@@ -100,7 +100,7 @@ pub fn methods() -> Vec<serde_json::Value> {
         method(
             method_names::BEGINNERS_FEDERATION_RESOLVE_GRANTS,
             "Resolve my grants on linked peers",
-            "Asks the peers the caller has an active link with for the caller's grants there (a stored, unexpired assertion is used instead of a call), verifies the signed answers and rejects any that name an id this instance or another peer owns. partial is true when some peer could not answer before resolveDeadlineMs. Each peer actually asked is recorded in the audit log.",
+            "Asks the peers the caller has an active link with for the caller's grants there, verifies the signed answers and rejects any that name an id this instance or another peer owns. A stored assertion younger than assertionRefreshSecs is used without a call; an older one is refreshed, and served with stale=true when the peer does not answer before resolveDeadlineMs; an expired one contributes nothing. partial is true when some peer contributed nothing because of a failure. denied names the local reason (inactive owner, inactive, archived or deleted account) that leaves the caller without any federated grant; no peer is asked then. Each peer actually asked is recorded in the audit log.",
             None,
         ),
     ]
